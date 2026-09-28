@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PublicApiCapability, PublicApiPlatformHubCard } from '$lib/content/constants/apis/types';
+	import type { PublicApiCapability, PublicApiPlatformHubCard } from '$lib/content/constants/channels/api/_shared/types';
 
 	import {
 		getRootPathSocialMediaPostingApiPlatform,

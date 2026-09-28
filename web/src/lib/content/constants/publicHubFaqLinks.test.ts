@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import { PUBLIC_AGENTS_HUB } from '$lib/content/constants/agents/hub';
-import { PUBLIC_CHANNELS_HUB_FAQ } from '$lib/content/constants/publicChannelsHubFaqConfig';
+import { PUBLIC_CHANNELS_HUB_FAQ } from '$lib/content/constants/hubs/channels';
 import {
 	PUBLIC_API_POSTING_HUB_FAQ,
 	PUBLIC_API_SCHEDULING_HUB_FAQ
-} from '$lib/content/constants/apis/publicApiCapabilityHubFaqConfig';
-import { PUBLIC_COMPARE_HUB_FAQ } from '$lib/content/constants/publicCompareHubFaqConfig';
-import { PUBLIC_CREATORS_HUB_FAQ } from '$lib/content/constants/publicCreatorsHubFaqConfig';
+} from '$lib/content/constants/channels/api/_shared/publicApiCapabilityHubFaqConfig';
+import { PUBLIC_COMPARE_HUB_FAQ } from '$lib/content/constants/hubs/compare';
+import { PUBLIC_CREATORS_HUB_FAQ } from '$lib/content/constants/hubs/creators';
 import {
 	PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS,
 	PUBLIC_API_POSTING_HUB_FAQ_ITEM_IDS,
@@ -19,8 +19,8 @@ import {
 	PUBLIC_ROADMAP_HUB_FAQ_ITEM_IDS,
 	PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS
 } from '$lib/content/constants/publicFaqConfig';
-import { PUBLIC_ROADMAP_HUB_FAQ } from '$lib/content/constants/publicRoadmapHubFaqConfig';
-import { PUBLIC_TOOLS_HUB_FAQ } from '$lib/content/constants/publicToolsHubFaqConfig';
+import { PUBLIC_ROADMAP_HUB_FAQ } from '$lib/content/constants/hubs/roadmap';
+import { PUBLIC_TOOLS_HUB_FAQ } from '$lib/content/constants/hubs/tools';
 import {
 	PUBLIC_BUILDING_BLOCKS_HUB,
 	PUBLIC_PLAYBOOKS_HUB

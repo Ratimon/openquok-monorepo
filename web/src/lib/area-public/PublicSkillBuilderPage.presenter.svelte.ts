@@ -5,7 +5,7 @@ import {
 	buildSkillBuilderGenericMetaDescription,
 	buildSkillBuilderGenericMetaTitle
 } from '$lib/content/utils/buildProgrammaticSeoTitles';
-import { getSkillBuilderChannelBySlug } from '$lib/skill-builder/constants/publicSkillBuilderChannelConfig';
+import { getSkillBuilderChannelBySlug } from '$lib/content/constants/channels/tools/skill-builder/general';
 import { createDefaultStarterWorkflowSteps } from '$lib/skill-builder/constants/defaults';
 import type { SkillBuilderPageViewModel } from '$lib/skill-builder/skillBuilder.types';
 import { blueprintToWorkflowSteps } from '$lib/skill-builder/utils/blueprintToBuilderState';

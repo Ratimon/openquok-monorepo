@@ -21,6 +21,7 @@
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"test:pseo-registry": "vitest run src/lib/content/constants/_dev/programmatic-landing/publicProgrammaticLandingRegistry.test.ts",
 		"test:unit": "vitest",
 		"test": "pnpm run generate:docs-mcp-index && npm run test:unit -- --run",
 		"verify:ai-robots": "node ./scripts/verify-ai-robots.mjs",

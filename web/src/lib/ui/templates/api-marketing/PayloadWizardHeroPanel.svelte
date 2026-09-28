@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { PublicApiFormatExample } from '$lib/content/constants/apis/types';
+	import type { PublicApiFormatExample } from '$lib/content/constants/channels/api/_shared/types';
 	import type { CreateSocialPostMode } from '$lib/posts/createSocialPost.types';
 	import type { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPost.presenter.svelte';
 
 	import { onDestroy, untrack } from 'svelte';
 
-	import { PUBLIC_API_CREATE_POST_ENDPOINT } from '$lib/content/constants/apis/shared';
+	import { PUBLIC_API_CREATE_POST_ENDPOINT } from '$lib/content/constants/channels/api/_shared/shared';
 	import { PublicPayloadWizardComposerPresenter } from '$lib/posts/PublicPayloadWizardComposer.presenter.svelte';
 	import { toast } from '$lib/ui/sonner';
 

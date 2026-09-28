@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { PayloadWizardChannelHubLinkViewModel } from '$lib/posts/constants/publicPayloadWizardChannelConfig';
-	import type { PublicApiFormatExample } from '$lib/content/constants/apis/types';
+	import type { PayloadWizardChannelHubLinkViewModel } from '$lib/content/constants/channels/tools/payload-wizard/general';
+	import type { PublicApiFormatExample } from '$lib/content/constants/channels/api/_shared/types';
 
 	import { browser } from '$app/environment';
 
@@ -9,7 +9,7 @@
 		getRootPathPublicPayloadWizard,
 		getRootPathPublicTools
 	} from '$lib/area-public/constants/getRootPathPublicTools';
-	import { buildPayloadWizardFaqSection } from '$lib/posts/constants/publicPayloadWizardFaqConfig';
+	import { buildPayloadWizardFaqSection } from '$lib/content/constants/channels/tools/payload-wizard/faq';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { route, url } from '$lib/utils/path';
 

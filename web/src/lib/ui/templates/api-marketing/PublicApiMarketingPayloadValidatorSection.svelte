@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PublicApiHubStaticExample, PublicApiPlatformSlug } from '$lib/content/constants/apis/types';
+	import type { PublicApiHubStaticExample, PublicApiPlatformSlug } from '$lib/content/constants/channels/api/_shared/types';
 
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 

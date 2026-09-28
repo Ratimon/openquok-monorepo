@@ -6,12 +6,12 @@ import {
 import { PUBLIC_AGENT_HOST_LANDING_PAGES } from '$lib/content/constants/agents/seeds';
 
 export * from '$lib/content/constants/agents/types';
-export * from '$lib/content/constants/agents/shared';
+export * from '$lib/content/constants/agents/general';
 export { PUBLIC_AGENTS_HUB } from '$lib/content/constants/agents/hub';
-export { openclawAgent } from '$lib/content/constants/agents/openclaw';
-export { hermesAgent } from '$lib/content/constants/agents/hermes';
-export { grokBotAgent } from '$lib/content/constants/agents/grok-bot';
-export { thinkrailAgent } from '$lib/content/constants/agents/thinkrail';
+export { openclawAgent } from '$lib/content/constants/agents/hosts/openclaw';
+export { hermesAgent } from '$lib/content/constants/agents/hosts/hermes';
+export { grokBotAgent } from '$lib/content/constants/agents/hosts/grok-bot';
+export { thinkrailAgent } from '$lib/content/constants/agents/hosts/thinkrail';
 export {
 	PUBLIC_AGENT_HOST_LANDING_PAGES,
 	listPublicAgentHostSeedsForFooter

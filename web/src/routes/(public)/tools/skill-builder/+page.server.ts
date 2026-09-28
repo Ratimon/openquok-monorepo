@@ -8,7 +8,7 @@ import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import {
 	listSkillBuilderChannelsForHub,
 	PUBLIC_SKILL_BUILDER_GENERIC_KEYWORDS
-} from '$lib/skill-builder/constants/publicSkillBuilderChannelConfig';
+} from '$lib/content/constants/channels/tools/skill-builder/general';
 import { getBuildingBlockSlugsQueryParam } from '$lib/skill-builder/utils/parseBuilderQuery';
 import { buildToolsLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createMetaData } from '$lib/seo/createMetaData';

@@ -1,6 +1,6 @@
 import type { PublicAgentChannelPageConfig } from '$lib/content/constants/publicAgentChannelConfig';
 import type { PublicAgentFeatureSection } from '$lib/content/constants/publicAgentConfig';
-import { CHANNEL_INSIGHTS_BENTO_SUFFIX } from '$lib/content/constants/channels/shared';
+import { CHANNEL_INSIGHTS_BENTO_SUFFIX } from '$lib/content/constants/channels/catalog/shared';
 import type {
 	PublicChannelFeatureSection,
 	PublicChannelLandingPageViewModel

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { PublicPayloadWizardPagePresenter } from '$lib/area-public/PublicPayloadWizardPage.presenter.svelte';
-import { PUBLIC_PAYLOAD_WIZARD_GENERIC_CONFIG } from '$lib/posts/constants/publicPayloadWizardChannelConfig';
+import { PUBLIC_PAYLOAD_WIZARD_GENERIC_CONFIG } from '$lib/content/constants/channels/tools/payload-wizard/general';
 import {
 	buildPayloadWizardChannelHeroTitle,
 	buildPayloadWizardChannelMetaTitle,

@@ -19,7 +19,7 @@
 	import { getRootPathAccount, getAccountNewPlaybookPath } from '$lib/area-protected';
 	import { getBillingPresenter } from '$lib/billing';
 	import { CREATING_SKILLS_DOC_URL, OPENQUOK_CORE_EXTENSION_SLUG } from '$lib/skill-builder/constants/defaults';
-	import { buildSkillBuilderFaqSection } from '$lib/skill-builder/constants/publicSkillBuilderFaqConfig';
+	import { buildSkillBuilderFaqSection } from '$lib/content/constants/channels/tools/skill-builder/faq';
 	import { saveSkillBuilderStackDraft, readSkillBuilderStackDraft } from '$lib/skill-builder/constants/skillBuilderDraftStorage';
 	import { buildSkillBuilderStackDraft } from '$lib/skill-builder/utils/buildSkillBuilderStackDraft';
 	import { buildCommandWorkflowStepFromLibraryItem } from '$lib/skill-builder/constants/openquokCommandWorkflowMeta';

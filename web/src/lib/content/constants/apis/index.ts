@@ -1,63 +1,51 @@
 import type {
 	PublicApiCapability,
-	PublicApiHubPageViewModel,
-	PublicApiPlatformHubCard,
 	PublicApiPlatformPageViewModel,
 	PublicApiPlatformSlug
-} from '$lib/content/constants/apis/types';
-import { publicApiPostingHubPage } from '$lib/content/constants/apis/posting';
-import { publicApiSchedulingHubPage } from '$lib/content/constants/apis/scheduling';
-import { buildPublicApiPlatformHubCard } from '$lib/content/constants/apis/shared';
+} from '$lib/content/constants/channels/api/_shared/types';
 import {
-	facebookPublicApiPostingPlatform,
-	facebookPublicApiSchedulingPlatform,
-	instagramPublicApiPostingPlatform,
-	instagramPublicApiSchedulingPlatform,
-	linkedinPublicApiPostingPlatform,
-	linkedinPublicApiSchedulingPlatform,
-	threadsPublicApiPostingPlatform,
-	threadsPublicApiSchedulingPlatform,
-	tiktokPublicApiPostingPlatform,
-	tiktokPublicApiSchedulingPlatform,
-	xPublicApiPostingPlatform,
-	xPublicApiSchedulingPlatform,
-	youtubePublicApiPostingPlatform,
-	youtubePublicApiSchedulingPlatform
-} from '$lib/content/constants/apis/platforms/index';
+	PUBLIC_API_FOOTER_POPULAR_POSTING_SLUGS,
+	PUBLIC_API_POSTING_PLATFORM_SLUGS,
+	getPublicApiPostingHubPage,
+	getPublicApiPostingPlatformBySlug,
+	listPublicApiPostingPlatformsForHub
+} from '$lib/content/constants/channels/api/posting/index';
+import {
+	PUBLIC_API_SCHEDULING_PLATFORM_SLUGS,
+	getPublicApiSchedulingHubPage,
+	getPublicApiSchedulingPlatformBySlug,
+	listPublicApiSchedulingPlatformsForHub
+} from '$lib/content/constants/channels/api/scheduling/index';
 
-export * from '$lib/content/constants/apis/types';
-export { publicApiPostingHubPage } from '$lib/content/constants/apis/posting';
-export { publicApiSchedulingHubPage } from '$lib/content/constants/apis/scheduling';
+export * from '$lib/content/constants/channels/api/_shared/types';
+export { publicApiPostingHubPage } from '$lib/content/constants/channels/api/posting/general';
+export { publicApiSchedulingHubPage } from '$lib/content/constants/channels/api/scheduling/general';
 export {
 	PUBLIC_API_POSTING_HUB_FAQ,
 	PUBLIC_API_SCHEDULING_HUB_FAQ,
 	getPublicApiCapabilityHubFaq
-} from '$lib/content/constants/apis/publicApiCapabilityHubFaqConfig';
-export {
-	PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM
-} from '$lib/content/constants/apis/formatExamples';
+} from '$lib/content/constants/channels/api/_shared/publicApiCapabilityHubFaqConfig';
+export { PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM } from '$lib/content/constants/channels/api/_shared/formatExamples';
 export {
 	PUBLIC_API_POSTING_HUB_STATIC_EXAMPLE,
 	PUBLIC_API_SCHEDULING_HUB_STATIC_EXAMPLE
-} from '$lib/content/constants/apis/hubExamples';
+} from '$lib/content/constants/channels/api/_shared/hubExamples';
 export {
 	PUBLIC_API_POSTING_HUB_SETUP_STEPS,
 	PUBLIC_API_SCHEDULING_HUB_SETUP_STEPS,
 	getPublicApiHubSetupStepsSection,
 	getPublicApiPlatformSetupStepsSection
-} from '$lib/content/constants/apis/publicApiCapabilityHubSetupStepsConfig';
+} from '$lib/content/constants/channels/api/_shared/publicApiCapabilityHubSetupStepsConfig';
 export {
 	getPublicApiHubAudienceSection,
 	getPublicApiPlatformAudienceSection
-} from '$lib/content/constants/apis/publicApiCapabilityAudienceConfig';
-export {
-	getPublicApiHubWorkflowSection
-} from '$lib/content/constants/apis/publicApiCapabilityHubWorkflowConfig';
+} from '$lib/content/constants/channels/api/_shared/publicApiCapabilityAudienceConfig';
+export { getPublicApiHubWorkflowSection } from '$lib/content/constants/channels/api/_shared/publicApiCapabilityHubWorkflowConfig';
 export {
 	PUBLIC_API_MARKETING_HUB_FEATURE_SECTIONS,
 	getPublicApiHubFeatureSections,
 	getPublicApiPlatformFeatureSections
-} from '$lib/content/constants/apis/publicApiCapabilityHubFeatureConfig';
+} from '$lib/content/constants/channels/api/_shared/publicApiCapabilityHubFeatureConfig';
 export {
 	getPublicPricingLandingPlanOverrides,
 	getPublicPricingLandingSection,
@@ -77,73 +65,26 @@ export {
 	buildPublicApiIntegrationsListTerminalCode,
 	buildPublicApiPlatformHubCard,
 	getPublicApiProviderIdentifier
-} from '$lib/content/constants/apis/shared';
+} from '$lib/content/constants/channels/api/_shared/shared';
 
-export const PUBLIC_API_POSTING_PLATFORM_SLUGS: readonly PublicApiPlatformSlug[] = [
-	'tiktok',
-	'x',
-	'instagram',
-	'youtube',
-	'facebook',
-	'threads',
-	'linkedin'
-];
+export {
+	PUBLIC_API_POSTING_PLATFORM_SLUGS,
+	PUBLIC_API_FOOTER_POPULAR_POSTING_SLUGS,
+	getPublicApiPostingHubPage,
+	getPublicApiPostingPlatformBySlug,
+	listPublicApiPostingPlatformsForHub
+};
 
-export const PUBLIC_API_SCHEDULING_PLATFORM_SLUGS: readonly PublicApiPlatformSlug[] = [
-	...PUBLIC_API_POSTING_PLATFORM_SLUGS
-];
-
-const postingPlatformBySlug = new Map<PublicApiPlatformSlug, PublicApiPlatformPageViewModel>([
-	['tiktok', tiktokPublicApiPostingPlatform],
-	['x', xPublicApiPostingPlatform],
-	['instagram', instagramPublicApiPostingPlatform],
-	['youtube', youtubePublicApiPostingPlatform],
-	['facebook', facebookPublicApiPostingPlatform],
-	['threads', threadsPublicApiPostingPlatform],
-	['linkedin', linkedinPublicApiPostingPlatform]
-]);
-
-const schedulingPlatformBySlug = new Map<PublicApiPlatformSlug, PublicApiPlatformPageViewModel>([
-	['tiktok', tiktokPublicApiSchedulingPlatform],
-	['x', xPublicApiSchedulingPlatform],
-	['instagram', instagramPublicApiSchedulingPlatform],
-	['youtube', youtubePublicApiSchedulingPlatform],
-	['facebook', facebookPublicApiSchedulingPlatform],
-	['threads', threadsPublicApiSchedulingPlatform],
-	['linkedin', linkedinPublicApiSchedulingPlatform]
-]);
+export {
+	PUBLIC_API_SCHEDULING_PLATFORM_SLUGS,
+	getPublicApiSchedulingHubPage,
+	getPublicApiSchedulingPlatformBySlug,
+	listPublicApiSchedulingPlatformsForHub
+};
 
 export function isPublicApiPlatformSlug(value: string): value is PublicApiPlatformSlug {
 	const key = value.trim().toLowerCase();
 	return (PUBLIC_API_POSTING_PLATFORM_SLUGS as readonly string[]).includes(key);
-}
-
-export function getPublicApiPostingHubPage(): PublicApiHubPageViewModel {
-	return publicApiPostingHubPage;
-}
-
-export function getPublicApiSchedulingHubPage(): PublicApiHubPageViewModel {
-	return publicApiSchedulingHubPage;
-}
-
-export function getPublicApiPostingPlatformBySlug(
-	slug: string
-): PublicApiPlatformPageViewModel | undefined {
-	const key = slug.trim().toLowerCase();
-	if (!isPublicApiPlatformSlug(key)) {
-		return undefined;
-	}
-	return postingPlatformBySlug.get(key);
-}
-
-export function getPublicApiSchedulingPlatformBySlug(
-	slug: string
-): PublicApiPlatformPageViewModel | undefined {
-	const key = slug.trim().toLowerCase();
-	if (!isPublicApiPlatformSlug(key)) {
-		return undefined;
-	}
-	return schedulingPlatformBySlug.get(key);
 }
 
 export function getPublicApiPlatformBySlug(
@@ -154,20 +95,3 @@ export function getPublicApiPlatformBySlug(
 		? getPublicApiPostingPlatformBySlug(slug)
 		: getPublicApiSchedulingPlatformBySlug(slug);
 }
-
-export function listPublicApiPostingPlatformsForHub(): PublicApiPlatformHubCard[] {
-	return PUBLIC_API_POSTING_PLATFORM_SLUGS.map((slug) => buildPublicApiPlatformHubCard(slug));
-}
-
-export function listPublicApiSchedulingPlatformsForHub(): PublicApiPlatformHubCard[] {
-	return PUBLIC_API_SCHEDULING_PLATFORM_SLUGS.map((slug) => buildPublicApiPlatformHubCard(slug));
-}
-
-/** Footer “Popular APIs” row — matches PostPeer’s top posting API slugs. */
-export const PUBLIC_API_FOOTER_POPULAR_POSTING_SLUGS: readonly PublicApiPlatformSlug[] = [
-	'tiktok',
-	'youtube',
-	'x',
-	'instagram',
-	'linkedin'
-];

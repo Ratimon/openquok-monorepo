@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PayloadWizardChannelHubLinkViewModel } from '$lib/posts/constants/publicPayloadWizardChannelConfig';
+	import type { PayloadWizardChannelHubLinkViewModel } from '$lib/content/constants/channels/tools/payload-wizard/general';
 
 	import { icons } from '$data/icons';
 	import { getRootPathPublicPayloadWizard } from '$lib/area-public/constants/getRootPathPublicTools';

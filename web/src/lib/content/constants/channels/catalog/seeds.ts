@@ -1,0 +1,38 @@
+import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/catalog/types';
+
+import { facebookChannel } from '$lib/content/constants/channels/catalog/facebook';
+import { threadsChannel } from '$lib/content/constants/channels/catalog/threads';
+import { instagramChannel } from '$lib/content/constants/channels/catalog/instagram';
+import { youtubeChannel } from '$lib/content/constants/channels/catalog/youtube';
+import { tiktokChannel } from '$lib/content/constants/channels/catalog/tiktok';
+import { linkedinChannel } from '$lib/content/constants/channels/catalog/linkedin';
+import { xChannel } from '$lib/content/constants/channels/catalog/x';
+import { devtoChannel } from '$lib/content/constants/channels/catalog/devto';
+import { blueskyChannel } from '$lib/content/constants/channels/catalog/bluesky';
+
+/** Coming-soon entries appear on the hub but do not have detail pages yet. */
+const COMING_SOON_CHANNELS: PublicChannelLandingPageViewModel[] = [];
+
+/** Single registry for channel landings — order drives hub, nav, and footer columns. */
+export const PUBLIC_CHANNEL_LANDING_PAGES: readonly PublicChannelLandingPageViewModel[] = [
+	facebookChannel,
+	threadsChannel,
+	instagramChannel,
+	youtubeChannel,
+	tiktokChannel,
+	linkedinChannel,
+	xChannel,
+	blueskyChannel,
+	devtoChannel,
+	...COMING_SOON_CHANNELS
+];
+
+export type PublicChannelFooterEntry = { slug: string; label: string };
+
+/** Footer list derived from `PUBLIC_CHANNEL_LANDING_PAGES`. */
+export function listPublicChannelLandingSeedsForFooter(): PublicChannelFooterEntry[] {
+	return PUBLIC_CHANNEL_LANDING_PAGES.map(({ slug, platformLabel }) => ({
+		slug,
+		label: platformLabel
+	}));
+}

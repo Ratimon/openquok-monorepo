@@ -11,12 +11,12 @@ import {
 	getRootPathPublicSkillBuilder,
 	getRootPathPublicTools
 } from '$lib/area-public/constants/getRootPathPublicTools';
-import { listPayloadWizardChannelsForHub } from '$lib/posts/constants/publicPayloadWizardChannelConfig';
+import { listPayloadWizardChannelsForHub } from '$lib/content/constants/channels/tools/payload-wizard/general';
 import { listBestTimeChannelsForHub } from '$lib/best-time-to-post';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { listCanvasChannelsForHub } from '$lib/canvas';
-import { listSkillBuilderChannelsForHub } from '$lib/skill-builder/constants/publicSkillBuilderChannelConfig';
-import { PUBLIC_TOOLS_HUB_FAQ } from '$lib/content/constants/publicToolsHubFaqConfig';
+import { listSkillBuilderChannelsForHub } from '$lib/content/constants/channels/tools/skill-builder/general';
+import { PUBLIC_TOOLS_HUB_FAQ } from '$lib/content/constants/hubs/tools';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';

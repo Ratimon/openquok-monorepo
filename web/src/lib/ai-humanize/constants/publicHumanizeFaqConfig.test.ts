@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildHumanizeFaqSection } from '$lib/ai-humanize/constants/publicHumanizeFaqConfig';
+import { buildHumanizeFaqSection } from '$lib/content/constants/channels/tools/humanizer/faq';
 import { assertNoNofollowOnFirstPartyFaqLinks } from '$lib/content/utils/publicFaqFunnel.test-utils';
 
 describe('buildHumanizeFaqSection', () => {

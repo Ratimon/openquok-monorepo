@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { PublicHumanizePagePresenter } from '$lib/area-public/PublicHumanizePage.presenter.svelte';
-import { PUBLIC_HUMANIZE_GENERIC_CONFIG } from '$lib/ai-humanize/constants/publicHumanizeChannelConfig';
+import { PUBLIC_HUMANIZE_GENERIC_CONFIG } from '$lib/content/constants/channels/tools/humanizer/general';
 import {
 	buildHumanizeChannelHeroTitle,
 	buildHumanizeChannelMetaTitle,

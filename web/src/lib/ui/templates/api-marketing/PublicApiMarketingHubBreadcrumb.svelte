@@ -9,7 +9,7 @@
 		getPublicApiPostingHubPage,
 		getPublicApiSchedulingHubPage
 	} from '$lib/content/constants/apis/index';
-	import type { PublicApiCapability } from '$lib/content/constants/apis/types';
+	import type { PublicApiCapability } from '$lib/content/constants/channels/api/_shared/types';
 	import * as Breadcrumb from '$lib/ui/breadcrumb';
 	import { cn } from '$lib/ui/helpers/common';
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';

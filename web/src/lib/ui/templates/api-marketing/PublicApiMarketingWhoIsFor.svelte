@@ -1,9 +1,12 @@
 <script lang="ts">
-	import type { PublicApiCapability } from '$lib/content/constants/apis/types';
+	import type {
+		PublicApiCapability,
+		PublicApiPlatformSlug
+	} from '$lib/content/constants/channels/api/_shared/types';
 	import {
 		getPublicApiHubAudienceSection,
 		getPublicApiPlatformAudienceSection
-	} from '$lib/content/constants/apis/publicApiCapabilityAudienceConfig';
+	} from '$lib/content/constants/channels/api/_shared/publicApiCapabilityAudienceConfig';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
@@ -11,13 +14,18 @@
 	type Props = {
 		capability: PublicApiCapability;
 		platformLabel?: string | null;
+		platformSlug?: PublicApiPlatformSlug | null;
 	};
 
-	let { capability, platformLabel = null }: Props = $props();
+	let { capability, platformLabel = null, platformSlug = null }: Props = $props();
 
 	const section = $derived(
 		platformLabel?.trim()
-			? getPublicApiPlatformAudienceSection(capability, platformLabel.trim())
+			? getPublicApiPlatformAudienceSection(
+					capability,
+					platformLabel.trim(),
+					platformSlug ?? undefined
+				)
 			: getPublicApiHubAudienceSection(capability)
 	);
 </script>

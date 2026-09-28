@@ -1,16 +1,16 @@
 import type { McpLandingSeed } from '$lib/content/constants/mcps/types';
 
-import { antigravity_cliMcpSeed } from '$lib/content/constants/mcps/antigravity-cli';
-import { chatgptMcpSeed } from '$lib/content/constants/mcps/chatgpt';
-import { codexMcpSeed } from '$lib/content/constants/mcps/codex';
-import { cursorMcpSeed } from '$lib/content/constants/mcps/cursor';
-import { claude_codeMcpSeed } from '$lib/content/constants/mcps/claude-code';
-import { claude_coworkMcpSeed } from '$lib/content/constants/mcps/claude-cowork';
-import { vscode_copilotMcpSeed } from '$lib/content/constants/mcps/vscode-copilot';
-import { devin_desktopMcpSeed } from '$lib/content/constants/mcps/devin-desktop';
-import { ampMcpSeed } from '$lib/content/constants/mcps/amp';
-import { warpMcpSeed } from '$lib/content/constants/mcps/warp';
-import { muse_codeMcpSeed } from '$lib/content/constants/mcps/muse-code';
+import { antigravity_cliMcpSeed } from '$lib/content/constants/mcps/hosts/antigravity-cli';
+import { chatgptMcpSeed } from '$lib/content/constants/mcps/hosts/chatgpt';
+import { codexMcpSeed } from '$lib/content/constants/mcps/hosts/codex';
+import { cursorMcpSeed } from '$lib/content/constants/mcps/hosts/cursor';
+import { claude_codeMcpSeed } from '$lib/content/constants/mcps/hosts/claude-code';
+import { claude_coworkMcpSeed } from '$lib/content/constants/mcps/hosts/claude-cowork';
+import { vscode_copilotMcpSeed } from '$lib/content/constants/mcps/hosts/vscode-copilot';
+import { devin_desktopMcpSeed } from '$lib/content/constants/mcps/hosts/devin-desktop';
+import { ampMcpSeed } from '$lib/content/constants/mcps/hosts/amp';
+import { warpMcpSeed } from '$lib/content/constants/mcps/hosts/warp';
+import { muse_codeMcpSeed } from '$lib/content/constants/mcps/hosts/muse-code';
 
 /** Single registry for MCP landing seeds — order drives hub, nav, and footer columns. */
 export const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [

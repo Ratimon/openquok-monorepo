@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM } from '$lib/content/constants/apis/formatExamples';
-import { buildPublicApiPayloadValidatorStaticExampleFromFormatExample } from '$lib/content/constants/apis/hubExamples';
+import { PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM } from '$lib/content/constants/channels/api/_shared/formatExamples';
+import { buildPublicApiPayloadValidatorStaticExampleFromFormatExample } from '$lib/content/constants/channels/api/_shared/hubExamples';
 import {
 	PUBLIC_API_POSTING_PAYLOAD_VALIDATOR_HUB_SECTION,
 	PUBLIC_API_SCHEDULING_PAYLOAD_VALIDATOR_HUB_SECTION,
 	getPublicApiCapabilityPayloadValidatorHubSection
-} from '$lib/content/constants/apis/publicApiPayloadValidatorSectionConfig';
+} from '$lib/content/constants/channels/api/_shared/publicApiPayloadValidatorSectionConfig';
 import { getPublicPayloadValidatorHref } from '$lib/content/utils/getPublicPayloadValidatorHref';
 
 describe('publicApiPayloadValidatorSectionConfig', () => {

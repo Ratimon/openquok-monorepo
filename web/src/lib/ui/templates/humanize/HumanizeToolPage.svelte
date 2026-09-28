@@ -3,7 +3,7 @@
 
 	import { browser } from '$app/environment';
 
-	import { buildHumanizeFaqSection } from '$lib/ai-humanize/constants/publicHumanizeFaqConfig';
+	import { buildHumanizeFaqSection } from '$lib/content/constants/channels/tools/humanizer/faq';
 	import {
 		getRootPathPublicChannel,
 		getRootPathPublicChannels

@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { page } from '$app/state';
 
-	import type { PublicApiCapability, PublicApiPlatformSlug } from '$lib/content/constants/apis/types';
+	import type { PublicApiCapability, PublicApiPlatformSlug } from '$lib/content/constants/channels/api/_shared/types';
 	import {
 		getPublicApiHubSetupStepsSection,
 		getPublicApiPlatformSetupStepsSection
-	} from '$lib/content/constants/apis/publicApiCapabilityHubSetupStepsConfig';
+	} from '$lib/content/constants/channels/api/_shared/publicApiCapabilityHubSetupStepsConfig';
 	import { getPublicApiSetupStepsFooter } from '$lib/content/constants/publicSetupStepsFooterConfig';
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';

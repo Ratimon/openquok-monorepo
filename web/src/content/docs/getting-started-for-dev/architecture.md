@@ -2,7 +2,7 @@
 title: Project Architecture
 description: OpenQuok's architecture — project layout and key files for the social scheduler.
 order: 1
-lastUpdated: 2026-09-19
+lastUpdated: 2026-09-28
 ---
 
 <script>
@@ -32,6 +32,22 @@ const runtimeArchitecture = `flowchart LR
     orchestrator --> storage
     orchestrator --> resend
 `;
+
+/** Literal path templates for programmatic SEO tables (avoid `{slug}` in markdown table cells). */
+const programmaticSeoPaths = {
+	channelsSlugTs: 'channels/{slug}.ts',
+	apisPlatformsSlugTs: 'apis/platforms/{slug}.ts',
+	agentsHostsSlugTs: 'agents/hosts/{slug}.ts',
+	channelsUrlSlug: '/channels/{slug}',
+	agentsUrlSlug: '/agents/{slug}',
+	mcpsHostsSlugTs: 'mcps/hosts/{slug}.ts',
+	agentsHostChannelSlugUrl: '/agents/{host}/{channelSlug}',
+	channelsChannelSlugTs: 'channels/{channelSlug}.ts',
+	apiSurfaceSlugSegment: '/{slug}',
+	channelsApiPostingPlatformsSlugTs: 'channels/api/posting/platforms/{slug}.ts',
+	channelsToolsToolFaqTs: 'channels/tools/{tool}/faq.ts',
+	channelsToolsToolGeneralTs: 'channels/tools/{tool}/general.ts'
+};
 </script>
 
 ## Overview
@@ -305,6 +321,40 @@ The SvelteKit app root:
 - <Badge text="src/content/" variant="path" /> — Markdown sources for the in-app docs site.
 - <Badge text="static/" variant="path" /> — Public assets (favicon, PWA icons, README images).
 
+#### Marketing copy (programmatic SEO)
+
+Routes under <Badge text="src/routes/(public)/" variant="path" /> stay **generic** (one `+page` per surface). Hero, FAQ, and meta strings live in catalogs — mainly <Badge text="web/src/lib/content/constants/" variant="path" /> and feature <Badge text="public*Config.ts" variant="param" /> modules under <Badge text="web/src/lib/" variant="path" />.
+
+| Kind | Edit when | Examples |
+| --- | --- | --- |
+| **Generic** | Hub or shared builders for every slug on a surface | <Badge text="hubs/channels.ts" variant="path" />, <Badge text="channels/api/_shared/publicApiCapabilityAudienceConfig.ts" variant="path" />, <Badge text="channels/api/posting/general.ts" variant="path" /> |
+| **Tailored** | One URL needs its own hero, meta, or feature copy | <Badge text={programmaticSeoPaths.channelsSlugTs} variant="path" />, <Badge text={programmaticSeoPaths.apisPlatformsSlugTs} variant="path" />, <Badge text={programmaticSeoPaths.agentsHostsSlugTs} variant="path" /> |
+
+**Rule:** match the public URL. Example: <Badge text="/social-media-posting-api/x" variant="path" /> → <Badge text="apis/platforms/x.ts" variant="path" />; the posting API hub → generic capability configs under <Badge text="apis/" variant="path" />.
+
+**Catalog source of truth:** register channels in <Badge text="channels/catalog/seeds.ts" variant="path" /> (<Badge text="PUBLIC_CHANNEL_LANDING_PAGES" variant="param" />). FAQ: tailored Q&A in each catalog; shared rows append via <Badge text="appendPublicGeneralFaqItems" variant="param" /> and <Badge text="PUBLIC_*_FAQ_ITEM_IDS" variant="param" /> in <Badge text="publicFaqConfig.ts" variant="path" />. Optional fourth WhoIsFor card: <Badge text="channels/catalog/audience-tailored.ts" variant="path" />.
+
+Paths below are repo-relative from the monorepo root.
+
+| Public URL | Generic | Tailored |
+| --- | --- | --- |
+| <Badge text="/channels" variant="path" /> / <Badge text={programmaticSeoPaths.channelsUrlSlug} variant="path" /> | Hub FAQ; <Badge text="channels/index.ts" variant="path" /> append | <Badge text={programmaticSeoPaths.channelsSlugTs} variant="path" /> + <Badge text="seeds.ts" variant="path" /> |
+| <Badge text="/agents" variant="path" /> / host or MCP <Badge text={programmaticSeoPaths.agentsUrlSlug} variant="path" /> | <Badge text="agents/hub.ts" variant="path" />, <Badge text="mcps/general.ts" variant="path" /> | <Badge text={programmaticSeoPaths.agentsHostsSlugTs} variant="path" /> or <Badge text={programmaticSeoPaths.mcpsHostsSlugTs} variant="path" /> |
+| <Badge text={programmaticSeoPaths.agentsHostChannelSlugUrl} variant="path" /> | <Badge text="buildAgentsChannelAudienceSection.ts" variant="path" />, <Badge text="buildAgentChannelLandingVm.ts" variant="path" /> | <Badge text={programmaticSeoPaths.channelsChannelSlugTs} variant="path" />, <Badge text="publicAgentChannelConfig.ts" variant="path" /> |
+| <Badge text="/social-media-posting-api" variant="path" /> / <Badge text="/social-media-scheduling-api" variant="path" /> (+ <Badge text={programmaticSeoPaths.apiSurfaceSlugSegment} variant="path" />) | <Badge text="channels/api/_shared/publicApiCapability*.ts" variant="path" />, <Badge text="channels/api/_shared/shared.ts" variant="path" /> | <Badge text={programmaticSeoPaths.channelsApiPostingPlatformsSlugTs} variant="path" /> |
+| <Badge text="/tools/*" variant="path" /> (+ channel slug) | <Badge text="hubs/tools.ts" variant="path" />; per-tool <Badge text={programmaticSeoPaths.channelsToolsToolFaqTs} variant="path" /> | <Badge text={programmaticSeoPaths.channelsToolsToolGeneralTs} variant="path" /> (humanizer, photo-editor, skill-builder, best-time-to-post, payload-wizard) |
+| <Badge text="/self-hosting" variant="path" />, <Badge text="/compare" variant="path" />, hubs | <Badge text="self-hosting/landing.ts" variant="path" />, <Badge text="self-hosting/whoIsFor.ts" variant="path" />, <Badge text="hubs/compare.ts" variant="path" />, <Badge text="hubs/*.ts" variant="path" /> | <Badge text="competitors/" variant="path" /> for compare pairs |
+
+**Shims:** <Badge text="publicChannelConfig.ts" variant="path" /> re-exports <Badge text="channels/index.ts" variant="path" />. URL helpers: <Badge text="web/src/lib/area-public/constants/getRootPathPublic*.ts" variant="path" />.
+
+**Maintainer-only (do not import from app code):** <Badge text="web/src/lib/content/constants/_dev/programmatic-landing/publicProgrammaticLandingRegistry.ts" variant="path" /> — surface list, page counts, <Badge text="estimateNewProviderMarketingPages(slug)" variant="param" />. Test:
+
+```bash
+pnpm --filter ./web run test:pseo-registry
+```
+
+Route-shaped catalogs live under <Badge text="channels/api/" variant="path" />, <Badge text="channels/catalog/" variant="path" />, <Badge text="channels/tools/" variant="path" />, <Badge text="hubs/" variant="path" />, and <Badge text="self-hosting/" variant="path" />. Legacy shim files at old <Badge text="public*HubFaqConfig.ts" variant="path" /> and feature-lib <Badge text="public*ChannelConfig.ts" variant="path" /> paths re-export the new modules for one release cycle.
+
 #### Presenters, repositories, and tests
 
 We keep **Svelte** focused on layout and inputs, and push behavior into layers you can test without the DOM or a real API:
@@ -493,4 +543,5 @@ Documentation UI (layouts, MDX helpers, search, nav):
 <LinkCard title="Supabase backup" description="Layers 1–3 and cutover scripts under .backups/" href="/docs/configuration-backend/supabase-backup" />
 <LinkCard title="Maintenance mode" description="Cross-stack write-freeze for cutover windows" href="/docs/installation/maintenance-mode" />
 <LinkCard title="Documentation contribution" description="Tabs, sidebar config, and how to author docs pages" href="/docs/documentation-contribution" />
+<LinkCard title="Adding a social provider" description="Channel catalog, pSEO routes, bento, and footer wiring" href="/docs/contribution-opportunities/add-provider" />
 </CardGrid>

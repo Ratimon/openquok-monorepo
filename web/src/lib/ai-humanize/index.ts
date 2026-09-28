@@ -56,12 +56,12 @@ export {
 	getHumanizeChannelBySlug,
 	listHumanizeChannelsForHub,
 	type HumanizeChannelPageConfig
-} from '$lib/ai-humanize/constants/publicHumanizeChannelConfig';
+} from '$lib/content/constants/channels/tools/humanizer/general';
 
 export {
 	buildHumanizeFaqSection,
 	type HumanizeFaqSection
-} from '$lib/ai-humanize/constants/publicHumanizeFaqConfig';
+} from '$lib/content/constants/channels/tools/humanizer/faq';
 
 export {
 	isRewriterSupported,

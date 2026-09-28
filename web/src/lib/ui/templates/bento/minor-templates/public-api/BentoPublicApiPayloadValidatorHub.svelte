@@ -1,5 +1,8 @@
 <script lang="ts">
-	import type { PublicApiHubStaticExample } from '$lib/content/constants/apis/types';
+	import type {
+		PublicApiHubStaticExample,
+		PublicApiPlatformSlug
+	} from '$lib/content/constants/channels/api/_shared/types';
 
 	import { cn } from '$lib/ui/helpers/common';
 

@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { PublicApiCapability } from '$lib/content/constants/apis/types';
+	import type { PublicApiCapability } from '$lib/content/constants/channels/api/_shared/types';
 
 	import { page } from '$app/state';
-	import { getPublicApiHubWorkflowSection } from '$lib/content/constants/apis/publicApiCapabilityHubWorkflowConfig';
+	import { getPublicApiHubWorkflowSection } from '$lib/content/constants/channels/api/_shared/publicApiCapabilityHubWorkflowConfig';
 	import { cardPatternAtIndex } from '$lib/ui/patterns';
 	import StripedPattern from '$lib/ui/patterns/StripedPattern.svelte';
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';

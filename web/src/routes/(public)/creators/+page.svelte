@@ -11,7 +11,7 @@
 		PUBLIC_BANNER_CTA_TEXT,
 		PUBLIC_HUB_DOCS_BANNERS
 	} from '$lib/config/constants/config';
-	import { PUBLIC_CREATORS_HUB_FAQ } from '$lib/content/constants/publicCreatorsHubFaqConfig';
+	import { PUBLIC_CREATORS_HUB_FAQ } from '$lib/content/constants/hubs/creators';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	import * as Avatar from '$lib/ui/components/avatar';

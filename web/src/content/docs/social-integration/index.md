@@ -1,8 +1,8 @@
 ---
-title: Overview - Integrate with Your Own Social Key
+title: Overview - Self-host with Your Own Social Key
 description: How to Connect social channels to OpenQuok — OAuth apps or a personal API key, backend env, and dashboard settings.
 order: 0
-lastUpdated: 2026-08-20
+lastUpdated: 2026-09-28
 sidebar:
   label: Overview
 ---
@@ -12,6 +12,10 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/co
 </script>
 
 ## Overview
+
+<Callout type="tip" title="Self-host only">
+<p>These guides are for self-hosters who run OpenQuok themselves and register their own social developer apps. On <a href="/docs/cloud">OpenQuok Cloud</a>, those apps are already configured — you only connect your account.</p>
+</Callout>
 
 OpenQuok connects **social channels** through the **backend** integration layer: organization-scoped channels, optional **programmatic** APIs authenticated with a workspace <Badge text="opo_" variant="default" /> token, and one of two connect families.
 

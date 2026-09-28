@@ -314,7 +314,8 @@ export async function loadPublicApiMarketingPlatformPage(params: {
 	const customDescription = platformVm.metaDescription;
 	const platformAudienceSection = getPublicApiPlatformAudienceSection(
 		capability,
-		platformVm.platformLabel
+		platformVm.platformLabel,
+		platformVm.slug
 	);
 	const platformSetupStepsSection = getPublicApiPlatformSetupStepsSection(
 		capability,

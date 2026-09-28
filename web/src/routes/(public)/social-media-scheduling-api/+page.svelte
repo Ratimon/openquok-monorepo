@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 
-	import { getPublicApiCapabilityPayloadValidatorHubSection } from '$lib/content/constants/apis/publicApiPayloadValidatorSectionConfig';
+	import { getPublicApiCapabilityPayloadValidatorHubSection } from '$lib/content/constants/channels/api/_shared/publicApiPayloadValidatorSectionConfig';
 	import { getPublicPayloadValidatorHref } from '$lib/content/utils/getPublicPayloadValidatorHref';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 

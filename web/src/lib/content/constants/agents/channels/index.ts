@@ -7,7 +7,7 @@ import type {
 	PublicAgentChannelHubLinkViewModel,
 	PublicAgentChannelPageConfig
 } from '$lib/content/constants/agents/channels/types';
-import { buildAgentChannelPageConfig } from '$lib/content/constants/agents/channels/shared';
+import { buildAgentChannelPageConfig } from '$lib/content/constants/agents/channels/general';
 import { grokBotAgentChannelConfigs, grokBotAgentChannelHost } from '$lib/content/constants/agents/channels/grok-bot';
 import {
 	thinkrailAgentChannelConfigs,
@@ -20,6 +20,13 @@ import {
 } from '$lib/content/constants/agents/channels/openclaw';
 
 export * from '$lib/content/constants/agents/channels/types';
+export {
+	buildAgentChannelPageConfig,
+	buildAgentChannelConfigsForHost,
+	buildAgentsChannelAudienceSection,
+	type AgentsChannelAudienceMode,
+	type AgentsChannelAudienceSection
+} from '$lib/content/constants/agents/channels/general';
 export { openclawAgentChannelHost, openclawAgentChannelConfigs } from '$lib/content/constants/agents/channels/openclaw';
 export { hermesAgentChannelHost, hermesAgentChannelConfigs } from '$lib/content/constants/agents/channels/hermes';
 export { grokBotAgentChannelHost, grokBotAgentChannelConfigs } from '$lib/content/constants/agents/channels/grok-bot';

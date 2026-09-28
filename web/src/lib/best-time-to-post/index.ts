@@ -29,11 +29,11 @@ export {
 	getBestTimeChannelBySlug,
 	listBestTimeChannelsForHub,
 	type BestTimeChannelPageConfig
-} from '$lib/best-time-to-post/constants/publicBestTimeToPostChannelConfig';
+} from '$lib/content/constants/channels/tools/best-time-to-post/general';
 export {
 	buildBestTimeToPostFaqSection,
 	type BestTimeToPostFaqSection
-} from '$lib/best-time-to-post/constants/publicBestTimeToPostFaqConfig';
+} from '$lib/content/constants/channels/tools/best-time-to-post/faq';
 
 export {
 	buildTimingTestPlan,

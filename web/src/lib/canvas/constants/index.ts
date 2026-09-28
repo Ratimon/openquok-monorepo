@@ -9,4 +9,4 @@ export {
 	getCanvasChannelBySlug,
 	listCanvasChannelsForHub,
 	type CanvasChannelPageConfig
-} from '$lib/canvas/constants/publicCanvasChannelConfig';
+} from '$lib/content/constants/channels/tools/photo-editor/general';

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 
-	import type { PublicApiCapability } from '$lib/content/constants/apis/types';
+	import type { PublicApiCapability } from '$lib/content/constants/channels/api/_shared/types';
 	import { PUBLIC_LANDING_GET_STARTED_FOR_FREE_CTA, PUBLIC_LANDING_GETTING_STARTED_GUIDE_CTA } from '$lib/content/constants/publicLandingHeroCopy';
 	import PublicApiMarketingHubBreadcrumb from '$lib/ui/templates/api-marketing/PublicApiMarketingHubBreadcrumb.svelte';
 	import PublicLandingHeroTitle from '$lib/ui/templates/landing-page/PublicLandingHeroTitle.svelte';

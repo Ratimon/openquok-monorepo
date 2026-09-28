@@ -1,7 +1,7 @@
 import { listPublicChannelsForHub } from '$lib/content/constants/channels';
 
 import type { PublicAgentChannelHostConfig } from '$lib/content/constants/agents/channels/types';
-import { buildAgentChannelConfigsForHost } from '$lib/content/constants/agents/channels/shared';
+import { buildAgentChannelConfigsForHost } from '$lib/content/constants/agents/channels/general';
 import { buildAgentChannelMetaTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
 
 export const hermesAgentChannelHost: PublicAgentChannelHostConfig = {

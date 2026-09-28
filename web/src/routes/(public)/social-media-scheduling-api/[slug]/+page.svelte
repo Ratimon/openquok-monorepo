@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 
-	import { getPublicApiPlatformFeatureSections } from '$lib/content/constants/apis/publicApiCapabilityHubFeatureConfig';
-	import { buildPublicApiPayloadValidatorStaticExampleFromFormatExample } from '$lib/content/constants/apis/hubExamples';
-	import { getPublicApiCapabilityPayloadValidatorHubSection } from '$lib/content/constants/apis/publicApiPayloadValidatorSectionConfig';
+	import { getPublicApiPlatformFeatureSections } from '$lib/content/constants/channels/api/_shared/publicApiCapabilityHubFeatureConfig';
+	import { buildPublicApiPayloadValidatorStaticExampleFromFormatExample } from '$lib/content/constants/channels/api/_shared/hubExamples';
+	import { getPublicApiCapabilityPayloadValidatorHubSection } from '$lib/content/constants/channels/api/_shared/publicApiPayloadValidatorSectionConfig';
 	import { getPublicPayloadValidatorHref } from '$lib/content/utils/getPublicPayloadValidatorHref';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
@@ -59,7 +59,11 @@
 			payloadValidatorHref={payloadValidatorHref}
 		/>
 
-		<PublicApiMarketingWhoIsFor capability="scheduling" platformLabel={platformVm.platformLabel} />
+		<PublicApiMarketingWhoIsFor
+			capability="scheduling"
+			platformLabel={platformVm.platformLabel}
+			platformSlug={platformVm.slug}
+		/>
 
 		<PublicApiMarketingHubSetupSteps
 			capability="scheduling"

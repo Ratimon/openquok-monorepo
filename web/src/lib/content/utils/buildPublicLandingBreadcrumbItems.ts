@@ -8,7 +8,7 @@ import {
 } from '$lib/area-public/constants/getRootPathPublicApiMarketing';
 import { getRootPathPublicChannels } from '$lib/area-public/constants/getRootPathPublicChannels';
 import { getRootPathPublicTools } from '$lib/area-public/constants/getRootPathPublicTools';
-import type { PublicApiCapability } from '$lib/content/constants/apis/types';
+import type { PublicApiCapability } from '$lib/content/constants/channels/api/_shared/types';
 import {
 	PUBLIC_AGENTS_HUB_SECTION_IDS,
 	PUBLIC_LANDING_BREADCRUMB

@@ -2,9 +2,9 @@ import {
 	getPayloadWizardChannelBySlug,
 	PUBLIC_PAYLOAD_WIZARD_GENERIC_CONFIG,
 	type PayloadWizardToolPageViewModel
-} from '$lib/posts/constants/publicPayloadWizardChannelConfig';
+} from '$lib/content/constants/channels/tools/payload-wizard/general';
 
-export type { PayloadWizardChannelHubLinkViewModel, PayloadWizardToolPageViewModel } from '$lib/posts/constants/publicPayloadWizardChannelConfig';
+export type { PayloadWizardChannelHubLinkViewModel, PayloadWizardToolPageViewModel } from '$lib/content/constants/channels/tools/payload-wizard/general';
 
 export class PublicPayloadWizardPagePresenter {
 	loadPayloadWizardVm(params: { channelSlug?: string | null } = {}): PayloadWizardToolPageViewModel {

@@ -2,8 +2,8 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import { getRootPathPublicSelfHosting } from '$lib/area-public/constants/getRootPathPublicSelfHosting';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
-import { PUBLIC_SELF_HOSTING_LANDING_CONFIG } from '$lib/content/constants/publicSelfHostingLandingConfig';
-import { PUBLIC_SELF_HOSTING_WHO_IS_FOR_SECTION } from '$lib/content/constants/publicSelfHostingWhoIsForConfig';
+import { PUBLIC_SELF_HOSTING_LANDING_CONFIG } from '$lib/content/constants/self-hosting/landing';
+import { PUBLIC_SELF_HOSTING_WHO_IS_FOR_SECTION } from '$lib/content/constants/self-hosting/whoIsFor';
 import { createPublicAudienceSectionSEOSchema } from '$lib/content/utils/createPublicAudienceSEOSchema';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createPublicSelfHostPricingOffer } from '$lib/content/utils/createPublicPricingSEOSchema';

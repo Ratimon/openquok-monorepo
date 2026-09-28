@@ -6,11 +6,11 @@ import {
 } from '$lib/area-public/constants/getRootPathPublicApiMarketing';
 import { getRootPathPublicPayloadWizardChannel } from '$lib/area-public/constants/getRootPathPublicTools';
 import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
-import { listHumanizeChannelsForHub } from '$lib/ai-humanize/constants/publicHumanizeChannelConfig';
-import { listBestTimeChannelsForHub } from '$lib/best-time-to-post/constants/publicBestTimeToPostChannelConfig';
-import { listCanvasChannelsForHub } from '$lib/canvas/constants/publicCanvasChannelConfig';
+import { listHumanizeChannelsForHub } from '$lib/content/constants/channels/tools/humanizer/general';
+import { listBestTimeChannelsForHub } from '$lib/content/constants/channels/tools/best-time-to-post/general';
+import { listCanvasChannelsForHub } from '$lib/content/constants/channels/tools/photo-editor/general';
 import { listPublicAgentHostSeedsForFooter } from '$lib/content/constants/agents/seeds';
-import { listPublicChannelLandingSeedsForFooter } from '$lib/content/constants/channels/seeds';
+import { listPublicChannelLandingSeedsForFooter } from '$lib/content/constants/channels/catalog/seeds';
 import { listPublicMcpLandingSeedsForFooter } from '$lib/content/constants/mcps/seeds';
 import {
 	getPublicApiPostingPlatformBySlug,
@@ -21,7 +21,7 @@ import {
 } from '$lib/content/constants/apis/index';
 import { getDocsByDirectory } from '$lib/docs/content';
 import { docsSidebarPublicApi } from '$lib/docs/constants/config';
-import { listSkillBuilderChannelsForHub } from '$lib/skill-builder/constants/publicSkillBuilderChannelConfig';
+import { listSkillBuilderChannelsForHub } from '$lib/content/constants/channels/tools/skill-builder/general';
 import { route } from '$lib/utils/path';
 
 export type PublicFooterLink = { label: string; href: string };

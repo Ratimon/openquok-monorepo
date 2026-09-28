@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { icons } from '$data/icons';
-	import { PUBLIC_SELF_HOST_PRICING_FOOTNOTE_CONFIG } from '$lib/content/constants/publicSelfHostingLandingConfig';
+	import { PUBLIC_SELF_HOST_PRICING_FOOTNOTE_CONFIG } from '$lib/content/constants/self-hosting/landing';
 	import { hostedMarketingAnchorAttrs } from '$lib/utils/hostedMarketingHref';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';

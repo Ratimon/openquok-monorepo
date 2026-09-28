@@ -12,11 +12,11 @@ import {
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { buildToolsLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
-import { buildPayloadWizardFaqSection } from '$lib/posts/constants/publicPayloadWizardFaqConfig';
+import { buildPayloadWizardFaqSection } from '$lib/content/constants/channels/tools/payload-wizard/faq';
 import {
 	getPayloadWizardChannelBySlug,
 	listPayloadWizardChannelsForHub
-} from '$lib/posts/constants/publicPayloadWizardChannelConfig';
+} from '$lib/content/constants/channels/tools/payload-wizard/general';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
 import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';

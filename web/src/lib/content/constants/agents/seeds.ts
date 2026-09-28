@@ -1,9 +1,9 @@
 import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/agents/types';
 
-import { grokBotAgent } from '$lib/content/constants/agents/grok-bot';
-import { hermesAgent } from '$lib/content/constants/agents/hermes';
-import { openclawAgent } from '$lib/content/constants/agents/openclaw';
-import { thinkrailAgent } from '$lib/content/constants/agents/thinkrail';
+import { grokBotAgent } from '$lib/content/constants/agents/hosts/grok-bot';
+import { hermesAgent } from '$lib/content/constants/agents/hosts/hermes';
+import { openclawAgent } from '$lib/content/constants/agents/hosts/openclaw';
+import { thinkrailAgent } from '$lib/content/constants/agents/hosts/thinkrail';
 
 /** Single registry for agent-host landings — order drives hub, nav, and footer columns. */
 export const PUBLIC_AGENT_HOST_LANDING_PAGES: readonly PublicAgentHostLandingPageViewModel[] = [

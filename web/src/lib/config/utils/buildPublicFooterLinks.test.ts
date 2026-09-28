@@ -16,7 +16,7 @@ import {
 import { getPublicFooterLinks, PUBLIC_FOOTER_LINKS_STATIC } from '$lib/config/constants/config';
 import { preloadDocsRegistry } from '$lib/docs/content';
 import { listPublicAgentHostSeedsForFooter } from '$lib/content/constants/agents/seeds';
-import { listPublicChannelLandingSeedsForFooter } from '$lib/content/constants/channels/seeds';
+import { listPublicChannelLandingSeedsForFooter } from '$lib/content/constants/channels/catalog/seeds';
 import { listPublicMcpLandingSeedsForFooter } from '$lib/content/constants/mcps/seeds';
 import {
 	getPublicApiPostingPlatformBySlug,

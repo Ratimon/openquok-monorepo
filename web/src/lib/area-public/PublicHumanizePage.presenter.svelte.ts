@@ -3,7 +3,7 @@ import type { HumanizeToolPageViewModel } from '$lib/ai-humanize/Humanize.presen
 import {
 	getHumanizeChannelBySlug,
 	PUBLIC_HUMANIZE_GENERIC_CONFIG
-} from '$lib/ai-humanize/constants/publicHumanizeChannelConfig';
+} from '$lib/content/constants/channels/tools/humanizer/general';
 
 export class PublicHumanizePagePresenter {
 	loadHumanizeVm(params: { channelSlug?: string | null } = {}): HumanizeToolPageViewModel {

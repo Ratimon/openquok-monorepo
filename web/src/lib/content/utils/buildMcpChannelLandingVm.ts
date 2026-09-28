@@ -4,7 +4,7 @@ import type { PublicMcpLandingPageViewModel } from '$lib/content/constants/publi
 import {
 	buildChannelMcpSeoKeywords,
 	SHARED_CHANNEL_SEO_KEYWORDS
-} from '$lib/content/constants/channels/shared';
+} from '$lib/content/constants/channels/catalog/shared';
 
 import { appendChannelLandingFaqItems } from '$lib/content/utils/buildAgentChannelLandingVm';
 import { customizeAgentsChannelFeatureSections } from '$lib/content/utils/buildAgentsChannelFeatureSections';

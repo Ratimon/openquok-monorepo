@@ -4,7 +4,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 import type { HumanizeChannelHubLinkViewModel } from '$lib/ai-humanize';
 import type { BestTimeChannelHubLinkViewModel } from '$lib/best-time-to-post';
 import type { CanvasChannelHubLinkViewModel } from '$lib/canvas';
-import type { PayloadWizardChannelHubLinkViewModel } from '$lib/posts/constants/publicPayloadWizardChannelConfig';
+import type { PayloadWizardChannelHubLinkViewModel } from '$lib/content/constants/channels/tools/payload-wizard/general';
 import type {
 	SkillBuilderChannelHubLinkViewModel,
 	ToolsIndexToolCardViewModel

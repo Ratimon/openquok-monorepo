@@ -1,3 +1,4 @@
+import { resolvePublicChannelAudienceCards } from '$lib/content/constants/channels/catalog/audience-tailored';
 import {
 	getPublicChannelBySlug,
 	type PublicChannelLandingPageViewModel
@@ -29,5 +30,8 @@ export class PublicChannelByPagePresenter {
 }
 
 function toPublicChannelVm(page: PublicChannelLandingPageViewModel): PublicChannelViewModel {
-	return page;
+	return {
+		...page,
+		audienceCards: resolvePublicChannelAudienceCards(page.audienceCards, page.slug)
+	};
 }

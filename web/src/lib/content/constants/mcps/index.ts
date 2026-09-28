@@ -3,23 +3,23 @@ import {
 	appendPublicGeneralFaqItems,
 	PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS
 } from '$lib/content/constants/publicFaqConfig';
-import { buildMcpLandingPage, toSkillSetupSteps } from '$lib/content/constants/mcps/builders';
+import { buildMcpLandingPage, toSkillSetupSteps } from '$lib/content/constants/mcps/general';
 import { MCP_LANDING_SEEDS } from '$lib/content/constants/mcps/seeds';
 import type { PublicMcpIntegrationViewModel, PublicMcpLandingPageViewModel } from '$lib/content/constants/mcps/types';
 
 export * from '$lib/content/constants/mcps/types';
-export * from '$lib/content/constants/mcps/builders';
-export { antigravity_cliMcpSeed } from '$lib/content/constants/mcps/antigravity-cli';
-export { chatgptMcpSeed } from '$lib/content/constants/mcps/chatgpt';
-export { codexMcpSeed } from '$lib/content/constants/mcps/codex';
-export { cursorMcpSeed } from '$lib/content/constants/mcps/cursor';
-export { claude_codeMcpSeed } from '$lib/content/constants/mcps/claude-code';
-export { claude_coworkMcpSeed } from '$lib/content/constants/mcps/claude-cowork';
-export { vscode_copilotMcpSeed } from '$lib/content/constants/mcps/vscode-copilot';
-export { devin_desktopMcpSeed } from '$lib/content/constants/mcps/devin-desktop';
-export { ampMcpSeed } from '$lib/content/constants/mcps/amp';
-export { warpMcpSeed } from '$lib/content/constants/mcps/warp';
-export { muse_codeMcpSeed } from '$lib/content/constants/mcps/muse-code';
+export * from '$lib/content/constants/mcps/general';
+export { antigravity_cliMcpSeed } from '$lib/content/constants/mcps/hosts/antigravity-cli';
+export { chatgptMcpSeed } from '$lib/content/constants/mcps/hosts/chatgpt';
+export { codexMcpSeed } from '$lib/content/constants/mcps/hosts/codex';
+export { cursorMcpSeed } from '$lib/content/constants/mcps/hosts/cursor';
+export { claude_codeMcpSeed } from '$lib/content/constants/mcps/hosts/claude-code';
+export { claude_coworkMcpSeed } from '$lib/content/constants/mcps/hosts/claude-cowork';
+export { vscode_copilotMcpSeed } from '$lib/content/constants/mcps/hosts/vscode-copilot';
+export { devin_desktopMcpSeed } from '$lib/content/constants/mcps/hosts/devin-desktop';
+export { ampMcpSeed } from '$lib/content/constants/mcps/hosts/amp';
+export { warpMcpSeed } from '$lib/content/constants/mcps/hosts/warp';
+export { muse_codeMcpSeed } from '$lib/content/constants/mcps/hosts/muse-code';
 export { MCP_LANDING_SEEDS, listPublicMcpLandingSeedsForFooter } from '$lib/content/constants/mcps/seeds';
 
 export const PUBLIC_MCP_LANDING_PAGES: readonly PublicMcpLandingPageViewModel[] =

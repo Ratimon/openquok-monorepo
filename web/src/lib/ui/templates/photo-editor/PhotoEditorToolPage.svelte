@@ -14,7 +14,7 @@
 		getRootPathPublicPhotoEditor,
 		getRootPathPublicTools
 	} from '$lib/area-public/constants/getRootPathPublicTools';
-	import { buildPhotoEditorFaqSection } from '$lib/canvas/constants/publicPhotoEditorFaqConfig';
+	import { buildPhotoEditorFaqSection } from '$lib/content/constants/channels/tools/photo-editor/faq';
 	import { getRootPathSignin, getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { absoluteUrl, route, url } from '$lib/utils/path';
 	import { icons } from '$data/icons';

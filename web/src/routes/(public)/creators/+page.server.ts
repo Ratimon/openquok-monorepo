@@ -6,7 +6,7 @@ import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import {
 	PUBLIC_CREATORS_HUB_FAQ,
 	PUBLIC_CREATORS_HUB_SEO_KEYWORDS
-} from '$lib/content/constants/publicCreatorsHubFaqConfig';
+} from '$lib/content/constants/hubs/creators';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';

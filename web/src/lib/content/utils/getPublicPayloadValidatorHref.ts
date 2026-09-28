@@ -1,4 +1,4 @@
-import type { PublicApiPlatformSlug } from '$lib/content/constants/apis/types';
+import type { PublicApiPlatformSlug } from '$lib/content/constants/channels/api/_shared/types';
 
 import {
 	getRootPathPublicPayloadWizard,

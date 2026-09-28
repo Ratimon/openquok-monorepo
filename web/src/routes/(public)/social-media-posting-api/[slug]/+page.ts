@@ -4,7 +4,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 import type {
 	PublicApiPlatformHubCard,
 	PublicApiPlatformPageViewModel
-} from '$lib/content/constants/apis/types';
+} from '$lib/content/constants/channels/api/_shared/types';
 
 import type { PageLoad } from './$types';
 

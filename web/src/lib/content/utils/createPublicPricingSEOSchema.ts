@@ -2,7 +2,7 @@ import type { Offer, WebPage } from 'schema-dts';
 import type { SubscriptionPeriod } from 'openquok-common';
 
 import { GetPublicPricingPresenter } from '$lib/billing';
-import { PUBLIC_SELF_HOST_PRICING_FOOTNOTE_CONFIG } from '$lib/content/constants/publicSelfHostingLandingConfig';
+import { PUBLIC_SELF_HOST_PRICING_FOOTNOTE_CONFIG } from '$lib/content/constants/self-hosting/landing';
 import { publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 
 export type CreatePublicPricingOffersParams = {

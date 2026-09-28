@@ -4,7 +4,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 import type {
 	PayloadWizardChannelHubLinkViewModel,
 	PayloadWizardToolPageViewModel
-} from '$lib/posts/constants/publicPayloadWizardChannelConfig';
+} from '$lib/content/constants/channels/tools/payload-wizard/general';
 
 import type { PageLoad } from './$types';
 

@@ -8,7 +8,7 @@ import {
 	getHumanizeChannelBySlug,
 	listHumanizeChannelsForHub
 } from '$lib/ai-humanize';
-import { buildHumanizeFaqSection } from '$lib/ai-humanize/constants/publicHumanizeFaqConfig';
+import { buildHumanizeFaqSection } from '$lib/content/constants/channels/tools/humanizer/faq';
 import { publicHumanizePagePresenter } from '$lib/area-public';
 import { getRootPathPublicHumanizer, getRootPathPublicHumanizerChannel } from '$lib/area-public/constants/getRootPathPublicTools';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';

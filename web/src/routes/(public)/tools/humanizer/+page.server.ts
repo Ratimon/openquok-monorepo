@@ -5,8 +5,8 @@ import type { SoftwareApplication } from 'schema-dts';
 import {
 	listHumanizeChannelsForHub,
 	PUBLIC_HUMANIZE_GENERIC_CONFIG
-} from '$lib/ai-humanize/constants/publicHumanizeChannelConfig';
-import { buildHumanizeFaqSection } from '$lib/ai-humanize/constants/publicHumanizeFaqConfig';
+} from '$lib/content/constants/channels/tools/humanizer/general';
+import { buildHumanizeFaqSection } from '$lib/content/constants/channels/tools/humanizer/faq';
 import { publicHumanizePagePresenter } from '$lib/area-public';
 import { getRootPathPublicHumanizer } from '$lib/area-public/constants/getRootPathPublicTools';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';

@@ -27,10 +27,10 @@ import {
 	buildPublicApiHubHeroTitle,
 	buildPublicApiPlatformHeroTitle
 } from '$lib/content/utils/buildProgrammaticSeoTitles';
-import { PUBLIC_API_MARKETING_HUB_FEATURE_SECTIONS } from '$lib/content/constants/apis/publicApiCapabilityHubFeatureConfig';
+import { PUBLIC_API_MARKETING_HUB_FEATURE_SECTIONS } from '$lib/content/constants/channels/api/_shared/publicApiCapabilityHubFeatureConfig';
 
 describe('publicApiCatalog', () => {
-	it('registers seven posting platform slugs', () => {
+	it('registers eight posting platform slugs', () => {
 		expect(PUBLIC_API_POSTING_PLATFORM_SLUGS).toEqual([
 			'tiktok',
 			'x',
@@ -38,7 +38,8 @@ describe('publicApiCatalog', () => {
 			'youtube',
 			'facebook',
 			'threads',
-			'linkedin'
+			'linkedin',
+			'bluesky'
 		]);
 	});
 
@@ -60,7 +61,7 @@ describe('publicApiCatalog', () => {
 
 	it('builds hub platform cards from channel catalog', () => {
 		const cards = listPublicApiPostingPlatformsForHub();
-		expect(cards).toHaveLength(7);
+		expect(cards).toHaveLength(8);
 		expect(cards.map((card) => card.slug)).toEqual(PUBLIC_API_POSTING_PLATFORM_SLUGS);
 		expect(cards[0]?.platformLabel).toBe('TikTok');
 	});
@@ -125,6 +126,10 @@ describe('publicApiCatalog', () => {
 			expect(card.description).not.toMatch(/Keep OAuth out/i);
 			expect(card.description).not.toMatch(/SaaS/i);
 		}
+
+		const blueskyPosting = getPublicApiPlatformAudienceSection('posting', 'Bluesky', 'bluesky');
+		expect(blueskyPosting.audienceCards).toHaveLength(4);
+		expect(blueskyPosting.audienceCards[3]?.title).toBe('Federated & custom-PDS users');
 
 		const tiktokPosting = getPublicApiPlatformAudienceSection('posting', 'TikTok');
 		expect(tiktokPosting.audienceTitle).toContain('TikTok');

@@ -1,7 +1,7 @@
 import { nanoid } from 'nanoid';
 
 import { OPENQUOK_CORE_EXTENSION_SLUG } from '$lib/skill-builder/constants/defaults';
-import type { SkillBuilderChannelPageConfig } from '$lib/skill-builder/constants/publicSkillBuilderChannelConfig';
+import type { SkillBuilderChannelPageConfig } from '$lib/content/constants/channels/tools/skill-builder/general';
 import { OPENQUOK_COMMAND_WORKFLOW_META } from '$lib/skill-builder/constants/openquokCommandWorkflowMeta';
 import { resolveOpenquokCommandTemplate } from '$lib/skill-builder/constants/openquokCliCommandSnippets';
 import type { SkillBuilderWorkflowStepViewModel } from '$lib/skill-builder/skillBuilder.types';

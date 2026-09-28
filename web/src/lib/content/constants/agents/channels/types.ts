@@ -2,7 +2,7 @@ import type { IconName } from '$data/icons';
 
 import type { PublicChannelFeatureBentoId } from '$lib/content/constants/publicChannelFeatureBentoConfig';
 import type { OpenquokCliCommandReferenceItem } from '$lib/content/constants/openquokCliCommandReference';
-import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/types';
+import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/catalog/types';
 
 export type PublicAgentChannelPageConfig = {
 	/** URL segment under `/agents/{agentSlug}/` — matches channel catalog `slug`. */

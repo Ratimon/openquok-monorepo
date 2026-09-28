@@ -136,6 +136,7 @@ export const publicFaqHref = {
 	cliInstagram: faqHrefDocs('cli-examples/instagram'),
 	cliTiktok: faqHrefDocs('cli-examples/tiktok'),
 	cliLinkedin: faqHrefDocs('cli-examples/linkedin'),
+	cliBluesky: faqHrefDocs('cli-examples/bluesky'),
 	cliYoutube: faqHrefDocs('cli-examples/youtube'),
 	cliDevto: faqHrefDocs('cli-examples/devto'),
 	humanizerTool: route(getRootPathPublicHumanizer()),
