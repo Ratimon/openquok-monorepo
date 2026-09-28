@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { CONFIG_SCHEMA_PUBLIC_FAQ } from '$lib/config/constants/config';
+import { CONFIG_SCHEMA_MARKETING, CONFIG_SCHEMA_PUBLIC_FAQ } from '$lib/config/constants/config';
 import { PUBLIC_FAQ_ITEMS } from '$lib/content/constants/faq';
 import { publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 
@@ -22,5 +22,13 @@ describe('buildModuleConfigCodeDefaultsVm', () => {
 		expect(scheduleAnswer).toContain(`href="${publicFaqHref.cliGettingStarted}"`);
 		expect(scheduleAnswer).toContain(`href="${publicFaqHref.agentSetupGuides}"`);
 		expect(scheduleAnswer).toContain(`href="${publicFaqHref.mcpSetupGuides}"`);
+	});
+
+	it('maps Marketing schema string defaults from config.ts', () => {
+		const vm = buildModuleConfigCodeDefaultsVm(CONFIG_SCHEMA_MARKETING);
+
+		expect(vm.SOCIAL_LINKS_X).toBe('https://x.com/openquok');
+		expect(vm.SOCIAL_LINKS_DISCORD).toBe('https://discord.gg/wXgWcYzU4');
+		expect(vm.SOCIAL_LINKS_YOUTUBE).toBe('');
 	});
 });

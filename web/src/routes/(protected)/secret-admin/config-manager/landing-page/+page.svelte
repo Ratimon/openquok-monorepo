@@ -29,7 +29,6 @@
 	currentConfigVm={currentLandingPageConfigVm}
 	moduleSchema={CONFIG_SCHEMA_LANDING_PAGE}
 	{handleUpdateConfigByModuleName}
-	enableLoadCodeDefaults={true}
 	codeRevision={LANDING_PAGE_CONFIG_REVISION}
 	revisionConfigKey="LANDING_PAGE_CONFIG_REVISION"
 	moduleLabel="Landing page"

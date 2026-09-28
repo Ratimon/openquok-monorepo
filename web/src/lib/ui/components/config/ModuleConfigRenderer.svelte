@@ -40,7 +40,7 @@
 		currentConfigVm,
 		moduleSchema,
 		handleUpdateConfigByModuleName,
-		enableLoadCodeDefaults = false,
+		enableLoadCodeDefaults = true,
 		loadCodeDefaultsConfirmMessage = 'Load defaults from the repository schema? Unsaved edits in this form will be replaced. Click Save Settings afterward to persist to the database.',
 		codeRevision,
 		revisionConfigKey,
