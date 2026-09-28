@@ -3,14 +3,6 @@
 import type { IconEntry } from '$data/icons';
 
 export type BrandedIconName =
-    | "AcquisitionAds"
-    | "AcquisitionBlog"
-    | "AcquisitionEmail"
-    | "AcquisitionLaunch"
-    | "AcquisitionNewsletter"
-    | "AcquisitionOther"
-    | "AcquisitionPodcast"
-    | "AcquisitionRecommendation"
     | "Bloom"
     | "BlueBubbles"
     | "Bluesky"
@@ -100,62 +92,6 @@ export type BrandedIconName =
     | "Zalo";
 
 export const brandedIcons = {
-    /** Colored target glyph for acquisition survey “Ads” tile. */
-    AcquisitionAds: {
-        name: "AcquisitionAds",
-        box: 28,
-        fill: true,
-        svg: `<circle cx="14" cy="14" r="12" fill="#22C55E"/><circle cx="14" cy="14" r="7.5" fill="#fff"/><circle cx="14" cy="14" r="3.5" fill="#22C55E"/>`
-    },
-    /** Colored document glyph for acquisition survey “Our Blog” tile. */
-    AcquisitionBlog: {
-        name: "AcquisitionBlog",
-        box: 28,
-        fill: true,
-        svg: `<rect x="5" y="3" width="18" height="22" rx="3" fill="#F97316"/><path fill="#fff" d="M9 10h10v1.8H9V10zm0 4.2h10v1.8H9v-1.8zm0 4.2h7v1.8H9V18.4z"/>`
-    },
-    /** Colored envelope glyph for acquisition survey “Email” tile. */
-    AcquisitionEmail: {
-        name: "AcquisitionEmail",
-        box: 28,
-        fill: true,
-        svg: `<rect x="3" y="7" width="22" height="15" rx="2.5" fill="#3B82F6"/><path fill="#fff" d="M3 9.5 14 17l11-7.5V9.5H3z"/>`
-    },
-    /** Colored rocket glyph for acquisition survey “Launch platform” tile. */
-    AcquisitionLaunch: {
-        name: "AcquisitionLaunch",
-        box: 28,
-        fill: true,
-        svg: `<path fill="#A855F7" d="M14 3c-5.2 7.4-8 12.2-8 16.8a8 8 0 0 0 16 0c0-4.6-2.8-9.4-8-16.8z"/><circle cx="14" cy="17" r="3.2" fill="#F472B6"/><path fill="#E879F9" d="M9.5 21.5 6 25l4.5-1.5M18.5 21.5 22 25l-4.5-1.5"/>`
-    },
-    /** Colored envelope glyph for acquisition survey “Newsletter” tile. */
-    AcquisitionNewsletter: {
-        name: "AcquisitionNewsletter",
-        box: 28,
-        fill: true,
-        svg: `<rect x="3" y="8" width="22" height="14" rx="2.5" fill="#9333EA"/><path fill="#fff" d="M3 10.2 14 17.5 25 10.2V10h-22v.2z"/><circle cx="21" cy="9" r="3" fill="#FBBF24"/>`
-    },
-    /** Colored question-mark glyph for acquisition survey “Other” tile. */
-    AcquisitionOther: {
-        name: "AcquisitionOther",
-        box: 28,
-        fill: true,
-        svg: `<circle cx="14" cy="14" r="12" fill="#9CA3AF"/><path fill="#fff" d="M11.2 10.4c0-2.2 1.9-3.8 4.3-3.8 2.2 0 3.9 1.3 3.9 3.2 0 1.5-.8 2.3-2.4 3.4-1.5 1-1.8 1.6-1.8 2.6v.4h-2.6v-.6c0-1.5.6-2.3 2.2-3.4 1.3-.9 1.9-1.5 1.9-2.5 0-1-.8-1.6-2.1-1.6-1.4 0-2.2.7-2.3 1.9h-2.5zm2.5 9.1c0-.9.7-1.6 1.6-1.6s1.6.7 1.6 1.6-.7 1.6-1.6 1.6-1.6-.7-1.6-1.6z"/>`
-    },
-    /** Colored microphone glyph for acquisition survey “Podcast” tile. */
-    AcquisitionPodcast: {
-        name: "AcquisitionPodcast",
-        box: 28,
-        fill: true,
-        svg: `<rect x="10.5" y="4" width="7" height="12" rx="3.5" fill="#8B5CF6"/><path fill="#8B5CF6" d="M8 14.5a6 6 0 0 0 12 0h-2.2a3.8 3.8 0 0 1-7.6 0H8z"/><rect x="12.9" y="20.5" width="2.2" height="3.5" rx="1.1" fill="#8B5CF6"/><rect x="10" y="23.5" width="8" height="2.2" rx="1.1" fill="#8B5CF6"/>`
-    },
-    /** Colored wave-hand glyph for acquisition survey “Recommendation” tile. */
-    AcquisitionRecommendation: {
-        name: "AcquisitionRecommendation",
-        box: 28,
-        fill: true,
-        svg: `<circle cx="14" cy="14" r="12" fill="#7C3AED"/><path fill="#fff" d="M9.5 17.5V11c0-.8.7-1.5 1.5-1.5h.4c.8 0 1.5.7 1.5 1.5v4.2l.3-4.8c.1-.8.8-1.4 1.6-1.4h.3c.9 0 1.6.7 1.6 1.6l-.2 5.2.4-3.4c.1-.8.8-1.4 1.6-1.4h.2c.9 0 1.6.7 1.6 1.6v5.8c0 2.6-1.8 4.4-4.5 4.4-2.4 0-4.2-1.2-5.1-3.2l-.6-1.4z"/>`
-    },
     /** Bloom product mark. Bloom is a trademark of its respective owner. */
     Bloom: {
         name: "Bloom",

@@ -44,19 +44,19 @@ export const ACQUISITION_SURVEY_SOURCE_OPTIONS: AcquisitionSurveySourceOption[] 
 	{
 		slug: 'launch_platform',
 		label: 'Launch platform',
-		iconName: icons.AcquisitionLaunch.name,
+		iconName: icons.Rocket.name,
 		iconTileClass: 'bg-transparent'
 	},
 	{
 		slug: 'openquok_blog',
 		label: 'Our Blog',
-		iconName: icons.AcquisitionBlog.name,
+		iconName: icons.BookOpen.name,
 		iconTileClass: 'bg-transparent'
 	},
 	{
 		slug: 'recommendation',
 		label: 'Recommendation',
-		iconName: icons.AcquisitionRecommendation.name,
+		iconName: icons.Handshake.name,
 		iconTileClass: 'bg-transparent'
 	},
 	{
@@ -68,25 +68,25 @@ export const ACQUISITION_SURVEY_SOURCE_OPTIONS: AcquisitionSurveySourceOption[] 
 	{
 		slug: 'email_outreach',
 		label: 'Email',
-		iconName: icons.AcquisitionEmail.name,
+		iconName: icons.Mail.name,
 		iconTileClass: 'bg-transparent'
 	},
 	{
 		slug: 'ads',
 		label: 'Ads',
-		iconName: icons.AcquisitionAds.name,
+		iconName: icons.Target.name,
 		iconTileClass: 'bg-transparent'
 	},
 	{
 		slug: 'newsletter',
 		label: 'Newsletter',
-		iconName: icons.AcquisitionNewsletter.name,
+		iconName: icons.Mails.name,
 		iconTileClass: 'bg-transparent'
 	},
 	{
 		slug: 'podcast',
 		label: 'Podcast',
-		iconName: icons.AcquisitionPodcast.name,
+		iconName: icons.Mic.name,
 		iconTileClass: 'bg-transparent'
 	},
 	{
@@ -104,7 +104,7 @@ export const ACQUISITION_SURVEY_SOURCE_OPTIONS: AcquisitionSurveySourceOption[] 
 	{
 		slug: 'other',
 		label: 'Other',
-		iconName: icons.AcquisitionOther.name,
+		iconName: icons.CircleQuestionMark.name,
 		iconTileClass: 'bg-transparent'
 	}
 ];
