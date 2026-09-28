@@ -120,5 +120,103 @@ export class StorageSupabaseRepository {
         }
         return { data, error };
     }
+
+    /**
+     * Lists objects in the flat `blog_images` bucket (service role).
+     * Supabase Storage does not expose total counts; use `hasMore` for pagination.
+     * When `search` is set, names are filtered case-insensitively by scanning the bucket in batches.
+     */
+    async listBlogImages(params: {
+        limit: number;
+        offset: number;
+        search?: string;
+    }): Promise<{
+        items: { name: string; createdAt?: string; updatedAt?: string }[];
+        hasMore: boolean;
+    }> {
+        const { limit, offset, search } = params;
+        const bucket = DATABASE_NAMES.BLOG_IMAGES;
+        const sortBy = { column: "created_at" as const, order: "desc" as const };
+        const searchTerm = search?.trim().toLowerCase();
+
+        const mapRow = (row: { name: string; created_at?: string; updated_at?: string }) => ({
+            name: row.name,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at,
+        });
+
+        const matchesSearch = (name: string) =>
+            !searchTerm || name.toLowerCase().includes(searchTerm);
+
+        if (!searchTerm) {
+            const { data, error } = await this.supabaseServiceClient.storage.from(bucket).list("", {
+                limit: limit + 1,
+                offset,
+                sortBy,
+            });
+
+            if (error) {
+                throw new DatabaseError(`Error in listBlogImages: ${bucket} with message ${error.message}`, {
+                    cause: error,
+                    operation: "list",
+                    resource: { type: "storage", name: bucket },
+                });
+            }
+
+            const rows = data ?? [];
+            const hasMore = rows.length > limit;
+            const pageRows = hasMore ? rows.slice(0, limit) : rows;
+            return { items: pageRows.map(mapRow), hasMore };
+        }
+
+        const scanBatchSize = 100;
+        let scanOffset = 0;
+        let skipped = 0;
+        const collected: { name: string; createdAt?: string; updatedAt?: string }[] = [];
+        let hasMore = false;
+
+        scanLoop: while (true) {
+            const { data, error } = await this.supabaseServiceClient.storage.from(bucket).list("", {
+                limit: scanBatchSize,
+                offset: scanOffset,
+                sortBy,
+            });
+
+            if (error) {
+                throw new DatabaseError(`Error in listBlogImages: ${bucket} with message ${error.message}`, {
+                    cause: error,
+                    operation: "list",
+                    resource: { type: "storage", name: bucket },
+                });
+            }
+
+            const batch = data ?? [];
+            if (batch.length === 0) {
+                break;
+            }
+
+            for (const row of batch) {
+                if (!matchesSearch(row.name)) {
+                    continue;
+                }
+                if (skipped < offset) {
+                    skipped += 1;
+                    continue;
+                }
+                collected.push(mapRow(row));
+                if (collected.length > limit) {
+                    hasMore = true;
+                    break scanLoop;
+                }
+            }
+
+            if (batch.length < scanBatchSize) {
+                break;
+            }
+            scanOffset += scanBatchSize;
+        }
+
+        return { items: collected.slice(0, limit), hasMore };
+    }
 }
 

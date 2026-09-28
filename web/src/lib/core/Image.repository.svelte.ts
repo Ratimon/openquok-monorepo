@@ -33,6 +33,30 @@ export interface ImageDeleteProgrammerModel {
 	message: string;
 }
 
+export interface BlogImageLibraryItemDto {
+	storagePath: string;
+	name: string;
+	createdAt?: string;
+}
+
+export interface ListBlogImagesResponseDto {
+	success: boolean;
+	data?: {
+		items: BlogImageLibraryItemDto[];
+		page: number;
+		limit: number;
+		hasMore?: boolean;
+		total?: number;
+	};
+}
+
+export interface ListBlogImagesProgrammerModel {
+	items: BlogImageLibraryItemDto[];
+	page: number;
+	limit: number;
+	hasMore: boolean;
+}
+
 export interface ImageConfig {
 	endpoints: {
 		getImageBlob: string;
@@ -41,6 +65,7 @@ export interface ImageConfig {
 		proxyImage: string;
 		externalProxyImage: string;
 		integrationAvatar: string;
+		listBlogImages: string;
 	};
 }
 
@@ -137,6 +162,43 @@ export class ImageRepository {
 				data: { filePath: '' },
 				message: error instanceof Error ? error.message : 'Error uploading image'
 			};
+		}
+	}
+
+	/** Paginated `blog_images` bucket listing for blog CMS editors (`GET .../image/blog-library`). */
+	public async listBlogImages(params: {
+		page?: number;
+		limit?: number;
+		search?: string;
+	} = {}): Promise<ListBlogImagesProgrammerModel> {
+		const page = params.page ?? 1;
+		const limit = params.limit ?? 48;
+
+		try {
+			const query: Record<string, string | number> = { page, limit };
+			const trimmedSearch = params.search?.trim();
+			if (trimmedSearch) {
+				query.search = trimmedSearch;
+			}
+
+			const { data: listBlogImagesDto, ok } = await this.httpGateway.get<ListBlogImagesResponseDto>(
+				this.config.endpoints.listBlogImages,
+				query,
+				{ withCredentials: true }
+			);
+
+			if (ok && listBlogImagesDto?.data) {
+				return {
+					items: listBlogImagesDto.data.items ?? [],
+					page: listBlogImagesDto.data.page ?? page,
+					limit: listBlogImagesDto.data.limit ?? limit,
+					hasMore: listBlogImagesDto.data.hasMore ?? false
+				};
+			}
+
+			return { items: [], page, limit, hasMore: false };
+		} catch {
+			return { items: [], page, limit, hasMore: false };
 		}
 	}
 

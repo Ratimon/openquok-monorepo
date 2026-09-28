@@ -82,6 +82,48 @@ export class ImageController {
         }
     };
 
+    /** Paginated list of objects in the `blog_images` bucket for blog CMS editors. */
+    listBlogLibrary = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const authUser = (req as AuthenticatedRequest).user;
+            if (!authUser?.id) {
+                throw new UserValidationError("Authentication required");
+            }
+
+            const rawPage = Number(req.query.page ?? 1);
+            const rawLimit = Number(req.query.limit ?? 48);
+            const page = Number.isFinite(rawPage) ? Math.max(1, Math.trunc(rawPage)) : 1;
+            const limit = Number.isFinite(rawLimit) ? Math.min(48, Math.max(1, Math.trunc(rawLimit))) : 48;
+
+            const searchRaw = req.query.search;
+            const search =
+                typeof searchRaw === "string" && searchRaw.trim() ? searchRaw.trim() : undefined;
+
+            const offset = (page - 1) * limit;
+            const { items, hasMore } = await this.storageRepository.listBlogImages({
+                limit,
+                offset,
+                search,
+            });
+
+            res.status(200).json({
+                success: true,
+                data: {
+                    items: items.map((item) => ({
+                        storagePath: item.name,
+                        name: item.name,
+                        createdAt: item.createdAt,
+                    })),
+                    page,
+                    limit,
+                    hasMore,
+                },
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
     delete = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { databaseName, imagePath } = req.body ?? {};

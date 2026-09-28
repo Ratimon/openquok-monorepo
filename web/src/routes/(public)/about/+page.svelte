@@ -98,7 +98,9 @@
 		</div>
 
 		<div class="mt-8 flex flex-col items-center gap-3">
-			<p class="text-secondary">Follow us</p>
+			<p class="text-secondary">
+				Follow us
+			</p>
 			<SocialFollowBar
 				direction="horizontal"
 				size="sm"

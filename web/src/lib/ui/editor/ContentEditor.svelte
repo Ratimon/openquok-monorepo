@@ -208,6 +208,25 @@
 			.run();
 	}
 
+	function insertImageFromLibrary(storagePath: string, alt?: string): void {
+		if (beforeInlineImageAction && !beforeInlineImageAction()) return;
+		if (!editor) return;
+		const path = storagePath.trim();
+		if (!path) return;
+		editor
+			.chain()
+			.focus()
+			.insertContent({
+				type: 'image',
+				attrs: {
+					src: buildBlogInlineImageSrc(path),
+					alt: alt?.trim() ?? '',
+					storagePath: path
+				}
+			})
+			.run();
+	}
+
 	export function hasPendingInlineImages(): boolean {
 		return pendingInlineImageFiles.size > 0;
 	}
@@ -336,6 +355,7 @@
 			editor={editor}
 			toolbarRevision={toolbarRevision}
 			onInsertLocalImagePreview={insertLocalImagePreview}
+			onInsertImageFromLibrary={insertImageFromLibrary}
 			{beforeInlineImageAction}
 		/>
 	{/if}

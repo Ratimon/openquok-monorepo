@@ -31,6 +31,8 @@ imageRouter.get("/integration-avatar", imageController.getIntegrationAvatar);
 imageRouter.get("/external-proxy", imageController.allowlistedExternalImageProxy);
 imageRouter.post("/external-proxy", imageController.allowlistedExternalImageProxy);
 
+imageRouter.get("/blog-library", authWithRoles, requireEditor, imageController.listBlogLibrary);
+
 imageRouter.post(
     "/upload",
     authWithRoles,

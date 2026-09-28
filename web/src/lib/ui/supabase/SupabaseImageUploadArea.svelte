@@ -221,6 +221,11 @@
     export function hasSelectedFile() {
         return !!previewImage?.file;
     }
+
+    /** Clears a local file preview before save (e.g. user picked an existing library object). */
+    export function clearPendingLocalFile() {
+        handleRemovePreview();
+    }
 </script>
 
 <div>

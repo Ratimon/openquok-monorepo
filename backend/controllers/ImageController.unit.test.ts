@@ -25,6 +25,7 @@ describe("ImageController", () => {
             downloadImage: jest.fn(),
             uploadImage: jest.fn(),
             deleteImage: jest.fn(),
+            listBlogImages: jest.fn(),
         } as unknown as jest.Mocked<StorageSupabaseRepository>;
         integrationConnectionService = {
             getIntegrationAvatarImage: jest.fn(),
@@ -218,6 +219,114 @@ describe("ImageController", () => {
                 success: true,
                 data: { filePath: "avatars/auth-1-random.png" },
                 message: "Image uploaded successfully",
+            });
+            expect(next).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("listBlogLibrary", () => {
+        it("throws validation error when authentication is missing", async () => {
+            const req = { query: {} } as unknown as Request;
+            const res = createMockResponse();
+            const next = jest.fn() as unknown as NextFunction;
+
+            await controller.listBlogLibrary(req, res, next);
+
+            expect(next).toHaveBeenCalledTimes(1);
+            const err = (next as jest.Mock).mock.calls[0][0];
+            expect(err).toBeInstanceOf(Error);
+            expect((err as any).statusCode).toBe(400);
+            expect((err as any).metadata?.errorCode).toBe("USER_VALIDATION_ERROR");
+            expect(err.message).toBe("Authentication required");
+            expect(storageRepository.listBlogImages).not.toHaveBeenCalled();
+        });
+
+        it("uses default page and limit and returns mapped items", async () => {
+            storageRepository.listBlogImages.mockResolvedValue({
+                items: [{ name: "auth-1-0.5.png", createdAt: "2026-01-01T00:00:00.000Z" }],
+                hasMore: false,
+            });
+
+            const req = {
+                query: {},
+                user: { id: "auth-1" },
+            } as unknown as Request;
+            const res = createMockResponse();
+            const next = jest.fn() as unknown as NextFunction;
+
+            await controller.listBlogLibrary(req, res, next);
+
+            expect(storageRepository.listBlogImages).toHaveBeenCalledWith({
+                limit: 48,
+                offset: 0,
+                search: undefined,
+            });
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith({
+                success: true,
+                data: {
+                    items: [
+                        {
+                            storagePath: "auth-1-0.5.png",
+                            name: "auth-1-0.5.png",
+                            createdAt: "2026-01-01T00:00:00.000Z",
+                        },
+                    ],
+                    page: 1,
+                    limit: 48,
+                    hasMore: false,
+                },
+            });
+            expect(next).not.toHaveBeenCalled();
+        });
+
+        it("clamps limit to 48 and passes page, limit, and search", async () => {
+            storageRepository.listBlogImages.mockResolvedValue({ items: [], hasMore: true });
+
+            const req = {
+                query: { page: "2", limit: "999", search: "  hero  " },
+                user: { id: "auth-1" },
+            } as unknown as Request;
+            const res = createMockResponse();
+            const next = jest.fn() as unknown as NextFunction;
+
+            await controller.listBlogLibrary(req, res, next);
+
+            expect(storageRepository.listBlogImages).toHaveBeenCalledWith({
+                limit: 48,
+                offset: 48,
+                search: "hero",
+            });
+            expect(res.json).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    success: true,
+                    data: expect.objectContaining({
+                        page: 2,
+                        limit: 48,
+                        hasMore: true,
+                        items: [],
+                    }),
+                })
+            );
+            expect(next).not.toHaveBeenCalled();
+        });
+
+        it("coerces invalid page and limit to safe defaults", async () => {
+            storageRepository.listBlogImages.mockResolvedValue({ items: [], hasMore: false });
+
+            const req = {
+                query: { page: "abc", limit: "-5" },
+                user: { id: "auth-1" },
+            } as unknown as Request;
+            const res = createMockResponse();
+            const next = jest.fn() as unknown as NextFunction;
+
+            await controller.listBlogLibrary(req, res, next);
+
+            expect(storageRepository.listBlogImages).toHaveBeenCalledWith({
+                limit: 1,
+                offset: 0,
+                search: undefined,
             });
             expect(next).not.toHaveBeenCalled();
         });

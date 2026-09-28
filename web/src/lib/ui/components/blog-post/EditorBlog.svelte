@@ -29,6 +29,7 @@
 	import { SupabaseImageUploadAreaPresenter } from '$lib/core/SupabaseImageUploadArea.presenter.svelte';
 	import { UploadImagePresenter } from '$lib/core/UploadImage.presenter.svelte';
 	import FaqEditor from '$lib/ui/components/FaqEditor.svelte';
+	import BlogImageLibraryModal from '$lib/ui/components/blog-post/BlogImageLibraryModal.svelte';
 	import BlogRichTextField from '$lib/ui/components/blog-post/BlogRichTextField.svelte';
 	import SupabaseImageUploadArea from '$lib/ui/supabase/SupabaseImageUploadArea.svelte';
 
@@ -236,6 +237,7 @@
 	let heroImageUploadRef: SupabaseImageUploadArea | undefined = $state();
 	let contentEditorRef: ContentEditor | undefined = $state();
 	let hasPendingHeroFile = $state(false);
+	let heroLibraryOpen = $state(false);
 	let contentEditorMode = $state<'visual' | 'html'>('visual');
 	let htmlSourceContent = $state('');
 
@@ -331,6 +333,17 @@
 			throw new Error(result.message);
 		}
 	};
+
+	function handleHeroLibrarySelect(
+		storagePath: string,
+		onHeroFilenameChange: (value: string) => void
+	) {
+		const path = storagePath.trim();
+		if (!path) return;
+		heroImageUploadRef?.clearPendingLocalFile?.();
+		hasPendingHeroFile = false;
+		onHeroFilenameChange(path);
+	}
 </script>
 
 {#if noPostFound}
@@ -912,7 +925,7 @@
 				<h3 class="text-xl font-bold text-base-content">
 					Visuals</h3>
 				<p class="text-sm font-medium text-base-content/70">
-					Hero image filename for the post.</p>
+					Hero image for the post — upload a new file or choose one from the blog image library.</p>
 			</div>
 			<div class="divider"></div>
 			<div class="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
@@ -921,7 +934,8 @@
 						<div class="flex flex-col gap-2">
 							<Field.Label>Hero image filename</Field.Label>
 							<Field.Description>
-								Upload a hero image. The storage path is saved on the post when you save.
+								Upload a hero image or choose from the blog image library. The storage path is saved on
+								the post when you save.
 							</Field.Description>
 							{#if field.state.value}
 								<p class="break-all font-mono text-xs text-base-content/70">
@@ -948,6 +962,25 @@
 								onUploadImage={handleUploadImageForBlogHeroImage}
 								onToastMessageChange={(show) => (heroImagePresenter.uploadAreaVm.showToastMessage = show)}
 								onReset={() => heroImagePresenter.reset()}
+							/>
+							<div class="flex items-center gap-3">
+								<div class="bg-base-300 h-px flex-1"></div>
+								<span class="text-base-content/50 text-xs">or</span>
+								<div class="bg-base-300 h-px flex-1"></div>
+							</div>
+							<Button
+								type="button"
+								variant="outline"
+								class="w-full sm:w-auto"
+								disabled={saveBusy}
+								onclick={() => (heroLibraryOpen = true)}
+							>
+								Choose from blog image library
+							</Button>
+							<BlogImageLibraryModal
+								bind:open={heroLibraryOpen}
+								disabled={saveBusy}
+								onSelect={(path) => handleHeroLibrarySelect(path, field.handleChange)}
 							/>
 							<Field.Error errors={field.state.meta.errors as unknown as Array<{ message?: string }>} />
 						</div>

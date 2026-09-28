@@ -8,6 +8,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import ContentEditorImageAltDialog from '$lib/ui/editor/ContentEditorImageAltDialog.svelte';
 	import ContentEditorMenuButton from '$lib/ui/editor/ContentEditorMenuButton.svelte';
+	import ContentEditorMenuButtonBlogLibrary from '$lib/ui/editor/ContentEditorMenuButtonBlogLibrary.svelte';
 	import ContentEditorMenuButtonImage from '$lib/ui/editor/ContentEditorMenuButtonImage.svelte';
 	import {
 		BLOG_CODE_BLOCK_LANGUAGES,
@@ -19,11 +20,17 @@
 		editor: TiptapEditor;
 		toolbarRevision?: number;
 		onInsertLocalImagePreview: (file: File, alt?: string) => void;
+		onInsertImageFromLibrary: (storagePath: string, alt?: string) => void;
 		beforeInlineImageAction?: () => boolean;
 	};
 
-	let { editor, toolbarRevision = 0, onInsertLocalImagePreview, beforeInlineImageAction }: Props =
-		$props();
+	let {
+		editor,
+		toolbarRevision = 0,
+		onInsertLocalImagePreview,
+		onInsertImageFromLibrary,
+		beforeInlineImageAction
+	}: Props = $props();
 
 	let altDialogOpen = $state(false);
 	let imageAlt = $derived.by(() => {
@@ -169,6 +176,14 @@
 	>
 		<AbstractIcon name={icons.Image.name} width="18" height="18" />
 	</ContentEditorMenuButtonImage>
+
+	<ContentEditorMenuButtonBlogLibrary
+		editor={editor}
+		{onInsertImageFromLibrary}
+		{beforeInlineImageAction}
+	>
+		<AbstractIcon name={icons.Images.name} width="18" height="18" />
+	</ContentEditorMenuButtonBlogLibrary>
 
 	<ContentEditorMenuButton
 		editor={editor}

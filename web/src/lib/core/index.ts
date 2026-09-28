@@ -15,7 +15,8 @@ export const imageEndpoints = {
 	deleteImage: '/api/v1/image/delete',
 	proxyImage: '/api/v1/image/proxy',
 	externalProxyImage: '/api/v1/image/external-proxy',
-	integrationAvatar: '/api/v1/image/integration-avatar'
+	integrationAvatar: '/api/v1/image/integration-avatar',
+	listBlogImages: '/api/v1/image/blog-library'
 } as const;
 
 const imageConfig: ImageConfig = { endpoints: imageEndpoints };
