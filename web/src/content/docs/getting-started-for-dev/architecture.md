@@ -364,7 +364,7 @@ pnpm --filter ./web run test:pseo-registry
 
 Route-shaped catalogs also live under <Badge text="channels/api/" variant="path" />, <Badge text="channels/catalog/" variant="path" />, <Badge text="channels/tools/" variant="path" />, <Badge text="hubs/" variant="path" />, <Badge text="faq/" variant="path" />, <Badge text="landing/" variant="path" />, and <Badge text="self-hosting/" variant="path" />.
 
-**Related Cursor rules:** pSEO FAQ funnel and footer inventory — <Badge text=".cursor/rules/web-seo-pseo.mdc" variant="path" />, <Badge text="web-landing-faqs.mdc" variant="path" />; adding channels / agents — <Badge text="add-social-provider-integration.mdc" variant="path" />, <Badge text="add-agent.mdc" variant="path" />.
+**Related Cursor rules:** programmatic SEO (constants, templates, FAQ funnel, footer) — <Badge text=".cursor/rules/web-seo-pseo.mdc" variant="path" />; FAQ ids and append sets — <Badge text="web-landing-faqs.mdc" variant="path" />; adding channels / agents — <Badge text="add-social-provider-integration.mdc" variant="path" />, <Badge text="add-agent.mdc" variant="path" />.
 
 #### Presenters, repositories, and tests
 

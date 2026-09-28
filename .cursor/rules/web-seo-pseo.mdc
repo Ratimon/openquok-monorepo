@@ -1,15 +1,14 @@
 ---
-description: Programmatic SEO — catalog constants, FAQ funnel links, ASD-STE100 copy, hub vs detail scope, footer inventory
+description: Programmatic SEO — constants layout, templates, FAQ funnel, ASD-STE100 copy, hub vs detail scope, footer inventory
 globs:
   - web/src/lib/content/constants/**
   - web/src/lib/content/utils/publicFaqLinks.ts
   - web/src/lib/content/utils/publicFaqLinks.test.ts
   - web/src/lib/content/utils/createPublicFaqSEOSchema.ts
-  - web/src/lib/content/constants/channels/**
-  - web/src/lib/content/constants/agents/**
-  - web/src/lib/content/constants/mcps/**
   - web/src/lib/**/constants/public*FaqConfig.ts
-  - web/src/lib/**/constants/public*ChannelConfig.ts
+  - web/src/lib/listings/constants/publicListingsHubConfig.ts
+  - web/src/lib/ui/templates/**
+  - web/src/lib/ui/templates/landing-page/landingHeroTheme.ts
   - web/src/routes/(public)/channels/**
   - web/src/routes/(public)/agents/**
   - web/src/routes/(public)/tools/**
@@ -21,25 +20,26 @@ globs:
   - web/src/routes/(public)/building-blocks/**
   - web/src/routes/(public)/social-media-posting-api/**
   - web/src/routes/(public)/social-media-scheduling-api/**
-  - web/src/lib/content/constants/apis/**
 alwaysApply: false
 ---
 
 # Web SEO: Programmatic SEO (pSEO)
 
-Programmatic routes ship **catalog constants** on the server, **SSR meta + JSON-LD** in `+page.server.ts`, and **templates** in `+page.svelte`. Section wiring and component order: **web-seo-pseo-templates**. SSR meta, canonical, and JSON-LD mechanics: **web-seo-meta-tags**, **web-seo-canonical**, **web-seo-jsonld**.
+Programmatic routes ship **catalog constants** on the server, **SSR meta + JSON-LD** in `+page.server.ts`, and **templates** in `+page.svelte`. SSR meta, canonical, and JSON-LD mechanics: **web-seo-meta-tags**, **web-seo-canonical**, **web-seo-jsonld**.
 
-Landing (`/`) and pricing FAQ: **web-seo-cms-copy** + **web-landing-faqs**. Hub and detail pages: keep **tailored** FAQ constants and append shared git-default rows via `appendPublicGeneralFaqItems` (**web-landing-faqs**). Channel connect funnel below applies to pSEO catalogs only.
+Landing (`/`) and pricing FAQ: **web-seo-cms-copy** + **web-landing-faqs**. Hub and detail pages: **tailored** FAQ constants plus shared git-default rows via `appendPublicGeneralFaqItems` (**web-landing-faqs**). URL → folder map and canonical imports: `web/src/content/docs/getting-started-for-dev/architecture.md` (Marketing copy section).
 
 ## Three-layer contract
 
 | Layer | Location | Responsibility |
 | --- | --- | --- |
-| **Constants** | `$lib/content/constants/**`, `$lib/**/constants/public*Config.ts`, `$lib/**/constants/public*FaqConfig.ts` | Hero, features, FAQ Q&A, meta strings, tool/channel recipes |
+| **Constants** | `web/src/lib/content/constants/**` (and feature `*/constants/` for tool-specific marketing) | Hero, features, FAQ Q&A, meta strings, hub blurbs — import canonical modules (`channels/index.ts`, `agents/index.ts`, `mcps/index.ts`, `hubs/*.ts`, `faq/index.ts`, `channels/api/index.ts`) |
 | **Server load** | `+page.server.ts` | `createMetaData`, `buildCanonicalUrl`, `schemaData` (`createPublicFaqSEOSchema`, domain builders), VMs from presenters |
 | **Template** | `+page.svelte` | `$derived(data.*)`; `<JsonLdHead schemaData={…} />`; `<PublicFaq … />`; no inline JSON-LD |
 
 Forward `pageMetaTags` and `schemaData` through universal `+page.ts` on client nav (**web-sveltekit-universal-page-load**).
+
+Public programmatic routes render in `+page.svelte` — **no** thin `*Page.svelte` wrappers that only forward props (**web-conventions** §7).
 
 ## pSEO surface inventory
 
@@ -52,14 +52,115 @@ Forward `pageMetaTags` and `schemaData` through universal `+page.ts` on client n
 | Alternatives | `/alternatives` | `/alternatives/{slug}` |
 | Creators | `/creators` | `/creators/{userSlug}` |
 | Playbooks / building blocks | `/playbooks`, `/building-blocks` | Creator listing detail; category/tag sub-hubs |
-| Public API marketing | `/social-media-posting-api`, `/social-media-scheduling-api` | `/social-media-posting-api/{slug}`, `/social-media-scheduling-api/{slug}` (7 platforms) |
+| Public API marketing | `/social-media-posting-api`, `/social-media-scheduling-api` | `…/{slug}` per platform |
 | Roadmap | `/roadmap` | — |
 
-**Hub FAQs** (main index routes): `publicToolsHubFaqConfig.ts`, `publicChannelsHubFaqConfig.ts`, `publicCompareHubFaqConfig.ts`, `publicCreatorsHubFaqConfig.ts`, `publicRoadmapHubFaqConfig.ts`, `publicApiCapabilityHubFaqConfig.ts`, `agents/hub.ts`, `publicListingsHubConfig.ts` — tailored `faqItems` + `appendPublicGeneralFaqItems(..., PUBLIC_*_FAQ_ITEM_IDS)` from `publicFaqConfig.ts`. Wire in hub `+page.server.ts` + `+page.svelte`.
+**Hub FAQs** (main index routes): `hubs/tools.ts`, `hubs/channels.ts`, `hubs/compare.ts`, `hubs/creators.ts`, `hubs/roadmap.ts`, `hubs/agents.ts`, `channels/api/_shared/publicApiCapabilityHubFaqConfig.ts`, `publicListingsHubConfig.ts` — tailored `faqItems` + `appendPublicGeneralFaqItems(..., PUBLIC_*_FAQ_ITEM_IDS)` from `faq/index.ts`. Wire in hub `+page.server.ts` + `+page.svelte`.
 
 **Detail FAQs**: channel/agent/MCP/tool catalogs hold tailored copy; runtime getters (`getPublicChannelBySlug`, `getPublicAgentHostBySlug`, `getPublicMcpLandingBySlug`) or `build*FaqSection` append the matching `PUBLIC_*_FAQ_ITEM_IDS` set (**web-landing-faqs**).
 
 **No hub FAQ block** on category/tag index routes (`/playbooks/categories/…`, `/building-blocks/tags/…`, `/blog/topic`, etc.) unless product explicitly adds one.
+
+## Template ↔ route map
+
+| Route pattern | Primary template / components |
+| --- | --- |
+| `/` | `LandingPage.svelte`, `HeroMain.svelte` |
+| `/channels` | `PublicChannelsHubGrid.svelte` + hub `PublicFaq` |
+| `/channels/{slug}` | `PublicChannelHero.svelte` or `PublicComingSoonIntegrationPage.svelte`; `HeroWithLeftMedia` / `HeroWithRightMedia` + `BentoPublicChannelFeature`; `PublicFaq` |
+| `/agents` | `PublicAgentsHubGrid.svelte` |
+| `/agents/{slug}` | `PublicAgentLandingPage.svelte` or `PublicMcpLandingPage.svelte` |
+| `/agents/{slug}/{channelSlug}` | Same agent/MCP landing template; channel-specific VM |
+| `/tools` | Tools hub cards + hub `PublicFaq` |
+| `/tools/humanizer`, `/tools/humanizer/{channelSlug}` | `HumanizeToolPage.svelte` |
+| `/tools/photo-editor`, `…/{channelSlug}` | `PhotoEditorToolPage.svelte` |
+| `/tools/skill-builder`, `…/{channelSlug}` | `SkillBuilderToolPage.svelte` |
+| `/tools/best-time-to-post`, `…/{channelSlug}` | `BestTimeToPostToolPage.svelte` |
+| `/social-media-posting-api`, `/social-media-scheduling-api` (+ `{slug}`) | `PublicApiMarketingHero.svelte` + hub/platform VMs (**web-landingpage** breadcrumbs) |
+| `/compare`, `/compare/{a}/{b}` | Compare hub grid / detail presenter sections + `PublicFaq` |
+| `/creators`, `/creators/{userSlug}` | Creators hub / profile templates + hub `PublicFaq` on index |
+| `/roadmap` | Roadmap board + hub `PublicFaq` |
+| `/alternatives`, `/alternatives/{slug}` | `PublicAlternativesPagePresenter` patterns |
+| `/playbooks`, `/building-blocks` | Hub loaders + `Pagination.svelte` (no infinite scroll on indexable grids) |
+
+Shared chrome: `PublicArea.svelte`, `Footer.svelte` (`PUBLIC_FOOTER_LINKS` — footer inventory below).
+
+## Section order
+
+### Channel / agent channel landings
+
+1. Hero (`PublicChannelHero` or coming-soon hero).
+2. Three feature rows (`HeroWithLeftMedia` / `HeroWithRightMedia` — alternate `mediaOnRight`).
+3. Audience / who-is-for (agent pages).
+4. Listings preview (playbooks + building blocks by tag) when not coming soon.
+5. CLI or MCP command reference (agent hosts / MCP clients).
+6. **FAQ** — `<PublicFaq>` with VM `faqSubtitle`, `faqTitle`, `faqDescription`, `faqItems`.
+7. No extra bottom CTA block — pricing CTA lives in hero and feature rows only (**add-social-provider-integration**).
+
+### Tool pages (humanizer, photo editor, skill builder, best time to post)
+
+1. Breadcrumb / hub link back to `/tools` (**web-landingpage** when adding hero breadcrumbs).
+2. Hero + interactive panel (composer, calculator, canvas).
+3. Channel hub grid (`*ChannelHubGrid.svelte`) when generic tool route.
+4. Docs or accent CTA banners (`AccentSplitCtaBanner`, `CenteredDarkCtaBanner`).
+5. **FAQ** — `build*FaqSection(slug, label)` or generic section from constants.
+6. Guest auth funnel on mocked workspace UI (**web-public-auth-funnel**) — sample labels, lock badges, sign-up/sign-in dialog.
+
+### Main hub indexes (`/channels`, `/tools`, `/compare`, `/creators`, `/roadmap`)
+
+1. Hero or intro copy from server load.
+2. Grid / list of child routes (crawlable `<a href>` links).
+3. **FAQ** — import from `hubs/*.ts` (e.g. `PUBLIC_CHANNELS_HUB_FAQ`); pass items to `PublicFaq`.
+
+Category/tag sub-hubs: grid + pagination only — **no** `PublicFaq` unless product adds a dedicated config.
+
+## `landingHeroTheme`
+
+`web/src/lib/ui/templates/landing-page/landingHeroTheme.ts` drives gradient highlights in `HeroMain`, page heroes, and feature-row headings.
+
+- Page `<h1>` heroes parse the **full** `heroTitle`; feature-row `<h2>` titles split on commas with `gradientMode="part"` — see **web-landingpage** → Page hero vs feature-row titles.
+- Append new product names to `LANDING_HERO_TITLE_HIGHLIGHT_WORDS` when `heroTitle` should emphasize a label (case-insensitive; multi-word phrases need the full string).
+- Rotating landing copy: `LANDING_HERO_HOURS_ROTATE_TEXTS`, `LANDING_HERO_SLOGAN_NOT_ROTATE_TEXTS`.
+
+When adding an agent host or MCP client, update highlights in the same PR as the seed (**add-agent**).
+
+## CTAs and pricing funnel
+
+| Surface | CTA pattern |
+| --- | --- |
+| Channel detail | **One label everywhere:** `Get Started For Free` → `/pricing` (via presenter `secondaryCtaText` / `secondaryCtaHref`) |
+| Tool pages | `PUBLIC_BANNER_CTA_TEXT` / sign-up paths from `centeredDarkCtaBannerCopy` and tool-specific banner copy |
+| FAQ connect answers | Prefer `publicFaqHref.signUp` and `connectChannelsGuide` over operator docs (connect funnel below) |
+
+Do not add login-dependent hero CTAs on indexable landings. FAQ and banners may link `/sign-up` and `/pricing` for trial questions.
+
+## JSON-LD in templates
+
+- **Only** `<JsonLdHead schemaData={schemaData} />` — `schemaData` from load (`$derived(data.schemaData)`).
+- **No** inline `<script type="application/ld+json">` or object literals in `+page.svelte` (**web-seo-jsonld**).
+
+## FAQ blocks
+
+```svelte
+<PublicFaq
+  faqSubtitle={faqSubtitle}
+  faqTitle={faqTitle}
+  faqDescription={faqDescription}
+  faqItems={[...faqItems]}
+/>
+```
+
+- Items: `{ title: string; description: string; id?: PublicFaqItemId }` — `description` is HTML from `faqLink` helpers.
+- `FaqAccordion` runs `prepareBlogRichTextForDisplay` + `rewriteHtmlHostedMarketingHrefs` before render.
+- Hub configs: spread readonly arrays (`[...PUBLIC_CHANNELS_HUB_FAQ.faqItems]`) when passing to `PublicFaq`. Lists are **tailored + appended** git-default rows — see **web-landing-faqs** (do not replace hub copy with id-only subsets).
+
+## Guest mocks (tools)
+
+Public tool UIs mock workspace features without OAuth or post APIs:
+
+- `pointer-events-none` on mock shells; lock toolbars clickable (**web-public-auth-funnel**).
+- Label samples as preview — not “Connected channels”.
+- Channel-specific tool routes preselect the matching mock channel.
 
 ## Landing and FAQ copy — ASD-STE100
 
@@ -125,12 +226,12 @@ On OpenQuok Cloud, developer apps are already registered; users **sign up** and 
 
 | Hub | Config | Funnel-first links |
 | --- | --- | --- |
-| `/tools` | `publicToolsHubFaqConfig.ts` | Each `/tools/*` route; sign-up when scheduling |
-| `/channels` | `publicChannelsHubFaqConfig.ts` | `/sign-up`, `/docs/channels/connect`, `/channels/{slug}` — not `/docs/social-integration` as primary |
-| `/compare` | `publicCompareHubFaqConfig.ts` | `/compare/openquok/buffer`, `/pricing`, `/alternatives` |
-| `/creators` | `publicCreatorsHubFaqConfig.ts` | `/playbooks`, `/building-blocks`, sign-up to publish |
-| `/roadmap` | `publicRoadmapHubFaqConfig.ts` | Feedback on roadmap page, Discord |
-| `/social-media-posting-api`, `/social-media-scheduling-api` | `publicApiCapabilityHubFaqConfig.ts` | `/sign-up`, `/docs/channels/connect`, `/pricing`, `/docs/billing/limits` — connect before operator docs on platform pages |
+| `/tools` | `hubs/tools.ts` | Each `/tools/*` route; sign-up when scheduling |
+| `/channels` | `hubs/channels.ts` | `/sign-up`, `/docs/channels/connect`, `/channels/{slug}` — not `/docs/social-integration` as primary |
+| `/compare` | `hubs/compare.ts` | `/compare/openquok/buffer`, `/pricing`, `/alternatives` |
+| `/creators` | `hubs/creators.ts` | `/playbooks`, `/building-blocks`, sign-up to publish |
+| `/roadmap` | `hubs/roadmap.ts` | Feedback on roadmap page, Discord |
+| `/social-media-posting-api`, `/social-media-scheduling-api` | `channels/api/_shared/publicApiCapabilityHubFaqConfig.ts` | `/sign-up`, `/docs/channels/connect`, `/pricing`, `/docs/billing/limits` — connect before operator docs on platform pages |
 
 ## Footer inventory (`PUBLIC_FOOTER_LINKS`)
 
@@ -140,7 +241,7 @@ Sitewide footer columns in `web/src/lib/config/constants/config.ts`. Hub-level l
 | --- | --- |
 | **Tools** | `/tools`, `/tools/skill-builder`, `/tools/photo-editor`, `/tools/humanizer`, `/tools/best-time-to-post` |
 | **Skill Builder / Photo Editor / Humanizer / Best Time to Post Tools** | Auto: `/tools/{tool}/{channelSlug}` from live channel catalogs |
-| **Supported Channels** | Auto: `/channels/{slug}` from `listPublicChannelLandingSeedsForFooter()` (`channels/seeds.ts`) |
+| **Supported Channels** | Auto: `/channels/{slug}` from `listPublicChannelLandingSeedsForFooter()` (`channels/catalog/seeds.ts`) |
 | **Social Media Posting / Scheduling API** | Auto: `/social-media-posting-api/{slug}` and `/social-media-scheduling-api/{slug}` from `listPublicApiPostingPlatformsForHub()` / `listPublicApiSchedulingPlatformsForHub()` |
 | **How to self-host with different social channels** | Auto: `/docs/social-integration/{slug}` from setup-guide markdown |
 | **Autonomous Agent / MCP Integrations** | Auto: `/agents/{slug}` from agent/MCP catalogs |
@@ -151,20 +252,21 @@ Sitewide footer columns in `web/src/lib/config/constants/config.ts`. Hub-level l
 
 New pSEO routes that should be discoverable from every page belong here or in header nav config — not only in FAQ cross-links. Add a static hub row in `config.ts` or extend `buildPublicFooterLinks.ts` when introducing a **new column type**; individual channel slugs stay catalog-driven.
 
-## PR checklist (pSEO FAQ + copy)
+## PR checklist (pSEO)
 
 - [ ] FAQ answers and landing copy (hero, hub, feature descriptions, audience) follow ASD-STE100 (short, active, one idea per sentence).
 - [ ] Connect questions: sign-up and/or connect guide before operator docs.
 - [ ] Any `/docs/social-integration/` link uses `faqLinkSelfHostChannelSetup` or anchor text containing `self-host`.
 - [ ] `publicFaqLinks.test.ts` + channel-level tests: `href="/sign-up"` or connect guide on connect FAQs; no unlabeled social-integration anchors.
 - [ ] Hub FAQ wired: tailored constants + `appendPublicGeneralFaqItems` (**web-landing-faqs**) → `createPublicFaqSEOSchema` in `+page.server.ts` → `PublicFaq` in `+page.svelte` → forward in `+page.ts`.
+- [ ] Template section order matches surfaces above; no thin `*Page.svelte` wrappers (**web-conventions** §7).
 - [ ] JSON-LD `Answer.text` matches visible accordion (no raw `<a>` tags).
 - [ ] Meta + canonical + JSON-LD `url` use the same `buildCanonicalUrl` (**web-seo-canonical**).
 
 ## Related rules
 
 - Git-default FAQ ids, append sets, pricing subset: **web-landing-faqs**
-- Template section order, CTAs, guest mocks: **web-seo-pseo-templates**
 - Landing/pricing CMS FAQ (secret-admin): **web-seo-cms-copy**
 - New channel/agent/tool surfaces: **add-social-provider-integration**, **add-agent**
 - Hosted marketing href rewrite on FAQ HTML: **web-hosted-marketing-links**
+- Landing breadcrumbs and hero patterns: **web-landingpage**

@@ -7,7 +7,7 @@ globs:
   - web/src/lib/config/Config.repository.svelte.ts
   - web/src/lib/config/constants/config.ts
   - web/src/lib/content/utils/parsePublicFaqConfig.ts
-  - web/src/lib/content/constants/publicFaqConfig.ts
+  - web/src/lib/content/constants/faq/index.ts
   - web/src/lib/content/utils/createPublicFaqSEOSchema.ts
   - web/src/lib/ui/templates/LandingPage.svelte
   - web/src/lib/ui/templates/faq/PublicFaq.svelte
@@ -34,7 +34,7 @@ Three FAQ patterns share `faqLink` / `publicFaqHref` but differ in **where copy 
 
 Channel connect funnel (sign-up first, `connectChannelsGuide` primary, `self-host` on `social-integration` links) applies to **pSEO** channel and hub FAQs — not to generic landing/pricing Q&A unless the question is about connecting a network.
 
-Template section order and `PublicFaq` wiring on programmatic routes: **web-seo-pseo-templates**.
+Template section order and `PublicFaq` wiring on programmatic routes: **web-seo-pseo**.
 
 ## Load pattern (`+page.server.ts`)
 
@@ -54,7 +54,7 @@ Parse FAQ with `parsePublicFaqConfigModule()` → `publicFaqConfigPm` / `publicF
 - **Landing** (`/`): prefer `landing_page` `FAQ_*` fields in the UI; fall back to `public_faq`.
 - **Pricing** (`/pricing`): `public_faq` only for FAQ headers.
 
-Q&A item copy lives in `public_faq.ITEMS` (secret-admin **Public FAQ**, not Landing page). `publicFaqConfig.ts` (`PUBLIC_FAQ_ITEMS`) supplies code defaults when config is empty.
+Q&A item copy lives in `public_faq.ITEMS` (secret-admin **Public FAQ**, not Landing page). `faq/index.ts` (`PUBLIC_FAQ_ITEMS`) supplies code defaults when config is empty.
 
 Home defaults to `PUBLIC_FAQ_ITEMS` when CMS is empty. `/pricing` always uses the pricing id subset — do not pass the full CMS list there.
 
@@ -109,8 +109,7 @@ Chrome Writer/Rewriter/Summarizer docs stay third-party (`nofollow` applied on d
 - Landing FAQ ids, append sets, getters: **web-landing-faqs**
 - Meta tags from CMS strings: **web-seo-meta-tags**
 - JSON-LD builders: **web-seo-jsonld**
-- pSEO catalog FAQs, funnel, ASD-STE100: **web-seo-pseo**
-- pSEO template section order: **web-seo-pseo-templates**
+- pSEO catalog FAQs, templates, funnel, ASD-STE100: **web-seo-pseo**
 - Blog FAQ HTML (same Visual editor, tool-page hrefs): **web-seo-blog**
 - Outbound `rel` / first-party GitHub: **web-seo-outbound-links**
 - Self-host marketing backlinks: **web-hosted-marketing-links**

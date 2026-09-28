@@ -36,7 +36,7 @@ Two product surfaces share the `/agents` hub but use **different** content trees
 
 Follow **source-project-neutrality** and **company-brand-icons**. Reference MCP client: **`chatgpt.ts`**, **`claude-cowork.ts`**, **`warp.ts`**. Reference agent host: **`openclaw.ts`**, **`hermes.ts`**, **`grok-bot.ts`**, **`thinkrail.ts`**.
 
-**User-facing landing copy** (`agents/{slug}.ts`, `mcps/{slug}.ts`, `agents/hub.ts`, MCP `builders.ts`, and `/agents` presenters): write in **ASD-STE100 Simplified Technical English**. Use short sentences. Put one idea in each sentence. Use active voice. Address the reader as **you**. Use plain words. Do not explain in the copy (or in chat) that you follow this style. Feature **titles** may keep comma-split lines for hero theme; **descriptions**, hub blurbs, heroes, audience cards, and FAQ answers must still be STE100.
+**User-facing landing copy** (`agents/hosts/{slug}.ts`, `mcps/hosts/{slug}.ts`, `hubs/agents.ts`, MCP `mcps/general.ts`, and `/agents` presenters): write in **ASD-STE100 Simplified Technical English**. Use short sentences. Put one idea in each sentence. Use active voice. Address the reader as **you**. Use plain words. Do not explain in the copy (or in chat) that you follow this style. Feature **titles** may keep comma-split lines for hero theme; **descriptions**, hub blurbs, heroes, audience cards, and FAQ answers must still be STE100.
 
 **Do not edit `backend/supabase/db/**`** for agent launches (no listing-tag seeds, no blog seeds, no migration re-aggregate). Catalog tags and launch blog posts go in through secret-admin UI — see **C. CMS (blog + listing tag)** below.
 
@@ -165,7 +165,7 @@ Wire onboarding: **`OnboardingAgentConnectStep.svelte`** tab + official docs lin
 
 ### 4. Docs
 
-**`web/src/content/docs/agent-setup-guides/{slug}.md`** + **`agent-setup-guides/index.md`** `LinkCard`. Cross-link CLI auth / openquok-core as appropriate. Mention the host in **`hub.ts`**, **`getting-started-for-cli/index.md`**, **`mcp-setup-guides/index.md`** (agent-hosts sentence), **`other-skills/index.md`**, **`publicSkillBuilderFaqConfig.ts`**, and **`publicFaqConfig.ts`** when OpenClaw/Hermes are named.
+**`web/src/content/docs/agent-setup-guides/{slug}.md`** + **`agent-setup-guides/index.md`** `LinkCard`. Cross-link CLI auth / openquok-core as appropriate. Mention the host in **`hubs/agents.ts`**, **`getting-started-for-cli/index.md`**, **`mcp-setup-guides/index.md`** (agent-hosts sentence), **`other-skills/index.md`**, **`channels/tools/skill-builder/faq.ts`**, and **`faq/index.ts`** when OpenClaw/Hermes are named.
 
 ### 5. Channel SEO (when shipping per-channel agent pages)
 

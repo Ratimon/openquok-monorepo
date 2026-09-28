@@ -204,4 +204,4 @@ Apply `landingHeroTheme.ctaButtonClass` on non-aurora heroes (`PublicApiMarketin
 - Skip uppercase styling on the current (non-link) segment.
 - Render marketing `heroTitle` as unstyled plain text — use `PublicLandingHeroTitle` + `landingHeroTheme`.
 
-See also: **web-seo-pseo-templates** (section order), **add-agent** (agent/MCP landing wiring), **public-api-surface-sync** (API marketing pages).
+See also: **web-seo-pseo** (section order, templates), **add-agent** (agent/MCP landing wiring), **public-api-surface-sync** (API marketing pages).
