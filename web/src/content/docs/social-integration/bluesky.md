@@ -62,14 +62,13 @@ For example, you can check your handle at your Blue Sky Profile:
 
 ![Step 3A - Check Blue Sky handle](/docs/_assets/social-integration/bluesky/openquok-handle.webp)
 
-<Callout type="note">
-<p>In this example, the handle is <Badge text="openquok.bsky.social" variant="param" />, not <Badge text="@openquok.bsky.social" variant="param" />.</p>
-</Callout>
-
 <Callout type="tip">
 <p>When you enter a handle, OpenQuok resolves your Personal Data Server (PDS) and auto-fills <strong>Service</strong>. You can still edit Service before you connect. <DocsExternalLink href="https://atproto.com/blog/network-account-management">AT Protocol — network account management</DocsExternalLink> explains how account hosting on a PDS differs from connected apps (such as OpenQuok) that publish with an app password.</p>
 </Callout>
 
+<Callout type="note">
+<p>In this example, the handle does not include @. it is <Badge text="openquok.bsky.social" variant="param" />, not <Badge text="@openquok.bsky.social" variant="param" />.</p>
+</Callout>
 
 ![Step 3B - Connect Bluesky - autofill service url](/docs/_assets/social-integration/bluesky/connect-bluesky.webp)
 

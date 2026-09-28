@@ -249,6 +249,12 @@ export const CONFIG_SCHEMA_MARKETING: ModuleConfigSchema = {
 		type: 'string',
 		default: 'https://discord.gg/wXgWcYzU4',
 		inputType: 'input'
+	},
+	SOCIAL_LINKS_BLUESKY: {
+		description: 'Bluesky profile URL.',
+		type: 'string',
+		default: 'https://bsky.app/profile/openquok.bsky.social',
+		inputType: 'input'
 	}
 };
 
@@ -259,7 +265,8 @@ export type SocialLinkChannelId =
 	| 'SOCIAL_LINKS_INSTAGRAM'
 	| 'SOCIAL_LINKS_LINKEDIN'
 	| 'SOCIAL_LINKS_YOUTUBE'
-	| 'SOCIAL_LINKS_DISCORD';
+	| 'SOCIAL_LINKS_DISCORD'
+	| 'SOCIAL_LINKS_BLUESKY';
 
 export type SocialProfileLink = {
 	CHANNEL_ID: SocialLinkChannelId;
@@ -293,6 +300,11 @@ export const SOCIAL_PROFILE_LINKS: readonly SocialProfileLink[] = [
 		CHANNEL_ID: 'SOCIAL_LINKS_LINKEDIN',
 		CHANNEL_NAME: 'LinkedIn',
 		Icon: icons.LinkedIn.name
+	},
+	{
+		CHANNEL_ID: 'SOCIAL_LINKS_BLUESKY',
+		CHANNEL_NAME: 'Bluesky',
+		Icon: icons.BlueskyGlyph.name
 	},
 	{
 		CHANNEL_ID: 'SOCIAL_LINKS_YOUTUBE',

@@ -3,16 +3,10 @@ import {
 	getSocialProfileHref
 } from '$lib/config/constants/config';
 
-/**
- * Host suffixes that always pass link equity (first-party product / package hosts).
- * Do **not** put `github.com` here — only {@link FIRST_PARTY_GITHUB_OWNERS} repos follow.
- */
-const FOLLOWABLE_HOST_SUFFIXES = ['openquok.com', 'npmjs.com'];
+/** Host suffixes that pass link equity (`follow`) — first-party web only. */
+const FOLLOWABLE_HOST_SUFFIXES = ['openquok.com'];
 
-/**
- * GitHub owners treated as first-party for SEO (`trusted` + `follow`).
- * Third-party listing repos stay `nofollow`.
- */
+/** GitHub owners treated as first-party for identification (`isFirstPartyGithubHref`). */
 export const FIRST_PARTY_GITHUB_OWNERS = ['Ratimon'] as const;
 
 export type ExternalLinkPolicy = {
@@ -50,7 +44,7 @@ function normalizeHrefForCompare(href: string): string | null {
 	}
 }
 
-/** Host-based allowlist (openquok.com, npmjs.com). */
+/** Host-based allowlist (`*.openquok.com`). */
 export function isTrustedExternalHref(href: string): boolean {
 	const host = hostnameOf(href);
 	if (!host) return false;
@@ -85,14 +79,11 @@ export function isFirstPartyGithubHref(href: string): boolean {
 }
 
 /**
- * Brand social, first-party GitHub, and allowlisted product hosts → `trusted` + `follow`.
- * Everything else → ExternalLink defaults (`noopener noreferrer nofollow`).
+ * Only `*.openquok.com` absolute URLs → `trusted` + `follow`.
+ * Brand social, GitHub, npm, and other hosts → ExternalLink defaults (`noopener noreferrer nofollow`).
  */
 export function resolveExternalLinkPolicy(href: string): ExternalLinkPolicy {
-	const follow =
-		isTrustedExternalHref(href) ||
-		isConfiguredBrandSocialHref(href) ||
-		isFirstPartyGithubHref(href);
+	const follow = isTrustedExternalHref(href);
 	return { trusted: follow, follow };
 }
 
