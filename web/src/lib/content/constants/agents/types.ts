@@ -1,7 +1,7 @@
 import type { IconName } from '$data/icons';
 
-import type { PublicChannelFeatureBentoId } from '$lib/content/constants/publicChannelFeatureBentoConfig';
-import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import type { PublicChannelFeatureBentoId } from '$lib/content/constants/channels/catalog/feature-bento';
+import type { PublicFaqItem } from '$lib/content/constants/faq';
 import type { DesktopMockContentId } from '$lib/ui/templates/device-mocks/desktop/desktopMock.types';
 import type { IphoneMockContentId } from '$lib/ui/templates/device-mocks/iphone-15-pro/iphoneMock.types';
 import type { SafariMockContentId } from '$lib/ui/templates/device-mocks/safari/safariMock.types';
@@ -11,7 +11,7 @@ import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 import type {
 	OpenquokCliCommandReferenceItem,
 	SkillInstallOption
-} from '$lib/content/constants/openquokCliCommandReference';
+} from '$lib/content/constants/agents/cli-command-reference';
 import type { ComparisonPoint } from '$lib/ui/templates/WithWithout.svelte';
 import type { ComparePoint } from '$lib/ui/templates/Compare.svelte';
 

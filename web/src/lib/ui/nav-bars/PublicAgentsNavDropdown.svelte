@@ -1,12 +1,12 @@
 <script lang="ts">
 	import type { IconName } from '$data/icons';
-	import type { PublicAgentLandingPageViewModel } from '$lib/content/constants/publicAgentConfig';
-	import type { PublicMcpLandingPageViewModel } from '$lib/content/constants/publicMcpConfig';
+	import type { PublicAgentLandingPageViewModel } from '$lib/content/constants/agents';
+	import type { PublicMcpLandingPageViewModel } from '$lib/content/constants/mcps';
 
 	import { page } from '$app/state';
 	import { icons } from '$data/icons';
-	import { listPublicAgentsForHub } from '$lib/content/constants/publicAgentConfig';
-	import { listPublicMcpLandingPages } from '$lib/content/constants/publicMcpConfig';
+	import { listPublicAgentsForHub } from '$lib/content/constants/agents';
+	import { listPublicMcpLandingPages } from '$lib/content/constants/mcps';
 	import { getRootPathPublicAgent } from '$lib/area-public/constants/getRootPathPublicAgents';
 	import { hostedMarketingAnchorAttrs, hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 	import { isParentRoute, route } from '$lib/utils/path';

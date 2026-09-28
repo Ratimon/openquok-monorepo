@@ -12,7 +12,7 @@ import type { PublicApiCapability } from '$lib/content/constants/channels/api/_s
 import {
 	PUBLIC_AGENTS_HUB_SECTION_IDS,
 	PUBLIC_LANDING_BREADCRUMB
-} from '$lib/content/constants/publicLandingBreadcrumbConfig';
+} from '$lib/content/constants/landing/breadcrumbs';
 import type { BreadcrumbCrumb } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { route } from '$lib/utils/path';
 

@@ -1,5 +1,5 @@
-import type { OpenquokCliCommandReferenceItem } from '$lib/content/constants/openquokCliCommandReference';
-import { OPENQUOK_CORE_EXAMPLE_JSON_BY_FILE } from '$lib/content/constants/openquokCoreExampleJson';
+import type { OpenquokCliCommandReferenceItem } from '$lib/content/constants/agents/cli-command-reference';
+import { OPENQUOK_CORE_EXAMPLE_JSON_BY_FILE } from '$lib/content/constants/agents/core-example-json';
 
 function integrationListJqFilter(providerIdentifiers: readonly string[]): string {
 	if (providerIdentifiers.length === 1) {

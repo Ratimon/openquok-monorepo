@@ -35,18 +35,19 @@ const runtimeArchitecture = `flowchart LR
 
 /** Literal path templates for programmatic SEO tables (avoid `{slug}` in markdown table cells). */
 const programmaticSeoPaths = {
-	channelsSlugTs: 'channels/{slug}.ts',
-	apisPlatformsSlugTs: 'apis/platforms/{slug}.ts',
+	channelsSlugTs: 'channels/catalog/{slug}.ts',
+	apisPlatformsSlugTs: 'channels/api/posting/platforms/{slug}.ts',
 	agentsHostsSlugTs: 'agents/hosts/{slug}.ts',
 	channelsUrlSlug: '/channels/{slug}',
 	agentsUrlSlug: '/agents/{slug}',
 	mcpsHostsSlugTs: 'mcps/hosts/{slug}.ts',
 	agentsHostChannelSlugUrl: '/agents/{host}/{channelSlug}',
-	channelsChannelSlugTs: 'channels/{channelSlug}.ts',
+	channelsChannelSlugTs: 'channels/catalog/{channelSlug}.ts',
 	apiSurfaceSlugSegment: '/{slug}',
 	channelsApiPostingPlatformsSlugTs: 'channels/api/posting/platforms/{slug}.ts',
 	channelsToolsToolFaqTs: 'channels/tools/{tool}/faq.ts',
-	channelsToolsToolGeneralTs: 'channels/tools/{tool}/general.ts'
+	channelsToolsToolGeneralTs: 'channels/tools/{tool}/general.ts',
+	competitorsProductTs: 'competitors/{product}.ts'
 };
 </script>
 
@@ -323,37 +324,47 @@ The SvelteKit app root:
 
 #### Marketing copy (programmatic SEO)
 
-Routes under <Badge text="src/routes/(public)/" variant="path" /> stay **generic** (one `+page` per surface). Hero, FAQ, and meta strings live in catalogs — mainly <Badge text="web/src/lib/content/constants/" variant="path" /> and feature <Badge text="public*Config.ts" variant="param" /> modules under <Badge text="web/src/lib/" variant="path" />.
+Routes under <Badge text="src/routes/(public)/" variant="path" /> stay **generic** (one `+page` per surface). Hero, FAQ, meta strings, and hub blurbs live under <Badge text="web/src/lib/content/constants/" variant="path" />. Import from the **canonical module** for each public URL (e.g. <Badge text="agents/index.ts" variant="path" />, <Badge text="channels/index.ts" variant="path" />) — not legacy root <Badge text="public*Config.ts" variant="path" /> shims. Tool-specific marketing config may also live under feature libs (e.g. <Badge text="web/src/lib/best-time-to-post/constants/" variant="path" />).
 
 | Kind | Edit when | Examples |
 | --- | --- | --- |
 | **Generic** | Hub or shared builders for every slug on a surface | <Badge text="hubs/channels.ts" variant="path" />, <Badge text="channels/api/_shared/publicApiCapabilityAudienceConfig.ts" variant="path" />, <Badge text="channels/api/posting/general.ts" variant="path" /> |
 | **Tailored** | One URL needs its own hero, meta, or feature copy | <Badge text={programmaticSeoPaths.channelsSlugTs} variant="path" />, <Badge text={programmaticSeoPaths.apisPlatformsSlugTs} variant="path" />, <Badge text={programmaticSeoPaths.agentsHostsSlugTs} variant="path" /> |
 
-**Rule:** match the public URL. Example: <Badge text="/social-media-posting-api/x" variant="path" /> → <Badge text="apis/platforms/x.ts" variant="path" />; the posting API hub → generic capability configs under <Badge text="apis/" variant="path" />.
+**Rule:** match the public URL. Example: <Badge text="/social-media-posting-api/x" variant="path" /> → <Badge text="channels/api/posting/platforms/x.ts" variant="path" />; the posting API hub → generic capability configs under <Badge text="channels/api/_shared/" variant="path" /> and <Badge text="channels/api/index.ts" variant="path" />.
 
-**Catalog source of truth:** register channels in <Badge text="channels/catalog/seeds.ts" variant="path" /> (<Badge text="PUBLIC_CHANNEL_LANDING_PAGES" variant="param" />). FAQ: tailored Q&A in each catalog; shared rows append via <Badge text="appendPublicGeneralFaqItems" variant="param" /> and <Badge text="PUBLIC_*_FAQ_ITEM_IDS" variant="param" /> in <Badge text="publicFaqConfig.ts" variant="path" />. Optional fourth WhoIsFor card: <Badge text="channels/catalog/audience-tailored.ts" variant="path" />.
+Paths below are repo-relative from <Badge text="web/src/lib/content/constants/" variant="path" /> unless noted.
 
-Paths below are repo-relative from the monorepo root.
-
-| Public URL | Generic | Tailored |
+| Public surface | Canonical import | Tailored per slug |
 | --- | --- | --- |
-| <Badge text="/channels" variant="path" /> / <Badge text={programmaticSeoPaths.channelsUrlSlug} variant="path" /> | Hub FAQ; <Badge text="channels/index.ts" variant="path" /> append | <Badge text={programmaticSeoPaths.channelsSlugTs} variant="path" /> + <Badge text="seeds.ts" variant="path" /> |
-| <Badge text="/agents" variant="path" /> / host or MCP <Badge text={programmaticSeoPaths.agentsUrlSlug} variant="path" /> | <Badge text="agents/hub.ts" variant="path" />, <Badge text="mcps/general.ts" variant="path" /> | <Badge text={programmaticSeoPaths.agentsHostsSlugTs} variant="path" /> or <Badge text={programmaticSeoPaths.mcpsHostsSlugTs} variant="path" /> |
-| <Badge text={programmaticSeoPaths.agentsHostChannelSlugUrl} variant="path" /> | <Badge text="buildAgentsChannelAudienceSection.ts" variant="path" />, <Badge text="buildAgentChannelLandingVm.ts" variant="path" /> | <Badge text={programmaticSeoPaths.channelsChannelSlugTs} variant="path" />, <Badge text="publicAgentChannelConfig.ts" variant="path" /> |
-| <Badge text="/social-media-posting-api" variant="path" /> / <Badge text="/social-media-scheduling-api" variant="path" /> (+ <Badge text={programmaticSeoPaths.apiSurfaceSlugSegment} variant="path" />) | <Badge text="channels/api/_shared/publicApiCapability*.ts" variant="path" />, <Badge text="channels/api/_shared/shared.ts" variant="path" /> | <Badge text={programmaticSeoPaths.channelsApiPostingPlatformsSlugTs} variant="path" /> |
-| <Badge text="/tools/*" variant="path" /> (+ channel slug) | <Badge text="hubs/tools.ts" variant="path" />; per-tool <Badge text={programmaticSeoPaths.channelsToolsToolFaqTs} variant="path" /> | <Badge text={programmaticSeoPaths.channelsToolsToolGeneralTs} variant="path" /> (humanizer, photo-editor, skill-builder, best-time-to-post, payload-wizard) |
-| <Badge text="/self-hosting" variant="path" />, <Badge text="/compare" variant="path" />, hubs | <Badge text="self-hosting/landing.ts" variant="path" />, <Badge text="self-hosting/whoIsFor.ts" variant="path" />, <Badge text="hubs/compare.ts" variant="path" />, <Badge text="hubs/*.ts" variant="path" /> | <Badge text="competitors/" variant="path" /> for compare pairs |
+| <Badge text="/channels" variant="path" />, <Badge text={programmaticSeoPaths.channelsUrlSlug} variant="path" /> | <Badge text="channels/index.ts" variant="path" />, <Badge text="hubs/channels.ts" variant="path" /> | <Badge text={programmaticSeoPaths.channelsSlugTs} variant="path" /> + <Badge text="channels/catalog/seeds.ts" variant="path" /> |
+| <Badge text="/agents" variant="path" />, host <Badge text={programmaticSeoPaths.agentsUrlSlug} variant="path" /> | <Badge text="agents/index.ts" variant="path" />, <Badge text="hubs/agents.ts" variant="path" /> | <Badge text={programmaticSeoPaths.agentsHostsSlugTs} variant="path" /> + <Badge text="agents/seeds.ts" variant="path" /> |
+| MCP client on <Badge text={programmaticSeoPaths.agentsUrlSlug} variant="path" /> | <Badge text="mcps/index.ts" variant="path" /> | <Badge text={programmaticSeoPaths.mcpsHostsSlugTs} variant="path" /> + <Badge text="mcps/seeds.ts" variant="path" /> |
+| <Badge text={programmaticSeoPaths.agentsHostChannelSlugUrl} variant="path" /> | <Badge text="agents/channels/index.ts" variant="path" /> | <Badge text="channels/catalog/*" variant="path" /> + host files under <Badge text="agents/channels/" variant="path" /> |
+| <Badge text="/social-media-posting-api" variant="path" />, <Badge text="/social-media-scheduling-api" variant="path" /> (+ <Badge text={programmaticSeoPaths.apiSurfaceSlugSegment} variant="path" />) | <Badge text="channels/api/index.ts" variant="path" />, <Badge text="channels/api/_shared/*" variant="path" /> | <Badge text={programmaticSeoPaths.channelsApiPostingPlatformsSlugTs} variant="path" />; scheduling hub in <Badge text="channels/api/scheduling/" variant="path" /> |
+| <Badge text="/tools/*" variant="path" /> | <Badge text="hubs/tools.ts" variant="path" /> | <Badge text={programmaticSeoPaths.channelsToolsToolGeneralTs} variant="path" />, <Badge text={programmaticSeoPaths.channelsToolsToolFaqTs} variant="path" /> |
+| <Badge text="/compare" variant="path" />, <Badge text="/alternatives" variant="path" /> | <Badge text="competitors/index.ts" variant="path" />, <Badge text="hubs/compare.ts" variant="path" /> | <Badge text={programmaticSeoPaths.competitorsProductTs} variant="path" /> |
+| <Badge text="/self-hosting" variant="path" /> | <Badge text="self-hosting/landing.ts" variant="path" />, <Badge text="self-hosting/whoIsFor.ts" variant="path" /> | — |
+| <Badge text="/" variant="path" /> and shared hub chrome | <Badge text="landing/index.ts" variant="path" /> (hero, breadcrumbs, who-is-for, setup-steps-footer) | — |
+| Shared FAQ pool | <Badge text="faq/index.ts" variant="path" /> (<Badge text="PUBLIC_FAQ_ITEMS" variant="param" />, <Badge text="appendPublicGeneralFaqItems" variant="param" />, <Badge text="PUBLIC_*_FAQ_ITEM_IDS" variant="param" />) | Tailored arrays in catalogs and <Badge text="hubs/*.ts" variant="path" /> |
 
-**Shims:** <Badge text="publicChannelConfig.ts" variant="path" /> re-exports <Badge text="channels/index.ts" variant="path" />. URL helpers: <Badge text="web/src/lib/area-public/constants/getRootPathPublic*.ts" variant="path" />.
+**Channels:** register slugs in <Badge text="channels/catalog/seeds.ts" variant="path" /> (<Badge text="PUBLIC_CHANNEL_LANDING_PAGES" variant="param" />). Optional fourth WhoIsFor card: <Badge text="channels/catalog/audience-tailored.ts" variant="path" />. Feature bento IDs: <Badge text="channels/catalog/feature-bento.ts" variant="path" />.
 
-**Maintainer-only (do not import from app code):** <Badge text="web/src/lib/content/constants/_dev/programmatic-landing/publicProgrammaticLandingRegistry.ts" variant="path" /> — surface list, page counts, <Badge text="estimateNewProviderMarketingPages(slug)" variant="param" />. Test:
+**FAQs:** tailored Q&A in each catalog or hub file; append shared rows with <Badge text="appendPublicGeneralFaqItems" variant="param" /> and the matching <Badge text="PUBLIC_*_FAQ_ITEM_IDS" variant="param" /> from <Badge text="faq/index.ts" variant="path" />. Link helpers: <Badge text="web/src/lib/content/utils/publicFaqLinks.ts" variant="path" />.
+
+**Agents:** CLI install snippets → <Badge text="agents/cli-command-reference.ts" variant="path" />; skill example JSON → <Badge text="agents/core-example-json.ts" variant="path" />.
+
+Route path helpers (not copy): <Badge text="web/src/lib/area-public/constants/getRootPathPublic*.ts" variant="path" />.
+
+**Maintainer-only (do not import from app code, routes, or presenters):** <Badge text="_dev/programmatic-landing/publicProgrammaticLandingRegistry.ts" variant="path" /> — surface list, page counts, <Badge text="estimateNewProviderMarketingPages(slug)" variant="param" />. Verify after catalog changes:
 
 ```bash
 pnpm --filter ./web run test:pseo-registry
 ```
 
-Route-shaped catalogs live under <Badge text="channels/api/" variant="path" />, <Badge text="channels/catalog/" variant="path" />, <Badge text="channels/tools/" variant="path" />, <Badge text="hubs/" variant="path" />, and <Badge text="self-hosting/" variant="path" />. Legacy shim files at old <Badge text="public*HubFaqConfig.ts" variant="path" /> and feature-lib <Badge text="public*ChannelConfig.ts" variant="path" /> paths re-export the new modules for one release cycle.
+Route-shaped catalogs also live under <Badge text="channels/api/" variant="path" />, <Badge text="channels/catalog/" variant="path" />, <Badge text="channels/tools/" variant="path" />, <Badge text="hubs/" variant="path" />, <Badge text="faq/" variant="path" />, <Badge text="landing/" variant="path" />, and <Badge text="self-hosting/" variant="path" />.
+
+**Related Cursor rules:** pSEO FAQ funnel and footer inventory — <Badge text=".cursor/rules/web-seo-pseo.mdc" variant="path" />, <Badge text="web-landing-faqs.mdc" variant="path" />; adding channels / agents — <Badge text="add-social-provider-integration.mdc" variant="path" />, <Badge text="add-agent.mdc" variant="path" />.
 
 #### Presenters, repositories, and tests
 

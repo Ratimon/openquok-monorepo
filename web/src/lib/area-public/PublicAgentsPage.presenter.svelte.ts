@@ -1,11 +1,11 @@
 import {
 	listPublicAgentsForHub,
 	type PublicAgentHostLandingPageViewModel
-} from '$lib/content/constants/publicAgentConfig';
+} from '$lib/content/constants/agents';
 import {
 	listPublicMcpIntegrationsForHub,
 	type PublicMcpIntegrationViewModel
-} from '$lib/content/constants/publicMcpConfig';
+} from '$lib/content/constants/mcps';
 
 export class PublicAgentsPagePresenter {
 	public agentsVm: PublicAgentHostLandingPageViewModel[] = $state([]);

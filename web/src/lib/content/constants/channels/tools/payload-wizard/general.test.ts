@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { PUBLIC_API_POSTING_PLATFORM_SLUGS } from '$lib/content/constants/apis/index';
+import { PUBLIC_API_POSTING_PLATFORM_SLUGS } from '$lib/content/constants/channels/api';
 import {
 	getPayloadWizardChannelBySlug,
 	listPayloadWizardChannelsForHub,

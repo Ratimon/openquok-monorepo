@@ -4,7 +4,7 @@ import {
 	getPublicApiProviderIdentifier,
 	prettyPublicApiJson
 } from '$lib/content/constants/channels/api/_shared/shared';
-import { PUBLIC_LANDING_GETTING_STARTED_GUIDE_CTA } from '$lib/content/constants/publicLandingHeroCopy';
+import { PUBLIC_LANDING_GETTING_STARTED_GUIDE_CTA } from '$lib/content/constants/landing/hero-copy';
 
 const HUB_POSTING_REQUEST_JSON = prettyPublicApiJson({
 	scheduledAt: '2026-05-14T10:00:00.000Z',

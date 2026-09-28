@@ -4,7 +4,7 @@
 	import {
 		MCP_SKILL_INSTALL_OPTIONS,
 		// OPENQUOK_CORE_SKILL_AUTH_SNIPPET
-	} from '$lib/content/constants/openquokCliCommandReference';
+	} from '$lib/content/constants/agents/cli-command-reference';
 	import { ONBOARDING_INLINE_TERMINAL_CODE_CLASS } from '$lib/ui/components/onboarding/onboardingConstants';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';

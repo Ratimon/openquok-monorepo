@@ -3,7 +3,7 @@ import {
 	getDefaultPublicFaqConfigItems,
 	type PublicFaqConfigItem,
 	type PublicFaqItem
-} from '$lib/content/constants/publicFaqConfig';
+} from '$lib/content/constants/faq';
 import { getPublicFaqConfigDefaults } from '$lib/config/constants/config';
 
 export type { PublicFaqConfigItem, PublicFaqItem };

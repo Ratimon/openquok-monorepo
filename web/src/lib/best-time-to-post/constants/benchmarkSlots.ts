@@ -33,7 +33,7 @@ type DayWindow = {
 };
 
 /**
- * Reference platforms with dedicated tables. Slugs match `publicChannelConfig` /
+ * Reference platforms with dedicated tables. Slugs match the channel catalog /
  * composer `identifier` where they align (tiktok, instagram-business → instagram, etc.).
  */
 const PLATFORM_WINDOWS: Record<string, readonly DayWindow[]> = {

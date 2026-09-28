@@ -25,7 +25,7 @@ import {
 	publicAgentByPagePresenter
 } from '$lib/area-public';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
-import { listPublicAgentChannelsForHub } from '$lib/content/constants/publicAgentChannelConfig';
+import { listPublicAgentChannelsForHub } from '$lib/content/constants/agents/channels';
 
 export const ssr = true;
 

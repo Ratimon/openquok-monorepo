@@ -4,7 +4,7 @@ import { prepareBlogRichTextForDisplay } from '$lib/blogs/utils/blogContent';
 import {
 	PUBLIC_FAQ_ITEMS,
 	type PublicFaqItem
-} from '$lib/content/constants/publicFaqConfig';
+} from '$lib/content/constants/faq';
 import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 
 export type CreatePublicFaqSEOSchemaParams = {

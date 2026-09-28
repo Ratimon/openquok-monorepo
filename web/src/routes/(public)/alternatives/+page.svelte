@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import type { CompareProductSlug } from '$lib/content/constants/publicCompareConfig';
+	import type { CompareProductSlug } from '$lib/content/constants/competitors';
 
 	import { publicAlternativesPagePresenter } from '$lib/area-public';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';

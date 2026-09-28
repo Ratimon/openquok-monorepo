@@ -2,12 +2,12 @@ import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants
 import {
 	appendPublicGeneralFaqItems,
 	PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS
-} from '$lib/content/constants/publicFaqConfig';
+} from '$lib/content/constants/faq';
 import { PUBLIC_AGENT_HOST_LANDING_PAGES } from '$lib/content/constants/agents/seeds';
 
 export * from '$lib/content/constants/agents/types';
 export * from '$lib/content/constants/agents/general';
-export { PUBLIC_AGENTS_HUB } from '$lib/content/constants/agents/hub';
+export { PUBLIC_AGENTS_HUB } from '$lib/content/constants/hubs/agents';
 export { openclawAgent } from '$lib/content/constants/agents/hosts/openclaw';
 export { hermesAgent } from '$lib/content/constants/agents/hosts/hermes';
 export { grokBotAgent } from '$lib/content/constants/agents/hosts/grok-bot';

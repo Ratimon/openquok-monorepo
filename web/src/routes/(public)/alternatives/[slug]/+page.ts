@@ -3,7 +3,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import type { AlternativesDetailViewModel } from '$lib/area-public/PublicAlternativesPage.presenter.svelte';
 
-import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import type { PublicFaqItem } from '$lib/content/constants/faq';
 
 import type { PageLoad } from './$types';
 

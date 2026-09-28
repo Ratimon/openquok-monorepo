@@ -5,7 +5,7 @@
 		PUBLIC_API_MARKETING_HUB_FEATURE_SECTIONS,
 		type PublicApiMarketingFeatureSection
 	} from '$lib/content/constants/channels/api/_shared/publicApiCapabilityHubFeatureConfig';
-	import { PUBLIC_LANDING_GET_STARTED_FOR_FREE_CTA } from '$lib/content/constants/publicLandingHeroCopy';
+	import { PUBLIC_LANDING_GET_STARTED_FOR_FREE_CTA } from '$lib/content/constants/landing/hero-copy';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 

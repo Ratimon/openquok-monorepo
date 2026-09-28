@@ -1,7 +1,7 @@
 <script lang="ts">
 	import {
 		OPENQUOK_CORE_SKILL_INSTALL_NPX
-	} from '$lib/content/constants/openquokCliCommandReference';
+	} from '$lib/content/constants/agents/cli-command-reference';
 
 	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
 

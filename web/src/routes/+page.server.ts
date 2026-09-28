@@ -24,7 +24,7 @@ import {
 	createPublicAudienceSectionSEOSchema,
 	withSchemaOrgAudience
 } from '$lib/content/utils/createPublicAudienceSEOSchema';
-import { PUBLIC_LANDING_WHO_IS_FOR_CARDS } from '$lib/content/constants/publicLandingWhoIsForConfig';
+import { PUBLIC_LANDING_WHO_IS_FOR_CARDS } from '$lib/content/constants/landing/who-is-for';
 import {
 	parsePublicFaqConfigModule,
 	resolvePublicFaqItemsVm
@@ -33,7 +33,7 @@ import { createMetaData, openGraphForPublicPage } from '$lib/seo/createMetaData'
 import { buildCanonicalUrl } from '$lib/seo/buildCanonicalUrl';
 import { applyPublicCmsPageCacheHeaders } from '$lib/seo/publicCmsPageCache';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
-import { LANDING_PAGE_LISTINGS_PREVIEW_SECTION } from '$lib/content/constants/publicAgentConfig';
+import { LANDING_PAGE_LISTINGS_PREVIEW_SECTION } from '$lib/content/constants/agents';
 import { loadAgentListingsPreviewStateless } from '$lib/listings/server/loadAgentListingsPreview.server';
 
 export const ssr = true;

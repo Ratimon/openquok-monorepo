@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import { CONFIG_SCHEMA_PUBLIC_FAQ } from '$lib/config/constants/config';
-import { PUBLIC_FAQ_ITEMS } from '$lib/content/constants/publicFaqConfig';
+import { PUBLIC_FAQ_ITEMS } from '$lib/content/constants/faq';
 import { publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 
 import { buildModuleConfigCodeDefaultsVm } from '$lib/config/utils/buildModuleConfigCodeDefaultsVm';
 
 describe('buildModuleConfigCodeDefaultsVm', () => {
-	it('maps Public FAQ schema defaults from publicFaqConfig.ts', () => {
+	it('maps Public FAQ schema defaults from faq/index.ts', () => {
 		const vm = buildModuleConfigCodeDefaultsVm(CONFIG_SCHEMA_PUBLIC_FAQ);
 
 		expect(vm.SUBTITLE).toBe('FAQs');

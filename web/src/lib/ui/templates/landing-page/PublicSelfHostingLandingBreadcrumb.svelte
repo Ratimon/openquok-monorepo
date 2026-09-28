@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 
-	import { PUBLIC_LANDING_BREADCRUMB } from '$lib/content/constants/publicLandingBreadcrumbConfig';
+	import { PUBLIC_LANDING_BREADCRUMB } from '$lib/content/constants/landing/breadcrumbs';
 	import PublicLandingHubBreadcrumb, {
 		type PublicLandingHubBreadcrumbItem
 	} from '$lib/ui/templates/landing-page/PublicLandingHubBreadcrumb.svelte';

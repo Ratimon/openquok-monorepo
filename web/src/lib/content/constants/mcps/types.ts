@@ -7,7 +7,7 @@ import type {
 	PublicAgentListingsPreviewSection,
 	PublicLandingWorkflowSection
 } from '$lib/content/constants/agents/types';
-import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import type { PublicFaqItem } from '$lib/content/constants/faq';
 import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 import type { McpClient } from '$lib/developers/utils/getMcpClientConfig';
 

@@ -63,7 +63,7 @@ const PUBLIC_TOOL_CHANNEL_PATH_PAYLOAD_WIZARD = '/tools/payload-wizard';
 
 const LISTING_HUB_PREFIXES = ['/playbooks', '/building-blocks'];
 
-/** Keep in sync with backend/middlewares/generateSitemap.ts and apis/index.ts. */
+/** Keep in sync with backend/middlewares/generateSitemap.ts and channels/api/index.ts. */
 const PUBLIC_API_MARKETING_HUB_PATHS = [
 	'/social-media-posting-api',
 	'/social-media-scheduling-api'

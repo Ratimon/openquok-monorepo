@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { OpenquokCliCommandReferenceItem } from '$lib/content/constants/openquokCliCommandReference';
+	import type { OpenquokCliCommandReferenceItem } from '$lib/content/constants/agents/cli-command-reference';
 
 	import FeaturesSectionHeader from '$lib/ui/templates/feature-grid/FeaturesSectionHeader.svelte';
 	import TerminalCommandRow from '$lib/ui/templates/device-mocks/terminal/TerminalCommandRow.svelte';

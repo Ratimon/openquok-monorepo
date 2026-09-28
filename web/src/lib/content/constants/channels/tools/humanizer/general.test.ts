@@ -9,7 +9,7 @@ import { getRootPathPublicHumanizerChannel } from '$lib/area-public/constants/ge
 import {
 	listAvailablePublicChannels,
 	listPublicChannelsForHub
-} from '$lib/content/constants/publicChannelConfig';
+} from '$lib/content/constants/channels';
 import {
 	buildHumanizeChannelHeroTitle,
 	buildHumanizeChannelMetaTitle,

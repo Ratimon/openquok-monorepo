@@ -2,7 +2,7 @@
 	import {
 		OPENQUOK_CORE_SKILL_INSTALL_THINKRAIL_GLOBAL,
 		OPENQUOK_CORE_SKILL_INSTALL_THINKRAIL_WORKTREE
-	} from '$lib/content/constants/openquokCliCommandReference';
+	} from '$lib/content/constants/agents/cli-command-reference';
 
 	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
 

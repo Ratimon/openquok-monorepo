@@ -4,7 +4,7 @@ import type { PublicApiPlatformSlug } from '$lib/content/constants/channels/api/
 import {
 	PUBLIC_API_POSTING_PLATFORM_SLUGS,
 	getPublicApiProviderIdentifier
-} from '$lib/content/constants/apis/index';
+} from '$lib/content/constants/channels/api';
 import { PUBLIC_API_MOCK_INTEGRATION_ID } from '$lib/content/constants/channels/api/_shared/shared';
 import { getPublicChannelBySlug } from '$lib/content/constants/channels/index';
 import { normalizeIntegrationEditorMode } from '$lib/integrations/integrationEditorMode';

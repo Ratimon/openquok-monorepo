@@ -1,7 +1,7 @@
 import type { IconName } from '$data/icons';
 import { icons } from '$data/icons';
 
-import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import type { PublicFaqItem } from '$lib/content/constants/faq';
 import {
 	faqHrefAgent,
 	faqHrefDocs,

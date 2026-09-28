@@ -1,7 +1,7 @@
 import type { ModuleConfigSchema } from '$lib/config/constants/types';
 import type { ModuleConfigViewModel } from '$lib/config/ModuleConfigRenderer.presenter.svelte';
 
-/** Build a config view model from schema defaults (e.g. git-managed `publicFaqConfig.ts` for Public FAQ). */
+/** Build a config view model from schema defaults (e.g. git-managed `faq/index.ts` for Public FAQ). */
 export function buildModuleConfigCodeDefaultsVm(
 	moduleSchema: ModuleConfigSchema
 ): ModuleConfigViewModel {

@@ -18,7 +18,7 @@ import {
 	PUBLIC_API_POSTING_PLATFORM_SLUGS,
 	listPublicApiPostingPlatformsForHub,
 	listPublicApiSchedulingPlatformsForHub
-} from '$lib/content/constants/apis/index';
+} from '$lib/content/constants/channels/api';
 import { getDocsByDirectory } from '$lib/docs/content';
 import { docsSidebarPublicApi } from '$lib/docs/constants/config';
 import { listSkillBuilderChannelsForHub } from '$lib/content/constants/channels/tools/skill-builder/general';

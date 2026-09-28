@@ -3,7 +3,7 @@ import type { IconName } from '$data/icons';
 import {
 	listAvailablePublicChannels,
 	type PublicChannelLandingPageViewModel
-} from '$lib/content/constants/publicChannelConfig';
+} from '$lib/content/constants/channels';
 import { getRootPathPublicSkillBuilderChannel } from '$lib/area-public/constants/getRootPathPublicTools';
 import type { SkillBuilderChannelHubLinkViewModel } from '$lib/skill-builder/skillBuilder.types';
 import { route } from '$lib/utils/path';
@@ -65,7 +65,7 @@ export const PUBLIC_SKILL_BUILDER_GENERIC_KEYWORDS = [
 ] as const;
 
 export type SkillBuilderChannelPageConfig = {
-	/** URL segment under `/tools/skill-builder/` — matches `publicChannelConfig.slug`. */
+	/** URL segment under `/tools/skill-builder/` — matches channel catalog `slug`. */
 	channelSlug: string;
 	/** Integration catalog identifiers used in CLI jq filters. */
 	providerIdentifiers: readonly string[];

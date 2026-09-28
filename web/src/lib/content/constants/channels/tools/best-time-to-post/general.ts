@@ -6,7 +6,7 @@ import { DEFAULT_PLATFORM_SLUG } from '$lib/best-time-to-post/best-time-to-post.
 import {
 	listAvailablePublicChannels,
 	type PublicChannelLandingPageViewModel
-} from '$lib/content/constants/publicChannelConfig';
+} from '$lib/content/constants/channels';
 import {
 	buildBestTimeToPostChannelHeroTitle,
 	buildBestTimeToPostChannelMetaTitle,
@@ -17,7 +17,7 @@ import {
 import { route } from '$lib/utils/path';
 
 export type BestTimeChannelPageConfig = {
-	/** URL segment under `/tools/best-time-to-post/` — matches `publicChannelConfig.slug`. */
+	/** URL segment under `/tools/best-time-to-post/` — matches channel catalog `slug`. */
 	channelSlug: string;
 	platformLabel: string;
 	icon: IconName;

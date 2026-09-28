@@ -2,8 +2,8 @@
 	import {
 		PUBLIC_AGENTS_HUB,
 		type PublicAgentHostLandingPageViewModel
-	} from '$lib/content/constants/publicAgentConfig';
-	import { PUBLIC_AGENTS_HUB_SECTION_IDS } from '$lib/content/constants/publicLandingBreadcrumbConfig';
+	} from '$lib/content/constants/agents';
+	import { PUBLIC_AGENTS_HUB_SECTION_IDS } from '$lib/content/constants/landing/breadcrumbs';
 	import { getRootPathPublicAgent } from '$lib/area-public/constants/getRootPathPublicAgents';
 	import { route } from '$lib/utils/path';
 

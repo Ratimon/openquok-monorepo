@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PublicAgentParallelMockItem } from '$lib/content/constants/publicAgentConfig';
+	import type { PublicAgentParallelMockItem } from '$lib/content/constants/agents';
 	import type { DesktopMockContentId } from '$lib/ui/templates/device-mocks/desktop/desktopMock.types';
 	import type { IphoneMockContentId } from '$lib/ui/templates/device-mocks/iphone-15-pro/iphoneMock.types';
 	import type { TerminalMockContentId } from '$lib/ui/templates/device-mocks/terminal/terminalMock.types';

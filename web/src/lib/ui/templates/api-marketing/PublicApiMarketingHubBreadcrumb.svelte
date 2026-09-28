@@ -8,7 +8,7 @@
 	import {
 		getPublicApiPostingHubPage,
 		getPublicApiSchedulingHubPage
-	} from '$lib/content/constants/apis/index';
+	} from '$lib/content/constants/channels/api';
 	import type { PublicApiCapability } from '$lib/content/constants/channels/api/_shared/types';
 	import * as Breadcrumb from '$lib/ui/breadcrumb';
 	import { cn } from '$lib/ui/helpers/common';

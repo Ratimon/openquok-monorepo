@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/publicAgentConfig';
+	import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/agents';
 
 	import LandingHeroHighlightedText from '$lib/ui/texts/LandingHeroHighlightedText.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';

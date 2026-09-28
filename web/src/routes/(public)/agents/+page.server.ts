@@ -3,7 +3,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 import type { ItemList } from 'schema-dts';
 
 import { publicAgentsPagePresenter } from '$lib/area-public';
-import { PUBLIC_AGENTS_HUB } from '$lib/content/constants/publicAgentConfig';
+import { PUBLIC_AGENTS_HUB } from '$lib/content/constants/agents';
 import {
 	CONFIG_SCHEMA_COMPANY,
 	CONFIG_SCHEMA_MARKETING

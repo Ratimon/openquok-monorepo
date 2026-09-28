@@ -2,7 +2,7 @@ import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/c
 import {
 	appendPublicGeneralFaqItems,
 	PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS
-} from '$lib/content/constants/publicFaqConfig';
+} from '$lib/content/constants/faq';
 import { PUBLIC_CHANNEL_LANDING_PAGES } from '$lib/content/constants/channels/catalog/seeds';
 
 export * from '$lib/content/constants/channels/catalog/types';

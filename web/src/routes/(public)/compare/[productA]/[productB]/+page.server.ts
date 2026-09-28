@@ -16,7 +16,7 @@ import {
 	CONFIG_SCHEMA_COMPANY,
 	getPublicFaqConfigDefaults
 } from '$lib/config/constants/config';
-import { getComparePair } from '$lib/content/constants/publicCompareConfig';
+import { getComparePair } from '$lib/content/constants/competitors';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';

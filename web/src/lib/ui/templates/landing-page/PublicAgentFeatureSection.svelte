@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PublicAgentFeatureSection } from '$lib/content/constants/publicAgentConfig';
+	import type { PublicAgentFeatureSection } from '$lib/content/constants/agents';
 	import type { TelegramMockAgentBranding } from '$lib/ui/templates/device-mocks/iphone-15-pro/telegramMockBranding';
 
 	import { page } from '$app/state';

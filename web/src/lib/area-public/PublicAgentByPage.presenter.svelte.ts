@@ -1,20 +1,20 @@
-import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/publicAgentConfig';
+import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/agents';
 import {
 	getAvailablePublicAgentHostBySlug,
 	getPublicAgentHostBySlug
-} from '$lib/content/constants/publicAgentConfig';
-import { getPublicChannelBySlug } from '$lib/content/constants/publicChannelConfig';
+} from '$lib/content/constants/agents';
+import { getPublicChannelBySlug } from '$lib/content/constants/channels';
 import {
 	getPublicAgentChannelBySlug
-} from '$lib/content/constants/publicAgentChannelConfig';
+} from '$lib/content/constants/agents/channels';
 import { buildAgentChannelLandingVm } from '$lib/content/utils/buildAgentChannelLandingVm';
 import { buildMcpChannelLandingVm } from '$lib/content/utils/buildMcpChannelLandingVm';
-import type { PublicMcpLandingPageViewModel } from '$lib/content/constants/publicMcpConfig';
+import type { PublicMcpLandingPageViewModel } from '$lib/content/constants/mcps';
 import {
 	getAvailablePublicMcpLandingBySlug,
 	getPublicMcpLandingBySlug,
 	listPublicMcpLandingPages
-} from '$lib/content/constants/publicMcpConfig';
+} from '$lib/content/constants/mcps';
 
 export type PublicAgentsLandingPage =
 	PublicAgentHostLandingPageViewModel | PublicMcpLandingPageViewModel;

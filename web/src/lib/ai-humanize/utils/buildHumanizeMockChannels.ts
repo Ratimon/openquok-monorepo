@@ -1,6 +1,6 @@
 import type { CreateSocialPostChannelViewModel } from '$lib/channels';
 
-import { listPublicChannelsForHub } from '$lib/content/constants/publicChannelConfig';
+import { listPublicChannelsForHub } from '$lib/content/constants/channels';
 import { normalizeIntegrationEditorMode } from '$lib/integrations/integrationEditorMode';
 
 export const HUMANIZE_MOCK_CHANNEL_ID_PREFIX = 'humanize-mock-';

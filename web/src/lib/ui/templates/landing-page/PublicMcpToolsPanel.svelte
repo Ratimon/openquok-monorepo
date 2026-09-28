@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PublicMcpLandingPageViewModel } from '$lib/content/constants/publicMcpConfig';
+	import type { PublicMcpLandingPageViewModel } from '$lib/content/constants/mcps';
 
 	import { icons } from '$data/icons';
 

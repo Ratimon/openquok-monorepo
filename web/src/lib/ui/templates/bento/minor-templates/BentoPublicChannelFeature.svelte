@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PublicChannelFeatureBentoId } from '$lib/content/constants/publicChannelFeatureBentoConfig';
+	import type { PublicChannelFeatureBentoId } from '$lib/content/constants/channels/catalog/feature-bento';
 
 	import { page } from '$app/state';
 

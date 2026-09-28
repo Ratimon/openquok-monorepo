@@ -6,7 +6,7 @@
 		getPublicApiHubSetupStepsSection,
 		getPublicApiPlatformSetupStepsSection
 	} from '$lib/content/constants/channels/api/_shared/publicApiCapabilityHubSetupStepsConfig';
-	import { getPublicApiSetupStepsFooter } from '$lib/content/constants/publicSetupStepsFooterConfig';
+	import { getPublicApiSetupStepsFooter } from '$lib/content/constants/landing/setup-steps-footer';
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 

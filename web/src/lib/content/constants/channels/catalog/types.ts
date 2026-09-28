@@ -1,7 +1,7 @@
 import type { IconName } from '$data/icons';
 
-import type { PublicChannelFeatureBentoId } from '$lib/content/constants/publicChannelFeatureBentoConfig';
-import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import type { PublicChannelFeatureBentoId } from '$lib/content/constants/channels/catalog/feature-bento';
+import type { PublicFaqItem } from '$lib/content/constants/faq';
 import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 
 export type PublicChannelFeatureSection = {

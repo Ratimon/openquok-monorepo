@@ -1,8 +1,8 @@
-import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import type { PublicFaqItem } from '$lib/content/constants/faq';
 import {
 	appendPublicGeneralFaqItems,
 	PUBLIC_CREATORS_HUB_FAQ_ITEM_IDS
-} from '$lib/content/constants/publicFaqConfig';
+} from '$lib/content/constants/faq';
 
 import { faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 

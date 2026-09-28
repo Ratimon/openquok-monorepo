@@ -24,7 +24,7 @@ import {
 	listPublicApiPostingPlatformsForHub,
 	listPublicApiSchedulingPlatformsForHub,
 	PUBLIC_API_POSTING_PLATFORM_SLUGS
-} from '$lib/content/constants/apis/index';
+} from '$lib/content/constants/channels/api';
 import { getRootPathPublicAgent } from '$lib/area-public/constants/getRootPathPublicAgents';
 import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
 import {

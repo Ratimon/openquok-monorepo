@@ -1,7 +1,7 @@
 import {
 	resolvePublicFaqItemsByIds,
 	type PublicFaqItem
-} from '$lib/content/constants/publicFaqConfig';
+} from '$lib/content/constants/faq';
 import { PUBLIC_PRICING_COMPARE_ROWS } from '$lib/billing/constants/publicPricingCatalog';
 
 import type {

@@ -5,7 +5,7 @@ import { faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 import {
 	OPENQUOK_CLI_COMMAND_REFERENCE,
 	THINKRAIL_SKILL_INSTALL_OPTIONS
-} from '$lib/content/constants/openquokCliCommandReference';
+} from '$lib/content/constants/agents/cli-command-reference';
 import { PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION } from '$lib/content/constants/agents/general';
 
 export const thinkrailAgent = {

@@ -5,7 +5,7 @@ import { faqHrefAgent, faqHrefDocs, faqLink, publicFaqHref } from '$lib/content/
 import {
 	HERMES_SKILL_INSTALL_OPTIONS,
 	OPENQUOK_CLI_COMMAND_REFERENCE
-} from '$lib/content/constants/openquokCliCommandReference';
+} from '$lib/content/constants/agents/cli-command-reference';
 import { PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION } from '$lib/content/constants/agents/general';
 
 export const hermesAgent = {

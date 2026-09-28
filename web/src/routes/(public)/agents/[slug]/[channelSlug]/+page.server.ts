@@ -13,8 +13,8 @@ import {
 import {
 	getPublicAgentChannelBySlug,
 	listPublicAgentChannelsForHub
-} from '$lib/content/constants/publicAgentChannelConfig';
-import { getPublicChannelBySlug } from '$lib/content/constants/publicChannelConfig';
+} from '$lib/content/constants/agents/channels';
+import { getPublicChannelBySlug } from '$lib/content/constants/channels';
 import { buildAgentsLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import {

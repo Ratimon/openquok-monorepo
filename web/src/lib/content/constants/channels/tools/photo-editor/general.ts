@@ -4,7 +4,7 @@ import { getRootPathPublicPhotoEditorChannel } from '$lib/area-public/constants/
 import {
 	listAvailablePublicChannels,
 	type PublicChannelLandingPageViewModel
-} from '$lib/content/constants/publicChannelConfig';
+} from '$lib/content/constants/channels';
 import type { CanvasChannelHubLinkViewModel } from '$lib/canvas/canvas.types';
 import {
 	aspectPlatformGroupIdForProviderIdentifier,
@@ -21,7 +21,7 @@ import {
 } from '$lib/content/utils/buildProgrammaticSeoTitles';
 
 export type CanvasChannelPageConfig = {
-	/** URL segment under `/tools/photo-editor/` — matches `publicChannelConfig.slug`. */
+	/** URL segment under `/tools/photo-editor/` — matches channel catalog `slug`. */
 	channelSlug: string;
 	platformLabel: string;
 	icon: IconName;

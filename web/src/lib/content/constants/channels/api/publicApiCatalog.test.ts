@@ -17,7 +17,7 @@ import {
 	PUBLIC_API_POSTING_PLATFORM_SLUGS,
 	publicApiPostingHubPage,
 	publicApiSchedulingHubPage
-} from '$lib/content/constants/apis/index';
+} from '$lib/content/constants/channels/api';
 import {
 	getPublicPricingLandingPlanOverrides,
 	getPublicPricingLandingSection
@@ -214,7 +214,7 @@ describe('publicApiCatalog', () => {
 	});
 
 	it('exposes API marketing pricing landing presets alongside catalog helpers', async () => {
-		const apis = await import('$lib/content/constants/apis/index');
+		const apis = await import('$lib/content/constants/channels/api');
 
 		expect(apis.getPublicPricingLandingSection).toBeTypeOf('function');
 		expect(apis.getPublicPricingLandingPlanOverrides).toBeTypeOf('function');

@@ -14,7 +14,7 @@ import { getListingPresenter } from '$lib/listings/index';
 import {
 	DEFAULT_LISTINGS_PREVIEW_ITEMS_PER_BLOCK,
 	type PublicAgentListingsPreviewSection
-} from '$lib/content/constants/publicAgentConfig';
+} from '$lib/content/constants/agents';
 import {
 	buildSeeAllPreviewCardItem,
 	buildSkillBuilderPreviewCardItem,

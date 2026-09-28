@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { PUBLIC_AGENTS_HUB } from '$lib/content/constants/agents/hub';
+import { PUBLIC_AGENTS_HUB } from '$lib/content/constants/hubs/agents';
 import { PUBLIC_CHANNELS_HUB_FAQ } from '$lib/content/constants/hubs/channels';
 import {
 	PUBLIC_API_POSTING_HUB_FAQ,
@@ -18,7 +18,7 @@ import {
 	PUBLIC_LISTINGS_HUB_FAQ_ITEM_IDS,
 	PUBLIC_ROADMAP_HUB_FAQ_ITEM_IDS,
 	PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS
-} from '$lib/content/constants/publicFaqConfig';
+} from '$lib/content/constants/faq';
 import { PUBLIC_ROADMAP_HUB_FAQ } from '$lib/content/constants/hubs/roadmap';
 import { PUBLIC_TOOLS_HUB_FAQ } from '$lib/content/constants/hubs/tools';
 import {

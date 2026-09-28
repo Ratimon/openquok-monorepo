@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { McpClient } from '$lib/developers/utils/getMcpClientConfig';
-	import type { PublicMcpIntegrationTab } from '$lib/content/constants/publicMcpConfig';
+	import type { PublicMcpIntegrationTab } from '$lib/content/constants/mcps';
 
 	import { ONBOARDING_INLINE_TERMINAL_CODE_CLASS } from '$lib/ui/components/onboarding/onboardingConstants';
 

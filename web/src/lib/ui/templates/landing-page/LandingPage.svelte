@@ -1,11 +1,11 @@
 <script lang="ts">
 	import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
-	import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
-	import type { PublicAgentFeatureSection as FeatureSectionConfig } from '$lib/content/constants/publicAgentConfig';
+	import type { PublicFaqItem } from '$lib/content/constants/faq';
+	import type { PublicAgentFeatureSection as FeatureSectionConfig } from '$lib/content/constants/agents';
 	import type { PublicListingsPreviewVm } from '$lib/listings/server/loadAgentListingsPreview.server';
 
 	import { page } from '$app/state';
-	import { PUBLIC_LANDING_WHO_IS_FOR_CARDS } from '$lib/content/constants/publicLandingWhoIsForConfig';
+	import { PUBLIC_LANDING_WHO_IS_FOR_CARDS } from '$lib/content/constants/landing/who-is-for';
 	import {
 		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
 		CENTERED_DARK_CTA_BANNER_TITLE,

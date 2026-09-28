@@ -8,7 +8,7 @@
 	import {
 		PUBLIC_AGENTS_HUB_SECTION_IDS,
 		PUBLIC_LANDING_BREADCRUMB
-	} from '$lib/content/constants/publicLandingBreadcrumbConfig';
+	} from '$lib/content/constants/landing/breadcrumbs';
 	import PublicLandingHubBreadcrumb, {
 		type PublicLandingHubBreadcrumbItem
 	} from '$lib/ui/templates/landing-page/PublicLandingHubBreadcrumb.svelte';

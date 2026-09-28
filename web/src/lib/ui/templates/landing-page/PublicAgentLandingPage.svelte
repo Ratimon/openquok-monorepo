@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/publicAgentConfig';
-	import type { PublicAgentChannelHubLinkViewModel } from '$lib/content/constants/publicAgentChannelConfig';
+	import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/agents';
+	import type { PublicAgentChannelHubLinkViewModel } from '$lib/content/constants/agents/channels';
 	import type { PublicListingsPreviewVm } from '$lib/listings/server/loadAgentListingsPreview.server';
 
 	import {
@@ -24,8 +24,8 @@
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 	import { route } from '$lib/utils/path';
-	import { PUBLIC_LANDING_GETTING_STARTED_GUIDE_CTA } from '$lib/content/constants/publicLandingHeroCopy';
-	import { getPublicAgentSetupStepsFooter } from '$lib/content/constants/publicSetupStepsFooterConfig';
+	import { PUBLIC_LANDING_GETTING_STARTED_GUIDE_CTA } from '$lib/content/constants/landing/hero-copy';
+	import { getPublicAgentSetupStepsFooter } from '$lib/content/constants/landing/setup-steps-footer';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import {
 		CENTERED_DARK_CTA_BANNER_DESCRIPTION,

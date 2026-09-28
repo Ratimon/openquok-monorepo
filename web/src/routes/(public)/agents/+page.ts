@@ -1,8 +1,8 @@
 import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/publicAgentConfig';
-import type { PublicMcpIntegrationViewModel } from '$lib/content/constants/publicMcpConfig';
+import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/agents';
+import type { PublicMcpIntegrationViewModel } from '$lib/content/constants/mcps';
 
 import type { PageLoad } from './$types';
 

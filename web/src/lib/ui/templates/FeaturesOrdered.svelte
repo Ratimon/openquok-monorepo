@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { FeaturesOrderedStep } from '$lib/content/constants/publicAgentConfig';
+	import type { FeaturesOrderedStep } from '$lib/content/constants/agents';
     import type { DesktopMockContentId } from '$lib/ui/templates/device-mocks/desktop/desktopMock.types';
     import type { IphoneMockContentId } from '$lib/ui/templates/device-mocks/iphone-15-pro/iphoneMock.types';
     import type { SafariMockContentId } from '$lib/ui/templates/device-mocks/safari/safariMock.types';
@@ -7,7 +7,7 @@
     import type { TerminalMockContentId } from '$lib/ui/templates/device-mocks/terminal/terminalMock.types';
 
 	import { onMount } from 'svelte';
-    import { DEFAULT_AGENT_INTEGRATIONS } from '$lib/content/constants/publicAgentConfig';
+    import { DEFAULT_AGENT_INTEGRATIONS } from '$lib/content/constants/agents';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import VideoOrImage from '$lib/ui/media-files/VideoOrImage.svelte';
@@ -24,7 +24,7 @@
 	import LandingHeroHighlightedText from '$lib/ui/texts/LandingHeroHighlightedText.svelte';
 	import type { TelegramMockAgentBranding } from '$lib/ui/templates/device-mocks/iphone-15-pro/telegramMockBranding';
 
-	export type { FeaturesOrderedDeviceMock, FeaturesOrderedStep } from '$lib/content/constants/publicAgentConfig';
+	export type { FeaturesOrderedDeviceMock, FeaturesOrderedStep } from '$lib/content/constants/agents';
 
 	type LandingHeroTitleSegment = { text: string; highlight: boolean };
 

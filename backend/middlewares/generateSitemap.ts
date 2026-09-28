@@ -90,7 +90,7 @@ const PUBLIC_TOOL_CHANNEL_PATH_PAYLOAD_WIZARD = "/tools/payload-wizard";
 
 const LISTING_HUB_PREFIXES = ["/playbooks", "/building-blocks"] as const;
 
-/** Keep in sync with web/src/lib/content/constants/apis/index.ts and generate-routes-manifest.mjs. */
+/** Keep in sync with web/src/lib/content/constants/channels/api/index.ts and generate-routes-manifest.mjs. */
 const PUBLIC_API_MARKETING_HUB_PATHS = [
     "/social-media-posting-api",
     "/social-media-scheduling-api",
@@ -170,15 +170,6 @@ function extractPublicCatalogSlugsFromDir(constantsDir: string): PublicCatalogSl
     };
 }
 
-function extractPublicCatalogSlugsFromFiles(options: {
-    agentConfigPath: string;
-    mcpConfigPath: string;
-    channelConfigPath: string;
-}): PublicCatalogSlugs {
-    const constantsDir = path.dirname(options.channelConfigPath);
-    return extractPublicCatalogSlugsFromDir(constantsDir);
-}
-
 function resolveWebConstantsDir(routesPath?: string): string | undefined {
     const candidates = [
         routesPath ? path.join(routesPath, "../lib/content/constants") : null,
@@ -187,7 +178,7 @@ function resolveWebConstantsDir(routesPath?: string): string | undefined {
     ].filter((candidate): candidate is string => Boolean(candidate));
 
     for (const dir of candidates) {
-        if (fs.existsSync(path.join(dir, "publicChannelConfig.ts"))) {
+        if (fs.existsSync(path.join(dir, "channels", "index.ts"))) {
             return dir;
         }
     }
@@ -200,11 +191,7 @@ function loadPublicCatalogSlugs(routesPath?: string): PublicCatalogSlugs | null 
     if (!constantsDir) return null;
 
     try {
-        return extractPublicCatalogSlugsFromFiles({
-            agentConfigPath: path.join(constantsDir, "publicAgentConfig.ts"),
-            mcpConfigPath: path.join(constantsDir, "publicMcpConfig.ts"),
-            channelConfigPath: path.join(constantsDir, "publicChannelConfig.ts"),
-        });
+        return extractPublicCatalogSlugsFromDir(constantsDir);
     } catch {
         return null;
     }

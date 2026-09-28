@@ -1,6 +1,6 @@
 import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 
-import type { PublicChannelFeatureBentoId } from '$lib/content/constants/publicChannelFeatureBentoConfig';
+import type { PublicChannelFeatureBentoId } from '$lib/content/constants/channels/catalog/feature-bento';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/catalog/types';
 import {
 	buildChannelMcpSeoKeywords,

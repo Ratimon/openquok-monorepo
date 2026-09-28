@@ -1,9 +1,9 @@
 import type { IconName } from '$data/icons';
 import type { HumanizeChannelHubLinkViewModel } from '$lib/ai-humanize/Humanize.presenter.svelte';
-import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/publicChannelConfig';
+import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels';
 
 import { getRootPathPublicHumanizerChannel } from '$lib/area-public/constants/getRootPathPublicTools';
-import { listPublicChannelsForHub } from '$lib/content/constants/publicChannelConfig';
+import { listPublicChannelsForHub } from '$lib/content/constants/channels';
 import {
 	buildHumanizeChannelHeroTitle,
 	buildHumanizeChannelMetaDescription,
@@ -15,7 +15,7 @@ import {
 import { route } from '$lib/utils/path';
 
 export type HumanizeChannelPageConfig = {
-	/** URL segment under `/tools/humanizer/` — matches `publicChannelConfig.slug`. */
+	/** URL segment under `/tools/humanizer/` — matches channel catalog `slug`. */
 	channelSlug: string;
 	platformLabel: string;
 	icon: IconName;

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { LandingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
-	import { PUBLIC_FAQ_ITEMS, type PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+	import { PUBLIC_FAQ_ITEMS, type PublicFaqItem } from '$lib/content/constants/faq';
 	import { getPublicFaqConfigDefaults } from '$lib/config/constants/config';
 
 	import FaqAccordion from '$lib/ui/templates/faq/FaqAccordion.svelte';

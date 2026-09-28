@@ -1,10 +1,10 @@
 <script lang="ts">
-	import type { FeaturesAnimatedModel } from '$lib/content/constants/publicAgentConfig';
+	import type { FeaturesAnimatedModel } from '$lib/content/constants/agents';
 
 	import { onMount } from 'svelte';
 	import { AnimatePresence, Motion } from 'svelte-motion';
 
-	import { DEFAULT_LLM_MODELS } from '$lib/content/constants/publicAgentConfig';
+	import { DEFAULT_LLM_MODELS } from '$lib/content/constants/agents';
 	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import type { CompareProductSummaryViewModel } from '$lib/area-public/PublicComparePage.presenter.svelte';
-	import type { CompareProductSlug } from '$lib/content/constants/publicCompareConfig';
+	import type { CompareProductSlug } from '$lib/content/constants/competitors';
 
 	import { getRootPathPublicCompare } from '$lib/area-public/constants/getRootPathPublicCompare';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';

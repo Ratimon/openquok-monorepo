@@ -1,6 +1,6 @@
 import { getRootPathPublicAgentChannel } from '$lib/area-public/constants/getRootPathPublicAgents';
 import { getPublicChannelBySlug, listPublicChannelsForHub } from '$lib/content/constants/channels';
-import { getAvailablePublicMcpLandingBySlug } from '$lib/content/constants/publicMcpConfig';
+import { getAvailablePublicMcpLandingBySlug } from '$lib/content/constants/mcps';
 import { route } from '$lib/utils/path';
 
 import type {

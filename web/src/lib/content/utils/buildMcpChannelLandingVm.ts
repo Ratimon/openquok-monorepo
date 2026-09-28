@@ -1,6 +1,6 @@
-import type { PublicAgentChannelPageConfig } from '$lib/content/constants/publicAgentChannelConfig';
-import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/publicChannelConfig';
-import type { PublicMcpLandingPageViewModel } from '$lib/content/constants/publicMcpConfig';
+import type { PublicAgentChannelPageConfig } from '$lib/content/constants/agents/channels';
+import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels';
+import type { PublicMcpLandingPageViewModel } from '$lib/content/constants/mcps';
 import {
 	buildChannelMcpSeoKeywords,
 	SHARED_CHANNEL_SEO_KEYWORDS

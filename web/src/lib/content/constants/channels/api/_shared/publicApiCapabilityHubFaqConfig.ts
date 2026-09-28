@@ -1,10 +1,10 @@
 import type { PublicApiCapability } from '$lib/content/constants/channels/api/_shared/types';
-import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import type { PublicFaqItem } from '$lib/content/constants/faq';
 import {
 	appendPublicGeneralFaqItems,
 	PUBLIC_API_POSTING_HUB_FAQ_ITEM_IDS,
 	PUBLIC_API_SCHEDULING_HUB_FAQ_ITEM_IDS
-} from '$lib/content/constants/publicFaqConfig';
+} from '$lib/content/constants/faq';
 import { faqHrefDocs, faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 
 export type PublicApiCapabilityHubFaqSection = {

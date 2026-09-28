@@ -2,7 +2,7 @@ import { resolvePublicChannelAudienceCards } from '$lib/content/constants/channe
 import {
 	getPublicChannelBySlug,
 	type PublicChannelLandingPageViewModel
-} from '$lib/content/constants/publicChannelConfig';
+} from '$lib/content/constants/channels';
 
 export type PublicChannelViewModel = PublicChannelLandingPageViewModel;
 

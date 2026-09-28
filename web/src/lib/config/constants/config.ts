@@ -2,7 +2,7 @@ import type { IconName } from '$data/icons';
 import type { ModuleConfigSchema } from '$lib/config/constants/types';
 
 import { icons } from '$data/icons';
-import { getDefaultPublicFaqConfigItems } from '$lib/content/constants/publicFaqConfig';
+import { getDefaultPublicFaqConfigItems } from '$lib/content/constants/faq';
 import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
 import { getRootPathPublicAgents } from '$lib/area-public/constants/getRootPathPublicAgents';
 import { getRootPathPublicChannels } from '$lib/area-public/constants/getRootPathPublicChannels';

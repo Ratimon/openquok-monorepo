@@ -2,11 +2,11 @@ import { icons } from '$data/icons';
 import type { IconName } from '$data/icons';
 
 import { getRootPathPublicSelfHosting } from '$lib/area-public/constants/getRootPathPublicSelfHosting';
-import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import type { PublicFaqItem } from '$lib/content/constants/faq';
 import {
 	appendPublicGeneralFaqItems,
 	PUBLIC_SELF_HOSTING_FAQ_ITEM_IDS
-} from '$lib/content/constants/publicFaqConfig';
+} from '$lib/content/constants/faq';
 import {
 	faqHrefDocs,
 	faqLink,

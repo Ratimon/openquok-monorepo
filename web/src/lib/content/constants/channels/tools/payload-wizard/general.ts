@@ -5,7 +5,7 @@ import {
 	getPublicApiPostingPlatformBySlug,
 	getPublicApiProviderIdentifier,
 	PUBLIC_API_POSTING_PLATFORM_SLUGS
-} from '$lib/content/constants/apis/index';
+} from '$lib/content/constants/channels/api';
 import { PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM } from '$lib/content/constants/channels/api/_shared/formatExamples';
 import { getRootPathPublicPayloadWizardChannel } from '$lib/area-public/constants/getRootPathPublicTools';
 import {

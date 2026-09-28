@@ -1,6 +1,6 @@
 import { expect } from 'vitest';
 
-import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import type { PublicFaqItem } from '$lib/content/constants/faq';
 import { prepareBlogRichTextForDisplay } from '$lib/blogs/utils';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';

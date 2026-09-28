@@ -22,7 +22,7 @@ import {
 	type PublicApiHubPageViewModel,
 	type PublicApiPlatformHubCard,
 	type PublicApiPlatformPageViewModel
-} from '$lib/content/constants/apis/index';
+} from '$lib/content/constants/channels/api';
 import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 import {
 	createPublicAudienceSectionSEOSchema,

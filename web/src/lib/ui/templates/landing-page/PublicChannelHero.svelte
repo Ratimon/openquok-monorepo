@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/publicChannelConfig';
+	import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels';
 
 	import LandingHeroHighlightedText from '$lib/ui/texts/LandingHeroHighlightedText.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';

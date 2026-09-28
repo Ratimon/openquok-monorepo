@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { listPublicChannelsForHub } from '$lib/content/constants/publicChannelConfig';
+import { listPublicChannelsForHub } from '$lib/content/constants/channels';
 import {
 	HUMANIZE_MOCK_CHANNEL_ID_PREFIX,
 	buildHumanizeMockChannels,

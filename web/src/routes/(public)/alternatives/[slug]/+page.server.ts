@@ -13,8 +13,8 @@ import {
 	CONFIG_SCHEMA_COMPANY,
 	getPublicFaqConfigDefaults
 } from '$lib/config/constants/config';
-import { isAlternativesTargetSlug } from '$lib/content/constants/publicCompareConfig';
-import { PUBLIC_FAQ_ITEMS } from '$lib/content/constants/publicFaqConfig';
+import { isAlternativesTargetSlug } from '$lib/content/constants/competitors';
+import { PUBLIC_FAQ_ITEMS } from '$lib/content/constants/faq';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';

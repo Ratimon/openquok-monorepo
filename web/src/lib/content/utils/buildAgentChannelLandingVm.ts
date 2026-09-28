@@ -1,7 +1,7 @@
-import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
-import type { PublicAgentChannelPageConfig } from '$lib/content/constants/publicAgentChannelConfig';
-import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/publicAgentConfig';
-import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/publicChannelConfig';
+import type { PublicFaqItem } from '$lib/content/constants/faq';
+import type { PublicAgentChannelPageConfig } from '$lib/content/constants/agents/channels';
+import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/agents';
+import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels';
 
 import { SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS } from '$data/social-providers';
 

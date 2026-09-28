@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/publicAgentConfig';
-	import type { PublicMcpIntegrationViewModel } from '$lib/content/constants/publicMcpConfig';
+	import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/agents';
+	import type { PublicMcpIntegrationViewModel } from '$lib/content/constants/mcps';
 
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { route } from '$lib/utils/path';
@@ -12,7 +12,7 @@
 		PUBLIC_BANNER_CTA_TEXT,
 		PUBLIC_HUB_DOCS_BANNERS
 	} from '$lib/config/constants/config';
-	import { PUBLIC_AGENTS_HUB } from '$lib/content/constants/publicAgentConfig';
+	import { PUBLIC_AGENTS_HUB } from '$lib/content/constants/agents';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';

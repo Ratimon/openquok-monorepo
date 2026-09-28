@@ -1,5 +1,5 @@
 import type { PublicAgentComparisonSection } from '$lib/content/constants/agents/types';
-import type { PublicFaqItem, PublicFaqItemId } from '$lib/content/constants/publicFaqConfig';
+import type { PublicFaqItem, PublicFaqItemId } from '$lib/content/constants/faq';
 
 export type { PublicFaqItemId };
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';

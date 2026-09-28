@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest';
 import {
 	PUBLIC_API_POSTING_PLATFORM_SLUGS,
 	getPublicApiProviderIdentifier
-} from '$lib/content/constants/apis/index';
-import { getPublicChannelBySlug } from '$lib/content/constants/publicChannelConfig';
+} from '$lib/content/constants/channels/api';
+import { getPublicChannelBySlug } from '$lib/content/constants/channels';
 import {
 	PAYLOAD_WIZARD_GUEST_DEFAULT_SELECTED_SLUGS,
 	PAYLOAD_WIZARD_MOCK_INTEGRATION_ID_BY_SLUG,

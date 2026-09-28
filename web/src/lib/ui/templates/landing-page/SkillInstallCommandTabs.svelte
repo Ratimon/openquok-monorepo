@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { SkillInstallOption } from '$lib/content/constants/openquokCliCommandReference';
+	import type { SkillInstallOption } from '$lib/content/constants/agents/cli-command-reference';
 
 	import * as Tabs from '$lib/ui/tabs';
 	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';

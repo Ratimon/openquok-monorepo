@@ -2,7 +2,7 @@
 	import {
 		OPENQUOK_CORE_SKILL_INSTALL_GROK_BOT_ASK,
 		OPENQUOK_CORE_SKILL_INSTALL_GROK_BOT_CURL
-	} from '$lib/content/constants/openquokCliCommandReference';
+	} from '$lib/content/constants/agents/cli-command-reference';
 
 	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
 

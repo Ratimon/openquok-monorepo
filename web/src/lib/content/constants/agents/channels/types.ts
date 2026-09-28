@@ -1,7 +1,7 @@
 import type { IconName } from '$data/icons';
 
-import type { PublicChannelFeatureBentoId } from '$lib/content/constants/publicChannelFeatureBentoConfig';
-import type { OpenquokCliCommandReferenceItem } from '$lib/content/constants/openquokCliCommandReference';
+import type { PublicChannelFeatureBentoId } from '$lib/content/constants/channels/catalog/feature-bento';
+import type { OpenquokCliCommandReferenceItem } from '$lib/content/constants/agents/cli-command-reference';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/catalog/types';
 
 export type PublicAgentChannelPageConfig = {

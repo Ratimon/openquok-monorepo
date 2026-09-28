@@ -2,7 +2,7 @@ import type { FeaturesOrderedStep } from '$lib/content/constants/agents/types';
 import {
 	appendPublicGeneralFaqItems,
 	PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS
-} from '$lib/content/constants/publicFaqConfig';
+} from '$lib/content/constants/faq';
 import { buildMcpLandingPage, toSkillSetupSteps } from '$lib/content/constants/mcps/general';
 import { MCP_LANDING_SEEDS } from '$lib/content/constants/mcps/seeds';
 import type { PublicMcpIntegrationViewModel, PublicMcpLandingPageViewModel } from '$lib/content/constants/mcps/types';

@@ -40,7 +40,7 @@ declare global {
 			footerNavigationLinks?: Record<string, { label: string; href: string }[]>;
 			landingPageConfigVm?: Record<string, string>;
 			publicFaqConfigVm?: Record<string, string>;
-			publicFaqItemsVm?: import('$lib/content/constants/publicFaqConfig').PublicFaqItem[];
+			publicFaqItemsVm?: import('$lib/content/constants/faq').PublicFaqItem[];
 			pageMetaTags?: BaseMetaTags;
 			schemaData?: Record<string, unknown>;
 		}

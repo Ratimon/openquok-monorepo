@@ -4,9 +4,9 @@ import {
 	getPublicAgentSetupStepsFooter,
 	getPublicApiSetupStepsFooter,
 	getPublicMcpSetupStepsFooter
-} from '$lib/content/constants/publicSetupStepsFooterConfig';
+} from '$lib/content/constants/landing/setup-steps-footer';
 
-describe('publicSetupStepsFooterConfig', () => {
+describe('landing/setup-steps-footer', () => {
 	it('links API marketing setup steps to the public API guide', () => {
 		const footer = getPublicApiSetupStepsFooter();
 

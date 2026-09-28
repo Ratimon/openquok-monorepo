@@ -1,10 +1,10 @@
-import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import type { PublicFaqItem } from '$lib/content/constants/faq';
 import {
 	appendPublicGeneralFaqItems,
 	PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS
-} from '$lib/content/constants/publicFaqConfig';
+} from '$lib/content/constants/faq';
 
-import { getPublicApiPostingPlatformBySlug } from '$lib/content/constants/apis/index';
+import { getPublicApiPostingPlatformBySlug } from '$lib/content/constants/channels/api';
 import {
 	buildToolChannelFaqLinks,
 	faqHrefDocs,

@@ -1,6 +1,6 @@
 import type { IconName } from '$data/icons';
 
-import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import type { PublicFaqItem } from '$lib/content/constants/faq';
 
 export type PublicApiCapability = 'posting' | 'scheduling';
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PublicMcpLandingPageViewModel } from '$lib/content/constants/publicMcpConfig';
+	import type { PublicMcpLandingPageViewModel } from '$lib/content/constants/mcps';
 
 	import LandingHeroHighlightedText from '$lib/ui/texts/LandingHeroHighlightedText.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';

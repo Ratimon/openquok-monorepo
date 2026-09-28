@@ -15,7 +15,7 @@ import {
 	PUBLIC_PRICING_FAQ_ITEM_IDS,
 	PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS,
 	resolvePublicFaqItemsByIds
-} from '$lib/content/constants/publicFaqConfig';
+} from '$lib/content/constants/faq';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { resolvePublicFaqItemsVm } from '$lib/content/utils/parsePublicFaqConfig';
 import { assertNoNofollowOnFirstPartyFaqLinks } from '$lib/content/utils/publicFaqFunnel.test-utils';

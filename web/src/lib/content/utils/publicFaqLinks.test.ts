@@ -6,7 +6,7 @@ import {
 	PUBLIC_API_SCHEDULING_HUB_FAQ,
 	getPublicApiPostingPlatformBySlug,
 	getPublicApiSchedulingPlatformBySlug
-} from '$lib/content/constants/apis/index';
+} from '$lib/content/constants/channels/api';
 import {
 	assertConnectFaqsHaveFunnelLinks,
 	assertSelfHostLabelsOnSocialIntegrationLinks

@@ -1,4 +1,4 @@
-import type { PublicAgentComparisonSection } from '$lib/content/constants/publicAgentConfig';
+import type { PublicAgentComparisonSection } from '$lib/content/constants/agents';
 import {
 	buildCompareChannelPoints,
 	COMPARE_CHANNELS_SECTION,
@@ -11,8 +11,8 @@ import {
 	type ComparePair,
 	type ComparePricingPlan,
 	type CompareProductSlug
-} from '$lib/content/constants/publicCompareConfig';
-import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+} from '$lib/content/constants/competitors';
+import type { PublicFaqItem } from '$lib/content/constants/faq';
 import type { IconName } from '$data/icons';
 
 import { PUBLIC_PRICING_COMPARE_ROWS } from '$lib/billing/constants/publicPricingCatalog';

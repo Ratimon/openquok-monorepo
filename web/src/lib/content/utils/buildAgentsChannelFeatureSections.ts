@@ -1,10 +1,10 @@
-import type { PublicAgentChannelPageConfig } from '$lib/content/constants/publicAgentChannelConfig';
-import type { PublicAgentFeatureSection } from '$lib/content/constants/publicAgentConfig';
+import type { PublicAgentChannelPageConfig } from '$lib/content/constants/agents/channels';
+import type { PublicAgentFeatureSection } from '$lib/content/constants/agents';
 import { CHANNEL_INSIGHTS_BENTO_SUFFIX } from '$lib/content/constants/channels/catalog/shared';
 import type {
 	PublicChannelFeatureSection,
 	PublicChannelLandingPageViewModel
-} from '$lib/content/constants/publicChannelConfig';
+} from '$lib/content/constants/channels';
 
 const KANBAN_SECTION_SUBTITLE = 'Kanban + smart filters';
 const ANALYTICS_SECTION_SUBTITLE = 'Analytics';
@@ -58,7 +58,7 @@ function mergeChannelFeatureIntoAgentSection(
 }
 
 /**
- * Overlay agent/MCP feature rows with copy and bentos from `publicChannelConfig`
+ * Overlay agent/MCP feature rows with copy and bentos from the channel catalog
  * (same source as `/channels/{slug}`).
  */
 export function customizeAgentsChannelFeatureSections(

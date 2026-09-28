@@ -2,7 +2,7 @@ import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import type { PublicAgentViewModel } from '$lib/area-public/PublicAgentByPage.presenter.svelte';
-import type { PublicAgentChannelHubLinkViewModel } from '$lib/content/constants/publicAgentChannelConfig';
+import type { PublicAgentChannelHubLinkViewModel } from '$lib/content/constants/agents/channels';
 import type { PublicListingsPreviewVm } from '$lib/listings/server/loadAgentListingsPreview.server';
 
 import type { PageLoad } from './$types';

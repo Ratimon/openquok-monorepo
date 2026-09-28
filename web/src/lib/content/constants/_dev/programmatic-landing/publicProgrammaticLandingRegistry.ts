@@ -29,7 +29,7 @@ import {
 	PUBLIC_API_POSTING_PLATFORM_SLUGS,
 	getPublicApiPostingPlatformBySlug,
 	getPublicApiSchedulingPlatformBySlug
-} from '$lib/content/constants/apis/index';
+} from '$lib/content/constants/channels/api';
 import { listSkillBuilderChannelsForHub } from '$lib/content/constants/channels/tools/skill-builder/general';
 import { getPayloadWizardChannelBySlug } from '$lib/content/constants/channels/tools/payload-wizard/general';
 

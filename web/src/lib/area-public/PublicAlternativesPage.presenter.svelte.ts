@@ -6,7 +6,7 @@ import {
 	listAlternativeProductsFor,
 	type CompareProduct,
 	type CompareProductSlug
-} from '$lib/content/constants/publicCompareConfig';
+} from '$lib/content/constants/competitors';
 import type { IconName } from '$data/icons';
 
 import { route, url } from '$lib/utils/path';

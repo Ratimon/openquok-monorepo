@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PublicAgentFeatureSection } from '$lib/content/constants/publicAgentConfig';
+	import type { PublicAgentFeatureSection } from '$lib/content/constants/agents';
 	import type { DesktopMockContentId } from '$lib/ui/templates/device-mocks/desktop/desktopMock.types';
 	import type { IphoneMockContentId } from '$lib/ui/templates/device-mocks/iphone-15-pro/iphoneMock.types';
 	import type { SafariMockContentId } from '$lib/ui/templates/device-mocks/safari/safariMock.types';

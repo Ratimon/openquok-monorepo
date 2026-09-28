@@ -2,7 +2,7 @@
 	import type { PageData } from './$types';
 
 	import { publicComparePagePresenter } from '$lib/area-public';
-	import { COMPARE_HUB_BASE_SLUG, type CompareProductSlug } from '$lib/content/constants/publicCompareConfig';
+	import { COMPARE_HUB_BASE_SLUG, type CompareProductSlug } from '$lib/content/constants/competitors';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { route } from '$lib/utils/path';
 
