@@ -508,7 +508,7 @@
 				<h3 class="text-xl font-bold text-base-content">
 					Blog details</h3>
 				<p class="text-sm font-medium text-base-content/70">
-					Title, description, content, and topic.</p>
+					Title, description, topic, and content.</p>
 			</div>
 			<div class="divider"></div>
 			<div class="space-y-6">
@@ -594,6 +594,44 @@
 						</form.Field>
 					{/snippet}
 				</form.Subscribe>
+				<div class="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
+					<form.Field name="topic_id">
+						{#snippet children(field)}
+							<div class="flex flex-col gap-2">
+								<Field.Label>Topic</Field.Label>
+								<Field.Description>
+									Choose the topic for this post. You must select a topic before you upload hero or inline images.
+								</Field.Description>
+								<Select.Root
+									type="single"
+									value={field.state.value || undefined}
+									onValueChange={(v) => {
+										const next = v ?? '';
+										field.handleChange(next);
+										selectedTopicId = next.trim();
+									}}
+								>
+									<Select.Trigger class="w-full max-w-md">
+										{topicChoices.find((c) => c.value === field.state.value)?.label ?? 'Select topic'}
+									</Select.Trigger>
+									<Select.Content>
+										{#each topicChoices as choice}
+											<Select.Item value={choice.value} label={choice.label}>
+												{choice.label}
+											</Select.Item>
+										{/each}
+									</Select.Content>
+								</Select.Root>
+								<Field.Error errors={field.state.meta.errors as unknown as Array<{ message?: string }>} />
+								{#if !field.state.value}
+									<p class="text-sm text-base-content/60">
+										Choose a topic to unlock Structured SEO. FAQ, How-to steps, and product summary are optional for every topic. Feature Walkthroughs by Use Case also adds Guide on the BlogPosting in JSON-LD automatically—no extra fields.
+									</p>
+								{/if}
+							</div>
+						{/snippet}
+					</form.Field>
+				</div>
 				<form.Field name="content">
 					{#snippet children(field)}
 						<div class="flex flex-col gap-2">
@@ -651,44 +689,6 @@
 						</div>
 					{/snippet}
 				</form.Field>
-				<div class="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
-					<form.Field name="topic_id">
-						{#snippet children(field)}
-							<div class="flex flex-col gap-2">
-								<Field.Label>Topic</Field.Label>
-								<Field.Description>
-									Choose the topic for this post. You must select a topic before you upload hero or inline images.
-								</Field.Description>
-								<Select.Root
-									type="single"
-									value={field.state.value || undefined}
-									onValueChange={(v) => {
-										const next = v ?? '';
-										field.handleChange(next);
-										selectedTopicId = next.trim();
-									}}
-								>
-									<Select.Trigger class="w-full max-w-md">
-										{topicChoices.find((c) => c.value === field.state.value)?.label ?? 'Select topic'}
-									</Select.Trigger>
-									<Select.Content>
-										{#each topicChoices as choice}
-											<Select.Item value={choice.value} label={choice.label}>
-												{choice.label}
-											</Select.Item>
-										{/each}
-									</Select.Content>
-								</Select.Root>
-								<Field.Error errors={field.state.meta.errors as unknown as Array<{ message?: string }>} />
-								{#if !field.state.value}
-									<p class="text-sm text-base-content/60">
-										Choose a topic to unlock Structured SEO. FAQ, How-to steps, and product summary are optional for every topic. Feature Walkthroughs by Use Case also adds Guide on the BlogPosting in JSON-LD automatically—no extra fields.
-									</p>
-								{/if}
-							</div>
-						{/snippet}
-					</form.Field>
-				</div>
 			</div>
 		</section>
 
