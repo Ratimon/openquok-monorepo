@@ -7,5 +7,4 @@
 <BentoLandingKanbanPreview
 	cards={getFacebookLandingKanbanCards()}
 	channels={[FACEBOOK_LANDING_MOCK_CHANNEL]}
-	subtitle="Review agent and human drafts, then drag Facebook posts between Drafted and Scheduled."
 />

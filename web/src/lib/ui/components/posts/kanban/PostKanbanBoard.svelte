@@ -92,7 +92,7 @@
 		onOpenPostActions?: (payload: { postGroup: string; postId: string }) => void;
 		onEditPost?: (postGroup: string) => void;
 		calendarHref: string;
-		/** Home dashboard Posts tab — drop page margin and visible duplicate heading. */
+		/** Home dashboard Posts tab — drop page margin (tab label is the visible heading). */
 		embeddedInHomeTabs?: boolean;
 	};
 
@@ -254,19 +254,7 @@
 	aria-labelledby="post-kanban-heading"
 >
 	<div class="flex min-w-0 flex-col gap-3">
-		{#if embeddedInHomeTabs}
-			<h2 id="post-kanban-heading" class="sr-only">Posts board</h2>
-		{:else}
-			<div class="min-w-0">
-				<h2 id="post-kanban-heading" class="text-lg font-semibold text-base-content">
-					On-going Tasks
-				</h2>
-				<p class="mt-1 text-sm text-base-content/70">
-					Review AI-generated and manual posts. Drag between Drafted and Scheduled;
-					double-click post to edit content, the menu for more actions, or double-click the review note.
-				</p>
-			</div>
-		{/if}
+		<h2 id="post-kanban-heading" class="sr-only">Posts board</h2>
 		<KanbanBoardFilters
 			{channels}
 			{allGroups}

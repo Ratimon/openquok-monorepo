@@ -7,5 +7,4 @@
 <BentoLandingKanbanPreview
 	cards={getThreadsLandingKanbanCards()}
 	channels={[THREADS_LANDING_MOCK_CHANNEL]}
-	subtitle="Review agent and human drafts, then move Threads posts between Drafted and Scheduled."
 />

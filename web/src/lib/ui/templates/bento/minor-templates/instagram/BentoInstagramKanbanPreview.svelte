@@ -7,5 +7,4 @@
 <BentoLandingKanbanPreview
 	cards={getInstagramLandingKanbanCards()}
 	channels={[INSTAGRAM_LANDING_MOCK_CHANNEL]}
-	subtitle="Review agent and human drafts, then move Instagram posts between Drafted and Scheduled."
 />

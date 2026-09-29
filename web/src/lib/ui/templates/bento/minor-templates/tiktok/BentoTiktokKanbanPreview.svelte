@@ -7,5 +7,4 @@
 <BentoLandingKanbanPreview
 	cards={getTiktokLandingKanbanCards()}
 	channels={[TIKTOK_LANDING_MOCK_CHANNEL]}
-	subtitle="Review agent and human drafts, then drag TikTok clips between Drafted and Scheduled."
 />

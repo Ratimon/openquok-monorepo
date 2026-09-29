@@ -9,5 +9,4 @@
 <BentoLandingKanbanPreview
 	cards={getAgentMultiPlatformKanbanCards()}
 	channels={AGENT_MULTI_PLATFORM_MOCK_CHANNELS}
-	subtitle="Review agent and human drafts across Facebook, Threads, Instagram, and more — drag posts between Drafted and Scheduled."
 />

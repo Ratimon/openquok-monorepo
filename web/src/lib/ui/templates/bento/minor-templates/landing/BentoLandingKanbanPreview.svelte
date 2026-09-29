@@ -34,10 +34,9 @@
 	type Props = {
 		cards: readonly PostKanbanCardViewModel[];
 		channels: CreateSocialPostChannelViewModel[];
-		subtitle: string;
 	};
 
-	let { cards, channels, subtitle }: Props = $props();
+	let { cards, channels }: Props = $props();
 
 	const enrichedCards = $derived(enrichLandingKanbanCards(cards));
 	const tagsVm = $derived(buildLandingKanbanTagsVm(cards));
@@ -70,13 +69,6 @@
 </script>
 
 <div class="bg-base-100 text-base-content">
-	<div class="border-b border-base-300 px-4 py-3">
-		<h3 class="text-base font-semibold">On-going Tasks</h3>
-		<p class="mt-1 text-xs text-base-content/70">
-			{subtitle}
-		</p>
-	</div>
-
 	<div class="pointer-events-auto flex flex-col gap-2 px-4 py-3">
 		<KanbanBoardFilters
 			{channels}

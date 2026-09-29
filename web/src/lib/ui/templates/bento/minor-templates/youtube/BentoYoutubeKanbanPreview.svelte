@@ -7,5 +7,4 @@
 <BentoLandingKanbanPreview
 	cards={getYoutubeLandingKanbanCards()}
 	channels={[YOUTUBE_LANDING_MOCK_CHANNEL]}
-	subtitle="Review agent and human drafts, then drag YouTube uploads between Drafted and Scheduled."
 />

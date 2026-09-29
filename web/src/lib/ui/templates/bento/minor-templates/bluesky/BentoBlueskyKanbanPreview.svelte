@@ -7,5 +7,4 @@
 <BentoLandingKanbanPreview
 	cards={getBlueskyLandingKanbanCards()}
 	channels={[BLUESKY_LANDING_MOCK_CHANNEL]}
-	subtitle="Review agent and human drafts, then move Bluesky posts between Drafted and Scheduled."
 />

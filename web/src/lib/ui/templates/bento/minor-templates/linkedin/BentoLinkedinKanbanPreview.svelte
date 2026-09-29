@@ -7,5 +7,4 @@
 <BentoLandingKanbanPreview
 	cards={getLinkedinLandingKanbanCards()}
 	channels={[LINKEDIN_LANDING_MOCK_CHANNEL]}
-	subtitle="Review B2B drafts for profile and Page, then move posts from Drafted to Scheduled."
 />
