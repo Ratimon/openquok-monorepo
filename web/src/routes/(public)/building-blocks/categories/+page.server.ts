@@ -16,6 +16,8 @@ import {
 import { PUBLIC_BUILDING_BLOCKS_HUB } from '$lib/listings/constants/publicListingsHubConfig';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
+import { buildListingsHubBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
+import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 
 export const ssr = true;
@@ -57,8 +59,20 @@ export async function load({ url, fetch, cookies, parent }) {
 		hub.categories,
 		categoryDetails
 	);
+	const listingsBreadcrumb = {
+		kind: 'building-blocks' as const,
+		variant: 'categories-index' as const,
+		categoryLabel: null,
+		categorySlug: null,
+		tagLabel: null
+	};
+
 	const schemaData = createJsonLdGraph(
 		filterNonEmptyJsonLdNodes([
+			createBreadcrumbListSchema(
+				buildListingsHubBreadcrumbItems(listingsBreadcrumb),
+				url.origin
+			),
 			createCollectionPageSchema({
 				canonical,
 				origin: url.origin,
@@ -81,6 +95,7 @@ export async function load({ url, fetch, cookies, parent }) {
 		pageMetaTags,
 		isLoggedIn,
 		categories,
-		schemaData
+		schemaData,
+		listingsBreadcrumb
 	};
 }

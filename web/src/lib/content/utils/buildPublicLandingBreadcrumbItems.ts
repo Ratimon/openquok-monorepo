@@ -8,7 +8,19 @@ import {
 	getRootPathSocialMediaPostingApi,
 	getRootPathSocialMediaSchedulingApi
 } from '$lib/area-public/constants/getRootPathPublicApiMarketing';
+import {
+	getRootPathPublicBuildingBlocks,
+	getRootPathPublicBuildingBlocksCategories,
+	getRootPathPublicBuildingBlocksCategory,
+	getRootPathPublicBuildingBlocksTags
+} from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 import { getRootPathPublicChannels } from '$lib/area-public/constants/getRootPathPublicChannels';
+import {
+	getRootPathPublicPlaybooks,
+	getRootPathPublicPlaybooksCategories,
+	getRootPathPublicPlaybooksCategory,
+	getRootPathPublicPlaybooksTags
+} from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 import { getRootPathPublicTools } from '$lib/area-public/constants/getRootPathPublicTools';
 import type { PublicApiCapability } from '$lib/content/constants/channels/api/_shared/types';
 import {
@@ -134,12 +146,127 @@ export function buildChannelsLandingBreadcrumbItems(params: {
 
 	if (trimmedPlatformLabel) {
 		return [
+			{ label: 'Home', href: '/' },
 			{ label: PUBLIC_LANDING_BREADCRUMB.supportedChannels, href: channelsHubHref },
 			{ label: trimmedPlatformLabel }
 		];
 	}
 
-	return [{ label: PUBLIC_LANDING_BREADCRUMB.supportedChannels }];
+	return [
+		{ label: 'Home', href: '/' },
+		{ label: PUBLIC_LANDING_BREADCRUMB.supportedChannels }
+	];
+}
+
+export type ListingsHubBreadcrumbKind = 'playbooks' | 'building-blocks';
+
+export type ListingsHubBreadcrumbVariant =
+	| 'hub'
+	| 'categories-index'
+	| 'tags-index'
+	| 'category'
+	| 'tag'
+	| 'category-tag';
+
+function listingsHubRootPath(kind: ListingsHubBreadcrumbKind): string {
+	return kind === 'playbooks' ? getRootPathPublicPlaybooks() : getRootPathPublicBuildingBlocks();
+}
+
+function listingsHubCategoriesIndexPath(kind: ListingsHubBreadcrumbKind): string {
+	return kind === 'playbooks'
+		? getRootPathPublicPlaybooksCategories()
+		: getRootPathPublicBuildingBlocksCategories();
+}
+
+function listingsHubTagsIndexPath(kind: ListingsHubBreadcrumbKind): string {
+	return kind === 'playbooks' ? getRootPathPublicPlaybooksTags() : getRootPathPublicBuildingBlocksTags();
+}
+
+function listingsHubLabel(kind: ListingsHubBreadcrumbKind): string {
+	return kind === 'playbooks'
+		? PUBLIC_LANDING_BREADCRUMB.playbooksHub
+		: PUBLIC_LANDING_BREADCRUMB.buildingBlocksHub;
+}
+
+function listingsHubCategoryPath(kind: ListingsHubBreadcrumbKind, categorySlug: string): string {
+	return kind === 'playbooks'
+		? getRootPathPublicPlaybooksCategory(categorySlug)
+		: getRootPathPublicBuildingBlocksCategory(categorySlug);
+}
+
+export function buildListingsHubBreadcrumbItems(params: {
+	kind: ListingsHubBreadcrumbKind;
+	variant: ListingsHubBreadcrumbVariant;
+	categoryLabel?: string | null;
+	categorySlug?: string | null;
+	tagLabel?: string | null;
+}): BreadcrumbCrumb[] {
+	const { kind, variant, categoryLabel = null, categorySlug = null, tagLabel = null } = params;
+	const hubHref = route(listingsHubRootPath(kind));
+	const hubLabel = listingsHubLabel(kind);
+	const trimmedCategoryLabel = categoryLabel?.trim() ?? '';
+	const trimmedCategorySlug = categorySlug?.trim() ?? '';
+	const trimmedTagLabel = tagLabel?.trim() ?? '';
+
+	const trail: BreadcrumbCrumb[] = [{ label: 'Home', href: '/' }];
+
+	switch (variant) {
+		case 'hub':
+			trail.push({ label: hubLabel });
+			return trail;
+		case 'categories-index':
+			trail.push({ label: hubLabel, href: hubHref });
+			trail.push({ label: PUBLIC_LANDING_BREADCRUMB.categories });
+			return trail;
+		case 'tags-index':
+			trail.push({ label: hubLabel, href: hubHref });
+			trail.push({ label: PUBLIC_LANDING_BREADCRUMB.tags });
+			return trail;
+		case 'category':
+			trail.push({ label: hubLabel, href: hubHref });
+			trail.push({ label: trimmedCategoryLabel || PUBLIC_LANDING_BREADCRUMB.categories });
+			return trail;
+		case 'tag':
+			trail.push({ label: hubLabel, href: hubHref });
+			trail.push({ label: trimmedTagLabel || PUBLIC_LANDING_BREADCRUMB.tags });
+			return trail;
+		case 'category-tag': {
+			trail.push({ label: hubLabel, href: hubHref });
+			const categoryHref = trimmedCategorySlug
+				? route(listingsHubCategoryPath(kind, trimmedCategorySlug))
+				: route(listingsHubCategoriesIndexPath(kind));
+			trail.push({
+				label: trimmedCategoryLabel || PUBLIC_LANDING_BREADCRUMB.categories,
+				href: categoryHref
+			});
+			trail.push({ label: trimmedTagLabel || PUBLIC_LANDING_BREADCRUMB.tags });
+			return trail;
+		}
+		default:
+			trail.push({ label: hubLabel });
+			return trail;
+	}
+}
+
+export function deriveListingsHubBreadcrumbVariant(params: {
+	fixedCategorySlug?: string;
+	fixedTagSlug?: string;
+	fixedTagGroupSlug?: string;
+}): ListingsHubBreadcrumbVariant {
+	const { fixedCategorySlug, fixedTagSlug, fixedTagGroupSlug } = params;
+	const hasTag = Boolean(fixedTagSlug?.trim() || fixedTagGroupSlug?.trim());
+	const hasCategory = Boolean(fixedCategorySlug?.trim());
+
+	if (hasCategory && hasTag) {
+		return 'category-tag';
+	}
+	if (hasCategory) {
+		return 'category';
+	}
+	if (hasTag) {
+		return 'tag';
+	}
+	return 'hub';
 }
 
 export function buildApiMarketingLandingBreadcrumbItems(params: {

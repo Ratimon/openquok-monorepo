@@ -6,7 +6,11 @@ export const PUBLIC_LANDING_BREADCRUMB = {
 	alternativesHub: 'Alternatives',
 	compareHub: 'Compare',
 	selfHosting: 'Self-Hosting',
-	supportedChannels: 'Supported Channels'
+	supportedChannels: 'Supported Channels',
+	playbooksHub: 'Playbooks',
+	buildingBlocksHub: 'Building Blocks',
+	categories: 'Categories',
+	tags: 'Tags'
 } as const;
 
 /** Scroll targets on `/agents` for integration-hub breadcrumb links. */

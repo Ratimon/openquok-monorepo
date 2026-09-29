@@ -11,6 +11,10 @@ import {
 import { PUBLIC_PLAYBOOKS_HUB } from '$lib/listings/constants/publicListingsHubConfig';
 import type { StacksHubFilters } from '$lib/listings/listing.types';
 import { getListingPresenter } from '$lib/listings/index';
+import {
+	buildListingsHubBreadcrumbItems,
+	deriveListingsHubBreadcrumbVariant
+} from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import {
 	createCategoryAboutSchema,
@@ -20,6 +24,7 @@ import {
 } from '$lib/listings/utils/createPlaybooksSeoSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
+import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 import {
 	HUB_LIST_FETCH_LIMIT,
@@ -147,8 +152,25 @@ export async function loadPlaybooksHubPage(
 			: null
 	].filter((node): node is DefinedTerm => node !== null);
 
+	const listingsBreadcrumbVariant = deriveListingsHubBreadcrumbVariant({
+		fixedCategorySlug,
+		fixedTagSlug,
+		fixedTagGroupSlug
+	});
+	const listingsBreadcrumb = {
+		kind: 'playbooks' as const,
+		variant: listingsBreadcrumbVariant,
+		categoryLabel: fixedCategorySlug ? (categoryTermName ?? null) : null,
+		categorySlug: fixedCategorySlug ?? null,
+		tagLabel: fixedTagSlug || fixedTagGroupSlug ? (tagTermName ?? null) : null
+	};
+
 	const schemaData = createJsonLdGraph(
 		filterNonEmptyJsonLdNodes([
+			createBreadcrumbListSchema(
+				buildListingsHubBreadcrumbItems(listingsBreadcrumb),
+				url.origin
+			),
 			createCollectionPageSchema({
 				canonical,
 				origin: url.origin,
@@ -198,6 +220,7 @@ export async function loadPlaybooksHubPage(
 		schemaData,
 		heroTitle: customTitle,
 		heroDescription: customDescription,
-		heroSubtitle: PUBLIC_PLAYBOOKS_HUB.subtitle
+		heroSubtitle: PUBLIC_PLAYBOOKS_HUB.subtitle,
+		listingsBreadcrumb
 	};
 }

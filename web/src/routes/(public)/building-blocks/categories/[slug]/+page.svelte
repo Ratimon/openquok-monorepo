@@ -31,6 +31,7 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
+	import PublicListingsHubBreadcrumb from '$lib/ui/templates/listings/PublicListingsHubBreadcrumb.svelte';
 
 	type Props = { data: PageData };
 
@@ -44,7 +45,7 @@
 	let schemaData = $derived(data.schemaData);
 	let heroTitle = $derived(data.heroTitle);
 	let heroDescription = $derived(data.heroDescription);
-	let heroSubtitle = $derived(data.heroSubtitle);
+	let listingsBreadcrumb = $derived(data.listingsBreadcrumb);
 	let categorySlug = $derived(data.filtersVm.category ?? null);
 	let listPage = $derived(data.page);
 	let itemsPerPage = $derived(data.itemsPerPage);
@@ -109,9 +110,9 @@
 		<div class="flex justify-center">
 			<Button variant="outline" href={categoriesOverviewHref} class="mb-2">View all categories</Button>
 		</div>
-		<p class="text-xs font-bold tracking-wider text-primary uppercase sm:text-sm">
-			{heroSubtitle}
-		</p>
+		<div class="flex justify-center">
+			<PublicListingsHubBreadcrumb {...listingsBreadcrumb} />
+		</div>
 		<h1 class="text-3xl font-black tracking-tight text-balance text-base-content sm:text-4xl">
 			{heroTitle}
 		</h1>

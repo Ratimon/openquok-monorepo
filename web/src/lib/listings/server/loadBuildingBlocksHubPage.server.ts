@@ -11,6 +11,10 @@ import {
 import { PUBLIC_BUILDING_BLOCKS_HUB } from '$lib/listings/constants/publicListingsHubConfig';
 import type { ExtensionsHubFilters } from '$lib/listings/listing.types';
 import { getListingPresenter } from '$lib/listings/index';
+import {
+	buildListingsHubBreadcrumbItems,
+	deriveListingsHubBreadcrumbVariant
+} from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import {
 	createBuildingBlocksItemListSchema,
@@ -20,6 +24,7 @@ import {
 } from '$lib/listings/utils/createBuildingBlocksSeoSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
+import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 import {
 	HUB_LIST_FETCH_LIMIT,
@@ -151,8 +156,25 @@ export async function loadBuildingBlocksHubPage(
 			: null
 	].filter((node): node is DefinedTerm => node !== null);
 
+	const listingsBreadcrumbVariant = deriveListingsHubBreadcrumbVariant({
+		fixedCategorySlug,
+		fixedTagSlug,
+		fixedTagGroupSlug
+	});
+	const listingsBreadcrumb = {
+		kind: 'building-blocks' as const,
+		variant: listingsBreadcrumbVariant,
+		categoryLabel: fixedCategorySlug ? (categoryTermName ?? null) : null,
+		categorySlug: fixedCategorySlug ?? null,
+		tagLabel: fixedTagSlug || fixedTagGroupSlug ? (tagTermName ?? null) : null
+	};
+
 	const schemaData = createJsonLdGraph(
 		filterNonEmptyJsonLdNodes([
+			createBreadcrumbListSchema(
+				buildListingsHubBreadcrumbItems(listingsBreadcrumb),
+				url.origin
+			),
 			createCollectionPageSchema({
 				canonical,
 				origin: url.origin,
@@ -202,6 +224,7 @@ export async function loadBuildingBlocksHubPage(
 		schemaData,
 		heroTitle: customTitle,
 		heroDescription: customDescription,
-		heroSubtitle: PUBLIC_BUILDING_BLOCKS_HUB.subtitle
+		heroSubtitle: PUBLIC_BUILDING_BLOCKS_HUB.subtitle,
+		listingsBreadcrumb
 	};
 }

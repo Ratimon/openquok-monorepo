@@ -28,6 +28,7 @@
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
+	import PublicListingsHubBreadcrumb from '$lib/ui/templates/listings/PublicListingsHubBreadcrumb.svelte';
 	import { PUBLIC_BUILDING_BLOCKS_HUB } from '$lib/listings/constants/publicListingsHubConfig';
 
 	type Props = { data: PageData };
@@ -42,7 +43,7 @@
 	let schemaData = $derived(data.schemaData);
 	let heroTitle = $derived(data.heroTitle);
 	let heroDescription = $derived(data.heroDescription);
-	let heroSubtitle = $derived(data.heroSubtitle);
+	let listingsBreadcrumb = $derived(data.listingsBreadcrumb);
 	let listPage = $derived(data.page);
 	let itemsPerPage = $derived(data.itemsPerPage);
 	let filteredCount = $derived(data.filteredCount);
@@ -95,9 +96,9 @@
 
 <SectionOuterContainer class="py-10 md:py-14">
 	<header class="container mx-auto max-w-6xl space-y-4 px-4 text-center">
-		<p class="text-xs font-bold tracking-wider text-primary uppercase sm:text-sm">
-			{heroSubtitle}
-		</p>
+		<div class="flex justify-center">
+			<PublicListingsHubBreadcrumb {...listingsBreadcrumb} />
+		</div>
 		<h1 class="text-3xl font-black tracking-tight text-balance text-base-content sm:text-4xl">
 			{heroTitle}
 		</h1>

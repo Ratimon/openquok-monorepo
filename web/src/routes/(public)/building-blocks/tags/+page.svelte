@@ -12,6 +12,7 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import ListingsPublicHubNav from '$lib/ui/templates/listings/ListingsPublicHubNav.svelte';
+	import PublicListingsHubBreadcrumb from '$lib/ui/templates/listings/PublicListingsHubBreadcrumb.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import SubSectionInnerContainer from '$lib/ui/layouts/SubSectionInnerContainer.svelte';
 	import SubSectionOuterContainer from '$lib/ui/layouts/SubSectionOuterContainer.svelte';
@@ -22,6 +23,7 @@
 
 	let tagFilterVm = $derived(data.tagFilterVm);
 	let schemaData = $derived(data.schemaData);
+	let listingsBreadcrumb = $derived(data.listingsBreadcrumb);
 
 	// /building-blocks
 	const buildingBlocksHubHref = url(route(getRootPathPublicBuildingBlocks()));
@@ -54,9 +56,7 @@
 			<section class="flex flex-col gap-2">
 				<div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 					<div class="space-y-2">
-						<p class="text-xs font-bold tracking-wider text-primary uppercase sm:text-sm">
-							Building Blocks
-						</p>
+						<PublicListingsHubBreadcrumb {...listingsBreadcrumb} />
 						<h1 class="text-3xl font-bold">All Tags</h1>
 					</div>
 					<Button variant="outline" href={buildingBlocksHubHref}>View all building blocks</Button>

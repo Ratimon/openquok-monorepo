@@ -6,6 +6,7 @@ import {
 	buildApiMarketingLandingBreadcrumbItems,
 	buildChannelsLandingBreadcrumbItems,
 	buildCompareLandingBreadcrumbItems,
+	buildListingsHubBreadcrumbItems,
 	buildToolsLandingBreadcrumbItems
 } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import {
@@ -67,9 +68,35 @@ describe('buildAgentsLandingBreadcrumbItems', () => {
 });
 
 describe('buildChannelsLandingBreadcrumbItems', () => {
-	it('omits Home on the channels hub', () => {
+	it('includes Home on the channels hub and detail pages', () => {
 		expect(buildChannelsLandingBreadcrumbItems({})).toEqual([
+			{ label: 'Home', href: '/' },
 			{ label: 'Supported Channels' }
+		]);
+
+		expect(buildChannelsLandingBreadcrumbItems({ platformLabel: 'Facebook' })).toEqual([
+			{ label: 'Home', href: '/' },
+			{ label: 'Supported Channels', href: '/channels' },
+			{ label: 'Facebook' }
+		]);
+	});
+});
+
+describe('buildListingsHubBreadcrumbItems', () => {
+	it('builds playbooks category-tag trail', () => {
+		expect(
+			buildListingsHubBreadcrumbItems({
+				kind: 'playbooks',
+				variant: 'category-tag',
+				categoryLabel: 'Marketing',
+				categorySlug: 'marketing',
+				tagLabel: 'TikTok'
+			})
+		).toEqual([
+			{ label: 'Home', href: '/' },
+			{ label: 'Playbooks', href: '/playbooks' },
+			{ label: 'Marketing', href: '/playbooks/categories/marketing' },
+			{ label: 'TikTok' }
 		]);
 	});
 });

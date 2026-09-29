@@ -9,6 +9,11 @@ import type {
 	StacksHubFilters
 } from '$lib/listings/index';
 
+import type {
+	ListingsHubBreadcrumbKind,
+	ListingsHubBreadcrumbVariant
+} from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
+
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = async ({ parent, data }) => {
@@ -39,6 +44,13 @@ export const load: PageLoad = async ({ parent, data }) => {
 			heroTitle: string;
 			heroDescription: string;
 			heroSubtitle: string;
+			listingsBreadcrumb: {
+				kind: ListingsHubBreadcrumbKind;
+				variant: ListingsHubBreadcrumbVariant;
+				categoryLabel: string | null;
+				categorySlug: string | null;
+				tagLabel: string | null;
+			};
 		};
 
 		return {
@@ -62,7 +74,8 @@ export const load: PageLoad = async ({ parent, data }) => {
 			schemaData: serverData.schemaData,
 			heroTitle: serverData.heroTitle,
 			heroDescription: serverData.heroDescription,
-			heroSubtitle: serverData.heroSubtitle
+			heroSubtitle: serverData.heroSubtitle,
+			listingsBreadcrumb: serverData.listingsBreadcrumb
 		};
 	}
 

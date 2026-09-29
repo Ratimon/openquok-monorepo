@@ -16,6 +16,8 @@
 
 	let { platformLabel = null, class: className = '' }: Props = $props();
 
+	const homeHref = $derived(hostedMarketingHref('/', page.url.origin));
+
 	const channelsHubHref = $derived(
 		hostedMarketingHref(route(getRootPathPublicChannels()), page.url.origin)
 	);
@@ -25,12 +27,16 @@
 
 		if (trimmedPlatformLabel) {
 			return [
+				{ label: 'Home', href: homeHref },
 				{ label: PUBLIC_LANDING_BREADCRUMB.supportedChannels, href: channelsHubHref },
 				{ label: trimmedPlatformLabel }
 			];
 		}
 
-		return [{ label: PUBLIC_LANDING_BREADCRUMB.supportedChannels }];
+		return [
+			{ label: 'Home', href: homeHref },
+			{ label: PUBLIC_LANDING_BREADCRUMB.supportedChannels }
+		];
 	});
 </script>
 

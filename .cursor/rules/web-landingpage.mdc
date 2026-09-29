@@ -76,6 +76,7 @@ Add route-specific breadcrumb components under `web/src/lib/ui/templates/landing
 
 - `PublicAgentsLandingBreadcrumb.svelte`
 - `PublicChannelsLandingBreadcrumb.svelte`
+- `PublicListingsHubBreadcrumb.svelte` (playbooks + building-blocks hubs and filter pages)
 - `PublicApiMarketingHubBreadcrumb.svelte`
 - `HumanizeHubBreadcrumb.svelte`, `PhotoEditorHubBreadcrumb.svelte`, `SkillBuilderHubBreadcrumb.svelte`, `BestTimeToPostHubBreadcrumb.svelte`, `PayloadWizardHubBreadcrumb.svelte`
 
@@ -89,8 +90,20 @@ Each wrapper builds an `items` array and delegates to `PublicLandingHubBreadcrum
 | `/agents/{slug}` (MCP client) | **Home** → MCP Integrations → `{agentLabel}` (MCP Integrations links to `/agents#public-mcp-hub-heading`) |
 | `/agents/{slug}` (agent host) | **Home** → Autonomous Agent Integrations → `{agentLabel}` (hub segment links to `/agents#public-autonomous-agent-hub-heading`) |
 | `/agents/{slug}/{channelSlug}` | Same as slug row, plus → `{channelLabel}` (agent/MCP segment links back to `/agents/{slug}`) |
-| `/channels` | **Supported Channels** (current page only — no Home) |
-| `/channels/{slug}` | **Supported Channels** → `{platformLabel}` |
+| `/channels` | **Home** → Supported Channels |
+| `/channels/{slug}` | **Home** → Supported Channels → `{platformLabel}` |
+| `/playbooks` | **Home** → Playbooks |
+| `/playbooks/categories` | **Home** → Playbooks → Categories |
+| `/playbooks/tags` | **Home** → Playbooks → Tags |
+| `/playbooks/categories/{slug}` | **Home** → Playbooks → `{categoryLabel}` |
+| `/playbooks/tags/{slug}` | **Home** → Playbooks → `{tagLabel}` |
+| `/playbooks/categories/{slug}/tags/{tagSlug}` | **Home** → Playbooks → `{categoryLabel}` → `{tagLabel}` |
+| `/building-blocks` | **Home** → Building Blocks |
+| `/building-blocks/categories` | **Home** → Building Blocks → Categories |
+| `/building-blocks/tags` | **Home** → Building Blocks → Tags |
+| `/building-blocks/categories/{slug}` | **Home** → Building Blocks → `{categoryLabel}` |
+| `/building-blocks/tags/{slug}` | **Home** → Building Blocks → `{tagLabel}` |
+| `/building-blocks/categories/{slug}/tags/{tagSlug}` | **Home** → Building Blocks → `{categoryLabel}` → `{tagLabel}` |
 | `/social-media-posting-api` | **Home** → Social Media Posting API |
 | `/social-media-posting-api/{slug}` | **Home** → Social Media Posting API → `{platformLabel}` |
 | `/social-media-scheduling-api` | **Home** → Social Media Scheduling API |
