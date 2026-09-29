@@ -111,9 +111,9 @@ Let AI agents handle volume — drafting and scheduling at scale. You handle qua
 
 **Terminal** (`openquok` CLI · schedule posts · upload media · flip draft ↔ scheduled)  ·  **Chat** (OpenClaw · Hermes · Claude · Cursor)  ·  **Web UI** (calendar · kanban review · analytics · approve before publish)
 
-| <a href="assets/readme/2-calendar-filters-views.gif"><img src="assets/readme/2-calendar-filters-views.gif" alt="Calendar day, week, month, and list views with smart filters" width="440" /></a> | <a href="assets/readme/3-kanban-filters-drag-drop.gif"><img src="assets/readme/3-kanban-filters-drag-drop.gif" alt="Kanban drag-and-drop review workflow" width="440" /></a> |
+| <a href="assets/readme/5-calendar-filters-views.gif"><img src="assets/readme/5-calendar-filters-views.gif" alt="Calendar day, week, month, and list views with smart filters" width="440" /></a> | <a href="assets/readme/6-kanban-filters-drag-drop.gif"><img src="assets/readme/6-kanban-filters-drag-drop.gif" alt="Kanban drag-and-drop review workflow" width="440" /></a> |
 | :---: | :---: |
-| <a href="assets/readme/4-file-manager.gif"><img src="assets/readme/4-file-manager.gif" alt="File manager" width="440" /></a> | <a href="assets/readme/5-analytics.gif"><img src="assets/readme/5-analytics.gif" alt="Workspace analytics and per-post metrics" width="440" /></a> |
+| <a href="assets/readme/7-file-manager.gif"><img src="assets/readme/7-file-manager.gif" alt="File manager" width="440" /></a> | <a href="assets/readme/8-analytics.gif"><img src="assets/readme/8-analytics.gif" alt="Workspace analytics and per-post metrics" width="440" /></a> |
 
 </div>
 

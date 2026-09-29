@@ -127,6 +127,8 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'OpenQuok',
 	'carousels',
 	'analytics',
+	'Admin',
+	'Member',
 	'workspace',
 	'thumbnail',
 	'conversation',

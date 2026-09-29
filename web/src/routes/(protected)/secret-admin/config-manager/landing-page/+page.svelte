@@ -32,5 +32,5 @@
 	codeRevision={LANDING_PAGE_CONFIG_REVISION}
 	revisionConfigKey="LANDING_PAGE_CONFIG_REVISION"
 	moduleLabel="Landing page"
-	loadCodeDefaultsConfirmMessage="Load landing page defaults from config.ts? This replaces every field in the form (including FEATURE_1–FEATURE_8). Review, then Save Settings to persist."
+	loadCodeDefaultsConfirmMessage="Load landing page defaults from config.ts? This replaces every field in the form (including FEATURE_1–FEATURE_9). Feature 2 is Team copy; former sections 2–8 are now 3–9. Review, then Save Settings to persist."
 />

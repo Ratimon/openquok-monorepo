@@ -8,7 +8,8 @@ export const GUEST_COMPOSER_LOCK_ACTIONS = [
 	'schedule',
 	'tags',
 	'repeat',
-	'connect-channels'
+	'connect-channels',
+	'workspace-team'
 ] as const;
 
 export type GuestComposerLockAction = (typeof GUEST_COMPOSER_LOCK_ACTIONS)[number];
@@ -84,6 +85,14 @@ export const GUEST_COMPOSER_LOCK_COPY: Record<GuestComposerLockAction, GuestComp
 			'These chips are samples. Sign in or sign up, then connect LinkedIn, X, and other channels in your workspace to schedule for real. You can keep using this page without an account.',
 		loggedInTitle: 'Connect your social accounts',
 		loggedInDescription: 'Open your workspace to add real channels, then schedule.'
+	},
+	'workspace-team': {
+		title: 'Sign in to invite teammates',
+		description:
+			'This panel is a sample workspace. Sign in or sign up to invite members by email and assign Member or Admin roles.',
+		loggedInTitle: 'Open workspace to manage your team',
+		loggedInDescription:
+			'Invite members by email, assign roles, and manage seats in Workspace settings.'
 	}
 };
 

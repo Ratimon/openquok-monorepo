@@ -63,9 +63,13 @@ When you change <Badge text="VITE_*" variant="envWeb" /> values, restart the web
   - **Hero title / slogan** (`HERO_TITLE`, `HERO_SLOGAN`)
   - **Top banner toggle** (`ACTIVE_TOP_BANNER`)
   - **Product demo video** (`DEMO_SUBTITLE`, `DEMO_TITLE`, `DEMO_DESCRIPTION`, `DEMO_YOUTUBE_VIDEO_ID`, `DEMO_YOUTUBE_UPLOAD_DATE`, `DEMO_THUMBNAIL_ALT`)
-  - **Secondary feature sections** (`FEATURE_1_*` … `FEATURE_7_*` — subtitle, title, description per block)
+  - **Secondary feature sections** (`FEATURE_1_*` … `FEATURE_9_*` — subtitle, title, description per block). Feature 2 is Team (workspaces, roles, invites).
   - **Landing FAQ section** (`FAQ_SUBTITLE`, `FAQ_TITLE`, `FAQ_DESCRIPTION` on the home page)
 - **Public FAQ section** (`CONFIG_SCHEMA_PUBLIC_FAQ` — `SUBTITLE`, `TITLE`, `DESCRIPTION`, `ITEMS` on `/` and `/pricing#faq`; `ITEMS` uses the admin FAQ editor)
+
+<Callout type="note" title="Refresh stored landing copy">
+<p>After a schema revision, open secret-admin Config manager → Landing page. If you see a revision drift warning, click <strong>Load defaults</strong> (this replaces <Badge text="FEATURE_1–FEATURE_9" variant="path" />). Review Feature 2 Team copy and the shifted section numbers, then <strong>Save Settings</strong>.</p>
+</Callout>
 
 ### Navigation and footer constants
 

@@ -351,7 +351,7 @@ export function resolveSocialSameAsUrls(): string[] {
  * Bump when landing page section keys or layout change.
  * Drives config-manager drift warnings (`LANDING_PAGE_CONFIG_REVISION` in stored config).
  */
-export const LANDING_PAGE_CONFIG_REVISION = '2026-09-09-feature2-3-swap';
+export const LANDING_PAGE_CONFIG_REVISION = '2026-09-29-team-feature-insert';
 
 // Landing page (public home) content defaults
 export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
@@ -461,14 +461,14 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 	FEATURE_2_SUBTITLE: {
 		description: 'Tag above the second secondary hero section',
 		type: 'string',
-		default: 'Global vs Per-network modes',
+		default: 'Workspaces, roles, and invites',
 		inputType: 'input',
 		maxInputLength: 60
 	},
 	FEATURE_2_TITLE: {
 		description: 'Headline for the second secondary hero section (comma separates accent phrase)',
 		type: 'string',
-		default: 'One draft, then craft with per-platform settings, quickly',
+		default: 'Invite by email, assign Member, manage seats by Admin',
 		inputType: 'input',
 		maxInputLength: 100
 	},
@@ -476,22 +476,21 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'Support copy for the second secondary hero section',
 		type: 'string',
 		default:
-			'Write once in global mode, then customize any connected account — Facebook link previews, Threads replies, Instagram post types, and more — without losing your shared copy.',
+			'Invite teammates by email and assign Member. Each workspace keeps its own channels, posts, and seats.',
 		inputType: 'textarea',
 		maxInputLength: 300
 	},
 	FEATURE_3_SUBTITLE: {
 		description: 'Tag above the third secondary hero section',
 		type: 'string',
-		default: 'Cross-account & Internal & Global plugs',
+		default: 'Global vs Per-network modes',
 		inputType: 'input',
 		maxInputLength: 60
 	},
 	FEATURE_3_TITLE: {
 		description: 'Headline for the third secondary hero section (comma separates accent phrase)',
 		type: 'string',
-		default:
-			'Widen reach on Threads, X, and LinkedIn, comment or repost with plugs, after publish',
+		default: 'One draft, then craft with per-platform settings, quickly',
 		inputType: 'input',
 		maxInputLength: 100
 	},
@@ -499,21 +498,22 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'Support copy for the third secondary hero section',
 		type: 'string',
 		default:
-			'Internal plugs run after your main post goes live — separate from same-account follow-up replies in the composer. On Threads, another profile can comment; on X, another profile can repost; on LinkedIn, another profile can comment or reshare.',
+			'Write once in global mode, then customize any connected account — Facebook link previews, Threads replies, Instagram post types, and more — without losing your shared copy.',
 		inputType: 'textarea',
 		maxInputLength: 300
 	},
 	FEATURE_4_SUBTITLE: {
 		description: 'Tag above the fourth secondary hero section',
 		type: 'string',
-		default: 'Calendar + smart filters',
+		default: 'Cross-account & Internal & Global plugs',
 		inputType: 'input',
 		maxInputLength: 60
 	},
 	FEATURE_4_TITLE: {
 		description: 'Headline for the fourth secondary hero section (comma separates accent phrase)',
 		type: 'string',
-		default: 'Plan weeks ahead, find any post effortlessly',
+		default:
+			'Widen reach on Threads, X, and LinkedIn, comment or repost with plugs, after publish',
 		inputType: 'input',
 		maxInputLength: 100
 	},
@@ -521,21 +521,21 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'Support copy for the fourth secondary hero section',
 		type: 'string',
 		default:
-			'Day, week, month, and list views plus filters by platform, channel group, or colored tags. Switch to list for deep history or far-out dates, then schedule ahead without scrolling an endless AI queue.',
+			'Internal plugs run after your main post goes live — separate from same-account follow-up replies in the composer. On Threads, another profile can comment; on X, another profile can repost; on LinkedIn, another profile can comment or reshare.',
 		inputType: 'textarea',
 		maxInputLength: 300
 	},
 	FEATURE_5_SUBTITLE: {
 		description: 'Tag above the fifth secondary hero section',
 		type: 'string',
-		default: 'Kanban + smart filters',
+		default: 'Calendar + smart filters',
 		inputType: 'input',
 		maxInputLength: 60
 	},
 	FEATURE_5_TITLE: {
 		description: 'Headline for the fifth secondary hero section (comma separates accent phrase)',
 		type: 'string',
-		default: 'Review every AI draft, before it goes live',
+		default: 'Plan weeks ahead, find any post effortlessly',
 		inputType: 'input',
 		maxInputLength: 100
 	},
@@ -543,21 +543,21 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'Support copy for the fifth secondary hero section',
 		type: 'string',
 		default:
-			'Move/Drag draft cards to schedule or publish, filter by tag, channel group, platform, agent source, or review to-do. Approve quality at scale instead of trusting autopilot.',
+			'Day, week, month, and list views plus filters by platform, channel group, or colored tags. Switch to list for deep history or far-out dates, then schedule ahead without scrolling an endless AI queue.',
 		inputType: 'textarea',
 		maxInputLength: 300
 	},
 	FEATURE_6_SUBTITLE: {
 		description: 'Tag above the sixth secondary hero section',
 		type: 'string',
-		default: 'File manager',
+		default: 'Kanban + smart filters',
 		inputType: 'input',
 		maxInputLength: 60
 	},
 	FEATURE_6_TITLE: {
 		description: 'Headline for the sixth secondary hero section (comma separates accent phrase)',
 		type: 'string',
-		default: 'Organize media, keep assets separated, find footages efficiently',
+		default: 'Review every AI draft, before it goes live',
 		inputType: 'input',
 		maxInputLength: 100
 	},
@@ -565,21 +565,21 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'Support copy for the sixth secondary hero section',
 		type: 'string',
 		default:
-			'Create, rename, and manage files in each agent workspace cloud storage. Keep client assets, B-roll, and uploads separated so posting stays fast when you run many accounts.',
+			'Move/Drag draft cards to schedule or publish, filter by tag, channel group, platform, agent source, or review to-do. Approve quality at scale instead of trusting autopilot.',
 		inputType: 'textarea',
 		maxInputLength: 300
 	},
 	FEATURE_7_SUBTITLE: {
 		description: 'Tag above the seventh secondary hero section',
 		type: 'string',
-		default: 'Analytics',
+		default: 'File manager',
 		inputType: 'input',
 		maxInputLength: 60
 	},
 	FEATURE_7_TITLE: {
 		description: 'Headline for the seventh secondary hero section (comma separates accent phrase)',
 		type: 'string',
-		default: 'Track engagement, see winners, and adapt correctly',
+		default: 'Organize media, keep assets separated, find footages efficiently',
 		inputType: 'input',
 		maxInputLength: 100
 	},
@@ -587,27 +587,49 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'Support copy for the seventh secondary hero section',
 		type: 'string',
 		default:
-			'Track impressions, likes, comments, shares, and engagement in one place. Compare performance by platform and channel, and improve the posts you approved.',
+			'Create, rename, and manage files in each agent workspace cloud storage. Keep client assets, B-roll, and uploads separated so posting stays fast when you run many accounts.',
 		inputType: 'textarea',
 		maxInputLength: 300
 	},
 	FEATURE_8_SUBTITLE: {
 		description: 'Tag above the eighth secondary hero section',
 		type: 'string',
-		default: 'Scale what works',
+		default: 'Analytics',
 		inputType: 'input',
 		maxInputLength: 60
 	},
 	FEATURE_8_TITLE: {
 		description: 'Headline for the eighth secondary hero section (comma separates accent phrase)',
 		type: 'string',
-		default:
-			'when a format hits, scale by adding workspaces and parallel sessions',
+		default: 'Track engagement, see winners, and adapt correctly',
 		inputType: 'input',
 		maxInputLength: 100
 	},
 	FEATURE_8_DESCRIPTION: {
 		description: 'Support copy for the eighth secondary hero section',
+		type: 'string',
+		default:
+			'Track impressions, likes, comments, shares, and engagement in one place. Compare performance by platform and channel, and improve the posts you approved.',
+		inputType: 'textarea',
+		maxInputLength: 300
+	},
+	FEATURE_9_SUBTITLE: {
+		description: 'Tag above the ninth secondary hero section',
+		type: 'string',
+		default: 'Scale what works',
+		inputType: 'input',
+		maxInputLength: 60
+	},
+	FEATURE_9_TITLE: {
+		description: 'Headline for the ninth secondary hero section (comma separates accent phrase)',
+		type: 'string',
+		default:
+			'when a format hits, scale by adding workspaces and parallel sessions',
+		inputType: 'input',
+		maxInputLength: 100
+	},
+	FEATURE_9_DESCRIPTION: {
+		description: 'Support copy for the ninth secondary hero section',
 		type: 'string',
 		default:
 			'Spot a winner in analytics, then clone more dedicated workspaces for the next brand while parallel sessions queue the next wave and track performance — channels, and agent context stay isolated as you scale.',

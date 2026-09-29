@@ -7,7 +7,8 @@
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 	import { route, url } from '$lib/utils/path';
-
+	import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
+	import { listPublicChannelsForHub } from '$lib/content/constants/channels/index';
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
 	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
@@ -17,6 +18,7 @@
 	import {
 		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
 		CENTERED_DARK_CTA_BANNER_TITLE,
+		CONFIG_SCHEMA_LANDING_PAGE,
 		PUBLIC_BANNER_CTA_TEXT,
 		PUBLIC_DOCS_BANNER_CTA_TEXT,
 		accentSplitDocsCtaBannerDescription,
@@ -29,8 +31,7 @@
 	import PublicComingSoonIntegrationPage from '$lib/ui/templates/landing-page/PublicComingSoonIntegrationPage.svelte';
 	import PublicChannelAgentIntegrationsGrid from '$lib/ui/templates/landing-page/PublicChannelAgentIntegrationsGrid.svelte';
 	import PublicChannelSiblingGrid from '$lib/ui/templates/landing-page/PublicChannelSiblingGrid.svelte';
-	import { listPublicChannelsForHub } from '$lib/content/constants/channels/index';
-	import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
+	import PublicLandingTeamFeatureHero from '$lib/ui/templates/landing-page/PublicLandingTeamFeatureHero.svelte';
 
 	type Props = { data: PageData };
 
@@ -90,6 +91,18 @@
 		cards={channelVm.audienceCards}
 	/>
 
+	<PublicLandingTeamFeatureHero
+		heroTheme={landingHeroTheme}
+		landingSubtitle={String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_2_SUBTITLE.default)}
+		landingTitle={String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_2_TITLE.default)}
+		landingDescription={String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_2_DESCRIPTION.default)}
+		showCta={false}
+		ctaText={secondaryCtaText}
+		ctaHref={secondaryCtaHref}
+		bgColorClass="bg-base-100"
+		{isLoggedIn}
+	/>
+
 	{#each channelVm.featureSections as section, index (index)}
 		{#snippet sectionBento()}
 			{#if section.bentoId}
@@ -108,7 +121,7 @@
 				showCta={false}
 				ctaText={secondaryCtaText}
 				ctaHref={secondaryCtaHref}
-				bgColorClass={index % 2 === 0 ? 'bg-base-100' : 'bg-base-200'}
+				bgColorClass={(index + 1) % 2 === 0 ? 'bg-base-100' : 'bg-base-200'}
 			/>
 		{:else}
 			<HeroWithLeftMedia
@@ -122,7 +135,7 @@
 				showCta={false}
 				ctaText={secondaryCtaText}
 				ctaHref={secondaryCtaHref}
-				bgColorClass={index % 2 === 0 ? 'bg-base-100' : 'bg-base-200'}
+				bgColorClass={(index + 1) % 2 === 0 ? 'bg-base-100' : 'bg-base-200'}
 			/>
 		{/if}
 	{/each}

@@ -12,7 +12,7 @@ function usage() {
 	console.error(`Usage: node scripts/transcode-landing-hero.mjs --input <path> --name <basename>
 
   --input   Source video (e.g. ~/Desktop/clip.mp4)
-  --name    Output basename without extension (e.g. 2-calendar-filters)
+  --name    Output basename without extension (e.g. 5-calendar-filters-views)
   --width   Max width in pixels (default: ${DEFAULT_WIDTH})
 
 Writes:
