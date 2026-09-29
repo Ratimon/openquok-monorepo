@@ -1,6 +1,6 @@
 ---
 title: Codes and offers
-description: Promotion codes at checkout and retention discounts when you cancel OpenQuok Plan.
+description: Use promo codes and cancel offers on OpenQuok Cloud.
 order: 4
 lastUpdated: 2026-09-23
 ---

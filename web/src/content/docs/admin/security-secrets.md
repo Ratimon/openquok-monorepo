@@ -1,6 +1,6 @@
 ---
 title: Security secrets
-description: Configure SECURITY_SECRET and optional INTEGRATIONS_TOKEN_ENCRYPTION_KEY for invite links, OAuth hashing, and channel token encryption.
+description: Set security keys for invites, OAuth, and channel tokens.
 order: 2
 lastUpdated: 2026-08-21
 ---

@@ -95,7 +95,9 @@
 	let editUrl = $derived.by(() => {
 		const github = docsConfig.site.social?.github;
 		if (!github) return '';
-		const filePath = slug ? `web/src/content/docs/${slug}.md` : 'web/src/content/docs/index.md';
+		const filePath = slug
+			? `web/src/content/docs/${slug}.md`
+			: 'web/src/content/docs/getting-started/index.md';
 		return `${github}/edit/main/${filePath}`;
 	});
 

@@ -1,6 +1,6 @@
 ---
 title: Google OAuth
-description: Configure Google login with Supabase Auth (redirect URIs, dashboard settings) for OpenQuok.
+description: Turn on Sign in with Google + Supabase Auth.
 order: 7
 lastUpdated: 2026-04-14
 ---

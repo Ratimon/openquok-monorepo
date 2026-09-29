@@ -1,6 +1,6 @@
 ---
 title: Actions and stats
-description: Duplicate, delete, export, preview, per-post statistics, and connect missing releases from the OpenQuok post actions modal.
+description: Duplicate, delete, export, and view post stats. Connect missing releases from the post actions modal
 order: 4
 lastUpdated: 2026-09-15
 ---

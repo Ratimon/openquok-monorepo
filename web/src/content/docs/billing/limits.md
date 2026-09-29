@@ -1,6 +1,6 @@
 ---
 title: Limits
-description: What happens when your OpenQuok's workspace hits a plan cap — channels, posts, seats, storage, and API.
+description: What happens when your OpenQuok's workspace hits a plan cap — channels, posts, seats, storage, and API limits.
 order: 2
 lastUpdated: 2026-09-23
 ---

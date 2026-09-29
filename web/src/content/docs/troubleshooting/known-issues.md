@@ -1,6 +1,6 @@
 ---
 title: Known issues
-description: OpenQuok limitations and environment pitfalls we track, with workarounds where they exist.
+description: Known limits and workarounds.
 order: 5
 lastUpdated: 2026-09-23
 ---

@@ -1,6 +1,6 @@
 ---
 title: Browse and organize
-description: Navigate folders, switch layouts, search, preview, and move or delete files in the workspace media library.
+description: Navigate, switch layouts, search, preview, and organize files&folders in your media library.
 order: 1
 lastUpdated: 2026-09-23
 ---

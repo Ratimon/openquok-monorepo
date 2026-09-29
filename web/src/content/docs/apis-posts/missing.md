@@ -1,6 +1,6 @@
 ---
 title: 'Missing Content'
-description: 'List provider-side candidate ids and preview URLs when the worker could not link a published row'
+description: 'Provider candidate ids and preview URLs when `release_id` is `missing`; empty array otherwise.'
 openapi: 'GET /public/posts/{postId}/missing'
 order: 7
 lastUpdated: 2026-05-12

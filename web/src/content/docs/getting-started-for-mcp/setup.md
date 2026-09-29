@@ -1,6 +1,6 @@
 ---
 title: MCP Client Setup
-description: Configure Cursor, Claude Code, Claude Cowork, ChatGPT, Codex, VS Code, and other MCP clients to connect to OpenQuok HTTP streaming.
+description: Configure Cursor, Claude Code, Claude Cowork, ChatGPT, Codex, VS Code, and other MCP clients to connect to OpenQuok.
 order: 1
 lastUpdated: 2026-09-25
 ---

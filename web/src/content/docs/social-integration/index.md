@@ -1,6 +1,6 @@
 ---
 title: Overview - Self-host with Your Own Social Key
-description: How to Connect social channels to OpenQuok — OAuth apps or a personal API key, backend env, and dashboard settings.
+description: Connect social channels to OpenQuok — OAuth apps or a personal API key, backend env, and dashboard settings.
 order: 0
 lastUpdated: 2026-09-28
 sidebar:

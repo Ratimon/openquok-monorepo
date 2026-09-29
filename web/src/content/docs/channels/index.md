@@ -1,6 +1,6 @@
 ---
 title: Overview - Channels
-description: What channels are in OpenQuok — one connected social account per channel, and where to connect, group, and maintain them.
+description: What channels are in OpenQuok — one connected social account per channel, and where to connect, group, and manage them
 order: 0
 lastUpdated: 2026-08-24
 sidebar:

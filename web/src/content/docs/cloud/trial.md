@@ -1,6 +1,6 @@
 ---
 title: Free trial
-description: OpenQuok Cloud 7-day trial — eligibility, abuse policy, payment checks, limits, early finish, cancel, and day 7 billing.
+description: How the 7-day OpenQuok Cloud free trial works.
 order: 2
 lastUpdated: 2026-09-24
 sidebar:

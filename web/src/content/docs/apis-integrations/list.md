@@ -1,6 +1,6 @@
 ---
 title: 'List Integrations'
-description: 'Return every connected social channel for the workspace the programmatic token belongs to.'
+description: List every connected channel in your workspace.
 openapi: 'GET /public/integrations'
 order: 1
 lastUpdated: 2026-05-12

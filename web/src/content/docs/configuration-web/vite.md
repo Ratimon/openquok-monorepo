@@ -1,6 +1,6 @@
 ---
 title: Vite (SvelteKit)
-description: Configure VITE_* variables for the SvelteKit web app—API base URL, Supabase, Stripe, analytics, and the HTTPS dev proxy.
+description: Set web environment variables for local and production.
 order: 0.5
 lastUpdated: 2026-05-10
 ---

@@ -1,6 +1,6 @@
 ---
 title: 'Upload from URL'
-description: 'Server-side fetches a public http(s) URL and stores it as media. Same response shape as `Upload File`.'
+description: 'Server-side fetch of a public http(s) URL; same `{ id, filePath }` response as POST /public/upload.'
 openapi: 'POST /public/upload-from-url'
 order: 2
 lastUpdated: 2026-05-12

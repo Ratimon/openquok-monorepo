@@ -87,6 +87,7 @@ lastUpdated: 2026-07-19
 
   - `openapi: '<METHOD> /<path>'` — must match the JSDoc path exactly (sans the `/api/v1` prefix, which is on the OpenAPI `servers` entry). This is how the page locates the operation in `openapi.json`.
   - `order` controls sidebar position within the section.
+  - **`description`** — one integrator-facing line; may use paths, query params, and JSON field names. Must match **`backend/routes/publicApi/**`** behavior (see **docs-conventions** → **Description by docs tab** and **`apis-*` verify against code**).
 - Keep the **section overview** (`apis-<domain>/index.md`) up to date with a `CardGrid` of `LinkCard`s for every operation (see `apis-integrations/index.md`).
 - Follow `docs-conventions` for callouts, badges, and external links.
 
@@ -119,7 +120,7 @@ When you touch `backend/routes/publicApi/**`:
 1. **Swagger JSDoc** — add/update `backend/swagger/jsdoc/<domain>.<topic>.doc.ts` with `operationId`, `tags`, schemas, and `example`s. Register a new tag in `backend/swagger/openApiSpec.ts` if needed.
 2. **SDK** — add/update the method on `OpenQuok` (`sdk/src/index.ts`), DTOs (`sdk/src/dtos.ts`), and `sdk/README.md`. Run `pnpm --filter ./sdk run build`.
 3. **Agent** — only if the CLI exposes this operation: add/update `OpenquokApi` (`agent/src/api.ts`), yargs command under `agent/src/commands/`, and `web/src/content/docs/cli-usages/`. Cover new deterministic helpers with `agent/src/**/*.test.ts`; add or extend `agent/tests/e2e/**/*.e2e.test.ts` when you need a full CLI subprocess assertion (see `agent-cli.mdc`).
-4. **API reference** — add/update `web/src/content/docs/apis-<domain>/<endpoint>.md` with `openapi: '<METHOD> /path'` frontmatter, and the section `index.md` `CardGrid`.
+4. **API reference** — add/update `web/src/content/docs/apis-<domain>/<endpoint>.md` with `openapi: '<METHOD> /path'` frontmatter, an accurate **`description`**, and the section `index.md` `CardGrid`.
 5. **Overview** — update `getting-started-for-public-api/` when the change affects SDK quickstart, auth examples, or cross-cutting concepts (groups, plugs, rate limits).
 6. **Sidebar** — only when introducing a new `apis-<domain>/` directory: add a section to `docsSidebarPublicApi` in `web/src/lib/docs/constants/config.ts`.
 7. **MCP** — when the route has a matching tool in `backend/mcp/tools/`: document it in `mcp-references/tools.md` (params, example output, callouts), add badges/rows in `mcp-references/index.md` and `getting-started-for-mcp/index.md`, extend `mcp-examples/index.md` when agents need a prompt recipe; update `openquokCoreMcpListingCms.ts` (+ test) if the tool is part of the hosted OpenQuok MCP server.

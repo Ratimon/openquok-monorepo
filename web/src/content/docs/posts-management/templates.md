@@ -1,6 +1,6 @@
 ---
 title: Templates
-description: Saved OpenQuok post presets — channels, captions, media, tags, and settings you reuse when scheduling posts.
+description: Save and reuse OpenQuok post presets — channels, captions, media, tags, and settings you reuse when scheduling posts.
 order: 6
 lastUpdated: 2026-09-21
 ---

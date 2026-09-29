@@ -1,8 +1,8 @@
 ---
 title: Overview - Analytics APIs
-description: Programmatic analytics for connected channels and individual posts. Backed by each provider's native insights API, cached server-side by `(integrationId|postId, date)`.
+description: Provider-native analytics for one channel or one published post row. Pass `date=7`, `30`, or `90` (days).
 order: 0
-lastUpdated: 2026-05-12
+lastUpdated: 2026-09-29
 ---
 
 <script>

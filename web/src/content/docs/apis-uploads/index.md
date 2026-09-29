@@ -1,8 +1,8 @@
 ---
 title: Overview - Uploads APIs
-description: Programmatic media uploads. Returns the storage `id` + `filePath` you pass back as `media[]` when creating or updating a post group.
+description: 'Finished uploads (POST /upload, upload-from-url, or complete-multipart) return `id` and `filePath` — map to `media[].id` and `media[].path` on POST /public/posts.'
 order: 0
-lastUpdated: 2026-08-11
+lastUpdated: 2026-09-29
 ---
 
 <script>
@@ -14,7 +14,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 <CardGrid>
 <LinkCard title="Upload File" description="Multipart upload (field name `file`) for images and short clips under the hosted inbound body limit" href="/docs/apis-uploads/upload" />
 <LinkCard title="Upload from URL" description="Server-side fetches a public URL and stores it — same return shape as Upload File" href="/docs/apis-uploads/upload-from-url" />
-<LinkCard title="Create Multipart Upload" description="Start a direct-to-storage upload for videos larger than ~4 MB" href="/docs/apis-uploads/create-multipart" />
+<LinkCard title="Create Multipart Upload" description="Start direct-to-storage upload for files over the hosted ~4.5 MB body limit" href="/docs/apis-uploads/create-multipart" />
 <LinkCard title="Sign Multipart Parts" description="Presign PUT URLs so the client uploads bytes straight to object storage" href="/docs/apis-uploads/sign-parts" />
 <LinkCard title="Complete Multipart Upload" description="Assemble parts and persist a media row — same id/filePath as Upload File" href="/docs/apis-uploads/complete-multipart" />
 <LinkCard title="Abort Multipart Upload" description="Cancel an in-flight multipart session and discard uploaded parts" href="/docs/apis-uploads/abort-multipart" />
@@ -42,7 +42,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 ## Related Section(s)
 
 <CardGrid>
-<LinkCard title="Posts APIs" description="Pass the returned `id` and `path` as `media[]` when creating or updating a post group" href="/docs/apis-posts" />
+<LinkCard title="Posts APIs" description="Pass the returned id and path as media[] when you create a post" href="/docs/apis-posts" />
 <LinkCard title="Integrations APIs" description="List, connect, and inspect the channels you'll publish the uploaded media to" href="/docs/apis-integrations" />
 <LinkCard title="Public API" description="Authentication, base URL, payload wizard, and SDK quick start" href="/docs/getting-started-for-public-api" />
 </CardGrid>

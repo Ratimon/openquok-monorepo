@@ -1,6 +1,6 @@
 ---
 title: Overview - Installation for self-hosting
-description: Set up OpenQuok — system requirements, Docker Compose self-host, local development, and Vercel / Railway production deployment.
+description: Install OpenQuok for self-hosting or production.
 order: 0
 lastUpdated: 2026-09-25
 sidebar:

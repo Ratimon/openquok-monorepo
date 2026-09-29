@@ -1,6 +1,6 @@
 ---
 title: Hermes Agent
-description: Install the openquok-core skill and OpenQuok CLI on a Hermes Agent host (Telegram, Discord, Slack, and more).
+description: Install the OpenQuok CLI and skill on Hermes Agent (Telegram, Discord, Slack and etc.).
 order: 1
 lastUpdated: 2026-06-24
 ---

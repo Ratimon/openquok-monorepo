@@ -1,6 +1,6 @@
 ---
 title: Railway (workers)
-description: Deploy BullMQ workers as always-on Railway services—build/start scripts, CLI deploy, and stopping a worker safely.
+description: Deploy always-on workers on Railway and how to manage them.
 order: 2
 lastUpdated: 2026-07-22
 ---

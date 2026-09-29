@@ -1,6 +1,6 @@
 ---
 title: Redis & queues
-description: redis-cli patterns for BullMQ queues—monitor sizes, clear local queues safely, and read-only checks in production.
+description: Monitor and clear worker BullMQ queues in Redis.
 order: 1
 lastUpdated: 2026-05-08
 ---

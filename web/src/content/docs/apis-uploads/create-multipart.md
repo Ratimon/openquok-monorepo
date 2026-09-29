@@ -1,7 +1,7 @@
 ---
 title: 'Create Multipart Upload'
-description: 'Start a direct-to-storage multipart upload. Use this for videos larger than the hosted ~4.5 MB inbound body limit.'
+description: 'Start direct-to-storage multipart (R2). JSON body only — use when hosted POST /upload exceeds ~4.5 MB inbound limit.'
 openapi: 'POST /public/upload/create-multipart'
 order: 3
-lastUpdated: 2026-08-11
+lastUpdated: 2026-09-29
 ---

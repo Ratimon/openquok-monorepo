@@ -1,6 +1,6 @@
 ---
 title: Overview - Contribution opportunities
-description: Feature-sized OpenQuok contribution tasks for external contributors — social providers, Humanizer locales, docs translations, and scoped product work.
+description: Ways to contribute features to OpenQuok.
 order: 0
 lastUpdated: 2026-09-12
 sidebar:

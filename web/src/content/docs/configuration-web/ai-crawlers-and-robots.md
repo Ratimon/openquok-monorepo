@@ -1,6 +1,6 @@
 ---
 title: AI crawlers and robots.txt
-description: Allow Claude, Gemini, ChatGPT, and Perplexity to discover OpenQuok public pages when Cloudflare managed robots.txt is enabled.
+description: Let AI crawlers find your public OpenQuok pages.
 order: 5
 lastUpdated: 2026-09-25
 ---

@@ -1,6 +1,6 @@
 ---
 title: Production - Vercel
-description: Deploy OpenQuok's Application on Vercel — backend, web, and CLI auth server.
+description: Deploy the web app and API on Vercel.
 order: 2
 lastUpdated: 2026-05-08
 ---

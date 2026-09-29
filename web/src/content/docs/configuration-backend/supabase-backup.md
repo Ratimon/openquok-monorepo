@@ -1,6 +1,6 @@
 ---
 title: Supabase backup
-description: Back up OpenQuok Postgres and Storage, then freeze writes before the final dump for region cutover.
+description: Back up data before a region move.
 order: 7
 lastUpdated: 2026-09-19
 ---

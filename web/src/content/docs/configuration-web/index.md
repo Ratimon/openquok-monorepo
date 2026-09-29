@@ -1,6 +1,6 @@
 ---
 title: Configuration - Web
-description: Getting Started to Environment variables and configuration for the OpenQuok's in web application.
+description: Getting Started to web frontend configuration in OpenQuok.
 order: 0
 lastUpdated: 2026-09-19
 sidebar:

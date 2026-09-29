@@ -1,6 +1,6 @@
 ---
 title: Internal plugs
-description: Schedule a same-account delayed engagement reply after Follow-up comments on one post.
+description: Schedule a delayed follow-up reply or comment on the same channel/account in one post.
 order: 2
 lastUpdated: 2026-09-11
 ---

@@ -1,6 +1,6 @@
 ---
 title: Product analytics and campaign attribution
-description: Configure PostHog, Meta Pixel, Google Analytics, and UTM capture for marketing links and checkout attribution on OpenQuok.
+description: Set up PostHog, Meta Pixel, Google Analytics, and UTM capture for marketing links and checkout attribution on OpenQuok.
 order: 3
 lastUpdated: 2026-05-22
 ---

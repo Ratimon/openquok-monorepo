@@ -1,6 +1,6 @@
 ---
 title: Compose a playbook
-description: Select building blocks on Account Playbooks, open Skill Builder, and save a playbook draft with workflow steps and SKILL.md preview.
+description: Build a playbook in Skill Builder and save it.
 order: 3
 lastUpdated: 2026-09-24
 ---

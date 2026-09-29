@@ -1,6 +1,6 @@
 ---
 title: Tour the app
-description: OpenQuok layout — sidebar pages, header, composer, settings, billing, and the public site.
+description: Find your way around the OpenQuok — sidebar pages, header, composer, settings, billing, and the public site.
 order: 3
 lastUpdated: 2026-08-25
 ---

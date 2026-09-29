@@ -1,6 +1,6 @@
 ---
 title: Translating documentation
-description: Contributor guide for translating OpenQuok docs into other languages — locale folders, URL paths, Markdown authoring, and pull requests.
+description: Translate OpenQuok docs into other languages.
 order: 3
 lastUpdated: 2026-09-12
 ---

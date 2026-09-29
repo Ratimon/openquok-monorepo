@@ -1,6 +1,6 @@
 ---
 title: Activation and login
-description: Email verification links, sign-in problems, and what logged-out API responses mean in OpenQuok.
+description: Fix email verification and sign-in problems.
 order: 3
 lastUpdated: 2026-09-23
 ---

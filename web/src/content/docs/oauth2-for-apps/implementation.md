@@ -1,6 +1,6 @@
 ---
 title: Implementation
-description: Register an OAuth app, run the Authorization Code flow, and manage credentials in the OpenQuok dashboard.
+description: Register an app and run the OAuth sign-in flow.
 order: 1
 lastUpdated: 2026-09-26
 ---

@@ -1,8 +1,8 @@
 ---
 title: Overview - Integrations APIs
-description: Programmatic endpoints for connecting social channels, channel groups, global plugs, and provider-specific tools using a workspace programmatic token.
+description: Connect channels, list groups and integrations, OAuth URLs, global plugs, settings, and provider tools — all scoped to the API key workspace.
 order: 0
-lastUpdated: 2026-07-19
+lastUpdated: 2026-09-29
 ---
 
 <script>

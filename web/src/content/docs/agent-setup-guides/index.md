@@ -1,6 +1,6 @@
 ---
 title: Overview - Setup Guides for different agents
-description: Platform-specific setup for running the OpenQuok CLI and openquok-core skill with AI agent hosts (OpenClaw, Hermes Agent, Grok Bot, and ThinkRail).
+description: Set up the OpenQuok CLI and skill on AI agent hosts(eg. OpenClaw, Hermes Agent Grok Bot, and etc).
 order: 0
 lastUpdated: 2026-09-21
 sidebar:

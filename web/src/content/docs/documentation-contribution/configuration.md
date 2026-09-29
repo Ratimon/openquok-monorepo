@@ -1,6 +1,6 @@
 ---
 title: Documentation Configuration
-description: How to configure docs tabs, sidebars, and site metadata for the OpenQuok documentation site.
+description: Configure docs tabs, sidebars, and site metadata in OpenQuok doc system.
 order: 2
 lastUpdated: 2026-09-26
 ---
@@ -23,7 +23,7 @@ Edit the docs config in:
 The header tab bar is <Badge text="docsTabs" variant="param" />, left to right: **General**, **Cloud**, **Self-hosting**, **CLI**, **MCP**, **Public API**, **Add OpenQuok to your app**, **Contributing**.
 
 <Callout type="note">
-<p><Badge text="/docs" variant="path" /> loads the General introduction (the <Badge text="/getting-started" variant="path" /> folder) without redirecting. The same page is also available at <Badge text="/docs/getting-started" variant="path" />. Do not treat a root <Badge text="docs/index.md" variant="path" /> as the tab home.</p>
+<p><Badge text="/docs" variant="path" /> loads the General introduction (the <Badge text="/getting-started" variant="path" /> folder) without redirecting. The same page is also available at <Badge text="/docs/getting-started" variant="path" />. There is no separate root <Badge text="docs/index.md" variant="path" /> — use <Badge text="getting-started/index.md" variant="path" /> for the General tab home.</p>
 </Callout>
 
 ```typescript

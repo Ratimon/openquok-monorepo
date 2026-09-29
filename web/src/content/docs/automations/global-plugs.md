@@ -1,6 +1,6 @@
 ---
 title: Global plugs
-description: Channel rules at Auto Plugs that run when likes on a published post reach your threshold.
+description: Run actions or define channel rules when a post gets enough likes.
 order: 4
 lastUpdated: 2026-09-11
 ---

@@ -1,6 +1,6 @@
 ---
 title: Introduction to OpenQuok
-description: OpenQuok social scheduler — connect channels, draft posts, and review on calendar or kanban before anything publishes.
+description: Schedule social posts with OpenQuok — connect channels, draft, and review before publish.
 order: 0
 lastUpdated: 2026-09-25
 sidebar:

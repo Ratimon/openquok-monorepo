@@ -1,6 +1,6 @@
 ---
 title: Rate limiting
-description: Configure backend rate limiting (public read, session, global, auth, public API, uploads, and other route-specific limits) for OpenQuok.
+description: Set rate limits on API and auth routes.
 order: 9
 lastUpdated: 2026-09-17
 ---

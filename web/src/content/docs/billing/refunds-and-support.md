@@ -1,6 +1,6 @@
 ---
 title: Refunds and support
-description: OpenQuok Cloud refund policy — 7-day window for unused billing periods, billing page tips, and how to reach support.
+description: OpenQuok Cloud refund policy — 7-day for unused billing periods, billing page tips, and how to reach billing support.
 order: 5
 lastUpdated: 2026-09-23
 ---

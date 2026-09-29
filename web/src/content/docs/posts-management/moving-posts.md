@@ -1,6 +1,6 @@
 ---
 title: Moving and rescheduling posts
-description: Drag & Drop posts on the calendar or the kanban.
+description: Drag & Drop posts to a new time on the calendar or kanban board.
 order: 3
 lastUpdated: 2026-09-17
 ---

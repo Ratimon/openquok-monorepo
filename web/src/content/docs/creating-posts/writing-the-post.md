@@ -1,6 +1,6 @@
 ---
 title: Writing the post
-description: Write captions in the OpenQuok social scheduler — editor modes, toolbar, character count, mentions, AI tools, and Post Preview.
+description: Write captions in OpenQuok — editor modes, toolbar, character count, mentions, AI tools, and Post Preview.
 order: 2
 lastUpdated: 2026-09-26
 ---

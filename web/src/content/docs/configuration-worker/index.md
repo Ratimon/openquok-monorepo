@@ -1,6 +1,6 @@
 ---
 title: Configuration - Worker
-description: Environment and deployment for orchestrator worker processes (BullMQ, Redis, Docker, Railway), plus the admin queue dashboard.
+description: Configure and deploy background workers (BullMQ, Redis, and railway services).
 order: 0
 lastUpdated: 2026-09-19
 sidebar:

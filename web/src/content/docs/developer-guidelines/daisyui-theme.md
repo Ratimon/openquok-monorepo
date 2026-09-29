@@ -1,6 +1,6 @@
 ---
 title: DaisyUI theming
-description: Use DaisyUI semantic colors so UI respects the active theme in OpenQuok.
+description: Use theme colors with DaisyUI semantic theme in the OpenQuok UI.
 order: 4
 lastUpdated: 2026-03-30
 ---

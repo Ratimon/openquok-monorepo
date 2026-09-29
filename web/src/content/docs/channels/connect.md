@@ -1,6 +1,6 @@
 ---
 title: Connect a channel
-description: The two ways OpenQuok connects a social account today — OAuth redirect or credentials you paste in Add Channel.
+description: The two ways OpenQuok connects a social account today — OAuth or pasted credentials.
 order: 1
 lastUpdated: 2026-09-23
 ---

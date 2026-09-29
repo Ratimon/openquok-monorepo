@@ -1,6 +1,6 @@
 ---
 title: Production - Railway
-description: Deploy long-running BullMQ worker services on Railway with the monorepo build and Railway CLI.
+description: Deploy long-running BullMQ worker services on Railway
 order: 3
 lastUpdated: 2026-07-22
 ---

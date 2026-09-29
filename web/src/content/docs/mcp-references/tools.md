@@ -1,6 +1,6 @@
 ---
 title: Tools Reference
-description: OpenQuok MCP tools — list channels, schedule and manage posts, configure plugs, and read analytics from AI agent clients.
+description: OpenQuok MCP tools — list channels, schedule and manage posts, configure plugs, and read analytics.
 order: 1
 lastUpdated: 2026-09-10
 ---

@@ -1,6 +1,6 @@
 ---
 title: Kanban board
-description: Review drafts, scheduled posts, and published history on Home — columns, filters, cards, and workflows.
+description: Review drafts, scheduled posts, and published history on Home — columns, filters, and cards.
 order: 2
 lastUpdated: 2026-09-17
 ---

@@ -1,6 +1,6 @@
 ---
 title: Per-post metrics
-description: Post-level statistics from Home and the calendar — date ranges, linking a post, and API access.
+description: View stats for one published post — date ranges, and API access.
 order: 2
 lastUpdated: 2026-09-22
 ---

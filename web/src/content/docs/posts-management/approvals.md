@@ -1,6 +1,6 @@
 ---
 title: Approvals
-description: Send a client a preview link, collect comments, and schedule once you are happy — no OpenQuok login required for reviewers.
+description: Share a client a preview link and collect client feedback, and schedule once you are happy — no OpenQuok login required for external reviewers.
 order: 5
 lastUpdated: 2026-09-14
 ---

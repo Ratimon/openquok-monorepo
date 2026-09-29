@@ -1,6 +1,6 @@
 ---
 title: Overview - Billing
-description: OpenQuok Cloud billing — Stripe subscription, plan limits, downgrades, offers, and refunds.
+description: OpenQuok Cloud Billing -  plans, limits, downgrades, offers and refunds.
 order: 0
 lastUpdated: 2026-09-23
 sidebar:

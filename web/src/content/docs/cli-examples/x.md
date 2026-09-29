@@ -1,6 +1,6 @@
 ---
 title: X
-description: OpenQuok CLI examples for X — tweets, media, thread replies, and analytics.
+description: CLI examples for X posts in OpenQuok.
 order: 8
 lastUpdated: 2026-07-09
 ---

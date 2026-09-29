@@ -1,6 +1,6 @@
 ---
 title: Self-host - System requirements
-description: CPU, RAM, disk, ports, and required services for running OpenQuok as a self-hosted social scheduler with Docker Compose.
+description: Hardware and services you need to self-host OpenQuok.
 order: 4
 lastUpdated: 2026-07-26
 ---

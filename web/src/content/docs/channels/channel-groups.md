@@ -1,6 +1,6 @@
 ---
 title: Channel groups
-description: Group OpenQuok channels by client or brand, and pick every channel in a group at once in the composer.
+description: Group OpenQuok channels by client or brand, and focus every channel in a group at once in the post editor.
 order: 4
 lastUpdated: 2026-08-25
 ---

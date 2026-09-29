@@ -1,6 +1,6 @@
 ---
 title: Posting time slots
-description: Per-channel usual posting times in OpenQuok — a convenience for scheduling suggestions, not a hard limit on when you can publish.
+description: Set usual posting times for scheduling suggestions.
 order: 3
 lastUpdated: 2026-09-16
 ---

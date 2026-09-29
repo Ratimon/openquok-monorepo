@@ -1,6 +1,6 @@
 ---
 title: Listing types explained
-description: Understand building blocks vs playbooks and when to publish Skills, MCP, or both on OpenQuok.
+description: Building blocks vs playbooks and Skills vs MCP.
 order: 1
 lastUpdated: 2026-07-05
 ---

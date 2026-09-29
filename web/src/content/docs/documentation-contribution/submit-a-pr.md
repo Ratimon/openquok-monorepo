@@ -1,6 +1,6 @@
 ---
 title: Submit a pull request
-description: How to fork OpenQuok, edit documentation, and open a pull request on GitHub.
+description: Fork the repo and open a docs pull request.
 order: 1
 lastUpdated: 2026-07-05
 ---

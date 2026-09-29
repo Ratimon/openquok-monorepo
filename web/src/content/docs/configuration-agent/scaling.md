@@ -1,6 +1,6 @@
 ---
 title: Scaling & Postgres
-description: Run multiple CLI auth server instances—shared DATABASE_URL and SERVER_URL, no sticky sessions, and pooled Postgres on Vercel.
+description: Run more than one CLI sign-in server instance.
 order: 3
 lastUpdated: 2026-05-09
 ---

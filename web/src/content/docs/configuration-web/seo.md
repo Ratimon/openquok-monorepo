@@ -1,6 +1,6 @@
 ---
 title: SEO & marketing defaults
-description: Meta tags, keywords, and social links from CONFIG_SCHEMA_MARKETING in the web config schema.
+description: Set default page titles, keywords, and social links.
 order: 4
 lastUpdated: 2026-05-08
 ---

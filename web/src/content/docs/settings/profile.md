@@ -1,6 +1,6 @@
 ---
 title: Profile
-description: Your OpenQuok account profile — display name, username, avatar, website, and password reset.
+description: Your OpenQuok account profile — Update your name, username avatar, and password.
 order: 3
 lastUpdated: 2026-09-21
 ---

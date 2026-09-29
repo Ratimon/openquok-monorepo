@@ -1,6 +1,6 @@
 ---
 title: Media details
-description: Set alt text and video poster frames for files in the workspace media library.
+description: Set alt text and video poster images.
 order: 3
 lastUpdated: 2026-09-23
 ---

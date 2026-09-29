@@ -1,6 +1,6 @@
 ---
 title: Overview - CLI Usage
-description: Agentic CLI workflows for managing posts, integrations, analytics, and media uploads.
+description: Agentic CLI workflows from the terminal -  managing posts, integrations, analytics, and media uploads.
 order: 0
 lastUpdated: 2026-05-12
 sidebar:

@@ -1,6 +1,6 @@
 ---
 title: Calendar
-description: Day, week, month, and list views, smart filters, and how to open or create posts from the grid.
+description: Day, week, month, and list views, smart filters, and how to open or create posts from the  calendar grid.
 order: 1
 lastUpdated: 2026-09-17
 ---

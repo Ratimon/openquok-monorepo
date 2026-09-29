@@ -1,6 +1,6 @@
 ---
 title: Threads and comments
-description: Thread replies and follow-up comments after the main post, per network, and delays between parts in the OpenQuok social scheduler.
+description: OpenQuok Thread replies and comments after the main post scheduling - The setting per network, and delays between part.
 order: 3
 lastUpdated: 2026-09-13
 ---

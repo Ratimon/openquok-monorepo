@@ -1,6 +1,6 @@
 ---
 title: Versioning
-description: How to add a version selector to your documentation site.
+description: Add a version picker to the docs site.
 order: 5
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: First setup as super admin
-description: After deployment — sign up, verify email when mail is enabled, then set platform admin access in Supabase.
+description: Create the first platform admin after your first OpenQuok deployment.
 order: 1
 lastUpdated: 2026-07-16
 ---

@@ -1,6 +1,6 @@
 ---
 title: Meta Threads
-description: OpenQuok CLI examples for Meta Threads — single posts, reply chains, the reconciliation flow, and per-post analytics.
+description: CLI examples for Meta Threads in OpenQuok.
 order: 3
 lastUpdated: 2026-09-10
 ---

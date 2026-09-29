@@ -1,6 +1,6 @@
 ---
 title: Overview - Media library
-description: Store images and videos per workspace, organize them in folders, and reuse them in the post composer.
+description: Store images and video in the workspace and organize them in folders, and reuse them in posts.
 order: 0
 lastUpdated: 2026-09-23
 sidebar:

@@ -1,8 +1,8 @@
 ---
 title: Overview - Posts APIs
-description: Programmatic endpoints for scheduling, listing, flipping draft ↔ scheduled, and deleting posts using a workspace programmatic token.
+description: Create, list, and manage post rows via API key — no full group PUT; use status, reschedule, review, release-id, and delete routes.
 order: 0
-lastUpdated: 2026-05-29
+lastUpdated: 2026-09-29
 ---
 
 <script>

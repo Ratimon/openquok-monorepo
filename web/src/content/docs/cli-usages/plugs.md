@@ -1,6 +1,6 @@
 ---
 title: Global Plugs
-description: Configure channel-level engagement rules (auto-reply, repost when likes cross a threshold) via the CLI.
+description: Set up channel-level engagement rules (auto-reply, repost when likes cross a threshold) via the CLI.
 order: 3
 lastUpdated: 2026-07-19
 ---

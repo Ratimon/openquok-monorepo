@@ -1,6 +1,6 @@
 ---
 title: Grok Bot
-description: Install the openquok-core skill and OpenQuok CLI on a Grok Bot cloud computer (desktop and iOS).
+description: Install the OpenQuok CLI and skill on Grok Bot (Cloud).
 order: 2
 lastUpdated: 2026-08-14
 ---

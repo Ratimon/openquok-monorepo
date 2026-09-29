@@ -1,6 +1,6 @@
 ---
 title: Media
-description: Attach images and video in the post editor — device upload, library, Canvas Editor (aka Design Media), limits, and Global vs per-channel lists.
+description: Attach images and video in the post editor — device upload, library, Canvas Editor, limits, and Global vs per-channel lists.
 order: 4
 lastUpdated: 2026-09-01
 ---

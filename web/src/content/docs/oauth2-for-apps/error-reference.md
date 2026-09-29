@@ -1,6 +1,6 @@
 ---
 title: Error reference
-description: OAuth callback and token exchange error codes for OpenQuok third-party apps.
+description: OAuth error codes for third-party apps.
 order: 3
 lastUpdated: 2026-07-05
 ---

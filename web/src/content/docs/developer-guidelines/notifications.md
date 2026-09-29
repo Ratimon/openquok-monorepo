@@ -1,6 +1,6 @@
 ---
 title: Notifications
-description: How OpenQuok creates in-app notifications and sends notification emails (immediate vs digest), including BullMQ worker setup and troubleshooting.
+description: How in-app and email notifications work.
 order: 4
 lastUpdated: 2026-07-27
 ---

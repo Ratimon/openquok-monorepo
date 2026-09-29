@@ -1,6 +1,6 @@
 ---
 title: RBAC
-description: OpenQuok's app-level roles/permissions and the recommended backend integration patterns.
+description: App-level Roles and permissions in OpenQuok.
 order: 2
 lastUpdated: 2026-03-30
 ---

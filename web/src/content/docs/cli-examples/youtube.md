@@ -1,6 +1,6 @@
 ---
 title: YouTube
-description: CLI examples for YouTube video scheduling in OpenQuok
+description: CLI examples for YouTube video & short in OpenQuok.
 order: 4
 lastUpdated: 2026-06-10
 ---

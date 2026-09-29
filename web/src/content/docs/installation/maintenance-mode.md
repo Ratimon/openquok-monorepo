@@ -1,6 +1,6 @@
 ---
 title: Maintenance mode
-description: How to run maintenance windows for backend, web, and workers — for Supabase region cutover.
+description: Pause the app during maintenance or a database move.
 order: 7
 lastUpdated: 2026-09-19
 ---

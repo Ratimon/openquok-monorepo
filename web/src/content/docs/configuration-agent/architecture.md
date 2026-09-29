@@ -1,6 +1,6 @@
 ---
 title: Auth Server Architecture
-description: How the OpenQuok CLI auth server works — request flow, endpoints, and Postgres state.
+description: How the CLI auth server works.
 order: 1
 lastUpdated: 2026-06-25
 ---

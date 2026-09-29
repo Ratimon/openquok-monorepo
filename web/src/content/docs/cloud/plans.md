@@ -1,6 +1,6 @@
 ---
 title: OpenQuok's Plans and limits
-description: Every Cloud tier — Solo, Team, Ultimate, and Max. Their prices, and what features are included.
+description: Cloud plan tiers, prices, and included features.
 order: 1
 lastUpdated: 2026-09-26
 pricingSchema: true

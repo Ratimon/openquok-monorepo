@@ -1,6 +1,6 @@
 ---
 title: LinkedIn CLI examples
-description: openquok CLI recipes for LinkedIn and LinkedIn Page
+description: CLI examples for LinkedIn Personal Account and LinkedIn Page in OpenQuok.
 order: 7
 lastUpdated: 2026-08-31
 ---

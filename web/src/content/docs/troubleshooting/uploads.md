@@ -1,6 +1,6 @@
 ---
 title: Uploads and media
-description: File size limits, allowed types, upload-from-url, workspace storage, and API payload size in OpenQuok.
+description: Fix upload size, type, and storage errors.
 order: 2
 lastUpdated: 2026-09-23
 ---

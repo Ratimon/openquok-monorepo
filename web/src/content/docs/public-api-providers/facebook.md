@@ -1,6 +1,6 @@
 ---
 title: Facebook Page Settings
-description: OpenQuok public API provider settings for Facebook Pages — embedded URL on text posts, Stories, and follow-up comments with optional image.
+description: API fields for Facebook Page posts.
 order: 5
 lastUpdated: 2026-09-14
 sidebar:

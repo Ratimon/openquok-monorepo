@@ -1,6 +1,6 @@
 ---
 title: Scheduling and Publishing
-description: Draft, schedule, and publish now — pick a time, repeat a post.
+description: Save drafts, pick a time, or publish now.
 order: 6
 lastUpdated: 2026-09-15
 ---

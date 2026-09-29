@@ -1,6 +1,6 @@
 ---
 title: Links and validation
-description: Links in the OpenQuok post composer, save-time checks, and how to fix validation errors before you schedule or publish.
+description: Add links in OpenQuok post editor and fix errors before you schedule.
 order: 8
 lastUpdated: 2026-09-14
 ---

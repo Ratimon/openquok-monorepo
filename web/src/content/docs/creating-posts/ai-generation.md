@@ -1,6 +1,6 @@
 ---
 title: Free AI generation
-description: Draft and rewrite captions in the OpenQuok social scheduler — on-device Writer, Summarizer, and Rewriter, plus agent and API scheduling.
+description: Draft and rewrite captions with free local built-in AI tools.
 order: 5
 lastUpdated: 2026-09-12
 ---

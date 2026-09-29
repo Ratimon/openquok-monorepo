@@ -1,6 +1,6 @@
 ---
 title: Overview - Documentation contribution
-description: How to improve OpenQuok documentation — fork the repo, author pages, and submit a pull request.
+description: Improve OpenQuok docs and submit changes.
 order: 0
 lastUpdated: 2026-08-22
 sidebar:

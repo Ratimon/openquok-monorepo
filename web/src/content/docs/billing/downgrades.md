@@ -1,6 +1,6 @@
 ---
 title: Downgrades and cancellation
-description: What changes in your OpenQuok Cloud workspace when you move to a smaller plan or cancel.
+description: What changes when you pick a smaller plan or cancel you OpenQuok Cloud.
 order: 3
 lastUpdated: 2026-09-23
 sidebar:

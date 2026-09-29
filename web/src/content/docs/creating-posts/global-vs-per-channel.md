@@ -1,6 +1,6 @@
 ---
 title: Global vs per-channel
-description: Write one caption for every channel in OpenQuok, or unlock a network when it needs its own platform-specific settings.
+description: Use one caption for all channels in OpenQuok, or one per network when it needs its own platform-specific settings.
 order: 1
 lastUpdated: 2026-08-26
 ---

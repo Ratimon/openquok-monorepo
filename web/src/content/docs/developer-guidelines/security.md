@@ -1,6 +1,6 @@
 ---
 title: Security guidelines
-description: OpenQuok's Service key rules, RLS guidance, rate limiting, and SSR state-management safety.
+description: OpenQuok's Security rules for backend and frontend code - RLS guidance, rate limiting, and SSR state-management safety.
 order: 1
 lastUpdated: 2026-08-21
 ---

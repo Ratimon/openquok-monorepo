@@ -1,6 +1,6 @@
 ---
 title: PWA Metadata
-description: Configure OpenQuok's app name/title/description and icon metadata in web-config.json.
+description: Set app name, description, and icons.
 order: 3
 lastUpdated: 2026-05-08
 ---

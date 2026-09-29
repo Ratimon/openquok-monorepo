@@ -1,6 +1,6 @@
 ---
 title: ThinkRail
-description: Install the openquok-core skill and OpenQuok CLI in ThinkRail (worktree IDE for the pi coding agent).
+description: Install the OpenQuok CLI and skill in ThinkRail.
 order: 3
 lastUpdated: 2026-08-29
 ---

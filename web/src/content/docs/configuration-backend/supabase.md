@@ -1,6 +1,6 @@
 ---
 title: Supabase
-description: Create a Supabase project, configure dashboard settings, and wire the backend env keys for OpenQuok.
+description: Create a Supabase project and connect the backend in OpenQuok.
 order: 2
 lastUpdated: 2026-05-11
 ---

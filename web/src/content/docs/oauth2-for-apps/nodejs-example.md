@@ -1,6 +1,6 @@
 ---
 title: Node.js example
-description: Express server implementing OpenQuok OAuth2 Authorization Code flow end to end.
+description: Sample Node server for OpenQuok OAuth2.
 order: 2
 lastUpdated: 2026-09-26
 ---

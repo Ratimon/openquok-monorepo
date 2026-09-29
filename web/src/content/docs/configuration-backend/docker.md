@@ -1,6 +1,6 @@
 ---
-title: Docker (local services)
-description: Local Redis for OpenQuok contributors developing against the hosted product, or the self-host Compose stack for operators running on their own machine.
+title: Docker (local)
+description: Local Redis for contributors developing against the OpenQuok's codebase, or the self-host Compose stack when running on their own machines.
 order: 0.5
 lastUpdated: 2026-07-17
 ---

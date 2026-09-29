@@ -1,6 +1,6 @@
 ---
 title: Overview - Posts management
-description: Calendar views, kanban board, filters, and how to move, review, and act on posts across the grid and Home.
+description: Calendar views, kanban board, filters, and how to move, review, and act on posts across the calendar grid and Home.
 order: 0
 lastUpdated: 2026-09-16
 sidebar:

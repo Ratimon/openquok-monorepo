@@ -1,6 +1,6 @@
 ---
 title: A post failed to publish
-description: Red calendar ring, tooltips, reconnecting channels, and platform rules when OpenQuok cannot publish.
+description: Fix posts that did not publish.
 order: 4
 lastUpdated: 2026-09-23
 ---

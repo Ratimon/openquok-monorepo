@@ -1,6 +1,6 @@
 ---
 title: Explore and bookmarks
-description: Use the Explore tab on Account Playbooks to search the catalog, filter listings, bookmark favorites, and open public hub pages.
+description: Use the Explore tab to search the catalog, filter listings, bookmark favorites, and open public hub pages.
 order: 1
 lastUpdated: 2026-09-24
 ---

@@ -1,6 +1,6 @@
 ---
 title: Plugs Overview
-description: OpenQuok plugs add a reply, comment, repost, or reshare after your post publishes.
+description: OpenQuok Plugs - Add a reply, comment, or repost after your post goes live.
 order: 1
 lastUpdated: 2026-09-11
 ---

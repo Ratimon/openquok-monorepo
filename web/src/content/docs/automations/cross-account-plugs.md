@@ -1,6 +1,6 @@
 ---
 title: Cross-account plugs
-description: Let other connected channels comment, repost, or reshare after your OpenQuok post publishes.
+description: Let other connected channels/accounts comment, repost or reshare after you publish.
 order: 3
 lastUpdated: 2026-09-11
 ---

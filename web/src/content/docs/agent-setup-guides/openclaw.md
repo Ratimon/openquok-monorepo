@@ -1,6 +1,6 @@
 ---
 title: OpenClaw
-description: Install the openquok-core skill and OpenQuok CLI on an OpenClaw host (eg. Telegram).
+description: Install the OpenQuok CLI and skill on OpenClaw (eg. Telegram).
 order: 0
 lastUpdated: 2026-06-24
 ---

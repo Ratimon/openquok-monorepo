@@ -1,8 +1,8 @@
 ---
 title: Overview - Notifications APIs
-description: Programmatic access to the workspace's in-app notification history (publish events, channel errors, system messages). Paginated 100 rows at a time.
+description: 'GET /public/notifications — paginated in-app history for the API key workspace (100 rows per page). Does not advance the user read cursor.'
 order: 0
-lastUpdated: 2026-05-12
+lastUpdated: 2026-09-29
 ---
 
 <script>
@@ -16,7 +16,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 </CardGrid>
 
 <Callout type="note" title="Read cursor">
-<p>Unlike <Badge text="GET /api/v1/notifications/list" variant="path" /> (used by the session UI), this endpoint does <strong>not</strong> advance the workspace "last read" cursor. Calling it is safe from background scripts that should not touch read state.</p>
+<p>Unlike <Badge text="GET /api/v1/notifications/list" variant="path" /> (used by the session UI), this endpoint does <strong>not</strong> advance the signed-in user&apos;s &quot;last read&quot; cursor. Calling it is safe from background scripts that should not touch read state.</p>
 </Callout>
 
 ## Related Section(s)

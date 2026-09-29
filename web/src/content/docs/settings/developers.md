@@ -1,6 +1,6 @@
 ---
 title: Developers
-description: Workspace programmatic tokens, MCP snippets, CLI setup, and OAuth apps for the OpenQuok Public API.
+description: Workspace's programmatic tokens, MCP, CLI, Public APIs and OAuth apps for developers.
 order: 4
 lastUpdated: 2026-09-21
 ---

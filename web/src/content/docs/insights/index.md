@@ -1,6 +1,6 @@
 ---
 title: Overview - Insights
-description: OpenQuok social scheduler insights — account analytics in the workspace and per-post statistics on published releases.
+description: See workspace analytics and stats for each post in OpenQuok.
 order: 0
 lastUpdated: 2026-09-22
 sidebar:

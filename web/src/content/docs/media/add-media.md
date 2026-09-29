@@ -1,6 +1,6 @@
 ---
 title: Add media
-description: Upload images and videos, save designs, import from connectors, and understand size and storage limits.
+description: Upload files and learn size and storage limits.
 order: 2
 lastUpdated: 2026-09-23
 ---

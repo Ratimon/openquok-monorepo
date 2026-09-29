@@ -1,6 +1,6 @@
 ---
 title: Configuration - Backend
-description: Getting Started to Backend configuration — env vars, Supabase, and services OpenQuok.
+description: Getting Started to Backend configuration and its services in OpenQuok.
 order: 0
 lastUpdated: 2026-09-25
 sidebar:

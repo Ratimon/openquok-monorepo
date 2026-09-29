@@ -1,6 +1,6 @@
 ---
 title: Managing Posts
-description: Create, list, delete, and reconnect OpenQuok posts/post group from the command line.
+description: Create, list, delete, and reconnect OpenQuok posts/post group from the CLI.
 order: 1
 lastUpdated: 2026-08-26
 ---

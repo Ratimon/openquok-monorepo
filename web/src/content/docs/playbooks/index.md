@@ -1,6 +1,6 @@
 ---
 title: Overview - Playbooks
-description: Browse agent building blocks and playbooks, save bookmarks, and manage your own catalog listings from the account Playbooks page.
+description: Browse and manage agent playbooks and building blocks.
 order: 0
 lastUpdated: 2026-09-24
 sidebar:

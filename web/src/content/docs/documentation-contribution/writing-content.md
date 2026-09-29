@@ -1,6 +1,6 @@
 ---
 title: Writing Content
-description: How to write and organize documentation content.
+description: Write and organize docs pages.
 order: 3
 lastUpdated: 2026-08-22
 ---

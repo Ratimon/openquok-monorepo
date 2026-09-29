@@ -1,6 +1,6 @@
 ---
 title: Docker (local Redis)
-description: Run Redis for BullMQ workers locally with Docker Compose, configure REDIS_* for development, and start worker processes.
+description: Run Redis and workers locally with Docker.
 order: 0.5
 lastUpdated: 2026-05-08
 ---

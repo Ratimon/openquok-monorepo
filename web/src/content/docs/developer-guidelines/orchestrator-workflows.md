@@ -1,6 +1,6 @@
 ---
 title: Orchestrator workflows
-description: How OpenQuok uses Flowcraft for integration refresh, notification email, and scheduled social posts—in-process or on BullMQ workers.
+description: How background jobs run posts and email in  OpenQuok.
 order: 3
 lastUpdated: 2026-05-16
 ---

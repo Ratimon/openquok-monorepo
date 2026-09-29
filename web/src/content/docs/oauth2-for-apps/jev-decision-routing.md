@@ -1,6 +1,6 @@
 ---
 title: Jev decision routing example
-description: Use Jev to decide what to post — relevant, engaging, actionable, and channel-fit — then create OpenQuok social scheduler drafts in Global or per-channel mode via @openquok/node-sdk.
+description: Use Jev to decide what to post then create OpenQuok social scheduler drafts in Global or per-channel mode via Node SDK.
 order: 4
 lastUpdated: 2026-09-19
 ---

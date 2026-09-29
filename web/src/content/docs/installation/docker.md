@@ -1,6 +1,6 @@
 ---
 title: Self-host - Docker (pre-built images)
-description: Pull published OpenQuok self-host container images from GHCR or Docker Hub.
+description: Use pre-built OpenQuok Docker images.
 order: 5
 lastUpdated: 2026-09-25
 ---

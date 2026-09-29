@@ -1,6 +1,6 @@
 ---
 title: Help and support
-description: How to get help with OpenQuok, what support to expect on Cloud vs self-host, and what to include when you contact us.
+description: Get help on Cloud or self-host and what to send support.
 order: 0
 lastUpdated: 2026-09-23
 sidebar:

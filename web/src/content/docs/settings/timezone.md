@@ -1,6 +1,6 @@
 ---
 title: Timezone
-description: Set the workspace posting timezone — calendar slots and scheduled times use this, not your laptop clock.
+description: Set the timezone used for scheduled posts.
 order: 2
 lastUpdated: 2026-09-21
 ---
