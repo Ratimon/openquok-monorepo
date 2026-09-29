@@ -102,15 +102,6 @@
 	const cliAuthDocsHref = $derived(
 		hostedMarketingHref(`${publicDocsPath}/getting-started-for-cli/authentication`, page.url.origin)
 	);
-	const openclawGuideHref = $derived(
-		hostedMarketingHref(`${publicDocsPath}/agent-setup-guides/openclaw`, page.url.origin)
-	);
-	const hermesGuideHref = $derived(
-		hostedMarketingHref(`${publicDocsPath}/agent-setup-guides/hermes`, page.url.origin)
-	);
-	const grokBotGuideHref = $derived(
-		hostedMarketingHref(`${publicDocsPath}/agent-setup-guides/grok-bot`, page.url.origin)
-	);
 	const thinkrailGuideHref = $derived(
 		hostedMarketingHref(`${publicDocsPath}/agent-setup-guides/thinkrail`, page.url.origin)
 	);
@@ -128,18 +119,6 @@
 
 	const rootPathPublicAgents = getRootPathPublicAgents();
 	const publicAgentsPath = route(rootPathPublicAgents);
-	const openclawAgentHref = $derived(
-		hostedMarketingHref(`${publicAgentsPath}/openclaw`, page.url.origin)
-	);
-	const hermesAgentHref = $derived(
-		hostedMarketingHref(`${publicAgentsPath}/hermes`, page.url.origin)
-	);
-	const grokBotAgentHref = $derived(
-		hostedMarketingHref(`${publicAgentsPath}/grok-bot`, page.url.origin)
-	);
-	const thinkrailAgentHref = $derived(
-		hostedMarketingHref(`${publicAgentsPath}/thinkrail`, page.url.origin)
-	);
 
 	const pagePresenter = protectedHomePagePresenter;
 	const postKanbanBoard = pagePresenter.postKanbanBoardPresenter;
@@ -739,46 +718,11 @@
 		},
 		{
 			label: 'CLI documentation',
-			description: 'Install and use the OpenQuok CLI.',
+			description: 'Install OpenClaw, Grok Bot, and more with the OpenQuok CLI.',
 			iconName: icons.BookOpen.name,
 			href: cliDocsHref,
 			external: true
 		},
-		// {
-		// 	label: 'Authentication guide',
-		// 	description: 'OAuth device login and programmatic tokens.',
-		// 	iconName: icons.Lock.name,
-		// 	href: cliAuthDocsHref,
-		// 	external: true
-		// },
-		{
-			label: 'Grok Bot agent guide',
-			description: 'Install openquok-core on Grok Bot.',
-			iconName: icons.BookOpen.name,
-			href: grokBotGuideHref,
-			external: true
-		},
-		{
-			label: 'OpenClaw agent guide',
-			description: 'Install openquok-core on OpenClaw.',
-			iconName: icons.BookOpen.name,
-			href: openclawGuideHref,
-			external: true
-		},
-		{
-			label: 'Hermes agent guide',
-			description: 'Install openquok-core on Hermes Agent.',
-			iconName: icons.BookOpen.name,
-			href: hermesGuideHref,
-			external: true
-		},
-		// {
-		// 	label: 'ThinkRail agent guide',
-		// 	description: 'Install openquok-core in ThinkRail worktrees.',
-		// 	iconName: icons.BookOpen.name,
-		// 	href: thinkrailGuideHref,
-		// 	external: true
-		// },
 	]);
 
 
@@ -1075,16 +1019,12 @@
 		<p class="mt-2 text-base-content/80">
 			Hi!
 			{#if currentUser?.fullName && currentUser?.email?.trim()}
-				{currentUser.fullName} ({currentUser.email.trim()}), pick
+				{currentUser.fullName} ({currentUser.email.trim()})
 			{:else if currentUser?.fullName}
-				{currentUser.fullName}, pick
+				{currentUser.fullName}
 			{:else if currentUser?.email?.trim()}
-				Signed in as {currentUser.email.trim()} — pick
-			{:else}
-				Pick
+				Signed in as {currentUser.email.trim()}
 			{/if}
-			up where you left off — move posts through Draft, Scheduled, and Published for your connected
-			channels.
 		</p>
 	{/if}
 

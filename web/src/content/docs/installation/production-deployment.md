@@ -1,6 +1,6 @@
 ---
 title: Production - deployment
-description: Production setup for the OpenQuok web, backend, optional CLI auth server, and optional orchestrator workers.
+description: Production setup for the OpenQuok web, backend, CLI auth server, and orchestrator workers.
 order: 1
 lastUpdated: 2026-09-25
 ---

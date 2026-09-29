@@ -1,6 +1,6 @@
 ---
 title: Self-host - Docker Compose
-description: Self-host OpenQuok with Docker Compose — env setup, Supabase, bring-up, and updates for API, web, Redis, and BullMQ workers.
+description: Self-host OpenQuok with Docker Compose — env setup, spin-up, and updates for API, web, Redis, and BullMQ workers.
 order: 6
 lastUpdated: 2026-09-25
 ---

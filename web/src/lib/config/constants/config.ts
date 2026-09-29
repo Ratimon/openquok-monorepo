@@ -304,7 +304,7 @@ export const SOCIAL_PROFILE_LINKS: readonly SocialProfileLink[] = [
 	{
 		CHANNEL_ID: 'SOCIAL_LINKS_BLUESKY',
 		CHANNEL_NAME: 'Bluesky',
-		Icon: icons.BlueskyGlyph.name
+		Icon: icons.Bluesky.name
 	},
 	{
 		CHANNEL_ID: 'SOCIAL_LINKS_YOUTUBE',

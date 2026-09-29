@@ -1,6 +1,6 @@
 ---
 title: Workspace analytics
-description: Account-level performance in the Analytics sidebar — targeted channels, window periods, trends plus per-channel metric cards.
+description: Account-level performance — targeted channels, window periods, trends plus per-channel metrics.
 order: 1
 lastUpdated: 2026-09-22
 ---

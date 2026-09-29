@@ -1,6 +1,6 @@
 ---
 title: Self-host - Docker (pre-built images)
-description: Pull published OpenQuok self-host container images from GHCR or Docker Hub — registry env vars, version tags, updates, and when to rebuild the web image.
+description: Pull published OpenQuok self-host container images from GHCR or Docker Hub.
 order: 5
 lastUpdated: 2026-09-25
 ---
