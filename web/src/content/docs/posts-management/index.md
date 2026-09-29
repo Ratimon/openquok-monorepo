@@ -2,7 +2,7 @@
 title: Overview - Posts management
 description: Calendar views, kanban board, filters, and how to move, review, and act on posts across the calendar grid and My Dashboard.
 order: 0
-lastUpdated: 2026-09-16
+lastUpdated: 2026-09-29
 sidebar:
   label: Overview
 ---
@@ -15,15 +15,13 @@ import { Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.j
 
 > Calendar for time, kanban for stage — same post groups, two ways to work.
 
-<Callout type="tip">
-OpenQuok keeps your content in two places. Both views read the same post groups — change one and the other updates:
-</Callout>
+<p>OpenQuok shows the same post groups in two places. Change one view and the other updates.</p>
 
-1) The <a href="/account/calendar">calendar</a> is your schedule and your history — drafts, scheduled posts, and published posts share one grid.
+<p>The <a href="/account/calendar">calendar</a> is your schedule and history — drafts, scheduled posts, and published posts share one grid.</p>
 
 ![Calendar View](/docs/_assets/posts-management/calendar-unfiltered-posts.webp)
 
-2) The **kanban board** on <a href="/account">My Dashboard</a> shows posts in different **stage** (draft, scheduled, published):
+<p>The <strong>kanban</strong> on <a href="/account">My Dashboard</a> → <strong>Posts</strong> tab shows each group by <strong>stage</strong> (draft, scheduled, published).</p>
 
 ![Kanban View](/docs/_assets/getting-started/5-kanban-board.webp)
 

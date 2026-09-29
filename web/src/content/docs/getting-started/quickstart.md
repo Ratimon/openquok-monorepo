@@ -1,6 +1,6 @@
 ---
 title: Quickstart
-description: OpenQuok zero to hero — five steps from a new workspace to a queued post.
+description: OpenQuok zero to hero — five steps from a new workspace to a scheduled post.
 ogImage: /docs/_assets/getting-started/5-kanban-board.webp
 ogImageAlt: Step 5 - Kanban Board in OpenQuok
 order: 1
@@ -23,7 +23,7 @@ Sign in, connect a channel, compose, pick a time, then confirm the post on the c
 
 <Steps
 	howToName="Quickstart"
-	howToDescription="OpenQuok zero to hero — five steps from a new workspace to a queued post."
+	howToDescription="Five steps from a new workspace to your first scheduled post on the calendar and kanban."
 >
 
 ### Choose Cloud or Self-host options
@@ -37,15 +37,11 @@ Sign in, connect a channel, compose, pick a time, then confirm the post on the c
 <p>Plan caps still apply during the trial — see <a href="/pricing">Pricing</a>.</p>
 </Callout>
 
-<p>You land on <Badge text="My Dashboard" variant="default" /> at <a href="/account">/account</a></p>
-
-1) Your first workspace is created automatically. <strong>Plan overview</strong> at the top summarizes usage
-
-2)  Workspace cards in the left panel let you create and switch workspaces. 
+<p>You land on <Badge text="My Dashboard" variant="default" /> at <a href="/account">/account</a>. Your first workspace is created automatically. <strong>Plan overview</strong> at the top summarizes usage; workspace cards in the left column let you create and switch workspaces.</p>
 
 ![Workspace in Dashboard](/docs/_assets/getting-started/1-workspace-dashboard.webp)
 
-<p>The main area uses <strong>Channels</strong>, <strong>Posts</strong>, and <strong>Feed</strong> tabs — open <Badge text="See checklist" variant="default" /> on the Getting started card when you want the full setup list.</p>
+<p>The main area uses <strong>Channels</strong>, <strong>Posts</strong>, and <strong>Feed</strong> tabs. Open <Badge text="See checklist" variant="default" /> on the Getting started card for the full setup list.</p>
 
 </TabItem>
 <TabItem label="Self-hosting">
@@ -83,7 +79,7 @@ Sign in, connect a channel, compose, pick a time, then confirm the post on the c
 <Tabs items={["Cloud", "Self-hosting"]} variant="line">
 <TabItem label="Cloud">
 
-<p>OAuth apps are already registered. You dont need to request API access from each social platform — you only authorize your social account after you sign-in to the social platform.</p>
+<p>OAuth apps are already registered. You do not need to request API access from each social platform — you only authorize your social account after you sign in on that network.</p>
 
 </TabItem>
 <TabItem label="Self-hosting">

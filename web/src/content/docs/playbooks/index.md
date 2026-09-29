@@ -13,7 +13,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## Playbooks
 
-> Discover skills and MCP servers on the public hub, compose them into playbooks, and publish your own playbook as a listing .
+> Discover skills and MCP servers on the public hub, compose them into playbooks, and publish your own playbook as a listing.
 
 Open <Badge text="Playbooks" variant="default" /> in the account sidebar at <Badge text="/account/playbooks" variant="path" />. The page has two tabs:
 

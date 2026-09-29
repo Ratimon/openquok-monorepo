@@ -113,6 +113,9 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'reels',
 	'tweets',
 	'X',
+	'Reels',
+	'Storys',
+	'@mentions',
 	// Protected account app heroes
 	'Reusable Templates',
 	'Media Library',

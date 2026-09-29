@@ -2,7 +2,7 @@
 title: Kanban board
 description: Review drafts, scheduled posts, and published history on My Dashboard — columns, filters, and cards.
 order: 2
-lastUpdated: 2026-09-17
+lastUpdated: 2026-09-29
 ---
 
 <script>
@@ -11,17 +11,14 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## The kanban board
 
-> Three columns for draft, scheduled, and published posts — and how to review, filter and maange draft workflows
+> Three columns for draft, scheduled, and published posts — review, filter, and manage draft workflows.
 
-
-**Where:** The **kanban board** on <a href="/account">My Dashboard</a> is the fastest way to see **post status** in your workspace:
+**Where:** Open the **Posts** tab on <a href="/account">My Dashboard</a> to see **post status** in your workspace:
 - what still needs review
 - what is queued to publish
 - what already went out.
 
 ![Kanban board](/docs/_assets/getting-started/5-kanban-board.webp)
-
-It sits in the **On-going Tasks** section below your profile and connected channels.
 
 Each card represents one **post group**. See <a href="/docs/getting-started/glossary#post-group">Glossary → Post group</a>.
 
@@ -30,7 +27,7 @@ The calendar answers <em>when</em> posts ship; the kanban answers <em>what stage
 
 ## When the board is hidden
 
-The kanban appears only when your workspace has at least one **connected social channel**. Connect a channel first — see <a href="/docs/channels/connect">Connect a channel</a>.
+The **Posts** tab appears only when your workspace has at least one **connected social channel**. Connect a channel on the **Channels** tab first — see <a href="/docs/channels/connect">Connect a channel</a>.
 
 ## Three columns
 
@@ -41,7 +38,7 @@ The kanban appears only when your workspace has at least one **connected social 
 | **Published posts** | Already sent to the network. Open the card menu for the live URL. |
 
 
-Each card header uses the **first tag** colour on the group. If not, the tag color is falled back to indigo/purple color. Draft cards keep that colour and add a <Badge text="Draft" variant="experimental" /> prefix, while Scheduled cards use a solid <Badge text="Published" variant="default" /> outline.
+Each card header uses the **first tag** color on the group. If the group has no tag, the header uses a default indigo accent. Draft cards add a <Badge text="Draft" variant="experimental" /> label; scheduled and published cards use their column styling.
 
 <Callout type="tip">
 <p>Drag between <strong>Drafted posts</strong> and <strong>Scheduled posts</strong> to flip status without editing each post from the editor.</p>

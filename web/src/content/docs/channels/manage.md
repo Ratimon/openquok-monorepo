@@ -2,7 +2,7 @@
 title: Manage a channel
 description: Reconnect, disable, or remove a connected social account in OpenQuok.
 order: 2
-lastUpdated: 2026-09-04
+lastUpdated: 2026-09-29
 ---
 
 <script>
@@ -13,7 +13,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 > Reconnect, disable, copy IDs, assign groups, and remove channels from <strong>My Dashboard</strong> or the calendar.
 
-**Where:** <a href="/account">My Dashboard</a> — click the channel and the actions modal appears. If <strong>My Dashboard</strong> is in table layout, click <Badge text="Actions" variant="default" />. You can also open a channel chip on the <a href="/account/calendar">calendar</a>.
+**Where:** <a href="/account">My Dashboard</a> → <Badge text="Channels" variant="default" /> tab — click the channel and the actions modal appears. In table layout, click <Badge text="Actions" variant="default" />. You can also open a channel chip on the <a href="/account/calendar">calendar</a>.
 
 ![Add channel to a channel group](/docs/_assets/glossary/add-to-group.webp)
 

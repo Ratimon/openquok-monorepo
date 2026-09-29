@@ -1,6 +1,6 @@
 ---
 title: Tour the app
-description: Find your way around the OpenQuok — sidebar pages, header, composer, settings, billing, and the public site.
+description: Find your way around the signed-in app — sidebar, header, My Dashboard, composer, settings, and billing.
 order: 3
 lastUpdated: 2026-09-29
 ---
@@ -26,7 +26,7 @@ You can switch workspaces from the header switcher or from the workspace cards o
 ![Switch to Other Workspaces](/docs/_assets/tour-the-app/top-header-workspaces.webp)
 
 <Callout type="tip">
-<p>Switch workspace from the header on <a href="/account"><Badge text="My Dashboard" variant="default" /></a>, <a href="/account/calendar"><Badge text="Calendar" variant="default" /></a>, <a href="/account/templates"><Badge text="Templates" variant="default" /></a>, <a href="/account/playbooks"><Badge text="Playbooks" variant="default" /></a>, <a href="/account/plugs"><Badge text="Auto Plugs" variant="default" /></a>, <a href="/account/analytics"><Badge text="Analytics" variant="default" /></a>, and <a href="/account/media"><Badge text="Media" variant="default" /></a>. Calendar, templates, plugs, and the other sidebar pages use the full width to maximize UX, so the header switcher is often easier than the workspace cards in the <a href="/account"><strong>My Dashboard</strong></a>.</p>
+<p>Workspace cards appear on <a href="/account"><strong>My Dashboard</strong></a> only. On Calendar, Templates, Playbooks, Auto Plugs, Analytics, and Media, switch workspace from the header.</p>
 </Callout>
 
 
@@ -63,13 +63,11 @@ The header is independent of the sidebar.
 
 ## My Dashboard, calendar, and the composer
 
-<strong>My Dashboard</strong> is your workspace dashboard. It shows:
+<p><strong>My Dashboard</strong> is your workspace dashboard. <strong>Plan overview</strong> at the top summarizes workspace, channel, and storage usage. Below that, the layout has a left column and a main panel with tabs.</p>
 
-1)  **Plan overview**: (workspace, channel, and storage usage). Below that, desktop layout splits into a **left rail** and a **main panel**.
+<p>The left column holds a <strong>Getting started</strong> card, plus <strong>workspace cards</strong>. Use them to switch workspace, create one, accept invites, or open <strong>OAuth Secrets</strong>, <strong>API key</strong>, or <strong>Add channel</strong> on the current workspace.</p>
 
-2) **left rail**: It inculds **Workspace cards** — switch workspace, create one, accept invites, and open **OAuth Secrets**, **API key**, or **Add channel** from the active card.
-
-The main panel uses pill tabs:
+<p>The main panel uses pill tabs:</p>
 
 | Tab | What you do there |
 | --- | --- |
@@ -77,7 +75,7 @@ The main panel uses pill tabs:
 | **Posts** | Kanban columns for draft, scheduled, and published post groups (when the workspace has at least one social channel) |
 | **Feed** | In-app notifications — publish results, failures, and review notes (same data as the header bell) |
 
-![The Main Dashboard 's components](/docs/_assets/getting-started/1-workspace-dashboard.webp)
+![My Dashboard layout](/docs/_assets/getting-started/1-workspace-dashboard.webp)
 
 A **Feed** button beside the tab bar on wider layouts also switches to the Feed tab and shows an unread badge.
 
@@ -99,7 +97,6 @@ The post editor is a modal, not a sidebar page. Open it with <Badge text="Create
 | Shareable preview | Post card actions — see <a href="/docs/posts-management/approvals">Approvals</a>. Public URL under <Badge text="/p/" variant="path" /> plus the post id |
 
 ## Settings
-
 
 | Tab | Purpose |
 | --- | --- |
@@ -127,19 +124,6 @@ CLI device login does not require pasting a token — see <a href="/docs/getting
 <Callout type="note" title="Self-hosted installs">
 <p>If Stripe is unset, <Badge text="Billing" variant="default" /> is hidden or shown as not configured. There is no Cloud subscription to manage. See <a href="/docs/installation">Self-hosting</a>.</p>
 </Callout>
-
-## Public site
-
-These routes exist without signing in. On a self-hosted origin they may point at the hosted marketing site.
-
-| Surface | Path | Purpose |
-| --- | --- | --- |
-| Channel catalog | <a href="/channels"><Badge text="/channels" variant="path" /></a> | Per-network landing pages and connect overview |
-| Playbooks hub | <a href="/playbooks"><Badge text="/playbooks" variant="path" /></a> | Public playbook catalog |
-| Building blocks | <a href="/building-blocks"><Badge text="/building-blocks" variant="path" /></a> | Skills and MCP listings |
-| Agents | <a href="/agents"><Badge text="/agents" variant="path" /></a> | How to wire Cursor, Claude, and other harnesses |
-| Pricing | <a href="/pricing"><Badge text="/pricing" variant="path" /></a> | Plan tiers and numeric limits |
-| Documentation | <a href="/docs"><Badge text="/docs" variant="path" /></a> | This Guide, Cloud, self-hosting, CLI, MCP, and API reference |
 
 ## Related
 

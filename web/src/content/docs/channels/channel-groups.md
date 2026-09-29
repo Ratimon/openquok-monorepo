@@ -2,7 +2,7 @@
 title: Channel groups
 description: Group OpenQuok channels by client or brand, and focus every channel in a group at once in the post editor.
 order: 4
-lastUpdated: 2026-08-25
+lastUpdated: 2026-09-29
 ---
 
 <script>
@@ -25,15 +25,15 @@ On <a href="/account">My Dashboard</a> or the <a href="/account/calendar">calend
 
 <p>Then, in the dialog, pick an existing group or type a new name and click <Badge text="Save" variant="new" />.This will create the group when the name is new.</p>
 
-![Grouped and Ungrouped cahnnels](/docs/_assets/channel-groups/grouped-channel-dialog.webp)
+![Grouped and Ungrouped Channels](/docs/_assets/channel-groups/grouped-channel-dialog.webp)
 
 <p>To move the channel back to the ungrouped list, open a channel’s menu again and click <Badge text="Remove from group" variant="default" />.</p>
 
-## What you get on My Dashboard
+## What you get on the Channels tab
 
-Once at least one channel is grouped, it shows **Grouped accounts/channels** — collapsible sections, one per group.
+On <Badge text="My Dashboard" variant="default" /> → <Badge text="Channels" variant="default" />, once at least one channel is grouped, the grid shows **Grouped accounts/channels** — collapsible sections, one per group.
 
-![Grouped and Ungrouped cahnnels](/docs/_assets/channel-groups/grouped-ungrouped-channel.webp)
+![Grouped and Ungrouped channels](/docs/_assets/channel-groups/grouped-ungrouped-channel.webp)
 
 Each section lists that group’s channels and offers shortcuts to compose or open the calendar for that group.
 
@@ -41,11 +41,9 @@ Channels not in any group appear under **Ungrouped accounts/channels**.
 
 ## Filtering Channels
 
-When you have groups, a **Channel groups** filter appears above the kanban on <strong>My Dashboard</strong> and on the calendar toolbar.
+When you have groups, a **Channel groups** filter appears on the <Badge text="Posts" variant="default" /> tab toolbar on <Badge text="My Dashboard" variant="default" /> and on the calendar toolbar.
 
-Use it to hide every other client’s posts.
-
-Or, You can select one group, several groups, or **Ungrouped channels** only as required.
+Use it to hide every other client’s posts. Select one group, several groups, or **Ungrouped channels** only.
 
 ## Pick a whole group in the composer
 

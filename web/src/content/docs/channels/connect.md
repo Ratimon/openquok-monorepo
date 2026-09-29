@@ -2,7 +2,7 @@
 title: Connect a channel
 description: The two ways OpenQuok connects a social account today — OAuth or pasted credentials.
 order: 1
-lastUpdated: 2026-09-23
+lastUpdated: 2026-09-29
 ---
 
 <script>
@@ -13,13 +13,14 @@ import { Badge, Callout, CardGrid, LinkCard, TabItem, Tabs } from '$lib/ui/compo
 
 > Link your first network in Add Channel — OAuth redirect or credentials, depending on the platform.
 
-**Where:** <a href="/account">My Dashboard</a> — click <Badge text="Add Channel" variant="new" />. You can open the same picker from the channel row in the post editor.
+**Where:** <a href="/account">My Dashboard</a> → <strong>Channels</strong> tab — click <Badge text="Add Channel" variant="new" /> at the top of the section, or use <Badge text="Add Channel" variant="new" /> on the current workspace card. You can open the same picker from the channel row.
+
+![Click buttons to connect a Social Channel](/docs/_assets/getting-started/2-add-channel.webp)
 
 A **channel** is one linked social account — one X profile, one LinkedIn Page, one Threads login.
 
 The calendar, post editor, analytics, and templates all need at least one channel before they can do anything useful, so connecting is the first step in a new workspace.
 
-![Click buttons to connect a Social Channel](/docs/_assets/getting-started/2-add-channel.webp)
 
 Pick the network you want. OpenQuok picks the connection flow for that platform — you do not choose it yourself.
 

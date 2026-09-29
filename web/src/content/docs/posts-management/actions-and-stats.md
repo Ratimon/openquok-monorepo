@@ -13,7 +13,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 > Duplicate, delete, preview, statistics, and connect — from one modal on the calendar or <strong>My Dashboard</strong>.
 
-**Where:** Click a single-post chip on the <a href="/account/calendar">calendar</a> or open the card menu on <a href="/account">My Dashboard</a> to open action modal.
+**Where:** Click a single-post chip on the <a href="/account/calendar">calendar</a>, or on <a href="/account">My Dashboard</a> open the <strong>Posts</strong> tab and use the card menu to open the action modal.
 
 ![Post Actions Modal](/docs/_assets/glossary/post-actions-modal.webp)
 
