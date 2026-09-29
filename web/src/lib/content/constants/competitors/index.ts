@@ -13,6 +13,7 @@ import type {
 } from '$lib/content/constants/competitors/types';
 import { buildComparePair } from '$lib/content/constants/competitors/buildComparePair';
 import { bufferCompareProduct } from '$lib/content/constants/competitors/buffer';
+import { breakreachCompareProduct } from '$lib/content/constants/competitors/breakreach';
 import { clawPostCompareProduct } from '$lib/content/constants/competitors/claw-post';
 import { hopperHqCompareProduct } from '$lib/content/constants/competitors/hopper-hq';
 import { heropostCompareProduct } from '$lib/content/constants/competitors/heropost';
@@ -46,6 +47,7 @@ export { laterCompareProduct } from '$lib/content/constants/competitors/later';
 export { mixpostCompareProduct } from '$lib/content/constants/competitors/mixpost';
 export { openpostCompareProduct } from '$lib/content/constants/competitors/openpost';
 export { bufferCompareProduct } from '$lib/content/constants/competitors/buffer';
+export { breakreachCompareProduct } from '$lib/content/constants/competitors/breakreach';
 export { clawPostCompareProduct } from '$lib/content/constants/competitors/claw-post';
 export { postBridgeCompareProduct } from '$lib/content/constants/competitors/post-bridge';
 export { postfastCompareProduct } from '$lib/content/constants/competitors/postfast';
@@ -64,6 +66,7 @@ export const PUBLIC_COMPARE_PRODUCTS: readonly CompareProduct[] = [
 	hopperHqCompareProduct,
 	laterCompareProduct,
 	bufferCompareProduct,
+	breakreachCompareProduct,
 	clawPostCompareProduct,
 	recurpostCompareProduct,
 	mixpostCompareProduct,

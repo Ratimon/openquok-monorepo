@@ -31,6 +31,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	'hopper-hq': 'https://www.hopperhq.com',
 	later: 'https://later.com',
 	buffer: 'https://buffer.com',
+	breakreach: 'https://www.breakreach.com',
 	'claw-post': 'https://clawpost.net',
 	mixpost: 'https://mixpost.app',
 	openpost: 'https://openpo.st',
@@ -50,6 +51,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	| 'hopper-hq'
 	| 'later'
 	| 'buffer'
+	| 'breakreach'
 	| 'claw-post'
 	| 'mixpost'
 	| 'openpost'

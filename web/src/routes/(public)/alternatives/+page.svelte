@@ -63,6 +63,10 @@
 			containerClass:
 				'bg-linear-to-br from-sky-400/30 via-cyan-300/20 to-blue-300/20 text-sky-100 ring-sky-300/35'
 		},
+		breakreach: {
+			containerClass:
+				'bg-linear-to-br from-violet-600/35 via-purple-500/25 to-fuchsia-400/20 text-violet-50 ring-violet-500/40'
+		},
 		'claw-post': {
 			containerClass:
 				'bg-linear-to-br from-red-500/30 via-rose-400/20 to-cyan-400/20 text-red-50 ring-red-400/35'

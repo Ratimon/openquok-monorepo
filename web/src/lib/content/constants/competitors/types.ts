@@ -12,6 +12,7 @@ export type CompareProductSlug =
 	| 'hopper-hq'
 	| 'later'
 	| 'buffer'
+	| 'breakreach'
 	| 'claw-post'
 	| 'mixpost'
 	| 'openpost'
