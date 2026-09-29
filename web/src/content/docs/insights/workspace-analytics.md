@@ -123,7 +123,7 @@ Per-post metrics are documented in <a href="/docs/insights/per-post-metrics">Per
 ## Related
 
 <CardGrid>
-<LinkCard title="Per-post metrics" description="Statistics on published posts from Home and the calendar" href="/docs/insights/per-post-metrics" />
+<LinkCard title="Per-post metrics" description="Statistics on published posts from My Dashboard and the calendar" href="/docs/insights/per-post-metrics" />
 <LinkCard title="Platforms → Analytics" description="Account vs per-post coverage by channel key" href="/docs/platforms/analytics" />
 <LinkCard title="Connect rules" description="Full channel catalog and OAuth setup" href="/docs/platforms/connect-rules" />
 </CardGrid>

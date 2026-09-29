@@ -99,7 +99,7 @@ Team seats are for people who work <strong>inside</strong> your OpenQuok workspa
 
 - **Channel invite links** let a client connect their own social account without an OpenQuok login. See <a href="/docs/channels/connect#let-clients-connect-their-own-account">Let clients connect their own account</a>.
 - **Preview links** let a client review and comment on specific posts without seeing the rest of the workspace. See <a href="/docs/posts-management/approvals">Approvals</a>.
-- **Channel groups** keep each client’s channels together on Home and the calendar. See <a href="/docs/channels/channel-groups">Channel groups</a>.
+- **Channel groups** keep each client’s channels together on <strong>My Dashboard</strong> and the calendar. See <a href="/docs/channels/channel-groups">Channel groups</a>.
 
 None of these consume a team seat.
 

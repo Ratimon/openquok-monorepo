@@ -31,6 +31,10 @@
 		loadingPendingInvites?: boolean;
 		acceptingInviteId?: string | null;
 		onAcceptPendingInvite?: (inviteId: string) => Promise<{ success: boolean; message: string }>;
+		/** `stack` — vertical rail; `grid` — responsive card grid (default). */
+		layout?: 'grid' | 'stack';
+		/** Smaller section title and spacing (e.g. home left rail). */
+		compactSection?: boolean;
 	};
 
 	let {
@@ -49,8 +53,16 @@
 		pendingInvitesVm = [],
 		loadingPendingInvites = false,
 		acceptingInviteId = null,
-		onAcceptPendingInvite
+		onAcceptPendingInvite,
+		layout = 'grid',
+		compactSection = false
 	}: Props = $props();
+
+	const isStackLayout = $derived(layout === 'stack');
+
+	const cardsContainerClass = $derived(
+		isStackLayout ? 'flex flex-col gap-4' : 'grid gap-4 sm:grid-cols-2 xl:grid-cols-3'
+	);
 
 	const ownerCards = $derived(cardsVm.filter((c) => c.workspaceRole === 'owner'));
 	const sharedCards = $derived(cardsVm.filter((c) => c.workspaceRole !== 'owner'));
@@ -76,11 +88,22 @@
 	const showSharedSection = $derived(
 		sharedCards.length > 0 || pendingInvitesVm.length > 0 || loadingPendingInvites
 	);
+
+	const workspacesHeadingClass = $derived(
+		isStackLayout
+			? 'text-lg font-semibold text-base-content sm:text-xl'
+			: compactSection
+				? 'text-base font-bold text-base-content'
+				: 'text-xl font-bold text-base-content'
+	);
 </script>
 
-<section class="mt-6" aria-labelledby="my-workspaces-heading">
+<section
+	class={isStackLayout ? '' : compactSection ? 'mt-4' : 'mt-6'}
+	aria-labelledby="my-workspaces-heading"
+>
 	<div class="flex flex-wrap items-center justify-between gap-2">
-		<h2 id="my-workspaces-heading" class="text-xl font-bold text-base-content">
+		<h2 id="my-workspaces-heading" class={workspacesHeadingClass}>
 			My workspaces
 			{#if workspaceCountLabel}
 				<span class={isWorkspaceLimitFull ? 'text-warning' : 'text-base-content/70'}>
@@ -105,7 +128,7 @@
 			<p class="text-sm text-error">
 				Could not load workspace details. Refresh the page to try again.
 			</p>
-			<div class="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+			<div class="mt-4 {cardsContainerClass}">
 				<CreateWorkspaceCard creating={creatingWorkspace} {onCreateWorkspace} />
 			</div>
 		{:else if showWorkspaceGrid}
@@ -116,18 +139,31 @@
 			{/if}
 
 			<section class="space-y-4">
-				<HomeAccountNoticeBanner
-					iconName={icons.Info.name}
-					tone="neutral"
-					dismissible={true}
-				>
-					<p class="font-medium text-base-content">One workspace = one context</p>
-					<p class="mt-1 text-base-content/90">
-						Workspaces exist to keep the context focused. Connecting too many social
-						channels or installing too many skills can cause context rot and hallucinations.
-						Use separate workspaces for different brands, or clients.
-					</p>
-				</HomeAccountNoticeBanner>
+				{#if isStackLayout}
+					<HomeAccountNoticeBanner
+						iconName={icons.Info.name}
+						tone="neutral"
+						dismissible={true}
+					>
+						<p class="text-sm text-base-content/90">
+							<span class="font-medium text-base-content">One workspace = one context.</span>
+							Use separate workspaces for different brands or clients to keep AI context focused.
+						</p>
+					</HomeAccountNoticeBanner>
+				{:else}
+					<HomeAccountNoticeBanner
+						iconName={icons.Info.name}
+						tone="neutral"
+						dismissible={true}
+					>
+						<p class="font-medium text-base-content">One workspace = one context</p>
+						<p class="mt-1 text-base-content/90">
+							Workspaces exist to keep the context focused. Connecting too many social
+							channels or installing too many skills can cause context rot and hallucinations.
+							Use separate workspaces for different brands, or clients.
+						</p>
+					</HomeAccountNoticeBanner>
+				{/if}
 
 				{#if ownerCards.length === 0}
 					<p class="text-sm text-base-content/70">
@@ -140,12 +176,14 @@
 					</p>
 				{/if}
 
-				<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+				<div class={cardsContainerClass}>
 					{#each ownerCards as card, index (card.id)}
 						<WorkspaceCard
 							{card}
 							{index}
 							allowedMemberCount={allowedMemberCountPerWorkspace}
+							actionsLayout={isStackLayout ? 'column' : 'row'}
+							channelPreviewLayout={isStackLayout ? 'wrap' : 'overlap'}
 							{onSwitchWorkspace}
 							{onOpenWorkspaceSettings}
 							{onOpenDeveloperOAuth}
@@ -162,8 +200,14 @@
 			</section>
 
 			{#if showSharedSection}
-				<section class="mt-8 space-y-4" aria-labelledby="shared-workspaces-heading">
-					<h3 id="shared-workspaces-heading" class="text-base font-semibold text-base-content">
+				<section
+					class="{compactSection ? 'mt-6' : 'mt-8'} space-y-4"
+					aria-labelledby="shared-workspaces-heading"
+				>
+					<h3
+						id="shared-workspaces-heading"
+						class="{compactSection ? 'text-sm' : 'text-base'} font-semibold text-base-content"
+					>
 						Shared with you
 					</h3>
 					<p class="text-sm text-base-content/70">
@@ -172,7 +216,7 @@
 					{#if loadingPendingInvites && pendingInvitesVm.length === 0 && sharedCards.length === 0}
 						<p class="text-sm text-base-content/70">Loading invites…</p>
 					{/if}
-					<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+					<div class={cardsContainerClass}>
 						{#each pendingInvitesVm as invite, index (`invite-${invite.id}`)}
 							<PendingInviteWorkspaceCard
 								{invite}
@@ -189,6 +233,8 @@
 								{card}
 								{index}
 								variant="compact"
+								actionsLayout={isStackLayout ? 'column' : 'row'}
+								channelPreviewLayout={isStackLayout ? 'wrap' : 'overlap'}
 								{onSwitchWorkspace}
 								{onOpenWorkspaceSettings}
 								{onOpenDeveloperOAuth}

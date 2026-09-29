@@ -14,7 +14,7 @@
 	role="complementary"
 	aria-label="Sidebar"
 	style="width: {$vopen ? '200px' : '60px'}; transition: width 0.4s;"
-	class="h-full px-4 py-4 hidden md:flex md:flex-col bg-base-200 flex-shrink-0 {className}"
+	class="sticky top-0 self-start h-svh min-h-0 px-4 py-4 hidden md:flex md:flex-col bg-base-200 flex-shrink-0 overflow-hidden {className}"
 	onmouseenter={() => {
 		vopen.set(true);
 	}}

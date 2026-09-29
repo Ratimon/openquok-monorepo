@@ -38,6 +38,7 @@
 	import { toast } from '$lib/ui/sonner';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import AccountAreaPageHeaderSync from '$lib/ui/components/account/AccountAreaPageHeaderSync.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Tabs from '$lib/ui/tabs';
 	import AccountViralFormatsExploreTab from '$lib/ui/components/extensions/AccountViralFormatsExploreTab.svelte';
@@ -86,6 +87,9 @@
 	let needsCreatorUsername = $state(false);
 
 	let activeTab = $state<ViralFormatsTab>('explore');
+
+	const playbooksTabTriggerClass =
+		'inline-flex h-auto min-h-0 flex-1 items-center justify-center gap-2 rounded-md border-0 !border-b-0 bg-transparent px-3 py-2 text-sm font-medium text-base-content/65 transition-colors hover:bg-base-content/10 hover:text-base-content sm:flex-none sm:px-4 [&.tab-active]:bg-primary [&.tab-active]:font-semibold [&.tab-active]:text-primary-content [&.tab-active]:shadow-md';
 	let deleteModalOpen = $state(false);
 	let unpublishModalOpen = $state(false);
 	let listingToDelete = $state<AccountListingCollectionItemViewModel | null>(null);
@@ -287,16 +291,14 @@
 		</div>
 	{/if}
 
-	<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-		<div>
-			<h1 class="text-2xl font-semibold text-base-content">
-				My Playbooks
-			</h1>
-			<p class="mt-1 max-w-2xl text-sm text-base-content/65">
-				Explore playbooks and building blocks from the hub, save bookmarks, and publish your own.
-			</p>
-		</div>
+	<AccountAreaPageHeaderSync
+		title="My Playbooks"
+		currentPageLabel="Playbooks"
+		headingId="account-playbooks-heading"
+		description="Explore playbooks and building blocks from the hub, save bookmarks, and publish your own."
+	/>
 
+	<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-end">
 		<div class="flex flex-wrap items-center gap-2">
 			{#if activeTab === 'mine'}
 				<Button href={newBuildingBlockHref} variant="outline" size="sm">New building block</Button>
@@ -306,13 +308,15 @@
 	</div>
 
 	<Tabs.Root bind:value={activeTab} class="space-y-5">
-		<Tabs.List class="tabs tabs-bordered w-full justify-start bg-transparent p-0">
-			<Tabs.Trigger value="explore" class="gap-2">
-				<AbstractIcon name={icons.Search.name} class="size-4" width="16" height="16" />
+		<Tabs.List
+			class="grid w-full max-w-md grid-cols-2 gap-1 rounded-xl bg-base-200 p-1 sm:inline-flex sm:w-auto sm:grid-cols-none"
+		>
+			<Tabs.Trigger value="explore" class={playbooksTabTriggerClass}>
+				<AbstractIcon name={icons.Search.name} class="size-4 shrink-0" width="16" height="16" />
 				Explore
 			</Tabs.Trigger>
-			<Tabs.Trigger value="mine" class="gap-2">
-				<AbstractIcon name={icons.Bot.name} class="size-4" width="16" height="16" />
+			<Tabs.Trigger value="mine" class={playbooksTabTriggerClass}>
+				<AbstractIcon name={icons.Bot.name} class="size-4 shrink-0" width="16" height="16" />
 				My Playbooks
 			</Tabs.Trigger>
 		</Tabs.List>

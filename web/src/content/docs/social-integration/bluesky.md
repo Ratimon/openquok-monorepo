@@ -73,7 +73,7 @@ For example, you can check your handle at your Blue Sky Profile:
 ![Step 3B - Connect Bluesky - autofill service url](/docs/_assets/social-integration/bluesky/connect-bluesky.webp)
 
 <Callout type="tip">
-<p>To refresh an existing channel, open the same credentials form (<strong>Refresh connection</strong> on Home) — do not expect a platform OAuth redirect.</p>
+<p>To refresh an existing channel, open the same credentials form (<strong>Refresh connection</strong> on <strong>My Dashboard</strong>) — do not expect a platform OAuth redirect.</p>
 </Callout>
 
 </Steps>

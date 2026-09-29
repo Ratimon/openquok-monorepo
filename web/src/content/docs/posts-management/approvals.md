@@ -13,9 +13,9 @@ import { Badge, Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/do
 
 > Send clients a preview link so they can read copy and leave feedback — no OpenQuok login required.
 
-Every post has a **preview page** at <Badge text="/p/" variant="path" /> plus the post id. Send that link when someone outside your workspace should read the copy and leave feedback — without giving them access to Home, the calendar, or your other clients.
+Every post has a **preview page** at <Badge text="/p/" variant="path" /> plus the post id. Send that link when someone outside your workspace should read the copy and leave feedback — without giving them access to <strong>My Dashboard</strong>, the calendar, or your other clients.
 
-**Where:** <a href="/account">Home</a> or the <a href="/account/calendar">calendar</a> — **click** a post card or chip once to open **Post actions** (there is no hover menu), then click <Badge text="Preview" variant="param" />. On the kanban, use the card menu if the chip is not visible.
+**Where:** <a href="/account">My Dashboard</a> or the <a href="/account/calendar">calendar</a> — **click** a post card or chip once to open **Post actions** (there is no hover menu), then click <Badge text="Preview" variant="param" />. On the kanban, use the card menu if the chip is not visible.
 
 ![Post Actions Modal](/docs/_assets/glossary/post-actions-modal.webp)
 
@@ -61,7 +61,7 @@ Apply changes in the composer, then move the post to <Badge text="Scheduled" var
 If you run social for multiple clients, the usual flow is:
 
 1. Put their channels in a <a href="/docs/channels/channel-groups">channel group</a>.
-2. Filter Home or the calendar to that group.
+2. Filter <strong>My Dashboard</strong> or the calendar to that group.
 3. Draft their week.
 4. Send preview links for posts that need sign-off.
 5. Schedule once you have heard back.
@@ -83,7 +83,7 @@ If you run social for multiple clients, the usual flow is:
 <CardGrid>
 <LinkCard title="Actions and stats" description="Post actions modal — preview, edit, duplicate, and delete" href="/docs/posts-management/actions-and-stats" />
 <LinkCard title="Calendar" description="Filters, chips, and opening posts from the grid" href="/docs/posts-management/calendar" />
-<LinkCard title="Kanban board" description="Columns, filters, and opening posts from Home" href="/docs/posts-management/kanban" />
+<LinkCard title="Kanban board" description="Columns, filters, and opening posts from My Dashboard" href="/docs/posts-management/kanban" />
 <LinkCard title="Scheduling" description="Save as draft until client sign-off, then add to calendar" href="/docs/creating-posts/scheduling" />
 <LinkCard title="Channel groups" description="Bundle a client’s channels and filter the calendar" href="/docs/channels/channel-groups" />
 <LinkCard title="Glossary" description="Draft, scheduled, and preview link terminology" href="/docs/getting-started/glossary" />

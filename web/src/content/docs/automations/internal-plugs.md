@@ -1,8 +1,8 @@
 ---
 title: Internal plugs
-description: Schedule a delayed follow-up reply or comment on the same channel/account in one post.
+description: Schedule a delayed follow-up reply or comment on the same channel(or account) in one post.
 order: 2
-lastUpdated: 2026-09-11
+lastUpdated: 2026-09-29
 ---
 
 <script>
@@ -13,7 +13,14 @@ import { Badge, Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/do
 
 > Same-account delayed engagement on one post — after follow-up comments finish.
 
-An **internal plug** is a same-account action on **one** scheduled post. OpenQuok runs it once after the main post publishes, once <a href="/docs/creating-posts/threads-and-comments">Follow-up comments</a> and the thread finisher finish. Today only **Threads** ships an internal plug — the **Threads delayed engagement reply**.
+An **internal plug** is a same-account action on **one** scheduled post. OpenQuok runs it once after the main post publishes, once <a href="/docs/creating-posts/threads-and-comments">Follow-up comments</a> and the thread finisher finish.
+
+![Click Plug Setting](/docs/_assets/glossary/internal-plug-setting.webp)
+
+<Callout type="note">
+<p>Today only <strong>Threads</strong> ships an internal plug — the <strong>Threads delayed engagement reply</strong>. <strong>X</strong> and <strong>LinkedIn</strong> do not use internal plugs; they use <a href="/docs/automations/cross-account-plugs">cross-account plugs</a> so another connected profile can repost or comment after publish.</p>
+</Callout>
+
 
 ## Where in the post editor
 

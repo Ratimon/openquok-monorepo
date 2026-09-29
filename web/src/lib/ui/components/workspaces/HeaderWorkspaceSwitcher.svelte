@@ -97,14 +97,23 @@
 				focusable="false"
 			/>
 		</DropdownMenu.Trigger>
-		<DropdownMenu.Content align="end" sideOffset={6} class="min-w-[14rem] max-w-[18rem]">
-			<DropdownMenu.Label class="text-xs text-base-content/60">Workspaces</DropdownMenu.Label>
+		<DropdownMenu.Content
+			align="start"
+			sideOffset={6}
+			class="min-w-[14rem] max-w-[18rem] border border-base-content/20 bg-base-200 p-1.5 text-base shadow-lg"
+		>
+			<DropdownMenu.Label class="px-2 py-1.5 text-sm font-semibold text-base-content">
+				Workspaces
+			</DropdownMenu.Label>
 			{#each workspaces as workspace (workspace.id)}
 				{@const isCurrent = workspace.id === currentWorkspaceId}
 				<DropdownMenu.Item
 					disabled={workspace.disabled || isCurrent}
 					onclick={() => requestSwitchWorkspace(workspace)}
-					class={cn(isCurrent && 'bg-base-200/80')}
+					class={cn(
+						'py-2 text-sm font-medium text-base-content data-[highlighted]:bg-base-300',
+						isCurrent && 'bg-base-300/90'
+					)}
 				>
 					<span class="truncate">{workspace.name}</span>
 					{#if isCurrent}
@@ -119,7 +128,7 @@
 				</DropdownMenu.Item>
 			{/each}
 			{#if !loading && switchableWorkspaces.length === 0 && workspaces.length === 1}
-				<DropdownMenu.Label class="text-xs font-normal text-base-content/50">
+				<DropdownMenu.Label class="px-2 py-1.5 text-sm text-base-content/85">
 					No other workspaces
 				</DropdownMenu.Label>
 			{/if}

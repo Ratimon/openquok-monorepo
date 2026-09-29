@@ -100,24 +100,24 @@
 </script>
 
 <div
-	class="flex flex-row bg-base-200 w-full min-h-screen border border-base-300 overflow-hidden"
+	class="flex flex-row bg-base-200 w-full min-h-svh border border-base-300 overflow-hidden"
 >
-	<SidebarBody class="flex-shrink-0 h-full">
-		<div class="flex flex-col justify-between h-full">
-			<div class="flex flex-col flex-1 overflow-y-auto overflow-x-hidden min-h-0">
+	<SidebarBody class="flex-shrink-0 self-start">
+		<div class="flex h-full min-h-0 flex-col">
+			<div class="flex shrink-0 flex-col overflow-x-hidden overflow-y-auto overscroll-contain">
 				<a
 					href="/"
 					title="{companyName} homepage"
-					class="flex items-center gap-2 shrink-0 font-normal text-sm text-base-content py-1 relative z-20"
+					class="relative z-20 flex shrink-0 items-center gap-2 py-1 text-sm font-normal text-base-content"
 				>
 					<img
-						class="w-8 h-8 shrink-0"
+						class="h-8 w-8 shrink-0"
 						alt={companyName}
 						src={url('/icon.svg')}
 						width={32}
 						height={32}
 					/>
-					<span class="font-extrabold text-lg whitespace-pre hidden md:inline">
+					<span class="hidden whitespace-pre text-lg font-extrabold md:inline">
 						{companyName}
 					</span>
 				</a>
@@ -129,7 +129,6 @@
 						/>
 					{/each}
 				</div>
-				<div class="flex-1 min-h-[1.5rem]" aria-hidden="true"></div>
 			</div>
 			<SidebarProductTourReset workspaceId={currentWorkspaceId} />
 		</div>

@@ -2,7 +2,7 @@
 title: Tour the app
 description: Find your way around the OpenQuok — sidebar pages, header, composer, settings, billing, and the public site.
 order: 3
-lastUpdated: 2026-08-25
+lastUpdated: 2026-09-29
 ---
 
 <script>
@@ -11,25 +11,35 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## Overview
 
-> Where every sidebar page lives and what you do there — Home, calendar, plugs, analytics, and settings.
+> Where every sidebar page lives and what you do there — <strong>My Dashboard</strong>, calendar, plugs, analytics, and settings.
 
-Most of our features are put behind the left sidebar, and the sidebar footer has <Badge text="Reset product tours" variant="default" /> if you want those guides again.
+Most of our features are put behind the left sidebar.
 
-![Signed-in left sidebar](/docs/_assets/tour-the-app/left-sidebar.webp)
+![Protected left sidebar](/docs/_assets/tour-the-app/left-sidebar.webp)
 
+<Callout type="tip">
+<p>The sidebar footer has <Badge text="Reset product tours" variant="default" /> if you want those guides again.</p>
+</Callout>
 
-You can switch between your workspaces on the header.
+You can switch workspaces from the header switcher or from the workspace cards on <strong>My Dashboard</strong>.
 
-![Work Space and Account](/docs/_assets/tour-the-app/top-header.webp)
+![Switch to Other Workspaces](/docs/_assets/tour-the-app/top-header-workspaces.webp)
+
+<Callout type="tip">
+<p>Switch workspace from the header on <a href="/account"><Badge text="My Dashboard" variant="default" /></a>, <a href="/account/calendar"><Badge text="Calendar" variant="default" /></a>, <a href="/account/templates"><Badge text="Templates" variant="default" /></a>, <a href="/account/playbooks"><Badge text="Playbooks" variant="default" /></a>, <a href="/account/plugs"><Badge text="Auto Plugs" variant="default" /></a>, <a href="/account/analytics"><Badge text="Analytics" variant="default" /></a>, and <a href="/account/media"><Badge text="Media" variant="default" /></a>. Calendar, templates, plugs, and the other sidebar pages use the full width to maximize UX, so the header switcher is often easier than the workspace cards in the <a href="/account"><strong>My Dashboard</strong></a>.</p>
+</Callout>
+
 
 Settings and Billing sit under the account menu.
+
+![Navigate to Settings or Billing](/docs/_assets/tour-the-app/top-header-account.webp)
 
 ## Left sidebar
 
 
 | Label | Path | What you do there |
 | --- | --- | --- |
-| <Badge text="Home" variant="default" /> | <Badge text="/account" variant="path" /> | Connected channels, Getting started checklist, kanban, <Badge text="Create Post" variant="new" /> |
+| <Badge text="My Dashboard" variant="default" /> | <Badge text="/account" variant="path" /> | Plan overview, workspace cards, **Channels** / **Posts** / **Feed** tabs (connected channels, kanban, notifications), Getting started card with <Badge text="See checklist" variant="default" />, <Badge text="Create Post" variant="new" /> |
 | <Badge text="Calendar" variant="default" /> | <Badge text="/account/calendar" variant="path" /> | Month or week of scheduled and published posts |
 | <Badge text="Templates" variant="default" /> | <Badge text="/account/templates" variant="path" /> | Saved composer presets — see <a href="/docs/posts-management/templates">Templates</a> |
 | <Badge text="Playbooks" variant="default" /> | <Badge text="/account/playbooks" variant="path" /> | Browse, bookmark, and edit playbooks and building blocks — see <a href="/docs/playbooks">Playbooks</a> |
@@ -46,25 +56,41 @@ The header is independent of the sidebar.
 | --- | --- |
 | Workspace switcher | Loads another workspace you belong to |
 | Docs | This documentation |
-| Notifications | Publish failures and review notes |
+| Notifications | Publish failures and review notes — same preview as <strong>My Dashboard</strong> <Badge text="Feed" variant="default" /> |
 | Theme | Light or dark |
 | Feedback | Send a note to the team |
 | Account menu | <Badge text="Settings" variant="default" />, <Badge text="Billing" variant="default" />, sign out |
 
-## Home, calendar, and the composer
+## My Dashboard, calendar, and the composer
 
-Home is where to manage channel cards, the Getting started checklist, and kanban columns for post status.
+<strong>My Dashboard</strong> is your workspace dashboard. It shows:
 
-The calendar is the same posts laid out by date.
+1)  **Plan overview**: (workspace, channel, and storage usage). Below that, desktop layout splits into a **left rail** and a **main panel**.
 
-The post editor is a modal, not a sidebar page. Open it with <Badge text="Create Post" variant="new" /> on Home or from a calendar slot — when the workspace has saved templates, the **Select a template** picker appears first. See <a href="/docs/creating-posts">Creating posts</a> and <a href="/docs/posts-management/templates">Templates</a> for layout, flow, and preset workflows.
+2) **left rail**: It inculds **Workspace cards** — switch workspace, create one, accept invites, and open **OAuth Secrets**, **API key**, or **Add channel** from the active card.
+
+The main panel uses pill tabs:
+
+| Tab | What you do there |
+| --- | --- |
+| **Channels** | Connected channel grid or table, <Badge text="Add Channel" variant="new" />, channel menus, and smart filters on the table view |
+| **Posts** | Kanban columns for draft, scheduled, and published post groups (when the workspace has at least one social channel) |
+| **Feed** | In-app notifications — publish results, failures, and review notes (same data as the header bell) |
+
+![The Main Dashboard 's components](/docs/_assets/getting-started/1-workspace-dashboard.webp)
+
+A **Feed** button beside the tab bar on wider layouts also switches to the Feed tab and shows an unread badge.
+
+The calendar is the same posts laid out by date at <a href="/account/calendar">/account/calendar</a>.
+
+The post editor is a modal, not a sidebar page. Open it with <Badge text="Create Post" variant="new" /> from the **Channels** or **Posts** tab on <strong>My Dashboard</strong>, or from a calendar — when the workspace has saved templates, the **Select a template** picker appears first. See <a href="/docs/creating-posts">Creating posts</a> and <a href="/docs/posts-management/templates">Templates</a> for layout, flow, and preset workflows.
 
 | Action | Where it lives |
 | --- | --- |
-| <Badge text="Add Channel" variant="new" /> | Home, or the channel picker in the composer |
-| Reconnect or disconnect a channel | Channel card menu on Home |
-| Channel groups | Group controls on Home — see <a href="/docs/channels/channel-groups">Channel groups</a> |
-| Smart filters | Home table <Badge text="Add filters" variant="default" />; kanban and calendar dropdowns; Templates and Auto Plugs tables — see <a href="/docs/getting-started/glossary#smart-filter">Smart filter</a> |
+| <Badge text="Add Channel" variant="new" /> | <strong>My Dashboard</strong> **Channels** tab, **Add channel** on the current workspace card, or the channel picker in the composer |
+| Reconnect or disconnect a channel | Channel card menu on the **Channels** tab |
+| Channel groups | Group controls on the **Channels** tab and kanban filters on the **Posts** tab — see <a href="/docs/channels/channel-groups">Channel groups</a> |
+| Smart filters | **Channels** tab table <Badge text="Add filters" variant="default" />; kanban and calendar dropdowns; Templates and Auto Plugs tables — see <a href="/docs/getting-started/glossary#smart-filter">Smart filter</a> |
 | Per-network fields | Composer, beside the preview |
 | Tags | Composer footer — see <a href="/docs/getting-started/glossary#tag">Tag</a> in the glossary |
 | Signatures | Composer toolbar — see <a href="/docs/settings/signatures">Signatures</a> |

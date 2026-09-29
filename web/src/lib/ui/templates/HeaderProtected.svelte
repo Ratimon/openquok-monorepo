@@ -3,11 +3,15 @@
 	import type { WorkspaceCardViewModel } from '$lib/settings/GetWorkspace.presenter.svelte';
 
 	import { page } from '$app/state';
+	import { accountAreaPageHeaderPresenter } from '$lib/area-protected/AccountAreaPageHeader.presenter.svelte';
 	import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
+	import { PUBLIC_NAVBAR_LINKS } from '$lib/config';
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 	import { route } from '$lib/utils/path';
 
+	import AccountAreaPageHero from '$lib/ui/components/account/AccountAreaPageHero.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
+	import PublicNavbar from '$lib/ui/nav-bars/PublicNavbar.svelte';
 	import DockCustomSlot from '$lib/ui/floating-dock/DockCustomSlot.svelte';
 	import HeaderWorkspaceSwitcher from '$lib/ui/components/workspaces/HeaderWorkspaceSwitcher.svelte';
 	import FeedbackPopoverForm from '$lib/ui/components/feedback/FeedbackPopoverForm.svelte';
@@ -65,13 +69,9 @@
 </script>
 
 <header
-	class="flex items-center justify-between gap-4 shrink-0 h-14 px-4 md:px-6 rounded-tl-2xl border-b border-l border-base-300 bg-base-100"
+	class="flex shrink-0 flex-col gap-3 rounded-tl-2xl border-b border-l border-base-300 bg-base-100 px-4 py-3 md:px-6"
 >
-	<div class="flex items-center min-w-0">
-		<!-- Left: reserved for breadcrumb later -->
-	</div>
-
-	<div class="flex items-center justify-end flex-shrink-0">
+	<div class="flex min-h-10 w-full items-center justify-end gap-3">
 		{#if showEditorAreaButton}
 			<Button variant="ghost" size="sm" class="hidden sm:inline-flex" href={editorAreaHref}>
 				Editor area
@@ -87,7 +87,7 @@
 				Secret admin
 			</Button>
 		{/if}
-		
+
 		<HeaderWorkspaceSwitcher
 			{workspaces}
 			{currentWorkspaceId}
@@ -124,7 +124,7 @@
 							{#snippet child({ props: triggerProps })}
 								<span
 									{...triggerProps}
-									class="relative w-full h-full flex items-center justify-center"
+									class="relative flex h-full w-full items-center justify-center"
 								>
 									<FeedbackPopoverForm
 										bind:description={feedbackDescription}
@@ -145,4 +145,42 @@
 			{/snippet}
 		</FloatingDockDesktop>
 	</div>
+
+	<div class="flex w-full justify-center overflow-x-auto">
+		<div class="w-full max-w-5xl">
+			<PublicNavbar
+				pages={PUBLIC_NAVBAR_LINKS}
+				tabClass="tab tab-lg tab-lifted flex-1 text-base font-bold lg:text-lg"
+				whenSelected="account-link"
+				whenUnselected="account-link"
+			/>
+		</div>
+	</div>
+
+	{#if accountAreaPageHeaderPresenter.active}
+		<div
+			class="flex min-w-0 flex-col gap-3 border-t border-base-300/60 pt-3 sm:flex-row sm:items-end sm:justify-between"
+		>
+			<AccountAreaPageHero
+				variant="header"
+				title={accountAreaPageHeaderPresenter.title}
+				currentPageLabel={accountAreaPageHeaderPresenter.currentPageLabel}
+				linkHome={accountAreaPageHeaderPresenter.linkHome}
+				headingId={accountAreaPageHeaderPresenter.headingId}
+				descriptionText={accountAreaPageHeaderPresenter.description}
+				class="min-w-0 flex-1"
+			/>
+			{#if accountAreaPageHeaderPresenter.actionLabel && accountAreaPageHeaderPresenter.onAction}
+				<Button
+					type="button"
+					variant="outline"
+					size="sm"
+					class="shrink-0 self-start sm:self-auto"
+					onclick={accountAreaPageHeaderPresenter.onAction}
+				>
+					{accountAreaPageHeaderPresenter.actionLabel}
+				</Button>
+			{/if}
+		</div>
+	{/if}
 </header>

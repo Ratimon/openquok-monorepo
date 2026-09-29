@@ -22,9 +22,11 @@
 		getRootPathTemplates,
 		protectedCalendarPagePresenter,
 		protectedHomePagePresenter,
+		protectedLayoutPagePresenter,
 		protectedSettingsPagePresenter,
 		WorkspaceSettingsStatus
 	} from '$lib/area-protected';
+	import { STACK_HOME_WORKSPACE_CHANNEL_PREVIEW_LIMIT } from '$lib/area-protected/GetHomeWorkspaces.presenter.svelte';
 	import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
 	import { getRootPathPublicAgents } from '$lib/area-public/constants/getRootPathPublicAgents';
 	import { getRootPathPublicBlogPost } from '$lib/area-public/constants/getRootPathPublicBlog';
@@ -68,7 +70,11 @@
 	import AbstractModal from '$lib/ui/modals/AbstractModal.svelte';
 	import PostKanbanBoard from '$lib/ui/components/posts/kanban/PostKanbanBoard.svelte';
 	import HomeAccountNoticeBanner from '$lib/ui/components/home/HomeAccountNoticeBanner.svelte';
-	import AccountGettingStartedSection from '$lib/ui/components/home/AccountGettingStartedSection.svelte';
+	import AccountAreaPageHeaderSync from '$lib/ui/components/account/AccountAreaPageHeaderSync.svelte';
+	import AccountGettingStartedModal from '$lib/ui/components/home/AccountGettingStartedModal.svelte';
+	import AccountGettingStartedSidebarCard from '$lib/ui/components/home/AccountGettingStartedSidebarCard.svelte';
+	import AccountHomeDashboardTabs from '$lib/ui/components/home/AccountHomeDashboardTabs.svelte';
+	import AccountHomeNotificationsFeed from '$lib/ui/components/home/AccountHomeNotificationsFeed.svelte';
 	import AccountPlanOverviewSection from '$lib/ui/components/home/AccountPlanOverviewSection.svelte';
 	import MyChannelsSection from '$lib/ui/components/channels/MyChannelsSection.svelte';
 	import MyWorkspacesSection from '$lib/ui/components/workspaces/MyWorkspacesSection.svelte';
@@ -121,6 +127,9 @@
 	const publicAgentsPath = route(rootPathPublicAgents);
 
 	const pagePresenter = protectedHomePagePresenter;
+	const homeWorkspacesOverviewOptions = {
+		channelPreviewLimit: STACK_HOME_WORKSPACE_CHANNEL_PREVIEW_LIMIT
+	};
 	const postKanbanBoard = pagePresenter.postKanbanBoardPresenter;
 	const channelsGridPresenter = pagePresenter.channelsGridTable;
 	const channelsFilterPresenter = pagePresenter.channelsGridFilterBuilder;
@@ -291,6 +300,19 @@
 	const showPostKanbanBoard = $derived(
 		Boolean(workspaceId) && currentWorkspaceSocialChannelCount > 0
 	);
+	const notificationsDockPreview = $derived(protectedLayoutPagePresenter.getNotificationsDockPreview());
+	const feedUnreadCount = $derived(protectedLayoutPagePresenter.editorDockNotificationUnreadCount);
+
+	let homeDashboardTab = $state<'channels' | 'posts' | 'feed'>('channels');
+	let homeDashboardTabWorkspaceId = $state<string | null>(null);
+
+	$effect(() => {
+		const orgId = workspaceId;
+		if (!orgId || orgId === homeDashboardTabWorkspaceId) return;
+		homeDashboardTabWorkspaceId = orgId;
+		homeDashboardTab = showPostKanbanBoard ? 'posts' : 'channels';
+	});
+
 	let channelActionsOpen = $state(false);
 	let channelActionsFor = $state<CreateSocialPostChannelViewModel | null>(null);
 
@@ -550,6 +572,7 @@
 	let soloUpgradeNoticeDismissed = $state(false);
 
 	let gettingStartedDismissed = $state(false);
+	let gettingStartedModalOpen = $state(false);
 	let tiktokWarmupDone = $state(false);
 
 	const HOME_NOTICE_KIND_NO_CHANNELS = 'no-channels';
@@ -581,9 +604,14 @@
 	}
 
 	function dismissGettingStartedSection(): void {
+		gettingStartedModalOpen = false;
 		gettingStartedDismissed = true;
 		if (workspaceId) persistHomeNoticeDismissedLocal(GETTING_STARTED_NOTICE_KIND, workspaceId);
 		productTourResetPresenter.bumpRevision();
+	}
+
+	function openGettingStartedModal(): void {
+		gettingStartedModalOpen = true;
 	}
 
 	function markTiktokWarmupDone(): void {
@@ -651,6 +679,19 @@
 	const showGettingStartedSection = $derived(
 		Boolean(workspaceId) && listStatus === 'ready' && !gettingStartedDismissed
 	);
+
+	const homeHeaderDescription = $derived.by((): string | null => {
+		if (listStatus === 'ready' && connectedChannelCountVm === 0) {
+			const name = currentUser?.fullName ? `, ${currentUser.fullName}` : '';
+			return `Welcome${name}! You are on the ${currentPlanLabel} plan.`;
+		}
+		if (currentUser?.fullName && currentUser?.email?.trim()) {
+			return `Hi! ${currentUser.fullName} (${currentUser.email.trim()})`;
+		}
+		if (currentUser?.fullName) return `Hi! ${currentUser.fullName}`;
+		if (currentUser?.email?.trim()) return `Signed in as ${currentUser.email.trim()}`;
+		return null;
+	});
 
 	const hasChannelForGettingStarted = $derived(connectedChannelCountVm > 0);
 	const hasScheduledPostForGettingStarted = $derived(
@@ -839,7 +880,7 @@
 		const workspaceIdsKey = workspacesVm.map((w) => w.id).join(',');
 		if (!workspaceIdsKey || !browser) return;
 		scheduleDeferredWork(() => {
-			void pagePresenter.loadMyWorkspacesOverview(currentUser);
+			void pagePresenter.loadMyWorkspacesOverview(currentUser, homeWorkspacesOverviewOptions);
 		}, 'soon');
 	});
 
@@ -883,7 +924,7 @@
 	async function handleAcceptPendingInvite(inviteId: string) {
 		const result = await workspaceSettingsPresenter.acceptPendingInvite(inviteId);
 		if (result.success) {
-			void pagePresenter.loadMyWorkspacesOverview(currentUser);
+			void pagePresenter.loadMyWorkspacesOverview(currentUser, homeWorkspacesOverviewOptions);
 		}
 		return result;
 	}
@@ -891,7 +932,7 @@
 	async function handleCreateWorkspace(name: string) {
 		const result = await protectedSettingsPagePresenter.createWorkspace(name);
 		if (result.success) {
-			void pagePresenter.loadMyWorkspacesOverview(currentUser);
+			void pagePresenter.loadMyWorkspacesOverview(currentUser, homeWorkspacesOverviewOptions);
 		}
 		return result;
 	}
@@ -899,14 +940,22 @@
 	$effect(() => {
 		if (listStatus !== 'ready' || !workspaceId || !browser) return;
 		scheduleDeferredWork(() => {
-			void pagePresenter.loadMyWorkspacesOverview(currentUser);
+			void pagePresenter.loadMyWorkspacesOverview(currentUser, homeWorkspacesOverviewOptions);
 		}, 'soon');
 	});
 </script>
 
-<div class="rounded-lg border border-base-300 bg-base-100 p-6 shadow-sm">
+<AccountAreaPageHeaderSync
+	title="My Dashboard"
+	currentPageLabel="My Dashboard"
+	linkHome={false}
+	headingId="account-home-heading"
+	description={homeHeaderDescription}
+/>
+
+<div class="space-y-6 p-4 md:p-6">
 	{#if activeHomeNotice}
-		<div class="mb-6">
+		<div>
 			{#if activeHomeNotice === 'no-channels'}
 				<HomeAccountNoticeBanner
 					iconName={icons.Info.name}
@@ -990,44 +1039,6 @@
 		</div>
 	{/if}
 
-	{#if showGettingStartedSection}
-		<AccountGettingStartedSection
-			onDismiss={dismissGettingStartedSection}
-			checklistItems={gettingStartedChecklist}
-			automationLinks={gettingStartedAutomationLinks}
-		/>
-	{/if}
-
-	<div class="flex items-center gap-3">
-		<AbstractIcon
-			name={icons.House.name}
-			class="text-primary size-8 shrink-0"
-			width="32"
-			height="32"
-		/>
-		<h1 class="text-2xl font-bold text-base-content">
-			Home
-		</h1>
-	</div>
-	{#if listStatus === 'ready' && connectedChannelCountVm === 0}
-		<p class="mt-2 text-base-content/80">
-			Welcome{currentUser?.fullName ? `, ${currentUser.fullName}` : ''}! You are currently on the
-			<a class="link link-primary font-medium" href={accountBillingHref}>{currentPlanLabel}</a>
-			plan — <a class="link link-primary font-medium" href={accountBillingHref}>view available plans</a>.
-		</p>
-	{:else if showPostKanbanBoard}
-		<p class="mt-2 text-base-content/80">
-			Hi!
-			{#if currentUser?.fullName && currentUser?.email?.trim()}
-				{currentUser.fullName} ({currentUser.email.trim()})
-			{:else if currentUser?.fullName}
-				{currentUser.fullName}
-			{:else if currentUser?.email?.trim()}
-				Signed in as {currentUser.email.trim()}
-			{/if}
-		</p>
-	{/if}
-
 	<AccountPlanOverviewSection
 		planLabel={currentPlanLabel}
 		billingHref={accountBillingHref}
@@ -1042,94 +1053,126 @@
 		storageTotalBytes={storageTotalBytesVm}
 	/>
 
-	<MyWorkspacesSection
-		cardsVm={myWorkspacesCardsVm}
-		status={myWorkspacesStatus}
-		ownedWorkspaceCount={myWorkspacesOwnedCount}
-		allowedWorkspaceCount={allowedWorkspaceCountVm}
-		allowedMemberCountPerWorkspace={allowedMemberCountPerWorkspaceVm}
-		billingHref={accountBillingHref}
-		creatingWorkspace={creatingWorkspace}
-		pendingInvitesVm={workspaceSettingsPresenter.pendingInvitesVm}
-		loadingPendingInvites={workspaceSettingsPresenter.loadingPendingInvites}
-		acceptingInviteId={workspaceSettingsPresenter.acceptingInviteId}
-		onAcceptPendingInvite={handleAcceptPendingInvite}
-		onSwitchWorkspace={handleSwitchWorkspace}
-		onOpenWorkspaceSettings={handleOpenWorkspaceSettings}
-		onOpenDeveloperOAuth={handleOpenDeveloperOAuth}
-		onOpenDeveloperApiKey={handleOpenDeveloperApiKey}
-		onCreateWorkspace={handleCreateWorkspace}
-	/>
+	<div
+		class="min-w-0 lg:grid lg:grid-cols-[minmax(280px,340px)_1fr] lg:items-start lg:gap-6"
+	>
+		<aside class="flex min-w-0 flex-col gap-4 lg:sticky lg:top-4 lg:self-start">
+			{#if showGettingStartedSection}
+				<AccountGettingStartedSidebarCard
+					checklistItems={gettingStartedChecklist}
+					onOpenChecklist={openGettingStartedModal}
+				/>
+			{/if}
+			<MyWorkspacesSection
+				layout="stack"
+				compactSection
+				cardsVm={myWorkspacesCardsVm}
+				status={myWorkspacesStatus}
+				ownedWorkspaceCount={myWorkspacesOwnedCount}
+				allowedWorkspaceCount={allowedWorkspaceCountVm}
+				allowedMemberCountPerWorkspace={allowedMemberCountPerWorkspaceVm}
+				billingHref={accountBillingHref}
+				creatingWorkspace={creatingWorkspace}
+				pendingInvitesVm={workspaceSettingsPresenter.pendingInvitesVm}
+				loadingPendingInvites={workspaceSettingsPresenter.loadingPendingInvites}
+				acceptingInviteId={workspaceSettingsPresenter.acceptingInviteId}
+				onAcceptPendingInvite={handleAcceptPendingInvite}
+				onSwitchWorkspace={handleSwitchWorkspace}
+				onOpenWorkspaceSettings={handleOpenWorkspaceSettings}
+				onOpenDeveloperOAuth={handleOpenDeveloperOAuth}
+				onOpenDeveloperApiKey={handleOpenDeveloperApiKey}
+				onCreateWorkspace={handleCreateWorkspace}
+			/>
+		</aside>
 
-	<MyChannelsSection
-		workspaceId={workspaceId}
-		listStatus={listStatus}
-		connectedChannelsVm={connectedChannelsVm}
-		accountSettingsWorkspaceHref={accountSettingsWorkspaceHref}
-		allowedChannelCount={allowedChannelCountVm}
-		billingHref={accountBillingHref}
-		{channelGroupSectionsVm}
-		{channelRowsUngroupedVm}
-		channelsGridPresenter={channelsGridPresenter}
-		channelsFilterPresenter={channelsFilterPresenter}
-		continueSetupHref={(i) => pagePresenter.continueSetupHref(i)}
-		onCreatePost={openCreatePost}
-		onCreatePostForGroup={openCreatePostForGroup}
-		onGoToCalendar={goToCalendar}
-		onMoveToGroup={openMoveGroupModal}
-		onEditTimeSlots={openTimeTableModal}
-		onSetDisabled={handleSetChannelDisabled}
-		onRemove={handleRemoveChannel}
-		onAddAnotherChannel={startAddAnotherChannel}
-		onOpenChannelActions={(integration) => {
-			channelActionsFor = integration;
-			channelActionsOpen = true;
-		}}
-	/>
-
-	{#if showPostKanbanBoard}
-		<PostKanbanBoard
-			channels={connectedChannelsVm}
-			allGroups={postKanbanAllGroups}
-			selectedGroupIds={postKanbanSelectedGroupIds}
-			allSocialPlatforms={postKanbanAllSocialPlatforms}
-			selectedSocialPlatformIdentifiers={postKanbanSelectedSocialPlatformIdentifiers}
-			allTags={postKanbanAllTags}
-			selectedTagNames={postKanbanSelectedTagNames}
-			tagsVm={workspaceTagsVm}
-			kanbanPosts={postKanbanPostsForTagFilter}
-			columnsVm={postKanbanColumnsVm}
-			columnCountsVm={postKanbanColumnCountsVm}
-			columnOptions={postKanbanColumnOptions}
-			sourceFilterOptions={postKanbanSourceFilterOptions}
-			reviewFilterOptions={postKanbanReviewFilterOptions}
-			upcomingTimeFilterOptions={postKanbanUpcomingTimeFilterOptions}
-			pastTimeFilterOptions={postKanbanPastTimeFilterOptions}
-			sourceFilter={postKanbanSourceFilter}
-			reviewFilter={postKanbanReviewFilter}
-			upcomingTimeFilter={postKanbanUpcomingTimeFilter}
-			pastTimeFilter={postKanbanPastTimeFilter}
-			status={postKanbanStatus}
-			error={postKanbanError}
-			movingPostGroup={postKanbanMovingPostGroup}
-			postsUsedThisMonth={postsUsedThisMonthVm}
-			allowedPostsPerMonth={allowedPostsPerMonthVm}
-			billingHref={accountBillingHref}
-			calendarHref={calendarPath}
-			onGroupFilterChange={(next) => postKanbanBoard.setGroupFilter(next)}
-			onSocialPlatformFilterChange={(next) => postKanbanBoard.setSocialPlatformFilter(next)}
-			onTagFilterChange={(next) => postKanbanBoard.setTagFilter(next)}
-			onSourceFilterChange={(next) => postKanbanBoard.setSourceFilter(next)}
-			onReviewFilterChange={(next) => postKanbanBoard.setReviewFilter(next)}
-			onUpcomingTimeFilterChange={(next) => postKanbanBoard.setUpcomingTimeFilter(next)}
-			onPastTimeFilterChange={(next) => postKanbanBoard.setPastTimeFilter(next)}
-			onMoveCardToColumn={handleKanbanMoveCardToColumn}
-			onToggleReviewed={(id, checked) => void postKanbanBoard.toggleReviewed(id, checked)}
-			onNoteChange={(id, note) => void postKanbanBoard.updateNote(id, note)}
-			onOpenPostActions={openKanbanPostActions}
-			onEditPost={openEditKanbanPostGroup}
-		/>
-	{/if}
+		<div class="flex min-w-0 flex-col gap-4">
+			<AccountHomeDashboardTabs
+				bind:activeTab={homeDashboardTab}
+				showPostsTab={showPostKanbanBoard}
+				feedUnreadCount={feedUnreadCount}
+			>
+				{#snippet channels()}
+					<MyChannelsSection
+						workspaceId={workspaceId}
+						listStatus={listStatus}
+						connectedChannelsVm={connectedChannelsVm}
+						accountSettingsWorkspaceHref={accountSettingsWorkspaceHref}
+						allowedChannelCount={allowedChannelCountVm}
+						billingHref={accountBillingHref}
+						{channelGroupSectionsVm}
+						{channelRowsUngroupedVm}
+						channelsGridPresenter={channelsGridPresenter}
+						channelsFilterPresenter={channelsFilterPresenter}
+						continueSetupHref={(i) => pagePresenter.continueSetupHref(i)}
+						onCreatePost={openCreatePost}
+						onCreatePostForGroup={openCreatePostForGroup}
+						onGoToCalendar={goToCalendar}
+						onMoveToGroup={openMoveGroupModal}
+						onEditTimeSlots={openTimeTableModal}
+						onSetDisabled={handleSetChannelDisabled}
+						onRemove={handleRemoveChannel}
+						onAddAnotherChannel={startAddAnotherChannel}
+						onOpenChannelActions={(integration) => {
+							channelActionsFor = integration;
+							channelActionsOpen = true;
+						}}
+					/>
+				{/snippet}
+				{#snippet posts()}
+					{#if showPostKanbanBoard}
+						<PostKanbanBoard
+							embeddedInHomeTabs
+							channels={connectedChannelsVm}
+							allGroups={postKanbanAllGroups}
+							selectedGroupIds={postKanbanSelectedGroupIds}
+							allSocialPlatforms={postKanbanAllSocialPlatforms}
+							selectedSocialPlatformIdentifiers={postKanbanSelectedSocialPlatformIdentifiers}
+							allTags={postKanbanAllTags}
+							selectedTagNames={postKanbanSelectedTagNames}
+							tagsVm={workspaceTagsVm}
+							kanbanPosts={postKanbanPostsForTagFilter}
+							columnsVm={postKanbanColumnsVm}
+							columnCountsVm={postKanbanColumnCountsVm}
+							columnOptions={postKanbanColumnOptions}
+							sourceFilterOptions={postKanbanSourceFilterOptions}
+							reviewFilterOptions={postKanbanReviewFilterOptions}
+							upcomingTimeFilterOptions={postKanbanUpcomingTimeFilterOptions}
+							pastTimeFilterOptions={postKanbanPastTimeFilterOptions}
+							sourceFilter={postKanbanSourceFilter}
+							reviewFilter={postKanbanReviewFilter}
+							upcomingTimeFilter={postKanbanUpcomingTimeFilter}
+							pastTimeFilter={postKanbanPastTimeFilter}
+							status={postKanbanStatus}
+							error={postKanbanError}
+							movingPostGroup={postKanbanMovingPostGroup}
+							postsUsedThisMonth={postsUsedThisMonthVm}
+							allowedPostsPerMonth={allowedPostsPerMonthVm}
+							billingHref={accountBillingHref}
+							calendarHref={calendarPath}
+							onGroupFilterChange={(next) => postKanbanBoard.setGroupFilter(next)}
+							onSocialPlatformFilterChange={(next) => postKanbanBoard.setSocialPlatformFilter(next)}
+							onTagFilterChange={(next) => postKanbanBoard.setTagFilter(next)}
+							onSourceFilterChange={(next) => postKanbanBoard.setSourceFilter(next)}
+							onReviewFilterChange={(next) => postKanbanBoard.setReviewFilter(next)}
+							onUpcomingTimeFilterChange={(next) => postKanbanBoard.setUpcomingTimeFilter(next)}
+							onPastTimeFilterChange={(next) => postKanbanBoard.setPastTimeFilter(next)}
+							onMoveCardToColumn={handleKanbanMoveCardToColumn}
+							onToggleReviewed={(id, checked) => void postKanbanBoard.toggleReviewed(id, checked)}
+							onNoteChange={(id, note) => void postKanbanBoard.updateNote(id, note)}
+							onOpenPostActions={openKanbanPostActions}
+							onEditPost={openEditKanbanPostGroup}
+						/>
+					{/if}
+				{/snippet}
+				{#snippet feed()}
+					<AccountHomeNotificationsFeed
+						preview={notificationsDockPreview}
+						active={homeDashboardTab === 'feed'}
+					/>
+				{/snippet}
+			</AccountHomeDashboardTabs>
+		</div>
+	</div>
 </div>
 
 <SetPickerDialog
@@ -1208,4 +1251,13 @@
 	onSetDisabled={handleSetChannelDisabled}
 	onRemove={handleRemoveChannel}
 />
+
+{#if workspaceId && listStatus === 'ready'}
+	<AccountGettingStartedModal
+		bind:open={gettingStartedModalOpen}
+		checklistItems={gettingStartedChecklist}
+		automationLinks={gettingStartedAutomationLinks}
+		onDismiss={dismissGettingStartedSection}
+	/>
+{/if}
 

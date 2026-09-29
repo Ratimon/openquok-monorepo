@@ -10,15 +10,9 @@
 	import { afterNavigate, goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { setContext } from 'svelte';
-	import { icons } from '$data/icons';
+	import { ACCOUNT_MAIN_SIDEBAR_LINKS } from '$lib/config';
 	import {
 		getRootPathAccount,
-		getRootPathCalendar,
-		getRootPathTemplates,
-		getRootPathPlugs,
-		getRootPathAnalytics,
-		getRootPathMedia,
-		getRootPathPlaybooksHub,
 		protectedHomePagePresenter,
 		protectedLayoutPagePresenter
 	} from '$lib/area-protected';
@@ -57,43 +51,18 @@
 	const currentUser = $derived((data as App.LayoutData)?.currentUser ?? null);
 	const companyNameVm = $derived((data as App.LayoutData)?.companyNameVm ?? 'OpenQuok');
 
-	// /account 
+	// /account
 	const rootPathAccount = getRootPathAccount();
 	const accountPath = route(rootPathAccount);
 
-	// /account/calendar
-	const rootPathCalendar = getRootPathCalendar();
-	const calendarPath = route(`${rootPathAccount}/${rootPathCalendar}`);
-
-	// /account/templates
-	const rootPathTemplates = getRootPathTemplates();
-	const templatesPath = route(`${rootPathAccount}/${rootPathTemplates}`);
-
-	// /account/plugs
-	const rootPathPlugs = getRootPathPlugs();
-	const plugsPath = route(`${rootPathAccount}/${rootPathPlugs}`);
-
-	// /account/analytics
-	const rootPathAnalytics = getRootPathAnalytics();
-	const analyticsPath = route(`${rootPathAccount}/${rootPathAnalytics}`);
-
-	// /account/media
-	const rootPathMedia = getRootPathMedia();
-	const mediaPath = route(`${rootPathAccount}/${rootPathMedia}`);
-
-	// /account/playbooks
-	const rootPathPlaybooksHub = getRootPathPlaybooksHub();
-	const playbooksPath = route(`${rootPathAccount}/${rootPathPlaybooksHub}`);
-
-	const mainLinks: SidebarLinkItem[] = [
-		{ label: 'Home', href: accountPath, iconName: icons.House.name },
-		{ label: 'Calendar', href: calendarPath, iconName: icons.CalendarClock.name },
-		{ label: 'Templates', href: templatesPath, iconName: icons.LayoutTemplate.name },
-		{ label: 'Playbooks', href: playbooksPath, iconName: icons.Bookmark.name },
-		{ label: 'Auto Plugs', href: plugsPath, iconName: icons.Sparkles.name },
-		{ label: 'Analytics', href: analyticsPath, iconName: icons.ChartBar.name },
-		{ label: 'Media', href: mediaPath, iconName: icons.Image.name },
-	];
+	const mainLinks: SidebarLinkItem[] = ACCOUNT_MAIN_SIDEBAR_LINKS.map((link) => ({
+		label: link.title,
+		href:
+			link.segment === ''
+				? accountPath
+				: route(`${rootPathAccount}/${link.segment}`),
+		iconName: link.iconName
+	}));
 
 	const SETTINGS_NAV: SettingsNavItem<AppSettingsSectionId>[] = [
 		{ id: 'timezone', label: 'Timezone' },

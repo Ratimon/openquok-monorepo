@@ -78,8 +78,13 @@
 	]);
 </script>
 
-<section class="mt-6">
-	<h2 class="text-balance text-xl font-medium text-base-content">Plan overview</h2>
+<section class="mt-6" aria-labelledby="plan-overview-heading">
+	<h2
+		id="plan-overview-heading"
+		class="text-balance text-lg font-semibold text-base-content sm:text-xl"
+	>
+		Plan overview
+	</h2>
 	<p class="text-pretty mt-1 text-sm leading-6 text-base-content/65">
 		You are currently on the <span class="font-medium text-base-content">{planLabel}</span> plan.
 		<a href={billingHref} class="link link-primary font-medium">View other plans</a>.

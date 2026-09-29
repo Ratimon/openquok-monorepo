@@ -15,11 +15,11 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 A **channel group** is a label you put on one or more channels — usually one client, one brand, or one project. Each channel belongs to at most one group. Channels with no group stay in the **Ungrouped** list.
 
-If you manage social for more than one client, groups keep Home readable and let you focus on one account at a time.
+If you manage social for more than one client, groups keep <strong>My Dashboard</strong> readable and let you focus on one account at a time.
 
 ## Put a channel in a group
 
-On <a href="/account">Home</a> or the <a href="/account/calendar">calendar</a>, open a channel’s menu and click <Badge text="Move / add to group" variant="default" />.
+On <a href="/account">My Dashboard</a> or the <a href="/account/calendar">calendar</a>, open a channel’s menu and click <Badge text="Move / add to group" variant="default" />.
 
 ![Add channel to a channel group](/docs/_assets/glossary/add-to-group.webp)
 
@@ -29,7 +29,7 @@ On <a href="/account">Home</a> or the <a href="/account/calendar">calendar</a>, 
 
 <p>To move the channel back to the ungrouped list, open a channel’s menu again and click <Badge text="Remove from group" variant="default" />.</p>
 
-## What you get on Home
+## What you get on My Dashboard
 
 Once at least one channel is grouped, it shows **Grouped accounts/channels** — collapsible sections, one per group.
 
@@ -39,9 +39,9 @@ Each section lists that group’s channels and offers shortcuts to compose or op
 
 Channels not in any group appear under **Ungrouped accounts/channels**.
 
-## Filter Home and the calendar
+## Filtering Channels
 
-When you have groups, a **Channel groups** filter appears above the kanban on Home and on the calendar toolbar.
+When you have groups, a **Channel groups** filter appears above the kanban on <strong>My Dashboard</strong> and on the calendar toolbar.
 
 Use it to hide every other client’s posts.
 

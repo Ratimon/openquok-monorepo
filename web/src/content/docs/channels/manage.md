@@ -11,9 +11,9 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## Open the channel
 
-> Reconnect, disable, copy IDs, assign groups, and remove channels from Home or the calendar.
+> Reconnect, disable, copy IDs, assign groups, and remove channels from <strong>My Dashboard</strong> or the calendar.
 
-**Where:** <a href="/account">Home</a> — click the channel and the actions modal appears. If Home is in table layout, click <Badge text="Actions" variant="default" />. You can also open a channel chip on the <a href="/account/calendar">calendar</a>.
+**Where:** <a href="/account">My Dashboard</a> — click the channel and the actions modal appears. If <strong>My Dashboard</strong> is in table layout, click <Badge text="Actions" variant="default" />. You can also open a channel chip on the <a href="/account/calendar">calendar</a>.
 
 ![Add channel to a channel group](/docs/_assets/glossary/add-to-group.webp)
 

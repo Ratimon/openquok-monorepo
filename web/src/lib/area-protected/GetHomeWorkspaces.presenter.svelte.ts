@@ -4,7 +4,9 @@ import type { WorkspaceCardViewModel } from '$lib/settings/GetWorkspace.presente
 import type { GetChannelPresenter } from '$lib/channels/GetChannel.presenter.svelte';
 
 const MEMBER_AVATAR_PREVIEW_LIMIT = 4;
-const CHANNEL_PREVIEW_LIMIT = 3;
+export const DEFAULT_HOME_WORKSPACE_CHANNEL_PREVIEW_LIMIT = 3;
+/** Channel avatars shown on home workspace cards in the left-rail stack layout. */
+export const STACK_HOME_WORKSPACE_CHANNEL_PREVIEW_LIMIT = 10;
 
 export interface HomeWorkspaceMemberPreviewViewModel {
 	id: string;
@@ -80,8 +82,19 @@ export class GetHomeWorkspacesPresenter {
 		currentUser: CurrentUserSnapshot | null;
 		isCurrent: boolean;
 		getChannelPresenter: GetChannelPresenter;
+		/** Max channel avatars on the card; defaults to {@link DEFAULT_HOME_WORKSPACE_CHANNEL_PREVIEW_LIMIT}. */
+		channelPreviewLimit?: number;
 	}): HomeWorkspaceCardViewModel {
-		const { workspace, membersPm, integrationsPm, currentUser, isCurrent, getChannelPresenter } = params;
+		const {
+			workspace,
+			membersPm,
+			integrationsPm,
+			currentUser,
+			isCurrent,
+			getChannelPresenter,
+			channelPreviewLimit = DEFAULT_HOME_WORKSPACE_CHANNEL_PREVIEW_LIMIT
+		} = params;
+		const previewLimit = Math.max(1, channelPreviewLimit);
 		const currentUserId = currentUser?.id?.trim() ?? '';
 
 		const membersPreviewAll = membersPm
@@ -104,7 +117,7 @@ export class GetHomeWorkspacesPresenter {
 			.filter(isSocialChannel)
 			.map((pm) => getChannelPresenter.toCreateSocialPostChannelViewModel(pm));
 
-		const channelPreviews = socialChannels.slice(0, CHANNEL_PREVIEW_LIMIT).map((ch) => ({
+		const channelPreviews = socialChannels.slice(0, previewLimit).map((ch) => ({
 			id: ch.id,
 			picture: ch.picture,
 			identifier: ch.identifier

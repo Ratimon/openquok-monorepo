@@ -23,7 +23,7 @@ Both require a <DocsExternalLink href="https://developers.facebook.com/apps">Met
 OpenQuok allows <strong>one</strong> connected channel per Instagram account per workspace. Pick <strong>Instagram (Business)</strong> <em>or</em> <strong>Instagram (Standalone)</strong> for each @handle — not both.
 
 <Callout type="warning">
-<p>If <strong>Instagram (Standalone)</strong> is already connected, OpenQuok rejects adding <strong>Instagram (Business)</strong> for the same @handle. Disconnect the existing channel on <a href="/account">Home</a> first, then connect.</p>
+<p>If <strong>Instagram (Standalone)</strong> is already connected, OpenQuok rejects adding <strong>Instagram (Business)</strong> for the same @handle. Disconnect the existing channel on <a href="/account">My Dashboard</a> first, then connect.</p>
 </Callout>
 
 ## Prerequisites (Instagram + Meta)

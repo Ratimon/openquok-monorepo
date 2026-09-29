@@ -68,7 +68,7 @@ import { Badge, Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/do
 
 ## Use a template for a new post
 
-<p>When the workspace has at least one saved template, starting a new post from <a href="/account">Home</a> or the <a href="/account/calendar">calendar</a> opens a picker titled <strong>Select a template</strong>.</p>
+<p>When the workspace has at least one saved template, starting a new post from <a href="/account">My Dashboard</a> or the <a href="/account/calendar">calendar</a> opens a picker titled <strong>Select a template</strong>.</p>
 
 <ul>
 <li>Click a template name to load that preset into the composer.</li>
@@ -102,7 +102,7 @@ import { Badge, Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/do
 ![Use Smart Filter to find desired templates](/docs/_assets/posts-management/templates-smart-filter.webp)
 
 <Callout type="tip">
-This is the same smart filter as Home and <a href="/docs/automations/plugs">Auto Plugs</a>. See <a href="/docs/getting-started/glossary#smart-filter">Smart filter</a> in the glossary.
+This is the same smart filter as <strong>My Dashboard</strong> and <a href="/docs/automations/plugs">Auto Plugs</a>. See <a href="/docs/getting-started/glossary#smart-filter">Smart filter</a> in the glossary.
 </Callout>
 
 ## Templates vs signatures

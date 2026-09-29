@@ -11,9 +11,9 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## Post actions
 
-> Duplicate, delete, preview, statistics, and connect — from one modal on the calendar or Home.
+> Duplicate, delete, preview, statistics, and connect — from one modal on the calendar or <strong>My Dashboard</strong>.
 
-**Where:** Click a single-post chip on the <a href="/account/calendar">calendar</a> or open the card menu on <a href="/account">Home</a> to open action modal.
+**Where:** Click a single-post chip on the <a href="/account/calendar">calendar</a> or open the card menu on <a href="/account">My Dashboard</a> to open action modal.
 
 ![Post Actions Modal](/docs/_assets/glossary/post-actions-modal.webp)
 
@@ -107,7 +107,7 @@ Status lines use plain language: **draft**, **scheduled at** the slot time, **pu
 <LinkCard title="Approvals" description="Preview links and client comments before you schedule" href="/docs/posts-management/approvals" />
 <LinkCard title="Moving posts" description="Drag to reschedule and posts:reschedule for bulk moves" href="/docs/posts-management/moving-posts" />
 <LinkCard title="Calendar" description="Views, filters, chip states, and opening the composer from a slot" href="/docs/posts-management/calendar" />
-<LinkCard title="Kanban board" description="Columns, filters, and card signals on Home" href="/docs/posts-management/kanban" />
+<LinkCard title="Kanban board" description="Columns, filters, and card signals on My Dashboard" href="/docs/posts-management/kanban" />
 <LinkCard title="Glossary → Post states" description="Draft, scheduled, published, and failed" href="/docs/getting-started/glossary#post-states" />
 <LinkCard title="Managing posts (CLI)" description="posts:connect, posts:delete, and analytics commands" href="/docs/cli-usages/managing-posts" />
 </CardGrid>

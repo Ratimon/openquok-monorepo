@@ -26,6 +26,10 @@
 		onOpenWorkspaceSettings?: (workspaceId: string) => void;
 		onOpenDeveloperOAuth?: (workspaceId: string) => void;
 		onOpenDeveloperApiKey?: (workspaceId: string) => void;
+		/** Stacks OAuth, API key, and Add channel vertically (narrow rail). */
+		actionsLayout?: 'row' | 'column';
+		/** `wrap` — grid of avatars; `overlap` — stacked overlap (default). */
+		channelPreviewLayout?: 'overlap' | 'wrap';
 	};
 
 	let {
@@ -36,10 +40,18 @@
 		onSwitchWorkspace,
 		onOpenWorkspaceSettings,
 		onOpenDeveloperOAuth,
-		onOpenDeveloperApiKey
+		onOpenDeveloperApiKey,
+		actionsLayout = 'row',
+		channelPreviewLayout = 'overlap'
 	}: Props = $props();
 
 	const isCompact = $derived(variant === 'compact');
+	const isColumnActions = $derived(actionsLayout === 'column');
+	const isWrapChannelPreviews = $derived(channelPreviewLayout === 'wrap');
+
+	const actionButtonClass = $derived(
+		isColumnActions ? 'h-7 w-full shrink-0 justify-center gap-1 px-2 text-xs' : 'h-7 shrink-0 gap-1 px-2 text-xs'
+	);
 
 	const workspaceInitial = $derived((card.name || 'W').trim().slice(0, 1).toUpperCase());
 	const iconTone = $derived.by(() => {
@@ -158,12 +170,16 @@
 					</Button>
 				</div>
 			</div>
-			<div class="mt-2 flex flex-nowrap items-center gap-1.5 overflow-x-auto">
+			<div
+				class="mt-2 {isColumnActions
+					? 'flex flex-col items-stretch gap-1.5'
+					: 'flex flex-nowrap items-center gap-1.5 overflow-x-auto'}"
+			>
 				<Button
 					type="button"
 					variant="primary"
 					size="sm"
-					class="h-7 shrink-0 gap-1 px-2 text-xs"
+					class={actionButtonClass}
 					disabled={!card.isCurrent}
 					onclick={handleDeveloperOAuthClick}
 				>
@@ -174,7 +190,7 @@
 					type="button"
 					variant="outline"
 					size="sm"
-					class="h-7 shrink-0 gap-1 px-2 text-xs"
+					class={actionButtonClass}
 					disabled={!card.isCurrent}
 					onclick={handleDeveloperApiKeyClick}
 				>
@@ -182,12 +198,15 @@
 					API key
 				</Button>
 				{#if card.isCurrent}
-					<span class="inline-flex shrink-0" data-workspace-card-action>
+					<span
+						class="{isColumnActions ? 'flex w-full' : 'inline-flex shrink-0'}"
+						data-workspace-card-action
+					>
 						<AddProvider
 							buttonLabel="Add channel"
 							buttonVariant="secondary"
 							buttonSize="sm"
-							buttonClass="h-7 shrink-0 gap-1 px-2 text-xs"
+							buttonClass="{actionButtonClass} {isColumnActions ? 'w-full' : ''}"
 							iconClass="size-3.5"
 						/>
 					</span>
@@ -249,13 +268,10 @@
 	<div class="mt-auto border-t border-base-300/80 bg-base-200/40 px-4 py-3">
 		{#if hasSocialChannels}
 			<div class="flex flex-col gap-2">
-				<div class="flex items-center gap-2">
-					<div
-						class="relative h-5 shrink-0"
-						style:width={`${Math.max(20, 12 + (card.channelPreviews.length - 1) * 10)}px`}
-					>
-						{#each card.channelPreviews as ch, i (ch.id)}
-							<div class="absolute top-0" style:left={`${i * 10}px`}>
+				<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
+					{#if isWrapChannelPreviews}
+						<div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+							{#each card.channelPreviews as ch (ch.id)}
 								<div class="relative h-5 w-5 shrink-0">
 									{#if ch.picture}
 										<IntegrationChannelPicture
@@ -282,19 +298,64 @@
 										/>
 									</span>
 								</div>
+							{/each}
+							{#if card.hiddenChannelCount > 0}
+								<div
+									class="rounded bg-base-content/10 px-1.5 py-0.5 text-[10px] font-semibold text-base-content/80"
+								>
+									+{card.hiddenChannelCount}
+								</div>
+							{/if}
+						</div>
+					{:else}
+						<div class="flex min-w-0 flex-1 items-center gap-2">
+							<div
+								class="relative h-5 shrink-0"
+								style:width={`${Math.max(20, 12 + (card.channelPreviews.length - 1) * 10)}px`}
+							>
+								{#each card.channelPreviews as ch, i (ch.id)}
+									<div class="absolute top-0" style:left={`${i * 10}px`}>
+										<div class="relative h-5 w-5 shrink-0">
+											{#if ch.picture}
+												<IntegrationChannelPicture
+													profilePictureUrl={ch.picture}
+													fallbackIcon={socialProviderIcon(ch.identifier ?? 'threads')}
+													class="h-5 w-5 rounded object-cover ring-1 ring-base-100"
+												/>
+											{:else}
+												<div
+													class="flex h-5 w-5 items-center justify-center rounded bg-base-content/15 text-[9px] font-semibold text-base-content/80 ring-1 ring-base-100"
+												>
+													{(ch.identifier || 'CH').slice(0, 1).toUpperCase()}
+												</div>
+											{/if}
+											<span
+												class="absolute -bottom-0.5 -right-0.5 z-[1] flex size-[11px] items-center justify-center rounded-full border border-base-100 bg-base-100"
+												aria-hidden="true"
+											>
+												<AbstractIcon
+													name={socialProviderIcon(ch.identifier)}
+													class="size-2.5"
+													width="10"
+													height="10"
+												/>
+											</span>
+										</div>
+									</div>
+								{/each}
 							</div>
-						{/each}
-					</div>
-					<span class="min-w-0 flex-1 truncate text-xs text-base-content/70">
-						Connected Channels
-					</span>
-					{#if card.hiddenChannelCount > 0}
-						<div
-							class="rounded bg-base-content/10 px-1.5 py-0.5 text-[10px] font-semibold text-base-content/80"
-						>
-							+{card.hiddenChannelCount}
+							{#if card.hiddenChannelCount > 0}
+								<div
+									class="rounded bg-base-content/10 px-1.5 py-0.5 text-[10px] font-semibold text-base-content/80"
+								>
+									+{card.hiddenChannelCount}
+								</div>
+							{/if}
 						</div>
 					{/if}
+					<span class="shrink-0 text-xs text-base-content/70">
+						Connected Channels
+					</span>
 				</div>
 				{#if !card.isCurrent && onSwitchWorkspace}
 					<Button

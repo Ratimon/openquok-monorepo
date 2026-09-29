@@ -23,6 +23,7 @@
 	import { Willow, Grid, Tooltip } from '@svar-ui/svelte-grid';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import AccountAreaPageHeaderSync from '$lib/ui/components/account/AccountAreaPageHeaderSync.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import CreateSocialPostModal from '$lib/ui/components/posts/CreateSocialPostModal.svelte';
 
@@ -235,26 +236,15 @@
 	</title>
 </svelte:head>
 
+<AccountAreaPageHeaderSync
+	title="Reusable Templates"
+	currentPageLabel="Templates"
+	headingId="account-templates-heading"
+	description="Manage reusable combinations of social channels and draft content for faster scheduling."
+/>
+
 <div class="mx-auto max-w-6xl min-w-0 px-4 py-8">
-	<div class="mb-6 flex flex-wrap items-start justify-between gap-4">
-		<div class="flex flex-wrap items-center gap-3">
-			<div>
-				<div class="flex items-center gap-3">
-					<AbstractIcon
-						name={icons.LayoutTemplate.name}
-						class="text-primary size-8 shrink-0"
-						width="32"
-						height="32"
-					/>
-					<h1 class="text-2xl font-semibold tracking-tight text-base-content">
-						Reusable Templates
-					</h1>
-				</div>
-				<p class="mt-2 text-base-content/80">
-					Manage reusable combinations of social channels and draft content/reply set for faster scheduling.
-				</p>
-			</div>
-		</div>
+	<div class="mb-6 flex flex-wrap items-start justify-end gap-4">
 		{#if workspaceId}
 			<div class="flex flex-wrap items-center gap-2">
 				<Button

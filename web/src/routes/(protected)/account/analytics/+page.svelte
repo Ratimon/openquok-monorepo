@@ -27,6 +27,7 @@
 
 	// --- UI ---
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import AccountAreaPageHeaderSync from '$lib/ui/components/account/AccountAreaPageHeaderSync.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import IntegrationMenu from '$lib/ui/components/posts/IntegrationMenu.svelte';
 	import {
@@ -135,23 +136,15 @@
 	});
 </script>
 
+<AccountAreaPageHeaderSync
+	title="Analytics"
+	currentPageLabel="Analytics"
+	headingId="account-analytics-heading"
+	description="Track performance across your connected channels."
+/>
+
 <div class="rounded-lg border border-base-300 bg-base-100 p-6 shadow-sm space-y-6">
-	<div class="flex flex-wrap items-center justify-between gap-3">
-		<div class="space-y-1">
-			<div class="flex items-center gap-3">
-				<AbstractIcon
-					name={icons.ChartBar.name}
-					class="text-primary size-8 shrink-0"
-					width="32"
-					height="32"
-				/>
-				<h1 class="text-2xl font-bold text-base-content">
-					Analytics
-				</h1>
-			</div>
-			<p class="text-base-content/70 text-sm">
-				Track performance across your connected channels.</p>
-		</div>
+	<div class="flex flex-wrap items-center justify-end gap-3">
 		<div class="flex items-center gap-2">
 			<Button type="button" variant="outline" href={accountPath}>
 				<AbstractIcon name={icons.ArrowLeft.name} class="size-4" width="16" height="16" />

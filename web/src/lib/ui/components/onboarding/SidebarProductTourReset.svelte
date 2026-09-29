@@ -36,7 +36,7 @@
 </script>
 
 {#if showResetUi}
-<div class="shrink-0 border-t border-base-300 pt-3 mt-2">
+<div class="flex min-h-0 flex-1 flex-col justify-center py-4">
 	{#if $vopen}
 		<div
 			class="px-0.5"

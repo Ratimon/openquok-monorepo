@@ -4,7 +4,7 @@ description: OpenQuok zero to hero — five steps from a new workspace to a queu
 ogImage: /docs/_assets/getting-started/5-kanban-board.webp
 ogImageAlt: Step 5 - Kanban Board in OpenQuok
 order: 1
-lastUpdated: 2026-08-25
+lastUpdated: 2026-09-29
 ---
 
 <script>
@@ -31,11 +31,21 @@ Sign in, connect a channel, compose, pick a time, then confirm the post on the c
 <Tabs items={["Cloud", "Self-hosting"]} variant="line">
 <TabItem label="Cloud">
 
-<p>Sign up, confirm your email, and open the app. New workspaces start a <a href="/docs/cloud/trial">7-day trial</a> (no credit card required). Plan caps still apply during the trial — see <a href="/pricing">Pricing</a>.</p>
+<p>Sign up, confirm your email, and open the app. New workspaces start a <a href="/docs/cloud/trial">7-day trial</a> (no credit card required).</p>
+
+<Callout type="warning">
+<p>Plan caps still apply during the trial — see <a href="/pricing">Pricing</a>.</p>
+</Callout>
+
+<p>You land on <Badge text="My Dashboard" variant="default" /> at <a href="/account">/account</a></p>
+
+1) Your first workspace is created automatically. <strong>Plan overview</strong> at the top summarizes usage
+
+2)  Workspace cards in the left panel let you create and switch workspaces. 
 
 ![Workspace in Dashboard](/docs/_assets/getting-started/1-workspace-dashboard.webp)
 
-<p>You land on <Badge text="Home" variant="default" /> at <a href="/account">/account</a>. Your first workspace is created automatically. You can create and switch your workspaces as needed.</p>
+<p>The main area uses <strong>Channels</strong>, <strong>Posts</strong>, and <strong>Feed</strong> tabs — open <Badge text="See checklist" variant="default" /> on the Getting started card when you want the full setup list.</p>
 
 </TabItem>
 <TabItem label="Self-hosting">
@@ -43,6 +53,8 @@ Sign in, connect a channel, compose, pick a time, then confirm the post on the c
 <p>Follow <a href="/docs/installation">Installation</a>, then open your instance and signup. The first account becomes the workspace owner.</p>
 
 ![Workspace in Dashboard](/docs/_assets/getting-started/1-workspace-dashboard.webp)
+
+<p>You land on <Badge text="My Dashboard" variant="default" /> with the same dashboard layout as Cloud: plan overview, workspace cards, and <strong>Channels</strong> / <strong>Posts</strong> / <strong>Feed</strong> tabs.</p>
 
 <p>There is no trial or Stripe paywall when billing is unset.</p>
 
@@ -60,9 +72,9 @@ Sign in, connect a channel, compose, pick a time, then confirm the post on the c
 
 <p>A <strong>channel</strong> is one connected social account: one LinkedIn page, one Instagram account, and so on.</p>
 
-<p>On Home, click <Badge text="+ Add Channel" variant="new" /> button or click <Badge text="+ Add More" variant="param" /> button next to last connected channel in each social platform 's row.</p>
+<p>On <strong>My Dashboard</strong>, open the <strong>Channels</strong> tab and click <Badge text="+ Add Channel" variant="new" />, or click <Badge text="+ Add More" variant="param" /> next to the last connected channel in each social platform row. You can also use <strong>Add channel</strong> on the current workspace card in the left column.</p>
 
-![Step 2 - Add Channel](/docs/_assets/getting-started/2-add-channel.webp)
+![Step 2 - Add Channel in OpenQuok Channels Tab](/docs/_assets/getting-started/2-add-channel.webp)
 
 <p>Then we finish the provider or Oauth flow. Each network uses its own connect flow — usually OAuth in the browser, sometimes an API key or credentials you paste in the dialog shown.</p>
 
@@ -81,11 +93,11 @@ Sign in, connect a channel, compose, pick a time, then confirm the post on the c
 </TabItem>
 </Tabs>
 
-<p>The channel appears on Home with its avatar. Reconnect from the channel menu if a token expires — see <a href="/docs/channels/manage">Manage a channel</a>.</p>
+<p>The channel appears on the <strong>Channels</strong> tab with its avatar (and on the workspace card preview). Reconnect from the channel menu if a token expires — see <a href="/docs/channels/manage">Manage a channel</a>.</p>
 
 ### Compose your post in post editor
 
-<p>Click <Badge text="Create Post" variant="new" /> on Home, or click a day (or empty slot) on the <a href="/account/calendar">calendar</a> to start at that time.</p>
+<p>Click <Badge text="Create Post" variant="new" /> on <strong>My Dashboard</strong> (<strong>Channels</strong> or <strong>Posts</strong> tab), or click a day (or empty slot) on the <a href="/account/calendar">calendar</a> to start at that time.</p>
 
 ![Step 3 - Post Editor](/docs/_assets/getting-started/3-compose-your-post.webp)
 
@@ -118,19 +130,23 @@ Sign in, connect a channel, compose, pick a time, then confirm the post on the c
 
 ### Confirm it
 
-<p>On <Badge text="Home" variant="default" /> at the kanban board, the card sits in <strong>Drafted posts</strong> or <strong>Scheduled posts</strong>.</p>
+<p>On <Badge text="My Dashboard" variant="default" />, open the <strong>Posts</strong> tab. The card sits in <strong>Drafted posts</strong> or <strong>Scheduled posts</strong>.</p>
 
-![Step 5 - Kanban Board](/docs/_assets/getting-started/5-kanban-board.webp)
+![Step 5 - At Post tabm, open Kanban Board](/docs/_assets/getting-started/5-kanban-board.webp)
 
-<p>After the scheduled time it moves to <strong>Published</strong>, and there should be email, notifying the published post's link.</p>
+<p>After the scheduled time, it moves to <strong>Published</strong>, and there should be email, notifying the published post's link.</p>
 
 <Callout type="tip">
-<p>Alternatively, you can also find your publish post's link on the notification panel on top right of the dashboard</p>
+<p>Alternatively, open the header <strong>Notifications</strong> bell or the <strong>My Dashboard</strong> <strong>Feed</strong> tab to find your published post link.</p>
 
 ![Step 5 - Kanban Board](/docs/_assets/getting-started/5-notifications-panel.webp)
 </Callout>
 
-<p>If publish fails, the calendar card shows <Badge text="Failed" variant="deprecated" />. Usual causes are a channel that needs reconnecting or a network rule the payload broke. See <a href="/docs/platforms">Posting rules by platform</a>, open the card for the error, fix post or media, reconnect if auth failed, and schedule again.</p>
+<p>If publish fails, the calendar card shows <Badge text="Failed" variant="deprecated" />. Usual causes are a channel that needs reconnecting or a network rule the payload broke.</p>
+
+<Callout type="note">
+<p>See <a href="/docs/platforms">Posting rules by platform</a>, open the card for the error, fix post or media, reconnect if auth failed, and schedule again.</p>
+</Callout>
 
 <Callout type="tip">
 <p>On the <a href="/account/calendar">calendar</a>, the scheduled post can also be found in the slot you chose.</p>
@@ -144,8 +160,8 @@ Sign in, connect a channel, compose, pick a time, then confirm the post on the c
 
 | Symptom | What to do |
 | --- | --- |
-| Channel disconnected or expired token | On Home, open the channel menu and reconnect. For API-key channels ( eg. Dev.to), paste a new key. Then reconnect. For Self-host, you may also check keys in <a href="/docs/social-integration">Social integrations</a>. |
-| Draft never leaves Home | Confirm a **future** time and at least one channel. Drag the card to **Scheduled posts**, or open it and use <Badge text="Add to calendar" variant="param" />. Check <Badge text="Timezone" variant="default" /> in Settings if it is right. Agent and API drafts still need a schedule time. CLI: <code>openquok posts:status &lt;post-id&gt; -s schedule</code> — see <a href="/docs/cli-usages/managing-posts">Managing posts</a>. |
+| Channel disconnected or expired token | On <strong>My Dashboard</strong> <strong>Channels</strong> tab, open the channel menu and reconnect. For API-key channels (eg. Dev.to), paste a new key. Then reconnect. For Self-host, you may also check keys in <a href="/docs/social-integration">Social integrations</a>. |
+| Draft never leaves <strong>My Dashboard</strong> | On the <strong>Posts</strong> tab, confirm a **future** time and at least one channel. Drag the card to **Scheduled posts**, or open it and use <Badge text="Add to calendar" variant="param" />. Check <Badge text="Timezone" variant="default" /> in Settings if it is right. Agent and API drafts still need a schedule time. CLI: <code>openquok posts:status &lt;post-id&gt; -s schedule</code> — see <a href="/docs/cli-usages/managing-posts">Managing posts</a>. |
 | Failed at publish time | Open it, read the provider error, fix copy or media, reconnect if the error mentions auth, and schedule again. See <a href="/docs/platforms">Posting rules by platform</a>. |
 | Connect, upload, invite, or schedule blocked with a billing message | That is a plan cap, not a product bug — see <a href="/docs/billing/limits">Cloud limits</a> and <a href="/account/billing">Billing</a>. |
 

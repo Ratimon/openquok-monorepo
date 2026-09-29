@@ -17,7 +17,7 @@ Full UI detail is in <a href="/docs/posts-management/actions-and-stats#failed-po
 
 ## 1. Channel needs reconnecting
 
-Access tokens expire. On Home, a channel with <Badge text="Refresh needed" variant="param" /> cannot publish until you click <Badge text="Refresh connection" variant="default" />.
+Access tokens expire. On <strong>My Dashboard</strong>, a channel with <Badge text="Refresh needed" variant="param" /> cannot publish until you click <Badge text="Refresh connection" variant="default" />.
 
 See <a href="/docs/channels/manage">Manage a channel</a>.
 

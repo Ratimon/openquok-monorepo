@@ -228,6 +228,11 @@ const userListingExtensionsManagerPagePresenter = new UserListingsManagerPagePre
 
 export type { ProtectedMediaPagePresenterMediaSettingsVmPublic } from './ProtectedMediaPage.presenter.svelte';
 export {
+	accountAreaPageHeaderPresenter,
+	AccountAreaPageHeaderPresenter
+} from '$lib/area-protected/AccountAreaPageHeader.presenter.svelte';
+export type { AccountAreaPageHeaderConfig } from '$lib/area-protected/AccountAreaPageHeader.presenter.svelte';
+export {
 	ProtectedSettingsPagePresenter,
 	UpdateProfileStatus,
 	WorkspaceSettingsStatus,

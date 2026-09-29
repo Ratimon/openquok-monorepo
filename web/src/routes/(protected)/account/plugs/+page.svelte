@@ -25,6 +25,7 @@
 	import { Willow, Grid, Tooltip } from '@svar-ui/svelte-grid';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import AccountAreaPageHeaderSync from '$lib/ui/components/account/AccountAreaPageHeaderSync.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import AddPlugRuleModal from '$lib/ui/components/plugs/AddPlugRuleModal.svelte';
 	import EditPlugModal from '$lib/ui/components/plugs/EditPlugModal.svelte';
@@ -299,27 +300,15 @@
 	</title>
 </svelte:head>
 
+<AccountAreaPageHeaderSync
+	title="Auto Plugs"
+	currentPageLabel="Auto Plugs"
+	headingId="account-plugs-heading"
+	description="Global automation rules per connected channel — for example auto-reply when a post reaches a like threshold."
+/>
+
 <div class="mx-auto max-w-6xl min-w-0 px-4 py-8">
-	<div class="mb-6 flex flex-wrap items-start justify-between gap-4">
-		<div class="flex flex-wrap items-center gap-3">
-			<div>
-				<div class="flex items-center gap-3">
-					<AbstractIcon
-						name={icons.Sparkles.name}
-						class="size-8 shrink-0 text-primary"
-						width="32"
-						height="32"
-					/>
-					<h1 class="text-2xl font-semibold tracking-tight text-base-content">
-						Auto Plugs
-					</h1>
-				</div>
-				<p class="mt-2 text-base-content/80">
-					Global automation rules per connected channel (e.g. auto-reply when a Threads post reaches a certain number of likes).
-					Auto replies (internal rule for the same social account) can also be set per post under Threads settings when scheduling.
-				</p>
-			</div>
-		</div>
+	<div class="mb-6 flex flex-wrap items-start justify-end gap-4">
 		{#if supportedChannelsVm.length}
 			<div class="flex flex-wrap items-center gap-2">
 				<Button

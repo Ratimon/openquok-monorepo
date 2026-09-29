@@ -19,16 +19,16 @@ Most of your time in OpenQuok happens in the **post editor** — we also call it
 
 ![Post Editor](/docs/_assets/getting-started/3-compose-your-post.webp)
 
-On Home and the calendar it opens as a modal. The same editor powers <Badge text="Payload Wizard" variant="default" /> on the public <a href="/social-media-posting-api">posting API</a> and <a href="/social-media-scheduling-api">scheduling API</a> landing pages (sample channels) and at <a href="/account/payload-wizard">/account/payload-wizard</a> in your workspace for developers who want to copy a JSON payload for the public API.
+On <strong>My Dashboard</strong> and the calendar it opens as a modal. The same editor powers <Badge text="Payload Wizard" variant="default" /> on the public <a href="/social-media-posting-api">posting API</a> and <a href="/social-media-scheduling-api">scheduling API</a> landing pages (sample channels) and at <a href="/account/payload-wizard">/account/payload-wizard</a> in your workspace for developers who want to copy a JSON payload for the public API.
 
 ## Where to open it
 
 | Action | Where |
 | --- | --- |
-| <Badge text="Create Post" variant="new" /> | <a href="/account">Home</a> |
+| <Badge text="Create Post" variant="new" /> | <a href="/account">My Dashboard</a> |
 | Click a day or empty slot | <a href="/account/calendar">Calendar</a> |
-| <Badge text="Create Post" variant="new" /> (with saved templates) | Home or calendar — picker loads a saved <a href="/docs/posts-management/templates">template</a> or continues without one |
-| Open an existing post | <a href="/account">Home</a> kanban or <a href="/account/calendar">calendar</a> — see <a href="/docs/posts-management/kanban">Kanban board</a> and <a href="/docs/posts-management/moving-posts">Moving posts</a> |
+| <Badge text="Create Post" variant="new" /> (with saved templates) | <strong>My Dashboard</strong> or calendar — picker loads a saved <a href="/docs/posts-management/templates">template</a> or continues without one |
+| Open an existing post | <a href="/account">My Dashboard</a> kanban or <a href="/account/calendar">calendar</a> — see <a href="/docs/posts-management/kanban">Kanban board</a> and <a href="/docs/posts-management/moving-posts">Moving posts</a> |
 
 You need at least one connected channel before the editor is useful. See <a href="/docs/channels/connect">Connect a channel</a>.
 
@@ -80,7 +80,7 @@ Choose a date and time in the footer, then save as a draft, add to the calendar,
 
 ## Starting from a template
 
-If you saved <a href="/docs/posts-management/templates">templates</a> at <a href="/account/templates">/account/templates</a>, OpenQuok offers the **Select a template** picker when you start a new post from Home or the calendar. A template brings back a channel selection, caption, media, tags, and provider settings so you do not rebuild the same bundle every week. See <a href="/docs/posts-management/templates">Templates</a> for create, edit, and filter workflows.
+If you saved <a href="/docs/posts-management/templates">templates</a> at <a href="/account/templates">/account/templates</a>, OpenQuok offers the **Select a template** picker when you start a new post from <strong>My Dashboard</strong> or the calendar. A template brings back a channel selection, caption, media, tags, and provider settings so you do not rebuild the same bundle every week. See <a href="/docs/posts-management/templates">Templates</a> for create, edit, and filter workflows.
 
 You can always continue without a template and pick channels manually.
 
@@ -99,7 +99,7 @@ You can always continue without a template and pick channels manually.
 
 ## AI and automation
 
-You can draft from the editor with built-in writing tools, or queue posts from an agent, the CLI, or the public API. Everything lands in the same review queue on Home and the calendar. See <a href="/docs/creating-posts/ai-generation">AI generation</a>, <a href="/docs/getting-started-for-mcp">MCP</a>, and <a href="/docs/getting-started-for-public-api">Public API</a>.
+You can draft from the editor with built-in writing tools, or queue posts from an agent, the CLI, or the public API. Everything lands in the same review queue on <strong>My Dashboard</strong> and the calendar. See <a href="/docs/creating-posts/ai-generation">AI generation</a>, <a href="/docs/getting-started-for-mcp">MCP</a>, and <a href="/docs/getting-started-for-public-api">Public API</a>.
 
 Platforms are adding AI labels, scans, and community rules — but a draft can still read like a template even when no detector flags it.
 
@@ -107,7 +107,7 @@ Our free <a href="/tools/humanizer">Humanizer</a> rewrites social copy in the br
 
 ## Leaving without saving
 
-Closing the composer asks you to confirm — unsaved work is discarded. If you need to step away, use <Badge text="Save as draft" variant="default" /> instead. Drafts stay on Home under **Drafted posts** and never publish until you schedule them. See <a href="/docs/creating-posts/scheduling">Scheduling</a>.
+Closing the composer asks you to confirm — unsaved work is discarded. If you need to step away, use <Badge text="Save as draft" variant="default" /> instead. Drafts stay on <strong>My Dashboard</strong> under **Drafted posts** and never publish until you schedule them. See <a href="/docs/creating-posts/scheduling">Scheduling</a>.
 
 ## Payload Wizard (developers)
 
@@ -131,7 +131,7 @@ Closing the composer asks you to confirm — unsaved work is discarded. If you n
 
 <CardGrid>
 <LinkCard title="Quickstart" description="First channel and first scheduled post in five steps" href="/docs/getting-started/quickstart" />
-<LinkCard title="Tour the app" description="Sidebar, Home, calendar, and where the composer opens" href="/docs/getting-started/tour-the-app" />
+<LinkCard title="Tour the app" description="Sidebar, My Dashboard, calendar, and where the composer opens" href="/docs/getting-started/tour-the-app" />
 <LinkCard title="Glossary" description="Global mode, provider settings, and calendar vs kanban" href="/docs/getting-started/glossary" />
 <LinkCard title="Channels" description="Connect, group, and maintain social accounts" href="/docs/channels" />
 <LinkCard title="Platforms" description="Naming, connect catalog, media rules, and analytics" href="/docs/platforms" />

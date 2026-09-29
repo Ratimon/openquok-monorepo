@@ -30,52 +30,98 @@ export const ACCOUNT_SIDEBAR_TOUR_CONTENT: Record<
 		id: 'home',
 		steps: [
 			{
-				title: 'Welcome to your workspace',
-				subtitle: 'Home shows your channels, your checklist, and posts in every stage.',
+				title: 'My workspaces',
+				subtitle: 'My Dashboard lists your workspaces on the left.',
 				iconName: icons.House.name,
 				image: {
-					src: '/docs/_assets/getting-started/5-kanban-board.webp',
-					alt: 'Kanban board on Home with draft, scheduled, and published columns'
+					src: '/docs/_assets/getting-started/1-workspace-dashboard.webp',
+					alt: 'My Dashboard with workspace cards and Getting started in the left column'
 				},
 				paragraphs: [
 					[
-						'Connect ',
-						{ link: { label: 'channels', href: GUIDE.connectChannels } },
-						', then open the post editor to write and schedule.'
+						'Each card is one workspace. Click a card to switch workspace. Create a workspace when you need a separate brand or client.'
 					],
 					[
-						'Track work on the ',
-						{ link: { label: 'kanban board', href: GUIDE.kanban } },
-						'. Use the Getting started checklist to add a channel, set your timezone, and schedule your first post. See ',
+						'The ',
+						{ highlight: 'Getting started' },
+						' card opens a checklist. For a full walkthrough, see ',
 						{ link: { label: 'Quickstart', href: GUIDE.quickstart } },
-						' for the full path.'
+						'.'
 					]
 				]
 			},
 			{
-				title: 'Stay on top of publishing',
-				subtitle: 'See what needs review before it goes live.',
-				iconName: icons.House.name,
+				title: 'Connect a channel',
+				subtitle: 'A channel is one social account you publish to.',
+				iconName: icons.Plus.name,
+				image: {
+					src: '/docs/_assets/getting-started/2-add-channel.webp',
+					alt: 'Channels tab with Add Channel on My Dashboard'
+				},
 				paragraphs: [
 					[
-						'Filter the board by channel group. Drag cards between columns. Open any post to edit or reschedule. Details are in ',
-						{ link: { label: 'Kanban board', href: GUIDE.kanban } },
-						'.'
+						'Open the ',
+						{ highlight: 'Channels' },
+						' tab. Click ',
+						{ highlight: 'Add Channel' },
+						' and finish the sign-in flow for that network.'
 					],
 					[
-						'When you want to move faster, use ',
-						{ link: { label: 'Playbooks', href: GUIDE.playbooks } },
-						', ',
-						{ link: { label: 'Templates', href: GUIDE.templates } },
-						', and ',
-						{ link: { label: 'Auto Plugs', href: GUIDE.globalPlugs } },
-						' from the sidebar.'
+						'You can also use ',
+						{ highlight: 'Add channel' },
+						' on the active workspace card. See ',
+						{ link: { label: 'Connect a channel', href: GUIDE.connectChannels } },
+						' in the Guide.'
+					]
+				]
+			},
+			{
+				title: 'Posts kanban',
+				subtitle: 'Track drafts, scheduled posts, and published posts in one place.',
+				iconName: icons.Columns2.name,
+				image: {
+					src: '/docs/_assets/getting-started/5-kanban-board.webp',
+					alt: 'Posts tab kanban with drafted, scheduled, and published columns'
+				},
+				paragraphs: [
+					[
+						'Open the ',
+						{ highlight: 'Posts' },
+						' tab. Each card is a post or a group of posts. Drag a card to move it between columns.'
+					],
+					[
+						'Double-click a card to edit. More detail is in ',
+						{ link: { label: 'Kanban board', href: GUIDE.kanban } },
+						'.'
+					]
+				]
+			},
+			{
+				title: 'Notifications',
+				subtitle: 'See publish results without opening every post.',
+				iconName: icons.Bell.name,
+				image: {
+					src: '/docs/_assets/getting-started/5-notifications-panel.webp',
+					alt: 'Notifications panel with publish and review messages'
+				},
+				paragraphs: [
+					[
+						'Click the ',
+						{ highlight: 'Notifications' },
+						' bell in the header. You can also open the ',
+						{ highlight: 'Feed' },
+						' tab on My Dashboard.'
+					],
+					[
+						'The list shows live links, failed publishes, and review notes. Email alerts use the same events when they are enabled.'
 					]
 				],
 				rememberParts: [
-					'Remember: You can reopen these guides anytime with Reset product tours in the sidebar footer. For a map of every page, open ',
+					'You can open these guides again with ',
+					{ highlight: 'Reset product tours' },
+					' in the sidebar. For every page in the app, see ',
 					{ link: { label: 'Tour the app', href: GUIDE.tourTheApp } },
-					' in the Guide.'
+					'.'
 				]
 			}
 		]
@@ -98,7 +144,7 @@ export const ACCOUNT_SIDEBAR_TOUR_CONTENT: Record<
 						' in the Guide for filters and views.'
 					],
 					[
-						'Click a day to see that queue. Jump into the post editor from a slot. The calendar and Home kanban use the same posts.'
+						'Click a day to see that queue. Jump into the post editor from a slot. The calendar and My Dashboard kanban use the same posts.'
 					]
 				]
 			}
@@ -233,7 +279,7 @@ export const ACCOUNT_SIDEBAR_TOUR_CONTENT: Record<
 				},
 				paragraphs: [
 					[
-						'Connect channels on Home, then open Analytics. Compare ',
+						'Connect channels on My Dashboard, then open Analytics. Compare ',
 						{ highlight: 'reach, engagement, and trends' },
 						' across integrations. The ',
 						{ link: { label: 'Workspace analytics', href: GUIDE.insights } },

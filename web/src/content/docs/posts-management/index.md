@@ -1,6 +1,6 @@
 ---
 title: Overview - Posts management
-description: Calendar views, kanban board, filters, and how to move, review, and act on posts across the calendar grid and Home.
+description: Calendar views, kanban board, filters, and how to move, review, and act on posts across the calendar grid and My Dashboard.
 order: 0
 lastUpdated: 2026-09-16
 sidebar:
@@ -23,18 +23,18 @@ OpenQuok keeps your content in two places. Both views read the same post groups 
 
 ![Calendar View](/docs/_assets/posts-management/calendar-unfiltered-posts.webp)
 
-2) The **kanban board** on <a href="/account">Home</a> shows posts in different **stage** (draft, scheduled, published):
+2) The **kanban board** on <a href="/account">My Dashboard</a> shows posts in different **stage** (draft, scheduled, published):
 
 ![Kanban View](/docs/_assets/getting-started/5-kanban-board.webp)
 
 
-This section covers calendar views, the Home kanban board, moving posts between slots and stages, post actions (duplicate, delete, statistics), and <a href="/docs/posts-management/approvals">client approvals</a>. For composing copy and picking save buttons, start with <a href="/docs/creating-posts/scheduling">Scheduling</a> and <a href="/docs/posts-management/kanban">Kanban board</a>.
+This section covers calendar views, the <strong>My Dashboard</strong> kanban board, moving posts between slots and stages, post actions (duplicate, delete, statistics), and <a href="/docs/posts-management/approvals">client approvals</a>. For composing copy and picking save buttons, start with <a href="/docs/creating-posts/scheduling">Scheduling</a> and <a href="/docs/posts-management/kanban">Kanban board</a>.
 
 ## In this section
 
 <CardGrid>
 <LinkCard title="Calendar" description="Day, week, month, and list views on the date grid" href="/docs/posts-management/calendar" />
-<LinkCard title="Kanban board" description="Draft, scheduled, and published columns on Home" href="/docs/posts-management/kanban" />
+<LinkCard title="Kanban board" description="Draft, scheduled, and published columns on My Dashboard" href="/docs/posts-management/kanban" />
 <LinkCard title="Moving posts" description="Drag on the calendar, published reschedule dialog, and programmatic reschedule" href="/docs/posts-management/moving-posts" />
 <LinkCard title="Actions and stats" description="Duplicate, delete, export, statistics, and connect" href="/docs/posts-management/actions-and-stats" />
 <LinkCard title="Approvals" description="Preview links and client comments before you schedule" href="/docs/posts-management/approvals" />
@@ -45,7 +45,7 @@ This section covers calendar views, the Home kanban board, moving posts between 
 
 | Question | Use |
 | --- | --- |
-| What stage is this post in? | Home kanban — <a href="/docs/posts-management/kanban">Kanban board</a> |
+| What stage is this post in? | <strong>My Dashboard</strong> kanban — <a href="/docs/posts-management/kanban">Kanban board</a> |
 | When does it go out? | <a href="/docs/posts-management/calendar">Calendar</a> |
 | Move between draft and scheduled without a new time? | Drag on the kanban |
 | Move to a different day or hour? | Drag on the calendar — <a href="/docs/posts-management/moving-posts">Moving posts</a> |

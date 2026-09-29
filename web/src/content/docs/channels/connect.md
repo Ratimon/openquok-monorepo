@@ -13,17 +13,17 @@ import { Badge, Callout, CardGrid, LinkCard, TabItem, Tabs } from '$lib/ui/compo
 
 > Link your first network in Add Channel — OAuth redirect or credentials, depending on the platform.
 
-**Where:** <a href="/account">Home</a> — click <Badge text="Add Channel" variant="new" />. You can open the same picker from the channel row in the post editor.
+**Where:** <a href="/account">My Dashboard</a> — click <Badge text="Add Channel" variant="new" />. You can open the same picker from the channel row in the post editor.
 
 A **channel** is one linked social account — one X profile, one LinkedIn Page, one Threads login.
 
 The calendar, post editor, analytics, and templates all need at least one channel before they can do anything useful, so connecting is the first step in a new workspace.
 
-![Click buttons to add Social Channels](/docs/_assets/getting-started/2-add-channel.webp)
+![Click buttons to connect a Social Channel](/docs/_assets/getting-started/2-add-channel.webp)
 
 Pick the network you want. OpenQuok picks the connection flow for that platform — you do not choose it yourself.
 
-![The modal to choose a channel to be added](/docs/_assets/channel-groups/add-channel-modal.webp)
+![Open The modal to choose a channel to be conncted](/docs/_assets/channel-groups/add-channel-modal.webp)
 
 ## The two connection flows
 
@@ -56,7 +56,7 @@ OpenQuok currently supports **two** ways to connect. Which one you get depends o
 | YouTube | Which channel under your Google account |
 | LinkedIn Page | Which company Page you administer |
 
-<p>Finish that step before you schedule posts. Until you do, the channel shows <strong>Setup incomplete</strong> and cannot publish — click <Badge text="Complete setup" variant="default" /> on Home.</p>
+<p>Finish that step before you schedule posts. Until you do, the channel shows <strong>Setup incomplete</strong> and cannot publish — click <Badge text="Complete setup" variant="default" /> on <strong>My Dashboard</strong>.</p>
 
 </TabItem>
 <TabItem label="Credentials you supply">
@@ -74,14 +74,14 @@ OpenQuok currently supports **two** ways to connect. Which one you get depends o
 <p>Use a platform-specific API key or app password when one exists, not your main login password. You can revoke those keys without locking yourself out of the account.</p>
 </Callout>
 
-<p>Credentials are stored encrypted. To change them later, open the channel menu on Home and click <Badge text="Refresh connection" variant="default" /> — paste a new key when the form appears.</p>
+<p>Credentials are stored encrypted. To change them later, open the channel menu on <strong>My Dashboard</strong> and click <Badge text="Refresh connection" variant="default" /> — paste a new key when the form appears.</p>
 
 </TabItem>
 </Tabs>
 
 ## Let clients connect their own account
 
-You do not need their password. Next to <Badge text="Add Channel" variant="new" /> on Home, click the link icon (<Badge text="Send Invite Link to connect channel" variant="param" />).
+You do not need their password. Next to <Badge text="Add Channel" variant="new" /> on <strong>My Dashboard</strong>, click the link icon (<Badge text="Send Invite Link to connect channel" variant="param" />).
 
 ![Send Invitation Links](/docs/_assets/channel-groups/send-invite.webp)
 
@@ -93,7 +93,7 @@ See <a href="/docs/channels/channel-groups">Channel groups</a> when you want cli
 
 ## After you connect
 
-The channel shows on Home with its avatar. Status badges on the channel grid summarize readiness:
+The channel shows on <strong>My Dashboard</strong> with its avatar. Status badges on the channel grid summarize readiness:
 
 | Status | What it means |
 | --- | --- |

@@ -71,7 +71,7 @@ The workspace **Analytics** page and per-post **Statistics** dialog use a lookba
 
 ## Per-post metrics
 
-OpenQuok supports <strong>eleven</strong> channel keys for posting (<a href="/docs/platforms/connect-rules">Connect rules</a>). <strong>Ten</strong> return per-post data in the <strong>Statistics</strong> dialog. How to open it from Home and the calendar is in <a href="/docs/insights/per-post-metrics">Insights → Per-post metrics</a>.
+OpenQuok supports <strong>eleven</strong> channel keys for posting (<a href="/docs/platforms/connect-rules">Connect rules</a>). <strong>Ten</strong> return per-post data in the <strong>Statistics</strong> dialog. How to open it from <strong>My Dashboard</strong> and the calendar is in <a href="/docs/insights/per-post-metrics">Insights → Per-post metrics</a>.
 
 | Network | Channel key | Per-post insights |
 | --- | --- | --- |
@@ -91,7 +91,7 @@ OpenQuok supports <strong>eleven</strong> channel keys for posting (<a href="/do
 
 <CardGrid>
 <LinkCard title="Workspace analytics" description="Targeted channels, Overview, Trends, and metric cards" href="/docs/insights/workspace-analytics" />
-<LinkCard title="Per-post metrics" description="Statistics from Home and the calendar" href="/docs/insights/per-post-metrics" />
+<LinkCard title="Per-post metrics" description="Statistics from My Dashboard and the calendar" href="/docs/insights/per-post-metrics" />
 <LinkCard title="Actions and stats" description="Post card actions, failures, and the Statistics entry point" href="/docs/posts-management/actions-and-stats" />
 <LinkCard title="Connect rules" description="Full channel catalog and connect methods" href="/docs/platforms/connect-rules" />
 <LinkCard title="CLI Examples" description="CLI commands for analytics" href="/docs/cli-examples" />

@@ -33,8 +33,8 @@ You often see this as a flash message right after the provider redirects back to
 
 1. Open OpenQuok in one fresh tab. Do not bookmark the provider authorize page.
 2. Pause ad blockers or cookie shields for your OpenQuok domain during connect.
-3. Click <Badge text="Add Channel" variant="new" /> again from Home.
-4. If a half-added channel remains, remove it from Home, then connect again.
+3. Click <Badge text="Add Channel" variant="new" /> again from <strong>My Dashboard</strong>.
+4. If a half-added channel remains, remove it from <strong>My Dashboard</strong>, then connect again.
 5. Avoid private browsing if your browser clears cookies aggressively.
 
 <Tabs items={["OpenQuok Cloud", "Self-hosted"]} variant="line">
@@ -81,7 +81,7 @@ The OpenQuok API could not reach the provider, or your browser could not reach t
 
 ## Setup incomplete after OAuth
 
-OAuth can succeed before you pick a Facebook Page, YouTube channel, Instagram professional account, or LinkedIn Page. The channel shows <Badge text="Setup incomplete" variant="param" /> until you click <Badge text="Complete setup" variant="default" /> on Home.
+OAuth can succeed before you pick a Facebook Page, YouTube channel, Instagram professional account, or LinkedIn Page. The channel shows <Badge text="Setup incomplete" variant="param" /> until you click <Badge text="Complete setup" variant="default" /> on <strong>My Dashboard</strong>.
 
 ## Related
 

@@ -19,6 +19,7 @@
 
 	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import AccountAreaPageHeaderSync from '$lib/ui/components/account/AccountAreaPageHeaderSync.svelte';
 	import MediaFileManager from '$lib/ui/components/media/MediaFileManager.svelte';
 	import MediaGallery from '$lib/ui/components/media/MediaGallery.svelte';
 	import MediaFileManagerViewControls, {
@@ -64,6 +65,11 @@
 	const itemsPerPage = $derived(p.pagination.itemsPerPage);
 	const organizationId = $derived(p.organizationId);
 	const workspaceName = $derived(p.currentWorkspaceName);
+	const mediaHeaderDescription = $derived(
+		workspaceName
+			? `${workspaceName} — browse folders, upload, and manage workspace media.`
+			: 'Browse folders, upload, and manage workspace media.'
+	);
 	const uploadVirtualPath = $derived(p.uploadVirtualPath);
 	const fileManagerApi = $derived(p.fileManagerApi);
 	const uploadLimitLabel = mediaUploadLimitsHint();
@@ -332,33 +338,16 @@
 	{uploadDetailLine}
 />
 
+<AccountAreaPageHeaderSync
+	title="Media Library"
+	currentPageLabel="Media"
+	headingId="account-media-heading"
+	description={mediaHeaderDescription}
+/>
+
 <div class="flex flex-col gap-5">
 	<div class="rounded-[28px] border border-base-300/70 bg-base-100/70 p-5 shadow-sm backdrop-blur-sm sm:p-6">
-		<div class="mb-5 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-			<div>
-				<div class="flex items-center gap-3">
-					<AbstractIcon
-						name={icons.Image.name}
-						class="text-primary size-8 shrink-0"
-						width="32"
-						height="32"
-					/>
-					<div>
-						<h1 class="text-2xl font-semibold text-base-content">Media Library</h1>
-						<p class="text-sm text-base-content/65">{workspaceName}</p>
-					</div>
-				</div>
-				<p class="mt-2 text-sm text-base-content/70">
-					Browse folders, upload, and manage workspace media. Maximum {uploadLimitLabel} per file.
-					{#if uploadVirtualPath && libraryLayout !== 'gallery'}
-						<span class="text-base-content/55 block pt-1 text-xs">
-							Uploads and designs save to
-							<span class="font-medium text-base-content/80">{uploadVirtualPath}</span>
-							(the folder you have open). You can move them to another folder later.
-						</span>
-					{/if}
-				</p>
-			</div>
+		<div class="mb-5 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-end">
 			<div class="flex flex-wrap items-center justify-end gap-3">
 				{#if organizationId}
 					<MediaFileManagerViewControls

@@ -10,6 +10,8 @@ export {
 	SOCIAL_PROFILE_LINKS,
 	PUBLIC_NAVBAR_LINKS,
 	PUBLIC_NAVBAR_MOBILE_LINKS,
+	ACCOUNT_MAIN_SIDEBAR_LINKS,
+	type AccountMainSidebarLinkConfig,
 	PUBLIC_FOOTER_LINKS_STATIC,
 	getPublicFooterLinks,
 	type Link,

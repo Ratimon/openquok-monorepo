@@ -1,39 +1,18 @@
 <script lang="ts">
-	import type { IconName } from '$data/icons';
+	import type {
+		AccountGettingStartedAutomationLink,
+		AccountGettingStartedChecklistItem
+	} from '$lib/ui/components/home/accountGettingStarted.types';
 
-	import { page } from '$app/state';
-	import { icons } from '$data/icons';
-	import { cn } from '$lib/ui/helpers/common';
-	import { hostedMarketingAnchorAttrs } from '$lib/utils/hostedMarketingHref';
-
-	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 
-	type ChecklistItem = {
-		id: string;
-		label: string;
-		done: boolean;
-		actionLabel?: string;
-		onAction?: () => void;
-		disabled?: boolean;
-		href?: string;
-		/** Show the action button even when `done` is true (e.g. revisit settings). */
-		showActionWhenDone?: boolean;
-	};
-
-	type ResourceLink = {
-		label: string;
-		description?: string;
-		iconName: IconName;
-		href?: string;
-		onClick?: () => void;
-		external?: boolean;
-	};
+	import AccountGettingStartedAutomationPanel from '$lib/ui/components/home/AccountGettingStartedAutomationPanel.svelte';
+	import AccountGettingStartedChecklistPanel from '$lib/ui/components/home/AccountGettingStartedChecklistPanel.svelte';
 
 	type Props = {
 		onDismiss: () => void;
-		checklistItems: ChecklistItem[];
-		automationLinks: ResourceLink[];
+		checklistItems: AccountGettingStartedChecklistItem[];
+		automationLinks: AccountGettingStartedAutomationLink[];
 	};
 
 	let { onDismiss, checklistItems, automationLinks }: Props = $props();
@@ -54,126 +33,12 @@
 		</Button>
 	</header>
 
-	<div class="grid divide-y divide-base-300 lg:grid-cols-3 lg:divide-x lg:divide-y-0">
+	<div class="grid divide-y divide-base-300 lg:grid-cols-2 lg:divide-x lg:divide-y-0">
 		<div class="px-5 py-5">
-			<h3 class="text-sm font-semibold text-base-content">
-				Welcome to OpenQuok!
-			</h3>
-			<p class="mt-1 text-sm text-base-content/65">
-				Complete these steps to get your workspace ready.
-			</p>
-			<ul class="mt-4 space-y-3">
-				{#each checklistItems as item (item.id)}
-					<li class="flex items-center justify-between gap-3">
-						<div class="flex min-w-0 items-center gap-3">
-							<span
-								class={cn(
-									'flex size-5 shrink-0 items-center justify-center rounded-full border',
-									item.done
-										? 'border-success/40 bg-success/15 text-success'
-										: 'border-base-content/20 bg-base-200/50 text-base-content/30'
-								)}
-								aria-hidden="true"
-							>
-								{#if item.done}
-									<AbstractIcon name={icons.Check.name} class="size-3" width="12" height="12" />
-								{/if}
-							</span>
-							{#if item.href}
-								{@const marketing = hostedMarketingAnchorAttrs(item.href, page.url.origin)}
-								<a
-									href={marketing.href}
-									target={marketing.target}
-									rel={marketing.rel}
-									class={cn(
-										'text-sm hover:underline',
-										item.done ? 'text-base-content/50 line-through' : 'text-base-content'
-									)}
-								>
-									{item.label}
-								</a>
-							{:else}
-								<span
-									class={cn(
-										'text-sm',
-										item.done ? 'text-base-content/50 line-through' : 'text-base-content'
-									)}
-								>
-									{item.label}
-								</span>
-							{/if}
-						</div>
-						{#if item.actionLabel && item.onAction && (!item.done || item.showActionWhenDone)}
-							<Button
-								type="button"
-								variant="outline"
-								size="sm"
-								class="shrink-0"
-								disabled={item.disabled}
-								onclick={item.onAction}
-							>
-								{item.actionLabel}
-							</Button>
-						{/if}
-					</li>
-				{/each}
-			</ul>
+			<AccountGettingStartedChecklistPanel {checklistItems} />
 		</div>
-
 		<div class="px-5 py-5">
-			<h3 class="text-sm font-semibold text-base-content">
-				Automate with MCP &amp; CLI
-			</h3>
-			<p class="mt-1 text-sm text-base-content/65">
-				Connect agents via MCP clients or the CLI.
-			</p>
-			<ul class="mt-4 space-y-1">
-				{#each automationLinks as link (link.label)}
-					<li>
-						{#if link.onClick}
-							<button
-								type="button"
-								class="flex w-full items-start gap-3 rounded-lg px-2 py-2.5 text-left transition-colors hover:bg-base-200/70"
-								onclick={link.onClick}
-							>
-								<span
-									class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"
-								>
-									<AbstractIcon name={link.iconName} class="size-4" width="16" height="16" />
-								</span>
-								<span class="min-w-0">
-									<span class="block text-sm font-medium text-base-content">{link.label}</span>
-									{#if link.description}
-										<span class="mt-0.5 block text-xs text-base-content/60">{link.description}</span>
-									{/if}
-								</span>
-							</button>
-						{:else if link.href}
-							{@const marketing = hostedMarketingAnchorAttrs(link.href, page.url.origin)}
-							<a
-								href={marketing.href}
-								class="flex items-start gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-base-200/70"
-								{...(marketing.external
-									? { target: marketing.target, rel: marketing.rel }
-									: {})}
-							>
-								<span
-									class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"
-								>
-									<AbstractIcon name={link.iconName} class="size-4" width="16" height="16" />
-								</span>
-								<span class="min-w-0">
-									<span class="block text-sm font-medium text-base-content">{link.label}</span>
-									{#if link.description}
-										<span class="mt-0.5 block text-xs text-base-content/60">{link.description}</span>
-									{/if}
-								</span>
-							</a>
-						{/if}
-					</li>
-				{/each}
-			</ul>
+			<AccountGettingStartedAutomationPanel {automationLinks} />
 		</div>
-
 	</div>
 </section>

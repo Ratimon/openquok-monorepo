@@ -55,6 +55,14 @@ import {
 import { docsTabHref } from '$lib/docs/navigation';
 import { preloadDocsRegistry } from '$lib/docs/content';
 import { getApiBaseUrl } from '$lib/config/constants/apiBaseUrl';
+import {
+	getRootPathAnalytics,
+	getRootPathCalendar,
+	getRootPathMedia,
+	getRootPathPlugs,
+	getRootPathPlaybooksHub,
+	getRootPathTemplates
+} from '$lib/area-protected/getRootPathProtectedArea';
 import { route } from '$lib/utils/path';
 import type { PublicFooterLinksMap } from '$lib/config/utils/buildPublicFooterLinks';
 
@@ -906,6 +914,24 @@ export const PUBLIC_NAVBAR_LINKS: Link[] = [
 ];
 
 export const PUBLIC_NAVBAR_MOBILE_LINKS: Link[] = [...PUBLIC_NAVBAR_LINKS];
+
+/** Segment under {@link getRootPathAccount}; empty string is the account home route. */
+export type AccountMainSidebarLinkConfig = {
+	segment: string;
+	title: string;
+	iconName: IconName;
+};
+
+/** Protected app main sidebar (My Dashboard, Calendar, …) — map segments to `route()` in account layout. */
+export const ACCOUNT_MAIN_SIDEBAR_LINKS: AccountMainSidebarLinkConfig[] = [
+	{ segment: '', title: 'My Dashboard', iconName: icons.House.name },
+	{ segment: getRootPathCalendar(), title: 'Calendar', iconName: icons.CalendarClock.name },
+	{ segment: getRootPathTemplates(), title: 'Templates', iconName: icons.LayoutTemplate.name },
+	{ segment: getRootPathPlaybooksHub(), title: 'Playbooks', iconName: icons.Bookmark.name },
+	{ segment: getRootPathPlugs(), title: 'Auto Plugs', iconName: icons.Sparkles.name },
+	{ segment: getRootPathAnalytics(), title: 'Analytics', iconName: icons.ChartBar.name },
+	{ segment: getRootPathMedia(), title: 'Media', iconName: icons.Image.name }
+];
 
 
 export const PUBLIC_FOOTER_LINKS_STATIC: PublicFooterLinksMap = {

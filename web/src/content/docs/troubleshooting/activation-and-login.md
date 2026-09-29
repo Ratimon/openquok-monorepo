@@ -19,7 +19,7 @@ When <Badge text="EMAIL_ENABLED" variant="envBackend" /> is on, new accounts mus
 
 | Problem | What to try |
 | --- | --- |
-| Link opens Home with no success message | Token missing, expired, or already used. Request a new email from the sign-in or verify page. |
+| Link opens <strong>My Dashboard</strong> with no success message | Token missing, expired, or already used. Request a new email from the sign-in or verify page. |
 | Truncated link | Copy the full URL from the message. Mail clients sometimes break long lines. |
 | Wrong browser | Open the link in the same browser profile you used to sign up when possible. |
 

@@ -2,7 +2,7 @@
 title: Config defaults
 description: How the web app picks default VITE settings.
 order: 2
-lastUpdated: 2026-09-25
+lastUpdated: 2026-09-29
 ---
 
 <script>
@@ -69,7 +69,7 @@ When you change <Badge text="VITE_*" variant="envWeb" /> values, restart the web
 
 ### Navigation and footer constants
 
-<code>config.ts</code> also exports navigation/footer link constants (for example <Badge text="PUBLIC_NAVBAR_LINKS" variant="default" /> and <Badge text="PUBLIC_FOOTER_LINKS" variant="default" />). These are not env-driven; they’re static defaults used by the public layout.
+<code>config.ts</code> also exports navigation/footer link constants (for example <Badge text="PUBLIC_NAVBAR_LINKS" variant="default" />, <Badge text="ACCOUNT_MAIN_SIDEBAR_LINKS" variant="default" />, and <Badge text="PUBLIC_FOOTER_LINKS" variant="default" />).They’re static defaults used by the public layout and the protected account sidebar.
 
 Meta tags, keywords, and social links live under <Badge text="CONFIG_SCHEMA_MARKETING" variant="path" /> — see <a href="/docs/configuration-web/seo">SEO & marketing defaults</a>.
 

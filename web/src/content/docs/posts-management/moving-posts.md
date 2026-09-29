@@ -13,7 +13,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 > Change when a post publishes — drag on the calendar, flip status on the kanban, or call the reschedule API.
 
-You can change when a post publishes without reopening the composer. **Drag** a chip on the calendar for draft and scheduled posts, use the Home **kanban** to flip status at the same time, or call the **reschedule** API when you automate at scale.
+You can change when a post publishes without reopening the composer. **Drag** a chip on the calendar for draft and scheduled posts, use the <strong>My Dashboard</strong> **kanban** to flip status at the same time, or call the **reschedule** API when you automate at scale.
 
 ## Drag on the calendar
 
@@ -74,7 +74,7 @@ Drag chips with the refresh icon like any other single-post row. The rules below
 
 ![Recurring posts on the calendar](/docs/_assets/posts-management/calendar-recurring-post.webp)
 
-On the calendar, multiple chips are **projections** of one **anchor** time. Moving any chip shifts every occurrence for that group. How repeats look on the grid vs Home is covered in <a href="/docs/posts-management/calendar#recurring-posts">Recurring posts on the calendar</a> and <a href="/docs/posts-management/kanban#recurring-posts">Recurring posts on the kanban</a>.
+On the calendar, multiple chips are **projections** of one **anchor** time. Moving any chip shifts every occurrence for that group. How repeats look on the grid vs <strong>My Dashboard</strong> is covered in <a href="/docs/posts-management/calendar#recurring-posts">Recurring posts on the calendar</a> and <a href="/docs/posts-management/kanban#recurring-posts">Recurring posts on the kanban</a>.
 
 <Callout type="warning">
 <p>When you drop a <strong>published</strong> or <strong>past-scheduled</strong> recurring post, the reschedule dialog adds: <em>This is a recurring post: your changes apply to all future recurrences starting now.</em></p>
@@ -89,7 +89,7 @@ To cancel what is still queued or change cadence, see <a href="/docs/posts-manag
 
 ## Kanban moves (same time)
 
-The Home kanban answers **status**, not **slot** — see <a href="/docs/posts-management/kanban">Kanban board</a> for columns, filters, and card signals.
+The <strong>My Dashboard</strong> kanban answers **status**, not **slot** — see <a href="/docs/posts-management/kanban">Kanban board</a> for columns, filters, and card signals.
 
 | Drag | Result |
 | --- | --- |
@@ -135,7 +135,7 @@ Full flag tables and HTTP examples live in <a href="/docs/cli-usages/managing-po
 
 <CardGrid>
 <LinkCard title="Calendar" description="Views, filters, chips, and how to open a slot" href="/docs/posts-management/calendar" />
-<LinkCard title="Kanban board" description="Columns, filters, and drag moves on Home" href="/docs/posts-management/kanban" />
+<LinkCard title="Kanban board" description="Columns, filters, and drag moves on My Dashboard" href="/docs/posts-management/kanban" />
 <LinkCard title="Actions and stats" description="Post actions modal after you click a chip" href="/docs/posts-management/actions-and-stats" />
 <LinkCard title="Scheduling" description="Composer save buttons and repeat cadence" href="/docs/creating-posts/scheduling" />
 <LinkCard title="Managing posts (CLI)" description="posts:reschedule, posts:status, and delete" href="/docs/cli-usages/managing-posts" />

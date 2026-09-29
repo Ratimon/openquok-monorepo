@@ -13,7 +13,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 > Day, week, month, and list views — and how to find and filter your posts.
 
-**Where:** <a href="/account/calendar">Calendar</a> in the sidebar, or the **Calendar** button on the Home kanban toolbar.
+**Where:** <a href="/account/calendar">Calendar</a> in the sidebar, or the **Calendar** button on the <strong>My Dashboard</strong> kanban toolbar.
 
 The calendar is both the plan and the record. Drafts, scheduled posts, and published posts sit on one grid. While the <a href="/docs/posts-management/kanban">kanban</a> tracks **stage**, the 
 calendar shows **time**. Both views read the same 
@@ -59,7 +59,7 @@ Use **Previous**, **Next**, and **Today** to move the visible range on the grid.
 
 ### Filters
 
-The filter row uses the same <a href="/docs/getting-started/glossary#smart-filter">smart filter</a> pattern as Home.
+The filter row uses the same <a href="/docs/getting-started/glossary#smart-filter">smart filter</a> pattern as <strong>My Dashboard</strong>.
 
 | Filter | What it limits |
 | --- | --- |
@@ -128,7 +128,7 @@ Repeating draft and scheduled groups show **multiple chips** across the visible 
 
 ![Recurring posts on the calendar](/docs/_assets/posts-management/calendar-recurring-post.webp)
 
-The <a href="/docs/posts-management/kanban">Home kanban</a> shows **one card** per group instead — see <a href="/docs/posts-management/kanban#recurring-posts">Recurring posts on the kanban</a>.
+The <a href="/docs/posts-management/kanban"><strong>My Dashboard</strong> kanban</a> shows **one card** per group instead — see <a href="/docs/posts-management/kanban#recurring-posts">Recurring posts on the kanban</a>.
 
 Published recurring rows appear **once** at their actual publish time. After each publish, OpenQuok creates the **next scheduled group** on the same cadence.
 
@@ -164,14 +164,14 @@ Use **Create Post** in the page header when you do not need a specific slot.
 On phones, tapping an empty slot may show **Schedule slot** first, then **Create post**.
 
 <Callout type="tip">
-<p>Click a chip once for <strong>Post actions</strong>, then <Badge text="Edit" variant="default" />. On Home, double-click a kanban card to open the editor directly.</p>
+<p>Click a chip once for <strong>Post actions</strong>, then <Badge text="Edit" variant="default" />. On <strong>My Dashboard</strong>, double-click a kanban card to open the editor directly.</p>
 </Callout>
 
 ## Related
 
 <CardGrid>
-<LinkCard title="Kanban board" description="Draft, scheduled, and published columns on Home" href="/docs/posts-management/kanban" />
-<LinkCard title="Moving posts" description="Drag on the calendar and reschedule from Home" href="/docs/posts-management/moving-posts" />
+<LinkCard title="Kanban board" description="Draft, scheduled, and published columns on My Dashboard" href="/docs/posts-management/kanban" />
+<LinkCard title="Moving posts" description="Drag on the calendar and reschedule from My Dashboard" href="/docs/posts-management/moving-posts" />
 <LinkCard title="Actions and stats" description="Post actions modal — preview, statistics, and delete" href="/docs/posts-management/actions-and-stats" />
 <LinkCard title="Posting time slots" description="Per-channel hours that feed suggested times" href="/docs/channels/time-slots" />
 <LinkCard title="Timezone" description="How calendar labels follow your browser setting" href="/docs/settings/timezone" />

@@ -113,6 +113,13 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'reels',
 	'tweets',
 	'X',
+	// Protected account app heroes
+	'Reusable Templates',
+	'Media Library',
+	'My Playbooks',
+	'My Dashboard',
+	'Auto Plugs',
+	'Calendar',
 	// Product & workflow terms
 	'OpenQuok',
 	'carousels',

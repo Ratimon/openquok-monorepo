@@ -146,7 +146,10 @@ export class ProtectedHomePagePresenter {
 	/**
 	 * Loads team + social channels for every workspace the user belongs to (account home cards).
 	 */
-	async loadMyWorkspacesOverview(currentUser: HomeCurrentUserSnapshot | null): Promise<void> {
+	async loadMyWorkspacesOverview(
+		currentUser: HomeCurrentUserSnapshot | null,
+		options?: { channelPreviewLimit?: number }
+	): Promise<void> {
 		const workspaces = this.workspaceSettingsPresenter.workspacesVm;
 		if (workspaces.length === 0) {
 			this.myWorkspacesCardsVm = [];
@@ -170,7 +173,8 @@ export class ProtectedHomePagePresenter {
 							integrationsPm,
 							currentUser,
 							isCurrent: workspace.id === currentWorkspaceId,
-							getChannelPresenter: this.getChannelPresenter
+							getChannelPresenter: this.getChannelPresenter,
+							channelPreviewLimit: options?.channelPreviewLimit
 						});
 					})
 				);

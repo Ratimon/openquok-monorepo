@@ -1,6 +1,6 @@
 ---
 title: Kanban board
-description: Review drafts, scheduled posts, and published history on Home — columns, filters, and cards.
+description: Review drafts, scheduled posts, and published history on My Dashboard — columns, filters, and cards.
 order: 2
 lastUpdated: 2026-09-17
 ---
@@ -14,7 +14,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 > Three columns for draft, scheduled, and published posts — and how to review, filter and maange draft workflows
 
 
-**Where:** The **kanban board** on <a href="/account">Home</a> is the fastest way to see **post status** in your workspace:
+**Where:** The **kanban board** on <a href="/account">My Dashboard</a> is the fastest way to see **post status** in your workspace:
 - what still needs review
 - what is queued to publish
 - what already went out.
@@ -97,7 +97,7 @@ The filter row uses the same <a href="/docs/getting-started/glossary#smart-filte
 | **Platforms** | Show only posts tied to selected social platforms (when you have more than one platform connected). |
 | **Tags** | Match <a href="/docs/getting-started/glossary#tag">tags</a> on the post group. |
 
-![Kanban filter by channel group, platform, and post type](/docs/_assets/posts-management/kanban-group-platform-type-filters.webp)
+![Filter Kanban Post by Channel group, Platform, and Post type](/docs/_assets/posts-management/kanban-group-platform-type-filters.webp)
 
 ### Review and source
 
@@ -194,5 +194,5 @@ See <a href="/docs/cli-examples/tiktok#upload-send-to-user-inbox">CLI Examples �
 <LinkCard title="Tag" description="Colored labels and kanban tag filter" href="/docs/getting-started/glossary#tag" />
 <LinkCard title="TikTok CLI examples" description="Inbox upload, review notes, and posts:review-todo at scale" href="/docs/cli-examples/tiktok" />
 <LinkCard title="Calendar vs kanban" description="Glossary — when to use each surface" href="/docs/getting-started/glossary#calendar-vs-kanban" />
-<LinkCard title="Tour the app" description="Sidebar, Home, and where the composer opens" href="/docs/getting-started/tour-the-app" />
+<LinkCard title="Tour the app" description="Sidebar, My Dashboard, and where the composer opens" href="/docs/getting-started/tour-the-app" />
 </CardGrid>

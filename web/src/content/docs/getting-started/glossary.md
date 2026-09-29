@@ -2,7 +2,7 @@
 title: Glossary
 description: OpenQuok terms in one place — workspace, channel, smart filters, templates, tags, building blocks, playbooks, plugs, and how agents fit the review flow.
 order: 2
-lastUpdated: 2026-09-17
+lastUpdated: 2026-09-29
 ---
 
 <script>
@@ -17,9 +17,11 @@ These are the words the Guide, app, public API, and CLI use for the same things.
 
 ## Workspace
 
-A **workspace** is the top-level boundary you own for your data: channels, posts, media, tags, templates, teammates, and settings. You can belong to several; the header switcher loads another workspace’s data when you change.
+A **workspace** is the top-level boundary you own. You own channels, posts, media, tags, templates, teammates, and settings.
 
 ![Workspace in Dashboard](/docs/_assets/getting-started/1-workspace-dashboard.webp)
+
+<p>On <strong>My Dashboard</strong>, each workspace appears as a card in the left column on desktop. The actions on that card include switching workspace, inviting teammates, and shortcuts to developers settings.</p>
 
 <p>The first registrant owns the workspace. Teammates join through <Badge text="Settings" variant="default" /> → <Badge text="Workspace" variant="default" />. See <a href="/docs/settings/team">Team</a>.</p>
 
@@ -39,7 +41,11 @@ A **channel** is one connected social account — one X profile, one LinkedIn Pa
 
 ## Channel groups
 
-A **channel group** bundles channels — usually one client or brand. Groups filter Home and the calendar, and let you pick that bundle in the post editor. The <strong>Channel groups</strong> dropdown on those boards is part of the <a href="#smart-filter">smart filter</a>. See <a href="/docs/channels/channel-groups">Channel groups</a> for how to create groups, filter the board, and select a whole client in the composer.
+A **channel group** bundles channels — usually one client or brand. Groups filter the <strong>My Dashboard</strong> <strong>Posts</strong> kanban and the calendar, and let you pick that bundle in the post editor.
+
+<Callout type="tip">
+<p>The <strong>Channel groups</strong> dropdown on those boards is part of the <a href="#smart-filter">smart filter</a>. See <a href="/docs/channels/channel-groups">Channel groups</a> for how to create groups, filter the board, and select a whole client in the composer.</p>
+</Callout>
 
 ![Add channel to a channel group](/docs/_assets/glossary/add-to-group.webp)
 
@@ -47,7 +53,7 @@ The public API names the same concept **customers**. See <a href="/docs/apis-int
 
 <h2 id="post-group">Post and post group</h2>
 
-Scheduling one caption to five channels creates five **posts** tied to one **post group**. Home kanban cards usually represent the group; opening a card shows each channel row.
+Scheduling one caption to five channels creates five **posts** tied to one **post group**. Cards on the <strong>My Dashboard</strong> <strong>Posts</strong> tab usually represent the group; opening a card shows each channel row.
 
 <p>A single post can hold multiple parts — a thread on X or Threads, or timed <Badge text="Follow-up comments" variant="default" /> (thread replies or comments) where the network allows. See <a href="/docs/creating-posts/threads-and-comments">Threads and comments</a>.</p>
 
@@ -69,7 +75,7 @@ Each network expects extra fields beyond the caption — a YouTube title, Dev.to
 
 ## Tag
 
-A **tag** is a colored workspace label you attach to a post. The color tints the card on Home and the calendar so campaigns, clients, or content types stand out at a glance.
+A **tag** is a colored workspace label you attach to a post. The color tints the card on <strong>My Dashboard</strong> and the calendar so campaigns, clients, or content types stand out at a glance.
 
 ![Add new tag](/docs/_assets/glossary/add-new-tag.webp)
 
@@ -107,7 +113,7 @@ The **calendar** answers **when** posts ship; the **kanban** answers **what stag
 | Surface | Where | Best for |
 | --- | --- | --- |
 | **Calendar** | <a href="/account/calendar">/account/calendar</a> | Dates and times — busy weeks, empty slots, half-hour reschedules, and list mode across a date range |
-| **Kanban** | <a href="/account">/account</a> Home | **Status** — drafts waiting for review, the scheduled queue, and recently published history |
+| **Kanban** | <a href="/account">/account</a> <strong>My Dashboard</strong> → <strong>Posts</strong> tab | **Status** — drafts waiting for review, the scheduled queue, and recently published history |
 
 | Question | Use |
 | --- | --- |
@@ -134,13 +140,13 @@ See <a href="/docs/posts-management/calendar#recurring-posts">Recurring posts on
 
 A **smart filter** is how you narrow a table or board to the channels, posts, templates, or plugs you are working on. Plans list this as **Smart filters**.
 
-<p>On <a href="/account">Home</a>, switch <strong>Connected channels</strong> to table view (<Badge text="the table icon" variant="param" />), then click <Badge text="Add filters" variant="param" />. You can match social platform, connected account, group name, or status.</p>
+<p>On <a href="/account">My Dashboard</a>, open the <strong>Channels</strong> tab, switch to table view (<Badge text="the grid icon" variant="param" />), then click <Badge text="Add filters" variant="param" />. You can match social platform, connected account, group name, or status.</p>
 
 ![Group Connected Channels Using Smart Filter](/docs/_assets/channel-groups/smart-filter-connected-channel.webp)
 
 <p>The same <Badge text="Add filters" variant="param" /> control sits on the tables at <a href="/account/templates">Templates</a> and <a href="/account/plugs">Auto Plugs</a> — for example social channel and tags on templates, or rule and active on plugs.</p>
 
-<p>On the calendar and the kanban, smart filters are the dropdowns: <strong>Channel groups</strong>, platforms, and tags. The calendar also has post types. On the kanban, separate <strong>upcoming</strong> time filters apply to drafted and scheduled posts, <strong>past</strong> filters apply to published posts, and you can narrow by review status and source (Agent or Human). See <a href="/docs/posts-management/kanban">Kanban board</a>.</p>
+<p>On the calendar and the <strong>My Dashboard</strong> <strong>Posts</strong> kanban, smart filters are the dropdowns: <strong>Channel groups</strong>, platforms, and tags. The calendar also has post types. On the kanban, separate <strong>upcoming</strong> time filters apply to drafted and scheduled posts, <strong>past</strong> filters apply to published posts, and you can narrow by review status and source (Agent or Human). See <a href="/docs/posts-management/kanban">Kanban board</a>.</p>
 
 <p>See <a href="/docs/channels/manage">Manage a channel</a>, <a href="/docs/channels/channel-groups">Channel groups</a>, <a href="/account/templates">Templates</a>, and <a href="/docs/automations/plugs">Plugs</a>.</p>
 
@@ -148,7 +154,7 @@ A **smart filter** is how you narrow a table or board to the channels, posts, te
 
 | State | Meaning |
 | --- | --- |
-| **Draft** | <Badge text="Save as draft" variant="default" />. On Home under **Drafted posts**. Never publishes until you schedule it. |
+| **Draft** | <Badge text="Save as draft" variant="default" />. On <strong>My Dashboard</strong> <strong>Posts</strong> tab under **Drafted posts**. Never publishes until you schedule it. |
 | **Scheduled** | Queued for its date (<Badge text="Add to calendar" variant="new" />). The normal state for upcoming posts. |
 | **Published** | Sent to the network. The card can link to the live post when the provider returns a URL. |
 | **Failed** | The network rejected it or the channel was disconnected. The calendar card shows <Badge text="Failed" variant="default" />. Open it for the error, then edit and schedule again. |

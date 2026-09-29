@@ -13,7 +13,7 @@
 </script>
 
 <div class={cn(className)}>
-	<DesktopSidebar>
+	<DesktopSidebar className="h-full min-h-0">
 		{@render children?.()}
 	</DesktopSidebar>
 	<MobileSidebar>

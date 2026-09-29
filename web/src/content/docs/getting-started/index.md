@@ -2,7 +2,7 @@
 title: Introduction to OpenQuok
 description: Schedule social posts with OpenQuok — connect channels, draft, and review before publish.
 order: 0
-lastUpdated: 2026-09-25
+lastUpdated: 2026-09-29
 sidebar:
   label: Overview
 ---
@@ -52,7 +52,7 @@ Guides for the dashboard — connect channels, compose and schedule posts, and m
 <CardGrid>
 <LinkCard title="Channels" description="Connect, group, and maintain social accounts in your workspace" href="/docs/channels" />
 <LinkCard title="Creating posts" description="Write and schedule posts — editor, media, previews, and scheduling" href="/docs/creating-posts" />
-<LinkCard title="Posts management" description="Home kanban, calendar, post actions, and client approvals" href="/docs/posts-management" />
+<LinkCard title="Posts management" description="My Dashboard Posts tab kanban, calendar, post actions, and client approvals" href="/docs/posts-management" />
 <LinkCard title="Playbooks" description="Explore the catalog, bookmark building blocks, compose stacks, and publish playbooks" href="/docs/playbooks" />
 <LinkCard title="Settings" description="Timezone, team, profile, developers, signatures, and approved apps" href="/docs/settings" />
 <LinkCard title="Platforms" description="Character limits, media rules, and follow-up support by network" href="/docs/platforms" />
@@ -77,7 +77,7 @@ More product guides plus automation and contribution paths.
 
 <CardGrid>
 <LinkCard title="Channels" description="Connect, group, and maintain social accounts in your workspace" href="/docs/channels" />
-<LinkCard title="Posts management" description="Home kanban, calendar, post actions, and client approvals" href="/docs/posts-management" />
+<LinkCard title="Posts management" description="My Dashboard Posts tab kanban, calendar, post actions, and client approvals" href="/docs/posts-management" />
 <LinkCard title="Platforms" description="Character limits, media rules, and follow-up support by network" href="/docs/platforms" />
 <LinkCard title="Automations" description="CLI, MCP, public API, RSS, and webhooks" href="/docs/automations" />
 <LinkCard title="Quickstart" description="First channel and first scheduled post" href="/docs/getting-started/quickstart" />

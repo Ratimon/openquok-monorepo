@@ -19,7 +19,7 @@ Slots are a convenience, not a lock. You can still pick any date and time in the
 
 ## Open the editor
 
-On <a href="/account">Home</a> or the <a href="/account/calendar">calendar</a>, open a channel’s menu and click <Badge text="Edit time slots" variant="default" />. The modal title is <Badge text="Time table slots" variant="default" />.
+On <a href="/account">My Dashboard</a> or the <a href="/account/calendar">calendar</a>, open a channel’s menu and click <Badge text="Edit time slots" variant="default" />. The modal title is <Badge text="Time table slots" variant="default" />.
 
 ## Add, remove, and save
 
@@ -49,7 +49,7 @@ Slot labels follow <Badge text="Timezone" variant="default" /> under <Badge text
 
 <CardGrid>
 <LinkCard title="Manage a channel" description="Reconnect, disable, or remove a connected account" href="/docs/channels/manage" />
-<LinkCard title="Channel groups" description="Bundle channels by client or brand and filter Home and the calendar" href="/docs/channels/channel-groups" />
+<LinkCard title="Channel groups" description="Bundle channels by client or brand and filter My Dashboard and the calendar" href="/docs/channels/channel-groups" />
 <LinkCard title="Connect a channel" description="Add Channel, sign-in flows, API keys, and invite links" href="/docs/channels/connect" />
 <LinkCard title="Find slot" description="Public API endpoint for the next free posting time" href="/docs/apis-posts/find-slot" />
 <LinkCard title="Glossary" description="Time slots, channels, and calendar vs kanban" href="/docs/getting-started/glossary" />

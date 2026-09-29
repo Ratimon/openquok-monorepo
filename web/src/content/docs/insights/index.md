@@ -21,7 +21,7 @@ Those channels appear under **Targeted channels** on the **Analytics** page. The
 
 ![Targeted Channels and Overview Analytics Panel](/docs/_assets/insights/targeted-chips-overview.webp)
 
-Per-post figures are not on that page. Open a published post from <a href="/account">Home</a> or the <a href="/account/calendar">calendar</a>, open **Post actions**, and choose **Statistics**. See <a href="/docs/posts-management/actions-and-stats#statistics">Actions and stats</a> for the menu path.
+Per-post figures are not on that page. Open a published post from <a href="/account">My Dashboard</a> or the <a href="/account/calendar">calendar</a>, open **Post actions**, and choose **Statistics**. See <a href="/docs/posts-management/actions-and-stats#statistics">Actions and stats</a> for the menu path.
 
 ![Statistics for each post](/docs/_assets/insights/per-post-statistics.webp)
 
@@ -46,7 +46,7 @@ Not every channel supports every window. When you target several channels at onc
 
 <CardGrid>
 <LinkCard title="Workspace analytics" description="Targeted channels, Overview (Trends and metric cards), and empty states" href="/docs/insights/workspace-analytics" />
-<LinkCard title="Per-post metrics" description="Statistics from Home and the calendar, and connecting missing releases" href="/docs/insights/per-post-metrics" />
+<LinkCard title="Per-post metrics" description="Statistics from My Dashboard and the calendar, and connecting missing releases" href="/docs/insights/per-post-metrics" />
 </CardGrid>
 
 ## Related Section(s)

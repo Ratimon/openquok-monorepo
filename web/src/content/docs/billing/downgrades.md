@@ -35,7 +35,7 @@ When you move to a lower tier:
 
 If more channels are **enabled** than the new plan allows, OpenQuok **disables the newest** active channels until you fit the cap.
 
-- Disabled channels **stay connected** — history remains, while they show as disabled on <a href="/account">Home</a>.
+- Disabled channels **stay connected** — history remains, while they show as disabled on <a href="/account">My Dashboard</a>.
 - **Scheduled posts on disabled channels do not publish.** Check the <a href="/account/calendar">calendar</a> after a downgrade.
 - To publish again, disable a channel you do not need and re-enable the one you want, or upgrade.
 

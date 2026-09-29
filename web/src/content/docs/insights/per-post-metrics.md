@@ -13,7 +13,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 > Stats for one published post — not whole-channel totals on **Analytics**.
 
-**Where:** Open a post from <a href="/account">Home</a> or the <a href="/account/calendar">calendar</a>, then choose **Statistics** in **Post actions**.
+**Where:** Open a post from <a href="/account">My Dashboard</a> or the <a href="/account/calendar">calendar</a>, then choose **Statistics** in **Post actions**.
 
 ![Post Actions Modal](/docs/_assets/glossary/post-actions-modal.webp)
 
