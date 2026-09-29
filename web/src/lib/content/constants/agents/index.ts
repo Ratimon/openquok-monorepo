@@ -11,6 +11,7 @@ export { PUBLIC_AGENTS_HUB } from '$lib/content/constants/hubs/agents';
 export { openclawAgent } from '$lib/content/constants/agents/hosts/openclaw';
 export { hermesAgent } from '$lib/content/constants/agents/hosts/hermes';
 export { grokBotAgent } from '$lib/content/constants/agents/hosts/grok-bot';
+export { metaMuseAgent } from '$lib/content/constants/agents/hosts/meta-muse';
 export { thinkrailAgent } from '$lib/content/constants/agents/hosts/thinkrail';
 export {
 	PUBLIC_AGENT_HOST_LANDING_PAGES,

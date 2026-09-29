@@ -181,6 +181,13 @@ Update `agent/skills/openquok-core/` (`SKILL.md` metadata JSON for the host when
 - Cloud computer + desktop/iOS chat; skill via **`/workspace/openquok-core/SKILL.md`** and **Settings → Plugins** (or `/` in chat).
 - Reference implementation: **`grok-bot.ts`**, **`grok-bot-messaging-channels.ts`**, **`GROK_BOT_SKILL_INSTALL_OPTIONS`**.
 
+### Meta Muse specifics (`meta-muse`)
+
+- **Not** Muse Code — consumer personal agent (custom connectors, Secure VM). **Do not** reuse `mcps/muse-code.ts` or `mcp-setup-guides/muse-code.md` for this host.
+- **Not** an MCP client — no `MCP_CLIENTS` entry. Primary path: custom connector from `https://www.openquok.com/api/v1/openapi.json` + programmatic token in Muse credential prompts; optional `openquok-core` / CLI inside the Secure VM; hosted MCP only when the Muse environment exposes it.
+- Reference implementation: **`meta-muse.ts`**, **`meta-muse-messaging-channels.ts`**, **`META_MUSE_SKILL_INSTALL_OPTIONS`**. Mobile-first mocks (`iphone-15-pro`), not OpenClaw Telegram fallback.
+- Cross-link **`/agents/muse-code`** and **`mcp-setup-guides/muse-code.md`** in FAQ and docs so readers do not confuse Meta Muse with Muse Code on dev.meta.ai.
+
 ### ThinkRail specifics (`thinkrail`)
 
 - **Not** an MCP client — no `mcps/thinkrail.ts`, no `MCP_CLIENTS`, no `mcp-setup-guides/thinkrail.md`. Do **not** add a separate `/agents/pi` host; ThinkRail is the user-facing IDE and pi runs in-process.

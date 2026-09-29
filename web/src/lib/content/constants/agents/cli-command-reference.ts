@@ -72,6 +72,28 @@ export const THINKRAIL_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
 	{ id: 'worktree', label: 'Worktree (.pi/skills)', command: OPENQUOK_CORE_SKILL_INSTALL_THINKRAIL_WORKTREE }
 ];
 
+/** Meta Muse: ask Muse to build a custom connector from the public OpenAPI document (consumer agent). */
+export const OPENQUOK_META_MUSE_CUSTOM_CONNECTOR_PROMPT = `Create a custom connector for OpenQuok using the public API spec at https://www.openquok.com/api/v1/openapi.json. Do not publish anything yet. First list my connected social accounts and the available scheduling operations.`;
+
+/** Meta Muse Secure VM: install the global CLI inside Muse's isolated environment. */
+export const OPENQUOK_CORE_SKILL_INSTALL_META_MUSE_CLI = `npm install -g @openquok/auto-cli@latest
+openquok --version`;
+
+/** Meta Muse Secure VM: fetch openquok-core SKILL.md for terminal workflows beside a custom connector. */
+export const OPENQUOK_CORE_SKILL_INSTALL_META_MUSE_CURL = `mkdir -p ~/openquok-core
+curl -fsSL "${OPENQUOK_CORE_SKILL_RAW_URL}" \\
+  -o ~/openquok-core/SKILL.md`;
+
+export const META_MUSE_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
+	{
+		id: 'custom-connector',
+		label: 'Custom connector',
+		command: OPENQUOK_META_MUSE_CUSTOM_CONNECTOR_PROMPT
+	},
+	{ id: 'cli', label: 'CLI in Secure VM', command: OPENQUOK_CORE_SKILL_INSTALL_META_MUSE_CLI },
+	{ id: 'skill-md', label: 'SKILL.md in VM', command: OPENQUOK_CORE_SKILL_INSTALL_META_MUSE_CURL }
+];
+
 /** MCP-capable clients (Codex, Cursor, etc.): install openquok-core via npx skills add. */
 export const MCP_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
 	{ id: 'npx', label: 'npx', command: OPENQUOK_CORE_SKILL_INSTALL_NPX }

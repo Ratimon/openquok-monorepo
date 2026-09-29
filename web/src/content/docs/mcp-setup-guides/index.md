@@ -19,7 +19,7 @@ Each page covers where to paste the config, which auth method to use, and how to
 
 For a quick copy-paste snippet, start at <a href="/docs/getting-started-for-mcp/setup">MCP client setup</a> in the dashboard (<Badge text="Account" variant="default" /> → <Badge text="Settings" variant="default" /> → <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" /> → <strong>MCP client configuration</strong>).
 
-For **agent hosts** that run the CLI skill (OpenClaw, Hermes Agent, Grok Bot, ThinkRail), see <a href="/docs/agent-setup-guides">Agent setup guides</a> instead.
+For **agent hosts** that run the CLI skill (OpenClaw, Hermes Agent, Grok Bot, Meta Muse, ThinkRail), see <a href="/docs/agent-setup-guides">Agent setup guides</a> instead. Consumer **Meta Muse** uses custom connectors and optional CLI in the Secure VM — not the Muse Code MCP path.
 
 <CardGrid>
 <LinkCard title="Antigravity CLI" description="Add OpenQuok in ~/.gemini/config/mcp_config.json for agy." href="/docs/mcp-setup-guides/antigravity-cli" />

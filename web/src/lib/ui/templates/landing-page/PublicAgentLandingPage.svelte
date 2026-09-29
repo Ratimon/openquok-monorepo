@@ -8,6 +8,10 @@
 		GROK_BOT_EXTENSION_MESSAGING_CHANNELS
 	} from '$data/grok-bot-messaging-channels';
 	import {
+		META_MUSE_CORE_MESSAGING_CHANNELS,
+		META_MUSE_EXTENSION_MESSAGING_CHANNELS
+	} from '$data/meta-muse-messaging-channels';
+	import {
 		THINKRAIL_CORE_MESSAGING_CHANNELS,
 		THINKRAIL_EXTENSION_MESSAGING_CHANNELS
 	} from '$data/thinkrail-messaging-channels';
@@ -104,6 +108,10 @@
 		thinkrail: {
 			core: THINKRAIL_CORE_MESSAGING_CHANNELS,
 			extension: THINKRAIL_EXTENSION_MESSAGING_CHANNELS
+		},
+		'meta-muse': {
+			core: META_MUSE_CORE_MESSAGING_CHANNELS,
+			extension: META_MUSE_EXTENSION_MESSAGING_CHANNELS
 		}
 	} as const;
 

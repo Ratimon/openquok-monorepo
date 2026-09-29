@@ -2,6 +2,7 @@
 	import type { TerminalMockContentId } from '$lib/ui/templates/device-mocks/terminal/terminalMock.types';
 
 	import OpenquokSkillInstallGrokBotMock from '$lib/ui/templates/device-mocks/terminal/content/OpenquokSkillInstallGrokBotMock.svelte';
+	import OpenquokSkillInstallMetaMuseMock from '$lib/ui/templates/device-mocks/terminal/content/OpenquokSkillInstallMetaMuseMock.svelte';
 	import OpenquokSkillInstallThinkrailMock from '$lib/ui/templates/device-mocks/terminal/content/OpenquokSkillInstallThinkrailMock.svelte';
 	import OpenquokSkillInstallHermesMock from '$lib/ui/templates/device-mocks/terminal/content/OpenquokSkillInstallHermesMock.svelte';
 	import OpenquokSkillInstallMock from '$lib/ui/templates/device-mocks/terminal/content/OpenquokSkillInstallMock.svelte';
@@ -19,6 +20,8 @@
 	<OpenquokSkillInstallHermesMock />
 {:else if content === 'openquok-skill-install-grok-bot'}
 	<OpenquokSkillInstallGrokBotMock />
+{:else if content === 'openquok-skill-install-meta-muse'}
+	<OpenquokSkillInstallMetaMuseMock />
 {:else if content === 'openquok-skill-install-thinkrail'}
 	<OpenquokSkillInstallThinkrailMock />
 {/if}
