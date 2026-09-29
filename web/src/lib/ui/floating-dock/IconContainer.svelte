@@ -12,7 +12,6 @@
 	import NotificationDropdownPanel from '$lib/ui/components/notifications/NotificationDropdownPanel.svelte';
 	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
 	import { cn } from '$lib/ui/helpers/common';
-	import { fade } from 'svelte/transition';
 
 	type Props = {
 		containerX: DockPositionStore;
@@ -24,10 +23,8 @@
 	let { containerX, mouseX, item, iconSize = '20' }: Props = $props();
 
 	let ref = $state<HTMLDivElement | undefined>(undefined);
-	let triggerRef = $state<HTMLDivElement | undefined>(undefined);
 	let dropdownOpen = $state(false);
 	let notificationMenuOpen = $state(false);
-	let panelPosition = $state<{ top: number; left: number } | null>(null);
 
 	// Compute pill width in JS only — no svelte-motion useTransform for width (avoids NaN keyframe warnings)
 	const [distMin, distMid, distMax] = DOCK_DISTANCE_INPUT_RANGE;
@@ -97,22 +94,6 @@
 			});
 	}
 
-	function updatePanelPosition() {
-		const el = triggerRef;
-		if (!el) return;
-		const rect = el.getBoundingClientRect();
-		panelPosition = {
-			top: rect.bottom + 8,
-			left: rect.left + rect.width / 2
-		};
-	}
-
-	function toggleDropdown() {
-		if (!dropdownOpen) {
-			updatePanelPosition();
-		}
-		dropdownOpen = !dropdownOpen;
-	}
 </script>
 
 {#if item.notificationsPopover && notificationsPreview}
@@ -170,97 +151,74 @@
 		</DropdownMenu.Content>
 	</DropdownMenu.Root>
 {:else if hasSublinks}
-	<div
-		bind:this={triggerRef}
-		class="group flex items-end justify-center rounded-full bg-transparent focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 focus-within:ring-offset-base-200 overflow-visible relative"
-	>
-		<button
-			type="button"
+	<DropdownMenu.Root bind:open={dropdownOpen}>
+		<DropdownMenu.Trigger
 			title={item.title}
 			aria-label={item.ariaLabel ?? item.title}
-			aria-expanded={dropdownOpen}
-			aria-haspopup="true"
-			class="flex items-end justify-center rounded-full bg-transparent outline-none overflow-visible"
-			onclick={toggleDropdown}
+			class="group flex items-end justify-center rounded-full bg-transparent outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-base-200 overflow-visible"
 		>
 			<div
 				bind:this={ref}
 				class="flex aspect-square items-center justify-center rounded-full bg-base-200 hover:bg-base-300 overflow-visible"
 				style={pillStyle}
 			>
-					<div class="flex items-center justify-center transition-transform duration-200 group-hover:scale-110">
-						<AbstractIcon
-							name={item.iconName}
-							width={iconSize}
-							height={iconSize}
-							class={iconClass}
-							focusable="false"
-						/>
-					</div>
+				<div class="flex items-center justify-center transition-transform duration-200 group-hover:scale-110">
+					<AbstractIcon
+						name={item.iconName}
+						width={iconSize}
+						height={iconSize}
+						class={iconClass}
+						focusable="false"
+					/>
+				</div>
 			</div>
-		</button>
-		{#if panelPosition != null}
-			<div
-				class="fixed z-[100] pointer-events-none"
-				style="top: {panelPosition.top}px; left: {panelPosition.left}px; transform: translateX(-50%);"
-			>
-				{#if dropdownOpen}
-					<div
+		</DropdownMenu.Trigger>
+		<DropdownMenu.Content
+			align="center"
+			side="top"
+			sideOffset={8}
+			class="min-w-[10rem] space-y-1 rounded-xl border border-base-300 bg-base-200 p-2 shadow-lg"
+		>
+			{#if item.dropdownHeader}
+				<DropdownMenu.Label
+					class="border-b border-base-300 px-2 py-2 text-sm font-medium text-base-content truncate"
+				>
+					{item.dropdownHeader}
+				</DropdownMenu.Label>
+			{/if}
+			{#each item.sublinks ?? [] as sub (sub.label)}
+				{#if sub.href != null}
+					<DropdownMenu.Item class="cursor-pointer p-0 focus:bg-transparent data-[highlighted]:bg-transparent">
+						<a
+							href={sub.href}
+							class={cn(
+								'flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm font-medium text-base-content/70 hover:bg-base-300 hover:text-base-content',
+								sub?.customStyle
+							)}
+						>
+							{#if sub.iconName != null}
+								<AbstractIcon name={sub.iconName} width="16" height="16" class="shrink-0" focusable="false" />
+							{/if}
+							{sub.label}
+						</a>
+					</DropdownMenu.Item>
+				{:else}
+					<DropdownMenu.Item
 						class={cn(
-							'min-w-[160px] space-y-1 p-2 rounded-xl border border-base-300 bg-base-200 shadow-lg pointer-events-auto'
+							'cursor-pointer gap-2 rounded-md py-2 text-sm font-medium text-base-content/70 data-[highlighted]:bg-base-300 data-[highlighted]:text-base-content',
+							sub?.customStyle
 						)}
-						transition:fade={{ duration: 150 }}
+						onclick={() => sub.onclick?.()}
 					>
-					{#if item.dropdownHeader}
-						<div class="px-2 py-2 border-b border-base-300 text-sm font-medium text-base-content truncate">
-							{item.dropdownHeader}
-						</div>
-					{/if}
-					<ul class="space-y-1">
-						{#each item.sublinks ?? [] as sub (sub.label)}
-							<li>
-								{#if sub.href != null}
-									<a
-										href={sub.href}
-										onclick={() => {
-											dropdownOpen = false;
-										}}
-										class={cn(
-											'flex items-center gap-2 rounded-md py-2 px-2 text-sm font-medium text-base-content/70 hover:text-base-content hover:bg-base-300',
-											sub?.customStyle
-										)}
-									>
-										{#if sub.iconName != null}
-											<AbstractIcon name={sub.iconName} width="16" height="16" class="shrink-0" focusable="false" />
-										{/if}
-										{sub.label}
-									</a>
-								{:else}
-									<button
-										type="button"
-										onclick={() => {
-											sub.onclick?.();
-											dropdownOpen = false;
-										}}
-										class={cn(
-											'flex w-full items-center gap-2 rounded-md py-2 px-2 text-left text-sm font-medium text-base-content/70 hover:text-base-content hover:bg-base-300',
-											sub?.customStyle
-										)}
-									>
-										{#if sub.iconName != null}
-											<AbstractIcon name={sub.iconName} width="16" height="16" class="shrink-0" focusable="false" />
-										{/if}
-										{sub.label}
-									</button>
-								{/if}
-							</li>
-						{/each}
-					</ul>
-					</div>
+						{#if sub.iconName != null}
+							<AbstractIcon name={sub.iconName} width="16" height="16" class="shrink-0" focusable="false" />
+						{/if}
+						{sub.label}
+					</DropdownMenu.Item>
 				{/if}
-			</div>
-		{/if}
-	</div>
+			{/each}
+		</DropdownMenu.Content>
+	</DropdownMenu.Root>
 {:else if item.href != null}
 	<a
 		href={item.href}
