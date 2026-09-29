@@ -33,10 +33,6 @@
 
 	let trimmedAddress = $derived(companyAddressVm.trim());
 	let trimmedPhone = $derived(supportPhoneVm.trim());
-	let trimmedEmail = $derived(supportEmailVm.trim());
-	let hasContactDetails = $derived(
-		Boolean(trimmedAddress || trimmedPhone || trimmedEmail)
-	);
 </script>
 
 <footer
@@ -56,28 +52,6 @@
 					width={100}
 					height={100}
 				/>
-
-				{#if hasContactDetails}
-					<address class="not-italic space-y-1 text-sm text-base-content/80">
-						{#if trimmedAddress}
-							<p class="whitespace-pre-line">{trimmedAddress}</p>
-						{/if}
-						{#if trimmedPhone}
-							<p>
-								<a class="hover:text-base-content" href="tel:{trimmedPhone.replace(/\s+/g, '')}">
-									{trimmedPhone}
-								</a>
-							</p>
-						{/if}
-						{#if trimmedEmail}
-							<p>
-								<a class="hover:text-base-content" href="mailto:{trimmedEmail}">
-									{trimmedEmail}
-								</a>
-							</p>
-						{/if}
-					</address>
-				{/if}
 
 				<div class="w-full md:w-fit">
 					<SocialFollowBar
