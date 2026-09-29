@@ -23,6 +23,7 @@
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import StripedPattern from '$lib/ui/patterns/StripedPattern.svelte';
 	import FeaturesSectionHeader from '$lib/ui/templates/feature-grid/FeaturesSectionHeader.svelte';
+	import PublicAlternativesLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicAlternativesLandingBreadcrumb.svelte';
 	import SimpleCardGrid from '$lib/ui/templates/feature-grid/SimpleCardGrid.svelte';
 	import SimpleLinkCard from '$lib/ui/templates/feature-grid/SimpleLinkCard.svelte';
 	import {
@@ -193,7 +194,9 @@
 
 <SectionOuterContainer class="py-10 md:py-14">
 	<header class="container mx-auto max-w-4xl space-y-4 px-4 text-center">
-		<p class="text-xs font-bold tracking-wider text-primary uppercase">{detailVm.eyebrow}</p>
+		<div class="flex justify-center">
+			<PublicAlternativesLandingBreadcrumb variant="detail" pageLabel={detailVm.title} />
+		</div>
 		<div class="flex justify-center">
 			<div
 				class={`flex size-16 items-center justify-center rounded-2xl shadow-sm ring-1 ${iconStyleForProduct(detailVm.targetSlug).heroContainerClass}`}

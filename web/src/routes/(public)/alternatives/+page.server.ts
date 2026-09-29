@@ -3,8 +3,10 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 import { publicAlternativesPagePresenter } from '$lib/area-public';
 import { getRootPathPublicAlternatives } from '$lib/area-public/constants/getRootPathPublicAlternatives';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
+import { buildAlternativesLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
+import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph } from '$lib/seo/jsonLdSchema';
 
 export const ssr = true;
@@ -83,7 +85,11 @@ export async function load({ url, cookies, parent }) {
 					}
 				}
 			}))
-		}
+		},
+		createBreadcrumbListSchema(
+			buildAlternativesLandingBreadcrumbItems({ variant: 'hub' }),
+			url.origin
+		)
 	]);
 
 	return {

@@ -33,6 +33,7 @@
 		type LandingHeroTheme
 	} from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import CompareProductLink from '$lib/ui/links/CompareProductLink.svelte';
+	import PublicCompareLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicCompareLandingBreadcrumb.svelte';
 
 	type Props = { data: PageData };
 
@@ -252,7 +253,13 @@
 
 <SectionOuterContainer class="py-10 md:py-14">
 	<header class="container mx-auto max-w-4xl space-y-4 px-4 text-center">
-		<p class="text-xs font-bold tracking-wider text-primary uppercase">Compare</p>
+		<div class="flex justify-center">
+			<PublicCompareLandingBreadcrumb
+				variant="detail"
+				leftProductName={leftProductVm.name}
+				rightProductName={rightProductVm.name}
+			/>
+		</div>
 		<div class="flex items-center justify-center gap-3 sm:gap-4">
 			<div
 				class={`flex size-14 items-center justify-center rounded-2xl shadow-sm ring-1 sm:size-16 ${iconStyleForProduct(leftProductVm.slug as CompareProductSlug).heroContainerClass}`}

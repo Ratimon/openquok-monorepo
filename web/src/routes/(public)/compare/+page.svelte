@@ -23,6 +23,7 @@
 	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
+	import PublicCompareLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicCompareLandingBreadcrumb.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import StripedPattern from '$lib/ui/patterns/StripedPattern.svelte';
 	import SimpleCardGrid from '$lib/ui/templates/feature-grid/SimpleCardGrid.svelte';
@@ -143,9 +144,9 @@
 
 <SectionOuterContainer class="py-10 md:py-14">
 	<header class="container mx-auto max-w-4xl space-y-4 px-4 text-center">
-		<p class="text-xs font-bold tracking-wider text-primary uppercase">
-			{hubVm.eyebrow}
-		</p>
+		<div class="flex justify-center">
+			<PublicCompareLandingBreadcrumb variant="hub" />
+		</div>
 		<h1
 			class="flex flex-wrap items-center justify-center gap-x-2 gap-y-3 text-3xl font-black tracking-tight text-base-content sm:text-4xl"
 		>

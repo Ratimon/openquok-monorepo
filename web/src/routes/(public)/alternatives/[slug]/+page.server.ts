@@ -15,9 +15,11 @@ import {
 } from '$lib/config/constants/config';
 import { isAlternativesTargetSlug } from '$lib/content/constants/competitors';
 import { PUBLIC_FAQ_ITEMS } from '$lib/content/constants/faq';
+import { buildAlternativesLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
+import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 
 export const ssr = true;
@@ -111,7 +113,14 @@ export async function load({ url, params, cookies, parent }) {
 				name: faqDefaults.TITLE,
 				description: faqDefaults.DESCRIPTION,
 				items: faqItems
-			})
+			}),
+			createBreadcrumbListSchema(
+				buildAlternativesLandingBreadcrumbItems({
+					variant: 'detail',
+					pageLabel: detailVm.title
+				}),
+				url.origin
+			)
 		])
 	);
 

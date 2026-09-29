@@ -4,9 +4,11 @@ import { publicComparePagePresenter } from '$lib/area-public';
 import { getRootPathPublicCompare } from '$lib/area-public/constants/getRootPathPublicCompare';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { PUBLIC_COMPARE_HUB_FAQ } from '$lib/content/constants/hubs/compare';
+import { buildCompareLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
+import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 
 export const ssr = true;
@@ -91,7 +93,11 @@ export async function load({ url, cookies, parent }) {
 				name: PUBLIC_COMPARE_HUB_FAQ.faqTitle,
 				description: PUBLIC_COMPARE_HUB_FAQ.faqDescription,
 				items: PUBLIC_COMPARE_HUB_FAQ.faqItems
-			})
+			}),
+			createBreadcrumbListSchema(
+				buildCompareLandingBreadcrumbItems({ variant: 'hub' }),
+				url.origin
+			)
 		])
 	);
 

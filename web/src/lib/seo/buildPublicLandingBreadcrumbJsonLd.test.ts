@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import {
 	buildAgentsLandingBreadcrumbItems,
+	buildAlternativesLandingBreadcrumbItems,
 	buildApiMarketingLandingBreadcrumbItems,
 	buildChannelsLandingBreadcrumbItems,
+	buildCompareLandingBreadcrumbItems,
 	buildToolsLandingBreadcrumbItems
 } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import {
@@ -85,6 +87,47 @@ describe('buildToolsLandingBreadcrumbItems', () => {
 			{ label: 'Free Tools', href: '/tools' },
 			{ label: 'Humanizer', href: '/tools/humanizer' },
 			{ label: 'LinkedIn' }
+		]);
+	});
+});
+
+describe('buildCompareLandingBreadcrumbItems', () => {
+	it('builds hub and detail trails', () => {
+		expect(buildCompareLandingBreadcrumbItems({ variant: 'hub' })).toEqual([
+			{ label: 'Home', href: '/' },
+			{ label: 'Compare' }
+		]);
+
+		expect(
+			buildCompareLandingBreadcrumbItems({
+				variant: 'detail',
+				leftProductName: 'OpenQuok',
+				rightProductName: 'Buffer'
+			})
+		).toEqual([
+			{ label: 'Home', href: '/' },
+			{ label: 'Compare', href: '/compare' },
+			{ label: 'OpenQuok vs Buffer' }
+		]);
+	});
+});
+
+describe('buildAlternativesLandingBreadcrumbItems', () => {
+	it('builds hub and detail trails', () => {
+		expect(buildAlternativesLandingBreadcrumbItems({ variant: 'hub' })).toEqual([
+			{ label: 'Home', href: '/' },
+			{ label: 'Alternatives' }
+		]);
+
+		expect(
+			buildAlternativesLandingBreadcrumbItems({
+				variant: 'detail',
+				pageLabel: 'Hootsuite alternatives'
+			})
+		).toEqual([
+			{ label: 'Home', href: '/' },
+			{ label: 'Alternatives', href: '/alternatives' },
+			{ label: 'Hootsuite alternatives' }
 		]);
 	});
 });

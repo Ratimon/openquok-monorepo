@@ -18,6 +18,7 @@
 	import ListingsSearchBar from '$lib/ui/templates/listings/ListingsSearchBar.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
+	import PublicAlternativesLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicAlternativesLandingBreadcrumb.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import StripedPattern from '$lib/ui/patterns/StripedPattern.svelte';
 	import SimpleCardGrid from '$lib/ui/templates/feature-grid/SimpleCardGrid.svelte';
@@ -136,9 +137,9 @@
 
 <SectionOuterContainer class="py-10 md:py-14">
 	<header class="container mx-auto max-w-4xl space-y-4 px-4 text-center">
-		<p class="text-xs font-bold tracking-wider text-primary uppercase">
-			{hubVm.eyebrow}
-		</p>
+		<div class="flex justify-center">
+			<PublicAlternativesLandingBreadcrumb variant="hub" />
+		</div>
 		<h1 class="text-3xl font-black tracking-tight text-base-content sm:text-4xl">
 			{hubVm.title}
 		</h1>

@@ -1,3 +1,5 @@
+import { getRootPathPublicAlternatives } from '$lib/area-public/constants/getRootPathPublicAlternatives';
+import { getRootPathPublicCompare } from '$lib/area-public/constants/getRootPathPublicCompare';
 import {
 	getRootPathPublicAgent,
 	getRootPathPublicAgents
@@ -17,6 +19,10 @@ import type { BreadcrumbCrumb } from '$lib/seo/buildPublicLandingBreadcrumbJsonL
 import { route } from '$lib/utils/path';
 
 export type AgentsLandingBreadcrumbVariant = 'hub' | 'agent-host' | 'mcp-client';
+
+export type CompareLandingBreadcrumbVariant = 'hub' | 'detail';
+
+export type AlternativesLandingBreadcrumbVariant = 'hub' | 'detail';
 
 export function buildAgentsLandingBreadcrumbItems(params: {
 	variant: AgentsLandingBreadcrumbVariant;
@@ -70,6 +76,54 @@ export function buildAgentsLandingBreadcrumbItems(params: {
 	}
 
 	return trail;
+}
+
+export function buildCompareLandingBreadcrumbItems(params: {
+	variant: CompareLandingBreadcrumbVariant;
+	leftProductName?: string;
+	rightProductName?: string;
+}): BreadcrumbCrumb[] {
+	const compareHubHref = route(getRootPathPublicCompare());
+
+	if (params.variant === 'hub') {
+		return [
+			{ label: 'Home', href: '/' },
+			{ label: PUBLIC_LANDING_BREADCRUMB.compareHub }
+		];
+	}
+
+	const leftName = params.leftProductName?.trim() ?? '';
+	const rightName = params.rightProductName?.trim() ?? '';
+	const comparisonLabel =
+		leftName && rightName ? `${leftName} vs ${rightName}` : leftName || rightName || 'Comparison';
+
+	return [
+		{ label: 'Home', href: '/' },
+		{ label: PUBLIC_LANDING_BREADCRUMB.compareHub, href: compareHubHref },
+		{ label: comparisonLabel }
+	];
+}
+
+export function buildAlternativesLandingBreadcrumbItems(params: {
+	variant: AlternativesLandingBreadcrumbVariant;
+	pageLabel?: string | null;
+}): BreadcrumbCrumb[] {
+	const alternativesHubHref = route(getRootPathPublicAlternatives());
+
+	if (params.variant === 'hub') {
+		return [
+			{ label: 'Home', href: '/' },
+			{ label: PUBLIC_LANDING_BREADCRUMB.alternativesHub }
+		];
+	}
+
+	const trimmedPageLabel = params.pageLabel?.trim() ?? '';
+
+	return [
+		{ label: 'Home', href: '/' },
+		{ label: PUBLIC_LANDING_BREADCRUMB.alternativesHub, href: alternativesHubHref },
+		{ label: trimmedPageLabel || PUBLIC_LANDING_BREADCRUMB.alternativesHub }
+	];
 }
 
 export function buildChannelsLandingBreadcrumbItems(params: {

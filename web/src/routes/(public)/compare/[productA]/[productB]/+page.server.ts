@@ -17,9 +17,11 @@ import {
 	getPublicFaqConfigDefaults
 } from '$lib/config/constants/config';
 import { getComparePair } from '$lib/content/constants/competitors';
+import { buildCompareLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
+import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 
 export const ssr = true;
@@ -128,7 +130,15 @@ export async function load({ url, params, cookies, parent }) {
 				name: faqDefaults.TITLE,
 				description: faqDefaults.DESCRIPTION,
 				items: detailVm.faqItems
-			})
+			}),
+			createBreadcrumbListSchema(
+				buildCompareLandingBreadcrumbItems({
+					variant: 'detail',
+					leftProductName: detailVm.leftProduct.name,
+					rightProductName: detailVm.rightProduct.name
+				}),
+				url.origin
+			)
 		])
 	);
 
