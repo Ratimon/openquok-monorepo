@@ -34,3 +34,7 @@ Thumbs.db
 *.log
 
 backend/supabase/
+
+# Local prod dumps (PII) — never upload
+.backups
+.backups/**

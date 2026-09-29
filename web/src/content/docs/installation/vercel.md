@@ -2,7 +2,7 @@
 title: Production - Vercel
 description: Deploy the web app and API on Vercel.
 order: 2
-lastUpdated: 2026-05-08
+lastUpdated: 2026-09-29
 ---
 
 <script>

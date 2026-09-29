@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
@@ -7,6 +7,27 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const projectFile = join(root, "backend", ".vercel", "project.json");
 /** CLI config when Vercel Root Directory = "backend". Repo-root vercel.backend.json is for Root Directory empty only. */
 const backendLocalConfig = join(root, "backend", "vercel.json");
+const ignoreFile = join(root, ".vercelignore");
+
+/**
+ * Sibling app sources are not needed to install/build the API, but each workspace
+ * package.json must stay in the upload or `pnpm install --frozen-lockfile` fails.
+ */
+const extraIgnore = `
+# Injected by vercelDeployBackend.mjs (keep */package.json for the pnpm workspace).
+web/src
+web/src/**
+web/static
+web/static/**
+web/scripts
+web/scripts/**
+agent/src
+agent/src/**
+agent/server/src
+agent/server/src/**
+sdk/src
+sdk/src/**
+`;
 
 let orgId = process.env.VERCEL_ORG_ID;
 let projectId = process.env.VERCEL_PROJECT_ID;
@@ -48,15 +69,47 @@ process.stderr.write(
 		"",
 		"api/[[...path]].js is emitted by tsup during the build — do not list it under vercel.json `functions` (Vercel validates",
 		"patterns before the build and the deploy fails). Set memory / max duration in Project → Settings → Functions if needed.",
+		"",
+		"Upload uses --archive=tgz (one tarball instead of thousands of parallel PUTs). That avoids CLI",
+		"`Upload aborted` / `TypeError: fetch failed` on Node 24 native fetch. Retry if the network drops;",
+		"npm `Unknown env config` warnings from pnpm are harmless.",
 		""
 	].join("\n")
 );
 
-const extra = process.argv.slice(2);
-const result = spawnSync(
-	"npx",
-	["--yes", "vercel", "--local-config", backendLocalConfig, "--yes", ...extra],
-	{ cwd: root, env, stdio: "inherit" }
-);
+const extra = process.argv.slice(2).filter((arg) => arg !== "--");
+const hasArchive = extra.some((a) => a === "--archive" || a.startsWith("--archive="));
+const args = ["--yes", "vercel", "--local-config", backendLocalConfig, "--yes"];
+if (!hasArchive) {
+	args.push("--archive=tgz");
+}
+args.push(...extra);
+
+const originalIgnore = readFileSync(ignoreFile, "utf8");
+const restoreIgnore = () => {
+	try {
+		writeFileSync(ignoreFile, originalIgnore);
+	} catch (err) {
+		process.stderr.write(`Failed to restore .vercelignore: ${err}\n`);
+	}
+};
+
+process.once("SIGINT", () => {
+	restoreIgnore();
+	process.exit(130);
+});
+process.once("SIGTERM", () => {
+	restoreIgnore();
+	process.exit(143);
+});
+
+writeFileSync(ignoreFile, `${originalIgnore.trimEnd()}\n${extraIgnore}`);
+
+let result;
+try {
+	result = spawnSync("npx", args, { cwd: root, env, stdio: "inherit" });
+} finally {
+	restoreIgnore();
+}
 
 process.exit(result.status === null ? 1 : result.status);

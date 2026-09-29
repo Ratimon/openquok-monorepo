@@ -9138,6 +9138,83 @@ var init_StorageSupabaseRepository = __esm({
         }
         return { data, error };
       }
+      /**
+       * Lists objects in the flat `blog_images` bucket (service role).
+       * Supabase Storage does not expose total counts; use `hasMore` for pagination.
+       * When `search` is set, names are filtered case-insensitively by scanning the bucket in batches.
+       */
+      async listBlogImages(params) {
+        const { limit, offset, search } = params;
+        const bucket = DATABASE_NAMES.BLOG_IMAGES;
+        const sortBy = { column: "created_at", order: "desc" };
+        const searchTerm = search?.trim().toLowerCase();
+        const mapRow = (row) => ({
+          name: row.name,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at
+        });
+        const matchesSearch = (name) => !searchTerm || name.toLowerCase().includes(searchTerm);
+        if (!searchTerm) {
+          const { data, error } = await this.supabaseServiceClient.storage.from(bucket).list("", {
+            limit: limit + 1,
+            offset,
+            sortBy
+          });
+          if (error) {
+            throw new DatabaseError(`Error in listBlogImages: ${bucket} with message ${error.message}`, {
+              cause: error,
+              operation: "list",
+              resource: { type: "storage", name: bucket }
+            });
+          }
+          const rows = data ?? [];
+          const hasMore2 = rows.length > limit;
+          const pageRows = hasMore2 ? rows.slice(0, limit) : rows;
+          return { items: pageRows.map(mapRow), hasMore: hasMore2 };
+        }
+        const scanBatchSize = 100;
+        let scanOffset = 0;
+        let skipped = 0;
+        const collected = [];
+        let hasMore = false;
+        scanLoop: while (true) {
+          const { data, error } = await this.supabaseServiceClient.storage.from(bucket).list("", {
+            limit: scanBatchSize,
+            offset: scanOffset,
+            sortBy
+          });
+          if (error) {
+            throw new DatabaseError(`Error in listBlogImages: ${bucket} with message ${error.message}`, {
+              cause: error,
+              operation: "list",
+              resource: { type: "storage", name: bucket }
+            });
+          }
+          const batch = data ?? [];
+          if (batch.length === 0) {
+            break;
+          }
+          for (const row of batch) {
+            if (!matchesSearch(row.name)) {
+              continue;
+            }
+            if (skipped < offset) {
+              skipped += 1;
+              continue;
+            }
+            collected.push(mapRow(row));
+            if (collected.length > limit) {
+              hasMore = true;
+              break scanLoop;
+            }
+          }
+          if (batch.length < scanBatchSize) {
+            break;
+          }
+          scanOffset += scanBatchSize;
+        }
+        return { items: collected.slice(0, limit), hasMore };
+      }
     };
   }
 });
@@ -31682,6 +31759,42 @@ var init_ImageController = __esm({
           next(error);
         }
       };
+      /** Paginated list of objects in the `blog_images` bucket for blog CMS editors. */
+      listBlogLibrary = async (req, res, next) => {
+        try {
+          const authUser = req.user;
+          if (!authUser?.id) {
+            throw new UserValidationError("Authentication required");
+          }
+          const rawPage = Number(req.query.page ?? 1);
+          const rawLimit = Number(req.query.limit ?? 48);
+          const page = Number.isFinite(rawPage) ? Math.max(1, Math.trunc(rawPage)) : 1;
+          const limit = Number.isFinite(rawLimit) ? Math.min(48, Math.max(1, Math.trunc(rawLimit))) : 48;
+          const searchRaw = req.query.search;
+          const search = typeof searchRaw === "string" && searchRaw.trim() ? searchRaw.trim() : void 0;
+          const offset = (page - 1) * limit;
+          const { items, hasMore } = await this.storageRepository.listBlogImages({
+            limit,
+            offset,
+            search
+          });
+          res.status(200).json({
+            success: true,
+            data: {
+              items: items.map((item) => ({
+                storagePath: item.name,
+                name: item.name,
+                createdAt: item.createdAt
+              })),
+              page,
+              limit,
+              hasMore
+            }
+          });
+        } catch (error) {
+          next(error);
+        }
+      };
       delete = async (req, res, next) => {
         try {
           const { databaseName, imagePath } = req.body ?? {};
@@ -38201,10 +38314,6 @@ function extractPublicCatalogSlugsFromDir(constantsDir) {
     channels: [...new Set(channels)]
   };
 }
-function extractPublicCatalogSlugsFromFiles(options2) {
-  const constantsDir = path3__default.default.dirname(options2.channelConfigPath);
-  return extractPublicCatalogSlugsFromDir(constantsDir);
-}
 function resolveWebConstantsDir(routesPath) {
   const candidates = [
     routesPath ? path3__default.default.join(routesPath, "../lib/content/constants") : null,
@@ -38212,7 +38321,7 @@ function resolveWebConstantsDir(routesPath) {
     path3__default.default.join(process.cwd(), "web/src/lib/content/constants")
   ].filter((candidate) => Boolean(candidate));
   for (const dir of candidates) {
-    if (fs2__default.default.existsSync(path3__default.default.join(dir, "publicChannelConfig.ts"))) {
+    if (fs2__default.default.existsSync(path3__default.default.join(dir, "channels", "index.ts"))) {
       return dir;
     }
   }
@@ -38222,11 +38331,7 @@ function loadPublicCatalogSlugs(routesPath) {
   const constantsDir = resolveWebConstantsDir(routesPath);
   if (!constantsDir) return null;
   try {
-    return extractPublicCatalogSlugsFromFiles({
-      agentConfigPath: path3__default.default.join(constantsDir, "publicAgentConfig.ts"),
-      mcpConfigPath: path3__default.default.join(constantsDir, "publicMcpConfig.ts"),
-      channelConfigPath: path3__default.default.join(constantsDir, "publicChannelConfig.ts")
-    });
+    return extractPublicCatalogSlugsFromDir(constantsDir);
   } catch {
     return null;
   }
@@ -39856,6 +39961,7 @@ imageRouter.get("/download", imageController.getByUrl);
 imageRouter.get("/integration-avatar", imageController.getIntegrationAvatar);
 imageRouter.get("/external-proxy", imageController.allowlistedExternalImageProxy);
 imageRouter.post("/external-proxy", imageController.allowlistedExternalImageProxy);
+imageRouter.get("/blog-library", authWithRoles7, requireEditor, imageController.listBlogLibrary);
 imageRouter.post(
   "/upload",
   authWithRoles7,

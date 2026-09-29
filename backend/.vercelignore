@@ -1,3 +1,10 @@
-# Backend-only deployment: ignore sibling apps
+# Used when the CLI cwd is backend/. Repo-root CLI deploys use the root
+# .vercelignore (see scripts/vercelDeployBackend.mjs extra ignores).
 web
 web/**
+agent
+agent/**
+sdk
+sdk/**
+.backups
+.backups/**
