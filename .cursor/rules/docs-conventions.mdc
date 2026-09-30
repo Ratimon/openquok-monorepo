@@ -33,7 +33,7 @@ Applies to Markdown and MDsvex files under `web/src/content/docs/`.
   - **`envBackend`** — backend package env (typically no `VITE_` prefix): blue.
   - **`envWeb`** — web / `VITE_*` env: purple. In prose, prefer **`<Badge text="VITE_*" variant="envWeb" />`** (or a specific key) instead of backticks around `VITE_*` / `VITE_` so the label stays visible and MDsveX does not treat `_` as emphasis.
   - **`envRuntime`** — platform flags such as `VERCEL`, `NODE_ENV`, and deployment selectors like `RAILPACK_CONFIG_FILE`: gray.
-  - **`path`** — repo-relative paths, folder names, and **HTTP route literals** shown as one chip (e.g. `GET /public/posts/list`, `POST /public/posts`, `DELETE /public/integrations/{id}`): outline/muted. Prefer **`path`** over **`default`** when the label is clearly a URL path or REST line, including in **`web/src/content/docs/cli-usages/`** when tying the CLI to the public API.
+  - **`path`** — repo-relative paths, folder names, and **HTTP route literals** shown as one chip (e.g. `GET /public/posts/list`, `POST /public/posts`, `DELETE /public/integrations/{id}`): outline/muted. Prefer **`path`** over **`default`** when the label is clearly a URL path or REST line, including in **`web/src/content/docs/cli-usages/`** when tying the CLI to the public API. If the chip includes **`{slug}`**, **`{id}`**, or similar template segments, follow **Curly-brace placeholders** — use **`text={"DELETE /public/integrations/{id}"}`** or a **`<script>`** constant, not **`text="…{id}…"`**.
   - **`param`** — **CLI flags and long options** (`-c`, `--integrationIds`, `--days`, `-d`), **camelCase JSON / query field names** when shown as chips (e.g. `providerSettingsByIntegrationId`), and **small discrete CLI tokens** in usage lists (e.g. allowed **`--days`** values `7` / `30` / `90`, or top-level verbs like **`upload`** / **`upload-from-url`** on the media CLI page). Use **`param`** so “things you type after the binary” stay visually distinct from command names.
 - **Examples**: **`new`** (green) vs **`deprecated`** (red) for **preferred vs discouraged URL shapes** (e.g. with vs without a trailing slash). **`experimental`** (yellow) works well for **npm package names** (e.g. `@sveltejs/adapter-vercel`) when linked to upstream docs.
 - **`default`** — generic keys (e.g. `buildCommand`, `installCommand`) when they are not env vars, and **namespaced CLI command names** (`posts:create`, `posts:list`, `analytics:post`, `integrations:list`). Use **`default`** for those; use **`param`** for their **flags** in the same table or sentence.
@@ -52,9 +52,14 @@ Applies to Markdown and MDsvex files under `web/src/content/docs/`.
   - `<code>{`{SERVER_URL}/device/callback`}</code>`
   - `<code>{"{SERVER_URL}/device/callback"}</code>`
   - Any inline `<code>{...}</code>` intended to show literal `{...}` placeholders
+  - **`<Badge text="path/{host}.ts" variant="path" />`** (or any component prop where the **quoted** value contains `{identifier}`) — MDsveX/Svelte treats each `{…}` as a **JavaScript expression**, not literal text. Prerender then fails with **`ReferenceError: host is not defined`** (or `slug`, `id`, `channelSlug`, etc.). This shows up often in **Markdown tables** with many inline **`Badge`** chips.
 - Prefer one of these safe options:
   - Use a fenced **`text`** block for the literal placeholder string (best for URLs / redirect URIs).
   - Or restructure the sentence to avoid curly braces entirely (e.g. use `<Badge text="SERVER_URL" variant="envBackend" />` plus the literal suffix `/device/callback`).
+  - For **`Badge`** (and similar) labels that must show REST or file paths with `{slug}` / `{host}` / `{id}` segments:
+    - **Best for tables with many templates:** define a **`const`** object in the page **`<script>`** (e.g. `programmaticSeoPaths`) whose values are normal JS strings like `'agents/channels/{host}.ts'`, then pass **`text={programmaticSeoPaths.agentsChannelsHostTs}`**. See **`web/src/content/docs/getting-started-for-dev/architecture.md`**.
+    - **Short one-offs:** use a **brace-wrapped JS string literal** so the whole label is one expression: **`<Badge text={"DELETE /public/integrations/{id}"} variant="path" />`** — the `{id}` inside the **string** is literal; this is **not** the same as **`text="…{id}…"`**.
+  - **Never** use **`text="…{placeholder}…"`** when the braces are meant to be visible path/URL templates; use **`text={"…{placeholder}…"}`** or a **`<script>`** constant instead.
 
 ## Markdown inside custom components (`<Callout>`, etc.)
 
