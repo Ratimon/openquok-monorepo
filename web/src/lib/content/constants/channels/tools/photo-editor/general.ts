@@ -6,7 +6,7 @@ import {
 	type PublicChannelLandingPageViewModel
 } from '$lib/content/constants/channels';
 import type { CanvasChannelHubLinkViewModel } from '$lib/canvas/canvas.types';
-import { blueskyPhotoEditorContentOverride } from '$lib/content/constants/channels/tool-surfaces/bluesky';
+import { photoEditorToolContentOverridesBySlug } from '$lib/content/constants/channels/tool-surfaces';
 import type {
 	ChannelToolContentOverride,
 	ChannelToolContentOverridesBySlug,
@@ -49,9 +49,8 @@ export type CanvasChannelPageConfig = {
 	seoIntro?: ChannelToolSeoIntro;
 };
 
-const CHANNEL_CONTENT_OVERRIDES: ChannelToolContentOverridesBySlug = {
-	bluesky: blueskyPhotoEditorContentOverride
-};
+const CHANNEL_CONTENT_OVERRIDES: ChannelToolContentOverridesBySlug =
+	photoEditorToolContentOverridesBySlug;
 
 export function getPhotoEditorChannelContentOverride(
 	slug: string

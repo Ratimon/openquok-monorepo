@@ -13,7 +13,7 @@ describe('best-time-to-post Bluesky content override', () => {
 		expect(config?.keywords.length).toBeGreaterThan(0);
 		expect(config?.keywords.some((k) => k.toLowerCase().includes('bluesky'))).toBe(true);
 		expect(config?.seoIntro?.highlights?.length).toBe(3);
-		expect(config?.seoIntro?.paragraphs?.[0]).toMatch(/weekend|weekday/i);
+		expect(config?.seoIntro?.paragraphs?.[0]).toMatch(/public timing research|open-source/i);
 		expect(config?.seoIntro?.benchmarkTableRows?.length).toBe(7);
 	});
 
@@ -32,5 +32,12 @@ describe('best-time-to-post Bluesky content override', () => {
 			(item) => item.title === 'Where do the suggested clock times come from?'
 		);
 		expect(sourcesItem?.description).toMatch(/weekend|weekday/i);
+		expect(sourcesItem?.description).toContain('benchmarkSlots.ts');
+		expect(sourcesItem?.description).toContain('github.com/Ratimon/openquok-monorepo');
+		expect(sourcesItem?.description).toMatch(/public timing research/i);
+
+		expect(titles).toContain('How did OpenQuok choose these Bluesky times?');
+		expect(titles).toContain('What does the internet say is the best time to post on Bluesky?');
+		expect(titles).toContain('How does the Bluesky feed work — does timing matter?');
 	});
 });

@@ -7,7 +7,7 @@ import {
 import { getRootPathPublicSkillBuilderChannel } from '$lib/area-public/constants/getRootPathPublicTools';
 import type { SkillBuilderChannelHubLinkViewModel } from '$lib/skill-builder/skillBuilder.types';
 import { route } from '$lib/utils/path';
-import { blueskySkillBuilderContentOverride } from '$lib/content/constants/channels/tool-surfaces/bluesky';
+import { skillBuilderToolContentOverridesBySlug } from '$lib/content/constants/channels/tool-surfaces';
 import type {
 	ChannelToolContentOverride,
 	ChannelToolContentOverridesBySlug
@@ -92,9 +92,8 @@ export type SkillBuilderChannelPageConfig = {
 	heroLead?: string;
 };
 
-const CHANNEL_CONTENT_OVERRIDES: ChannelToolContentOverridesBySlug = {
-	bluesky: blueskySkillBuilderContentOverride
-};
+const CHANNEL_CONTENT_OVERRIDES: ChannelToolContentOverridesBySlug =
+	skillBuilderToolContentOverridesBySlug;
 
 export function getSkillBuilderChannelContentOverride(
 	slug: string

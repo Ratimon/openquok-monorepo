@@ -7,7 +7,7 @@ import {
 	listAvailablePublicChannels,
 	type PublicChannelLandingPageViewModel
 } from '$lib/content/constants/channels';
-import { blueskyBestTimeContentOverride } from '$lib/content/constants/channels/tool-surfaces/bluesky';
+import { bestTimeToolContentOverridesBySlug } from '$lib/content/constants/channels/tool-surfaces';
 import type {
 	ChannelToolContentOverride,
 	ChannelToolContentOverridesBySlug,
@@ -43,9 +43,8 @@ export type BestTimeChannelPageConfig = {
 	seoIntro?: ChannelToolSeoIntro;
 };
 
-const CHANNEL_CONTENT_OVERRIDES: ChannelToolContentOverridesBySlug = {
-	bluesky: blueskyBestTimeContentOverride
-};
+const CHANNEL_CONTENT_OVERRIDES: ChannelToolContentOverridesBySlug =
+	bestTimeToolContentOverridesBySlug;
 
 export function getBestTimeChannelContentOverride(
 	slug: string

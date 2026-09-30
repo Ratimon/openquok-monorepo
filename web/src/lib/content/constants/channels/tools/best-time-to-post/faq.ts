@@ -5,6 +5,7 @@ import {
 } from '$lib/content/constants/faq';
 
 import { BENCHMARK_SLOTS_LAST_REVIEWED } from '$lib/best-time-to-post/constants/benchmarkSlots';
+import { BENCHMARK_SLOTS_SOURCE_HREF } from '$lib/best-time-to-post/constants/benchmarkSlotsPublicSource';
 import { getBestTimeChannelContentOverride } from '$lib/content/constants/channels/tools/best-time-to-post/general';
 import { faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 
@@ -21,10 +22,26 @@ const PLATFORM_WINDOWS_FAQ_TITLE =
 const BENCHMARK_SOURCES_FAQ_TITLE = 'Where do the suggested clock times come from?';
 
 function benchmarkSourcesFaqDescription(): string {
+	const sourceLink = faqLink(BENCHMARK_SLOTS_SOURCE_HREF, 'benchmarkSlots.ts on GitHub');
 	return (
-		'Each platform has a fixed benchmark catalog (morning, lunch, and evening-style windows) aligned with published industry timing surveys — last reviewed ' +
-		BENCHMARK_SLOTS_LAST_REVIEWED +
-		'. Slots are computed in your audience timezone (when viewers should see the post). Shown timezone only changes how those same moments appear in the text and calendar preview (for example Bangkok local time while the audience is in New York). Cadence picks which days and how many windows per day; “3 posts per week” uses the primary window on Tuesday, Wednesday, and Thursday. Nothing is pulled from your connected channels or platform analytics APIs.'
+		`OpenQuok editors summarize public timing studies into a fixed timetable (last reviewed ${BENCHMARK_SLOTS_LAST_REVIEWED}). The calculator reads that file. We do not pull live data from your social accounts. Times use your audience’s local clock. See ${sourceLink} for every hour we ship. Pick cadence and content type in the calculator to change how many slots you get each week.`
+	);
+}
+
+function channelBenchmarkSourcesFaqDescription(
+	channelSlug: string,
+	platformLabel: string
+): string {
+	const sourceLink = faqLink(BENCHMARK_SLOTS_SOURCE_HREF, 'benchmarkSlots.ts on GitHub');
+
+	if (channelSlug === 'bluesky') {
+		return (
+			`The table on this page matches our open-source Bluesky timetable (reviewed ${BENCHMARK_SLOTS_LAST_REVIEWED}). We built it from public timing research — not from Bluesky’s servers and not from your account. Surveys disagree on weekend versus weekday peaks, so treat each row as a test. See ${sourceLink} for the exact hours. Change cadence or content type above to show more or fewer slots.`
+		);
+	}
+
+	return (
+		`These ${platformLabel} times come from OpenQuok’s open timetable (reviewed ${BENCHMARK_SLOTS_LAST_REVIEWED}). We wrote the ${platformLabel} rows from public research. We do not use your ${platformLabel} analytics. Times use your audience’s local clock. See ${sourceLink} for the source. Change cadence or content type above to show more or fewer slots.`
 	);
 }
 
@@ -78,16 +95,11 @@ function tailorBestTimeFaqItem(
 				title: item.title,
 				description: `No. This page does not read your account analytics or predict your personal peak hour. It builds a ${platformLabel} timing test plan from that platform’s benchmark table in your audience timezone. Run the slots as controlled tests, then let ${platformLabel} and OpenQuok analytics decide your final schedule.`
 			};
-		case BENCHMARK_SOURCES_FAQ_TITLE: {
-			const weekendNote =
-				channelSlug === 'bluesky'
-					? ' Published surveys disagree on Bluesky weekend evenings versus weekday mornings — treat every row as a test slot, not a rule.'
-					: '';
+		case BENCHMARK_SOURCES_FAQ_TITLE:
 			return {
 				title: item.title,
-				description: `The ${platformLabel} rows in our benchmark catalog (reviewed ${BENCHMARK_SLOTS_LAST_REVIEWED}) define typical ${platformLabel} windows in audience local time.${weekendNote} This channel page pre-selects ${platformLabel}; cadence and content type choose how many of those windows appear each week. Shown timezone is for your local reading only — not a second schedule.`
+				description: channelBenchmarkSourcesFaqDescription(channelSlug, platformLabel)
 			};
-		}
 		case 'Why does the tool include multiple slots?':
 			return {
 				title: item.title,

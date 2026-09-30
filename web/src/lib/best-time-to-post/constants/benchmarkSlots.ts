@@ -118,6 +118,16 @@ const PLATFORM_WINDOWS: Record<string, readonly DayWindow[]> = {
 		{ weekday: 6, times: [{ hour: 10, minute: 0 }, { hour: 12, minute: 0 }, { hour: 16, minute: 0 }] },
 		{ weekday: 7, times: [{ hour: 10, minute: 0 }, { hour: 12, minute: 0 }, { hour: 17, minute: 0 }] }
 	],
+	// Long-form / Shorts: afternoon and evening viewing peaks (niche-dependent — test in Studio).
+	youtube: [
+		{ weekday: 1, times: [{ hour: 14, minute: 0 }, { hour: 17, minute: 0 }, { hour: 20, minute: 0 }] },
+		{ weekday: 2, times: [{ hour: 15, minute: 0 }, { hour: 17, minute: 0 }, { hour: 20, minute: 0 }] },
+		{ weekday: 3, times: [{ hour: 14, minute: 0 }, { hour: 18, minute: 0 }, { hour: 20, minute: 0 }] },
+		{ weekday: 4, times: [{ hour: 15, minute: 0 }, { hour: 17, minute: 0 }, { hour: 19, minute: 0 }] },
+		{ weekday: 5, times: [{ hour: 14, minute: 0 }, { hour: 16, minute: 0 }, { hour: 20, minute: 0 }] },
+		{ weekday: 6, times: [{ hour: 10, minute: 0 }, { hour: 14, minute: 0 }, { hour: 18, minute: 0 }] },
+		{ weekday: 7, times: [{ hour: 11, minute: 0 }, { hour: 15, minute: 0 }, { hour: 19, minute: 0 }] }
+	],
 	// Microblog: weekday 9 AM / noon / 6 PM; Sat evening primary; Sun morning + late afternoon.
 	bluesky: [
 		{ weekday: 1, times: [{ hour: 9, minute: 0 }, { hour: 12, minute: 0 }, { hour: 18, minute: 0 }] },
