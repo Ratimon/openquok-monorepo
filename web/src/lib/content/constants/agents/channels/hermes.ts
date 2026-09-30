@@ -9,7 +9,7 @@ export const hermesAgentChannelHost: PublicAgentChannelHostConfig = {
 	agentLabel: 'Hermes Agent',
 	metaTitle: (platformLabel) => buildAgentChannelMetaTitle(platformLabel, 'Hermes Agent'),
 	metaDescription: (platformLabel) =>
-		`Message Hermes Agent to draft and schedule ${platformLabel} posts from Telegram, Discord, or Slack. Install openquok-core, queue drafts, and approve every publish on the calendar or kanban.`,
+		`Message Hermes Agent through its gateway to draft and schedule ${platformLabel} posts from Telegram, Discord, Slack, or WhatsApp. Install openquok-core in ~/.hermes/skills/, queue drafts, and approve every publish on the calendar or kanban.`,
 	extraKeywords: (platformLabel) => [
 		`Hermes Agent ${platformLabel}`,
 		`Hermes ${platformLabel} scheduler`,

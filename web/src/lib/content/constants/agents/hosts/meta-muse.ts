@@ -15,26 +15,28 @@ export const metaMuseAgent = {
 	agentLabel: 'Meta Muse',
 	icon: icons.MetaMuse.name,
 	available: true,
-	metaTitle: 'Meta Muse Social Media Agent for OpenQuok',
+	metaTitle: 'Meta Muse Social Scheduling for Facebook, Instagram & WhatsApp',
 	metaDescription:
-		'Meta Muse is Meta\'s consumer AI agent for everyday tasks. Connect OpenQuok with a custom connector, the public API, or openquok-core in the Secure VM. You approve every publish on the calendar or kanban.',
+		'Connect OpenQuok to Meta Muse — Meta\'s personal AI agent on muse.ai and WhatsApp. Schedule Facebook, Instagram, Threads, and other channels with a custom connector or openquok-core in Muse Secure VM. You approve every publish on the calendar or kanban.',
 	hubDescription:
-		'Meta Muse runs in a Secure VM and can build custom connectors from public APIs. Give it the OpenQuok contract, store your API key securely, and schedule posts from chat. You approve on OpenQuok.',
+		'Meta Muse runs in Muse Secure VM and can build custom connectors from public APIs. Facebook and Instagram creators can draft from chat or WhatsApp. You approve on OpenQuok.',
 	keywords: [
 		'Meta Muse social media',
+		'Meta Muse Facebook',
+		'Meta Muse Instagram',
+		'Meta Muse WhatsApp',
+		'Meta Muse Threads',
 		'Meta Muse custom connector',
-		'openquok-core skill',
-		'Meta consumer agent',
-		'Meta Muse OpenAPI',
-		'agentic social media',
-		'agentic social media scheduler',
-		'schedule social media via API',
+		'Muse Secure VM scheduling',
+		'muse.ai OpenQuok',
+		'Meta AI agent schedule posts',
 		'Meta Muse vs Muse Code',
-		'OpenQuok Meta Muse integration'
+		'OpenQuok Meta Muse integration',
+		'schedule Facebook from Meta Muse'
 	],
 	heroTitle: 'Schedule social media from Meta Muse then you approve',
 	heroDescription:
-		'Meta Muse is Meta\'s personal AI agent for iOS, Android, muse.ai, and messaging surfaces. It can create a custom OpenQuok connector from the public API spec or run openquok-core in its Secure VM. You review and approve on the calendar or kanban.',
+		'Meta Muse is Meta\'s personal AI agent for iOS, Android, muse.ai, and WhatsApp. Connect OpenQuok for Facebook, Instagram, Threads, and more — custom connector from the public API or openquok-core in Muse Secure VM. You review and approve on the calendar or kanban.',
 	docsPath: '/docs/agent-setup-guides/meta-muse',
 	skillInstallOptions: META_MUSE_SKILL_INSTALL_OPTIONS,
 	workflowSection: {
@@ -50,27 +52,27 @@ export const metaMuseAgent = {
 	audienceTitle: 'Who connects Meta Muse to OpenQuok?',
 	audienceCards: [
 		{
-			iconName: icons.CustomizedDrawnRobot.name,
-			iconClass: 'text-violet-300',
-			title: 'Muse subscribers',
+			iconName: icons.WhatsApp.name,
+			iconClass: 'text-emerald-400',
+			title: 'Messaging-first users',
 			description:
-				'Hand off social drafts from muse.ai or mobile chat. Keep publishing control in OpenQuok.',
+				'You chat with Muse like a person in the Muse app or WhatsApp. Ask it to queue OpenQuok drafts while you are on the go. You still approve publishes on the calendar.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
-			iconName: icons.CustomizedDrawnLaptop.name,
+			iconName: icons.Lock.name,
 			iconClass: 'text-fuchsia-300',
-			title: 'Custom-connector builders',
+			title: 'Secure VM operators',
 			description:
-				'Muse can read a public OpenAPI document and wire API-key auth into its credential store.',
+				'Muse runs on Muse Secure VM with its own browser and isolated credentials. Point a custom connector at OpenQuok or run openquok-core in the VM — tokens stay out of casual chat.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
-			iconName: icons.CustomizedDrawnHouse.name,
-			iconClass: 'text-purple-300',
-			title: 'Founders & creators',
+			iconName: icons.CustomizedDrawnClapperboard.name,
+			iconClass: 'text-violet-300',
+			title: 'Creators and marketers',
 			description:
-				'Use drafts and explicit approval while you test Muse. Scale volume without losing the calendar checkpoint.',
+				'Muse can plan launches and keep working after you close the app. When a reel, event, or campaign is ready, have Muse draft channel-specific posts — OpenQuok holds the approval step.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],
@@ -266,12 +268,27 @@ openquok analytics:post <post-id> -d 30`
 	faqSubtitle: 'Frequently asked questions',
 	faqTitle: 'Meta Muse + OpenQuok, answered',
 	faqDescription:
-		'What Meta Muse is, how it differs from Muse Code, custom connectors, credentials, human approval, and when to use API vs CLI vs MCP.',
+		'Muse Secure VM, WhatsApp, proactive tasks, Muse Code vs consumer Muse, custom connectors, credentials, and OpenQuok approval.',
 	faqItems: [
 		{
 			title: 'What is Meta Muse?',
 			description:
-				`Meta Muse is Meta's consumer AI agent for everyday tasks. It runs in a Secure VM, can use directory connectors, and can build custom connectors from services that expose an API. You use it from iOS, Android, muse.ai, and supported messaging surfaces. See the ${faqLink(publicFaqHref.metaMuseLanding, 'Meta Muse integration')} and ${faqLink(publicFaqHref.agentSetupGuides, 'agent setup guides')}.`
+				`Meta Muse is Meta's personal AI agent for everyday work — not just Q&A. It runs on Muse Secure VM, can use a browser on your behalf, and chats like messaging in the Muse app or WhatsApp. It is powered by Muse Spark for agentic tasks. US rollout includes iOS, Android, and muse.ai. Overview: https://about.fb.com/news/2026/09/introducing-muse-personal-ai-agent/. See the ${faqLink(publicFaqHref.metaMuseLanding, 'Meta Muse integration')} and ${faqLink(publicFaqHref.metaMuseAgentGuide, 'agent guide')}.`
+		},
+		{
+			title: 'What is Muse Secure VM?',
+			description:
+				'Muse Secure VM is a dedicated cloud computer for one person\'s Muse. It holds connected app data and credentials in isolated storage. Muse asks before sensitive actions like email or purchases. OpenQuok fits the same pattern: schedule posts as drafts, then you approve on OpenQuok before anything goes live.'
+		},
+		{
+			title: 'Can Muse keep working while I am away?',
+			description:
+				'Yes. Muse can continue long tasks after you close the app and return when it needs input or when something changes. Pair that with OpenQuok so Muse queues social drafts while you focus elsewhere — publishing still waits for your calendar or kanban approval.'
+		},
+		{
+			title: 'Can Meta Muse schedule Facebook or Instagram posts?',
+			description:
+				`Yes — when your OpenQuok workspace has Facebook or Instagram connected. Ask Muse to call OpenQuok through a custom connector or openquok-core in the Secure VM. Muse drafts and queues posts; you approve on OpenQuok before anything publishes to your Page or professional account. See ${faqLink(publicFaqHref.channels, 'supported channels')}.`
 		},
 		{
 			title: 'Is Meta Muse the same as Muse Code?',

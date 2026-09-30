@@ -1,6 +1,6 @@
 ---
 title: Manus
-description: Import the openquok-core Skill in Manus, install the CLI on a Cloud Computer, and schedule with human approval on OpenQuok.
+description: Import openquok-core in Manus 2.0 Studio (Skills, Cloud Computer, Automations). Manus path — not the separate Cue app.
 order: 6
 lastUpdated: 2026-09-30
 ---

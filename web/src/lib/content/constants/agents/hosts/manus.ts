@@ -15,21 +15,23 @@ export const manusAgent = {
 	agentLabel: 'Manus',
 	icon: icons.Manus.name,
 	available: true,
-	metaTitle: 'Manus Social Media Skill for OpenQuok',
+	metaTitle: 'Manus 2.0 Social Media Skill — Studio, Skills & Cloud Computer',
 	metaDescription:
-		'Manus is an agent platform with Skills, Manus Studio, and Cloud Computers. Connect OpenQuok to draft and schedule social posts from chat. You approve every publish on the calendar or kanban.',
+		'Connect openquok-core to Manus 2.0 — Manus Studio, Skills, Automations, and Cloud Computers. Draft and schedule social posts from chat. Cue is a separate Manus-family app; use this Manus + OpenQuok path for Skills-based scheduling. You approve on the calendar or kanban.',
 	hubDescription:
-		'Manus runs projects in Studio, web, and mobile. Import openquok-core as a Skill from GitHub or upload. Run the CLI on a Cloud Computer. Schedule posts. You approve on OpenQuok.',
+		'Manus 2.0 runs in Studio, web, and mobile. Import openquok-core as a Skill. Run the CLI on a Cloud Computer. Schedule launch posts after Video Editor or Game Dev. You approve on OpenQuok.',
 	keywords: [
 		'Manus social media',
-		'Manus skill',
 		'Manus 2.0 skill',
-		'openquok-core skill',
-		'Manus CLI posting',
-		'agentic social media scheduler',
-		'schedule social media via MCP',
+		'Manus vs Cue',
+		'Cue app Manus scheduling',
+		'Manus Studio social posts',
+		'Manus Skills openquok-core',
 		'Manus Cloud Computer scheduling',
-		'OpenQuok Manus integration'
+		'Manus Automations social media',
+		'Manus Video Editor launch posts',
+		'OpenQuok Manus integration',
+		'schedule social media Manus'
 	],
 	heroTitle: 'Schedule social media from Manus then you approve',
 	heroDescription:
@@ -276,7 +278,12 @@ openquok analytics:post <post-id> -d 30`
 		{
 			title: 'How is Manus different from Cue?',
 			description:
-				`Manus is the full project platform with Studio, Video Editor, Game Dev, Skills, and Cloud Computers. Cue is a separate early-access app for personal agents with their own email, phone, and computer on phone and desktop. Use this guide for Manus and openquok-core Skills — not for Cue-specific setup.`
+				`Manus is the full project platform with Studio, Video Editor, Game Dev, Skills, and Cloud Computers. Cue is a separate early-access app for personal agents with their own email, phone, and computer on phone and desktop. OpenQuok ships openquok-core for Manus Skills today — not a dedicated Cue integration. If you use Cue, schedule through Manus Studio or ask your operator when Cue gains the same Skill path.`
+		},
+		{
+			title: 'I use the Cue app — can I schedule social posts with OpenQuok?',
+			description:
+				`OpenQuok connects to Manus through the openquok-core Skill, Studio chat, and the CLI on a Cloud Computer. Cue is a different app from the same vendor family. For social scheduling with human approval, set up Manus on manus.im — see the ${faqLink(publicFaqHref.manusAgentGuide, 'Manus agent guide')}.`
 		},
 		{
 			title: 'How do Manus Automations work with OpenQuok?',

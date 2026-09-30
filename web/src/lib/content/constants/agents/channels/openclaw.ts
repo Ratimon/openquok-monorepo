@@ -9,7 +9,7 @@ export const openclawAgentChannelHost: PublicAgentChannelHostConfig = {
 	agentLabel: 'OpenClaw',
 	metaTitle: (platformLabel) => buildAgentChannelMetaTitle(platformLabel, 'OpenClaw'),
 	metaDescription: (platformLabel) =>
-		`Message OpenClaw to draft and schedule ${platformLabel} posts from Telegram, WhatsApp, or Slack. Install openquok-core, queue drafts, and approve every publish on the calendar or kanban.`,
+		`Message OpenClaw on your self-hosted Gateway to draft and schedule ${platformLabel} posts from WhatsApp, Telegram, Slack, or Discord. Add the openquok-core workspace skill, queue drafts, and approve every publish on the calendar or kanban.`,
 	extraKeywords: (platformLabel) => [
 		`OpenClaw ${platformLabel}`,
 		`OpenClaw ${platformLabel} scheduler`,

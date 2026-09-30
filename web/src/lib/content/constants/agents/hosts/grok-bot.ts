@@ -15,21 +15,26 @@ export const grokBotAgent = {
 	agentLabel: 'Grok Bot',
 	icon: icons.GrokBot.name,
 	available: true,
-	metaTitle: 'Grok Bot Social Media Skill for OpenQuok',
+	metaTitle: 'Grok Bot Social Scheduling — Cloud Computer & xAI Teammate',
 	metaDescription:
-		'Grok Bot is an AI teammate on a shared cloud computer with desktop and iOS apps. Connect OpenQuok to draft and schedule social posts from chat. You approve every publish on the calendar or kanban.',
+		'Install openquok-core on Grok Bot\'s shared cloud computer. Schedule Facebook, X, LinkedIn, and more from macOS, Windows, or iOS chat — Plugins, routines, and CLI. You approve on OpenQuok.',
 	hubDescription:
-		'Grok Bot teammates run on a persistent cloud computer with browser, filesystem, and terminal. Message them from macOS, Windows, or iOS. Install openquok-core as a skill. Schedule posts. You approve on OpenQuok.',
+		'Each Grok Bot keeps a persistent cloud computer. Message from desktop or iOS, load openquok-core via Plugins, and schedule social posts. You approve on OpenQuok.',
 	keywords: [
 		'Grok Bot social media',
-		'Grok Bot skill',
+		'Grok Bot X scheduling',
+		'xAI Grok Bot cloud computer',
+		'xAI Grok social scheduling',
+		'Cursor Grok Bot',
+		'Cursor Grok Bot OpenQuok',
+		'Cursor Ultra Grok Bot scheduling',
+		'Cursor Teams Premium Grok Bot',
+		'SpaceX Grok Bot scheduling',
 		'openquok-core skill',
-		'xAI Grok Bot',
-		'Grok Bot CLI posting',
-		'agentic social media',
+		'Grok Bot routines social posts',
+		'SuperGrok Heavy OpenQuok',
 		'agentic social media scheduler',
-		'schedule social media via MCP',
-		'Grok Bot MCP and CLI scheduling',
+		'Grok teammate schedule posts',
 		'OpenQuok Grok Bot integration'
 	],
 	heroTitle: 'Schedule social media from Grok Bot then you approve',
@@ -52,25 +57,25 @@ export const grokBotAgent = {
 		{
 			iconName: icons.CustomizedDrawnRobot.name,
 			iconClass: 'text-neutral-300',
-			title: 'Cursor & xAI subscribers',
+			title: 'Eligible plan subscribers',
 			description:
-				'Create a Bot on SuperGrok or Cursor plans. Schedule social posts without leaving chat.',
+				'You create a Bot on SuperGrok Heavy, Cursor Ultra, or Cursor Teams Premium. Each Bot is an always-on teammate with its own environment.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
 			iconName: icons.CustomizedDrawnLaptop.name,
 			iconClass: 'text-zinc-400',
-			title: 'Desktop-first operators',
+			title: 'Cloud computer operators',
 			description:
-				'Each Bot gets a cloud computer. Install the CLI once. Then message it to run openquok.',
+				'Every Bot keeps a persistent shared computer — browser, filesystem, and terminal. Install openquok-core once, then message the Bot from macOS, Windows, or iOS.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
-			iconName: icons.CustomizedDrawnHouse.name,
+			iconName: icons.CalendarClock.name,
 			iconClass: 'text-stone-400',
-			title: 'Founders & small teams',
+			title: 'Routines and plugins users',
 			description:
-				'Keep approval on the calendar while your Bot handles volume. Load skills via Plugins. You do not need MCP for this path.',
+				'Load openquok-core through Settings → Plugins or / in chat. Use Bot routines for recurring scheduling work while OpenQuok holds the approval checkpoint.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],

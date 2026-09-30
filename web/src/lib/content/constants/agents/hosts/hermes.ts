@@ -16,20 +16,23 @@ export const hermesAgent = {
 	telegramBotLabel: 'Hermes',
 	icon: icons.HermesAgent.name,
 	available: true,
-	metaTitle: 'Hermes Agent Social Media Skill for OpenQuok',
-	metaDescription: 'Hermes Agent is an autonomous AI assistant with a built-in learning loop, 20+ messaging gateways, and MCP support. Connect OpenQuok to draft and schedule social posts from chat. You approve every publish on the calendar or kanban.',
-	hubDescription: 'Hermes Agent autonomously runs on a laptop, a VPS, or serverless infrastructure. Talk to it from Telegram while it works on a host you never SSH into. Skills load on demand.',
+	metaTitle: 'Hermes Agent Social Scheduling — Gateway, Skills Hub & MCP',
+	metaDescription:
+		'Hermes Agent from Nous Research connects Telegram, Discord, Slack, and 20+ chat apps to openquok-core. Draft and schedule Facebook, X, LinkedIn, and more from your gateway. You approve on the calendar or kanban.',
+	hubDescription:
+		'Hermes runs on laptop, VPS, or Docker with a unified messaging gateway. Add openquok-core to Skills Hub and schedule from Telegram or Discord. You approve on OpenQuok.',
 	keywords: [
 		'Hermes Agent social media',
-		'Hermes Agent skill',
+		'Hermes Telegram scheduler',
+		'Hermes gateway social posts',
+		'Hermes Skills Hub OpenQuok',
+		'Nous Research Hermes scheduling',
 		'openquok-core skill',
-		'Nous Research Hermes',
 		'Hermes CLI posting',
-		'agentic social media',
 		'agentic social media scheduler',
-		'schedule social media via MCP',
-		'Hermes Agent MCP and CLI scheduling',
-		'OpenQuok Hermes integration'
+		'Hermes MCP OpenQuok',
+		'OpenQuok Hermes integration',
+		'schedule LinkedIn Hermes Agent'
 	],
 	heroTitle: 'Schedule social media from Hermes then you approve',
 	heroDescription: 'Hermes Agent is a self-improving AI assistant you run on your own hardware or a cloud VM. Message it from Telegram, Discord, or Slack. Add the openquok-core skill so it drafts and schedules social posts. You review and approve on the calendar or kanban.',
@@ -48,27 +51,27 @@ export const hermesAgent = {
 	audienceTitle: 'Who connects Hermes Agent to OpenQuok?',
 	audienceCards: [
 		{
-			iconName: icons.CustomizedDrawnRobot.name,
+			iconName: icons.MessageCircle.name,
 			iconClass: 'text-violet-400',
-			title: 'Always-on operators',
+			title: 'Gateway operators',
 			description:
-				'Run Hermes on a VPS or Docker and message from chat. Schedule posts without opening another dashboard.',
+				'You run hermes gateway setup once and reach Telegram, Discord, Slack, WhatsApp, Signal, and 20+ more surfaces from a single Hermes Agent.',
+			containerClass: 'h-full min-h-[18rem]'
+		},
+		{
+			iconName: icons.Sparkles.name,
+			iconClass: 'text-indigo-400',
+			title: 'Skills Hub users',
+			description:
+				'Hermes can create and refine skills from experience. Add openquok-core under ~/.hermes/skills/ beside MCP servers and your own automations.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
 			iconName: icons.CustomizedDrawnLaptop.name,
-			iconClass: 'text-indigo-400',
-			title: 'Developers & builders',
-			description:
-				'Add openquok-core plus MCP servers. Let Hermes schedule posts with structured JSON.',
-			containerClass: 'h-full min-h-[18rem]'
-		},
-		{
-			iconName: icons.CustomizedDrawnHouse.name,
 			iconClass: 'text-fuchsia-400',
-			title: 'Startup founders',
+			title: 'VPS and desktop hosts',
 			description:
-				'Keep approval on the calendar while Hermes handles volume from Telegram, Discord, or Slack.',
+				'Run the CLI installer on Linux, macOS, WSL2, or Windows — or use the Hermes Desktop app. Keep calendar approval while Hermes handles chat volume.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],
@@ -267,7 +270,7 @@ openquok analytics:post <post-id> -d 30`
 		{
 			title: 'What is Hermes Agent?',
 			description:
-				`Hermes Agent is an autonomous AI assistant built by Nous Research. It runs on your laptop, a VPS, or serverless hosts, connects to 20+ chat platforms, creates and improves skills from experience, and takes real actions — including drafting and scheduling social media through OpenQuok. See the ${faqLink(faqHrefAgent('hermes'), 'Hermes Agent integration')} and ${faqLink(publicFaqHref.agentSetupGuides, 'agent setup guides')}.`
+				`Hermes Agent is Nous Research's autonomous assistant with a unified messaging gateway, browser and terminal tools, Skills Hub workflows, and optional MCP servers. It runs on laptop, VPS, Docker, or serverless backends and connects to 20+ chat platforms. Add openquok-core to draft and schedule through OpenQuok. See the ${faqLink(faqHrefAgent('hermes'), 'Hermes Agent integration')} and ${faqLink(publicFaqHref.agentSetupGuides, 'agent setup guides')}.`
 		},
 		{
 			title: 'How do I install the openquok-core skill in Hermes Agent?',

@@ -15,21 +15,21 @@ export const thinkrailAgent = {
 	agentLabel: 'ThinkRail',
 	icon: icons.ThinkRail.name,
 	available: true,
-	metaTitle: 'ThinkRail Social Media Skill for OpenQuok',
+	metaTitle: 'ThinkRail Social Scheduling — pi Agent, Git Worktrees & CLI',
 	metaDescription:
-		'ThinkRail is a worktree IDE for the pi coding agent. Connect OpenQuok to draft and schedule social posts from chat, Monaco, and terminals. You approve every publish on the calendar or kanban.',
+		'ThinkRail is a worktree IDE for the pi coding agent. Install openquok-core in .pi/skills and schedule Facebook, X, Dev.to, and more from Monaco and worktree terminals. You approve on the calendar or kanban.',
 	hubDescription:
-		'ThinkRail is a worktree IDE. Each workspace is its own git branch and cwd. Install openquok-core as a pi skill. Run the CLI in the worktree terminal. Schedule posts. You approve on OpenQuok.',
+		'ThinkRail scopes pi, terminals, and diffs per git worktree. Add openquok-core, run the CLI in that branch, and schedule social posts. You approve on OpenQuok.',
 	keywords: [
 		'ThinkRail social media',
-		'ThinkRail skill',
-		'pi coding agent skill',
+		'ThinkRail pi agent scheduler',
+		'git worktree social posts',
+		'pi coding agent OpenQuok',
 		'openquok-core skill',
-		'ThinkRail CLI posting',
-		'worktree IDE social posts',
+		'ThinkRail Dev.to scheduling',
+		'worktree IDE LinkedIn posts',
 		'agentic social media scheduler',
-		'schedule social media via MCP',
-		'ThinkRail MCP and CLI scheduling',
+		'ThinkRail CLI posting',
 		'OpenQuok ThinkRail integration'
 	],
 	heroTitle: 'Schedule social media from ThinkRail then you approve',
@@ -52,25 +52,25 @@ export const thinkrailAgent = {
 		{
 			iconName: icons.CustomizedDrawnLaptop.name,
 			iconClass: 'text-zinc-400',
-			title: 'Worktree-first operators',
+			title: 'Worktree-first developers',
 			description:
-				'Each workspace is a git worktree with its own branch and terminals. Install openquok-core and schedule without mixing drafts.',
+				'Each ThinkRail workspace is a git worktree with its own branch, Monaco tabs, diffs, and terminals. Schedule client posts from the worktree that owns that repo.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
 			iconName: icons.CustomizedDrawnRobot.name,
 			iconClass: 'text-neutral-300',
-			title: 'Pi coding agent users',
+			title: 'In-process pi users',
 			description:
-				'Pi owns models and skills in ThinkRail. OpenQuok stays CLI-first across worktrees and pi sessions.',
+				'Pi runs inside ThinkRail and loads skills from ~/.pi or .pi/skills in the worktree. openquok-core stays CLI-first without a separate Telegram bridge.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
 			iconName: icons.CustomizedDrawnHouse.name,
 			iconClass: 'text-stone-400',
-			title: 'Founders & small teams',
+			title: 'Agency and multi-repo teams',
 			description:
-				'Keep approval on the calendar while the agent handles volume from a dedicated worktree.',
+				'Spin a worktree per client or launch branch. Credentials and drafts stay scoped while pi handles volume from desktop chat.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],

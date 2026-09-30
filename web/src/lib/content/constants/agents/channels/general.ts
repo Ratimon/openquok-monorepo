@@ -19,6 +19,7 @@ import type {
 	PublicAgentChannelHostConfig,
 	PublicAgentChannelPageConfig
 } from '$lib/content/constants/agents/channels/types';
+import { buildAgentChannelSeoExtras } from '$lib/content/constants/agents/channels/seo-extras';
 
 const SHARED_CHANNEL_KEYWORD_SET = new Set<string>(SHARED_CHANNEL_SEO_KEYWORDS);
 
@@ -80,6 +81,7 @@ export function buildAgentChannelPageConfig(
 		metaDescription: host.metaDescription(channel.platformLabel),
 		keywords: [
 			...host.extraKeywords(channel.platformLabel),
+			...buildAgentChannelSeoExtras(host.slug, channel.platformLabel),
 			'openquok-core skill',
 			'agent social media',
 			...buildChannelMcpSeoKeywords(channel.platformLabel),

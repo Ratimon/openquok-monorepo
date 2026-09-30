@@ -9,7 +9,7 @@ export const thinkrailAgentChannelHost: PublicAgentChannelHostConfig = {
 	agentLabel: 'ThinkRail',
 	metaTitle: (platformLabel) => buildAgentChannelMetaTitle(platformLabel, 'ThinkRail'),
 	metaDescription: (platformLabel) =>
-		`Ask ThinkRail to draft and schedule ${platformLabel} posts from a git worktree. Install openquok-core for the pi coding agent, queue drafts, and approve every publish on the calendar or kanban.`,
+		`Ask ThinkRail and pi from a git worktree to draft and schedule ${platformLabel} posts — Monaco editor, scoped terminals, and openquok-core in .pi/skills. Queue drafts and approve every publish on the calendar or kanban.`,
 	extraKeywords: (platformLabel) => [
 		`ThinkRail ${platformLabel}`,
 		`ThinkRail ${platformLabel} scheduler`,

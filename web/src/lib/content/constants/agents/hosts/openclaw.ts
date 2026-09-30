@@ -15,20 +15,23 @@ export const openclawAgent = {
 	agentLabel: 'OpenClaw',
 	icon: icons.OpenClaw.name,
 	available: true,
-	metaTitle: 'OpenClaw Social Media Skill for OpenQuok',
-	metaDescription: 'OpenClaw is a self-hosted personal AI assistant for Telegram, WhatsApp, Slack, and more. Connect OpenQuok to draft and schedule social posts from chat. You approve every publish on the calendar or kanban.',
-	hubDescription: 'OpenClaw is a personal AI assistant you run on your own devices. It answers on the channels you already use. You get voice on macOS, iOS, and Android, and a live Canvas you control.',
+	metaTitle: 'OpenClaw Social Scheduling — Telegram, WhatsApp & Self-Hosted Agent',
+	metaDescription:
+		'Self-host OpenClaw and add openquok-core to schedule Facebook, Instagram, X, LinkedIn, and more from Telegram, WhatsApp, Slack, or Discord. Local Gateway, ClawHub skills, human approval on OpenQuok.',
+	hubDescription:
+		'OpenClaw is a personal AI assistant on your own Gateway. Message from WhatsApp or Telegram, add openquok-core, and schedule social posts. You approve on OpenQuok.',
 	keywords: [
 		'OpenClaw social media',
+		'OpenClaw Telegram scheduler',
+		'OpenClaw WhatsApp social posts',
 		'OpenClaw skill',
 		'openquok-core skill',
-		'AI agent social scheduler',
+		'self-hosted AI agent scheduling',
+		'OpenClaw ClawHub OpenQuok',
 		'OpenClaw CLI posting',
-		'agentic social media',
 		'agentic social media scheduler',
-		'schedule social media via MCP',
-		'OpenClaw MCP and CLI scheduling',
-		'OpenQuok OpenClaw integration'
+		'OpenQuok OpenClaw integration',
+		'schedule X from OpenClaw'
 	],
 	heroTitle: 'Schedule social media from OpenClaw then you approve',
 	heroDescription: 'OpenClaw is a personal AI assistant on your own devices. Message it from Telegram, WhatsApp, or Slack. Add the openquok-core skill so it drafts and schedules social posts. You review and approve on the calendar or kanban.',
@@ -47,27 +50,27 @@ export const openclawAgent = {
 	audienceTitle: 'Who connects OpenClaw to OpenQuok?',
 	audienceCards: [
 		{
-			iconName: icons.CustomizedDrawnRobot.name,
-			iconClass: 'text-emerald-400',
-			title: 'Personal AI users',
-			description:
-				'Run OpenClaw on your machine and message it from chat. Schedule posts without opening another dashboard.',
-			containerClass: 'h-full min-h-[18rem]'
-		},
-		{
-			iconName: icons.CustomizedDrawnLaptop.name,
-			iconClass: 'text-lime-400',
-			title: 'Developers & builders',
-			description:
-				'Add openquok-core and other skills. Let OpenClaw schedule posts with structured JSON.',
-			containerClass: 'h-full min-h-[18rem]'
-		},
-		{
 			iconName: icons.CustomizedDrawnHouse.name,
-			iconClass: 'text-rose-400',
-			title: 'Startup founders',
+			iconClass: 'text-emerald-400',
+			title: 'Local-first operators',
 			description:
-				'Keep approval on the calendar while OpenClaw handles volume from Telegram, WhatsApp, or Slack.',
+				'You run the OpenClaw Gateway on your Mac, Linux box, or VPS. Your workspace and skills stay on hardware you control while you message from chat.',
+			containerClass: 'h-full min-h-[18rem]'
+		},
+		{
+			iconName: icons.MessageCircle.name,
+			iconClass: 'text-lime-400',
+			title: 'Multi-channel inbox users',
+			description:
+				'OpenClaw bridges dozens of messaging apps — WhatsApp, Telegram, Slack, Discord, Signal, and more. Schedule social posts from the same thread you already use.',
+			containerClass: 'h-full min-h-[18rem]'
+		},
+		{
+			iconName: icons.Sparkles.name,
+			iconClass: 'text-rose-400',
+			title: 'ClawHub skill builders',
+			description:
+				'Install openquok-core beside browser, cron, and community skills from the registry. OpenClaw returns structured JSON; OpenQuok keeps human approval on the calendar.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],
@@ -261,7 +264,7 @@ openquok analytics:post <post-id> -d 30`
 		{
 			title: 'What is OpenClaw?',
 			description:
-				`OpenClaw is the open-source personal AI agent. It runs locally or on your own host, connects to chat apps you already use, and takes real actions on your behalf — including drafting and scheduling social media through OpenQuok. See the ${faqLink(faqHrefAgent('openclaw'), 'OpenClaw integration')} and ${faqLink(publicFaqHref.agentSetupGuides, 'agent setup guides')}.`
+				`OpenClaw is an open-source personal AI assistant you self-host. A local Gateway routes chat from WhatsApp, Telegram, Slack, Discord, and many other channels to your agent, with browser tools, cron, sessions, and workspace skills. Add openquok-core to draft and schedule through OpenQuok. Docs: https://docs.openclaw.ai. See the ${faqLink(faqHrefAgent('openclaw'), 'OpenClaw integration')} and ${faqLink(publicFaqHref.agentSetupGuides, 'agent setup guides')}.`
 		},
 		{
 			title: 'How do I install the openquok-core skill in OpenClaw?',

@@ -8,8 +8,15 @@ export const metaMuseAgentChannelHost: PublicAgentChannelHostConfig = {
 	slug: 'meta-muse',
 	agentLabel: 'Meta Muse',
 	metaTitle: (platformLabel) => buildAgentChannelMetaTitle(platformLabel, 'Meta Muse'),
-	metaDescription: (platformLabel) =>
-		`Connect OpenQuok to Meta Muse for ${platformLabel} — custom connector, public API, or openquok-core in the Secure VM. Queue drafts from chat and approve every publish on the calendar or kanban.`,
+	metaDescription: (platformLabel) => {
+		const metaEcosystem =
+			platformLabel === 'Facebook' ||
+			platformLabel === 'Instagram' ||
+			platformLabel === 'Threads'
+				? ` For ${platformLabel} Pages and creators in the Meta ecosystem.`
+				: '';
+		return `Message Meta Muse on muse.ai or WhatsApp to draft and schedule ${platformLabel} posts via OpenQuok — custom connector from the public API or openquok-core in Muse Secure VM.${metaEcosystem} You approve every publish on the calendar or kanban.`;
+	},
 	extraKeywords: (platformLabel) => [
 		`Meta Muse ${platformLabel}`,
 		`Meta Muse ${platformLabel} scheduler`,
