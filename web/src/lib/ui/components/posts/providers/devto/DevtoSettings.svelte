@@ -6,7 +6,8 @@
 
 	import { untrack } from 'svelte';
 
-	import { normalizeHttpUrlInput } from '$lib/utils/normalizeHttpUrlInput';
+	import ProviderHttpUrlInput from '$lib/ui/components/posts/providers/ProviderHttpUrlInput.svelte';
+	import { normalizeHttpUrlInputIfLikely } from '$lib/utils/normalizeHttpUrlInput';
 
 	import { icons } from '$data/icons';
 	import { integrationsRepository } from '$lib/integrations';
@@ -52,7 +53,7 @@
 	function normalizeCanonicalOnBlur() {
 		const trimmed = canonical.trim();
 		if (!trimmed) return;
-		const normalized = normalizeHttpUrlInput(trimmed);
+		const normalized = normalizeHttpUrlInputIfLikely(trimmed);
 		if (normalized !== canonical) canonical = normalized;
 	}
 
@@ -209,10 +210,8 @@
 		<label class="text-xs font-medium text-base-content/70" for="devto-canonical"
 			>Canonical URL (optional)</label
 		>
-		<input
+		<ProviderHttpUrlInput
 			id="devto-canonical"
-			type="text"
-			class="border-base-300 bg-base-100 w-full rounded-md border px-3 py-2 text-sm"
 			placeholder="https://example.com/original-post"
 			bind:value={canonical}
 			onblur={normalizeCanonicalOnBlur}

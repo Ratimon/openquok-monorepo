@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { BlueskyThreadGateSetting } from '$lib/ui/components/posts/providers/provider.types';
 
-	import { normalizeHttpUrlInput } from '$lib/utils/normalizeHttpUrlInput';
+	import ProviderHttpUrlInput from '$lib/ui/components/posts/providers/ProviderHttpUrlInput.svelte';
+	import { normalizeHttpUrlInputIfLikely } from '$lib/utils/normalizeHttpUrlInput';
 
 	type Props = {
 		linkUrl?: string;
@@ -22,7 +23,7 @@
 	function normalizeLinkUrlOnBlur() {
 		const trimmed = linkUrl.trim();
 		if (!trimmed) return;
-		const normalized = normalizeHttpUrlInput(trimmed);
+		const normalized = normalizeHttpUrlInputIfLikely(trimmed);
 		if (normalized !== linkUrl) linkUrl = normalized;
 	}
 
@@ -55,10 +56,8 @@
 		<label class="text-xs font-medium text-base-content/70" for="bsky-quote-url">
 			Quote post (bsky.app URL)
 		</label>
-		<input
+		<ProviderHttpUrlInput
 			id="bsky-quote-url"
-			type="url"
-			class="border-base-300 bg-base-100 w-full rounded-md border px-3 py-2 text-sm"
 			placeholder="https://bsky.app/profile/handle/post/…"
 			bind:value={quoteUrl}
 		/>
@@ -71,10 +70,8 @@
 		<label class="text-xs font-medium text-base-content/70" for="bsky-link-url">
 			Link card URL
 		</label>
-		<input
+		<ProviderHttpUrlInput
 			id="bsky-link-url"
-			type="text"
-			class="border-base-300 bg-base-100 w-full rounded-md border px-3 py-2 text-sm"
 			placeholder="https://example.com/article"
 			bind:value={linkUrl}
 			onblur={normalizeLinkUrlOnBlur}

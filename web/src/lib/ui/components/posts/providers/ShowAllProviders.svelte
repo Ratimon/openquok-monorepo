@@ -171,6 +171,7 @@
 		{threadReplies}
 		{threadFinisher}
 		{previewMetaLabel}
+		{providerSettings}
 	/>
 {:else if identifier === 'devto'}
 	<DevtoPreview

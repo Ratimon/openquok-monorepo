@@ -1,3 +1,24 @@
+/** True when the trimmed value looks like a URL host/path, not a sentence. */
+export function looksLikeHttpUrlInput(raw: string): boolean {
+	const url = raw.trim();
+	if (!url) return false;
+	if (/\s/.test(url)) return false;
+	if (/^https?:\/\//i.test(url)) return true;
+	if (/^https?:[^/]/i.test(url)) return true;
+	return url.includes('.');
+}
+
+/**
+ * Normalizes only when the value looks URL-like; otherwise returns trimmed text unchanged.
+ * Use on blur and at publish validation — not on every keystroke in the composer.
+ */
+export function normalizeHttpUrlInputIfLikely(raw: string): string {
+	const trimmed = raw.trim();
+	if (!trimmed) return '';
+	if (!looksLikeHttpUrlInput(trimmed)) return trimmed;
+	return normalizeHttpUrlInput(trimmed);
+}
+
 /**
  * Ensures a user-typed URL has a valid http(s) scheme.
  * Fixes missing schemes and `https:host` / `http:host` (no `//`).

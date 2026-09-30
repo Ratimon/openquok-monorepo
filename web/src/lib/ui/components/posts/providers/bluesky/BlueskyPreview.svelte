@@ -11,6 +11,7 @@
 		threadReplies?: PublicPreviewThreadReplyViewModel[];
 		threadFinisher?: { enabled: boolean; message: string } | null;
 		previewMetaLabel?: string | null;
+		providerSettings?: Record<string, unknown>;
 	};
 </script>
 
@@ -20,7 +21,14 @@
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 	import ImageSlider from '$lib/ui/media-files/ImageSlider.svelte';
 	import PreviewScheduledSocialReplies from '$lib/ui/components/preview/PreviewScheduledSocialReplies.svelte';
-	import { classifyBlueskyPreviewMediaMode } from '$lib/ui/components/posts/providers/bluesky/bluesky.provider';
+	import {
+		classifyBlueskyPreviewMediaMode,
+		readBlueskyLaunchSettings
+	} from '$lib/ui/components/posts/providers/bluesky/bluesky.provider';
+	import {
+		mockBlueskyLinkCardDescription,
+		mockBlueskyLinkCardTitle
+	} from '$lib/ui/components/posts/providers/bluesky/blueskyLinkCardPreview';
 	import { blueskyGraphemeLength } from '$lib/posts/utils/composer/blueskyGraphemeLength';
 
 	let {
@@ -31,8 +39,34 @@
 		mediaStoragePaths = [],
 		threadReplies = [],
 		threadFinisher = null,
-		previewMetaLabel = null
+		previewMetaLabel = null,
+		providerSettings = {}
 	}: BlueskyPreviewProps = $props();
+
+	const blueskySettings = $derived(readBlueskyLaunchSettings(providerSettings));
+	const linkUrl = $derived(blueskySettings.linkUrl?.trim() || '');
+	const linkTitle = $derived(blueskySettings.linkTitle?.trim() || '');
+	const linkDescription = $derived(blueskySettings.linkDescription?.trim() || '');
+	const quoteUrl = $derived(blueskySettings.quoteUrl?.trim() || '');
+	const showLinkCard = $derived(
+		Boolean(linkUrl) && mediaUrls.length === 0 && !quoteUrl
+	);
+	const linkCardHost = $derived(formatLinkCardHost(linkUrl));
+	const linkCardTitle = $derived(linkTitle || mockBlueskyLinkCardTitle(linkUrl));
+	const linkCardDescription = $derived(
+		linkDescription || mockBlueskyLinkCardDescription(linkUrl, linkCardHost)
+	);
+	const linkTitleIsPlaceholder = $derived(!linkTitle);
+	const linkDescriptionIsPlaceholder = $derived(!linkDescription);
+
+	function formatLinkCardHost(url: string): string {
+		if (!url) return '';
+		try {
+			return new URL(url).hostname;
+		} catch {
+			return url.length > 48 ? `${url.slice(0, 45)}…` : url;
+		}
+	}
 
 	const handle = $derived((channel.name || '').trim() || 'handle.bsky.social');
 	const usedGraphemes = $derived(blueskyGraphemeLength(previewText));
@@ -101,6 +135,45 @@
 					{/if}
 				{/if}
 			</div>
+
+			{#if showLinkCard}
+				<div class="mt-3 overflow-hidden rounded-xl border border-base-300 bg-base-100">
+					<div class="space-y-1 px-3 py-2.5">
+						<p
+							class="text-[15px] font-bold leading-5 text-base-content {linkTitleIsPlaceholder
+								? 'text-base-content/75'
+								: ''}"
+							title={linkTitleIsPlaceholder ? 'Mock title — set Link title in Settings' : undefined}
+						>
+							{linkCardTitle}
+						</p>
+						<p
+							class="text-[15px] leading-5 text-base-content/60 {linkDescriptionIsPlaceholder
+								? 'italic'
+								: ''}"
+							title={linkDescriptionIsPlaceholder
+								? 'Mock description — set Link description in Settings'
+								: undefined}
+						>
+							{linkCardDescription}
+						</p>
+					</div>
+					{#if linkCardHost}
+						<div
+							class="flex items-center gap-2 border-t border-base-300 px-3 py-2 text-[15px] text-base-content/50"
+						>
+							<AbstractIcon
+								name={icons.Globe.name}
+								class="size-4 shrink-0"
+								width="16"
+								height="16"
+								aria-hidden="true"
+							/>
+							<span class="min-w-0 truncate">{linkCardHost}</span>
+						</div>
+					{/if}
+				</div>
+			{/if}
 
 			{#if mediaUrls.length > 0}
 				<div class="mt-3 overflow-hidden rounded-2xl border border-base-300 bg-base-200">

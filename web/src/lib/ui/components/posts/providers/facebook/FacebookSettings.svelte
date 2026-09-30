@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { normalizeHttpUrlInput } from '$lib/utils/normalizeHttpUrlInput';
+	import ProviderHttpUrlInput from '$lib/ui/components/posts/providers/ProviderHttpUrlInput.svelte';
+	import { normalizeHttpUrlInputIfLikely } from '$lib/utils/normalizeHttpUrlInput';
 
 	type Props = {
 		postType?: 'post' | 'story';
@@ -13,7 +14,7 @@
 	function normalizeEmbeddedUrlOnBlur() {
 		const trimmed = url.trim();
 		if (!trimmed) return;
-		const normalized = normalizeHttpUrlInput(trimmed);
+		const normalized = normalizeHttpUrlInputIfLikely(trimmed);
 		if (normalized !== url) url = normalized;
 	}
 </script>
@@ -43,10 +44,8 @@
 			<label class="text-xs font-medium text-base-content/70" for="fb-embedded-url">
 				Embedded URL (only for text Post)
 			</label>
-			<input
+			<ProviderHttpUrlInput
 				id="fb-embedded-url"
-				type="text"
-				class="border-base-300 bg-base-100 w-full rounded-md border px-3 py-2 text-sm"
 				placeholder="https://example.com/article"
 				bind:value={url}
 				onblur={normalizeEmbeddedUrlOnBlur}

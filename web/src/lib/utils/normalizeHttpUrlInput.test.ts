@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
 	normalizeHttpUrlInput,
+	normalizeHttpUrlInputIfLikely,
 	normalizeXCommunityUrlInput
 } from '$lib/utils/normalizeHttpUrlInput';
 
@@ -28,6 +29,17 @@ describe('normalizeHttpUrlInput', () => {
 	it('returns empty for blank input', () => {
 		expect(normalizeHttpUrlInput('')).toBe('');
 		expect(normalizeHttpUrlInput('   ')).toBe('');
+	});
+});
+
+describe('normalizeHttpUrlInputIfLikely', () => {
+	it('does not prepend https to sentences', () => {
+		const sentence = 'You need approval before AI drafts go live.';
+		expect(normalizeHttpUrlInputIfLikely(sentence)).toBe(sentence);
+	});
+
+	it('still normalizes host-like values', () => {
+		expect(normalizeHttpUrlInputIfLikely('www.example.com/x')).toBe('https://www.example.com/x');
 	});
 });
 

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { XReplySetting } from '$lib/ui/components/posts/providers/provider.types';
 
+	import ProviderHttpUrlInput from '$lib/ui/components/posts/providers/ProviderHttpUrlInput.svelte';
 	import { normalizeXCommunityUrlInput } from '$lib/utils/normalizeHttpUrlInput';
 
 	type Props = {
@@ -53,10 +54,8 @@
 		<label class="text-xs font-medium text-base-content/70" for="x-community-url">
 			Post to a community, URL ex. https://x.com/i/communities/123456789 (optional)
 		</label>
-		<input
+		<ProviderHttpUrlInput
 			id="x-community-url"
-			type="text"
-			class="border-base-300 bg-base-100 w-full rounded-md border px-3 py-2 text-sm"
 			placeholder="https://x.com/i/communities/123456789"
 			bind:value={communityUrl}
 			onblur={normalizeCommunityUrlOnBlur}

@@ -5,7 +5,7 @@ import type {
 	LaunchProviderConfig
 } from '$lib/ui/components/posts/providers/provider.types';
 
-import { normalizeHttpUrlInput } from '$lib/utils/normalizeHttpUrlInput';
+import { normalizeHttpUrlInputIfLikely } from '$lib/utils/normalizeHttpUrlInput';
 
 /** Dev.to article body limit (matches backend `DevToProvider.maxLength`). */
 export const DEVTO_MAX_CHARACTERS = 100_000;
@@ -100,7 +100,7 @@ export function readDevtoLaunchSettings(settings: Record<string, unknown>): Devt
 					? settings.canonicalUrl.trim()
 					: '';
 	const canonicalRaw = nestedCanonical || flatCanonical;
-	const canonical = canonicalRaw ? normalizeHttpUrlInput(canonicalRaw) : '';
+	const canonical = canonicalRaw ? normalizeHttpUrlInputIfLikely(canonicalRaw) : '';
 
 	const nestedSeries = typeof bucket?.series === 'string' ? bucket.series.trim() : '';
 	const flatSeries = typeof settings.series === 'string' ? settings.series.trim() : '';
