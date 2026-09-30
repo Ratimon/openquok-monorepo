@@ -363,6 +363,15 @@
 				<p class="mt-4 text-base leading-relaxed text-base-content/80">
 					{leftProductVm.overview}
 				</p>
+				<div class="mt-6">
+					<CompareProductLink
+						slug={leftProductVm.slug as CompareProductSlug}
+						class="btn btn-outline btn-sm justify-center sm:w-auto"
+						ariaLabel={`Visit ${leftProductVm.name} official site`}
+					>
+						Visit official site
+					</CompareProductLink>
+				</div>
 			</article>
 			<article class="rounded-2xl border border-base-content/10 bg-base-200/40 p-6">
 				<div class="flex items-center gap-3">
@@ -393,6 +402,15 @@
 				<p class="mt-4 text-base leading-relaxed text-base-content/80">
 					{rightProductVm.overview}
 				</p>
+				<div class="mt-6">
+					<CompareProductLink
+						slug={rightProductVm.slug as CompareProductSlug}
+						class="btn btn-outline btn-sm justify-center sm:w-auto"
+						ariaLabel={`Visit ${rightProductVm.name} official site`}
+					>
+						Visit official site
+					</CompareProductLink>
+				</div>
 			</article>
 		</div>
 	</section>
@@ -404,8 +422,12 @@
 			subtitle="pricing"
 			title="Pricing & plans"
 			description={`Compare the plans and prices for ${leftProductVm.name} and ${rightProductVm.name}.`}
+			leftProductSlug={leftProductVm.slug}
+			rightProductSlug={rightProductVm.slug}
 			leftProductName={leftProductVm.name}
 			rightProductName={rightProductVm.name}
+			leftPricingUnit={leftProductVm.pricingUnit}
+			rightPricingUnit={rightProductVm.pricingUnit}
 			leftPlansVm={leftProductVm.pricingPlans}
 			rightPlansVm={rightProductVm.pricingPlans}
 		/>

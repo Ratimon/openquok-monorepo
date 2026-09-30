@@ -10,6 +10,7 @@ import {
 	type CompareFeatureCell,
 	type ComparePair,
 	type ComparePricingPlan,
+	type ComparePricingUnit,
 	type CompareProductSlug
 } from '$lib/content/constants/competitors';
 import type { PublicFaqItem } from '$lib/content/constants/faq';
@@ -26,11 +27,12 @@ export type CompareFeatureCellViewModel = CompareFeatureCell;
 export type ComparePricingPlanViewModel = ComparePricingPlan;
 
 export type CompareProductSummaryViewModel = {
-	slug: string;
+	slug: CompareProductSlug;
 	name: string;
 	icon: IconName;
 	tagline: string;
 	overview: string;
+	pricingUnit: ComparePricingUnit;
 	pricingPlans: ComparePricingPlanViewModel[];
 	channels: string[];
 };
@@ -258,6 +260,7 @@ function toProductSummary(product: NonNullable<ReturnType<typeof getCompareProdu
 		icon: product.icon,
 		tagline: product.tagline,
 		overview: product.overview,
+		pricingUnit: product.pricingUnit ?? 'flat',
 		pricingPlans: product.pricingPlans,
 		channels: product.channels
 	};

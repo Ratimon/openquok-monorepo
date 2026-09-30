@@ -4,6 +4,12 @@ import { icons } from '$data/icons';
 
 const OPENPOST_PRICING_PLANS: ComparePricingPlan[] = [
 	{
+		name: 'Self-host',
+		monthlyPrice: 0,
+		tagline: 'Best when you operate OpenPost on your own infrastructure under AGPL',
+		footnote: 'No OpenPost software fee · you pay for servers, secrets, and social developer apps'
+	},
+	{
 		name: 'Starter',
 		monthlyPrice: 15,
 		tagline: 'Best for one company building a repeatable content habit',

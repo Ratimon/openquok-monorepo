@@ -83,6 +83,7 @@ export const hootsuiteCompareProduct: CompareProduct = {
 	slug: 'hootsuite',
 	name: 'Hootsuite',
 	icon: icons.Hootsuite.name,
+	pricingUnit: 'per_seat',
 	tagline: 'Social marketing suite with Wisdom AI since 2008',
 	overview:
 		'Hootsuite is an established social media management platform for marketing teams. Standard through Advanced plans cover publishing, a unified inbox, analytics, and Wisdom AI — with per-user pricing, up to 10 social accounts on Standard, and unlimited accounts on Professional and above.',

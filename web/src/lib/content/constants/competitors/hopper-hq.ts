@@ -69,6 +69,7 @@ export const hopperHqCompareProduct: CompareProduct = {
 	slug: 'hopper-hq',
 	name: 'Hopper HQ',
 	icon: icons.HopperHQ.name,
+	pricingUnit: 'per_channel',
 	tagline: 'Visual-first social scheduler for small businesses since 2014',
 	overview:
 		'Hopper HQ is a visual-first social media scheduler for small businesses, creators, and agencies. Plan posts, stories, and reels from a combined calendar, preview your Instagram grid, bulk-upload a month of content, and auto-publish across major networks — with per-account pricing, unlimited posts, and a 14-day free trial.',

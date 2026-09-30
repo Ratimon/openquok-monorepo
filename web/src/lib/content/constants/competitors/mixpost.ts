@@ -7,7 +7,7 @@ const MIXPOST_PRICING_PLANS: ComparePricingPlan[] = [
 		name: 'Lite',
 		monthlyPrice: 0,
 		tagline: 'Best for individuals self-hosting essential scheduling',
-		footnote: 'Open-source · Facebook Pages, X, and Mastodon · basic analytics'
+		footnote: 'Self-host · open-source · Facebook Pages, X, and Mastodon · basic analytics'
 	},
 	{
 		name: 'Pro',

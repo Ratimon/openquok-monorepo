@@ -10,12 +10,13 @@ import {
 	type PublicPricingCompareRowId
 } from '$lib/billing/constants/publicPricingCatalog';
 import { listAvailablePublicChannelCompareLabels } from '$lib/content/constants/channels';
+import { PUBLIC_SELF_HOST_PRICING_FOOTNOTE_CONFIG } from '$lib/content/constants/self-hosting/landing';
 import { formatBytes } from '$lib/medias';
 import { icons } from '$data/icons';
 
 const OPENQUOK_CHANNELS = listAvailablePublicChannelCompareLabels();
 
-const OPENQUOK_PRICING_PLANS: ComparePricingPlan[] = PUBLIC_PRICING_TIER_ORDER.map((tier) => {
+const OPENQUOK_CLOUD_PRICING_PLANS: ComparePricingPlan[] = PUBLIC_PRICING_TIER_ORDER.map((tier) => {
 	const limits = planLimitsForTier(tier);
 	const meta = PUBLIC_PRICING_PLAN_META[tier];
 	return {
@@ -25,6 +26,18 @@ const OPENQUOK_PRICING_PLANS: ComparePricingPlan[] = PUBLIC_PRICING_TIER_ORDER.m
 		footnote: tier === 'SOLO' ? '7-day free trial · no credit card required' : undefined
 	};
 });
+
+const OPENQUOK_SELF_HOST_PRICING_PLAN: ComparePricingPlan = {
+	name: 'Self-host',
+	monthlyPrice: 0,
+	tagline: 'Best when you run OpenQuok on Docker Compose or your own cloud stack',
+	footnote: PUBLIC_SELF_HOST_PRICING_FOOTNOTE_CONFIG.body
+};
+
+const OPENQUOK_PRICING_PLANS: ComparePricingPlan[] = [
+	...OPENQUOK_CLOUD_PRICING_PLANS,
+	OPENQUOK_SELF_HOST_PRICING_PLAN
+];
 
 function tierDisplayNameForCompare(tier: PaidSubscriptionTier): string {
 	if (tier === 'SOLO') return 'Solo';

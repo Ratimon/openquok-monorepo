@@ -38,7 +38,7 @@ import {
 
 export * from '$lib/content/constants/competitors/types';
 export * from '$lib/content/constants/competitors/shared';
-export { buildComparePair } from '$lib/content/constants/competitors/buildComparePair';
+export * from '$lib/content/constants/competitors/utils/comparePricing';
 export { openquokCompareProduct } from '$lib/content/constants/competitors/openquok';
 export { hopperHqCompareProduct } from '$lib/content/constants/competitors/hopper-hq';
 export { heropostCompareProduct } from '$lib/content/constants/competitors/heropost';

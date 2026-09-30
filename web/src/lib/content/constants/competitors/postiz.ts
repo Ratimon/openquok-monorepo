@@ -4,6 +4,13 @@ import { icons } from '$data/icons';
 
 const POSTIZ_PRICING_PLANS: ComparePricingPlan[] = [
 	{
+		name: 'Self-host',
+		monthlyPrice: 0,
+		tagline: 'Best when you run the open-source stack on your own infrastructure',
+		footnote:
+			'AGPL-3.0 · no Postiz software fee · you provide Postgres, Redis, Temporal, and hosting · no Stripe = no cloud plan caps'
+	},
+	{
 		name: 'Standard',
 		monthlyPrice: 29,
 		tagline: 'Best for content creators scheduling across a handful of channels',
@@ -49,7 +56,7 @@ const POSTIZ_CHANNELS = [
 
 const POSTIZ_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, CompareFeatureCell>> = {
 	workspaces: { kind: 'text', text: '1 for all plans' },
-	channels: { kind: 'text', text: '5–100 by plan' },
+	channels: { kind: 'text', text: '5–100 on Cloud · unlimited channels self-host (no Stripe)' },
 	posts_per_month: { kind: 'text', text: 'Unlimited on paid plans' },
 	team_members: { kind: 'text', text: 'Solo on Standard · unlimited on Team+' },
 	ai_writer: { kind: 'excluded' },

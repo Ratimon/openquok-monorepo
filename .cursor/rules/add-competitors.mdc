@@ -77,7 +77,8 @@ Export a `CompareProduct` with:
 | `slug`, `name`, `icon` | `icon: icons.{Brand}.name` |
 | `tagline` | Short subtitle under the name on compare pages (ASD-STE100) |
 | `overview` | 2–3 short sentences for platform overview and alternatives listings (ASD-STE100) |
-| `pricingPlans` | `ComparePricingPlan[]` — public list prices in USD; `monthlyPrice: null` for custom/enterprise |
+| `pricingPlans` | `ComparePricingPlan[]` — public list prices in USD; `monthlyPrice: null` for custom/enterprise; add a **Self-host** row at `$0` when the vendor ships AGPL/OSS self-host with no software fee |
+| `pricingUnit` | Optional: `per_channel` (Buffer, Hopper HQ), `per_seat` (Hootsuite), or omit for flat workspace/account bundles |
 | `channels` | Human labels aligned with `listAvailablePublicChannelCompareLabels()` in `channels/index.ts` so channel compare icons resolve |
 | `featureSupport` | `Partial<Record<PublicPricingCompareRowId, CompareFeatureCell>>` — one cell per row in `PUBLIC_PRICING_COMPARE_ROWS` (`included` / `excluded` / `text`) |
 | `comparison` | `headline`, `notAnother`, `builtFor`, `positioningWhenLeft`, optional `withoutTitle`, and `talkingPoints` — all ASD-STE100 |

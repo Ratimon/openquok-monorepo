@@ -78,12 +78,16 @@ export type CompareProductComparison = {
 	talkingPoints: Partial<Record<CompareTalkingPointId, CompareTalkingPointCopy>>;
 };
 
+export type ComparePricingUnit = 'flat' | 'per_channel' | 'per_seat';
+
 export type CompareProduct = {
 	slug: CompareProductSlug;
 	name: string;
 	icon: IconName;
 	tagline: string;
 	overview: string;
+	/** When `per_channel`, each plan `monthlyPrice` is USD per connected social account. When `per_seat`, USD per user/seat. */
+	pricingUnit?: ComparePricingUnit;
 	pricingPlans: ComparePricingPlan[];
 	channels: string[];
 	featureSupport: Partial<Record<PublicPricingCompareRowId, CompareFeatureCell>>;
