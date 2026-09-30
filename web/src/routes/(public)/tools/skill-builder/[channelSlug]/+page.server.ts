@@ -2,14 +2,13 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import { error } from '@sveltejs/kit';
 
-import type { SoftwareApplication } from 'schema-dts';
-
 import { publicSkillBuilderPagePresenter } from '$lib/area-public';
 import {
 	getRootPathPublicSkillBuilder,
 	getRootPathPublicSkillBuilderChannel
 } from '$lib/area-public/constants/getRootPathPublicTools';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
+import { buildSkillBuilderFaqSection } from '$lib/content/constants/channels/tools/skill-builder/faq';
 import {
 	getSkillBuilderChannelBySlug,
 	listSkillBuilderChannelsForHub
@@ -18,8 +17,9 @@ import { getBuildingBlockSlugsQueryParam } from '$lib/skill-builder/utils/parseB
 import { buildToolsLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
-import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
-import { createJsonLdGraph } from '$lib/seo/jsonLdSchema';
+import { buildPublicToolPageJsonLdGraph } from '$lib/seo/tools/buildPublicToolPageJsonLdGraph';
+import { createSkillBuilderHowToSchema } from '$lib/seo/tools/howTo/publicToolHowToSchemas';
+import { PUBLIC_TOOL_FEATURE_LISTS } from '$lib/seo/tools/publicToolFeatureLists';
 
 export const ssr = true;
 
@@ -45,6 +45,8 @@ export async function load({ url, params, cookies, fetch, parent }) {
 		channelSlug
 	});
 
+	const faqSection = buildSkillBuilderFaqSection(builderVm.channelSlug, builderVm.channelLabel);
+
 	const metaTags = (await createMetaData({
 		companyInformation: companyInformationPm,
 		marketingInformation: marketingInformationPm,
@@ -56,31 +58,32 @@ export async function load({ url, params, cookies, fetch, parent }) {
 	})) satisfies MetaTagsProps;
 
 	const canonical = buildCanonicalUrl(url);
-	const schemaData = createJsonLdGraph([
-		{
-			'@type': 'WebApplication',
-			'@id': `${canonical}#webapp`,
+	const schemaData = buildPublicToolPageJsonLdGraph({
+		siteOrigin: url.origin,
+		webApp: {
+			canonicalUrl: canonical,
 			name: builderVm.metaTitle,
 			description: builderVm.metaDescription,
 			applicationCategory: 'DeveloperApplication',
-			url: canonical,
-			offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-			isPartOf: {
-				'@type': 'WebSite',
-				name: companyName,
-				url: url.origin
-			}
-		} satisfies SoftwareApplication,
-		createBreadcrumbListSchema(
-			buildToolsLandingBreadcrumbItems({
-				toolLabel: 'Skill Builder',
-				toolRootPath: getRootPathPublicSkillBuilder(),
-				channelLabel: builderVm.channelLabel,
-				channelRootPath: getRootPathPublicSkillBuilderChannel(channelSlug)
-			}),
-			url.origin
-		)
-	]);
+			siteOrigin: url.origin,
+			companyName,
+			featureList: PUBLIC_TOOL_FEATURE_LISTS.skillBuilder,
+			aboutChannelLabel: builderVm.channelLabel
+		},
+		breadcrumbItems: buildToolsLandingBreadcrumbItems({
+			toolLabel: 'Skill Builder',
+			toolRootPath: getRootPathPublicSkillBuilder(),
+			channelLabel: builderVm.channelLabel,
+			channelRootPath: getRootPathPublicSkillBuilderChannel(channelSlug)
+		}),
+		faqSection,
+		additionalNodes: [
+			createSkillBuilderHowToSchema({
+				canonicalUrl: canonical,
+				channelLabel: builderVm.channelLabel
+			})
+		]
+	});
 
 	return {
 		pageMetaTags: withCanonicalMetaTags(metaTags, canonical),

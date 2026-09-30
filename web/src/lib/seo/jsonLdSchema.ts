@@ -34,3 +34,33 @@ export function filterNonEmptyJsonLdNodes(
 ): JsonLdGraphNode[] {
 	return nodes.filter((node) => Object.keys(node).length > 0) as JsonLdGraphNode[];
 }
+
+type JsonLdTypeField = string | string[] | undefined;
+
+function readJsonLdTypeField(node: JsonLdGraphNode): JsonLdTypeField {
+	if (typeof node !== 'object' || node === null || !('@type' in node)) {
+		return undefined;
+	}
+	return (node as { '@type'?: JsonLdTypeField })['@type'];
+}
+
+/** Read `@type` from a graph node (`Thing` is not indexed by `@type` in schema-dts). */
+export function getJsonLdNodeType(node: JsonLdGraphNode): string | undefined {
+	const type = readJsonLdTypeField(node);
+	if (typeof type === 'string') return type;
+	if (Array.isArray(type)) {
+		return type.find((item): item is string => typeof item === 'string');
+	}
+	return undefined;
+}
+
+export function listJsonLdGraphNodeTypes(graph: JsonLdGraphSchema): string[] {
+	return graph['@graph'].map((node) => getJsonLdNodeType(node)).filter((t): t is string => t != null);
+}
+
+export function findJsonLdGraphNodeByType(
+	graph: JsonLdGraphSchema,
+	type: string
+): JsonLdGraphNode | undefined {
+	return graph['@graph'].find((node) => getJsonLdNodeType(node) === type);
+}

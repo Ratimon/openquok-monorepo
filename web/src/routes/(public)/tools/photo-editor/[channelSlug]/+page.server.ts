@@ -1,7 +1,5 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import type { SoftwareApplication } from 'schema-dts';
-
 import { error } from '@sveltejs/kit';
 
 import { publicPhotoEditorPagePresenter } from '$lib/area-public';
@@ -14,11 +12,13 @@ import {
 	getCanvasChannelBySlug,
 	listCanvasChannelsForHub
 } from '$lib/canvas';
+import { buildPhotoEditorFaqSection } from '$lib/content/constants/channels/tools/photo-editor/faq';
 import { buildToolsLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
-import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
-import { createJsonLdGraph } from '$lib/seo/jsonLdSchema';
+import { buildPublicToolPageJsonLdGraph } from '$lib/seo/tools/buildPublicToolPageJsonLdGraph';
+import { createPhotoEditorHowToSchema } from '$lib/seo/tools/howTo/publicToolHowToSchemas';
+import { PUBLIC_TOOL_FEATURE_LISTS } from '$lib/seo/tools/publicToolFeatureLists';
 
 export const ssr = true;
 
@@ -35,6 +35,7 @@ export async function load({ url, params, cookies, parent }) {
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 
 	const editorVm = publicPhotoEditorPagePresenter.loadPhotoEditorVm({ channelSlug });
+	const faqSection = buildPhotoEditorFaqSection(editorVm.channelSlug, editorVm.channelLabel);
 
 	const metaTags = (await createMetaData({
 		companyInformation: companyInformationPm,
@@ -47,31 +48,32 @@ export async function load({ url, params, cookies, parent }) {
 	})) satisfies MetaTagsProps;
 
 	const canonical = buildCanonicalUrl(url);
-	const schemaData = createJsonLdGraph([
-		{
-			'@type': 'WebApplication',
-			'@id': `${canonical}#webapp`,
+	const schemaData = buildPublicToolPageJsonLdGraph({
+		siteOrigin: url.origin,
+		webApp: {
+			canonicalUrl: canonical,
 			name: editorVm.metaTitle,
 			description: editorVm.metaDescription,
 			applicationCategory: 'DesignApplication',
-			url: canonical,
-			offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-			isPartOf: {
-				'@type': 'WebSite',
-				name: companyName,
-				url: url.origin
-			}
-		} satisfies SoftwareApplication,
-		createBreadcrumbListSchema(
-			buildToolsLandingBreadcrumbItems({
-				toolLabel: 'Photo Editor',
-				toolRootPath: getRootPathPublicPhotoEditor(),
-				channelLabel: editorVm.channelLabel,
-				channelRootPath: getRootPathPublicPhotoEditorChannel(channelSlug)
-			}),
-			url.origin
-		)
-	]);
+			siteOrigin: url.origin,
+			companyName,
+			featureList: PUBLIC_TOOL_FEATURE_LISTS.photoEditor,
+			aboutChannelLabel: editorVm.channelLabel
+		},
+		breadcrumbItems: buildToolsLandingBreadcrumbItems({
+			toolLabel: 'Photo Editor',
+			toolRootPath: getRootPathPublicPhotoEditor(),
+			channelLabel: editorVm.channelLabel,
+			channelRootPath: getRootPathPublicPhotoEditorChannel(channelSlug)
+		}),
+		faqSection,
+		additionalNodes: [
+			createPhotoEditorHowToSchema({
+				canonicalUrl: canonical,
+				channelLabel: editorVm.channelLabel
+			})
+		]
+	});
 
 	return {
 		pageMetaTags: withCanonicalMetaTags(metaTags, canonical),

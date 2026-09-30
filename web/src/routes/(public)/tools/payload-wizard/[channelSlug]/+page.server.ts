@@ -1,7 +1,5 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import type { SoftwareApplication } from 'schema-dts';
-
 import { error } from '@sveltejs/kit';
 
 import { publicPayloadWizardPagePresenter } from '$lib/area-public';
@@ -11,7 +9,6 @@ import {
 } from '$lib/area-public/constants/getRootPathPublicTools';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { buildToolsLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
-import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { buildPayloadWizardFaqSection } from '$lib/content/constants/channels/tools/payload-wizard/faq';
 import {
 	getPayloadWizardChannelBySlug,
@@ -19,8 +16,9 @@ import {
 } from '$lib/content/constants/channels/tools/payload-wizard/general';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
-import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
-import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
+import { buildPublicToolPageJsonLdGraph } from '$lib/seo/tools/buildPublicToolPageJsonLdGraph';
+import { createPayloadWizardHowToSchema } from '$lib/seo/tools/howTo/publicToolHowToSchemas';
+import { PUBLIC_TOOL_FEATURE_LISTS } from '$lib/seo/tools/publicToolFeatureLists';
 
 export const ssr = true;
 
@@ -50,39 +48,32 @@ export async function load({ url, params, cookies, parent }) {
 	})) satisfies MetaTagsProps;
 
 	const canonical = buildCanonicalUrl(url);
-	const schemaData = createJsonLdGraph(
-		filterNonEmptyJsonLdNodes([
-			{
-				'@type': 'WebApplication',
-				'@id': `${canonical}#webapp`,
-				name: toolVm.heroTitle,
-				description: toolVm.metaDescription,
-				applicationCategory: 'DeveloperApplication',
-				url: canonical,
-				offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-				isPartOf: {
-					'@type': 'WebSite',
-					name: companyName,
-					url: url.origin
-				}
-			} satisfies SoftwareApplication,
-			createPublicFaqSEOSchema({
-				pageUrl: `${canonical}#faq`,
-				name: faqSection.faqTitle,
-				description: faqSection.faqDescription,
-				items: faqSection.faqItems
-			}),
-			createBreadcrumbListSchema(
-				buildToolsLandingBreadcrumbItems({
-					toolLabel: 'Payload Wizard',
-					toolRootPath: getRootPathPublicPayloadWizard(),
-					channelLabel: toolVm.channelLabel,
-					channelRootPath: getRootPathPublicPayloadWizardChannel(channelSlug)
-				}),
-				url.origin
-			)
-		])
-	);
+	const schemaData = buildPublicToolPageJsonLdGraph({
+		siteOrigin: url.origin,
+		webApp: {
+			canonicalUrl: canonical,
+			name: toolVm.heroTitle,
+			description: toolVm.metaDescription,
+			applicationCategory: 'DeveloperApplication',
+			siteOrigin: url.origin,
+			companyName,
+			featureList: PUBLIC_TOOL_FEATURE_LISTS.payloadWizard,
+			aboutChannelLabel: toolVm.channelLabel
+		},
+		breadcrumbItems: buildToolsLandingBreadcrumbItems({
+			toolLabel: 'Payload Wizard',
+			toolRootPath: getRootPathPublicPayloadWizard(),
+			channelLabel: toolVm.channelLabel,
+			channelRootPath: getRootPathPublicPayloadWizardChannel(channelSlug)
+		}),
+		faqSection,
+		additionalNodes: [
+			createPayloadWizardHowToSchema({
+				canonicalUrl: canonical,
+				channelLabel: toolVm.channelLabel
+			})
+		]
+	});
 
 	return {
 		pageMetaTags: withCanonicalMetaTags(metaTags, canonical),

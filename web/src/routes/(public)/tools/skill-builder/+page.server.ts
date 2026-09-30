@@ -1,10 +1,9 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import type { WebApplication } from 'schema-dts';
-
 import { publicSkillBuilderPagePresenter } from '$lib/area-public';
 import { getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
+import { buildSkillBuilderFaqSection } from '$lib/content/constants/channels/tools/skill-builder/faq';
 import {
 	listSkillBuilderChannelsForHub,
 	PUBLIC_SKILL_BUILDER_GENERIC_KEYWORDS
@@ -13,8 +12,9 @@ import { getBuildingBlockSlugsQueryParam } from '$lib/skill-builder/utils/parseB
 import { buildToolsLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
-import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
-import { createJsonLdGraph } from '$lib/seo/jsonLdSchema';
+import { buildPublicToolPageJsonLdGraph } from '$lib/seo/tools/buildPublicToolPageJsonLdGraph';
+import { createSkillBuilderHowToSchema } from '$lib/seo/tools/howTo/publicToolHowToSchemas';
+import { PUBLIC_TOOL_FEATURE_LISTS } from '$lib/seo/tools/publicToolFeatureLists';
 
 export const ssr = true;
 
@@ -32,6 +32,8 @@ export async function load({ url, cookies, fetch, parent }) {
 		stackSlug
 	});
 
+	const faqSection = buildSkillBuilderFaqSection();
+
 	const metaTags = (await createMetaData({
 		companyInformation: companyInformationPm,
 		marketingInformation: marketingInformationPm,
@@ -43,24 +45,24 @@ export async function load({ url, cookies, fetch, parent }) {
 	})) satisfies MetaTagsProps;
 
 	const canonical = buildCanonicalUrl(url);
-	const schemaData = createJsonLdGraph([
-		{
-			'@type': 'WebApplication',
-			'@id': `${canonical}#webapp`,
+	const schemaData = buildPublicToolPageJsonLdGraph({
+		siteOrigin: url.origin,
+		webApp: {
+			canonicalUrl: canonical,
 			name: builderVm.metaTitle,
 			description: builderVm.metaDescription,
-			url: canonical,
 			applicationCategory: 'DeveloperApplication',
-			offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }
-		} satisfies WebApplication,
-		createBreadcrumbListSchema(
-			buildToolsLandingBreadcrumbItems({
-				toolLabel: 'Skill Builder',
-				toolRootPath: getRootPathPublicSkillBuilder()
-			}),
-			url.origin
-		)
-	]);
+			siteOrigin: url.origin,
+			companyName,
+			featureList: PUBLIC_TOOL_FEATURE_LISTS.skillBuilder
+		},
+		breadcrumbItems: buildToolsLandingBreadcrumbItems({
+			toolLabel: 'Skill Builder',
+			toolRootPath: getRootPathPublicSkillBuilder()
+		}),
+		faqSection,
+		additionalNodes: [createSkillBuilderHowToSchema({ canonicalUrl: canonical })]
+	});
 
 	return {
 		pageMetaTags: withCanonicalMetaTags(metaTags, canonical),

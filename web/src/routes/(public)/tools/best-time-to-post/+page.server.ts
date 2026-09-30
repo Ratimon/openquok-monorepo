@@ -1,10 +1,9 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import type { SoftwareApplication } from 'schema-dts';
-
 import { publicBestTimeToPostPagePresenter } from '$lib/area-public';
 import { getRootPathPublicBestTimeToPost } from '$lib/area-public/constants/getRootPathPublicTools';
 import {
+	buildBestTimeToPostFaqSection,
 	listBestTimeChannelsForHub,
 	PUBLIC_BEST_TIME_GENERIC_CONFIG
 } from '$lib/best-time-to-post';
@@ -12,8 +11,9 @@ import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { buildToolsLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
-import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
-import { createJsonLdGraph } from '$lib/seo/jsonLdSchema';
+import { buildPublicToolPageJsonLdGraph } from '$lib/seo/tools/buildPublicToolPageJsonLdGraph';
+import { createBestTimeToPostHowToSchema } from '$lib/seo/tools/howTo/publicToolHowToSchemas';
+import { PUBLIC_TOOL_FEATURE_LISTS } from '$lib/seo/tools/publicToolFeatureLists';
 
 export const ssr = true;
 
@@ -23,6 +23,7 @@ export async function load({ url, cookies, parent }) {
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 
 	const toolVm = publicBestTimeToPostPagePresenter.loadBestTimeToPostVm({});
+	const faqSection = buildBestTimeToPostFaqSection();
 
 	const metaTags = (await createMetaData({
 		companyInformation: companyInformationPm,
@@ -35,29 +36,24 @@ export async function load({ url, cookies, parent }) {
 	})) satisfies MetaTagsProps;
 
 	const canonical = buildCanonicalUrl(url);
-	const schemaData = createJsonLdGraph([
-		{
-			'@type': 'WebApplication',
-			'@id': `${canonical}#webapp`,
+	const schemaData = buildPublicToolPageJsonLdGraph({
+		siteOrigin: url.origin,
+		webApp: {
+			canonicalUrl: canonical,
 			name: toolVm.metaTitle,
 			description: toolVm.metaDescription,
 			applicationCategory: 'BusinessApplication',
-			url: canonical,
-			offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-			isPartOf: {
-				'@type': 'WebSite',
-				name: companyName,
-				url: url.origin
-			}
-		} satisfies SoftwareApplication,
-		createBreadcrumbListSchema(
-			buildToolsLandingBreadcrumbItems({
-				toolLabel: 'Best Time to Post',
-				toolRootPath: getRootPathPublicBestTimeToPost()
-			}),
-			url.origin
-		)
-	]);
+			siteOrigin: url.origin,
+			companyName,
+			featureList: PUBLIC_TOOL_FEATURE_LISTS.bestTimeToPost
+		},
+		breadcrumbItems: buildToolsLandingBreadcrumbItems({
+			toolLabel: 'Best Time to Post',
+			toolRootPath: getRootPathPublicBestTimeToPost()
+		}),
+		faqSection,
+		additionalNodes: [createBestTimeToPostHowToSchema({ canonicalUrl: canonical })]
+	});
 
 	return {
 		pageMetaTags: withCanonicalMetaTags(metaTags, canonical),
