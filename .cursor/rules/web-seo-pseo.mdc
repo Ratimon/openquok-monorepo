@@ -66,6 +66,8 @@ Do not add `agents/channels/{socialSlug}.ts` unless one host×channel needs copy
 
 Inventory: `web/src/lib/content/constants/_dev/programmatic-landing/publicProgrammaticLandingRegistry.ts`.
 
+**Naming:** `content/constants/landing/` is shared home/hub chrome (CTAs, breadcrumbs) — not `/channels/{slug}`. `self-hosting/landing.ts` is only `/self-hosting`. Channel identity is always `channels/catalog/platforms/{slug}.ts` (import via `channels/index.ts`).
+
 ## pSEO surface inventory
 
 | Surface | Hub | Detail / variants |

@@ -1,3 +1,7 @@
+/**
+ * Public API marketing (Tier 2 pSEO) — `/social-media-posting-api/{slug}` and scheduling sibling.
+ * Per-platform VMs: `posting/platforms/{slug}.ts` (posting + scheduling exports in one file).
+ */
 import type {
 	PublicApiCapability,
 	PublicApiPlatformPageViewModel,

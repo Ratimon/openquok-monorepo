@@ -135,7 +135,7 @@ Programmatic copy lives in `web/src/lib/content/utils/buildProgrammaticSeoTitles
 | `heroTitle` | On-page `<h1>` via `PublicLandingHeroTitle` | `Free {platform?} {tool name}` — reader-facing, usually lowercase after "Free" |
 | `metaDescription` | Meta + JSON-LD | Lead with "Free … in your browser" and end with "No sign up required" when the tool is guest-usable |
 
-- **Channel slugs** (`/tools/{tool}/{channelSlug}`) — builders take `platformLabel` from `publicChannelConfig` (e.g. `Free YouTube photo editor` H1, `Free YouTube Photo Editor — No Sign Up` title).
+- **Channel slugs** (`/tools/{tool}/{channelSlug}`) — builders take `platformLabel` from the channel catalog (`listAvailablePublicChannels()` / `channels/index.ts`) (e.g. `Free YouTube photo editor` H1, `Free YouTube Photo Editor — No Sign Up` title).
 - **Do not** reuse `metaTitle` as the visible H1 on tool pages — always pass `heroTitle` into the hero template.
 - **JSON-LD** `name` stays on `metaTitle` (keyword target), not `heroTitle`.
 

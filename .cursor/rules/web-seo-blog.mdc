@@ -43,7 +43,7 @@ Prefer **one or two** links per destination. Repeat the tool name in prose witho
 
 Use **root-relative** paths. The normalizer strips `rel`/`target` on same-site and `/…` hrefs so they stay **dofollow**. Do not add `rel="nofollow"` on internal anchors.
 
-Also link `/docs/…`, `/playbooks`, `/channels/{slug}` when those pages match the sentence. Channel slugs follow `publicChannelConfig` (`tiktok`, `instagram`, …).
+Also link `/docs/…`, `/playbooks`, `/channels/{slug}` when those pages match the sentence. Channel slugs follow the channel catalog (`channels/index.ts`; `tiktok`, `instagram`, …).
 
 ```html
 <!-- ✅ GOOD — Skill Builder is the destination; hub is not a substitute -->

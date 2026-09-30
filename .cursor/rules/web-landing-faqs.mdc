@@ -7,7 +7,7 @@ globs:
   - web/src/lib/content/constants/hubs/*.ts
   - web/src/lib/content/constants/channels/api/_shared/publicApiCapabilityHubFaqConfig.ts
   - web/src/lib/content/constants/channels/api/_shared/shared.ts
-  - web/src/lib/content/constants/channels/catalog/channel-faq-links.test.ts
+  - web/src/lib/content/constants/channels/catalog/platforms/channel-faq-links.test.ts
   - web/src/lib/content/constants/channels/index.ts
   - web/src/lib/content/constants/agents/index.ts
   - web/src/lib/content/constants/hubs/agents.ts
@@ -127,7 +127,7 @@ If `faqItems` is empty, component falls back to `[...PUBLIC_FAQ_ITEMS]` — rout
 | `faq/index.test.ts` | ids, pricing subset, `appendPublicGeneralFaqItems`, `resolvePublicFaqItemsVm` |
 | `hubs/hub-faq-links.test.ts` | Hub tailored + general ids present, funnel links |
 | `publicFaqLinks.test.ts` | API hub/platform append |
-| `channels/catalog/channel-faq-links.test.ts` | Per-channel tailored funnel (catalog constants; runtime append via getter) |
+| `channels/catalog/platforms/channel-faq-links.test.ts` | Per-channel tailored funnel (catalog constants; runtime append via getter) |
 
 ## PR checklist (FAQ touch)
 

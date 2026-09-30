@@ -1,3 +1,18 @@
+/**
+ * Public **social channel** programmatic SEO — canonical import for `/channels` and channel slugs.
+ *
+ * **pSEO tiers under `channels/`** (see `web-seo-pseo.mdc`):
+ * - **Tier 1** — `catalog/platforms/{slug}.ts` + `catalog/seeds.ts` → `/channels/{slug}`
+ * - **Tier 2** — `api/posting/platforms/{slug}.ts` → posting/scheduling API marketing
+ * - **Tier 3** — `tool-surfaces/{slug}.ts` + `tools/{tool}/general.ts` → `/tools/{tool}/{slug}` patches
+ *
+ * **Different folders (not channel identity):**
+ * - `content/constants/landing/` — shared CTAs, breadcrumbs, who-is-for for `/` and hub chrome
+ * - `content/constants/self-hosting/landing.ts` — `/self-hosting` page only (filename is historical)
+ *
+ * Import `getPublicChannelBySlug` / `listAvailablePublicChannels` from here — not legacy `public*Config` shims.
+ */
+
 import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/catalog/types';
@@ -9,15 +24,17 @@ import { PUBLIC_CHANNEL_LANDING_PAGES } from '$lib/content/constants/channels/ca
 
 export * from '$lib/content/constants/channels/catalog/types';
 export { SHARED_CHANNEL_SEO_KEYWORDS } from '$lib/content/constants/channels/catalog/shared';
-export { facebookChannel } from '$lib/content/constants/channels/catalog/platforms/facebook';
-export { threadsChannel } from '$lib/content/constants/channels/catalog/platforms/threads';
-export { instagramChannel } from '$lib/content/constants/channels/catalog/platforms/instagram';
-export { youtubeChannel } from '$lib/content/constants/channels/catalog/platforms/youtube';
-export { tiktokChannel } from '$lib/content/constants/channels/catalog/platforms/tiktok';
-export { linkedinChannel } from '$lib/content/constants/channels/catalog/platforms/linkedin';
-export { xChannel } from '$lib/content/constants/channels/catalog/platforms/x';
-export { devtoChannel } from '$lib/content/constants/channels/catalog/platforms/devto';
-export { blueskyChannel } from '$lib/content/constants/channels/catalog/platforms/bluesky';
+export {
+	blueskyChannel,
+	devtoChannel,
+	facebookChannel,
+	instagramChannel,
+	linkedinChannel,
+	threadsChannel,
+	tiktokChannel,
+	xChannel,
+	youtubeChannel
+} from '$lib/content/constants/channels/catalog/platforms/index';
 export {
 	PUBLIC_CHANNEL_LANDING_PAGES,
 	listPublicChannelLandingSeedsForFooter

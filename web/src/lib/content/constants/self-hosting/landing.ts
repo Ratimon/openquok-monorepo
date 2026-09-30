@@ -1,3 +1,8 @@
+/**
+ * `/self-hosting` programmatic landing config only.
+ *
+ * Not the home page (`/`) — see `landing/`. Not social channel pages — see `channels/catalog/platforms/`.
+ */
 import { icons } from '$data/icons';
 import type { IconName } from '$data/icons';
 
