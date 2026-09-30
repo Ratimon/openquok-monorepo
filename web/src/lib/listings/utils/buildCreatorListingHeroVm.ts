@@ -1,5 +1,6 @@
 import type { IconName } from '$data/icons';
 import { icons } from '$data/icons';
+import { PUBLIC_LANDING_HERO_TRIAL_CTA } from '$lib/content/constants/landing/hero-copy';
 
 export type CreatorListingHeroKind = 'building-block' | 'playbook';
 
@@ -25,7 +26,7 @@ export type CreatorListingHeroVm = {
 	installCommand?: string | null;
 };
 
-const CTA_TEXT = 'Get Started For Free';
+const CTA_TEXT = PUBLIC_LANDING_HERO_TRIAL_CTA;
 const CTA_HREF = '/pricing';
 const OPENQUOK_BRAND = 'OpenQuok';
 

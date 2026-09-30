@@ -3,6 +3,7 @@ import type { ModuleConfigSchema } from '$lib/config/constants/types';
 
 import { icons } from '$data/icons';
 import { getDefaultPublicFaqConfigItems } from '$lib/content/constants/faq';
+import { PUBLIC_LANDING_COMPACT_TRIAL_CTA } from '$lib/content/constants/landing/hero-copy';
 import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
 import { getRootPathPublicAgents } from '$lib/area-public/constants/getRootPathPublicAgents';
 import { getRootPathPublicChannels } from '$lib/area-public/constants/getRootPathPublicChannels';
@@ -744,7 +745,7 @@ export const CONFIG_SCHEMA_PUBLIC_FAQ: ModuleConfigSchema = {
 export const LISTING_IMAGES_BUCKET = 'listing_images' as const;
 
 /** Public CTA banner copy (agents, channels, blog). */
-export const PUBLIC_BANNER_CTA_TEXT = 'Start for $0';
+export const PUBLIC_BANNER_CTA_TEXT = PUBLIC_LANDING_COMPACT_TRIAL_CTA;
 
 export const CENTERED_DARK_CTA_BANNER_TITLE = 'Start free. Publish with confidence.';
 export const CENTERED_DARK_CTA_BANNER_DESCRIPTION =

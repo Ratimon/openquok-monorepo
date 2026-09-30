@@ -155,7 +155,7 @@ When adding an agent host or MCP client, update highlights in the same PR as the
 
 | Surface | CTA pattern |
 | --- | --- |
-| Channel detail | **One label everywhere:** `Get Started For Free` → `/pricing` (via presenter `secondaryCtaText` / `secondaryCtaHref`) |
+| Channel detail | **Hero:** `PUBLIC_LANDING_HERO_TRIAL_CTA` → `/pricing`; **feature rows / repeats:** `PUBLIC_LANDING_COMPACT_TRIAL_CTA` (presenter `heroCtaText` / `featureCtaText`, `hero-copy.ts`) |
 | Tool pages | `PUBLIC_BANNER_CTA_TEXT` / sign-up paths from `centeredDarkCtaBannerCopy` and tool-specific banner copy |
 | FAQ connect answers | Prefer `publicFaqHref.signUp` and `connectChannelsGuide` over operator docs (connect funnel below) |
 

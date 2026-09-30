@@ -5,6 +5,7 @@
 	import Background from '$lib/ui/background/Background.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
 	import VideoOrImage from '$lib/ui/media-files/VideoOrImage.svelte';
+	import { PUBLIC_LANDING_COMPACT_TRIAL_CTA } from '$lib/content/constants/landing/hero-copy';
 	import PublicLandingSectionHeading from '$lib/ui/templates/landing-page/PublicLandingSectionHeading.svelte';
 
 	type Props = {
@@ -45,7 +46,7 @@
 		mediaContainerClass,
 		mediaColumnClass,
 
-		ctaText = 'Get Started For Free',
+		ctaText = PUBLIC_LANDING_COMPACT_TRIAL_CTA,
 		ctaHref = '/pricing',
 		primaryCtaText,
 		primaryCtaHref,

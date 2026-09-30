@@ -35,7 +35,7 @@ describe('buildBuildingBlockCreatorListingHeroVm', () => {
 		});
 
 		expect(vm.eyebrow).toBe('OpenQuok');
-		expect(vm.ctaText).toBe('Get Started For Free');
+		expect(vm.ctaText).toBe('Try for free for 7 days');
 		expect(vm.ctaHref).toBe('/pricing');
 		expect(vm.docsCtaText).toBeUndefined();
 		expect(vm.docsCtaHref).toBeUndefined();

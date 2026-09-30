@@ -3,13 +3,18 @@ import {
 	resolvePublicChannelAudienceCards,
 	type PublicChannelLandingPageViewModel
 } from '$lib/content/constants/channels';
+import {
+	PUBLIC_LANDING_COMPACT_TRIAL_CTA,
+	PUBLIC_LANDING_HERO_TRIAL_CTA
+} from '$lib/content/constants/landing/hero-copy';
 
 export type PublicChannelViewModel = PublicChannelLandingPageViewModel;
 
 export class PublicChannelByPagePresenter {
 	public channelVm: PublicChannelViewModel | null = $state(null);
 
-	readonly secondaryCtaText = 'Get Started For Free';
+	readonly heroCtaText = PUBLIC_LANDING_HERO_TRIAL_CTA;
+	readonly featureCtaText = PUBLIC_LANDING_COMPACT_TRIAL_CTA;
 	readonly secondaryCtaHref = '/pricing';
 
 	/**

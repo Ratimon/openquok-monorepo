@@ -31,7 +31,8 @@
 	);
 	let mcpVm = $derived(landingVm && isPublicMcpLandingPage(landingVm) ? landingVm : null);
 
-	const secondaryCtaText = pagePresenter.secondaryCtaText;
+	const heroCtaText = pagePresenter.heroCtaText;
+	const featureCtaText = pagePresenter.featureCtaText;
 	const secondaryCtaHref = pagePresenter.secondaryCtaHref;
 </script>
 
@@ -41,7 +42,8 @@
 	<PublicMcpLandingPage
 		mcpVm={mcpVm}
 		listingsPreviewVm={listingsPreviewVm}
-		secondaryCtaText={secondaryCtaText}
+		{heroCtaText}
+		{featureCtaText}
 		secondaryCtaHref={secondaryCtaHref}
 		channelLinksVm={agentChannelLinksVm}
 		activeChannelSlug={channelSlug}
@@ -53,7 +55,8 @@
 	<PublicAgentLandingPage
 		agentVm={agentHostVm}
 		listingsPreviewVm={listingsPreviewVm}
-		secondaryCtaText={secondaryCtaText}
+		{heroCtaText}
+		{featureCtaText}
 		secondaryCtaHref={secondaryCtaHref}
 		channelLinksVm={agentChannelLinksVm}
 		activeChannelSlug={channelSlug}

@@ -1,9 +1,11 @@
+import { PUBLIC_LANDING_COMPACT_TRIAL_CTA } from '$lib/content/constants/landing/hero-copy';
+
 export const BEST_TIME_TO_POST_DOCS_BANNER = {
 	docsPath: '/pricing',
 	title: 'Schedule your timing tests in OpenQuok',
 	description:
 		'Turn benchmark slots into queued posts on your connected channels. Start free, then refine the schedule with workspace analytics.',
-	ctaText: 'Get Started For Free'
+	ctaText: PUBLIC_LANDING_COMPACT_TRIAL_CTA
 } as const;
 
 export function accentSplitBestTimeChannelCtaBannerTitle(label: string): string {
@@ -15,5 +17,5 @@ export function accentSplitBestTimeChannelCtaBannerDescription(label: string): s
 }
 
 export function accentSplitBestTimeChannelCtaBannerText(_label: string): string {
-	return 'Get Started For Free';
+	return PUBLIC_LANDING_COMPACT_TRIAL_CTA;
 }

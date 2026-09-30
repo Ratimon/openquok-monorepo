@@ -42,7 +42,8 @@
 	type Props = {
 		mcpVm: PublicMcpLandingPageViewModel;
 		listingsPreviewVm: PublicListingsPreviewVm | null;
-		secondaryCtaText: string;
+		heroCtaText: string;
+		featureCtaText: string;
 		secondaryCtaHref: string;
 		channelLinksVm?: PublicAgentChannelHubLinkViewModel[];
 		activeChannelSlug?: string | null;
@@ -54,7 +55,8 @@
 	let {
 		mcpVm,
 		listingsPreviewVm,
-		secondaryCtaText,
+		heroCtaText,
+		featureCtaText,
 		secondaryCtaHref,
 		channelLinksVm = [],
 		activeChannelSlug = null,
@@ -117,7 +119,7 @@
 {:else}
 	<PublicMcpHero
 		{mcpVm}
-		ctaText={secondaryCtaText}
+		ctaText={heroCtaText}
 		ctaHref={resolvedSecondaryCtaHref}
 		docsCtaText={PUBLIC_LANDING_GETTING_STARTED_GUIDE_CTA}
 		docsCtaHref={mcpVm.docsPath}
@@ -138,7 +140,7 @@
 
 <PublicLandingWorkflowSection
 	section={mcpVm.workflowSection}
-	ctaText={secondaryCtaText}
+	ctaText={featureCtaText}
 	ctaHref={resolvedSecondaryCtaHref}
 />
 
@@ -168,7 +170,7 @@
 	<PublicAgentFeatureSection
 		{section}
 		{index}
-		ctaText={secondaryCtaText}
+		ctaText={featureCtaText}
 		ctaHref={resolvedSecondaryCtaHref}
 	/>
 {/each}

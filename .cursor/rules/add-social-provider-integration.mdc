@@ -506,12 +506,13 @@ Each live `/channels/{slug}` page renders three feature rows via `HeroWithLeftMe
 
 ### CTA (detail pages)
 
-Use **one CTA label everywhere**, matching `web/src/lib/ui/templates/LandingPage.svelte`:
+Use trial CTAs from `web/src/lib/content/constants/landing/hero-copy.ts`, matching `LandingPage.svelte`:
 
-- **Text:** `Get Started For Free`
-- **Href:** `/pricing`
+- **Hero (H1 band):** `PUBLIC_LANDING_HERO_TRIAL_CTA` (hosted 7-day trial — not “free forever”)
+- **Feature rows / repeats:** `PUBLIC_LANDING_COMPACT_TRIAL_CTA`
+- **Href:** `/pricing` (`publicChannelByPagePresenter.secondaryCtaHref`)
 
-Wire through `web/src/routes/(public)/channels/[slug]/+page.svelte` (`publicChannelByPagePresenter.secondaryCtaText` / `secondaryCtaHref`) into the live hero and every feature section. **Do not** add login-dependent CTAs (`Start for $0`, `Open workspace`), a secondary “Setup guide” button, or a bottom CTA block.
+Wire `heroCtaText` into `PublicChannelHero` and `featureCtaText` into `HeroWithLeftMedia` / `HeroWithRightMedia` on `web/src/routes/(public)/channels/[slug]/+page.svelte`. **Do not** add login-dependent CTAs (`Open workspace`), a secondary “Setup guide” button, or a bottom CTA block.
 
 ### Load / page conventions
 
@@ -803,7 +804,7 @@ Host channel VMs: `agents/channels/{host}.ts` (from `listPublicChannelsForHub()`
 - **`web/src/data/social-providers.ts`:** display name + icon for new slug; **`SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS`** includes exact `provider.identifier` when `analytics()` / `postAnalytics()` ship (not a parent alias like `instagram` for `instagram-business`).
 - **`channels/catalog/platforms/{slug}.ts`:** `slug` / `platformId` match `provider.identifier`; `docsPath` matches setup guide; `available` reflects ship state; **`featureSections` use `bentoId`**, not generic `/landing/*.mp4`, at go-live; **each `featureSections[].title` has ≥3 comma-separated phrases**.
 - **Feature bento:** IDs in `publicChannelFeatureBentoConfig.ts`; branches in `BentoPublicChannelFeature.svelte`; mock + preview Svelte under `bento/minor-templates/`; showcases match shipped features only.
-- **Landing page:** hero + feature sections + FAQ filled; **copy is problem-first, user-facing, and ASD-STE100** (short sentences, active voice, `you`; not feature/spec lists); CTAs are only `Get Started For Free` → `/pricing`.
+- **Landing page:** hero + feature sections + FAQ filled; **copy is problem-first, user-facing, and ASD-STE100** (short sentences, active voice, `you`; not feature/spec lists); hero + feature CTAs from `hero-copy.ts` → `/pricing`.
 - **Main landing icons:** when go-live-ing a channel, update `web/src/data/landing-social-platforms.ts` — add the provider to `HERO_SOCIAL_PLATFORMS` and `FEATURES_GRID_SOCIAL_PLATFORMS` / `FEATURES_GRID_SOCIAL_ROWS` (not only `/channels/{slug}`). Prefer glyph icons (`icons.*Glyph`) with `GLYPH_TILE` when peers use them.
 - **Hub:** new channel appears on `/channels` (coming-soon badge or live link).
 - **Site footer:** no manual `PUBLIC_FOOTER_LINKS` / `buildPublicFooterLinks.ts` edits for the provider slug — **Supported Channels** picks up the catalog entry; **How to self-host with different social channels** picks up `social-integration/{identifier}.md` (non-draft, with `title` + `order`); tool columns follow live-channel rules above. Spot-check footer labels and hrefs before merge.

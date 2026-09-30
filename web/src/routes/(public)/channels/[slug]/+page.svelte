@@ -43,7 +43,8 @@
 	let channelVm: PublicChannelViewModel = $derived(data.channelVm);
 	let isLoggedIn = $derived(data.isLoggedIn === true);
 
-	const secondaryCtaText = pagePresenter.secondaryCtaText;
+	const heroCtaText = pagePresenter.heroCtaText;
+	const featureCtaText = pagePresenter.featureCtaText;
 	const secondaryCtaHref = $derived(
 		hostedMarketingHref(pagePresenter.secondaryCtaHref, page.url.origin)
 	);
@@ -73,7 +74,7 @@
 		<PublicChannelHero
 			channelVm={channelVm}
 			heroTheme={landingHeroTheme}
-			ctaText={secondaryCtaText}
+			ctaText={heroCtaText}
 			ctaHref={secondaryCtaHref}
 		/>
 	{:else}
@@ -97,7 +98,7 @@
 		landingTitle={String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_2_TITLE.default)}
 		landingDescription={String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_2_DESCRIPTION.default)}
 		showCta={false}
-		ctaText={secondaryCtaText}
+		ctaText={featureCtaText}
 		ctaHref={secondaryCtaHref}
 		bgColorClass="bg-base-100"
 		{isLoggedIn}
@@ -119,7 +120,7 @@
 				imageAlt={section.imageAlt}
 				rightMedia={section.bentoId ? sectionBento : undefined}
 				showCta={false}
-				ctaText={secondaryCtaText}
+				ctaText={featureCtaText}
 				ctaHref={secondaryCtaHref}
 				bgColorClass={(index + 1) % 2 === 0 ? 'bg-base-100' : 'bg-base-200'}
 			/>
@@ -133,7 +134,7 @@
 				imageAlt={section.imageAlt}
 				leftMedia={section.bentoId ? sectionBento : undefined}
 				showCta={false}
-				ctaText={secondaryCtaText}
+				ctaText={featureCtaText}
 				ctaHref={secondaryCtaHref}
 				bgColorClass={(index + 1) % 2 === 0 ? 'bg-base-100' : 'bg-base-200'}
 			/>

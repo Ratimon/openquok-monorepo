@@ -19,6 +19,7 @@
 		LANDING_HERO_HOURS_ROTATE_TEXTS,
 		LANDING_HERO_SLOGAN_NOT_ROTATE_TEXTS
 	} from '$lib/ui/templates/landing-page/landingHeroTheme';
+	import { PUBLIC_LANDING_HERO_TRIAL_CTA } from '$lib/content/constants/landing/hero-copy';
 	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
 
 	type Props = {
@@ -35,7 +36,7 @@
 		heroTitle = '',
 		heroSlogan = '',
 		heroPlatformsLabel = 'Connect your accounts — publish to your social channels',
-		ctaTextPrimary = 'Try it for free',
+		ctaTextPrimary = PUBLIC_LANDING_HERO_TRIAL_CTA,
 		ctaHrefPrimary = '#',
 		githubOwner = '',
 		githubRepo = ''

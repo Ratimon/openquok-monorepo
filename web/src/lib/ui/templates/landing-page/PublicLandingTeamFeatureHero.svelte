@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { LandingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
+	import { PUBLIC_LANDING_COMPACT_TRIAL_CTA } from '$lib/content/constants/landing/hero-copy';
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
 	import BentoLandingTeam from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingTeam.svelte';
 
@@ -21,7 +22,7 @@
 		landingSubtitle,
 		landingTitle,
 		landingDescription,
-		ctaText = 'Get Started For Free',
+		ctaText = PUBLIC_LANDING_COMPACT_TRIAL_CTA,
 		ctaHref = '/pricing',
 		showCta = true,
 		bgColorClass = 'bg-base-200',

@@ -15,6 +15,10 @@ import {
 	getPublicMcpLandingBySlug,
 	listPublicMcpLandingPages
 } from '$lib/content/constants/mcps';
+import {
+	PUBLIC_LANDING_COMPACT_TRIAL_CTA,
+	PUBLIC_LANDING_HERO_TRIAL_CTA
+} from '$lib/content/constants/landing/hero-copy';
 
 export type PublicAgentsLandingPage =
 	PublicAgentHostLandingPageViewModel | PublicMcpLandingPageViewModel;
@@ -57,7 +61,8 @@ export type PublicAgentsChannelPageViewModel = {
 export class PublicAgentByPagePresenter {
 	public agentVm: PublicAgentViewModel | null = $state(null);
 
-	readonly secondaryCtaText = 'Get Started For Free';
+	readonly heroCtaText = PUBLIC_LANDING_HERO_TRIAL_CTA;
+	readonly featureCtaText = PUBLIC_LANDING_COMPACT_TRIAL_CTA;
 	readonly secondaryCtaHref = '/pricing';
 
 	/**

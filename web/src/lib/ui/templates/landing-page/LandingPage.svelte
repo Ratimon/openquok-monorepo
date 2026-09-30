@@ -7,6 +7,10 @@
 	import { page } from '$app/state';
 	import { PUBLIC_LANDING_WHO_IS_FOR_CARDS } from '$lib/content/constants/landing/who-is-for';
 	import {
+		PUBLIC_LANDING_COMPACT_TRIAL_CTA,
+		PUBLIC_LANDING_HERO_TRIAL_CTA
+	} from '$lib/content/constants/landing/hero-copy';
+	import {
 		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
 		CENTERED_DARK_CTA_BANNER_TITLE,
 		CONFIG_SCHEMA_LANDING_PAGE,
@@ -270,7 +274,8 @@ openquok analytics:post <post-id> -d 30`
 			String(CONFIG_SCHEMA_LANDING_PAGE.FAQ_DESCRIPTION.default)
 	);
 
-	const secondaryCtaText = 'Get Started For Free';
+	const heroCtaText = PUBLIC_LANDING_HERO_TRIAL_CTA;
+	const featureCtaText = PUBLIC_LANDING_COMPACT_TRIAL_CTA;
 	const secondaryCtaHref = $derived(hostedMarketingHref('/pricing', page.url.origin));
 
 	// /sign-up
@@ -289,7 +294,7 @@ openquok analytics:post <post-id> -d 30`
 <HeroMain
 	{heroTitle}
 	{heroSlogan}
-	ctaTextPrimary={secondaryCtaText}
+	ctaTextPrimary={heroCtaText}
 	ctaHrefPrimary={secondaryCtaHref}
 	githubOwner="Ratimon"
 	githubRepo="openquok-monorepo"
@@ -317,7 +322,7 @@ openquok analytics:post <post-id> -d 30`
 	landingSubtitle={feature1Subtitle}
 	landingTitle={feature1Title}
 	landingDescription={feature1Description}
-	ctaText={secondaryCtaText}
+	ctaText={featureCtaText}
 	ctaHref={secondaryCtaHref}
 	mediaContainerClass="max-w-4xl"
 >
@@ -345,7 +350,7 @@ openquok analytics:post <post-id> -d 30`
 	landingSubtitle={feature2Subtitle}
 	landingTitle={feature2Title}
 	landingDescription={feature2Description}
-	ctaText={secondaryCtaText}
+	ctaText={featureCtaText}
 	ctaHref={secondaryCtaHref}
 	{isLoggedIn}
 />
@@ -355,7 +360,7 @@ openquok analytics:post <post-id> -d 30`
 	landingSubtitle={feature3Subtitle}
 	landingTitle={feature3Title}
 	landingDescription={feature3Description}
-	ctaText={secondaryCtaText}
+	ctaText={featureCtaText}
 	ctaHref={secondaryCtaHref}
 >
 	{#snippet rightMedia()}
@@ -368,7 +373,7 @@ openquok analytics:post <post-id> -d 30`
 	landingSubtitle={feature4Subtitle}
 	landingTitle={feature4Title}
 	landingDescription={feature4Description}
-	ctaText={secondaryCtaText}
+	ctaText={featureCtaText}
 	ctaHref={secondaryCtaHref}
 >
 	{#snippet leftMedia()}
@@ -383,7 +388,7 @@ openquok analytics:post <post-id> -d 30`
 	landingDescription={feature5Description}
 	imageSrc="/landing/5-calendar-filters-views.mp4"
 	imageAlt="Calendar day, week, month, and list views with smart filters"
-	ctaText={secondaryCtaText}
+	ctaText={featureCtaText}
 	ctaHref={secondaryCtaHref}
 />
 
@@ -394,7 +399,7 @@ openquok analytics:post <post-id> -d 30`
 	landingDescription={feature6Description}
 	imageSrc="/landing/6-kanban-filters-drag-drop.mp4"
 	imageAlt="Kanban board with drag-and-drop review workflow"
-	ctaText={secondaryCtaText}
+	ctaText={featureCtaText}
 	ctaHref={secondaryCtaHref}
 />
 
@@ -405,7 +410,7 @@ openquok analytics:post <post-id> -d 30`
 	landingDescription={feature7Description}
 	imageSrc="/landing/7-file-manager.mp4"
 	imageAlt="Workspace-scoped file manager for media assets"
-	ctaText={secondaryCtaText}
+	ctaText={featureCtaText}
 	ctaHref={secondaryCtaHref}
 />
 
@@ -416,14 +421,14 @@ openquok analytics:post <post-id> -d 30`
 	landingDescription={feature8Description}
 	imageSrc="/landing/8-analytics.mp4"
 	imageAlt="Analytics dashboard across social channels"
-	ctaText={secondaryCtaText}
+	ctaText={featureCtaText}
 	ctaHref={secondaryCtaHref}
 />
 
 <PublicAgentFeatureSection
 	section={feature9Section}
 	index={8}
-	ctaText={secondaryCtaText}
+	ctaText={featureCtaText}
 	ctaHref={secondaryCtaHref}
 />
 
