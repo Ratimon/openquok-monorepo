@@ -37,16 +37,16 @@ describe('normalizeBlogContentLinks', () => {
 		expect(normalizeBlogContentLinks(html)).toBe(`<p><a href="/pricing">Pricing</a></p>`);
 	});
 
-	it('keeps npmjs and first-party GitHub followable', () => {
+	it('nofollows npmjs and first-party GitHub (same as other external hosts)', () => {
 		expect(normalizeBlogContentLinks('<p><a href="https://www.npmjs.com/package/@openquok/auto-cli">CLI</a></p>')).toBe(
-			'<p><a href="https://www.npmjs.com/package/@openquok/auto-cli" target="_blank">CLI</a></p>'
+			'<p><a href="https://www.npmjs.com/package/@openquok/auto-cli" rel="noopener noreferrer nofollow" target="_blank">CLI</a></p>'
 		);
 		expect(
 			normalizeBlogContentLinks(
 				'<p><a href="https://github.com/Ratimon/openquok-monorepo/tree/main/agent">openquok-core</a></p>'
 			)
 		).toBe(
-			'<p><a href="https://github.com/Ratimon/openquok-monorepo/tree/main/agent" target="_blank">openquok-core</a></p>'
+			'<p><a href="https://github.com/Ratimon/openquok-monorepo/tree/main/agent" rel="noopener noreferrer nofollow" target="_blank">openquok-core</a></p>'
 		);
 	});
 

@@ -5,8 +5,7 @@ import { stringToSlug } from '$lib/ui/helpers/common';
  * Align blog-body `<a>` tags with ExternalLink / outbound-link policy.
  *
  * Internal (relative, hash, mailto/tel, own openquok.com host): strip forced TipTap rel/target.
- * Allowlisted external (npmjs.com, first-party GitHub): `target="_blank"` only.
- * Other absolute http(s): `rel="noopener noreferrer nofollow"` + `target="_blank"`.
+ * Other absolute http(s) (GitHub, npm, third-party): `rel="noopener noreferrer nofollow"` + `target="_blank"` via `resolveExternalLinkPolicy`.
  */
 
 const OWN_HOST_SUFFIX = 'openquok.com';
