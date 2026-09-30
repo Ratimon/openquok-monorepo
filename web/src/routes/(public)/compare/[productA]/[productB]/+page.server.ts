@@ -1,14 +1,15 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import type { Offer, SoftwareApplication } from 'schema-dts';
+import { error } from '@sveltejs/kit';
 
 import type { JsonLdGraphNode } from '$lib/seo/jsonLdSchema';
 
-import { error } from '@sveltejs/kit';
-
 import { publicComparePagePresenter } from '$lib/area-public';
 import type {
-	ComparePricingPlanViewModel,
+	ComparePricingUnit,
+	CompareProductSlug
+} from '$lib/content/constants/competitors/types';
+import type {
 	CompareProductSummaryViewModel
 } from '$lib/area-public/PublicComparePage.presenter.svelte';
 import { getRootPathPublicComparePair } from '$lib/area-public/constants/getRootPathPublicCompare';
@@ -16,7 +17,8 @@ import {
 	CONFIG_SCHEMA_COMPANY,
 	getPublicFaqConfigDefaults
 } from '$lib/config/constants/config';
-import { getComparePair } from '$lib/content/constants/competitors';
+import { getComparePair, getCompareProductWebsiteUrl } from '$lib/content/constants/competitors';
+import { createCompareSoftwareApplicationPricingProperties } from '$lib/content/constants/competitors/utils/createComparePricingOffersSchema';
 import { buildCompareLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
@@ -119,11 +121,19 @@ export async function load({ url, params, cookies, parent }) {
 			},
 			createCompareSoftwareApplicationSEOSchema({
 				canonical,
-				product: detailVm.leftProduct
+				product: detailVm.leftProduct,
+				productASlug: pair.productASlug,
+				productBSlug: pair.productBSlug,
+				leftPricingUnit: detailVm.leftProduct.pricingUnit,
+				rightPricingUnit: detailVm.rightProduct.pricingUnit
 			}),
 			createCompareSoftwareApplicationSEOSchema({
 				canonical,
-				product: detailVm.rightProduct
+				product: detailVm.rightProduct,
+				productASlug: pair.productASlug,
+				productBSlug: pair.productBSlug,
+				leftPricingUnit: detailVm.leftProduct.pricingUnit,
+				rightPricingUnit: detailVm.rightProduct.pricingUnit
 			}),
 			createPublicFaqSEOSchema({
 				pageUrl: `${canonical}#faq`,
@@ -153,12 +163,25 @@ export async function load({ url, params, cookies, parent }) {
 type CreateCompareSoftwareApplicationSEOSchemaParams = {
 	canonical: string;
 	product: CompareProductSummaryViewModel;
+	productASlug: CompareProductSlug;
+	productBSlug: CompareProductSlug;
+	leftPricingUnit: ComparePricingUnit;
+	rightPricingUnit: ComparePricingUnit;
 };
 
 function createCompareSoftwareApplicationSEOSchema(
 	params: CreateCompareSoftwareApplicationSEOSchemaParams
 ): JsonLdGraphNode {
-	const { canonical, product } = params;
+	const {
+		canonical,
+		product,
+		productASlug,
+		productBSlug,
+		leftPricingUnit,
+		rightPricingUnit
+	} = params;
+
+	const productUrl = getCompareProductWebsiteUrl(product.slug);
 
 	return {
 		'@type': 'SoftwareApplication',
@@ -168,6 +191,7 @@ function createCompareSoftwareApplicationSEOSchema(
 		description: product.overview,
 		applicationCategory: 'Social media scheduling application',
 		operatingSystem: 'Web',
+		...(productUrl ? { url: productUrl } : {}),
 		mainEntityOfPage: {
 			'@id': `${canonical}#webpage`
 		},
@@ -182,40 +206,17 @@ function createCompareSoftwareApplicationSEOSchema(
 					featureList: [`Supported channels: ${product.channels.join(', ')}`]
 				}
 			: {}),
-		...createPricingOffers(product.pricingPlans, canonical)
-	};
-}
-
-function createPricingOffers(
-	pricingPlans: ComparePricingPlanViewModel[],
-	canonical: string
-): Pick<SoftwareApplication, 'offers'> | Record<string, never> {
-	const offers: Offer[] = pricingPlans.flatMap((plan) => {
-		if (plan.monthlyPrice === null) {
-			return [];
-		}
-
-		return [
-			{
-				'@type': 'Offer',
-				name: plan.name,
-				description: [
-					plan.tagline,
-					plan.pricePeriod === 'one_time' ? 'One-time USD license' : undefined,
-					plan.footnote
-				]
-					.filter(Boolean)
-					.join(' · '),
-				priceCurrency: 'USD',
-				price: plan.monthlyPrice,
-				url: canonical
-			}
-		];
-	});
-
-	if (offers.length === 0) {
-		return {};
-	}
-
-	return { offers };
+		...createCompareSoftwareApplicationPricingProperties({
+			canonical,
+			product: {
+				slug: product.slug,
+				pricingUnit: product.pricingUnit,
+				pricingPlans: product.pricingPlans
+			},
+			productASlug,
+			productBSlug,
+			leftPricingUnit,
+			rightPricingUnit
+		})
+	} satisfies JsonLdGraphNode;
 }
