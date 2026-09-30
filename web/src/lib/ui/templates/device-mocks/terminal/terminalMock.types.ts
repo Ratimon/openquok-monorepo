@@ -3,4 +3,5 @@ export type TerminalMockContentId =
 	| 'openquok-skill-install-hermes'
 	| 'openquok-skill-install-grok-bot'
 	| 'openquok-skill-install-meta-muse'
-	| 'openquok-skill-install-thinkrail';
+	| 'openquok-skill-install-thinkrail'
+	| 'openquok-skill-install-manus';

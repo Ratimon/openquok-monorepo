@@ -121,6 +121,7 @@ export const publicFaqHref = {
 	grokBotAgentGuide: faqHrefDocs('agent-setup-guides/grok-bot'),
 	metaMuseAgentGuide: faqHrefDocs('agent-setup-guides/meta-muse'),
 	thinkrailAgentGuide: faqHrefDocs('agent-setup-guides/thinkrail'),
+	manusAgentGuide: faqHrefDocs('agent-setup-guides/manus'),
 	mcpSetupGuides: faqHrefDocs('mcp-setup-guides'),
 	cliSetupGuides: faqHrefDocs('getting-started-for-cli'),
 	mcpGettingStarted: faqHrefDocs('getting-started-for-mcp'),
@@ -150,6 +151,7 @@ export const publicFaqHref = {
 	metaMuseLanding: faqHrefAgent('meta-muse'),
 	museCodeLanding: faqHrefAgent('muse-code'),
 	thinkrailLanding: faqHrefAgent('thinkrail'),
+	manusLanding: faqHrefAgent('manus'),
 	cursorLanding: faqHrefAgent('cursor'),
 	cursorMcpGuide: faqHrefDocs('mcp-setup-guides/cursor'),
 	blogBufferAlternatives: faqHrefBlogPost(

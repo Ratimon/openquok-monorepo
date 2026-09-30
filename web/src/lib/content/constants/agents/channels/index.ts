@@ -13,6 +13,11 @@ import {
 	thinkrailAgentChannelConfigs,
 	thinkrailAgentChannelHost
 } from '$lib/content/constants/agents/channels/thinkrail';
+import {
+	metaMuseAgentChannelConfigs,
+	metaMuseAgentChannelHost
+} from '$lib/content/constants/agents/channels/meta-muse';
+import { manusAgentChannelConfigs, manusAgentChannelHost } from '$lib/content/constants/agents/channels/manus';
 import { hermesAgentChannelConfigs, hermesAgentChannelHost } from '$lib/content/constants/agents/channels/hermes';
 import {
 	openclawAgentChannelConfigs,
@@ -34,9 +39,21 @@ export {
 	thinkrailAgentChannelHost,
 	thinkrailAgentChannelConfigs
 } from '$lib/content/constants/agents/channels/thinkrail';
+export {
+	metaMuseAgentChannelHost,
+	metaMuseAgentChannelConfigs
+} from '$lib/content/constants/agents/channels/meta-muse';
+export { manusAgentChannelHost, manusAgentChannelConfigs } from '$lib/content/constants/agents/channels/manus';
 
 /** Agent host slugs that support `/agents/{agentSlug}/{channelSlug}` SEO pages. */
-export const PUBLIC_AGENT_CHANNEL_HOST_SLUGS = ['openclaw', 'hermes', 'grok-bot', 'thinkrail'] as const;
+export const PUBLIC_AGENT_CHANNEL_HOST_SLUGS = [
+	'openclaw',
+	'hermes',
+	'grok-bot',
+	'thinkrail',
+	'meta-muse',
+	'manus'
+] as const;
 
 export type PublicAgentChannelHostSlug = (typeof PUBLIC_AGENT_CHANNEL_HOST_SLUGS)[number];
 
@@ -47,7 +64,9 @@ const channelConfigsByHostSlug: Record<
 	openclaw: openclawAgentChannelConfigs,
 	hermes: hermesAgentChannelConfigs,
 	'grok-bot': grokBotAgentChannelConfigs,
-	thinkrail: thinkrailAgentChannelConfigs
+	thinkrail: thinkrailAgentChannelConfigs,
+	'meta-muse': metaMuseAgentChannelConfigs,
+	manus: manusAgentChannelConfigs
 };
 
 const channelConfigByHostAndSlug = new Map<string, PublicAgentChannelPageConfig>();
@@ -136,5 +155,7 @@ export const AGENT_CHANNEL_HOSTS = [
 	openclawAgentChannelHost,
 	hermesAgentChannelHost,
 	grokBotAgentChannelHost,
-	thinkrailAgentChannelHost
+	thinkrailAgentChannelHost,
+	metaMuseAgentChannelHost,
+	manusAgentChannelHost
 ] as const;

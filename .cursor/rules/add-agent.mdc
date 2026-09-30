@@ -31,10 +31,10 @@ Two product surfaces share the `/agents` hub but use **different** content trees
 
 | Kind | Examples | Landing seed | Docs section | Developer Access |
 | --- | --- | --- | --- | --- |
-| **Agent host** | OpenClaw, Hermes, Grok Bot, ThinkRail | `web/src/lib/content/constants/agents/{slug}.ts` | `web/src/content/docs/agent-setup-guides/` | openquok-core / CLI skill (not `MCP_CLIENTS`) |
+| **Agent host** | OpenClaw, Hermes, Grok Bot, ThinkRail, Manus | `web/src/lib/content/constants/agents/hosts/{slug}.ts` | `web/src/content/docs/agent-setup-guides/` | openquok-core / CLI skill (not `MCP_CLIENTS`) |
 | **MCP client** | Cursor, ChatGPT, Warp | `web/src/lib/content/constants/mcps/{slug}.ts` | `web/src/content/docs/mcp-setup-guides/` | `getMcpClientConfig` + `MCP_CLIENTS` |
 
-Follow **source-project-neutrality** and **company-brand-icons**. Reference MCP client: **`chatgpt.ts`**, **`claude-cowork.ts`**, **`warp.ts`**. Reference agent host: **`openclaw.ts`**, **`hermes.ts`**, **`grok-bot.ts`**, **`thinkrail.ts`**.
+Follow **source-project-neutrality** and **company-brand-icons**. Reference MCP client: **`chatgpt.ts`**, **`claude-cowork.ts`**, **`warp.ts`**. Reference agent host: **`hosts/openclaw.ts`**, **`hosts/hermes.ts`**, **`hosts/grok-bot.ts`**, **`hosts/thinkrail.ts`**, **`hosts/manus.ts`**. Reference agent × channel SEO: **`channels/grok-bot.ts`** + **`agents/channels/index.ts`**.
 
 **User-facing landing copy** (`agents/hosts/{slug}.ts`, `mcps/hosts/{slug}.ts`, `hubs/agents.ts`, MCP `mcps/general.ts`, and `/agents` presenters): write in **ASD-STE100 Simplified Technical English**. Use short sentences. Put one idea in each sentence. Use active voice. Address the reader as **you**. Use plain words. Do not explain in the copy (or in chat) that you follow this style. Feature **titles** may keep comma-split lines for hero theme; **descriptions**, hub blurbs, heroes, audience cards, and FAQ answers must still be STE100.
 
@@ -58,7 +58,7 @@ Use one **lowercase kebab-case** slug everywhere:
 
 Landing heroes (`heroTitle` is usually `Schedule social media from {label}`) pick up gradient styling via `LANDING_HERO_TITLE_HIGHLIGHT_WORDS` in **`web/src/lib/ui/templates/landing-page/landingHeroTheme.ts`**.
 
-Append the **product name as it appears in `heroTitle`** (seed `label` / `agentLabel`). Examples: `'openclaw'`, `'hermes'`, `'Grok Bot'`, `'ThinkRail'`. Matching is case-insensitive; multi-word labels need the full phrase (e.g. `'Grok Bot'`, not `'grok'`).
+Append the **product name as it appears in `heroTitle`** (seed `label` / `agentLabel`). Examples: `'openclaw'`, `'hermes'`, `'Grok Bot'`, `'ThinkRail'`, `'Manus'`. Matching is case-insensitive; multi-word labels need the full phrase (e.g. `'Grok Bot'`, not `'grok'`).
 
 Applies to agent-host and MCP landing pages, the `/agents` hub, and any surface that passes `landingHeroTheme` into `HeroMain`.
 
@@ -144,11 +144,13 @@ Same as MCP clients — `branded-icons.ts`.
 
 ### 2. Agent landing seed
 
-**`web/src/lib/content/constants/agents/{slug}.ts`** + register in **`agents/seeds.ts`** (`PUBLIC_AGENT_HOST_LANDING_PAGES`) and re-export from **`agents/index.ts`** when needed (and hub copy in `hub.ts` / shared FAQs when needed). Write `heroDescription`, `hubDescription`, `metaDescription`, workflow, audience, and FAQ in ASD-STE100.
+**`web/src/lib/content/constants/agents/hosts/{slug}.ts`** + register in **`agents/seeds.ts`** (`PUBLIC_AGENT_HOST_LANDING_PAGES`) and re-export from **`agents/index.ts`** when needed (and hub copy in `hub.ts` / shared FAQs when needed). Write `heroDescription`, `hubDescription`, `metaDescription`, workflow, audience, and FAQ in ASD-STE100.
 
 Registering in **`agents/seeds.ts`** also auto-wires the sitewide footer **Autonomous Agent Integrations** column via `listPublicAgentHostSeedsForFooter()` — no footer list edit in `config.ts`.
 
-Add host-specific **`skillInstallOptions`** in **`openquokCliCommandReference.ts`** when install differs from OpenClaw (Hermes CLI, Grok Bot workspace + Plugins, etc.).
+Add host-specific **`skillInstallOptions`** in **`agents/cli-command-reference.ts`** when install differs from OpenClaw (Hermes CLI, Grok Bot workspace + Plugins, etc.).
+
+**Same PR — agent × channel catalog (required):** add **`web/src/lib/content/constants/agents/channels/{slug}.ts`** and wire it in **`agents/channels/index.ts`** (see **§5 Channel SEO**). Without this, `/agents/{slug}` omits the **“{Agent}: Every Supported Channels”** grid (`PublicChannelSiblingGrid` via `listPublicAgentChannelsForHub`).
 
 ### 3. Messaging / workflow mocks (agent hosts)
 
@@ -167,9 +169,24 @@ Wire onboarding: **`OnboardingAgentConnectStep.svelte`** tab + official docs lin
 
 **`web/src/content/docs/agent-setup-guides/{slug}.md`** + **`agent-setup-guides/index.md`** `LinkCard`. Cross-link CLI auth / openquok-core as appropriate. Mention the host in **`hubs/agents.ts`**, **`getting-started-for-cli/index.md`**, **`mcp-setup-guides/index.md`** (agent-hosts sentence), **`other-skills/index.md`**, **`channels/tools/skill-builder/faq.ts`**, and **`faq/index.ts`** when OpenClaw/Hermes are named.
 
-### 5. Channel SEO (when shipping per-channel agent pages)
+### 5. Channel SEO (required for every agent host)
 
-**Skill hosts:** `agents/channels/{host}.ts`; register host in **`PUBLIC_AGENT_CHANNEL_HOST_SLUGS`** (`agents/channels/index.ts`). **MCP × channel:** file map in **web-seo-pseo** (not `agents/channels/{host}.ts`). Bento/CLI checklist: **add-social-provider-integration** § Programmatic Agent channel SEO.
+Ship **`/agents/{slug}/{channelSlug}`** pages and the hub **“Every Supported Channels”** section together with the host landing. **`listPublicAgentChannelsForHub`** in **`agents/channels/index.ts`** returns links only when the slug is in **`PUBLIC_AGENT_CHANNEL_HOST_SLUGS`** with configs in **`channelConfigsByHostSlug`**. MCP clients use a different path (all hub channels without per-host files).
+
+**Skill hosts — add in the same PR as the host landing:**
+
+| Step | File / symbol |
+| --- | --- |
+| 1. Host config + configs | **`web/src/lib/content/constants/agents/channels/{slug}.ts`** — export `{slug}AgentChannelHost` + `{slug}AgentChannelConfigs` via **`buildAgentChannelConfigsForHost(host, listPublicChannelsForHub())`** (copy **`channels/grok-bot.ts`**). |
+| 2. Register slug | Append **`'{slug}'`** to **`PUBLIC_AGENT_CHANNEL_HOST_SLUGS`** in **`agents/channels/index.ts`**. |
+| 3. Wire maps | Import configs; add **`'{slug}': {slug}AgentChannelConfigs`** to **`channelConfigsByHostSlug`**; append host to **`AGENT_CHANNEL_HOSTS`**. |
+| 4. Re-export (optional) | **`export { … } from './{slug}'`** from **`agents/channels/index.ts`** if other modules need the host config. |
+
+**Smoke:** `/agents/{slug}` shows **`PublicChannelSiblingGrid`** (title like **`{AgentLabel}: Every Supported Channels`**); `/agents/{slug}/facebook` (or any catalog channel) resolves via **`getPublicAgentChannelBySlug`**.
+
+**MCP × channel:** no **`agents/channels/{slug}.ts`** — composed per **web-seo-pseo** / **`mcps/channels/index.ts`**. Bento/CLI depth: **add-social-provider-integration** § Programmatic Agent channel SEO.
+
+**Do not** ship a new **`agents/hosts/{slug}.ts`** without **`agents/channels/{slug}.ts`** + **`PUBLIC_AGENT_CHANNEL_HOST_SLUGS`** unless product explicitly defers all channel pages (rare — document why in the PR).
 
 ### 6. Skills / CLI
 
@@ -179,20 +196,28 @@ Update `agent/skills/openquok-core/` (`SKILL.md` metadata JSON for the host when
 
 - **Not** an MCP client — no `mcps/grok-bot.ts`, no `MCP_CLIENTS`, no `mcp-setup-guides/grok-bot.md`.
 - Cloud computer + desktop/iOS chat; skill via **`/workspace/openquok-core/SKILL.md`** and **Settings → Plugins** (or `/` in chat).
-- Reference implementation: **`grok-bot.ts`**, **`grok-bot-messaging-channels.ts`**, **`GROK_BOT_SKILL_INSTALL_OPTIONS`**.
+- Reference implementation: **`hosts/grok-bot.ts`**, **`grok-bot-messaging-channels.ts`**, **`GROK_BOT_SKILL_INSTALL_OPTIONS`**, **`channels/grok-bot.ts`**.
 
 ### Meta Muse specifics (`meta-muse`)
 
 - **Not** Muse Code — consumer personal agent (custom connectors, Secure VM). **Do not** reuse `mcps/muse-code.ts` or `mcp-setup-guides/muse-code.md` for this host.
 - **Not** an MCP client — no `MCP_CLIENTS` entry. Primary path: custom connector from `https://www.openquok.com/api/v1/openapi.json` + programmatic token in Muse credential prompts; optional `openquok-core` / CLI inside the Secure VM; hosted MCP only when the Muse environment exposes it.
-- Reference implementation: **`meta-muse.ts`**, **`meta-muse-messaging-channels.ts`**, **`META_MUSE_SKILL_INSTALL_OPTIONS`**. Mobile-first mocks (`iphone-15-pro`), not OpenClaw Telegram fallback.
+- Reference implementation: **`hosts/meta-muse.ts`**, **`meta-muse-messaging-channels.ts`**, **`META_MUSE_SKILL_INSTALL_OPTIONS`**, **`channels/meta-muse.ts`**. Mobile-first mocks (`iphone-15-pro`), not OpenClaw Telegram fallback.
 - Cross-link **`/agents/muse-code`** and **`mcp-setup-guides/muse-code.md`** in FAQ and docs so readers do not confuse Meta Muse with Muse Code on dev.meta.ai.
 
 ### ThinkRail specifics (`thinkrail`)
 
 - **Not** an MCP client — no `mcps/thinkrail.ts`, no `MCP_CLIENTS`, no `mcp-setup-guides/thinkrail.md`. Do **not** add a separate `/agents/pi` host; ThinkRail is the user-facing IDE and pi runs in-process.
 - Desktop/CLI worktree IDE; skill via **`~/.pi/agent/skills/openquok-core/SKILL.md`** or worktree **`.pi/skills/openquok-core/SKILL.md`**.
-- Reference implementation: **`thinkrail.ts`**, **`thinkrail-messaging-channels.ts`**, **`THINKRAIL_SKILL_INSTALL_OPTIONS`**. Desktop-first mocks (same pattern as Grok Bot), not Telegram fallback.
+- Reference implementation: **`hosts/thinkrail.ts`**, **`thinkrail-messaging-channels.ts`**, **`THINKRAIL_SKILL_INSTALL_OPTIONS`**, **`channels/thinkrail.ts`**. Desktop-first mocks (same pattern as Grok Bot), not Telegram fallback.
+
+### Manus specifics (`manus`)
+
+- **Not** an MCP client — no `mcps/manus.ts`, no `MCP_CLIENTS`, no `mcp-setup-guides/manus.md`.
+- **Not** Cue — Cue (`cue.im`) is a separate early-access personal-agent app from the same vendor family. Ship **`/agents/manus`** and **`agent-setup-guides/manus.md`** for Manus only. Do **not** add `/agents/cue` unless product explicitly launches Cue as its own OpenQuok host. Cross-link Manus vs Cue in FAQ and docs so readers do not confuse them (same pattern as Meta Muse vs Muse Code).
+- Manus 2.0 path: **Skills** (`SKILL.md`, GitHub import, upload, `/` slash command), optional **Cloud Computer** terminal for `@openquok/auto-cli`, plus Studio/web/mobile — not Telegram-first.
+- Skill install: **`MANUS_SKILL_INSTALL_OPTIONS`** — GitHub folder URL, curl + upload, CLI on Cloud Computer. Official Skills docs: Manus Help Center article on sharing and using Skills.
+- Reference implementation: **`hosts/manus.ts`**, **`manus-messaging-channels.ts`**, **`MANUS_SKILL_INSTALL_OPTIONS`**, **`channels/manus.ts`**, **`manus-docs-overview`** / **`openquok-skill-install-manus`** mocks. Desktop-first workflow mocks (Grok Bot pattern), not OpenClaw Telegram fallback.
 
 ### Agent host PR checklist
 
@@ -201,7 +226,8 @@ Update `agent/skills/openquok-core/` (`SKILL.md` metadata JSON for the host when
 - [ ] `skillInstallOptions` + messaging channels (no OpenClaw fallback on landing)
 - [ ] Safari/terminal mock ids + onboarding + account shortcuts
 - [ ] `agent-setup-guides/{slug}.md` + index card + cross-mentions in hub/CLI/FAQ copy
-- [ ] Channel SEO in `agents/channels/` if `/agents/{slug}/{channel}` is in scope
+- [ ] **`agents/channels/{slug}.ts`** + **`PUBLIC_AGENT_CHANNEL_HOST_SLUGS`** / **`channelConfigsByHostSlug`** / **`AGENT_CHANNEL_HOSTS`** in **`agents/channels/index.ts`**
+- [ ] Smoke **`/agents/{slug}`** — **Every Supported Channels** grid + at least one **`/agents/{slug}/{channelSlug}`** link
 - [ ] **CMS:** listing tag + launch blog via secret-admin (see **C**); no `backend/supabase/db` edits
 - [ ] Landing copy (hero, hub, audience, FAQ) is concise ASD-STE100 (short sentences, active voice, `you`)
 - [ ] Smoke `/agents/{slug}`, docs page, footer **Autonomous Agent Integrations** link to `/agents/{slug}`
@@ -218,7 +244,7 @@ Ship code + docs in the PR; add **catalog tag** and **launch blog** yourself in 
 2. **Name:** must slug correctly (e.g. `Grok Bot` → `grok-bot` via `stringToSlug`)
 3. **Description:** one neutral sentence on skills/CLI for that host
 4. **Tag groups:** check the groups that match the product surface in the tag modal (seeded catalog groups include **Autonomous agents**, **CLI**, **IDE**). Use the **Tag groups** tab on the same page to create or rename groups when needed — do not seed groups via SQL.
-   - Agent hosts (OpenClaw, Hermes, Grok Bot, ThinkRail) → **Autonomous agents**
+   - Agent hosts (OpenClaw, Hermes, Grok Bot, ThinkRail, Meta Muse, Manus) → **Autonomous agents**
    - Terminal-first MCP clients → **CLI**
    - Editor / desktop MCP clients → **IDE**
 5. Optional: edit **openquok-core** playbook/building-block → tags picker → add the new tag
@@ -245,5 +271,6 @@ Deliver paste-ready HTML/FAQ/How-to in the PR description or operator handoff �
 - Hardcode icon name strings — use `icons.{Brand}.name`.
 - Name third-party source projects or external repo paths in seeds, docs, or comments (see **source-project-neutrality**).
 - Create or edit **`backend/supabase/db/**`** listing-tag or blog seeds for agent launches — use secret-admin (**C**).
-- Classify a desktop/cloud teammate or skill-based IDE host as an MCP client when it uses CLI + skills (Grok Bot, ThinkRail → agent host).
+- Classify a desktop/cloud teammate or skill-based IDE host as an MCP client when it uses CLI + skills (Grok Bot, ThinkRail, Manus → agent host).
 - Hand-edit MCP or agent-host rows in **`buildPublicFooterLinks.ts`** or **`PUBLIC_FOOTER_LINKS`** for catalog slugs — append to **`mcps/seeds.ts`** or **`agents/seeds.ts`** instead.
+- Ship an agent host landing (**`agents/hosts/{slug}.ts`**) without **`agents/channels/{slug}.ts`** and **`PUBLIC_AGENT_CHANNEL_HOST_SLUGS`** — the hub page will miss **Every Supported Channels** and channel detail routes will 404.

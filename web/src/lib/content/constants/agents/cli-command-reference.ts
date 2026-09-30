@@ -84,6 +84,25 @@ export const OPENQUOK_CORE_SKILL_INSTALL_META_MUSE_CURL = `mkdir -p ~/openquok-c
 curl -fsSL "${OPENQUOK_CORE_SKILL_RAW_URL}" \\
   -o ~/openquok-core/SKILL.md`;
 
+/** Manus: import the public skill folder from GitHub (Skills → + Add → Import from GitHub). */
+export const OPENQUOK_CORE_SKILL_INSTALL_MANUS_GITHUB =
+	'https://github.com/Ratimon/openquok-monorepo/tree/main/agent/skills/openquok-core';
+
+/** Manus: install CLI on the project Cloud Computer or local Studio shell. */
+export const OPENQUOK_CORE_SKILL_INSTALL_MANUS_CLI = `npm install -g @openquok/auto-cli@latest
+openquok --version`;
+
+/** Manus: fetch SKILL.md for Upload a skill or manual skill folder. */
+export const OPENQUOK_CORE_SKILL_INSTALL_MANUS_CURL = `mkdir -p ~/openquok-core
+curl -fsSL "${OPENQUOK_CORE_SKILL_RAW_URL}" \\
+  -o ~/openquok-core/SKILL.md`;
+
+export const MANUS_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
+	{ id: 'github', label: 'Import from GitHub', command: OPENQUOK_CORE_SKILL_INSTALL_MANUS_GITHUB },
+	{ id: 'curl', label: 'SKILL.md + Upload', command: OPENQUOK_CORE_SKILL_INSTALL_MANUS_CURL },
+	{ id: 'cli', label: 'CLI on Cloud Computer', command: OPENQUOK_CORE_SKILL_INSTALL_MANUS_CLI }
+];
+
 export const META_MUSE_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
 	{
 		id: 'custom-connector',

@@ -4,6 +4,7 @@ import { grokBotAgent } from '$lib/content/constants/agents/hosts/grok-bot';
 import { hermesAgent } from '$lib/content/constants/agents/hosts/hermes';
 import { metaMuseAgent } from '$lib/content/constants/agents/hosts/meta-muse';
 import { openclawAgent } from '$lib/content/constants/agents/hosts/openclaw';
+import { manusAgent } from '$lib/content/constants/agents/hosts/manus';
 import { thinkrailAgent } from '$lib/content/constants/agents/hosts/thinkrail';
 
 /** Single registry for agent-host landings — order drives hub, nav, and footer columns. */
@@ -12,7 +13,8 @@ export const PUBLIC_AGENT_HOST_LANDING_PAGES: readonly PublicAgentHostLandingPag
 	hermesAgent,
 	grokBotAgent,
 	metaMuseAgent,
-	thinkrailAgent
+	thinkrailAgent,
+	manusAgent
 ];
 
 export type PublicAgentHostFooterEntry = { slug: string; label: string };

@@ -12,6 +12,10 @@
 		META_MUSE_EXTENSION_MESSAGING_CHANNELS
 	} from '$data/meta-muse-messaging-channels';
 	import {
+		MANUS_CORE_MESSAGING_CHANNELS,
+		MANUS_EXTENSION_MESSAGING_CHANNELS
+	} from '$data/manus-messaging-channels';
+	import {
 		THINKRAIL_CORE_MESSAGING_CHANNELS,
 		THINKRAIL_EXTENSION_MESSAGING_CHANNELS
 	} from '$data/thinkrail-messaging-channels';
@@ -114,6 +118,10 @@
 		'meta-muse': {
 			core: META_MUSE_CORE_MESSAGING_CHANNELS,
 			extension: META_MUSE_EXTENSION_MESSAGING_CHANNELS
+		},
+		manus: {
+			core: MANUS_CORE_MESSAGING_CHANNELS,
+			extension: MANUS_EXTENSION_MESSAGING_CHANNELS
 		}
 	} as const;
 

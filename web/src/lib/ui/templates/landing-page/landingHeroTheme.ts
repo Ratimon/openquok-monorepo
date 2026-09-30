@@ -78,6 +78,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'Grok Bot',
 	'Meta Muse',
 	'ThinkRail',
+	'Manus',
 	'openclaw',
 	'hermes',
 	'agent hosts',

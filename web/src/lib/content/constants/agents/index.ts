@@ -13,6 +13,7 @@ export { hermesAgent } from '$lib/content/constants/agents/hosts/hermes';
 export { grokBotAgent } from '$lib/content/constants/agents/hosts/grok-bot';
 export { metaMuseAgent } from '$lib/content/constants/agents/hosts/meta-muse';
 export { thinkrailAgent } from '$lib/content/constants/agents/hosts/thinkrail';
+export { manusAgent } from '$lib/content/constants/agents/hosts/manus';
 export {
 	PUBLIC_AGENT_HOST_LANDING_PAGES,
 	listPublicAgentHostSeedsForFooter
