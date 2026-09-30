@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { BlueskyThreadGateSetting } from '$lib/ui/components/posts/providers/provider.types';
 
+	import { normalizeHttpUrlInput } from '$lib/utils/normalizeHttpUrlInput';
+
 	type Props = {
 		linkUrl?: string;
 		linkTitle?: string;
@@ -16,6 +18,13 @@
 		quoteUrl = $bindable(''),
 		threadGate = $bindable('everyone' as BlueskyThreadGateSetting)
 	}: Props = $props();
+
+	function normalizeLinkUrlOnBlur() {
+		const trimmed = linkUrl.trim();
+		if (!trimmed) return;
+		const normalized = normalizeHttpUrlInput(trimmed);
+		if (normalized !== linkUrl) linkUrl = normalized;
+	}
 
 	const threadGateOptions: { value: BlueskyThreadGateSetting; label: string }[] = [
 		{ value: 'everyone', label: 'Everyone can reply (default)' },
@@ -64,10 +73,11 @@
 		</label>
 		<input
 			id="bsky-link-url"
-			type="url"
+			type="text"
 			class="border-base-300 bg-base-100 w-full rounded-md border px-3 py-2 text-sm"
 			placeholder="https://example.com/article"
 			bind:value={linkUrl}
+			onblur={normalizeLinkUrlOnBlur}
 		/>
 		<p class="text-xs text-base-content/50">
 			Optional external link preview for text-only posts without attachments.

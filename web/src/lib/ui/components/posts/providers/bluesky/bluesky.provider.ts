@@ -8,6 +8,7 @@ import type {
 
 import { isVideoMediaPath } from '$lib/medias/utils/mediaDisplay';
 import { BLUESKY_MAX_GRAPHEMES } from '$lib/posts/utils/composer/blueskyGraphemeLength';
+import { normalizeHttpUrlInput } from '$lib/utils/normalizeHttpUrlInput';
 
 /** Bluesky post text limit (matches backend `BlueskyProvider.maxLength`). */
 export const BLUESKY_MAX_CHARACTERS = BLUESKY_MAX_GRAPHEMES;
@@ -129,7 +130,8 @@ export function readBlueskyLaunchSettings(
 		return undefined;
 	};
 
-	const linkUrl = pickString(bucket?.linkUrl, settings.linkUrl, settings.link_url);
+	const linkUrlRaw = pickString(bucket?.linkUrl, settings.linkUrl, settings.link_url);
+	const linkUrl = linkUrlRaw ? normalizeHttpUrlInput(linkUrlRaw) : undefined;
 	const linkTitle = pickString(bucket?.linkTitle, settings.linkTitle, settings.link_title);
 	const linkDescription = pickString(
 		bucket?.linkDescription,

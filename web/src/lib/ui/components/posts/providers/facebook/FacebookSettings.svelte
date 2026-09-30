@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { normalizeHttpUrlInput } from '$lib/utils/normalizeHttpUrlInput';
+
 	type Props = {
 		postType?: 'post' | 'story';
 		url?: string;
@@ -7,6 +9,13 @@
 	let { postType = $bindable('post'), url = $bindable('') }: Props = $props();
 
 	const showEmbeddedUrl = $derived(postType !== 'story');
+
+	function normalizeEmbeddedUrlOnBlur() {
+		const trimmed = url.trim();
+		if (!trimmed) return;
+		const normalized = normalizeHttpUrlInput(trimmed);
+		if (normalized !== url) url = normalized;
+	}
 </script>
 
 <div class="space-y-4">
@@ -36,10 +45,11 @@
 			</label>
 			<input
 				id="fb-embedded-url"
-				type="url"
+				type="text"
 				class="border-base-300 bg-base-100 w-full rounded-md border px-3 py-2 text-sm"
 				placeholder="https://example.com/article"
 				bind:value={url}
+				onblur={normalizeEmbeddedUrlOnBlur}
 			/>
 			<p class="text-xs text-base-content/50">
 				Optional link preview for text-only posts. Ignored when photos or video are attached.

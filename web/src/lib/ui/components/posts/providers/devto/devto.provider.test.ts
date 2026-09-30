@@ -73,4 +73,12 @@ describe('devto.provider', () => {
 			checkDevtoLaunchValidity({ title: 'OK', tags: [], canonical: 'not-a-url' })
 		).toBe('Canonical URL must be a valid http(s) URL');
 	});
+
+	it('accepts canonical URLs without a scheme after normalization', () => {
+		const settings = readDevtoLaunchSettings({
+			devto: { title: 'OK', tags: [], canonical: 'https:www.example.com/post' }
+		});
+		expect(checkDevtoLaunchValidity(settings)).toBe(true);
+		expect(settings.canonical).toBe('https://www.example.com/post');
+	});
 });

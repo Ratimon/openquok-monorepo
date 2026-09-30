@@ -4,6 +4,8 @@ import type {
 	LaunchProviderConfig,
 } from '$lib/ui/components/posts/providers/provider.types';
 
+import { normalizeHttpUrlInput } from '$lib/utils/normalizeHttpUrlInput';
+
 /** Facebook Page composer limits (matches backend `FacebookProvider.maxLength`). */
 export const FACEBOOK_MAX_CHARACTERS = 63_206;
 
@@ -55,10 +57,10 @@ export function readFacebookLaunchSettings(
 	const postType = readFacebookPostType(settings);
 
 	const nestedUrl = typeof bucket?.url === 'string' ? bucket.url.trim() : '';
-	if (nestedUrl) return { postType, url: nestedUrl };
+	if (nestedUrl) return { postType, url: normalizeHttpUrlInput(nestedUrl) };
 
 	const flatUrl = typeof settings.url === 'string' ? settings.url.trim() : '';
-	return flatUrl ? { postType, url: flatUrl } : { postType };
+	return flatUrl ? { postType, url: normalizeHttpUrlInput(flatUrl) } : { postType };
 }
 
 export function checkFacebookLinkSettingsValidity(

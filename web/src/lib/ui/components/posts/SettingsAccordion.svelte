@@ -26,6 +26,10 @@
 	import TiktokSettings from '$lib/ui/components/posts/providers/tiktok/TiktokSettings.svelte';
 	import XSettings from '$lib/ui/components/posts/providers/x/XSettings.svelte';
 	import BlueskySettings from '$lib/ui/components/posts/providers/bluesky/BlueskySettings.svelte';
+	import {
+		normalizeHttpUrlInput,
+		normalizeXCommunityUrlInput
+	} from '$lib/utils/normalizeHttpUrlInput';
 
 	type ProviderSettings = {
 		threads: {
@@ -483,7 +487,8 @@
 				}
 			};
 		} else if (identifier === 'facebook') {
-			const trimmed = fbUrl.trim();
+			const trimmedRaw = fbUrl.trim();
+			const trimmed = trimmedRaw ? normalizeHttpUrlInput(trimmedRaw) : '';
 			next = {
 				facebook: {
 					postType: fbPostType,
@@ -533,7 +538,9 @@
 			next = {
 				x: {
 					...(xWhoCanReply ? { whoCanReplyPost: xWhoCanReply } : {}),
-					...(xCommunityUrl.trim() ? { communityUrl: xCommunityUrl.trim() } : {}),
+					...(xCommunityUrl.trim()
+						? { communityUrl: normalizeXCommunityUrlInput(xCommunityUrl.trim()) }
+						: {}),
 					...(xMadeWithAi ? { madeWithAi: true } : {}),
 					...(xPaidPartnership ? { paidPartnership: true } : {}),
 					enabled: xFinisherEnabled,
@@ -542,7 +549,8 @@
 				}
 			};
 		} else if (identifier === 'devto') {
-			const canonical = dtCanonical.trim();
+			const canonicalRaw = dtCanonical.trim();
+			const canonical = canonicalRaw ? normalizeHttpUrlInput(canonicalRaw) : '';
 			const series = dtSeries.trim();
 			next = {
 				devto: {
@@ -555,7 +563,8 @@
 				}
 			};
 		} else if (identifier === 'bluesky') {
-			const linkUrl = bskyLinkUrl.trim();
+			const linkUrlRaw = bskyLinkUrl.trim();
+			const linkUrl = linkUrlRaw ? normalizeHttpUrlInput(linkUrlRaw) : '';
 			const linkTitle = bskyLinkTitle.trim();
 			const linkDescription = bskyLinkDescription.trim();
 			const quoteUrl = bskyQuoteUrl.trim();

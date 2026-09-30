@@ -74,6 +74,24 @@ describe('checkBlueskyLaunchValidity', () => {
 		).toBe(true);
 	});
 
+	it('accepts link card URLs without a scheme after normalization', () => {
+		expect(
+			checkBlueskyLaunchValidity({
+				settings: { bluesky: { linkUrl: 'www.example.com/article' } },
+				media: []
+			})
+		).toBe(true);
+	});
+
+	it('accepts link card URLs with a scheme missing slashes', () => {
+		expect(
+			checkBlueskyLaunchValidity({
+				settings: { bluesky: { linkUrl: 'https:www.example.com/article' } },
+				media: []
+			})
+		).toBe(true);
+	});
+
 	it('rejects link cards with media', () => {
 		expect(
 			checkBlueskyLaunchValidity({

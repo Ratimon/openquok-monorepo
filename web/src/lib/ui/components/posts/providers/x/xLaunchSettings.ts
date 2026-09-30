@@ -1,5 +1,7 @@
 import type { XLaunchProviderSettings, XReplySetting } from '$lib/ui/components/posts/providers/provider.types';
 
+import { normalizeXCommunityUrlInput } from '$lib/utils/normalizeHttpUrlInput';
+
 const REPLY_SETTING_VALUES = new Set<XReplySetting>([
 	'following',
 	'mentionedUsers',
@@ -51,7 +53,7 @@ function mergeXSettings(target: XLaunchProviderSettings, source: Record<string, 
 	const communityUrl =
 		readString(source, 'community', 'community_url', 'communityUrl') ||
 		readString(source, 'community_id', 'communityId');
-	if (communityUrl) target.communityUrl = communityUrl;
+	if (communityUrl) target.communityUrl = normalizeXCommunityUrlInput(communityUrl);
 
 	if (readBoolean(source, 'made_with_ai', 'madeWithAi')) target.madeWithAi = true;
 	if (readBoolean(source, 'paid_partnership', 'paidPartnership')) target.paidPartnership = true;

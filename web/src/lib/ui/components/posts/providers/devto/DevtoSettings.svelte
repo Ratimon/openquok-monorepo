@@ -6,6 +6,8 @@
 
 	import { untrack } from 'svelte';
 
+	import { normalizeHttpUrlInput } from '$lib/utils/normalizeHttpUrlInput';
+
 	import { icons } from '$data/icons';
 	import { integrationsRepository } from '$lib/integrations';
 	import { uploadSocialPostComposerMediaFiles } from '$lib/posts';
@@ -46,6 +48,13 @@
 		uploadUid = '',
 		disabled = false
 	}: Props = $props();
+
+	function normalizeCanonicalOnBlur() {
+		const trimmed = canonical.trim();
+		if (!trimmed) return;
+		const normalized = normalizeHttpUrlInput(trimmed);
+		if (normalized !== canonical) canonical = normalized;
+	}
 
 	let mediaLibraryOpen = $state(false);
 	let uploadBusy = $state(false);
@@ -202,10 +211,11 @@
 		>
 		<input
 			id="devto-canonical"
-			type="url"
+			type="text"
 			class="border-base-300 bg-base-100 w-full rounded-md border px-3 py-2 text-sm"
 			placeholder="https://example.com/original-post"
 			bind:value={canonical}
+			onblur={normalizeCanonicalOnBlur}
 			{disabled}
 		/>
 		<p class="text-xs text-base-content/50">

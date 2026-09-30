@@ -13,6 +13,15 @@ describe('checkFacebookLaunchValidity', () => {
 		).toBe('Follow-up comments are not supported for Facebook Stories');
 	});
 
+	it('accepts embedded URLs without a scheme after normalization', () => {
+		expect(
+			checkFacebookLaunchValidity({
+				settings: { facebook: { url: 'https:www.example.com' } },
+				media: []
+			})
+		).toBe(true);
+	});
+
 	it('allows Facebook Stories without follow-up replies', () => {
 		expect(
 			checkFacebookLaunchValidity({

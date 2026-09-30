@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { XReplySetting } from '$lib/ui/components/posts/providers/provider.types';
 
+	import { normalizeXCommunityUrlInput } from '$lib/utils/normalizeHttpUrlInput';
+
 	type Props = {
 		whoCanReplyPost?: XReplySetting | '';
 		communityUrl?: string;
@@ -14,6 +16,13 @@
 		madeWithAi = $bindable(false),
 		paidPartnership = $bindable(false)
 	}: Props = $props();
+
+	function normalizeCommunityUrlOnBlur() {
+		const trimmed = communityUrl.trim();
+		if (!trimmed) return;
+		const normalized = normalizeXCommunityUrlInput(trimmed);
+		if (normalized !== communityUrl) communityUrl = normalized;
+	}
 
 	const replyOptions: { value: XReplySetting | ''; label: string }[] = [
 		{ value: '', label: 'Everyone (default)' },
@@ -46,10 +55,11 @@
 		</label>
 		<input
 			id="x-community-url"
-			type="url"
+			type="text"
 			class="border-base-300 bg-base-100 w-full rounded-md border px-3 py-2 text-sm"
 			placeholder="https://x.com/i/communities/123456789"
 			bind:value={communityUrl}
+			onblur={normalizeCommunityUrlOnBlur}
 		/>
 		<p class="text-xs text-base-content/50">
 			Post into an X community.
