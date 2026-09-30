@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { KonvaCanvasApi } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
 	import type { CanvasChannelHubLinkViewModel } from '$lib/canvas';
+	import type { ChannelToolSeoIntro } from '$lib/content/constants/channels/tools/shared/channelToolContentOverride.types';
 
 	import { page } from '$app/state';
 
@@ -26,6 +27,7 @@
 	import DesignMediaExportFooter from '$lib/ui/components/media/DesignMediaExportFooter.svelte';
 	import PhotoEditorHubBreadcrumb from '$lib/ui/components/photo-editor/PhotoEditorHubBreadcrumb.svelte';
 	import PhotoEditorChannelHubGrid from '$lib/ui/components/photo-editor/PhotoEditorChannelHubGrid.svelte';
+	import PublicToolChannelSeoIntro from '$lib/ui/components/tools/PublicToolChannelSeoIntro.svelte';
 	import SignInToSaveEditorModal from '$lib/ui/components/photo-editor/SignInToSaveEditorModal.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
@@ -55,6 +57,8 @@
 		composerMode?: 'global' | 'custom';
 		isLoggedIn?: boolean;
 		channelLinksVm?: CanvasChannelHubLinkViewModel[];
+		heroLead?: string;
+		seoIntro?: ChannelToolSeoIntro;
 	};
 
 	let {
@@ -66,7 +70,9 @@
 		focusedProviderIdentifier = null,
 		composerMode = 'global',
 		isLoggedIn = false,
-		channelLinksVm = []
+		channelLinksVm = [],
+		heroLead,
+		seoIntro
 	}: Props = $props();
 
 	// /tools
@@ -162,7 +168,14 @@
 		<header class="space-y-3">
 			<PublicLandingHeroTitle title={pageHeading} headingId="photo-editor-tool-hero-heading" />
 			<p class="max-w-3xl text-base text-base-content/75">{metaDescription}</p>
+			{#if heroLead}
+				<p class="max-w-3xl text-base text-base-content/75">{heroLead}</p>
+			{/if}
 		</header>
+
+		{#if seoIntro}
+			<PublicToolChannelSeoIntro intro={seoIntro} />
+		{/if}
 
 		<div
 			class="border-base-300 flex min-h-[min(72vh,820px)] flex-col overflow-hidden rounded-2xl border bg-base-100 shadow-sm"

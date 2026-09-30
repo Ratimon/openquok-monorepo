@@ -6,6 +6,16 @@ import {
 	type PublicChannelLandingPageViewModel
 } from '$lib/content/constants/channels';
 import type { CanvasChannelHubLinkViewModel } from '$lib/canvas/canvas.types';
+import { blueskyPhotoEditorContentOverride } from '$lib/content/constants/channels/tool-surfaces/bluesky';
+import type {
+	ChannelToolContentOverride,
+	ChannelToolContentOverridesBySlug,
+	ChannelToolSeoIntro
+} from '$lib/content/constants/channels/tools/shared/channelToolContentOverride.types';
+import {
+	getChannelToolContentOverride,
+	mergeChannelToolContentOverride
+} from '$lib/content/constants/channels/tools/shared/mergeChannelToolContentOverride';
 import {
 	aspectPlatformGroupIdForProviderIdentifier,
 	DEFAULT_ASPECT_RATIO_ID,
@@ -34,7 +44,20 @@ export type CanvasChannelPageConfig = {
 	/** Short blurb for hub cards on `/tools/photo-editor`. */
 	hubDescription: string;
 	keywords: readonly string[];
+	/** Optional extra paragraph under the hero meta description. */
+	heroLead?: string;
+	seoIntro?: ChannelToolSeoIntro;
 };
+
+const CHANNEL_CONTENT_OVERRIDES: ChannelToolContentOverridesBySlug = {
+	bluesky: blueskyPhotoEditorContentOverride
+};
+
+export function getPhotoEditorChannelContentOverride(
+	slug: string
+): ChannelToolContentOverride | undefined {
+	return getChannelToolContentOverride(slug, CHANNEL_CONTENT_OVERRIDES);
+}
 
 export const PUBLIC_CANVAS_GENERIC_CONFIG = {
 	metaTitle: buildPhotoEditorGenericMetaTitle(),
@@ -68,7 +91,7 @@ function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): Can
 	const aspectPlatformGroupId = aspectPlatformGroupIdForProviderIdentifier(focusedProviderIdentifier);
 	const defaultAspectRatioId = defaultAspectRatioIdForComposer('custom', focusedProviderIdentifier);
 
-	return {
+	const base: CanvasChannelPageConfig = {
 		channelSlug: channel.slug,
 		platformLabel: channel.platformLabel,
 		icon: channel.icon,
@@ -91,6 +114,11 @@ function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): Can
 			...channel.keywords.slice(0, 4)
 		]
 	};
+
+	return mergeChannelToolContentOverride(
+		base,
+		getPhotoEditorChannelContentOverride(channel.slug)
+	);
 }
 
 const channelConfigs = listAvailablePublicChannels().map(buildChannelPageConfig);

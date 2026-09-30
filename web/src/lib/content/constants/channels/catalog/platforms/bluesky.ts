@@ -108,6 +108,14 @@ export const blueskyChannel = {
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],
+	audienceTailoredCard: {
+		iconName: icons.Globe.name,
+		iconClass: 'text-sky-400',
+		title: 'Federated & custom-PDS users',
+		description:
+			'Stay on bsky.social or run your own PDS. OpenQuok resolves your service URL at connect and schedules through your home server with an app password — not your main account password.',
+		containerClass: 'h-full min-h-[18rem]'
+	},
 	faqSubtitle: 'Frequently asked questions',
 	faqTitle: 'Bluesky scheduling, media, and replies',
 	faqDescription:

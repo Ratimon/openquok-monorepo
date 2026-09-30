@@ -4,8 +4,14 @@
  * **Generic section** — shared copy or builders for every slug on that surface
  * (hub WhoIsFor, hub FAQ, tool generic meta, API hub audience cards, …).
  *
- * **Tailored section** — per-channel or per-agent overrides (channel seed VM,
- * `PUBLIC_CHANNEL_AUDIENCE_TAILORED_CARD_BY_SLUG`, agent/MCP seed `overrides`, …).
+ * **Tailored section** — per-channel or per-agent copy beyond generic builders.
+ *
+ * **pSEO content tiers** (not everything lives under `platforms/`):
+ * - **Tier 1** — `channels/catalog/platforms/{slug}.ts` full `/channels/{slug}` VM.
+ * - **Tier 2** — `channels/api/posting/platforms/{slug}.ts` (and scheduling) full API marketing VM.
+ * - **Tier 3** — `channels/tool-surfaces/{slug}.ts` sparse tool patches; merged in `tools/{tool}/general.ts`.
+ * Agent host×channel pages stay host-first in `agents/channels/{host}.ts` (derived from catalog).
+ * MCP client×channel pages compose `mcps/hosts/{mcp}.ts` + `channels/catalog/platforms/{channel}.ts` via `buildMcpChannelLandingVm` — see `mcps/channels/index.ts`.
  *
  * Channel catalog source of truth: `PUBLIC_CHANNEL_LANDING_PAGES` in `channels/catalog/seeds.ts`.
  * Adding a provider starts there; other surfaces derive or opt in via their own registries.
@@ -15,11 +21,6 @@ import { listBestTimeChannelsForHub } from '$lib/content/constants/channels/tool
 import { listHumanizeChannelsForHub } from '$lib/content/constants/channels/tools/humanizer/general';
 import { listCanvasChannelsForHub } from '$lib/content/constants/channels/tools/photo-editor/general';
 import { PUBLIC_AGENT_HOST_LANDING_PAGES } from '$lib/content/constants/agents/seeds';
-import {
-	PUBLIC_CHANNEL_AUDIENCE_TAILORED_CARD_BY_SLUG,
-	getPublicChannelAudienceTailoredCard,
-	resolvePublicChannelAudienceCards
-} from '$lib/content/constants/channels/catalog/audience-tailored';
 import {
 	listAvailablePublicChannels,
 	listPublicChannelsForHub
@@ -32,12 +33,6 @@ import {
 } from '$lib/content/constants/channels/api';
 import { listSkillBuilderChannelsForHub } from '$lib/content/constants/channels/tools/skill-builder/general';
 import { getPayloadWizardChannelBySlug } from '$lib/content/constants/channels/tools/payload-wizard/general';
-
-export {
-	PUBLIC_CHANNEL_AUDIENCE_TAILORED_CARD_BY_SLUG,
-	getPublicChannelAudienceTailoredCard,
-	resolvePublicChannelAudienceCards
-} from '$lib/content/constants/channels/catalog/audience-tailored';
 
 export type ProgrammaticConfigRef = {
 	/** Repo path to the module that owns generic or tailored copy. */
@@ -93,11 +88,11 @@ export const PUBLIC_PROGRAMMATIC_LANDING_SURFACES: readonly ProgrammaticLandingS
 			symbol: 'PublicChannelLandingPageViewModel (shared section shapes)'
 		},
 		tailored: {
-			modulePath: 'web/src/lib/content/constants/channels/{slug}.ts',
+			modulePath: 'web/src/lib/content/constants/channels/catalog/platforms/{slug}.ts',
 			symbol: '{slug}Channel export'
 		},
 		notes:
-			'WhoIsFor: 3 cards in channel seed + optional 4th via PUBLIC_CHANNEL_AUDIENCE_TAILORED_CARD_BY_SLUG.'
+			'WhoIsFor: 3 cards in `audienceCards` + optional 4th `audienceTailoredCard` on channel seed.'
 	},
 	{
 		id: 'agents-hub',
@@ -118,11 +113,11 @@ export const PUBLIC_PROGRAMMATIC_LANDING_SURFACES: readonly ProgrammaticLandingS
 		channelParam: null,
 		scale: 'none',
 		generic: {
-			modulePath: 'web/src/lib/content/constants/agents/{slug}.ts',
-			symbol: 'agent host seed'
+			modulePath: 'web/src/lib/content/constants/agents/hosts/{slug}.ts',
+			symbol: 'agent host seed (+ agents/seeds.ts)'
 		},
 		tailored: {
-			modulePath: 'web/src/lib/content/constants/agents/{slug}.ts',
+			modulePath: 'web/src/lib/content/constants/agents/hosts/{slug}.ts',
 			symbol: 'overrides (FAQ, audienceCards, features)'
 		}
 	},
@@ -133,12 +128,12 @@ export const PUBLIC_PROGRAMMATIC_LANDING_SURFACES: readonly ProgrammaticLandingS
 		channelParam: null,
 		scale: 'none',
 		generic: {
-			modulePath: 'web/src/lib/content/constants/mcps/{slug}.ts',
-			symbol: 'mcp seed + buildMcpLandingVm'
+			modulePath: 'web/src/lib/content/constants/mcps/general.ts',
+			symbol: 'buildMcpLandingPage'
 		},
 		tailored: {
-			modulePath: 'web/src/lib/content/constants/mcps/{slug}.ts',
-			symbol: 'overrides'
+			modulePath: 'web/src/lib/content/constants/mcps/hosts/{slug}.ts',
+			symbol: 'MCP_LANDING_SEEDS entry (+ mcps/seeds.ts)'
 		}
 	},
 	{
@@ -152,8 +147,8 @@ export const PUBLIC_PROGRAMMATIC_LANDING_SURFACES: readonly ProgrammaticLandingS
 			symbol: 'buildAgentsChannelAudienceSection'
 		},
 		tailored: {
-			modulePath: 'web/src/lib/content/constants/channels/{channelSlug}.ts',
-			symbol: 'channel seed + agent channel config'
+			modulePath: 'web/src/lib/content/constants/agents/channels/{host}.ts',
+			symbol: 'host channel overrides (+ channels/catalog/platforms/{channelSlug}.ts)'
 		}
 	},
 	{
@@ -163,13 +158,15 @@ export const PUBLIC_PROGRAMMATIC_LANDING_SURFACES: readonly ProgrammaticLandingS
 		channelParam: 'channelSlug',
 		scale: 'mcp-client-times-channel',
 		generic: {
-			modulePath: 'web/src/lib/content/utils/buildMcpChannelLandingVm.ts',
-			symbol: 'buildMcpChannelLandingVm'
+			modulePath: 'web/src/lib/content/constants/mcps/channels/index.ts',
+			symbol: 'maintainer map (composed VM)'
 		},
 		tailored: {
-			modulePath: 'web/src/lib/content/constants/channels/{channelSlug}.ts',
-			symbol: 'channel seed'
-		}
+			modulePath: 'web/src/lib/content/utils/buildMcpChannelLandingVm.ts',
+			symbol: 'buildMcpChannelLandingVm (+ mcps/hosts/{slug}.ts + channels/catalog/platforms/{channelSlug}.ts)'
+		},
+		notes:
+			'No per-channel files under mcps/channels/. Edit MCP host seed, channel catalog, or the builder — see mcps/channels/index.ts.'
 	},
 	{
 		id: 'posting-api-hub',
@@ -197,7 +194,7 @@ export const PUBLIC_PROGRAMMATIC_LANDING_SURFACES: readonly ProgrammaticLandingS
 			modulePath: 'web/src/lib/content/constants/channels/api/posting/platforms/{slug}.ts',
 			symbol: 'buildPublicApiPlatformPage params'
 		},
-		notes: '4th WhoIsFor card when PUBLIC_CHANNEL_AUDIENCE_TAILORED_CARD_BY_SLUG has slug.'
+		notes: '4th WhoIsFor card when channel seed sets `audienceTailoredCard`.'
 	},
 	{
 		id: 'scheduling-api-hub',
@@ -276,9 +273,12 @@ export const PUBLIC_PROGRAMMATIC_LANDING_SURFACES: readonly ProgrammaticLandingS
 			symbol: 'PUBLIC_CANVAS_GENERIC_CONFIG'
 		},
 		tailored: {
-			modulePath: 'web/src/lib/content/constants/channels/tools/photo-editor/general.ts',
-			symbol: 'CHANNEL_HUB_DESCRIPTIONS'
-		}
+			modulePath:
+				'web/src/lib/content/constants/channels/tool-surfaces/{channelSlug}.ts',
+			symbol: 'CHANNEL_CONTENT_OVERRIDES + mergeChannelToolContentOverride in general.ts'
+		},
+		notes:
+			'Tier 3 tool patches: tool-surfaces/{slug}.ts (e.g. blueskyPhotoEditorContentOverride); register in CHANNEL_CONTENT_OVERRIDES in photo-editor/general.ts. FAQ prepends extraFaqItems in photo-editor/faq.ts.'
 	},
 	{
 		id: 'skill-builder',
@@ -291,9 +291,12 @@ export const PUBLIC_PROGRAMMATIC_LANDING_SURFACES: readonly ProgrammaticLandingS
 			symbol: 'PUBLIC_SKILL_BUILDER_GENERIC_CONFIG'
 		},
 		tailored: {
-			modulePath: 'web/src/lib/content/constants/channels/tools/skill-builder/general.ts',
-			symbol: 'buildChannelPageConfig recipes'
-		}
+			modulePath:
+				'web/src/lib/content/constants/channels/tool-surfaces/{channelSlug}.ts',
+			symbol: 'CHANNEL_CONTENT_OVERRIDES + CHANNEL_RECIPES in general.ts'
+		},
+		notes:
+			'Tier 3 tool patches: tool-surfaces/{slug}.ts; register in CHANNEL_CONTENT_OVERRIDES in skill-builder/general.ts. FAQ prepends extraFaqItems. Recipes stay in CHANNEL_RECIPES.'
 	},
 	{
 		id: 'best-time-to-post',
@@ -306,9 +309,12 @@ export const PUBLIC_PROGRAMMATIC_LANDING_SURFACES: readonly ProgrammaticLandingS
 			symbol: 'PUBLIC_BEST_TIME_GENERIC_CONFIG'
 		},
 		tailored: {
-			modulePath: 'web/src/lib/content/constants/channels/tools/best-time-to-post/faq.ts',
-			symbol: 'buildBestTimeChannelFaqItems'
-		}
+			modulePath:
+				'web/src/lib/content/constants/channels/tool-surfaces/{channelSlug}.ts',
+			symbol: 'CHANNEL_CONTENT_OVERRIDES + buildBestTimeToPostFaqSection extraFaqItems'
+		},
+		notes:
+			'Tier 3 tool patches: tool-surfaces/{slug}.ts (metaTitle, seoIntro, extraFaqItems, …); register in CHANNEL_CONTENT_OVERRIDES in best-time-to-post/general.ts. Benchmark table via formatBenchmarkWindowsForSeo + benchmarkSlots.ts.'
 	},
 	{
 		id: 'payload-wizard',
@@ -434,13 +440,13 @@ export function estimateNewProviderMarketingPages(slug: string): NewProviderPage
 
 	const notes: string[] = [];
 	if (!inCatalog) {
-		notes.push('Add `channels/catalog/{slug}.ts` and register in `channels/catalog/seeds.ts` first.');
+		notes.push('Add `channels/catalog/platforms/{slug}.ts` and register in `channels/catalog/seeds.ts` first.');
 	}
 	if (inCatalog && !inApi) {
 		notes.push('Dev.to-shaped providers skip posting/scheduling API + payload wizard until added to PUBLIC_API_POSTING_PLATFORM_SLUGS.');
 	}
 	notes.push('Add `web/src/content/docs/social-integration/{slug}.md` separately (footer self-host column).');
-	notes.push('Optional 4th WhoIsFor: PUBLIC_CHANNEL_AUDIENCE_TAILORED_CARD_BY_SLUG in publicChannelAudienceTailoredCards.ts.');
+	notes.push('Optional 4th WhoIsFor: `audienceTailoredCard` on `channels/catalog/platforms/{slug}.ts`; merge via `channels/index.ts` (`resolvePublicChannelAudienceCards`).');
 
 	const totalNewRoutes = Object.values(pages).reduce((sum, n) => sum + n, 0);
 

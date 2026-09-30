@@ -1,6 +1,6 @@
 import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 import type { PublicApiCapability, PublicApiPlatformSlug } from '$lib/content/constants/channels/api/_shared/types';
-import { getPublicChannelAudienceTailoredCard } from '$lib/content/constants/channels/catalog/audience-tailored';
+import { getPublicChannelAudienceTailoredCard } from '$lib/content/constants/channels';
 import { icons } from '$data/icons';
 
 export type PublicApiAudienceSection = {

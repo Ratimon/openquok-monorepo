@@ -18,7 +18,8 @@
 	let composerMode = $derived(data.composerMode);
 	let isLoggedIn = $derived(data.isLoggedIn);
 	let photoEditorChannelsVm = $derived(data.photoEditorChannelsVm);
-
+	let heroLead = $derived(data.heroLead);
+	let seoIntro = $derived(data.seoIntro);
 </script>
 
 <JsonLdHead schemaData={schemaData} />
@@ -33,4 +34,6 @@
 	{composerMode}
 	{isLoggedIn}
 	channelLinksVm={photoEditorChannelsVm}
+	{heroLead}
+	{seoIntro}
 />

@@ -7,6 +7,16 @@ import {
 	listAvailablePublicChannels,
 	type PublicChannelLandingPageViewModel
 } from '$lib/content/constants/channels';
+import { blueskyBestTimeContentOverride } from '$lib/content/constants/channels/tool-surfaces/bluesky';
+import type {
+	ChannelToolContentOverride,
+	ChannelToolContentOverridesBySlug,
+	ChannelToolSeoIntro
+} from '$lib/content/constants/channels/tools/shared/channelToolContentOverride.types';
+import {
+	getChannelToolContentOverride,
+	mergeChannelToolContentOverride
+} from '$lib/content/constants/channels/tools/shared/mergeChannelToolContentOverride';
 import {
 	buildBestTimeToPostChannelHeroTitle,
 	buildBestTimeToPostChannelMetaTitle,
@@ -28,7 +38,20 @@ export type BestTimeChannelPageConfig = {
 	/** Short blurb for hub cards on `/tools/best-time-to-post`. */
 	hubDescription: string;
 	keywords: readonly string[];
+	/** Optional extra paragraph under the hero meta description. */
+	heroLead?: string;
+	seoIntro?: ChannelToolSeoIntro;
 };
+
+const CHANNEL_CONTENT_OVERRIDES: ChannelToolContentOverridesBySlug = {
+	bluesky: blueskyBestTimeContentOverride
+};
+
+export function getBestTimeChannelContentOverride(
+	slug: string
+): ChannelToolContentOverride | undefined {
+	return getChannelToolContentOverride(slug, CHANNEL_CONTENT_OVERRIDES);
+}
 
 export const PUBLIC_BEST_TIME_GENERIC_CONFIG = {
 	metaTitle: buildBestTimeToPostGenericMetaTitle(),
@@ -58,7 +81,7 @@ const CHANNEL_HUB_DESCRIPTIONS: Record<string, string> = {
 };
 
 function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): BestTimeChannelPageConfig {
-	return {
+	const base: BestTimeChannelPageConfig = {
 		channelSlug: channel.slug,
 		platformLabel: channel.platformLabel,
 		icon: channel.icon,
@@ -78,6 +101,8 @@ function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): Bes
 			...channel.keywords.slice(0, 4)
 		]
 	};
+
+	return mergeChannelToolContentOverride(base, getBestTimeChannelContentOverride(channel.slug));
 }
 
 const channelConfigs = listAvailablePublicChannels().map(buildChannelPageConfig);

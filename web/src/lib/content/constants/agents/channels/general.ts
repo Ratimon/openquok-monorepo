@@ -6,7 +6,7 @@ import {
 	buildChannelMcpSeoKeywords,
 	SHARED_CHANNEL_SEO_KEYWORDS
 } from '$lib/content/constants/channels/catalog/shared';
-import { resolvePublicChannelAudienceCards } from '$lib/content/constants/channels/catalog/audience-tailored';
+import { resolvePublicChannelAudienceCards } from '$lib/content/constants/channels';
 import { SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS } from '$data/social-providers';
 import {
 	buildAgentChannelAnalyticsCliCommands,

@@ -68,7 +68,7 @@ export function getPublicAgentChannelBySlug(
 	const fromHostMap = channelConfigByHostAndSlug.get(`${agentKey}:${channelKey}`);
 	if (fromHostMap) return fromHostMap;
 
-	// MCP clients derive per-channel SEO config from the catalog (same as hub links).
+	// MCP clients: composed VM — see mcps/channels/index.ts (maintainer map); no mcps/channels/{slug}.ts files.
 	if (!getAvailablePublicMcpLandingBySlug(agentKey)) return undefined;
 
 	const channel = getPublicChannelBySlug(channelKey);

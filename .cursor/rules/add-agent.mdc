@@ -169,7 +169,7 @@ Wire onboarding: **`OnboardingAgentConnectStep.svelte`** tab + official docs lin
 
 ### 5. Channel SEO (when shipping per-channel agent pages)
 
-Follow patterns under `web/src/lib/content/constants/agents/channels/` and **add-social-provider-integration** for `/agents/{agentSlug}/{channelSlug}`. Append slug to **`PUBLIC_AGENT_CHANNEL_HOST_SLUGS`** in `agents/channels/index.ts`.
+**Skill hosts:** `agents/channels/{host}.ts`; register host in **`PUBLIC_AGENT_CHANNEL_HOST_SLUGS`** (`agents/channels/index.ts`). **MCP × channel:** file map in **web-seo-pseo** (not `agents/channels/{host}.ts`). Bento/CLI checklist: **add-social-provider-integration** § Programmatic Agent channel SEO.
 
 ### 6. Skills / CLI
 

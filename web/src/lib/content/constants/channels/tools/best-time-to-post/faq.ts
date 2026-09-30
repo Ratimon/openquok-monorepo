@@ -1,15 +1,12 @@
 import type { PublicFaqItem } from '$lib/content/constants/faq';
 import {
 	appendPublicGeneralFaqItems,
-	PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS
+	PUBLIC_BEST_TIME_TO_POST_TOOL_FAQ_ITEM_IDS
 } from '$lib/content/constants/faq';
 
 import { BENCHMARK_SLOTS_LAST_REVIEWED } from '$lib/best-time-to-post/constants/benchmarkSlots';
-import {
-	buildToolChannelFaqLinks,
-	faqLink,
-	publicFaqHref
-} from '$lib/content/utils/publicFaqLinks';
+import { getBestTimeChannelContentOverride } from '$lib/content/constants/channels/tools/best-time-to-post/general';
+import { faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 
 export type BestTimeToPostFaqSection = {
 	faqSubtitle: string;
@@ -75,19 +72,22 @@ function tailorBestTimeFaqItem(
 	channelSlug: string,
 	platformLabel: string
 ): PublicFaqItem {
-	const toolLinks = buildToolChannelFaqLinks('best-time-to-post', channelSlug);
-
 	switch (item.title) {
 		case EXACT_TIME_FAQ_TITLE:
 			return {
 				title: item.title,
-				description: `No. This ${faqLink(toolLinks.toolChannel, `${platformLabel} timing page`)} does not read your account analytics or predict your personal peak hour. It builds a ${platformLabel} timing test plan from that platform’s benchmark table in your audience timezone. Run the slots as controlled tests, then let ${platformLabel} and OpenQuok analytics decide your final schedule.`
+				description: `No. This page does not read your account analytics or predict your personal peak hour. It builds a ${platformLabel} timing test plan from that platform’s benchmark table in your audience timezone. Run the slots as controlled tests, then let ${platformLabel} and OpenQuok analytics decide your final schedule.`
 			};
-		case BENCHMARK_SOURCES_FAQ_TITLE:
+		case BENCHMARK_SOURCES_FAQ_TITLE: {
+			const weekendNote =
+				channelSlug === 'bluesky'
+					? ' Published surveys disagree on Bluesky weekend evenings versus weekday mornings — treat every row as a test slot, not a rule.'
+					: '';
 			return {
 				title: item.title,
-				description: `The ${platformLabel} rows in our benchmark catalog (reviewed ${BENCHMARK_SLOTS_LAST_REVIEWED}) define typical ${platformLabel} windows in audience local time. This channel page pre-selects ${platformLabel}; cadence and content type choose how many of those windows appear each week. Shown timezone is for your local reading only — not a second schedule.`
+				description: `The ${platformLabel} rows in our benchmark catalog (reviewed ${BENCHMARK_SLOTS_LAST_REVIEWED}) define typical ${platformLabel} windows in audience local time.${weekendNote} This channel page pre-selects ${platformLabel}; cadence and content type choose how many of those windows appear each week. Shown timezone is for your local reading only — not a second schedule.`
 			};
+		}
 		case 'Why does the tool include multiple slots?':
 			return {
 				title: item.title,
@@ -103,7 +103,7 @@ function tailorBestTimeFaqItem(
 		case PLATFORM_WINDOWS_FAQ_TITLE:
 			return {
 				title: `What's included for ${platformLabel}?`,
-				description: `This page opens with ${platformLabel} benchmark windows already selected so you are not guessing. Adjust timezone, content type, and cadence, then generate a timing test plan on ${faqLink(toolLinks.toolChannel, `${platformLabel} Best Time to Post`)}. For another network, pick a different channel in the By channel section.`
+				description: `This page opens with ${platformLabel} benchmark windows locked in the calculator so you are not guessing. Adjust audience timezone, content type, and cadence, then generate a copyable timing test plan in the calculator below. For another network, pick a different channel in the By channel section, or use the all-platforms ${faqLink(publicFaqHref.bestTimeToPostTool, 'Best Time to Post')} hub.`
 			};
 		default:
 			return item;
@@ -117,7 +117,12 @@ function buildChannelBestTimeFaqItems(
 	const slug = channelSlug.trim().toLowerCase();
 	const label = platformLabel.trim();
 
-	return GENERIC_BEST_TIME_FAQ_ITEMS.map((item) => tailorBestTimeFaqItem(item, slug, label));
+	const tailored = GENERIC_BEST_TIME_FAQ_ITEMS.map((item) =>
+		tailorBestTimeFaqItem(item, slug, label)
+	);
+	const extraItems = getBestTimeChannelContentOverride(slug)?.extraFaqItems ?? [];
+
+	return [...tailored, ...extraItems];
 }
 
 export function buildBestTimeToPostFaqSection(
@@ -134,7 +139,7 @@ export function buildBestTimeToPostFaqSection(
 			faqDescription: `How ${label} benchmark windows, audience vs shown timezone, and controlled tests relate to your real posting schedule — plus how to schedule in OpenQuok.`,
 			faqItems: appendPublicGeneralFaqItems(
 				buildChannelBestTimeFaqItems(slug, label),
-				PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS
+				PUBLIC_BEST_TIME_TO_POST_TOOL_FAQ_ITEM_IDS
 			)
 		};
 	}
@@ -146,7 +151,7 @@ export function buildBestTimeToPostFaqSection(
 			'How benchmark tables, audience vs shown timezone, and controlled tests relate to your real posting schedule — plus how to run tests in OpenQuok.',
 		faqItems: appendPublicGeneralFaqItems(
 			[...GENERIC_BEST_TIME_FAQ_ITEMS],
-			PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS
+			PUBLIC_BEST_TIME_TO_POST_TOOL_FAQ_ITEM_IDS
 		)
 	};
 }

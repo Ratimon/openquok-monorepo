@@ -33,6 +33,8 @@ export const load: PageLoad = async ({ parent, data }) => {
 			defaultAspectRatioId: serverData.defaultAspectRatioId,
 			aspectPlatformGroupId: serverData.aspectPlatformGroupId,
 			composerMode: serverData.composerMode,
+			heroLead: serverData.heroLead,
+			seoIntro: serverData.seoIntro,
 			photoEditorChannelsVm: serverData.photoEditorChannelsVm,
 			schemaData: serverData.schemaData,
 			isLoggedIn: accurateIsLoggedIn,

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { BestTimeChannelHubLinkViewModel } from '$lib/best-time-to-post';
+	import type { ChannelToolSeoIntro } from '$lib/content/constants/channels/tools/shared/channelToolContentOverride.types';
 
 	import {
 		getRootPathPublicBestTimeToPost,
@@ -26,6 +27,7 @@
 		accentSplitBestTimeChannelCtaBannerText,
 		accentSplitBestTimeChannelCtaBannerTitle
 	} from '$lib/ui/templates/banners/bestTimeToPostBannerCopy';
+	import PublicToolChannelSeoIntro from '$lib/ui/components/tools/PublicToolChannelSeoIntro.svelte';
 	import BestTimeToPostCalculatorPanel from '$lib/ui/templates/best-time-to-post/BestTimeToPostCalculatorPanel.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import PublicLandingHeroTitle from '$lib/ui/templates/landing-page/PublicLandingHeroTitle.svelte';
@@ -40,6 +42,8 @@
 		channelLabel?: string | null;
 		defaultPlatformSlug: string;
 		channelLinksVm?: BestTimeChannelHubLinkViewModel[];
+		heroLead?: string;
+		seoIntro?: ChannelToolSeoIntro;
 	};
 
 	let {
@@ -49,7 +53,9 @@
 		channelSlug = null,
 		channelLabel = null,
 		defaultPlatformSlug,
-		channelLinksVm = []
+		channelLinksVm = [],
+		heroLead,
+		seoIntro
 	}: Props = $props();
 
 	// /tools
@@ -70,6 +76,14 @@
 	const docsBanner = BEST_TIME_TO_POST_DOCS_BANNER;
 
 	const pageHeading = $derived(heroTitle);
+
+	const heroSubtitle = $derived(
+		seoIntro
+			? channelLabel
+				? `Free benchmark planner for ${channelLabel} — set your audience timezone in the calculator, then copy a test plan.`
+				: 'Free benchmark planner — set your audience timezone in the calculator, then copy a test plan.'
+			: metaDescription
+	);
 
 	let accentBannerTitle = $derived(
 		channelSlug && channelLabel
@@ -97,10 +111,22 @@
 
 		<header class="space-y-3">
 			<PublicLandingHeroTitle title={pageHeading} headingId="best-time-to-post-tool-hero-heading" />
-			<p class="max-w-3xl text-base text-base-content/75">{metaDescription}</p>
+			<p class="max-w-2xl text-sm leading-relaxed text-base-content/70 sm:text-base">
+				{heroSubtitle}
+			</p>
+			{#if heroLead && !seoIntro}
+				<p class="max-w-2xl text-sm leading-relaxed text-base-content/70 sm:text-base">{heroLead}</p>
+			{/if}
 		</header>
 
-		<div class="border-base-300 min-w-0 rounded-2xl border bg-base-100 shadow-sm">
+		{#if seoIntro}
+			<PublicToolChannelSeoIntro intro={seoIntro} calculatorAnchorId="best-time-calculator" />
+		{/if}
+
+		<div
+			id="best-time-calculator"
+			class="border-base-300 min-w-0 scroll-mt-24 rounded-2xl border bg-base-100 shadow-sm"
+		>
 			<div class="border-base-300 flex shrink-0 items-center gap-2 border-b px-4 py-3 sm:px-6">
 				<AbstractIcon name={icons.CalendarClock.name} class="size-5" width="20" height="20" />
 				<div>
@@ -113,7 +139,11 @@
 
 			<div class="min-w-0 p-4 sm:p-6">
 				{#key defaultPlatformSlug}
-					<BestTimeToPostCalculatorPanel {defaultPlatformSlug} {channelLinksVm} />
+					<BestTimeToPostCalculatorPanel
+						{defaultPlatformSlug}
+						{channelLinksVm}
+						lockPlatform={Boolean(channelSlug)}
+					/>
 				{/key}
 			</div>
 		</div>

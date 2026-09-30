@@ -35,14 +35,15 @@ const runtimeArchitecture = `flowchart LR
 
 /** Literal path templates for programmatic SEO tables (avoid `{slug}` in markdown table cells). */
 const programmaticSeoPaths = {
-	channelsSlugTs: 'channels/catalog/{slug}.ts',
+	channelsSlugTs: 'channels/catalog/platforms/{slug}.ts',
 	apisPlatformsSlugTs: 'channels/api/posting/platforms/{slug}.ts',
 	agentsHostsSlugTs: 'agents/hosts/{slug}.ts',
 	channelsUrlSlug: '/channels/{slug}',
 	agentsUrlSlug: '/agents/{slug}',
 	mcpsHostsSlugTs: 'mcps/hosts/{slug}.ts',
+	mcpsChannelsMaintainerIndex: 'mcps/channels/index.ts',
 	agentsHostChannelSlugUrl: '/agents/{host}/{channelSlug}',
-	channelsChannelSlugTs: 'channels/catalog/{channelSlug}.ts',
+	channelsChannelSlugTs: 'channels/catalog/platforms/{channelSlug}.ts',
 	apiSurfaceSlugSegment: '/{slug}',
 	channelsApiPostingPlatformsSlugTs: 'channels/api/posting/platforms/{slug}.ts',
 	channelsToolsToolFaqTs: 'channels/tools/{tool}/faq.ts',
@@ -340,7 +341,8 @@ Paths below are repo-relative from <Badge text="web/src/lib/content/constants/" 
 | <Badge text="/channels" variant="path" />, <Badge text={programmaticSeoPaths.channelsUrlSlug} variant="path" /> | <Badge text="channels/index.ts" variant="path" />, <Badge text="hubs/channels.ts" variant="path" /> | <Badge text={programmaticSeoPaths.channelsSlugTs} variant="path" /> + <Badge text="channels/catalog/seeds.ts" variant="path" /> |
 | <Badge text="/agents" variant="path" />, host <Badge text={programmaticSeoPaths.agentsUrlSlug} variant="path" /> | <Badge text="agents/index.ts" variant="path" />, <Badge text="hubs/agents.ts" variant="path" /> | <Badge text={programmaticSeoPaths.agentsHostsSlugTs} variant="path" /> + <Badge text="agents/seeds.ts" variant="path" /> |
 | MCP client on <Badge text={programmaticSeoPaths.agentsUrlSlug} variant="path" /> | <Badge text="mcps/index.ts" variant="path" /> | <Badge text={programmaticSeoPaths.mcpsHostsSlugTs} variant="path" /> + <Badge text="mcps/seeds.ts" variant="path" /> |
-| <Badge text={programmaticSeoPaths.agentsHostChannelSlugUrl} variant="path" /> | <Badge text="agents/channels/index.ts" variant="path" /> | <Badge text="channels/catalog/*" variant="path" /> + host files under <Badge text="agents/channels/" variant="path" /> |
+| <Badge text={programmaticSeoPaths.agentsHostChannelSlugUrl} variant="path" /> (skill host) | <Badge text="agents/channels/index.ts" variant="path" /> | <Badge text="agents/channels/{host}.ts" variant="path" /> + <Badge text={programmaticSeoPaths.channelsChannelSlugTs} variant="path" /> |
+| <Badge text={programmaticSeoPaths.agentsHostChannelSlugUrl} variant="path" /> (MCP client) | <Badge text={programmaticSeoPaths.mcpsChannelsMaintainerIndex} variant="path" /> | <Badge text={programmaticSeoPaths.mcpsHostsSlugTs} variant="path" /> + <Badge text={programmaticSeoPaths.channelsChannelSlugTs} variant="path" /> + <Badge text="buildMcpChannelLandingVm.ts" variant="path" /> (no <Badge text="mcps/channels/{channelSlug}.ts" variant="path" /> files) |
 | <Badge text="/social-media-posting-api" variant="path" />, <Badge text="/social-media-scheduling-api" variant="path" /> (+ <Badge text={programmaticSeoPaths.apiSurfaceSlugSegment} variant="path" />) | <Badge text="channels/api/index.ts" variant="path" />, <Badge text="channels/api/_shared/*" variant="path" /> | <Badge text={programmaticSeoPaths.channelsApiPostingPlatformsSlugTs} variant="path" />; scheduling hub in <Badge text="channels/api/scheduling/" variant="path" /> |
 | <Badge text="/tools/*" variant="path" /> | <Badge text="hubs/tools.ts" variant="path" /> | <Badge text={programmaticSeoPaths.channelsToolsToolGeneralTs} variant="path" />, <Badge text={programmaticSeoPaths.channelsToolsToolFaqTs} variant="path" /> |
 | <Badge text="/compare" variant="path" />, <Badge text="/alternatives" variant="path" /> | <Badge text="competitors/index.ts" variant="path" />, <Badge text="hubs/compare.ts" variant="path" /> | <Badge text={programmaticSeoPaths.competitorsProductTs} variant="path" /> |
@@ -348,7 +350,7 @@ Paths below are repo-relative from <Badge text="web/src/lib/content/constants/" 
 | <Badge text="/" variant="path" /> and shared hub chrome | <Badge text="landing/index.ts" variant="path" /> (hero, breadcrumbs, who-is-for, setup-steps-footer) | — |
 | Shared FAQ pool | <Badge text="faq/index.ts" variant="path" /> (<Badge text="PUBLIC_FAQ_ITEMS" variant="param" />, <Badge text="appendPublicGeneralFaqItems" variant="param" />, <Badge text="PUBLIC_*_FAQ_ITEM_IDS" variant="param" />) | Tailored arrays in catalogs and <Badge text="hubs/*.ts" variant="path" /> |
 
-**Channels:** register slugs in <Badge text="channels/catalog/seeds.ts" variant="path" /> (<Badge text="PUBLIC_CHANNEL_LANDING_PAGES" variant="param" />). Optional fourth WhoIsFor card: <Badge text="channels/catalog/audience-tailored.ts" variant="path" />. Feature bento IDs: <Badge text="channels/catalog/feature-bento.ts" variant="path" />.
+**Channels:** per-slug VMs in <Badge text="channels/catalog/platforms/" variant="path" />; register in <Badge text="channels/catalog/seeds.ts" variant="path" /> (<Badge text="PUBLIC_CHANNEL_LANDING_PAGES" variant="param" />). Shared: <Badge text="types.ts" variant="path" />, <Badge text="shared.ts" variant="path" />, <Badge text="feature-bento.ts" variant="path" /> in <Badge text="catalog/" variant="path" />. Optional fourth WhoIsFor: <Badge text="audienceTailoredCard" variant="param" /> on the landing file; <Badge text="channels/index.ts" variant="path" /> merges for agent/API pages.
 
 **FAQs:** tailored Q&A in each catalog or hub file; append shared rows with <Badge text="appendPublicGeneralFaqItems" variant="param" /> and the matching <Badge text="PUBLIC_*_FAQ_ITEM_IDS" variant="param" /> from <Badge text="faq/index.ts" variant="path" />. Link helpers: <Badge text="web/src/lib/content/utils/publicFaqLinks.ts" variant="path" />.
 

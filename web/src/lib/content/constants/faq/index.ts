@@ -299,6 +299,12 @@ export const PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
 	'ai-writer-summarizer'
 ];
 
+/** `/tools/best-time-to-post` hub and channel pages — timing tests only (no composer AI). */
+export const PUBLIC_BEST_TIME_TO_POST_TOOL_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
+	'schedule-posts',
+	'try-free'
+];
+
 /** `/compare` hub. */
 export const PUBLIC_COMPARE_HUB_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
 	'switch-from-buffer-hootsuite',

@@ -1,5 +1,6 @@
 import type { IconName } from '$data/icons';
 
+import type { ChannelToolSeoIntro } from '$lib/content/constants/channels/tools/shared/channelToolContentOverride.types';
 import type { SchedulerCalendarEvent } from '$lib/posts/scheduler.types';
 
 /** How often to place benchmark test slots in the generated week. */
@@ -117,6 +118,8 @@ export type BestTimeToolPageViewModel = {
 	focusedProviderIdentifier: string | null;
 	/** Initial platform select value (channel slug or generic default). */
 	defaultPlatformSlug: string;
+	heroLead?: string;
+	seoIntro?: ChannelToolSeoIntro;
 };
 
 export type BestTimeCalendarDayBoundaries = {

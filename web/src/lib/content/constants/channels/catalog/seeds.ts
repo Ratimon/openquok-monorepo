@@ -1,14 +1,14 @@
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/catalog/types';
 
-import { facebookChannel } from '$lib/content/constants/channels/catalog/facebook';
-import { threadsChannel } from '$lib/content/constants/channels/catalog/threads';
-import { instagramChannel } from '$lib/content/constants/channels/catalog/instagram';
-import { youtubeChannel } from '$lib/content/constants/channels/catalog/youtube';
-import { tiktokChannel } from '$lib/content/constants/channels/catalog/tiktok';
-import { linkedinChannel } from '$lib/content/constants/channels/catalog/linkedin';
-import { xChannel } from '$lib/content/constants/channels/catalog/x';
-import { devtoChannel } from '$lib/content/constants/channels/catalog/devto';
-import { blueskyChannel } from '$lib/content/constants/channels/catalog/bluesky';
+import { facebookChannel } from '$lib/content/constants/channels/catalog/platforms/facebook';
+import { threadsChannel } from '$lib/content/constants/channels/catalog/platforms/threads';
+import { instagramChannel } from '$lib/content/constants/channels/catalog/platforms/instagram';
+import { youtubeChannel } from '$lib/content/constants/channels/catalog/platforms/youtube';
+import { tiktokChannel } from '$lib/content/constants/channels/catalog/platforms/tiktok';
+import { linkedinChannel } from '$lib/content/constants/channels/catalog/platforms/linkedin';
+import { xChannel } from '$lib/content/constants/channels/catalog/platforms/x';
+import { devtoChannel } from '$lib/content/constants/channels/catalog/platforms/devto';
+import { blueskyChannel } from '$lib/content/constants/channels/catalog/platforms/bluesky';
 
 /** Coming-soon entries appear on the hub but do not have detail pages yet. */
 const COMING_SOON_CHANNELS: PublicChannelLandingPageViewModel[] = [];

@@ -23,6 +23,7 @@
 	let channelSlug = $derived(data.channelSlug);
 	let channelLabel = $derived(data.channelLabel);
 	let cliExamplesPath = $derived(data.cliExamplesPath);
+	let heroLead = $derived(data.heroLead);
 	let isLoggedIn = $derived(data.isLoggedIn);
 	let skillBuilderChannelsVm = $derived(data.skillBuilderChannelsVm);
 
@@ -47,5 +48,6 @@
 	{channelSlug}
 	{channelLabel}
 	{cliExamplesPath}
+	{heroLead}
 	channelLinksVm={skillBuilderChannelsVm}
 />

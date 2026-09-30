@@ -15,6 +15,8 @@
 	let channelSlug = $derived(data.channelSlug);
 	let channelLabel = $derived(data.channelLabel);
 	let defaultPlatformSlug = $derived(data.defaultPlatformSlug);
+	let heroLead = $derived(data.heroLead);
+	let seoIntro = $derived(data.seoIntro);
 	let bestTimeToPostChannelsVm = $derived(data.bestTimeToPostChannelsVm);
 </script>
 
@@ -27,5 +29,7 @@
 	{channelSlug}
 	{channelLabel}
 	{defaultPlatformSlug}
+	{heroLead}
+	{seoIntro}
 	channelLinksVm={bestTimeToPostChannelsVm}
 />

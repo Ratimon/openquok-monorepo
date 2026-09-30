@@ -1,3 +1,9 @@
+/**
+ * Scheduling API platform pages share per-slug modules with posting: each
+ * `api/posting/platforms/{slug}.ts` exports both `*PostingPlatform` and
+ * `*SchedulingPlatform`. This folder is hub + registry only — no duplicate
+ * `scheduling/platforms/` tree.
+ */
 import type {
 	PublicApiHubPageViewModel,
 	PublicApiPlatformHubCard,

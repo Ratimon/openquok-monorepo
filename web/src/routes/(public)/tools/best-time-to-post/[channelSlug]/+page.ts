@@ -34,6 +34,8 @@ export const load: PageLoad = async ({ parent, data }) => {
 			channelLabel: serverData.channelLabel,
 			focusedProviderIdentifier: serverData.focusedProviderIdentifier,
 			defaultPlatformSlug: serverData.defaultPlatformSlug,
+			heroLead: serverData.heroLead,
+			seoIntro: serverData.seoIntro,
 			bestTimeToPostChannelsVm: serverData.bestTimeToPostChannelsVm,
 			schemaData: serverData.schemaData,
 			isLoggedIn: accurateIsLoggedIn,

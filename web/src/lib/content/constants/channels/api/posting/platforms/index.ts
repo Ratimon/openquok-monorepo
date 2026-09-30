@@ -1,3 +1,4 @@
+/** Per-slug API marketing VMs: each `{slug}.ts` exports posting + scheduling (`buildPublicApiPlatformPage`). */
 export {
 	blueskyPublicApiPostingPlatform,
 	blueskyPublicApiSchedulingPlatform

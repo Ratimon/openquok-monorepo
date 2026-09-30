@@ -1,6 +1,6 @@
-import { resolvePublicChannelAudienceCards } from '$lib/content/constants/channels/catalog/audience-tailored';
 import {
 	getPublicChannelBySlug,
+	resolvePublicChannelAudienceCards,
 	type PublicChannelLandingPageViewModel
 } from '$lib/content/constants/channels';
 

@@ -19,7 +19,9 @@ export class PublicPhotoEditorPagePresenter {
 			focusedProviderIdentifier: channelConfig?.focusedProviderIdentifier ?? null,
 			defaultAspectRatioId: channelConfig?.defaultAspectRatioId ?? generic.defaultAspectRatioId,
 			aspectPlatformGroupId: channelConfig?.aspectPlatformGroupId ?? generic.aspectPlatformGroupId,
-			composerMode: channelConfig ? 'custom' : 'global'
+			composerMode: channelConfig ? 'custom' : 'global',
+			heroLead: channelConfig?.heroLead,
+			seoIntro: channelConfig?.seoIntro
 		};
 	}
 }

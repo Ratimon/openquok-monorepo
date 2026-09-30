@@ -17,7 +17,9 @@ export class PublicBestTimeToPostPagePresenter {
 			channelSlug: channelConfig?.channelSlug ?? null,
 			channelLabel: channelConfig?.platformLabel ?? null,
 			focusedProviderIdentifier: channelConfig?.focusedProviderIdentifier ?? null,
-			defaultPlatformSlug: channelConfig?.channelSlug ?? generic.defaultPlatformSlug
+			defaultPlatformSlug: channelConfig?.channelSlug ?? generic.defaultPlatformSlug,
+			heroLead: channelConfig?.heroLead,
+			seoIntro: channelConfig?.seoIntro
 		};
 	}
 }

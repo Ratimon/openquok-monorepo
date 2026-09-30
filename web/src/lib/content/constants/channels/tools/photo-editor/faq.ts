@@ -4,6 +4,7 @@ import {
 	PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS
 } from '$lib/content/constants/faq';
 
+import { getPhotoEditorChannelContentOverride } from '$lib/content/constants/channels/tools/photo-editor/general';
 import {
 	buildToolChannelFaqLinks,
 	faqLink,
@@ -64,6 +65,12 @@ function tailorPhotoEditorFaqItem(
 		case 'Do I need an OpenQuok account?':
 			return item;
 		case 'Which aspect ratios are supported?':
+			if (channelSlug === 'bluesky') {
+				return {
+					title: item.title,
+					description: `This page opens OpenQuok Bluesky canvas presets: 1080×1080 (1:1), 1080×1350 (4:5), and 1200×675 (16:9). Bluesky does not require these exact sizes — they are common export ratios. Switch presets in the canvas toolbar or pick another channel in the By channel section on ${faqLink(publicFaqHref.photoEditorTool, 'Photo Editor')}.`
+				};
+			}
 			return {
 				title: item.title,
 				description: `This page focuses on ${platformLabel} presets — feed, story, reel, and cover sizes where applicable. Switch presets in the canvas toolbar or pick another channel in the By channel section on ${faqLink(publicFaqHref.photoEditorTool, 'Photo Editor')}.`
@@ -71,6 +78,12 @@ function tailorPhotoEditorFaqItem(
 		case 'Can I use stock photos and templates?':
 			return item;
 		case PLATFORM_FORMATS_FAQ_TITLE:
+			if (channelSlug === 'bluesky') {
+				return {
+					title: `What's included for ${platformLabel}?`,
+					description: `This page opens with Bluesky square, portrait, and landscape presets already selected. Pick a size from the toolbar, design on the canvas, then download a PNG or save to your library. For another platform, choose a different channel in the By channel section or use the generic ${faqLink(publicFaqHref.photoEditorTool, 'Photo Editor')} for General presets.`
+				};
+			}
 			return {
 				title: `What's included for ${platformLabel}?`,
 				description: `This page opens with ${platformLabel} canvas sizes already selected so you are not guessing dimensions. Pick feed, story, or cover presets from the toolbar, design on the canvas, then download or save to your library. For another platform, choose a different channel in the By channel section or use the generic ${faqLink(publicFaqHref.photoEditorTool, 'Photo Editor')} for General presets.`
@@ -87,9 +100,12 @@ function buildChannelPhotoEditorFaqItems(
 	const slug = channelSlug.trim().toLowerCase();
 	const label = platformLabel.trim();
 
-	return GENERIC_PHOTO_EDITOR_FAQ_ITEMS.map((item) =>
+	const tailored = GENERIC_PHOTO_EDITOR_FAQ_ITEMS.map((item) =>
 		tailorPhotoEditorFaqItem(item, slug, label)
 	);
+	const extraItems = getPhotoEditorChannelContentOverride(slug)?.extraFaqItems ?? [];
+
+	return [...tailored, ...extraItems];
 }
 
 export function buildPhotoEditorFaqSection(

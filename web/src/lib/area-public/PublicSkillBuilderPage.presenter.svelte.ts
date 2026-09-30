@@ -82,7 +82,8 @@ export class PublicSkillBuilderPagePresenter {
 			stackSlug,
 			channelSlug: channelConfig?.channelSlug ?? null,
 			channelLabel: channelConfig?.platformLabel ?? null,
-			cliExamplesPath: channelConfig?.cliExamplesPath ?? null
+			cliExamplesPath: channelConfig?.cliExamplesPath ?? null,
+			heroLead: channelConfig?.heroLead
 		};
 	}
 }

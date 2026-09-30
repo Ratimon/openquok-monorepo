@@ -13,7 +13,9 @@ import type {
  * Values are aligned with recurring themes in public timing research (aggregate
  * studies and platform guides, roughly 2025–2026): weekday morning commute,
  * lunch, and evening leisure; Tue–Thu strongest for short-form and B2B; weaker
- * weekend slots for professional networks. Revisit this file when refreshing benchmarks;
+ * weekend slots for professional networks. Published aggregate studies disagree on
+ * weekends versus weekday mornings — these rows are starting points for controlled
+ * tests, not account-specific peaks. Revisit this file when refreshing benchmarks;
  * keep `BENCHMARK_SLOTS_LAST_REVIEWED` in sync for the public FAQ on `/tools/best-time-to-post`.
  *
  * Cadence wiring (see `getBenchmarkSlotTemplates`):
@@ -23,14 +25,16 @@ import type {
  */
 
 /** Calendar date (YYYY-MM-DD) when platform windows were last reviewed against public timing research. */
-export const BENCHMARK_SLOTS_LAST_REVIEWED = '2026-09-25';
+export const BENCHMARK_SLOTS_LAST_REVIEWED = '2026-09-30';
 
 /** Preferred local clock windows for a weekday (first entry = primary benchmark). */
-type DayWindow = {
+export type PlatformBenchmarkDayWindow = {
 	/** ISO weekday: 1 = Monday … 7 = Sunday */
 	weekday: number;
 	times: readonly { hour: number; minute: number }[];
 };
+
+type DayWindow = PlatformBenchmarkDayWindow;
 
 /**
  * Reference platforms with dedicated tables. Slugs match the channel catalog /
@@ -114,15 +118,15 @@ const PLATFORM_WINDOWS: Record<string, readonly DayWindow[]> = {
 		{ weekday: 6, times: [{ hour: 10, minute: 0 }, { hour: 12, minute: 0 }, { hour: 16, minute: 0 }] },
 		{ weekday: 7, times: [{ hour: 10, minute: 0 }, { hour: 12, minute: 0 }, { hour: 17, minute: 0 }] }
 	],
-	// Microblog: morning check-in, lunch, evening (audience-local weekday windows).
+	// Microblog: weekday 9 AM / noon / 6 PM; Sat evening primary; Sun morning + late afternoon.
 	bluesky: [
 		{ weekday: 1, times: [{ hour: 9, minute: 0 }, { hour: 12, minute: 0 }, { hour: 18, minute: 0 }] },
-		{ weekday: 2, times: [{ hour: 9, minute: 0 }, { hour: 10, minute: 0 }, { hour: 17, minute: 0 }] },
-		{ weekday: 3, times: [{ hour: 10, minute: 0 }, { hour: 12, minute: 0 }, { hour: 18, minute: 0 }] },
-		{ weekday: 4, times: [{ hour: 9, minute: 0 }, { hour: 13, minute: 0 }, { hour: 17, minute: 0 }] },
-		{ weekday: 5, times: [{ hour: 9, minute: 0 }, { hour: 11, minute: 0 }, { hour: 13, minute: 0 }] },
-		{ weekday: 6, times: [{ hour: 10, minute: 0 }, { hour: 12, minute: 0 }, { hour: 18, minute: 0 }] },
-		{ weekday: 7, times: [{ hour: 11, minute: 0 }, { hour: 13, minute: 0 }, { hour: 18, minute: 0 }] }
+		{ weekday: 2, times: [{ hour: 9, minute: 0 }, { hour: 12, minute: 0 }, { hour: 18, minute: 0 }] },
+		{ weekday: 3, times: [{ hour: 9, minute: 0 }, { hour: 12, minute: 0 }, { hour: 18, minute: 0 }] },
+		{ weekday: 4, times: [{ hour: 9, minute: 0 }, { hour: 12, minute: 0 }, { hour: 18, minute: 0 }] },
+		{ weekday: 5, times: [{ hour: 9, minute: 0 }, { hour: 12, minute: 0 }, { hour: 18, minute: 0 }] },
+		{ weekday: 6, times: [{ hour: 17, minute: 0 }, { hour: 9, minute: 0 }, { hour: 12, minute: 0 }] },
+		{ weekday: 7, times: [{ hour: 9, minute: 0 }, { hour: 16, minute: 0 }, { hour: 18, minute: 0 }] }
 	]
 };
 
@@ -148,6 +152,13 @@ const CONTENT_TYPE_MINUTE_OFFSET: Record<ContentTypeId, number> = {
 function windowsForPlatform(platformSlug: string): readonly DayWindow[] {
 	const key = platformSlug.trim().toLowerCase();
 	return PLATFORM_WINDOWS[key] ?? DEFAULT_WINDOWS;
+}
+
+/** Same weekday windows the calculator uses for a platform slug (falls back to defaults). */
+export function getPlatformBenchmarkDayWindows(
+	platformSlug: string
+): readonly PlatformBenchmarkDayWindow[] {
+	return windowsForPlatform(platformSlug);
 }
 
 function applyContentTypeOffset(

@@ -15,6 +15,16 @@ describe('publicProgrammaticLandingRegistry', () => {
 		expect(ids).toContain('payload-wizard');
 	});
 
+	it('documents Tier 3 tool-surfaces patches for channel tool SEO', () => {
+		const toolIds = ['best-time-to-post', 'photo-editor', 'skill-builder'] as const;
+		for (const id of toolIds) {
+			const surface = PUBLIC_PROGRAMMATIC_LANDING_SURFACES.find((s) => s.id === id);
+			expect(surface?.tailored?.modulePath).toContain('/tool-surfaces/{channelSlug}.ts');
+			expect(surface?.notes).toMatch(/tool-surfaces\/\{slug\}/);
+			expect(surface?.notes).toMatch(/extraFaqItems/);
+		}
+	});
+
 	it('reports stable catalog sizes for planning', () => {
 		const counts = getProgrammaticLandingPageCounts();
 		// Snapshot-style guard: update when you add agents, MCP clients, or catalog channels.
@@ -45,6 +55,6 @@ describe('publicProgrammaticLandingRegistry', () => {
 		expect(est.inApiPostingPlatforms).toBe(false);
 		expect(est.pages.postingApi).toBe(0);
 		expect(est.pages.payloadWizard).toBe(0);
-		expect(est.pages.agentHostChannel).toBe(4);
+		expect(est.pages.agentHostChannel).toBe(getProgrammaticLandingPageCounts().agentHostSlugs.length);
 	});
 });

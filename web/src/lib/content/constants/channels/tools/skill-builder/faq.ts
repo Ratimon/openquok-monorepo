@@ -4,6 +4,7 @@ import {
 	PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS
 } from '$lib/content/constants/faq';
 
+import { getSkillBuilderChannelContentOverride } from '$lib/content/constants/channels/tools/skill-builder/general';
 import {
 	buildToolChannelFaqLinks,
 	faqHrefAgent,
@@ -100,6 +101,13 @@ function tailorSkillBuilderFaqItem(
 		case 'Do I need an OpenQuok account to use it?':
 			return item;
 		case PLATFORM_EXAMPLES_FAQ_TITLE:
+			if (channelSlug === 'bluesky') {
+				return {
+					title: `What's included for ${platformLabel}?`,
+					description:
+						`This page opens with a starter Bluesky workflow: text posts, multi-image posts (up to four images), and bluesky.replies follow-ups. Example commands match our ${faqLink(publicFaqHref.cliBluesky, 'Bluesky CLI examples')}. Edit any step, reorder them, or add skills and MCP building blocks from ${faqLink(publicFaqHref.buildingBlocks, 'Building Blocks')} before you export. For another platform, pick a different channel in the By channel section.`
+				};
+			}
 			return {
 				title: `What's included for ${platformLabel}?`,
 				description:
@@ -117,9 +125,12 @@ function buildChannelSkillBuilderFaqItems(
 	const slug = channelSlug.trim().toLowerCase();
 	const label = platformLabel.trim();
 
-	return GENERIC_SKILL_BUILDER_FAQ_ITEMS.map((item) =>
+	const tailored = GENERIC_SKILL_BUILDER_FAQ_ITEMS.map((item) =>
 		tailorSkillBuilderFaqItem(item, slug, label)
 	);
+	const extraItems = getSkillBuilderChannelContentOverride(slug)?.extraFaqItems ?? [];
+
+	return [...tailored, ...extraItems];
 }
 
 export function buildSkillBuilderFaqSection(

@@ -80,6 +80,7 @@
 		channelLabel?: string | null;
 		cliExamplesPath?: string | null;
 		channelLinksVm?: SkillBuilderChannelHubLinkViewModel[];
+		heroLead?: string;
 	};
 
 	let {
@@ -96,7 +97,8 @@
 		channelSlug = null,
 		channelLabel = null,
 		cliExamplesPath = null,
-		channelLinksVm = []
+		channelLinksVm = [],
+		heroLead
 	}: Props = $props();
 
 	// /tools
@@ -370,6 +372,9 @@
 		<p class="max-w-3xl text-base text-base-content/70">
 			{metaDescription}
 		</p>
+		{#if heroLead}
+			<p class="max-w-3xl text-base text-base-content/75">{heroLead}</p>
+		{/if}
 		<p class="max-w-3xl text-sm text-base-content/60">
 			Export follows the
 			<ExternalLink href={CREATING_SKILLS_DOC_URL}>SKILL.md format</ExternalLink>

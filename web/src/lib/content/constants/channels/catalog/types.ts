@@ -34,8 +34,10 @@ export type PublicChannelLandingPageViewModel = {
 	featureSections: PublicChannelFeatureSection[];
 	audienceSubtitle: string;
 	audienceTitle: string;
-	/** Three base persona cards; a fourth tailored card may be appended via `publicChannelAudienceTailoredCards`. */
+	/** Three base persona cards on `/channels/{slug}`. */
 	audienceCards: AudienceCard[];
+	/** Optional fourth WhoIsFor card (channel, agent×channel, API platform pages). */
+	audienceTailoredCard?: AudienceCard;
 	faqSubtitle: string;
 	faqTitle: string;
 	faqDescription: string;

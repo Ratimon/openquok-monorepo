@@ -700,6 +700,7 @@ When go-live-ing a provider, add **platform-specific benchmark windows** in the 
 | Identifier aliases | When composer / `platformId` uses a different key than the channel slug (e.g. `instagram-business`), duplicate or share the same `DayWindow[]` under both keys so the calculator never silently falls back. |
 | Research refresh | Update module comment themes as needed; set `BENCHMARK_SLOTS_LAST_REVIEWED` to the calendar date of the review. |
 | Hub card blurb (optional) | `publicBestTimeToPostChannelConfig.ts` — `CHANNEL_HUB_DESCRIPTIONS['{slug}']` for a sharper **By channel** card; otherwise a generic `${platformLabel} benchmark windows…` string is used. |
+| Extended tool SERP copy (optional) | `channels/tool-surfaces/{slug}.ts` — sparse `ChannelToolContentOverride` per tool; register in `CHANNEL_CONTENT_OVERRIDES` in `tools/{tool}/general.ts`. See **web-seo-pseo** (Tier 3). |
 
 **Cadence behavior** (do not reimplement in the provider PR — document slots accordingly):
 
@@ -786,7 +787,7 @@ Generic `/agents/openclaw` and generic MCP pages (e.g. `/agents/claude-cowork`) 
 
 ### Catalog entry (`publicAgentChannelConfig`)
 
-Configs for agent hosts are built from `listPublicChannelsForHub()` in `openclaw.ts` / `hermes.ts`; MCP clients resolve per-channel config at runtime in `agents/channels/index.ts`. A new live channel appears on agent channel routes automatically **after** bento showcases and CLI examples exist. When adding or go-live-ing a provider, also update:
+Host channel VMs: `agents/channels/{host}.ts` (from `listPublicChannelsForHub()`). MCP × channel: composed per **web-seo-pseo** file map (`mcps/channels/index.ts`). New catalog channels appear on agent/MCP channel routes **after** bento showcases and CLI/MCP examples exist. When adding or go-live-ing a provider, also update:
 
 1. **`CHANNEL_PROVIDER_IDENTIFIERS`** in `publicAgentChannelConfig.ts` — jq filter ids (match `integrations:list` identifiers; mirror Skill Builder).
 2. **`KANBAN_BENTO_BY_CHANNEL`** and **`ANALYTICS_BENTO_BY_CHANNEL`** — map slug → `{slug}-bulk-scheduling` and `{slug}-insights` (requires bento IDs in `publicChannelFeatureBentoConfig.ts` and branches in `BentoPublicChannelFeature.svelte`; same bar as `/channels/{slug}`).

@@ -30,11 +30,13 @@
 	type Props = {
 		defaultPlatformSlug: string;
 		channelLinksVm: BestTimeChannelHubLinkViewModel[];
+		/** When true (channel pSEO pages), platform is fixed to `defaultPlatformSlug`. */
+		lockPlatform?: boolean;
 	};
 
-	let { defaultPlatformSlug, channelLinksVm }: Props = $props();
+	let { defaultPlatformSlug, channelLinksVm, lockPlatform = false }: Props = $props();
 
-	/** User selection; null means follow `defaultPlatformSlug` from the page. */
+	/** User selection on the generic hub; null means follow `defaultPlatformSlug`. */
 	let platformOverride = $state<string | null>(null);
 	let audienceTimezone = $state(BEST_TIME_FORM_DEFAULTS.timezone);
 	let shownTimezone = $state(BEST_TIME_FORM_DEFAULTS.shownTimezone);
@@ -46,8 +48,10 @@
 	let calendarPreviewInstanceId = $state(0);
 
 	const platformSlug = $derived(
-		platformOverride ??
-			(defaultPlatformSlug.trim().toLowerCase() || BEST_TIME_FORM_DEFAULTS.platformSlug)
+		lockPlatform
+			? defaultPlatformSlug.trim().toLowerCase() || BEST_TIME_FORM_DEFAULTS.platformSlug
+			: platformOverride ??
+					(defaultPlatformSlug.trim().toLowerCase() || BEST_TIME_FORM_DEFAULTS.platformSlug)
 	);
 
 	const platformLabel = $derived(
@@ -109,31 +113,51 @@
 					Test inputs
 				</h2>
 				<p class="text-base-content/65 mt-0.5 text-sm">
-					Pick platform, audience and shown timezones — then generate benchmark
-					test slots.
+					{lockPlatform
+						? 'Set audience and shown timezones — then generate benchmark test slots.'
+						: 'Pick platform, audience and shown timezones — then generate benchmark test slots.'}
 				</p>
 			</div>
 		</div>
 
 		<div class="space-y-4">
 			<div class="space-y-1.5">
-				<label class="text-sm font-medium text-base-content" for="best-time-platform">Platform</label>
-				<Select
-					type="single"
-					value={platformSlug}
-					onValueChange={(v) => {
-						if (v) platformOverride = v;
-					}}
-				>
-					<SelectTrigger id="best-time-platform" class="border-base-300 w-full bg-base-100">
-						<span class="truncate text-sm">{platformLabel}</span>
-					</SelectTrigger>
-					<SelectContent>
-						{#each channelLinksVm as channelVm (channelVm.slug)}
-							<SelectItem value={channelVm.slug}>{channelVm.platformLabel}</SelectItem>
-						{/each}
-					</SelectContent>
-				</Select>
+				<span class="text-sm font-medium text-base-content" id="best-time-platform-label">Platform</span>
+				{#if lockPlatform}
+					<div
+						id="best-time-platform"
+						class="border-base-300 flex min-h-10 w-full items-center justify-between gap-2 rounded-md border bg-base-200/40 px-3 py-2"
+						aria-labelledby="best-time-platform-label"
+					>
+						<span class="truncate text-sm font-medium text-base-content">{platformLabel}</span>
+						<Badge variant="muted" class="shrink-0 text-xs">This page</Badge>
+					</div>
+					<p class="text-base-content/55 text-xs">
+						Pick another network from the channel list below, or open the all-platforms calculator from
+						the breadcrumb.
+					</p>
+				{:else}
+					<Select
+						type="single"
+						value={platformSlug}
+						onValueChange={(v) => {
+							if (v) platformOverride = v;
+						}}
+					>
+						<SelectTrigger
+							id="best-time-platform"
+							class="border-base-300 w-full bg-base-100"
+							aria-labelledby="best-time-platform-label"
+						>
+							<span class="truncate text-sm">{platformLabel}</span>
+						</SelectTrigger>
+						<SelectContent>
+							{#each channelLinksVm as channelVm (channelVm.slug)}
+								<SelectItem value={channelVm.slug}>{channelVm.platformLabel}</SelectItem>
+							{/each}
+						</SelectContent>
+					</Select>
+				{/if}
 			</div>
 
 			<div class="space-y-1.5">

@@ -41,6 +41,31 @@ Forward `pageMetaTags` and `schemaData` through universal `+page.ts` on client n
 
 Public programmatic routes render in `+page.svelte` — **no** thin `*Page.svelte` wrappers that only forward props (**web-conventions** §7).
 
+## pSEO content tiers (where per-channel files live)
+
+Pick the tier by route family. Tier 1 and Tier 2 both use a `platforms/{slug}.ts` file per network (different VM types and parent folders).
+
+| Tier | Routes | Module pattern | File shape |
+| --- | --- | --- | --- |
+| **1 — Channel identity** | `/channels/{slug}` | `channels/catalog/platforms/{slug}.ts` | **Full** `PublicChannelLandingPageViewModel`; register in `catalog/seeds.ts`. Shared catalog infra: `catalog/types.ts`, `shared.ts`, `feature-bento.ts`. WhoIsFor: `audienceCards` (3) + optional `audienceTailoredCard`; `resolvePublicChannelAudienceCards` in `channels/index.ts` for agent/API surfaces |
+| **2 — API marketing** | `/social-media-posting-api/{slug}`, scheduling sibling | `channels/api/posting/platforms/{slug}.ts` | **Full** platform page VM (`buildPublicApiPlatformPage`). Export **both** posting and scheduling VMs from the same file; `api/scheduling/index.ts` imports scheduling exports only (no `api/scheduling/platforms/`) |
+| **3 — Derived tools** | `/tools/{tool}/{slug}` | `channels/tool-surfaces/{slug}.ts` + `tools/{tool}/general.ts` | **Sparse** `ChannelToolContentOverride` merged via `mergeChannelToolContentOverride`; register in that tool’s `CHANNEL_CONTENT_OVERRIDES` |
+
+**Tier 3 (tools only):** `tools/{tool}/general.ts` derives defaults from `listAvailablePublicChannels()`. Add `channels/tool-surfaces/{slug}.ts` when one network needs extra SERP copy across tools (`heroLead`, `seoIntro`, `extraFaqItems`, …). One slug file may export several tool overrides (e.g. Bluesky best-time + photo-editor + skill-builder).
+
+**No `agent-surfaces` / `mcp-surfaces` under `channels/`:** Tier 3 is **channel-keyed patches on tool shells**. Agents and MCPs live under `agents/` and `mcps/` and **compose** `channels/catalog` — host-first or client-first, not per-network files under `channels/`.
+
+| URL | Where to edit |
+| --- | --- |
+| `/agents/{host}` (skill host) | `agents/hosts/{host}.ts` |
+| `/agents/{mcpSlug}` (MCP client) | `mcps/hosts/{mcpSlug}.ts` |
+| `/agents/{host}/{channelSlug}` | `agents/channels/{host}.ts` + `channels/catalog/platforms/{channelSlug}.ts` |
+| `/agents/{mcpSlug}/{channelSlug}` | `mcps/hosts/{mcpSlug}.ts` + `channels/catalog/platforms/{channelSlug}.ts` + `buildMcpChannelLandingVm.ts`; hub/routing: `agents/channels/index.ts` — **map:** `mcps/channels/index.ts` (no `mcps/channels/{channelSlug}.ts` seeds) |
+
+Do not add `agents/channels/{socialSlug}.ts` unless one host×channel needs copy that cannot live in the host template or catalog.
+
+Inventory: `web/src/lib/content/constants/_dev/programmatic-landing/publicProgrammaticLandingRegistry.ts`.
+
 ## pSEO surface inventory
 
 | Surface | Hub | Detail / variants |

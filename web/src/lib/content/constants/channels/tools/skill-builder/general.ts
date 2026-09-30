@@ -7,6 +7,15 @@ import {
 import { getRootPathPublicSkillBuilderChannel } from '$lib/area-public/constants/getRootPathPublicTools';
 import type { SkillBuilderChannelHubLinkViewModel } from '$lib/skill-builder/skillBuilder.types';
 import { route } from '$lib/utils/path';
+import { blueskySkillBuilderContentOverride } from '$lib/content/constants/channels/tool-surfaces/bluesky';
+import type {
+	ChannelToolContentOverride,
+	ChannelToolContentOverridesBySlug
+} from '$lib/content/constants/channels/tools/shared/channelToolContentOverride.types';
+import {
+	getChannelToolContentOverride,
+	mergeChannelToolContentOverride
+} from '$lib/content/constants/channels/tools/shared/mergeChannelToolContentOverride';
 import {
 	buildSkillBuilderChannelHeroTitle,
 	buildSkillBuilderChannelMetaTitle,
@@ -79,7 +88,19 @@ export type SkillBuilderChannelPageConfig = {
 	keywords: readonly string[];
 	cliExamplesPath: string;
 	recipes: readonly SkillBuilderChannelRecipe[];
+	/** Optional extra paragraph under the hero meta description. */
+	heroLead?: string;
 };
+
+const CHANNEL_CONTENT_OVERRIDES: ChannelToolContentOverridesBySlug = {
+	bluesky: blueskySkillBuilderContentOverride
+};
+
+export function getSkillBuilderChannelContentOverride(
+	slug: string
+): ChannelToolContentOverride | undefined {
+	return getChannelToolContentOverride(slug, CHANNEL_CONTENT_OVERRIDES);
+}
 
 const CHANNEL_PROVIDER_IDENTIFIERS: Record<string, readonly string[]> = {
 	facebook: ['facebook'],
@@ -286,7 +307,7 @@ const CHANNEL_RECIPES: Record<string, readonly SkillBuilderChannelRecipe[]> = {
 		},
 		{
 			id: 'bluesky-images',
-			label: 'Image carousel',
+			label: 'Multi-image post',
 			prompt: 'Attach up to four images on one Bluesky post (no video in the same post).',
 			examplePayload: { ...BLUESKY_IMAGES_PAYLOAD }
 		},
@@ -308,7 +329,7 @@ const CHANNEL_HUB_DESCRIPTIONS: Record<string, string> = {
 	linkedin: 'Profile and company Page text posts; Page global plugs.',
 	x: 'Text posts, reply threads, cross-account reposts, and global plugs.',
 	devto: 'Markdown articles with title, tags, cover, series, and canonical URL.',
-	bluesky: 'Text posts, image carousels, one video per post, and follow-up replies.'
+	bluesky: 'Text posts, up to four images per post, one video per post, and follow-up replies.'
 };
 
 function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): SkillBuilderChannelPageConfig {
@@ -316,7 +337,7 @@ function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): Ski
 		CHANNEL_PROVIDER_IDENTIFIERS[channel.slug] ?? [channel.platformId || channel.slug];
 	const recipes = CHANNEL_RECIPES[channel.slug] ?? [];
 
-	return {
+	const base: SkillBuilderChannelPageConfig = {
 		channelSlug: channel.slug,
 		providerIdentifiers,
 		platformLabel: channel.platformLabel,
@@ -338,6 +359,11 @@ function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): Ski
 		cliExamplesPath: `/docs/cli-examples/${channel.slug}`,
 		recipes
 	};
+
+	return mergeChannelToolContentOverride(
+		base,
+		getSkillBuilderChannelContentOverride(channel.slug)
+	);
 }
 
 const channelConfigs = listAvailablePublicChannels().map(buildChannelPageConfig);

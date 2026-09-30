@@ -35,6 +35,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			channelSlug: serverData.channelSlug,
 			channelLabel: serverData.channelLabel,
 			cliExamplesPath: serverData.cliExamplesPath,
+			heroLead: serverData.heroLead,
 			skillBuilderChannelsVm: serverData.skillBuilderChannelsVm,
 			schemaData: serverData.schemaData,
 			isLoggedIn: accurateIsLoggedIn,

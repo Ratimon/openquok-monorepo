@@ -50,6 +50,7 @@ export interface SkillBuilderPageViewModel {
 	channelSlug?: string | null;
 	channelLabel?: string | null;
 	cliExamplesPath?: string | null;
+	heroLead?: string;
 }
 
 export interface ToolsIndexToolCardViewModel {

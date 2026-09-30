@@ -21,6 +21,7 @@ export { ampMcpSeed } from '$lib/content/constants/mcps/hosts/amp';
 export { warpMcpSeed } from '$lib/content/constants/mcps/hosts/warp';
 export { muse_codeMcpSeed } from '$lib/content/constants/mcps/hosts/muse-code';
 export { MCP_LANDING_SEEDS, listPublicMcpLandingSeedsForFooter } from '$lib/content/constants/mcps/seeds';
+export { buildMcpChannelLandingVm } from '$lib/content/constants/mcps/channels';
 
 export const PUBLIC_MCP_LANDING_PAGES: readonly PublicMcpLandingPageViewModel[] =
 	MCP_LANDING_SEEDS.map(buildMcpLandingPage);

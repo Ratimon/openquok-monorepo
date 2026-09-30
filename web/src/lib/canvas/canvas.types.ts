@@ -1,5 +1,7 @@
 import type { IconName } from '$data/icons';
 
+import type { ChannelToolSeoIntro } from '$lib/content/constants/channels/tools/shared/channelToolContentOverride.types';
+
 export type CanvasChannelHubLinkViewModel = {
 	slug: string;
 	platformLabel: string;
@@ -20,4 +22,7 @@ export interface CanvasToolPageViewModel {
 	defaultAspectRatioId: string;
 	aspectPlatformGroupId: string;
 	composerMode: 'global' | 'custom';
+	/** Optional extra paragraph under the hero meta description (channel routes). */
+	heroLead?: string;
+	seoIntro?: ChannelToolSeoIntro;
 }
