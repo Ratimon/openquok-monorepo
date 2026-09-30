@@ -2,6 +2,8 @@
 	import { AnimatePresence, Motion } from 'svelte-motion';
 
 	import { icons } from '$data/icons';
+	import type { CreateYoutubeVideoObjectSchemaParams } from '$lib/seo/createYoutubeVideoObjectSchema';
+	import VideoObjectJsonLd from '$lib/ui/components/seo/VideoObjectJsonLd.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
 	type AnimationStyle =
@@ -20,6 +22,8 @@
 		thumbnailSrc: string;
 		thumbnailAlt?: string;
 		iconColor?: string;
+		/** When set, emits a `VideoObject` JSON-LD block (omit when the route already adds it in `schemaData`). */
+		videoObjectSeo?: CreateYoutubeVideoObjectSchemaParams;
 	};
 
 	let {
@@ -27,7 +31,8 @@
 		videoSrc,
 		thumbnailSrc,
 		thumbnailAlt = 'Video thumbnail',
-		iconColor = 'white'
+		iconColor = 'white',
+		videoObjectSeo
 	}: Props = $props();
 
 	let isVideoOpen = $state(false);
@@ -89,6 +94,10 @@
 
 	const playIconScale = $derived(isPlayHovered ? 1.1 : 1);
 </script>
+
+{#if videoObjectSeo}
+	<VideoObjectJsonLd videoObject={videoObjectSeo} />
+{/if}
 
 <div class="relative">
 	<button

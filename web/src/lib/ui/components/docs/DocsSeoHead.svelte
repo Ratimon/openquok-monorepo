@@ -4,6 +4,7 @@
 	import type { DocsCodeBlockFromRaw } from '$lib/docs/utils/content/extractDocsCodeBlocksFromRaw';
 	import type { DocsHowToBlock } from '$lib/docs/utils/content/extractDocsHowToFromRaw';
 	import type { DocsImageFromRaw } from '$lib/docs/utils/content/extractDocsImagesFromRaw';
+	import type { DocsYoutubeVideoPreset } from '$lib/docs/utils/content/extractDocsVideoObjectPresetsFromRaw';
 	import {
 		buildDocsBreadcrumbListItems,
 		resolveDocsPageUrl
@@ -24,7 +25,8 @@
 		howToBlocks = [],
 		docImages = [],
 		codeBlocks = [],
-		pricingSchema = false
+		pricingSchema = false,
+		videoObjectPresets = []
 	}: {
 		title: string;
 		description?: string;
@@ -34,6 +36,7 @@
 		docImages?: DocsImageFromRaw[];
 		codeBlocks?: DocsCodeBlockFromRaw[];
 		pricingSchema?: boolean;
+		videoObjectPresets?: DocsYoutubeVideoPreset[];
 	} = $props();
 
 	let siteTitle = docsConfig.site.title;
@@ -65,7 +68,8 @@
 			codeBlocks,
 			ogImage,
 			ogImageAlt,
-			pricingSchema
+			pricingSchema,
+			videoObjectPresets
 		})
 	);
 </script>

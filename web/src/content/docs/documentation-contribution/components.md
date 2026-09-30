@@ -6,7 +6,8 @@ lastUpdated: 2026-08-23
 ---
 
 <script>
-import { Callout, Tabs, TabItem, Steps, Card, CardGrid, LinkCard, Badge, FileTree, Mermaid, DocsExternalLink, ParamField, ResponseField } from '$lib/ui/components/docs/mdx/index.js';
+import { Callout, Tabs, TabItem, Steps, Card, CardGrid, LinkCard, Badge, FileTree, Mermaid, DocsExternalLink, ParamField, ResponseField, VideoModal } from '$lib/ui/components/docs/mdx/index.js';
+import { DOCS_YOUTUBE_CONNECT_CHANNELS } from '$lib/docs/constants/docsYoutubeVideos';
 
 const docsComponentFlow = `flowchart LR
     MD[".md page"] --> Script["page script import"]
@@ -110,6 +111,29 @@ Add markdown files to `src/content/docs/`.
 Build and deploy to your hosting provider.
 
 </Steps>
+
+## Video (YouTube)
+
+Use **`VideoModal`** for a clickable thumbnail that opens the same in-page YouTube player as the marketing hero and onboarding tutorial. Pass **`youtubeVideoId`** and **`thumbnailAlt`**. Set **`videoObjectPreset`** to a key in **`DOCS_YOUTUBE_VIDEOS`** so SSR emits [`VideoObject`](https://schema.org/VideoObject) JSON-LD in **`DocsSeoHead`** (linked from the page **`TechArticle`**).
+
+<VideoModal
+	videoObjectPreset="connectChannels"
+	youtubeVideoId={DOCS_YOUTUBE_CONNECT_CHANNELS.youtubeVideoId}
+	thumbnailAlt={DOCS_YOUTUBE_CONNECT_CHANNELS.thumbnailAlt}
+/>
+
+```html
+<script>
+import { VideoModal } from '$lib/ui/components/docs/mdx/index.js';
+import { DOCS_YOUTUBE_CONNECT_CHANNELS } from '$lib/docs/constants/docsYoutubeVideos';
+</script>
+
+<VideoModal
+	videoObjectPreset="connectChannels"
+	youtubeVideoId={DOCS_YOUTUBE_CONNECT_CHANNELS.youtubeVideoId}
+	thumbnailAlt={DOCS_YOUTUBE_CONNECT_CHANNELS.thumbnailAlt}
+/>
+```
 
 ## Cards
 

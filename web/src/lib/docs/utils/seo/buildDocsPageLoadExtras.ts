@@ -12,6 +12,10 @@ import {
 	type DocsImageFromRaw
 } from '$lib/docs/utils/content/extractDocsImagesFromRaw';
 import type { DocMeta } from '$lib/docs/types';
+import {
+	extractDocsVideoObjectPresetsFromRaw,
+	type DocsYoutubeVideoPreset
+} from '$lib/docs/utils/content/extractDocsVideoObjectPresetsFromRaw';
 
 export type BuildDocsPageLoadExtrasOptions = {
 	meta?: Pick<DocMeta, 'title' | 'openapi'>;
@@ -26,8 +30,10 @@ export async function buildDocsPageLoadExtras(
 	howToBlocks: DocsHowToBlock[];
 	docImages: DocsImageFromRaw[];
 	codeBlocks: DocsCodeBlockFromRaw[];
+	videoObjectPresets: DocsYoutubeVideoPreset[];
 }> {
 	const howToBlocks = extractDocsHowToBlocksFromRaw(rawContent);
+	const videoObjectPresets = extractDocsVideoObjectPresetsFromRaw(rawContent);
 	const docImages = dedupeDocsImagesFromRaw(extractDocsImagesFromRaw(rawContent));
 	const codeBlocks = extractDocsCodeBlocksFromRaw(rawContent);
 
@@ -50,6 +56,7 @@ export async function buildDocsPageLoadExtras(
 	return {
 		howToBlocks,
 		docImages,
-		codeBlocks
+		codeBlocks,
+		videoObjectPresets
 	};
 }

@@ -2,11 +2,12 @@
 title: Connect a channel
 description: The two ways OpenQuok connects a social account today — OAuth or pasted credentials.
 order: 1
-lastUpdated: 2026-09-29
+lastUpdated: 2026-09-30
 ---
 
 <script>
-import { Badge, Callout, CardGrid, LinkCard, TabItem, Tabs } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, LinkCard, TabItem, Tabs, VideoModal } from '$lib/ui/components/docs/mdx/index.js';
+import { DOCS_YOUTUBE_CONNECT_CHANNELS } from '$lib/docs/constants/docsYoutubeVideos';
 </script>
 
 ## Where to start
@@ -87,6 +88,13 @@ You do not need their password. Next to <Badge text="Add Channel" variant="new" 
 ![Send Invitation Links](/docs/_assets/channel-groups/send-invite.webp)
 
 OpenQuok copies an **invite link** to your clipboard (valid for one hour). Send it to your client. They open it, sign in on the platform, and the channel appears in your workspace.
+
+See it in action:
+<VideoModal
+	videoObjectPreset="connectChannels"
+	youtubeVideoId={DOCS_YOUTUBE_CONNECT_CHANNELS.youtubeVideoId}
+	thumbnailAlt={DOCS_YOUTUBE_CONNECT_CHANNELS.thumbnailAlt}
+/>
 
 Invite links work only for **OAuth redirect** networks. Platforms that need credentials pasted in a form are excluded — connect those yourself or ask the client to sign in to OpenQuok and use <Badge text="Add Channel" variant="new" />.
 

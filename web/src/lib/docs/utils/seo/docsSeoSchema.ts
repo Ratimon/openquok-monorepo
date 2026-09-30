@@ -29,6 +29,8 @@ import {
 	type JsonLdGraphSchema
 } from '$lib/seo/jsonLdSchema';
 import { createSoftwareSourceCodeNodes } from '$lib/seo/softwareSourceCodeNodes';
+import type { DocsYoutubeVideoPreset } from '$lib/docs/utils/content/extractDocsVideoObjectPresetsFromRaw';
+import { createDocsVideoObjectNodes } from '$lib/docs/utils/seo/createDocsVideoObjectNodes';
 
 function docsSiteHomeUrl(origin: string): string {
 	return `${origin.replace(/\/$/, '')}/docs`;
@@ -199,6 +201,8 @@ export type CreateDocsPageSeoSchemaParams = {
 	ogImageAlt?: string;
 	/** Emit paid + self-host `Offer` nodes on a docs `WebPage` (e.g. Cloud plans reference). */
 	pricingSchema?: boolean;
+	/** Presets from `<VideoModal videoObjectPreset="…" />` in page MDX. */
+	videoObjectPresets?: DocsYoutubeVideoPreset[];
 };
 
 /** JSON-LD `@graph` for a docs page: `Organization`, docs `WebSite`, `TechArticle`, breadcrumbs, optional HowTo, and inline images. */
@@ -215,7 +219,8 @@ export function createDocsPageSeoSchema(params: CreateDocsPageSeoSchemaParams): 
 		codeBlocks = [],
 		ogImage,
 		ogImageAlt,
-		pricingSchema = false
+		pricingSchema = false,
+		videoObjectPresets = []
 	} = params;
 
 	const siteOrigin = resolvePublicSiteUrl(requestUrl);
@@ -270,6 +275,12 @@ export function createDocsPageSeoSchema(params: CreateDocsPageSeoSchemaParams): 
 		author: docsAuthor
 	});
 
+	const videoObjectNodes = createDocsVideoObjectNodes({
+		presets: videoObjectPresets,
+		canonicalUrl,
+		techArticleId
+	});
+
 	const techArticle: TechArticle = {
 		'@type': 'TechArticle',
 		'@id': techArticleId,
@@ -292,6 +303,14 @@ export function createDocsPageSeoSchema(params: CreateDocsPageSeoSchemaParams): 
 		techArticle.image = jsonLdNodeRef(String(imageNodes[0]['@id']));
 		techArticle.associatedMedia = jsonLdNodeRefs(
 			imageNodes.slice(1).map((node) => String(node['@id']))
+		);
+	}
+
+	if (videoObjectNodes.length === 1) {
+		techArticle.video = jsonLdNodeRef(String(videoObjectNodes[0]['@id']));
+	} else if (videoObjectNodes.length > 1) {
+		techArticle.video = jsonLdNodeRefs(
+			videoObjectNodes.map((node) => String(node['@id']))
 		);
 	}
 
@@ -331,7 +350,8 @@ export function createDocsPageSeoSchema(params: CreateDocsPageSeoSchemaParams): 
 			pricingWebPage,
 			...imageNodes,
 			...howToNodes,
-			...softwareSourceCodeNodes
+			...softwareSourceCodeNodes,
+			...videoObjectNodes
 		])
 	);
 }
