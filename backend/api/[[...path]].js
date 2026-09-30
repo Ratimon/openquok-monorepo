@@ -2565,10 +2565,10 @@ function absoluteUrl(frontendDomainUrl, path7) {
   const normalizedPath = path7.startsWith("/") ? path7 : `/${path7}`;
   return `${base}${normalizedPath}`;
 }
-function buildResourceLinkHtml(href, label) {
-  return `<a href="${escapeHtml(href)}" style="color: ${EMAIL_PRIMARY_COLOR}; text-decoration: underline; font-size: 15px;">${escapeHtml(label)} &gt;</a>`;
+function buildGuideLinkHtml(href, label) {
+  return `<a href="${escapeHtml(href)}" style="color: ${EMAIL_PRIMARY_COLOR}; text-decoration: underline; font-size: 15px;">${escapeHtml(label)}</a>`;
 }
-var SUPPORT_EMAIL, DISCORD_SUPPORT_INVITE_URL, ONBOARDING_YOUTUBE_VIDEO_ID, GETTING_STARTED_STEPS, RESOURCE_LINKS, WelcomeEmailTemplate;
+var SUPPORT_EMAIL, DISCORD_SUPPORT_INVITE_URL, GETTING_STARTED_STEPS, GUIDE_LINKS, WelcomeEmailTemplate;
 var init_WelcomeEmailTemplate = __esm({
   "emails/WelcomeEmailTemplate.ts"() {
     init_AbstractEmailTemplate();
@@ -2576,73 +2576,55 @@ var init_WelcomeEmailTemplate = __esm({
     init_htmlEscape();
     SUPPORT_EMAIL = "admin@openquok.com";
     DISCORD_SUPPORT_INVITE_URL = "https://discord.gg/wXgWcYzU4";
-    ONBOARDING_YOUTUBE_VIDEO_ID = "iKNimZ9FBu8";
     GETTING_STARTED_STEPS = [
       {
-        title: "Warm up your account",
-        description: "Follow our guide on warming up a TikTok account for US audiences before you publish at scale.",
-        path: "/blog/how-to-warm-up-tiktok-account-us-audience"
-      },
-      {
-        title: "Home",
-        description: "Open your dashboard for recent activity, quick actions, and workspace status.",
+        title: "Open your dashboard",
+        description: "See connected channels, drafts, and quick actions on My Dashboard.",
         path: "/account"
       },
       {
-        title: "Calendar",
-        description: "Plan, review, and schedule posts on a visual content calendar.",
-        path: "/account/calendar"
+        title: "Connect a channel",
+        description: "Link X, LinkedIn, TikTok, and other networks \u2014 OAuth or credentials, depending on the platform.",
+        path: "/docs/channels/connect"
       },
       {
-        title: "Templates",
-        description: "Save reusable post templates to draft faster and stay consistent.",
-        path: "/account/templates"
-      },
-      {
-        title: "Playbooks",
-        description: "Install workflow playbooks to run multi-step content strategies.",
-        path: "/account/playbooks"
-      },
-      {
-        title: "Auto Plugs",
-        description: "Set up automated follow-up comments and engagement plugs.",
-        path: "/account/plugs"
-      },
-      {
-        title: "Analytics",
-        description: "Track performance and engagement across your connected channels.",
-        path: "/account/analytics"
-      },
-      {
-        title: "Media",
-        description: "Upload and manage images and videos for your scheduled posts.",
-        path: "/account/media"
+        title: "Schedule your first post",
+        description: "Walk through compose, pick a time, and confirm on the calendar.",
+        path: "/docs/getting-started/quickstart"
       }
     ];
-    RESOURCE_LINKS = [
+    GUIDE_LINKS = [
       {
-        label: "Watch the getting started demo",
-        href: `https://www.youtube.com/watch?v=${ONBOARDING_YOUTUBE_VIDEO_ID}`
+        label: "Product docs overview",
+        href: "/docs/getting-started"
       },
       {
-        label: "Browse developer documentation",
-        href: "/docs"
+        label: "Channels overview",
+        href: "/docs/channels"
       },
       {
-        label: "Explore supported channels",
-        href: "/channels"
+        label: "Team collaboration: workspaces, clients, and preview links",
+        href: "/blog/team-collaboration-in-openquok-workspaces-clients-and-preview-links"
       },
       {
-        label: "View the product roadmap",
-        href: "/roadmap"
+        label: "Warm up a TikTok account before you scale posting",
+        href: "/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience"
       },
       {
-        label: "Read our vision on content integrity",
-        href: "/blog/openquok-social-content-needs-integrity-not-only-abtopilot"
+        label: "CLI getting started \u2014 connect OpenClaw, Grok Bot, or another agent host",
+        href: "/docs/getting-started-for-cli"
       },
       {
-        label: "Browse the playbooks directory",
-        href: "/playbooks"
+        label: "MCP getting started \u2014 connect Claude, ChatGPT, or another MCP client",
+        href: "/docs/getting-started-for-mcp"
+      },
+      {
+        label: "Agent & MCP integrations (pick your client)",
+        href: "/agents"
+      },
+      {
+        label: "Self-host quick start",
+        href: "/docs/getting-started-for-dev/quick-start"
       },
       {
         label: "Join our Discord community",
@@ -2667,26 +2649,24 @@ var init_WelcomeEmailTemplate = __esm({
           (step) => `\u2022 ${step.title} \u2014 ${step.description}
   ${absoluteUrl(this.frontendBaseUrl, step.path)}`
         ).join("\n\n");
-        const resources = RESOURCE_LINKS.map(
+        const guides = GUIDE_LINKS.map(
           (link) => `\u2022 ${link.label}
   ${absoluteUrl(this.frontendBaseUrl, link.href)}`
         ).join("\n\n");
         return `
 Hello ${greeting},
 
-Congratulations \u2014 your email is verified and your account is ready. You now can plan, draft, and schedule social content with confidence.
+Congratulations \u2014 your email is verified and your account is ready. You can plan, draft, and schedule social content from one workspace.
 
-Here's how to get started:
+Start here:
 
 ${steps}
 
-Helpful resources
+Guides and next steps
 
-${resources}
+${guides}
 
-Should you have any questions or require assistance, our support is always available. Email us at ${SUPPORT_EMAIL} or join our Discord community: ${DISCORD_SUPPORT_INVITE_URL}
-
-Thank you for being a valued member of the OpenQuok community. We look forward to continuing to serve you in the best possible way.
+Questions? Email ${SUPPORT_EMAIL} or join Discord: ${DISCORD_SUPPORT_INVITE_URL}
 
 Open your dashboard: ${accountUrl}
 
@@ -2705,20 +2685,13 @@ The OpenQuok Team
             \u2014 ${escapeHtml(step.description)}
         </li>`;
         }).join("");
-        const resourceRows = [];
-        for (let i = 0; i < RESOURCE_LINKS.length; i += 2) {
-          const left = RESOURCE_LINKS[i];
-          const right = RESOURCE_LINKS[i + 1];
-          resourceRows.push(`
-        <tr>
-            <td style="width: 50%; padding: 8px 12px 8px 0; vertical-align: top;">
-                ${buildResourceLinkHtml(absoluteUrl(this.frontendBaseUrl, left.href), left.label)}
-            </td>
-            <td style="width: 50%; padding: 8px 0 8px 12px; vertical-align: top;">
-                ${right ? buildResourceLinkHtml(absoluteUrl(this.frontendBaseUrl, right.href), right.label) : "&nbsp;"}
-            </td>
-        </tr>`);
-        }
+        const guidesHtml = GUIDE_LINKS.map((link) => {
+          const href = absoluteUrl(this.frontendBaseUrl, link.href);
+          return `
+        <li style="margin-bottom: 12px; color: #111; font-size: 15px;">
+            ${buildGuideLinkHtml(href, link.label)}
+        </li>`;
+        }).join("");
         return `
 <!DOCTYPE html>
 <html>
@@ -2735,27 +2708,24 @@ The OpenQuok Team
         Hello <strong>${greeting}</strong>,
     </p>
     <p style="margin: 0 0 28px; color: #111; font-size: 16px;">
-        Congratulations \u2014 your email is verified and your OpenQuok account is ready. You are now part of a community of creators and teams who plan, draft, and schedule social content with confidence.
+        Congratulations \u2014 your email is verified and your account is ready. Plan, draft, and schedule social content from one workspace.
     </p>
-    <p style="margin: 0 0 16px; font-size: 17px; font-weight: 700; color: #111;">Here's how to get started:</p>
+    <p style="margin: 0 0 16px; font-size: 17px; font-weight: 700; color: #111;">Start here</p>
     <ul style="margin: 0 0 32px 0; padding-left: 20px; font-size: 15px;">
         ${stepsHtml}
     </ul>
     <p style="margin: 32px 0 20px; text-align: center;">
         <a href="${escapeHtml(accountUrl)}" style="display: inline-block; background-color: ${EMAIL_PRIMARY_COLOR}; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">Open your dashboard</a>
     </p>
-    <h2 style="font-size: 1.125rem; font-weight: 700; color: #111; margin: 40px 0 16px 0;">Helpful resources</h2>
-    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin: 0 0 32px 0;">
-        ${resourceRows.join("")}
-    </table>
+    <h2 style="font-size: 1.125rem; font-weight: 700; color: #111; margin: 40px 0 16px 0;">Guides and next steps</h2>
+    <ul style="margin: 0 0 32px 0; padding-left: 20px;">
+        ${guidesHtml}
+    </ul>
     <p style="margin: 0 0 16px; color: #333; font-size: 15px;">
-        Should you have any questions or require assistance, our support is always available. Email us at
+        Questions? Email
         <a href="mailto:${SUPPORT_EMAIL}" style="color: ${EMAIL_PRIMARY_COLOR}; text-decoration: underline;">${SUPPORT_EMAIL}</a>
         or join our
         <a href="${escapeHtml(DISCORD_SUPPORT_INVITE_URL)}" style="color: ${EMAIL_PRIMARY_COLOR}; text-decoration: underline;">Discord community</a>.
-    </p>
-    <p style="margin: 0 0 28px; color: #333; font-size: 15px;">
-        Thank you for being a valued member of the OpenQuok community. We look forward to continuing to serve you in the best possible way.
     </p>
     <p style="margin: 0; color: #111; font-size: 15px;">
         Best regards,<br>

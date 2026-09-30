@@ -16,12 +16,12 @@
 
 <p align="center">
   <a href="https://www.openquok.com/sign-up">Sign up</a>
+  · <a href="https://www.openquok.com/">Home</a>
   · <a href="https://www.openquok.com/tools/skill-builder">Skill Builder</a>
   · <a href="https://www.openquok.com/tools/photo-editor">Photo Editor</a>
   · <a href="https://www.openquok.com/tools/humanizer">Humanizer</a>
   · <a href="https://www.openquok.com/docs/getting-started-for-public-api">Public API</a>
-  . <a href="https://www.openquok.com/pricing">Pricing</a>
-  ·<br />
+  · <a href="https://www.openquok.com/pricing">Pricing</a>
 </p>
 
 OpenQuok helps individuals and teams run many social accounts at scale — especially as AI multiplies output. Draft, schedule, and publish from one workspace, with review and approval before anything goes live. Use the dashboard, or connect agents through the CLI, MCP, and public API. Self-host when you want an open alternative to closed SaaS schedulers.
