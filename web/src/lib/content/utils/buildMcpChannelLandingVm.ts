@@ -45,7 +45,7 @@ export function buildMcpChannelLandingVm(params: {
 		heroSecondaryIcon: channel.icon,
 		...audienceSection,
 		metaTitle: buildMcpChannelMetaTitle(platformLabel, clientLabel),
-		metaDescription: `Connect ${clientLabel} to OpenQuok MCP to draft and schedule ${platformLabel} posts from your editor or terminal. Queue drafts and approve every publish on the calendar or kanban.`,
+		metaDescription: `Connect ${clientLabel} to OpenQuok MCP to draft and schedule ${platformLabel} posts from your editor or terminal. Publish now, schedule for later, or approve drafts on the calendar or kanban.`,
 		keywords: [
 			`${clientLabel} ${platformLabel} MCP`,
 			`${clientLabel} MCP`,

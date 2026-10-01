@@ -49,6 +49,11 @@ const HOST_PLATFORM_SEO_EXTRAS: Readonly<
 		X: ['Grok Bot X scheduling', 'xAI agent schedule X posts'],
 		LinkedIn: ['Grok Bot LinkedIn drafts', 'cloud computer social scheduling']
 	},
+	dots: {
+		LinkedIn: ['Dots LinkedIn scheduling', 'ChatGPT dot LinkedIn drafts'],
+		X: ['Dots X scheduling', 'OpenAI dot social posts'],
+		Instagram: ['Dots Instagram creator scheduling', 'dot content production OpenQuok']
+	},
 	thinkrail: {
 		'Dev.to': ['ThinkRail Dev.to scheduling', 'pi agent Dev.to posts', 'worktree IDE developer blog']
 	}
@@ -84,6 +89,14 @@ const HOST_GLOBAL_SEO_EXTRAS: Readonly<Record<string, readonly string[]>> = {
 		'Cursor Teams Grok Bot OpenQuok',
 		'SpaceX Grok Bot social media',
 		'SuperGrok Heavy Grok Bot posts'
+	],
+	dots: [
+		'OpenAI Dots social scheduler',
+		'ChatGPT dot OpenQuok',
+		'Dots vs ChatGPT MCP scheduling',
+		'Dots Slack Teams social posts',
+		'Dots proactive social drafts',
+		'OpenAI dot cloud computer CLI'
 	],
 	thinkrail: ['ThinkRail pi agent scheduler', 'git worktree social media posts']
 };

@@ -25,4 +25,10 @@ describe('buildAgentChannelSeoExtras', () => {
 		expect(extras).toContain('Cursor Grok Bot scheduling');
 		expect(extras).toContain('xAI Grok Bot OpenQuok');
 	});
+
+	it('includes ChatGPT dot extras for Dots channel pages', () => {
+		const extras = buildAgentChannelSeoExtras('dots', 'LinkedIn');
+		expect(extras).toContain('OpenAI Dots social scheduler');
+		expect(extras).toContain('Dots LinkedIn scheduling');
+	});
 });

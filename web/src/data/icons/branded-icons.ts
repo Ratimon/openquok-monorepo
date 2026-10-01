@@ -20,6 +20,7 @@ export type BrandedIconName =
     | "DevtoGlyph"
     | "DingTalk"
     | "Discord"
+    | "Dots"
     | "Facebook"
     | "FacebookGlyph"
     | "Feishu"
@@ -143,6 +144,14 @@ export const brandedIcons = {
         box: 512,
         fill: true,
         svg: `<image href="/icons/clawpost.png" width="512" height="512"/>`
+    },
+    /** OpenAI Dots multicolor lowercase wordmark (from official launch art). OpenAI is a trademark of OpenAI. */
+    Dots: {
+        name: "Dots",
+        box: 580,
+        boxHeight: 159,
+        fill: true,
+        svg: `<image href="/icons/dots-wordmark.png" width="580" height="159"/>`
     },
     /** OpenAI ChatGPT mark (white glyph). OpenAI / ChatGPT are trademarks of OpenAI. */
     ChatGPT: {

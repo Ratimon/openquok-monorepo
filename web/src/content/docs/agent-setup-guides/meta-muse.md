@@ -19,7 +19,7 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps, TabItem, T
 <p><strong>Meta Muse</strong> handles everyday tasks in a Secure VM and can build <strong>custom connectors</strong> from public APIs. <strong>Muse Code</strong> is a developer tool in your terminal with MCP in <Badge text="~/.config/muse/settings.json" variant="path" />. Use this guide for consumer Muse; use the <a href="/docs/mcp-setup-guides/muse-code">Muse Code MCP guide</a> for the coding agent.</p>
 </Callout>
 
-<Callout type="info" title="How Muse works">
+<Callout type="note" title="How Muse works">
 <p><strong>Meta Muse</strong> is a personal agent on <strong>Muse Secure VM</strong> — a dedicated cloud computer with its own browser and credential storage. You can message Muse in the app or <strong>WhatsApp</strong>. Muse can keep working after you close the app and ask before sensitive actions. OpenQuok connects through a <strong>custom connector</strong> (public OpenAPI) or <strong>openquok-core</strong> in the VM; you still approve social publishes on OpenQuok. Product overview: <DocsExternalLink href="https://about.fb.com/news/2026/09/introducing-muse-personal-ai-agent/">Introducing Muse</DocsExternalLink>.</p>
 </Callout>
 

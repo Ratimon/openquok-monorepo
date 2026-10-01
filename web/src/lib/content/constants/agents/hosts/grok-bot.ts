@@ -7,6 +7,12 @@ import {
 	OPENQUOK_CLI_COMMAND_REFERENCE
 } from '$lib/content/constants/agents/cli-command-reference';
 import { PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION } from '$lib/content/constants/agents/general';
+import {
+	buildPublishApprovalFaqAnswer,
+	COMPARISON_PUBLISH_CHOICE_FEATURE,
+	WORKFLOW_PUBLISH_CHOICE_SENTENCE
+} from '$lib/content/constants/schedulingPublishChoice';
+
 
 export const grokBotAgent = {
 	pageType: 'agent-host',
@@ -46,7 +52,7 @@ export const grokBotAgent = {
 		subtitle: 'Your desktop teammate',
 		title: 'Message Grok Bot from macOS, Windows, or iOS',
 		description:
-			'Ask your Bot to draft and schedule like any other teammate message. The openquok-core skill runs on its cloud computer. It finds connected channels, attaches media, and queues drafts. You approve on the calendar before anything publishes.',
+			`Ask your Bot to draft and schedule like any other teammate message. The openquok-core skill runs on its cloud computer. It finds connected channels, attaches media, and queues posts. ${WORKFLOW_PUBLISH_CHOICE_SENTENCE}`,
 		deviceMock: 'desktop',
 		deviceMockContent: 'agent-parallel-schedule',
 		imageAlt: 'Grok Bot desktop chat scheduling social posts via OpenQuok'
@@ -247,7 +253,7 @@ openquok analytics:post <post-id> -d 30`
 			{
 				pain: 'Autopilot publishing with no human checkpoint',
 				feature:
-					'Every post lands as draft or scheduled — you approve before anything goes live'
+					COMPARISON_PUBLISH_CHOICE_FEATURE
 			}
 		]
 	},
@@ -302,8 +308,7 @@ openquok analytics:post <post-id> -d 30`
 		},
 		{
 			title: 'Does Grok Bot publish immediately or wait for approval?',
-			description:
-				'Posts created through the CLI land in your OpenQuok workspace as drafts or scheduled items. You can review on the calendar or kanban, move posts through draft and review, and approve what should publish.'
+			description: buildPublishApprovalFaqAnswer('Grok Bot')
 		},
 		{
 			title: 'Why use Grok Bot with CLI instead of MCP-only?',

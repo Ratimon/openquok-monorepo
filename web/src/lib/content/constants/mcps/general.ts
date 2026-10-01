@@ -28,6 +28,12 @@ import {
 } from '$lib/ui/templates/device-mocks/safari/mcpClientVerifyMockConfig';
 import { getMcpWorkflowScheduleContentId } from '$lib/ui/templates/device-mocks/safari/mcpWorkflowScheduleMockConfig';
 import { getMcpWorkflowAnalyticsContentId } from '$lib/ui/templates/device-mocks/safari/mcpWorkflowAnalyticsMockConfig';
+import {
+	buildPublishApprovalFaqAnswer,
+	COMPARISON_PUBLISH_CHOICE_FEATURE,
+	MCP_CLIENT_PUBLISH_CHOICE_TAGLINE,
+	WORKFLOW_PUBLISH_CHOICE_SENTENCE
+} from '$lib/content/constants/schedulingPublishChoice';
 
 import type { McpLandingSeed, PublicMcpIntegrationViewModel, PublicMcpLandingPageViewModel } from '$lib/content/constants/mcps/types';
 
@@ -57,8 +63,7 @@ function buildMcpAudienceSection(
 				iconName: icons.CustomizedDrawnHouse.name,
 				iconClass: 'text-teal-400',
 				title: 'Startup founders',
-				description:
-					'Schedule across Facebook, Instagram, Threads, YouTube, and TikTok. You approve on the calendar before publish.',
+				description: `Schedule across Facebook, Instagram, Threads, YouTube, and TikTok. ${MCP_CLIENT_PUBLISH_CHOICE_TAGLINE}`,
 				containerClass: 'h-full min-h-[18rem]'
 			}
 		]
@@ -91,6 +96,10 @@ function buildMcpFaqItems(label: string, slug: string): PublicFaqItem[] {
 		{
 			title: 'Which social platforms are supported?',
 			description: `Facebook, Instagram, Threads, YouTube, TikTok, LinkedIn, and X are supported today. See ${faqLink(publicFaqHref.channels, 'Supported channels')} and the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}.`
+		},
+		{
+			title: `Does ${label} publish immediately or wait for approval?`,
+			description: buildPublishApprovalFaqAnswer(label)
 		}
 	];
 }
@@ -286,7 +295,7 @@ function buildMcpWorkflowSection(
 	return {
 		subtitle: `Prompt from ${workflowPhrase}`,
 		title: 'One prompt, cross-channel schedule',
-		description: `Describe what to publish in ${label}. The agent lists your connected channels, attaches media, and queues drafts for the time you pick. You approve on the calendar before anything goes live.`,
+		description: `Describe what to publish in ${label}. The agent lists your connected channels, attaches media, and queues posts for the time you pick. ${WORKFLOW_PUBLISH_CHOICE_SENTENCE}`,
 		deviceMock: 'desktop',
 		deviceMockContent: getMcpWorkflowScheduleContentId(mcpClient),
 		imageAlt: `Schedule social posts from ${label} via OpenQuok MCP`
@@ -403,8 +412,7 @@ function buildMcpComparisonSection(
 			},
 			{
 				pain: 'Autopilot publishing with no human checkpoint',
-				feature:
-					'Every post lands as draft or scheduled. You approve before anything goes live'
+				feature: COMPARISON_PUBLISH_CHOICE_FEATURE
 			}
 		]
 	};

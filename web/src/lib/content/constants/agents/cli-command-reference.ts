@@ -57,6 +57,19 @@ export const GROK_BOT_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
 	{ id: 'curl', label: 'curl + Plugins', command: OPENQUOK_CORE_SKILL_INSTALL_GROK_BOT_CURL }
 ];
 
+/** Dots: ask your dot to install the global CLI on its cloud computer. */
+export const OPENQUOK_CORE_SKILL_INSTALL_DOTS_ASK = `npm install -g @openquok/auto-cli@latest`;
+
+/** Dots: fetch SKILL.md on the dot cloud computer, then connect via ChatGPT plugins. */
+export const OPENQUOK_CORE_SKILL_INSTALL_DOTS_CURL = `mkdir -p ~/openquok-core
+curl -fsSL "${OPENQUOK_CORE_SKILL_RAW_URL}" \\
+  -o ~/openquok-core/SKILL.md`;
+
+export const DOTS_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
+	{ id: 'ask-dot', label: 'Ask your dot', command: OPENQUOK_CORE_SKILL_INSTALL_DOTS_ASK },
+	{ id: 'curl', label: 'curl + plugins', command: OPENQUOK_CORE_SKILL_INSTALL_DOTS_CURL }
+];
+
 /** ThinkRail / pi: global skill directory the in-process agent discovers. */
 export const OPENQUOK_CORE_SKILL_INSTALL_THINKRAIL_GLOBAL = `mkdir -p ~/.pi/agent/skills/openquok-core
 curl -fsSL "${OPENQUOK_CORE_SKILL_RAW_URL}" \\

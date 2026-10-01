@@ -103,9 +103,9 @@
 							>
 								<AbstractIcon
 									name={agent.icon}
-									width="28"
-									height="28"
-									class="size-7"
+									width={agent.slug === 'dots' ? '56' : '28'}
+									height={agent.slug === 'dots' ? '15' : '28'}
+									class={agent.slug === 'dots' ? 'h-[0.95rem] w-auto max-w-[3.5rem]' : 'size-7'}
 									focusable="false"
 								/>
 							</span>
@@ -131,9 +131,11 @@
 							>
 								<AbstractIcon
 									name={agent.icon}
-									width="28"
-									height="28"
-									class="size-7 opacity-70"
+									width={agent.slug === 'dots' ? '56' : '28'}
+									height={agent.slug === 'dots' ? '15' : '28'}
+									class={agent.slug === 'dots'
+										? 'h-[0.95rem] w-auto max-w-[3.5rem] opacity-70'
+										: 'size-7 opacity-70'}
 									focusable="false"
 								/>
 							</span>

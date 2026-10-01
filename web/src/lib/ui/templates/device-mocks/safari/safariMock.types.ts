@@ -2,6 +2,7 @@ export type SafariMockContentId =
 	| 'openclaw-docs-overview'
 	| 'hermes-docs-overview'
 	| 'grok-bot-docs-overview'
+	| 'dots-docs-overview'
 	| 'meta-muse-docs-overview'
 	| 'thinkrail-docs-overview'
 	| 'manus-docs-overview'

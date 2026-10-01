@@ -7,6 +7,12 @@ import {
 	THINKRAIL_SKILL_INSTALL_OPTIONS
 } from '$lib/content/constants/agents/cli-command-reference';
 import { PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION } from '$lib/content/constants/agents/general';
+import {
+	buildPublishApprovalFaqAnswer,
+	COMPARISON_PUBLISH_CHOICE_FEATURE,
+	WORKFLOW_PUBLISH_CHOICE_SENTENCE
+} from '$lib/content/constants/schedulingPublishChoice';
+
 
 export const thinkrailAgent = {
 	pageType: 'agent-host',
@@ -41,7 +47,7 @@ export const thinkrailAgent = {
 		subtitle: 'Your worktree IDE',
 		title: 'Chat with pi in ThinkRail, keep main clean',
 		description:
-			'Open a repo. Cut a workspace worktree. Ask the agent to draft and schedule like any other task. The openquok-core skill runs in that worktree’s shell. It finds connected channels, attaches media, and queues drafts. You approve on the calendar before anything publishes.',
+			`Open a repo. Cut a workspace worktree. Ask the agent to draft and schedule like any other task. The openquok-core skill runs in that worktree’s shell. It finds connected channels, attaches media, and queues posts. ${WORKFLOW_PUBLISH_CHOICE_SENTENCE}`,
 		deviceMock: 'desktop',
 		deviceMockContent: 'agent-parallel-schedule',
 		imageAlt: 'ThinkRail desktop chat scheduling social posts via OpenQuok'
@@ -242,7 +248,7 @@ openquok analytics:post <post-id> -d 30`
 			{
 				pain: 'Autopilot publishing with no human checkpoint',
 				feature:
-					'Every post lands as draft or scheduled — you approve before anything goes live'
+					COMPARISON_PUBLISH_CHOICE_FEATURE
 			}
 		]
 	},
@@ -297,8 +303,7 @@ openquok analytics:post <post-id> -d 30`
 		},
 		{
 			title: 'Does ThinkRail publish immediately or wait for approval?',
-			description:
-					'Posts created through the CLI land in your OpenQuok workspace as drafts or scheduled items — nothing goes live on autopilot. You review on the calendar or kanban, move posts through draft and review, and approve what should publish. ThinkRail handles volume; you handle quality.'
+			description: buildPublishApprovalFaqAnswer('ThinkRail')
 		},
 		{
 			title: 'Why use ThinkRail with CLI instead of MCP-only?',

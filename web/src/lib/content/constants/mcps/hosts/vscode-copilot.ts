@@ -8,9 +8,9 @@ export const vscode_copilotMcpSeed = {
 		icon: icons.Copilot.name,
 		hubDescription: 'Add OpenQuok in .vscode/mcp.json for GitHub Copilot.',
 		heroDescription:
-			'GitHub Copilot in VS Code brings AI chat and agent tools into the editor you already use. Connect OpenQuok over MCP. Copilot drafts and schedules social posts. You review and approve on the calendar or kanban.',
+			'GitHub Copilot in VS Code brings AI chat and agent tools into the editor you already use. Connect OpenQuok over MCP. Copilot drafts and schedules social posts. Publish now, schedule for later, or approve drafts on the calendar or kanban.',
 		metaDescription:
-			'Connect OpenQuok MCP to VS Code and GitHub Copilot. Schedule social posts from your IDE. Approve every publish on the calendar or kanban.',
+			'Connect OpenQuok MCP to VS Code and GitHub Copilot. Schedule social posts from your IDE. Publish now, schedule for later, or approve drafts on the calendar or kanban.',
 		workflowPhrase: 'your IDE',
 		setupSteps: [
 			'Install VS Code from code.visualstudio.com and enable GitHub Copilot',

@@ -1,6 +1,6 @@
 ---
 title: Overview - Setup Guides for different agents
-description: Set up the OpenQuok CLI and skill on AI agent hosts (OpenClaw, Hermes, Grok Bot, Meta Muse, ThinkRail, Manus, and more).
+description: Set up the OpenQuok CLI and skill on AI agent hosts (OpenClaw, Hermes, Grok Bot, OpenAI Dots, Meta Muse, ThinkRail, Manus, and more).
 order: 0
 lastUpdated: 2026-09-21
 sidebar:
@@ -23,6 +23,7 @@ For **native MCP clients** (Cursor, Claude Code, Codex, VS Code Copilot), you ca
 <LinkCard title="OpenClaw" description="OpenClaw is a personal AI assistant you run on your own devices. Message it from Telegram, WhatsApp, or Slack." href="/docs/agent-setup-guides/openclaw" />
 <LinkCard title="Hermes Agent" description="Hermes Agent runs on a laptop, a VPS, or serverless infrastructure. Talk to it from Telegram." href="/docs/agent-setup-guides/hermes" />
 <LinkCard title="Grok Bot" description="Grok Bot teammates run on a persistent cloud computer. Message them from macOS, Windows, or iOS." href="/docs/agent-setup-guides/grok-bot" />
+<LinkCard title="Dots" description="OpenAI Dots are always-on agents in ChatGPT with a cloud computer. Message from ChatGPT, Slack, or Teams." href="/docs/agent-setup-guides/dots" />
 <LinkCard title="ThinkRail" description="ThinkRail is a worktree IDE. Install openquok-core as a pi skill. Schedule posts. You approve on OpenQuok." href="/docs/agent-setup-guides/thinkrail" />
 <LinkCard title="Meta Muse" description="Meta's consumer agent can build a custom OpenQuok connector from the public API. Optional CLI in the Secure VM." href="/docs/agent-setup-guides/meta-muse" />
 <LinkCard title="Manus" description="Import openquok-core as a Manus Skill from GitHub or upload. Run the CLI on a Cloud Computer." href="/docs/agent-setup-guides/manus" />

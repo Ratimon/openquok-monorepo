@@ -8,6 +8,10 @@
 		GROK_BOT_EXTENSION_MESSAGING_CHANNELS
 	} from '$data/grok-bot-messaging-channels';
 	import {
+		DOTS_CORE_MESSAGING_CHANNELS,
+		DOTS_EXTENSION_MESSAGING_CHANNELS
+	} from '$data/dots-messaging-channels';
+	import {
 		META_MUSE_CORE_MESSAGING_CHANNELS,
 		META_MUSE_EXTENSION_MESSAGING_CHANNELS
 	} from '$data/meta-muse-messaging-channels';
@@ -110,6 +114,10 @@
 		'grok-bot': {
 			core: GROK_BOT_CORE_MESSAGING_CHANNELS,
 			extension: GROK_BOT_EXTENSION_MESSAGING_CHANNELS
+		},
+		dots: {
+			core: DOTS_CORE_MESSAGING_CHANNELS,
+			extension: DOTS_EXTENSION_MESSAGING_CHANNELS
 		},
 		thinkrail: {
 			core: THINKRAIL_CORE_MESSAGING_CHANNELS,

@@ -11,9 +11,9 @@ export const warpMcpSeed = {
 	hubDescription:
 		'Warp is an AI-native terminal with built-in MCP. Ship code, debug deploys, and schedule social from one window.',
 	heroDescription:
-		'Warp is an AI-native terminal. Run builds, fix errors in context, and schedule social posts without switching apps. Connect OpenQuok over MCP. Warp AI drafts and queues posts. You review and approve on the calendar or kanban.',
+		'Warp is an AI-native terminal. Run builds, fix errors in context, and schedule social posts without switching apps. Connect OpenQuok over MCP. Warp AI drafts and queues posts. Publish now, schedule for later, or approve drafts on the calendar or kanban.',
 	metaDescription:
-		'Connect OpenQuok MCP to Warp. Use an AI-native terminal to ship code and schedule social posts. Debug in place. Approve every publish on the calendar or kanban.',
+		'Connect OpenQuok MCP to Warp. Use an AI-native terminal to ship code and schedule social posts. Debug in place. Publish now, schedule for later, or approve drafts on the calendar or kanban.',
 	workflowPhrase: 'your terminal',
 	setupSteps: [
 		'Download and install Warp from warp.dev',

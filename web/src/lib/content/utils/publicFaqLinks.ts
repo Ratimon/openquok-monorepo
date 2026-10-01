@@ -119,6 +119,7 @@ export const publicFaqHref = {
 	cliAnalytics: faqHrefDocs('cli-usages/analytics'),
 	agentSetupGuides: faqHrefDocs('agent-setup-guides'),
 	grokBotAgentGuide: faqHrefDocs('agent-setup-guides/grok-bot'),
+	dotsAgentGuide: faqHrefDocs('agent-setup-guides/dots'),
 	metaMuseAgentGuide: faqHrefDocs('agent-setup-guides/meta-muse'),
 	thinkrailAgentGuide: faqHrefDocs('agent-setup-guides/thinkrail'),
 	manusAgentGuide: faqHrefDocs('agent-setup-guides/manus'),
@@ -148,6 +149,9 @@ export const publicFaqHref = {
 	publishListingGuide: faqHrefDocs('publish-listings/publish-your-listing'),
 	listingTypesGuide: faqHrefDocs('publish-listings/listing-types'),
 	grokBotLanding: faqHrefAgent('grok-bot'),
+	dotsLanding: faqHrefAgent('dots'),
+	openclawLanding: faqHrefAgent('openclaw'),
+	chatgptLanding: faqHrefAgent('chatgpt'),
 	metaMuseLanding: faqHrefAgent('meta-muse'),
 	museCodeLanding: faqHrefAgent('muse-code'),
 	thinkrailLanding: faqHrefAgent('thinkrail'),
@@ -161,6 +165,9 @@ export const publicFaqHref = {
 		'how-to-self-host-openquok-with-cli-device-login-free-no-api-keys-on-your-agent'
 	),
 	blogGrokBot: faqHrefBlogPost('schedule-social-posts-from-grok-bot-with-openquok'),
+	blogGrokBotVsOpenclaw: faqHrefBlogPost(
+		'grok-bot-vs-openclaw-pick-your-openquok-social-scheduler-agent'
+	),
 	blogThinkrail: faqHrefBlogPost('schedule-social-posts-from-thinkrail-with-openquok'),
 	blogHumanizerRewrite: faqHrefBlogPost(
 		'how-openquok-humanizer-rewrites-a-draft-in-the-browser'

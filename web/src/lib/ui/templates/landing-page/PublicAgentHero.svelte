@@ -45,14 +45,23 @@
 
 	const heroIconBoxClass =
 		'flex size-16 items-center justify-center rounded-2xl border border-white/10 bg-base-100/10 shadow-lg backdrop-blur-sm';
+	const heroDotsIconBoxClass =
+		'flex h-16 min-w-[8.5rem] items-center justify-center rounded-2xl border border-white/10 bg-base-100/10 px-3 shadow-lg backdrop-blur-sm';
+	const isDotsAgent = $derived(agentVm.slug === 'dots');
 </script>
 
 <AuroraBackground class="relative isolate overflow-hidden">
 	<div class="relative z-10 mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
 		<div class="mx-auto flex max-w-3xl flex-col items-center text-center">
 			<div class="mb-6 flex items-center justify-center gap-3" aria-hidden="true">
-				<div class={heroIconBoxClass}>
-					<AbstractIcon name={agentVm.icon} width="36" height="36" class="size-9" focusable="false" />
+				<div class={isDotsAgent ? heroDotsIconBoxClass : heroIconBoxClass}>
+					<AbstractIcon
+						name={agentVm.icon}
+						width={isDotsAgent ? '120' : '36'}
+						height={isDotsAgent ? '33' : '36'}
+						class={isDotsAgent ? 'h-8 w-auto max-w-[7.5rem]' : 'size-9'}
+						focusable="false"
+					/>
 				</div>
 				{#if agentVm.heroSecondaryIcon}
 					<span class="text-lg font-medium text-base-content/40" aria-hidden="true">+</span>

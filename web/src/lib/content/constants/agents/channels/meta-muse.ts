@@ -3,6 +3,7 @@ import { listPublicChannelsForHub } from '$lib/content/constants/channels';
 import type { PublicAgentChannelHostConfig } from '$lib/content/constants/agents/channels/types';
 import { buildAgentChannelConfigsForHost } from '$lib/content/constants/agents/channels/general';
 import { buildAgentChannelMetaTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
+import { CHANNEL_QUEUE_PUBLISH_CHOICE_SUFFIX } from '$lib/content/constants/schedulingPublishChoice';
 
 export const metaMuseAgentChannelHost: PublicAgentChannelHostConfig = {
 	slug: 'meta-muse',
@@ -15,7 +16,7 @@ export const metaMuseAgentChannelHost: PublicAgentChannelHostConfig = {
 			platformLabel === 'Threads'
 				? ` For ${platformLabel} Pages and creators in the Meta ecosystem.`
 				: '';
-		return `Message Meta Muse on muse.ai or WhatsApp to draft and schedule ${platformLabel} posts via OpenQuok — custom connector from the public API or openquok-core in Muse Secure VM.${metaEcosystem} You approve every publish on the calendar or kanban.`;
+		return `Message Meta Muse on muse.ai or WhatsApp to draft and schedule ${platformLabel} posts via OpenQuok — custom connector from the public API or openquok-core in Muse Secure VM.${metaEcosystem} ${CHANNEL_QUEUE_PUBLISH_CHOICE_SUFFIX}`;
 	},
 	extraKeywords: (platformLabel) => [
 		`Meta Muse ${platformLabel}`,

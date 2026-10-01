@@ -211,6 +211,13 @@ Update `agent/skills/openquok-core/` (`SKILL.md` metadata JSON for the host when
 - Desktop/CLI worktree IDE; skill via **`~/.pi/agent/skills/openquok-core/SKILL.md`** or worktree **`.pi/skills/openquok-core/SKILL.md`**.
 - Reference implementation: **`hosts/thinkrail.ts`**, **`thinkrail-messaging-channels.ts`**, **`THINKRAIL_SKILL_INSTALL_OPTIONS`**, **`channels/thinkrail.ts`**. Desktop-first mocks (same pattern as Grok Bot), not Telegram fallback.
 
+### Dots specifics (`dots`)
+
+- **Not** an MCP client — no `MCP_CLIENTS` entry and no `mcp-setup-guides/dots.md`. **Not** the same surface as **ChatGPT MCP** (`/agents/chatgpt`) — Dots are always-on agents with a cloud computer, plugins, Slack/Teams messaging, and Custom Rules.
+- **Not** Grok Bot — Grok uses xAI desktop/iOS teammates; Dots live in ChatGPT, Slack, and Teams on OpenAI-managed cloud computers.
+- Skill install: **`DOTS_SKILL_INSTALL_OPTIONS`** — CLI on the dot cloud computer + SKILL.md via plugins (see **`hosts/dots.ts`**, **`dots-messaging-channels.ts`**, **`channels/dots.ts`**, **`dots-docs-overview`** / **`openquok-skill-install-dots`** mocks). Desktop workflow mocks (Grok Bot pattern), not OpenClaw Telegram fallback.
+- Cross-link **`/agents/chatgpt`** and **`/agents/grok-bot`** in FAQ and docs so readers pick the right host (see blog scenario guidance for Grok Bot vs OpenClaw; position Dots for ChatGPT-native + workplace chat).
+
 ### Manus specifics (`manus`)
 
 - **Not** an MCP client — no `mcps/manus.ts`, no `MCP_CLIENTS`, no `mcp-setup-guides/manus.md`.

@@ -1,6 +1,7 @@
 import { icons } from '$data/icons';
 
 import type { McpLandingSeed } from '$lib/content/constants/mcps/types';
+import { buildPublishApprovalFaqAnswer } from '$lib/content/constants/schedulingPublishChoice';
 import { faqHrefAgent, faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 
 export const cursorMcpSeed = {
@@ -10,9 +11,9 @@ export const cursorMcpSeed = {
 	icon: icons.Cursor.name,
 	hubDescription: 'Add OpenQuok in .cursor/mcp.json. Use Agent and Composer.',
 	heroDescription:
-		'Cursor is an AI-native code editor with Agent and Composer built in. Connect OpenQuok over MCP. Draft and schedule social posts from your editor. You review and approve on the calendar or kanban.',
+		'Cursor is an AI-native code editor with Agent and Composer built in. Connect OpenQuok over MCP. Draft and schedule social posts from your editor. Publish now, schedule for later, or approve drafts on the calendar or kanban.',
 	metaDescription:
-		'Connect OpenQuok MCP to Cursor. Schedule social posts from Agent and Composer. Approve every publish on the calendar or kanban.',
+		'Connect OpenQuok MCP to Cursor. Schedule social posts from Agent and Composer. Publish now, schedule for later, or approve drafts on the calendar or kanban.',
 	workflowPhrase: 'your editor',
 	setupSteps: [
 		'Download and install Cursor from cursor.com',
@@ -49,6 +50,10 @@ export const cursorMcpSeed = {
 			{
 				title: 'Which social platforms are supported?',
 				description: `Facebook, Instagram, Threads, YouTube, TikTok, LinkedIn, and X are supported today. See ${faqLink(publicFaqHref.channels, 'Supported channels')} and the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}.`
+			},
+			{
+				title: 'Does Cursor publish immediately or wait for approval?',
+				description: buildPublishApprovalFaqAnswer('Cursor')
 			}
 		]
 	}

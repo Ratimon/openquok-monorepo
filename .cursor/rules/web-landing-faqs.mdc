@@ -59,7 +59,8 @@ Add or edit **global** Q&A copy once in `PUBLIC_FAQ_ITEMS`, assign a new `Public
 | Constant | Used on |
 | --- | --- |
 | `PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS` | `/channels` hub, `getPublicChannelBySlug()` detail |
-| `PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS` | `/agents` hub, agent host + MCP landing getters |
+| `PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS` | `/agents` hub, MCP client landing getters |
+| `PUBLIC_AGENT_HOST_FAQ_ITEM_IDS` | `/agents/{slug}` host landings via `getPublicAgentHostBySlug()` |
 | `PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS` | `/tools` hub, tool `build*FaqSection` helpers |
 | `PUBLIC_COMPARE_HUB_FAQ_ITEM_IDS` | `/compare` hub (`appendPublicGeneralFaqItems` on tailored hub copy) |
 | `PUBLIC_CREATORS_HUB_FAQ_ITEM_IDS` | `/creators` hub |
@@ -89,7 +90,8 @@ faqItems: appendPublicGeneralFaqItems(
 ### Detail getters (avoid editing every channel file)
 
 - `getPublicChannelBySlug()` — append `PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS`
-- `getPublicAgentHostBySlug()` / `getPublicMcpLandingBySlug()` — append `PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS`
+- `getPublicAgentHostBySlug()` — append `PUBLIC_AGENT_HOST_FAQ_ITEM_IDS` (no generic MCP primer; hosts cover MCP in tailored copy when relevant)
+- `getPublicMcpLandingBySlug()` — append `PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS`
 
 ### API platform pages
 

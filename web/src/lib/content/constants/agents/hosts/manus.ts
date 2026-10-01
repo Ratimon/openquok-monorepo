@@ -7,6 +7,12 @@ import {
 	OPENQUOK_CLI_COMMAND_REFERENCE
 } from '$lib/content/constants/agents/cli-command-reference';
 import { PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION } from '$lib/content/constants/agents/general';
+import {
+	buildPublishApprovalFaqAnswer,
+	COMPARISON_PUBLISH_CHOICE_FEATURE,
+	WORKFLOW_PUBLISH_CHOICE_SENTENCE
+} from '$lib/content/constants/schedulingPublishChoice';
+
 
 export const manusAgent = {
 	pageType: 'agent-host',
@@ -42,7 +48,7 @@ export const manusAgent = {
 		subtitle: 'Your Manus project',
 		title: 'Chat in Manus, keep skills portable',
 		description:
-			'Ask Manus to draft and schedule like any other task. The openquok-core skill runs openquok in your Cloud Computer or local shell. It finds connected channels, attaches media, and queues drafts. You approve on the calendar before anything publishes.',
+			`Ask Manus to draft and schedule like any other task. The openquok-core skill runs openquok in your Cloud Computer or local shell. It finds connected channels, attaches media, and queues posts. ${WORKFLOW_PUBLISH_CHOICE_SENTENCE}`,
 		deviceMock: 'desktop',
 		deviceMockContent: 'agent-parallel-schedule',
 		imageAlt: 'Manus desktop chat scheduling social posts via OpenQuok'
@@ -242,7 +248,7 @@ openquok analytics:post <post-id> -d 30`
 			{
 				pain: 'Autopilot publishing with no human checkpoint',
 				feature:
-					'Every post lands as draft or scheduled — you approve before anything goes live'
+					COMPARISON_PUBLISH_CHOICE_FEATURE
 			}
 		]
 	},
@@ -288,7 +294,7 @@ openquok analytics:post <post-id> -d 30`
 		{
 			title: 'How do Manus Automations work with OpenQuok?',
 			description:
-				'Automations start Manus work when something happens in a connected service — not only on a clock. Tell Manus what to watch and what to do; include openquok-core when the workflow should draft or schedule social posts. The CLI still writes drafts to your OpenQuok workspace — you approve on the calendar or kanban before anything publishes.'
+				`Automations start Manus work when something happens in a connected service — not only on a clock. Tell Manus what to watch and what to do; include openquok-core when the workflow should draft or schedule social posts. Posts land in your OpenQuok workspace — ${WORKFLOW_PUBLISH_CHOICE_SENTENCE}`
 		},
 		{
 			title: 'How do I install the openquok-core skill in Manus?',
@@ -312,8 +318,7 @@ openquok analytics:post <post-id> -d 30`
 		},
 		{
 			title: 'Does Manus publish immediately or wait for approval?',
-			description:
-				'Posts created through the CLI land in your OpenQuok workspace as drafts or scheduled items. You review on the calendar or kanban, move posts through draft and review, and approve what should publish.'
+			description: buildPublishApprovalFaqAnswer('Manus')
 		},
 		{
 			title: 'Why use Manus with CLI instead of MCP-only?',

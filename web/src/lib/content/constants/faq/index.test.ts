@@ -4,10 +4,12 @@ import { describe, expect, it } from 'vitest';
 
 import {
 	appendPublicGeneralFaqItems,
+	getPublicAgentHostFaqItems,
 	getPublicAgentsHubFaqItems,
 	getPublicApiPlatformFaqItems,
 	getPublicChannelsHubFaqItems,
 	getPublicPricingFaqItems,
+	PUBLIC_AGENT_HOST_FAQ_ITEM_IDS,
 	PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS,
 	PUBLIC_API_PLATFORM_FAQ_ITEM_IDS,
 	PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS,
@@ -75,6 +77,12 @@ describe('public landing hub FAQ getters', () => {
 		const items = getPublicAgentsHubFaqItems();
 		expect(items).toHaveLength(3);
 		expect(items.map((item) => item.id)).toEqual([...PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS]);
+	});
+
+	it('resolves agent host landing items without the generic MCP primer', () => {
+		const items = getPublicAgentHostFaqItems();
+		expect(items.map((item) => item.id)).toEqual([...PUBLIC_AGENT_HOST_FAQ_ITEM_IDS]);
+		expect(items.map((item) => item.id)).not.toContain('what-is-mcp');
 	});
 
 	it('resolves channels and API platform sets with stable ids', () => {

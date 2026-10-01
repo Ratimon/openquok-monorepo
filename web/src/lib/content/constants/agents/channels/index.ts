@@ -9,6 +9,7 @@ import type {
 } from '$lib/content/constants/agents/channels/types';
 import { buildAgentChannelPageConfig } from '$lib/content/constants/agents/channels/general';
 import { grokBotAgentChannelConfigs, grokBotAgentChannelHost } from '$lib/content/constants/agents/channels/grok-bot';
+import { dotsAgentChannelConfigs, dotsAgentChannelHost } from '$lib/content/constants/agents/channels/dots';
 import {
 	thinkrailAgentChannelConfigs,
 	thinkrailAgentChannelHost
@@ -35,6 +36,7 @@ export {
 export { openclawAgentChannelHost, openclawAgentChannelConfigs } from '$lib/content/constants/agents/channels/openclaw';
 export { hermesAgentChannelHost, hermesAgentChannelConfigs } from '$lib/content/constants/agents/channels/hermes';
 export { grokBotAgentChannelHost, grokBotAgentChannelConfigs } from '$lib/content/constants/agents/channels/grok-bot';
+export { dotsAgentChannelHost, dotsAgentChannelConfigs } from '$lib/content/constants/agents/channels/dots';
 export {
 	thinkrailAgentChannelHost,
 	thinkrailAgentChannelConfigs
@@ -50,6 +52,7 @@ export const PUBLIC_AGENT_CHANNEL_HOST_SLUGS = [
 	'openclaw',
 	'hermes',
 	'grok-bot',
+	'dots',
 	'thinkrail',
 	'meta-muse',
 	'manus'
@@ -64,6 +67,7 @@ const channelConfigsByHostSlug: Record<
 	openclaw: openclawAgentChannelConfigs,
 	hermes: hermesAgentChannelConfigs,
 	'grok-bot': grokBotAgentChannelConfigs,
+	dots: dotsAgentChannelConfigs,
 	thinkrail: thinkrailAgentChannelConfigs,
 	'meta-muse': metaMuseAgentChannelConfigs,
 	manus: manusAgentChannelConfigs
@@ -155,6 +159,7 @@ export const AGENT_CHANNEL_HOSTS = [
 	openclawAgentChannelHost,
 	hermesAgentChannelHost,
 	grokBotAgentChannelHost,
+	dotsAgentChannelHost,
 	thinkrailAgentChannelHost,
 	metaMuseAgentChannelHost,
 	manusAgentChannelHost

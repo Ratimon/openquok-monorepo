@@ -8,9 +8,9 @@ export const antigravity_cliMcpSeed = {
 		icon: icons.Antigravity.name,
 		hubDescription: 'Add OpenQuok in ~/.gemini/config/mcp_config.json for agy.',
 		heroDescription:
-			'Antigravity CLI is a terminal agent for Gemini. Run agy from your shell to automate tasks with natural language. Connect OpenQuok over MCP. Your agent drafts and schedules social posts. You review and approve on the calendar or kanban.',
+			'Antigravity CLI is a terminal agent for Gemini. Run agy from your shell to automate tasks with natural language. Connect OpenQuok over MCP. Your agent drafts and schedules social posts. Publish now, schedule for later, or approve drafts on the calendar or kanban.',
 		metaDescription:
-			'Connect OpenQuok MCP to Antigravity CLI. Draft and schedule social posts from your terminal agent. Approve every publish on the calendar or kanban.',
+			'Connect OpenQuok MCP to Antigravity CLI. Draft and schedule social posts from your terminal agent. Publish now, schedule for later, or approve drafts on the calendar or kanban.',
 		workflowPhrase: 'your terminal',
 		setupSteps: [
 			'Install Antigravity CLI from antigravity.google —  with the agy binary',

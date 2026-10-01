@@ -7,6 +7,12 @@ import {
 	OPENQUOK_CLI_COMMAND_REFERENCE
 } from '$lib/content/constants/agents/cli-command-reference';
 import { PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION } from '$lib/content/constants/agents/general';
+import {
+	buildPublishApprovalFaqAnswer,
+	COMPARISON_PUBLISH_CHOICE_FEATURE,
+	WORKFLOW_PUBLISH_CHOICE_SENTENCE
+} from '$lib/content/constants/schedulingPublishChoice';
+
 
 export const metaMuseAgent = {
 	pageType: 'agent-host',
@@ -17,7 +23,7 @@ export const metaMuseAgent = {
 	available: true,
 	metaTitle: 'Meta Muse Social Scheduling for Facebook, Instagram & WhatsApp',
 	metaDescription:
-		'Connect OpenQuok to Meta Muse — Meta\'s personal AI agent on muse.ai and WhatsApp. Schedule Facebook, Instagram, Threads, and other channels with a custom connector or openquok-core in Muse Secure VM. You approve every publish on the calendar or kanban.',
+		'Connect OpenQuok to Meta Muse — Meta\'s personal AI agent on muse.ai and WhatsApp. Schedule Facebook, Instagram, Threads, and other channels with a custom connector or openquok-core in Muse Secure VM. Publish now, schedule for later, or approve drafts on the calendar or kanban.',
 	hubDescription:
 		'Meta Muse runs in Muse Secure VM and can build custom connectors from public APIs. Facebook and Instagram creators can draft from chat or WhatsApp. You approve on OpenQuok.',
 	keywords: [
@@ -43,7 +49,7 @@ export const metaMuseAgent = {
 		subtitle: 'Your everyday agent',
 		title: 'Message Meta Muse from phone, web, or WhatsApp',
 		description:
-			'Ask Muse to list connected channels, draft platform-specific copy, and queue schedules through OpenQuok. Start with drafts and validation. You sign off before anything publishes.',
+			`Ask Muse to list connected channels, draft platform-specific copy, and queue schedules through OpenQuok. ${WORKFLOW_PUBLISH_CHOICE_SENTENCE}`,
 		deviceMock: 'iphone-15-pro',
 		deviceMockContent: 'agent-chat-schedule',
 		imageAlt: 'Meta Muse chat scheduling social posts via OpenQuok'
@@ -237,7 +243,7 @@ openquok analytics:post <post-id> -d 30`
 			{
 				pain: 'Autopilot publishing with no human checkpoint',
 				feature:
-					'Every post lands as draft or scheduled — you approve before anything goes live'
+					COMPARISON_PUBLISH_CHOICE_FEATURE
 			},
 			{
 				pain: 'One workspace mixing every client as you add channels',
@@ -317,8 +323,7 @@ openquok analytics:post <post-id> -d 30`
 		},
 		{
 			title: 'Does Meta Muse publish immediately or wait for approval?',
-			description:
-				'Posts created through OpenQuok land as drafts or scheduled items in your workspace. Review on the calendar or kanban, move posts through draft and review, and approve what should publish.'
+			description: buildPublishApprovalFaqAnswer('Muse')
 		},
 		{
 			title: 'Where do credentials live?',

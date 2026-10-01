@@ -19,7 +19,7 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps, TabItem, T
 <p><strong>Manus</strong> is the project platform with Skills, Studio, Cloud Computers, and Automations. <strong>Cue</strong> is a separate early-access app for personal agents on phone and desktop. This guide is for Manus and the openquok-core Skill — not for Cue-specific setup.</p>
 </Callout>
 
-<Callout type="info" title="Manus 2.0 workflows">
+<Callout type="note" title="Manus 2.0 workflows">
 <p>Manus Studio includes professional surfaces such as <strong>Video Editor</strong> (timeline edits and Alchemy mode) and <strong>Game Dev</strong> (playable games and Cloud Computer multiplayer). <strong>Automations</strong> can start work when email, ads, Slack, Notion, or calendar events change. OpenQuok fits after that work: import <Badge text="openquok-core" variant="default" /> once, then draft and schedule launch posts from the same Manus project — you approve on OpenQuok. Overview: <DocsExternalLink href="https://manus.im/blog/introducing-manus-2-0">Introducing Manus 2.0</DocsExternalLink>.</p>
 </Callout>
 

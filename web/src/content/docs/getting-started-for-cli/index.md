@@ -31,7 +31,7 @@ Install and authenticate first, then use command reference, platform recipes, ag
 <CardGrid>
 <LinkCard title="CLI Core Usages" description="Command-by-command recipes for posts, integrations, analytics, and uploads" href="/docs/cli-usages" />
 <LinkCard title="CLI Examples" description="End-to-end platform recipes organized by social network" href="/docs/cli-examples" />
-<LinkCard title="Agent Setup Guides" description="Run openquok-core with OpenClaw, Hermes, Grok Bot, Meta Muse, ThinkRail, and Manus" href="/docs/agent-setup-guides" />
+<LinkCard title="Agent Setup Guides" description="Run openquok-core with OpenClaw, Hermes, Grok Bot, OpenAI Dots, Meta Muse, ThinkRail, and Manus" href="/docs/agent-setup-guides" />
 <LinkCard title="Other skills" description="Sibling agent skills that extend openquok-core" href="/docs/other-skills" />
 </CardGrid>
 
@@ -198,7 +198,7 @@ openquok posts:delete <post-id>
 <CardGrid>
 <LinkCard title="CLI Core Usages" description="Command-by-command reference" href="/docs/cli-usages" />
 <LinkCard title="CLI Examples" description="Platform-specific end-to-end recipes" href="/docs/cli-examples" />
-<LinkCard title="Agent Setup Guides" description="OpenClaw, Hermes, Grok Bot, Meta Muse, ThinkRail, and Manus setup" href="/docs/agent-setup-guides" />
+<LinkCard title="Agent Setup Guides" description="OpenClaw, Hermes, Grok Bot, Dots, Meta Muse, ThinkRail, and Manus setup" href="/docs/agent-setup-guides" />
 <LinkCard title="Other skills" description="Sibling pipelines such as openquok-tiktok-slideshow" href="/docs/other-skills" />
 </CardGrid>
 
@@ -209,7 +209,7 @@ Other CLI sections plus the public API and self-hosted auth server.
 <CardGrid>
 <LinkCard title="CLI Core Usages" description="Command-by-command recipes for posts, integrations, analytics, and uploads" href="/docs/cli-usages" />
 <LinkCard title="CLI Examples" description="End-to-end platform recipes organized by social network" href="/docs/cli-examples" />
-<LinkCard title="Agent Setup Guides" description="Run openquok-core with OpenClaw, Hermes, Grok Bot, Meta Muse, ThinkRail, and Manus" href="/docs/agent-setup-guides" />
+<LinkCard title="Agent Setup Guides" description="Run openquok-core with OpenClaw, Hermes, Grok Bot, Dots, Meta Muse, ThinkRail, and Manus" href="/docs/agent-setup-guides" />
 <LinkCard title="Other skills" description="Sibling agent skills that extend openquok-core" href="/docs/other-skills" />
 <LinkCard title="CLI authentication" description="OAuth device flow, programmatic token, and custom auth server URL" href="/docs/getting-started-for-cli/authentication" />
 <LinkCard title="Public API" description="REST endpoints and SDK used by the CLI" href="/docs/getting-started-for-public-api" />

@@ -7,6 +7,12 @@ import {
 	OPENQUOK_CLI_COMMAND_REFERENCE
 } from '$lib/content/constants/agents/cli-command-reference';
 import { PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION } from '$lib/content/constants/agents/general';
+import {
+	buildPublishApprovalFaqAnswer,
+	COMPARISON_PUBLISH_CHOICE_FEATURE,
+	WORKFLOW_PUBLISH_CHOICE_SENTENCE
+} from '$lib/content/constants/schedulingPublishChoice';
+
 
 export const hermesAgent = {
 	pageType: 'agent-host',
@@ -42,7 +48,7 @@ export const hermesAgent = {
 		subtitle: 'Your messaging gateways',
 		title: 'Message Hermes from Telegram, Discord, or Slack',
 		description:
-			'Send a scheduling request through any gateway Hermes already bridges. The openquok-core skill drafts posts, uploads media, and queues them on your OpenQuok calendar. You sign off before publish.',
+			`Send a scheduling request through any gateway Hermes already bridges. The openquok-core skill drafts posts, uploads media, and queues them on your OpenQuok calendar. ${WORKFLOW_PUBLISH_CHOICE_SENTENCE}`,
 		deviceMock: 'iphone-15-pro',
 		deviceMockContent: 'agent-chat-schedule',
 		imageAlt: 'Hermes chat scheduling social posts via OpenQuok'
@@ -245,7 +251,7 @@ openquok analytics:post <post-id> -d 30`
 			{
 				pain: 'Autopilot publishing with no human checkpoint',
 				feature:
-					'Every post lands as draft or scheduled — you approve before anything goes live'
+					COMPARISON_PUBLISH_CHOICE_FEATURE
 			}
 		]
 	},
@@ -289,8 +295,7 @@ openquok analytics:post <post-id> -d 30`
 		},
 		{
 			title: 'Does Hermes publish immediately or wait for approval?',
-			description:
-				'Posts created through the CLI land in your OpenQuok workspace as drafts or scheduled items. You can review on the calendar or kanban, move posts through draft and review, and approve what should publish.'
+			description: buildPublishApprovalFaqAnswer('Hermes')
 		},
 		{
 			title: 'Does it work with other AI agents?',

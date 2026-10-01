@@ -8,9 +8,9 @@ export const claude_coworkMcpSeed = {
 		icon: icons.ClaudeGlyph.name,
 		hubDescription: 'Add OpenQuok with custom connectors or managedMcpServers.',
 		heroDescription:
-			'Claude Cowork brings organization-wide AI workflows with custom connectors. Connect OpenQuok over MCP. Coworkers draft and schedule social posts. You review and approve on the calendar or kanban.',
+			'Claude Cowork brings organization-wide AI workflows with custom connectors. Connect OpenQuok over MCP. Coworkers draft and schedule social posts. Publish now, schedule for later, or approve drafts on the calendar or kanban.',
 		metaDescription:
-			'Connect OpenQuok MCP to Claude Cowork. Schedule social posts across the organization. You approve every publish.',
+			'Connect OpenQuok MCP to Claude Cowork. Schedule social posts across the organization. Publish now, schedule for later, or approve drafts on the calendar or kanban.',
 		workflowPhrase: 'your Cowork sessions',
 		setupSteps: [
 			'Access Claude Cowork through claude.com',

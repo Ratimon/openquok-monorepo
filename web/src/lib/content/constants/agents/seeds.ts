@@ -1,6 +1,7 @@
 import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/agents/types';
 
 import { grokBotAgent } from '$lib/content/constants/agents/hosts/grok-bot';
+import { dotsAgent } from '$lib/content/constants/agents/hosts/dots';
 import { hermesAgent } from '$lib/content/constants/agents/hosts/hermes';
 import { metaMuseAgent } from '$lib/content/constants/agents/hosts/meta-muse';
 import { openclawAgent } from '$lib/content/constants/agents/hosts/openclaw';
@@ -12,6 +13,7 @@ export const PUBLIC_AGENT_HOST_LANDING_PAGES: readonly PublicAgentHostLandingPag
 	openclawAgent,
 	hermesAgent,
 	grokBotAgent,
+	dotsAgent,
 	metaMuseAgent,
 	thinkrailAgent,
 	manusAgent

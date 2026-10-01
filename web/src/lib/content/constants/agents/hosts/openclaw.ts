@@ -7,6 +7,12 @@ import {
 	OPENQUOK_CLI_COMMAND_REFERENCE
 } from '$lib/content/constants/agents/cli-command-reference';
 import { PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION } from '$lib/content/constants/agents/general';
+import {
+	buildPublishApprovalFaqAnswer,
+	COMPARISON_PUBLISH_CHOICE_FEATURE,
+	WORKFLOW_PUBLISH_CHOICE_SENTENCE
+} from '$lib/content/constants/schedulingPublishChoice';
+
 
 export const openclawAgent = {
 	pageType: 'agent-host',
@@ -41,7 +47,7 @@ export const openclawAgent = {
 		subtitle: 'Your messaging apps',
 		title: 'Text from Telegram, WhatsApp, or Slack',
 		description:
-			'Send a scheduling request to OpenClaw like any other message. The openquok-core skill runs on your host. It finds connected channels, attaches media, and queues drafts. You approve on the calendar before anything publishes.',
+			`Send a scheduling request to OpenClaw like any other message. The openquok-core skill runs on your host. It finds connected channels, attaches media, and queues posts. ${WORKFLOW_PUBLISH_CHOICE_SENTENCE}`,
 		deviceMock: 'iphone-15-pro',
 		deviceMockContent: 'agent-chat-schedule',
 		imageAlt: 'OpenClaw chat scheduling social posts via OpenQuok'
@@ -240,7 +246,7 @@ openquok analytics:post <post-id> -d 30`
 			{
 				pain: 'Autopilot publishing with no human checkpoint',
 				feature:
-					'Every post lands as draft or scheduled — you approve before anything goes live'
+					COMPARISON_PUBLISH_CHOICE_FEATURE
 			}
 		]
 	},
@@ -283,8 +289,7 @@ openquok analytics:post <post-id> -d 30`
 		},
 		{
 			title: 'Does OpenClaw publish immediately or wait for approval?',
-			description:
-				'Posts created through the CLI land in your OpenQuok workspace as drafts or scheduled items. You can review on the calendar or kanban, move posts through draft and review, and approve what should publish.'
+			description: buildPublishApprovalFaqAnswer('OpenClaw')
 		},
 		{
 			title: 'Does it work with other AI agents?',

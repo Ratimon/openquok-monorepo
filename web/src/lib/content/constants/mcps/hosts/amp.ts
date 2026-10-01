@@ -8,9 +8,9 @@ export const ampMcpSeed = {
 		icon: icons.Amp.name,
 		hubDescription: 'Add OpenQuok with amp mcp add or Amp settings.json.',
 		heroDescription:
-			'Amp is a fast AI coding agent for terminal and IDE workflows. Connect OpenQuok over MCP. Amp drafts and schedules social posts. You review and approve on the calendar or kanban.',
+			'Amp is a fast AI coding agent for terminal and IDE workflows. Connect OpenQuok over MCP. Amp drafts and schedules social posts. Publish now, schedule for later, or approve drafts on the calendar or kanban.',
 		metaDescription:
-			'Connect OpenQuok MCP to Amp. Schedule social posts from your coding agent. Approve every publish on the calendar or kanban.',
+			'Connect OpenQuok MCP to Amp. Schedule social posts from your coding agent. Publish now, schedule for later, or approve drafts on the calendar or kanban.',
 		workflowPhrase: 'your terminal and IDE',
 		setupSteps: [
 			'Install Amp from amp.dev and sign in',

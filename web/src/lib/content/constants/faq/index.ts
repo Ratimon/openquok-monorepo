@@ -278,6 +278,12 @@ export const PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
 	'schedule-posts'
 ];
 
+/** `/agents/{slug}` host landings — trial and scheduling; MCP is covered per host (and on `/agents`). */
+export const PUBLIC_AGENT_HOST_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
+	'try-free',
+	'schedule-posts'
+];
+
 /** `/self-hosting` — operator paths, trial, cloud billing contrast. */
 export const PUBLIC_SELF_HOSTING_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
 	'self-host-openquok',
@@ -356,6 +362,10 @@ export const PUBLIC_API_PLATFORM_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
 
 export function getPublicAgentsHubFaqItems(): PublicFaqItem[] {
 	return resolvePublicFaqItemsByIds(PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS);
+}
+
+export function getPublicAgentHostFaqItems(): PublicFaqItem[] {
+	return resolvePublicFaqItemsByIds(PUBLIC_AGENT_HOST_FAQ_ITEM_IDS);
 }
 
 export function getPublicSelfHostingFaqItems(): PublicFaqItem[] {

@@ -76,6 +76,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'humanize',
 	// Autonomous agent hosts
 	'Grok Bot',
+	'Dots',
 	'Meta Muse',
 	'ThinkRail',
 	'Manus',

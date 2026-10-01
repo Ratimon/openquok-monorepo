@@ -1,7 +1,7 @@
 import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/agents/types';
 import {
 	appendPublicGeneralFaqItems,
-	PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS
+	PUBLIC_AGENT_HOST_FAQ_ITEM_IDS
 } from '$lib/content/constants/faq';
 import { PUBLIC_AGENT_HOST_LANDING_PAGES } from '$lib/content/constants/agents/seeds';
 
@@ -11,6 +11,7 @@ export { PUBLIC_AGENTS_HUB } from '$lib/content/constants/hubs/agents';
 export { openclawAgent } from '$lib/content/constants/agents/hosts/openclaw';
 export { hermesAgent } from '$lib/content/constants/agents/hosts/hermes';
 export { grokBotAgent } from '$lib/content/constants/agents/hosts/grok-bot';
+export { dotsAgent } from '$lib/content/constants/agents/hosts/dots';
 export { metaMuseAgent } from '$lib/content/constants/agents/hosts/meta-muse';
 export { thinkrailAgent } from '$lib/content/constants/agents/hosts/thinkrail';
 export { manusAgent } from '$lib/content/constants/agents/hosts/manus';
@@ -28,7 +29,7 @@ function withAgentHostGeneralFaqs(
 ): PublicAgentHostLandingPageViewModel {
 	return {
 		...page,
-		faqItems: appendPublicGeneralFaqItems(page.faqItems, PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS)
+		faqItems: appendPublicGeneralFaqItems(page.faqItems, PUBLIC_AGENT_HOST_FAQ_ITEM_IDS)
 	};
 }
 
