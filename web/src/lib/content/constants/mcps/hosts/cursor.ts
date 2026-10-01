@@ -1,7 +1,6 @@
 import { icons } from '$data/icons';
 
 import type { McpLandingSeed } from '$lib/content/constants/mcps/types';
-import { buildPublishApprovalFaqAnswer } from '$lib/content/constants/schedulingPublishChoice';
 import { faqHrefAgent, faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 
 export const cursorMcpSeed = {
@@ -22,38 +21,18 @@ export const cursorMcpSeed = {
 		'Reload Cursor, start a new Agent session, and ask: List my connected social media accounts.'
 	],
 	overrides: {
-		faqItems: [
-			{
-				title: 'What is OpenQuok MCP for Cursor?',
+		faqPatchesByTitle: {
+			'What is OpenQuok MCP for Cursor?': {
 				description: `OpenQuok exposes scheduling tools over MCP. Cursor Agent and Composer can list channels and schedule posts. You approve in your workspace. See ${faqLink(publicFaqHref.mcpGettingStarted, 'MCP getting started')} or the ${faqLink(publicFaqHref.cursorMcpGuide, 'Cursor MCP setup guide')}.`
 			},
+			'Why use Cursor MCP instead of an agent host?': {
+				description: `${faqLink(publicFaqHref.grokBotLanding, 'Grok Bot')}, ${faqLink(publicFaqHref.thinkrailLanding, 'ThinkRail')}, ${faqLink(faqHrefAgent('openclaw'), 'OpenClaw')}, and ${faqLink(faqHrefAgent('hermes'), 'Hermes')} fit always-on chat and messaging. Cursor fits in-repo MCP tool calls. Pick Cursor when you already ship there. Pick an agent host for messaging and scale. Many teams use both.`
+			}
+		},
+		faqItemsAfterFirst: [
 			{
 				title: 'What is Grok Bot and how does it relate to Cursor?',
 				description: `${faqLink(publicFaqHref.grokBotLanding, 'Grok Bot')} is the always-on teammate. This page is OpenQuok inside Agent and Composer. Pick Grok Bot for messaging-first volume. Pick Cursor when you stay in the repo. See the ${faqLink(publicFaqHref.blogGrokBot, 'Grok Bot scheduling walkthrough')}.`
-			},
-			{
-				title: 'Do I need the CLI or openquok-core skill?',
-				description: `No. Cursor connects over MCP with an opo_ token. Use openquok-core on ${faqLink(publicFaqHref.grokBotLanding, 'Grok Bot')}, ${faqLink(publicFaqHref.thinkrailLanding, 'ThinkRail')}, ${faqLink(faqHrefAgent('openclaw'), 'OpenClaw')}, or ${faqLink(faqHrefAgent('hermes'), 'Hermes')} for deeper skill workflows. See ${faqLink(publicFaqHref.agentSetupGuides, 'agent setup guides')}.`
-			},
-			{
-				title: 'Why use Cursor MCP instead of an agent host?',
-				description: `${faqLink(publicFaqHref.grokBotLanding, 'Grok Bot')}, ${faqLink(publicFaqHref.thinkrailLanding, 'ThinkRail')}, ${faqLink(faqHrefAgent('openclaw'), 'OpenClaw')}, and ${faqLink(faqHrefAgent('hermes'), 'Hermes')} fit always-on chat and messaging. Cursor fits in-repo MCP tool calls. Pick Cursor when you already ship there. Pick an agent host for messaging and scale. Many teams use both.`
-			},
-			{
-				title: 'How do I authenticate?',
-				description: `Create an OAuth app. Generate an opo_ token. Paste the MCP config. See ${faqLink(publicFaqHref.oauthApps, 'OAuth2 for apps')} and the ${faqLink(publicFaqHref.cursorMcpGuide, 'Cursor MCP setup')}.`
-			},
-			{
-				title: 'How do I verify the connection?',
-				description: `Start a fresh Agent session. Ask: List my connected social media accounts. See the ${faqLink(publicFaqHref.cursorMcpGuide, 'Cursor MCP setup guide')}.`
-			},
-			{
-				title: 'Which social platforms are supported?',
-				description: `Facebook, Instagram, Threads, YouTube, TikTok, LinkedIn, and X are supported today. See ${faqLink(publicFaqHref.channels, 'Supported channels')} and the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}.`
-			},
-			{
-				title: 'Does Cursor publish immediately or wait for approval?',
-				description: buildPublishApprovalFaqAnswer('Cursor')
 			}
 		]
 	}

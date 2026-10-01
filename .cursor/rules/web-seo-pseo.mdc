@@ -58,7 +58,7 @@ Pick the tier by route family. Tier 1 and Tier 2 both use a `platforms/{slug}.ts
 | URL | Where to edit |
 | --- | --- |
 | `/agents/{host}` (skill host) | `agents/hosts/{host}.ts` |
-| `/agents/{mcpSlug}` (MCP client) | `mcps/hosts/{mcpSlug}.ts` |
+| `/agents/{mcpSlug}` (MCP client) | `mcps/hosts/{mcpSlug}.ts` (+ default FAQ in `mcps/general.ts`, sparse FAQ deltas via `mergeMcpLandingFaqItems`) |
 | `/agents/{host}/{channelSlug}` | `agents/channels/{host}.ts` + `channels/catalog/platforms/{channelSlug}.ts` |
 | `/agents/{mcpSlug}/{channelSlug}` | `mcps/hosts/{mcpSlug}.ts` + `channels/catalog/platforms/{channelSlug}.ts` + `buildMcpChannelLandingVm.ts`; hub/routing: `agents/channels/index.ts` — **map:** `mcps/channels/index.ts` (no `mcps/channels/{channelSlug}.ts` seeds) |
 

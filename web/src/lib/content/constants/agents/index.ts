@@ -7,14 +7,31 @@ import { PUBLIC_AGENT_HOST_LANDING_PAGES } from '$lib/content/constants/agents/s
 
 export * from '$lib/content/constants/agents/types';
 export * from '$lib/content/constants/agents/general';
+export { buildAgentHostLandingPage } from '$lib/content/constants/agents/buildAgentHostLandingPage';
+export {
+	AGENT_HOST_DECISION_SCENARIOS,
+	buildAgentHostPickerFaqDescription,
+	getAgentHostDecisionScenario,
+	listAgentHostSlugsForScenario
+} from '$lib/content/constants/agents/decision-scenarios';
+export {
+	AGENT_HOST_PROFILES,
+	getAgentHostProfile,
+	requireAgentHostProfile
+} from '$lib/content/constants/agents/host-profiles';
+export { mergeAgentLandingFaqItems } from '$lib/content/constants/agents/mergeAgentLandingFaqItems';
 export { PUBLIC_AGENTS_HUB } from '$lib/content/constants/hubs/agents';
-export { openclawAgent } from '$lib/content/constants/agents/hosts/openclaw';
-export { hermesAgent } from '$lib/content/constants/agents/hosts/hermes';
-export { grokBotAgent } from '$lib/content/constants/agents/hosts/grok-bot';
-export { dotsAgent } from '$lib/content/constants/agents/hosts/dots';
-export { metaMuseAgent } from '$lib/content/constants/agents/hosts/meta-muse';
-export { thinkrailAgent } from '$lib/content/constants/agents/hosts/thinkrail';
-export { manusAgent } from '$lib/content/constants/agents/hosts/manus';
+export {
+	dotsAgent,
+	grokBotAgent,
+	hermesAgent,
+	hermesAgentSeed,
+	manusAgent,
+	metaMuseAgent,
+	openclawAgent,
+	openclawAgentSeed,
+	thinkrailAgent
+} from '$lib/content/constants/agents/hosts';
 export {
 	PUBLIC_AGENT_HOST_LANDING_PAGES,
 	listPublicAgentHostSeedsForFooter

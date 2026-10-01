@@ -1,21 +1,19 @@
 import { icons } from '$data/icons';
 
-import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/agents/types';
-import { faqHrefAgent, faqHrefDocs, faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+import { buildMessagingGatewayHermesFaqParams } from '$lib/content/constants/agents/archetypes/messaging-gateway-faq';
+import { buildAgentHostLandingPage } from '$lib/content/constants/agents/buildAgentHostLandingPage';
+import { buildAgentHostPickerFaqDescription } from '$lib/content/constants/agents/decision-scenarios';
+import type { AgentHostLandingSeed } from '$lib/content/constants/agents/types';
 import {
 	HERMES_SKILL_INSTALL_OPTIONS,
 	OPENQUOK_CLI_COMMAND_REFERENCE
 } from '$lib/content/constants/agents/cli-command-reference';
-import { PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION } from '$lib/content/constants/agents/general';
 import {
-	buildPublishApprovalFaqAnswer,
 	COMPARISON_PUBLISH_CHOICE_FEATURE,
 	WORKFLOW_PUBLISH_CHOICE_SENTENCE
 } from '$lib/content/constants/schedulingPublishChoice';
 
-
-export const hermesAgent = {
-	pageType: 'agent-host',
+export const hermesAgentSeed = {
 	slug: 'hermes',
 	agentId: 'hermes',
 	agentLabel: 'Hermes Agent',
@@ -41,14 +39,14 @@ export const hermesAgent = {
 		'schedule LinkedIn Hermes Agent'
 	],
 	heroTitle: 'Schedule social media from Hermes then you approve',
-	heroDescription: 'Hermes Agent is a self-improving AI assistant you run on your own hardware or a cloud VM. Message it from Telegram, Discord, or Slack. Add the openquok-core skill so it drafts and schedules social posts. You review and approve on the calendar or kanban.',
+	heroDescription:
+		'Hermes Agent is a self-improving AI assistant you run on your own hardware or a cloud VM. Message it from Telegram, Discord, or Slack. Add the openquok-core skill so it drafts and schedules social posts. You review and approve on the calendar or kanban.',
 	docsPath: '/docs/agent-setup-guides/hermes',
 	skillInstallOptions: HERMES_SKILL_INSTALL_OPTIONS,
 	workflowSection: {
 		subtitle: 'Your messaging gateways',
 		title: 'Message Hermes from Telegram, Discord, or Slack',
-		description:
-			`Send a scheduling request through any gateway Hermes already bridges. The openquok-core skill drafts posts, uploads media, and queues them on your OpenQuok calendar. ${WORKFLOW_PUBLISH_CHOICE_SENTENCE}`,
+		description: `Send a scheduling request through any gateway Hermes already bridges. The openquok-core skill drafts posts, uploads media, and queues them on your OpenQuok calendar. ${WORKFLOW_PUBLISH_CHOICE_SENTENCE}`,
 		deviceMock: 'iphone-15-pro',
 		deviceMockContent: 'agent-chat-schedule',
 		imageAlt: 'Hermes chat scheduling social posts via OpenQuok'
@@ -81,158 +79,41 @@ export const hermesAgent = {
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],
-	setupStepsSubtitle: 'How it works',
-	setupStepsTitle: 'Five steps,to Hermes + OpenQuok',
-	setupSteps: [
-		{
-			id: 1,
-			title: '1. Install Hermes Agent',
-			content:
-				'Run the one-line installer on Linux, macOS, WSL2, or Windows — or use the Desktop app on macOS and Windows.',
-			mediaAlt: 'Hermes Agent documentation at hermes-agent.nousresearch.com',
-			deviceMock: 'safari',
-			deviceMockContent: 'hermes-docs-overview',
-			mockUrl: 'hermes-agent.nousresearch.com',
-			iconName: icons.Terminal.name
-		},
-		{
-			id: 2,
-			title: '2. Select model',
-			content:
-				'Run hermes setup --portal for the fastest path, or hermes model to pick Claude, GPT, Gemini, OpenRouter, or a self-hosted endpoint.',
-			animatedContent: 'llm-models',
-			mediaAlt: 'Model and provider selection in Hermes Agent',
-			iconName: icons.Bot.name
-		},
-		{
-			id: 3,
-			title: '3. Configure chat channel',
-			content:
-				'Run hermes gateway setup to connect Telegram, Discord, Slack, WhatsApp, Signal, or another platform you already use.',
-			mediaAlt: 'Telegram chat channel configuration for Hermes Agent',
-			deviceMock: 'iphone-15-pro',
-			deviceMockContent: 'telegram-connect',
-			iconName: icons.MessageCircle.name
-		},
-		{
-			id: 4,
-			title: '4. Install openquok-core skill',
-			content: 'Add openquok-core under ~/.hermes/skills/ and authenticate the global CLI once.',
-			mediaAlt: 'Install openquok-core skill and authenticate the OpenQuok CLI',
-			deviceMock: 'terminal',
-			deviceMockContent: 'openquok-skill-install-hermes',
-			iconName: icons.OpenQuok.name
-		},
-		{
-			id: 5,
-			title: '5. Integrate & customize other skills or MCPs',
-			content:
-				'Add Bloom, RevenueCat, or any Hermes skill beside openquok-core — find your own viral formats and scale!',
-			animatedContent: 'agent-integrations',
-			mediaAlt: 'Agent skills and integrations with OpenQuok',
-			iconName: icons.Sparkles.name
-		}
-	],
-	featureSections: [
-		{
-			subtitle: 'Connect once',
-			title: 'login from your phone, pick your workspace, chat anywhere securely',
-			description:
-				'Choose a workspace, connect with OAuth2 — approve in your browser, and credentials stay on the host. Message Hermes from Telegram, Discord, or Slack to draft and schedule without opening another app.',
-			deviceMock: 'iphone-15-pro',
-			deviceMockContent: 'openquok-login',
-			imageAlt: 'Hermes chat guiding OpenQuok OAuth device login and workspace authorization',
-			mediaOnRight: true,
-			cliCommandsTitle: 'CLI authentication options',
-			cliCommands: `# OAuth2 device flow (interactive — opens browser)
-openquok auth:login
-openquok auth:status`
-		},
-		{
-			subtitle: 'Kanban + smart filters',
-			title: 'Review every AI draft, sign off confidently, before it goes live',
-			description:
-				'Chat, move agent-generated posts from draft to review to scheduled on a kanban board—with the same smart filters as your calendar. Approve quality at scale instead of trusting autopilot.',
-			bentoId: 'agent-multi-platform-bulk-scheduling',
-			mediaOnRight: false,
-			cliCommandsTitle: 'CLI command options',
-			cliCommands: `# Draft + human checklist
-openquok posts:create -c "…" -s "…" -t draft -i "<uuid>" --note "Check CTA before schedule"
-
-openquok posts:review-todo <post-id> --note "…"
-openquok posts:status <post-id> --status draft
-openquok posts:status <post-id> -s schedule`
-		},
-		{
-			subtitle: 'Analytics',
-			title: 'Ask what worked, see winners, and adapt from chat',
-			description:
-				'Message Hermes on Telegram to pull impressions, likes, comments, and shares for any connected channel. Compare performance and schedule more of what already resonates — without opening the dashboard.',
-			deviceMock: 'iphone-15-pro',
-			deviceMockContent: 'telegram-analytics',
-			imageAlt: 'Hermes Telegram chat showing OpenQuok platform and post analytics',
-			mediaOnRight: true,
-			cliCommandsTitle: 'CLI analytics options',
-			cliCommands: `# Platform metrics (followers, impressions, engagement)
-openquok analytics:platform <integration-uuid> -d 30
-
-# Per-post insights (likes, comments, shares)
-openquok analytics:post <post-id> -d 7`
-		},
-		{
-			subtitle: 'Scale what works',
-			title: 'when a format hits, scale by adding workspaces and parallel sessions',
-			description:
-				'Spot a winner in analytics, then cl a dedicated workspace for the next client or brand while Hermes queues the next wave in parallel — credentials, channels, and agent context stay isolated as you scale.',
-			parallelMocks: [
-				{
-					deviceMock: 'desktop',
-					deviceMockContent: 'agent-parallel-schedule',
-					imageAlt: 'Hermes desktop chat session scheduling posts in parallel'
-				},
-				{
-					deviceMock: 'desktop',
-					deviceMockContent: 'agent-parallel-analytics',
-					imageAlt: 'Second Hermes desktop chat session pulling live analytics concurrently'
-				},
-				{
-					deviceMock: 'iphone-15-pro',
-					deviceMockContent: 'agent-chat-schedule',
-					imageAlt: 'Hermes Telegram chat scheduling posts while desktop sessions run in parallel'
-				}
-			],
-			mediaOnRight: false,
-			cliCommandsTitle: 'Parallel CLI sessions',
-			cliCommands: `# Workspace A — launch (client brand)
-openquok posts:create -c "…" -s "…" -t draft -i "<uuid>"
-openquok posts:status <post-id> -s schedule
-
-# Workspace B — another client (isolated credentials)
-openquok posts:list --status draft
-
-# Same workspace — metrics in parallel
-openquok analytics:platform <integration-uuid> -d 7
-openquok analytics:post <post-id> -d 30`
-		}
-	],
-	listingsPreviewSection: PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION,
+	messagingGateway: {
+		agentLabel: 'Hermes Agent',
+		installStepTitle: '1. Install Hermes Agent',
+		installStepContent:
+			'Run the one-line installer on Linux, macOS, WSL2, or Windows — or use the Desktop app on macOS and Windows.',
+		docsOverviewMockId: 'hermes-docs-overview',
+		docsMockUrl: 'hermes-agent.nousresearch.com',
+		setupStep2Content:
+			'Run hermes setup --portal for the fastest path, or hermes model to pick Claude, GPT, Gemini, OpenRouter, or a self-hosted endpoint.',
+		skillInstallTerminalMockId: 'openquok-skill-install-hermes',
+		integrationsStepProductName: 'Hermes',
+		featureConnectDescription:
+			'Choose a workspace, connect with OAuth2 — approve in your browser, and credentials stay on the host. Message Hermes from Telegram, Discord, or Slack to draft and schedule without opening another app.',
+		featureAnalyticsDescription:
+			'Message Hermes on Telegram to pull impressions, likes, comments, and shares for any connected channel. Compare performance and schedule more of what already resonates — without opening the dashboard.',
+		featureScaleDescription:
+			'Spot a winner in analytics, then clone more dedicated workspaces for the next client or brand while Hermes queues the next wave in parallel — credentials, channels, and agent context stay isolated as you scale.',
+		parallelScheduleAlt: 'Hermes desktop chat session scheduling posts in parallel',
+		parallelAnalyticsAlt: 'Second Hermes desktop chat session pulling live analytics concurrently',
+		parallelChatAlt: 'Hermes Telegram chat scheduling posts while desktop sessions run in parallel'
+	},
 	comparisonSection: {
 		subtitle: 'comparisons',
 		title: 'agent-native scheduling, not another dashboard',
-		description:
-			'Most social scheduler SaaS keeps you in a browser tab. OpenQuok is built for agents',
+		description: 'Most social scheduler SaaS keeps you in a browser tab. OpenQuok is built for agents',
 		withoutTitle: 'Typical social scheduler SaaS',
 		withTitle: 'OpenQuok + Hermes Agent',
 		points: [
 			{
 				pain: 'Copy posts between your AI chat and a separate scheduling tool',
-				feature:
-					'Message Hermes from Telegram, Discord, or Slack to draft and schedule'
+				feature: 'Message Hermes from Telegram, Discord, or Slack to draft and schedule'
 			},
 			{
 				pain: 'Siloed API keys and workflows that do not compose with your agent stack',
-				feature:
-					'Eligibility is checked automatically — credentials stay on your host'
+				feature: 'Eligibility is checked automatically — credentials stay on your host'
 			},
 			{
 				pain: 'Always-on integrations that bloat agent context',
@@ -250,8 +131,7 @@ openquok analytics:post <post-id> -d 30`
 			},
 			{
 				pain: 'Autopilot publishing with no human checkpoint',
-				feature:
-					COMPARISON_PUBLISH_CHOICE_FEATURE
+				feature: COMPARISON_PUBLISH_CHOICE_FEATURE
 			}
 		]
 	},
@@ -271,51 +151,17 @@ openquok analytics:post <post-id> -d 30`
 	},
 	faqSubtitle: 'Frequently asked questions',
 	faqTitle: 'Hermes Agent + OpenQuok, answered',
-	faqDescription: 'What Hermes Agent is, how to install openquok-core, supported platforms, human approval, and how agents draft and schedule posts from chat.',
-	faqItems: [
-		{
-			title: 'What is Hermes Agent?',
-			description:
-				`Hermes Agent is Nous Research's autonomous assistant with a unified messaging gateway, browser and terminal tools, Skills Hub workflows, and optional MCP servers. It runs on laptop, VPS, Docker, or serverless backends and connects to 20+ chat platforms. Add openquok-core to draft and schedule through OpenQuok. See the ${faqLink(faqHrefAgent('hermes'), 'Hermes Agent integration')} and ${faqLink(publicFaqHref.agentSetupGuides, 'agent setup guides')}.`
-		},
-		{
-			title: 'How do I install the openquok-core skill in Hermes Agent?',
-			description:
-				`Install @openquok/auto-cli, add openquok-core under ~/.hermes/skills/, and authenticate once. See the ${faqLink(faqHrefDocs('agent-setup-guides/hermes'), 'Hermes agent guide')} and ${faqLink(publicFaqHref.cliGettingStarted, 'CLI getting started')}.`
-		},
-		{
-			title: 'What can Hermes Agent do with OpenQuok?',
-			description:
-				`Draft and schedule posts, upload media, configure plugs, and pull analytics across your connected channels. See ${faqLink(publicFaqHref.channels, 'supported channels')} and ${faqLink(publicFaqHref.cliManagingPosts, 'CLI post commands')}; openquok-core returns structured JSON for the agent.`
-		},
-		{
-			title: 'Which social media platforms are supported?',
-			description:
-				`Facebook, Instagram, Threads, YouTube, TikTok, LinkedIn, and X are supported today. Connect channels in the OpenQuok web app or follow the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}; see every network on ${faqLink(publicFaqHref.channels, 'Supported channels')}. Hermes uses integration UUIDs from openquok integrations:list to target the right accounts.`
-		},
-		{
-			title: 'Does Hermes publish immediately or wait for approval?',
-			description: buildPublishApprovalFaqAnswer('Hermes')
-		},
-		{
-			title: 'Does it work with other AI agents?',
-			description:
-				`Yes. OpenQuok is CLI-first — any agent that can run shell commands can use openquok, including ${faqLink(faqHrefAgent('openclaw'), 'OpenClaw')}, ${faqLink(publicFaqHref.cursorLanding, 'Cursor')}, and custom automation. This page focuses on ${faqLink(faqHrefAgent('hermes'), 'Hermes Agent')} plus the openquok-core skill; pair it with Skills Hub workflows, MCP servers, or cron for richer pipelines. Browse ${faqLink(publicFaqHref.agents, 'agent hosts and MCP clients')}.`
-		},
-		{
-			title: 'Why use Hermes Agent instead of an MCP client?',
-			description:
-				`${faqLink(publicFaqHref.cursorLanding, 'Cursor')} and other MCP clients fit editor sessions — see ${faqLink(publicFaqHref.mcpSetupGuides, 'MCP setup guides')}. Hermes fits always-on chat from Telegram, Discord, Slack, or WhatsApp. Pick Hermes for messaging and scale; pick MCP for in-repo workflows. Many teams use both.`
-		},
-		{
-			title: 'Can I run Hermes on a VPS or serverless host?',
-			description:
-				`Yes. Run on a VPS, Docker, or serverless backend with a persistent ~/.hermes/ volume, install openquok-core, and authenticate once. See the ${faqLink(publicFaqHref.dockerCompose, 'Docker Compose self-host guide')}.`
-		},
-		{
-			title: 'Is it free to start?',
-			description:
-				`Yes. Create an OpenQuok account and start a 7-day free trial on ${faqLink(publicFaqHref.pricing, 'Pricing')}, connect your channels, install openquok-core on Hermes, and begin scheduling from chat.`
-		}
-	],
-} satisfies PublicAgentHostLandingPageViewModel;
+	faqDescription:
+		'What Hermes Agent is, how to install openquok-core, supported platforms, human approval, and how agents draft and schedule posts from chat.',
+	messagingGatewayFaq: buildMessagingGatewayHermesFaqParams(),
+	overrides: {
+		faqItemsAfterFirst: [
+			{
+				title: 'How do I pick Hermes vs Grok Bot or Dots?',
+				description: buildAgentHostPickerFaqDescription('hermes')
+			}
+		]
+	}
+} satisfies AgentHostLandingSeed;
+
+export const hermesAgent = buildAgentHostLandingPage(hermesAgentSeed);

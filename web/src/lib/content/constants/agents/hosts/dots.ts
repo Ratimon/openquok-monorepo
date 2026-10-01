@@ -1,5 +1,6 @@
 import { icons } from '$data/icons';
 
+import { buildAgentHostPickerFaqDescription } from '$lib/content/constants/agents/decision-scenarios';
 import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/agents/types';
 import { faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 import {
@@ -277,8 +278,7 @@ openquok analytics:platform <integration-uuid> -d 7`
 		},
 		{
 			title: 'How do Dots compare to Grok Bot or OpenClaw?',
-			description:
-				`Choose ${faqLink(publicFaqHref.grokBotLanding, 'Grok Bot')} for many xAI teammates on one shared cloud desktop. Choose ${faqLink(publicFaqHref.openclawLanding, 'OpenClaw')} for self-hosted Telegram, WhatsApp, or Slack on your hardware. Choose Dots when you live in ChatGPT, Slack, or Teams and want OpenAI-managed cloud computers. See the ${faqLink(publicFaqHref.blogGrokBotVsOpenclaw, 'Grok Bot vs OpenClaw guide')} for scenario guidance.`
+			description: buildAgentHostPickerFaqDescription('dots')
 		},
 		{
 			title: 'Which plans include Dots?',

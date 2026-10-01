@@ -85,7 +85,9 @@ Applies to agent-host and MCP landing pages, the `/agents` hub, and any surface 
 
 ### 3. Landing seed
 
-**`web/src/lib/content/constants/mcps/{slug}.ts`** — export `{name}McpSeed` satisfying `McpLandingSeed` (`slug`, `label`, `mcpClient`, `icon`, `hubDescription`, `heroDescription`, `metaDescription`, `workflowPhrase`, four `setupSteps`). Write those strings in ASD-STE100 (see above).
+**`web/src/lib/content/constants/mcps/hosts/{slug}.ts`** — export `{name}McpSeed` satisfying `McpLandingSeed` (`slug`, `label`, `mcpClient`, `icon`, `hubDescription`, `heroDescription`, `metaDescription`, `workflowPhrase`, four `setupSteps`). Write those strings in ASD-STE100 (see above).
+
+Default FAQs come from `buildMcpFaqItems` in `mcps/general.ts`. Use `overrides.faqPatchesByTitle`, `faqItemsAfterFirst`, `faqItemsPrepend`, or `faqItemsBeforeTitle` (`mergeMcpLandingFaqItems`) for deltas — reserve `overrides.faqItems` for full replacement only. Reference: `hosts/cursor.ts`, `hosts/warp.ts`.
 
 **`web/src/lib/content/constants/mcps/seeds.ts`** — import the seed and append to **`MCP_LANDING_SEEDS`** (registry order drives hub, nav, and footer). Re-export from **`mcps/index.ts`** if the seed should be public.
 
@@ -145,6 +147,17 @@ Same as MCP clients — `branded-icons.ts`.
 ### 2. Agent landing seed
 
 **`web/src/lib/content/constants/agents/hosts/{slug}.ts`** + register in **`agents/seeds.ts`** (`PUBLIC_AGENT_HOST_LANDING_PAGES`) and re-export from **`agents/index.ts`** when needed (and hub copy in `hub.ts` / shared FAQs when needed). Write `heroDescription`, `hubDescription`, `metaDescription`, workflow, audience, and FAQ in ASD-STE100.
+
+**Agent host maintainability (profiles + archetypes):**
+
+| Layer | Path | Role |
+| --- | --- | --- |
+| Decision scenarios | `agents/decision-scenarios.ts` | Blog-aligned buyer scenarios; `buildAgentHostPickerFaqDescription(slug)` for cross-host FAQ |
+| Host profile | `agents/host-profiles.ts` | `uiArchetype`, `traits`, `featureHighlights` (append per tailored ship) |
+| UI archetype | `agents/archetypes/*` | Shared setup steps + feature rows (e.g. `messaging-gateway` for OpenClaw/Hermes) |
+| Builder | `agents/buildAgentHostLandingPage.ts` | `{name}AgentSeed` → `PublicAgentHostLandingPageViewModel` |
+
+Messaging-gateway hosts: export `{name}AgentSeed` with `messagingGateway` + `messagingGatewayFaq` (or `faqItems` when custom). FAQ deltas go in `overrides: { faqPatchesByTitle, faqItemsAfterFirst, … }` like MCP `cursor.ts` — merged by `mergeAgentLandingFaqItems` in `buildAgentHostLandingPage`. Optional `overrides.audienceCards` and `overrides.firstFeatureSection` mirror MCP Warp/Cursor. Other hosts stay full VMs until migrated. Reference: `hosts/openclaw.ts`, `hosts/hermes.ts`, `archetypes/messaging-gateway-faq.ts`.
 
 Registering in **`agents/seeds.ts`** also auto-wires the sitewide footer **Autonomous Agent Integrations** column via `listPublicAgentHostSeedsForFooter()` — no footer list edit in `config.ts`.
 

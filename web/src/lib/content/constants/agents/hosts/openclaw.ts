@@ -1,21 +1,19 @@
 import { icons } from '$data/icons';
 
-import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/agents/types';
-import { faqHrefAgent, faqHrefDocs, faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+import { buildMessagingGatewayOpenClawFaqParams } from '$lib/content/constants/agents/archetypes/messaging-gateway-faq';
+import { buildAgentHostLandingPage } from '$lib/content/constants/agents/buildAgentHostLandingPage';
+import { buildAgentHostPickerFaqDescription } from '$lib/content/constants/agents/decision-scenarios';
+import type { AgentHostLandingSeed } from '$lib/content/constants/agents/types';
 import {
 	OPENCLAW_SKILL_INSTALL_OPTIONS,
 	OPENQUOK_CLI_COMMAND_REFERENCE
 } from '$lib/content/constants/agents/cli-command-reference';
-import { PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION } from '$lib/content/constants/agents/general';
 import {
-	buildPublishApprovalFaqAnswer,
 	COMPARISON_PUBLISH_CHOICE_FEATURE,
 	WORKFLOW_PUBLISH_CHOICE_SENTENCE
 } from '$lib/content/constants/schedulingPublishChoice';
 
-
-export const openclawAgent = {
-	pageType: 'agent-host',
+export const openclawAgentSeed = {
 	slug: 'openclaw',
 	agentId: 'openclaw',
 	agentLabel: 'OpenClaw',
@@ -40,14 +38,14 @@ export const openclawAgent = {
 		'schedule X from OpenClaw'
 	],
 	heroTitle: 'Schedule social media from OpenClaw then you approve',
-	heroDescription: 'OpenClaw is a personal AI assistant on your own devices. Message it from Telegram, WhatsApp, or Slack. Add the openquok-core skill so it drafts and schedules social posts. You review and approve on the calendar or kanban.',
+	heroDescription:
+		'OpenClaw is a personal AI assistant on your own devices. Message it from Telegram, WhatsApp, or Slack. Add the openquok-core skill so it drafts and schedules social posts. You review and approve on the calendar or kanban.',
 	docsPath: '/docs/agent-setup-guides/openclaw',
 	skillInstallOptions: OPENCLAW_SKILL_INSTALL_OPTIONS,
 	workflowSection: {
 		subtitle: 'Your messaging apps',
 		title: 'Text from Telegram, WhatsApp, or Slack',
-		description:
-			`Send a scheduling request to OpenClaw like any other message. The openquok-core skill runs on your host. It finds connected channels, attaches media, and queues posts. ${WORKFLOW_PUBLISH_CHOICE_SENTENCE}`,
+		description: `Send a scheduling request to OpenClaw like any other message. The openquok-core skill runs on your host. It finds connected channels, attaches media, and queues posts. ${WORKFLOW_PUBLISH_CHOICE_SENTENCE}`,
 		deviceMock: 'iphone-15-pro',
 		deviceMockContent: 'agent-chat-schedule',
 		imageAlt: 'OpenClaw chat scheduling social posts via OpenQuok'
@@ -80,155 +78,41 @@ export const openclawAgent = {
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],
-	setupStepsSubtitle: 'How it works',
-	setupStepsTitle: 'Five steps,to OpenClaw + OpenQuok',
-	setupSteps: [
-		{
-			id: 1,
-			title: '1. Install OpenClaw',
-			content: 'Go to official site and install locally, in a container, or on a host with a persistent workspace.',
-			mediaAlt: 'OpenClaw documentation overview at docs.openclaw.ai',
-			deviceMock: 'safari',
-			deviceMockContent: 'openclaw-docs-overview',
-			mockUrl: 'docs.openclaw.ai',
-			iconName: icons.Terminal.name
-		},
-		{
-			id: 2,
-			title: '2. Select model',
-			content: 'Choose the LLM provider and model OpenClaw should use.',
-			animatedContent: 'llm-models',
-			mediaAlt: 'Model selection in OpenClaw',
-			iconName: icons.Bot.name
-		},
-		{
-			id: 3,
-			title: '3. Configure chat channel',
-			content: 'Connect WhatsApp, Telegram, Slack, or another chat app you already use.',
-			mediaAlt: 'Telegram chat channel configuration for OpenClaw',
-			deviceMock: 'iphone-15-pro',
-			deviceMockContent: 'telegram-connect',
-			iconName: icons.MessageCircle.name
-		},
-		{
-			id: 4,
-			title: '4. Install openquok-core skill',
-			content: 'Add openquok-core skill and authenticate the CLI once.',
-			mediaAlt: 'Install openquok-core skill and authenticate the OpenQuok CLI',
-			deviceMock: 'terminal',
-			deviceMockContent: 'openquok-skill-install',
-			iconName: icons.OpenQuok.name
-		},
-		{
-			id: 5,
-			title: '5. Integrate & customize other skills or MCPs',
-			content:
-				'Add Bloom, RevenueCat, or any OpenClaw skill beside openquok-core — find your own viral formats and scale!',
-			animatedContent: 'agent-integrations',
-			mediaAlt: 'Agent skills and integrations with OpenQuok',
-			iconName: icons.Sparkles.name
-		}
-	],
-	featureSections: [
-		{
-			subtitle: 'Connect Once',
-			title: 'login from your phone, pick your workspace, chat anywhere securely',
-			description:
-				'Choose a workspace, connect with OAuth2 — approve in your browser, and credentials stay on the host. Message OpenClaw from Telegram, WhatsApp, or Slack to draft and schedule without opening another app.',
-			deviceMock: 'iphone-15-pro',
-			deviceMockContent: 'openquok-login',
-			imageAlt: 'OpenClaw chat guiding OpenQuok OAuth device login and workspace authorization',
-			mediaOnRight: true,
-			cliCommandsTitle: 'CLI authentication options',
-			cliCommands: `# OAuth2 device flow (interactive — opens browser)
-openquok auth:login
-openquok auth:status`
-		},
-		{
-			subtitle: 'Kanban + smart filters',
-			title: 'Review every AI draft, sign off confidently, before it goes live',
-			description:
-				'Chat, move agent-generated posts from draft to review to scheduled on a kanban board—with the same smart filters as your calendar. Approve quality at scale instead of trusting autopilot.',
-			bentoId: 'agent-multi-platform-bulk-scheduling',
-			mediaOnRight: false,
-			cliCommandsTitle: 'CLI command options',
-			cliCommands: `# Draft + human checklist
-openquok posts:create -c "…" -s "…" -t draft -i "<uuid>" --note "Check CTA before schedule"
-
-openquok posts:review-todo <post-id> --note "…"
-openquok posts:status <post-id> --status draft
-openquok posts:status <post-id> -s schedule`
-		},
-		{
-			subtitle: 'Analytics',
-			title: 'Ask what worked, see winners, and adapt from chat',
-			description:
-				'Message OpenClaw on Telegram to pull impressions, likes, comments, and shares for any connected channel. Compare performance and schedule more of what already resonates — without opening the dashboard.',
-			deviceMock: 'iphone-15-pro',
-			deviceMockContent: 'telegram-analytics',
-			imageAlt: 'OpenClaw Telegram chat showing OpenQuok platform and post analytics',
-			mediaOnRight: true,
-			cliCommandsTitle: 'CLI analytics options',
-			cliCommands: `# Platform metrics (followers, impressions, engagement)
-openquok analytics:platform <integration-uuid> -d 30
-
-# Per-post insights (likes, comments, shares)
-openquok analytics:post <post-id> -d 7`
-		},
-		{
-			subtitle: 'Scale what works',
-			title: 'when a format hits, scale by adding workspaces and parallel sessions',
-			description:
-				'Spot a winner in analytics, then clone more dedicated workspaces for the next client or brand while OpenClaw queues the next wave in parallel — credentials, channels, and agent context stay isolated as you scale.',
-			parallelMocks: [
-				{
-					deviceMock: 'desktop',
-					deviceMockContent: 'agent-parallel-schedule',
-					imageAlt: 'OpenClaw desktop chat session scheduling posts in parallel'
-				},
-				{
-					deviceMock: 'desktop',
-					deviceMockContent: 'agent-parallel-analytics',
-					imageAlt: 'Second OpenClaw desktop chat session pulling live analytics concurrently'
-				},
-				{
-					deviceMock: 'iphone-15-pro',
-					deviceMockContent: 'agent-chat-schedule',
-					imageAlt: 'OpenClaw Telegram chat scheduling posts while desktop sessions run in parallel'
-				}
-			],
-			mediaOnRight: false,
-			cliCommandsTitle: 'Parallel CLI sessions',
-			cliCommands: `# Workspace A — launch (client brand)
-openquok posts:create -c "…" -s "…" -t draft -i "<uuid>"
-openquok posts:status <post-id> -s schedule
-
-# Workspace B — another client (isolated credentials)
-openquok posts:list --status draft
-
-# Same workspace — metrics in parallel
-openquok analytics:platform <integration-uuid> -d 7
-openquok analytics:post <post-id> -d 30`
-		}
-	],
-	listingsPreviewSection: PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION,
+	messagingGateway: {
+		agentLabel: 'OpenClaw',
+		installStepTitle: '1. Install OpenClaw',
+		installStepContent:
+			'Go to official site and install locally, in a container, or on a host with a persistent workspace.',
+		docsOverviewMockId: 'openclaw-docs-overview',
+		docsMockUrl: 'docs.openclaw.ai',
+		setupStep2Content: 'Choose the LLM provider and model OpenClaw should use.',
+		skillInstallTerminalMockId: 'openquok-skill-install',
+		integrationsStepProductName: 'OpenClaw',
+		featureConnectDescription:
+			'Choose a workspace, connect with OAuth2 — approve in your browser, and credentials stay on the host. Message OpenClaw from Telegram, WhatsApp, or Slack to draft and schedule without opening another app.',
+		featureAnalyticsDescription:
+			'Message OpenClaw on Telegram to pull impressions, likes, comments, and shares for any connected channel. Compare performance and schedule more of what already resonates — without opening the dashboard.',
+		featureScaleDescription:
+			'Spot a winner in analytics, then clone more dedicated workspaces for the next client or brand while OpenClaw queues the next wave in parallel — credentials, channels, and agent context stay isolated as you scale.',
+		parallelScheduleAlt: 'OpenClaw desktop chat session scheduling posts in parallel',
+		parallelAnalyticsAlt: 'Second OpenClaw desktop chat session pulling live analytics concurrently',
+		parallelChatAlt:
+			'OpenClaw Telegram chat scheduling posts while desktop sessions run in parallel'
+	},
 	comparisonSection: {
 		subtitle: 'comparisons',
 		title: 'agent-native scheduling, not another dashboard',
-		description:
-			'Most social scheduler SaaS keeps you in a browser tab. OpenQuok is built for agents',
+		description: 'Most social scheduler SaaS keeps you in a browser tab. OpenQuok is built for agents',
 		withoutTitle: 'Typical social scheduler SaaS',
 		withTitle: 'OpenQuok + OpenClaw',
 		points: [
 			{
 				pain: 'Copy posts between your AI chat and a separate scheduling tool',
-				feature:
-					'Message OpenClaw from WhatsApp, Telegram, or Slack to draft and schedule'
+				feature: 'Message OpenClaw from WhatsApp, Telegram, or Slack to draft and schedule'
 			},
 			{
 				pain: 'Siloed API keys and workflows that do not compose with your agent stack',
-				feature:
-					'Eligibility is checked automatically — credentials stay on your host'
+				feature: 'Eligibility is checked automatically — credentials stay on your host'
 			},
 			{
 				pain: 'Always-on integrations that bloat agent context',
@@ -245,8 +129,7 @@ openquok analytics:post <post-id> -d 30`
 			},
 			{
 				pain: 'Autopilot publishing with no human checkpoint',
-				feature:
-					COMPARISON_PUBLISH_CHOICE_FEATURE
+				feature: COMPARISON_PUBLISH_CHOICE_FEATURE
 			}
 		]
 	},
@@ -265,51 +148,17 @@ openquok analytics:post <post-id> -d 30`
 	},
 	faqSubtitle: 'Frequently asked questions',
 	faqTitle: 'OpenClaw + OpenQuok, answered',
-	faqDescription: 'What OpenClaw is, how to install openquok-core, supported platforms, human approval, and how agents draft and schedule posts from chat.',
-	faqItems: [
-		{
-			title: 'What is OpenClaw?',
-			description:
-				`OpenClaw is an open-source personal AI assistant you self-host. A local Gateway routes chat from WhatsApp, Telegram, Slack, Discord, and many other channels to your agent, with browser tools, cron, sessions, and workspace skills. Add openquok-core to draft and schedule through OpenQuok. Docs: https://docs.openclaw.ai. See the ${faqLink(faqHrefAgent('openclaw'), 'OpenClaw integration')} and ${faqLink(publicFaqHref.agentSetupGuides, 'agent setup guides')}.`
-		},
-		{
-			title: 'How do I install the openquok-core skill in OpenClaw?',
-			description:
-				`Add openquok-core to your OpenClaw workspace, install @openquok/auto-cli, and authenticate once. See the ${faqLink(faqHrefDocs('agent-setup-guides/openclaw'), 'OpenClaw agent guide')} and ${faqLink(publicFaqHref.cliGettingStarted, 'CLI getting started')}.`
-		},
-		{
-			title: 'What can OpenClaw do with OpenQuok?',
-			description:
-				`Draft and schedule posts, upload media, configure plugs, and pull analytics across your connected channels. See ${faqLink(publicFaqHref.channels, 'supported channels')} and ${faqLink(publicFaqHref.cliManagingPosts, 'CLI post commands')}; openquok-core returns structured JSON for the agent.`
-		},
-		{
-			title: 'Which social media platforms are supported?',
-			description:
-				`Facebook, Instagram, Threads, YouTube, TikTok, LinkedIn, and X are supported today. Connect channels in the OpenQuok web app or follow the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}; see every network on ${faqLink(publicFaqHref.channels, 'Supported channels')}. OpenClaw uses integration UUIDs from openquok integrations:list to target the right accounts.`
-		},
-		{
-			title: 'Does OpenClaw publish immediately or wait for approval?',
-			description: buildPublishApprovalFaqAnswer('OpenClaw')
-		},
-		{
-			title: 'Does it work with other AI agents?',
-			description:
-				`Yes. OpenQuok is CLI-first — any agent that can run shell commands can use openquok, including ${faqLink(publicFaqHref.cursorLanding, 'Cursor')}, Claude Code, ChatGPT, and custom automation. This page focuses on ${faqLink(faqHrefAgent('openclaw'), 'OpenClaw')} plus the openquok-core skill; pair it with other OpenClaw skills (Bloom, RevenueCat, or your own) for richer workflows. Browse ${faqLink(publicFaqHref.agents, 'agent hosts and MCP clients')}.`
-		},
-		{
-			title: 'Why use OpenClaw instead of an MCP client?',
-			description:
-				`${faqLink(publicFaqHref.cursorLanding, 'Cursor')} and other MCP clients fit editor sessions — see ${faqLink(publicFaqHref.mcpSetupGuides, 'MCP setup guides')}. OpenClaw fits always-on chat from Telegram, WhatsApp, or Slack. Pick OpenClaw for messaging and scale; pick MCP for in-repo workflows. Many teams use both.`
-		},
-		{
-			title: 'Can I run OpenClaw on Railway or another host?',
-			description:
-				`Yes. Run on your own hardware or in Docker with a persistent workspace, install openquok-core, and authenticate once. See the ${faqLink(publicFaqHref.dockerCompose, 'Docker Compose self-host guide')}.`
-		},
-		{
-			title: 'Is it free to start?',
-			description:
-				`Yes. Create an OpenQuok account and start a 7-day free trial on ${faqLink(publicFaqHref.pricing, 'Pricing')}, connect your channels, install openquok-core on OpenClaw, and begin scheduling from chat.`
-		}
-	],
-} satisfies PublicAgentHostLandingPageViewModel;
+	faqDescription:
+		'What OpenClaw is, how to install openquok-core, supported platforms, human approval, and how agents draft and schedule posts from chat.',
+	messagingGatewayFaq: buildMessagingGatewayOpenClawFaqParams(),
+	overrides: {
+		faqItemsAfterFirst: [
+			{
+				title: 'How do I pick OpenClaw vs Grok Bot or Dots?',
+				description: buildAgentHostPickerFaqDescription('openclaw')
+			}
+		]
+	}
+} satisfies AgentHostLandingSeed;
+
+export const openclawAgent = buildAgentHostLandingPage(openclawAgentSeed);

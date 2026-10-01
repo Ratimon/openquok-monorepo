@@ -58,8 +58,26 @@ export type PublicMcpLandingPageViewModel = {
 	faqItems: PublicFaqItem[];
 };
 
-export type McpLandingSeedOverrides = {
+/** Sparse FAQ deltas on top of `buildMcpFaqItems` in `mcps/general.ts`. */
+export type McpLandingSeedFaqOverrides = {
+	/** Replaces the entire tailored FAQ list. Prefer patches and insertions when possible. */
 	faqItems?: PublicFaqItem[];
+	/** Merged into default items by exact `title` match. */
+	faqPatchesByTitle?: Readonly<
+		Record<string, Partial<Pick<PublicFaqItem, 'title' | 'description'>>>
+	>;
+	/** Inserted immediately after the first default FAQ (before prepend). */
+	faqItemsAfterFirst?: readonly PublicFaqItem[];
+	/** Placed before the default FAQ block (after patches and after-first insertions). */
+	faqItemsPrepend?: readonly PublicFaqItem[];
+	/** Inserted immediately before the first item whose `title` equals `matchTitle`. */
+	faqItemsBeforeTitle?: {
+		matchTitle: string;
+		items: readonly PublicFaqItem[];
+	};
+};
+
+export type McpLandingSeedOverrides = McpLandingSeedFaqOverrides & {
 	audienceCards?: AudienceCard[];
 	/** Replaces the first entry in the default MCP feature section list. */
 	firstFeatureSection?: PublicAgentFeatureSection;

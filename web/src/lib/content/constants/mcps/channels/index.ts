@@ -6,7 +6,7 @@
  *
  * | What you change | Where |
  * | --- | --- |
- * | MCP client hero, setup steps, FAQ, features | `mcps/hosts/{mcpSlug}.ts` (+ `mcps/general.ts`, register in `mcps/seeds.ts`) |
+ * | MCP client hero, setup steps, FAQ, features | `mcps/hosts/{mcpSlug}.ts` (+ `mcps/general.ts`, `mergeMcpLandingFaqItems`, register in `mcps/seeds.ts`) |
  * | Social network identity, bento, channel FAQ | `channels/catalog/platforms/{channelSlug}.ts` (+ `catalog/seeds.ts`) |
  * | How base + channel merge into the page VM | `web/src/lib/content/utils/buildMcpChannelLandingVm.ts` |
  * | Routing, hub grid links, slug resolution | `agents/channels/index.ts` (`getPublicAgentChannelBySlug`, `listPublicAgentChannelsForHub`) |

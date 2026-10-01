@@ -35,6 +35,7 @@ import {
 	WORKFLOW_PUBLISH_CHOICE_SENTENCE
 } from '$lib/content/constants/schedulingPublishChoice';
 
+import { mergeMcpLandingFaqItems } from '$lib/content/constants/mcps/mergeMcpLandingFaqItems';
 import type { McpLandingSeed, PublicMcpIntegrationViewModel, PublicMcpLandingPageViewModel } from '$lib/content/constants/mcps/types';
 
 function buildMcpAudienceSection(
@@ -70,8 +71,13 @@ function buildMcpAudienceSection(
 	};
 }
 
+function buildMcpAgentHostSkillLinks(): string {
+	return `${faqLink(publicFaqHref.grokBotLanding, 'Grok Bot')}, ${faqLink(publicFaqHref.thinkrailLanding, 'ThinkRail')}, ${faqLink(faqHrefAgent('openclaw'), 'OpenClaw')}, or ${faqLink(faqHrefAgent('hermes'), 'Hermes')}`;
+}
+
 function buildMcpFaqItems(label: string, slug: string): PublicFaqItem[] {
 	const mcpClientGuide = faqHrefDocs(`mcp-setup-guides/${slug}`);
+	const agentHosts = buildMcpAgentHostSkillLinks();
 	return [
 		{
 			title: `What is OpenQuok MCP for ${label}?`,
@@ -79,11 +85,11 @@ function buildMcpFaqItems(label: string, slug: string): PublicFaqItem[] {
 		},
 		{
 			title: 'Do I need the CLI or openquok-core skill?',
-			description: `No. ${label} connects over MCP with an opo_ token. Use openquok-core on ${faqLink(faqHrefAgent('openclaw'), 'OpenClaw')} or ${faqLink(faqHrefAgent('hermes'), 'Hermes')} when you need shell scripts, parallel sessions, or richer skill workflows. See ${faqLink(publicFaqHref.agentSetupGuides, 'agent setup guides')}.`
+			description: `No. ${label} connects over MCP with an opo_ token. Use openquok-core on ${agentHosts} for deeper skill workflows. See ${faqLink(publicFaqHref.agentSetupGuides, 'agent setup guides')}.`
 		},
 		{
 			title: `Why use ${label} MCP instead of an agent host?`,
-			description: `${faqLink(faqHrefAgent('openclaw'), 'OpenClaw')} and ${faqLink(faqHrefAgent('hermes'), 'Hermes')} fit always-on chat from Telegram, Discord, or Slack. ${label} fits when OpenQuok should live in your editor or terminal. Pick ${label} for in-repo workflows. Pick an agent host for messaging and scale. Browse ${faqLink(publicFaqHref.agents, 'agent hosts and MCP clients')}.`
+			description: `${faqLink(publicFaqHref.grokBotLanding, 'Grok Bot')}, ${faqLink(publicFaqHref.thinkrailLanding, 'ThinkRail')}, ${faqLink(faqHrefAgent('openclaw'), 'OpenClaw')}, and ${faqLink(faqHrefAgent('hermes'), 'Hermes')} fit always-on chat and messaging. ${label} fits when OpenQuok should live in your editor or terminal. Pick ${label} when you already ship there. Pick an agent host for messaging and scale. Many teams use both.`
 		},
 		{
 			title: 'How do I authenticate?',
@@ -479,7 +485,7 @@ export function buildMcpLandingPage(seed: McpLandingSeed): PublicMcpLandingPageV
 		faqSubtitle: 'Frequently asked questions',
 		faqTitle: `${label} + OpenQuok MCP, answered`,
 		faqDescription: `Connect ${label} to OpenQuok over MCP — authentication, verification, and scheduling posts from chat.`,
-		faqItems: overrides?.faqItems ?? buildMcpFaqItems(label, slug)
+		faqItems: mergeMcpLandingFaqItems(buildMcpFaqItems(label, slug), overrides)
 	};
 }
 

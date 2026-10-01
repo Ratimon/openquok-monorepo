@@ -1,5 +1,7 @@
 import type { IconName } from '$data/icons';
 
+import type { MessagingGatewayArchetypeParams } from '$lib/content/constants/agents/archetypes/messaging-gateway';
+
 import type { PublicChannelFeatureBentoId } from '$lib/content/constants/channels/catalog/feature-bento';
 import type { PublicFaqItem } from '$lib/content/constants/faq';
 import type { DesktopMockContentId } from '$lib/ui/templates/device-mocks/desktop/desktopMock.types';
@@ -7,6 +9,7 @@ import type { IphoneMockContentId } from '$lib/ui/templates/device-mocks/iphone-
 import type { SafariMockContentId } from '$lib/ui/templates/device-mocks/safari/safariMock.types';
 import type { SettingsPanelMockContentId } from '$lib/ui/templates/device-mocks/settings-panel/settingsPanelMock.types';
 import type { TerminalMockContentId } from '$lib/ui/templates/device-mocks/terminal/terminalMock.types';
+import type { MessagingGatewayAgentFaqParams } from '$lib/content/constants/agents/archetypes/messaging-gateway-faq';
 import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 import type {
 	OpenquokCliCommandReferenceItem,
@@ -208,3 +211,66 @@ export type PublicAgentHostLandingPageViewModel = {
 
 /** Agent host catalog entries (OpenClaw, Hermes, …). */
 export type PublicAgentLandingPageViewModel = PublicAgentHostLandingPageViewModel;
+
+/** Sparse FAQ deltas on agent host landings (same merge order as MCP seeds). */
+export type AgentHostLandingSeedFaqOverrides = {
+	faqItems?: PublicFaqItem[];
+	faqPatchesByTitle?: Readonly<
+		Record<string, Partial<Pick<PublicFaqItem, 'title' | 'description'>>>
+	>;
+	faqItemsAfterFirst?: readonly PublicFaqItem[];
+	faqItemsPrepend?: readonly PublicFaqItem[];
+	faqItemsBeforeTitle?: {
+		matchTitle: string;
+		items: readonly PublicFaqItem[];
+	};
+};
+
+export type AgentHostLandingSeedOverrides = AgentHostLandingSeedFaqOverrides & {
+	setupSteps?: FeaturesOrderedStep[];
+	featureSections?: PublicAgentFeatureSection[];
+	audienceCards?: AudienceCard[];
+	/** Replaces the first entry in the default feature section list. */
+	firstFeatureSection?: PublicAgentFeatureSection;
+};
+
+/**
+ * Thin host entry — register in `agents/seeds.ts` and build with `buildAgentHostLandingPage`.
+ * Requires a row in `host-profiles.ts` for the slug.
+ */
+export type AgentHostLandingSeed = Pick<
+	PublicAgentHostLandingPageViewModel,
+	| 'slug'
+	| 'agentId'
+	| 'agentLabel'
+	| 'icon'
+	| 'available'
+	| 'metaTitle'
+	| 'metaDescription'
+	| 'hubDescription'
+	| 'keywords'
+	| 'heroTitle'
+	| 'heroDescription'
+	| 'docsPath'
+	| 'skillInstallOptions'
+	| 'workflowSection'
+	| 'audienceSubtitle'
+	| 'audienceTitle'
+	| 'audienceCards'
+	| 'comparisonSection'
+	| 'commandReferenceSection'
+	| 'supportedChannelsSection'
+	| 'faqSubtitle'
+	| 'faqTitle'
+	| 'faqDescription'
+> & {
+	telegramBotLabel?: string;
+	heroSecondaryIcon?: IconName;
+	/** Params for `uiArchetype: 'messaging-gateway'` in `host-profiles.ts`. */
+	messagingGateway?: MessagingGatewayArchetypeParams;
+	/** Default FAQs for messaging-gateway hosts; merged with `overrides` FAQ deltas. */
+	messagingGatewayFaq?: MessagingGatewayAgentFaqParams;
+	/** Required when `messagingGatewayFaq` is omitted (non-archetype or custom FAQ list). */
+	faqItems?: PublicFaqItem[];
+	overrides?: AgentHostLandingSeedOverrides;
+};
