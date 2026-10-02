@@ -4,8 +4,10 @@ import { publicRoadmapPagePresenter } from '$lib/area-public';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { PUBLIC_ROADMAP_HUB_FAQ } from '$lib/content/constants/hubs/roadmap';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
+import { buildRoadmapLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
+import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 
 export const ssr = true;
@@ -80,7 +82,8 @@ export async function load({ url, cookies, parent }) {
 				name: PUBLIC_ROADMAP_HUB_FAQ.faqTitle,
 				description: PUBLIC_ROADMAP_HUB_FAQ.faqDescription,
 				items: PUBLIC_ROADMAP_HUB_FAQ.faqItems
-			})
+			}),
+			createBreadcrumbListSchema(buildRoadmapLandingBreadcrumbItems(), url.origin)
 		])
 	);
 

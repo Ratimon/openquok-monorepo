@@ -7,6 +7,9 @@ import {
 	buildChannelsLandingBreadcrumbItems,
 	buildCompareLandingBreadcrumbItems,
 	buildListingsHubBreadcrumbItems,
+	buildPricingLandingBreadcrumbItems,
+	buildRoadmapLandingBreadcrumbItems,
+	buildSelfHostingLandingBreadcrumbItems,
 	buildToolsLandingBreadcrumbItems
 } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import {
@@ -149,6 +152,33 @@ describe('buildCompareLandingBreadcrumbItems', () => {
 			{ label: 'Home', href: '/' },
 			{ label: 'Compare', href: '/compare' },
 			{ label: 'OpenQuok vs Buffer' }
+		]);
+	});
+});
+
+describe('buildPricingLandingBreadcrumbItems', () => {
+	it('builds a two-level pricing trail', () => {
+		expect(buildPricingLandingBreadcrumbItems()).toEqual([
+			{ label: 'Home', href: '/' },
+			{ label: 'Pricing' }
+		]);
+	});
+});
+
+describe('buildRoadmapLandingBreadcrumbItems', () => {
+	it('builds a two-level roadmap trail', () => {
+		expect(buildRoadmapLandingBreadcrumbItems()).toEqual([
+			{ label: 'Home', href: '/' },
+			{ label: 'Roadmap' }
+		]);
+	});
+});
+
+describe('buildSelfHostingLandingBreadcrumbItems', () => {
+	it('builds a two-level self-hosting trail', () => {
+		expect(buildSelfHostingLandingBreadcrumbItems()).toEqual([
+			{ label: 'Home', href: '/' },
+			{ label: 'Self-Hosting' }
 		]);
 	});
 });

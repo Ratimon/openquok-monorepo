@@ -8,6 +8,7 @@
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
+	import PublicRoadmapLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicRoadmapLandingBreadcrumb.svelte';
 	import FeedbackDialog from '$lib/ui/components/feedback/FeedbackDialog.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
@@ -60,6 +61,9 @@
 <SectionOuterContainer class="py-10 md:py-14">
 	<header class="mb-6 flex flex-wrap items-center justify-between gap-3">
 		<div class="min-w-0">
+			<div class="mb-3 flex justify-center sm:justify-start">
+				<PublicRoadmapLandingBreadcrumb />
+			</div>
 			<h1 class="text-2xl font-bold tracking-tight text-base-content md:text-3xl">Roadmap</h1>
 			<p class="mt-1 max-w-2xl text-sm text-base-content/70">
 				Track what we are planning, building, and shipping. Share feedback to help us prioritize.

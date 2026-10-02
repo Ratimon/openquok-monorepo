@@ -7,8 +7,10 @@ import { PUBLIC_SELF_HOSTING_WHO_IS_FOR_SECTION } from '$lib/content/constants/s
 import { createPublicAudienceSectionSEOSchema } from '$lib/content/utils/createPublicAudienceSEOSchema';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createPublicSelfHostPricingOffer } from '$lib/content/utils/createPublicPricingSEOSchema';
+import { buildSelfHostingLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
+import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 
 export const ssr = true;
@@ -79,7 +81,8 @@ export async function load({ url, cookies, parent }) {
 				name: faqSection.faqTitle,
 				description: faqSection.faqDescription,
 				items: faqSection.faqItems
-			})
+			}),
+			createBreadcrumbListSchema(buildSelfHostingLandingBreadcrumbItems(), url.origin)
 		])
 	);
 

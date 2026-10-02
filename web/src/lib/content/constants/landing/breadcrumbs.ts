@@ -6,6 +6,8 @@ export const PUBLIC_LANDING_BREADCRUMB = {
 	alternativesHub: 'Alternatives',
 	compareHub: 'Compare',
 	selfHosting: 'Self-Hosting',
+	pricing: 'Pricing',
+	roadmap: 'Roadmap',
 	supportedChannels: 'Supported Channels',
 	playbooksHub: 'Playbooks',
 	buildingBlocksHub: 'Building Blocks',

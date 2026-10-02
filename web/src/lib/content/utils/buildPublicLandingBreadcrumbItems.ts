@@ -318,6 +318,27 @@ export function buildApiMarketingLandingBreadcrumbItems(params: {
 	];
 }
 
+export function buildPricingLandingBreadcrumbItems(): BreadcrumbCrumb[] {
+	return [
+		{ label: 'Home', href: '/' },
+		{ label: PUBLIC_LANDING_BREADCRUMB.pricing }
+	];
+}
+
+export function buildRoadmapLandingBreadcrumbItems(): BreadcrumbCrumb[] {
+	return [
+		{ label: 'Home', href: '/' },
+		{ label: PUBLIC_LANDING_BREADCRUMB.roadmap }
+	];
+}
+
+export function buildSelfHostingLandingBreadcrumbItems(): BreadcrumbCrumb[] {
+	return [
+		{ label: 'Home', href: '/' },
+		{ label: PUBLIC_LANDING_BREADCRUMB.selfHosting }
+	];
+}
+
 export function buildToolsLandingBreadcrumbItems(params: {
 	toolLabel: string;
 	toolRootPath: string;

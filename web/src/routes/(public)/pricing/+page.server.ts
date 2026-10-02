@@ -8,8 +8,10 @@ import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOS
 import { createPublicPricingOffers } from '$lib/content/utils/createPublicPricingSEOSchema';
 import { getPublicPricingFaqItems } from '$lib/content/constants/faq';
 import { parsePublicFaqConfigModule } from '$lib/content/utils/parsePublicFaqConfig';
+import { buildPricingLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
+import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 
 export const ssr = true;
@@ -99,7 +101,8 @@ export async function load({ url, cookies, parent }) {
 				name: publicFaqConfigPm.TITLE,
 				description: publicFaqConfigPm.DESCRIPTION,
 				items: publicFaqItemsVm
-			})
+			}),
+			createBreadcrumbListSchema(buildPricingLandingBreadcrumbItems(), url.origin)
 		])
 	);
 
