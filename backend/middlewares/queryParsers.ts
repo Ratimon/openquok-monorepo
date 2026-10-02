@@ -366,3 +366,61 @@ const adminListingActivitiesRules = combineParsers(
 export function createAdminListingActivitiesParser(): RequestHandler {
     return createQueryParser<ParsedAdminListingActivitiesQuery>(adminListingActivitiesRules);
 }
+
+/** Published link directory hub list query. */
+export interface ParsedPublishedLinkDirectoryQuery extends Record<string, unknown> {
+    limit?: number;
+    skip?: number;
+    searchTerm?: string | null;
+    tagSlugs?: string[] | null;
+    categorySlug?: string | null;
+    costTiers?: string[] | null;
+    dofollow?: string[] | null;
+    effort?: string[] | null;
+    approvalMode?: string[] | null;
+    opportunityTypeSlugs?: string[] | null;
+    sortByKey?: string | null;
+    sortByOrder?: boolean | null;
+    range?: { start: number; end: number } | null;
+}
+
+const publishedLinkDirectoryRules = combineParsers(
+    CommonQueryParsers.pagination,
+    CommonQueryParsers.skip,
+    CommonQueryParsers.search,
+    CommonQueryParsers.sorting,
+    CommonQueryParsers.range,
+    {
+        tagSlugs: stringArray,
+        categorySlug: QueryParsers.string,
+        costTiers: stringArray,
+        dofollow: stringArray,
+        effort: stringArray,
+        approvalMode: stringArray,
+        opportunityTypeSlugs: stringArray,
+    }
+);
+
+export function createPublishedLinkDirectoryParser(): RequestHandler {
+    return createQueryParser<ParsedPublishedLinkDirectoryQuery>(publishedLinkDirectoryRules);
+}
+
+/** Admin link directory sites list query. */
+export interface ParsedAdminLinkDirectoryQuery extends Record<string, unknown> {
+    limit?: number;
+    searchTerm?: string | null;
+    sortByKey?: string | null;
+    sortByOrder?: boolean | null;
+    range?: { start: number; end: number } | null;
+}
+
+const adminLinkDirectoryRules = combineParsers(
+    CommonQueryParsers.pagination,
+    CommonQueryParsers.search,
+    CommonQueryParsers.sorting,
+    CommonQueryParsers.range
+);
+
+export function createAdminLinkDirectoryParser(): RequestHandler {
+    return createQueryParser<ParsedAdminLinkDirectoryQuery>(adminLinkDirectoryRules);
+}

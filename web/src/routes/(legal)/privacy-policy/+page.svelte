@@ -37,7 +37,7 @@
 				Back
 			</Button>
 			<SectionTitle>Privacy Policy for {companyName}</SectionTitle>
-			<SectionDescription>Last updated September 8, 2026</SectionDescription>
+			<SectionDescription>Last updated October 2, 2026</SectionDescription>
 		</SectionHeaderContainer>
 		<SubSectionOuterContainer class="max-w-3xl !py-4">
 			<SubSectionInnerContainer
@@ -166,6 +166,11 @@
 					<li>
 						Workspace and membership data, including roles, invitations, and identifiers for
 						organizations you belong to.
+					</li>
+					<li>
+						When you are signed in, saved sites on the public
+						<a href="/build-backlinks" class="link link-hover">Build Backlinks</a> directory hub
+						(bookmarks and the order you set), stored on our servers with your account.
 					</li>
 				</ul>
 
@@ -608,6 +613,15 @@
 						and embedded content. See our
 						<a href="/cookie-policy" class="link link-hover">Cookie Policy</a> for more detail and
 						choices where available.
+					</li>
+					<li>
+						<strong>Local browser storage:</strong> On some public catalog pages (for example the
+						<a href="/build-backlinks" class="link link-hover">Build Backlinks</a> hub), we may
+						store optional preferences on your device using local storage when you are not signed
+						in—such as the list of directory sites you bookmark. If you later sign in, we merge
+						that list into your account data and remove the local copy on that browser. See the
+						<a href="/cookie-policy" class="link link-hover">Cookie Policy</a> for the storage key
+						and how to clear it.
 					</li>
 					<li>
 						<strong>Website usage data:</strong> May include engagement metrics, the address of the

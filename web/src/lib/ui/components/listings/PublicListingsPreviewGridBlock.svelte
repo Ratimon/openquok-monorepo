@@ -5,9 +5,9 @@
 		PublicListingsPreviewGridBlockVm,
 		PublicListingsPreviewVm
 	} from '$lib/listings/server/loadAgentListingsPreview.server';
-	import type { PublicPlaybooksNavTab } from '$lib/config/constants/config';
+	import type { PublicOpportunitiesNavTab } from '$lib/config/constants/config';
 
-	import { focusPublicPlaybooksNav } from '$lib/ui/nav-bars/focusPublicPlaybooksNav';
+	import { focusPublicOpportunitiesNav } from '$lib/ui/nav-bars/focusPublicOpportunitiesNav';
 
 	import FeatureSimpleCard from '$lib/ui/templates/feature-grid/FeatureSimpleCard.svelte';
 	import SimpleCardGrid from '$lib/ui/templates/feature-grid/SimpleCardGrid.svelte';
@@ -57,13 +57,13 @@
 
 	let cells = $derived(buildPreviewGridCells(block, blockKind));
 
-	function seeAllNavTab(kind: PreviewBlockKind): PublicPlaybooksNavTab {
+	function seeAllNavTab(kind: PreviewBlockKind): PublicOpportunitiesNavTab {
 		return kind === 'playbooks' ? 'playbook' : 'building-blocks';
 	}
 
 	function onSeeAllActivate() {
 		if (!seeAllScrollsToNavbar) return;
-		focusPublicPlaybooksNav(seeAllNavTab(blockKind));
+		focusPublicOpportunitiesNav(seeAllNavTab(blockKind));
 	}
 
 	function buildPreviewGridCells(

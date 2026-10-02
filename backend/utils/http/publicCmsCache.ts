@@ -32,7 +32,11 @@ const isPublicCmsImageDownloadGet = (req: Request, routePath: string): boolean =
     if (routePath !== "/image/download") return false;
     const query = req.query ?? {};
     const dbName = typeof query.databaseName === "string" ? query.databaseName : "";
-    return dbName === "blog_images" || dbName === "listing_images";
+    return (
+        dbName === "blog_images" ||
+        dbName === "listing_images" ||
+        dbName === "link_directory_logos"
+    );
 };
 
 export const resolvePublicCmsCacheControl = (req: Request, routePath: string): string | null => {

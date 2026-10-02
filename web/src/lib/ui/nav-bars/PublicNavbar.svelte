@@ -3,7 +3,7 @@
 	import PageLink from '$lib/ui/nav-bars/PageLink.svelte';
 	import PublicAgentsNavDropdown from '$lib/ui/nav-bars/PublicAgentsNavDropdown.svelte';
 	import PublicChannelsNavDropdown from '$lib/ui/nav-bars/PublicChannelsNavDropdown.svelte';
-	import PublicPlaybooksNavDropdown from '$lib/ui/nav-bars/PublicPlaybooksNavDropdown.svelte';
+	import PublicOpportunitiesNavDropdown from '$lib/ui/nav-bars/PublicOpportunitiesNavDropdown.svelte';
 
 	type Props = {
 		class?: string;
@@ -49,10 +49,10 @@
 				{inline}
 				{onAfterNavigate}
 			/>
-		{:else if link.navType === 'playbooks'}
-			<PublicPlaybooksNavDropdown
+		{:else if link.navType === 'opportunities'}
+			<PublicOpportunitiesNavDropdown
 				title={link.title}
-				playbooksPath={link.pathname}
+				opportunitiesPath={link.pathname}
 				{tabClass}
 				{whenSelected}
 				{whenUnselected}

@@ -10,6 +10,9 @@ import {
     listingRepository,
     listingCategoryRepository,
     listingTagRepository,
+    linkDirectoryRepository,
+    linkDirectoryCategoryRepository,
+    linkDirectoryTagRepository,
     integrationRepository,
     plugRepository,
     notificationRepository,
@@ -34,6 +37,7 @@ import { FeedbackService } from "./FeedbackService";
 import { BlogService } from "./BlogService";
 import { ListingService } from "./ListingService";
 import { ListingTagService } from "./ListingTagService";
+import { LinkDirectoryService } from "./LinkDirectoryService";
 import { ConfigService } from "./ConfigService";
 import { IntegrationManager } from "../integrations/integrationManager";
 import { RefreshIntegrationService } from "./RefreshIntegrationService";
@@ -163,6 +167,11 @@ export const listingTagService = new ListingTagService(
     cacheServiceConnection,
     cacheInvalidationServiceConnection
 );
+export const linkDirectoryService = new LinkDirectoryService(
+    linkDirectoryRepository,
+    linkDirectoryCategoryRepository,
+    linkDirectoryTagRepository
+);
 export const userSessionService = new UserSessionService(
     organizationRepository,
     subscriptionGuard,
@@ -257,6 +266,7 @@ export { RbacService } from "../guards/rbac/RbacService";
 export { FeedbackService } from "./FeedbackService";
 export { BlogService } from "./BlogService";
 export { ListingService } from "./ListingService";
+export { LinkDirectoryService } from "./LinkDirectoryService";
 export { ConfigService } from "./ConfigService";
 export { IntegrationService } from "./IntegrationService";
 export { PlugService } from "./PlugService";

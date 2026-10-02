@@ -41,6 +41,13 @@ describe('normalizeHttpUrlInputIfLikely', () => {
 	it('still normalizes host-like values', () => {
 		expect(normalizeHttpUrlInputIfLikely('www.example.com/x')).toBe('https://www.example.com/x');
 	});
+
+	it('leaves clipboard-style https URLs unchanged', () => {
+		expect(normalizeHttpUrlInputIfLikely('https://uneed.best')).toBe('https://uneed.best');
+		expect(normalizeHttpUrlInputIfLikely('  https://www.openquok.com/blog/post  ')).toBe(
+			'https://www.openquok.com/blog/post'
+		);
+	});
 });
 
 describe('normalizeXCommunityUrlInput', () => {

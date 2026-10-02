@@ -391,3 +391,58 @@ export function getRootPathSecretAdminListingManagerComments(): string {
 export function getRootPathSecretAdminListingManagerActivities(): string {
 	return `${getRootPathSecretAdminListingManager()}/${getRootPathListingManagerActivitiesSegment()}`;
 }
+
+/**
+ * Segment for secret-admin link directory manager.
+ */
+export function getRootPathLinkDirectoryManagerSegment(): string {
+	return 'link-directory-manager';
+}
+
+export function getRootPathLinkDirectoryManagerSitesSegment(): string {
+	return 'sites';
+}
+
+export function getRootPathLinkDirectoryManagerCategoriesSegment(): string {
+	return 'categories';
+}
+
+export function getRootPathLinkDirectoryManagerTagsSegment(): string {
+	return 'tags';
+}
+
+export function getRootPathLinkDirectoryManagerSubmissionsSegment(): string {
+	return 'submissions';
+}
+
+export function getRootPathLinkDirectoryManagerNewSegment(): string {
+	return 'new';
+}
+
+export function getRootPathSecretAdminLinkDirectoryManager(): string {
+	return `${getRootPathSecretAdminArea()}/${getRootPathLinkDirectoryManagerSegment()}`;
+}
+
+export function getRootPathSecretAdminLinkDirectoryManagerSites(): string {
+	return `${getRootPathSecretAdminLinkDirectoryManager()}/${getRootPathLinkDirectoryManagerSitesSegment()}`;
+}
+
+export function getRootPathSecretAdminLinkDirectoryManagerNewSite(): string {
+	return `${getRootPathSecretAdminLinkDirectoryManagerSites()}/${getRootPathLinkDirectoryManagerNewSegment()}`;
+}
+
+export function getRootPathSecretAdminLinkDirectoryManagerSiteEditor(siteId: string): string {
+	return `${getRootPathSecretAdminLinkDirectoryManagerSites()}/${siteId}`;
+}
+
+export function getRootPathSecretAdminLinkDirectoryManagerCategories(): string {
+	return `${getRootPathSecretAdminLinkDirectoryManager()}/${getRootPathLinkDirectoryManagerCategoriesSegment()}`;
+}
+
+export function getRootPathSecretAdminLinkDirectoryManagerTags(): string {
+	return `${getRootPathSecretAdminLinkDirectoryManager()}/${getRootPathLinkDirectoryManagerTagsSegment()}`;
+}
+
+export function getRootPathSecretAdminLinkDirectoryManagerSubmissions(): string {
+	return `${getRootPathSecretAdminLinkDirectoryManager()}/${getRootPathLinkDirectoryManagerSubmissionsSegment()}`;
+}

@@ -3,6 +3,8 @@ import type { HowTo, HowToStep } from 'schema-dts';
 export interface HowToStepInput {
 	name: string;
 	text: string;
+	/** Optional anchor URL for this step (e.g. site guide opportunity fragment). */
+	url?: string;
 }
 
 export function createHowToSEOSchema(params: {
@@ -22,11 +24,13 @@ export function createHowToSEOSchema(params: {
 			const stepName = step.name.trim();
 			const stepText = step.text.trim();
 			if (!stepName || !stepText) return null;
+			const stepUrl = step.url?.trim();
 			return {
 				'@type': 'HowToStep',
 				position: index + 1,
 				name: stepName,
-				text: stepText
+				text: stepText,
+				...(stepUrl ? { url: stepUrl } : {})
 			} satisfies HowToStep;
 		})
 		.filter((step): step is HowToStep => step != null);

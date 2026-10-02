@@ -46,6 +46,8 @@ describe('isHostedMarketingPath', () => {
 		expect(isHostedMarketingPath('/social-media-posting-api/tiktok')).toBe(true);
 		expect(isHostedMarketingPath('/social-media-scheduling-api/x')).toBe(true);
 		expect(isHostedMarketingPath('/building-blocks?type=official')).toBe(true);
+		expect(isHostedMarketingPath('/build-backlinks')).toBe(true);
+		expect(isHostedMarketingPath('/build-backlinks/reddit')).toBe(true);
 	});
 
 	it('does not match functional app routes', () => {

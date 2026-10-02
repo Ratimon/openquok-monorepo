@@ -9,3 +9,6 @@ export const CONFIG_MANAGER_SIDEBAR_KEY = 'sidebar-secondary:config-manager';
 
 /** Context key for listing-manager secondary sidebar. Set by secret-admin/listing-manager layout. */
 export const LISTING_MANAGER_SIDEBAR_KEY = 'sidebar-secondary:listing-manager';
+
+/** Context key for link-directory-manager secondary sidebar. */
+export const LINK_DIRECTORY_MANAGER_SIDEBAR_KEY = 'sidebar-secondary:link-directory-manager';

@@ -21,6 +21,7 @@ import {
 } from '$lib/content/constants/faq';
 import { PUBLIC_ROADMAP_HUB_FAQ } from '$lib/content/constants/hubs/roadmap';
 import { PUBLIC_TOOLS_HUB_FAQ } from '$lib/content/constants/hubs/tools';
+import { PUBLIC_BUILD_BACKLINKS_HUB } from '$lib/content/constants/hubs/build-backlinks';
 import {
 	PUBLIC_BUILDING_BLOCKS_HUB,
 	PUBLIC_PLAYBOOKS_HUB
@@ -53,6 +54,11 @@ const HUB_FAQ_SECTIONS = [
 		name: '/building-blocks hub',
 		section: PUBLIC_BUILDING_BLOCKS_HUB.faqSection,
 		ids: PUBLIC_LISTINGS_HUB_FAQ_ITEM_IDS
+	},
+	{
+		name: '/build-backlinks hub',
+		section: PUBLIC_BUILD_BACKLINKS_HUB.faqSection,
+		ids: [] as const
 	}
 ] as const;
 
@@ -60,6 +66,10 @@ describe('pSEO hub FAQ funnel links', () => {
 	for (const { name, section, ids } of HUB_FAQ_SECTIONS) {
 		describe(name, () => {
 			it('appends curated git-default FAQ items after tailored copy', () => {
+				if (ids.length === 0) {
+					expect(section.faqItems.length).toBeGreaterThan(0);
+					return;
+				}
 				expect(section.faqItems.length).toBeGreaterThan(ids.length);
 				for (const id of ids) {
 					expect(section.faqItems.some((item) => item.id === id)).toBe(true);

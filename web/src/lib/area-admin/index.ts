@@ -19,6 +19,12 @@ import { AdminListingActivitiesManagerPagePresenter } from '$lib/area-admin/Admi
 import { getRolePresenter, rbacRepository } from '$lib/rbac';
 import { blogRepository, getBlogPresenter } from '$lib/blogs';
 import { listingRepository, getListingPresenter } from '$lib/listings';
+import { linkDirectoryRepository } from '$lib/link-directory/index';
+import { AdminLinkDirectoryCategoriesManagerPagePresenter } from '$lib/area-admin/AdminLinkDirectoryCategoriesManagerPage.presenter.svelte';
+import { AdminLinkDirectoryTagsManagerPagePresenter } from '$lib/area-admin/AdminLinkDirectoryTagsManagerPage.presenter.svelte';
+import { AdminLinkDirectorySitesManagerPagePresenter } from '$lib/area-admin/AdminLinkDirectorySitesManagerPage.presenter.svelte';
+import { AdminLinkDirectorySiteEditorPagePresenter } from '$lib/area-admin/AdminLinkDirectorySiteEditorPage.presenter.svelte';
+import { AdminLinkDirectorySubmissionsManagerPagePresenter } from '$lib/area-admin/AdminLinkDirectorySubmissionsManagerPage.presenter.svelte';
 import { emailRepository, getEmailPresenter } from '$lib/email';
 import { imageRepository } from '$lib/core/index';
 import { configRepository } from '$lib/config/Config.repository.svelte';
@@ -78,6 +84,24 @@ const adminListingActivitiesManagerPagePresenter = new AdminListingActivitiesMan
 	getListingPresenter
 );
 
+const adminLinkDirectoryCategoriesManagerPagePresenter =
+	new AdminLinkDirectoryCategoriesManagerPagePresenter(linkDirectoryRepository);
+
+const adminLinkDirectoryTagsManagerPagePresenter = new AdminLinkDirectoryTagsManagerPagePresenter(
+	linkDirectoryRepository
+);
+
+const adminLinkDirectorySitesManagerPagePresenter = new AdminLinkDirectorySitesManagerPagePresenter(
+	linkDirectoryRepository
+);
+
+const adminLinkDirectorySiteEditorPagePresenter = new AdminLinkDirectorySiteEditorPagePresenter(
+	linkDirectoryRepository
+);
+
+const adminLinkDirectorySubmissionsManagerPagePresenter =
+	new AdminLinkDirectorySubmissionsManagerPagePresenter(linkDirectoryRepository);
+
 const adminPermissionManagerPagePresenter = new AdminPermissionManagerPagePresenter(
 	getRolePresenter,
 	rbacRepository
@@ -123,6 +147,11 @@ export {
 	adminListingTagsManagerPagePresenter,
 	adminListingCommentsManagerPagePresenter,
 	adminListingActivitiesManagerPagePresenter,
+	adminLinkDirectoryCategoriesManagerPagePresenter,
+	adminLinkDirectoryTagsManagerPagePresenter,
+	adminLinkDirectorySitesManagerPagePresenter,
+	adminLinkDirectorySiteEditorPagePresenter,
+	adminLinkDirectorySubmissionsManagerPagePresenter,
 	companyInformationFormPresenter,
 	marketingInformationFormPresenter,
 	landingPageFormPresenter,

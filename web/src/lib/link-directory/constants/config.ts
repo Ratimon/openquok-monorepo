@@ -1,0 +1,36 @@
+export type LinkDirectoryConfig = {
+	endpoints: {
+		getPublishedSites: string;
+		getPublishedHubStats: string;
+		getPublishedSiteBySlug: (siteSlug: string) => string;
+		getActiveCategories: string;
+		getActiveTags: string;
+		getOpportunityTypes: string;
+		createSubmission: string;
+		getMyBookmarks: string;
+		putMyBookmarks: string;
+		putMyBookmarksOrder: string;
+		getAdminSites: string;
+		getSiteById: (siteId: string) => string;
+		createSite: string;
+		updateSite: (siteId: string) => string;
+		deleteSite: (siteId: string) => string;
+		createOpportunity: (siteId: string) => string;
+		updateOpportunity: (opportunityId: string) => string;
+		deleteOpportunity: (opportunityId: string) => string;
+		getAllCategories: string;
+		createCategory: string;
+		updateCategory: (categoryId: string) => string;
+		deleteCategory: (categoryId: string) => string;
+		getAllTags: string;
+		getTagGroups: string;
+		createTagGroup: string;
+		updateTagGroup: (tagGroupId: string) => string;
+		deleteTagGroup: (tagGroupId: string) => string;
+		createTag: string;
+		updateTag: (tagId: string) => string;
+		deleteTag: (tagId: string) => string;
+		getAdminSubmissions: string;
+		reviewSubmission: (submissionId: string) => string;
+	};
+};
