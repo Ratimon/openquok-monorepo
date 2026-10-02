@@ -1,6 +1,7 @@
 import { getRootPathPublicAgents } from '$lib/area-public/constants/getRootPathPublicAgents';
 import { getRootPathPublicAlternatives } from '$lib/area-public/constants/getRootPathPublicAlternatives';
 import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
+import { getRootPathPublicBuildBacklinks } from '$lib/area-public/constants/getRootPathPublicBuildBacklinks';
 import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 import { getRootPathPublicChannels } from '$lib/area-public/constants/getRootPathPublicChannels';
 import { getRootPathPublicCompare } from '$lib/area-public/constants/getRootPathPublicCompare';
@@ -28,6 +29,7 @@ export const HOSTED_MARKETING_PATH_PREFIXES: readonly string[] = [
 	getRootPathPublicChannels(),
 	getRootPathPublicPlaybooks(),
 	getRootPathPublicBuildingBlocks(),
+	getRootPathPublicBuildBacklinks(),
 	getRootPathPublicCreators(),
 	getRootPathPublicCompare(),
 	getRootPathPublicAlternatives(),

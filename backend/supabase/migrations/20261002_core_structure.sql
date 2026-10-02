@@ -96,7 +96,7 @@ COMMENT ON COLUMN public.user_profiles.website_url IS 'User website URL (renamed
 BEGIN;
 
 ALTER TABLE public.users
-    ADD COLUMN cloud_trial_browser_signal_id UUID NULL;
+    ADD COLUMN IF NOT EXISTS cloud_trial_browser_signal_id UUID NULL;
 
 COMMENT ON COLUMN public.users.cloud_trial_browser_signal_id IS
     'Last seen first-party browser signal for Cloud trial enforcement (signup, OAuth, billing).';
@@ -1189,6 +1189,175 @@ COMMIT;
 -- ---------------------------
 
 
+-- Module: link-directory, File: 101_20251001_tables.sql
+-- ---------------------------
+-- MODULE NAME: Link Directory
+-- MODULE DATE: 20251001
+-- MODULE SCOPE: Tables
+-- ---------------------------
+
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS public.link_directory_categories (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    name TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    headline TEXT,
+    description TEXT,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    openquok_channels_hub_path TEXT NOT NULL DEFAULT '/channels'
+);
+
+CREATE TABLE IF NOT EXISTS public.link_directory_tag_groups (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL UNIQUE,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.link_directory_tags (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    name TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    headline TEXT,
+    description TEXT
+);
+
+CREATE TABLE IF NOT EXISTS public.link_directory_tag_groups_tags_association (
+    link_directory_tag_id UUID NOT NULL REFERENCES public.link_directory_tags(id) ON DELETE CASCADE,
+    link_directory_tag_group_id UUID NOT NULL REFERENCES public.link_directory_tag_groups(id) ON DELETE CASCADE,
+    PRIMARY KEY (link_directory_tag_id, link_directory_tag_group_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.link_directory_opportunity_types (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    slug TEXT NOT NULL UNIQUE,
+    label TEXT NOT NULL,
+    description TEXT,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.link_directory_sites (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    published_at TIMESTAMPTZ,
+    slug TEXT NOT NULL UNIQUE,
+    title TEXT NOT NULL,
+    site_url TEXT NOT NULL,
+    logo_url TEXT,
+    short_description TEXT,
+    long_description TEXT,
+    domain_authority SMALLINT,
+    domain_rating SMALLINT,
+    monthly_visits BIGINT,
+    metrics_source TEXT,
+    metrics_updated_at TIMESTAMPTZ,
+    category_id UUID REFERENCES public.link_directory_categories(id) ON DELETE SET NULL,
+    is_openquok_auth_supported BOOLEAN NOT NULL DEFAULT false,
+    openquok_channel_slug TEXT,
+    is_admin_published BOOLEAN NOT NULL DEFAULT false,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    tag_slugs TEXT[],
+    fts TSVECTOR GENERATED ALWAYS AS (
+        to_tsvector(
+            'english'::regconfig,
+            COALESCE(title, ''::text) || ' ' ||
+            COALESCE(slug, ''::text) || ' ' ||
+            COALESCE(site_url, ''::text) || ' ' ||
+            COALESCE(short_description, ''::text) || ' ' ||
+            COALESCE(long_description, ''::text)
+        )
+    ) STORED
+);
+
+CREATE TABLE IF NOT EXISTS public.link_directory_opportunities (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    site_id UUID NOT NULL REFERENCES public.link_directory_sites(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    published_at TIMESTAMPTZ,
+    slug TEXT NOT NULL,
+    title TEXT NOT NULL,
+    opportunity_type_id UUID NOT NULL REFERENCES public.link_directory_opportunity_types(id) ON DELETE RESTRICT,
+    effort TEXT NOT NULL DEFAULT 'medium'
+        CHECK (effort IN ('easy', 'medium', 'hard')),
+    approval_mode TEXT NOT NULL DEFAULT 'manual_review'
+        CHECK (approval_mode IN ('instant', 'manual_review')),
+    approval_time_hint TEXT,
+    dofollow TEXT NOT NULL DEFAULT 'unknown'
+        CHECK (dofollow IN ('dofollow', 'nofollow', 'unknown')),
+    cost_tier TEXT NOT NULL DEFAULT 'free'
+        CHECK (cost_tier IN ('free', 'freemium', 'paid')),
+    cost_note TEXT,
+    description TEXT,
+    -- Ordered sub-steps for this opportunity (HowToStep). Playbook order across opportunities uses sort_order.
+    steps JSONB NOT NULL DEFAULT '[]'::jsonb,
+    openquok_cta_kind TEXT NOT NULL DEFAULT 'none'
+        CHECK (openquok_cta_kind IN (
+            'none',
+            'connect_channel',
+            'schedule_post',
+            'use_plug',
+            'external_doc'
+        )),
+    openquok_channel_slug TEXT,
+    openquok_plug_name TEXT,
+    cta_href TEXT,
+    cta_label TEXT,
+    -- Lower runs first on site guide pages (step 1, step 2, …).
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    is_admin_published BOOLEAN NOT NULL DEFAULT false,
+    UNIQUE (site_id, slug)
+);
+
+COMMENT ON COLUMN public.link_directory_opportunities.sort_order IS
+    'Display order on the site guide: ascending playbook sequence (opportunity 1, then 2, …).';
+COMMENT ON COLUMN public.link_directory_opportunities.steps IS
+    'JSON array of {order, title, body} sub-steps for this opportunity (schema.org HowToStep).';
+
+CREATE TABLE IF NOT EXISTS public.link_directory_site_tags_association (
+    site_id UUID NOT NULL REFERENCES public.link_directory_sites(id) ON DELETE CASCADE,
+    link_directory_tag_id UUID NOT NULL REFERENCES public.link_directory_tags(id) ON DELETE CASCADE,
+    PRIMARY KEY (site_id, link_directory_tag_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.link_directory_submissions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    status TEXT NOT NULL DEFAULT 'pending'
+        CHECK (status IN ('pending', 'approved', 'rejected')),
+    email TEXT NOT NULL,
+    user_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
+    site_url TEXT NOT NULL,
+    proposed_title TEXT,
+    notes TEXT,
+    payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+    reviewed_by UUID REFERENCES public.users(id) ON DELETE SET NULL,
+    reviewed_at TIMESTAMPTZ
+);
+
+CREATE TABLE IF NOT EXISTS public.link_directory_bookmarks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    site_id UUID NOT NULL REFERENCES public.link_directory_sites(id) ON DELETE CASCADE,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (user_id, site_id)
+);
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
 -- Module: signature, File: 101_20260430_tables.sql
 -- ---------------------------
 -- MODULE NAME: signature
@@ -1652,6 +1821,61 @@ BEGIN;
 CREATE INDEX IF NOT EXISTS idx_sets_organization_id ON public.sets(organization_id);
 
 COMMIT;
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: link-directory, File: 201_20251001_indexes.sql
+-- ---------------------------
+-- MODULE NAME: Link Directory
+-- MODULE DATE: 20251001
+-- MODULE SCOPE: Indexes
+-- ---------------------------
+
+BEGIN;
+
+CREATE INDEX IF NOT EXISTS idx_link_directory_categories_slug
+    ON public.link_directory_categories (slug);
+CREATE INDEX IF NOT EXISTS idx_link_directory_categories_sort_order
+    ON public.link_directory_categories (sort_order);
+
+CREATE INDEX IF NOT EXISTS idx_link_directory_tags_slug
+    ON public.link_directory_tags (slug);
+
+CREATE INDEX IF NOT EXISTS idx_link_directory_sites_slug
+    ON public.link_directory_sites (slug);
+CREATE INDEX IF NOT EXISTS idx_link_directory_sites_category_published
+    ON public.link_directory_sites (category_id, is_admin_published);
+CREATE INDEX IF NOT EXISTS idx_link_directory_sites_domain_rating
+    ON public.link_directory_sites (domain_rating DESC NULLS LAST);
+CREATE INDEX IF NOT EXISTS idx_link_directory_sites_fts
+    ON public.link_directory_sites USING gin (fts);
+CREATE INDEX IF NOT EXISTS idx_link_directory_sites_tag_slugs
+    ON public.link_directory_sites USING gin (tag_slugs);
+
+CREATE INDEX IF NOT EXISTS idx_link_directory_opportunities_site_sort
+    ON public.link_directory_opportunities (site_id, sort_order);
+CREATE INDEX IF NOT EXISTS idx_link_directory_opportunities_type_id
+    ON public.link_directory_opportunities (opportunity_type_id);
+CREATE INDEX IF NOT EXISTS idx_link_directory_opportunities_published
+    ON public.link_directory_opportunities (site_id, is_admin_published);
+
+CREATE INDEX IF NOT EXISTS idx_link_directory_site_tags_assoc_tag_id
+    ON public.link_directory_site_tags_association (link_directory_tag_id);
+CREATE INDEX IF NOT EXISTS idx_link_directory_site_tags_assoc_site_id
+    ON public.link_directory_site_tags_association (site_id);
+
+CREATE INDEX IF NOT EXISTS idx_link_directory_submissions_status
+    ON public.link_directory_submissions (status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_link_directory_submissions_user_id
+    ON public.link_directory_submissions (user_id);
+
+CREATE INDEX IF NOT EXISTS idx_link_directory_bookmarks_user_sort
+    ON public.link_directory_bookmarks (user_id, sort_order);
+CREATE INDEX IF NOT EXISTS idx_link_directory_bookmarks_site_id
+    ON public.link_directory_bookmarks (site_id);
 
 -- ---------------------------
 -- END OF FILE
@@ -4488,6 +4712,360 @@ COMMIT;
 -- ---------------------------
 
 
+-- Module: link-directory, File: 302_20251001_rlsgrants.sql
+-- ---------------------------
+-- MODULE NAME: Link Directory
+-- MODULE DATE: 20261002
+-- MODULE SCOPE: Row Level Security and Grants
+-- ---------------------------
+
+BEGIN;
+
+ALTER TABLE public.link_directory_categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.link_directory_tag_groups ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.link_directory_tags ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.link_directory_tag_groups_tags_association ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.link_directory_opportunity_types ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.link_directory_sites ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.link_directory_opportunities ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.link_directory_site_tags_association ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.link_directory_submissions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.link_directory_bookmarks ENABLE ROW LEVEL SECURITY;
+
+-- ---------------------------
+-- Categories, tags, opportunity types (catalog)
+-- ---------------------------
+
+DROP POLICY IF EXISTS "Everyone can view link directory categories" ON public.link_directory_categories;
+CREATE POLICY "Everyone can view link directory categories" ON public.link_directory_categories
+    FOR SELECT TO anon, authenticated USING (true);
+
+DROP POLICY IF EXISTS "Super admin admins editors can manage link directory categories" ON public.link_directory_categories;
+CREATE POLICY "Super admin admins editors can manage link directory categories" ON public.link_directory_categories
+    FOR ALL TO authenticated
+    USING (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    )
+    WITH CHECK (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    );
+
+DROP POLICY IF EXISTS "Everyone can view link directory tag groups" ON public.link_directory_tag_groups;
+CREATE POLICY "Everyone can view link directory tag groups" ON public.link_directory_tag_groups
+    FOR SELECT TO anon, authenticated USING (true);
+
+DROP POLICY IF EXISTS "Super admin admins editors can manage link directory tag groups" ON public.link_directory_tag_groups;
+CREATE POLICY "Super admin admins editors can manage link directory tag groups" ON public.link_directory_tag_groups
+    FOR ALL TO authenticated
+    USING (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    )
+    WITH CHECK (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    );
+
+DROP POLICY IF EXISTS "Everyone can view link directory tags" ON public.link_directory_tags;
+CREATE POLICY "Everyone can view link directory tags" ON public.link_directory_tags
+    FOR SELECT TO anon, authenticated USING (true);
+
+DROP POLICY IF EXISTS "Super admin admins editors can manage link directory tags" ON public.link_directory_tags;
+CREATE POLICY "Super admin admins editors can manage link directory tags" ON public.link_directory_tags
+    FOR ALL TO authenticated
+    USING (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    )
+    WITH CHECK (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    );
+
+DROP POLICY IF EXISTS "Everyone can view link directory tag group associations" ON public.link_directory_tag_groups_tags_association;
+CREATE POLICY "Everyone can view link directory tag group associations" ON public.link_directory_tag_groups_tags_association
+    FOR SELECT TO anon, authenticated USING (true);
+
+DROP POLICY IF EXISTS "Super admin admins editors can manage link directory tag group associations" ON public.link_directory_tag_groups_tags_association;
+CREATE POLICY "Super admin admins editors can manage link directory tag group associations" ON public.link_directory_tag_groups_tags_association
+    FOR ALL TO authenticated
+    USING (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    )
+    WITH CHECK (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    );
+
+DROP POLICY IF EXISTS "Everyone can view link directory opportunity types" ON public.link_directory_opportunity_types;
+CREATE POLICY "Everyone can view link directory opportunity types" ON public.link_directory_opportunity_types
+    FOR SELECT TO anon, authenticated USING (true);
+
+DROP POLICY IF EXISTS "Super admin admins editors can manage link directory opportunity types" ON public.link_directory_opportunity_types;
+CREATE POLICY "Super admin admins editors can manage link directory opportunity types" ON public.link_directory_opportunity_types
+    FOR ALL TO authenticated
+    USING (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    )
+    WITH CHECK (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    );
+
+-- ---------------------------
+-- Sites and opportunities
+-- ---------------------------
+
+DROP POLICY IF EXISTS "Public can view published link directory sites" ON public.link_directory_sites;
+CREATE POLICY "Public can view published link directory sites" ON public.link_directory_sites
+    FOR SELECT TO anon, authenticated
+    USING (is_admin_published = true);
+
+DROP POLICY IF EXISTS "Super admin admins editors can manage link directory sites" ON public.link_directory_sites;
+CREATE POLICY "Super admin admins editors can manage link directory sites" ON public.link_directory_sites
+    FOR ALL TO authenticated
+    USING (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    )
+    WITH CHECK (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    );
+
+DROP POLICY IF EXISTS "Public can view published link directory opportunities" ON public.link_directory_opportunities;
+CREATE POLICY "Public can view published link directory opportunities" ON public.link_directory_opportunities
+    FOR SELECT TO anon, authenticated
+    USING (
+        is_admin_published = true
+        AND EXISTS (
+            SELECT 1 FROM public.link_directory_sites s
+            WHERE s.id = site_id AND s.is_admin_published = true
+        )
+    );
+
+DROP POLICY IF EXISTS "Super admin admins editors can manage link directory opportunities" ON public.link_directory_opportunities;
+CREATE POLICY "Super admin admins editors can manage link directory opportunities" ON public.link_directory_opportunities
+    FOR ALL TO authenticated
+    USING (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    )
+    WITH CHECK (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    );
+
+-- ---------------------------
+-- Site tag associations
+-- ---------------------------
+
+DROP POLICY IF EXISTS "Everyone can view link directory site tag associations" ON public.link_directory_site_tags_association;
+CREATE POLICY "Everyone can view link directory site tag associations" ON public.link_directory_site_tags_association
+    FOR SELECT TO anon, authenticated USING (true);
+
+DROP POLICY IF EXISTS "Super admin admins editors can manage link directory site tag associations" ON public.link_directory_site_tags_association;
+CREATE POLICY "Super admin admins editors can manage link directory site tag associations" ON public.link_directory_site_tags_association
+    FOR ALL TO authenticated
+    USING (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    )
+    WITH CHECK (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    );
+
+-- ---------------------------
+-- Submissions
+-- ---------------------------
+
+DROP POLICY IF EXISTS "Anyone can submit link directory entries" ON public.link_directory_submissions;
+CREATE POLICY "Anyone can submit link directory entries" ON public.link_directory_submissions
+    FOR INSERT TO anon, authenticated
+    WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Submitters can view their own link directory submissions" ON public.link_directory_submissions;
+CREATE POLICY "Submitters can view their own link directory submissions" ON public.link_directory_submissions
+    FOR SELECT TO authenticated
+    USING (
+        user_id = (SELECT id FROM public.users WHERE auth_id = auth.uid())
+    );
+
+DROP POLICY IF EXISTS "Super admin admins editors can manage link directory submissions" ON public.link_directory_submissions;
+CREATE POLICY "Super admin admins editors can manage link directory submissions" ON public.link_directory_submissions
+    FOR ALL TO authenticated
+    USING (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    )
+    WITH CHECK (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    );
+
+-- ---------------------------
+-- Bookmarks
+-- ---------------------------
+
+DROP POLICY IF EXISTS "Users can manage their link directory bookmarks" ON public.link_directory_bookmarks;
+CREATE POLICY "Users can manage their link directory bookmarks" ON public.link_directory_bookmarks
+    FOR ALL TO authenticated
+    USING (
+        user_id = (SELECT id FROM public.users WHERE auth_id = auth.uid())
+    )
+    WITH CHECK (
+        user_id = (SELECT id FROM public.users WHERE auth_id = auth.uid())
+    );
+
+-- ---------------------------
+-- Storage: link_directory_logos
+-- ---------------------------
+
+DROP POLICY IF EXISTS "Allow authenticated users to delete their link directory logos" ON storage.objects;
+CREATE POLICY "Allow authenticated users to delete their link directory logos"
+    ON storage.objects
+    AS PERMISSIVE FOR DELETE TO authenticated
+    USING (
+        bucket_id = 'link_directory_logos'::text
+        AND auth.role() = 'authenticated'::text
+        AND auth.uid() = owner
+    );
+
+DROP POLICY IF EXISTS "Allow authenticated users to update their link directory logos" ON storage.objects;
+CREATE POLICY "Allow authenticated users to update their link directory logos"
+    ON storage.objects
+    AS PERMISSIVE FOR UPDATE TO authenticated
+    USING (
+        bucket_id = 'link_directory_logos'::text
+        AND auth.role() = 'authenticated'::text
+        AND auth.uid() = owner
+    );
+
+DROP POLICY IF EXISTS "Allow authenticated users to upload link directory logos" ON storage.objects;
+CREATE POLICY "Allow authenticated users to upload link directory logos"
+    ON storage.objects
+    AS PERMISSIVE FOR INSERT TO authenticated
+    WITH CHECK (
+        bucket_id = 'link_directory_logos'::text
+        AND auth.role() = 'authenticated'::text
+        AND auth.uid() = owner
+    );
+
+DROP POLICY IF EXISTS "Allow read access to link directory logos" ON storage.objects;
+
+DROP POLICY IF EXISTS "Allow service_role to manage link directory logos" ON storage.objects;
+CREATE POLICY "Allow service_role to manage link directory logos"
+    ON storage.objects
+    AS PERMISSIVE FOR ALL TO service_role
+    USING (bucket_id = 'link_directory_logos'::text);
+
+-- ---------------------------
+-- Grants
+-- ---------------------------
+
+GRANT SELECT ON public.link_directory_categories TO anon;
+GRANT SELECT ON public.link_directory_tag_groups TO anon;
+GRANT SELECT ON public.link_directory_tags TO anon;
+GRANT SELECT ON public.link_directory_tag_groups_tags_association TO anon;
+GRANT SELECT ON public.link_directory_opportunity_types TO anon;
+GRANT SELECT ON public.link_directory_sites TO anon;
+GRANT SELECT ON public.link_directory_opportunities TO anon;
+GRANT SELECT ON public.link_directory_site_tags_association TO anon;
+GRANT INSERT ON public.link_directory_submissions TO anon;
+
+GRANT ALL ON public.link_directory_categories TO authenticated;
+GRANT ALL ON public.link_directory_tag_groups TO authenticated;
+GRANT ALL ON public.link_directory_tags TO authenticated;
+GRANT ALL ON public.link_directory_tag_groups_tags_association TO authenticated;
+GRANT ALL ON public.link_directory_opportunity_types TO authenticated;
+GRANT ALL ON public.link_directory_sites TO authenticated;
+GRANT ALL ON public.link_directory_opportunities TO authenticated;
+GRANT ALL ON public.link_directory_site_tags_association TO authenticated;
+GRANT INSERT, SELECT ON public.link_directory_submissions TO authenticated;
+GRANT ALL ON public.link_directory_bookmarks TO authenticated;
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
 -- Module: signature, File: 301_20260430_rlsgrants.sql
 -- ---------------------------
 -- MODULE NAME: signature
@@ -6684,6 +7262,160 @@ AS PERMISSIVE
 FOR DELETE
 TO authenticated
 USING (public.is_active_member_of_org(notifications.organization_id, auth.uid()));
+
+
+-- Module: link-directory, File: 401_20251001_functions.sql
+-- ---------------------------
+-- MODULE NAME: Link Directory
+-- MODULE DATE: 20251001
+-- MODULE SCOPE: Functions
+-- ---------------------------
+
+BEGIN;
+
+CREATE OR REPLACE FUNCTION public.update_link_directory_updated_at_column()
+RETURNS TRIGGER
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+REVOKE ALL ON FUNCTION public.update_link_directory_updated_at_column() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.update_link_directory_updated_at_column() FROM anon, authenticated;
+
+DROP TRIGGER IF EXISTS update_link_directory_categories_updated_at ON public.link_directory_categories;
+CREATE TRIGGER update_link_directory_categories_updated_at
+    BEFORE UPDATE ON public.link_directory_categories
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_link_directory_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_link_directory_tag_groups_updated_at ON public.link_directory_tag_groups;
+CREATE TRIGGER update_link_directory_tag_groups_updated_at
+    BEFORE UPDATE ON public.link_directory_tag_groups
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_link_directory_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_link_directory_tags_updated_at ON public.link_directory_tags;
+CREATE TRIGGER update_link_directory_tags_updated_at
+    BEFORE UPDATE ON public.link_directory_tags
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_link_directory_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_link_directory_sites_updated_at ON public.link_directory_sites;
+CREATE TRIGGER update_link_directory_sites_updated_at
+    BEFORE UPDATE ON public.link_directory_sites
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_link_directory_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_link_directory_opportunities_updated_at ON public.link_directory_opportunities;
+CREATE TRIGGER update_link_directory_opportunities_updated_at
+    BEFORE UPDATE ON public.link_directory_opportunities
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_link_directory_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_link_directory_submissions_updated_at ON public.link_directory_submissions;
+CREATE TRIGGER update_link_directory_submissions_updated_at
+    BEFORE UPDATE ON public.link_directory_submissions
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_link_directory_updated_at_column();
+
+CREATE OR REPLACE FUNCTION public.update_link_directory_site_published_at()
+RETURNS TRIGGER
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    IF NEW.is_admin_published AND (OLD IS NULL OR NOT OLD.is_admin_published) AND NEW.published_at IS NULL THEN
+        NEW.published_at = CURRENT_TIMESTAMP;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+REVOKE ALL ON FUNCTION public.update_link_directory_site_published_at() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.update_link_directory_site_published_at() FROM anon, authenticated;
+
+DROP TRIGGER IF EXISTS set_link_directory_site_published_at ON public.link_directory_sites;
+CREATE TRIGGER set_link_directory_site_published_at
+    BEFORE INSERT OR UPDATE ON public.link_directory_sites
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_link_directory_site_published_at();
+
+CREATE OR REPLACE FUNCTION public.update_link_directory_opportunity_published_at()
+RETURNS TRIGGER
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    IF NEW.is_admin_published AND (OLD IS NULL OR NOT OLD.is_admin_published) AND NEW.published_at IS NULL THEN
+        NEW.published_at = CURRENT_TIMESTAMP;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+REVOKE ALL ON FUNCTION public.update_link_directory_opportunity_published_at() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.update_link_directory_opportunity_published_at() FROM anon, authenticated;
+
+DROP TRIGGER IF EXISTS set_link_directory_opportunity_published_at ON public.link_directory_opportunities;
+CREATE TRIGGER set_link_directory_opportunity_published_at
+    BEFORE INSERT OR UPDATE ON public.link_directory_opportunities
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_link_directory_opportunity_published_at();
+
+CREATE OR REPLACE FUNCTION public.sync_link_directory_site_tag_slugs(p_site_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    UPDATE public.link_directory_sites s
+    SET tag_slugs = COALESCE(
+        (
+            SELECT ARRAY_AGG(t.slug ORDER BY t.slug)
+            FROM public.link_directory_site_tags_association sta
+            INNER JOIN public.link_directory_tags t ON t.id = sta.link_directory_tag_id
+            WHERE sta.site_id = p_site_id
+        ),
+        ARRAY[]::text[]
+    )
+    WHERE s.id = p_site_id;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.sync_link_directory_site_tag_slugs(UUID) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.sync_link_directory_site_tag_slugs(UUID) FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.sync_link_directory_site_tag_slugs(UUID) TO service_role;
+
+CREATE OR REPLACE FUNCTION public.trigger_sync_link_directory_site_tag_slugs()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    PERFORM public.sync_link_directory_site_tag_slugs(COALESCE(NEW.site_id, OLD.site_id));
+    RETURN COALESCE(NEW, OLD);
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.trigger_sync_link_directory_site_tag_slugs() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.trigger_sync_link_directory_site_tag_slugs() FROM anon, authenticated;
+
+DROP TRIGGER IF EXISTS sync_link_directory_site_tag_slugs_on_change ON public.link_directory_site_tags_association;
+CREATE TRIGGER sync_link_directory_site_tag_slugs_on_change
+    AFTER INSERT OR UPDATE OR DELETE ON public.link_directory_site_tags_association
+    FOR EACH ROW
+    EXECUTE FUNCTION public.trigger_sync_link_directory_site_tag_slugs();
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
 
 
 -- Module: user-management, File: 500_20260227_seed.sql
@@ -9715,6 +10447,726 @@ FROM public.listings l
 JOIN public.listing_tags t ON t.slug = ANY (l.listing_tag_slugs)
 WHERE l.slug = 'viral-tiktok-carousel'
 ON CONFLICT DO NOTHING;
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: link-directory, File: 501_20251001_seed.sql
+-- ---------------------------
+-- MODULE NAME: Link Directory
+-- MODULE DATE: 20251001
+-- MODULE SCOPE: Seed (editorial catalog tags; facet browse uses opportunity fields + virtual slugs in app code)
+-- ---------------------------
+
+BEGIN;
+
+INSERT INTO public.link_directory_categories (
+    id,
+    name,
+    slug,
+    headline,
+    description,
+    sort_order
+) VALUES
+    (
+        'd5f7d000-0001-4000-a000-000000000001',
+        'Social platforms',
+        'social-platforms',
+        'Earn links on social networks',
+        'Profiles, posts, threads, and community answers on major social platforms.',
+        10
+    ),
+    (
+        'd5f7d000-0001-4000-a000-000000000002',
+        'Launch platforms',
+        'launch-platforms',
+        'Product launch and startup listings',
+        'Directories and launch sites where you submit products for visibility and backlinks — including GitHub awesome lists and README links when relevant.',
+        20
+    ),
+    (
+        'd5f7d000-0001-4000-a000-000000000004',
+        'Maker and dev directories',
+        'maker-dev-directory',
+        'Builders, OSS, and dev communities',
+        'GitHub lists, dev communities, and maker hubs.',
+        40
+    ),
+    (
+        'd5f7d000-0001-4000-a000-000000000005',
+        'AI tool directories',
+        'ai-tool-directory',
+        'AI product listings',
+        'Directories focused on AI tools and agents, plus GitHub catalog and list contributions where editors accept them.',
+        50
+    )
+ON CONFLICT (id) DO UPDATE SET
+    name = EXCLUDED.name,
+    slug = EXCLUDED.slug,
+    headline = EXCLUDED.headline,
+    description = EXCLUDED.description,
+    sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.link_directory_tag_groups (id, name, sort_order) VALUES
+    ('d5f7d000-0002-4000-a000-000000000002', 'Community', 20),
+    ('d5f7d000-0002-4000-a000-000000000003', 'Platform', 30),
+    ('d5f7d000-0002-4000-a000-000000000004', 'Quality', 40)
+ON CONFLICT (id) DO UPDATE SET
+    name = EXCLUDED.name,
+    sort_order = EXCLUDED.sort_order;
+
+INSERT INTO public.link_directory_tags (id, name, slug, description) VALUES
+    ('d5f7d000-0003-4000-a000-000000000006', 'High domain rating', 'high-dr', 'Strong estimated authority for the host domain.'),
+    ('d5f7d000-0003-4000-a000-000000000007', 'Community moderated', 'community-moderated', 'Moderators or community rules gate visibility.'),
+    (
+        'd5f7d000-0003-4000-a000-000000000008',
+        'GitHub',
+        'github',
+        'Backlinks earned on GitHub — awesome lists, profile README links, or pull requests. Applies across launch, AI, and maker directories.'
+    )
+ON CONFLICT (id) DO UPDATE SET
+    name = EXCLUDED.name,
+    slug = EXCLUDED.slug,
+    description = EXCLUDED.description;
+
+INSERT INTO public.link_directory_tag_groups_tags_association (
+    link_directory_tag_id,
+    link_directory_tag_group_id
+) VALUES
+    ('d5f7d000-0003-4000-a000-000000000007', 'd5f7d000-0002-4000-a000-000000000002'),
+    ('d5f7d000-0003-4000-a000-000000000008', 'd5f7d000-0002-4000-a000-000000000003'),
+    ('d5f7d000-0003-4000-a000-000000000006', 'd5f7d000-0002-4000-a000-000000000004')
+ON CONFLICT DO NOTHING;
+
+INSERT INTO public.link_directory_opportunity_types (id, slug, label, description, sort_order) VALUES
+    ('d5f7d000-0004-4000-a000-000000000001', 'post_link', 'Post link', 'Link in a feed post or update.', 10),
+    ('d5f7d000-0004-4000-a000-000000000002', 'profile_link', 'Profile link', 'Website field on a profile or page.', 20),
+    ('d5f7d000-0004-4000-a000-000000000003', 'comment_link', 'Comment link', 'Link shared in a comment or reply.', 30),
+    ('d5f7d000-0004-4000-a000-000000000004', 'qa_link', 'Q&A link', 'Answer or thread where a link is allowed.', 40),
+    ('d5f7d000-0004-4000-a000-000000000005', 'thread_link', 'Thread link', 'Multi-post thread with a prominent link.', 50),
+    ('d5f7d000-0004-4000-a000-000000000006', 'product_submission', 'Product submission', 'Submit a product or startup listing.', 60),
+    ('d5f7d000-0004-4000-a000-000000000007', 'guest_post', 'Guest post', 'Contributed article with editorial review.', 70),
+    ('d5f7d000-0004-4000-a000-000000000008', 'github_contribution', 'GitHub contribution', 'Pull request or list entry on GitHub.', 80),
+    ('d5f7d000-0004-4000-a000-000000000009', 'other', 'Other', 'Custom workflow not covered by other types.', 90)
+ON CONFLICT (id) DO UPDATE SET
+    slug = EXCLUDED.slug,
+    label = EXCLUDED.label,
+    description = EXCLUDED.description,
+    sort_order = EXCLUDED.sort_order;
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: link-directory, File: 502_20251001_seed_link_directory_exemplar.sql
+-- ---------------------------
+-- MODULE NAME: Link Directory
+-- MODULE DATE: 20251001
+-- MODULE SCOPE: Seed exemplar sites and opportunities (site sort_order 0; hub default sort is domain rating; opportunity sort_order 10/20/30 orders playbooks)
+-- ---------------------------
+
+BEGIN;
+
+INSERT INTO public.link_directory_sites (
+    id,
+    published_at,
+    slug,
+    title,
+    site_url,
+    short_description,
+    long_description,
+    domain_rating,
+    monthly_visits,
+    metrics_source,
+    metrics_updated_at,
+    category_id,
+    is_openquok_auth_supported,
+    openquok_channel_slug,
+    is_admin_published,
+    sort_order,
+    tag_slugs
+) VALUES
+    (
+        'd5f7d000-0010-4000-a000-000000000001',
+        NOW(),
+        'reddit',
+        'Reddit',
+        'https://www.reddit.com',
+        'Community posts, profiles, and Q&A threads — follow each subreddit''s self-promotion rules.',
+        'Reddit offers several link surfaces: feed posts, profile bios, and helpful answers in comment threads. Moderation varies by community.',
+        91,
+        1700000000,
+        'editor_estimate',
+        NOW(),
+        'd5f7d000-0001-4000-a000-000000000001',
+        false,
+        NULL,
+        true,
+        0,
+        ARRAY['community-moderated']::text[]
+    ),
+    (
+        'd5f7d000-0010-4000-a000-000000000002',
+        NOW(),
+        'bluesky',
+        'Bluesky',
+        'https://bsky.app',
+        'Decentralized social network with posts, profiles, and threads.',
+        'Bluesky supports website links on profiles and in posts. Threads can carry a primary link when you schedule multi-post content.',
+        78,
+        25000000,
+        'editor_estimate',
+        NOW(),
+        'd5f7d000-0001-4000-a000-000000000001',
+        true,
+        'bluesky',
+        true,
+        0,
+        ARRAY['high-dr']::text[]
+    ),
+    (
+        'd5f7d000-0010-4000-a000-000000000003',
+        NOW(),
+        'facebook',
+        'Facebook',
+        'https://www.facebook.com',
+        'Pages, profiles, posts, and comments for brand visibility.',
+        'Facebook Pages and profiles can surface your site URL. Posts and follow-up comments extend reach when policy allows external links.',
+        96,
+        2800000000,
+        'editor_estimate',
+        NOW(),
+        'd5f7d000-0001-4000-a000-000000000001',
+        true,
+        'facebook',
+        true,
+        0,
+        ARRAY['high-dr']::text[]
+    ),
+    (
+        'd5f7d000-0010-4000-a000-000000000004',
+        NOW(),
+        'uneed',
+        'Uneed',
+        'https://uneed.best',
+        'Launch directory with paid product features and a free maker profile.',
+        'Uneed combines a paid launch slot with a free profile link. Plan budget and copy before submitting.',
+        42,
+        120000,
+        'editor_estimate',
+        NOW(),
+        'd5f7d000-0001-4000-a000-000000000002',
+        false,
+        NULL,
+        true,
+        0,
+        ARRAY[]::text[]
+    ),
+    (
+        'd5f7d000-0010-4000-a000-000000000005',
+        NOW(),
+        'open-launch',
+        'Open Launch',
+        'https://openlaunch.io',
+        'Guest posts and launch coverage for startups.',
+        'Open Launch accepts guest contributions with editorial review. Useful for a contextual article when your story fits their audience — confirm link treatment with editors.',
+        35,
+        45000,
+        'editor_estimate',
+        NOW(),
+        'd5f7d000-0001-4000-a000-000000000002',
+        false,
+        NULL,
+        true,
+        0,
+        ARRAY[]::text[]
+    ),
+    (
+        'd5f7d000-0010-4000-a000-000000000006',
+        NOW(),
+        'awesome-selfhosted',
+        'Awesome Selfhosted',
+        'https://awesome-selfhosted.net',
+        'Community-maintained catalog of self-hosted software — submit via pull request.',
+        'The awesome-selfhosted project curates qualifying self-hosted tools on GitHub. A merged list entry surfaces your project URL to maintainers and readers; follow CONTRIBUTING rules and category placement.',
+        72,
+        800000,
+        'editor_estimate',
+        NOW(),
+        'd5f7d000-0001-4000-a000-000000000004',
+        false,
+        NULL,
+        true,
+        0,
+        ARRAY['community-moderated', 'high-dr']::text[]
+    ),
+    (
+        'd5f7d000-0010-4000-a000-000000000007',
+        NOW(),
+        'github',
+        'GitHub',
+        'https://github.com',
+        'Profiles, project sites, and package pages on github.com — each surface has different link rules.',
+        'GitHub hosts several distinct backlink paths: a profile README repo, GitHub Pages sites, and container or package listings on GitHub Container Registry (GHCR). Pick the workflow that matches your product (personal brand, docs site, or shipped artifact).',
+        97,
+        520000000,
+        'editor_estimate',
+        NOW(),
+        'd5f7d000-0001-4000-a000-000000000001',
+        false,
+        NULL,
+        true,
+        0,
+        ARRAY['high-dr', 'github']::text[]
+    )
+ON CONFLICT (id) DO UPDATE SET
+    slug = EXCLUDED.slug,
+    title = EXCLUDED.title,
+    site_url = EXCLUDED.site_url,
+    short_description = EXCLUDED.short_description,
+    long_description = EXCLUDED.long_description,
+    domain_rating = EXCLUDED.domain_rating,
+    monthly_visits = EXCLUDED.monthly_visits,
+    metrics_source = EXCLUDED.metrics_source,
+    metrics_updated_at = EXCLUDED.metrics_updated_at,
+    category_id = EXCLUDED.category_id,
+    is_openquok_auth_supported = EXCLUDED.is_openquok_auth_supported,
+    openquok_channel_slug = EXCLUDED.openquok_channel_slug,
+    is_admin_published = EXCLUDED.is_admin_published,
+    sort_order = EXCLUDED.sort_order,
+    tag_slugs = EXCLUDED.tag_slugs,
+    published_at = COALESCE(public.link_directory_sites.published_at, EXCLUDED.published_at);
+
+INSERT INTO public.link_directory_site_tags_association (site_id, link_directory_tag_id)
+SELECT s.id, t.id
+FROM public.link_directory_sites s
+JOIN public.link_directory_tags t ON t.slug = ANY (s.tag_slugs)
+WHERE s.id IN (
+    'd5f7d000-0010-4000-a000-000000000001',
+    'd5f7d000-0010-4000-a000-000000000002',
+    'd5f7d000-0010-4000-a000-000000000003',
+    'd5f7d000-0010-4000-a000-000000000004',
+    'd5f7d000-0010-4000-a000-000000000005',
+    'd5f7d000-0010-4000-a000-000000000006',
+    'd5f7d000-0010-4000-a000-000000000007'
+)
+ON CONFLICT DO NOTHING;
+
+INSERT INTO public.link_directory_opportunities (
+    id,
+    site_id,
+    published_at,
+    slug,
+    title,
+    opportunity_type_id,
+    effort,
+    approval_mode,
+    approval_time_hint,
+    dofollow,
+    cost_tier,
+    cost_note,
+    description,
+    steps,
+    openquok_cta_kind,
+    openquok_channel_slug,
+    openquok_plug_name,
+    cta_href,
+    cta_label,
+    sort_order,
+    is_admin_published
+) VALUES
+    (
+        'd5f7d000-0020-4000-a000-000000000001',
+        'd5f7d000-0010-4000-a000-000000000001',
+        NOW(),
+        'subreddit-post',
+        'Subreddit post',
+        'd5f7d000-0004-4000-a000-000000000001',
+        'medium',
+        'manual_review',
+        'Varies by subreddit moderators',
+        'nofollow',
+        'free',
+        NULL,
+        'Share a post where subreddit rules allow promotional or showcase content. Outbound links in posts use rel=nofollow ugc.',
+        '[{"order":1,"title":"Pick a subreddit","body":"Read rules and recent posts to match tone."},{"order":2,"title":"Draft value-first copy","body":"Lead with insight; place your link once where allowed."}]'::jsonb,
+        'none',
+        NULL,
+        NULL,
+        'https://www.reddit.com/submit',
+        'Open Reddit submit',
+        10,
+        true
+    ),
+    (
+        'd5f7d000-0020-4000-a000-000000000002',
+        'd5f7d000-0010-4000-a000-000000000001',
+        NOW(),
+        'profile-bio',
+        'Profile bio link',
+        'd5f7d000-0004-4000-a000-000000000002',
+        'easy',
+        'instant',
+        NULL,
+        'nofollow',
+        'free',
+        NULL,
+        'Add your site to your Reddit profile description. Reddit marks outbound profile links nofollow (ugc), same as posts and comments.',
+        '[{"order":1,"title":"Edit profile","body":"Settings → Profile → About description."}]'::jsonb,
+        'none',
+        NULL,
+        NULL,
+        'https://www.reddit.com/settings/profile',
+        'Edit profile',
+        20,
+        true
+    ),
+    (
+        'd5f7d000-0020-4000-a000-000000000003',
+        'd5f7d000-0010-4000-a000-000000000001',
+        NOW(),
+        'helpful-answer',
+        'Helpful answer link',
+        'd5f7d000-0004-4000-a000-000000000004',
+        'hard',
+        'manual_review',
+        'Community voting and mod removal',
+        'nofollow',
+        'free',
+        NULL,
+        'Answer a question with genuine help and a single relevant link when permitted. Comment links are nofollow ugc on Reddit.',
+        '[]'::jsonb,
+        'external_doc',
+        NULL,
+        NULL,
+        'https://www.openquok.com/docs',
+        'Read plug docs',
+        30,
+        true
+    ),
+    (
+        'd5f7d000-0020-4000-a000-000000000004',
+        'd5f7d000-0010-4000-a000-000000000002',
+        NOW(),
+        'profile-website',
+        'Profile website field',
+        'd5f7d000-0004-4000-a000-000000000002',
+        'easy',
+        'instant',
+        NULL,
+        'nofollow',
+        'free',
+        NULL,
+        'Set the website URL on your Bluesky profile. Treat outbound social links as nofollow for SEO; value is referral traffic and brand discovery.',
+        '[{"order":1,"title":"Open profile settings","body":"Add your primary marketing URL."}]'::jsonb,
+        'connect_channel',
+        'bluesky',
+        NULL,
+        NULL,
+        'Connect Bluesky',
+        10,
+        true
+    ),
+    (
+        'd5f7d000-0020-4000-a000-000000000005',
+        'd5f7d000-0010-4000-a000-000000000002',
+        NOW(),
+        'scheduled-thread',
+        'Scheduled thread with link',
+        'd5f7d000-0004-4000-a000-000000000005',
+        'medium',
+        'instant',
+        NULL,
+        'nofollow',
+        'free',
+        NULL,
+        'Publish a multi-post thread with your link in the lead post. Post links on Bluesky should be planned as nofollow for ranking; they still drive clicks.',
+        '[]'::jsonb,
+        'schedule_post',
+        'bluesky',
+        NULL,
+        NULL,
+        'Schedule with OpenQuok',
+        20,
+        true
+    ),
+    (
+        'd5f7d000-0020-4000-a000-000000000007',
+        'd5f7d000-0010-4000-a000-000000000003',
+        NOW(),
+        'page-about-link',
+        'Create Facebook Page with website',
+        'd5f7d000-0004-4000-a000-000000000002',
+        'easy',
+        'instant',
+        NULL,
+        'nofollow',
+        'free',
+        NULL,
+        'Set up a Facebook Page and add your primary website in About before you post link updates. Facebook typically nofollows outbound links, including Page website fields.',
+        '[{"order":1,"title":"Create or claim a Page","body":"Use a Facebook Page for your brand (not only a personal profile)."},{"order":2,"title":"Add your website in About","body":"Open Page settings → About and enter your site URL in the Website field."},{"order":3,"title":"Save and verify","body":"Publish changes and confirm the link works from the public Page view."}]'::jsonb,
+        'connect_channel',
+        'facebook',
+        NULL,
+        NULL,
+        'Connect Facebook',
+        10,
+        true
+    ),
+    (
+        'd5f7d000-0020-4000-a000-000000000006',
+        'd5f7d000-0010-4000-a000-000000000003',
+        NOW(),
+        'page-post',
+        'Facebook Page post',
+        'd5f7d000-0004-4000-a000-000000000001',
+        'medium',
+        'instant',
+        NULL,
+        'nofollow',
+        'free',
+        NULL,
+        'After your Page lists your website, publish or schedule a Page post with a link preview. Link previews in posts are nofollow from facebook.com.',
+        '[{"order":1,"title":"Confirm Page setup","body":"Finish Page About with your website URL before posting external links."},{"order":2,"title":"Draft the post","body":"Write a short update with context and the URL you want to promote."},{"order":3,"title":"Publish or schedule","body":"Post immediately or schedule for when your audience is most active."}]'::jsonb,
+        'schedule_post',
+        'facebook',
+        NULL,
+        NULL,
+        'Schedule post',
+        20,
+        true
+    ),
+    (
+        'd5f7d000-0020-4000-a000-000000000008',
+        'd5f7d000-0010-4000-a000-000000000004',
+        NOW(),
+        'paid-launch',
+        'Paid launch listing',
+        'd5f7d000-0004-4000-a000-000000000006',
+        'medium',
+        'manual_review',
+        'Usually within a few business days',
+        'dofollow',
+        'paid',
+        'Check current pricing on Uneed',
+        'Featured launch placement with a prominent product link. Third-party launch directories usually link to your site without nofollow on listing pages — confirm on the live Uneed product card.',
+        '[]'::jsonb,
+        'external_doc',
+        NULL,
+        NULL,
+        'https://uneed.best',
+        'View Uneed pricing',
+        10,
+        true
+    ),
+    (
+        'd5f7d000-0020-4000-a000-000000000009',
+        'd5f7d000-0010-4000-a000-000000000004',
+        NOW(),
+        'free-profile',
+        'Free maker profile',
+        'd5f7d000-0004-4000-a000-000000000002',
+        'easy',
+        'instant',
+        NULL,
+        'dofollow',
+        'free',
+        NULL,
+        'Create a profile with your project URL at no cost. Maker profiles on Uneed typically use dofollow listing links; verify rel on your public profile URL.',
+        '[]'::jsonb,
+        'none',
+        NULL,
+        NULL,
+        'https://uneed.best',
+        'Create profile',
+        20,
+        true
+    ),
+    (
+        'd5f7d000-0020-4000-a000-000000000010',
+        'd5f7d000-0010-4000-a000-000000000005',
+        NOW(),
+        'guest-article',
+        'Guest article',
+        'd5f7d000-0004-4000-a000-000000000007',
+        'hard',
+        'manual_review',
+        'Editorial calendar',
+        'unknown',
+        'paid',
+        'Sponsorship or placement fees may apply',
+        'Pitch a story that fits Open Launch readers; include contextual links in the draft. Dofollow vs nofollow depends on Open Launch’s editorial policy — confirm before you publish.',
+        '[{"order":1,"title":"Review guidelines","body":"Align topic with their startup audience."},{"order":2,"title":"Submit pitch","body":"Include outline and target URL."}]'::jsonb,
+        'external_doc',
+        NULL,
+        NULL,
+        'https://openlaunch.io',
+        'Open Launch site',
+        10,
+        true
+    ),
+    (
+        'd5f7d000-0020-4000-a000-000000000011',
+        'd5f7d000-0010-4000-a000-000000000006',
+        NOW(),
+        'list-pr',
+        'Awesome list pull request',
+        'd5f7d000-0004-4000-a000-000000000008',
+        'hard',
+        'manual_review',
+        'Maintainer review',
+        'nofollow',
+        'free',
+        NULL,
+        'Open a PR on the awesome-selfhosted repository that adds your tool in the correct category with a concise description. Merged list links render on github.com with nofollow like other README links.',
+        '[{"order":1,"title":"Confirm eligibility","body":"Project must be self-hostable and actively maintained per their CONTRIBUTING guide."},{"order":2,"title":"Open pull request","body":"Use the list format; one entry per tool; link your homepage or docs URL."}]'::jsonb,
+        'none',
+        NULL,
+        NULL,
+        'https://github.com/awesome-selfhosted/awesome-selfhosted',
+        'Open list repository',
+        10,
+        true
+    ),
+    (
+        'd5f7d000-0020-4000-a000-000000000012',
+        'd5f7d000-0010-4000-a000-000000000007',
+        NOW(),
+        'profile-readme',
+        'Profile README',
+        'd5f7d000-0004-4000-a000-000000000002',
+        'easy',
+        'instant',
+        NULL,
+        'nofollow',
+        'free',
+        NULL,
+        'Create a public repository named like your username with a README.md — GitHub renders it on your profile. README and profile website links on github.com are nofollow.',
+        '[{"order":1,"title":"Create the profile repo","body":"New repository named exactly your GitHub username (e.g. octocat/octocat), public, with a README."},{"order":2,"title":"Write the README","body":"Introduce yourself or your product and include one clear link to your marketing site or docs."},{"order":3,"title":"Set profile website","body":"Profile → Edit profile → Website — paste the same primary URL for visitors who skip the README."}]'::jsonb,
+        'none',
+        NULL,
+        NULL,
+        'https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-github-profile/customizing-your-profile/managing-your-profile-readme',
+        'Profile README docs',
+        10,
+        true
+    ),
+    (
+        'd5f7d000-0020-4000-a000-000000000013',
+        'd5f7d000-0010-4000-a000-000000000007',
+        NOW(),
+        'github-pages-site',
+        'GitHub Pages site',
+        'd5f7d000-0004-4000-a000-000000000001',
+        'medium',
+        'instant',
+        NULL,
+        'dofollow',
+        'free',
+        NULL,
+        'Publish a static site or docs on github.io (or a custom domain). Unlike READMEs on github.com, Pages serves your HTML without adding rel=nofollow to outbound links you author.',
+        '[{"order":1,"title":"Choose Pages source","body":"Repository Settings → Pages — deploy from a branch or GitHub Actions workflow."},{"order":2,"title":"Publish content","body":"Add HTML or Markdown with contextual copy; place your canonical product URL in header, footer, or About page."},{"order":3,"title":"Verify rel attributes","body":"Inspect a live outbound link on your Pages URL — it should not include nofollow unless you added it in your template or markup."}]'::jsonb,
+        'none',
+        NULL,
+        NULL,
+        'https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site',
+        'GitHub Pages guide',
+        20,
+        true
+    ),
+    (
+        'd5f7d000-0020-4000-a000-000000000014',
+        'd5f7d000-0010-4000-a000-000000000007',
+        NOW(),
+        'ghcr-container-package',
+        'Container package (GHCR)',
+        'd5f7d000-0004-4000-a000-000000000008',
+        'medium',
+        'instant',
+        NULL,
+        'nofollow',
+        'free',
+        NULL,
+        'Publish an OCI image to GitHub Container Registry under your user or org. The package page lives on github.com — README and repo links use GitHub’s nofollow sanitizer, similar to profile READMEs.',
+        '[{"order":1,"title":"Publish the image","body":"Push a tagged image to ghcr.io with a workflow or docker push; link the package to the source repository."},{"order":2,"title":"Set package metadata","body":"Add description and source-repo metadata; treat external links as discovery for people, not dofollow SEO from github.com."},{"order":3,"title":"Surface install docs","body":"In the repo README, link the GHCR pull command and your primary site — expect nofollow on github.com-rendered anchors."}]'::jsonb,
+        'none',
+        NULL,
+        NULL,
+        'https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry',
+        'Container registry docs',
+        30,
+        true
+    )
+ON CONFLICT (id) DO UPDATE SET
+    site_id = EXCLUDED.site_id,
+    slug = EXCLUDED.slug,
+    title = EXCLUDED.title,
+    opportunity_type_id = EXCLUDED.opportunity_type_id,
+    effort = EXCLUDED.effort,
+    approval_mode = EXCLUDED.approval_mode,
+    approval_time_hint = EXCLUDED.approval_time_hint,
+    dofollow = EXCLUDED.dofollow,
+    cost_tier = EXCLUDED.cost_tier,
+    cost_note = EXCLUDED.cost_note,
+    description = EXCLUDED.description,
+    steps = EXCLUDED.steps,
+    openquok_cta_kind = EXCLUDED.openquok_cta_kind,
+    openquok_channel_slug = EXCLUDED.openquok_channel_slug,
+    openquok_plug_name = EXCLUDED.openquok_plug_name,
+    cta_href = EXCLUDED.cta_href,
+    cta_label = EXCLUDED.cta_label,
+    sort_order = EXCLUDED.sort_order,
+    is_admin_published = EXCLUDED.is_admin_published,
+    published_at = COALESCE(public.link_directory_opportunities.published_at, EXCLUDED.published_at);
+
+UPDATE public.link_directory_sites s
+SET tag_slugs = sub.slugs
+FROM (
+    SELECT
+        sta.site_id,
+        ARRAY_AGG(t.slug ORDER BY t.slug) AS slugs
+    FROM public.link_directory_site_tags_association sta
+    INNER JOIN public.link_directory_tags t ON t.id = sta.link_directory_tag_id
+    GROUP BY sta.site_id
+) sub
+WHERE s.id = sub.site_id;
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: link-directory, File: 503_20261002_seed_link_directory_logos.sql
+-- ---------------------------
+-- MODULE NAME: Link Directory
+-- MODULE DATE: 20261002
+-- MODULE SCOPE: Seed (storage bucket link_directory_logos)
+-- ---------------------------
+
+BEGIN;
+
+-- ---------------------------
+-- Create Link Directory Logos Bucket
+-- ---------------------------
+INSERT INTO storage.buckets (
+    id,
+    name,
+    public,
+    avif_autodetection,
+    file_size_limit,
+    allowed_mime_types
+) VALUES (
+    'link_directory_logos',
+    'link_directory_logos',
+    TRUE,
+    FALSE,
+    2097152, -- 2MB limit
+    ARRAY['image/jpeg', 'image/png', 'image/webp']::text[]
+)
+ON CONFLICT (id) DO NOTHING;
 
 -- ---------------------------
 -- END OF FILE

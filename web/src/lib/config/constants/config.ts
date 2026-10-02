@@ -14,6 +14,7 @@ import {
 	getRootPathPublicDocsGettingStartedForDev,
 	getRootPathPublicDocsInstallationDockerCompose
 } from '$lib/area-public/constants/getRootPathPublicDocs';
+import { getRootPathPublicBuildBacklinks } from '$lib/area-public/constants/getRootPathPublicBuildBacklinks';
 import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 import {
 	getRootPathPublicBuildingBlocksCategories,
@@ -75,6 +76,7 @@ const publicAlternativesPath = route(getRootPathPublicAlternatives());
 const publicPlaybooksPath = route(getRootPathPublicPlaybooks());
 const publicPlaybooksCategoriesPath = route(getRootPathPublicPlaybooksCategories());
 const publicPlaybooksTagsPath = route(getRootPathPublicPlaybooksTags());
+const publicBuildBacklinksPath = route(getRootPathPublicBuildBacklinks());
 const publicBuildingBlocksPath = route(getRootPathPublicBuildingBlocks());
 const publicBuildingBlocksCategoriesPath = route(getRootPathPublicBuildingBlocksCategories());
 const publicBuildingBlocksTagsPath = route(getRootPathPublicBuildingBlocksTags());
@@ -905,14 +907,26 @@ export function getPublicFaqConfigDefaults(): Record<string, string> {
 	);
 }
 
-export type NavOptions = 'tab' | 'scroll' | 'menu' | 'channels' | 'agents' | 'playbooks';
+export type NavOptions = 'tab' | 'scroll' | 'menu' | 'channels' | 'agents' | 'opportunities';
 
-/** Anchor id on the desktop Playbooks navbar trigger (landing See All scroll target). */
-export const PUBLIC_NAVBAR_PLAYBOOKS_ANCHOR_ID = 'public-navbar-playbooks';
+/** Anchor id on the desktop Opportunities navbar trigger (landing See All scroll target). */
+export const PUBLIC_NAVBAR_OPPORTUNITIES_ANCHOR_ID = 'public-navbar-opportunities';
 
-export const OPEN_PUBLIC_PLAYBOOKS_NAV_EVENT = 'open-public-playbooks-nav';
+export const OPEN_PUBLIC_OPPORTUNITIES_NAV_EVENT = 'open-public-opportunities-nav';
 
-export type PublicPlaybooksNavTab = 'playbook' | 'building-blocks';
+export type PublicOpportunitiesNavTab = 'backlinks' | 'playbook' | 'building-blocks';
+
+/** @deprecated Use {@link PublicOpportunitiesNavTab} — playbooks dropdown tabs only. */
+export type PublicPlaybooksNavTab = Extract<
+	PublicOpportunitiesNavTab,
+	'playbook' | 'building-blocks'
+>;
+
+/** @deprecated Use {@link PUBLIC_NAVBAR_OPPORTUNITIES_ANCHOR_ID}. */
+export const PUBLIC_NAVBAR_PLAYBOOKS_ANCHOR_ID = PUBLIC_NAVBAR_OPPORTUNITIES_ANCHOR_ID;
+
+/** @deprecated Use {@link OPEN_PUBLIC_OPPORTUNITIES_NAV_EVENT}. */
+export const OPEN_PUBLIC_PLAYBOOKS_NAV_EVENT = OPEN_PUBLIC_OPPORTUNITIES_NAV_EVENT;
 
 export interface DropdownLink {
 	href: string;
@@ -927,10 +941,11 @@ export interface Link {
 	preload?: 'hover' | 'tap' | 'off' | 'intent';
 }
 
+// onfigure: header
 export const PUBLIC_NAVBAR_LINKS: Link[] = [
 	{ pathname: publicAgentsPath, title: 'Agents', navType: 'agents' },
 	{ pathname: publicChannelsPath, title: 'Channels', navType: 'channels' },
-	{ pathname: publicPlaybooksPath, title: 'Playbooks', navType: 'playbooks' },
+	{ pathname: publicBuildBacklinksPath, title: 'Opportunities', navType: 'opportunities' },
 	{ pathname: publicDocsPath, title: 'Docs', navType: 'tab' },
 	{ pathname: publicBlogPath, title: 'Blog', navType: 'tab' },
 	{ pathname: '/pricing', title: 'Pricing', navType: 'tab' }
@@ -999,6 +1014,7 @@ export const PUBLIC_FOOTER_LINKS_STATIC: PublicFooterLinksMap = {
 		{ label: 'Payload Wizard', href: publicPayloadWizardPath }
 	],
 	Directories: [
+		{ label: 'Build Backlinks', href: publicBuildBacklinksPath },
 		{ label: 'All Playbooks', href: publicPlaybooksPath },
 		{ label: 'All Building Blocks', href: publicBuildingBlocksPath },
 		{ label: 'All Creators', href: publicCreatorsPath },

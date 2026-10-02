@@ -7,7 +7,8 @@
 		getRootPathSecretAdminBullBoard,
 		getRootPathSecretAdminBlogManager,
 		getRootPathSecretAdminConfigManager,
-		getRootPathSecretAdminListingManager
+		getRootPathSecretAdminListingManager,
+		getRootPathSecretAdminLinkDirectoryManager
 	} from '$lib/area-admin/constants/getRootPathSecretAdminArea';
 	import { absoluteUrl, route } from '$lib/utils/path';
 
@@ -46,6 +47,11 @@
 	const secretAdminListingManagerPath = route(rootPathSecretAdminListingManager);
 	const listingManagerUrl = absoluteUrl(secretAdminListingManagerPath);
 
+	// /secret-admin/link-directory-manager
+	const rootPathSecretAdminLinkDirectoryManager = getRootPathSecretAdminLinkDirectoryManager();
+	const secretAdminLinkDirectoryManagerPath = route(rootPathSecretAdminLinkDirectoryManager);
+	const linkDirectoryManagerUrl = absoluteUrl(secretAdminLinkDirectoryManagerPath);
+
 	// /secret-admin/config-manager
 	const rootPathSecretAdminConfigManager = getRootPathSecretAdminConfigManager();
 	const secretAdminConfigManagerPath = route(rootPathSecretAdminConfigManager);
@@ -66,6 +72,7 @@
 		<li><a href={bullBoardUrl} class="link link-primary">Queue dashboard (Bull Board)</a></li>
 		<li><a href={blogManagerUrl} class="link link-primary">Blog Manager</a></li>
 		<li><a href={listingManagerUrl} class="link link-primary">Listing Manager</a></li>
+		<li><a href={linkDirectoryManagerUrl} class="link link-primary">Link directory manager</a></li>
 		<li><a href={configManagerUrl} class="link link-primary">Config manager</a></li>
 	</ul>
 </div>

@@ -8639,6 +8639,762 @@ var init_ListingTagRepository = __esm({
   }
 });
 
+// utils/linkDirectory/opportunityFilterMatch.ts
+function hasOpportunityLevelFilters(filters) {
+  return Boolean(
+    filters.costTiers?.length || filters.dofollow?.length || filters.effort?.length || filters.approvalMode?.length || filters.opportunityTypeSlugs?.length
+  );
+}
+var init_opportunityFilterMatch = __esm({
+  "utils/linkDirectory/opportunityFilterMatch.ts"() {
+  }
+});
+
+// repositories/LinkDirectoryRepository.ts
+function resolveOrderKey3(candidate, fallback, allowlist) {
+  const key = candidate?.toString().trim();
+  if (!key) return fallback;
+  return allowlist.has(key) ? key : fallback;
+}
+function escapeIlike(term) {
+  return term.replace(/[%_\\]/g, "\\$&");
+}
+var TABLE_SITES, TABLE_OPPORTUNITIES, TABLE_TAG_ASSOC2, TABLE_BOOKMARKS2, TABLE_SUBMISSIONS, TABLE_OPP_TYPES, SITE_COLUMNS, CATEGORY_EMBED, OPPORTUNITY_EMBED, SELECT_OPPORTUNITY, SELECT_SITE, SELECT_SITE_FOR_BOOKMARK, ALLOWED_PUBLISHED_SORT_KEYS2, ALLOWED_ADMIN_SORT_KEYS2, LinkDirectoryRepository;
+var init_LinkDirectoryRepository = __esm({
+  "repositories/LinkDirectoryRepository.ts"() {
+    init_InfraError();
+    init_slug();
+    init_opportunityFilterMatch();
+    TABLE_SITES = "link_directory_sites";
+    TABLE_OPPORTUNITIES = "link_directory_opportunities";
+    TABLE_TAG_ASSOC2 = "link_directory_site_tags_association";
+    TABLE_BOOKMARKS2 = "link_directory_bookmarks";
+    TABLE_SUBMISSIONS = "link_directory_submissions";
+    TABLE_OPP_TYPES = "link_directory_opportunity_types";
+    SITE_COLUMNS = "id, slug, title, site_url, logo_url, short_description, long_description, domain_authority, domain_rating, monthly_visits, metrics_source, metrics_updated_at, category_id, is_openquok_auth_supported, openquok_channel_slug, is_admin_published, sort_order, tag_slugs, published_at, created_at, updated_at";
+    CATEGORY_EMBED = "category:link_directory_categories(id, name, slug, headline, description, sort_order, openquok_channels_hub_path)";
+    OPPORTUNITY_EMBED = "opportunities:link_directory_opportunities(id, site_id, slug, title, opportunity_type_id, effort, approval_mode, approval_time_hint, dofollow, cost_tier, cost_note, description, steps, openquok_cta_kind, openquok_channel_slug, openquok_plug_name, cta_href, cta_label, sort_order, is_admin_published, published_at, created_at, updated_at, opportunity_type:link_directory_opportunity_types(id, slug, label, description, sort_order))";
+    SELECT_OPPORTUNITY = "id, site_id, slug, title, opportunity_type_id, effort, approval_mode, approval_time_hint, dofollow, cost_tier, cost_note, description, steps, openquok_cta_kind, openquok_channel_slug, openquok_plug_name, cta_href, cta_label, sort_order, is_admin_published, published_at, created_at, updated_at, opportunity_type:link_directory_opportunity_types(id, slug, label, description, sort_order)";
+    SELECT_SITE = `${SITE_COLUMNS}, ${CATEGORY_EMBED}, ${OPPORTUNITY_EMBED}`;
+    SELECT_SITE_FOR_BOOKMARK = `${SITE_COLUMNS}, ${CATEGORY_EMBED}`;
+    ALLOWED_PUBLISHED_SORT_KEYS2 = /* @__PURE__ */ new Set([
+      "domain_rating",
+      "domain_authority",
+      "monthly_visits",
+      "title",
+      "published_at",
+      "sort_order"
+    ]);
+    ALLOWED_ADMIN_SORT_KEYS2 = /* @__PURE__ */ new Set([
+      "created_at",
+      "updated_at",
+      "published_at",
+      "title",
+      "domain_rating",
+      "is_admin_published",
+      "sort_order"
+    ]);
+    LinkDirectoryRepository = class {
+      constructor(supabase2) {
+        this.supabase = supabase2;
+      }
+      async findOpportunityTypes() {
+        const { data, error } = await this.supabase.from(TABLE_OPP_TYPES).select("id, slug, label, description, sort_order").order("sort_order", { ascending: true });
+        if (error) {
+          throw new DatabaseError(`Error fetching opportunity types: ${error.message}`, {
+            cause: error,
+            operation: "select"
+          });
+        }
+        return { data: data ?? [] };
+      }
+      async findSiteIdsMatchingOpportunityFilters(filters, publishedOnly) {
+        let query = this.supabase.from(TABLE_OPPORTUNITIES).select("site_id");
+        if (publishedOnly) {
+          query = query.eq("is_admin_published", true);
+        }
+        if (filters.costTiers?.length) {
+          query = query.in("cost_tier", filters.costTiers);
+        }
+        if (filters.dofollow?.length) {
+          query = query.in("dofollow", filters.dofollow);
+        }
+        if (filters.effort?.length) {
+          query = query.in("effort", filters.effort);
+        }
+        if (filters.approvalMode?.length) {
+          query = query.in("approval_mode", filters.approvalMode);
+        }
+        if (filters.opportunityTypeSlugs?.length) {
+          const typeIds = await this.findOpportunityTypeIdsBySlugs(filters.opportunityTypeSlugs);
+          if (typeIds.length === 0) {
+            return [];
+          }
+          query = query.in("opportunity_type_id", typeIds);
+        }
+        const { data, error } = await query;
+        if (error) {
+          throw new DatabaseError(`Error resolving opportunity filters: ${error.message}`, {
+            cause: error,
+            operation: "select"
+          });
+        }
+        const ids = /* @__PURE__ */ new Set();
+        for (const row of data ?? []) {
+          if (row.site_id) ids.add(row.site_id);
+        }
+        return [...ids];
+      }
+      async findSiteIdsByOpportunityTitleSearch(term) {
+        const pattern = `%${escapeIlike(term)}%`;
+        const { data, error } = await this.supabase.from(TABLE_OPPORTUNITIES).select("site_id").eq("is_admin_published", true).ilike("title", pattern);
+        if (error) {
+          throw new DatabaseError(`Error searching opportunities: ${error.message}`, {
+            cause: error,
+            operation: "select"
+          });
+        }
+        const ids = /* @__PURE__ */ new Set();
+        for (const row of data ?? []) {
+          if (row.site_id) ids.add(row.site_id);
+        }
+        return [...ids];
+      }
+      async findCategoryIdBySlug(categorySlug) {
+        const slug = categorySlug.trim();
+        if (!slug) return null;
+        const { data, error } = await this.supabase.from("link_directory_categories").select("id").eq("slug", slug).maybeSingle();
+        if (error) {
+          throw new DatabaseError(`Error resolving link directory category: ${error.message}`, {
+            cause: error,
+            operation: "select"
+          });
+        }
+        return data?.id ?? null;
+      }
+      async findOpportunityTypeIdsBySlugs(slugs) {
+        const normalized = slugs.map((slug) => slug.trim()).filter(Boolean);
+        if (normalized.length === 0) {
+          return [];
+        }
+        const { data, error } = await this.supabase.from(TABLE_OPP_TYPES).select("id").in("slug", normalized);
+        if (error) {
+          throw new DatabaseError(`Error resolving opportunity type slugs: ${error.message}`, {
+            cause: error,
+            operation: "select"
+          });
+        }
+        const ids = /* @__PURE__ */ new Set();
+        for (const row of data ?? []) {
+          if (row.id) ids.add(row.id);
+        }
+        return [...ids];
+      }
+      async findPublishedSites(options2) {
+        const {
+          limit = 20,
+          skip = 0,
+          searchTerm,
+          tagSlugs,
+          categorySlug,
+          costTiers,
+          dofollow,
+          effort,
+          approvalMode,
+          opportunityTypeSlugs,
+          sortByKey,
+          sortByOrder,
+          range
+        } = options2;
+        const oppFilters = {
+          costTiers,
+          dofollow,
+          effort,
+          approvalMode,
+          opportunityTypeSlugs
+        };
+        let query = this.supabase.from(TABLE_SITES).select(SELECT_SITE, { count: "exact" }).eq("is_admin_published", true);
+        if (categorySlug?.trim()) {
+          const categoryId = await this.findCategoryIdBySlug(categorySlug);
+          if (!categoryId) {
+            return { data: [], count: 0 };
+          }
+          query = query.eq("category_id", categoryId);
+        }
+        if (tagSlugs && tagSlugs.length > 0) {
+          query = query.contains("tag_slugs", tagSlugs);
+        }
+        if (hasOpportunityLevelFilters(oppFilters)) {
+          const siteIds = await this.findSiteIdsMatchingOpportunityFilters(oppFilters, true);
+          if (siteIds.length === 0) {
+            return { data: [], count: 0 };
+          }
+          query = query.in("id", siteIds);
+        }
+        const trimmedSearch = searchTerm?.trim();
+        if (trimmedSearch) {
+          const oppSiteIds = await this.findSiteIdsByOpportunityTitleSearch(trimmedSearch);
+          const pattern = `%${escapeIlike(trimmedSearch)}%`;
+          const clauses = [
+            `title.ilike.${pattern}`,
+            `site_url.ilike.${pattern}`,
+            `slug.ilike.${pattern}`
+          ];
+          if (oppSiteIds.length > 0) {
+            clauses.push(`id.in.(${oppSiteIds.join(",")})`);
+          }
+          query = query.or(clauses.join(","));
+        }
+        const orderKey = resolveOrderKey3(sortByKey ?? void 0, "domain_rating", ALLOWED_PUBLISHED_SORT_KEYS2);
+        const ascending = orderKey === "title" ? sortByOrder ?? true : sortByOrder ?? false;
+        query = query.order(orderKey, { ascending, nullsFirst: false });
+        if (range) {
+          query = query.range(range.start, range.end);
+        } else {
+          query = query.range(skip, skip + limit - 1);
+        }
+        const { data, error, count } = await query;
+        if (error) {
+          throw new DatabaseError(`Error fetching published link directory sites: ${error.message}`, {
+            cause: error,
+            operation: "select"
+          });
+        }
+        const rows = data ?? [];
+        return {
+          data: rows.map((site) => this.filterPublishedOpportunities(site)),
+          count: count ?? 0
+        };
+      }
+      async findPublishedSiteBySlug(siteSlug) {
+        const { data, error } = await this.supabase.from(TABLE_SITES).select(SELECT_SITE).eq("slug", siteSlug).eq("is_admin_published", true).single();
+        if (error) {
+          if (error.code === "PGRST116") {
+            return { data: null };
+          }
+          throw new DatabaseError(`Error fetching published site: ${error.message}`, {
+            cause: error,
+            operation: "select"
+          });
+        }
+        return { data: this.filterPublishedOpportunities(data) };
+      }
+      async findAdminSites(options2) {
+        const { limit = 50, searchTerm, sortByKey, sortByOrder, range } = options2;
+        let query = this.supabase.from(TABLE_SITES).select(SELECT_SITE, { count: "exact" });
+        const trimmedSearch = searchTerm?.trim();
+        if (trimmedSearch) {
+          const pattern = `%${escapeIlike(trimmedSearch)}%`;
+          query = query.or(`title.ilike.${pattern},slug.ilike.${pattern},site_url.ilike.${pattern}`);
+        }
+        const orderKey = resolveOrderKey3(sortByKey ?? void 0, "updated_at", ALLOWED_ADMIN_SORT_KEYS2);
+        if (orderKey === "is_admin_published") {
+          query = query.order("is_admin_published", { ascending: true });
+        } else {
+          query = query.order(orderKey, { ascending: sortByOrder ?? false });
+        }
+        if (range) {
+          query = query.range(range.start, range.end);
+        } else {
+          query = query.range(0, limit - 1);
+        }
+        const { data, error, count } = await query;
+        if (error) {
+          throw new DatabaseError(`Error fetching admin link directory sites: ${error.message}`, {
+            cause: error,
+            operation: "select"
+          });
+        }
+        return { data: data ?? [], count: count ?? 0 };
+      }
+      async findSiteById(siteId) {
+        const { data, error } = await this.supabase.from(TABLE_SITES).select(SELECT_SITE).eq("id", siteId).single();
+        if (error) {
+          throw new DatabaseError(`Error fetching link directory site: ${error.message}`, {
+            cause: error,
+            operation: "select"
+          });
+        }
+        return { data };
+      }
+      async createSite(payload, tagIds = []) {
+        const { data, error } = await this.supabase.from(TABLE_SITES).insert({
+          ...payload,
+          slug: payload.slug ?? stringToSlug(payload.title)
+        }).select("id").single();
+        if (error) {
+          if (error.message.includes("duplicate key value")) {
+            throw new ValidationError("A site with this slug already exists.");
+          }
+          throw new DatabaseError(`Error creating link directory site: ${error.message}`, {
+            cause: error,
+            operation: "insert"
+          });
+        }
+        const siteId = data.id;
+        await this.syncSiteTags(siteId, tagIds);
+        return siteId;
+      }
+      async updateSite(payload, tagIds) {
+        const { id, ...fields } = payload;
+        const { data, error } = await this.supabase.from(TABLE_SITES).update({
+          ...fields,
+          slug: fields.slug ?? stringToSlug(payload.title)
+        }).eq("id", id).select("id").single();
+        if (error) {
+          if (error.message.includes("duplicate key value")) {
+            throw new ValidationError("A site with this slug already exists.");
+          }
+          throw new DatabaseError(`Error updating link directory site: ${error.message}`, {
+            cause: error,
+            operation: "update"
+          });
+        }
+        if (tagIds) {
+          await this.syncSiteTags(id, tagIds);
+        }
+        return data.id;
+      }
+      async deleteSite(siteId) {
+        const { error } = await this.supabase.from(TABLE_SITES).delete().eq("id", siteId);
+        if (error) {
+          throw new DatabaseError(`Error deleting link directory site: ${error.message}`, {
+            cause: error,
+            operation: "delete"
+          });
+        }
+      }
+      async createOpportunity(siteId, payload) {
+        const { data, error } = await this.supabase.from(TABLE_OPPORTUNITIES).insert({
+          ...payload,
+          site_id: siteId,
+          slug: payload.slug ?? stringToSlug(payload.title),
+          steps: payload.steps ?? []
+        }).select("id").single();
+        if (error) {
+          if (error.message.includes("duplicate key value")) {
+            throw new ValidationError("An opportunity with this slug already exists on this site.");
+          }
+          throw new DatabaseError(`Error creating opportunity: ${error.message}`, {
+            cause: error,
+            operation: "insert"
+          });
+        }
+        return data.id;
+      }
+      async updateOpportunity(payload) {
+        const { id, ...fields } = payload;
+        const { data, error } = await this.supabase.from(TABLE_OPPORTUNITIES).update({
+          ...fields,
+          slug: fields.slug ?? stringToSlug(payload.title),
+          steps: fields.steps ?? void 0
+        }).eq("id", id).select("id").single();
+        if (error) {
+          if (error.message.includes("duplicate key value")) {
+            throw new ValidationError("An opportunity with this slug already exists on this site.");
+          }
+          throw new DatabaseError(`Error updating opportunity: ${error.message}`, {
+            cause: error,
+            operation: "update"
+          });
+        }
+        return data.id;
+      }
+      async deleteOpportunity(opportunityId) {
+        const { error } = await this.supabase.from(TABLE_OPPORTUNITIES).delete().eq("id", opportunityId);
+        if (error) {
+          throw new DatabaseError(`Error deleting opportunity: ${error.message}`, {
+            cause: error,
+            operation: "delete"
+          });
+        }
+      }
+      async findOpportunityById(opportunityId) {
+        const { data, error } = await this.supabase.from(TABLE_OPPORTUNITIES).select(SELECT_OPPORTUNITY).eq("id", opportunityId).single();
+        if (error) {
+          throw new DatabaseError(`Error fetching opportunity: ${error.message}`, {
+            cause: error,
+            operation: "select"
+          });
+        }
+        return { data };
+      }
+      async createSubmission(payload, userId) {
+        const { data, error } = await this.supabase.from(TABLE_SUBMISSIONS).insert({
+          email: payload.email,
+          site_url: payload.site_url,
+          proposed_title: payload.proposed_title ?? null,
+          notes: payload.notes ?? null,
+          payload: payload.payload ?? {},
+          user_id: userId ?? null
+        }).select("id").single();
+        if (error) {
+          throw new DatabaseError(`Error creating submission: ${error.message}`, {
+            cause: error,
+            operation: "insert"
+          });
+        }
+        return data.id;
+      }
+      async findAdminSubmissions() {
+        const { data, error } = await this.supabase.from(TABLE_SUBMISSIONS).select(
+          "id, status, email, user_id, site_url, proposed_title, notes, payload, reviewed_by, reviewed_at, created_at, updated_at"
+        ).order("created_at", { ascending: false });
+        if (error) {
+          throw new DatabaseError(`Error fetching submissions: ${error.message}`, {
+            cause: error,
+            operation: "select"
+          });
+        }
+        return { data: data ?? [] };
+      }
+      async updateSubmissionStatus(submissionId, status, reviewedByUserId) {
+        const { error } = await this.supabase.from(TABLE_SUBMISSIONS).update({
+          status,
+          reviewed_by: reviewedByUserId,
+          reviewed_at: (/* @__PURE__ */ new Date()).toISOString()
+        }).eq("id", submissionId);
+        if (error) {
+          throw new DatabaseError(`Error updating submission: ${error.message}`, {
+            cause: error,
+            operation: "update"
+          });
+        }
+      }
+      async findUserBookmarks(userId) {
+        const { data, error } = await this.supabase.from(TABLE_BOOKMARKS2).select(
+          `id, user_id, site_id, sort_order, created_at, site:link_directory_sites(${SELECT_SITE_FOR_BOOKMARK})`
+        ).eq("user_id", userId).order("sort_order", { ascending: true });
+        if (error) {
+          throw new DatabaseError(`Error fetching bookmarks: ${error.message}`, {
+            cause: error,
+            operation: "select"
+          });
+        }
+        const rows = data ?? [];
+        return {
+          data: rows.map((row) => ({
+            ...row,
+            site: row.site ? this.filterPublishedOpportunities(row.site) : row.site
+          }))
+        };
+      }
+      async replaceUserBookmarks(userId, siteIds) {
+        const { error: deleteError } = await this.supabase.from(TABLE_BOOKMARKS2).delete().eq("user_id", userId);
+        if (deleteError) {
+          throw new DatabaseError(`Error clearing bookmarks: ${deleteError.message}`, {
+            cause: deleteError,
+            operation: "delete"
+          });
+        }
+        if (siteIds.length === 0) return;
+        const { error: insertError } = await this.supabase.from(TABLE_BOOKMARKS2).insert(
+          siteIds.map((siteId, index) => ({
+            user_id: userId,
+            site_id: siteId,
+            sort_order: index
+          }))
+        );
+        if (insertError) {
+          throw new DatabaseError(`Error saving bookmarks: ${insertError.message}`, {
+            cause: insertError,
+            operation: "insert"
+          });
+        }
+      }
+      async reorderUserBookmarks(userId, siteIds) {
+        for (let index = 0; index < siteIds.length; index++) {
+          const siteId = siteIds[index];
+          const { error } = await this.supabase.from(TABLE_BOOKMARKS2).update({ sort_order: index }).eq("user_id", userId).eq("site_id", siteId);
+          if (error) {
+            throw new DatabaseEntityNotFoundError("Bookmark not found for reorder", {
+              userId,
+              siteId
+            });
+          }
+        }
+      }
+      filterPublishedOpportunities(site) {
+        const opportunities = (site.opportunities ?? []).filter((opp) => opp.is_admin_published).sort((a, b) => a.sort_order - b.sort_order);
+        return { ...site, opportunities };
+      }
+      async findPublishedHubStats() {
+        const publishedOpportunity = () => this.supabase.from(TABLE_OPPORTUNITIES).select("id", { count: "exact", head: true }).eq("is_admin_published", true);
+        const [sitesResult, opportunitiesResult, freeOrFreemiumResult, quickWinsResult] = await Promise.all([
+          this.supabase.from(TABLE_SITES).select("id", { count: "exact", head: true }).eq("is_admin_published", true),
+          publishedOpportunity(),
+          publishedOpportunity().in("cost_tier", ["free", "freemium"]),
+          publishedOpportunity().eq("cost_tier", "free").eq("effort", "easy")
+        ]);
+        const errors = [
+          sitesResult.error,
+          opportunitiesResult.error,
+          freeOrFreemiumResult.error,
+          quickWinsResult.error
+        ].filter(Boolean);
+        if (errors.length > 0) {
+          const message = errors.map((err) => err?.message).filter(Boolean).join("; ");
+          throw new DatabaseError(`Error fetching published hub stats: ${message}`, {
+            operation: "select"
+          });
+        }
+        return {
+          siteCount: sitesResult.count ?? 0,
+          opportunityCount: opportunitiesResult.count ?? 0,
+          freeOrFreemiumOpportunityCount: freeOrFreemiumResult.count ?? 0,
+          quickWinOpportunityCount: quickWinsResult.count ?? 0
+        };
+      }
+      async syncSiteTags(siteId, tagIds) {
+        const { error: deleteError } = await this.supabase.from(TABLE_TAG_ASSOC2).delete().eq("site_id", siteId);
+        if (deleteError) {
+          throw new DatabaseError(`Error clearing site tags: ${deleteError.message}`, {
+            cause: deleteError,
+            operation: "delete"
+          });
+        }
+        if (tagIds.length === 0) return;
+        const { error: insertError } = await this.supabase.from(TABLE_TAG_ASSOC2).insert(
+          tagIds.map((tagId) => ({
+            site_id: siteId,
+            link_directory_tag_id: tagId
+          }))
+        );
+        if (insertError) {
+          throw new DatabaseError(`Error syncing site tags: ${insertError.message}`, {
+            cause: insertError,
+            operation: "insert"
+          });
+        }
+      }
+    };
+  }
+});
+
+// repositories/LinkDirectoryCategoryRepository.ts
+var TABLE2, SELECT, LinkDirectoryCategoryRepository;
+var init_LinkDirectoryCategoryRepository = __esm({
+  "repositories/LinkDirectoryCategoryRepository.ts"() {
+    init_InfraError();
+    init_slug();
+    TABLE2 = "link_directory_categories";
+    SELECT = `
+  id, name, slug, headline, description, sort_order, openquok_channels_hub_path, created_at, updated_at
+`;
+    LinkDirectoryCategoryRepository = class {
+      constructor(supabase2) {
+        this.supabase = supabase2;
+      }
+      async findActiveCategories() {
+        const { data, error } = await this.supabase.from(TABLE2).select(SELECT).order("sort_order", { ascending: true });
+        if (error) {
+          throw new DatabaseError(`Error fetching link directory categories: ${error.message}`, {
+            cause: error,
+            operation: "select"
+          });
+        }
+        return { data: data ?? [] };
+      }
+      async findAllCategories() {
+        return this.findActiveCategories();
+      }
+      async findCategoryById(categoryId) {
+        const { data, error } = await this.supabase.from(TABLE2).select(SELECT).eq("id", categoryId).single();
+        if (error) {
+          throw new DatabaseError(`Error fetching link directory category: ${error.message}`, {
+            cause: error,
+            operation: "select"
+          });
+        }
+        return { data };
+      }
+      async createCategory(payload) {
+        const { data, error } = await this.supabase.from(TABLE2).insert({
+          ...payload,
+          slug: payload.slug ?? stringToSlug(payload.name)
+        }).select("id").single();
+        if (error) {
+          if (error.message.includes("duplicate key value")) {
+            throw new ValidationError("A category with this slug already exists.");
+          }
+          throw new DatabaseError(`Error creating link directory category: ${error.message}`, {
+            cause: error,
+            operation: "insert"
+          });
+        }
+        return data.id;
+      }
+      async updateCategory(payload) {
+        const { id, ...fields } = payload;
+        const { data, error } = await this.supabase.from(TABLE2).update({
+          ...fields,
+          slug: fields.slug ?? stringToSlug(payload.name)
+        }).eq("id", id).select("id").single();
+        if (error) {
+          if (error.message.includes("duplicate key value")) {
+            throw new ValidationError("A category with this slug already exists.");
+          }
+          throw new DatabaseError(`Error updating link directory category: ${error.message}`, {
+            cause: error,
+            operation: "update"
+          });
+        }
+        return data.id;
+      }
+      async deleteCategory(categoryId) {
+        const { error } = await this.supabase.from(TABLE2).delete().eq("id", categoryId);
+        if (error) {
+          throw new DatabaseError(`Error deleting link directory category: ${error.message}`, {
+            cause: error,
+            operation: "delete"
+          });
+        }
+      }
+    };
+  }
+});
+
+// repositories/LinkDirectoryTagRepository.ts
+var TABLE_TAGS2, TABLE_GROUPS3, TABLE_GROUP_ASSOC3, TAG_SELECT, LinkDirectoryTagRepository;
+var init_LinkDirectoryTagRepository = __esm({
+  "repositories/LinkDirectoryTagRepository.ts"() {
+    init_InfraError();
+    init_slug();
+    TABLE_TAGS2 = "link_directory_tags";
+    TABLE_GROUPS3 = "link_directory_tag_groups";
+    TABLE_GROUP_ASSOC3 = "link_directory_tag_groups_tags_association";
+    TAG_SELECT = `
+  id, name, slug, headline, description,
+  link_directory_tag_groups:link_directory_tag_groups_tags_association(
+    link_directory_tag_groups(id, name, sort_order)
+  )
+`;
+    LinkDirectoryTagRepository = class {
+      constructor(supabase2) {
+        this.supabase = supabase2;
+      }
+      async findActiveTags() {
+        const { data, error } = await this.supabase.from(TABLE_TAGS2).select(TAG_SELECT).order("name", { ascending: true });
+        if (error) {
+          throw new DatabaseError(`Error fetching link directory tags: ${error.message}`, {
+            cause: error,
+            operation: "select"
+          });
+        }
+        return { data: data ?? [] };
+      }
+      async findAllTags() {
+        return this.findActiveTags();
+      }
+      async findAllTagGroups() {
+        const { data, error } = await this.supabase.from(TABLE_GROUPS3).select("id, name, sort_order").order("sort_order", { ascending: true });
+        if (error) {
+          throw new DatabaseError(`Error fetching link directory tag groups: ${error.message}`, {
+            cause: error,
+            operation: "select"
+          });
+        }
+        return { data: data ?? [] };
+      }
+      async createTagGroup(payload) {
+        const { data, error } = await this.supabase.from(TABLE_GROUPS3).insert(payload).select("id").single();
+        if (error) {
+          throw new DatabaseError(`Error creating link directory tag group: ${error.message}`, {
+            cause: error,
+            operation: "insert"
+          });
+        }
+        return data.id;
+      }
+      async updateTagGroup(tagGroupId, payload) {
+        const { data, error } = await this.supabase.from(TABLE_GROUPS3).update(payload).eq("id", tagGroupId).select("id").single();
+        if (error) {
+          throw new DatabaseError(`Error updating link directory tag group: ${error.message}`, {
+            cause: error,
+            operation: "update"
+          });
+        }
+        return data.id;
+      }
+      async deleteTagGroup(tagGroupId) {
+        const { error } = await this.supabase.from(TABLE_GROUPS3).delete().eq("id", tagGroupId);
+        if (error) {
+          throw new DatabaseError(`Error deleting link directory tag group: ${error.message}`, {
+            cause: error,
+            operation: "delete"
+          });
+        }
+      }
+      async createTag(payload, groupIds) {
+        const { data, error } = await this.supabase.from(TABLE_TAGS2).insert({
+          ...payload,
+          slug: payload.slug ?? stringToSlug(payload.name)
+        }).select("id").single();
+        if (error) {
+          if (error.message.includes("duplicate key value")) {
+            throw new ValidationError("A tag with this slug already exists.");
+          }
+          throw new DatabaseError(`Error creating link directory tag: ${error.message}`, {
+            cause: error,
+            operation: "insert"
+          });
+        }
+        await this.syncTagGroups(data.id, groupIds);
+        return data.id;
+      }
+      async updateTag(payload, groupIds) {
+        const { id, ...fields } = payload;
+        const { data, error } = await this.supabase.from(TABLE_TAGS2).update({
+          ...fields,
+          slug: fields.slug ?? stringToSlug(payload.name)
+        }).eq("id", id).select("id").single();
+        if (error) {
+          if (error.message.includes("duplicate key value")) {
+            throw new ValidationError("A tag with this slug already exists.");
+          }
+          throw new DatabaseError(`Error updating link directory tag: ${error.message}`, {
+            cause: error,
+            operation: "update"
+          });
+        }
+        await this.syncTagGroups(id, groupIds);
+        return data.id;
+      }
+      async deleteTag(tagId) {
+        const { error } = await this.supabase.from(TABLE_TAGS2).delete().eq("id", tagId);
+        if (error) {
+          throw new DatabaseError(`Error deleting link directory tag: ${error.message}`, {
+            cause: error,
+            operation: "delete"
+          });
+        }
+      }
+      async syncTagGroups(tagId, groupIds) {
+        const { error: deleteError } = await this.supabase.from(TABLE_GROUP_ASSOC3).delete().eq("link_directory_tag_id", tagId);
+        if (deleteError) {
+          throw new DatabaseError(`Error clearing tag groups: ${deleteError.message}`, {
+            cause: deleteError,
+            operation: "delete"
+          });
+        }
+        if (groupIds.length === 0) return;
+        const { error: insertError } = await this.supabase.from(TABLE_GROUP_ASSOC3).insert(
+          groupIds.map((groupId) => ({
+            link_directory_tag_id: tagId,
+            link_directory_tag_group_id: groupId
+          }))
+        );
+        if (insertError) {
+          throw new DatabaseError(`Error syncing tag groups: ${insertError.message}`, {
+            cause: insertError,
+            operation: "insert"
+          });
+        }
+      }
+    };
+  }
+});
+
 // repositories/StorageR2Repository.ts
 var COMPOSER_MEDIA_BUCKET_NAME, StorageR2Repository;
 var init_StorageR2Repository = __esm({
@@ -9036,7 +9792,7 @@ var init_MediaRepository = __esm({
 
 // repositories/StorageSupabaseRepository.ts
 function isSupabaseImageBucketName(name) {
-  return name === DATABASE_NAMES.AVATARS || name === DATABASE_NAMES.BLOG_IMAGES;
+  return name === DATABASE_NAMES.AVATARS || name === DATABASE_NAMES.BLOG_IMAGES || name === DATABASE_NAMES.LINK_DIRECTORY_LOGOS;
 }
 var DATABASE_NAMES, StorageSupabaseRepository;
 var init_StorageSupabaseRepository = __esm({
@@ -9044,7 +9800,8 @@ var init_StorageSupabaseRepository = __esm({
     init_InfraError();
     DATABASE_NAMES = {
       AVATARS: "avatars",
-      BLOG_IMAGES: "blog_images"
+      BLOG_IMAGES: "blog_images",
+      LINK_DIRECTORY_LOGOS: "link_directory_logos"
     };
     StorageSupabaseRepository = class {
       constructor(supabaseServiceClient) {
@@ -9255,13 +10012,13 @@ function decryptRowSecrets(row) {
     refresh_token: decryptIntegrationSecret(row.refresh_token, key)
   };
 }
-var TABLE2, IntegrationRepository;
+var TABLE3, IntegrationRepository;
 var init_IntegrationRepository = __esm({
   "repositories/IntegrationRepository.ts"() {
     init_GlobalConfig();
     init_InfraError();
     init_integrationTokenCrypto();
-    TABLE2 = "integrations";
+    TABLE3 = "integrations";
     IntegrationRepository = class {
       constructor(supabase2) {
         this.supabase = supabase2;
@@ -9274,7 +10031,7 @@ var init_IntegrationRepository = __esm({
           throw new DatabaseError("Failed to list integrations", {
             cause: error,
             operation: "rpc:internal_list_integrations_by_org",
-            resource: { type: "table", name: TABLE2 }
+            resource: { type: "table", name: TABLE3 }
           });
         }
         return data ?? [];
@@ -9313,7 +10070,7 @@ var init_IntegrationRepository = __esm({
        */
       async updateIntegrationGroup(organizationId, integrationId, group) {
         const customerId = group == null || group.trim() === "" ? null : group.trim();
-        const { error } = await this.supabase.from(TABLE2).update({
+        const { error } = await this.supabase.from(TABLE3).update({
           customer_id: customerId,
           updated_at: (/* @__PURE__ */ new Date()).toISOString()
         }).eq("organization_id", organizationId).eq("id", integrationId).is("deleted_at", null);
@@ -9321,7 +10078,7 @@ var init_IntegrationRepository = __esm({
           throw new DatabaseError("Failed to update channel group assignment", {
             cause: error,
             operation: "update",
-            resource: { type: "table", name: TABLE2 }
+            resource: { type: "table", name: TABLE3 }
           });
         }
       }
@@ -9355,7 +10112,7 @@ var init_IntegrationRepository = __esm({
           throw new DatabaseError("Failed to load integration", {
             cause: error,
             operation: "rpc:internal_get_integration_by_org_and_id",
-            resource: { type: "table", name: TABLE2 }
+            resource: { type: "table", name: TABLE3 }
           });
         }
         const rows = data ?? [];
@@ -9364,24 +10121,24 @@ var init_IntegrationRepository = __esm({
       }
       /** Active (non-deleted) integration for an org by platform account id (`internal_id`). */
       async findActiveByInternalId(organizationId, internalId) {
-        const { data, error } = await this.supabase.from(TABLE2).select("*").eq("organization_id", organizationId).eq("internal_id", internalId).is("deleted_at", null).maybeSingle();
+        const { data, error } = await this.supabase.from(TABLE3).select("*").eq("organization_id", organizationId).eq("internal_id", internalId).is("deleted_at", null).maybeSingle();
         if (error) {
           throw new DatabaseError("Failed to find integration by internal id", {
             cause: error,
             operation: "select",
-            resource: { type: "table", name: TABLE2 }
+            resource: { type: "table", name: TABLE3 }
           });
         }
         return data ? decryptRowSecrets(data) : null;
       }
       /** Includes soft-deleted rows — for displaying channel labels on historical posts. */
       async getByIdIncludeDeleted(organizationId, id) {
-        const { data, error } = await this.supabase.from(TABLE2).select("*").eq("organization_id", organizationId).eq("id", id).maybeSingle();
+        const { data, error } = await this.supabase.from(TABLE3).select("*").eq("organization_id", organizationId).eq("id", id).maybeSingle();
         if (error) {
           throw new DatabaseError("Failed to load integration", {
             cause: error,
             operation: "select",
-            resource: { type: "table", name: TABLE2 }
+            resource: { type: "table", name: TABLE3 }
           });
         }
         return data ? decryptRowSecrets(data) : null;
@@ -9408,70 +10165,70 @@ var init_IntegrationRepository = __esm({
           root_internal_id: params.rootInternalId,
           updated_at: (/* @__PURE__ */ new Date()).toISOString()
         };
-        const { data, error } = await this.supabase.from(TABLE2).upsert(row, { onConflict: "organization_id,internal_id" }).select("*").single();
+        const { data, error } = await this.supabase.from(TABLE3).upsert(row, { onConflict: "organization_id,internal_id" }).select("*").single();
         if (error || !data) {
           throw new DatabaseError("Failed to upsert integration", {
             cause: error ?? new Error("no row"),
             operation: "upsert",
-            resource: { type: "table", name: TABLE2 }
+            resource: { type: "table", name: TABLE3 }
           });
         }
         return decryptRowSecrets(data);
       }
       async disableChannel(organizationId, id) {
-        const { error } = await this.supabase.from(TABLE2).update({ disabled: true, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("organization_id", organizationId).eq("id", id);
+        const { error } = await this.supabase.from(TABLE3).update({ disabled: true, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("organization_id", organizationId).eq("id", id);
         if (error) {
           throw new DatabaseError("Failed to disable integration", {
             cause: error,
             operation: "update",
-            resource: { type: "table", name: TABLE2 }
+            resource: { type: "table", name: TABLE3 }
           });
         }
       }
       async enableChannel(organizationId, id) {
-        const { error } = await this.supabase.from(TABLE2).update({ disabled: false, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("organization_id", organizationId).eq("id", id);
+        const { error } = await this.supabase.from(TABLE3).update({ disabled: false, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("organization_id", organizationId).eq("id", id);
         if (error) {
           throw new DatabaseError("Failed to enable integration", {
             cause: error,
             operation: "update",
-            resource: { type: "table", name: TABLE2 }
+            resource: { type: "table", name: TABLE3 }
           });
         }
       }
       async setPostingTimes(organizationId, integrationId, postingTimesJson) {
-        const { error } = await this.supabase.from(TABLE2).update({ posting_times: postingTimesJson, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("organization_id", organizationId).eq("id", integrationId).is("deleted_at", null);
+        const { error } = await this.supabase.from(TABLE3).update({ posting_times: postingTimesJson, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("organization_id", organizationId).eq("id", integrationId).is("deleted_at", null);
         if (error) {
           throw new DatabaseError("Failed to update posting times", {
             cause: error,
             operation: "update",
-            resource: { type: "table", name: TABLE2 }
+            resource: { type: "table", name: TABLE3 }
           });
         }
       }
       async updateIntegrationPicture(organizationId, integrationId, picture) {
-        const { error } = await this.supabase.from(TABLE2).update({ picture, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("organization_id", organizationId).eq("id", integrationId).is("deleted_at", null);
+        const { error } = await this.supabase.from(TABLE3).update({ picture, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("organization_id", organizationId).eq("id", integrationId).is("deleted_at", null);
         if (error) {
           throw new DatabaseError("Failed to update integration picture", {
             cause: error,
             operation: "update",
-            resource: { type: "table", name: TABLE2 }
+            resource: { type: "table", name: TABLE3 }
           });
         }
       }
       async setRefreshNeeded(organizationId, integrationId, needed) {
-        const { error } = await this.supabase.from(TABLE2).update({ refresh_needed: needed, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("organization_id", organizationId).eq("id", integrationId);
+        const { error } = await this.supabase.from(TABLE3).update({ refresh_needed: needed, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("organization_id", organizationId).eq("id", integrationId);
         if (error) {
           throw new DatabaseError("Failed to update refresh_needed", {
             cause: error,
             operation: "update",
-            resource: { type: "table", name: TABLE2 }
+            resource: { type: "table", name: TABLE3 }
           });
         }
       }
       /** Update a channel by primary key (e.g. completing Instagram Business account selection). */
       async updateIntegrationById(organizationId, integrationId, params) {
         const tokenExpiration = params.expiresInSeconds != null && params.expiresInSeconds > 0 ? new Date(Date.now() + params.expiresInSeconds * 1e3).toISOString() : null;
-        const { data, error } = await this.supabase.from(TABLE2).update({
+        const { data, error } = await this.supabase.from(TABLE3).update({
           internal_id: params.internalId,
           name: params.name,
           picture: params.picture,
@@ -9488,7 +10245,7 @@ var init_IntegrationRepository = __esm({
           throw new DatabaseError("Failed to update integration", {
             cause: error ?? new Error("no row"),
             operation: "update",
-            resource: { type: "table", name: TABLE2 }
+            resource: { type: "table", name: TABLE3 }
           });
         }
         return decryptRowSecrets(data);
@@ -9499,7 +10256,7 @@ var init_IntegrationRepository = __esm({
        */
       async syncTokensByRootInternalId(params) {
         const tokenExpiration = params.expiresInSeconds != null && params.expiresInSeconds > 0 ? new Date(Date.now() + params.expiresInSeconds * 1e3).toISOString() : null;
-        const { error } = await this.supabase.from(TABLE2).update({
+        const { error } = await this.supabase.from(TABLE3).update({
           token: encryptStoredSecret(params.token) ?? "",
           refresh_token: encryptStoredSecret(params.refreshToken || null),
           token_expiration: tokenExpiration,
@@ -9509,7 +10266,7 @@ var init_IntegrationRepository = __esm({
           throw new DatabaseError("Failed to sync sibling integration tokens", {
             cause: error,
             operation: "update",
-            resource: { type: "table", name: TABLE2 }
+            resource: { type: "table", name: TABLE3 }
           });
         }
       }
@@ -9522,12 +10279,12 @@ var init_IntegrationRepository = __esm({
         if (!key) {
           return { scanned: 0, updated: 0 };
         }
-        const { data, error } = await this.supabase.from(TABLE2).select("id, token, refresh_token").is("deleted_at", null);
+        const { data, error } = await this.supabase.from(TABLE3).select("id, token, refresh_token").is("deleted_at", null);
         if (error) {
           throw new DatabaseError("Failed to scan integrations for token encryption", {
             cause: error,
             operation: "select",
-            resource: { type: "table", name: TABLE2 }
+            resource: { type: "table", name: TABLE3 }
           });
         }
         const rows = data ?? [];
@@ -9536,7 +10293,7 @@ var init_IntegrationRepository = __esm({
           const tokenPlain = !isEncryptedIntegrationSecret(row.token);
           const refreshPlain = row.refresh_token != null && row.refresh_token !== "" && !isEncryptedIntegrationSecret(row.refresh_token);
           if (!tokenPlain && !refreshPlain) continue;
-          const { error: updateError } = await this.supabase.from(TABLE2).update({
+          const { error: updateError } = await this.supabase.from(TABLE3).update({
             token: encryptStoredSecret(row.token) ?? "",
             refresh_token: encryptStoredSecret(row.refresh_token),
             updated_at: (/* @__PURE__ */ new Date()).toISOString()
@@ -9545,7 +10302,7 @@ var init_IntegrationRepository = __esm({
             throw new DatabaseError("Failed to encrypt integration tokens at rest", {
               cause: updateError,
               operation: "update",
-              resource: { type: "table", name: TABLE2 }
+              resource: { type: "table", name: TABLE3 }
             });
           }
           updated += 1;
@@ -9565,7 +10322,7 @@ var init_IntegrationRepository = __esm({
           throw new DatabaseError("Failed to delete integration", {
             cause: error,
             operation: "rpc:internal_soft_delete_integration",
-            resource: { type: "table", name: TABLE2 }
+            resource: { type: "table", name: TABLE3 }
           });
         }
         return data === true;
@@ -9677,18 +10434,18 @@ var init_PlugRepository = __esm({
 });
 
 // repositories/NotificationRepository.ts
-var TABLE3, NOTIFICATION_LIST_SELECT, NotificationRepository;
+var TABLE4, NOTIFICATION_LIST_SELECT, NotificationRepository;
 var init_NotificationRepository = __esm({
   "repositories/NotificationRepository.ts"() {
     init_InfraError();
-    TABLE3 = "notifications";
+    TABLE4 = "notifications";
     NOTIFICATION_LIST_SELECT = "id, content, link, created_at";
     NotificationRepository = class {
       constructor(supabase2) {
         this.supabase = supabase2;
       }
       async createNotification(organizationId, content, link) {
-        const { error } = await this.supabase.from(TABLE3).insert({
+        const { error } = await this.supabase.from(TABLE4).insert({
           organization_id: organizationId,
           content,
           link: link ?? null,
@@ -9698,40 +10455,40 @@ var init_NotificationRepository = __esm({
           throw new DatabaseError("Failed to create notification", {
             cause: error,
             operation: "createNotification",
-            resource: { type: "table", name: TABLE3 }
+            resource: { type: "table", name: TABLE4 }
           });
         }
       }
       async countSince(organizationId, sinceIso) {
-        const { count, error } = await this.supabase.from(TABLE3).select("id", { count: "exact", head: true }).eq("organization_id", organizationId).is("deleted_at", null).gt("created_at", sinceIso);
+        const { count, error } = await this.supabase.from(TABLE4).select("id", { count: "exact", head: true }).eq("organization_id", organizationId).is("deleted_at", null).gt("created_at", sinceIso);
         if (error) {
           throw new DatabaseError("Failed to count notifications", {
             cause: error,
             operation: "countSince",
-            resource: { type: "table", name: TABLE3 }
+            resource: { type: "table", name: TABLE4 }
           });
         }
         return count ?? 0;
       }
       async listRecentForOrg(organizationId, limit) {
-        const { data, error } = await this.supabase.from(TABLE3).select("created_at, content").eq("organization_id", organizationId).is("deleted_at", null).order("created_at", { ascending: false }).limit(limit);
+        const { data, error } = await this.supabase.from(TABLE4).select("created_at, content").eq("organization_id", organizationId).is("deleted_at", null).order("created_at", { ascending: false }).limit(limit);
         if (error) {
           throw new DatabaseError("Failed to list notifications", {
             cause: error,
             operation: "listRecentForOrg",
-            resource: { type: "table", name: TABLE3 }
+            resource: { type: "table", name: TABLE4 }
           });
         }
         return data ?? [];
       }
       async listPaginated(organizationId, page, pageSize) {
         const skip = page * pageSize;
-        const { data: rows, error: listError, count } = await this.supabase.from(TABLE3).select(NOTIFICATION_LIST_SELECT, { count: "exact" }).eq("organization_id", organizationId).is("deleted_at", null).order("created_at", { ascending: false }).range(skip, skip + pageSize - 1);
+        const { data: rows, error: listError, count } = await this.supabase.from(TABLE4).select(NOTIFICATION_LIST_SELECT, { count: "exact" }).eq("organization_id", organizationId).is("deleted_at", null).order("created_at", { ascending: false }).range(skip, skip + pageSize - 1);
         if (listError) {
           throw new DatabaseError("Failed to list notifications", {
             cause: listError,
             operation: "listPaginated",
-            resource: { type: "table", name: TABLE3 }
+            resource: { type: "table", name: TABLE4 }
           });
         }
         const total = count ?? 0;
@@ -10027,13 +10784,13 @@ var init_PostDTO = __esm({
     };
   }
 });
-var TABLE_POSTS, TABLE_TAGS2, TABLE_POSTS_TAGS, TABLE_POST_INTERNAL_COMMENTS, TABLE_THREAD_REPLIES, PostsRepository;
+var TABLE_POSTS, TABLE_TAGS3, TABLE_POSTS_TAGS, TABLE_POST_INTERNAL_COMMENTS, TABLE_THREAD_REPLIES, PostsRepository;
 var init_PostsRepository = __esm({
   "repositories/PostsRepository.ts"() {
     init_PostDTO();
     init_InfraError();
     TABLE_POSTS = "posts";
-    TABLE_TAGS2 = "post_tags";
+    TABLE_TAGS3 = "post_tags";
     TABLE_POSTS_TAGS = "post_tag_assignments";
     TABLE_POST_INTERNAL_COMMENTS = "post_internal_comments";
     TABLE_THREAD_REPLIES = "post_thread_replies";
@@ -10160,19 +10917,19 @@ var init_PostsRepository = __esm({
         return count ?? 0;
       }
       async listTagsByOrganization(organizationId) {
-        const { data, error } = await this.supabase.from(TABLE_TAGS2).select("id, name, color, org_id, deleted_at, created_at, updated_at").eq("org_id", organizationId).is("deleted_at", null).order("name", { ascending: true });
+        const { data, error } = await this.supabase.from(TABLE_TAGS3).select("id, name, color, org_id, deleted_at, created_at, updated_at").eq("org_id", organizationId).is("deleted_at", null).order("name", { ascending: true });
         if (error) {
           throw new DatabaseError(`Failed to list tags: ${error.message}`, {
             cause: error,
             operation: "select",
-            resource: { type: "table", name: TABLE_TAGS2 }
+            resource: { type: "table", name: TABLE_TAGS3 }
           });
         }
         return data ?? [];
       }
       async insertTag(organizationId, nameTrimmed, color) {
         const now = (/* @__PURE__ */ new Date()).toISOString();
-        const { data, error } = await this.supabase.from(TABLE_TAGS2).insert({
+        const { data, error } = await this.supabase.from(TABLE_TAGS3).insert({
           org_id: organizationId,
           name: nameTrimmed,
           color,
@@ -10183,18 +10940,18 @@ var init_PostsRepository = __esm({
           throw new DatabaseError(`Failed to insert tag: ${error?.message ?? "no row"}`, {
             cause: error,
             operation: "insert",
-            resource: { type: "table", name: TABLE_TAGS2 }
+            resource: { type: "table", name: TABLE_TAGS3 }
           });
         }
         return data;
       }
       async findTagByOrgAndName(organizationId, name) {
-        const { data, error } = await this.supabase.from(TABLE_TAGS2).select("id, name, color, org_id, deleted_at, created_at, updated_at").eq("org_id", organizationId).eq("name", name).is("deleted_at", null).maybeSingle();
+        const { data, error } = await this.supabase.from(TABLE_TAGS3).select("id, name, color, org_id, deleted_at, created_at, updated_at").eq("org_id", organizationId).eq("name", name).is("deleted_at", null).maybeSingle();
         if (error) {
           throw new DatabaseError(`Failed to find tag: ${error.message}`, {
             cause: error,
             operation: "select",
-            resource: { type: "table", name: TABLE_TAGS2 }
+            resource: { type: "table", name: TABLE_TAGS3 }
           });
         }
         return data;
@@ -10202,12 +10959,12 @@ var init_PostsRepository = __esm({
       /** Soft-delete a workspace tag. Returns true when a row was updated. */
       async softDeleteTagForOrganization(organizationId, tagId) {
         const now = (/* @__PURE__ */ new Date()).toISOString();
-        const { data, error } = await this.supabase.from(TABLE_TAGS2).update({ deleted_at: now, updated_at: now }).eq("id", tagId).eq("org_id", organizationId).is("deleted_at", null).select("id").maybeSingle();
+        const { data, error } = await this.supabase.from(TABLE_TAGS3).update({ deleted_at: now, updated_at: now }).eq("id", tagId).eq("org_id", organizationId).is("deleted_at", null).select("id").maybeSingle();
         if (error) {
           throw new DatabaseError(`Failed to delete tag: ${error.message}`, {
             cause: error,
             operation: "update",
-            resource: { type: "table", name: TABLE_TAGS2 }
+            resource: { type: "table", name: TABLE_TAGS3 }
           });
         }
         return data != null;
@@ -10693,12 +11450,12 @@ var init_PostsRepository = __esm({
         }
         const tagIds = [...new Set((links ?? []).map((r) => String(r.tag_id)).filter(Boolean))];
         if (tagIds.length === 0) return [];
-        const { data: tags, error: tagsErr } = await this.supabase.from(TABLE_TAGS2).select("id, name, color, org_id, deleted_at, created_at, updated_at").in("id", tagIds).is("deleted_at", null).order("name", { ascending: true });
+        const { data: tags, error: tagsErr } = await this.supabase.from(TABLE_TAGS3).select("id, name, color, org_id, deleted_at, created_at, updated_at").in("id", tagIds).is("deleted_at", null).order("name", { ascending: true });
         if (tagsErr) {
           throw new DatabaseError(`Failed to load tags: ${tagsErr.message}`, {
             cause: tagsErr,
             operation: "select",
-            resource: { type: "table", name: TABLE_TAGS2 }
+            resource: { type: "table", name: TABLE_TAGS3 }
           });
         }
         return tags ?? [];
@@ -10718,12 +11475,12 @@ var init_PostsRepository = __esm({
         const linkRows = links ?? [];
         const tagIds = [...new Set(linkRows.map((r) => String(r.tag_id ?? "")).filter(Boolean))];
         if (tagIds.length === 0) return out;
-        const { data: tags, error: tagsErr } = await this.supabase.from(TABLE_TAGS2).select("id, name").in("id", tagIds).is("deleted_at", null);
+        const { data: tags, error: tagsErr } = await this.supabase.from(TABLE_TAGS3).select("id, name").in("id", tagIds).is("deleted_at", null);
         if (tagsErr) {
           throw new DatabaseError(`Failed to load tags: ${tagsErr.message}`, {
             cause: tagsErr,
             operation: "select",
-            resource: { type: "table", name: TABLE_TAGS2 }
+            resource: { type: "table", name: TABLE_TAGS3 }
           });
         }
         const nameById = /* @__PURE__ */ new Map();
@@ -10754,51 +11511,51 @@ var init_PostsRepository = __esm({
 });
 
 // repositories/SignatureRepository.ts
-var TABLE4, COLS2, SignatureRepository;
+var TABLE5, COLS2, SignatureRepository;
 var init_SignatureRepository = __esm({
   "repositories/SignatureRepository.ts"() {
     init_InfraError();
-    TABLE4 = "signatures";
+    TABLE5 = "signatures";
     COLS2 = "id, organization_id, title, content, is_default, created_at, updated_at";
     SignatureRepository = class {
       constructor(supabase2) {
         this.supabase = supabase2;
       }
       async listByOrganization(organizationId) {
-        const { data, error } = await this.supabase.from(TABLE4).select(COLS2).eq("organization_id", organizationId).order("updated_at", { ascending: false });
+        const { data, error } = await this.supabase.from(TABLE5).select(COLS2).eq("organization_id", organizationId).order("updated_at", { ascending: false });
         if (error) {
           throw new DatabaseError("Error listing signatures", {
             cause: error,
             operation: "listByOrganization",
-            resource: { type: "table", name: TABLE4 }
+            resource: { type: "table", name: TABLE5 }
           });
         }
         return data ?? [];
       }
       async findById(signatureId) {
-        const { data, error } = await this.supabase.from(TABLE4).select(COLS2).eq("id", signatureId).maybeSingle();
+        const { data, error } = await this.supabase.from(TABLE5).select(COLS2).eq("id", signatureId).maybeSingle();
         if (error) {
           throw new DatabaseError("Error finding signature", {
             cause: error,
             operation: "findById",
-            resource: { type: "table", name: TABLE4 }
+            resource: { type: "table", name: TABLE5 }
           });
         }
         return data ?? null;
       }
       async clearDefaultForOrganization(organizationId) {
-        const { error } = await this.supabase.from(TABLE4).update({ is_default: false, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("organization_id", organizationId).eq("is_default", true);
+        const { error } = await this.supabase.from(TABLE5).update({ is_default: false, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("organization_id", organizationId).eq("is_default", true);
         if (error) {
           throw new DatabaseError("Error clearing default signature", {
             cause: error,
             operation: "clearDefaultForOrganization",
-            resource: { type: "table", name: TABLE4 }
+            resource: { type: "table", name: TABLE5 }
           });
         }
       }
       async insert(params) {
         const now = (/* @__PURE__ */ new Date()).toISOString();
-        const { data, error } = await this.supabase.from(TABLE4).insert({
+        const { data, error } = await this.supabase.from(TABLE5).insert({
           organization_id: params.organizationId,
           title: params.title,
           content: params.content,
@@ -10810,7 +11567,7 @@ var init_SignatureRepository = __esm({
           throw new DatabaseError("Error inserting signature", {
             cause: error,
             operation: "insert",
-            resource: { type: "table", name: TABLE4 }
+            resource: { type: "table", name: TABLE5 }
           });
         }
         return data;
@@ -10822,23 +11579,23 @@ var init_SignatureRepository = __esm({
         if (params.title !== void 0) payload.title = params.title;
         if (params.content !== void 0) payload.content = params.content;
         if (params.isDefault !== void 0) payload.is_default = params.isDefault;
-        const { data, error } = await this.supabase.from(TABLE4).update(payload).eq("id", params.signatureId).eq("organization_id", params.organizationId).select(COLS2).maybeSingle();
+        const { data, error } = await this.supabase.from(TABLE5).update(payload).eq("id", params.signatureId).eq("organization_id", params.organizationId).select(COLS2).maybeSingle();
         if (error) {
           throw new DatabaseError("Error updating signature", {
             cause: error,
             operation: "update",
-            resource: { type: "table", name: TABLE4 }
+            resource: { type: "table", name: TABLE5 }
           });
         }
         return data ?? null;
       }
       async delete(signatureId, organizationId) {
-        const { error, count } = await this.supabase.from(TABLE4).delete({ count: "exact" }).eq("id", signatureId).eq("organization_id", organizationId);
+        const { error, count } = await this.supabase.from(TABLE5).delete({ count: "exact" }).eq("id", signatureId).eq("organization_id", organizationId);
         if (error) {
           throw new DatabaseError("Error deleting signature", {
             cause: error,
             operation: "delete",
-            resource: { type: "table", name: TABLE4 }
+            resource: { type: "table", name: TABLE5 }
           });
         }
         return (count ?? 0) > 0;
@@ -10848,41 +11605,41 @@ var init_SignatureRepository = __esm({
 });
 
 // repositories/SetsRepository.ts
-var TABLE5, COLS3, SetsRepository;
+var TABLE6, COLS3, SetsRepository;
 var init_SetsRepository = __esm({
   "repositories/SetsRepository.ts"() {
     init_InfraError();
-    TABLE5 = "sets";
+    TABLE6 = "sets";
     COLS3 = "id, organization_id, name, content, created_at, updated_at";
     SetsRepository = class {
       constructor(supabase2) {
         this.supabase = supabase2;
       }
       async listByOrganization(organizationId) {
-        const { data, error } = await this.supabase.from(TABLE5).select(COLS3).eq("organization_id", organizationId).order("updated_at", { ascending: false });
+        const { data, error } = await this.supabase.from(TABLE6).select(COLS3).eq("organization_id", organizationId).order("updated_at", { ascending: false });
         if (error) {
           throw new DatabaseError("Error listing sets", {
             cause: error,
             operation: "listByOrganization",
-            resource: { type: "table", name: TABLE5 }
+            resource: { type: "table", name: TABLE6 }
           });
         }
         return data ?? [];
       }
       async findById(setId) {
-        const { data, error } = await this.supabase.from(TABLE5).select(COLS3).eq("id", setId).maybeSingle();
+        const { data, error } = await this.supabase.from(TABLE6).select(COLS3).eq("id", setId).maybeSingle();
         if (error) {
           throw new DatabaseError("Error finding set", {
             cause: error,
             operation: "findById",
-            resource: { type: "table", name: TABLE5 }
+            resource: { type: "table", name: TABLE6 }
           });
         }
         return data ?? null;
       }
       async insert(params) {
         const now = (/* @__PURE__ */ new Date()).toISOString();
-        const { data, error } = await this.supabase.from(TABLE5).insert({
+        const { data, error } = await this.supabase.from(TABLE6).insert({
           organization_id: params.organizationId,
           name: params.name,
           content: params.content,
@@ -10893,14 +11650,14 @@ var init_SetsRepository = __esm({
           throw new DatabaseError("Error inserting set", {
             cause: error,
             operation: "insert",
-            resource: { type: "table", name: TABLE5 }
+            resource: { type: "table", name: TABLE6 }
           });
         }
         return data;
       }
       async update(params) {
         const now = (/* @__PURE__ */ new Date()).toISOString();
-        const { data, error } = await this.supabase.from(TABLE5).update({
+        const { data, error } = await this.supabase.from(TABLE6).update({
           name: params.name,
           content: params.content,
           updated_at: now
@@ -10909,18 +11666,18 @@ var init_SetsRepository = __esm({
           throw new DatabaseError("Error updating set", {
             cause: error,
             operation: "update",
-            resource: { type: "table", name: TABLE5 }
+            resource: { type: "table", name: TABLE6 }
           });
         }
         return data ?? null;
       }
       async delete(setId, organizationId) {
-        const { error, count } = await this.supabase.from(TABLE5).delete({ count: "exact" }).eq("id", setId).eq("organization_id", organizationId);
+        const { error, count } = await this.supabase.from(TABLE6).delete({ count: "exact" }).eq("id", setId).eq("organization_id", organizationId);
         if (error) {
           throw new DatabaseError("Error deleting set", {
             cause: error,
             operation: "delete",
-            resource: { type: "table", name: TABLE5 }
+            resource: { type: "table", name: TABLE6 }
           });
         }
         return (count ?? 0) > 0;
@@ -11445,30 +12202,30 @@ var init_SubscriptionRepository = __esm({
 });
 
 // repositories/AcquisitionSurveyRepository.ts
-var TABLE6, COLS4, AcquisitionSurveyRepository;
+var TABLE7, COLS4, AcquisitionSurveyRepository;
 var init_AcquisitionSurveyRepository = __esm({
   "repositories/AcquisitionSurveyRepository.ts"() {
     init_AppError();
     init_InfraError();
-    TABLE6 = "user_acquisition_responses";
+    TABLE7 = "user_acquisition_responses";
     COLS4 = "id, user_id, source, other_detail, utm, landing_url, referrer, organization_id, subscription_id, skipped, created_at";
     AcquisitionSurveyRepository = class {
       constructor(supabase2) {
         this.supabase = supabase2;
       }
       async findByUserId(userId) {
-        const { data, error } = await this.supabase.from(TABLE6).select(COLS4).eq("user_id", userId).maybeSingle();
+        const { data, error } = await this.supabase.from(TABLE7).select(COLS4).eq("user_id", userId).maybeSingle();
         if (error) {
           throw new DatabaseError("Failed to load acquisition survey response", {
             cause: error,
             operation: "findByUserId",
-            resource: { type: "table", name: TABLE6 }
+            resource: { type: "table", name: TABLE7 }
           });
         }
         return data ?? null;
       }
       async insert(params) {
-        const { data, error } = await this.supabase.from(TABLE6).insert({
+        const { data, error } = await this.supabase.from(TABLE7).insert({
           user_id: params.userId,
           source: params.source,
           other_detail: params.otherDetail ?? null,
@@ -11486,13 +12243,13 @@ var init_AcquisitionSurveyRepository = __esm({
           throw new DatabaseError("Failed to insert acquisition survey response", {
             cause: error,
             operation: "insert",
-            resource: { type: "table", name: TABLE6 }
+            resource: { type: "table", name: TABLE7 }
           });
         }
         if (!data?.id) {
           throw new DatabaseError("Failed to insert acquisition survey response", {
             operation: "insert",
-            resource: { type: "table", name: TABLE6 }
+            resource: { type: "table", name: TABLE7 }
           });
         }
         return data.id;
@@ -11502,28 +12259,28 @@ var init_AcquisitionSurveyRepository = __esm({
 });
 
 // repositories/TrialBrowserRepository.ts
-var TABLE7, TrialBrowserRepository;
+var TABLE8, TrialBrowserRepository;
 var init_TrialBrowserRepository = __esm({
   "repositories/TrialBrowserRepository.ts"() {
     init_InfraError();
-    TABLE7 = "cloud_trial_browser_consumptions";
+    TABLE8 = "cloud_trial_browser_consumptions";
     TrialBrowserRepository = class {
       constructor(supabase2) {
         this.supabase = supabase2;
       }
       async hasBrowserConsumedTrial(browserSignalId) {
-        const { data, error } = await this.supabase.from(TABLE7).select("browser_signal_id").eq("browser_signal_id", browserSignalId).maybeSingle();
+        const { data, error } = await this.supabase.from(TABLE8).select("browser_signal_id").eq("browser_signal_id", browserSignalId).maybeSingle();
         if (error) {
           throw new DatabaseError("Failed to lookup cloud trial browser consumption", {
             cause: error,
             operation: "hasBrowserConsumedTrial",
-            resource: { type: "table", name: TABLE7 }
+            resource: { type: "table", name: TABLE8 }
           });
         }
         return Boolean(data);
       }
       async recordBrowserTrialConsumption(browserSignalId, userId) {
-        const { error } = await this.supabase.from(TABLE7).upsert(
+        const { error } = await this.supabase.from(TABLE8).upsert(
           {
             browser_signal_id: browserSignalId,
             user_id: userId,
@@ -11535,7 +12292,7 @@ var init_TrialBrowserRepository = __esm({
           throw new DatabaseError("Failed to record cloud trial browser consumption", {
             cause: error,
             operation: "recordBrowserTrialConsumption",
-            resource: { type: "table", name: TABLE7 }
+            resource: { type: "table", name: TABLE8 }
           });
         }
       }
@@ -11544,7 +12301,7 @@ var init_TrialBrowserRepository = __esm({
 });
 
 // repositories/index.ts
-var refreshTokenRepository, userRepository, configRepository, organizationRepository, rbacRepository, feedbackRepository, blogRepository, listingRepository, listingCategoryRepository, listingTagRepository, r2Slice, r2Connection, storageR2Repository, mediaRepository, storageSupabaseRepository, integrationRepository, plugRepository, notificationRepository, postsRepository, signatureRepository, setsRepository, oauthAppRepository, subscriptionRepository, acquisitionSurveyRepository, trialBrowserRepository;
+var refreshTokenRepository, userRepository, configRepository, organizationRepository, rbacRepository, feedbackRepository, blogRepository, listingRepository, listingCategoryRepository, listingTagRepository, linkDirectoryRepository, linkDirectoryCategoryRepository, linkDirectoryTagRepository, r2Slice, r2Connection, storageR2Repository, mediaRepository, storageSupabaseRepository, integrationRepository, plugRepository, notificationRepository, postsRepository, signatureRepository, setsRepository, oauthAppRepository, subscriptionRepository, acquisitionSurveyRepository, trialBrowserRepository;
 var init_repositories = __esm({
   "repositories/index.ts"() {
     init_GlobalConfig();
@@ -11559,6 +12316,9 @@ var init_repositories = __esm({
     init_ListingRepository();
     init_ListingCategoryRepository();
     init_ListingTagRepository();
+    init_LinkDirectoryRepository();
+    init_LinkDirectoryCategoryRepository();
+    init_LinkDirectoryTagRepository();
     init_R2StorageClient();
     init_StorageR2Repository();
     init_MediaRepository();
@@ -11583,6 +12343,9 @@ var init_repositories = __esm({
     init_ListingRepository();
     init_ListingCategoryRepository();
     init_ListingTagRepository();
+    init_LinkDirectoryRepository();
+    init_LinkDirectoryCategoryRepository();
+    init_LinkDirectoryTagRepository();
     init_StorageSupabaseRepository();
     init_StorageR2Repository();
     init_MediaRepository();
@@ -11607,6 +12370,11 @@ var init_repositories = __esm({
     listingRepository = new ListingRepository(supabaseServiceClientConnection);
     listingCategoryRepository = new ListingCategoryRepository(supabaseServiceClientConnection);
     listingTagRepository = new ListingTagRepository(supabaseServiceClientConnection);
+    linkDirectoryRepository = new LinkDirectoryRepository(supabaseServiceClientConnection);
+    linkDirectoryCategoryRepository = new LinkDirectoryCategoryRepository(
+      supabaseServiceClientConnection
+    );
+    linkDirectoryTagRepository = new LinkDirectoryTagRepository(supabaseServiceClientConnection);
     r2Slice = config.storage?.r2;
     r2Connection = r2Slice && isR2ConnectionReady(r2Slice) ? {
       accountId: r2Slice.accountId,
@@ -14802,6 +15570,132 @@ var init_ListingTagService = __esm({
         await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS9.LISTING_PUBLISHED}:*`);
         await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS9.LISTING_ADMIN_LIST}:*`);
         logger.debug({ msg: "Invalidated listing tag taxonomy caches" });
+      }
+    };
+  }
+});
+
+// services/LinkDirectoryService.ts
+var LinkDirectoryService;
+var init_LinkDirectoryService = __esm({
+  "services/LinkDirectoryService.ts"() {
+    LinkDirectoryService = class {
+      constructor(linkDirectoryRepository2, categoryRepository, tagRepository) {
+        this.linkDirectoryRepository = linkDirectoryRepository2;
+        this.categoryRepository = categoryRepository;
+        this.tagRepository = tagRepository;
+      }
+      async getPublishedSites(options2) {
+        const { data, count } = await this.linkDirectoryRepository.findPublishedSites(options2);
+        return { sites: data, count };
+      }
+      async getPublishedSiteBySlug(siteSlug) {
+        const { data } = await this.linkDirectoryRepository.findPublishedSiteBySlug(siteSlug);
+        return data;
+      }
+      async getPublishedHubStats() {
+        return this.linkDirectoryRepository.findPublishedHubStats();
+      }
+      async getActiveCategories() {
+        const { data } = await this.categoryRepository.findActiveCategories();
+        return data;
+      }
+      async getActiveTags() {
+        const { data } = await this.tagRepository.findActiveTags();
+        return data;
+      }
+      async getOpportunityTypes() {
+        const { data } = await this.linkDirectoryRepository.findOpportunityTypes();
+        return data;
+      }
+      async createSubmission(payload, userId) {
+        return this.linkDirectoryRepository.createSubmission(payload, userId);
+      }
+      async getAdminSites(options2) {
+        const { data, count } = await this.linkDirectoryRepository.findAdminSites(options2);
+        return { sites: data, count };
+      }
+      async getSiteById(siteId) {
+        const { data } = await this.linkDirectoryRepository.findSiteById(siteId);
+        return data;
+      }
+      async createSite(payload, tagIds = []) {
+        return this.linkDirectoryRepository.createSite(payload, tagIds);
+      }
+      async updateSite(payload, tagIds) {
+        return this.linkDirectoryRepository.updateSite(payload, tagIds);
+      }
+      async deleteSite(siteId) {
+        await this.linkDirectoryRepository.deleteSite(siteId);
+      }
+      async createOpportunity(siteId, payload) {
+        return this.linkDirectoryRepository.createOpportunity(siteId, payload);
+      }
+      async updateOpportunity(payload) {
+        return this.linkDirectoryRepository.updateOpportunity(payload);
+      }
+      async deleteOpportunity(opportunityId) {
+        await this.linkDirectoryRepository.deleteOpportunity(opportunityId);
+      }
+      async getAllCategories() {
+        const { data } = await this.categoryRepository.findAllCategories();
+        return data;
+      }
+      async createCategory(payload) {
+        return this.categoryRepository.createCategory(payload);
+      }
+      async updateCategory(payload) {
+        return this.categoryRepository.updateCategory(payload);
+      }
+      async deleteCategory(categoryId) {
+        await this.categoryRepository.deleteCategory(categoryId);
+      }
+      async getAllTags() {
+        const { data } = await this.tagRepository.findAllTags();
+        return data;
+      }
+      async getAllTagGroups() {
+        const { data } = await this.tagRepository.findAllTagGroups();
+        return data;
+      }
+      async createTag(payload, groupIds) {
+        return this.tagRepository.createTag(payload, groupIds);
+      }
+      async updateTag(payload, groupIds) {
+        return this.tagRepository.updateTag(payload, groupIds);
+      }
+      async deleteTag(tagId) {
+        await this.tagRepository.deleteTag(tagId);
+      }
+      async createTagGroup(payload) {
+        return this.tagRepository.createTagGroup(payload);
+      }
+      async updateTagGroup(tagGroupId, payload) {
+        return this.tagRepository.updateTagGroup(tagGroupId, payload);
+      }
+      async deleteTagGroup(tagGroupId) {
+        await this.tagRepository.deleteTagGroup(tagGroupId);
+      }
+      async getAdminSubmissions() {
+        const { data } = await this.linkDirectoryRepository.findAdminSubmissions();
+        return data;
+      }
+      async reviewSubmission(submissionId, status, reviewedByUserId) {
+        await this.linkDirectoryRepository.updateSubmissionStatus(
+          submissionId,
+          status,
+          reviewedByUserId
+        );
+      }
+      async getUserBookmarks(userId) {
+        const { data } = await this.linkDirectoryRepository.findUserBookmarks(userId);
+        return data;
+      }
+      async replaceUserBookmarks(userId, siteIds) {
+        await this.linkDirectoryRepository.replaceUserBookmarks(userId, siteIds);
+      }
+      async reorderUserBookmarks(userId, siteIds) {
+        await this.linkDirectoryRepository.reorderUserBookmarks(userId, siteIds);
       }
     };
   }
@@ -29870,7 +30764,7 @@ var init_AcquisitionSurveyService = __esm({
 });
 
 // services/index.ts
-var integrationManager, userService, emailService, transactionalNotificationEmailService, companyService, marketingService, internalOpsEmailService, notificationService, refreshIntegrationService, authenticationService, rbacService, feedbackService, configService, integrationService, plugService, subscriptionService, subscriptionGuard, blogService, listingService, listingTagService, userSessionService, integrationConnectionService, oauthAppService, trialBrowserService, organizationService, oauthService, postsService, stripeService, trackService, acquisitionSurveyService, mediaService, signatureService, setsService, analyticsService;
+var integrationManager, userService, emailService, transactionalNotificationEmailService, companyService, marketingService, internalOpsEmailService, notificationService, refreshIntegrationService, authenticationService, rbacService, feedbackService, configService, integrationService, plugService, subscriptionService, subscriptionGuard, blogService, listingService, listingTagService, linkDirectoryService, userSessionService, integrationConnectionService, oauthAppService, trialBrowserService, organizationService, oauthService, postsService, stripeService, trackService, acquisitionSurveyService, mediaService, signatureService, setsService, analyticsService;
 var init_services = __esm({
   "services/index.ts"() {
     init_connections();
@@ -29886,6 +30780,7 @@ var init_services = __esm({
     init_BlogService();
     init_ListingService();
     init_ListingTagService();
+    init_LinkDirectoryService();
     init_ConfigService();
     init_integrationManager();
     init_RefreshIntegrationService();
@@ -29920,6 +30815,7 @@ var init_services = __esm({
     init_FeedbackService();
     init_BlogService();
     init_ListingService();
+    init_LinkDirectoryService();
     init_ConfigService();
     init_IntegrationService();
     init_PlugService();
@@ -30040,6 +30936,11 @@ var init_services = __esm({
       listingTagRepository,
       cacheServiceConnection,
       cacheInvalidationServiceConnection
+    );
+    linkDirectoryService = new LinkDirectoryService(
+      linkDirectoryRepository,
+      linkDirectoryCategoryRepository,
+      linkDirectoryTagRepository
     );
     userSessionService = new UserSessionService(
       organizationRepository,
@@ -30182,13 +31083,14 @@ var init_generateBlogRSSFeed = __esm({
 });
 
 // middlewares/publicRouteRegistry.ts
-var BLOG_POSTS_PREFIX, BLOG_POST_ACTIVITY_PATH, LISTINGS_PUBLISHED_PREFIX, LISTINGS_STACKS_PUBLISHED_PREFIX, LISTING_STAT_PATH, LISTING_COMMENTS_PATH, PUBLIC_PATH_PREFIXES, PUBLIC_PATH_EXACT, BYPASS_PATHS, matchesPublicPathPrefix, matchesPublicPathExact, isPublicImageDownloadGet, isAuthExemptRoute, isPublicReadGet, isPublicWriteRoute, isPublicApiPath, isUploadPath, isIntegrationConnectPath, isWebhookPath, hasDedicatedRateLimiter, normalizeApiRoutePath;
+var BLOG_POSTS_PREFIX, BLOG_POST_ACTIVITY_PATH, LISTINGS_PUBLISHED_PREFIX, LISTINGS_STACKS_PUBLISHED_PREFIX, LINK_DIRECTORY_PUBLISHED_PREFIX, LISTING_STAT_PATH, LISTING_COMMENTS_PATH, PUBLIC_PATH_PREFIXES, PUBLIC_PATH_EXACT, BYPASS_PATHS, matchesPublicPathPrefix, matchesPublicPathExact, isPublicImageDownloadGet, isAuthExemptRoute, isPublicReadGet, isPublicWriteRoute, isPublicApiPath, isUploadPath, isIntegrationConnectPath, isWebhookPath, hasDedicatedRateLimiter, normalizeApiRoutePath;
 var init_publicRouteRegistry = __esm({
   "middlewares/publicRouteRegistry.ts"() {
     BLOG_POSTS_PREFIX = "/blog-system/posts/";
     BLOG_POST_ACTIVITY_PATH = /^\/blog-system\/posts\/[^/]+\/activity$/;
     LISTINGS_PUBLISHED_PREFIX = "/listings/published/";
     LISTINGS_STACKS_PUBLISHED_PREFIX = "/listings/stacks/published/";
+    LINK_DIRECTORY_PUBLISHED_PREFIX = "/link-directory/published/";
     LISTING_STAT_PATH = /^\/listings\/stats\/(views|likes|clicks)\/[^/]+$/;
     LISTING_COMMENTS_PATH = /^\/listings\/[0-9a-f-]{36}\/comments$/i;
     PUBLIC_PATH_PREFIXES = [
@@ -30219,6 +31121,10 @@ var init_publicRouteRegistry = __esm({
       "/listings/tags/all-full",
       "/listings/tags/groups",
       "/listings/creators",
+      "/link-directory/published",
+      "/link-directory/categories/active",
+      "/link-directory/tags/active",
+      "/link-directory/opportunity-types",
       "/openapi.json",
       /** Join-org page: invitees validate the link before sign-in. */
       "/settings/invite/validate"
@@ -30231,7 +31137,7 @@ var init_publicRouteRegistry = __esm({
       const query = req.query ?? {};
       const dbName = typeof query.databaseName === "string" ? query.databaseName : "";
       const imageUrlParam = typeof query.imageUrl === "string" ? query.imageUrl : "";
-      return (dbName === "blog_images" || dbName === "listing_images") && imageUrlParam.length > 0;
+      return (dbName === "blog_images" || dbName === "listing_images" || dbName === "link_directory_logos") && imageUrlParam.length > 0;
     };
     isAuthExemptRoute = (req, routePath) => {
       if (matchesPublicPathExact(routePath)) {
@@ -30261,6 +31167,12 @@ var init_publicRouteRegistry = __esm({
       if (req.method === "GET" && routePath.startsWith("/listings/creators/")) {
         return true;
       }
+      if (req.method === "GET" && routePath.startsWith(LINK_DIRECTORY_PUBLISHED_PREFIX)) {
+        return true;
+      }
+      if (req.method === "POST" && routePath === "/link-directory/submissions") {
+        return true;
+      }
       if (isPublicImageDownloadGet(req, routePath)) {
         return true;
       }
@@ -30286,13 +31198,16 @@ var init_publicRouteRegistry = __esm({
       if (req.method === "PUT" && LISTING_STAT_PATH.test(routePath)) {
         return true;
       }
+      if (req.method === "POST" && routePath === "/link-directory/submissions") {
+        return true;
+      }
       return false;
     };
     isPublicApiPath = (path7) => path7 === "/public" || path7.startsWith("/public/");
     isUploadPath = (path7) => path7 === "/public/upload" || path7.startsWith("/public/upload/") || path7 === "/public/upload-from-url" || path7 === "/media/upload" || path7 === "/media/upload-server" || path7 === "/media/upload-simple";
     isIntegrationConnectPath = (path7) => /^\/integrations\/social-connect\/[^/]+$/.test(path7) || /^\/integrations\/public\/provider\/[^/]+\/connect$/.test(path7);
     isWebhookPath = (path7, originalUrl) => path7.includes("/webhooks/") || originalUrl.includes("/webhooks/");
-    hasDedicatedRateLimiter = (req, routePath) => isPublicApiPath(routePath) || isUploadPath(routePath) || req.method === "POST" && routePath === "/feedback" || req.method === "POST" && routePath === "/oauth/token" || req.method === "POST" && isIntegrationConnectPath(routePath) || isPublicWriteRoute(req, routePath);
+    hasDedicatedRateLimiter = (req, routePath) => isPublicApiPath(routePath) || isUploadPath(routePath) || req.method === "POST" && routePath === "/feedback" || req.method === "POST" && routePath === "/link-directory/submissions" || req.method === "POST" && routePath === "/oauth/token" || req.method === "POST" && isIntegrationConnectPath(routePath) || isPublicWriteRoute(req, routePath);
     normalizeApiRoutePath = (pathName, apiPrefix) => {
       let routePath = pathName.slice(apiPrefix.length) || "/";
       if (routePath.length > 1 && routePath.endsWith("/")) {
@@ -30327,7 +31242,7 @@ var init_publicCmsCache = __esm({
       if (routePath !== "/image/download") return false;
       const query = req.query ?? {};
       const dbName = typeof query.databaseName === "string" ? query.databaseName : "";
-      return dbName === "blog_images" || dbName === "listing_images";
+      return dbName === "blog_images" || dbName === "listing_images" || dbName === "link_directory_logos";
     };
     resolvePublicCmsCacheControl = (req, routePath) => {
       const cmsCache = getPublicCmsCacheConfig();
@@ -31656,6 +32571,551 @@ var init_ListingTagController = __esm({
           const { tagGroupId } = req.params;
           await this.listingTagService.deleteTagGroup(tagGroupId);
           res.status(200).json({ success: true, message: "Tag group deleted successfully" });
+        } catch (err) {
+          next(err);
+        }
+      };
+    };
+  }
+});
+
+// utils/dtos/LinkDirectoryDTO.ts
+function mapCategory(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    headline: row.headline,
+    description: row.description,
+    sortOrder: row.sort_order,
+    openquokChannelsHubPath: row.openquok_channels_hub_path
+  };
+}
+function mapOpportunityType(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    slug: row.slug,
+    label: row.label,
+    description: row.description,
+    sortOrder: row.sort_order
+  };
+}
+function mapOpportunity(row) {
+  const typeRow = row.opportunity_type ?? null;
+  return {
+    id: row.id,
+    siteId: row.site_id,
+    slug: row.slug,
+    title: row.title,
+    opportunityTypeId: row.opportunity_type_id,
+    opportunityType: mapOpportunityType(typeRow),
+    effort: row.effort,
+    approvalMode: row.approval_mode,
+    approvalTimeHint: row.approval_time_hint,
+    dofollow: row.dofollow,
+    costTier: row.cost_tier,
+    costNote: row.cost_note,
+    description: row.description,
+    steps: row.steps ?? [],
+    openquokCtaKind: row.openquok_cta_kind,
+    openquokChannelSlug: row.openquok_channel_slug,
+    openquokPlugName: row.openquok_plug_name,
+    ctaHref: row.cta_href,
+    ctaLabel: row.cta_label,
+    sortOrder: row.sort_order,
+    isAdminPublished: row.is_admin_published,
+    publishedAt: row.published_at
+  };
+}
+function toLinkDirectorySiteDto(row) {
+  const opportunities = (row.opportunities ?? []).map(mapOpportunity);
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    siteUrl: row.site_url,
+    logoUrl: row.logo_url,
+    shortDescription: row.short_description,
+    longDescription: row.long_description,
+    domainAuthority: row.domain_authority,
+    domainRating: row.domain_rating,
+    monthlyVisits: row.monthly_visits,
+    metricsSource: row.metrics_source,
+    metricsUpdatedAt: row.metrics_updated_at,
+    categoryId: row.category_id,
+    category: mapCategory(row.category ?? null),
+    isOpenquokAuthSupported: row.is_openquok_auth_supported,
+    openquokChannelSlug: row.openquok_channel_slug,
+    isAdminPublished: row.is_admin_published,
+    sortOrder: row.sort_order,
+    tagSlugs: row.tag_slugs ?? [],
+    publishedAt: row.published_at,
+    opportunities
+  };
+}
+function toLinkDirectorySiteDtoCollection(rows) {
+  return rows.map(toLinkDirectorySiteDto);
+}
+function toLinkDirectoryCategoryDto(row) {
+  return mapCategory(row);
+}
+function toLinkDirectoryCategoryDtoCollection(rows) {
+  return rows.map(toLinkDirectoryCategoryDto);
+}
+function toLinkDirectoryTagDto(row) {
+  const groups = row.link_directory_tag_groups?.map((assoc) => {
+    const group = assoc.link_directory_tag_groups;
+    return group ? { id: group.id, name: group.name, sortOrder: group.sort_order } : null;
+  }).filter((g) => g !== null) ?? [];
+  return {
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    headline: row.headline,
+    description: row.description,
+    groups
+  };
+}
+function toLinkDirectoryTagDtoCollection(rows) {
+  return rows.map(toLinkDirectoryTagDto);
+}
+function toLinkDirectoryOpportunityTypeDtoCollection(rows) {
+  return rows.map((row) => mapOpportunityType(row));
+}
+function toLinkDirectorySubmissionDto(row) {
+  return {
+    id: row.id,
+    status: row.status,
+    email: row.email,
+    userId: row.user_id,
+    siteUrl: row.site_url,
+    proposedTitle: row.proposed_title,
+    notes: row.notes,
+    payload: row.payload ?? {},
+    reviewedBy: row.reviewed_by,
+    reviewedAt: row.reviewed_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+function toLinkDirectorySubmissionDtoCollection(rows) {
+  return rows.map(toLinkDirectorySubmissionDto);
+}
+function toLinkDirectoryBookmarkDto(row) {
+  return {
+    id: row.id,
+    siteId: row.site_id,
+    sortOrder: row.sort_order,
+    createdAt: row.created_at,
+    site: row.site ? toLinkDirectorySiteDto(row.site) : null
+  };
+}
+function toLinkDirectoryBookmarkDtoCollection(rows) {
+  return rows.map(toLinkDirectoryBookmarkDto);
+}
+var init_LinkDirectoryDTO = __esm({
+  "utils/dtos/LinkDirectoryDTO.ts"() {
+  }
+});
+
+// controllers/LinkDirectoryController.ts
+var LinkDirectoryController;
+var init_LinkDirectoryController = __esm({
+  "controllers/LinkDirectoryController.ts"() {
+    init_LinkDirectoryDTO();
+    init_InfraError();
+    LinkDirectoryController = class {
+      constructor(linkDirectoryService2) {
+        this.linkDirectoryService = linkDirectoryService2;
+      }
+      getPublishedHubStats = async (_req, res, next) => {
+        try {
+          const stats = await this.linkDirectoryService.getPublishedHubStats();
+          res.status(200).json({
+            success: true,
+            data: stats
+          });
+        } catch (error) {
+          next(error);
+        }
+      };
+      getPublishedSites = async (req, res, next) => {
+        try {
+          const q = req.parsedQuery ?? {};
+          const { sites, count } = await this.linkDirectoryService.getPublishedSites({
+            limit: q.limit,
+            skip: q.skip,
+            searchTerm: q.searchTerm,
+            tagSlugs: q.tagSlugs,
+            categorySlug: q.categorySlug,
+            costTiers: q.costTiers,
+            dofollow: q.dofollow,
+            effort: q.effort,
+            approvalMode: q.approvalMode,
+            opportunityTypeSlugs: q.opportunityTypeSlugs,
+            sortByKey: q.sortByKey,
+            sortByOrder: q.sortByOrder,
+            range: q.range
+          });
+          res.status(200).json({
+            success: true,
+            data: toLinkDirectorySiteDtoCollection(sites),
+            count
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getPublishedSiteBySlug = async (req, res, next) => {
+        try {
+          const { siteSlug } = req.params;
+          const site = await this.linkDirectoryService.getPublishedSiteBySlug(siteSlug);
+          if (!site) {
+            throw new DatabaseEntityNotFoundError("Link directory site not found", { siteSlug });
+          }
+          res.status(200).json({
+            success: true,
+            data: toLinkDirectorySiteDto(site)
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getActiveCategories = async (_req, res, next) => {
+        try {
+          const categories = await this.linkDirectoryService.getActiveCategories();
+          res.status(200).json({
+            success: true,
+            data: toLinkDirectoryCategoryDtoCollection(categories)
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getActiveTags = async (_req, res, next) => {
+        try {
+          const tags = await this.linkDirectoryService.getActiveTags();
+          res.status(200).json({
+            success: true,
+            data: toLinkDirectoryTagDtoCollection(tags)
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getOpportunityTypes = async (_req, res, next) => {
+        try {
+          const types = await this.linkDirectoryService.getOpportunityTypes();
+          res.status(200).json({
+            success: true,
+            data: toLinkDirectoryOpportunityTypeDtoCollection(types)
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      createSubmission = async (req, res, next) => {
+        try {
+          const body = req.body;
+          const auth10 = req;
+          const id = await this.linkDirectoryService.createSubmission(body, auth10.user?.id);
+          res.status(201).json({
+            success: true,
+            data: { id },
+            message: "Submission received. Our editors will review it."
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getUserBookmarks = async (req, res, next) => {
+        try {
+          const auth10 = req;
+          const userId = auth10.user?.id;
+          if (!userId) {
+            res.status(401).json({ success: false, message: "Unauthorized" });
+            return;
+          }
+          const bookmarks = await this.linkDirectoryService.getUserBookmarks(userId);
+          res.status(200).json({
+            success: true,
+            data: toLinkDirectoryBookmarkDtoCollection(bookmarks)
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      putUserBookmarks = async (req, res, next) => {
+        try {
+          const auth10 = req;
+          const userId = auth10.user?.id;
+          if (!userId) {
+            res.status(401).json({ success: false, message: "Unauthorized" });
+            return;
+          }
+          const { siteIds } = req.body;
+          await this.linkDirectoryService.replaceUserBookmarks(userId, siteIds);
+          const bookmarks = await this.linkDirectoryService.getUserBookmarks(userId);
+          res.status(200).json({
+            success: true,
+            data: toLinkDirectoryBookmarkDtoCollection(bookmarks),
+            message: "Bookmarks updated."
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      putUserBookmarksOrder = async (req, res, next) => {
+        try {
+          const auth10 = req;
+          const userId = auth10.user?.id;
+          if (!userId) {
+            res.status(401).json({ success: false, message: "Unauthorized" });
+            return;
+          }
+          const { siteIds } = req.body;
+          await this.linkDirectoryService.reorderUserBookmarks(userId, siteIds);
+          const bookmarks = await this.linkDirectoryService.getUserBookmarks(userId);
+          res.status(200).json({
+            success: true,
+            data: toLinkDirectoryBookmarkDtoCollection(bookmarks),
+            message: "Bookmark order updated."
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getAdminSites = async (req, res, next) => {
+        try {
+          const q = req.parsedQuery ?? {};
+          const { sites, count } = await this.linkDirectoryService.getAdminSites({
+            limit: q.limit,
+            searchTerm: q.searchTerm,
+            sortByKey: q.sortByKey,
+            sortByOrder: q.sortByOrder,
+            range: q.range
+          });
+          res.status(200).json({
+            success: true,
+            data: toLinkDirectorySiteDtoCollection(sites),
+            count
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getSiteById = async (req, res, next) => {
+        try {
+          const { siteId } = req.params;
+          const site = await this.linkDirectoryService.getSiteById(siteId);
+          res.status(200).json({
+            success: true,
+            data: toLinkDirectorySiteDto(site)
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      createSite = async (req, res, next) => {
+        try {
+          const { siteData, tagIds } = req.body;
+          const id = await this.linkDirectoryService.createSite(siteData, tagIds ?? []);
+          res.status(201).json({ success: true, data: { id }, message: "Site created." });
+        } catch (err) {
+          next(err);
+        }
+      };
+      updateSite = async (req, res, next) => {
+        try {
+          const { siteId } = req.params;
+          const { siteData, tagIds } = req.body;
+          siteData.id = siteId;
+          const id = await this.linkDirectoryService.updateSite(siteData, tagIds);
+          res.status(200).json({ success: true, data: { id }, message: "Site updated." });
+        } catch (err) {
+          next(err);
+        }
+      };
+      deleteSite = async (req, res, next) => {
+        try {
+          const { siteId } = req.params;
+          await this.linkDirectoryService.deleteSite(siteId);
+          res.status(200).json({ success: true, message: "Site deleted." });
+        } catch (err) {
+          next(err);
+        }
+      };
+      createOpportunity = async (req, res, next) => {
+        try {
+          const { siteId } = req.params;
+          const payload = req.body;
+          const id = await this.linkDirectoryService.createOpportunity(siteId, payload);
+          res.status(201).json({ success: true, data: { id }, message: "Opportunity created." });
+        } catch (err) {
+          next(err);
+        }
+      };
+      updateOpportunity = async (req, res, next) => {
+        try {
+          const { opportunityId } = req.params;
+          const payload = req.body;
+          payload.id = opportunityId;
+          const id = await this.linkDirectoryService.updateOpportunity(payload);
+          res.status(200).json({ success: true, data: { id }, message: "Opportunity updated." });
+        } catch (err) {
+          next(err);
+        }
+      };
+      deleteOpportunity = async (req, res, next) => {
+        try {
+          const { opportunityId } = req.params;
+          await this.linkDirectoryService.deleteOpportunity(opportunityId);
+          res.status(200).json({ success: true, message: "Opportunity deleted." });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getAllCategories = async (_req, res, next) => {
+        try {
+          const categories = await this.linkDirectoryService.getAllCategories();
+          res.status(200).json({
+            success: true,
+            data: toLinkDirectoryCategoryDtoCollection(categories)
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      createCategory = async (req, res, next) => {
+        try {
+          const payload = req.body;
+          const id = await this.linkDirectoryService.createCategory(payload);
+          res.status(201).json({ success: true, data: { id }, message: "Category created." });
+        } catch (err) {
+          next(err);
+        }
+      };
+      updateCategory = async (req, res, next) => {
+        try {
+          const { categoryId } = req.params;
+          const payload = req.body;
+          payload.id = categoryId;
+          const id = await this.linkDirectoryService.updateCategory(payload);
+          res.status(200).json({ success: true, data: { id }, message: "Category updated." });
+        } catch (err) {
+          next(err);
+        }
+      };
+      deleteCategory = async (req, res, next) => {
+        try {
+          const { categoryId } = req.params;
+          await this.linkDirectoryService.deleteCategory(categoryId);
+          res.status(200).json({ success: true, message: "Category deleted." });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getAllTags = async (_req, res, next) => {
+        try {
+          const tags = await this.linkDirectoryService.getAllTags();
+          res.status(200).json({
+            success: true,
+            data: toLinkDirectoryTagDtoCollection(tags)
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getAllTagGroups = async (_req, res, next) => {
+        try {
+          const groups = await this.linkDirectoryService.getAllTagGroups();
+          res.status(200).json({ success: true, data: groups });
+        } catch (err) {
+          next(err);
+        }
+      };
+      createTag = async (req, res, next) => {
+        try {
+          const { tagData, tagGroupIds } = req.body;
+          const id = await this.linkDirectoryService.createTag(tagData, tagGroupIds ?? []);
+          res.status(201).json({ success: true, data: { id }, message: "Tag created." });
+        } catch (err) {
+          next(err);
+        }
+      };
+      updateTag = async (req, res, next) => {
+        try {
+          const { tagId } = req.params;
+          const { tagData, tagGroupIds } = req.body;
+          tagData.id = tagId;
+          const id = await this.linkDirectoryService.updateTag(tagData, tagGroupIds ?? []);
+          res.status(200).json({ success: true, data: { id }, message: "Tag updated." });
+        } catch (err) {
+          next(err);
+        }
+      };
+      deleteTag = async (req, res, next) => {
+        try {
+          const { tagId } = req.params;
+          await this.linkDirectoryService.deleteTag(tagId);
+          res.status(200).json({ success: true, message: "Tag deleted." });
+        } catch (err) {
+          next(err);
+        }
+      };
+      createTagGroup = async (req, res, next) => {
+        try {
+          const payload = req.body;
+          const id = await this.linkDirectoryService.createTagGroup(payload);
+          res.status(201).json({ success: true, data: { id }, message: "Tag group created." });
+        } catch (err) {
+          next(err);
+        }
+      };
+      updateTagGroup = async (req, res, next) => {
+        try {
+          const { tagGroupId } = req.params;
+          const payload = req.body;
+          const id = await this.linkDirectoryService.updateTagGroup(tagGroupId, payload);
+          res.status(200).json({ success: true, data: { id }, message: "Tag group updated." });
+        } catch (err) {
+          next(err);
+        }
+      };
+      deleteTagGroup = async (req, res, next) => {
+        try {
+          const { tagGroupId } = req.params;
+          await this.linkDirectoryService.deleteTagGroup(tagGroupId);
+          res.status(200).json({ success: true, message: "Tag group deleted." });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getAdminSubmissions = async (_req, res, next) => {
+        try {
+          const submissions = await this.linkDirectoryService.getAdminSubmissions();
+          res.status(200).json({
+            success: true,
+            data: toLinkDirectorySubmissionDtoCollection(submissions)
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      reviewSubmission = async (req, res, next) => {
+        try {
+          const auth10 = req;
+          const reviewerId = auth10.user?.id;
+          if (!reviewerId) {
+            res.status(401).json({ success: false, message: "Unauthorized" });
+            return;
+          }
+          const { submissionId } = req.params;
+          const { status } = req.body;
+          await this.linkDirectoryService.reviewSubmission(submissionId, status, reviewerId);
+          res.status(200).json({ success: true, message: `Submission marked ${status}.` });
         } catch (err) {
           next(err);
         }
@@ -35584,6 +37044,7 @@ __export(controllers_exports, {
   feedbackController: () => feedbackController,
   imageController: () => imageController,
   integrationController: () => integrationController,
+  linkDirectoryController: () => linkDirectoryController,
   listingController: () => listingController,
   listingTagController: () => listingTagController,
   mediaController: () => mediaController,
@@ -35604,7 +37065,7 @@ __export(controllers_exports, {
   trackController: () => trackController,
   userController: () => userController
 });
-var authController, userController, companyController, trackController, settingsController, rbacController, feedbackController, blogController, listingController, listingTagController, imageController, mediaController, billingController, stripeWebhookController, configController, emailController, integrationController, publicIntegrationController, notificationController, publicNotificationController, postsController, publicPostsController, publicAnalyticsController, oauthAppController, oauthController, approvedAppsController, thirdPartyController, signatureController, setsController, analyticsController;
+var authController, userController, companyController, trackController, settingsController, rbacController, feedbackController, blogController, listingController, listingTagController, linkDirectoryController, imageController, mediaController, billingController, stripeWebhookController, configController, emailController, integrationController, publicIntegrationController, notificationController, publicNotificationController, postsController, publicPostsController, publicAnalyticsController, oauthAppController, oauthController, approvedAppsController, thirdPartyController, signatureController, setsController, analyticsController;
 var init_controllers = __esm({
   "controllers/index.ts"() {
     init_AuthController();
@@ -35616,6 +37077,7 @@ var init_controllers = __esm({
     init_BlogController();
     init_ListingController();
     init_ListingTagController();
+    init_LinkDirectoryController();
     init_ImageController();
     init_MediaController();
     init_BillingController();
@@ -35668,6 +37130,7 @@ var init_controllers = __esm({
     blogController = new BlogController(blogService);
     listingController = new ListingController(listingService);
     listingTagController = new ListingTagController(listingTagService);
+    linkDirectoryController = new LinkDirectoryController(linkDirectoryService);
     imageController = new ImageController(storageSupabaseRepository, integrationConnectionService);
     mediaController = new MediaController(
       mediaService,
@@ -38076,6 +39539,34 @@ var adminListingActivitiesRules = combineParsers(
 function createAdminListingActivitiesParser() {
   return createQueryParser(adminListingActivitiesRules);
 }
+var publishedLinkDirectoryRules = combineParsers(
+  CommonQueryParsers.pagination,
+  CommonQueryParsers.skip,
+  CommonQueryParsers.search,
+  CommonQueryParsers.sorting,
+  CommonQueryParsers.range,
+  {
+    tagSlugs: stringArray,
+    categorySlug: QueryParsers.string,
+    costTiers: stringArray,
+    dofollow: stringArray,
+    effort: stringArray,
+    approvalMode: stringArray,
+    opportunityTypeSlugs: stringArray
+  }
+);
+function createPublishedLinkDirectoryParser() {
+  return createQueryParser(publishedLinkDirectoryRules);
+}
+var adminLinkDirectoryRules = combineParsers(
+  CommonQueryParsers.pagination,
+  CommonQueryParsers.search,
+  CommonQueryParsers.sorting,
+  CommonQueryParsers.range
+);
+function createAdminLinkDirectoryParser() {
+  return createQueryParser(adminLinkDirectoryRules);
+}
 
 // routes/AdminRoute.ts
 init_connections();
@@ -38197,6 +39688,31 @@ init_controllers();
 
 // middlewares/generateSitemap.ts
 init_Logger();
+
+// utils/linkDirectory/buildBacklinksVirtualTagSlugs.ts
+var BUILD_BACKLINKS_VIRTUAL_TAG_SLUGS = [
+  "dofollow",
+  "instant-approval",
+  "paid-listing",
+  "profile-link",
+  "guest-post",
+  "open-source"
+];
+function mergeBuildBacklinksSitemapTagSlugs(editorialTagSlugs) {
+  const seen = /* @__PURE__ */ new Set();
+  const merged = [];
+  for (const slug of [...editorialTagSlugs, ...BUILD_BACKLINKS_VIRTUAL_TAG_SLUGS]) {
+    const trimmed = slug.trim();
+    if (!trimmed || seen.has(trimmed)) {
+      continue;
+    }
+    seen.add(trimmed);
+    merged.push(trimmed);
+  }
+  return merged;
+}
+
+// middlewares/generateSitemap.ts
 var bundledRoutesManifestPath = path3__default.default.join(
   path3__default.default.dirname(url.fileURLToPath((typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('index.js', document.baseURI).href)))),
   "../static/routes-manifest.json"
@@ -38235,6 +39751,7 @@ var PUBLIC_TOOL_CHANNEL_PATHS = [
 var PUBLIC_TOOL_CHANNEL_PATH_HUMANIZER = "/tools/humanizer";
 var PUBLIC_TOOL_CHANNEL_PATH_PAYLOAD_WIZARD = "/tools/payload-wizard";
 var LISTING_HUB_PREFIXES = ["/playbooks", "/building-blocks"];
+var BUILD_BACKLINKS_HUB_PREFIX = "/build-backlinks";
 var PUBLIC_API_MARKETING_HUB_PATHS = [
   "/social-media-posting-api",
   "/social-media-scheduling-api"
@@ -38617,6 +40134,76 @@ function listingHubPathsFromSlugs(categorySlugs, tagSlugs) {
   }
   return paths;
 }
+function buildBacklinksHubPathsFromSlugs(categorySlugs, tagSlugs) {
+  const paths = [];
+  for (const slug of categorySlugs) {
+    paths.push(`${BUILD_BACKLINKS_HUB_PREFIX}/categories/${encodeURIComponent(slug)}`);
+  }
+  for (const slug of tagSlugs) {
+    paths.push(`${BUILD_BACKLINKS_HUB_PREFIX}/tags/${encodeURIComponent(slug)}`);
+  }
+  return paths;
+}
+async function fetchPublishedLinkDirectorySiteSlugs(supabase2) {
+  const rows = [];
+  let from = 0;
+  for (; ; ) {
+    const { data, error } = await supabase2.from("link_directory_sites").select("slug, updated_at").eq("is_admin_published", true).not("published_at", "is", null).order("published_at", { ascending: false }).range(from, from + LISTING_PAGE_SIZE - 1);
+    if (error) {
+      logger.error({
+        msg: "Error fetching link directory sites for sitemap",
+        error: error.message,
+        code: error.code
+      });
+      break;
+    }
+    const batch = data ?? [];
+    for (const row of batch) {
+      if (row.slug) {
+        rows.push({ slug: row.slug, updated_at: row.updated_at ?? null });
+      }
+    }
+    if (batch.length < LISTING_PAGE_SIZE) break;
+    from += LISTING_PAGE_SIZE;
+  }
+  return rows;
+}
+async function fetchLinkDirectoryCategorySlugs(supabase2) {
+  const { data, error } = await supabase2.from("link_directory_categories").select("slug").order("sort_order", { ascending: true });
+  if (error) {
+    logger.error({
+      msg: "Error fetching link directory categories for sitemap",
+      error: error.message,
+      code: error.code
+    });
+    return [];
+  }
+  const slugs = [];
+  for (const row of data ?? []) {
+    const slug = row.slug?.trim();
+    if (slug) slugs.push(slug);
+  }
+  return slugs;
+}
+async function fetchLinkDirectoryTagSlugs(supabase2) {
+  const { data, error } = await supabase2.from("link_directory_tags").select("slug").order("name", {
+    ascending: true
+  });
+  if (error) {
+    logger.error({
+      msg: "Error fetching link directory tags for sitemap",
+      error: error.message,
+      code: error.code
+    });
+    return [];
+  }
+  const slugs = [];
+  for (const row of data ?? []) {
+    const slug = row.slug?.trim();
+    if (slug) slugs.push(slug);
+  }
+  return slugs;
+}
 async function generateSitemapUrls(options2) {
   const { supabaseClient, routesPath, routesManifestPath } = options2;
   const urls = [];
@@ -38807,6 +40394,36 @@ async function generateSitemapUrls(options2) {
   } catch (error) {
     logger.error({
       msg: "Error processing listing hub filters for sitemap",
+      error: error instanceof Error ? error.message : String(error)
+    });
+  }
+  try {
+    const [sites, categorySlugs, tagSlugs] = await Promise.all([
+      fetchPublishedLinkDirectorySiteSlugs(supabaseClient),
+      fetchLinkDirectoryCategorySlugs(supabaseClient),
+      fetchLinkDirectoryTagSlugs(supabaseClient)
+    ]);
+    for (const site of sites) {
+      urls.push({
+        url: `${BUILD_BACKLINKS_HUB_PREFIX}/${encodeURIComponent(site.slug)}`,
+        lastMod: site.updated_at ? new Date(site.updated_at).toISOString().slice(0, 10) : staticLastMod,
+        changeFreq: "weekly"
+      });
+    }
+    const sitemapTagSlugs = mergeBuildBacklinksSitemapTagSlugs(tagSlugs);
+    const hubPaths = buildBacklinksHubPathsFromSlugs(categorySlugs, sitemapTagSlugs);
+    pushSitemapPaths(urls, hubPaths, "weekly", staticLastMod);
+    logger.info({
+      msg: "Added link directory URLs to sitemap",
+      siteCount: sites.length,
+      categoryCount: categorySlugs.length,
+      editorialTagCount: tagSlugs.length,
+      tagCount: sitemapTagSlugs.length,
+      filterUrlCount: hubPaths.length
+    });
+  } catch (error) {
+    logger.error({
+      msg: "Error processing link directory for sitemap",
       error: error instanceof Error ? error.message : String(error)
     });
   }
@@ -39912,6 +41529,370 @@ listingRouter.delete(
   listingController.deleteListing
 );
 
+// routes/LinkDirectoryRoute.ts
+init_controllers();
+init_connections();
+init_repositories();
+init_uuid();
+var effortSchema = zod.z.enum(["easy", "medium", "hard"]);
+var approvalModeSchema = zod.z.enum(["instant", "manual_review"]);
+var dofollowSchema = zod.z.enum(["dofollow", "nofollow", "unknown"]);
+var costTierSchema = zod.z.enum(["free", "freemium", "paid"]);
+var ctaKindSchema = zod.z.enum([
+  "none",
+  "connect_channel",
+  "schedule_post",
+  "use_plug",
+  "external_doc"
+]);
+var opportunityStepSchema = zod.z.object({
+  order: zod.z.number().int().min(1),
+  title: zod.z.string().min(1),
+  body: zod.z.string().min(1)
+});
+var linkDirectorySiteSlugParamSchema = zod.z.object({
+  siteSlug: zod.z.string().min(1).max(200)
+});
+var linkDirectorySiteIdParamSchema = zod.z.object({
+  siteId: zod.z.string().uuid()
+});
+var linkDirectoryOpportunityIdParamSchema = zod.z.object({
+  opportunityId: zod.z.string().uuid()
+});
+var linkDirectoryCategoryIdParamSchema = zod.z.object({
+  categoryId: zod.z.string().uuid()
+});
+var linkDirectoryTagIdParamSchema = zod.z.object({
+  tagId: zod.z.string().uuid()
+});
+var linkDirectoryTagGroupIdParamSchema = zod.z.object({
+  tagGroupId: zod.z.string().uuid()
+});
+var linkDirectorySubmissionIdParamSchema = zod.z.object({
+  submissionId: zod.z.string().uuid()
+});
+var siteFields = {
+  slug: zod.z.string().min(1).max(200),
+  title: zod.z.string().min(1),
+  site_url: zod.z.string().url(),
+  logo_url: zod.z.string().url().optional().nullable(),
+  short_description: zod.z.string().optional().nullable(),
+  long_description: zod.z.string().optional().nullable(),
+  domain_authority: zod.z.number().int().min(0).max(100).optional().nullable(),
+  domain_rating: zod.z.number().int().min(0).max(100).optional().nullable(),
+  monthly_visits: zod.z.number().int().min(0).optional().nullable(),
+  metrics_source: zod.z.string().optional().nullable(),
+  metrics_updated_at: zod.z.string().datetime().optional().nullable(),
+  category_id: zod.z.string().uuid().optional().nullable(),
+  is_openquok_auth_supported: zod.z.boolean().optional(),
+  openquok_channel_slug: zod.z.string().optional().nullable(),
+  is_admin_published: zod.z.boolean().optional(),
+  sort_order: zod.z.number().int().optional()
+};
+var linkDirectorySiteCreateSchema = zod.z.object(siteFields);
+var linkDirectorySiteUpdateSchema = zod.z.object({
+  ...siteFields,
+  id: zod.z.string().uuid()
+});
+var linkDirectorySiteBodySchema = zod.z.object({
+  siteData: linkDirectorySiteCreateSchema,
+  tagIds: zod.z.array(zod.z.string().uuid()).optional()
+});
+var linkDirectorySiteUpdateBodySchema = zod.z.object({
+  siteData: linkDirectorySiteUpdateSchema,
+  tagIds: zod.z.array(zod.z.string().uuid()).optional()
+});
+var opportunityFields = {
+  slug: zod.z.string().min(1).max(200),
+  title: zod.z.string().min(1),
+  opportunity_type_id: zod.z.string().uuid(),
+  effort: effortSchema.optional(),
+  approval_mode: approvalModeSchema.optional(),
+  approval_time_hint: zod.z.string().optional().nullable(),
+  dofollow: dofollowSchema.optional(),
+  cost_tier: costTierSchema.optional(),
+  cost_note: zod.z.string().optional().nullable(),
+  description: zod.z.string().optional().nullable(),
+  steps: zod.z.array(opportunityStepSchema).optional(),
+  openquok_cta_kind: ctaKindSchema.optional(),
+  openquok_channel_slug: zod.z.string().optional().nullable(),
+  openquok_plug_name: zod.z.string().optional().nullable(),
+  cta_href: zod.z.string().optional().nullable(),
+  cta_label: zod.z.string().optional().nullable(),
+  sort_order: zod.z.number().int().optional(),
+  is_admin_published: zod.z.boolean().optional()
+};
+var linkDirectoryOpportunityCreateSchema = zod.z.object(opportunityFields);
+var linkDirectoryOpportunityUpdateSchema = zod.z.object({
+  ...opportunityFields,
+  id: zod.z.string().uuid()
+});
+var linkDirectoryCategoryCreateSchema = zod.z.object({
+  name: zod.z.string().min(1),
+  slug: zod.z.string().optional(),
+  headline: zod.z.string().optional().nullable(),
+  description: zod.z.string().optional().nullable(),
+  sort_order: zod.z.number().int().optional(),
+  openquok_channels_hub_path: zod.z.string().optional()
+});
+var linkDirectoryCategoryUpdateSchema = zod.z.object({
+  id: zod.z.string().uuid(),
+  name: zod.z.string().min(1),
+  slug: zod.z.string().optional(),
+  headline: zod.z.string().optional().nullable(),
+  description: zod.z.string().optional().nullable(),
+  sort_order: zod.z.number().int().optional(),
+  openquok_channels_hub_path: zod.z.string().optional()
+});
+var linkDirectoryTagCreateSchema = zod.z.object({
+  name: zod.z.string().min(1),
+  slug: zod.z.string().optional(),
+  headline: zod.z.string().optional().nullable(),
+  description: zod.z.string().optional().nullable()
+});
+var linkDirectoryTagUpdateSchema = zod.z.object({
+  id: zod.z.string().uuid(),
+  name: zod.z.string().min(1),
+  slug: zod.z.string().optional(),
+  headline: zod.z.string().optional().nullable(),
+  description: zod.z.string().optional().nullable()
+});
+var linkDirectoryTagGroupCreateSchema = zod.z.object({
+  name: zod.z.string().min(1),
+  sort_order: zod.z.number().int().optional()
+});
+var linkDirectorySubmissionCreateSchema = zod.z.object({
+  email: zod.z.string().email(),
+  site_url: zod.z.string().url(),
+  proposed_title: zod.z.string().max(500).optional().nullable(),
+  notes: zod.z.string().max(5e3).optional().nullable(),
+  payload: zod.z.record(zod.z.unknown()).optional()
+});
+var linkDirectorySubmissionReviewSchema = zod.z.object({
+  status: zod.z.enum(["approved", "rejected"])
+});
+var linkDirectoryBookmarksPutSchema = zod.z.object({
+  siteIds: zod.z.array(zod.z.string().uuid())
+});
+var linkDirectoryBookmarksOrderSchema = zod.z.object({
+  siteIds: zod.z.array(zod.z.string().uuid()).min(1)
+});
+var linkDirectoryRouter = express.Router();
+var authWithRoles7 = requireFullAuthWithRoles(
+  supabase,
+  userRepository,
+  rbacRepository
+);
+var optionalAuth4 = optionalAuthWithRoles(
+  supabase,
+  userRepository,
+  rbacRepository
+);
+var parsePublishedQuery = createPublishedLinkDirectoryParser();
+var parseAdminQuery = createAdminLinkDirectoryParser();
+var tagBodySchema2 = zod.z.object({
+  tagData: linkDirectoryTagCreateSchema,
+  tagGroupIds: zod.z.array(zod.z.string().uuid()).optional()
+});
+var tagUpdateBodySchema2 = zod.z.object({
+  tagData: linkDirectoryTagUpdateSchema,
+  tagGroupIds: zod.z.array(zod.z.string().uuid()).optional()
+});
+var whenParamIsId2 = (req, _res, next) => {
+  const id = req.params.siteId;
+  if (id && isValidUUID(id)) {
+    next();
+  } else {
+    next("route");
+  }
+};
+linkDirectoryRouter.get("/categories/active", linkDirectoryController.getActiveCategories);
+linkDirectoryRouter.get("/tags/active", linkDirectoryController.getActiveTags);
+linkDirectoryRouter.get("/opportunity-types", linkDirectoryController.getOpportunityTypes);
+linkDirectoryRouter.get("/published", parsePublishedQuery, linkDirectoryController.getPublishedSites);
+linkDirectoryRouter.get("/published/stats", linkDirectoryController.getPublishedHubStats);
+linkDirectoryRouter.get(
+  "/published/:siteSlug",
+  validateRequest({ params: linkDirectorySiteSlugParamSchema }),
+  linkDirectoryController.getPublishedSiteBySlug
+);
+linkDirectoryRouter.post(
+  "/submissions",
+  optionalAuth4,
+  validateRequest({ body: linkDirectorySubmissionCreateSchema }),
+  linkDirectoryController.createSubmission
+);
+linkDirectoryRouter.get("/me/bookmarks", authWithRoles7, linkDirectoryController.getUserBookmarks);
+linkDirectoryRouter.put(
+  "/me/bookmarks",
+  authWithRoles7,
+  validateRequest({ body: linkDirectoryBookmarksPutSchema }),
+  linkDirectoryController.putUserBookmarks
+);
+linkDirectoryRouter.put(
+  "/me/bookmarks/order",
+  authWithRoles7,
+  validateRequest({ body: linkDirectoryBookmarksOrderSchema }),
+  linkDirectoryController.putUserBookmarksOrder
+);
+linkDirectoryRouter.get(
+  "/categories/all-full",
+  authWithRoles7,
+  requireEditor,
+  linkDirectoryController.getAllCategories
+);
+linkDirectoryRouter.post(
+  "/categories",
+  authWithRoles7,
+  requireEditor,
+  validateRequest({ body: linkDirectoryCategoryCreateSchema }),
+  linkDirectoryController.createCategory
+);
+linkDirectoryRouter.put(
+  "/categories/:categoryId",
+  authWithRoles7,
+  requireEditor,
+  validateRequest({ params: linkDirectoryCategoryIdParamSchema, body: linkDirectoryCategoryUpdateSchema }),
+  linkDirectoryController.updateCategory
+);
+linkDirectoryRouter.delete(
+  "/categories/:categoryId",
+  authWithRoles7,
+  requireEditor,
+  validateRequest({ params: linkDirectoryCategoryIdParamSchema }),
+  linkDirectoryController.deleteCategory
+);
+linkDirectoryRouter.get("/tags/all-full", authWithRoles7, requireEditor, linkDirectoryController.getAllTags);
+linkDirectoryRouter.get(
+  "/tags/groups",
+  authWithRoles7,
+  requireEditor,
+  linkDirectoryController.getAllTagGroups
+);
+linkDirectoryRouter.post(
+  "/tags/groups",
+  authWithRoles7,
+  requireEditor,
+  validateRequest({ body: linkDirectoryTagGroupCreateSchema }),
+  linkDirectoryController.createTagGroup
+);
+linkDirectoryRouter.put(
+  "/tags/groups/:tagGroupId",
+  authWithRoles7,
+  requireEditor,
+  validateRequest({ params: linkDirectoryTagGroupIdParamSchema, body: linkDirectoryTagGroupCreateSchema }),
+  linkDirectoryController.updateTagGroup
+);
+linkDirectoryRouter.delete(
+  "/tags/groups/:tagGroupId",
+  authWithRoles7,
+  requireEditor,
+  validateRequest({ params: linkDirectoryTagGroupIdParamSchema }),
+  linkDirectoryController.deleteTagGroup
+);
+linkDirectoryRouter.post(
+  "/tags",
+  authWithRoles7,
+  requireEditor,
+  validateRequest({ body: tagBodySchema2 }),
+  linkDirectoryController.createTag
+);
+linkDirectoryRouter.put(
+  "/tags/:tagId",
+  authWithRoles7,
+  requireEditor,
+  validateRequest({ params: linkDirectoryTagIdParamSchema, body: tagUpdateBodySchema2 }),
+  linkDirectoryController.updateTag
+);
+linkDirectoryRouter.delete(
+  "/tags/:tagId",
+  authWithRoles7,
+  requireEditor,
+  validateRequest({ params: linkDirectoryTagIdParamSchema }),
+  linkDirectoryController.deleteTag
+);
+linkDirectoryRouter.get(
+  "/admin/submissions",
+  authWithRoles7,
+  requireEditor,
+  linkDirectoryController.getAdminSubmissions
+);
+linkDirectoryRouter.patch(
+  "/admin/submissions/:submissionId",
+  authWithRoles7,
+  requireEditor,
+  validateRequest({
+    params: linkDirectorySubmissionIdParamSchema,
+    body: linkDirectorySubmissionReviewSchema
+  }),
+  linkDirectoryController.reviewSubmission
+);
+linkDirectoryRouter.get(
+  "/all-full",
+  authWithRoles7,
+  requireEditor,
+  parseAdminQuery,
+  linkDirectoryController.getAdminSites
+);
+linkDirectoryRouter.post(
+  "/sites",
+  authWithRoles7,
+  requireEditor,
+  validateRequest({ body: linkDirectorySiteBodySchema }),
+  linkDirectoryController.createSite
+);
+linkDirectoryRouter.post(
+  "/sites/:siteId/opportunities",
+  authWithRoles7,
+  requireEditor,
+  validateRequest({
+    params: linkDirectorySiteIdParamSchema,
+    body: linkDirectoryOpportunityCreateSchema
+  }),
+  linkDirectoryController.createOpportunity
+);
+linkDirectoryRouter.put(
+  "/opportunities/:opportunityId",
+  authWithRoles7,
+  requireEditor,
+  validateRequest({
+    params: linkDirectoryOpportunityIdParamSchema,
+    body: linkDirectoryOpportunityUpdateSchema
+  }),
+  linkDirectoryController.updateOpportunity
+);
+linkDirectoryRouter.delete(
+  "/opportunities/:opportunityId",
+  authWithRoles7,
+  requireEditor,
+  validateRequest({ params: linkDirectoryOpportunityIdParamSchema }),
+  linkDirectoryController.deleteOpportunity
+);
+linkDirectoryRouter.get(
+  "/sites/:siteId",
+  whenParamIsId2,
+  authWithRoles7,
+  requireEditor,
+  validateRequest({ params: linkDirectorySiteIdParamSchema }),
+  linkDirectoryController.getSiteById
+);
+linkDirectoryRouter.put(
+  "/sites/:siteId",
+  whenParamIsId2,
+  authWithRoles7,
+  requireEditor,
+  validateRequest({ params: linkDirectorySiteIdParamSchema, body: linkDirectorySiteUpdateBodySchema }),
+  linkDirectoryController.updateSite
+);
+linkDirectoryRouter.delete(
+  "/sites/:siteId",
+  whenParamIsId2,
+  authWithRoles7,
+  requireEditor,
+  validateRequest({ params: linkDirectorySiteIdParamSchema }),
+  linkDirectoryController.deleteSite
+);
+
 // routes/ImageRoute.ts
 init_controllers();
 init_connections();
@@ -39921,7 +41902,7 @@ var upload = multer__default.default({
   storage: multer__default.default.memoryStorage(),
   limits: { fileSize: MAX_IMAGE_UPLOAD_BYTES }
 });
-var authWithRoles7 = requireFullAuthWithRoles(
+var authWithRoles8 = requireFullAuthWithRoles(
   supabase,
   userRepository,
   rbacRepository
@@ -39931,16 +41912,16 @@ imageRouter.get("/download", imageController.getByUrl);
 imageRouter.get("/integration-avatar", imageController.getIntegrationAvatar);
 imageRouter.get("/external-proxy", imageController.allowlistedExternalImageProxy);
 imageRouter.post("/external-proxy", imageController.allowlistedExternalImageProxy);
-imageRouter.get("/blog-library", authWithRoles7, requireEditor, imageController.listBlogLibrary);
+imageRouter.get("/blog-library", authWithRoles8, requireEditor, imageController.listBlogLibrary);
 imageRouter.post(
   "/upload",
-  authWithRoles7,
+  authWithRoles8,
   requireEditor,
   upload.single("imageFile"),
   imageController.upload
 );
-imageRouter.delete("/delete", authWithRoles7, requireEditor, imageController.delete);
-imageRouter.get("/proxy", authWithRoles7, requireEditor, imageController.proxyImage);
+imageRouter.delete("/delete", authWithRoles8, requireEditor, imageController.delete);
+imageRouter.get("/proxy", authWithRoles8, requireEditor, imageController.proxyImage);
 
 // routes/MediaRoute.ts
 init_controllers();
@@ -40066,27 +42047,27 @@ var upload2 = multer__default.default({
   storage: multer__default.default.memoryStorage(),
   limits: { fileSize: MAX_MEDIA_UPLOAD_BYTES }
 });
-var authWithRoles8 = requireFullAuthWithRoles(
+var authWithRoles9 = requireFullAuthWithRoles(
   supabase,
   userRepository,
   rbacRepository
 );
 var mediaRouter = express.Router();
-mediaRouter.get("/", authWithRoles8, validateMediaOrganizationQuery, mediaController.list);
-mediaRouter.get("/tree", authWithRoles8, validateMediaOrganizationQuery, mediaController.tree);
-mediaRouter.post("/move", authWithRoles8, validateMediaMoveBody, mediaController.move);
-mediaRouter.post("/copy", authWithRoles8, validateMediaCopyBody, mediaController.copy);
-mediaRouter.post("/rename", authWithRoles8, validateMediaRenameBody, mediaController.rename);
-mediaRouter.post("/folder", authWithRoles8, validateMediaCreateFolderBody, mediaController.createFolder);
-mediaRouter.delete("/folder", authWithRoles8, validateMediaDeleteFolderBody, mediaController.deleteFolder);
-mediaRouter.post("/upload", authWithRoles8, upload2.single("mediaFile"), mediaController.upload);
-mediaRouter.post("/upload-server", authWithRoles8, upload2.single("file"), mediaController.uploadServer);
-mediaRouter.post("/upload-simple", authWithRoles8, upload2.single("file"), mediaController.uploadSimple);
-mediaRouter.delete("/delete", authWithRoles8, mediaController.delete);
-mediaRouter.post("/save", authWithRoles8, mediaController.saveMedia);
-mediaRouter.post("/save-media", authWithRoles8, mediaController.saveMedia);
-mediaRouter.post("/information", authWithRoles8, validateSaveMediaInformationBody, mediaController.saveMediaInformation);
-mediaRouter.post("/:endpoint", authWithRoles8, validateMultipartEndpoint, mediaController.multipart);
+mediaRouter.get("/", authWithRoles9, validateMediaOrganizationQuery, mediaController.list);
+mediaRouter.get("/tree", authWithRoles9, validateMediaOrganizationQuery, mediaController.tree);
+mediaRouter.post("/move", authWithRoles9, validateMediaMoveBody, mediaController.move);
+mediaRouter.post("/copy", authWithRoles9, validateMediaCopyBody, mediaController.copy);
+mediaRouter.post("/rename", authWithRoles9, validateMediaRenameBody, mediaController.rename);
+mediaRouter.post("/folder", authWithRoles9, validateMediaCreateFolderBody, mediaController.createFolder);
+mediaRouter.delete("/folder", authWithRoles9, validateMediaDeleteFolderBody, mediaController.deleteFolder);
+mediaRouter.post("/upload", authWithRoles9, upload2.single("mediaFile"), mediaController.upload);
+mediaRouter.post("/upload-server", authWithRoles9, upload2.single("file"), mediaController.uploadServer);
+mediaRouter.post("/upload-simple", authWithRoles9, upload2.single("file"), mediaController.uploadSimple);
+mediaRouter.delete("/delete", authWithRoles9, mediaController.delete);
+mediaRouter.post("/save", authWithRoles9, mediaController.saveMedia);
+mediaRouter.post("/save-media", authWithRoles9, mediaController.saveMedia);
+mediaRouter.post("/information", authWithRoles9, validateSaveMediaInformationBody, mediaController.saveMediaInformation);
+mediaRouter.post("/:endpoint", authWithRoles9, validateMultipartEndpoint, mediaController.multipart);
 
 // routes/integrationApi/NoAuthRoutes.ts
 init_controllers();
@@ -40179,11 +42160,11 @@ var validateIntegrationMentionsRequest = validateRequest({
 
 // routes/integrationApi/NoAuthRoutes.ts
 var integrationNoAuthRouter = express.Router();
-var optionalAuth4 = optionalAuthWithRoles(supabase, userRepository, rbacRepository);
+var optionalAuth5 = optionalAuthWithRoles(supabase, userRepository, rbacRepository);
 integrationNoAuthRouter.get("/", integrationController.getAllIntegrations);
 integrationNoAuthRouter.post(
   "/social-connect/:integration",
-  optionalAuth4,
+  optionalAuth5,
   validateSocialConnectBody,
   integrationController.connectSocialMediaNoAuth
 );
@@ -40967,7 +42948,7 @@ init_repositories();
 init_controllers();
 var postRouter = express.Router();
 var auth4 = requireFullAuth(supabase);
-var optionalAuth5 = optionalAuthWithRoles(supabase, userRepository, rbacRepository);
+var optionalAuth6 = optionalAuthWithRoles(supabase, userRepository, rbacRepository);
 postRouter.get("/find-slot", auth4, validatePostOrganizationQuery, postsController.findSlot);
 postRouter.get("/tags", auth4, validatePostOrganizationQuery, postsController.listTags);
 postRouter.post("/tags", auth4, validateCreatePostTagBody, postsController.createTag);
@@ -40977,7 +42958,7 @@ postRouter.post("/", auth4, validateCreatePostBody, postsController.createPost);
 postRouter.post("/:postId/comments", auth4, validateCreateComposerComment, postsController.createComposerComment);
 postRouter.get(
   "/preview/:postId",
-  optionalAuth5,
+  optionalAuth6,
   validatePostPreviewParams,
   postsController.getPostPreview
 );
@@ -41002,9 +42983,9 @@ postRouter.delete("/:postGroup", auth4, validateDeletePostGroup, postsController
 init_controllers();
 init_connections();
 init_repositories();
-var authWithRoles9 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
+var authWithRoles10 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
 var thirdPartyRouter = express.Router();
-thirdPartyRouter.get("/for-media", authWithRoles9, validateMediaOrganizationQuery, thirdPartyController.listForMedia);
+thirdPartyRouter.get("/for-media", authWithRoles10, validateMediaOrganizationQuery, thirdPartyController.listForMedia);
 
 // routes/SignatureRoute.ts
 init_controllers();
@@ -41194,96 +43175,96 @@ var validateBillingAdminAddSubscriptionBody = (req, res, next) => validateBody(b
 var validateBillingRefundChargesBody = (req, res, next) => validateBody(billingRefundChargesBodySchema, req, res, next);
 
 // routes/BillingRoute.ts
-var authWithRoles10 = requireFullAuthWithRoles(
+var authWithRoles11 = requireFullAuthWithRoles(
   supabase,
   userRepository,
   rbacRepository
 );
 var billingRouter = express.Router();
 billingRouter.get("/plans", billingController.getPlans);
-billingRouter.get("/account-owned", authWithRoles10, billingController.getOwnedAccount);
-billingRouter.get("/", authWithRoles10, validateBillingOrganizationQuery, billingController.getCurrent);
-billingRouter.get("/subscription", authWithRoles10, validateBillingOrganizationQuery, billingController.getCurrent);
-billingRouter.get("/current", authWithRoles10, validateBillingOrganizationQuery, billingController.getCurrent);
+billingRouter.get("/account-owned", authWithRoles11, billingController.getOwnedAccount);
+billingRouter.get("/", authWithRoles11, validateBillingOrganizationQuery, billingController.getCurrent);
+billingRouter.get("/subscription", authWithRoles11, validateBillingOrganizationQuery, billingController.getCurrent);
+billingRouter.get("/current", authWithRoles11, validateBillingOrganizationQuery, billingController.getCurrent);
 billingRouter.post(
   "/subscribe",
-  authWithRoles10,
+  authWithRoles11,
   validateBillingSubscribeBody,
   billingController.subscribe
 );
 billingRouter.post(
   "/embedded",
-  authWithRoles10,
+  authWithRoles11,
   validateBillingSubscribeBody,
   billingController.embedded
 );
-billingRouter.get("/portal", authWithRoles10, validateBillingOrganizationQuery, billingController.portal);
+billingRouter.get("/portal", authWithRoles11, validateBillingOrganizationQuery, billingController.portal);
 billingRouter.get(
   "/check/:id",
-  authWithRoles10,
+  authWithRoles11,
   validateBillingOrganizationQuery,
   billingController.checkCheckout
 );
 billingRouter.get(
   "/check-discount",
-  authWithRoles10,
+  authWithRoles11,
   validateBillingOrganizationQuery,
   billingController.checkDiscount
 );
 billingRouter.post(
   "/apply-discount",
-  authWithRoles10,
+  authWithRoles11,
   validateBillingOrganizationQuery,
   billingController.applyDiscount
 );
 billingRouter.post(
   "/finish-trial",
-  authWithRoles10,
+  authWithRoles11,
   validateBillingOrganizationQuery,
   billingController.finishTrial
 );
 billingRouter.get(
   "/is-trial-finished",
-  authWithRoles10,
+  authWithRoles11,
   validateBillingOrganizationQuery,
   billingController.isTrialFinished
 );
 billingRouter.post(
   "/prorate",
-  authWithRoles10,
+  authWithRoles11,
   validateBillingPlanChangeBody,
   billingController.prorate
 );
 billingRouter.post(
   "/cancel",
-  authWithRoles10,
+  authWithRoles11,
   validateBillingCancelBody,
   billingController.cancel
 );
 billingRouter.get(
   "/charges",
-  authWithRoles10,
+  authWithRoles11,
   requirePlatformAdmin,
   validateBillingOrganizationQuery,
   billingController.getCharges
 );
 billingRouter.post(
   "/refund-charges",
-  authWithRoles10,
+  authWithRoles11,
   requirePlatformAdmin,
   validateBillingRefundChargesBody,
   billingController.refundCharges
 );
 billingRouter.post(
   "/cancel-subscription",
-  authWithRoles10,
+  authWithRoles11,
   requirePlatformAdmin,
   validateBillingOrganizationQuery,
   billingController.cancelSubscriptionAdmin
 );
 billingRouter.post(
   "/add-subscription",
-  authWithRoles10,
+  authWithRoles11,
   requirePlatformAdmin,
   validateBillingAdminAddSubscriptionBody,
   billingController.addSubscriptionAdmin
@@ -41506,7 +43487,7 @@ function registerBullBoardSessionRoutes(apiRouter, config2) {
   if (!layout) {
     return;
   }
-  const authWithRoles11 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
+  const authWithRoles12 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
   const maxAge = getBullBoardSessionMaxAgeMs();
   const cookiePath = layout.fullPath;
   const setSession = (req, res) => {
@@ -41525,8 +43506,8 @@ function registerBullBoardSessionRoutes(apiRouter, config2) {
     res.status(200).json({ ok: true });
   };
   const session = express__default.default.Router();
-  session.post("/", authWithRoles11, requirePlatformAdmin, setSession);
-  session.post("/clear", authWithRoles11, requirePlatformAdmin, clearSession);
+  session.post("/", authWithRoles12, requirePlatformAdmin, setSession);
+  session.post("/clear", authWithRoles12, requirePlatformAdmin, clearSession);
   apiRouter.use("/admin/bull-board/session", session);
   logger.info({ msg: "[BullBoard] Session cookie routes mounted", cookiePath, sessionBase: "/admin/bull-board/session" });
 }
@@ -41571,8 +43552,8 @@ async function registerBullBoardRoutes(apiRouter, config2) {
       options: { uiBasePath, uiConfig: {} }
     });
     const boardRouter = express__default.default.Router();
-    const authWithRoles11 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
-    boardRouter.use(authWithRoles11, requirePlatformAdmin, serverAdapter.getRouter());
+    const authWithRoles12 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
+    boardRouter.use(authWithRoles12, requirePlatformAdmin, serverAdapter.getRouter());
     apiRouter.use(mountPath, boardRouter);
     logger.info({
       msg: "[BullBoard] Mounted (super admin only)",
@@ -41694,6 +43675,7 @@ async function mountAllRoutes(app2, config2) {
   apiRouter.use("/feedback", feedbackRouter);
   apiRouter.use("/blog-system", blogRouter);
   apiRouter.use("/listings", listingRouter);
+  apiRouter.use("/link-directory", linkDirectoryRouter);
   apiRouter.use("/image", imageRouter);
   apiRouter.use("/media", mediaRouter);
   apiRouter.use("/integrations", integrationsRouter);
@@ -41720,6 +43702,7 @@ async function mountAllRoutes(app2, config2) {
     feedback: `${prefix}/feedback`,
     blog: `${prefix}/blog-system`,
     listings: `${prefix}/listings`,
+    linkDirectory: `${prefix}/link-directory`,
     image: `${prefix}/image`,
     media: `${prefix}/media`,
     integrationsSession: `${prefix}/integrations`,
@@ -42485,6 +44468,7 @@ var applyRateLimiting = (app2) => {
   });
   const feedbackConfig = config.rateLimit.feedback;
   app2.use(`${apiPrefix}/feedback`, feedbackLimiter);
+  app2.use(`${apiPrefix}/link-directory/submissions`, feedbackLimiter);
   logger.info({
     msg: "Applied feedback rate limiting",
     windowMs: feedbackConfig?.windowMs ?? 60 * 60 * 1e3,

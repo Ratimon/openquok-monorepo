@@ -7,6 +7,7 @@ import { FeedbackController } from "./FeedbackController";
 import { BlogController } from "./BlogController";
 import { ListingController } from "./ListingController";
 import { ListingTagController } from "./ListingTagController";
+import { LinkDirectoryController } from "./LinkDirectoryController";
 import { ImageController } from "./ImageController";
 import { MediaController, MAX_MEDIA_UPLOAD_BYTES } from "./MediaController";
 import { BillingController } from "./BillingController";
@@ -39,6 +40,7 @@ import {
     blogService,
     listingService,
     listingTagService,
+    linkDirectoryService,
     configService,
     integrationConnectionService,
     integrationManager,
@@ -90,6 +92,7 @@ export const feedbackController = new FeedbackController(feedbackService);
 export const blogController = new BlogController(blogService);
 export const listingController = new ListingController(listingService);
 export const listingTagController = new ListingTagController(listingTagService);
+export const linkDirectoryController = new LinkDirectoryController(linkDirectoryService);
 export const imageController = new ImageController(storageSupabaseRepository, integrationConnectionService);
 export const mediaController = new MediaController(
     mediaService,

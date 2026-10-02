@@ -27,6 +27,7 @@
     "test:unit:email": "cross-env NODE_ENV=development jest -- emails/",
     "test:unit:organization": "cross-env NODE_ENV=development jest services/OrganizationService.unit.test.ts --no-coverage",
     "test:unit:feedback": "cross-env NODE_ENV=development jest services/FeedbackService.unit.test.ts --no-coverage",
+    "test:unit:link-directory": "cross-env NODE_ENV=development NODE_OPTIONS=--max-old-space-size=5120 node scripts/run-unit-tests.mjs utils/linkDirectory",
     "test:unit:rbac": "cross-env NODE_ENV=development jest services/RbacService.unit.test.ts --no-coverage",
     "test:unit:integration-connection": "cross-env NODE_ENV=development NODE_OPTIONS=--max-old-space-size=5120 jest services/IntegrationConnectionService.unit.test.ts --no-coverage --runInBand",
     "test:unit:integration-connection:connect-prefill": "cross-env NODE_ENV=development NODE_OPTIONS=--max-old-space-size=8192 jest services/integrationConnectPrefill.unit.test.ts --no-coverage --runInBand --testPathPattern=integrationConnectPrefill",

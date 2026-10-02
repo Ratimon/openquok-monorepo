@@ -5,6 +5,7 @@ export const BLOG_POSTS_PREFIX = "/blog-system/posts/";
 export const BLOG_POST_ACTIVITY_PATH = /^\/blog-system\/posts\/[^/]+\/activity$/;
 export const LISTINGS_PUBLISHED_PREFIX = "/listings/published/";
 export const LISTINGS_STACKS_PUBLISHED_PREFIX = "/listings/stacks/published/";
+export const LINK_DIRECTORY_PUBLISHED_PREFIX = "/link-directory/published/";
 export const LISTING_STAT_PATH = /^\/listings\/stats\/(views|likes|clicks)\/[^/]+$/;
 export const LISTING_COMMENTS_PATH = /^\/listings\/[0-9a-f-]{36}\/comments$/i;
 
@@ -39,6 +40,10 @@ export const PUBLIC_PATH_EXACT = [
     "/listings/tags/all-full",
     "/listings/tags/groups",
     "/listings/creators",
+    "/link-directory/published",
+    "/link-directory/categories/active",
+    "/link-directory/tags/active",
+    "/link-directory/opportunity-types",
     "/openapi.json",
     /** Join-org page: invitees validate the link before sign-in. */
     "/settings/invite/validate",
@@ -59,7 +64,10 @@ const isPublicImageDownloadGet = (req: Request, routePath: string): boolean => {
     const dbName = typeof query.databaseName === "string" ? query.databaseName : "";
     const imageUrlParam = typeof query.imageUrl === "string" ? query.imageUrl : "";
     return (
-        (dbName === "blog_images" || dbName === "listing_images") && imageUrlParam.length > 0
+        (dbName === "blog_images" ||
+            dbName === "listing_images" ||
+            dbName === "link_directory_logos") &&
+        imageUrlParam.length > 0
     );
 };
 
@@ -107,6 +115,14 @@ export const isAuthExemptRoute = (req: Request, routePath: string): boolean => {
         return true;
     }
 
+    if (req.method === "GET" && routePath.startsWith(LINK_DIRECTORY_PUBLISHED_PREFIX)) {
+        return true;
+    }
+
+    if (req.method === "POST" && routePath === "/link-directory/submissions") {
+        return true;
+    }
+
     if (isPublicImageDownloadGet(req, routePath)) {
         return true;
     }
@@ -141,6 +157,9 @@ export const isPublicWriteRoute = (req: Request, routePath: string): boolean => 
     if (req.method === "PUT" && LISTING_STAT_PATH.test(routePath)) {
         return true;
     }
+    if (req.method === "POST" && routePath === "/link-directory/submissions") {
+        return true;
+    }
     return false;
 };
 
@@ -167,6 +186,7 @@ export const hasDedicatedRateLimiter = (req: Request, routePath: string): boolea
     isPublicApiPath(routePath) ||
     isUploadPath(routePath) ||
     (req.method === "POST" && routePath === "/feedback") ||
+    (req.method === "POST" && routePath === "/link-directory/submissions") ||
     (req.method === "POST" && routePath === "/oauth/token") ||
     (req.method === "POST" && isIntegrationConnectPath(routePath)) ||
     isPublicWriteRoute(req, routePath);

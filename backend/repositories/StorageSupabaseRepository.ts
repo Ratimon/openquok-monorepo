@@ -6,6 +6,7 @@ import { DatabaseError } from "../errors/InfraError";
 export const DATABASE_NAMES = {
     AVATARS: "avatars",
     BLOG_IMAGES: "blog_images",
+    LINK_DIRECTORY_LOGOS: "link_directory_logos",
 } as const;
 
 export type DatabaseName = (typeof DATABASE_NAMES)[keyof typeof DATABASE_NAMES];
@@ -15,10 +16,17 @@ export function isAllowedDatabaseName(name: unknown): name is DatabaseName {
 }
 
 /** Buckets backed by Supabase Storage (`/api/v1/image/*`). User-owned R2 media uses `/api/v1/media/*`. */
-export type SupabaseImageBucketName = typeof DATABASE_NAMES.AVATARS | typeof DATABASE_NAMES.BLOG_IMAGES;
+export type SupabaseImageBucketName =
+    | typeof DATABASE_NAMES.AVATARS
+    | typeof DATABASE_NAMES.BLOG_IMAGES
+    | typeof DATABASE_NAMES.LINK_DIRECTORY_LOGOS;
 
 export function isSupabaseImageBucketName(name: unknown): name is SupabaseImageBucketName {
-    return name === DATABASE_NAMES.AVATARS || name === DATABASE_NAMES.BLOG_IMAGES;
+    return (
+        name === DATABASE_NAMES.AVATARS ||
+        name === DATABASE_NAMES.BLOG_IMAGES ||
+        name === DATABASE_NAMES.LINK_DIRECTORY_LOGOS
+    );
 }
 
 /**

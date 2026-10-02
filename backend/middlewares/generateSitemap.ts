@@ -4,6 +4,7 @@ import path from "path";
 import { fileURLToPath } from "node:url";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { logger } from "../utils/Logger";
+import { mergeBuildBacklinksSitemapTagSlugs } from "../utils/linkDirectory/buildBacklinksVirtualTagSlugs";
 
 const bundledRoutesManifestPath = path.join(
     path.dirname(fileURLToPath(import.meta.url)),
@@ -89,6 +90,8 @@ const PUBLIC_TOOL_CHANNEL_PATH_HUMANIZER = "/tools/humanizer";
 const PUBLIC_TOOL_CHANNEL_PATH_PAYLOAD_WIZARD = "/tools/payload-wizard";
 
 const LISTING_HUB_PREFIXES = ["/playbooks", "/building-blocks"] as const;
+
+const BUILD_BACKLINKS_HUB_PREFIX = "/build-backlinks";
 
 /** Keep in sync with web/src/lib/content/constants/channels/api/index.ts and generate-routes-manifest.mjs. */
 const PUBLIC_API_MARKETING_HUB_PATHS = [
@@ -637,6 +640,104 @@ function listingHubPathsFromSlugs(categorySlugs: string[], tagSlugs: string[]): 
     return paths;
 }
 
+function buildBacklinksHubPathsFromSlugs(categorySlugs: string[], tagSlugs: string[]): string[] {
+    const paths: string[] = [];
+
+    for (const slug of categorySlugs) {
+        paths.push(`${BUILD_BACKLINKS_HUB_PREFIX}/categories/${encodeURIComponent(slug)}`);
+    }
+    for (const slug of tagSlugs) {
+        paths.push(`${BUILD_BACKLINKS_HUB_PREFIX}/tags/${encodeURIComponent(slug)}`);
+    }
+
+    return paths;
+}
+
+async function fetchPublishedLinkDirectorySiteSlugs(
+    supabase: SupabaseClient,
+): Promise<Array<{ slug: string; updated_at: string | null }>> {
+    const rows: Array<{ slug: string; updated_at: string | null }> = [];
+    let from = 0;
+
+    for (;;) {
+        const { data, error } = await supabase
+            .from("link_directory_sites")
+            .select("slug, updated_at")
+            .eq("is_admin_published", true)
+            .not("published_at", "is", null)
+            .order("published_at", { ascending: false })
+            .range(from, from + LISTING_PAGE_SIZE - 1);
+
+        if (error) {
+            logger.error({
+                msg: "Error fetching link directory sites for sitemap",
+                error: error.message,
+                code: error.code,
+            });
+            break;
+        }
+
+        const batch = data ?? [];
+        for (const row of batch) {
+            if (row.slug) {
+                rows.push({ slug: row.slug, updated_at: row.updated_at ?? null });
+            }
+        }
+
+        if (batch.length < LISTING_PAGE_SIZE) break;
+        from += LISTING_PAGE_SIZE;
+    }
+
+    return rows;
+}
+
+async function fetchLinkDirectoryCategorySlugs(supabase: SupabaseClient): Promise<string[]> {
+    const { data, error } = await supabase
+        .from("link_directory_categories")
+        .select("slug")
+        .order("sort_order", { ascending: true });
+
+    if (error) {
+        logger.error({
+            msg: "Error fetching link directory categories for sitemap",
+            error: error.message,
+            code: error.code,
+        });
+        return [];
+    }
+
+    const slugs: string[] = [];
+    for (const row of data ?? []) {
+        const slug = row.slug?.trim();
+        if (slug) slugs.push(slug);
+    }
+
+    return slugs;
+}
+
+async function fetchLinkDirectoryTagSlugs(supabase: SupabaseClient): Promise<string[]> {
+    const { data, error } = await supabase.from("link_directory_tags").select("slug").order("name", {
+        ascending: true,
+    });
+
+    if (error) {
+        logger.error({
+            msg: "Error fetching link directory tags for sitemap",
+            error: error.message,
+            code: error.code,
+        });
+        return [];
+    }
+
+    const slugs: string[] = [];
+    for (const row of data ?? []) {
+        const slug = row.slug?.trim();
+        if (slug) slugs.push(slug);
+    }
+
+    return slugs;
+}
+
 async function generateSitemapUrls(options: GenerateSitemapOptions): Promise<SitemapUrl[]> {
     const { supabaseClient, routesPath, routesManifestPath } = options;
     const urls: SitemapUrl[] = [];
@@ -851,6 +952,42 @@ async function generateSitemapUrls(options: GenerateSitemapOptions): Promise<Sit
     } catch (error) {
         logger.error({
             msg: "Error processing listing hub filters for sitemap",
+            error: error instanceof Error ? error.message : String(error),
+        });
+    }
+
+    try {
+        const [sites, categorySlugs, tagSlugs] = await Promise.all([
+            fetchPublishedLinkDirectorySiteSlugs(supabaseClient),
+            fetchLinkDirectoryCategorySlugs(supabaseClient),
+            fetchLinkDirectoryTagSlugs(supabaseClient),
+        ]);
+
+        for (const site of sites) {
+            urls.push({
+                url: `${BUILD_BACKLINKS_HUB_PREFIX}/${encodeURIComponent(site.slug)}`,
+                lastMod: site.updated_at
+                    ? new Date(site.updated_at).toISOString().slice(0, 10)
+                    : staticLastMod,
+                changeFreq: "weekly",
+            });
+        }
+
+        const sitemapTagSlugs = mergeBuildBacklinksSitemapTagSlugs(tagSlugs);
+        const hubPaths = buildBacklinksHubPathsFromSlugs(categorySlugs, sitemapTagSlugs);
+        pushSitemapPaths(urls, hubPaths, "weekly", staticLastMod);
+
+        logger.info({
+            msg: "Added link directory URLs to sitemap",
+            siteCount: sites.length,
+            categoryCount: categorySlugs.length,
+            editorialTagCount: tagSlugs.length,
+            tagCount: sitemapTagSlugs.length,
+            filterUrlCount: hubPaths.length,
+        });
+    } catch (error) {
+        logger.error({
+            msg: "Error processing link directory for sitemap",
             error: error instanceof Error ? error.message : String(error),
         });
     }

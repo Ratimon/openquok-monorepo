@@ -33,7 +33,7 @@
 				Back
 			</Button>
 			<SectionTitle>Cookie Policy</SectionTitle>
-			<SectionDescription>Last updated September 24, 2026</SectionDescription>
+			<SectionDescription>Last updated October 2, 2026</SectionDescription>
 		</SectionHeaderContainer>
 		<SubSectionOuterContainer class="max-w-3xl !py-4">
 			<SubSectionInnerContainer
@@ -80,11 +80,31 @@
 			</ul>
 
 			<h2>
+				Local browser storage</h2>
+			<p>
+				Some features use the browser’s <strong>local storage</strong> API instead of HTTP cookies.
+				Like essential cookies, this storage is used for functionality you ask for on the site, not
+				for third-party advertising.
+			</p>
+			<ul>
+				<li>
+					<strong><code>openquok:build-backlinks-bookmarks:v1</code></strong> — on the
+					<a href="/build-backlinks" class="link link-hover">Build Backlinks</a> hub, stores the
+					site slugs and internal directory identifiers for sites you save while you are
+					<strong>not</strong> signed in, so your shortlist persists on this device. When you sign
+					in, we merge that list into your account bookmarks and remove this entry from local
+					storage. You can clear it at any time through your browser’s site data or storage
+					settings.
+				</li>
+			</ul>
+
+			<h2>
 				Managing Cookies</h2>
 			<p>
-				You can control cookies through your browser settings. Disabling non-essential
-				cookies may limit some features. For questions about our cookie practices, contact
-				us at {supportEmail}.
+				You can control cookies through your browser settings. Clearing site data or local
+				storage for {companyUrl} removes saved Build Backlinks shortlists on that browser when
+				you are not signed in. Disabling non-essential cookies may limit some features. For
+				questions about our cookie and storage practices, contact us at {supportEmail}.
 			</p>
 
 			<h2>

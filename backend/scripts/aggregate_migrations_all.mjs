@@ -129,7 +129,8 @@ const aggregateMigrations = async () => {
       "listing-tags": 17,
       listings: 18,
       notification: 19,
-      sets: 20
+      sets: 20,
+      "link-directory": 21
     }
     const moduleOrder = (name) => (MODULE_ORDER[name] ?? 99)
 

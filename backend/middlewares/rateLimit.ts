@@ -480,6 +480,7 @@ export const applyRateLimiting = (app: Express): void => {
 
     const feedbackConfig = (config.rateLimit as { feedback?: RateLimitConfig }).feedback;
     app.use(`${apiPrefix}/feedback`, feedbackLimiter);
+    app.use(`${apiPrefix}/link-directory/submissions`, feedbackLimiter);
     logger.info({
         msg: "Applied feedback rate limiting",
         windowMs: feedbackConfig?.windowMs ?? 60 * 60 * 1000,

@@ -18,6 +18,7 @@
 		getRootPathSecretAdminConfigManager,
 		getRootPathSecretAdminEmailManager,
 		getRootPathSecretAdminListingManager,
+		getRootPathSecretAdminLinkDirectoryManager
 	} from '$lib/area-admin/constants/getRootPathSecretAdminArea';
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
 	import { icons } from '$data/icons';
@@ -55,6 +56,10 @@
 	const rootPathSecretAdminListingManager = getRootPathSecretAdminListingManager();
 	const secretAdminListingManagerHref = url(rootPathSecretAdminListingManager);
 
+	// /secret-admin/link-directory-manager
+	const rootPathSecretAdminLinkDirectoryManager = getRootPathSecretAdminLinkDirectoryManager();
+	const secretAdminLinkDirectoryManagerHref = url(rootPathSecretAdminLinkDirectoryManager);
+
 	// /secret-admin/config-manager
 	const rootPathSecretAdminConfigManager = getRootPathSecretAdminConfigManager();
 	const secretAdminConfigManagerHref = url(rootPathSecretAdminConfigManager);
@@ -81,6 +86,11 @@
 		{ label: 'Queue dashboard', href: secretAdminBullBoardHref, iconName: icons.Activity.name },
 		{ label: 'Blog Manager', href: secretAdminBlogManagerHref, iconName: icons.FileText.name },
 		{ label: 'Listing Manager', href: secretAdminListingManagerHref, iconName: icons.LayoutTemplate.name },
+		{
+			label: 'Link directory manager',
+			href: secretAdminLinkDirectoryManagerHref,
+			iconName: icons.Link.name
+		},
 		{ label: 'Config manager', href: secretAdminConfigManagerHref, iconName: icons.Cog.name },
 		{ label: 'Exit admin area', href: accountHref, iconName: icons.LogOut.name }
 	];

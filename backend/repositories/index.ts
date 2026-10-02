@@ -10,6 +10,9 @@ import { BlogRepository } from "./BlogRepository";
 import { ListingRepository } from "./ListingRepository";
 import { ListingCategoryRepository } from "./ListingCategoryRepository";
 import { ListingTagRepository } from "./ListingTagRepository";
+import { LinkDirectoryRepository } from "./LinkDirectoryRepository";
+import { LinkDirectoryCategoryRepository } from "./LinkDirectoryCategoryRepository";
+import { LinkDirectoryTagRepository } from "./LinkDirectoryTagRepository";
 import { isR2ConnectionReady, type R2ConnectionConfig } from "../connections/R2StorageClient";
 import { StorageR2Repository } from "./StorageR2Repository";
 import { MediaRepository } from "./MediaRepository";
@@ -35,6 +38,11 @@ export const blogRepository = new BlogRepository(supabaseServiceClientConnection
 export const listingRepository = new ListingRepository(supabaseServiceClientConnection);
 export const listingCategoryRepository = new ListingCategoryRepository(supabaseServiceClientConnection);
 export const listingTagRepository = new ListingTagRepository(supabaseServiceClientConnection);
+export const linkDirectoryRepository = new LinkDirectoryRepository(supabaseServiceClientConnection);
+export const linkDirectoryCategoryRepository = new LinkDirectoryCategoryRepository(
+    supabaseServiceClientConnection
+);
+export const linkDirectoryTagRepository = new LinkDirectoryTagRepository(supabaseServiceClientConnection);
 type R2Slice = {
     accountId: string;
     accessKeyId: string;
@@ -78,6 +86,9 @@ export { BlogRepository } from "./BlogRepository";
 export { ListingRepository } from "./ListingRepository";
 export { ListingCategoryRepository } from "./ListingCategoryRepository";
 export { ListingTagRepository } from "./ListingTagRepository";
+export { LinkDirectoryRepository } from "./LinkDirectoryRepository";
+export { LinkDirectoryCategoryRepository } from "./LinkDirectoryCategoryRepository";
+export { LinkDirectoryTagRepository } from "./LinkDirectoryTagRepository";
 export { StorageSupabaseRepository } from "./StorageSupabaseRepository";
 export { StorageR2Repository, COMPOSER_MEDIA_BUCKET_NAME } from "./StorageR2Repository";
 export {

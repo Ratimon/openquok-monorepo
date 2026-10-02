@@ -1,7 +1,12 @@
 import { fail, loadBackendProdEnv } from "./lib.mjs";
 
 /** Buckets that must be exported before cutover (DB dumps do not include object bytes). */
-export const STORAGE_BUCKETS = ["avatars", "blog_images", "listing_images"];
+export const STORAGE_BUCKETS = [
+  "avatars",
+  "blog_images",
+  "listing_images",
+  "link_directory_logos",
+];
 
 export const DEFAULT_ENV_FILE = "backend/.env.production.local";
 

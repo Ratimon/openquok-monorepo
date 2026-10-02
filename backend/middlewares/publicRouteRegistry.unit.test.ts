@@ -50,6 +50,18 @@ describe("publicRouteRegistry", () => {
                 )
             ).toBe(true);
             expect(
+                isAuthExemptRoute(
+                    asReq({
+                        method: "GET",
+                        query: {
+                            databaseName: "link_directory_logos",
+                            imageUrl: "uid-0.123456.webp",
+                        },
+                    }),
+                    "/image/download"
+                )
+            ).toBe(true);
+            expect(
                 isAuthExemptRoute(asReq({ method: "GET", query: {} }), "/image/download")
             ).toBe(false);
             expect(
@@ -112,6 +124,15 @@ describe("publicRouteRegistry", () => {
                         query: {
                             databaseName: "listing_images",
                             imageUrl: "https://cdn.example.com/b.webp",
+                        },
+                    },
+                },
+                {
+                    path: "/image/download",
+                    req: {
+                        query: {
+                            databaseName: "link_directory_logos",
+                            imageUrl: "uid-0.123456.webp",
                         },
                     },
                 },
