@@ -47,6 +47,13 @@ export const ROADMAP_ITEMS: readonly RoadmapItemViewModel[] = [
 		priority: 1
 	},
 	{
+		id: 'backlink-directory',
+		title: 'Backlink directory (Build Backlinks)',
+		categoryId: 'product',
+		columnId: 'complete',
+		priority: 1
+	},
+	{
 		id: 'photo-editor (Canva style)',
 		title: 'Free Photo Editor',
 		categoryId: 'product',
@@ -117,7 +124,7 @@ export const ROADMAP_ITEMS: readonly RoadmapItemViewModel[] = [
 		priority: 2
 	},
 	{
-		id: 'grok-build-integration',
+		id: 'perplexity-integration',
 		title: 'Perplexity Integration',
 		categoryId: 'integrations',
 		columnId: 'complete',
@@ -199,6 +206,13 @@ export const ROADMAP_ITEMS: readonly RoadmapItemViewModel[] = [
 		categoryId: 'integrations',
 		columnId: 'in_progress',
 		priority: 2
+	},
+	{
+		id: 'social-content-leaderboard',
+		title: 'Social Content Leaderboard (launch platform)',
+		categoryId: 'platform',
+		columnId: 'in_progress',
+		priority: 1
 	},
 	{
 		id: 'discord-support-bot',
