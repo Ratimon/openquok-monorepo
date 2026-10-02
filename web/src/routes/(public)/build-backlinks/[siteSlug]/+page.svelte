@@ -5,21 +5,19 @@
 
 	import { prepareBlogRichTextForDisplay } from '$lib/blogs/utils';
 	import { getPublicChannelBySlug } from '$lib/content/constants/channels';
-	import { getRootPathPublicBuildBacklinks } from '$lib/area-public/constants/getRootPathPublicBuildBacklinks';
 	import { publicBuildBacklinksBookmarksPresenter } from '$lib/link-directory/index';
 	import {
 		formatMetricsUpdatedLabel,
 		formatMonthlyVisitsLabel
 	} from '$lib/link-directory/utils/formatLinkDirectoryMetrics';
-	import { route, url } from '$lib/utils/path';
 
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import BuildBacklinksBookmarkButton from '$lib/ui/templates/build-backlinks/BuildBacklinksBookmarkButton.svelte';
 	import BuildBacklinksOpportunityRow from '$lib/ui/templates/build-backlinks/BuildBacklinksOpportunityRow.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
+	import PublicListingsHubBreadcrumb from '$lib/ui/templates/listings/PublicListingsHubBreadcrumb.svelte';
 	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
-	import InternalLink from '$lib/ui/links/InternalLink.svelte';
 
 	type Props = { data: PageData };
 
@@ -27,6 +25,7 @@
 
 	let siteVm = $derived(data.siteVm);
 	let schemaData = $derived(data.schemaData);
+	let listingsBreadcrumb = $derived(data.listingsBreadcrumb);
 	let isLoggedIn = $derived(data.isLoggedIn === true);
 
 	const bookmarksPresenter = publicBuildBacklinksBookmarksPresenter;
@@ -36,7 +35,6 @@
 		void bookmarksPresenter.hydrate(isLoggedIn);
 	});
 
-	const hubHref = $derived(url(route(getRootPathPublicBuildBacklinks())));
 	const visitsLabel = $derived(formatMonthlyVisitsLabel(siteVm.monthlyVisits));
 	const metricsUpdated = $derived(formatMetricsUpdatedLabel(siteVm.metricsUpdatedAt));
 
@@ -75,11 +73,11 @@
 
 <SectionOuterContainer class="py-10 md:py-14">
 	<div class="container mx-auto max-w-3xl px-4">
-		<nav class="text-sm text-base-content/60" aria-label="Breadcrumb">
-			<InternalLink href={hubHref} class="link link-hover">Build backlinks</InternalLink>
-			<span class="px-1">/</span>
-			<span class="text-base-content">{siteVm.title}</span>
-		</nav>
+		<PublicListingsHubBreadcrumb
+			kind={listingsBreadcrumb.kind}
+			variant={listingsBreadcrumb.variant}
+			siteLabel={listingsBreadcrumb.siteLabel ?? siteVm.title}
+		/>
 
 		<header class="mt-6 flex flex-col gap-4 sm:flex-row sm:items-start">
 			{#if siteVm.logoUrl}

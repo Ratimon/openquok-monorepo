@@ -1,6 +1,10 @@
 import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
+import type {
+	ListingsHubBreadcrumbKind,
+	ListingsHubBreadcrumbVariant
+} from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import type { LinkDirectorySiteDto } from '$lib/link-directory/index';
 
 import type { PageLoad } from './$types';
@@ -17,6 +21,11 @@ export const load: PageLoad = async ({ parent, data }) => {
 			schemaData: unknown;
 			metaTitle: string;
 			metaDescription: string;
+			listingsBreadcrumb: {
+				kind: ListingsHubBreadcrumbKind;
+				variant: ListingsHubBreadcrumbVariant;
+				siteLabel?: string | null;
+			};
 		};
 
 		return {
@@ -26,7 +35,8 @@ export const load: PageLoad = async ({ parent, data }) => {
 			siteVm: serverData.siteVm,
 			schemaData: serverData.schemaData,
 			metaTitle: serverData.metaTitle,
-			metaDescription: serverData.metaDescription
+			metaDescription: serverData.metaDescription,
+			listingsBreadcrumb: serverData.listingsBreadcrumb
 		};
 	}
 

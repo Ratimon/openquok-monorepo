@@ -1,4 +1,13 @@
-import type { CollectionPage, DefinedTerm, DefinedTermSet, ItemList, WebSite } from 'schema-dts';
+import type {
+	CollectionPage,
+	DefinedTerm,
+	DefinedTermSet,
+	ItemList,
+	PropertyValue,
+	WebSite
+} from 'schema-dts';
+
+import { sortPublishedOpportunities } from '$lib/link-directory/utils/createBuildBacklinksSiteGuideHowToSchema';
 
 import {
 	getRootPathPublicBuildBacklinks,
@@ -63,6 +72,50 @@ export function createBuildBacklinksCollectionPageSchema(params: {
 	};
 }
 
+function buildSiteMetricsAdditionalProperty(site: LinkDirectorySiteDto): PropertyValue[] | undefined {
+	const properties: PropertyValue[] = [];
+
+	if (site.domainRating != null) {
+		properties.push({
+			'@type': 'PropertyValue',
+			name: 'domainRating',
+			value: String(site.domainRating)
+		});
+	}
+
+	if (site.monthlyVisits != null) {
+		properties.push({
+			'@type': 'PropertyValue',
+			name: 'monthlyVisits',
+			value: String(site.monthlyVisits)
+		});
+	}
+
+	return properties.length > 0 ? properties : undefined;
+}
+
+function buildSiteOpportunitiesItemList(params: {
+	siteTitle: string;
+	siteGuideUrl: string;
+	opportunities: LinkDirectorySiteDto['opportunities'];
+}): ItemList | undefined {
+	const published = sortPublishedOpportunities(params.opportunities);
+	if (published.length === 0) {
+		return undefined;
+	}
+
+	return {
+		'@type': 'ItemList',
+		name: `Backlink opportunities on ${params.siteTitle}`,
+		itemListElement: published.map((opportunity, index) => ({
+			'@type': 'ListItem',
+			position: index + 1,
+			name: opportunity.title,
+			url: `${params.siteGuideUrl}#${opportunity.slug}`
+		}))
+	};
+}
+
 export function createBuildBacklinksItemListSchema(params: {
 	canonical: string;
 	origin: string;
@@ -82,12 +135,30 @@ export function createBuildBacklinksItemListSchema(params: {
 		url: canonical,
 		numberOfItems: totalCount ?? sites.length,
 		itemListOrder: 'https://schema.org/ItemListOrderDescending',
-		itemListElement: sites.map((site, index) => ({
-			'@type': 'ListItem',
-			position: listOffset + index + 1,
-			name: site.title,
-			url: new URL(getRootPathPublicBuildBacklinksSite(site.slug), origin).href
-		}))
+		itemListElement: sites.map((site, index) => {
+			const itemUrl = new URL(getRootPathPublicBuildBacklinksSite(site.slug), origin).href;
+			const itemDescription = site.shortDescription?.trim() || undefined;
+			const additionalProperty = buildSiteMetricsAdditionalProperty(site);
+			const opportunitiesList = buildSiteOpportunitiesItemList({
+				siteTitle: site.title,
+				siteGuideUrl: itemUrl,
+				opportunities: site.opportunities
+			});
+
+			return {
+				'@type': 'ListItem',
+				position: listOffset + index + 1,
+				url: itemUrl,
+				item: {
+					'@type': 'Thing',
+					name: site.title,
+					description: itemDescription,
+					url: itemUrl,
+					...(additionalProperty ? { additionalProperty } : {}),
+					...(opportunitiesList ? { hasPart: opportunitiesList } : {})
+				}
+			};
+		})
 	};
 }
 

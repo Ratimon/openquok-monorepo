@@ -1,11 +1,9 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import { getRootPathPublicBuildBacklinksCategories } from '$lib/area-public/constants/getRootPathPublicBuildBacklinks';
-import {
-	CONFIG_SCHEMA_COMPANY,
-	CONFIG_SCHEMA_MARKETING
-} from '$lib/config/constants/config';
+import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { PUBLIC_BUILD_BACKLINKS_HUB } from '$lib/content/constants/hubs/build-backlinks';
+import { buildListingsHubBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { linkDirectoryRepository } from '$lib/link-directory/index';
 import { buildBuildBacklinksCategoryOverview } from '$lib/link-directory/utils/buildBuildBacklinksOverviewCounts';
 import {
@@ -14,6 +12,7 @@ import {
 } from '$lib/link-directory/utils/createBuildBacklinksSeoSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
+import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 
 export const ssr = true;
@@ -45,8 +44,12 @@ export async function load({ url, fetch, cookies, parent }) {
 	const canonical = buildCanonicalUrl(url);
 	const pageMetaTags = withCanonicalMetaTags(metaTags, canonical, {
 		openGraph: {
-			title: String(CONFIG_SCHEMA_MARKETING.META_TITLE.default),
-			description: String(CONFIG_SCHEMA_MARKETING.META_DESCRIPTION.default)
+			title: customTitle,
+			description: customDescription
+		},
+		twitter: {
+			title: customTitle,
+			description: customDescription
 		}
 	});
 
@@ -61,8 +64,20 @@ export async function load({ url, fetch, cookies, parent }) {
 
 	const categories = buildBuildBacklinksCategoryOverview(categoryDetails, published.sites);
 
+	const listingsBreadcrumb = {
+		kind: 'build-backlinks' as const,
+		variant: 'categories-index' as const,
+		categoryLabel: null,
+		categorySlug: null,
+		tagLabel: null
+	};
+
 	const schemaData = createJsonLdGraph(
 		filterNonEmptyJsonLdNodes([
+			createBreadcrumbListSchema(
+				buildListingsHubBreadcrumbItems(listingsBreadcrumb),
+				url.origin
+			),
 			createBuildBacklinksCollectionPageSchema({
 				canonical,
 				origin: url.origin,
@@ -85,6 +100,7 @@ export async function load({ url, fetch, cookies, parent }) {
 		pageMetaTags,
 		isLoggedIn,
 		categories,
-		schemaData
+		schemaData,
+		listingsBreadcrumb
 	};
 }

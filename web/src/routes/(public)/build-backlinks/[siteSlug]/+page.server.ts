@@ -1,10 +1,10 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
-import type { WebPage } from 'schema-dts';
 
 import { error } from '@sveltejs/kit';
 
 import { getRootPathPublicBuildBacklinksSite } from '$lib/area-public/constants/getRootPathPublicBuildBacklinks';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
+import { buildListingsHubBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { linkDirectoryRepository } from '$lib/link-directory/index';
 import { createMetaData, type MetaDataImage } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
@@ -12,6 +12,11 @@ import {
 	createBuildBacklinksOpportunityHowToSchemas,
 	createBuildBacklinksSiteGuideHowToSchema
 } from '$lib/link-directory/utils/createBuildBacklinksSiteGuideHowToSchema';
+import {
+	createBuildBacklinksSiteGuidePlatformOrganizationSchema,
+	createBuildBacklinksSiteGuideWebPageSchema
+} from '$lib/link-directory/utils/createBuildBacklinksSiteGuideSeoSchema';
+import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 
 export const ssr = true;
@@ -72,18 +77,20 @@ export async function load({ params, url, fetch, cookies, parent }) {
 		}
 	});
 
-	const webPageNode: WebPage = {
-		'@type': 'WebPage',
-		'@id': `${canonical}#webpage`,
+	const platformOrganization = createBuildBacklinksSiteGuidePlatformOrganizationSchema({
+		canonicalUrl: canonical,
+		siteTitle: site.title,
+		siteUrl: site.siteUrl,
+		logoUrl: site.logoUrl
+	});
+
+	const webPageNode = createBuildBacklinksSiteGuideWebPageSchema({
+		canonical,
+		origin: url.origin,
+		companyName,
 		name: site.title,
-		description: customDescription,
-		url: canonical,
-		isPartOf: {
-			'@type': 'WebSite',
-			name: companyName,
-			url: url.origin
-		}
-	};
+		description: customDescription
+	});
 
 	const siteGuideHowTo = createBuildBacklinksSiteGuideHowToSchema({
 		canonicalUrl: canonical,
@@ -97,8 +104,23 @@ export async function load({ params, url, fetch, cookies, parent }) {
 		opportunities: site.opportunities ?? []
 	});
 
+	const listingsBreadcrumb = {
+		kind: 'build-backlinks' as const,
+		variant: 'site' as const,
+		siteLabel: site.title
+	};
+
 	const schemaData = createJsonLdGraph(
-		filterNonEmptyJsonLdNodes([webPageNode, siteGuideHowTo, ...opportunityHowTos])
+		filterNonEmptyJsonLdNodes([
+			createBreadcrumbListSchema(
+				buildListingsHubBreadcrumbItems(listingsBreadcrumb),
+				url.origin
+			),
+			platformOrganization,
+			webPageNode,
+			siteGuideHowTo,
+			...opportunityHowTos
+		])
 	);
 
 	return {
@@ -107,6 +129,7 @@ export async function load({ params, url, fetch, cookies, parent }) {
 		siteVm: site,
 		schemaData,
 		metaTitle: customTitle,
-		metaDescription: customDescription
+		metaDescription: customDescription,
+		listingsBreadcrumb
 	};
 }

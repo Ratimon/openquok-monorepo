@@ -17,6 +17,7 @@
 		categoryLabel?: string | null;
 		categorySlug?: string | null;
 		tagLabel?: string | null;
+		siteLabel?: string | null;
 		class?: string;
 	};
 
@@ -26,6 +27,7 @@
 		categoryLabel = null,
 		categorySlug = null,
 		tagLabel = null,
+		siteLabel = null,
 		class: className = ''
 	}: Props = $props();
 
@@ -35,7 +37,8 @@
 			variant,
 			categoryLabel,
 			categorySlug,
-			tagLabel
+			tagLabel,
+			siteLabel
 		});
 
 		return crumbs.map((crumb) => ({

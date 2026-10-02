@@ -1,4 +1,8 @@
 import type {
+	ListingsHubBreadcrumbKind,
+	ListingsHubBreadcrumbVariant
+} from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
+import type {
 	BuildBacklinksHubFilters,
 	LinkDirectoryCategoryDto,
 	LinkDirectorySiteDto,
@@ -22,4 +26,11 @@ export type BuildBacklinksHubPageContentData = {
 	showHubFaq: boolean;
 	isLoggedIn: boolean;
 	statsVm?: BuildBacklinksHubStatsViewModel | null;
+	listingsBreadcrumb: {
+		kind: ListingsHubBreadcrumbKind;
+		variant: ListingsHubBreadcrumbVariant;
+		categoryLabel?: string | null;
+		categorySlug?: string | null;
+		tagLabel?: string | null;
+	};
 };

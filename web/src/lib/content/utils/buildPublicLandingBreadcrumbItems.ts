@@ -9,6 +9,12 @@ import {
 	getRootPathSocialMediaSchedulingApi
 } from '$lib/area-public/constants/getRootPathPublicApiMarketing';
 import {
+	getRootPathPublicBuildBacklinks,
+	getRootPathPublicBuildBacklinksCategories,
+	getRootPathPublicBuildBacklinksCategory,
+	getRootPathPublicBuildBacklinksTags
+} from '$lib/area-public/constants/getRootPathPublicBuildBacklinks';
+import {
 	getRootPathPublicBuildingBlocks,
 	getRootPathPublicBuildingBlocksCategories,
 	getRootPathPublicBuildingBlocksCategory,
@@ -158,7 +164,7 @@ export function buildChannelsLandingBreadcrumbItems(params: {
 	];
 }
 
-export type ListingsHubBreadcrumbKind = 'playbooks' | 'building-blocks';
+export type ListingsHubBreadcrumbKind = 'playbooks' | 'building-blocks' | 'build-backlinks';
 
 export type ListingsHubBreadcrumbVariant =
 	| 'hub'
@@ -166,32 +172,37 @@ export type ListingsHubBreadcrumbVariant =
 	| 'tags-index'
 	| 'category'
 	| 'tag'
-	| 'category-tag';
+	| 'category-tag'
+	| 'site';
 
 function listingsHubRootPath(kind: ListingsHubBreadcrumbKind): string {
-	return kind === 'playbooks' ? getRootPathPublicPlaybooks() : getRootPathPublicBuildingBlocks();
+	if (kind === 'playbooks') return getRootPathPublicPlaybooks();
+	if (kind === 'build-backlinks') return getRootPathPublicBuildBacklinks();
+	return getRootPathPublicBuildingBlocks();
 }
 
 function listingsHubCategoriesIndexPath(kind: ListingsHubBreadcrumbKind): string {
-	return kind === 'playbooks'
-		? getRootPathPublicPlaybooksCategories()
-		: getRootPathPublicBuildingBlocksCategories();
+	if (kind === 'playbooks') return getRootPathPublicPlaybooksCategories();
+	if (kind === 'build-backlinks') return getRootPathPublicBuildBacklinksCategories();
+	return getRootPathPublicBuildingBlocksCategories();
 }
 
 function listingsHubTagsIndexPath(kind: ListingsHubBreadcrumbKind): string {
-	return kind === 'playbooks' ? getRootPathPublicPlaybooksTags() : getRootPathPublicBuildingBlocksTags();
+	if (kind === 'playbooks') return getRootPathPublicPlaybooksTags();
+	if (kind === 'build-backlinks') return getRootPathPublicBuildBacklinksTags();
+	return getRootPathPublicBuildingBlocksTags();
 }
 
 function listingsHubLabel(kind: ListingsHubBreadcrumbKind): string {
-	return kind === 'playbooks'
-		? PUBLIC_LANDING_BREADCRUMB.playbooksHub
-		: PUBLIC_LANDING_BREADCRUMB.buildingBlocksHub;
+	if (kind === 'playbooks') return PUBLIC_LANDING_BREADCRUMB.playbooksHub;
+	if (kind === 'build-backlinks') return PUBLIC_LANDING_BREADCRUMB.buildBacklinksHub;
+	return PUBLIC_LANDING_BREADCRUMB.buildingBlocksHub;
 }
 
 function listingsHubCategoryPath(kind: ListingsHubBreadcrumbKind, categorySlug: string): string {
-	return kind === 'playbooks'
-		? getRootPathPublicPlaybooksCategory(categorySlug)
-		: getRootPathPublicBuildingBlocksCategory(categorySlug);
+	if (kind === 'playbooks') return getRootPathPublicPlaybooksCategory(categorySlug);
+	if (kind === 'build-backlinks') return getRootPathPublicBuildBacklinksCategory(categorySlug);
+	return getRootPathPublicBuildingBlocksCategory(categorySlug);
 }
 
 export function buildListingsHubBreadcrumbItems(params: {
@@ -200,8 +211,16 @@ export function buildListingsHubBreadcrumbItems(params: {
 	categoryLabel?: string | null;
 	categorySlug?: string | null;
 	tagLabel?: string | null;
+	siteLabel?: string | null;
 }): BreadcrumbCrumb[] {
-	const { kind, variant, categoryLabel = null, categorySlug = null, tagLabel = null } = params;
+	const {
+		kind,
+		variant,
+		categoryLabel = null,
+		categorySlug = null,
+		tagLabel = null,
+		siteLabel = null
+	} = params;
 	const hubHref = route(listingsHubRootPath(kind));
 	const hubLabel = listingsHubLabel(kind);
 	const trimmedCategoryLabel = categoryLabel?.trim() ?? '';
@@ -242,6 +261,10 @@ export function buildListingsHubBreadcrumbItems(params: {
 			trail.push({ label: trimmedTagLabel || PUBLIC_LANDING_BREADCRUMB.tags });
 			return trail;
 		}
+		case 'site':
+			trail.push({ label: hubLabel, href: hubHref });
+			trail.push({ label: siteLabel?.trim() || 'Site' });
+			return trail;
 		default:
 			trail.push({ label: hubLabel });
 			return trail;

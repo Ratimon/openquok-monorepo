@@ -1,7 +1,7 @@
 import type { LinkDirectoryOpportunityDto } from '$lib/link-directory/link-directory.types';
 import { createHowToSEOSchema } from '$lib/seo/createHowToSEOSchema';
 
-function sortPublishedOpportunities(
+export function sortPublishedOpportunities(
 	opportunities: LinkDirectoryOpportunityDto[]
 ): LinkDirectoryOpportunityDto[] {
 	return [...opportunities]

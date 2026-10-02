@@ -1,1 +1,1 @@
-export { load } from '../../(hub)/+page.js';
+export { load } from '../../+page.js';

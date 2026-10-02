@@ -9,6 +9,7 @@ export const PUBLIC_LANDING_BREADCRUMB = {
 	supportedChannels: 'Supported Channels',
 	playbooksHub: 'Playbooks',
 	buildingBlocksHub: 'Building Blocks',
+	buildBacklinksHub: 'Build backlinks',
 	categories: 'Categories',
 	tags: 'Tags'
 } as const;

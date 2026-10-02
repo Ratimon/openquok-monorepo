@@ -4,10 +4,7 @@ import type { ServerLoadEvent } from '@sveltejs/kit';
 import type { DefinedTerm } from 'schema-dts';
 
 import { getRootPathPublicBuildBacklinks } from '$lib/area-public/constants/getRootPathPublicBuildBacklinks';
-import {
-	CONFIG_SCHEMA_COMPANY,
-	CONFIG_SCHEMA_MARKETING
-} from '$lib/config/constants/config';
+import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import {
 	buildPublishedQueryFromTagSlugs,
@@ -28,14 +25,20 @@ import {
 	mapBuildBacklinksSortToApi,
 	parseBuildBacklinksHubQueryFiltersFromUrl
 } from '$lib/link-directory/utils/buildBuildBacklinksHubNavigationUrl';
+import {
+	buildListingsHubBreadcrumbItems,
+	deriveListingsHubBreadcrumbVariant
+} from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
+import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 import { parseHubListPagination } from '$lib/listings/utils/hubListPagination';
 import {
 	formatBuildBacklinksHubHeroDescription,
 	toBuildBacklinksHubStatsViewModel
 } from '$lib/link-directory/utils/buildBuildBacklinksHubStats';
+import { shouldNoindexBuildBacklinksHubListing } from '$lib/link-directory/utils/shouldNoindexBuildBacklinksHubListing';
 
 export const ssr = true;
 
@@ -167,12 +170,21 @@ export async function loadBuildBacklinksHubPage(
 	})) satisfies MetaTagsProps;
 
 	const canonical = buildCanonicalUrl(url);
-	const pageMetaTags = withCanonicalMetaTags(metaTags, canonical, {
-		openGraph: {
-			title: String(CONFIG_SCHEMA_MARKETING.META_TITLE.default),
-			description: String(CONFIG_SCHEMA_MARKETING.META_DESCRIPTION.default)
-		}
-	});
+	const noindexHubListing = shouldNoindexBuildBacklinksHubListing(url);
+
+	const pageMetaTags = Object.freeze({
+		...withCanonicalMetaTags(metaTags, canonical, {
+			openGraph: {
+				title: customTitle,
+				description: customDescription
+			},
+			twitter: {
+				title: customTitle,
+				description: customDescription
+			}
+		}),
+		...(noindexHubListing ? { robots: 'noindex, follow' } : {})
+	}) satisfies MetaTagsProps;
 
 	const aboutNodes = [
 		fixedCategorySlug
@@ -193,28 +205,48 @@ export async function loadBuildBacklinksHubPage(
 			: null
 	].filter((node): node is DefinedTerm => node !== null);
 
+	const listingsBreadcrumbVariant = deriveListingsHubBreadcrumbVariant({
+		fixedCategorySlug,
+		fixedTagSlug
+	});
+	const listingsBreadcrumb = {
+		kind: 'build-backlinks' as const,
+		variant: listingsBreadcrumbVariant,
+		categoryLabel: fixedCategorySlug ? (categoryTermName ?? null) : null,
+		categorySlug: fixedCategorySlug ?? null,
+		tagLabel: fixedTagSlug ? (tagTermName ?? null) : null
+	};
+
 	const schemaData = createJsonLdGraph(
 		filterNonEmptyJsonLdNodes([
+			createBreadcrumbListSchema(
+				buildListingsHubBreadcrumbItems(listingsBreadcrumb),
+				url.origin
+			),
 			createBuildBacklinksCollectionPageSchema({
 				canonical,
 				origin: url.origin,
 				companyName,
 				name: customTitle,
 				description: customDescription,
-				mainEntityId: `${canonical}#build-backlinks-list`,
+				mainEntityId: noindexHubListing ? undefined : `${canonical}#build-backlinks-list`,
 				about: aboutNodes.length > 0 ? aboutNodes : undefined
 			}),
-			createBuildBacklinksItemListSchema({
-				canonical,
-				origin: url.origin,
-				name: customTitle,
-				description: customDescription,
-				sites: published.sites,
-				totalCount: filteredCount,
-				listOffset
-			}),
+			...(noindexHubListing
+				? []
+				: [
+						createBuildBacklinksItemListSchema({
+							canonical,
+							origin: url.origin,
+							name: customTitle,
+							description: customDescription,
+							sites: published.sites,
+							totalCount: filteredCount,
+							listOffset
+						})
+					]),
 			...aboutNodes,
-			...(fixedCategorySlug || fixedTagSlug
+			...(noindexHubListing || fixedCategorySlug || fixedTagSlug
 				? []
 				: [
 						createPublicFaqSEOSchema({
@@ -244,6 +276,7 @@ export async function loadBuildBacklinksHubPage(
 		heroDescription: customDescription,
 		heroSubtitle: PUBLIC_BUILD_BACKLINKS_HUB.subtitle,
 		showHubFaq: isMainHub,
-		statsVm
+		statsVm,
+		listingsBreadcrumb
 	};
 }

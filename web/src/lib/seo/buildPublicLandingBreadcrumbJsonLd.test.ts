@@ -99,6 +99,20 @@ describe('buildListingsHubBreadcrumbItems', () => {
 			{ label: 'TikTok' }
 		]);
 	});
+
+	it('builds build-backlinks site guide trail', () => {
+		expect(
+			buildListingsHubBreadcrumbItems({
+				kind: 'build-backlinks',
+				variant: 'site',
+				siteLabel: 'GitHub'
+			})
+		).toEqual([
+			{ label: 'Home', href: '/' },
+			{ label: 'Build backlinks', href: '/build-backlinks' },
+			{ label: 'GitHub' }
+		]);
+	});
 });
 
 describe('buildToolsLandingBreadcrumbItems', () => {

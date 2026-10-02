@@ -2,6 +2,10 @@ import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import type {
+	ListingsHubBreadcrumbKind,
+	ListingsHubBreadcrumbVariant
+} from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
+import type {
 	BuildBacklinksHubFilters,
 	LinkDirectoryCategoryDto,
 	LinkDirectorySiteDto,
@@ -39,6 +43,13 @@ export const load: PageLoad = async ({ parent, data }) => {
 			heroSubtitle: string;
 			showHubFaq: boolean;
 			statsVm?: BuildBacklinksHubStatsViewModel | null;
+			listingsBreadcrumb: {
+				kind: ListingsHubBreadcrumbKind;
+				variant: ListingsHubBreadcrumbVariant;
+				categoryLabel: string | null;
+				categorySlug: string | null;
+				tagLabel: string | null;
+			};
 		};
 
 		return {
@@ -62,7 +73,8 @@ export const load: PageLoad = async ({ parent, data }) => {
 			heroDescription: serverData.heroDescription,
 			heroSubtitle: serverData.heroSubtitle,
 			showHubFaq: serverData.showHubFaq,
-			statsVm: serverData.statsVm ?? null
+			statsVm: serverData.statsVm ?? null,
+			listingsBreadcrumb: serverData.listingsBreadcrumb
 		};
 	}
 

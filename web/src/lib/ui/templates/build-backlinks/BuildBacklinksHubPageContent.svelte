@@ -12,6 +12,7 @@
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
+	import PublicListingsHubBreadcrumb from '$lib/ui/templates/listings/PublicListingsHubBreadcrumb.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 
 	type Props = { data: BuildBacklinksHubPageContentData };
@@ -33,6 +34,7 @@
 	let showHubFaq = $derived(data.showHubFaq);
 	let statsVm = $derived(data.statsVm ?? null);
 	let isLoggedIn = $derived(data.isLoggedIn === true);
+	let listingsBreadcrumb = $derived(data.listingsBreadcrumb);
 
 	let submitOpen = $state(false);
 
@@ -69,6 +71,9 @@
 	<header class="border-b border-base-300/60 pb-8">
 		{#if statsVm}
 			<div class="container mx-auto max-w-6xl space-y-4 px-4 text-center">
+				<div class="text-left">
+					<PublicListingsHubBreadcrumb {...listingsBreadcrumb} />
+				</div>
 				<p class="text-xs font-semibold uppercase tracking-wide text-primary">{heroSubtitle}</p>
 				<h1 class="text-3xl font-black tracking-tight text-balance text-base-content sm:text-4xl">
 					{heroTitle}
@@ -86,6 +91,9 @@
 				</div>
 			</div>
 		{:else}
+			<div class="container mx-auto max-w-6xl px-4 pb-2">
+				<PublicListingsHubBreadcrumb {...listingsBreadcrumb} />
+			</div>
 			<div class="container mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4">
 				<div class="min-w-0">
 					<p class="text-xs font-semibold uppercase tracking-wide text-primary">{heroSubtitle}</p>
