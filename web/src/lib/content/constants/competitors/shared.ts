@@ -42,6 +42,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	recurpost: 'https://recurpost.com',
 	socialclaw: 'https://getsocialclaw.com',
 	socialync: 'https://www.socialync.io',
+	'sprout-social': 'https://sproutsocial.com',
 	typefully: 'https://typefully.com',
 	usebard: 'https://usebard.com'
 } as const satisfies Record<
@@ -62,6 +63,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	| 'recurpost'
 	| 'socialclaw'
 	| 'socialync'
+	| 'sprout-social'
 	| 'typefully'
 	| 'usebard',
 	string

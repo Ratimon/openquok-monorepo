@@ -159,6 +159,12 @@
 			cardContainerClass:
 				'bg-linear-to-br from-violet-500/22 via-purple-400/18 to-fuchsia-400/14 text-violet-50 ring-violet-400/30'
 		},
+		'sprout-social': {
+			heroContainerClass:
+				'bg-linear-to-br from-emerald-500/35 via-green-400/25 to-lime-300/20 text-emerald-50 ring-emerald-400/40',
+			cardContainerClass:
+				'bg-linear-to-br from-emerald-500/22 via-green-400/18 to-lime-300/14 text-emerald-50 ring-emerald-400/30'
+		},
 		typefully: {
 			heroContainerClass:
 				'bg-linear-to-br from-blue-500/30 via-indigo-400/20 to-sky-300/20 text-blue-100 ring-blue-400/35',

@@ -23,6 +23,7 @@ export type CompareProductSlug =
 	| 'recurpost'
 	| 'socialclaw'
 	| 'socialync'
+	| 'sprout-social'
 	| 'typefully'
 	| 'usebard';
 

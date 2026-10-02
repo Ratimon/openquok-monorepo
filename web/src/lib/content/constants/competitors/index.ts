@@ -29,6 +29,7 @@ import { postizCompareProduct } from '$lib/content/constants/competitors/postiz'
 import { recurpostCompareProduct } from '$lib/content/constants/competitors/recurpost';
 import { socialclawCompareProduct } from '$lib/content/constants/competitors/socialclaw';
 import { socialyncCompareProduct } from '$lib/content/constants/competitors/socialync';
+import { sproutSocialCompareProduct } from '$lib/content/constants/competitors/sprout-social';
 import { typefullyCompareProduct } from '$lib/content/constants/competitors/typefully';
 import { usebardCompareProduct } from '$lib/content/constants/competitors/usebard';
 import {
@@ -56,6 +57,7 @@ export { postizCompareProduct } from '$lib/content/constants/competitors/postiz'
 export { recurpostCompareProduct } from '$lib/content/constants/competitors/recurpost';
 export { socialclawCompareProduct } from '$lib/content/constants/competitors/socialclaw';
 export { socialyncCompareProduct } from '$lib/content/constants/competitors/socialync';
+export { sproutSocialCompareProduct } from '$lib/content/constants/competitors/sprout-social';
 export { typefullyCompareProduct } from '$lib/content/constants/competitors/typefully';
 export { usebardCompareProduct } from '$lib/content/constants/competitors/usebard';
 
@@ -77,6 +79,7 @@ export const PUBLIC_COMPARE_PRODUCTS: readonly CompareProduct[] = [
 	postizCompareProduct,
 	socialclawCompareProduct,
 	socialyncCompareProduct,
+	sproutSocialCompareProduct,
 	typefullyCompareProduct,
 	usebardCompareProduct
 ];
