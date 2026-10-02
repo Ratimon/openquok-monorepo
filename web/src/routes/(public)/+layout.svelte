@@ -6,6 +6,7 @@
 
 	import { publicLayoutPagePresenter } from '$lib/area-public/index';
 
+	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import PublicArea from '$lib/ui/templates/PublicArea.svelte';
 
 	type Props = {
@@ -53,7 +54,12 @@
 	let maintenanceMode = $derived(
 		data?.maintenanceMode ?? page.data?.maintenanceMode ?? 'off'
 	);
+	let headerNavigationSchemaData = $derived(
+		data?.headerNavigationSchemaData ?? page.data?.headerNavigationSchemaData
+	);
 </script>
+
+<JsonLdHead schemaData={headerNavigationSchemaData} />
 
 {#if maintenanceMode === 'banner'}
 	<div class="bg-warning text-warning-content px-4 py-2 text-center text-sm" role="status">

@@ -2,29 +2,20 @@
 	import { browser } from '$app/environment';
 	import { page } from '$app/state';
 	import { icons } from '$data/icons';
-	import {
-		getRootPathPublicBuildBacklinks,
-		getRootPathPublicBuildBacklinksCategories,
-		getRootPathPublicBuildBacklinksTags
-	} from '$lib/area-public/constants/getRootPathPublicBuildBacklinks';
-	import {
-		getRootPathPublicBuildingBlocks,
-		getRootPathPublicBuildingBlocksCategories,
-		getRootPathPublicBuildingBlocksTags
-	} from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
-	import {
-		getRootPathPublicPlaybooks,
-		getRootPathPublicPlaybooksCategories,
-		getRootPathPublicPlaybooksTags
-	} from '$lib/area-public/constants/getRootPathPublicPlaybooks';
+	import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
+	import { getRootPathPublicPlaybooks } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 	import { getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
+	import {
+		PUBLIC_OPPORTUNITIES_NAV_SECTIONS,
+		type PublicOpportunitiesNavLinkKey
+	} from '$lib/content/constants/publicOpportunitiesNavCatalog';
 	import {
 		OPEN_PUBLIC_OPPORTUNITIES_NAV_EVENT,
 		PUBLIC_NAVBAR_OPPORTUNITIES_ANCHOR_ID,
 		type PublicOpportunitiesNavTab
 	} from '$lib/config/constants/config';
 	import { hostedMarketingAnchorAttrs } from '$lib/utils/hostedMarketingHref';
-	import { isParentRoute, route } from '$lib/utils/path';
+	import { isParentRoute, route, url } from '$lib/utils/path';
 
 	import { ShiftingTabDropdown } from '$lib/ui/dropdown-shifting';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -47,125 +38,36 @@
 		icon: string;
 	};
 
-	// /build-backlinks
-	const rootPathPublicBuildBacklinks = getRootPathPublicBuildBacklinks();
-	const buildBacklinksHubPath = route(rootPathPublicBuildBacklinks);
-	const buildBacklinksCategoriesPath = route(getRootPathPublicBuildBacklinksCategories());
-	const buildBacklinksTagsPath = route(getRootPathPublicBuildBacklinksTags());
-
-	// /playbooks
-	const rootPathPublicPlaybooks = getRootPathPublicPlaybooks();
-	const playbooksHubPath = route(rootPathPublicPlaybooks);
-	const playbooksCategoriesPath = route(getRootPathPublicPlaybooksCategories());
-	const playbooksTagsPath = route(getRootPathPublicPlaybooksTags());
-
-	// /building-blocks
-	const rootPathPublicBuildingBlocks = getRootPathPublicBuildingBlocks();
-	const buildingBlocksHubPath = route(rootPathPublicBuildingBlocks);
-	const buildingBlocksCategoriesPath = route(getRootPathPublicBuildingBlocksCategories());
-	const buildingBlocksTagsPath = route(getRootPathPublicBuildingBlocksTags());
-
-	// /tools/skill-builder
+	const playbooksHubPath = route(getRootPathPublicPlaybooks());
+	const buildingBlocksHubPath = route(getRootPathPublicBuildingBlocks());
 	const skillBuilderPath = route(getRootPathPublicSkillBuilder());
 
-	const tabs = [
-		{ id: 'backlinks', label: 'Backlinks' },
-		{ id: 'playbook', label: 'Playbooks' },
-		{ id: 'building-blocks', label: 'Building Blocks' }
-	] as const;
+	const linkIcons: Record<PublicOpportunitiesNavLinkKey, string> = {
+		'see-all': icons.Grid3x3.name,
+		categories: icons.FolderInput.name,
+		tags: icons.Tags.name,
+		'skill-builder': icons.LayoutTemplate.name,
+		'openquok-core': icons.OpenQuok.name,
+		skills: icons.Terminal.name,
+		mcp: icons.Bot.name,
+		both: icons.FileText.name
+	};
 
-	const backlinksEntries: NavEntry[] = [
-		{
-			label: 'See All',
-			href: buildBacklinksHubPath,
-			description: 'Browse sites and tactics for earning backlinks.',
-			icon: icons.Grid3x3.name
-		},
-		{
-			label: 'Categories',
-			href: buildBacklinksCategoriesPath,
-			description: 'Explore backlink opportunities by category.',
-			icon: icons.FolderInput.name
-		},
-		{
-			label: 'Tags',
-			href: buildBacklinksTagsPath,
-			description: 'Filter sites by tag.',
-			icon: icons.Tags.name
-		}
-	];
+	const tabs = PUBLIC_OPPORTUNITIES_NAV_SECTIONS.map((section) => ({
+		id: section.id,
+		label: section.label
+	}));
 
-	const playbookEntries: NavEntry[] = [
-		{
-			label: 'See All',
-			href: playbooksHubPath,
-			description: 'Browse every published playbook.',
-			icon: icons.Grid3x3.name
-		},
-		{
-			label: 'Categories',
-			href: playbooksCategoriesPath,
-			description: 'Explore playbooks by category.',
-			icon: icons.FolderInput.name
-		},
-		{
-			label: 'Tags',
-			href: playbooksTagsPath,
-			description: 'Filter playbooks by tag.',
-			icon: icons.Tags.name
-		},
-		{
-			label: 'Skill Builder',
-			href: skillBuilderPath,
-			description: 'Build and export a SKILL.md from building blocks.',
-			icon: icons.LayoutTemplate.name
-		}
-	];
-
-	const buildingBlockEntries: NavEntry[] = [
-		{
-			label: 'See All',
-			href: buildingBlocksHubPath,
-			description: 'Browse every published building block.',
-			icon: icons.Grid3x3.name
-		},
-		{
-			label: 'Categories',
-			href: buildingBlocksCategoriesPath,
-			description: 'Explore building blocks by category.',
-			icon: icons.FolderInput.name
-		},
-		{
-			label: 'Tags',
-			href: buildingBlocksTagsPath,
-			description: 'Filter building blocks by tag.',
-			icon: icons.Tags.name
-		},
-		{
-			label: 'OpenQuok Core',
-			href: `${buildingBlocksHubPath}?type=official`,
-			description: 'First-party building blocks from OpenQuok.',
-			icon: icons.OpenQuok.name
-		},
-		{
-			label: 'Skills',
-			href: `${buildingBlocksHubPath}?type=skills`,
-			description: 'Browse skills-only building blocks.',
-			icon: icons.Terminal.name
-		},
-		{
-			label: 'MCP',
-			href: `${buildingBlocksHubPath}?type=mcp`,
-			description: 'Browse MCP-only building blocks.',
-			icon: icons.Bot.name
-		},
-		{
-			label: 'Both',
-			href: `${buildingBlocksHubPath}?type=both`,
-			description: 'Listings that ship skills and MCP together.',
-			icon: icons.FileText.name
-		}
-	];
+	function catalogEntries(sectionId: PublicOpportunitiesNavTab): NavEntry[] {
+		const section = PUBLIC_OPPORTUNITIES_NAV_SECTIONS.find((item) => item.id === sectionId);
+		if (!section) return [];
+		return section.links.map((link) => ({
+			label: link.label,
+			href: url(link.pathname),
+			description: link.description,
+			icon: linkIcons[link.key]
+		}));
+	}
 
 	let {
 		title,
@@ -188,11 +90,7 @@
 	);
 
 	let tabBlurb = $derived(
-		selectedTabId === 'backlinks'
-			? 'Discover sites and link-building tactics for your stack.'
-			: selectedTabId === 'playbook'
-				? 'Browse playbooks, categories, or jump into the Skill Builder.'
-				: 'Explore skills, MCP servers, and combo listings for your agents.'
+		PUBLIC_OPPORTUNITIES_NAV_SECTIONS.find((section) => section.id === selectedTabId)?.blurb ?? ''
 	);
 
 	function handleNavigate() {
@@ -200,16 +98,13 @@
 		onAfterNavigate?.();
 	}
 
-	function sectionEntries(tabId: (typeof tabs)[number]['id']): NavEntry[] {
-		if (tabId === 'backlinks') return backlinksEntries;
-		if (tabId === 'playbook') return playbookEntries;
-		return buildingBlockEntries;
+	function sectionEntries(tabId: PublicOpportunitiesNavTab): NavEntry[] {
+		return catalogEntries(tabId);
 	}
 
-	function entriesAriaLabel(tabId: (typeof tabs)[number]['id']): string {
-		if (tabId === 'backlinks') return 'Backlinks links';
-		if (tabId === 'playbook') return 'Playbooks links';
-		return 'Building blocks links';
+	function entriesAriaLabel(tabId: PublicOpportunitiesNavTab): string {
+		const section = PUBLIC_OPPORTUNITIES_NAV_SECTIONS.find((item) => item.id === tabId);
+		return section ? `${section.label} links` : 'Opportunities links';
 	}
 
 	function isValidOpportunitiesTab(tab: unknown): tab is PublicOpportunitiesNavTab {
@@ -268,19 +163,19 @@
 			<p class="px-1 pb-2 text-xs font-semibold uppercase tracking-wide text-base-content/50">
 				Backlinks
 			</p>
-			{@render navEntryList(backlinksEntries, 'Backlinks links')}
+			{@render navEntryList(catalogEntries('backlinks'), 'Backlinks links')}
 		</div>
 		<div class="border-t border-base-content/10 pt-4">
 			<p class="px-1 pb-2 text-xs font-semibold uppercase tracking-wide text-base-content/50">
 				Playbooks
 			</p>
-			{@render navEntryList(playbookEntries, 'Playbooks links')}
+			{@render navEntryList(catalogEntries('playbook'), 'Playbooks links')}
 		</div>
 		<div class="border-t border-base-content/10 pt-4">
 			<p class="px-1 pb-2 text-xs font-semibold uppercase tracking-wide text-base-content/50">
 				Building Blocks
 			</p>
-			{@render navEntryList(buildingBlockEntries, 'Building blocks links')}
+			{@render navEntryList(catalogEntries('building-blocks'), 'Building blocks links')}
 		</div>
 	</div>
 {/snippet}
