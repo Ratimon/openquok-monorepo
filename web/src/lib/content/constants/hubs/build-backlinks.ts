@@ -51,7 +51,7 @@ export const PUBLIC_BUILD_BACKLINKS_HUB: PublicBuildBacklinksHubConfig = {
 			{
 				title: 'What are tags versus sidebar filters?',
 				description:
-					'Tags are editor labels such as high domain rating or community-moderated platforms. Cost, dofollow, effort, and approval filters use opportunity data — a site appears when any published opportunity on that site matches. Tag landing pages for dofollow or guest posts use the same opportunity rules, not a tag on the site record.'
+					`Tags are editor labels such as high domain rating or community-moderated platforms. Cost, dofollow, effort, and approval filters use opportunity data — a site appears when any published opportunity on that site matches. Tag landing pages for dofollow or guest posts use the same opportunity rules, not a tag on the site record. Use the left sidebar on the hub to filter the site list; for a full browseable index, open ${faqLink(publicFaqHref.buildBacklinksCategories, 'See All categories')} or ${faqLink(publicFaqHref.buildBacklinksTags, 'See All tags')}.`
 			},
 			{
 				title: 'How do filters work?',

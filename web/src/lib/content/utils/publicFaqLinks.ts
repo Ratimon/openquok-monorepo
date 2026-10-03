@@ -12,6 +12,10 @@ import {
 	getRootPathPublicDocsInstallationDocker,
 	getRootPathPublicDocsInstallationDockerCompose
 } from '$lib/area-public/constants/getRootPathPublicDocs';
+import {
+	getRootPathPublicBuildBacklinksCategories,
+	getRootPathPublicBuildBacklinksTags
+} from '$lib/area-public/constants/getRootPathPublicBuildBacklinks';
 import { getRootPathPublicPlaybooks, getRootPathPublicPlaybooksTag } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 import {
 	getRootPathSocialMediaPostingApi,
@@ -109,6 +113,8 @@ export const publicFaqHref = {
 	alternatives: route(getRootPathPublicAlternatives()),
 	alternativesLater: route(getRootPathPublicAlternativesTarget('later')),
 	playbooks: route(getRootPathPublicPlaybooks()),
+	buildBacklinksCategories: route(getRootPathPublicBuildBacklinksCategories()),
+	buildBacklinksTags: route(getRootPathPublicBuildBacklinksTags()),
 	buildingBlocks: route(getRootPathPublicBuildingBlocks()),
 	selfHostingLanding: route(getRootPathPublicSelfHosting()),
 	dockerCompose: route(getRootPathPublicDocsInstallationDockerCompose()),

@@ -26,7 +26,6 @@
 	let schemaData = $derived(data.schemaData);
 	let heroTitle = $derived(data.heroTitle);
 	let heroDescription = $derived(data.heroDescription);
-	let heroSubtitle = $derived(data.heroSubtitle);
 	let listPage = $derived(data.page);
 	let itemsPerPage = $derived(data.itemsPerPage);
 	let filteredCount = $derived(data.filteredCount);
@@ -69,12 +68,17 @@
 
 <SectionOuterContainer class="py-10 md:py-14">
 	<header class="border-b border-base-300/60 pb-8">
-		{#if statsVm}
-			<div class="container mx-auto max-w-6xl space-y-4 px-4 text-center">
-				<div class="text-left">
-					<PublicListingsHubBreadcrumb {...listingsBreadcrumb} />
-				</div>
-				<p class="text-xs font-semibold uppercase tracking-wide text-primary">{heroSubtitle}</p>
+		<div class="container mx-auto max-w-6xl space-y-4 px-4 text-center">
+			<div class="flex justify-center">
+				<PublicListingsHubBreadcrumb
+					kind={listingsBreadcrumb.kind}
+					variant={listingsBreadcrumb.variant}
+					categoryLabel={listingsBreadcrumb.categoryLabel}
+					categorySlug={listingsBreadcrumb.categorySlug}
+					tagLabel={listingsBreadcrumb.tagLabel}
+				/>
+			</div>
+			{#if statsVm}
 				<h1 class="text-3xl font-black tracking-tight text-balance text-base-content sm:text-4xl">
 					{heroTitle}
 				</h1>
@@ -87,26 +91,22 @@
 					<BuildBacklinksHubStats {statsVm} />
 				</div>
 				<div class="flex justify-center pt-2">
-					<Button type="button" onclick={() => (submitOpen = true)}>Suggest a site</Button>
+					<Button type="button" variant="primary" onclick={() => (submitOpen = true)}>
+						Suggest a site
+					</Button>
 				</div>
-			</div>
-		{:else}
-			<div class="container mx-auto max-w-6xl px-4 pb-2">
-				<PublicListingsHubBreadcrumb {...listingsBreadcrumb} />
-			</div>
-			<div class="container mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4">
-				<div class="min-w-0">
-					<p class="text-xs font-semibold uppercase tracking-wide text-primary">{heroSubtitle}</p>
-					<h1 class="text-2xl font-black tracking-tight text-balance sm:text-3xl">{heroTitle}</h1>
+			{:else}
+				<h1 class="text-2xl font-black tracking-tight text-balance sm:text-3xl">{heroTitle}</h1>
+				<p class="mx-auto max-w-3xl text-base leading-relaxed text-pretty text-base-content/70">
+					{heroDescription}
+				</p>
+				<div class="flex justify-center pt-2">
+					<Button type="button" variant="primary" onclick={() => (submitOpen = true)}>
+						Suggest a site
+					</Button>
 				</div>
-				<div class="flex flex-wrap items-center gap-2">
-					<Button type="button" onclick={() => (submitOpen = true)}>Suggest a site</Button>
-				</div>
-			</div>
-			<p class="container mx-auto mt-4 max-w-6xl px-4 text-base leading-relaxed text-base-content/70">
-				{heroDescription}
-			</p>
-		{/if}
+			{/if}
+		</div>
 	</header>
 
 	<div class="container mx-auto mt-8 max-w-6xl px-4">

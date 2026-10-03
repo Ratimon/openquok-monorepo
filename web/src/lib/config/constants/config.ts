@@ -14,7 +14,11 @@ import {
 	getRootPathPublicDocsGettingStartedForDev,
 	getRootPathPublicDocsInstallationDockerCompose
 } from '$lib/area-public/constants/getRootPathPublicDocs';
-import { getRootPathPublicBuildBacklinks } from '$lib/area-public/constants/getRootPathPublicBuildBacklinks';
+import {
+	getRootPathPublicBuildBacklinks,
+	getRootPathPublicBuildBacklinksCategories,
+	getRootPathPublicBuildBacklinksTags
+} from '$lib/area-public/constants/getRootPathPublicBuildBacklinks';
 import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 import {
 	getRootPathPublicBuildingBlocksCategories,
@@ -77,6 +81,8 @@ const publicPlaybooksPath = route(getRootPathPublicPlaybooks());
 const publicPlaybooksCategoriesPath = route(getRootPathPublicPlaybooksCategories());
 const publicPlaybooksTagsPath = route(getRootPathPublicPlaybooksTags());
 const publicBuildBacklinksPath = route(getRootPathPublicBuildBacklinks());
+const publicBuildBacklinksCategoriesPath = route(getRootPathPublicBuildBacklinksCategories());
+const publicBuildBacklinksTagsPath = route(getRootPathPublicBuildBacklinksTags());
 const publicBuildingBlocksPath = route(getRootPathPublicBuildingBlocks());
 const publicBuildingBlocksCategoriesPath = route(getRootPathPublicBuildingBlocksCategories());
 const publicBuildingBlocksTagsPath = route(getRootPathPublicBuildingBlocksTags());
@@ -1014,7 +1020,9 @@ export const PUBLIC_FOOTER_LINKS_STATIC: PublicFooterLinksMap = {
 		{ label: 'Payload Wizard', href: publicPayloadWizardPath }
 	],
 	Directories: [
-		{ label: 'Build Backlinks', href: publicBuildBacklinksPath },
+		{ label: 'Build Your Backlinks', href: publicBuildBacklinksPath },
+		{ label: 'Backlink Categories', href: publicBuildBacklinksCategoriesPath },
+		{ label: 'Backlink Tags', href: publicBuildBacklinksTagsPath },
 		{ label: 'All Playbooks', href: publicPlaybooksPath },
 		{ label: 'All Building Blocks', href: publicBuildingBlocksPath },
 		{ label: 'All Creators', href: publicCreatorsPath },

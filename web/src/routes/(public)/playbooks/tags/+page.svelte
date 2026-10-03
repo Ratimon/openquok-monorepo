@@ -55,7 +55,13 @@
 			<section class="flex flex-col gap-2">
 				<div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 					<div class="space-y-2">
-						<PublicListingsHubBreadcrumb {...listingsBreadcrumb} />
+						<PublicListingsHubBreadcrumb
+							kind={listingsBreadcrumb.kind}
+							variant={listingsBreadcrumb.variant}
+							categoryLabel={listingsBreadcrumb.categoryLabel}
+							categorySlug={listingsBreadcrumb.categorySlug}
+							tagLabel={listingsBreadcrumb.tagLabel}
+						/>
 						<h1 class="text-3xl font-bold">All Tags</h1>
 					</div>
 					<Button variant="outline" href={playbooksHubHref}>View all playbooks</Button>
