@@ -4,7 +4,12 @@ import {
 	getRootPathPublicAlternativesTarget
 } from '$lib/area-public/constants/getRootPathPublicAlternatives';
 import { getRootPathPublicBlogPost } from '$lib/area-public/constants/getRootPathPublicBlog';
-import { getRootPathPublicBuildingBlocks, getRootPathPublicBuildingBlocksTag } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
+import {
+	getRootPathPublicBuildingBlocks,
+	getRootPathPublicBuildingBlocksCategories,
+	getRootPathPublicBuildingBlocksTag,
+	getRootPathPublicBuildingBlocksTags
+} from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 import { getRootPathPublicChannel, getRootPathPublicChannels } from '$lib/area-public/constants/getRootPathPublicChannels';
 import { getRootPathPublicCompare, getRootPathPublicComparePair } from '$lib/area-public/constants/getRootPathPublicCompare';
 import {
@@ -16,7 +21,12 @@ import {
 	getRootPathPublicBuildBacklinksCategories,
 	getRootPathPublicBuildBacklinksTags
 } from '$lib/area-public/constants/getRootPathPublicBuildBacklinks';
-import { getRootPathPublicPlaybooks, getRootPathPublicPlaybooksTag } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
+import {
+	getRootPathPublicPlaybooks,
+	getRootPathPublicPlaybooksCategories,
+	getRootPathPublicPlaybooksTag,
+	getRootPathPublicPlaybooksTags
+} from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 import {
 	getRootPathSocialMediaPostingApi,
 	getRootPathSocialMediaSchedulingApi
@@ -113,9 +123,13 @@ export const publicFaqHref = {
 	alternatives: route(getRootPathPublicAlternatives()),
 	alternativesLater: route(getRootPathPublicAlternativesTarget('later')),
 	playbooks: route(getRootPathPublicPlaybooks()),
+	playbooksCategories: route(getRootPathPublicPlaybooksCategories()),
+	playbooksTags: route(getRootPathPublicPlaybooksTags()),
 	buildBacklinksCategories: route(getRootPathPublicBuildBacklinksCategories()),
 	buildBacklinksTags: route(getRootPathPublicBuildBacklinksTags()),
 	buildingBlocks: route(getRootPathPublicBuildingBlocks()),
+	buildingBlocksCategories: route(getRootPathPublicBuildingBlocksCategories()),
+	buildingBlocksTags: route(getRootPathPublicBuildingBlocksTags()),
 	selfHostingLanding: route(getRootPathPublicSelfHosting()),
 	dockerCompose: route(getRootPathPublicDocsInstallationDockerCompose()),
 	dockerPreBuiltImages: route(getRootPathPublicDocsInstallationDocker()),

@@ -68,6 +68,11 @@ export const PUBLIC_BUILDING_BLOCKS_HUB = {
 					`A building block is an installable agent extension — usually a skill (SKILL.md), an MCP server, or both. Each entry includes install commands, setup docs, and tool definitions so you can add capabilities to Claude, Cursor, Codex, OpenClaw, Hermes, and other hosts. Browse ${faqLink(publicFaqHref.buildingBlocks, 'Building Blocks')} or filter by tag on ${faqLink(publicFaqHref.agents, 'Agents')}.`
 			},
 			{
+				title: 'How do categories, tags, and the hub sidebar work?',
+				description:
+					`Use the left sidebar on ${faqLink(publicFaqHref.buildingBlocks, 'Building Blocks')} for search, sort, type, categories, and tags — that is the main way to filter the catalog. For full browseable indexes, open ${faqLink(publicFaqHref.buildingBlocksCategories, 'See All categories')} or ${faqLink(publicFaqHref.buildingBlocksTags, 'See All tags')}.`
+			},
+			{
 				title: 'How do building blocks help me schedule social posts?',
 				description:
 					`Install OpenQuok Core as an MCP server in ${faqLink(publicFaqHref.cursorLanding, 'Cursor')} or as a skill on ${faqLink(faqHrefAgent('openclaw'), 'OpenClaw')} and ${faqLink(faqHrefAgent('hermes'), 'Hermes')}, then ask your assistant to list integrations and queue posts — or use the ${faqLink(publicFaqHref.cliSetupGuides, 'CLI')} for scripted batches. ${faqLink(publicFaqHref.signUp, 'Sign up')}, connect channels on ${faqLink(publicFaqHref.channels, 'Channels')}, and approve everything on the calendar before publish. Chain blocks into ${faqLink(publicFaqHref.playbooks, 'playbooks')} for full marketing workflows.`
@@ -132,6 +137,11 @@ export const PUBLIC_PLAYBOOKS_HUB = {
 				title: 'What is a social media scheduling playbook?',
 				description:
 					`A playbook is a published, step-by-step workflow on OpenQuok that walks you from idea to scheduled post — viral formats, carousel batches, reply chains, and content-calendar queues you can rerun. Each playbook chains building blocks (skills and MCP tools) into an ordered sequence for the CLI, MCP chat, or your agent. Browse ${faqLink(publicFaqHref.playbooks, 'Playbooks')} or filter by platform tag.`
+			},
+			{
+				title: 'How do categories, tags, and the hub sidebar work?',
+				description:
+					`Use the left sidebar on ${faqLink(publicFaqHref.playbooks, 'Playbooks')} for search, sort, categories, and tags — that is the main way to filter the catalog. For full browseable indexes, open ${faqLink(publicFaqHref.playbooksCategories, 'See All categories')} or ${faqLink(publicFaqHref.playbooksTags, 'See All tags')}.`
 			},
 			{
 				title: 'How do playbooks help me schedule social posts?',

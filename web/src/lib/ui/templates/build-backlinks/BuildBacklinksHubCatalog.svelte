@@ -12,7 +12,10 @@
 	import type { BuildBacklinksFacetClick } from '$lib/link-directory/utils/buildBacklinksFacetActions';
 	import { applyBuildBacklinksFacetClick } from '$lib/link-directory/utils/buildBacklinksFacetActions';
 	import { buildBacklinksSiteElementId } from '$lib/link-directory/utils/buildBacklinksSiteElementId';
-	import { buildHubListUrl } from '$lib/listings/utils/hubListPagination';
+	import {
+		buildHubListUrl,
+		HUB_LIST_PAGE_SIZE_OPTIONS
+	} from '$lib/listings/utils/hubListPagination';
 
 	import BuildBacklinksHubListToolbar from '$lib/ui/templates/build-backlinks/BuildBacklinksHubListToolbar.svelte';
 	import BuildBacklinksHubSidebar from '$lib/ui/templates/build-backlinks/BuildBacklinksHubSidebar.svelte';
@@ -127,7 +130,7 @@
 			{/each}
 		{/if}
 
-		{#if filteredCount > itemsPerPage}
+		{#if filteredCount > 0}
 			<Pagination
 				{itemsPerPage}
 				totalItems={filteredCount}
@@ -135,6 +138,7 @@
 				{totalPages}
 				{buildListUrl}
 				nameOfItems="sites"
+				pageSizeOptions={[...HUB_LIST_PAGE_SIZE_OPTIONS]}
 			/>
 		{/if}
 	</div>

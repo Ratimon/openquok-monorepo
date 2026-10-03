@@ -29,10 +29,8 @@
 
 	import AccountViralFormatsStackSelectionBar from '$lib/ui/components/extensions/AccountViralFormatsStackSelectionBar.svelte';
 	import BuildingBlockCard from '$lib/ui/templates/building-blocks/BuildingBlockCard.svelte';
-	import ListingsCategorySidebar from '$lib/ui/templates/listings/ListingsCategorySidebar.svelte';
-	import ListingsSearchBar from '$lib/ui/templates/listings/ListingsSearchBar.svelte';
-	import ListingsTagFilter from '$lib/ui/templates/listings/ListingsTagFilter.svelte';
-	import ListingsTypeChips from '$lib/ui/templates/listings/ListingsTypeChips.svelte';
+	import ListingsExtensionsHubListToolbar from '$lib/ui/templates/listings/ListingsExtensionsHubListToolbar.svelte';
+	import ListingsExtensionsHubSidebar from '$lib/ui/templates/listings/ListingsExtensionsHubSidebar.svelte';
 	import Pagination from '$lib/ui/templates/Pagination.svelte';
 
 	type Props = {
@@ -77,8 +75,12 @@
 	const skillBuilderHref = url(route(getRootPathPublicSkillBuilder()));
 
 	let expandedId = $state<string | null>(null);
-	let searchDraft = $derived(filtersVm.search ?? '');
+	let searchDraft = $state('');
 	let selectedBuildingBlockIds = $state<string[]>([]);
+
+	$effect(() => {
+		searchDraft = filtersVm.search ?? '';
+	});
 
 	let selectedBuildingBlocks = $derived(
 		buildingBlocksVm.filter((buildingBlockVm) => selectedBuildingBlockIds.includes(buildingBlockVm.id))
@@ -91,13 +93,6 @@
 			: (filtersVm.tagGroup ?? null)
 	);
 
-	const sortOptions: { id: ExtensionSort; label: string }[] = [
-		{ id: 'newest', label: 'Newest' },
-		{ id: 'oldest', label: 'Oldest' },
-		{ id: 'popular', label: 'Most liked' },
-		{ id: 'views', label: 'Most viewed' }
-	];
-
 	function buildListUrl(overrides: Record<string, string | null | undefined>): string {
 		return buildHubListUrl(page.url.pathname, page.url.searchParams, overrides);
 	}
@@ -109,8 +104,11 @@
 	}
 
 	function handleSearchChange(value: string) {
-		searchDraft = value;
 		navigateFilters({ search: value.trim() || undefined });
+	}
+
+	function handleCategorySelect(slug: string | null) {
+		navigateFilters({ category: slug ?? undefined });
 	}
 
 	function handleTypeSelect(type: ExtensionTypeFilter) {
@@ -124,7 +122,7 @@
 	function handleTagToggle(tagSlug: string) {
 		const current = filtersVm.tags ?? [];
 		const tags = current.includes(tagSlug)
-			? current.filter((slug) => slug !== tagSlug)
+			? current.filter((s) => s !== tagSlug)
 			: [...current, tagSlug];
 		navigateFilters({
 			tags: tags.length ? tags : undefined,
@@ -136,9 +134,8 @@
 		navigateFilters({ tags: undefined, tagGroup: undefined });
 	}
 
-	function handleSortChange(event: Event) {
-		const value = (event.currentTarget as HTMLSelectElement).value as ExtensionSort;
-		navigateFilters({ sort: value });
+	function handleSortChange(sort: ExtensionSort) {
+		navigateFilters({ sort });
 	}
 
 	function toggleExpanded(id: string) {
@@ -187,70 +184,57 @@
 	}
 </script>
 
-<div class={className}>
-	<div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-		<ListingsSearchBar
-			bind:value={searchDraft}
-			placeholder="Search building blocks…"
-			onchange={handleSearchChange}
-			class="flex-1"
-		/>
-		<label class="flex items-center gap-2 text-sm text-base-content/70">
-			<span>Sort</span>
-			<select
-				class="select select-bordered select-sm"
-				value={filtersVm.sort ?? 'newest'}
-				onchange={handleSortChange}
-			>
-				{#each sortOptions as option (option.id)}
-					<option value={option.id}>{option.label}</option>
-				{/each}
-			</select>
-		</label>
-	</div>
-
-	<ListingsTypeChips activeType={filtersVm.type ?? 'all'} onSelect={handleTypeSelect} />
-
-	<ListingsTagFilter
-		tagFilterVm={tagFilterVm}
+<div class={['grid gap-8 lg:grid-cols-[minmax(240px,280px)_1fr]', className]}>
+	<ListingsExtensionsHubSidebar
+		hubKind="building-blocks"
+		{categoriesVm}
+		{tagFilterVm}
+		bind:searchValue={searchDraft}
+		sort={filtersVm.sort ?? 'newest'}
+		activeCategorySlug={filtersVm.category ?? null}
+		{activeTagPathSlug}
 		activeTagGroup={filtersVm.tagGroup ?? null}
 		activeTags={filtersVm.tags ?? []}
-		onGroupSelect={handleTagGroupSelect}
+		{categorySidebarLinkMode}
+		onCategorySelect={categorySidebarLinkMode ? undefined : handleCategorySelect}
+		onSearchChange={handleSearchChange}
+		onSortChange={handleSortChange}
+		onTagGroupSelect={handleTagGroupSelect}
 		onTagToggle={handleTagToggle}
-		onClear={handleTagClear}
+		onTagClear={handleTagClear}
+		activeExtensionType={filtersVm.type ?? 'all'}
+		onTypeSelect={handleTypeSelect}
+		class="lg:sticky lg:top-24 lg:self-start"
 	/>
 
-	<AccountViralFormatsStackSelectionBar
-		{selectedCount}
-		primaryActionLabel="Open Skill Builder"
-		idleTitle="Build a skill from multiple building blocks"
-		idleDescription="Use the Add to skill builder controls on building block cards below, then open the builder here."
-		selectedTitle="building blocks selected for your skill"
-		selectedDescription="Open the skill builder with your selected building blocks preloaded so you can refine the generated output."
-		onPrimaryAction={handleOpenSkillBuilderFromSelection}
-		onClearSelection={handleClearSelection}
-	/>
+	<div class="min-w-0 space-y-4">
+		<ListingsExtensionsHubListToolbar
+			{filteredCount}
+			itemLabelSingular="building block"
+			itemLabelPlural="building blocks"
+		/>
 
-	<div class="grid gap-8 lg:grid-cols-[220px_minmax(0,1fr)]">
-		<aside class="lg:sticky lg:top-24 lg:self-start">
-			<h2 class="mb-3 text-sm font-semibold text-base-content/70">Categories</h2>
-			<ListingsCategorySidebar
-				{categoriesVm}
-				activeCategorySlug={filtersVm.category ?? null}
-				{activeTagPathSlug}
-				linkMode={categorySidebarLinkMode}
-			/>
-		</aside>
+		<AccountViralFormatsStackSelectionBar
+			{selectedCount}
+			primaryActionLabel="Open Skill Builder"
+			idleTitle="Build a skill from multiple building blocks"
+			idleDescription="Use the Add to skill builder controls on building block cards below, then open the builder here."
+			selectedTitle="building blocks selected for your skill"
+			selectedDescription="Open the skill builder with your selected building blocks preloaded so you can refine the generated output."
+			onPrimaryAction={handleOpenSkillBuilderFromSelection}
+			onClearSelection={handleClearSelection}
+		/>
 
 		<section aria-label="Building block listings">
 			{#if buildingBlocksVm.length === 0}
-				<p class="rounded-2xl border border-dashed border-base-content/15 p-8 text-center text-base-content/70">
-					No building blocks match your filters yet.
-				</p>
+				<div class="rounded-xl border border-dashed border-base-300 px-6 py-12 text-center">
+					<p class="font-medium text-base-content">No building blocks match your filters.</p>
+					<p class="mt-1 text-sm text-base-content/60">Try clearing tags or search in the sidebar.</p>
+				</div>
 			{:else}
-				<ul class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+				<ul class="flex flex-col gap-4">
 					{#each buildingBlocksVm as buildingBlockVm (buildingBlockVm.id)}
-						<li class={expandedId === buildingBlockVm.id ? 'col-span-full' : undefined}>
+						<li>
 							<BuildingBlockCard
 								extensionVm={buildingBlockVm}
 								expanded={expandedId === buildingBlockVm.id}
@@ -269,17 +253,18 @@
 						</li>
 					{/each}
 				</ul>
-				{#if filteredCount > 0}
-					<Pagination
-						{itemsPerPage}
-						totalItems={filteredCount}
-						currentPage={listPage}
-						{totalPages}
-						{buildListUrl}
-						nameOfItems="building blocks"
-						pageSizeOptions={[...HUB_LIST_PAGE_SIZE_OPTIONS]}
-					/>
-				{/if}
+			{/if}
+
+			{#if filteredCount > 0}
+				<Pagination
+					{itemsPerPage}
+					totalItems={filteredCount}
+					currentPage={listPage}
+					{totalPages}
+					{buildListUrl}
+					nameOfItems="building blocks"
+					pageSizeOptions={[...HUB_LIST_PAGE_SIZE_OPTIONS]}
+				/>
 			{/if}
 		</section>
 	</div>
