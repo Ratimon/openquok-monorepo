@@ -43,6 +43,8 @@ OpenQuok helps individuals and teams run many social accounts at scale — espec
 - <img src="./assets/readme/features/automation.svg" alt="" width="24" height="24" align="top"> **[API, CLI, and MCP](https://www.openquok.com/docs/automations).** Create drafts, schedule posts, and check publishing results from scripts or agent clients. Start with [OpenQuok Core](https://www.openquok.com/creators/openquok/building-blocks/openquok-core), the [CLI](https://www.openquok.com/docs/getting-started-for-cli), [MCP](https://www.openquok.com/docs/getting-started-for-mcp), or the [Public API reference](https://www.openquok.com/docs/getting-started-for-public-api).
 - <img src="./assets/readme/features/automation.svg" alt="" width="24" height="24" align="top"> **[Building blocks](https://www.openquok.com/building-blocks).** Install skills and MCP servers for Cursor, Claude, OpenClaw, and the CLI — [OpenQuok Core](https://www.openquok.com/creators/openquok/building-blocks/openquok-core) schedules posts; combine blocks in [Skill Builder](https://www.openquok.com/tools/skill-builder) for custom agent setups.
 - <img src="./assets/readme/features/compose.svg" alt="" width="24" height="24" align="top"> **[Playbooks](https://www.openquok.com/playbooks).** Run step-by-step marketing workflows that chain building blocks — viral carousels, video publish flows, and content-calendar batches — then approve every draft before anything goes live.
+- <img src="./assets/readme/features/workspaces.svg" alt="" width="24" height="24" align="top"> **[Saved](https://www.openquok.com/account/saved).** **Libs** browses the catalog with hub-style filters, bookmarks listings (free; sync when you sign in), and **Your library** holds drafts and published stacks. **Backlinks** keeps a reorderable shortlist from [Build Backlinks](https://www.openquok.com/build-backlinks) — see [Saved docs](https://www.openquok.com/docs/saved).
+- <img src="./assets/readme/features/tools.svg" alt="" width="24" height="24" align="top"> **[Build Backlinks](https://www.openquok.com/build-backlinks).** Filter backlink opportunities, bookmark sites for outreach, and manage your shortlist under **Saved → Backlinks**.
 - <img src="./assets/readme/features/tools.svg" alt="" width="24" height="24" align="top"> **[Free creator tools](https://www.openquok.com/tools).** [Skill Builder](https://www.openquok.com/tools/skill-builder) exports agent skills, [Best time to post](https://www.openquok.com/tools/best-time-to-post) builds timing test plans, and channel-specific pages exist for each shipped network.
 - <img src="./assets/readme/features/workspaces.svg" alt="" width="24" height="24" align="top"> **[Teams and workspaces](https://www.openquok.com/docs/settings/team).** Keep brands and clients in separate workspaces, invite teammates, and manage timezone, profile, and [developer tokens](https://www.openquok.com/docs/settings/developers).
 
@@ -90,7 +92,7 @@ Posting formats, follow-up comments, and analytics vary by platform. Some integr
 
 Create a programmatic token under **Account → Settings → Developers → Access**, or [start on Cloud](https://www.openquok.com/pricing) when you want hosted plans and billing handled for you.
 
-[OpenQuok Core](https://www.openquok.com/creators/openquok/building-blocks/openquok-core) · [Building blocks](https://www.openquok.com/building-blocks) · [Playbooks](https://www.openquok.com/playbooks) · [Agent setup guides](https://www.openquok.com/docs/agent-setup-guides) · [MCP setup guides](https://www.openquok.com/docs/mcp-setup-guides) · [CLI getting started](https://www.openquok.com/docs/getting-started-for-cli) · [MCP getting started](https://www.openquok.com/docs/getting-started-for-mcp) · [Agents catalog](https://www.openquok.com/agents)
+[OpenQuok Core](https://www.openquok.com/creators/openquok/building-blocks/openquok-core) · [Building blocks](https://www.openquok.com/building-blocks) · [Playbooks](https://www.openquok.com/playbooks) · [Build Backlinks](https://www.openquok.com/build-backlinks) · [Agent setup guides](https://www.openquok.com/docs/agent-setup-guides) · [MCP setup guides](https://www.openquok.com/docs/mcp-setup-guides) · [CLI getting started](https://www.openquok.com/docs/getting-started-for-cli) · [MCP getting started](https://www.openquok.com/docs/getting-started-for-mcp) · [Agents catalog](https://www.openquok.com/agents)
 
 ---
 
@@ -217,6 +219,8 @@ Learn more at [Architecture](https://www.openquok.com/docs/getting-started-for-d
 
 - [All Playbooks](https://www.openquok.com/playbooks)
 - [All Building Blocks](https://www.openquok.com/building-blocks)
+- [Build Backlinks](https://www.openquok.com/build-backlinks)
+- [Saved (account)](https://www.openquok.com/account/saved)
 - [All Creators](https://www.openquok.com/creators)
 - [Playbook Categories](https://www.openquok.com/playbooks/categories)
 - [Playbook Tags](https://www.openquok.com/playbooks/tags)
@@ -242,6 +246,7 @@ Learn more at [Architecture](https://www.openquok.com/docs/getting-started-for-d
 - [Developer guidelines](https://www.openquok.com/docs/developer-guidelines) and [Security guidelines](https://www.openquok.com/docs/developer-guidelines/security)
 - [Contribution opportunities](https://www.openquok.com/docs/contribution-opportunities) — add a provider, translate docs, and more
 - [Publish listings](https://www.openquok.com/docs/publish-listings) — Extensions Hub playbooks and building blocks
+- [Saved playbooks & backlinks](https://www.openquok.com/docs/saved) — Libs browse and bookmarks, your library, compose playbooks, and backlink shortlists
 - [Documentation contribution](https://www.openquok.com/docs/documentation-contribution)
 
 ---

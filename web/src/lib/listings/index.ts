@@ -2,6 +2,7 @@ import { httpGateway } from '$lib/core/index';
 import { ActionVerificationModalPresenter } from '$lib/core/ActionVerificationModal.presenter.svelte';
 import { ListingRepository } from '$lib/listings/Listing.repository.svelte';
 import { GetListingPresenter } from '$lib/listings/GetListing.presenter.svelte';
+import { PublicListingBookmarksPresenter } from '$lib/listings/PublicListingBookmarks.presenter.svelte';
 import { UpsertListingCategoryModalPresenter } from '$lib/listings/UpsertListingCategoryModal.presenter.svelte';
 import { UpsertListingTagModalPresenter } from '$lib/listings/UpsertListingTagModal.presenter.svelte';
 import { UpsertListingTagGroupModalPresenter } from '$lib/listings/UpsertListingTagGroupModal.presenter.svelte';
@@ -58,6 +59,7 @@ const listingConfig = {
 
 const listingRepository = new ListingRepository(httpGateway, listingConfig);
 const getListingPresenter = new GetListingPresenter(listingRepository);
+export const publicListingBookmarksPresenter = new PublicListingBookmarksPresenter(listingRepository);
 const upsertListingCategoryModalPresenter = new UpsertListingCategoryModalPresenter(listingRepository);
 const upsertListingTagModalPresenter = new UpsertListingTagModalPresenter(listingRepository);
 const upsertListingTagGroupModalPresenter = new UpsertListingTagGroupModalPresenter(listingRepository);

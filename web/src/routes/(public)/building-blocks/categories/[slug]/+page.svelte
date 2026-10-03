@@ -10,9 +10,8 @@
 		getRootPathPublicBuildingBlocksCategories
 	} from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
-	import { publicBuildingBlocksPagePresenter } from '$lib/area-public/index';
-	import { getBillingPresenter } from '$lib/billing';
-	import { isPaidSubscriptionTier } from 'openquok-common';
+	import { publicListingBookmarksPresenter } from '$lib/listings';
+	import { hydratePublicListingBookmarksForHub } from '$lib/listings/utils/hydratePublicListingBookmarks';
 	import { authenticationRepository } from '$lib/user-auth';
 	import { route, url } from '$lib/utils/path';
 
@@ -38,6 +37,7 @@
 	let { data }: Props = $props();
 
 	let buildingBlocksVm = $derived(data.buildingBlocksVm);
+	let fullCatalogVm = $derived(data.allBuildingBlocksVm);
 	let categoriesVm = $derived(data.categoriesVm);
 	let statsVm = $derived(data.statsVm);
 	let filtersVm = $derived(data.filtersVm);
@@ -52,7 +52,6 @@
 	let filteredCount = $derived(data.filteredCount);
 	let totalPages = $derived(data.totalPages);
 
-	const pagePresenter = publicBuildingBlocksPagePresenter;
 	const categoriesOverviewHref = url(route(getRootPathPublicBuildingBlocksCategories()));
 	const rootPathSignUp = getRootPathSignup();
 	const signUpPath = route(rootPathSignUp);
@@ -60,8 +59,7 @@
 
 	const isLoggedIn = $derived(authenticationRepository.isAuthenticated() || data.isLoggedIn === true);
 
-	let bookmarksPaidEnabled = $state<boolean | null>(null);
-	let bookmarkedIds = $state<Record<string, boolean>>({});
+	const bookmarkedIds = $derived(publicListingBookmarksPresenter.bookmarkedIdsMap());
 
 	onMount(() => {
 		if (!browser) return;
@@ -73,33 +71,14 @@
 		}
 	});
 
-	onMount(() => {
-		if (!browser || !isLoggedIn) {
-			bookmarksPaidEnabled = null;
-			bookmarkedIds = {};
-			return;
-		}
-
-		let cancelled = false;
-		void (async () => {
-			const vm = await getBillingPresenter.loadOwnedAccountBillingVmStateless();
-			if (cancelled) return;
-			bookmarksPaidEnabled = vm ? isPaidSubscriptionTier(vm.tier) : false;
-			if (!bookmarksPaidEnabled) {
-				bookmarkedIds = {};
-				return;
-			}
-			const map = await pagePresenter.loadBookmarkedIdsMap();
-			if (!cancelled) bookmarkedIds = map;
-		})();
-
-		return () => {
-			cancelled = true;
-		};
+	$effect(() => {
+		if (!browser) return;
+		const loggedIn = isLoggedIn;
+		void hydratePublicListingBookmarksForHub(loggedIn);
 	});
 
-	async function handleToggleBookmark(listingId: string, nextBookmarked: boolean) {
-		return pagePresenter.toggleBookmark(listingId, nextBookmarked, 'extension');
+	async function handleToggleBookmark(listingId: string, _nextBookmarked: boolean) {
+		return publicListingBookmarksPresenter.toggleBookmark({ listingId, listingKind: 'extension' });
 	}
 </script>
 
@@ -128,6 +107,7 @@
 	<div class="container mx-auto mt-10 max-w-6xl space-y-6 px-4">
 		<BuildingBlocksHubCatalog
 			{buildingBlocksVm}
+			{fullCatalogVm}
 			{categoriesVm}
 			{filtersVm}
 			{tagFilterVm}
@@ -136,7 +116,6 @@
 			{filteredCount}
 			{totalPages}
 			{isLoggedIn}
-			{bookmarksPaidEnabled}
 			{bookmarkedIds}
 			onToggleBookmark={handleToggleBookmark}
 		/>

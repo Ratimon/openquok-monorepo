@@ -2,7 +2,11 @@
 	import type { AccountListingCollectionItemViewModel } from '$lib/area-protected/ProtectedAccountBuildingBlocksPage.presenter.svelte';
 	import type { AccountExploreFilters } from '$lib/area-protected/ProtectedAccountBuildingBlocksPage.presenter.svelte';
 	import type { SavedLibsSegmentId } from '$lib/area-protected/utils/buildAccountSavedHubSearch';
-	import type { ExtensionsTagFilterViewModel } from '$lib/listings/listing.types';
+	import type {
+		ExtensionSort,
+		ExtensionTypeFilter,
+		ExtensionsTagFilterViewModel
+	} from '$lib/listings/listing.types';
 	import type { ExtensionCategoryViewModel } from '$lib/listings/GetListing.presenter.svelte';
 	import type { OwnedListingStatsProgrammerModel } from '$lib/listings/Listing.repository.svelte';
 
@@ -10,9 +14,10 @@
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import AccountViralFormatsExploreTab from '$lib/ui/components/extensions/AccountViralFormatsExploreTab.svelte';
+	import AccountSavedLibsBrowseCatalog from '$lib/ui/components/account/AccountSavedLibsBrowseCatalog.svelte';
 	import AccountViralFormatsMineTab from '$lib/ui/components/extensions/AccountViralFormatsMineTab.svelte';
 	import AccountPlaybooksStatsSection from '$lib/ui/components/home/AccountPlaybooksStatsSection.svelte';
+	import HubAccountSignInCtaInlineHint from '$lib/ui/components/account/HubAccountSignInCtaInlineHint.svelte';
 
 	type MenuItemFactory = (item: AccountListingCollectionItemViewModel) => Array<{
 		label: string;
@@ -34,9 +39,7 @@
 		loadingExplore: boolean;
 		showExploreBuildingBlocks: boolean;
 		showExploreStacks: boolean;
-		bookmarksPaidEnabled: boolean | null;
 		bookmarkCount: number;
-		accountBillingHref: string;
 		isBuildingBlockSelected: (id: string) => boolean;
 		onToggleSelect: (listingId: string) => void;
 		getPublicHref: (item: AccountListingCollectionItemViewModel) => string;
@@ -47,6 +50,8 @@
 		onTagGroupSelect: (groupSlug: string | null) => void;
 		onTagToggle: (tagSlug: string) => void;
 		onClearTagFilters: () => void;
+		onSortChange: (sort: ExtensionSort) => void;
+		onExtensionTypeSelect: (type: ExtensionTypeFilter) => void;
 		onBookmarkedToggle: () => void;
 		selectedCount: number;
 		onCreateStack: () => void;
@@ -83,9 +88,7 @@
 		loadingExplore,
 		showExploreBuildingBlocks,
 		showExploreStacks,
-		bookmarksPaidEnabled,
 		bookmarkCount,
-		accountBillingHref,
 		isBuildingBlockSelected,
 		onToggleSelect,
 		getPublicHref,
@@ -96,6 +99,8 @@
 		onTagGroupSelect,
 		onTagToggle,
 		onClearTagFilters,
+		onSortChange,
+		onExtensionTypeSelect,
 		onBookmarkedToggle,
 		selectedCount,
 		onCreateStack,
@@ -161,7 +166,8 @@
 	</div>
 
 	{#if libsSegment === 'browse'}
-		<AccountViralFormatsExploreTab
+		<HubAccountSignInCtaInlineHint variant="listings" {isLoggedIn} />
+		<AccountSavedLibsBrowseCatalog
 			{filters}
 			categoriesVm={categoriesVm}
 			tagFilterVm={tagFilterVm}
@@ -170,9 +176,7 @@
 			loading={loadingExplore}
 			showBuildingBlocks={showExploreBuildingBlocks}
 			showStacks={showExploreStacks}
-			{bookmarksPaidEnabled}
 			{bookmarkCount}
-			{accountBillingHref}
 			selectableBuildingBlocks={true}
 			isSelected={isBuildingBlockSelected}
 			{onToggleSelect}
@@ -184,6 +188,8 @@
 			{onTagGroupSelect}
 			{onTagToggle}
 			{onClearTagFilters}
+			{onSortChange}
+			{onExtensionTypeSelect}
 			{onBookmarkedToggle}
 			{selectedCount}
 			{onCreateStack}

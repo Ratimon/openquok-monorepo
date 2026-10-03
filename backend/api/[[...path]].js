@@ -8659,7 +8659,7 @@ function resolveOrderKey3(candidate, fallback, allowlist) {
 function escapeIlike(term) {
   return term.replace(/[%_\\]/g, "\\$&");
 }
-var TABLE_SITES, TABLE_OPPORTUNITIES, TABLE_TAG_ASSOC2, TABLE_BOOKMARKS2, TABLE_SUBMISSIONS, TABLE_OPP_TYPES, SITE_COLUMNS, CATEGORY_EMBED, OPPORTUNITY_EMBED, SELECT_OPPORTUNITY, SELECT_SITE, SELECT_SITE_FOR_BOOKMARK, ALLOWED_PUBLISHED_SORT_KEYS2, ALLOWED_ADMIN_SORT_KEYS2, LinkDirectoryRepository;
+var TABLE_SITES, TABLE_OPPORTUNITIES, TABLE_TAG_ASSOC2, TABLE_SAVED_SITES, TABLE_SUBMISSIONS, TABLE_OPP_TYPES, SITE_COLUMNS, CATEGORY_EMBED, OPPORTUNITY_EMBED, SELECT_OPPORTUNITY, SELECT_SITE, SELECT_SITE_FOR_SAVED_SITE, ALLOWED_PUBLISHED_SORT_KEYS2, ALLOWED_ADMIN_SORT_KEYS2, LinkDirectoryRepository;
 var init_LinkDirectoryRepository = __esm({
   "repositories/LinkDirectoryRepository.ts"() {
     init_InfraError();
@@ -8668,7 +8668,7 @@ var init_LinkDirectoryRepository = __esm({
     TABLE_SITES = "link_directory_sites";
     TABLE_OPPORTUNITIES = "link_directory_opportunities";
     TABLE_TAG_ASSOC2 = "link_directory_site_tags_association";
-    TABLE_BOOKMARKS2 = "link_directory_bookmarks";
+    TABLE_SAVED_SITES = "link_directory_saved_sites";
     TABLE_SUBMISSIONS = "link_directory_submissions";
     TABLE_OPP_TYPES = "link_directory_opportunity_types";
     SITE_COLUMNS = "id, slug, title, site_url, logo_url, short_description, long_description, domain_authority, domain_rating, monthly_visits, metrics_source, metrics_updated_at, category_id, is_openquok_auth_supported, openquok_channel_slug, is_admin_published, sort_order, tag_slugs, published_at, created_at, updated_at";
@@ -8676,7 +8676,7 @@ var init_LinkDirectoryRepository = __esm({
     OPPORTUNITY_EMBED = "opportunities:link_directory_opportunities(id, site_id, slug, title, opportunity_type_id, effort, approval_mode, approval_time_hint, dofollow, cost_tier, cost_note, description, steps, openquok_cta_kind, openquok_channel_slug, openquok_plug_name, cta_href, cta_label, sort_order, is_admin_published, published_at, created_at, updated_at, opportunity_type:link_directory_opportunity_types(id, slug, label, description, sort_order))";
     SELECT_OPPORTUNITY = "id, site_id, slug, title, opportunity_type_id, effort, approval_mode, approval_time_hint, dofollow, cost_tier, cost_note, description, steps, openquok_cta_kind, openquok_channel_slug, openquok_plug_name, cta_href, cta_label, sort_order, is_admin_published, published_at, created_at, updated_at, opportunity_type:link_directory_opportunity_types(id, slug, label, description, sort_order)";
     SELECT_SITE = `${SITE_COLUMNS}, ${CATEGORY_EMBED}, ${OPPORTUNITY_EMBED}`;
-    SELECT_SITE_FOR_BOOKMARK = `${SITE_COLUMNS}, ${CATEGORY_EMBED}`;
+    SELECT_SITE_FOR_SAVED_SITE = `${SITE_COLUMNS}, ${CATEGORY_EMBED}`;
     ALLOWED_PUBLISHED_SORT_KEYS2 = /* @__PURE__ */ new Set([
       "domain_rating",
       "domain_authority",
@@ -9061,12 +9061,12 @@ var init_LinkDirectoryRepository = __esm({
           });
         }
       }
-      async findUserBookmarks(userId) {
-        const { data, error } = await this.supabase.from(TABLE_BOOKMARKS2).select(
-          `id, user_id, site_id, sort_order, created_at, site:link_directory_sites(${SELECT_SITE_FOR_BOOKMARK})`
+      async findUserSavedSites(userId) {
+        const { data, error } = await this.supabase.from(TABLE_SAVED_SITES).select(
+          `id, user_id, site_id, sort_order, created_at, outreach_completed_at, site:link_directory_sites(${SELECT_SITE_FOR_SAVED_SITE})`
         ).eq("user_id", userId).order("sort_order", { ascending: true });
         if (error) {
-          throw new DatabaseError(`Error fetching bookmarks: ${error.message}`, {
+          throw new DatabaseError(`Error fetching saved sites: ${error.message}`, {
             cause: error,
             operation: "select"
           });
@@ -9079,16 +9079,16 @@ var init_LinkDirectoryRepository = __esm({
           }))
         };
       }
-      async replaceUserBookmarks(userId, siteIds) {
-        const { error: deleteError } = await this.supabase.from(TABLE_BOOKMARKS2).delete().eq("user_id", userId);
+      async replaceUserSavedSites(userId, siteIds) {
+        const { error: deleteError } = await this.supabase.from(TABLE_SAVED_SITES).delete().eq("user_id", userId);
         if (deleteError) {
-          throw new DatabaseError(`Error clearing bookmarks: ${deleteError.message}`, {
+          throw new DatabaseError(`Error clearing saved sites: ${deleteError.message}`, {
             cause: deleteError,
             operation: "delete"
           });
         }
         if (siteIds.length === 0) return;
-        const { error: insertError } = await this.supabase.from(TABLE_BOOKMARKS2).insert(
+        const { error: insertError } = await this.supabase.from(TABLE_SAVED_SITES).insert(
           siteIds.map((siteId, index) => ({
             user_id: userId,
             site_id: siteId,
@@ -9096,22 +9096,37 @@ var init_LinkDirectoryRepository = __esm({
           }))
         );
         if (insertError) {
-          throw new DatabaseError(`Error saving bookmarks: ${insertError.message}`, {
+          throw new DatabaseError(`Error saving saved sites: ${insertError.message}`, {
             cause: insertError,
             operation: "insert"
           });
         }
       }
-      async reorderUserBookmarks(userId, siteIds) {
+      async reorderUserSavedSites(userId, siteIds) {
         for (let index = 0; index < siteIds.length; index++) {
           const siteId = siteIds[index];
-          const { error } = await this.supabase.from(TABLE_BOOKMARKS2).update({ sort_order: index }).eq("user_id", userId).eq("site_id", siteId);
+          const { error } = await this.supabase.from(TABLE_SAVED_SITES).update({ sort_order: index }).eq("user_id", userId).eq("site_id", siteId);
           if (error) {
-            throw new DatabaseEntityNotFoundError("Bookmark not found for reorder", {
+            throw new DatabaseEntityNotFoundError("Saved site not found for reorder", {
               userId,
               siteId
             });
           }
+        }
+      }
+      async setUserSavedSiteOutreachCompleted(userId, siteId, outreachCompletedAt) {
+        const { data, error } = await this.supabase.from(TABLE_SAVED_SITES).update({ outreach_completed_at: outreachCompletedAt }).eq("user_id", userId).eq("site_id", siteId).select("id").maybeSingle();
+        if (error) {
+          throw new DatabaseError(`Error updating saved site outreach completion: ${error.message}`, {
+            cause: error,
+            operation: "update"
+          });
+        }
+        if (!data) {
+          throw new DatabaseEntityNotFoundError("Saved site not found for outreach completion update", {
+            userId,
+            siteId
+          });
         }
       }
       filterPublishedOpportunities(site) {
@@ -15246,24 +15261,21 @@ var init_ListingService = __esm({
         const { data } = await this.listingCategoryRepository.findAllCategoryGroups();
         return data;
       }
-      async addBookmark(listingId, userId, authUserId) {
-        await this._assertPaidAccountForBookmarks(authUserId);
+      async addBookmark(listingId, userId, _authUserId) {
         await this.listingRepository.addBookmark(userId, listingId);
         await this.listingRepository.insertListingActivity(listingId, "bookmark", userId);
         await this._invalidateUserBookmarkCaches(userId, listingId);
       }
-      async removeBookmark(listingId, userId, authUserId) {
-        await this._assertPaidAccountForBookmarks(authUserId);
+      async removeBookmark(listingId, userId, _authUserId) {
         await this.listingRepository.removeBookmark(userId, listingId);
         await this._invalidateUserBookmarkCaches(userId, listingId);
       }
-      async getUserBookmarks(userId, authUserId) {
-        await this._assertPaidAccountForBookmarks(authUserId);
+      async getUserBookmarks(userId, _authUserId) {
         const cacheKey = `${CACHE_KEYS8.LISTING_USER_BOOKMARKS}:${userId}`;
         const factory = async () => {
           const { data } = await this.listingRepository.findBookmarkedListingsByUserId(userId);
           return data.filter(
-            (listing) => listing.is_user_published === true && listing.is_admin_published === true && listing.listing_kind === "extension"
+            (listing) => listing.is_user_published === true && listing.is_admin_published === true
           );
         };
         if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
@@ -15393,11 +15405,6 @@ var init_ListingService = __esm({
             scope: "account",
             authUserId
           });
-        }
-      }
-      async _assertPaidAccountForBookmarks(authUserId) {
-        if (authUserId?.trim() && this.subscriptionGuard) {
-          await this.subscriptionGuard.assertPaidOwnedAccountForBookmarks(authUserId);
         }
       }
       async _invalidateUserBookmarkCaches(userId, listingId) {
@@ -15687,15 +15694,23 @@ var init_LinkDirectoryService = __esm({
           reviewedByUserId
         );
       }
-      async getUserBookmarks(userId) {
-        const { data } = await this.linkDirectoryRepository.findUserBookmarks(userId);
+      async getUserSavedSites(userId) {
+        const { data } = await this.linkDirectoryRepository.findUserSavedSites(userId);
         return data;
       }
-      async replaceUserBookmarks(userId, siteIds) {
-        await this.linkDirectoryRepository.replaceUserBookmarks(userId, siteIds);
+      async replaceUserSavedSites(userId, siteIds) {
+        await this.linkDirectoryRepository.replaceUserSavedSites(userId, siteIds);
       }
-      async reorderUserBookmarks(userId, siteIds) {
-        await this.linkDirectoryRepository.reorderUserBookmarks(userId, siteIds);
+      async reorderUserSavedSites(userId, siteIds) {
+        await this.linkDirectoryRepository.reorderUserSavedSites(userId, siteIds);
+      }
+      async setUserSavedSiteOutreachCompleted(userId, siteId, completed) {
+        const outreachCompletedAt = completed ? (/* @__PURE__ */ new Date()).toISOString() : null;
+        await this.linkDirectoryRepository.setUserSavedSiteOutreachCompleted(
+          userId,
+          siteId,
+          outreachCompletedAt
+        );
       }
     };
   }
@@ -29310,21 +29325,6 @@ var init_SubscriptionGuardService = __esm({
         const viewerTier = owned?.subscription_tier ?? "FREE";
         return planLimitsForTier(viewerTier).community_features;
       }
-      /** Extension hub bookmarks require a paid owned-account tier (SOLO+), not community_features alone. */
-      async assertPaidOwnedAccountForBookmarks(authUserId) {
-        if (!authUserId?.trim()) return;
-        if (!this.subscriptionService.billingEnabled()) return;
-        if (await this.shouldBypassBillingForAuthUser(authUserId)) return;
-        const owned = await this.subscriptionService.getOwnedAccountSubscription(authUserId);
-        const tier = this.subscriptionService.resolveTier(owned);
-        if (!isPaidSubscriptionTier(tier)) {
-          throw new SubscriptionError(
-            "Extension bookmarks require a paid plan. Upgrade to save extensions from the hub.",
-            SubscriptionSection.COMMUNITY_FEATURES,
-            this.billingUrl()
-          );
-        }
-      }
       async assertTeamInviteCapacity(organizationId, authUserId) {
         if (!this.subscriptionService.billingEnabled()) return;
         if (await this.shouldBypassBillingForAuthUser(authUserId)) return;
@@ -32703,17 +32703,18 @@ function toLinkDirectorySubmissionDto(row) {
 function toLinkDirectorySubmissionDtoCollection(rows) {
   return rows.map(toLinkDirectorySubmissionDto);
 }
-function toLinkDirectoryBookmarkDto(row) {
+function toLinkDirectorySavedSiteDto(row) {
   return {
     id: row.id,
     siteId: row.site_id,
     sortOrder: row.sort_order,
     createdAt: row.created_at,
+    outreachCompletedAt: row.outreach_completed_at ?? null,
     site: row.site ? toLinkDirectorySiteDto(row.site) : null
   };
 }
-function toLinkDirectoryBookmarkDtoCollection(rows) {
-  return rows.map(toLinkDirectoryBookmarkDto);
+function toLinkDirectorySavedSiteDtoCollection(rows) {
+  return rows.map(toLinkDirectorySavedSiteDto);
 }
 var init_LinkDirectoryDTO = __esm({
   "utils/dtos/LinkDirectoryDTO.ts"() {
@@ -32830,7 +32831,7 @@ var init_LinkDirectoryController = __esm({
           next(err);
         }
       };
-      getUserBookmarks = async (req, res, next) => {
+      getUserSavedSites = async (req, res, next) => {
         try {
           const auth10 = req;
           const userId = auth10.user?.id;
@@ -32838,16 +32839,16 @@ var init_LinkDirectoryController = __esm({
             res.status(401).json({ success: false, message: "Unauthorized" });
             return;
           }
-          const bookmarks = await this.linkDirectoryService.getUserBookmarks(userId);
+          const savedSites = await this.linkDirectoryService.getUserSavedSites(userId);
           res.status(200).json({
             success: true,
-            data: toLinkDirectoryBookmarkDtoCollection(bookmarks)
+            data: toLinkDirectorySavedSiteDtoCollection(savedSites)
           });
         } catch (err) {
           next(err);
         }
       };
-      putUserBookmarks = async (req, res, next) => {
+      putUserSavedSites = async (req, res, next) => {
         try {
           const auth10 = req;
           const userId = auth10.user?.id;
@@ -32856,18 +32857,18 @@ var init_LinkDirectoryController = __esm({
             return;
           }
           const { siteIds } = req.body;
-          await this.linkDirectoryService.replaceUserBookmarks(userId, siteIds);
-          const bookmarks = await this.linkDirectoryService.getUserBookmarks(userId);
+          await this.linkDirectoryService.replaceUserSavedSites(userId, siteIds);
+          const savedSites = await this.linkDirectoryService.getUserSavedSites(userId);
           res.status(200).json({
             success: true,
-            data: toLinkDirectoryBookmarkDtoCollection(bookmarks),
-            message: "Bookmarks updated."
+            data: toLinkDirectorySavedSiteDtoCollection(savedSites),
+            message: "Saved sites updated."
           });
         } catch (err) {
           next(err);
         }
       };
-      putUserBookmarksOrder = async (req, res, next) => {
+      putUserSavedSitesOrder = async (req, res, next) => {
         try {
           const auth10 = req;
           const userId = auth10.user?.id;
@@ -32876,12 +32877,33 @@ var init_LinkDirectoryController = __esm({
             return;
           }
           const { siteIds } = req.body;
-          await this.linkDirectoryService.reorderUserBookmarks(userId, siteIds);
-          const bookmarks = await this.linkDirectoryService.getUserBookmarks(userId);
+          await this.linkDirectoryService.reorderUserSavedSites(userId, siteIds);
+          const savedSites = await this.linkDirectoryService.getUserSavedSites(userId);
           res.status(200).json({
             success: true,
-            data: toLinkDirectoryBookmarkDtoCollection(bookmarks),
-            message: "Bookmark order updated."
+            data: toLinkDirectorySavedSiteDtoCollection(savedSites),
+            message: "Saved site order updated."
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      patchUserSavedSiteOutreachCompletion = async (req, res, next) => {
+        try {
+          const auth10 = req;
+          const userId = auth10.user?.id;
+          if (!userId) {
+            res.status(401).json({ success: false, message: "Unauthorized" });
+            return;
+          }
+          const siteId = req.params.siteId;
+          const { completed } = req.body;
+          await this.linkDirectoryService.setUserSavedSiteOutreachCompleted(userId, siteId, completed);
+          const savedSites = await this.linkDirectoryService.getUserSavedSites(userId);
+          res.status(200).json({
+            success: true,
+            data: toLinkDirectorySavedSiteDtoCollection(savedSites),
+            message: completed ? "Outreach marked done." : "Outreach marked not done."
           });
         } catch (err) {
           next(err);
@@ -41671,11 +41693,14 @@ var linkDirectorySubmissionCreateSchema = zod.z.object({
 var linkDirectorySubmissionReviewSchema = zod.z.object({
   status: zod.z.enum(["approved", "rejected"])
 });
-var linkDirectoryBookmarksPutSchema = zod.z.object({
+var linkDirectorySavedSitesPutSchema = zod.z.object({
   siteIds: zod.z.array(zod.z.string().uuid())
 });
-var linkDirectoryBookmarksOrderSchema = zod.z.object({
+var linkDirectorySavedSitesOrderSchema = zod.z.object({
   siteIds: zod.z.array(zod.z.string().uuid()).min(1)
+});
+var linkDirectorySavedSiteOutreachCompletionSchema = zod.z.object({
+  completed: zod.z.boolean()
 });
 var linkDirectoryRouter = express.Router();
 var authWithRoles7 = requireFullAuthWithRoles(
@@ -41722,18 +41747,27 @@ linkDirectoryRouter.post(
   validateRequest({ body: linkDirectorySubmissionCreateSchema }),
   linkDirectoryController.createSubmission
 );
-linkDirectoryRouter.get("/me/bookmarks", authWithRoles7, linkDirectoryController.getUserBookmarks);
+linkDirectoryRouter.get("/me/saved-sites", authWithRoles7, linkDirectoryController.getUserSavedSites);
 linkDirectoryRouter.put(
-  "/me/bookmarks",
+  "/me/saved-sites",
   authWithRoles7,
-  validateRequest({ body: linkDirectoryBookmarksPutSchema }),
-  linkDirectoryController.putUserBookmarks
+  validateRequest({ body: linkDirectorySavedSitesPutSchema }),
+  linkDirectoryController.putUserSavedSites
 );
 linkDirectoryRouter.put(
-  "/me/bookmarks/order",
+  "/me/saved-sites/order",
   authWithRoles7,
-  validateRequest({ body: linkDirectoryBookmarksOrderSchema }),
-  linkDirectoryController.putUserBookmarksOrder
+  validateRequest({ body: linkDirectorySavedSitesOrderSchema }),
+  linkDirectoryController.putUserSavedSitesOrder
+);
+linkDirectoryRouter.patch(
+  "/me/saved-sites/:siteId/outreach-completion",
+  authWithRoles7,
+  validateRequest({
+    params: linkDirectorySiteIdParamSchema,
+    body: linkDirectorySavedSiteOutreachCompletionSchema
+  }),
+  linkDirectoryController.patchUserSavedSiteOutreachCompletion
 );
 linkDirectoryRouter.get(
   "/categories/all-full",

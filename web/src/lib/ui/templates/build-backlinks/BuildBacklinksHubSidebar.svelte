@@ -15,17 +15,35 @@
 	import { publicBuildBacklinksPagePresenter } from '$lib/link-directory/index';
 	import { route } from '$lib/utils/path';
 
+	import { icons } from '$data/icons';
+
 	import { cn } from '$lib/ui/helpers/common';
+
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import ListingsSearchBar from '$lib/ui/templates/listings/ListingsSearchBar.svelte';
 
 	type Props = {
 		filtersVm: BuildBacklinksHubFilters;
 		categoriesVm: LinkDirectoryCategoryDto[];
 		tagsVm: LinkDirectoryTagDto[];
+		linkMode?: 'public' | 'inPlace';
+		buildFilterUrl?: (
+			current: BuildBacklinksHubFilters,
+			overrides: Partial<BuildBacklinksHubFilters>
+		) => string;
+		bookmarkCount?: number;
 		class?: string;
 	};
 
-	let { filtersVm, categoriesVm, tagsVm, class: className = '' }: Props = $props();
+	let {
+		filtersVm,
+		categoriesVm,
+		tagsVm,
+		linkMode = 'public',
+		buildFilterUrl,
+		bookmarkCount = 0,
+		class: className = ''
+	}: Props = $props();
 
 	const pagePresenter = publicBuildBacklinksPagePresenter;
 
@@ -38,8 +56,10 @@
 	});
 
 	function navigate(overrides: Partial<BuildBacklinksHubFilters>) {
-		const href = pagePresenter.buildFilterUrl(filtersVm, overrides);
-		void goto(href, { keepFocus: true });
+		const href = buildFilterUrl
+			? buildFilterUrl(filtersVm, overrides)
+			: pagePresenter.buildFilterUrl(filtersVm, overrides);
+		void goto(href, { keepFocus: true, noScroll: linkMode === 'inPlace' });
 	}
 
 	function toggleArrayFilter<T extends string>(
@@ -83,24 +103,92 @@
 		/>
 
 		<div class={sectionDivider}>
+			<h3 class={sectionTitle}>Saved</h3>
+			<div
+				class={cn(
+					'mt-2 flex w-full overflow-hidden rounded-lg border',
+					filtersVm.bookmarkedOnly
+						? 'border-warning bg-warning text-warning-content shadow-sm'
+						: 'border-warning/45 bg-warning/15'
+				)}
+			>
+				<button
+					type="button"
+					class={cn(
+						'btn btn-sm inline-flex min-w-0 flex-1 gap-1.5 rounded-none border-0 shadow-none',
+						filtersVm.bookmarkedOnly
+							? 'btn-warning text-warning-content hover:bg-warning'
+							: 'bg-transparent text-warning-content hover:bg-warning/25'
+					)}
+					aria-pressed={filtersVm.bookmarkedOnly === true}
+					onclick={() => navigate({ bookmarkedOnly: filtersVm.bookmarkedOnly ? undefined : true })}
+				>
+					<AbstractIcon
+						name={icons.Bookmark.name}
+						class={cn('size-3.5', filtersVm.bookmarkedOnly && 'fill-current')}
+						width="14"
+						height="14"
+					/>
+					Bookmarked
+					{#if bookmarkCount > 0}
+						<span class="ms-auto tabular-nums opacity-80">{bookmarkCount.toLocaleString()}</span>
+					{/if}
+				</button>
+				{#if filtersVm.bookmarkedOnly}
+					<button
+						type="button"
+						class="btn btn-sm shrink-0 rounded-none border-0 border-s border-warning/40 bg-transparent px-2.5 text-error shadow-none hover:bg-error/15"
+						aria-label="Clear bookmarked filter"
+						onclick={() => navigate({ bookmarkedOnly: undefined })}
+					>
+						<AbstractIcon name={icons.X2.name} class="size-3.5" width="14" height="14" />
+					</button>
+				{/if}
+			</div>
+		</div>
+
+		<div class={sectionDivider}>
 			<h3 class={sectionTitle}>Categories</h3>
 			<ul class="mt-2 space-y-1">
 				<li>
-					<a
-						href={route(getRootPathPublicBuildBacklinks())}
-						class={navLinkClass(!filtersVm.category)}
-					>
-						All categories
-					</a>
+					{#if linkMode === 'inPlace'}
+						<button
+							type="button"
+							class={cn(navLinkClass(!filtersVm.category), 'w-full text-left')}
+							onclick={() => navigate({ category: undefined })}
+						>
+							All categories
+						</button>
+					{:else}
+						<a
+							href={route(getRootPathPublicBuildBacklinks())}
+							class={navLinkClass(!filtersVm.category)}
+						>
+							All categories
+						</a>
+					{/if}
 				</li>
 				{#each categoriesVm as category (category.id)}
 					<li>
-						<a
-							href={route(getRootPathPublicBuildBacklinksCategory(category.slug))}
-							class={navLinkClass(filtersVm.category === category.slug)}
-						>
-							{category.name}
-						</a>
+						{#if linkMode === 'inPlace'}
+							<button
+								type="button"
+								class={cn(
+									navLinkClass(filtersVm.category === category.slug),
+									'w-full text-left'
+								)}
+								onclick={() => navigate({ category: category.slug })}
+							>
+								{category.name}
+							</button>
+						{:else}
+							<a
+								href={route(getRootPathPublicBuildBacklinksCategory(category.slug))}
+								class={navLinkClass(filtersVm.category === category.slug)}
+							>
+								{category.name}
+							</a>
+						{/if}
 					</li>
 				{/each}
 			</ul>

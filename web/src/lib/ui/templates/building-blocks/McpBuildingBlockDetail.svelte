@@ -35,8 +35,6 @@
 		likeDisabled?: boolean;
 		isBookmarked?: boolean;
 		isLoggedIn?: boolean;
-		bookmarksPaidEnabled?: boolean | null;
-		upgradeHref?: string;
 		onToggleBookmark?: (
 			listingId: string,
 			nextBookmarked: boolean
@@ -60,8 +58,6 @@
 		likeDisabled = false,
 		isBookmarked = false,
 		isLoggedIn = false,
-		bookmarksPaidEnabled = null,
-		upgradeHref,
 		onToggleBookmark,
 		communityEnabled = true,
 		submitRating,
@@ -142,9 +138,7 @@
 					listingId={extensionVm.id}
 					{isBookmarked}
 					{isLoggedIn}
-					{bookmarksPaidEnabled}
-					{upgradeHref}
-					onToggle={onToggleBookmark}
+							onToggle={onToggleBookmark}
 				/>
 			{/if}
 		</div>

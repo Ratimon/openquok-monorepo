@@ -29,6 +29,7 @@ export type BuildBacklinksHubFilters = {
 	effort?: LinkDirectoryEffort[];
 	approvalMode?: LinkDirectoryApprovalMode[];
 	opportunityTypeSlugs?: string[];
+	bookmarkedOnly?: boolean;
 };
 
 export type LinkDirectoryOpportunityStepDto = {

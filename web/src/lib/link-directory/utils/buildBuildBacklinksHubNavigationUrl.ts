@@ -11,6 +11,10 @@ import type {
 	LinkDirectoryEffort
 } from '$lib/link-directory/link-directory.types';
 import { DEFAULT_BUILD_BACKLINKS_SORT } from '$lib/link-directory/constants/buildBacklinksSortOptions';
+import {
+	appendHubBookmarkedOnlyQueryParam,
+	parseHubBookmarkedOnlyFromUrl
+} from '$lib/listings/utils/hubBookmarkedFilter';
 import { route } from '$lib/utils/path';
 
 const COST_TIERS: LinkDirectoryCostTier[] = ['free', 'freemium', 'paid'];
@@ -47,6 +51,7 @@ export function parseBuildBacklinksHubQueryFiltersFromUrl(
 	| 'effort'
 	| 'approvalMode'
 	| 'opportunityTypeSlugs'
+	| 'bookmarkedOnly'
 > {
 	const sortRaw = searchParams.get('sort');
 	const sort =
@@ -55,6 +60,7 @@ export function parseBuildBacklinksHubQueryFiltersFromUrl(
 			: DEFAULT_BUILD_BACKLINKS_SORT;
 	const search = searchParams.get('search')?.trim();
 	const opportunityTypeSlugs = parseCsvFreeform(searchParams.get('opportunityTypeSlugs'));
+	const bookmarkedOnly = parseHubBookmarkedOnlyFromUrl(searchParams);
 
 	return {
 		sort,
@@ -63,7 +69,8 @@ export function parseBuildBacklinksHubQueryFiltersFromUrl(
 		dofollow: parseCsvEnum(searchParams.get('dofollow'), DOFOLLOW_VALUES),
 		effort: parseCsvEnum(searchParams.get('effort'), EFFORT_VALUES),
 		approvalMode: parseCsvEnum(searchParams.get('approval'), APPROVAL_VALUES),
-		...(opportunityTypeSlugs?.length ? { opportunityTypeSlugs } : {})
+		...(opportunityTypeSlugs?.length ? { opportunityTypeSlugs } : {}),
+		...(bookmarkedOnly ? { bookmarkedOnly: true } : {})
 	};
 }
 
@@ -108,6 +115,7 @@ function appendHubQueryParams(filters: BuildBacklinksHubFilters): string {
 	if (filters.opportunityTypeSlugs?.length) {
 		params.set('opportunityTypeSlugs', filters.opportunityTypeSlugs.join(','));
 	}
+	appendHubBookmarkedOnlyQueryParam(params, filters.bookmarkedOnly);
 	const query = params.toString();
 	return query ? `?${query}` : '';
 }

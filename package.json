@@ -88,7 +88,6 @@
     "prod-backup:create-us-project": "node scripts/prod-backup/create-us-project.mjs",
     "prod-backup:relink": "node scripts/prod-backup/relink-cli.mjs",
     "prod-backup:smoke": "node scripts/prod-backup/verify-smoke.mjs",
-    "prod-backup:verify-saved-sites": "node scripts/prod-backup/verify-link-directory-saved-sites.mjs",
     "---------------------- CLEAR REDIS (orchestrator workers) ----------------------": "",
     "redis:clear-history": "pnpm --filter openquok-orchestrator script:clear-redis-history",
     "redis:clear-history:prod": "pnpm --filter openquok-orchestrator script:clear-redis-history -- --env-file .env.production.local",

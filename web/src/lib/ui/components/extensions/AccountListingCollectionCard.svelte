@@ -29,8 +29,6 @@
 		showBookmark?: boolean;
 		isBookmarked?: boolean;
 		isLoggedIn?: boolean;
-		bookmarksPaidEnabled?: boolean | null;
-		upgradeHref?: string;
 		bookmarkDisabled?: boolean;
 		onToggleBookmark?: (listingId: string, nextBookmarked: boolean) => Promise<ToggleResult>;
 		showPublishStatus?: boolean;
@@ -47,8 +45,6 @@
 		showBookmark = false,
 		isBookmarked = false,
 		isLoggedIn = false,
-		bookmarksPaidEnabled = null,
-		upgradeHref,
 		bookmarkDisabled = false,
 		onToggleBookmark,
 		showPublishStatus = false
@@ -137,8 +133,6 @@
 				listingKind={item.listingKind}
 				{isBookmarked}
 				{isLoggedIn}
-				{bookmarksPaidEnabled}
-				{upgradeHref}
 				disabled={bookmarkDisabled}
 				onToggle={onToggleBookmark!}
 			/>

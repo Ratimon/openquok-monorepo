@@ -101,6 +101,7 @@
 						siteId={siteVm.id}
 						siteSlug={siteVm.slug}
 						isBookmarked={isSiteBookmarked}
+						{isLoggedIn}
 						onToggle={handleToggleBookmark}
 					/>
 					{#if siteVm.domainRating != null}

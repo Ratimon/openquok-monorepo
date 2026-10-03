@@ -6,14 +6,7 @@ import type { DefinedTerm } from 'schema-dts';
 import { getRootPathPublicBuildBacklinks } from '$lib/area-public/constants/getRootPathPublicBuildBacklinks';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
-import {
-	buildPublishedQueryFromTagSlugs,
-	type BuildBacklinksPublishedTagQuery,
-	isBuildBacklinksEditorialTagSlug,
-	mergePublishedSiteFilterArrays
-} from '$lib/link-directory/constants/buildBacklinksTagTaxonomy';
 import { PUBLIC_BUILD_BACKLINKS_HUB } from '$lib/content/constants/hubs/build-backlinks';
-import { linkDirectoryRepository } from '$lib/link-directory/index';
 import type { BuildBacklinksHubFilters } from '$lib/link-directory/link-directory.types';
 import {
 	createBuildBacklinksCategoryAboutSchema,
@@ -21,10 +14,8 @@ import {
 	createBuildBacklinksItemListSchema,
 	createBuildBacklinksTagAboutSchema
 } from '$lib/link-directory/utils/createBuildBacklinksSeoSchema';
-import {
-	mapBuildBacklinksSortToApi,
-	parseBuildBacklinksHubQueryFiltersFromUrl
-} from '$lib/link-directory/utils/buildBuildBacklinksHubNavigationUrl';
+import { parseBuildBacklinksHubQueryFiltersFromUrl } from '$lib/link-directory/utils/buildBuildBacklinksHubNavigationUrl';
+import { resolveBuildBacklinksHubCatalog } from '$lib/link-directory/utils/resolveBuildBacklinksHubCatalog';
 import {
 	buildListingsHubBreadcrumbItems,
 	deriveListingsHubBreadcrumbVariant
@@ -34,10 +25,7 @@ import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonica
 import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 import { parseHubListPagination } from '$lib/listings/utils/hubListPagination';
-import {
-	formatBuildBacklinksHubHeroDescription,
-	toBuildBacklinksHubStatsViewModel
-} from '$lib/link-directory/utils/buildBuildBacklinksHubStats';
+import { formatBuildBacklinksHubHeroDescription } from '$lib/link-directory/utils/buildBuildBacklinksHubStats';
 import { shouldNoindexBuildBacklinksHubListing } from '$lib/link-directory/utils/shouldNoindexBuildBacklinksHubListing';
 
 export const ssr = true;
@@ -87,7 +75,8 @@ export async function loadBuildBacklinksHubPage(
 		...(queryFilters.approvalMode ? { approvalMode: queryFilters.approvalMode } : {}),
 		...(queryFilters.opportunityTypeSlugs
 			? { opportunityTypeSlugs: queryFilters.opportunityTypeSlugs }
-			: {})
+			: {}),
+		...(queryFilters.bookmarkedOnly ? { bookmarkedOnly: true } : {})
 	};
 
 	if (fixedCategorySlug) {
@@ -97,59 +86,32 @@ export async function loadBuildBacklinksHubPage(
 		filters.tags = [fixedTagSlug];
 	}
 
-	let tagPublishedQuery: BuildBacklinksPublishedTagQuery | undefined;
-	if (filters.tags?.length) {
-		const tagResolution = buildPublishedQueryFromTagSlugs(filters.tags);
-		if (!tagResolution.ok) {
-			throw error(404, 'Tag not found');
-		}
-		tagPublishedQuery = tagResolution.query;
-	}
-
-	const { page, itemsPerPage } = parseHubListPagination(url.searchParams);
-	const skip = (page - 1) * itemsPerPage;
-	const sortApi = mapBuildBacklinksSortToApi(filters.sort);
-
+	const pagination = parseHubListPagination(url.searchParams);
 	const isMainHub = !fixedCategorySlug && !fixedTagSlug;
 
-	const [categoriesVm, tagsVm, published, publishedHubStats] = await Promise.all([
-		linkDirectoryRepository.getActiveCategories(fetch),
-		linkDirectoryRepository.getActiveTags(fetch),
-		linkDirectoryRepository.getPublishedSites({
-			limit: itemsPerPage,
-			skip,
-			searchTerm: filters.search,
-			tagSlugs: tagPublishedQuery?.tagSlugs,
-			categorySlug: filters.category,
-			costTiers: mergePublishedSiteFilterArrays(filters.costTiers, tagPublishedQuery?.costTiers),
-			dofollow: mergePublishedSiteFilterArrays(filters.dofollow, tagPublishedQuery?.dofollow),
-			effort: filters.effort,
-			approvalMode: mergePublishedSiteFilterArrays(
-				filters.approvalMode,
-				tagPublishedQuery?.approvalMode
-			),
-			opportunityTypeSlugs: mergePublishedSiteFilterArrays(
-				filters.opportunityTypeSlugs,
-				tagPublishedQuery?.opportunityTypeSlugs
-			),
-			sortByKey: sortApi.sortByKey,
-			sortByOrder: sortApi.sortByOrder,
-			fetch
-		}),
-		isMainHub ? linkDirectoryRepository.getPublishedHubStats(fetch) : Promise.resolve(null)
-	]);
+	const catalog = await resolveBuildBacklinksHubCatalog({
+		filters,
+		pagination,
+		fetch,
+		loadHubStats: isMainHub
+	});
 
-	const filteredCount = published.count;
-	const totalPages = Math.max(1, Math.ceil(filteredCount / Math.max(itemsPerPage, 1)));
-	const listOffset = skip;
+	if (catalog.tagNotFound) {
+		throw error(404, 'Tag not found');
+	}
 
-	const statsVm =
-		publishedHubStats != null
-			? toBuildBacklinksHubStatsViewModel({
-					...publishedHubStats,
-					categoryCount: categoriesVm.length
-				})
-			: null;
+	const {
+		sitesVm,
+		categoriesVm,
+		tagsVm,
+		filtersVm,
+		filteredCount,
+		page,
+		itemsPerPage,
+		totalPages,
+		listOffset,
+		statsVm
+	} = catalog;
 
 	const customTitle = heroTitle ?? PUBLIC_BUILD_BACKLINKS_HUB.title;
 	const customDescription =
@@ -240,7 +202,7 @@ export async function loadBuildBacklinksHubPage(
 							origin: url.origin,
 							name: customTitle,
 							description: customDescription,
-							sites: published.sites,
+							sites: sitesVm,
 							totalCount: filteredCount,
 							listOffset
 						})
@@ -262,10 +224,10 @@ export async function loadBuildBacklinksHubPage(
 	return {
 		pageMetaTags,
 		isLoggedIn,
-		sitesVm: published.sites,
+		sitesVm,
 		categoriesVm,
-		tagsVm: tagsVm.filter((tag) => isBuildBacklinksEditorialTagSlug(tag.slug)),
-		filtersVm: filters,
+		tagsVm,
+		filtersVm,
 		filteredCount,
 		page,
 		itemsPerPage,

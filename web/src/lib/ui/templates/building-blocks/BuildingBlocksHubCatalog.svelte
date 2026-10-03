@@ -12,13 +12,13 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 
-	import { getRootPathAccount } from '$lib/area-protected';
 	import { getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
 	import { publicBuildingBlocksPagePresenter } from '$lib/area-public/index';
-	import { showListingBookmarkToast } from '$lib/listings';
+	import { publicListingBookmarksPresenter, showListingBookmarkToast } from '$lib/listings';
 	import {
 		buildHubListUrl,
-		HUB_LIST_PAGE_SIZE_OPTIONS
+		HUB_LIST_PAGE_SIZE_OPTIONS,
+		paginateHubList
 	} from '$lib/listings/utils/hubListPagination';
 	import {
 		SKILL_BUILDER_BUILDING_BLOCKS_QUERY_PARAM,
@@ -35,6 +35,7 @@
 
 	type Props = {
 		buildingBlocksVm: ExtensionCardViewModel[];
+		fullCatalogVm?: ExtensionCardViewModel[];
 		categoriesVm: ExtensionCategoryViewModel[];
 		filtersVm: ExtensionsHubFilters;
 		tagFilterVm: ExtensionsTagFilterViewModel;
@@ -43,7 +44,6 @@
 		filteredCount: number;
 		totalPages: number;
 		isLoggedIn: boolean;
-		bookmarksPaidEnabled: boolean | null;
 		bookmarkedIds: Record<string, boolean>;
 		onToggleBookmark: (
 			listingId: string,
@@ -55,6 +55,7 @@
 
 	let {
 		buildingBlocksVm,
+		fullCatalogVm,
 		categoriesVm,
 		filtersVm,
 		tagFilterVm,
@@ -63,7 +64,6 @@
 		filteredCount,
 		totalPages,
 		isLoggedIn,
-		bookmarksPaidEnabled,
 		bookmarkedIds,
 		onToggleBookmark,
 		categorySidebarLinkMode = true,
@@ -71,7 +71,6 @@
 	}: Props = $props();
 
 	const pagePresenter = publicBuildingBlocksPagePresenter;
-	const accountBillingHref = url(`${route(getRootPathAccount())}/billing`);
 	const skillBuilderHref = url(route(getRootPathPublicSkillBuilder()));
 
 	let expandedId = $state<string | null>(null);
@@ -92,6 +91,36 @@
 			? (filtersVm.tags[0] ?? null)
 			: (filtersVm.tagGroup ?? null)
 	);
+
+	const bookmarkCount = $derived(
+		publicListingBookmarksPresenter.bookmarkCountForListingKind('extension')
+	);
+
+	const catalogPage = $derived.by(() => {
+		if (!filtersVm.bookmarkedOnly) {
+			return {
+				items: buildingBlocksVm,
+				filteredCount,
+				totalPages,
+				listPage
+			};
+		}
+		const source = fullCatalogVm ?? buildingBlocksVm;
+		const filtered = pagePresenter.applyClientFilters(source, filtersVm, tagFilterVm);
+		const bookmarked = filtered.filter((row) => bookmarkedIds[row.id] === true);
+		const paginated = paginateHubList(bookmarked, listPage, itemsPerPage);
+		return {
+			items: paginated.items,
+			filteredCount: paginated.count,
+			totalPages: paginated.totalPages,
+			listPage: paginated.page
+		};
+	});
+
+	let displayBuildingBlocksVm = $derived(catalogPage.items);
+	let displayFilteredCount = $derived(catalogPage.filteredCount);
+	let displayTotalPages = $derived(catalogPage.totalPages);
+	let displayListPage = $derived(catalogPage.listPage);
 
 	function buildListUrl(overrides: Record<string, string | null | undefined>): string {
 		return buildHubListUrl(page.url.pathname, page.url.searchParams, overrides);
@@ -136,6 +165,10 @@
 
 	function handleSortChange(sort: ExtensionSort) {
 		navigateFilters({ sort });
+	}
+
+	function handleBookmarkedOnlyChange(next: boolean) {
+		navigateFilters({ bookmarkedOnly: next ? true : undefined });
 	}
 
 	function toggleExpanded(id: string) {
@@ -204,12 +237,15 @@
 		onTagClear={handleTagClear}
 		activeExtensionType={filtersVm.type ?? 'all'}
 		onTypeSelect={handleTypeSelect}
+		bookmarkedOnly={filtersVm.bookmarkedOnly === true}
+		{bookmarkCount}
+		onBookmarkedOnlyChange={handleBookmarkedOnlyChange}
 		class="lg:sticky lg:top-24 lg:self-start"
 	/>
 
 	<div class="min-w-0 space-y-4">
 		<ListingsExtensionsHubListToolbar
-			{filteredCount}
+			filteredCount={displayFilteredCount}
 			itemLabelSingular="building block"
 			itemLabelPlural="building blocks"
 		/>
@@ -226,14 +262,18 @@
 		/>
 
 		<section aria-label="Building block listings">
-			{#if buildingBlocksVm.length === 0}
+			{#if displayBuildingBlocksVm.length === 0}
 				<div class="rounded-xl border border-dashed border-base-300 px-6 py-12 text-center">
-					<p class="font-medium text-base-content">No building blocks match your filters.</p>
+					<p class="font-medium text-base-content">
+						{filtersVm.bookmarkedOnly
+							? 'No bookmarked building blocks match your filters.'
+							: 'No building blocks match your filters.'}
+					</p>
 					<p class="mt-1 text-sm text-base-content/60">Try clearing tags or search in the sidebar.</p>
 				</div>
 			{:else}
 				<ul class="flex flex-col gap-4">
-					{#each buildingBlocksVm as buildingBlockVm (buildingBlockVm.id)}
+					{#each displayBuildingBlocksVm as buildingBlockVm (buildingBlockVm.id)}
 						<li>
 							<BuildingBlockCard
 								extensionVm={buildingBlockVm}
@@ -243,8 +283,6 @@
 								showBookmark={true}
 								isBookmarked={bookmarkedIds[buildingBlockVm.id] === true}
 								{isLoggedIn}
-								{bookmarksPaidEnabled}
-								upgradeHref={accountBillingHref}
 								onToggleBookmark={handleToggleBookmark}
 								selectable={true}
 								selected={isSelected(buildingBlockVm.id)}
@@ -255,12 +293,12 @@
 				</ul>
 			{/if}
 
-			{#if filteredCount > 0}
+			{#if displayFilteredCount > 0}
 				<Pagination
 					{itemsPerPage}
-					totalItems={filteredCount}
-					currentPage={listPage}
-					{totalPages}
+					totalItems={displayFilteredCount}
+					currentPage={displayListPage}
+					totalPages={displayTotalPages}
 					{buildListUrl}
 					nameOfItems="building blocks"
 					pageSizeOptions={[...HUB_LIST_PAGE_SIZE_OPTIONS]}

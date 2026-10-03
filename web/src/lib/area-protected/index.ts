@@ -203,8 +203,7 @@ const protectedTemplatesPagePresenter = new ProtectedTemplatesPagePresenter(
 
 const protectedAccountBuildingBlocksPagePresenter = new ProtectedAccountBuildingBlocksPagePresenter(
 	getListingPresenter,
-	listingRepository,
-	getBillingPresenter
+	listingRepository
 );
 
 /** Edit playbook: `/account/saved/playbook/[id]` */

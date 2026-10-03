@@ -59,7 +59,6 @@
 
 	const pagePresenter = protectedAccountBuildingBlocksPagePresenter;
 
-	const accountBillingHref = url(`${route(getRootPathAccount())}/billing`);
 	const publicPlaybooksHref = url(`/${getRootPathPublicPlaybooks()}`);
 	const publicBuildingBlocksHref = url(`/${getRootPathPublicBuildingBlocks()}`);
 	const newBuildingBlockHref = url(`${route(getRootPathAccount())}/${getAccountNewBuildingBlockPath()}`);
@@ -81,8 +80,9 @@
 	const ownBuildingBlocks = $derived(pagePresenter.ownBuildingBlocksVm);
 	const ownStacks = $derived(pagePresenter.ownStacksVm);
 	const loadingOwn = $derived(pagePresenter.loadingOwn);
-	const bookmarksPaidEnabled = $derived(pagePresenter.bookmarksPaidEnabled);
-	const bookmarkCount = $derived(pagePresenter.bookmarkCount);
+	const bookmarkCount = $derived(
+		pagePresenter.bookmarkCountForExploreKind(exploreFilters.listingKind)
+	);
 	const listingHubStatsVm = $derived(pagePresenter.listingHubStatsVm);
 	const ownPublishedBuildingBlockCount = $derived(pagePresenter.ownPublishedBuildingBlockCount);
 	const ownPublishedStackCount = $derived(pagePresenter.ownPublishedStackCount);
@@ -194,19 +194,15 @@
 	onMount(() => {
 		if (!browser) return;
 		void (async () => {
-			const [paid, profile] = await Promise.all([
-				pagePresenter.loadBillingGateStateless(),
-				getProfilePresenter.loadProfileVm()
-			]);
+			const profile = await getProfilePresenter.loadProfileVm();
 			needsCreatorUsername = !hasPublicUsername(profile?.username);
+			await pagePresenter.hydrateListingBookmarks(isLoggedIn);
 			await Promise.all([
 				pagePresenter.loadExploreCatalog(),
 				pagePresenter.loadOwnListings(),
-				pagePresenter.loadListingHubStats()
+				pagePresenter.loadListingHubStats(),
+				isLoggedIn ? pagePresenter.loadBookmarks() : Promise.resolve()
 			]);
-			if (paid) {
-				await pagePresenter.loadBookmarks();
-			}
 		})();
 	});
 
@@ -236,10 +232,6 @@
 			{
 				label: bookmarked ? 'Remove bookmark' : 'Bookmark',
 				onSelect: () => {
-					if (!bookmarksPaidEnabled && !bookmarked) {
-						toast.error('Bookmarks require a paid plan.');
-						return;
-					}
 					void handleToggleBookmark(item.id, !bookmarked);
 				},
 				disabled: togglingBookmarkId === item.id
@@ -298,10 +290,6 @@
 	}
 
 	function handleBookmarkedFilterToggle() {
-		if (!exploreFilters.bookmarkedOnly && bookmarksPaidEnabled === false) {
-			toast.error('Bookmarks require a paid plan.');
-			return;
-		}
 		const nextBookmarkedOnly = !exploreFilters.bookmarkedOnly;
 		pagePresenter.setExploreFilters({ bookmarkedOnly: nextBookmarkedOnly });
 		syncSavedHubUrl({
@@ -400,9 +388,7 @@
 				loadingExplore={loadingExplore}
 				showExploreBuildingBlocks={showExploreBuildingBlocks}
 				showExploreStacks={showExploreStacks}
-				{bookmarksPaidEnabled}
 				{bookmarkCount}
-				{accountBillingHref}
 				isBuildingBlockSelected={(id) => pagePresenter.isBuildingBlockSelected(id)}
 				onToggleSelect={handleToggleSelect}
 				{getPublicHref}
@@ -415,6 +401,9 @@
 				onTagToggle={(tagSlug) => pagePresenter.toggleExploreTag(tagSlug)}
 				onClearTagFilters={() =>
 					pagePresenter.setExploreFilters({ tags: [], tagGroup: null })}
+				onSortChange={(sort) => pagePresenter.setExploreFilters({ sort })}
+				onExtensionTypeSelect={(extensionType) =>
+					pagePresenter.setExploreFilters({ extensionType })}
 				onBookmarkedToggle={handleBookmarkedFilterToggle}
 				{selectedCount}
 				onCreateStack={handleCreateStackFromSelection}

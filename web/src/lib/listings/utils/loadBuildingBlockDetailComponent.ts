@@ -18,8 +18,6 @@ export type BuildingBlockDetailComponentProps = {
 	likeDisabled?: boolean;
 	isBookmarked?: boolean;
 	isLoggedIn?: boolean;
-	bookmarksPaidEnabled?: boolean | null;
-	upgradeHref?: string;
 	onToggleBookmark?: (
 		listingId: string,
 		nextBookmarked: boolean

@@ -83,7 +83,7 @@ describe('PublicBuildBacklinksBookmarksPresenter', () => {
 		vi.unstubAllGlobals();
 	});
 
-	it('toggles completion via repository when signed in', async () => {
+	it('toggles completion locally without calling the API until saveShortlist', async () => {
 		const siteId = '22222222-2222-4222-8222-222222222222';
 		(repository.getMySavedSites as ReturnType<typeof vi.fn>).mockResolvedValue([
 			{
@@ -112,11 +112,28 @@ describe('PublicBuildBacklinksBookmarksPresenter', () => {
 			]
 		});
 
-		const result = await presenter.toggleCompleted('reddit');
+		const toggleResult = presenter.toggleCompleted('reddit');
 
-		expect(result.ok).toBe(true);
-		expect(repository.setSavedSiteOutreachCompletion).toHaveBeenCalledWith(siteId, true, undefined);
+		expect(toggleResult.ok).toBe(true);
+		expect(repository.setSavedSiteOutreachCompletion).not.toHaveBeenCalled();
 		expect(presenter.isCompleted('reddit')).toBe(true);
+		expect(presenter.hasUnsavedShortlistChanges()).toBe(true);
+
+		(repository.getMySavedSites as ReturnType<typeof vi.fn>).mockResolvedValue([
+			{
+				id: 'b1',
+				siteId,
+				sortOrder: 0,
+				createdAt: '',
+				outreachCompletedAt: '2026-03-01T00:00:00.000Z',
+				site: { slug: 'reddit', id: siteId, title: 'Reddit' }
+			}
+		]);
+
+		const saveResult = await presenter.saveShortlist();
+		expect(saveResult.ok).toBe(true);
+		expect(repository.setSavedSiteOutreachCompletion).toHaveBeenCalledWith(siteId, true, undefined);
+		expect(presenter.hasUnsavedShortlistChanges()).toBe(false);
 	});
 
 	it('returns sign-in error when toggling completion while logged out', async () => {
@@ -128,7 +145,7 @@ describe('PublicBuildBacklinksBookmarksPresenter', () => {
 		expect(repository.setSavedSiteOutreachCompletion).not.toHaveBeenCalled();
 	});
 
-	it('reorders locally without calling the API until saveOrder', async () => {
+	it('reorders locally without calling the API until saveShortlist', async () => {
 		const redditId = '22222222-2222-4222-8222-222222222222';
 		const githubId = '33333333-3333-4333-8333-333333333333';
 		(repository.getMySavedSites as ReturnType<typeof vi.fn>).mockResolvedValue([
@@ -175,9 +192,9 @@ describe('PublicBuildBacklinksBookmarksPresenter', () => {
 			]
 		});
 
-		const saveResult = await presenter.saveOrder();
+		const saveResult = await presenter.saveShortlist();
 		expect(saveResult.ok).toBe(true);
 		expect(repository.reorderMySavedSites).toHaveBeenCalledWith([githubId, redditId], undefined);
-		expect(presenter.hasUnsavedOrderChanges()).toBe(false);
+		expect(presenter.hasUnsavedShortlistChanges()).toBe(false);
 	});
 });

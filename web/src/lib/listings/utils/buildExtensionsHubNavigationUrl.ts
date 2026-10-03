@@ -9,12 +9,16 @@ import type {
 	ExtensionTypeFilter,
 	ExtensionsHubFilters
 } from '$lib/listings/listing.types';
+import {
+	appendHubBookmarkedOnlyQueryParam,
+	parseHubBookmarkedOnlyFromUrl
+} from '$lib/listings/utils/hubBookmarkedFilter';
 import { route } from '$lib/utils/path';
 
 /** Parse sort / type / search from the query string (category and tags use path segments). */
 export function parseExtensionsHubQueryFiltersFromUrl(
 	searchParams: URLSearchParams
-): Pick<ExtensionsHubFilters, 'type' | 'sort' | 'search'> {
+): Pick<ExtensionsHubFilters, 'type' | 'sort' | 'search' | 'bookmarkedOnly'> {
 	const type = searchParams.get('type');
 	const sort = searchParams.get('sort');
 	const search = searchParams.get('search')?.trim();
@@ -24,10 +28,13 @@ export function parseExtensionsHubQueryFiltersFromUrl(
 	const sortFilter: ExtensionSort =
 		sort === 'oldest' || sort === 'popular' || sort === 'views' ? sort : 'newest';
 
+	const bookmarkedOnly = parseHubBookmarkedOnlyFromUrl(searchParams);
+
 	return {
 		type: typeFilter,
 		sort: sortFilter,
-		...(search ? { search } : {})
+		...(search ? { search } : {}),
+		...(bookmarkedOnly ? { bookmarkedOnly: true } : {})
 	};
 }
 
@@ -37,6 +44,7 @@ function appendHubQueryParams(filters: ExtensionsHubFilters): string {
 	if (filters.type !== 'all') params.set('type', filters.type);
 	if (filters.sort !== 'newest') params.set('sort', filters.sort);
 	if (filters.search?.trim()) params.set('search', filters.search.trim());
+	appendHubBookmarkedOnlyQueryParam(params, filters.bookmarkedOnly);
 	const query = params.toString();
 	return query ? `?${query}` : '';
 }

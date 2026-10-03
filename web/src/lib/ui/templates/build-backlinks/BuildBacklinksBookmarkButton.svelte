@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { icons } from '$data/icons';
 
+	import { offerHubAccountSignInCtaAfterBookmark } from '$lib/ui/components/account/utils/hubAccountSignInCtaSession';
 	import { cn } from '$lib/ui/helpers/common';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
+	import HubAccountSignInCtaModal from '$lib/ui/components/account/HubAccountSignInCtaModal.svelte';
 
 	type ToggleResult = { ok: true; bookmarked: boolean } | { ok: false; error: string };
 
@@ -12,6 +14,7 @@
 		siteId: string;
 		siteSlug: string;
 		isBookmarked?: boolean;
+		isLoggedIn?: boolean;
 		disabled?: boolean;
 		size?: 'sm' | 'md';
 		class?: string;
@@ -22,6 +25,7 @@
 		siteId,
 		siteSlug,
 		isBookmarked = false,
+		isLoggedIn = false,
 		disabled = false,
 		size = 'sm',
 		class: className = '',
@@ -30,6 +34,7 @@
 
 	let bookmarked = $state(false);
 	let busy = $state(false);
+	let signInCtaOpen = $state(false);
 
 	$effect(() => {
 		bookmarked = isBookmarked;
@@ -48,6 +53,15 @@
 			const result = await onToggle({ siteId, siteSlug });
 			if (result.ok) {
 				bookmarked = result.bookmarked;
+				if (
+					offerHubAccountSignInCtaAfterBookmark({
+						variant: 'backlinks',
+						isLoggedIn,
+						addedBookmark: result.bookmarked
+					})
+				) {
+					signInCtaOpen = true;
+				}
 			}
 		} finally {
 			busy = false;
@@ -90,3 +104,5 @@
 	{/if}
 	<span class="sr-only">{label}</span>
 </Button>
+
+<HubAccountSignInCtaModal bind:open={signInCtaOpen} variant="backlinks" {isLoggedIn} />

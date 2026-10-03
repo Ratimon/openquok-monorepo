@@ -28,8 +28,6 @@
 		showBookmark?: boolean;
 		isBookmarked?: boolean;
 		isLoggedIn?: boolean;
-		bookmarksPaidEnabled?: boolean | null;
-		upgradeHref?: string;
 		onToggleBookmark?: (listingId: string, nextBookmarked: boolean) => Promise<ToggleResult>;
 		selectable?: boolean;
 		selected?: boolean;
@@ -46,8 +44,6 @@
 		showBookmark = false,
 		isBookmarked = false,
 		isLoggedIn = false,
-		bookmarksPaidEnabled = null,
-		upgradeHref,
 		onToggleBookmark,
 		selectable = false,
 		selected = false,
@@ -100,8 +96,6 @@
 				listingId={extensionVm.id}
 				{isBookmarked}
 				{isLoggedIn}
-				{bookmarksPaidEnabled}
-				{upgradeHref}
 				onToggle={onToggleBookmark!}
 			/>
 		</div>
@@ -172,8 +166,6 @@
 							listingId={extensionVm.id}
 							{isBookmarked}
 							{isLoggedIn}
-							{bookmarksPaidEnabled}
-							{upgradeHref}
 							onToggle={onToggleBookmark!}
 						/>
 					</div>

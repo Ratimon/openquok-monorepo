@@ -5,7 +5,7 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Dialog from '$lib/ui/dialog';
 
-	type UpgradeFeature = 'community' | 'bookmarks' | 'listings';
+	type UpgradeFeature = 'community' | 'listings';
 
 	type Props = {
 		open?: boolean;
@@ -22,19 +22,15 @@
 	}: Props = $props();
 
 	const title = $derived(
-		feature === 'bookmarks'
-			? 'Upgrade to bookmark extensions'
-			: feature === 'listings'
-				? 'Upgrade to submit stacks and extensions'
-				: 'Upgrade for community features'
+		feature === 'listings'
+			? 'Upgrade to submit stacks and extensions'
+			: 'Upgrade for community features'
 	);
 
 	const description = $derived(
-		feature === 'bookmarks'
-			? 'Bookmark extensions and access your saved list from a paid plan. Upgrade to get started.'
-			: feature === 'listings'
-				? 'Saving stacks and submitting extensions from Skill Builder requires Solo or higher. Upgrade to publish your work to the catalog.'
-				: 'Blog comments and other community features are not included on your current plan. Upgrade to Creator or higher to join the conversation on blog posts.'
+		feature === 'listings'
+			? 'Saving stacks and submitting extensions from Skill Builder requires Solo or higher. Upgrade to publish your work to the catalog.'
+			: 'Blog comments and other community features are not included on your current plan. Upgrade to Creator or higher to join the conversation on blog posts.'
 	);
 </script>
 

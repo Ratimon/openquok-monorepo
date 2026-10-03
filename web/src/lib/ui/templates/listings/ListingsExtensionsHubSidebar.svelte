@@ -6,7 +6,11 @@
 		ExtensionsTagFilterViewModel
 	} from '$lib/listings/index';
 
+	import { icons } from '$data/icons';
+
 	import { cn } from '$lib/ui/helpers/common';
+
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
 	import ListingsCategorySidebar from '$lib/ui/templates/listings/ListingsCategorySidebar.svelte';
 	import ListingsSearchBar from '$lib/ui/templates/listings/ListingsSearchBar.svelte';
@@ -34,6 +38,9 @@
 		onTagClear: () => void;
 		activeExtensionType?: ExtensionTypeFilter;
 		onTypeSelect?: (type: ExtensionTypeFilter) => void;
+		bookmarkedOnly?: boolean;
+		bookmarkCount?: number;
+		onBookmarkedOnlyChange?: (next: boolean) => void;
 		class?: string;
 	};
 
@@ -56,6 +63,9 @@
 		onTagClear,
 		activeExtensionType,
 		onTypeSelect,
+		bookmarkedOnly = false,
+		bookmarkCount = 0,
+		onBookmarkedOnlyChange,
 		class: className = ''
 	}: Props = $props();
 
@@ -104,6 +114,53 @@
 				{/each}
 			</select>
 		</div>
+
+		{#if onBookmarkedOnlyChange}
+			<div class={sectionDivider}>
+				<h3 class={sectionTitle}>Saved</h3>
+				<div
+					class={cn(
+						'mt-2 flex w-full overflow-hidden rounded-lg border',
+						bookmarkedOnly
+							? 'border-warning bg-warning text-warning-content shadow-sm'
+							: 'border-warning/45 bg-warning/15'
+					)}
+				>
+					<button
+						type="button"
+						class={cn(
+							'btn btn-sm inline-flex min-w-0 flex-1 gap-1.5 rounded-none border-0 shadow-none',
+							bookmarkedOnly
+								? 'btn-warning text-warning-content hover:bg-warning'
+								: 'bg-transparent text-warning-content hover:bg-warning/25'
+						)}
+						aria-pressed={bookmarkedOnly}
+						onclick={() => onBookmarkedOnlyChange(!bookmarkedOnly)}
+					>
+						<AbstractIcon
+							name={icons.Bookmark.name}
+							class={cn('size-3.5', bookmarkedOnly && 'fill-current')}
+							width="14"
+							height="14"
+						/>
+						Bookmarked
+						{#if bookmarkCount > 0}
+							<span class="ms-auto tabular-nums opacity-80">{bookmarkCount.toLocaleString()}</span>
+						{/if}
+					</button>
+					{#if bookmarkedOnly}
+						<button
+							type="button"
+							class="btn btn-sm shrink-0 rounded-none border-0 border-s border-warning/40 bg-transparent px-2.5 text-error shadow-none hover:bg-error/15"
+							aria-label="Clear bookmarked filter"
+							onclick={() => onBookmarkedOnlyChange(false)}
+						>
+							<AbstractIcon name={icons.X2.name} class="size-3.5" width="14" height="14" />
+						</button>
+					{/if}
+				</div>
+			</div>
+		{/if}
 
 		{#if hubKind === 'building-blocks' && activeExtensionType != null && onTypeSelect}
 			<div class={sectionDivider}>

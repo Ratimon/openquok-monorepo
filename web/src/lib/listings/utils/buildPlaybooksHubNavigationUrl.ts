@@ -5,21 +5,28 @@ import {
 	getRootPathPublicPlaybooksTag
 } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 import type { ExtensionSort, StacksHubFilters } from '$lib/listings/listing.types';
+import {
+	appendHubBookmarkedOnlyQueryParam,
+	parseHubBookmarkedOnlyFromUrl
+} from '$lib/listings/utils/hubBookmarkedFilter';
 import { route } from '$lib/utils/path';
 
 /** Parse sort / search from the query string (category and tags use path segments). */
 export function parsePlaybooksHubQueryFiltersFromUrl(
 	searchParams: URLSearchParams
-): Pick<StacksHubFilters, 'sort' | 'search'> {
+): Pick<StacksHubFilters, 'sort' | 'search' | 'bookmarkedOnly'> {
 	const sort = searchParams.get('sort');
 	const search = searchParams.get('search')?.trim();
 
 	const sortFilter: ExtensionSort =
 		sort === 'oldest' || sort === 'popular' || sort === 'views' ? sort : 'newest';
 
+	const bookmarkedOnly = parseHubBookmarkedOnlyFromUrl(searchParams);
+
 	return {
 		sort: sortFilter,
-		...(search ? { search } : {})
+		...(search ? { search } : {}),
+		...(bookmarkedOnly ? { bookmarkedOnly: true } : {})
 	};
 }
 
@@ -28,6 +35,7 @@ function appendHubQueryParams(filters: StacksHubFilters): string {
 	const params = new URLSearchParams();
 	if (filters.sort !== 'newest') params.set('sort', filters.sort);
 	if (filters.search?.trim()) params.set('search', filters.search.trim());
+	appendHubBookmarkedOnlyQueryParam(params, filters.bookmarkedOnly);
 	const query = params.toString();
 	return query ? `?${query}` : '';
 }

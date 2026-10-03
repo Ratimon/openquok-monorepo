@@ -161,7 +161,7 @@ export const PUBLIC_PLAYBOOKS_HUB = {
 			{
 				title: 'How do I bookmark or manage playbooks in my account?',
 				description:
-					`Open <a href="/account/saved">Account → Saved</a>. Use **Explore** to search the hub, save bookmarks on a paid plan, and start a stack from selected building blocks. **Library** holds your drafts and published workflows. Read the ${faqLink(publicFaqHref.docsPlaybooks, 'Saved docs')} — ${faqLink(publicFaqHref.docsPlaybooksExplore, 'Explore and bookmarks')} and ${faqLink(publicFaqHref.docsPlaybooksMyLibrary, 'Saved library')}.`
+					`Open <a href="/account/saved">Account → Saved</a>. Use **Browse** to search the hub, bookmark favorites (free; sign in to sync), and start a stack from selected building blocks. **Your library** holds your drafts and published workflows. Read the ${faqLink(publicFaqHref.docsPlaybooks, 'Saved docs')} — ${faqLink(publicFaqHref.docsPlaybooksExplore, 'Browse and bookmarks')} and ${faqLink(publicFaqHref.docsPlaybooksMyLibrary, 'Saved library')}.`
 			},
 			{
 				title: 'How do I publish my own playbook?',

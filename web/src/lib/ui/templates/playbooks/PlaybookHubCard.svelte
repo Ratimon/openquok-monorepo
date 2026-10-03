@@ -19,8 +19,6 @@
 		showBookmark?: boolean;
 		isBookmarked?: boolean;
 		isLoggedIn?: boolean;
-		bookmarksPaidEnabled?: boolean | null;
-		upgradeHref?: string;
 		onToggleBookmark?: (listingId: string, nextBookmarked: boolean) => Promise<ToggleResult>;
 	};
 
@@ -32,8 +30,6 @@
 		showBookmark = false,
 		isBookmarked = false,
 		isLoggedIn = false,
-		bookmarksPaidEnabled = null,
-		upgradeHref,
 		onToggleBookmark
 	}: Props = $props();
 
@@ -58,8 +54,6 @@
 				listingKind="stack"
 				{isBookmarked}
 				{isLoggedIn}
-				{bookmarksPaidEnabled}
-				{upgradeHref}
 				onToggle={onToggleBookmark!}
 			/>
 		</div>

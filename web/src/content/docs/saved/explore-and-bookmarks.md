@@ -1,6 +1,6 @@
 ---
 title: Browse and bookmarks
-description: Use Libs → Browse to search the catalog, filter listings, bookmark favorites, and open public hub pages.
+description: Browse the catalog, filter with the hub sidebar, bookmark, and open the detail pages.
 order: 1
 lastUpdated: 2026-10-03
 ---
@@ -13,40 +13,61 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 > Search community playbooks and building blocks, narrow results, and save the ones you want to install later.
 
-On <a href="/account/saved">Account → Saved</a>, open the **Libs** tab and stay on **Browse** (the default segment). The catalog loads building blocks and playbooks from the public hubs.
+On <a href="/account/saved">Account → Saved</a>, open the **Libs** tab and choose **Browse**.
 
-Legacy URLs that used <Badge text="?tab=explore" variant="path" /> still open **Browse**.
+![Account -> Saved - > Choose Tab](/docs/_assets/saved/overview-tabs.webp)
 
-## Search and kind filters
+The catalog loads from the public hubs.
+
+## Layout
+
+Browse matches the public hub pattern: **filters in a left sidebar**, **results on the right**.
+
+![Explore All Playbooks & Building Blocks](/docs/_assets/saved/browse-all-saved.webp)
+
+<Callout type="note">
+<p>You can choose between <Badge text="Building Blocks" variant="default" />, <Badge text="Playbooks" variant="default" />, and <Badge text="All" variant="default" /> on the grid</p>
+</Callout>
+
+## Sidebar controls
 
 | Control | Effect |
 | --- | --- |
-| **Search** | Matches titles and descriptions for both listing types |
-| **All** | Shows building blocks and playbooks together |
-| **Building blocks** | Only single skills or MCP listings |
-| **Playbooks** | Only curated stacks |
+| **Search** | Matches titles and descriptions |
+| **Sort** | **Newest**, **Oldest**, **Most liked**, or **Most viewed** |
+| **Saved → Bookmarked** | Shows only listings you saved and the count; click **×** to turn the filter off |
+| **Type** | When **All** or **Building blocks** is active on the grid, filter by **Skills**, **MCP**, or **Both** |
+| **Categories** | Pick one category, or choose **All categories** |
+| **Tags** | Click tag chips to narrow the grid; click an active chip again to remove it. Use **More** when the list is long |
 
-![Explore Playbooks](/docs/_assets/saved/explore-playbooks.webp)
 
-## Category and tags
+## Bookmark on public hubs
 
-Use the **Category** dropdown to filter results to one hub category (for example social publishing or productivity).
+While you browse <a href="/building-blocks">Building Blocks</a> or <a href="/playbooks">Playbooks</a>, use **Bookmark** icon on a card to save it.
 
-Below that, **tag groups** work like the public hubs:
+![Bookmark Building block](/docs/_assets/saved/bookmark-building-block.webp)
 
-1. Pick a tag group (when available).
-2. Toggle one or more tags to narrow the grid.
-3. Use **Clear** to reset tag filters without changing search or category.
 
-## Bookmarked filter
 
-Click the **Bookmarked** chip to show only listings you saved. The chip can include a count when you have bookmarks.
 
-<Callout type="note" title="Paid plan">
-<p>Saving bookmarks and filtering by <strong>Bookmarked</strong> need a paid Cloud plan. On a free plan you see an upgrade banner when you try to bookmark or turn the filter on. See <a href="/docs/billing/limits">Cloud limits</a> and <a href="/account/billing">Billing</a>.</p>
+
+<Callout type="warning">
+You can bookmark while signed out. Anonymous bookmarks stay in browser storage only, so it might be gone if you clear the browser.
 </Callout>
 
-When you bookmark from a hub or creator page, the success toast can link to <Badge text="/account/saved?tab=libs&bookmarked=1" variant="path" />.
+<Callout type="note">
+<p>Listing bookmarks are separate from <strong>Backlinks</strong> shortlists on <a href="/account/saved?tab=backlinks">Account → Saved → Backlinks</a>. See <a href="/docs/saved/backlinks">Backlinks shortlist</a> for outreach sites.</p>
+</Callout>
+
+## After you sign in
+
+When you open **Libs → Browse** or return to a public hub while signed in, OpenQuok reads browser bookmarks and your account sync it.
+
+| State | What happens |
+| --- | --- |
+| **Signed out** | Picks stay in browser storage on this device. They still show as bookmarked on hub cards and in Browse when the catalog row is loaded. |
+| **Signed in** | Local picks merge into your account. Duplicates drop out. After merge, your account is the source of truth across devices. |
+
 
 ## Card actions
 
@@ -56,7 +77,7 @@ Open the **⋯** menu on a card:
 
 | Action | When to use it |
 | --- | --- |
-| **Bookmark** / **Remove bookmark** | Save a listing for later (paid plans) |
+| **Bookmark** / **Remove bookmark** | Save a listing for later (local in the browser; syncs to your account when signed in) |
 | **View on hub** | Open the public detail page on <a href="/building-blocks">Building Blocks</a> or <a href="/playbooks">Playbooks</a> |
 
 ## Compose from Browse
@@ -69,15 +90,17 @@ Building block cards include an **Add** checkbox. Select one or more blocks, the
 <p>You can run the same steps from <strong>Your library</strong> when you want to stack your own drafts with catalog entries.</p>
 </Callout>
 
-## Empty results
+## Cookies and local storage
 
-If filters are too tight, the grid shows a short empty message. Clear tags, switch **All**, or turn off **Bookmarked** to widen the list.
+Anonymous bookmark picks may live in browser storage until you sign in and merge. OpenQuok also uses first-party cookies for account and product features. See the <a href="/cookie-policy">Cookie Policy</a> for how cookies are used across the app.
 
 ## Related
 
 <CardGrid>
 <LinkCard title="Compose a playbook" description="Selection bar and Skill Builder handoff" href="/docs/saved/compose-a-playbook" />
+<LinkCard title="Your library" description="Drafts, stats, and publish actions" href="/docs/saved/my-library" />
 <LinkCard title="Saved overview" description="Libs, Backlinks, and OpenQuok Core" href="/docs/saved" />
+<LinkCard title="Backlinks shortlist" description="Save outreach sites from Build Backlinks" href="/docs/saved/backlinks" />
 <LinkCard title="Building Blocks hub" description="Public catalog visitors see" href="/building-blocks" />
 <LinkCard title="Playbooks hub" description="Public playbook catalog" href="/playbooks" />
 </CardGrid>

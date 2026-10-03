@@ -19,6 +19,8 @@
 		loading?: boolean;
 		emptyMessage?: string;
 		layout?: 'row' | 'grid';
+		/** `narrow` = at most 2 columns (e.g. Libs → Browse beside the filter sidebar). */
+		gridDensity?: 'default' | 'narrow';
 		selectableBuildingBlocks?: boolean;
 		isSelected?: (listingId: string) => boolean;
 		onToggleSelect?: (listingId: string) => void;
@@ -27,8 +29,6 @@
 		showBookmarks?: boolean;
 		isBookmarked?: (listingId: string) => boolean;
 		isLoggedIn?: boolean;
-		bookmarksPaidEnabled?: boolean | null;
-		upgradeHref?: string;
 		togglingBookmarkId?: string | null;
 		onToggleBookmark?: (listingId: string, nextBookmarked: boolean) => Promise<ToggleResult>;
 		showPublishStatus?: boolean;
@@ -41,6 +41,7 @@
 		loading = false,
 		emptyMessage = 'Nothing here yet.',
 		layout = 'row',
+		gridDensity = 'default',
 		selectableBuildingBlocks = false,
 		isSelected = () => false,
 		onToggleSelect,
@@ -49,8 +50,6 @@
 		showBookmarks = false,
 		isBookmarked = () => false,
 		isLoggedIn = false,
-		bookmarksPaidEnabled = null,
-		upgradeHref,
 		togglingBookmarkId = null,
 		onToggleBookmark,
 		showPublishStatus = false
@@ -58,12 +57,18 @@
 
 	const listClass = $derived(
 		layout === 'grid'
-			? 'grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3'
+			? gridDensity === 'narrow'
+				? 'grid grid-cols-1 gap-3 sm:grid-cols-2'
+				: 'grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3'
 			: 'flex flex-col gap-3 lg:flex-row lg:flex-wrap'
 	);
 
 	const itemClass = $derived(
-		layout === 'grid' ? 'min-w-0' : 'w-full lg:max-w-[calc(33.333%-0.75rem)] lg:flex-1'
+		layout === 'grid'
+			? 'min-w-0'
+			: gridDensity === 'narrow'
+				? 'w-full sm:max-w-[calc(50%-0.375rem)] sm:flex-1'
+				: 'w-full lg:max-w-[calc(33.333%-0.75rem)] lg:flex-1'
 	);
 </script>
 
@@ -97,9 +102,7 @@
 						showBookmark={showBookmarks}
 						isBookmarked={isBookmarked(item.id)}
 						{isLoggedIn}
-						{bookmarksPaidEnabled}
-						{upgradeHref}
-						bookmarkDisabled={togglingBookmarkId === item.id}
+										bookmarkDisabled={togglingBookmarkId === item.id}
 						{onToggleBookmark}
 						{showPublishStatus}
 					/>

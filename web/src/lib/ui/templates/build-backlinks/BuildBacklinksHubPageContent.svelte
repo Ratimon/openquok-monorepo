@@ -1,9 +1,18 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { page } from '$app/state';
 
 	import type { BuildBacklinksHubPageContentData } from '$lib/link-directory/buildBacklinksHubPageContent.types';
+	import type {
+		LinkDirectoryCategoryDto,
+		LinkDirectorySiteDto,
+		LinkDirectoryTagDto
+	} from '$lib/link-directory/link-directory.types';
+
 	import { PUBLIC_BUILD_BACKLINKS_HUB } from '$lib/content/constants/hubs/build-backlinks';
 	import { publicBuildBacklinksBookmarksPresenter } from '$lib/link-directory/index';
+	import { resolveBuildBacklinksHubCatalog } from '$lib/link-directory/utils/resolveBuildBacklinksHubCatalog';
+	import { parseHubListPagination } from '$lib/listings/utils/hubListPagination';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	import BuildBacklinksHubCatalog from '$lib/ui/templates/build-backlinks/BuildBacklinksHubCatalog.svelte';
@@ -37,17 +46,71 @@
 
 	let submitOpen = $state(false);
 
+	let bookmarkedCatalogSites = $state<LinkDirectorySiteDto[] | null>(null);
+	let bookmarkedCatalogCategories = $state<LinkDirectoryCategoryDto[] | null>(null);
+	let bookmarkedCatalogTags = $state<LinkDirectoryTagDto[] | null>(null);
+	let bookmarkedCatalogFilteredCount = $state<number | null>(null);
+	let bookmarkedCatalogTotalPages = $state<number | null>(null);
+	let bookmarkedCatalogRequestId = 0;
+
 	const bookmarksPresenter = publicBuildBacklinksBookmarksPresenter;
 
-	const savedSitesBySlug = $derived(
-		bookmarksPresenter.buildSitesBySlugLookup(
-			sitesVm.map((site) => ({ slug: site.slug, title: site.title }))
-		)
+	const displaySitesVm = $derived(
+		filtersVm.bookmarkedOnly && bookmarkedCatalogSites ? bookmarkedCatalogSites : sitesVm
+	);
+	const displayCategoriesVm = $derived(
+		filtersVm.bookmarkedOnly && bookmarkedCatalogCategories
+			? bookmarkedCatalogCategories
+			: categoriesVm
+	);
+	const displayTagsVm = $derived(
+		filtersVm.bookmarkedOnly && bookmarkedCatalogTags ? bookmarkedCatalogTags : tagsVm
+	);
+	const displayFilteredCount = $derived(
+		filtersVm.bookmarkedOnly && bookmarkedCatalogFilteredCount != null
+			? bookmarkedCatalogFilteredCount
+			: filteredCount
+	);
+	const displayTotalPages = $derived(
+		filtersVm.bookmarkedOnly && bookmarkedCatalogTotalPages != null
+			? bookmarkedCatalogTotalPages
+			: totalPages
 	);
 
 	$effect(() => {
 		if (!browser) return;
 		void bookmarksPresenter.hydrate(isLoggedIn);
+	});
+
+	$effect(() => {
+		if (!browser || !filtersVm.bookmarkedOnly) {
+			bookmarkedCatalogSites = null;
+			bookmarkedCatalogCategories = null;
+			bookmarkedCatalogTags = null;
+			bookmarkedCatalogFilteredCount = null;
+			bookmarkedCatalogTotalPages = null;
+			return;
+		}
+		const pagination = parseHubListPagination(page.url.searchParams);
+		const slugs = bookmarksPresenter.orderedSlugs;
+		void filtersVm;
+		void pagination.page;
+		void pagination.itemsPerPage;
+		void slugs.length;
+		const requestId = ++bookmarkedCatalogRequestId;
+		void (async () => {
+			const result = await resolveBuildBacklinksHubCatalog({
+				filters: filtersVm,
+				pagination,
+				bookmarkedSiteSlugs: slugs
+			});
+			if (requestId !== bookmarkedCatalogRequestId) return;
+			bookmarkedCatalogSites = result.sitesVm;
+			bookmarkedCatalogCategories = result.categoriesVm;
+			bookmarkedCatalogTags = result.tagsVm;
+			bookmarkedCatalogFilteredCount = result.filteredCount;
+			bookmarkedCatalogTotalPages = result.totalPages;
+		})();
 	});
 
 	async function handleToggleBookmark(params: {
@@ -57,7 +120,7 @@
 	}) {
 		const title =
 			params.title ??
-			sitesVm.find((site) => site.slug === params.siteSlug)?.title ??
+			displaySitesVm.find((site) => site.slug === params.siteSlug)?.title ??
 			undefined;
 		return bookmarksPresenter.toggleBookmark({ ...params, title });
 	}
@@ -111,17 +174,17 @@
 
 	<div class="container mx-auto mt-8 max-w-6xl px-4">
 		<BuildBacklinksHubCatalog
-			{sitesVm}
-			{categoriesVm}
-			{tagsVm}
+			sitesVm={displaySitesVm}
+			categoriesVm={displayCategoriesVm}
+			tagsVm={displayTagsVm}
 			{filtersVm}
 			listPage={listPage}
 			{itemsPerPage}
-			{filteredCount}
-			{totalPages}
+			filteredCount={displayFilteredCount}
+			totalPages={displayTotalPages}
 			bookmarkedSlugs={bookmarksPresenter.orderedSlugs}
-			savedSitesBySlug={savedSitesBySlug}
 			onToggleBookmark={handleToggleBookmark}
+			{isLoggedIn}
 		/>
 	</div>
 

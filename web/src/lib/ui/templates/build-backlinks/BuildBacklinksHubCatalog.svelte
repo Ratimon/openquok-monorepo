@@ -11,7 +11,6 @@
 	import { page } from '$app/state';
 	import type { BuildBacklinksFacetClick } from '$lib/link-directory/utils/buildBacklinksFacetActions';
 	import { applyBuildBacklinksFacetClick } from '$lib/link-directory/utils/buildBacklinksFacetActions';
-	import { buildBacklinksSiteElementId } from '$lib/link-directory/utils/buildBacklinksSiteElementId';
 	import {
 		buildHubListUrl,
 		HUB_LIST_PAGE_SIZE_OPTIONS
@@ -37,8 +36,13 @@
 		filteredCount: number;
 		totalPages: number;
 		bookmarkedSlugs?: string[];
-		savedSitesBySlug?: Map<string, { title: string; slug: string }>;
 		onToggleBookmark?: (params: BookmarkToggleParams) => Promise<BookmarkToggleResult>;
+		linkMode?: 'public' | 'inPlace';
+		buildFilterUrl?: (
+			current: BuildBacklinksHubFilters,
+			overrides: Partial<BuildBacklinksHubFilters>
+		) => string;
+		isLoggedIn?: boolean;
 		class?: string;
 	};
 
@@ -52,8 +56,10 @@
 		filteredCount,
 		totalPages,
 		bookmarkedSlugs = [],
-		savedSitesBySlug = new Map(),
 		onToggleBookmark,
+		linkMode = 'public',
+		buildFilterUrl,
+		isLoggedIn = false,
 		class: className = ''
 	}: Props = $props();
 
@@ -65,23 +71,15 @@
 		expandedSiteId = open ? siteId : null;
 	}
 
-	function scrollToBookmarkedSite(siteSlug: string) {
-		const element = document.getElementById(buildBacklinksSiteElementId(siteSlug));
-		if (!element) return;
-		element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-		element.classList.add('ring-2', 'ring-primary', 'ring-offset-2', 'ring-offset-base-100');
-		window.setTimeout(() => {
-			element.classList.remove('ring-2', 'ring-primary', 'ring-offset-2', 'ring-offset-base-100');
-		}, 1600);
-	}
-
 	function buildListUrl(overrides: Record<string, string | null | undefined>) {
 		return buildHubListUrl(page.url.pathname, page.url.searchParams, overrides);
 	}
 
 	function navigate(overrides: Partial<BuildBacklinksHubFilters>) {
-		const href = publicBuildBacklinksPagePresenter.buildFilterUrl(filtersVm, overrides);
-		void goto(href, { keepFocus: true });
+		const href = buildFilterUrl
+			? buildFilterUrl(filtersVm, overrides)
+			: publicBuildBacklinksPagePresenter.buildFilterUrl(filtersVm, overrides);
+		void goto(href, { keepFocus: true, noScroll: linkMode === 'inPlace' });
 	}
 
 	function handleFacetClick(facet: BuildBacklinksFacetClick) {
@@ -94,6 +92,9 @@
 		{filtersVm}
 		{categoriesVm}
 		{tagsVm}
+		{linkMode}
+		{buildFilterUrl}
+		bookmarkCount={bookmarkedSlugs.length}
 		class="lg:sticky lg:top-24 lg:self-start"
 	/>
 
@@ -103,17 +104,20 @@
 			{categoriesVm}
 			{tagsVm}
 			{filteredCount}
-			{bookmarkedSlugs}
-			savedSitesBySlug={savedSitesBySlug}
 			onSortChange={(sort) => navigate({ sort })}
 			onClearFilter={(clear) => navigate(clear)}
-			onScrollToBookmark={scrollToBookmarkedSite}
 		/>
 
 		{#if sitesVm.length === 0}
 			<div class="rounded-xl border border-dashed border-base-300 px-6 py-12 text-center">
 				<p class="font-medium text-base-content">No sites match these filters.</p>
-				<p class="mt-1 text-sm text-base-content/60">Try clearing tags or opportunity filters.</p>
+				<p class="mt-1 text-sm text-base-content/60">
+					{#if filtersVm.bookmarkedOnly}
+						Bookmark sites from the catalog, or turn off Bookmarked in the sidebar.
+					{:else}
+						Try clearing tags or opportunity filters.
+					{/if}
+				</p>
 			</div>
 		{:else}
 			{#each sitesVm as site (site.id)}
@@ -122,6 +126,7 @@
 					tagsCatalog={tagsVm}
 					{filtersVm}
 					isBookmarked={bookmarkedSlugSet.has(site.slug)}
+					{isLoggedIn}
 					{onToggleBookmark}
 					onFacetClick={handleFacetClick}
 					opportunitiesOpen={expandedSiteId === site.id}

@@ -1,17 +1,12 @@
 <script lang="ts">
 	import { icons } from '$data/icons';
 
-	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
-	import { route, url } from '$lib/utils/path';
+	import { offerHubAccountSignInCtaAfterBookmark } from '$lib/ui/components/account/utils/hubAccountSignInCtaSession';
 	import { cn } from '$lib/ui/helpers/common';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import SignInToBookmarkModal from '$lib/ui/components/listings/SignInToBookmarkModal.svelte';
-	import CommunityFeaturesLimitUpgradeModal from '$lib/ui/components/blog-post/CommunityFeaturesLimitUpgradeModal.svelte';
-
-	const rootPathSignIn = getRootPathSignin();
-	const signInHrefDefault = url(route(rootPathSignIn));
+	import HubAccountSignInCtaModal from '$lib/ui/components/account/HubAccountSignInCtaModal.svelte';
 
 	type ToggleResult = { ok: true; bookmarked: boolean } | { ok: false; error: string };
 
@@ -22,9 +17,6 @@
 		listingKind?: ListingKind;
 		isBookmarked?: boolean;
 		isLoggedIn?: boolean;
-		bookmarksPaidEnabled?: boolean | null;
-		upgradeHref?: string;
-		signInHref?: string;
 		disabled?: boolean;
 		size?: 'sm' | 'md';
 		class?: string;
@@ -36,9 +28,6 @@
 		listingKind = 'extension',
 		isBookmarked = false,
 		isLoggedIn = false,
-		bookmarksPaidEnabled = null,
-		upgradeHref,
-		signInHref = signInHrefDefault,
 		disabled = false,
 		size = 'sm',
 		class: className = '',
@@ -47,8 +36,7 @@
 
 	let bookmarked = $state(false);
 	let busy = $state(false);
-	let showSignInDialog = $state(false);
-	let showUpgradeDialog = $state(false);
+	let signInCtaOpen = $state(false);
 
 	$effect(() => {
 		bookmarked = isBookmarked;
@@ -67,17 +55,7 @@
 		event.preventDefault();
 		event.stopPropagation();
 
-		if (!isLoggedIn) {
-			showSignInDialog = true;
-			return;
-		}
-
-		if (bookmarksPaidEnabled === false) {
-			showUpgradeDialog = true;
-			return;
-		}
-
-		if (bookmarksPaidEnabled !== true || busy || disabled) return;
+		if (busy || disabled) return;
 
 		const nextBookmarked = !bookmarked;
 		const previousBookmarked = bookmarked;
@@ -87,6 +65,15 @@
 			const result = await onToggle(listingId, nextBookmarked);
 			if (result.ok) {
 				bookmarked = result.bookmarked;
+				if (
+					offerHubAccountSignInCtaAfterBookmark({
+						variant: 'listings',
+						isLoggedIn,
+						addedBookmark: result.bookmarked
+					})
+				) {
+					signInCtaOpen = true;
+				}
 			} else {
 				bookmarked = previousBookmarked;
 			}
@@ -134,13 +121,4 @@
 	<span class="sr-only">{label}</span>
 </Button>
 
-<SignInToBookmarkModal
-	bind:open={showSignInDialog}
-	{signInHref}
-/>
-
-<CommunityFeaturesLimitUpgradeModal
-	bind:open={showUpgradeDialog}
-	{upgradeHref}
-	feature="bookmarks"
-/>
+<HubAccountSignInCtaModal bind:open={signInCtaOpen} variant="listings" {isLoggedIn} />

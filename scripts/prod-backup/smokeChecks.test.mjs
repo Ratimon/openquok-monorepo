@@ -4,7 +4,6 @@ import {
   classifySensitiveRpcResponse,
   countForeignSupabaseHosts,
   cronJobPresent,
-  evaluateLinkDirectorySavedSitesSchema,
   extractFirstJsonValue,
   filterHighSeverityRpcLints,
   internalFunctionsExposedToAnon,
@@ -146,27 +145,5 @@ describe("summarizeCheckResults", () => {
       true
     );
     assert.equal(summarizeCheckResults([{ status: "fail" }]).ok, false);
-  });
-});
-
-describe("evaluateLinkDirectorySavedSitesSchema", () => {
-  it("passes when saved_sites vocabulary is present", () => {
-    const result = evaluateLinkDirectorySavedSitesSchema({
-      has_saved_sites: true,
-      bookmarks_gone: true,
-      has_outreach_column: true,
-      no_legacy_completed_at: true,
-    });
-    assert.equal(result.ok, true);
-  });
-
-  it("fails when the legacy bookmarks table remains", () => {
-    const result = evaluateLinkDirectorySavedSitesSchema({
-      has_saved_sites: true,
-      bookmarks_gone: false,
-      has_outreach_column: true,
-      no_legacy_completed_at: true,
-    });
-    assert.equal(result.ok, false);
   });
 });

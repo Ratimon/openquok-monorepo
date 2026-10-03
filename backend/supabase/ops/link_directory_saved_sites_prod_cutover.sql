@@ -11,7 +11,6 @@
 -- After this script (and before shipping API/web that call /me/saved-sites):
 --   cd backend
 --   npx supabase@latest migration repair --linked --status applied <YYYYMMDD>
---   pnpm prod-backup:verify-saved-sites --linked
 --
 -- Greenfield / no user rows: prefer full reset or db push of
 -- backend/supabase/migrations/*_core_structure.sql instead of this file.
@@ -53,6 +52,54 @@ ALTER INDEX IF EXISTS idx_link_directory_bookmarks_user_sort
     RENAME TO idx_link_directory_saved_sites_user_sort;
 ALTER INDEX IF EXISTS idx_link_directory_bookmarks_site_id
     RENAME TO idx_link_directory_saved_sites_site_id;
+
+-- Table rename leaves PK / UNIQUE / FK constraint names on the old bookmarks prefix.
+DO $$
+BEGIN
+    IF to_regclass('public.link_directory_saved_sites') IS NULL THEN
+        RETURN;
+    END IF;
+
+    IF EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conrelid = 'public.link_directory_saved_sites'::regclass
+          AND conname = 'link_directory_bookmarks_pkey'
+    ) THEN
+        ALTER TABLE public.link_directory_saved_sites
+            RENAME CONSTRAINT link_directory_bookmarks_pkey
+            TO link_directory_saved_sites_pkey;
+    END IF;
+
+    IF EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conrelid = 'public.link_directory_saved_sites'::regclass
+          AND conname = 'link_directory_bookmarks_user_id_site_id_key'
+    ) THEN
+        ALTER TABLE public.link_directory_saved_sites
+            RENAME CONSTRAINT link_directory_bookmarks_user_id_site_id_key
+            TO link_directory_saved_sites_user_id_site_id_key;
+    END IF;
+
+    IF EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conrelid = 'public.link_directory_saved_sites'::regclass
+          AND conname = 'link_directory_bookmarks_user_id_fkey'
+    ) THEN
+        ALTER TABLE public.link_directory_saved_sites
+            RENAME CONSTRAINT link_directory_bookmarks_user_id_fkey
+            TO link_directory_saved_sites_user_id_fkey;
+    END IF;
+
+    IF EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conrelid = 'public.link_directory_saved_sites'::regclass
+          AND conname = 'link_directory_bookmarks_site_id_fkey'
+    ) THEN
+        ALTER TABLE public.link_directory_saved_sites
+            RENAME CONSTRAINT link_directory_bookmarks_site_id_fkey
+            TO link_directory_saved_sites_site_id_fkey;
+    END IF;
+END $$;
 
 COMMENT ON TABLE public.link_directory_saved_sites IS
     'Per-user shortlist of link directory sites (Saved → Backlinks): private order and outreach progress.';

@@ -1,7 +1,7 @@
 ---
-title: Compose a playbook
-description: Build a playbook in Skill Builder and save it.
-order: 4
+title: Create your own playbook
+description: Select building blocks, then finish the stack in Skill Builder and save a playbook draft.
+order: 3
 lastUpdated: 2026-10-03
 ---
 
@@ -17,14 +17,19 @@ A **playbook** tells an agent which blocks to install and how to run them in ord
 
 ## Selection bar
 
-On **Browse** or **Your library** (under **Libs**), find the dashed **Compose a playbook from building blocks** bar above the building block grid.
+On **Libs → Browse** or **Libs → Your library**, find the dashed **Compose a playbook from building blocks** bar above the building block grid.
 
 ![Select Building Blocks to Create New Playbooks](/docs/_assets/saved/compose-building-blocks.webp)
 
-1. Check/Turn on **Add** on each building block you want in the stack (playbook cards are not selectable here).
-2. The bar highlights how many blocks you picked.
+1. Turn on **Add** on each building block you want in the stack.
+
+<Callout type="note">
+<p>Playbook cards are not selectable here.</p>
+</Callout>
+
+2. The bar shows how many blocks you picked.
 3. Click **Create playbook (n)**.
-4. Use **Clear selection** to start over.
+4. Click **Clear selection** to start over.
 
 ## What happens next
 
@@ -35,8 +40,10 @@ OpenQuok saves your picks and opens <a href="/tools/skill-builder">Skill Builder
 - Reorder or remove members of the stack
 - Add **workflow steps** — CLI commands, prompts, and notes between blocks
 - Preview the exported <code>SKILL.md</code> on the right
-![Edit skukk markdown](/docs/_assets/saved/skill-editor.webp)
-- Sign in and choose **Save as playbook** to open the playbook editor with the draft filled in
+
+![Edit skill markdown](/docs/_assets/saved/skill-editor.webp)
+
+Sign in and choose **Save as playbook** to open the playbook editor with the draft filled in.
 
 <Callout type="tip">
 <p>Skill Builder includes <strong>OpenQuok Core</strong> by default so scheduling commands stay in the stack. Read the hub page at <a href="https://www.openquok.com/creators/openquok/building-blocks/openquok-core">OpenQuok Core</a> or the skill file on <a href="https://github.com/Ratimon/openquok-monorepo/blob/main/agent/skills/openquok-core/SKILL.md">GitHub</a> for install and auth steps.</p>
@@ -71,8 +78,9 @@ Save, then enable **Publish** when you want others to install the stack. Communi
 
 | Entry point | What it does |
 | --- | --- |
-| <a href="/building-blocks">Building Blocks hub</a> | Browse and open detail pages; multi-select **Create playbook** jumps into Skill Builder with those slugs |
-| <a href="/playbooks">Playbooks hub</a> | See full workflows others published; bookmark them from **Libs → Browse** on a paid plan |
+| <a href="/building-blocks">Building Blocks hub</a> | Browse with the public sidebar; multi-select **Create playbook** opens Skill Builder with those slugs |
+| <a href="/account/saved">Saved → Libs → Browse</a> | Same sidebar filters and bookmarks as the hub, inside your account |
+| <a href="/playbooks">Playbooks hub</a> | See full workflows others published; bookmark them from **Browse** or on hub cards |
 | <a href="/agents">Agents hub</a> | Pick a harness, then install OpenQuok Core or blocks from catalog links |
 
 ## Related

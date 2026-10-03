@@ -240,6 +240,8 @@ export interface ExtensionsHubFilters {
 	tags?: string[];
 	/** Active tag-group slug (matches any tag in the group). */
 	tagGroup?: string;
+	/** When true, show only locally or account-synced bookmarked listings (client-side). */
+	bookmarkedOnly?: boolean;
 }
 
 /** Client-side filters for the public playbooks hub (no extension-type chips). */
@@ -249,6 +251,7 @@ export interface StacksHubFilters {
 	category?: string;
 	tags?: string[];
 	tagGroup?: string;
+	bookmarkedOnly?: boolean;
 }
 
 /** Chip for a single tag on the extensions hub filter bar. */

@@ -9,5 +9,9 @@ export function resolvePublicSiteUrl(requestUrl: URL): string {
 		(typeof process !== 'undefined' && process.env.VITE_PUBLIC_SITE_URL?.trim()) ||
 		(typeof process !== 'undefined' && process.env.SITE_URL?.trim());
 	if (envUrl) return trimmed(envUrl);
-	return requestUrl.origin;
+	try {
+		return trimmed(requestUrl.origin);
+	} catch {
+		return 'https://www.openquok.com';
+	}
 }

@@ -188,7 +188,7 @@ export const ACCOUNT_SIDEBAR_TOUR_CONTENT: Record<
 				subtitle: 'Playbooks, building blocks, catalog bookmarks, and your published listings.',
 				iconName: icons.Bookmark.name,
 				image: {
-					src: '/docs/_assets/saved/overview.webp',
+					src: '/docs/_assets/saved/browse-all-saved.webp',
 					alt: 'Saved page with Libs tab showing Browse and Your library segments'
 				},
 				paragraphs: [
@@ -199,7 +199,7 @@ export const ACCOUNT_SIDEBAR_TOUR_CONTENT: Record<
 						{ highlight: 'Libs' },
 						' tab for playbooks and building blocks. Use ',
 						{ highlight: 'Browse' },
-						' to search the public catalog, filter by tags, bookmark favorites on a paid plan, and select blocks to ',
+						' to search the public catalog, filter by tags, bookmark favorites, and select blocks to ',
 						{ link: { label: 'compose a playbook', href: GUIDE.composePlaybook } },
 						'.'
 					],
@@ -221,7 +221,7 @@ export const ACCOUNT_SIDEBAR_TOUR_CONTENT: Record<
 				subtitle: 'Your Build Backlinks shortlist — order sites and track outreach.',
 				iconName: icons.Link.name,
 				image: {
-					src: '/docs/_assets/saved/explore-playbooks.webp',
+					src: '/docs/_assets/saved/browse-all-saved.webp',
 					alt: 'Build Backlinks hub and Saved Backlinks tab'
 				},
 				paragraphs: [

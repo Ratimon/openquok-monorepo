@@ -1,7 +1,7 @@
 ---
-title: Backlinks shortlist
-description: Bookmark sites on the Build Backlinks hub and manage your shortlist in Account → Saved.
-order: 3
+title: Backlinks Opportunities
+description: Bookmark sites on the Build Backlinks hub and manage your shortlist.
+order: 4
 lastUpdated: 2026-10-03
 ---
 
@@ -11,41 +11,46 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## Backlinks tab
 
-> Save outreach targets from the Build Backlinks catalog and keep them in one ordered list.
+> Save backlink opportunities from the backlinks hub and keep them in your list.
 
-Open <a href="/account/saved">Account → Saved</a> and switch to **Backlinks**. The tab lists every site you bookmarked on <a href="/build-backlinks">Build Backlinks</a>.
+Open <a href="/account/saved">Account → Saved</a>
 
-Use <Badge text="?tab=backlinks" variant="path" /> to open this tab directly.
+![Account -> Saved - > Choose Tab](/docs/_assets/saved/overview-tabs.webp)
+
+And switch to <Badge text="Backlinks" variant="default" /> tab.
+
+![Explore Backlinks](/docs/_assets/saved/browse-backlinks.webp)
+
+The tab also lists every site you bookmarked on public <a href="/build-backlinks">Build Backlinks</a> page.
 
 ## Bookmark on the public hub
 
-While you browse <a href="/build-backlinks">Build Backlinks</a>, use **Bookmark** on a site card to add it to your shortlist. You can bookmark while signed out; OpenQuok stores those picks in the browser until you sign in.
+While you browse <a href="/build-backlinks">Build Backlinks</a>, use **Bookmark** to add it to your shortlist. You can bookmark without sign-up.
+
+![Bookmark Backlink](/docs/_assets/saved/bookmark-backlink.webp)
+
 
 <Callout type="note">
-<p>Build Backlinks bookmarks are separate from listing bookmarks on <strong>Libs → Browse</strong>. Catalog bookmarks need a paid Cloud plan for playbooks and building blocks. Backlink shortlists are free for signed-in users.</p>
+<p>Build Backlinks bookmarks are separate from listing bookmarks on <strong>Libs → Browse</strong>.</p>
 </Callout>
-
-## After you sign in
-
-When you open **Backlinks** (or return to the hub while signed in), OpenQuok merges browser bookmarks with your account list. Duplicates drop out and the combined order is saved to your workspace.
-
-You do not need a paid plan to view, reorder, or mark saved backlink sites as done.
 
 ## Reorder your list
 
-Each row includes **Move up** and **Move down** when you have more than one site. Order is saved to your account so you can prioritize outreach.
+Reorder needs a paid Cloud plan.You can **Move up** and **Move down** to prioritize outreach as to-dos.
 
-Reorder and completion need a signed-in account. On the public hub, anonymous shortlists stay in browser storage only — you see a short hint that sign-in unlocks reorder and **Done**.
+![Manage Your Saved Backlinks](/docs/_assets/saved/bookmarked-backlinks.webp)
 
-## Mark outreach done
+<Callout type="warning">
+Reorder and to-do completion need a signed-in account. On the public hub, anonymous bookmarks stay in browser storage only, so it might be gone if you clear the browser.
+</Callout>
 
-Each saved row has a **Done** checkbox when you are signed in. Check it when you finish outreach for that site. Completed rows use muted, struck-through titles so you can focus on what is left.
+## Mark to-do done
 
-Clear **Done** to move a site back to your active list. Completion syncs to your account; browser-only bookmarks do not track completion until you sign in and merge.
+Check it when you finish outreach for that site, or clear **Done** to move a site back to your active list.
 
-## Empty state
-
-If you have not bookmarked any sites yet, the tab shows a short message with a button to <a href="/build-backlinks">Browse build backlinks</a>.
+<Callout type="tip">
+Click <strong>Save Shortlists</strong> to save the reorder and to-do prioritize.
+</Callout>
 
 ## Cookies and local storage
 
@@ -55,6 +60,6 @@ Anonymous bookmark picks may live in browser storage until you sign in. OpenQuok
 
 <CardGrid>
 <LinkCard title="Saved overview" description="Libs and Backlinks tabs" href="/docs/saved" />
-<LinkCard title="Browse and bookmarks" description="Catalog listing bookmarks on a paid plan" href="/docs/saved/explore-and-bookmarks" />
+<LinkCard title="Browse and bookmarks" description="Catalog bookmarks — local picks and account sync" href="/docs/saved/explore-and-bookmarks" />
 <LinkCard title="Build Backlinks hub" description="Public directory of outreach sites" href="/build-backlinks" />
 </CardGrid>

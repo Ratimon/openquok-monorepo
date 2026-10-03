@@ -14,11 +14,8 @@
 		categoriesVm: LinkDirectoryCategoryDto[];
 		tagsVm: LinkDirectoryTagDto[];
 		filteredCount: number;
-		bookmarkedSlugs?: string[];
-		savedSitesBySlug?: Map<string, { title: string; slug: string }>;
 		onSortChange: (sort: BuildBacklinksHubFilters['sort']) => void;
 		onClearFilter: (clear: Partial<BuildBacklinksHubFilters>) => void;
-		onScrollToBookmark?: (siteSlug: string) => void;
 		class?: string;
 	};
 
@@ -27,11 +24,8 @@
 		categoriesVm,
 		tagsVm,
 		filteredCount,
-		bookmarkedSlugs = [],
-		savedSitesBySlug = new Map(),
 		onSortChange,
 		onClearFilter,
-		onScrollToBookmark,
 		class: className = ''
 	}: Props = $props();
 
@@ -75,7 +69,11 @@
 			</p>
 			{#if activeChips.length === 0}
 				<p class="text-xs text-base-content/50">
-					Click badges on a site or opportunity to filter the list.
+					{#if filtersVm.bookmarkedOnly}
+						Showing bookmarked sites only. Change filters in the sidebar.
+					{:else}
+						Click badges on a site or opportunity to filter the list.
+					{/if}
 				</p>
 			{/if}
 		</div>
@@ -99,24 +97,4 @@
 			<p class="mt-1 text-end text-[10px] text-base-content/45">{selectedSortOption?.label}</p>
 		</div>
 	</div>
-
-	{#if bookmarkedSlugs.length > 0}
-		<div class="mt-3 border-t border-primary/20 pt-3">
-			<p class="text-sm text-base-content/75">
-				<span class="font-semibold text-base-content">{bookmarkedSlugs.length}</span>
-				{bookmarkedSlugs.length === 1 ? 'site' : 'sites'} bookmarked
-			</p>
-			<div class="mt-2 flex flex-wrap gap-2">
-				{#each bookmarkedSlugs as siteSlug (siteSlug)}
-					<button
-						type="button"
-						class="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-sm font-medium text-base-content transition-colors hover:bg-primary/20"
-						onclick={() => onScrollToBookmark?.(siteSlug)}
-					>
-						{savedSitesBySlug.get(siteSlug)?.title ?? siteSlug}
-					</button>
-				{/each}
-			</div>
-		</div>
-	{/if}
 </div>

@@ -5,7 +5,7 @@
 	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
 
-	import { isPaidSubscriptionTier, planLimitsForTier } from 'openquok-common';
+	import { planLimitsForTier } from 'openquok-common';
 
 	import { publicPlaybookBySlugPagePresenter } from '$lib/area-public';
 	import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
@@ -57,7 +57,6 @@
 	const playbooksHubHref = url(route(rootPathPublicPlaybooks));
 
 	let viewerCommunityFeaturesEnabled = $state<boolean | null>(null);
-	let bookmarksPaidEnabled = $state<boolean | null>(null);
 	let isBookmarked = $state(false);
 	let showUpgradeModal = $state(false);
 	let extraLikes = $state(0);
@@ -75,14 +74,12 @@
 	$effect(() => {
 		if (!browser || !isLoggedIn) {
 			viewerCommunityFeaturesEnabled = null;
-			bookmarksPaidEnabled = null;
 			return;
 		}
 		let cancelled = false;
 		void getBillingPresenter.loadOwnedAccountBillingVmStateless().then((vm) => {
 			if (cancelled) return;
 			viewerCommunityFeaturesEnabled = vm ? planLimitsForTier(vm.tier).community_features : false;
-			bookmarksPaidEnabled = vm ? isPaidSubscriptionTier(vm.tier) : false;
 		});
 		return () => {
 			cancelled = true;
@@ -182,8 +179,6 @@
 			likeDisabled={publicPlaybookBySlugPagePresenter.submittingLike}
 			{isBookmarked}
 			{isLoggedIn}
-			{bookmarksPaidEnabled}
-			upgradeHref={accountBillingHref}
 			onToggleBookmark={handleToggleBookmark}
 			communityEnabled={communityEnabled}
 			submitRating={(listingId, rating) =>

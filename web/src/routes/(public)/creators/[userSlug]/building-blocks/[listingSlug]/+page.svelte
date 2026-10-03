@@ -7,7 +7,7 @@
 
 	import { toast } from '$lib/ui/sonner';
 	import { getBillingPresenter } from '$lib/billing';
-	import { isPaidSubscriptionTier, planLimitsForTier } from 'openquok-common';
+	import { planLimitsForTier } from 'openquok-common';
 	import { getRootPathAccount } from '$lib/area-protected';
 	import { authenticationRepository } from '$lib/user-auth';
 	import { route, url } from '$lib/utils/path';
@@ -44,7 +44,6 @@
 	const buildingBlocksHubHref = url(route(rootPathPublicBuildingBlocks));
 
 	let viewerCommunityFeaturesEnabled = $state<boolean | null>(null);
-	let bookmarksPaidEnabled = $state<boolean | null>(null);
 	let isBookmarked = $state(false);
 	let showUpgradeModal = $state(false);
 	let extraLikes = $state(0);
@@ -65,14 +64,12 @@
 	$effect(() => {
 		if (!browser || !isLoggedIn) {
 			viewerCommunityFeaturesEnabled = null;
-			bookmarksPaidEnabled = null;
 			return;
 		}
 		let cancelled = false;
 		void getBillingPresenter.loadOwnedAccountBillingVmStateless().then((vm) => {
 			if (cancelled) return;
 			viewerCommunityFeaturesEnabled = vm ? planLimitsForTier(vm.tier).community_features : false;
-			bookmarksPaidEnabled = vm ? isPaidSubscriptionTier(vm.tier) : false;
 		});
 		return () => {
 			cancelled = true;
@@ -136,8 +133,6 @@
 				likeDisabled={publicBuildingBlockBySlugPagePresenter.submittingLike}
 				{isBookmarked}
 				{isLoggedIn}
-				{bookmarksPaidEnabled}
-				upgradeHref={accountBillingHref}
 				onToggleBookmark={handleToggleBookmark}
 				communityEnabled={communityEnabled}
 				openQuokHeroVm={creatorListingHeroVm}
@@ -168,8 +163,6 @@
 								showBookmark={true}
 								isBookmarked={false}
 								{isLoggedIn}
-								{bookmarksPaidEnabled}
-								upgradeHref={accountBillingHref}
 								onToggleBookmark={handleToggleBookmark}
 							/>
 						</li>

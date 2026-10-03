@@ -37,6 +37,7 @@
 		tagsCatalog: LinkDirectoryTagDto[];
 		filtersVm: BuildBacklinksHubFilters;
 		isBookmarked?: boolean;
+		isLoggedIn?: boolean;
 		onToggleBookmark?: (params: BookmarkToggleParams) => Promise<BookmarkToggleResult>;
 		onFacetClick?: (facet: BuildBacklinksFacetClick) => void;
 		opportunitiesOpen?: boolean;
@@ -49,6 +50,7 @@
 		tagsCatalog,
 		filtersVm,
 		isBookmarked = false,
+		isLoggedIn = false,
 		onToggleBookmark,
 		onFacetClick,
 		opportunitiesOpen = false,
@@ -147,6 +149,7 @@
 							siteId={site.id}
 							siteSlug={site.slug}
 							{isBookmarked}
+							{isLoggedIn}
 							onToggle={async (params) =>
 								onToggleBookmark({ ...params, title: site.title })}
 						/>

@@ -11,10 +11,12 @@ import type {
 	ListingUpsertProgrammerModel,
 	OwnedListingStatsProgrammerModel
 } from '$lib/listings/Listing.repository.svelte';
-import type { ExtensionsTagFilterViewModel } from '$lib/listings/listing.types';
-import type { GetBillingPresenter } from '$lib/billing/GetBilling.presenter.svelte';
-
-import { isPaidSubscriptionTier } from 'openquok-common';
+import type {
+	ExtensionSort,
+	ExtensionTypeFilter,
+	ExtensionsTagFilterViewModel
+} from '$lib/listings/listing.types';
+import { publicListingBookmarksPresenter } from '$lib/listings/index';
 
 export type AccountBuildingBlocksBookmarkMutationViewModel =
 	| { ok: true; bookmarked: boolean }
@@ -29,6 +31,8 @@ export type AccountExploreFilters = {
 	tagGroup: string | null;
 	listingKind: AccountExploreListingKindFilter;
 	bookmarkedOnly: boolean;
+	sort: ExtensionSort;
+	extensionType: ExtensionTypeFilter;
 };
 
 export type AccountListingCollectionItemViewModel = {
@@ -51,7 +55,9 @@ const DEFAULT_EXPLORE_FILTERS: AccountExploreFilters = {
 	tags: [],
 	tagGroup: null,
 	listingKind: 'all',
-	bookmarkedOnly: false
+	bookmarkedOnly: false,
+	sort: 'newest',
+	extensionType: 'all'
 };
 
 function listingInitials(title: string): string {
@@ -196,43 +202,6 @@ function stackToTagFilterExtensionVm(stack: StackCardViewModel): ExtensionCardVi
 	};
 }
 
-function filterStacksByExploreFilters(
-	stacks: StackCardViewModel[],
-	filters: AccountExploreFilters,
-	tagFilterVm?: ExtensionsTagFilterViewModel
-): StackCardViewModel[] {
-	let rows = [...stacks];
-
-	if (filters.search.trim()) {
-		const q = filters.search.trim().toLowerCase();
-		rows = rows.filter(
-			(row) =>
-				row.title.toLowerCase().includes(q) ||
-				(row.excerpt ?? '').toLowerCase().includes(q) ||
-				(row.description ?? '').toLowerCase().includes(q)
-		);
-	}
-
-	if (filters.category) {
-		rows = rows.filter((row) => row.category?.slug === filters.category);
-	}
-
-	const selectedTagSlugs = new Set(filters.tags);
-	if (selectedTagSlugs.size > 0) {
-		rows = rows.filter((row) => row.tags.some((tag) => selectedTagSlugs.has(tag.slug)));
-	} else if (filters.tagGroup && tagFilterVm) {
-		const groupTagSlugs = new Set(
-			tagFilterVm.groups.find((group) => group.slug === filters.tagGroup)?.tagSlugs ?? []
-		);
-		if (groupTagSlugs.size > 0) {
-			rows = rows.filter((row) => row.tags.some((tag) => groupTagSlugs.has(tag.slug)));
-		}
-	}
-
-	rows.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-	return rows;
-}
-
 export class ProtectedAccountBuildingBlocksPagePresenter {
 	public exploreBuildingBlockCardsVm: ExtensionCardViewModel[] = $state([]);
 	public exploreStackCardsVm: StackCardViewModel[] = $state([]);
@@ -253,18 +222,22 @@ export class ProtectedAccountBuildingBlocksPagePresenter {
 	public loadingOwn = $state(false);
 	public listingHubStatsVm: OwnedListingStatsProgrammerModel | null = $state(null);
 	public loadingListingHubStats = $state(false);
-	public bookmarksPaidEnabled = $state<boolean | null>(null);
 	public togglingBookmarkId = $state<string | null>(null);
 	public selectedBuildingBlockIds = $state<string[]>([]);
 
 	constructor(
 		private readonly getListingPresenter: GetListingPresenter,
-		private readonly listingRepository: ListingRepository,
-		private readonly getBillingPresenter: GetBillingPresenter
+		private readonly listingRepository: ListingRepository
 	) {}
 
 	get bookmarkCount(): number {
-		return this.bookmarkedBuildingBlocksVm.length + this.bookmarkedStacksVm.length;
+		return this.bookmarkedIdSet().size;
+	}
+
+	bookmarkCountForExploreKind(kind: AccountExploreListingKindFilter): number {
+		if (kind === 'extension') return this.bookmarkedBuildingBlocksVm.length;
+		if (kind === 'stack') return this.bookmarkedStacksVm.length;
+		return this.bookmarkCount;
 	}
 
 	get selectedBuildingBlockCount(): number {
@@ -303,6 +276,7 @@ export class ProtectedAccountBuildingBlocksPagePresenter {
 
 	isBookmarked(listingId: string): boolean {
 		return (
+			publicListingBookmarksPresenter.isBookmarked(listingId) ||
 			this.bookmarkedBuildingBlocksVm.some((row) => row.id === listingId) ||
 			this.bookmarkedStacksVm.some((row) => row.id === listingId)
 		);
@@ -362,11 +336,8 @@ export class ProtectedAccountBuildingBlocksPagePresenter {
 		this.selectedBuildingBlockIds = this.selectedBuildingBlockIds.filter((id) => id !== listingId);
 	}
 
-	async loadBillingGateStateless(): Promise<boolean> {
-		const vm = await this.getBillingPresenter.loadOwnedAccountBillingVmStateless();
-		const paid = vm ? isPaidSubscriptionTier(vm.tier) : false;
-		this.bookmarksPaidEnabled = paid;
-		return paid;
+	async hydrateListingBookmarks(isLoggedIn: boolean): Promise<void> {
+		await publicListingBookmarksPresenter.hydrate(isLoggedIn);
 	}
 
 	async loadExploreCatalog(): Promise<void> {
@@ -411,7 +382,6 @@ export class ProtectedAccountBuildingBlocksPagePresenter {
 	}
 
 	async loadBookmarks(): Promise<void> {
-		if (this.bookmarksPaidEnabled !== true) return;
 		this.loadingBookmarks = true;
 		try {
 			const listings = await this.listingRepository.getMyBookmarks();
@@ -472,23 +442,35 @@ export class ProtectedAccountBuildingBlocksPagePresenter {
 		}
 	}
 
-	async toggleBookmark(listingId: string, bookmarked: boolean): Promise<AccountBuildingBlocksBookmarkMutationViewModel> {
+	async toggleBookmark(listingId: string, _bookmarked: boolean): Promise<AccountBuildingBlocksBookmarkMutationViewModel> {
 		this.togglingBookmarkId = listingId;
 		try {
-			const resultPm = bookmarked
-				? await this.listingRepository.addBookmark(listingId)
-				: await this.listingRepository.removeBookmark(listingId);
-			const resultVm = mutationPmToVm(resultPm, bookmarked);
-			if (resultVm.ok) {
-				if (bookmarked) {
-					this.optimisticAddBookmark(listingId);
-					await this.loadBookmarks();
-				} else {
-					this.bookmarkedBuildingBlocksVm = this.bookmarkedBuildingBlocksVm.filter((row) => row.id !== listingId);
-					this.bookmarkedStacksVm = this.bookmarkedStacksVm.filter((row) => row.id !== listingId);
-				}
+			const stack = this.exploreStackCardsVm.find((row) => row.id === listingId);
+			const buildingBlock = this.exploreBuildingBlockCardsVm.find((row) => row.id === listingId);
+			const listingKind = stack ? 'stack' : 'extension';
+			const slug = stack?.slug ?? buildingBlock?.slug;
+
+			const result = await publicListingBookmarksPresenter.toggleBookmark({
+				listingId,
+				slug,
+				listingKind
+			});
+
+			if (!result.ok) {
+				return { ok: false, error: result.error ?? 'Failed to save bookmark.' };
 			}
-			return resultVm;
+
+			if (result.bookmarked) {
+				this.optimisticAddBookmark(listingId);
+				await this.loadBookmarks();
+			} else {
+				this.bookmarkedBuildingBlocksVm = this.bookmarkedBuildingBlocksVm.filter(
+					(row) => row.id !== listingId
+				);
+				this.bookmarkedStacksVm = this.bookmarkedStacksVm.filter((row) => row.id !== listingId);
+			}
+
+			return { ok: true, bookmarked: result.bookmarked };
 		} finally {
 			this.togglingBookmarkId = null;
 		}
@@ -548,9 +530,11 @@ export class ProtectedAccountBuildingBlocksPagePresenter {
 	}
 
 	private bookmarkedIdSet(): Set<string> {
-		return new Set(
-			[...this.bookmarkedBuildingBlocksVm, ...this.bookmarkedStacksVm].map((item) => item.id)
-		);
+		const ids = new Set(publicListingBookmarksPresenter.bookmarkedIds);
+		for (const item of [...this.bookmarkedBuildingBlocksVm, ...this.bookmarkedStacksVm]) {
+			ids.add(item.id);
+		}
+		return ids;
 	}
 
 	private applyBookmarkedOnly<T extends { id: string }>(rows: T[]): T[] {
@@ -561,8 +545,8 @@ export class ProtectedAccountBuildingBlocksPagePresenter {
 
 	private applyExploreFiltersToBuildingBlocks(): AccountListingCollectionItemViewModel[] {
 		const hubFilters = {
-			type: 'all' as const,
-			sort: 'newest' as const,
+			type: this.exploreFilters.extensionType,
+			sort: this.exploreFilters.sort,
 			search: this.exploreFilters.search || undefined,
 			category: this.exploreFilters.category ?? undefined,
 			tags: this.exploreFilters.tags.length ? this.exploreFilters.tags : undefined,
@@ -582,9 +566,16 @@ export class ProtectedAccountBuildingBlocksPagePresenter {
 	}
 
 	private applyExploreFiltersToStacks(): AccountListingCollectionItemViewModel[] {
-		const filtered = filterStacksByExploreFilters(
+		const hubFilters = {
+			sort: this.exploreFilters.sort,
+			search: this.exploreFilters.search || undefined,
+			category: this.exploreFilters.category ?? undefined,
+			tags: this.exploreFilters.tags.length ? this.exploreFilters.tags : undefined,
+			tagGroup: this.exploreFilters.tagGroup ?? undefined
+		};
+		const filtered = this.getListingPresenter.filterAndSortStacks(
 			this.exploreStackCardsVm,
-			this.exploreFilters,
+			hubFilters,
 			this.exploreTagFilterVm
 		);
 		return this.applyBookmarkedOnly(filtered).map((stack) =>

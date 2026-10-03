@@ -15,8 +15,6 @@ import {
 } from "../utils/dtos/ListingDTO";
 import { ValidationError } from "../errors/InfraError";
 import { stringToSlug } from "../utils/blog/slug";
-import type { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
-
 const ownerId = faker.string.uuid();
 const userId = faker.string.uuid();
 const listingId = faker.string.uuid();
@@ -475,24 +473,24 @@ describe("ListingService", () => {
             slug: "second-extension",
         };
 
-        function createMockSubscriptionGuard(): jest.Mocked<SubscriptionGuardService> {
-            return {
-                assert: jest.fn().mockResolvedValue(undefined),
-                assertPaidOwnedAccountForBookmarks: jest.fn().mockResolvedValue(undefined),
-            } as unknown as jest.Mocked<SubscriptionGuardService>;
-        }
-
-        it("returns both bookmarked listings for the user dashboard", async () => {
+        it("returns published extension and stack bookmarks for the user dashboard", async () => {
             listingRepo.findBookmarkedListingsByUserId.mockResolvedValue({
                 data: [
                     { ...mockListing, is_admin_published: true },
-                    { ...secondListing, is_admin_published: true },
+                    { ...secondListing, is_admin_published: true, listing_kind: "stack" },
+                    {
+                        ...mockListing,
+                        id: faker.string.uuid(),
+                        is_admin_published: true,
+                        is_user_published: false,
+                    },
                 ],
             });
             const service = new ListingService(listingRepo, categoryRepo);
             const result = await service.getUserBookmarks(userId);
             expect(result).toHaveLength(2);
             expect(result.map((listing) => listing.id)).toEqual([listingId, secondListingId]);
+            expect(result.map((listing) => listing.listing_kind)).toEqual(["extension", "stack"]);
             expect(listingRepo.findBookmarkedListingsByUserId).toHaveBeenCalledWith(userId);
         });
 
@@ -539,21 +537,13 @@ describe("ListingService", () => {
             expect(listingRepo.findBookmarkedListingsByUserId).not.toHaveBeenCalled();
         });
 
-        it("asserts paid owned account when subscription guard and auth user id are provided", async () => {
-            const subscriptionGuard = createMockSubscriptionGuard();
+        it("returns bookmarks for any authenticated user without a paid-plan gate", async () => {
             listingRepo.findBookmarkedListingsByUserId.mockResolvedValue({
                 data: [{ ...mockListing, is_admin_published: true }],
             });
-            const service = new ListingService(
-                listingRepo,
-                categoryRepo,
-                undefined,
-                undefined,
-                undefined,
-                subscriptionGuard
-            );
-            await service.getUserBookmarks(userId, userId);
-            expect(subscriptionGuard.assertPaidOwnedAccountForBookmarks).toHaveBeenCalledWith(userId);
+            const service = new ListingService(listingRepo, categoryRepo);
+            const result = await service.getUserBookmarks(userId, userId);
+            expect(result).toHaveLength(1);
         });
     });
 });

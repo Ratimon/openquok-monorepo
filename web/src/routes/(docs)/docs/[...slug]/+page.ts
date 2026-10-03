@@ -7,6 +7,8 @@ import {
 	preloadDocsRegistry
 } from '$lib/docs/index';
 import { docsRedirectPath } from '$lib/docs/utils/content/docsSlugRedirects';
+import { docsUrlSearch } from '$lib/docs/utils/site/docsRequestUrl';
+import { resolvePublicSiteUrl } from '$lib/docs/utils/site/resolvePublicSiteUrl';
 import { buildDocsPageLoadExtras } from '$lib/docs/utils/seo/buildDocsPageLoadExtras';
 import { error, redirect } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
@@ -22,7 +24,7 @@ export async function entries() {
 }
 
 export const load: PageLoad = async ({ params, url }) => {
-	const redirectTarget = docsRedirectPath(params.slug, { search: url.search });
+	const redirectTarget = docsRedirectPath(params.slug, { search: docsUrlSearch(url) });
 	if (redirectTarget) {
 		throw redirect(308, redirectTarget);
 	}
@@ -41,6 +43,9 @@ export const load: PageLoad = async ({ params, url }) => {
 		next,
 		rawContent,
 		content: await doc.loadContent(),
-		...(await buildDocsPageLoadExtras(rawContent, { meta: doc.meta, origin: url.origin }))
+		...(await buildDocsPageLoadExtras(rawContent, {
+			meta: doc.meta,
+			origin: resolvePublicSiteUrl(url)
+		}))
 	};
 };
