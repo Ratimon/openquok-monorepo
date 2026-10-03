@@ -105,16 +105,16 @@ describe('pSEO hub FAQ funnel links', () => {
 		}
 	});
 
-	it('playbooks hub links account Playbooks docs from tailored copy', () => {
+	it('playbooks hub links account Saved docs from tailored copy', () => {
 		const html = PUBLIC_PLAYBOOKS_HUB.faqSection.faqItems
 			.map((item) => item.description)
 			.join('\n');
 		expect(html).toContain(`href="${publicFaqHref.docsPlaybooks}"`);
 		expect(html).toContain(`href="${publicFaqHref.docsPlaybooksExplore}"`);
-		expect(html).toContain('href="/account/playbooks"');
+		expect(html).toContain('href="/account/saved"');
 	});
 
-	it('building-blocks hub links My Playbooks library docs from tailored copy', () => {
+	it('building-blocks hub links Saved library docs from tailored copy', () => {
 		const html = PUBLIC_BUILDING_BLOCKS_HUB.faqSection.faqItems
 			.map((item) => item.description)
 			.join('\n');

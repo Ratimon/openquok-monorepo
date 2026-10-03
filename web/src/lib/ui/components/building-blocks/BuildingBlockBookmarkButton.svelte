@@ -80,12 +80,18 @@
 		if (bookmarksPaidEnabled !== true || busy || disabled) return;
 
 		const nextBookmarked = !bookmarked;
+		const previousBookmarked = bookmarked;
+		bookmarked = nextBookmarked;
 		busy = true;
 		try {
 			const result = await onToggle(listingId, nextBookmarked);
 			if (result.ok) {
 				bookmarked = result.bookmarked;
+			} else {
+				bookmarked = previousBookmarked;
 			}
+		} catch {
+			bookmarked = previousBookmarked;
 		} finally {
 			busy = false;
 		}
@@ -94,13 +100,12 @@
 
 <Button
 	type="button"
-	variant="outline"
+	variant={bookmarked ? 'primary' : 'outline'}
 	size={buttonSize}
 	class={cn(
-		'border-primary/40 text-primary',
 		bookmarked
-			? 'bg-primary/10 hover:bg-primary/15'
-			: 'bg-base-100/80 hover:bg-primary/10',
+			? 'border-primary shadow-sm shadow-primary/20'
+			: 'border-base-300/80 bg-base-100/80 text-base-content/70 hover:border-primary/40 hover:text-primary',
 		className
 	)}
 	aria-pressed={bookmarked}
@@ -109,13 +114,23 @@
 	disabled={disabled || busy}
 	onclick={handleClick}
 >
-	<AbstractIcon
-		name={icons.Bookmark.name}
-		class={cn('size-4 text-primary', bookmarked && 'fill-primary')}
-		width="16"
-		height="16"
-		aria-hidden="true"
-	/>
+	{#if bookmarked}
+		<AbstractIcon
+			name={icons.Star.name}
+			class="size-4 fill-primary-content text-primary-content"
+			width="16"
+			height="16"
+			aria-hidden="true"
+		/>
+	{:else}
+		<AbstractIcon
+			name={icons.Bookmark.name}
+			class="size-4"
+			width="16"
+			height="16"
+			aria-hidden="true"
+		/>
+	{/if}
 	<span class="sr-only">{label}</span>
 </Button>
 

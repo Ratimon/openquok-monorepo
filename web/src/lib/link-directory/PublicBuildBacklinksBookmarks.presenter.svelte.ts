@@ -1,5 +1,5 @@
 import type { LinkDirectoryRepository } from '$lib/link-directory/LinkDirectory.repository';
-import type { LinkDirectoryBookmarkDto } from '$lib/link-directory/link-directory.types';
+import type { LinkDirectorySavedSiteDto } from '$lib/link-directory/link-directory.types';
 
 import {
 	clearBuildBacklinksLocalBookmarks,
@@ -15,16 +15,32 @@ export type BuildBacklinksBookmarkToggleResult =
 export class PublicBuildBacklinksBookmarksPresenter {
 	public orderedSlugs = $state<string[]>([]);
 	public siteTitleBySlug = $state<Record<string, string>>({});
+	public outreachCompletedAtBySlug = $state<Record<string, string | null>>({});
 	public isLoggedIn = $state(false);
 	public hydrating = $state(false);
 	public canReorder = $state(false);
+	public canMarkComplete = $state(false);
+	public savingOrder = $state(false);
 
 	private siteIdBySlug = new Map<string, string>();
+	private persistedOrderSlugs: string[] = [];
 
 	constructor(private readonly linkDirectoryRepository: LinkDirectoryRepository) {}
 
 	isBookmarked(siteSlug: string): boolean {
 		return this.orderedSlugs.includes(siteSlug);
+	}
+
+	isCompleted(siteSlug: string): boolean {
+		return Boolean(this.outreachCompletedAtBySlug[siteSlug]);
+	}
+
+	hasUnsavedOrderChanges(): boolean {
+		if (!this.isLoggedIn) return false;
+		const current = this.orderedSlugs;
+		const persisted = this.persistedOrderSlugs;
+		if (current.length !== persisted.length) return true;
+		return current.some((slug, index) => slug !== persisted[index]);
 	}
 
 	getSiteIdForSlug(siteSlug: string): string | undefined {
@@ -34,6 +50,7 @@ export class PublicBuildBacklinksBookmarksPresenter {
 	async hydrate(isLoggedIn: boolean, fetch?: typeof globalThis.fetch): Promise<void> {
 		this.isLoggedIn = isLoggedIn;
 		this.canReorder = isLoggedIn;
+		this.canMarkComplete = isLoggedIn;
 		this.hydrating = true;
 		try {
 			if (isLoggedIn) {
@@ -82,12 +99,12 @@ export class PublicBuildBacklinksBookmarksPresenter {
 			const siteIds = this.orderedSlugs
 				.map((slug) => this.siteIdBySlug.get(slug))
 				.filter((id): id is string => Boolean(id));
-			const result = await this.linkDirectoryRepository.replaceMyBookmarks(siteIds, fetch);
+			const result = await this.linkDirectoryRepository.replaceMySavedSites(siteIds, fetch);
 			if (!result.ok) {
 				await this.hydrateAuthenticated(fetch);
 				return { ok: false, error: result.error ?? 'Failed to save bookmark.' };
 			}
-			this.applyServerBookmarks(result.bookmarks);
+			this.applyServerSavedSites(result.savedSites);
 			return { ok: true, bookmarked: this.isBookmarked(siteSlug) };
 		}
 
@@ -99,11 +116,10 @@ export class PublicBuildBacklinksBookmarksPresenter {
 		return { ok: true, bookmarked: nextBookmarked };
 	}
 
-	async moveBookmark(
+	moveBookmark(
 		siteSlug: string,
-		direction: 'up' | 'down',
-		fetch?: typeof globalThis.fetch
-	): Promise<{ ok: boolean; error?: string }> {
+		direction: 'up' | 'down'
+	): { ok: boolean; error?: string } {
 		if (!this.isLoggedIn) {
 			return { ok: false, error: 'Sign in to reorder saved sites.' };
 		}
@@ -120,59 +136,110 @@ export class PublicBuildBacklinksBookmarksPresenter {
 		const [removed] = next.splice(index, 1);
 		next.splice(targetIndex, 0, removed);
 		this.orderedSlugs = next;
+		return { ok: true };
+	}
 
-		const siteIds = next
+	async saveOrder(
+		fetch?: typeof globalThis.fetch
+	): Promise<{ ok: boolean; error?: string }> {
+		if (!this.isLoggedIn) {
+			return { ok: false, error: 'Sign in to save order.' };
+		}
+		if (!this.hasUnsavedOrderChanges()) {
+			return { ok: true };
+		}
+
+		const siteIds = this.orderedSlugs
 			.map((slug) => this.siteIdBySlug.get(slug))
 			.filter((id): id is string => Boolean(id));
 
-		const result = await this.linkDirectoryRepository.reorderMyBookmarks(siteIds, fetch);
+		this.savingOrder = true;
+		try {
+			const result = await this.linkDirectoryRepository.reorderMySavedSites(siteIds, fetch);
+			if (!result.ok) {
+				await this.hydrateAuthenticated(fetch);
+				return { ok: false, error: result.error };
+			}
+			this.applyServerSavedSites(result.savedSites);
+			return { ok: true };
+		} finally {
+			this.savingOrder = false;
+		}
+	}
+
+	async toggleCompleted(
+		siteSlug: string,
+		fetch?: typeof globalThis.fetch
+	): Promise<{ ok: boolean; error?: string }> {
+		if (!this.isLoggedIn) {
+			return { ok: false, error: 'Sign in to track progress.' };
+		}
+
+		const siteId = this.siteIdBySlug.get(siteSlug);
+		if (!siteId) {
+			return { ok: false, error: 'Site is not bookmarked.' };
+		}
+
+		const nextCompleted = !this.isCompleted(siteSlug);
+		this.outreachCompletedAtBySlug = {
+			...this.outreachCompletedAtBySlug,
+			[siteSlug]: nextCompleted ? new Date().toISOString() : null
+		};
+
+		const result = await this.linkDirectoryRepository.setSavedSiteOutreachCompletion(
+			siteId,
+			nextCompleted,
+			fetch
+		);
 		if (!result.ok) {
 			await this.hydrateAuthenticated(fetch);
 			return { ok: false, error: result.error };
 		}
-		this.applyServerBookmarks(result.bookmarks);
+		this.applyServerSavedSites(result.savedSites);
 		return { ok: true };
 	}
 
 	private async hydrateAuthenticated(fetch?: typeof globalThis.fetch): Promise<void> {
 		const localEntries = readBuildBacklinksLocalBookmarks();
-		let serverBookmarks = await this.linkDirectoryRepository.getMyBookmarks(fetch);
+		let serverSavedSites = await this.linkDirectoryRepository.getMySavedSites(fetch);
 
 		if (localEntries.length > 0) {
-			const serverSlugs = this.bookmarkSlugsFromRows(serverBookmarks);
+			const serverSlugs = this.savedSiteSlugsFromRows(serverSavedSites);
 			const localSlugs = localEntries.map((entry) => entry.slug);
 			const mergedSlugs = mergeBuildBacklinksBookmarkSlugs(serverSlugs, localSlugs);
 
 			for (const entry of localEntries) {
 				this.siteIdBySlug.set(entry.slug, entry.siteId);
 			}
-			for (const row of serverBookmarks) {
+			for (const row of serverSavedSites) {
 				const slug = row.site?.slug;
 				if (slug) this.siteIdBySlug.set(slug, row.siteId);
 			}
 
 			const mergedIds = await this.resolveSiteIdsForSlugs(mergedSlugs, fetch);
 			if (mergedIds.length > 0) {
-				const replaceResult = await this.linkDirectoryRepository.replaceMyBookmarks(
+				const replaceResult = await this.linkDirectoryRepository.replaceMySavedSites(
 					mergedIds,
 					fetch
 				);
 				if (replaceResult.ok) {
-					serverBookmarks = replaceResult.bookmarks;
+					serverSavedSites = replaceResult.savedSites;
 				}
 			}
 			clearBuildBacklinksLocalBookmarks();
 		}
 
-		this.applyServerBookmarks(serverBookmarks);
+		this.applyServerSavedSites(serverSavedSites);
 	}
 
-	private applyServerBookmarks(bookmarks: LinkDirectoryBookmarkDto[]): void {
+	private applyServerSavedSites(savedSites: LinkDirectorySavedSiteDto[]): void {
 		const slugs: string[] = [];
-		for (const row of bookmarks) {
+		const outreachCompletedAtBySlug: Record<string, string | null> = {};
+		for (const row of savedSites) {
 			const slug = row.site?.slug;
 			if (!slug) continue;
 			slugs.push(slug);
+			outreachCompletedAtBySlug[slug] = row.outreachCompletedAt ?? null;
 			this.rememberSite({
 				siteId: row.siteId,
 				siteSlug: slug,
@@ -180,6 +247,8 @@ export class PublicBuildBacklinksBookmarksPresenter {
 			});
 		}
 		this.orderedSlugs = slugs;
+		this.persistedOrderSlugs = [...slugs];
+		this.outreachCompletedAtBySlug = outreachCompletedAtBySlug;
 	}
 
 	private applyLocalState(
@@ -190,6 +259,8 @@ export class PublicBuildBacklinksBookmarksPresenter {
 			this.rememberSite({ siteId: entry.siteId, siteSlug: entry.slug });
 		}
 		this.orderedSlugs = entries.map((entry) => entry.slug);
+		this.persistedOrderSlugs = [];
+		this.outreachCompletedAtBySlug = {};
 	}
 
 	private rememberSite(params: {
@@ -205,8 +276,8 @@ export class PublicBuildBacklinksBookmarksPresenter {
 		}
 	}
 
-	private bookmarkSlugsFromRows(bookmarks: LinkDirectoryBookmarkDto[]): string[] {
-		return bookmarks
+	private savedSiteSlugsFromRows(savedSites: LinkDirectorySavedSiteDto[]): string[] {
+		return savedSites
 			.map((row) => row.site?.slug)
 			.filter((slug): slug is string => Boolean(slug?.trim()));
 	}

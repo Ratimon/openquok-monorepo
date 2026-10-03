@@ -7,9 +7,10 @@ export type LinkDirectoryConfig = {
 		getActiveTags: string;
 		getOpportunityTypes: string;
 		createSubmission: string;
-		getMyBookmarks: string;
-		putMyBookmarks: string;
-		putMyBookmarksOrder: string;
+		getMySavedSites: string;
+		putMySavedSites: string;
+		putMySavedSitesOrder: string;
+		patchSavedSiteOutreachCompletion: (siteId: string) => string;
 		getAdminSites: string;
 		getSiteById: (siteId: string) => string;
 		createSite: string;

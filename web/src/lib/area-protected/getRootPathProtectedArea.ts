@@ -45,17 +45,17 @@ export function getRootPathPayloadWizard(): string {
 	return 'payload-wizard';
 }
 
-/** Playbooks hub segment under the account area (browse, bookmarks, owned playbooks & building blocks). */
-export function getRootPathPlaybooksHub(): string {
-	return 'playbooks';
+/** Saved hub segment under the account area (explore, library, backlinks, listing editors). */
+export function getRootPathSavedHub(): string {
+	return 'saved';
 }
 
-/** Building block editor segment under {@link getRootPathPlaybooksHub}. */
+/** Building block editor segment under {@link getRootPathSavedHub}. */
 export function getRootPathBuildingBlockEditor(): string {
 	return 'building-block';
 }
 
-/** Playbook editor segment under {@link getRootPathPlaybooksHub}. */
+/** Playbook editor segment under {@link getRootPathSavedHub}. */
 export function getRootPathPlaybookEditor(): string {
 	return 'playbook';
 }
@@ -70,27 +70,27 @@ export function getRootPathChooseUsername(): string {
 	return 'choose-username';
 }
 
-/** Account playbooks hub: `/account/playbooks`. */
-export function getAccountPlaybooksHubPath(): string {
-	return getRootPathPlaybooksHub();
+/** Account saved hub: `/account/saved`. */
+export function getAccountSavedHubPath(): string {
+	return getRootPathSavedHub();
 }
 
-/** New building block editor: `/account/playbooks/building-block/new`. */
+/** New building block editor: `/account/saved/building-block/new`. */
 export function getAccountNewBuildingBlockPath(): string {
-	return `${getRootPathPlaybooksHub()}/${getRootPathBuildingBlockEditor()}/${getRootPathNewListing()}`;
+	return `${getRootPathSavedHub()}/${getRootPathBuildingBlockEditor()}/${getRootPathNewListing()}`;
 }
 
-/** New playbook editor: `/account/playbooks/playbook/new`. */
+/** New playbook editor: `/account/saved/playbook/new`. */
 export function getAccountNewPlaybookPath(): string {
-	return `${getRootPathPlaybooksHub()}/${getRootPathPlaybookEditor()}/${getRootPathNewListing()}`;
+	return `${getRootPathSavedHub()}/${getRootPathPlaybookEditor()}/${getRootPathNewListing()}`;
 }
 
-/** Edit building block: `/account/playbooks/building-block/[id]`. */
+/** Edit building block: `/account/saved/building-block/[id]`. */
 export function getAccountBuildingBlockEditorPath(buildingBlockId: string): string {
-	return `${getRootPathPlaybooksHub()}/${getRootPathBuildingBlockEditor()}/${buildingBlockId}`;
+	return `${getRootPathSavedHub()}/${getRootPathBuildingBlockEditor()}/${buildingBlockId}`;
 }
 
-/** Edit playbook: `/account/playbooks/playbook/[id]`. */
+/** Edit playbook: `/account/saved/playbook/[id]`. */
 export function getAccountPlaybookEditorPath(playbookId: string): string {
-	return `${getRootPathPlaybooksHub()}/${getRootPathPlaybookEditor()}/${playbookId}`;
+	return `${getRootPathSavedHub()}/${getRootPathPlaybookEditor()}/${playbookId}`;
 }

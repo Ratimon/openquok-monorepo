@@ -6,8 +6,9 @@ import {
 	getRawContent,
 	preloadDocsRegistry
 } from '$lib/docs/index';
+import { docsRedirectPath } from '$lib/docs/utils/content/docsSlugRedirects';
 import { buildDocsPageLoadExtras } from '$lib/docs/utils/seo/buildDocsPageLoadExtras';
-import { error } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 
 // Leaf pages are prerendered via `entries()`. Section indexes are omitted from entries
@@ -21,6 +22,11 @@ export async function entries() {
 }
 
 export const load: PageLoad = async ({ params, url }) => {
+	const redirectTarget = docsRedirectPath(params.slug, { search: url.search });
+	if (redirectTarget) {
+		throw redirect(308, redirectTarget);
+	}
+
 	await preloadDocsRegistry(undefined);
 	const doc = getDoc(params.slug);
 	if (!doc) throw error(404, `Page not found: ${params.slug}`);

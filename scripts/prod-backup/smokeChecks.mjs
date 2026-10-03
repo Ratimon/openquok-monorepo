@@ -179,3 +179,55 @@ export function summarizeCheckResults(checks) {
     ok: failed.length === 0,
   };
 }
+
+function pgBool(value) {
+  return value === true || value === "t" || value === "true" || value === 1;
+}
+
+/** Schema expectations for Account → Saved → Backlinks (`link_directory_saved_sites`). */
+export function evaluateLinkDirectorySavedSitesSchema(row) {
+  const r = row && typeof row === "object" ? row : {};
+  const checks = [
+    {
+      name: "table_link_directory_saved_sites",
+      ok: pgBool(r.has_saved_sites),
+    },
+    {
+      name: "no_link_directory_bookmarks",
+      ok: pgBool(r.bookmarks_gone),
+    },
+    {
+      name: "column_outreach_completed_at",
+      ok: pgBool(r.has_outreach_column),
+    },
+    {
+      name: "no_column_completed_at_on_saved_sites",
+      ok: pgBool(r.no_legacy_completed_at),
+    },
+  ];
+  return {
+    ok: checks.every((c) => c.ok),
+    checks,
+  };
+}
+
+export const LINK_DIRECTORY_SAVED_SITES_SCHEMA_SQL = `
+SELECT json_build_object(
+  'has_saved_sites', to_regclass('public.link_directory_saved_sites') IS NOT NULL,
+  'bookmarks_gone', to_regclass('public.link_directory_bookmarks') IS NULL,
+  'has_outreach_column', EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'link_directory_saved_sites'
+      AND column_name = 'outreach_completed_at'
+  ),
+  'no_legacy_completed_at', NOT EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'link_directory_saved_sites'
+      AND column_name = 'completed_at'
+  )
+) AS smoke;
+`.trim();

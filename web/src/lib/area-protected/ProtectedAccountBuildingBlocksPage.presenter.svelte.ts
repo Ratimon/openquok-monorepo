@@ -481,6 +481,7 @@ export class ProtectedAccountBuildingBlocksPagePresenter {
 			const resultVm = mutationPmToVm(resultPm, bookmarked);
 			if (resultVm.ok) {
 				if (bookmarked) {
+					this.optimisticAddBookmark(listingId);
 					await this.loadBookmarks();
 				} else {
 					this.bookmarkedBuildingBlocksVm = this.bookmarkedBuildingBlocksVm.filter((row) => row.id !== listingId);
@@ -490,6 +491,30 @@ export class ProtectedAccountBuildingBlocksPagePresenter {
 			return resultVm;
 		} finally {
 			this.togglingBookmarkId = null;
+		}
+	}
+
+	private optimisticAddBookmark(listingId: string): void {
+		if (this.isBookmarked(listingId)) return;
+
+		const buildingBlock = this.exploreBuildingBlockCardsVm.find((row) => row.id === listingId);
+		if (buildingBlock) {
+			this.bookmarkedBuildingBlocksVm = [
+				toCollectionItemFromBuildingBlockVm(
+					buildingBlock,
+					buildingBlock.category?.name ?? buildingBlockSubtitle(buildingBlock.extensionType)
+				),
+				...this.bookmarkedBuildingBlocksVm
+			];
+			return;
+		}
+
+		const stack = this.exploreStackCardsVm.find((row) => row.id === listingId);
+		if (stack) {
+			this.bookmarkedStacksVm = [
+				toCollectionItemFromStackVm(stack, stack.category?.name ?? stackSubtitle(stack.memberCount)),
+				...this.bookmarkedStacksVm
+			];
 		}
 	}
 

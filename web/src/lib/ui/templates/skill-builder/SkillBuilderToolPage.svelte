@@ -119,7 +119,7 @@
 
 	const skillBuilderDocsBanner = SKILL_BUILDER_DOCS_BANNER;
 
-	// /account/playbooks/playbook/new
+	// /account/saved/playbook/new
 	const rootPathAccount = getRootPathAccount();
 	const newStackHref = absoluteUrl(`${rootPathAccount}/${getAccountNewPlaybookPath()}`);
 	const accountBillingHref = url(`${route(rootPathAccount)}/billing`);

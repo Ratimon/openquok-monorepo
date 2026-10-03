@@ -13,12 +13,13 @@ import type {
     LinkDirectoryTagCreateSchemaType,
     LinkDirectoryTagGroupCreateSchemaType,
     LinkDirectoryTagUpdateSchemaType,
-    LinkDirectoryBookmarksPutSchemaType,
-    LinkDirectoryBookmarksOrderSchemaType,
+    LinkDirectorySavedSitesPutSchemaType,
+    LinkDirectorySavedSitesOrderSchemaType,
+    LinkDirectorySavedSiteOutreachCompletionSchemaType,
 } from "../data/schemas/linkDirectorySchemas";
 import { LinkDirectoryService } from "../services/LinkDirectoryService";
 import {
-    toLinkDirectoryBookmarkDtoCollection,
+    toLinkDirectorySavedSiteDtoCollection,
     toLinkDirectoryCategoryDtoCollection,
     toLinkDirectoryOpportunityTypeDtoCollection,
     toLinkDirectorySiteDto,
@@ -144,7 +145,7 @@ export class LinkDirectoryController {
         }
     };
 
-    getUserBookmarks = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    getUserSavedSites = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const auth = req as AuthenticatedRequest;
             const userId = auth.user?.id;
@@ -152,17 +153,17 @@ export class LinkDirectoryController {
                 res.status(401).json({ success: false, message: "Unauthorized" });
                 return;
             }
-            const bookmarks = await this.linkDirectoryService.getUserBookmarks(userId);
+            const savedSites = await this.linkDirectoryService.getUserSavedSites(userId);
             res.status(200).json({
                 success: true,
-                data: toLinkDirectoryBookmarkDtoCollection(bookmarks),
+                data: toLinkDirectorySavedSiteDtoCollection(savedSites),
             });
         } catch (err) {
             next(err);
         }
     };
 
-    putUserBookmarks = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    putUserSavedSites = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const auth = req as AuthenticatedRequest;
             const userId = auth.user?.id;
@@ -170,20 +171,20 @@ export class LinkDirectoryController {
                 res.status(401).json({ success: false, message: "Unauthorized" });
                 return;
             }
-            const { siteIds } = req.body as LinkDirectoryBookmarksPutSchemaType;
-            await this.linkDirectoryService.replaceUserBookmarks(userId, siteIds);
-            const bookmarks = await this.linkDirectoryService.getUserBookmarks(userId);
+            const { siteIds } = req.body as LinkDirectorySavedSitesPutSchemaType;
+            await this.linkDirectoryService.replaceUserSavedSites(userId, siteIds);
+            const savedSites = await this.linkDirectoryService.getUserSavedSites(userId);
             res.status(200).json({
                 success: true,
-                data: toLinkDirectoryBookmarkDtoCollection(bookmarks),
-                message: "Bookmarks updated.",
+                data: toLinkDirectorySavedSiteDtoCollection(savedSites),
+                message: "Saved sites updated.",
             });
         } catch (err) {
             next(err);
         }
     };
 
-    putUserBookmarksOrder = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    putUserSavedSitesOrder = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const auth = req as AuthenticatedRequest;
             const userId = auth.user?.id;
@@ -191,13 +192,39 @@ export class LinkDirectoryController {
                 res.status(401).json({ success: false, message: "Unauthorized" });
                 return;
             }
-            const { siteIds } = req.body as LinkDirectoryBookmarksOrderSchemaType;
-            await this.linkDirectoryService.reorderUserBookmarks(userId, siteIds);
-            const bookmarks = await this.linkDirectoryService.getUserBookmarks(userId);
+            const { siteIds } = req.body as LinkDirectorySavedSitesOrderSchemaType;
+            await this.linkDirectoryService.reorderUserSavedSites(userId, siteIds);
+            const savedSites = await this.linkDirectoryService.getUserSavedSites(userId);
             res.status(200).json({
                 success: true,
-                data: toLinkDirectoryBookmarkDtoCollection(bookmarks),
-                message: "Bookmark order updated.",
+                data: toLinkDirectorySavedSiteDtoCollection(savedSites),
+                message: "Saved site order updated.",
+            });
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    patchUserSavedSiteOutreachCompletion = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
+        try {
+            const auth = req as AuthenticatedRequest;
+            const userId = auth.user?.id;
+            if (!userId) {
+                res.status(401).json({ success: false, message: "Unauthorized" });
+                return;
+            }
+            const siteId = (req.params as { siteId: string }).siteId;
+            const { completed } = req.body as LinkDirectorySavedSiteOutreachCompletionSchemaType;
+            await this.linkDirectoryService.setUserSavedSiteOutreachCompleted(userId, siteId, completed);
+            const savedSites = await this.linkDirectoryService.getUserSavedSites(userId);
+            res.status(200).json({
+                success: true,
+                data: toLinkDirectorySavedSiteDtoCollection(savedSites),
+                message: completed ? "Outreach marked done." : "Outreach marked not done.",
             });
         } catch (err) {
             next(err);

@@ -5,13 +5,20 @@
 
 	import { adminListingExtensionsManagerPagePresenter } from '$lib/area-admin';
 	import {
+		getAccountSavedHubPath,
+		getRootPathAccount
+	} from '$lib/area-protected/getRootPathProtectedArea';
+	import {
 		getRootPathSecretAdminListingManagerNewBuildingBlock,
 		getRootPathSecretAdminListingManagerBuildingBlockEditor
 	} from '$lib/area-admin/constants/getRootPathSecretAdminArea';
-	import { url } from '$lib/utils/path';
+	import { route, url } from '$lib/utils/path';
 
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import ListingExtensionsTable from '$lib/ui/components/listing-manager/ListingExtensionsTable.svelte';
+
+	// /account/saved
+	const accountSavedHref = url(`${route(getRootPathAccount())}/${getAccountSavedHubPath()}`);
 
 	const newBuildingBlockHref = url(getRootPathSecretAdminListingManagerNewBuildingBlock());
 
@@ -56,8 +63,8 @@
 			</p>
 			<p class="mt-2 opacity-90">
 				For listings under your own creator profile, use
-				<a href={url('/account/playbooks')} class="link font-medium text-info-content underline"
-					>Account → Playbooks</a
+				<a href={accountSavedHref} class="link font-medium text-info-content underline"
+					>Account → Saved</a
 				>
 				and set your username in
 				<a href={url('/account/settings')} class="link font-medium text-info-content underline"

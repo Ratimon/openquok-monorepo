@@ -5,7 +5,7 @@ import { hasPublicUsername } from '$lib/account/utils/hasPublicUsername';
 import {
 	getRootPathAccount,
 	getRootPathChooseUsername,
-	getRootPathPlaybooksHub
+	getRootPathSavedHub
 } from '$lib/area-protected/getRootPathProtectedArea';
 import { url, route } from '$lib/utils/path';
 import type { LayoutLoad } from './$types';
@@ -14,9 +14,9 @@ export const ssr = false;
 
 /** Listing editor routes require a public username for creator-scoped URLs. */
 function listingEditorPathRequiresUsername(pathname: string): boolean {
-	const playbooksRoot = route(`/${getRootPathAccount()}/${getRootPathPlaybooksHub()}`);
-	if (!pathname.startsWith(playbooksRoot)) return false;
-	const remainder = pathname.slice(playbooksRoot.length);
+	const savedRoot = route(`/${getRootPathAccount()}/${getRootPathSavedHub()}`);
+	if (!pathname.startsWith(savedRoot)) return false;
+	const remainder = pathname.slice(savedRoot.length);
 	return /^\/(building-block|playbook)\/(new|[^/]+)\/?$/.test(remainder);
 }
 

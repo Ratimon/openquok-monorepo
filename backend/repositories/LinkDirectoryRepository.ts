@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
     AdminLinkDirectorySitesFilterOptions,
-    LinkDirectoryBookmarkRow,
+    LinkDirectorySavedSiteRow,
     LinkDirectoryOpportunityRow,
     LinkDirectoryOpportunityTypeRow,
     LinkDirectorySiteRow,
@@ -23,7 +23,7 @@ import type { OpportunityFilterCriteria } from "../utils/linkDirectory/opportuni
 const TABLE_SITES = "link_directory_sites";
 const TABLE_OPPORTUNITIES = "link_directory_opportunities";
 const TABLE_TAG_ASSOC = "link_directory_site_tags_association";
-const TABLE_BOOKMARKS = "link_directory_bookmarks";
+const TABLE_SAVED_SITES = "link_directory_saved_sites";
 const TABLE_SUBMISSIONS = "link_directory_submissions";
 const TABLE_OPP_TYPES = "link_directory_opportunity_types";
 
@@ -41,7 +41,7 @@ const SELECT_OPPORTUNITY =
 
 const SELECT_SITE = `${SITE_COLUMNS}, ${CATEGORY_EMBED}, ${OPPORTUNITY_EMBED}`;
 
-const SELECT_SITE_FOR_BOOKMARK = `${SITE_COLUMNS}, ${CATEGORY_EMBED}`;
+const SELECT_SITE_FOR_SAVED_SITE = `${SITE_COLUMNS}, ${CATEGORY_EMBED}`;
 
 const ALLOWED_PUBLISHED_SORT_KEYS = new Set([
     "domain_rating",
@@ -596,23 +596,23 @@ export class LinkDirectoryRepository {
         }
     }
 
-    async findUserBookmarks(userId: string): Promise<{ data: LinkDirectoryBookmarkRow[] }> {
+    async findUserSavedSites(userId: string): Promise<{ data: LinkDirectorySavedSiteRow[] }> {
         const { data, error } = await this.supabase
-            .from(TABLE_BOOKMARKS)
+            .from(TABLE_SAVED_SITES)
             .select(
-                `id, user_id, site_id, sort_order, created_at, site:link_directory_sites(${SELECT_SITE_FOR_BOOKMARK})`
+                `id, user_id, site_id, sort_order, created_at, outreach_completed_at, site:link_directory_sites(${SELECT_SITE_FOR_SAVED_SITE})`
             )
             .eq("user_id", userId)
             .order("sort_order", { ascending: true });
 
         if (error) {
-            throw new DatabaseError(`Error fetching bookmarks: ${error.message}`, {
+            throw new DatabaseError(`Error fetching saved sites: ${error.message}`, {
                 cause: error as unknown as Error,
                 operation: "select",
             });
         }
 
-        const rows = (data ?? []) as unknown as LinkDirectoryBookmarkRow[];
+        const rows = (data ?? []) as unknown as LinkDirectorySavedSiteRow[];
         return {
             data: rows.map((row) => ({
                 ...row,
@@ -621,14 +621,14 @@ export class LinkDirectoryRepository {
         };
     }
 
-    async replaceUserBookmarks(userId: string, siteIds: string[]): Promise<void> {
+    async replaceUserSavedSites(userId: string, siteIds: string[]): Promise<void> {
         const { error: deleteError } = await this.supabase
-            .from(TABLE_BOOKMARKS)
+            .from(TABLE_SAVED_SITES)
             .delete()
             .eq("user_id", userId);
 
         if (deleteError) {
-            throw new DatabaseError(`Error clearing bookmarks: ${deleteError.message}`, {
+            throw new DatabaseError(`Error clearing saved sites: ${deleteError.message}`, {
                 cause: deleteError as unknown as Error,
                 operation: "delete",
             });
@@ -636,7 +636,7 @@ export class LinkDirectoryRepository {
 
         if (siteIds.length === 0) return;
 
-        const { error: insertError } = await this.supabase.from(TABLE_BOOKMARKS).insert(
+        const { error: insertError } = await this.supabase.from(TABLE_SAVED_SITES).insert(
             siteIds.map((siteId, index) => ({
                 user_id: userId,
                 site_id: siteId,
@@ -645,28 +645,56 @@ export class LinkDirectoryRepository {
         );
 
         if (insertError) {
-            throw new DatabaseError(`Error saving bookmarks: ${insertError.message}`, {
+            throw new DatabaseError(`Error saving saved sites: ${insertError.message}`, {
                 cause: insertError as unknown as Error,
                 operation: "insert",
             });
         }
     }
 
-    async reorderUserBookmarks(userId: string, siteIds: string[]): Promise<void> {
+    async reorderUserSavedSites(userId: string, siteIds: string[]): Promise<void> {
         for (let index = 0; index < siteIds.length; index++) {
             const siteId = siteIds[index];
             const { error } = await this.supabase
-                .from(TABLE_BOOKMARKS)
+                .from(TABLE_SAVED_SITES)
                 .update({ sort_order: index })
                 .eq("user_id", userId)
                 .eq("site_id", siteId);
 
             if (error) {
-                throw new DatabaseEntityNotFoundError("Bookmark not found for reorder", {
+                throw new DatabaseEntityNotFoundError("Saved site not found for reorder", {
                     userId,
                     siteId,
                 });
             }
+        }
+    }
+
+    async setUserSavedSiteOutreachCompleted(
+        userId: string,
+        siteId: string,
+        outreachCompletedAt: string | null
+    ): Promise<void> {
+        const { data, error } = await this.supabase
+            .from(TABLE_SAVED_SITES)
+            .update({ outreach_completed_at: outreachCompletedAt })
+            .eq("user_id", userId)
+            .eq("site_id", siteId)
+            .select("id")
+            .maybeSingle();
+
+        if (error) {
+            throw new DatabaseError(`Error updating saved site outreach completion: ${error.message}`, {
+                cause: error as unknown as Error,
+                operation: "update",
+            });
+        }
+
+        if (!data) {
+            throw new DatabaseEntityNotFoundError("Saved site not found for outreach completion update", {
+                userId,
+                siteId,
+            });
         }
     }
 

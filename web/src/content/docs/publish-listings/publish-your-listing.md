@@ -39,13 +39,13 @@ Decide whether you are sharing a single **building block** or a **playbook** sta
 	howToDescription="Publish a building block: Add your own building block or playbook on OpenQuok — username, editor, review, and Skill Builder."
 >
 
-### Open your Playbooks workspace
+### Open Saved
 
-Go to <a href="/account/playbooks">Account → Playbooks</a> and open the **My Playbooks** tab. For a full tour of that page, see <a href="/docs/playbooks">Playbooks</a>.
+Go to <a href="/account/saved">Account → Saved</a> and open the **Library** tab. For a full tour of that page, see <a href="/docs/saved">Saved</a>.
 
 ### Start a new building block
 
-Click **New building block**. This opens the listing editor at <code>/account/playbooks/building-block/new</code>.
+Click **New building block**. This opens the listing editor at <code>/account/saved/building-block/new</code>.
 
 ### Fill in the basics
 
@@ -78,13 +78,13 @@ You can create a playbook in two ways.
 	howToDescription="You can create a playbook in two ways."
 >
 
-### Open My Playbooks
+### Open Library
 
-Go to <a href="/account/playbooks">Account → Playbooks</a> → **My Playbooks**.
+Go to <a href="/account/saved">Account → Saved</a> → **Library**.
 
 ### Click New playbook
 
-Opens <code>/account/playbooks/playbook/new</code>.
+Opens <code>/account/saved/playbook/new</code>.
 
 ### Add metadata and members
 
@@ -123,7 +123,7 @@ You can **unpublish** from your account to remove a listing from the catalog wit
 
 ## Manage existing listings
 
-From <a href="/account/playbooks">Account → Playbooks</a> → **My Playbooks**:
+From <a href="/account/saved">Account → Saved</a> → **Library**:
 
 - **Edit** — update copy, tags, install commands, or stack members
 - **View public page** — open the hub detail URL when published

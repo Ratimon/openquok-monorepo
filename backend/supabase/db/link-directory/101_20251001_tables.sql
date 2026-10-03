@@ -152,14 +152,20 @@ CREATE TABLE IF NOT EXISTS public.link_directory_submissions (
     reviewed_at TIMESTAMPTZ
 );
 
-CREATE TABLE IF NOT EXISTS public.link_directory_bookmarks (
+CREATE TABLE IF NOT EXISTS public.link_directory_saved_sites (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     site_id UUID NOT NULL REFERENCES public.link_directory_sites(id) ON DELETE CASCADE,
     sort_order INTEGER NOT NULL DEFAULT 0,
+    outreach_completed_at TIMESTAMPTZ NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (user_id, site_id)
 );
+
+COMMENT ON TABLE public.link_directory_saved_sites IS
+    'Per-user shortlist of link directory sites (Saved → Backlinks): private order and outreach progress.';
+COMMENT ON COLUMN public.link_directory_saved_sites.outreach_completed_at IS
+    'When the signed-in user marked personal outreach on this site as done; null means not completed.';
 
 -- ---------------------------
 -- END OF FILE

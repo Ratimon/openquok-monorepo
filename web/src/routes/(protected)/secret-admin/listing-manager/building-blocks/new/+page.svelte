@@ -3,8 +3,15 @@
 
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import {
+		getAccountSavedHubPath,
+		getRootPathAccount
+	} from '$lib/area-protected/getRootPathProtectedArea';
 	import { getRootPathSecretAdminListingManagerBuildingBlocks } from '$lib/area-admin/constants/getRootPathSecretAdminArea';
-	import { url } from '$lib/utils/path';
+	import { route, url } from '$lib/utils/path';
+
+	// /account/saved
+	const accountSavedHref = url(`${route(getRootPathAccount())}/${getAccountSavedHubPath()}`);
 
 	import { toast } from '$lib/ui/sonner';
 	import { adminListingNewExtensionPagePresenter } from '$lib/area-admin';
@@ -70,8 +77,8 @@
 		<p>
 			This listing will publish under
 			<span class="font-mono">/creators/openquok/…</span>. To publish under your own username, use
-			<a href={url('/account/playbooks')} class="link font-medium text-info-content underline"
-				>Account → Playbooks</a
+			<a href={accountSavedHref} class="link font-medium text-info-content underline"
+				>Account → Saved</a
 			>.
 		</p>
 	</div>

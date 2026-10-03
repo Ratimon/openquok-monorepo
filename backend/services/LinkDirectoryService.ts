@@ -189,16 +189,29 @@ export class LinkDirectoryService {
         );
     }
 
-    async getUserBookmarks(userId: string) {
-        const { data } = await this.linkDirectoryRepository.findUserBookmarks(userId);
+    async getUserSavedSites(userId: string) {
+        const { data } = await this.linkDirectoryRepository.findUserSavedSites(userId);
         return data;
     }
 
-    async replaceUserBookmarks(userId: string, siteIds: string[]): Promise<void> {
-        await this.linkDirectoryRepository.replaceUserBookmarks(userId, siteIds);
+    async replaceUserSavedSites(userId: string, siteIds: string[]): Promise<void> {
+        await this.linkDirectoryRepository.replaceUserSavedSites(userId, siteIds);
     }
 
-    async reorderUserBookmarks(userId: string, siteIds: string[]): Promise<void> {
-        await this.linkDirectoryRepository.reorderUserBookmarks(userId, siteIds);
+    async reorderUserSavedSites(userId: string, siteIds: string[]): Promise<void> {
+        await this.linkDirectoryRepository.reorderUserSavedSites(userId, siteIds);
+    }
+
+    async setUserSavedSiteOutreachCompleted(
+        userId: string,
+        siteId: string,
+        completed: boolean
+    ): Promise<void> {
+        const outreachCompletedAt = completed ? new Date().toISOString() : null;
+        await this.linkDirectoryRepository.setUserSavedSiteOutreachCompleted(
+            userId,
+            siteId,
+            outreachCompletedAt
+        );
     }
 }

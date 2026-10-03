@@ -15,7 +15,7 @@ ALTER TABLE public.link_directory_sites ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.link_directory_opportunities ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.link_directory_site_tags_association ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.link_directory_submissions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.link_directory_bookmarks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.link_directory_saved_sites ENABLE ROW LEVEL SECURITY;
 
 -- ---------------------------
 -- Categories, tags, opportunity types (catalog)
@@ -266,11 +266,11 @@ CREATE POLICY "Super admin admins editors can manage link directory submissions"
     );
 
 -- ---------------------------
--- Bookmarks
+-- Saved sites (user shortlist)
 -- ---------------------------
 
-DROP POLICY IF EXISTS "Users can manage their link directory bookmarks" ON public.link_directory_bookmarks;
-CREATE POLICY "Users can manage their link directory bookmarks" ON public.link_directory_bookmarks
+DROP POLICY IF EXISTS "Users can manage their link directory saved sites" ON public.link_directory_saved_sites;
+CREATE POLICY "Users can manage their link directory saved sites" ON public.link_directory_saved_sites
     FOR ALL TO authenticated
     USING (
         user_id = (SELECT id FROM public.users WHERE auth_id = auth.uid())
@@ -344,7 +344,7 @@ GRANT ALL ON public.link_directory_sites TO authenticated;
 GRANT ALL ON public.link_directory_opportunities TO authenticated;
 GRANT ALL ON public.link_directory_site_tags_association TO authenticated;
 GRANT INSERT, SELECT ON public.link_directory_submissions TO authenticated;
-GRANT ALL ON public.link_directory_bookmarks TO authenticated;
+GRANT ALL ON public.link_directory_saved_sites TO authenticated;
 
 -- ---------------------------
 -- END OF FILE

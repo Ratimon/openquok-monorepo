@@ -24,8 +24,12 @@ import type {
 } from '$lib/listings/Listing.repository.svelte';
 import type { ListingFaqItemProgrammerModel, StackBlueprintProgrammerModel } from '$lib/listings/listing.types';
 
+import { goto } from '$app/navigation';
+
+import { getAccountSavedHubPath, getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
 import { stringToSlug } from '$lib/ui/helpers/common';
 import { toast } from '$lib/ui/sonner';
+import { route, url } from '$lib/utils/path';
 
 export type ListingBookmarkKind = 'extension' | 'stack';
 
@@ -70,13 +74,24 @@ export type ListingBookmarkToggleResultViewModel =
 	| { ok: true; bookmarked: boolean }
 	| { ok: false; error: string };
 
+function savedLibsBookmarkedHubHref(): string {
+	return url(`${route(getRootPathAccount())}/${getAccountSavedHubPath()}?tab=libs&bookmarked=1`);
+}
+
 export function showListingBookmarkToast(
 	bookmarked: boolean,
 	listingKind: ListingBookmarkKind = 'extension'
 ): void {
 	const label = listingKind === 'stack' ? 'Playbook' : 'Building block';
 	if (bookmarked) {
-		toast.success(`${label} bookmarked. View it under Playbooks → Explore → Bookmarked.`);
+		toast.success(`${label} bookmarked. View it under Saved → Libs → Bookmarked.`, {
+			action: {
+				label: 'View',
+				onClick: () => {
+					void goto(savedLibsBookmarkedHubHref());
+				}
+			}
+		});
 	} else {
 		toast.success('Bookmark removed.');
 	}

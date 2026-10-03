@@ -123,6 +123,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'Reusable Templates',
 	'Media Library',
 	'My Playbooks',
+	'playbooks & backlinks',
 	'My Dashboard',
 	'Auto Plugs',
 	'Calendar',

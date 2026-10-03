@@ -1,8 +1,8 @@
 ---
 title: Compose a playbook
 description: Build a playbook in Skill Builder and save it.
-order: 3
-lastUpdated: 2026-09-24
+order: 4
+lastUpdated: 2026-10-03
 ---
 
 <script>
@@ -17,9 +17,9 @@ A **playbook** tells an agent which blocks to install and how to run them in ord
 
 ## Selection bar
 
-On **Explore** or **My Playbooks**, find the dashed **Compose a playbook from building blocks** bar above the building block grid.
+On **Browse** or **Your library** (under **Libs**), find the dashed **Compose a playbook from building blocks** bar above the building block grid.
 
-![Select Building Blocks to Create New Playbooks](/docs/_assets/playbooks/compose-building-blocks.webp)
+![Select Building Blocks to Create New Playbooks](/docs/_assets/saved/compose-building-blocks.webp)
 
 1. Check/Turn on **Add** on each building block you want in the stack (playbook cards are not selectable here).
 2. The bar highlights how many blocks you picked.
@@ -30,12 +30,12 @@ On **Explore** or **My Playbooks**, find the dashed **Compose a playbook from bu
 
 OpenQuok saves your picks and opens <a href="/tools/skill-builder">Skill Builder</a> with those blocks pre-loaded. There you can:
 
-![Open Free OpenQuok's skill builder](/docs/_assets/playbooks/skill-builder.webp)
+![Open Free OpenQuok's skill builder](/docs/_assets/saved/skill-builder.webp)
 
 - Reorder or remove members of the stack
 - Add **workflow steps** — CLI commands, prompts, and notes between blocks
 - Preview the exported <code>SKILL.md</code> on the right
-![Edit skukk markdown](/docs/_assets/playbooks/skill-editor.webp)
+![Edit skukk markdown](/docs/_assets/saved/skill-editor.webp)
 - Sign in and choose **Save as playbook** to open the playbook editor with the draft filled in
 
 <Callout type="tip">
@@ -44,7 +44,7 @@ OpenQuok saves your picks and opens <a href="/tools/skill-builder">Skill Builder
 
 ## Start without selecting blocks
 
-On **My Playbooks**, **New playbook** clears any Skill Builder draft and opens <a href="/tools/skill-builder">Skill Builder</a> so you can pick blocks inside the tool instead of the grid.
+On **Your library**, **New playbook** clears any Skill Builder draft and opens <a href="/tools/skill-builder">Skill Builder</a> so you can pick blocks inside the tool instead of the grid.
 
 ## Publish the draft
 
@@ -72,14 +72,14 @@ Save, then enable **Publish** when you want others to install the stack. Communi
 | Entry point | What it does |
 | --- | --- |
 | <a href="/building-blocks">Building Blocks hub</a> | Browse and open detail pages; multi-select **Create playbook** jumps into Skill Builder with those slugs |
-| <a href="/playbooks">Playbooks hub</a> | See full workflows others published; bookmark them from **Explore** on a paid plan |
+| <a href="/playbooks">Playbooks hub</a> | See full workflows others published; bookmark them from **Libs → Browse** on a paid plan |
 | <a href="/agents">Agents hub</a> | Pick a harness, then install OpenQuok Core or blocks from catalog links |
 
 ## Related
 
 <CardGrid>
-<LinkCard title="Explore and bookmarks" description="Find blocks to add to a stack" href="/docs/playbooks/explore-and-bookmarks" />
-<LinkCard title="My Playbooks library" description="Edit, unpublish, and track hub stats" href="/docs/playbooks/my-library" />
+<LinkCard title="Browse and bookmarks" description="Find blocks to add to a stack" href="/docs/saved/explore-and-bookmarks" />
+<LinkCard title="Your library" description="Edit, unpublish, and track hub stats" href="/docs/saved/my-library" />
 <LinkCard title="Skill Builder" description="Visual composer at /tools/skill-builder" href="/tools/skill-builder" />
 <LinkCard title="CLI getting started" description="Install openquok and authenticate" href="/docs/getting-started-for-cli" />
 </CardGrid>

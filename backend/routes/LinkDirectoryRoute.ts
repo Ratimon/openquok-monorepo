@@ -32,8 +32,9 @@ import {
     linkDirectoryTagGroupCreateSchema,
     linkDirectorySubmissionCreateSchema,
     linkDirectorySubmissionReviewSchema,
-    linkDirectoryBookmarksPutSchema,
-    linkDirectoryBookmarksOrderSchema,
+    linkDirectorySavedSitesPutSchema,
+    linkDirectorySavedSitesOrderSchema,
+    linkDirectorySavedSiteOutreachCompletionSchema,
 } from "../data/schemas/linkDirectorySchemas";
 import { z } from "zod";
 
@@ -94,19 +95,28 @@ linkDirectoryRouter.post(
     linkDirectoryController.createSubmission
 );
 
-// --- Authenticated bookmarks ---
-linkDirectoryRouter.get("/me/bookmarks", authWithRoles, linkDirectoryController.getUserBookmarks);
+// --- Authenticated saved sites ---
+linkDirectoryRouter.get("/me/saved-sites", authWithRoles, linkDirectoryController.getUserSavedSites);
 linkDirectoryRouter.put(
-    "/me/bookmarks",
+    "/me/saved-sites",
     authWithRoles,
-    validateRequest({ body: linkDirectoryBookmarksPutSchema }),
-    linkDirectoryController.putUserBookmarks
+    validateRequest({ body: linkDirectorySavedSitesPutSchema }),
+    linkDirectoryController.putUserSavedSites
 );
 linkDirectoryRouter.put(
-    "/me/bookmarks/order",
+    "/me/saved-sites/order",
     authWithRoles,
-    validateRequest({ body: linkDirectoryBookmarksOrderSchema }),
-    linkDirectoryController.putUserBookmarksOrder
+    validateRequest({ body: linkDirectorySavedSitesOrderSchema }),
+    linkDirectoryController.putUserSavedSitesOrder
+);
+linkDirectoryRouter.patch(
+    "/me/saved-sites/:siteId/outreach-completion",
+    authWithRoles,
+    validateRequest({
+        params: linkDirectorySiteIdParamSchema,
+        body: linkDirectorySavedSiteOutreachCompletionSchema,
+    }),
+    linkDirectoryController.patchUserSavedSiteOutreachCompletion
 );
 
 // --- Editor: taxonomy ---

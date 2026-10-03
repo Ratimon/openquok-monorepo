@@ -53,7 +53,7 @@ Guides for the dashboard — connect channels, compose and schedule posts, and m
 <LinkCard title="Channels" description="Connect, group, and maintain social accounts in your workspace" href="/docs/channels" />
 <LinkCard title="Creating posts" description="Write and schedule posts — editor, media, previews, and scheduling" href="/docs/creating-posts" />
 <LinkCard title="Posts management" description="My Dashboard Posts tab kanban, calendar, post actions, and client approvals" href="/docs/posts-management" />
-<LinkCard title="Playbooks" description="Explore the catalog, bookmark building blocks, compose stacks, and publish playbooks" href="/docs/playbooks" />
+<LinkCard title="Saved" description="Explore the catalog, bookmark building blocks, compose stacks, and publish playbooks" href="/docs/saved" />
 <LinkCard title="Settings" description="Timezone, team, profile, developers, signatures, and approved apps" href="/docs/settings" />
 <LinkCard title="Platforms" description="Character limits, media rules, and follow-up support by network" href="/docs/platforms" />
 <LinkCard title="Automations" description="CLI, MCP, public API, RSS, and webhooks" href="/docs/automations" />

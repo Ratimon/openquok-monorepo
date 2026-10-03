@@ -36,7 +36,7 @@ Published listings appear under your creator profile at <code>/creators/your-use
 ## Account Playbooks page
 
 <CardGrid>
-<LinkCard title="Playbooks (docs)" description="Explore tab, bookmarks, My Playbooks, and Skill Builder handoff" href="/docs/playbooks" />
+<LinkCard title="Saved (docs)" description="Explore, Library, Backlinks, and Skill Builder handoff" href="/docs/saved" />
 </CardGrid>
 
 ## Browse the catalog

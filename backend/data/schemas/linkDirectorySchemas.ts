@@ -180,14 +180,21 @@ export type LinkDirectorySubmissionReviewSchemaType = z.infer<
     typeof linkDirectorySubmissionReviewSchema
 >;
 
-export const linkDirectoryBookmarksPutSchema = z.object({
+export const linkDirectorySavedSitesPutSchema = z.object({
     siteIds: z.array(z.string().uuid()),
 });
-export type LinkDirectoryBookmarksPutSchemaType = z.infer<typeof linkDirectoryBookmarksPutSchema>;
+export type LinkDirectorySavedSitesPutSchemaType = z.infer<typeof linkDirectorySavedSitesPutSchema>;
 
-export const linkDirectoryBookmarksOrderSchema = z.object({
+export const linkDirectorySavedSitesOrderSchema = z.object({
     siteIds: z.array(z.string().uuid()).min(1),
 });
-export type LinkDirectoryBookmarksOrderSchemaType = z.infer<
-    typeof linkDirectoryBookmarksOrderSchema
+export type LinkDirectorySavedSitesOrderSchemaType = z.infer<
+    typeof linkDirectorySavedSitesOrderSchema
+>;
+
+export const linkDirectorySavedSiteOutreachCompletionSchema = z.object({
+    completed: z.boolean(),
+});
+export type LinkDirectorySavedSiteOutreachCompletionSchemaType = z.infer<
+    typeof linkDirectorySavedSiteOutreachCompletionSchema
 >;

@@ -66,7 +66,7 @@ import {
 	getRootPathCalendar,
 	getRootPathMedia,
 	getRootPathPlugs,
-	getRootPathPlaybooksHub,
+	getRootPathSavedHub,
 	getRootPathTemplates
 } from '$lib/area-protected/getRootPathProtectedArea';
 import { route } from '$lib/utils/path';
@@ -827,18 +827,18 @@ export const PUBLIC_HUB_DOCS_BANNERS = {
 		ctaText: 'View publish guide'
 	},
 	playbooks: {
-		docsPath: '/docs/playbooks',
-		title: 'Playbooks in your account',
+		docsPath: '/docs/saved',
+		title: 'Saved in your account',
 		description:
-			'Explore the public catalog, bookmark favorites, compose stacks in Skill Builder, and manage drafts from Account → Playbooks.',
+			'Explore the public catalog, bookmark favorites, compose stacks in Skill Builder, and manage drafts from Account → Saved.',
 		ctaText: PUBLIC_DOCS_BANNER_CTA_TEXT
 	},
 	creators: {
-		docsPath: '/docs/playbooks/my-library',
+		docsPath: '/docs/saved/my-library',
 		title: 'Manage your catalog listings',
 		description:
-			'Track drafts and published playbooks and building blocks, then submit for review from Account → Playbooks.',
-		ctaText: 'View Playbooks guide'
+			'Track drafts and published playbooks and building blocks, then submit for review from Account → Saved.',
+		ctaText: 'View Saved guide'
 	},
 	compare: PUBLIC_SELF_HOST_DOCS_BANNER,
 	alternatives: PUBLIC_SELF_HOST_DOCS_BANNER,
@@ -971,7 +971,7 @@ export const ACCOUNT_MAIN_SIDEBAR_LINKS: AccountMainSidebarLinkConfig[] = [
 	{ segment: '', title: 'My Dashboard', iconName: icons.House.name },
 	{ segment: getRootPathCalendar(), title: 'Calendar', iconName: icons.CalendarClock.name },
 	{ segment: getRootPathTemplates(), title: 'Templates', iconName: icons.LayoutTemplate.name },
-	{ segment: getRootPathPlaybooksHub(), title: 'Playbooks', iconName: icons.Bookmark.name },
+	{ segment: getRootPathSavedHub(), title: 'Saved', iconName: icons.Bookmark.name },
 	{ segment: getRootPathPlugs(), title: 'Auto Plugs', iconName: icons.Sparkles.name },
 	{ segment: getRootPathAnalytics(), title: 'Analytics', iconName: icons.ChartBar.name },
 	{ segment: getRootPathMedia(), title: 'Media', iconName: icons.Image.name }

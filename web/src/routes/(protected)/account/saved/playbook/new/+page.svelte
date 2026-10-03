@@ -6,7 +6,7 @@
 
 	import {
 		getRootPathAccount,
-		getAccountPlaybooksHubPath,
+		getAccountSavedHubPath,
 		userListingNewStackPagePresenter
 	} from '$lib/area-protected';
 	import { createSortedCategoryChoices } from '$lib/listings';
@@ -23,7 +23,7 @@
 
 	let { data }: Props = $props();
 
-	const extensionsHubHref = url(`${route(getRootPathAccount())}/${getAccountPlaybooksHubPath()}`);
+	const extensionsHubHref = url(`${route(getRootPathAccount())}/${getAccountSavedHubPath()}`);
 
 	let initialized = $state(false);
 

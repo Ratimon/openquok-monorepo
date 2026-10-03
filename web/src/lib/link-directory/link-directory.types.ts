@@ -89,11 +89,12 @@ export type LinkDirectoryTagDto = {
 	groups: Array<{ id: string; name: string; sortOrder: number }>;
 };
 
-export type LinkDirectoryBookmarkDto = {
+export type LinkDirectorySavedSiteDto = {
 	id: string;
 	siteId: string;
 	sortOrder: number;
 	createdAt: string;
+	outreachCompletedAt: string | null;
 	site: LinkDirectorySiteDto | null;
 };
 

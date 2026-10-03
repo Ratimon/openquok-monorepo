@@ -11,9 +11,11 @@ const GUIDE = {
 	calendar: '/docs/posts-management/calendar',
 	templates: '/docs/posts-management/templates',
 	creatingPosts: '/docs/creating-posts',
-	playbooks: '/docs/playbooks',
-	explorePlaybooks: '/docs/playbooks/explore-and-bookmarks',
-	composePlaybook: '/docs/playbooks/compose-a-playbook',
+	savedOverview: '/docs/saved',
+	explorePlaybooks: '/docs/saved/explore-and-bookmarks',
+	savedMyLibrary: '/docs/saved/my-library',
+	composePlaybook: '/docs/saved/compose-a-playbook',
+	savedBacklinks: '/docs/saved/backlinks',
 	plugsOverview: '/docs/automations/plugs',
 	globalPlugs: '/docs/automations/global-plugs',
 	internalPlugs: '/docs/automations/internal-plugs',
@@ -178,44 +180,64 @@ export const ACCOUNT_SIDEBAR_TOUR_CONTENT: Record<
 			}
 		]
 	},
-	playbooks: {
-		id: 'playbooks',
+	saved: {
+		id: 'saved',
 		steps: [
 			{
-				title: 'Playbooks',
-				subtitle: 'Save and reuse workflows for content and agents.',
+				title: 'Libs',
+				subtitle: 'Playbooks, building blocks, catalog bookmarks, and your published listings.',
 				iconName: icons.Bookmark.name,
 				image: {
-					src: '/docs/_assets/playbooks/overview.webp',
-					alt: 'Playbooks page with Explore and My Playbooks tabs'
+					src: '/docs/_assets/saved/overview.webp',
+					alt: 'Saved page with Libs tab showing Browse and Your library segments'
 				},
 				paragraphs: [
 					[
-						'A playbook groups ',
-						{ highlight: 'building blocks' },
-						' into one flow. Use hooks, outlines, and formats you can run again for each campaign.'
+						'In ',
+						{ highlight: 'Saved' },
+						', open the ',
+						{ highlight: 'Libs' },
+						' tab for playbooks and building blocks. Use ',
+						{ highlight: 'Browse' },
+						' to search the public catalog, filter by tags, bookmark favorites on a paid plan, and select blocks to ',
+						{ link: { label: 'compose a playbook', href: GUIDE.composePlaybook } },
+						'.'
 					],
 					[
-						'On ',
-						{ link: { label: 'Explore', href: GUIDE.explorePlaybooks } },
-						', browse the catalog and bookmark favorites. Under Mine, edit ',
-						{ link: { label: 'your playbooks', href: GUIDE.composePlaybook } },
-						'. The ',
-						{ link: { label: 'Playbooks overview', href: GUIDE.playbooks } },
-						' explains both tabs.'
+						'Switch to ',
+						{ highlight: 'Your library' },
+						' for drafts and published listings you own — edit, unpublish, or create new building blocks or new playbooks. See ',
+						{ link: { label: 'Explore and bookmarks', href: GUIDE.explorePlaybooks } },
+						' and ',
+						{ link: { label: 'My library', href: GUIDE.savedMyLibrary } },
+						', or the ',
+						{ link: { label: 'Saved overview', href: GUIDE.savedOverview } },
+						'.'
 					]
 				]
 			},
 			{
-				title: 'Building blocks',
-				subtitle: 'Mix small pieces into larger stacks.',
-				iconName: icons.Bookmark.name,
+				title: 'Backlinks',
+				subtitle: 'Your Build Backlinks shortlist — order sites and track outreach.',
+				iconName: icons.Link.name,
+				image: {
+					src: '/docs/_assets/saved/explore-playbooks.webp',
+					alt: 'Build Backlinks hub and Saved Backlinks tab'
+				},
 				paragraphs: [
 					[
-						'A building block is one skill or MCP entry. A playbook stacks several blocks into a repeatable workflow.'
+						'The ',
+						{ highlight: 'Backlinks' },
+						' tab lists sites you save from the ',
+						{ highlight: 'Build backlinks' },
+						' hub. Bookmark on the public directory while signed in (or in the browser before sign-in, then merge on login).'
 					],
 					[
-						'Publish blocks to the public catalog or keep them private while you test what works.'
+						'Reorder rows to prioritize outreach and mark ',
+						{ highlight: 'Done' },
+						' when you finish a site. That shortlist is separate from Libs catalog bookmarks. Details in ',
+						{ link: { label: 'Backlinks shortlist', href: GUIDE.savedBacklinks } },
+						'.'
 					]
 				]
 			}

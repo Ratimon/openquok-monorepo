@@ -1,5 +1,5 @@
 import type {
-    LinkDirectoryBookmarkRow,
+    LinkDirectorySavedSiteRow,
     LinkDirectoryCategoryRow,
     LinkDirectoryOpportunityRow,
     LinkDirectoryOpportunityTypeRow,
@@ -99,11 +99,12 @@ export type LinkDirectorySubmissionDto = {
     updatedAt: string;
 };
 
-export type LinkDirectoryBookmarkDto = {
+export type LinkDirectorySavedSiteDto = {
     id: string;
     siteId: string;
     sortOrder: number;
     createdAt: string;
+    outreachCompletedAt: string | null;
     site: LinkDirectorySiteDto | null;
 };
 
@@ -254,18 +255,19 @@ export function toLinkDirectorySubmissionDtoCollection(
     return rows.map(toLinkDirectorySubmissionDto);
 }
 
-export function toLinkDirectoryBookmarkDto(row: LinkDirectoryBookmarkRow): LinkDirectoryBookmarkDto {
+export function toLinkDirectorySavedSiteDto(row: LinkDirectorySavedSiteRow): LinkDirectorySavedSiteDto {
     return {
         id: row.id,
         siteId: row.site_id,
         sortOrder: row.sort_order,
         createdAt: row.created_at,
+        outreachCompletedAt: row.outreach_completed_at ?? null,
         site: row.site ? toLinkDirectorySiteDto(row.site) : null,
     };
 }
 
-export function toLinkDirectoryBookmarkDtoCollection(
-    rows: LinkDirectoryBookmarkRow[]
-): LinkDirectoryBookmarkDto[] {
-    return rows.map(toLinkDirectoryBookmarkDto);
+export function toLinkDirectorySavedSiteDtoCollection(
+    rows: LinkDirectorySavedSiteRow[]
+): LinkDirectorySavedSiteDto[] {
+    return rows.map(toLinkDirectorySavedSiteDto);
 }

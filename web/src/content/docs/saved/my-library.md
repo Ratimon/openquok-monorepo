@@ -1,25 +1,27 @@
 ---
-title: My Playbooks library
-description: Manage your building blocks and playbooks — catalog stats, new listings, edit, unpublish, and delete drafts.
+title: Your library
+description: Manage your building blocks and playbooks under Libs → Your library — stats, new listings, edit, unpublish, and delete drafts.
 order: 2
-lastUpdated: 2026-09-24
+lastUpdated: 2026-10-03
 ---
 
 <script>
 import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-## My Playbooks tab
+## Libs → Your library
 
 > Everything you created lives here — drafts, submissions awaiting approval, and listings live on the hub.
 
-Open <a href="/account/playbooks">Account → Playbooks</a> and switch to **My Playbooks**.
+Open <a href="/account/saved">Account → Saved</a>, stay on the **Libs** tab, and switch to **Your library**.
+
+Use <Badge text="?tab=libs&libs=library" variant="path" /> to open this segment directly. Legacy URLs with <Badge text="?tab=mine" variant="path" /> still land here.
 
 ## Catalog overview
 
 At the top, **Catalog overview** summarizes:
 
-![My Playbooks](/docs/_assets/playbooks/my-playbooks.webp)
+![My Playbooks](/docs/_assets/saved/my-playbooks.webp)
 
 | Stat | Meaning |
 | --- | --- |
@@ -47,7 +49,7 @@ Two sections list your work:
 - **Playbooks** — stacks that reference one or more building blocks
 
 <Callout type="tip">
-<p>Cards show publish status (draft, awaiting approval, or live). Select <strong>Add</strong> on building blocks here when you want to bundle them into a new playbook — same bar as on <strong>Explore</strong>. See <a href="/docs/playbooks/compose-a-playbook">Compose a playbook</a>.</p>
+<p>Cards show publish status (draft, awaiting approval, or live). Select <strong>Add</strong> on building blocks here when you want to bundle them into a new playbook — same bar as on <strong>Browse</strong>. See <a href="/docs/saved/compose-a-playbook">Compose a playbook</a>.</p>
 </Callout>
 
 ## Card menu
@@ -82,8 +84,8 @@ Approved building blocks appear on <a href="/building-blocks">Building Blocks</a
 ## Related
 
 <CardGrid>
-<LinkCard title="Compose a playbook" description="Stack blocks and export from Skill Builder" href="/docs/playbooks/compose-a-playbook" />
+<LinkCard title="Compose a playbook" description="Stack blocks and export from Skill Builder" href="/docs/saved/compose-a-playbook" />
 <LinkCard title="Listing types explained" description="Skills, MCP, Both, and stacks" href="/docs/publish-listings/listing-types" />
-<LinkCard title="Playbooks overview" description="Explore tab and OpenQuok Core links" href="/docs/playbooks" />
+<LinkCard title="Saved overview" description="Libs, Backlinks, and OpenQuok Core links" href="/docs/saved" />
 <LinkCard title="Profile and username" description="Creator URL and public identity" href="/docs/settings/profile" />
 </CardGrid>

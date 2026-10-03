@@ -5,11 +5,11 @@ export {
 	getRootPathMedia,
 	getRootPathPlugs,
 	getRootPathTemplates,
-	getRootPathPlaybooksHub,
+	getRootPathSavedHub,
 	getRootPathBuildingBlockEditor,
 	getRootPathPlaybookEditor,
 	getRootPathNewListing,
-	getAccountPlaybooksHubPath,
+	getAccountSavedHubPath,
 	getAccountNewBuildingBlockPath,
 	getAccountNewPlaybookPath,
 	getAccountPlaybookEditorPath,
@@ -207,13 +207,13 @@ const protectedAccountBuildingBlocksPagePresenter = new ProtectedAccountBuilding
 	getBillingPresenter
 );
 
-/** Edit playbook: `/account/playbooks/playbook/[id]` */
+/** Edit playbook: `/account/saved/playbook/[id]` */
 const userListingStackEditorPagePresenter = new UserListingEditorPagePresenter(listingRepository);
-/** New playbook: `/account/playbooks/playbook/new` */
+/** New playbook: `/account/saved/playbook/new` */
 const userListingNewStackPagePresenter = new UserListingEditorPagePresenter(listingRepository);
-/** Edit building block: `/account/playbooks/building-block/[id]` */
+/** Edit building block: `/account/saved/building-block/[id]` */
 const userListingExtensionEditorPagePresenter = new UserListingEditorPagePresenter(listingRepository);
-/** New building block: `/account/playbooks/building-block/new` */
+/** New building block: `/account/saved/building-block/new` */
 const userListingNewExtensionPagePresenter = new UserListingEditorPagePresenter(listingRepository);
 
 const userListingStacksManagerPagePresenter = new UserListingsManagerPagePresenter(

@@ -150,11 +150,12 @@ export interface LinkDirectorySubmissionRow {
     updated_at: string;
 }
 
-export interface LinkDirectoryBookmarkRow {
+export interface LinkDirectorySavedSiteRow {
     id: string;
     user_id: string;
     site_id: string;
     sort_order: number;
     created_at: string;
+    outreach_completed_at: string | null;
     site?: LinkDirectorySiteRow | null;
 }

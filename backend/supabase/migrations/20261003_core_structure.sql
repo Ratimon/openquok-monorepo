@@ -1344,14 +1344,20 @@ CREATE TABLE IF NOT EXISTS public.link_directory_submissions (
     reviewed_at TIMESTAMPTZ
 );
 
-CREATE TABLE IF NOT EXISTS public.link_directory_bookmarks (
+CREATE TABLE IF NOT EXISTS public.link_directory_saved_sites (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     site_id UUID NOT NULL REFERENCES public.link_directory_sites(id) ON DELETE CASCADE,
     sort_order INTEGER NOT NULL DEFAULT 0,
+    outreach_completed_at TIMESTAMPTZ NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (user_id, site_id)
 );
+
+COMMENT ON TABLE public.link_directory_saved_sites IS
+    'Per-user shortlist of link directory sites (Saved → Backlinks): private order and outreach progress.';
+COMMENT ON COLUMN public.link_directory_saved_sites.outreach_completed_at IS
+    'When the signed-in user marked personal outreach on this site as done; null means not completed.';
 
 -- ---------------------------
 -- END OF FILE
@@ -1872,10 +1878,10 @@ CREATE INDEX IF NOT EXISTS idx_link_directory_submissions_status
 CREATE INDEX IF NOT EXISTS idx_link_directory_submissions_user_id
     ON public.link_directory_submissions (user_id);
 
-CREATE INDEX IF NOT EXISTS idx_link_directory_bookmarks_user_sort
-    ON public.link_directory_bookmarks (user_id, sort_order);
-CREATE INDEX IF NOT EXISTS idx_link_directory_bookmarks_site_id
-    ON public.link_directory_bookmarks (site_id);
+CREATE INDEX IF NOT EXISTS idx_link_directory_saved_sites_user_sort
+    ON public.link_directory_saved_sites (user_id, sort_order);
+CREATE INDEX IF NOT EXISTS idx_link_directory_saved_sites_site_id
+    ON public.link_directory_saved_sites (site_id);
 
 -- ---------------------------
 -- END OF FILE
@@ -4730,7 +4736,7 @@ ALTER TABLE public.link_directory_sites ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.link_directory_opportunities ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.link_directory_site_tags_association ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.link_directory_submissions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.link_directory_bookmarks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.link_directory_saved_sites ENABLE ROW LEVEL SECURITY;
 
 -- ---------------------------
 -- Categories, tags, opportunity types (catalog)
@@ -4981,11 +4987,11 @@ CREATE POLICY "Super admin admins editors can manage link directory submissions"
     );
 
 -- ---------------------------
--- Bookmarks
+-- Saved sites (user shortlist)
 -- ---------------------------
 
-DROP POLICY IF EXISTS "Users can manage their link directory bookmarks" ON public.link_directory_bookmarks;
-CREATE POLICY "Users can manage their link directory bookmarks" ON public.link_directory_bookmarks
+DROP POLICY IF EXISTS "Users can manage their link directory saved sites" ON public.link_directory_saved_sites;
+CREATE POLICY "Users can manage their link directory saved sites" ON public.link_directory_saved_sites
     FOR ALL TO authenticated
     USING (
         user_id = (SELECT id FROM public.users WHERE auth_id = auth.uid())
@@ -5059,7 +5065,7 @@ GRANT ALL ON public.link_directory_sites TO authenticated;
 GRANT ALL ON public.link_directory_opportunities TO authenticated;
 GRANT ALL ON public.link_directory_site_tags_association TO authenticated;
 GRANT INSERT, SELECT ON public.link_directory_submissions TO authenticated;
-GRANT ALL ON public.link_directory_bookmarks TO authenticated;
+GRANT ALL ON public.link_directory_saved_sites TO authenticated;
 
 -- ---------------------------
 -- END OF FILE

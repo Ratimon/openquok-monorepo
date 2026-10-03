@@ -15,9 +15,11 @@ const linkDirectoryConfig: LinkDirectoryConfig = {
 		getActiveTags: '/api/v1/link-directory/tags/active',
 		getOpportunityTypes: '/api/v1/link-directory/opportunity-types',
 		createSubmission: '/api/v1/link-directory/submissions',
-		getMyBookmarks: '/api/v1/link-directory/me/bookmarks',
-		putMyBookmarks: '/api/v1/link-directory/me/bookmarks',
-		putMyBookmarksOrder: '/api/v1/link-directory/me/bookmarks/order',
+		getMySavedSites: '/api/v1/link-directory/me/saved-sites',
+		putMySavedSites: '/api/v1/link-directory/me/saved-sites',
+		putMySavedSitesOrder: '/api/v1/link-directory/me/saved-sites/order',
+		patchSavedSiteOutreachCompletion: (siteId: string) =>
+			`/api/v1/link-directory/me/saved-sites/${encodeURIComponent(siteId)}/outreach-completion`,
 		getAdminSites: '/api/v1/link-directory/all-full',
 		getSiteById: (siteId: string) => `/api/v1/link-directory/sites/${siteId}`,
 		createSite: '/api/v1/link-directory/sites',
@@ -56,7 +58,7 @@ export const publicBuildBacklinksBookmarksPresenter = new PublicBuildBacklinksBo
 export type {
 	BuildBacklinksHubFilters,
 	BuildBacklinksSort,
-	LinkDirectoryBookmarkDto,
+	LinkDirectorySavedSiteDto,
 	LinkDirectoryCategoryDto,
 	LinkDirectoryOpportunityDto,
 	LinkDirectorySiteDto,

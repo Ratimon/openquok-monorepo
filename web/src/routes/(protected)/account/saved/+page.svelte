@@ -5,18 +5,27 @@
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 
 	import { icons } from '$data/icons';
 	import { getProfilePresenter } from '$lib/account';
 	import { hasPublicUsername } from '$lib/account/utils/hasPublicUsername';
+	import { protectedAccountBuildingBlocksPagePresenter } from '$lib/area-protected';
 	import {
 		getRootPathAccount,
+		getRootPathChooseUsername,
 		getAccountNewBuildingBlockPath,
 		getAccountBuildingBlockEditorPath,
-		getAccountPlaybookEditorPath,
-		protectedAccountBuildingBlocksPagePresenter
-	} from '$lib/area-protected';
-	import { getRootPathChooseUsername } from '$lib/area-protected/getRootPathProtectedArea';
+		getAccountPlaybookEditorPath
+	} from '$lib/area-protected/getRootPathProtectedArea';
+	import {
+		buildAccountSavedHubSearchParams,
+		parseSavedBookmarkedFilter,
+		parseSavedHubTab,
+		parseSavedLibsSegment,
+		type SavedHubTabId,
+		type SavedLibsSegmentId
+	} from '$lib/area-protected/utils/buildAccountSavedHubSearch';
 	import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 	import { getRootPathPublicPlaybooks } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 	import {
@@ -40,14 +49,11 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AccountAreaPageHeaderSync from '$lib/ui/components/account/AccountAreaPageHeaderSync.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import * as Tabs from '$lib/ui/tabs';
-	import AccountViralFormatsExploreTab from '$lib/ui/components/extensions/AccountViralFormatsExploreTab.svelte';
-	import AccountViralFormatsMineTab from '$lib/ui/components/extensions/AccountViralFormatsMineTab.svelte';
-	import AccountPlaybooksStatsSection from '$lib/ui/components/home/AccountPlaybooksStatsSection.svelte';
+	import AccountSavedBacklinksTab from '$lib/ui/components/account/AccountSavedBacklinksTab.svelte';
+	import AccountSavedLibsTab from '$lib/ui/components/account/AccountSavedLibsTab.svelte';
 	import ActionVerificationModal from '$lib/ui/modals/ActionVerificationModal.svelte';
 
 	type Props = { data: PageData };
-	type ViralFormatsTab = 'explore' | 'mine';
 
 	let { data }: Props = $props();
 
@@ -86,9 +92,14 @@
 
 	let needsCreatorUsername = $state(false);
 
-	let activeTab = $state<ViralFormatsTab>('explore');
+	let bookmarkedFromUrlApplied = $state(false);
 
-	const playbooksTabTriggerClass =
+	const activeTab = $derived(parseSavedHubTab(page.url.searchParams.get('tab')));
+	const libsSegment = $derived(
+		parseSavedLibsSegment(page.url.searchParams.get('tab'), page.url.searchParams.get('libs'))
+	);
+
+	const savedHubTabTriggerClass =
 		'inline-flex h-auto min-h-0 flex-1 items-center justify-center gap-2 rounded-md border-0 !border-b-0 bg-transparent px-3 py-2 text-sm font-medium text-base-content/65 transition-colors hover:bg-base-content/10 hover:text-base-content sm:flex-none sm:px-4 [&.tab-active]:bg-primary [&.tab-active]:font-semibold [&.tab-active]:text-primary-content [&.tab-active]:shadow-md';
 	let deleteModalOpen = $state(false);
 	let unpublishModalOpen = $state(false);
@@ -135,6 +146,49 @@
 		}
 
 		return items;
+	}
+
+	$effect(() => {
+		if (!bookmarkedFromUrlApplied && parseSavedBookmarkedFilter(page.url.searchParams.get('bookmarked'))) {
+			bookmarkedFromUrlApplied = true;
+			pagePresenter.setExploreFilters({ bookmarkedOnly: true });
+		}
+	});
+
+	function syncSavedHubUrl(options?: {
+		tab?: SavedHubTabId;
+		libsSegment?: SavedLibsSegmentId;
+		bookmarkedOnly?: boolean;
+	}) {
+		const tab = options?.tab ?? activeTab;
+		const segment = options?.libsSegment ?? libsSegment;
+		const bookmarkedOnly =
+			options?.bookmarkedOnly ??
+			(tab === 'libs' && segment === 'browse' && exploreFilters.bookmarkedOnly);
+		const search = buildAccountSavedHubSearchParams({
+			tab,
+			libsSegment: segment,
+			bookmarkedOnly
+		});
+		const nextHref = `${page.url.pathname}?${search}`;
+		const currentHref = `${page.url.pathname}${page.url.search}`;
+		if (nextHref !== currentHref) {
+			void goto(nextHref, { replaceState: true, keepFocus: true, noScroll: true });
+		}
+	}
+
+	function setSavedHubTab(next: SavedHubTabId) {
+		if (next === activeTab) return;
+		syncSavedHubUrl({ tab: next });
+	}
+
+	function setLibsSegment(next: SavedLibsSegmentId) {
+		if (next === libsSegment) return;
+		syncSavedHubUrl({ tab: 'libs', libsSegment: next });
+	}
+
+	function savedHubTabButtonClass(selected: boolean): string {
+		return `${savedHubTabTriggerClass} ${selected ? 'tab-active' : ''}`;
 	}
 
 	onMount(() => {
@@ -248,7 +302,13 @@
 			toast.error('Bookmarks require a paid plan.');
 			return;
 		}
-		pagePresenter.setExploreFilters({ bookmarkedOnly: !exploreFilters.bookmarkedOnly });
+		const nextBookmarkedOnly = !exploreFilters.bookmarkedOnly;
+		pagePresenter.setExploreFilters({ bookmarkedOnly: nextBookmarkedOnly });
+		syncSavedHubUrl({
+			tab: 'libs',
+			libsSegment: 'browse',
+			bookmarkedOnly: nextBookmarkedOnly
+		});
 	}
 
 	async function handleDeleteSuccess() {
@@ -292,53 +352,61 @@
 	{/if}
 
 	<AccountAreaPageHeaderSync
-		title="My Playbooks"
-		currentPageLabel="Playbooks"
-		headingId="account-playbooks-heading"
-		description="Explore playbooks and building blocks from the hub, save bookmarks, and publish your own."
+		title="Saved playbooks & backlinks"
+		currentPageLabel="Saved playbooks & backlinks"
+		headingId="account-saved-heading"
+		description="Browse and Manage your AI library (playbooks/ building blocks), and your backlinks."
 	/>
 
-	<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-end">
-		<div class="flex flex-wrap items-center gap-2">
-			{#if activeTab === 'mine'}
-				<Button href={newBuildingBlockHref} variant="outline" size="sm">New building block</Button>
-				<Button variant="primary" size="sm" onclick={handleNewPlaybook}>New playbook</Button>
-			{/if}
-		</div>
-	</div>
-
-	<Tabs.Root bind:value={activeTab} class="space-y-5">
-		<Tabs.List
+	<div class="space-y-5">
+		<div
 			class="grid w-full max-w-md grid-cols-2 gap-1 rounded-xl bg-base-200 p-1 sm:inline-flex sm:w-auto sm:grid-cols-none"
+			role="tablist"
+			aria-label="Saved sections"
 		>
-			<Tabs.Trigger value="explore" class={playbooksTabTriggerClass}>
-				<AbstractIcon name={icons.Search.name} class="size-4 shrink-0" width="16" height="16" />
-				Explore
-			</Tabs.Trigger>
-			<Tabs.Trigger value="mine" class={playbooksTabTriggerClass}>
-				<AbstractIcon name={icons.Bot.name} class="size-4 shrink-0" width="16" height="16" />
-				My Playbooks
-			</Tabs.Trigger>
-		</Tabs.List>
+			<button
+				type="button"
+				role="tab"
+				aria-selected={activeTab === 'libs'}
+				class={savedHubTabButtonClass(activeTab === 'libs')}
+				onclick={() => setSavedHubTab('libs')}
+			>
+				<AbstractIcon name={icons.Bookmark.name} class="size-4 shrink-0" width="16" height="16" />
+				Libs
+			</button>
+			<button
+				type="button"
+				role="tab"
+				aria-selected={activeTab === 'backlinks'}
+				class={savedHubTabButtonClass(activeTab === 'backlinks')}
+				onclick={() => setSavedHubTab('backlinks')}
+			>
+				<AbstractIcon name={icons.Link.name} class="size-4 shrink-0" width="16" height="16" />
+				Backlinks
+			</button>
+		</div>
 
-		<Tabs.Content value="explore" class="mt-0">
-			<AccountViralFormatsExploreTab
+		{#if activeTab === 'libs'}
+			<AccountSavedLibsTab
+				{libsSegment}
+				onLibsSegmentChange={setLibsSegment}
+				{newBuildingBlockHref}
+				onNewPlaybook={handleNewPlaybook}
 				filters={exploreFilters}
 				categoriesVm={exploreCategories}
 				tagFilterVm={exploreTagFilterVm}
-				buildingBlocks={exploreBuildingBlocks}
-				stacks={exploreStacks}
-				loading={loadingExplore}
-				showBuildingBlocks={showExploreBuildingBlocks}
-				showStacks={showExploreStacks}
+				exploreBuildingBlocks={exploreBuildingBlocks}
+				exploreStacks={exploreStacks}
+				loadingExplore={loadingExplore}
+				showExploreBuildingBlocks={showExploreBuildingBlocks}
+				showExploreStacks={showExploreStacks}
 				{bookmarksPaidEnabled}
 				{bookmarkCount}
 				{accountBillingHref}
-				selectableBuildingBlocks={true}
-				isSelected={(id) => pagePresenter.isBuildingBlockSelected(id)}
+				isBuildingBlockSelected={(id) => pagePresenter.isBuildingBlockSelected(id)}
 				onToggleSelect={handleToggleSelect}
-				getPublicHref={getPublicHref}
-				getMenuItems={exploreMenuItems}
+				{getPublicHref}
+				exploreMenuItems={exploreMenuItems}
 				onSearchChange={(value) => pagePresenter.setExploreFilters({ search: value })}
 				onCategorySelect={(slug) => pagePresenter.setExploreFilters({ category: slug })}
 				onKindSelect={(kind) => pagePresenter.setExploreFilters({ listingKind: kind })}
@@ -351,39 +419,25 @@
 				{selectedCount}
 				onCreateStack={handleCreateStackFromSelection}
 				onClearSelection={() => pagePresenter.clearBuildingBlockSelection()}
-				showBookmarks={true}
 				isBookmarked={(id) => pagePresenter.isBookmarked(id)}
 				{isLoggedIn}
 				{togglingBookmarkId}
 				onToggleBookmark={handleToggleBookmark}
-			/>
-		</Tabs.Content>
-
-		<Tabs.Content value="mine" class="mt-0 space-y-5">
-			<AccountPlaybooksStatsSection
-				buildingBlockCount={ownBuildingBlocks.length}
-				publishedBuildingBlockCount={ownPublishedBuildingBlockCount}
-				playbookCount={ownStacks.length}
-				publishedPlaybookCount={ownPublishedStackCount}
-				hubStats={listingHubStatsVm}
+				{ownBuildingBlocks}
+				{ownStacks}
+				loadingOwn={loadingOwn}
+				{ownPublishedBuildingBlockCount}
+				{ownPublishedStackCount}
+				listingHubStatsVm={listingHubStatsVm}
 				{publicPlaybooksHref}
 				{publicBuildingBlocksHref}
+				{getOwnEditHref}
+				ownMenuItems={ownMenuItems}
 			/>
-			<AccountViralFormatsMineTab
-				buildingBlocks={ownBuildingBlocks}
-				stacks={ownStacks}
-				loading={loadingOwn}
-				selectableBuildingBlocks={true}
-				isSelected={(id) => pagePresenter.isBuildingBlockSelected(id)}
-				onToggleSelect={handleToggleSelect}
-				getEditHref={getOwnEditHref}
-				getMenuItems={ownMenuItems}
-				{selectedCount}
-				onCreateStack={handleCreateStackFromSelection}
-				onClearSelection={() => pagePresenter.clearBuildingBlockSelection()}
-			/>
-		</Tabs.Content>
-	</Tabs.Root>
+		{:else}
+			<AccountSavedBacklinksTab {isLoggedIn} />
+		{/if}
+	</div>
 </div>
 
 {#if listingToDelete}

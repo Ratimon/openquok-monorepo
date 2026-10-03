@@ -4,7 +4,7 @@ import {
 	getRootPathAnalytics,
 	getRootPathCalendar,
 	getRootPathMedia,
-	getRootPathPlaybooksHub,
+	getRootPathSavedHub,
 	getRootPathPlugs,
 	getRootPathTemplates
 } from '$lib/area-protected/getRootPathProtectedArea';
@@ -15,7 +15,7 @@ type TourPathRule = { id: AccountSidebarTourId; path: string };
 function buildTourPathRules(): TourPathRule[] {
 	const account = route(getRootPathAccount());
 	return [
-		{ id: 'playbooks', path: `${account}/${getRootPathPlaybooksHub()}` },
+		{ id: 'saved', path: `${account}/${getRootPathSavedHub()}` },
 		{ id: 'calendar', path: `${account}/${getRootPathCalendar()}` },
 		{ id: 'templates', path: `${account}/${getRootPathTemplates()}` },
 		{ id: 'plugs', path: `${account}/${getRootPathPlugs()}` },

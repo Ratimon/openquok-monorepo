@@ -53,8 +53,9 @@ describe('publicFaqLinks', () => {
 		expect(publicFaqHref.compareOpenquokBuffer).toBe('/compare/openquok/buffer');
 		expect(publicFaqHref.humanizerTool).toBe('/tools/humanizer');
 		expect(publicFaqHref.skillBuilderTool).toBe('/tools/skill-builder');
-		expect(publicFaqHref.docsPlaybooks).toBe('/docs/playbooks');
-		expect(publicFaqHref.docsPlaybooksCompose).toBe('/docs/playbooks/compose-a-playbook');
+		expect(publicFaqHref.docsPlaybooks).toBe('/docs/saved');
+		expect(publicFaqHref.docsPlaybooksCompose).toBe('/docs/saved/compose-a-playbook');
+		expect(publicFaqHref.docsSavedBacklinks).toBe('/docs/saved/backlinks');
 		expect(publicFaqHref.selfHostingLanding).toBe('/self-hosting');
 		expect(publicFaqHref.dockerCompose).toBe('/docs/installation/docker-compose');
 		expect(publicFaqHref.dockerPreBuiltImages).toBe('/docs/installation/docker');

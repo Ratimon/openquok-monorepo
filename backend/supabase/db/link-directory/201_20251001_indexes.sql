@@ -42,10 +42,10 @@ CREATE INDEX IF NOT EXISTS idx_link_directory_submissions_status
 CREATE INDEX IF NOT EXISTS idx_link_directory_submissions_user_id
     ON public.link_directory_submissions (user_id);
 
-CREATE INDEX IF NOT EXISTS idx_link_directory_bookmarks_user_sort
-    ON public.link_directory_bookmarks (user_id, sort_order);
-CREATE INDEX IF NOT EXISTS idx_link_directory_bookmarks_site_id
-    ON public.link_directory_bookmarks (site_id);
+CREATE INDEX IF NOT EXISTS idx_link_directory_saved_sites_user_sort
+    ON public.link_directory_saved_sites (user_id, sort_order);
+CREATE INDEX IF NOT EXISTS idx_link_directory_saved_sites_site_id
+    ON public.link_directory_saved_sites (site_id);
 
 -- ---------------------------
 -- END OF FILE

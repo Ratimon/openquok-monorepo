@@ -2,7 +2,7 @@
 title: Production - deployment
 description: Deploy web, API, workers, and CLI auth to production.
 order: 1
-lastUpdated: 2026-09-25
+lastUpdated: 2026-10-03
 ---
 
 <script>
@@ -122,6 +122,70 @@ pnpm db:production:typegen
 ```
 
 See also <a href="/docs/configuration-backend/database">Database &amp; migrations</a> for local workflow, aggregation, and <code>pg_cron</code> notes.
+
+### Link directory saved sites (before deploy)
+
+<p>Releases that ship <strong>Account → Saved → Backlinks</strong> expect <Badge text="public.link_directory_saved_sites" variant="path" /> with <Badge text="outreach_completed_at" variant="param" /> and API routes under <Badge text="/api/v1/link-directory/me/saved-sites" variant="path" />. Aggregated migrations no longer create <Badge text="link_directory_bookmarks" variant="path" />.</p>
+
+<Callout type="warning">
+<p>Deploy API and web <strong>after</strong> the database matches the new table name. Otherwise signed-in users see errors when saving or reordering backlink shortlists.</p>
+</Callout>
+
+<Steps
+	howToName="Prepare production for link directory saved sites"
+	howToDescription="Align Supabase schema with the saved-sites rename, then verify before Vercel deploy."
+>
+
+### Re-aggregate and pick a cutover path
+
+From the repo root:
+
+```bash
+pnpm backend:db:aggregate-migrations-all
+```
+
+<p><strong>Greenfield (recommended):</strong> no production rows in the old bookmarks table — push or reset so only <Badge text="link_directory_saved_sites" variant="path" /> exists. On a disposable project, <code>supabase db reset</code> locally validates the aggregate; on production use <code>pnpm db:production:push-db</code> (Option 1 above) after <code>migration repair</code> when history lags.</p>
+
+<p><strong>Existing <Badge text="link_directory_bookmarks" variant="path" /> table:</strong> run the one-off script in <strong>Dashboard → SQL Editor</strong> (not <code>db push</code> alone):</p>
+
+```text
+backend/supabase/ops/link_directory_saved_sites_prod_cutover.sql
+```
+
+<p>That script renames the table, renames <Badge text="completed_at" variant="param" /> → <Badge text="outreach_completed_at" variant="param" />, and aligns index names. Then sync migration history to your current <Badge text="YYYYMMDD_core_structure.sql" variant="path" /> date with <code>migration repair --linked --status applied &lt;YYYYMMDD&gt;</code>.</p>
+
+### Verify schema (CLI)
+
+From the repo root, with <Badge text="backend/" variant="path" /> linked to production:
+
+```bash
+pnpm prod-backup:verify-saved-sites --linked
+```
+
+<p>After a local <code>supabase db reset</code> in <Badge text="backend/" variant="path" />:</p>
+
+```bash
+pnpm prod-backup:verify-saved-sites --local
+```
+
+### Smoke-test Saved → Backlinks
+
+<p>With backend and web running against the same database, sign in and confirm:</p>
+
+<ul>
+<li><a href="/build-backlinks">Build Backlinks</a> — <strong>Save site</strong> on a card</li>
+<li><a href="/account/saved?tab=backlinks">Account → Saved → Backlinks</a> — site appears; <strong>Move up</strong> / <strong>Move down</strong> persist after refresh</li>
+<li><strong>Done</strong> checkbox persists after refresh</li>
+</ul>
+
+<p>Run automated checks before deploy:</p>
+
+```bash
+pnpm backend:test:unit -- LinkDirectory
+pnpm --filter ./web exec vitest run src/lib/link-directory/PublicBuildBacklinksBookmarks.presenter.test.ts
+```
+
+</Steps>
 
 ## Deploy with Vercel
 

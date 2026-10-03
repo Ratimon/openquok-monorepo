@@ -4,7 +4,7 @@ export type AccountSidebarTourId =
 	| 'home'
 	| 'calendar'
 	| 'templates'
-	| 'playbooks'
+	| 'saved'
 	| 'plugs'
 	| 'analytics'
 	| 'media';
@@ -13,7 +13,7 @@ export const ACCOUNT_SIDEBAR_TOUR_IDS: AccountSidebarTourId[] = [
 	'home',
 	'calendar',
 	'templates',
-	'playbooks',
+	'saved',
 	'plugs',
 	'analytics',
 	'media'

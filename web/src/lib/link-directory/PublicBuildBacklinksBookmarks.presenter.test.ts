@@ -21,9 +21,10 @@ describe('PublicBuildBacklinksBookmarksPresenter', () => {
 
 	beforeEach(() => {
 		repository = {
-			getMyBookmarks: vi.fn(),
-			replaceMyBookmarks: vi.fn(),
-			reorderMyBookmarks: vi.fn(),
+			getMySavedSites: vi.fn(),
+			replaceMySavedSites: vi.fn(),
+			reorderMySavedSites: vi.fn(),
+			setSavedSiteOutreachCompletion: vi.fn(),
 			getPublishedSiteBySlug: vi.fn()
 		} as unknown as LinkDirectoryRepository;
 
@@ -37,7 +38,7 @@ describe('PublicBuildBacklinksBookmarksPresenter', () => {
 		const removeItem = vi.fn();
 		vi.stubGlobal('localStorage', { getItem, setItem: vi.fn(), removeItem });
 
-		(repository.getMyBookmarks as ReturnType<typeof vi.fn>).mockResolvedValue([
+		(repository.getMySavedSites as ReturnType<typeof vi.fn>).mockResolvedValue([
 			{
 				id: 'b1',
 				siteId: '22222222-2222-4222-8222-222222222222',
@@ -47,9 +48,9 @@ describe('PublicBuildBacklinksBookmarksPresenter', () => {
 			}
 		]);
 
-		(repository.replaceMyBookmarks as ReturnType<typeof vi.fn>).mockResolvedValue({
+		(repository.replaceMySavedSites as ReturnType<typeof vi.fn>).mockResolvedValue({
 			ok: true,
-			bookmarks: [
+			savedSites: [
 				{
 					id: 'b1',
 					siteId: '22222222-2222-4222-8222-222222222222',
@@ -69,7 +70,7 @@ describe('PublicBuildBacklinksBookmarksPresenter', () => {
 
 		await presenter.hydrate(true);
 
-		expect(repository.replaceMyBookmarks).toHaveBeenCalledWith(
+		expect(repository.replaceMySavedSites).toHaveBeenCalledWith(
 			[
 				'22222222-2222-4222-8222-222222222222',
 				'11111111-1111-4111-8111-111111111111'
@@ -80,5 +81,103 @@ describe('PublicBuildBacklinksBookmarksPresenter', () => {
 		expect(presenter.orderedSlugs).toEqual(['reddit', 'uneed']);
 
 		vi.unstubAllGlobals();
+	});
+
+	it('toggles completion via repository when signed in', async () => {
+		const siteId = '22222222-2222-4222-8222-222222222222';
+		(repository.getMySavedSites as ReturnType<typeof vi.fn>).mockResolvedValue([
+			{
+				id: 'b1',
+				siteId,
+				sortOrder: 0,
+				createdAt: '',
+				outreachCompletedAt: null,
+				site: { slug: 'reddit', id: siteId, title: 'Reddit' }
+			}
+		]);
+
+		await presenter.hydrate(true);
+
+		(repository.setSavedSiteOutreachCompletion as ReturnType<typeof vi.fn>).mockResolvedValue({
+			ok: true,
+			savedSites: [
+				{
+					id: 'b1',
+					siteId,
+					sortOrder: 0,
+					createdAt: '',
+					outreachCompletedAt: '2026-03-01T00:00:00.000Z',
+					site: { slug: 'reddit', id: siteId, title: 'Reddit' }
+				}
+			]
+		});
+
+		const result = await presenter.toggleCompleted('reddit');
+
+		expect(result.ok).toBe(true);
+		expect(repository.setSavedSiteOutreachCompletion).toHaveBeenCalledWith(siteId, true, undefined);
+		expect(presenter.isCompleted('reddit')).toBe(true);
+	});
+
+	it('returns sign-in error when toggling completion while logged out', async () => {
+		await presenter.hydrate(false);
+
+		const result = await presenter.toggleCompleted('reddit');
+
+		expect(result).toEqual({ ok: false, error: 'Sign in to track progress.' });
+		expect(repository.setSavedSiteOutreachCompletion).not.toHaveBeenCalled();
+	});
+
+	it('reorders locally without calling the API until saveOrder', async () => {
+		const redditId = '22222222-2222-4222-8222-222222222222';
+		const githubId = '33333333-3333-4333-8333-333333333333';
+		(repository.getMySavedSites as ReturnType<typeof vi.fn>).mockResolvedValue([
+			{
+				id: 'b1',
+				siteId: redditId,
+				sortOrder: 0,
+				createdAt: '',
+				site: { slug: 'reddit', id: redditId, title: 'Reddit' }
+			},
+			{
+				id: 'b2',
+				siteId: githubId,
+				sortOrder: 1,
+				createdAt: '',
+				site: { slug: 'github', id: githubId, title: 'GitHub' }
+			}
+		]);
+
+		await presenter.hydrate(true);
+
+		presenter.moveBookmark('github', 'up');
+		expect(presenter.orderedSlugs).toEqual(['github', 'reddit']);
+		expect(presenter.hasUnsavedOrderChanges()).toBe(true);
+		expect(repository.reorderMySavedSites).not.toHaveBeenCalled();
+
+		(repository.reorderMySavedSites as ReturnType<typeof vi.fn>).mockResolvedValue({
+			ok: true,
+			savedSites: [
+				{
+					id: 'b2',
+					siteId: githubId,
+					sortOrder: 0,
+					createdAt: '',
+					site: { slug: 'github', id: githubId, title: 'GitHub' }
+				},
+				{
+					id: 'b1',
+					siteId: redditId,
+					sortOrder: 1,
+					createdAt: '',
+					site: { slug: 'reddit', id: redditId, title: 'Reddit' }
+				}
+			]
+		});
+
+		const saveResult = await presenter.saveOrder();
+		expect(saveResult.ok).toBe(true);
+		expect(repository.reorderMySavedSites).toHaveBeenCalledWith([githubId, redditId], undefined);
+		expect(presenter.hasUnsavedOrderChanges()).toBe(false);
 	});
 });

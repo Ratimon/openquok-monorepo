@@ -59,9 +59,9 @@ export const docsSidebarGeneral: DocsSidebarSection[] = [
 		autogenerate: { directory: 'posts-management' }
 	},
 	{
-		label: 'Playbooks',
-		icon: icons.Sparkles.name,
-		autogenerate: { directory: 'playbooks' }
+		label: 'Saved',
+		icon: icons.Bookmark.name,
+		autogenerate: { directory: 'saved' }
 	},
 	{
 		label: 'Automations',

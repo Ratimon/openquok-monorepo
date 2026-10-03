@@ -3,7 +3,7 @@ import { publicCmsServerRequestOptions } from '$lib/core/publicCmsFetch';
 
 import type { LinkDirectoryConfig } from '$lib/link-directory/constants/config';
 import type {
-	LinkDirectoryBookmarkDto,
+	LinkDirectorySavedSiteDto,
 	LinkDirectoryCategoryDto,
 	LinkDirectoryOpportunityTypeDto,
 	LinkDirectorySiteDto,
@@ -59,9 +59,9 @@ type SubmissionResponseDto = {
 	message?: string;
 };
 
-type BookmarksResponseDto = {
+type SavedSitesResponseDto = {
 	success: boolean;
-	data: LinkDirectoryBookmarkDto[];
+	data: LinkDirectorySavedSiteDto[];
 	message?: string;
 };
 
@@ -208,61 +208,87 @@ export class LinkDirectoryRepository {
 		return [];
 	}
 
-	async getMyBookmarks(fetch?: typeof globalThis.fetch): Promise<LinkDirectoryBookmarkDto[]> {
-		const { data: bookmarksDto, ok } = await this.httpGateway.get<BookmarksResponseDto>(
-			this.config.endpoints.getMyBookmarks,
+	async getMySavedSites(fetch?: typeof globalThis.fetch): Promise<LinkDirectorySavedSiteDto[]> {
+		const { data: savedSitesDto, ok } = await this.httpGateway.get<SavedSitesResponseDto>(
+			this.config.endpoints.getMySavedSites,
 			undefined,
 			{ withCredentials: true, fetch }
 		);
-		if (ok && bookmarksDto?.success && Array.isArray(bookmarksDto.data)) {
-			return bookmarksDto.data;
+		if (ok && savedSitesDto?.success && Array.isArray(savedSitesDto.data)) {
+			return savedSitesDto.data;
 		}
 		return [];
 	}
 
-	async replaceMyBookmarks(
+	async replaceMySavedSites(
 		siteIds: string[],
 		fetch?: typeof globalThis.fetch
-	): Promise<{ ok: boolean; bookmarks: LinkDirectoryBookmarkDto[]; error?: string }> {
+	): Promise<{ ok: boolean; savedSites: LinkDirectorySavedSiteDto[]; error?: string }> {
 		try {
-			const { data: bookmarksDto, ok } = await this.httpGateway.put<BookmarksResponseDto>(
-				this.config.endpoints.putMyBookmarks,
+			const { data: savedSitesDto, ok } = await this.httpGateway.put<SavedSitesResponseDto>(
+				this.config.endpoints.putMySavedSites,
 				{ siteIds },
 				{ withCredentials: true, fetch }
 			);
-			if (ok && bookmarksDto?.success && Array.isArray(bookmarksDto.data)) {
-				return { ok: true, bookmarks: bookmarksDto.data };
+			if (ok && savedSitesDto?.success && Array.isArray(savedSitesDto.data)) {
+				return { ok: true, savedSites: savedSitesDto.data };
 			}
 			return {
 				ok: false,
-				bookmarks: [],
-				error: bookmarksDto?.message ?? 'Failed to update bookmarks.'
+				savedSites: [],
+				error: savedSitesDto?.message ?? 'Failed to update saved sites.'
 			};
 		} catch {
-			return { ok: false, bookmarks: [], error: 'Failed to update bookmarks.' };
+			return { ok: false, savedSites: [], error: 'Failed to update saved sites.' };
 		}
 	}
 
-	async reorderMyBookmarks(
+	async reorderMySavedSites(
 		siteIds: string[],
 		fetch?: typeof globalThis.fetch
-	): Promise<{ ok: boolean; bookmarks: LinkDirectoryBookmarkDto[]; error?: string }> {
+	): Promise<{ ok: boolean; savedSites: LinkDirectorySavedSiteDto[]; error?: string }> {
 		try {
-			const { data: bookmarksDto, ok } = await this.httpGateway.put<BookmarksResponseDto>(
-				this.config.endpoints.putMyBookmarksOrder,
+			const { data: savedSitesDto, ok } = await this.httpGateway.put<SavedSitesResponseDto>(
+				this.config.endpoints.putMySavedSitesOrder,
 				{ siteIds },
 				{ withCredentials: true, fetch }
 			);
-			if (ok && bookmarksDto?.success && Array.isArray(bookmarksDto.data)) {
-				return { ok: true, bookmarks: bookmarksDto.data };
+			if (ok && savedSitesDto?.success && Array.isArray(savedSitesDto.data)) {
+				return { ok: true, savedSites: savedSitesDto.data };
 			}
 			return {
 				ok: false,
-				bookmarks: [],
-				error: bookmarksDto?.message ?? 'Failed to reorder bookmarks.'
+				savedSites: [],
+				error: savedSitesDto?.message ?? 'Failed to reorder saved sites.'
 			};
 		} catch {
-			return { ok: false, bookmarks: [], error: 'Failed to reorder bookmarks.' };
+			return { ok: false, savedSites: [], error: 'Failed to reorder saved sites.' };
+		}
+	}
+
+	async setSavedSiteOutreachCompletion(
+		siteId: string,
+		completed: boolean,
+		fetch?: typeof globalThis.fetch
+	): Promise<{ ok: boolean; savedSites: LinkDirectorySavedSiteDto[]; error?: string }> {
+		try {
+			const { data: savedSitesDto, ok } = await this.httpGateway.request<SavedSitesResponseDto>({
+				method: HttpMethod.PATCH,
+				url: this.config.endpoints.patchSavedSiteOutreachCompletion(siteId),
+				data: { completed },
+				withCredentials: true,
+				fetch
+			});
+			if (ok && savedSitesDto?.success && Array.isArray(savedSitesDto.data)) {
+				return { ok: true, savedSites: savedSitesDto.data };
+			}
+			return {
+				ok: false,
+				savedSites: [],
+				error: savedSitesDto?.message ?? 'Failed to update outreach completion.'
+			};
+		} catch {
+			return { ok: false, savedSites: [], error: 'Failed to update outreach completion.' };
 		}
 	}
 

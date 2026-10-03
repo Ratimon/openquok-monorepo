@@ -6,9 +6,10 @@
 
 	import { icons } from '$data/icons';
 
+	import { cn } from '$lib/ui/helpers/common';
+
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import { Badge } from '$lib/ui/badge';
 	import HomeAccountNoticeBanner from '$lib/ui/components/home/HomeAccountNoticeBanner.svelte';
 	import ListingsSearchBar from '$lib/ui/templates/listings/ListingsSearchBar.svelte';
 	import ListingsTagFilter from '$lib/ui/templates/listings/ListingsTagFilter.svelte';
@@ -100,8 +101,6 @@
 		searchDraft = filters.search;
 	});
 
-	const bookmarkChipClass =
-		'cursor-pointer gap-1.5 px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary';
 </script>
 
 <div class="space-y-5">
@@ -116,13 +115,13 @@
 	</div>
 
 	<div class="flex flex-col gap-4 rounded-2xl border border-base-300/70 bg-base-100/80 p-4">
-		<div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-			<div class="min-w-0 flex-1 space-y-2">
-				<p class="text-[0.65rem] font-semibold tracking-[0.18em] text-base-content/45 uppercase">
-					Category
-				</p>
+		<div class="space-y-2">
+			<p class="text-[0.65rem] font-semibold tracking-[0.18em] text-base-content/45 uppercase">
+				Category
+			</p>
+			<div class="flex flex-wrap items-center gap-2">
 				<select
-					class="select select-bordered select-sm w-full max-w-xs"
+					class="select select-bordered select-sm w-full min-w-[12rem] max-w-xs"
 					value={filters.category ?? ''}
 					onchange={(event) => {
 						const value = (event.currentTarget as HTMLSelectElement).value;
@@ -134,21 +133,30 @@
 						<option value={category.slug}>{category.name}</option>
 					{/each}
 				</select>
-			</div>
-
-			<div class="flex flex-wrap items-center gap-2">
-				<Badge
-					variant={filters.bookmarkedOnly ? 'default' : 'outline'}
-					class={bookmarkChipClass}
-					ariaPressed={filters.bookmarkedOnly}
-					onclick={() => onBookmarkedToggle?.()}
-				>
-					<AbstractIcon name={icons.Bookmark.name} class="size-3.5" width="14" height="14" />
-					Bookmarked
-					{#if bookmarkCount > 0}
-						<span class="tabular-nums opacity-70">{bookmarkCount.toLocaleString()}</span>
-					{/if}
-				</Badge>
+				{#if onBookmarkedToggle}
+					<button
+						type="button"
+						class={cn(
+							'btn btn-sm inline-flex shrink-0 gap-1.5 rounded-full border',
+							filters.bookmarkedOnly
+								? 'btn-warning border-warning text-warning-content shadow-sm'
+								: 'border-warning/45 bg-warning/15 text-warning-content hover:border-warning/70 hover:bg-warning/25'
+						)}
+						aria-pressed={filters.bookmarkedOnly}
+						onclick={() => onBookmarkedToggle()}
+					>
+						<AbstractIcon
+							name={icons.Bookmark.name}
+							class={cn('size-3.5', filters.bookmarkedOnly && 'fill-current')}
+							width="14"
+							height="14"
+						/>
+						Bookmarked
+						{#if bookmarkCount > 0}
+							<span class="tabular-nums opacity-80">{bookmarkCount.toLocaleString()}</span>
+						{/if}
+					</button>
+				{/if}
 			</div>
 		</div>
 
