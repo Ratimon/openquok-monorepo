@@ -4,7 +4,7 @@
 	import { getRootPathAccount } from '$lib/area-protected';
 	import { absoluteUrl } from '$lib/utils/path';
 	import { cn } from '$lib/ui/helpers/common';
-	import PublicLandingHeroTitle from '$lib/ui/templates/landing-page/PublicLandingHeroTitle.svelte';
+	import PublicHeroTitle from '$lib/ui/templates/titles/PublicHeroTitle.svelte';
 	import PublicLandingHubBreadcrumb, {
 		type PublicLandingHubBreadcrumbItem
 	} from '$lib/ui/templates/landing-page/PublicLandingHubBreadcrumb.svelte';
@@ -58,7 +58,7 @@
 	)}
 >
 	<PublicLandingHubBreadcrumb items={breadcrumbItems} />
-	<PublicLandingHeroTitle
+	<PublicHeroTitle
 		{title}
 		{headingId}
 		class={isHeaderVariant ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl'}

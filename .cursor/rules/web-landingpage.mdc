@@ -13,6 +13,7 @@ globs:
   - web/src/lib/ui/components/payload-wizard/**/*
   - web/src/lib/ui/components/blog-public/BlogHubBreadcrumb.svelte
   - web/src/lib/ui/templates/landing-page/**/*
+  - web/src/lib/ui/templates/titles/**/*
   - web/src/lib/ui/templates/api-marketing/**/*
   - web/src/lib/ui/components/pricing/PublicMarketingPricingSection.svelte
   - web/src/lib/billing/constants/publicPricingLandingSectionConfig.ts
@@ -26,28 +27,32 @@ Public marketing pages pair **breadcrumbs** and **gradient hero titles** inside 
 
 ## Hero title styling (`*Hero.svelte`)
 
-Never render `{heroTitle}` as plain text in an `<h1>`. Use `PublicLandingHeroTitle.svelte` (or the same `landingHeroTheme` segment loop) so copy picks up gradient spans and `LandingHeroHighlightedText` chips.
+Never render `{heroTitle}` as plain text in an `<h1>`. Use **`PublicHeroTitle.svelte`** (`web/src/lib/ui/templates/titles/`) so copy picks up gradient spans and `LandingHeroHighlightedText` chips. **`PublicLandingHeroTitle.svelte`** in `landing-page/` remains a thin re-export alias.
 
 ```svelte
-<PublicLandingHeroTitle title={heroVm.heroTitle} headingId="my-hero-heading" />
+<PublicHeroTitle title={heroVm.heroTitle} headingId="my-hero-heading" />
 ```
+
+For explicit segment styling (plain / sticker / underline), pass `styledSegments` — used by `PublicCreatorListingHero`.
 
 | Piece | Path |
 | --- | --- |
 | Theme + highlight dictionary | `web/src/lib/ui/templates/landing-page/landingHeroTheme.ts` |
-| Shared `<h1>` renderer | `PublicLandingHeroTitle.svelte` |
+| Shared page `<h1>` / heading renderer | `web/src/lib/ui/templates/titles/PublicHeroTitle.svelte` |
+| Listing detail size preset | `web/src/lib/ui/templates/titles/PublicListingDetailHeroTitle.svelte` |
+| Section `<h2>`+ (comma clauses) | `web/src/lib/ui/templates/titles/PublicLandingSectionHeading.svelte` |
 | Highlight chip wrapper | `LandingHeroHighlightedText.svelte` |
 
 When `heroTitle` introduces new product names or phrases that should pop, append them to `LANDING_HERO_TITLE_HIGHLIGHT_WORDS` in `landingHeroTheme.ts` (**longest phrases first**). Match the exact wording used in the constant/`heroTitle` string (case-insensitive). See **add-agent** for agent/MCP labels.
 
-Optional `heroTheme` prop on `PublicLandingHeroTitle` when a page passes a custom theme object (defaults to `landingHeroTheme`).
+Optional `heroTheme` prop on `PublicHeroTitle` when a page passes a custom theme object (defaults to `landingHeroTheme`).
 
 ## `PublicLandingSectionHeading` — `gradientMode`
 
 - **`part`** — Titles split on commas (FAQ, WhoIsFor, HeroDemo; feature rows when `landingTitle` contains a comma). Gradient applies per clause (`titlePartClass`).
 - **`segment`** (default) — No comma split; gradient alternates inside the line (`titleSegmentClass`). Use for single-clause section headings.
 
-Page `<h1>` heroes use `PublicLandingHeroTitle` on the full string — not `PublicLandingSectionHeading`, and commas are not clause breaks.
+Page `<h1>` heroes use `PublicHeroTitle` on the full string — not `PublicLandingSectionHeading`, and commas are not clause breaks.
 
 ---
 
@@ -108,7 +113,7 @@ Each wrapper builds an `items` array and delegates to `PublicLandingHubBreadcrum
 | `/social-media-posting-api/{slug}` | **Home** → Social Media Posting API → `{platformLabel}` |
 | `/social-media-scheduling-api` | **Home** → Social Media Scheduling API |
 | `/social-media-scheduling-api/{slug}` | **Home** → Social Media Scheduling API → `{platformLabel}` |
-| `/tools` | **Free Tools** (breadcrumb on tool pages; hub uses eyebrow + `PublicLandingHeroTitle`) |
+| `/tools` | **Free Tools** (breadcrumb on tool pages; hub uses eyebrow + `PublicHeroTitle`) |
 | `/tools/humanizer` (+ `{channelSlug}`) | **Free Tools** → Humanizer [→ `{channelLabel}`] |
 | `/tools/photo-editor`, `/tools/skill-builder`, `/tools/best-time-to-post`, `/tools/payload-wizard` | Same pattern: **Free Tools** → tool name [→ channel] |
 
@@ -123,7 +128,7 @@ When adding or changing a public landing hero:
 3. **Coming-soon heroes** (`PublicComingSoonIntegrationPage`) — use the same breadcrumb component; pass agent/MCP variant props when the page is under `/agents/...`.
 4. **Hub grids** — pass a `{#snippet breadcrumb()}` into `FeaturesSectionHeader` when that header owns the page `<h1>`, or inline the breadcrumb where the hub subtitle used to live (`PublicChannelsHubGrid`).
 5. **Channel/agent depth** — pass `activeChannelLabel` / `channelLabel` from the route into the landing template so slug and channel-slug pages share one hero.
-6. **Hero title** — render `heroTitle` through `PublicLandingHeroTitle` (see **Hero title styling** above); extend `LANDING_HERO_TITLE_HIGHLIGHT_WORDS` when new phrases need highlight chips.
+6. **Hero title** — render `heroTitle` through `PublicHeroTitle` (see **Hero title styling** above); extend `LANDING_HERO_TITLE_HIGHLIGHT_WORDS` when new phrases need highlight chips.
 
 ## Tool SEO titles (`/tools/*`)
 
@@ -132,7 +137,7 @@ Programmatic copy lives in `web/src/lib/content/utils/buildProgrammaticSeoTitles
 | Field | Purpose | Pattern |
 | --- | --- | --- |
 | `metaTitle` | SERP `<title>` (brand appended in `+page.server.ts`) | `Free {Tool or Platform descriptor} — No Sign Up` (Payload Wizard uses `— Copy POST /public/posts JSON` instead) |
-| `heroTitle` | On-page `<h1>` via `PublicLandingHeroTitle` | `Free {platform?} {tool name}` — reader-facing, usually lowercase after "Free" |
+| `heroTitle` | On-page `<h1>` via `PublicHeroTitle` | `Free {platform?} {tool name}` — reader-facing, usually lowercase after "Free" |
 | `metaDescription` | Meta + JSON-LD | Lead with "Free … in your browser" and end with "No sign up required" when the tool is guest-usable |
 
 - **Channel slugs** (`/tools/{tool}/{channelSlug}`) — builders take `platformLabel` from the channel catalog (`listAvailablePublicChannels()` / `channels/index.ts`) (e.g. `Free YouTube photo editor` H1, `Free YouTube Photo Editor — No Sign Up` title).
@@ -215,6 +220,6 @@ Apply `landingHeroTheme.ctaButtonClass` on non-aurora heroes (`PublicApiMarketin
 - Add a second breadcrumb row above the hero section (outside the hero band).
 - Introduce new hub segment labels in page files — extend `publicLandingBreadcrumbConfig.ts` (or the relevant hub VM `metaTitle`) instead.
 - Skip uppercase styling on the current (non-link) segment.
-- Render marketing `heroTitle` as unstyled plain text — use `PublicLandingHeroTitle` + `landingHeroTheme`.
+- Render marketing `heroTitle` as unstyled plain text — use `PublicHeroTitle` + `landingHeroTheme`.
 
 See also: **web-seo-pseo** (section order, templates), **add-agent** (agent/MCP landing wiring), **public-api-surface-sync** (API marketing pages).

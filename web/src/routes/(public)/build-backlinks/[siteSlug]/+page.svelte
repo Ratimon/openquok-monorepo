@@ -10,6 +10,8 @@
 		formatMetricsUpdatedLabel,
 		formatMonthlyVisitsLabel
 	} from '$lib/link-directory/utils/formatLinkDirectoryMetrics';
+	import { getRootPathPublicBuildBacklinksCategory } from '$lib/area-public/constants/getRootPathPublicBuildBacklinks';
+	import { route, url } from '$lib/utils/path';
 
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import BuildBacklinksBookmarkButton from '$lib/ui/templates/build-backlinks/BuildBacklinksBookmarkButton.svelte';
@@ -17,7 +19,9 @@
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import PublicListingsHubBreadcrumb from '$lib/ui/templates/listings/PublicListingsHubBreadcrumb.svelte';
+	import PublicListingDetailHeroTitle from '$lib/ui/templates/titles/PublicListingDetailHeroTitle.svelte';
 	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
+	import InternalLink from '$lib/ui/links/InternalLink.svelte';
 
 	type Props = { data: PageData };
 
@@ -64,6 +68,12 @@
 
 	const isSiteBookmarked = $derived(bookmarksPresenter.isBookmarked(siteVm.slug));
 
+	const categoryHref = $derived(
+		siteVm.category?.slug?.trim()
+			? url(route(getRootPathPublicBuildBacklinksCategory(siteVm.category.slug.trim())))
+			: null
+	);
+
 	async function handleToggleBookmark(params: { siteId: string; siteSlug: string }) {
 		return bookmarksPresenter.toggleBookmark({ ...params, title: siteVm.title });
 	}
@@ -90,7 +100,10 @@
 				/>
 			{/if}
 			<div class="min-w-0 flex-1 space-y-2">
-				<h1 class="text-3xl font-black tracking-tight text-balance">{siteVm.title}</h1>
+				<PublicListingDetailHeroTitle
+					title={siteVm.title}
+					headingId="build-backlinks-site-heading"
+				/>
 				<p>
 					<ExternalLink href={siteVm.siteUrl} class="link link-hover font-medium">
 						{siteVm.siteUrl}
@@ -114,7 +127,16 @@
 						<span class="badge badge-ghost">{visitsLabel}</span>
 					{/if}
 					{#if siteVm.category?.name}
-						<span class="badge badge-outline">{siteVm.category.name}</span>
+						{#if categoryHref}
+							<InternalLink
+								href={categoryHref}
+								class="badge badge-outline no-underline hover:border-primary hover:bg-base-content/5"
+							>
+								{siteVm.category.name}
+							</InternalLink>
+						{:else}
+							<span class="badge badge-outline">{siteVm.category.name}</span>
+						{/if}
 					{/if}
 				</div>
 				{#if metricsUpdated}
@@ -136,7 +158,9 @@
 		{/if}
 
 		<section class="mt-10 space-y-3" aria-labelledby="bb-opportunities-heading">
-			<h2 id="bb-opportunities-heading" class="text-xl font-bold">Backlink playbook</h2>
+			<h2 id="bb-opportunities-heading" class="text-xl font-bold">
+				Backlink Opportunities
+			</h2>
 			<p class="text-sm text-base-content/60">
 				Follow these opportunities in order. Each block is one path on {siteVm.title}, with
 				sub-steps and a CTA when OpenQuok can help.

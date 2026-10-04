@@ -4,7 +4,7 @@
 
 	import AuroraWobbleCard from '$lib/ui/card-wobble/AuroraWobbleCard.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import PublicLandingSectionHeading from '$lib/ui/templates/landing-page/PublicLandingSectionHeading.svelte';
+	import PublicLandingSectionHeading from '$lib/ui/templates/titles/PublicLandingSectionHeading.svelte';
 
 	export type AudienceCard = {
 		iconName: IconName;

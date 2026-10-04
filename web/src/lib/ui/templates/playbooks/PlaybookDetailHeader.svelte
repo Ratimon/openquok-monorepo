@@ -22,6 +22,7 @@
 	import BuildingBlockBookmarkButton from '$lib/ui/components/building-blocks/BuildingBlockBookmarkButton.svelte';
 	import ListingCreatorAttribution from '$lib/ui/templates/listings/ListingCreatorAttribution.svelte';
 	import PublicCreatorListingHero from '$lib/ui/templates/listings/PublicCreatorListingHero.svelte';
+	import PublicListingDetailHeroTitle from '$lib/ui/templates/titles/PublicListingDetailHeroTitle.svelte';
 	import ListingRating from '$lib/ui/components/listings/ListingRating.svelte';
 	import ListingDetailTagBadges from '$lib/ui/components/listings/ListingDetailTagBadges.svelte';
 	import ListingDetailTypeBadges from '$lib/ui/components/listings/ListingDetailTypeBadges.svelte';
@@ -112,7 +113,10 @@
 
 	<div class="space-y-3">
 		<div class="flex flex-wrap items-center gap-3">
-			<h1 class="text-3xl font-black tracking-tight text-base-content sm:text-4xl">{playbookVm.title}</h1>
+			<PublicListingDetailHeroTitle
+				title={playbookVm.title}
+				headingId="playbook-detail-heading"
+			/>
 			{#if onToggleBookmark}
 				<BuildingBlockBookmarkButton
 					listingId={playbookVm.id}

@@ -84,9 +84,9 @@ export function showListingBookmarkToast(
 ): void {
 	const label = listingKind === 'stack' ? 'Playbook' : 'Building block';
 	if (bookmarked) {
-		toast.success(`${label} bookmarked. View it under Saved → Libs → Bookmarked.`, {
+		toast.success(`${label} bookmarked. Create your own under Saved → Libs → Bookmarked.`, {
 			action: {
-				label: 'View',
+				label: 'Create',
 				onClick: () => {
 					void goto(savedLibsBookmarkedHubHref());
 				}

@@ -2,16 +2,17 @@
 	import type { IconName } from '$data/icons';
 
 	import { icons } from '$data/icons';
-	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
-	import LandingHeroHighlightedText from '$lib/ui/texts/LandingHeroHighlightedText.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AuroraBackground from '$lib/ui/background/AuroraBackground.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
 	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
+	import PublicHeroTitle from '$lib/ui/templates/titles/PublicHeroTitle.svelte';
 
-	type HeroTitleSegment = { text: string; style: 'plain' | 'sticker' | 'underline' };
+	import type { PublicHeroStyledSegment } from '$lib/ui/templates/titles/publicHeroTitle.types';
+
+	type HeroTitleSegment = PublicHeroStyledSegment;
 
 	type Props = {
 		eyebrow: string;
@@ -51,11 +52,6 @@
 	const showInstall = $derived(isPage && trimmedInstallCommand.length > 0);
 	const showListingLogo = $derived(Boolean(logoImageUrl?.trim()));
 
-	/** Map sticker → highlight so `titleSegmentClass` gradient counting stays correct. */
-	const highlightMappedSegments = $derived(
-		titleSegments.map((seg) => ({ text: seg.text, highlight: seg.style === 'sticker' }))
-	);
-
 	const headingId = 'public-creator-listing-hero-heading';
 	const installHeadingId = 'public-creator-listing-hero-install-heading';
 
@@ -66,30 +62,12 @@
 	);
 	const heroIconSize = $derived(isPage ? '36' : '28');
 	const heroIconClass = $derived(isPage ? 'size-9' : 'size-7');
-	const headingClass = $derived(
+	const titleHeadingClass = $derived(
 		isPage
-			? 'mt-4 text-3xl font-black tracking-tight text-balance sm:text-4xl lg:text-5xl'
-			: 'mt-4 text-2xl font-black tracking-tight text-balance sm:text-3xl'
+			? 'mt-4 text-3xl sm:text-4xl lg:text-5xl'
+			: 'mt-4 text-2xl sm:text-3xl lg:text-4xl'
 	);
 </script>
-
-{#snippet titleSegmentsMarkup()}
-	{#each titleSegments as seg, segmentIndex (segmentIndex)}
-		{#if seg.style === 'sticker'}
-			<LandingHeroHighlightedText>{seg.text}</LandingHeroHighlightedText>
-		{:else if seg.style === 'underline'}
-			<span
-				class="underline decoration-2 underline-offset-[0.2em] decoration-primary text-base-content"
-			>
-				{seg.text}
-			</span>
-		{:else}
-			<span class={landingHeroTheme.titleSegmentClass(segmentIndex, highlightMappedSegments)}
-				>{seg.text}</span
-			>
-		{/if}
-	{/each}
-{/snippet}
 
 {#snippet heroInner()}
 	<div class="mx-auto flex max-w-3xl flex-col items-center text-center">
@@ -129,15 +107,12 @@
 			{eyebrow}
 		</p>
 
-		{#if isPage}
-			<h1 id={headingId} class={headingClass}>
-				{@render titleSegmentsMarkup()}
-			</h1>
-		{:else}
-			<h2 id={headingId} class={headingClass}>
-				{@render titleSegmentsMarkup()}
-			</h2>
-		{/if}
+		<PublicHeroTitle
+			styledSegments={titleSegments}
+			headingId={headingId}
+			headingLevel={isPage ? 'h1' : 'h2'}
+			class={titleHeadingClass}
+		/>
 
 		<p class="mt-6 text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg">
 			{description}

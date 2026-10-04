@@ -71,7 +71,7 @@
 		<li><a href={emailManagerUrl} class="link link-primary">Email manager</a></li>
 		<li><a href={bullBoardUrl} class="link link-primary">Queue dashboard (Bull Board)</a></li>
 		<li><a href={blogManagerUrl} class="link link-primary">Blog Manager</a></li>
-		<li><a href={listingManagerUrl} class="link link-primary">Listing Manager</a></li>
+		<li><a href={listingManagerUrl} class="link link-primary">Playbooks / building blocks manager</a></li>
 		<li><a href={linkDirectoryManagerUrl} class="link link-primary">Link directory manager</a></li>
 		<li><a href={configManagerUrl} class="link link-primary">Config manager</a></li>
 	</ul>

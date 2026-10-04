@@ -43,7 +43,7 @@
 		accentSplitPhotoEditorChannelCtaBannerTitle
 	} from '$lib/ui/templates/banners/photoEditorBannerCopy';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
-	import PublicLandingHeroTitle from '$lib/ui/templates/landing-page/PublicLandingHeroTitle.svelte';
+	import PublicHeroTitle from '$lib/ui/templates/titles/PublicHeroTitle.svelte';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 
@@ -166,7 +166,7 @@
 		<PhotoEditorHubBreadcrumb {toolsHubHref} {photoEditorHref} {channelLabel} />
 
 		<header class="space-y-3">
-			<PublicLandingHeroTitle title={pageHeading} headingId="photo-editor-tool-hero-heading" />
+			<PublicHeroTitle title={pageHeading} headingId="photo-editor-tool-hero-heading" />
 			<p class="max-w-3xl text-base text-base-content/75">{metaDescription}</p>
 			{#if heroLead}
 				<p class="max-w-3xl text-base text-base-content/75">{heroLead}</p>

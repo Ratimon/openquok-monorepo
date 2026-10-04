@@ -1,15 +1,13 @@
 import type { IconName } from '$data/icons';
 import { icons } from '$data/icons';
 import { PUBLIC_LANDING_HERO_TRIAL_CTA } from '$lib/content/constants/landing/hero-copy';
+import type { PublicHeroStyledSegment } from '$lib/ui/templates/titles/publicHeroTitle.types';
 
 export type CreatorListingHeroKind = 'building-block' | 'playbook';
 
-export type CreatorListingHeroTitleSegmentStyle = 'plain' | 'sticker' | 'underline';
+export type CreatorListingHeroTitleSegmentStyle = PublicHeroStyledSegment['style'];
 
-export type CreatorListingHeroTitleSegment = {
-	text: string;
-	style: CreatorListingHeroTitleSegmentStyle;
-};
+export type CreatorListingHeroTitleSegment = PublicHeroStyledSegment;
 
 export type CreatorListingHeroVm = {
 	eyebrow: string;

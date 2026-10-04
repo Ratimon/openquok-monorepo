@@ -1,13 +1,13 @@
 <script lang="ts">
 	import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/agents';
 
-	import LandingHeroHighlightedText from '$lib/ui/texts/LandingHeroHighlightedText.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AuroraBackground from '$lib/ui/background/AuroraBackground.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
 	import PublicAgentsLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicAgentsLandingBreadcrumb.svelte';
 	import PublicChannelsLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicChannelsLandingBreadcrumb.svelte';
 	import SkillInstallCommandTabs from '$lib/ui/templates/landing-page/SkillInstallCommandTabs.svelte';
+	import PublicHeroTitle from '$lib/ui/templates/titles/PublicHeroTitle.svelte';
 
 	type LandingHeroTitleSegment = { text: string; highlight: boolean };
 
@@ -40,8 +40,6 @@
 
 	const headingId = 'public-agent-hero-heading';
 	const installHeadingId = 'public-agent-hero-install-heading';
-
-	const titleSegments = $derived(heroTheme.parseLandingHeroTitlePartSegments(agentVm.heroTitle));
 
 	const heroIconBoxClass =
 		'flex size-16 items-center justify-center rounded-2xl border border-white/10 bg-base-100/10 shadow-lg backdrop-blur-sm';
@@ -86,18 +84,12 @@
 				/>
 			</div>
 
-			<h1
-				id={headingId}
-				class="mt-4 text-3xl font-black tracking-tight text-balance sm:text-4xl lg:text-5xl"
-			>
-				{#each titleSegments as seg, segmentIndex (segmentIndex)}
-					{#if seg.highlight}
-						<LandingHeroHighlightedText>{seg.text}</LandingHeroHighlightedText>
-					{:else}
-						<span class={heroTheme.titleSegmentClass(segmentIndex, titleSegments)}>{seg.text}</span>
-					{/if}
-				{/each}
-			</h1>
+			<PublicHeroTitle
+				title={agentVm.heroTitle}
+				{headingId}
+				{heroTheme}
+				class="mt-4 text-3xl sm:text-4xl lg:text-5xl"
+			/>
 
 			<p class="mt-6 text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg">
 				{agentVm.heroDescription}

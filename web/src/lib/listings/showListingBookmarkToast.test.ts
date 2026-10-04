@@ -24,9 +24,9 @@ describe('showListingBookmarkToast', () => {
 		showListingBookmarkToast(true, 'extension');
 
 		expect(toast.success).toHaveBeenCalledWith(
-			'Building block bookmarked. View it under Saved → Libs → Bookmarked.',
+			'Building block bookmarked. Create your own under Saved → Libs → Bookmarked.',
 			expect.objectContaining({
-				action: expect.objectContaining({ label: 'View' })
+				action: expect.objectContaining({ label: 'Create' })
 			})
 		);
 	});

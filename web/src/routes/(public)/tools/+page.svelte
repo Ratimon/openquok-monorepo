@@ -18,7 +18,7 @@
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
-	import PublicLandingHeroTitle from '$lib/ui/templates/landing-page/PublicLandingHeroTitle.svelte';
+	import PublicHeroTitle from '$lib/ui/templates/titles/PublicHeroTitle.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 
 	type Props = { data: PageData };
@@ -50,7 +50,7 @@
 		<p class="text-xs font-bold tracking-wider text-primary uppercase">
 			Free tools
 		</p>
-		<PublicLandingHeroTitle
+		<PublicHeroTitle
 			title={heroTitle}
 			headingId="public-tools-hub-heading"
 		/>

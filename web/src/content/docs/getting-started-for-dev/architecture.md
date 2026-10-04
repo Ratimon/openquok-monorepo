@@ -2,7 +2,7 @@
 title: Project Architecture
 description: OpenQuok's architecture — project layout and key files for OpenQuok.
 order: 1
-lastUpdated: 2026-09-28
+lastUpdated: 2026-10-03
 ---
 
 <script>
@@ -156,7 +156,7 @@ Repository layout at the root:
 - <Badge text=".github/" variant="path" /> — CI workflows (for example release automation under <Badge text="workflows/" variant="path" />).
 - <Badge text="infra/" variant="path" /> — Docker Compose and self-host env templates. Dev dependencies live in <Badge text="infra/docker-compose.yml" variant="path" />; the full operator stack is under <Badge text="infra/self-host/" variant="path" />. See <a href="/docs/installation/docker-compose">Docker Compose</a>.
 - <Badge text="orchestrator/" variant="path" /> — Workspace package: Flowcraft blueprints, BullMQ adapters, and worker entrypoints. See <a href="/docs/developer-guidelines/orchestrator-workflows">Orchestrator workflows</a>, <a href="/docs/configuration-worker">Configuration - Worker</a>, and <a href="/docs/configuration-worker/railway">Railway (workers)</a>.
-- <Badge text=".railway/" variant="path" /> — Railway infrastructure-as-code (<Badge text="railway.ts" variant="path" />); local CLI backups under this folder are gitignored. Worker deploy also uses per-flavor <Badge text="orchestrator/railpack.*.json" variant="path" /> configs.
+- <Badge text=".railway/" variant="path" /> — Railway infrastructure-as-code (<Badge text="railway.ts" variant="path" />).
 - <Badge text="sdk/" variant="path" /> — Published as <Badge text="@openquok/node-sdk" variant="default" />: a typed Node.js client for the programmatic API.
 - <Badge text="scripts/" variant="path" /> — Monorepo automation: Vercel env sync/deploy helpers (<Badge text="vercelSync*.mjs" variant="path" />, <Badge text="vercelDeploy*.mjs" variant="path" />), Railway worker service setup (<Badge text="railwaySetupWorkerService.mjs" variant="path" />), and <Badge text="prod-backup/" variant="path" /> for Supabase export/restore scripts.
 - <Badge text="web/" variant="path" /> — SvelteKit frontend; public static files live under <Badge text="web/static/" variant="path" />.
@@ -293,6 +293,7 @@ The SvelteKit app root:
   - static/
   - src/
     - content/
+      - docs/
     - data/
       - docs.ts
       - icons.ts
@@ -323,8 +324,8 @@ The SvelteKit app root:
 - <Badge text="src/lib/area-admin/" variant="path" />, <Badge text="src/lib/area-protected/" variant="path" />, <Badge text="src/lib/area-public/" variant="path" /> — Page-level presenters, including admin console, signed-in app, public/marketing and etc. Routes import singletons from these indexes.
 - <Badge text="src/lib/ui/" variant="path" /> — Reusable UI components (buttons, dialogs, docs chrome, DaisyUI-styled patterns). Feature routes pass view models and callbacks into these components.
 - **Theming (DaisyUI)** — Styling favors **semantic DaisyUI + Tailwind** tokens (<Badge text="bg-base-100" variant="param" />, <Badge text="text-base-content" variant="param" />, <Badge text="border-base-300" variant="param" />, <Badge text="primary" variant="param" />, and  etc.) so theme presets swap via CSS variables instead of hand-maintained color pairs per component.
-- <Badge text="src/content/" variant="path" /> — Markdown sources for the in-app docs site.
-- <Badge text="static/" variant="path" /> — Public assets (favicon, PWA icons, README images).
+- <Badge text="src/content/" variant="path" /> — In-app docs Markdown.
+- <Badge text="static/" variant="path" /> — Public assets (favicon, PWA icons, doc images under <Badge text="docs/_assets/" variant="path" />).
 
 #### Marketing copy (programmatic SEO)
 
@@ -395,7 +396,7 @@ Splitting them means you can **unit test** presenters with a stubbed repository 
 
 ### <Badge text="src/content/docs/" variant="path" />
 
-This is where in-app documentation markdown lives. Each  <Badge text=".md" variant="path" /> file becomes a page; URLs follow the folder path.
+This is where in-app documentation markdown lives. Each <Badge text=".md" variant="path" /> file becomes a page; URLs follow the folder path. Locale mirrors live beside <Badge text="docs/" variant="path" /> (e.g. <Badge text="docs-es/" variant="path" /> → <Badge text="/docs/es/…" variant="path" />).
 
 Sidebar tabs and section order are declared in <Badge text="src/lib/docs/constants/config.ts" variant="path" /> as <code>docsTabs</code>: General, Cloud, Self-hosting, CLI, MCP, Public API, Add OpenQuok to your app, Contributing.
 
@@ -406,10 +407,16 @@ Sidebar tabs and section order are declared in <Badge text="src/lib/docs/constan
   - channels/
   - creating-posts/
   - posts-management/
+  - saved/
   - settings/
   - platforms/
   - automations/
+  - insights/
+  - media/
+  - troubleshooting/
+  - help/
   - cloud/
+  - billing/
   - getting-started-for-dev/
   - installation/
   - configuration-backend/
@@ -442,7 +449,8 @@ Sidebar tabs and section order are declared in <Badge text="src/lib/docs/constan
 
 </FileTree>
 
-- **General tab** — Product usage under <Badge text="getting-started/" variant="path" />, <Badge text="channels/" variant="path" />, <Badge text="creating-posts/" variant="path" />, <Badge text="posts-management/" variant="path" />, <Badge text="settings/" variant="path" />, <Badge text="platforms/" variant="path" />, and <Badge text="automations/" variant="path" />.
+- **General tab** — Product usage: <Badge text="getting-started/" variant="path" /> through <Badge text="help/" variant="path" /> (including <Badge text="saved/" variant="path" />, <Badge text="insights/" variant="path" />, <Badge text="media/" variant="path" />, <Badge text="troubleshooting/" variant="path" />).
+- **Cloud tab** — <Badge text="cloud/" variant="path" /> and <Badge text="billing/" variant="path" />.
 - **Self-hosting tab** — Operator install and config: <Badge text="installation/" variant="path" /> (including <Badge text="maintenance-mode.md" variant="path" />), <Badge text="configuration-*" variant="path" />, <Badge text="admin/" variant="path" />, and <Badge text="social-integration/" variant="path" />.
 - **Public API tab** — <Badge text="getting-started-for-public-api/" variant="path" />, <Badge text="public-api-providers/" variant="path" />, <Badge text="apis-*" variant="path" />, and <Badge text="oauth2-for-apps/" variant="path" />.
 - **Contributing tab** — <Badge text="developer-guidelines/" variant="path" />, <Badge text="contribution-opportunities/" variant="path" />, <Badge text="publish-listings/" variant="path" />, and <Badge text="documentation-contribution/" variant="path" />.

@@ -7,7 +7,7 @@
 		PUBLIC_LANDING_HERO_TRIAL_CTA
 	} from '$lib/content/constants/landing/hero-copy';
 	import PublicApiMarketingHubBreadcrumb from '$lib/ui/templates/api-marketing/PublicApiMarketingHubBreadcrumb.svelte';
-	import PublicLandingHeroTitle from '$lib/ui/templates/landing-page/PublicLandingHeroTitle.svelte';
+	import PublicHeroTitle from '$lib/ui/templates/titles/PublicHeroTitle.svelte';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
@@ -48,7 +48,7 @@
 		<div class="flex justify-center">
 			<PublicApiMarketingHubBreadcrumb {capability} {platformLabel} />
 		</div>
-		<PublicLandingHeroTitle
+		<PublicHeroTitle
 			{title}
 			{headingId}
 		/>

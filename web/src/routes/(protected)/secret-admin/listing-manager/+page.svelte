@@ -23,7 +23,9 @@
 </script>
 
 <div class="p-4 md:p-6">
-	<h1 class="text-xl font-semibold text-base-content">Listing manager</h1>
+	<h1 class="text-xl font-semibold text-base-content">
+		Playbooks / building blocks manager
+	</h1>
 	<p class="text-sm text-base-content/70 mt-1">
 		Manage playbooks, building blocks, categories, tags, comments, and activity logs.
 	</p>

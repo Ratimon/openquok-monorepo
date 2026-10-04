@@ -31,6 +31,7 @@
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import PublicListingsHubBreadcrumb from '$lib/ui/templates/listings/PublicListingsHubBreadcrumb.svelte';
+	import PublicHeroTitle from '$lib/ui/templates/titles/PublicHeroTitle.svelte';
 
 	type Props = { data: PageData };
 
@@ -92,9 +93,11 @@
 		<div class="flex justify-center">
 			<PublicListingsHubBreadcrumb {...listingsBreadcrumb} />
 		</div>
-		<h1 class="text-3xl font-black tracking-tight text-balance text-base-content sm:text-4xl">
-			{heroTitle}
-		</h1>
+		<PublicHeroTitle
+			title={heroTitle}
+			headingId="building-blocks-hub-heading"
+			class="text-base-content sm:text-4xl lg:text-4xl"
+		/>
 		<p class="mx-auto max-w-3xl text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg">
 			{heroDescription}
 		</p>

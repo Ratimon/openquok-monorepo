@@ -30,7 +30,7 @@
 	} from '$lib/ui/templates/banners/payloadWizardBannerCopy';
 	import PayloadWizardHeroPanel from '$lib/ui/templates/api-marketing/PayloadWizardHeroPanel.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
-	import PublicLandingHeroTitle from '$lib/ui/templates/landing-page/PublicLandingHeroTitle.svelte';
+	import PublicHeroTitle from '$lib/ui/templates/titles/PublicHeroTitle.svelte';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 
@@ -109,7 +109,7 @@
 		<PayloadWizardHubBreadcrumb {toolsHubHref} {payloadWizardHref} {channelLabel} />
 
 		<header class="space-y-3">
-			<PublicLandingHeroTitle title={heroTitle} headingId="payload-wizard-tool-hero-heading" />
+			<PublicHeroTitle title={heroTitle} headingId="payload-wizard-tool-hero-heading" />
 			<p class="max-w-3xl text-base text-base-content/75">
 				{metaDescription}
 			</p>

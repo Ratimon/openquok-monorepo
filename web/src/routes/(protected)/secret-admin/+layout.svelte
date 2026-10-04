@@ -85,7 +85,11 @@
 		{ label: 'Email manager', href: secretAdminEmailManagerHref, iconName: icons.Mail.name },
 		{ label: 'Queue dashboard', href: secretAdminBullBoardHref, iconName: icons.Activity.name },
 		{ label: 'Blog Manager', href: secretAdminBlogManagerHref, iconName: icons.FileText.name },
-		{ label: 'Listing Manager', href: secretAdminListingManagerHref, iconName: icons.LayoutTemplate.name },
+		{
+			label: 'Playbooks / building blocks manager',
+			href: secretAdminListingManagerHref,
+			iconName: icons.LayoutTemplate.name
+		},
 		{
 			label: 'Link directory manager',
 			href: secretAdminLinkDirectoryManagerHref,

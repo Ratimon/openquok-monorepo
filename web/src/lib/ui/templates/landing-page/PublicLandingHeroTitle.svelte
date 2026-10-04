@@ -1,10 +1,7 @@
 <script lang="ts">
-	import LandingHeroHighlightedText from '$lib/ui/texts/LandingHeroHighlightedText.svelte';
-	import { cn } from '$lib/ui/helpers/common';
-	import {
-		landingHeroTheme,
-		type LandingHeroTheme
-	} from '$lib/ui/templates/landing-page/landingHeroTheme';
+	import type { LandingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
+
+	import PublicHeroTitle from '$lib/ui/templates/titles/PublicHeroTitle.svelte';
 
 	type Props = {
 		title: string;
@@ -13,30 +10,7 @@
 		class?: string;
 	};
 
-	let {
-		title,
-		headingId,
-		heroTheme = landingHeroTheme,
-		class: className = ''
-	}: Props = $props();
-
-	const titleSegments = $derived(heroTheme.parseLandingHeroTitlePartSegments(title));
+	let props: Props = $props();
 </script>
 
-<h1
-	id={headingId}
-	class={cn(
-		'text-3xl font-black tracking-tight text-balance sm:text-4xl lg:text-5xl',
-		className
-	)}
->
-	{#each titleSegments as seg, segmentIndex (segmentIndex)}
-		{#if seg.highlight}
-			<LandingHeroHighlightedText>
-				{seg.text}
-			</LandingHeroHighlightedText>
-		{:else}
-			<span class={heroTheme.titleSegmentClass(segmentIndex, titleSegments)}>{seg.text}</span>
-		{/if}
-	{/each}
-</h1>
+<PublicHeroTitle {...props} />

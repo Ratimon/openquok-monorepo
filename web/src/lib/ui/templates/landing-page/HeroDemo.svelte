@@ -3,7 +3,7 @@
 
 	import HeroVideoModal from '$lib/ui/modals/HeroVideoModal.svelte';
 	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
-	import PublicLandingSectionHeading from '$lib/ui/templates/landing-page/PublicLandingSectionHeading.svelte';
+	import PublicLandingSectionHeading from '$lib/ui/templates/titles/PublicLandingSectionHeading.svelte';
 
 	type Props = {
 		heroTheme: LandingHeroTheme;

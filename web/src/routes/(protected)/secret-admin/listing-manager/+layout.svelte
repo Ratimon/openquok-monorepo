@@ -48,7 +48,7 @@
 	let { children }: Props = $props();
 
 	const navItems: SettingsNavItem<ListingManagerSectionId>[] = [
-		{ id: 'dashboard', label: 'Listing dashboard' },
+		{ id: 'dashboard', label: 'Manager home' },
 		{ id: 'playbooks', label: 'Playbooks' },
 		{ id: 'new_playbook', label: 'New playbook' },
 		{ id: 'building_blocks', label: 'Building blocks' },
@@ -76,7 +76,7 @@
 		getCurrentSection: () => getCurrentSectionFromPathname(page.url.pathname),
 		getSectionTitle: () => {
 			const current = getCurrentSectionFromPathname(page.url.pathname);
-			return navItems.find((i) => i.id === current)?.label ?? 'Listings';
+			return navItems.find((i) => i.id === current)?.label ?? 'Playbooks & building blocks';
 		},
 		getBasePath: () => listingManagerBaseHref,
 		getItemHref: (id) => {
@@ -90,7 +90,7 @@
 			if (id === 'comments') return commentsHref;
 			return activitiesHref;
 		},
-		getHeaderTitle: () => 'Listing manager'
+		getHeaderTitle: () => 'Playbooks / building blocks manager'
 	};
 
 	setContext(LISTING_MANAGER_SIDEBAR_KEY, ctx);

@@ -30,7 +30,7 @@
 	import PublicToolChannelSeoIntro from '$lib/ui/components/tools/PublicToolChannelSeoIntro.svelte';
 	import BestTimeToPostCalculatorPanel from '$lib/ui/templates/best-time-to-post/BestTimeToPostCalculatorPanel.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
-	import PublicLandingHeroTitle from '$lib/ui/templates/landing-page/PublicLandingHeroTitle.svelte';
+	import PublicHeroTitle from '$lib/ui/templates/titles/PublicHeroTitle.svelte';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 
@@ -110,7 +110,7 @@
 		<BestTimeToPostHubBreadcrumb {toolsHubHref} {bestTimeToPostHref} {channelLabel} />
 
 		<header class="space-y-3">
-			<PublicLandingHeroTitle title={pageHeading} headingId="best-time-to-post-tool-hero-heading" />
+			<PublicHeroTitle title={pageHeading} headingId="best-time-to-post-tool-hero-heading" />
 			<p class="max-w-2xl text-sm leading-relaxed text-base-content/70 sm:text-base">
 				{heroSubtitle}
 			</p>

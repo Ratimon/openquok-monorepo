@@ -23,6 +23,7 @@
 	import * as Tabs from '$lib/ui/tabs';
 	import ListingCreatorAttribution from '$lib/ui/templates/listings/ListingCreatorAttribution.svelte';
 	import PublicCreatorListingHero from '$lib/ui/templates/listings/PublicCreatorListingHero.svelte';
+	import PublicListingDetailHeroTitle from '$lib/ui/templates/titles/PublicListingDetailHeroTitle.svelte';
 	import BuildingBlockExternalLinkButton from '$lib/ui/templates/building-blocks/BuildingBlockExternalLinkButton.svelte';
 	import BuildingBlockBookmarkButton from '$lib/ui/components/building-blocks/BuildingBlockBookmarkButton.svelte';
 	import ListingDetailTagBadges from '$lib/ui/components/listings/ListingDetailTagBadges.svelte';
@@ -148,9 +149,10 @@
 
 	<div class="space-y-3">
 		<div class="flex flex-wrap items-center gap-3">
-			<h1 class="text-3xl font-black tracking-tight text-base-content sm:text-4xl">
-				{extensionVm.title}
-			</h1>
+			<PublicListingDetailHeroTitle
+				title={extensionVm.title}
+				headingId="building-block-detail-heading"
+			/>
 			{#if onToggleBookmark}
 				<BuildingBlockBookmarkButton
 					listingId={extensionVm.id}
