@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Editor as TiptapEditor } from '@tiptap/core';
+	import type { BlogCodeBlockLanguageId } from '$lib/ui/editor/extensions/contentEditorCodeBlock';
 
 	import { icons } from '$data/icons';
 
@@ -12,9 +13,9 @@
 	import ContentEditorMenuButtonImage from '$lib/ui/editor/ContentEditorMenuButtonImage.svelte';
 	import {
 		BLOG_CODE_BLOCK_LANGUAGES,
-		DEFAULT_BLOG_CODE_BLOCK_LANGUAGE,
-		type BlogCodeBlockLanguageId
+		DEFAULT_BLOG_CODE_BLOCK_LANGUAGE
 	} from '$lib/ui/editor/extensions/contentEditorCodeBlock';
+	import { CONTENT_EDITOR_TABLE_INSERT } from '$lib/ui/editor/extensions/contentEditorTable';
 
 	type Props = {
 		editor: TiptapEditor;
@@ -49,6 +50,10 @@
 		void toolbarRevision;
 		const language = editor.getAttributes('codeBlock').language;
 		return (language as BlogCodeBlockLanguageId | null) ?? DEFAULT_BLOG_CODE_BLOCK_LANGUAGE;
+	});
+	let tableActive = $derived.by(() => {
+		void toolbarRevision;
+		return editor.isActive('table');
 	});
 
 	function handleLinkClick() {
@@ -107,9 +112,14 @@
 		}
 		editor.chain().focus().updateAttributes('codeBlock', { language: next }).run();
 	}
+
+	function handleInsertTable() {
+		if (editor.isActive('table')) return;
+		editor.chain().focus().insertTable({ ...CONTENT_EDITOR_TABLE_INSERT }).run();
+	}
 </script>
 
-<div class="sticky -top-4 z-10 flex gap-2 rounded-md border border-base-300 bg-info/20 shadow-sm transition-all">
+<div class="sticky -top-4 z-10 flex flex-wrap gap-2 rounded-md border border-base-300 bg-info/20 shadow-sm transition-all">
 	<ContentEditorMenuButton
 		editor={editor}
 		toolbarRevision={toolbarRevision}
@@ -247,6 +257,46 @@
 	>
 		<AbstractIcon name={icons.ListOrdered.name} width="18" height="18" />
 	</ContentEditorMenuButton>
+
+	<ContentEditorMenuButton
+		editor={editor}
+		toolbarRevision={toolbarRevision}
+		onClick={handleInsertTable}
+		name="table"
+		title="Insert table"
+	>
+		<AbstractIcon name={icons.Table.name} width="18" height="18" />
+	</ContentEditorMenuButton>
+
+	{#if tableActive}
+		<ContentEditorMenuButton
+			editor={editor}
+			toolbarRevision={toolbarRevision}
+			onClick={() => editor.chain().focus().addColumnAfter().run()}
+			name="table"
+			title="Add column"
+		>
+			<AbstractIcon name={icons.Columns2.name} width="18" height="18" />
+		</ContentEditorMenuButton>
+		<ContentEditorMenuButton
+			editor={editor}
+			toolbarRevision={toolbarRevision}
+			onClick={() => editor.chain().focus().addRowAfter().run()}
+			name="table"
+			title="Add row"
+		>
+			<AbstractIcon name={icons.ListPlus.name} width="18" height="18" />
+		</ContentEditorMenuButton>
+		<ContentEditorMenuButton
+			editor={editor}
+			toolbarRevision={toolbarRevision}
+			onClick={() => editor.chain().focus().deleteTable().run()}
+			name="table"
+			title="Delete table"
+		>
+			<AbstractIcon name={icons.Trash.name} width="18" height="18" />
+		</ContentEditorMenuButton>
+	{/if}
 
 	<ContentEditorMenuButton
 		editor={editor}

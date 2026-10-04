@@ -65,5 +65,6 @@ Third-party `http(s)` get `rel="noopener noreferrer nofollow"` + `target="_blank
 - [ ] Primary tool link is the matching page (`/tools/skill-builder` for skill posts) — not only `/tools`
 - [ ] Channel tool URLs use catalog slugs when a platform is named
 - [ ] Headings stay `h2` / `h3` (TipTap); no extra `h1` in the body
+- [ ] Comparison grids use HTML `<table>` (Visual toolbar **Insert table**, or paste `<table>` in HTML source then switch to Visual) — the editor schema keeps table markup; public posts wrap tables for horizontal scroll and emit Schema.org `Table` JSON-LD (`#blog-table-N`)
 - [ ] FAQ answers and How-to steps can include the same internal `<a href="/tools/skill-builder">` links (admin Visual / HTML source)
 - [ ] FAQ / HowTo stay in the admin SEO fields, not copied into `content`

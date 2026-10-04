@@ -451,6 +451,55 @@ describe('createBlogPostSEOSchema code blocks', () => {
 	});
 });
 
+describe('createBlogPostSEOSchema tables', () => {
+	const tableHtml = `<h2>Decision table: Claude vs OpenAI for OpenQuok</h2>
+<table><thead><tr><th>Your priority</th><th>Lean toward</th></tr></thead><tbody><tr><td>Swap models</td><td><a href="/agents/codex">Codex</a></td></tr></tbody></table>`;
+
+	it('emits Table nodes linked from BlogPosting.hasPart', () => {
+		const schema = createPostSchema({ content: tableHtml });
+		const blogPosting = findBlogPosting(schema);
+
+		expect(blogPosting?.hasPart).toEqual({
+			'@id': `${POST_CANONICAL_URL}#blog-table-1`
+		});
+
+		const tableNode = schema['@graph'].find(
+			(node) =>
+				typeof node === 'object' && node !== null && '@type' in node && node['@type'] === 'Table'
+		) as Record<string, unknown> | undefined;
+
+		expect(tableNode).toMatchObject({
+			'@type': 'Table',
+			'@id': `${POST_CANONICAL_URL}#blog-table-1`,
+			name: 'Decision table: Claude vs OpenAI for OpenQuok',
+			encodingFormat: 'text/html',
+			cssSelector: '#blog-table-1',
+			text: 'Your priority | Lean toward\nSwap models | Codex',
+			isPartOf: {
+				'@id': `${POST_CANONICAL_URL}#blogposting`
+			}
+		});
+	});
+
+	it('omits Table when the post has no HTML tables', () => {
+		const schema = createPostSchema({ content: '<p>No grid here.</p>' });
+		expect(graphNodeTypes(schema)).not.toContain('Table');
+	});
+
+	it('merges code and table fragments on hasPart', () => {
+		const schema = createPostSchema({
+			content: `<h2>TypeScript sketch</h2>
+<pre><code class="language-typescript" data-language="typescript">const x = 1;</code></pre>
+${tableHtml}`
+		});
+
+		expect(findBlogPosting(schema)?.hasPart).toEqual([
+			{ '@id': `${POST_CANONICAL_URL}#code-block-1` },
+			{ '@id': `${POST_CANONICAL_URL}#blog-table-1` }
+		]);
+	});
+});
+
 describe('createBlogPostSEOSchema product node', () => {
 	it('includes a free Offer so Google Product snippets validate', () => {
 		const schema = createBlogPostSEOSchema({

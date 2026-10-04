@@ -33,6 +33,13 @@ export {
 	type ParsedHtmlHeader
 } from '$lib/blogs/utils/blogContent';
 export {
+	blogPostTableAnchorId,
+	blogPostTableNodeId,
+	parseBlogHtmlTablesFromHtml,
+	wrapBlogHtmlTablesForScroll,
+	type ParsedBlogHtmlTable
+} from '$lib/blogs/utils/blogTables';
+export {
 	BLOG_PUBLIC_LIST_DEFAULT_PAGE_SIZE,
 	BLOG_PUBLIC_LIST_MAX_PAGE_SIZE,
 	BLOG_PUBLIC_LIST_PAGE_SIZE_OPTIONS,

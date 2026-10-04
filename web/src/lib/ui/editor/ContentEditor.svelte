@@ -24,6 +24,7 @@
 		isBlogImageAltEditing
 	} from '$lib/ui/editor/extensions/contentEditorBlogImage';
 	import { ContentEditorCodeBlock } from '$lib/ui/editor/extensions/contentEditorCodeBlock';
+	import { contentEditorTableKit } from '$lib/ui/editor/extensions/contentEditorTable';
 
 	let element: HTMLElement;
 	let editor = $state<TiptapEditor>();
@@ -84,6 +85,7 @@
 						class: 'blog-editor-code-block'
 					}
 				}),
+				contentEditorTableKit,
 				Placeholder.configure({
 					placeholder: placeholder || 'Write something...'
 				}),
@@ -576,6 +578,41 @@
 	:global(.content-editor ol ul) {
 		margin-top: 0.25rem !important;
 		margin-bottom: 0.25rem !important;
+	}
+
+	:global(.content-editor .ProseMirror .tableWrapper),
+	:global(.content-editor .blog-table-scroll) {
+		margin: 1rem 0;
+		max-width: 100%;
+		overflow-x: auto;
+	}
+
+	:global(.content-editor .ProseMirror table),
+	:global(.content-editor table) {
+		width: 100%;
+		border-collapse: collapse;
+		table-layout: auto;
+	}
+
+	:global(.content-editor .ProseMirror th),
+	:global(.content-editor .ProseMirror td),
+	:global(.content-editor th),
+	:global(.content-editor td) {
+		min-width: 6rem;
+		padding: 0.5rem 0.75rem;
+		border: 1px solid oklch(var(--bc) / 0.2);
+		vertical-align: top;
+		text-align: left;
+	}
+
+	:global(.content-editor .ProseMirror th),
+	:global(.content-editor th) {
+		background: oklch(var(--b2));
+		font-weight: 600;
+	}
+
+	:global(.content-editor .ProseMirror .selectedCell) {
+		background: oklch(var(--p) / 0.12);
 	}
 </style>
 

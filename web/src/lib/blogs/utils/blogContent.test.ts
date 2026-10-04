@@ -3,8 +3,10 @@ import { describe, expect, it } from 'vitest';
 import {
 	isExternalBlogHref,
 	normalizeBlogContentLinks,
+	prepareBlogContentForDisplay,
 	prepareBlogRichTextForDisplay
 } from '$lib/blogs/utils/blogContent';
+import { wrapBlogHtmlTablesForScroll } from '$lib/blogs/utils/blogTables';
 
 describe('isExternalBlogHref', () => {
 	it('treats relative and hash paths as internal', () => {
@@ -114,5 +116,35 @@ describe('prepareBlogRichTextForDisplay', () => {
 		);
 		expect(html).toContain('<pre><code>npm install -g @openquok/auto-cli@latest');
 		expect(html).toContain('openquok --version</code></pre>');
+	});
+});
+
+describe('wrapBlogHtmlTablesForScroll', () => {
+	const table =
+		'<table><thead><tr><th>Your priority</th></tr></thead><tbody><tr><td>Swap models</td></tr></tbody></table>';
+
+	it('wraps a bare table once with a stable fragment id', () => {
+		const html = wrapBlogHtmlTablesForScroll(`<p>Intro</p>${table}<p>Outro</p>`);
+		expect(html).toContain(`<div class="blog-table-scroll" id="blog-table-1">${table}</div>`);
+		expect(html.match(/blog-table-scroll/g)?.length).toBe(1);
+	});
+
+	it('does not nest an existing scroll wrap', () => {
+		const already = `<div class="blog-table-scroll" id="blog-table-1">${table}</div>`;
+		expect(wrapBlogHtmlTablesForScroll(already)).toBe(already);
+	});
+});
+
+describe('prepareBlogContentForDisplay tables', () => {
+	it('keeps table markup and cell links', () => {
+		const html = prepareBlogContentForDisplay(
+			'<h2>Decision table</h2><table><thead><tr><th>Lean toward</th></tr></thead><tbody><tr><td><a href="/agents/codex">Codex</a></td></tr></tbody></table>'
+		);
+		expect(html).toContain('<table>');
+		expect(html).toContain('<th>Lean toward</th>');
+		expect(html).toContain('href="/agents/codex"');
+		expect(html).toContain('class="blog-table-scroll"');
+		expect(html).toContain('id="blog-table-1"');
+		expect(html).not.toContain('nofollow');
 	});
 });

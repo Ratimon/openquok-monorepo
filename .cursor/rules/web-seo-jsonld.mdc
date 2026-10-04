@@ -195,6 +195,10 @@ Google Product snippets require **`offers`**, **`review`**, or **`aggregateRatin
 - **`createDocsPageSeoSchema`** emits **`Organization`** (logo) and a docs **`WebSite`** (`publisher` → org; `TechArticle.publisher` / `isPartOf` → same entities). Sets **`TechArticle.hasPart`** to `@id` refs of each **`SoftwareSourceCode`** node (same pattern as **`BlogPosting.hasPart`** for blog posts). Code snippet **`author`** references the org `@id`, not **`Person`**.
 - Wired from docs **`+page.ts`** loads → **`DocsSeoHead.svelte`**. Extraction uses raw markdown, not rendered HTML.
 
+### Blog HTML tables (`createBlogPostSEOSchema`)
+
+CMS comparison grids (`<table>` in the post body) emit Schema.org [`Table`](https://schema.org/Table) nodes (`WebPageElement`). Each node uses `@id` `{canonical}#blog-table-N`, `cssSelector` `#blog-table-N` (stamped on the public scroll wrapper), `name` from the nearest preceding `h2`/`h3`, and plain-text `text` of header/body cells. `BlogPosting.hasPart` lists table `@id`s after `SoftwareSourceCode` `@id`s when both exist. Public HTML wrapping: `wrapBlogHtmlTablesForScroll` in `blogTables.ts`.
+
 ## Canonical alignment
 
 JSON-LD `url` / `canonicalUrl` must match `<link rel="canonical">` — use the same `buildCanonicalUrl(url)` value (see **web-seo-canonical**). Do not duplicate title/description in `+page.svelte` when they already exist in the server load.

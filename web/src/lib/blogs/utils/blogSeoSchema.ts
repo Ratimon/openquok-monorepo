@@ -13,6 +13,7 @@ import type {
 	ProfilePage,
 	Question,
 	SoftwareSourceCode,
+	Table,
 	Thing
 } from 'schema-dts';
 
@@ -43,6 +44,11 @@ import {
 	blogCodeEncodingFormat,
 	parseBlogCodeBlocksFromHtml
 } from '$lib/blogs/utils/blogCodeHighlight';
+import {
+	blogPostTableAnchorId,
+	blogPostTableNodeId,
+	parseBlogHtmlTablesFromHtml
+} from '$lib/blogs/utils/blogTables';
 import {
 	buildBlogInlineImageSrc,
 	extractBlogInlineImagesFromHtml,
@@ -543,6 +549,32 @@ function createBlogSoftwareSourceCodeNodes(params: {
 	});
 }
 
+function createBlogTableNodes(params: {
+	html: string;
+	canonicalUrl: string;
+	blogPostingId: string;
+	author: Person;
+}): Table[] {
+	const { html, canonicalUrl, blogPostingId, author } = params;
+
+	return parseBlogHtmlTablesFromHtml(html).map((table) => {
+		const nodeId = blogPostTableNodeId(canonicalUrl, table.index);
+		const cssSelector = `#${blogPostTableAnchorId(table.index)}`;
+
+		return {
+			'@type': 'Table',
+			'@id': nodeId,
+			name: table.name,
+			url: nodeId,
+			...(table.text ? { text: table.text } : {}),
+			encodingFormat: 'text/html',
+			cssSelector,
+			author,
+			isPartOf: jsonLdNodeRef(blogPostingId)
+		} satisfies Table;
+	});
+}
+
 function createBlogInlineImageObjectNodes(params: {
 	html: string;
 	postTitle: string;
@@ -592,6 +624,7 @@ export type CreateBlogPostSEOSchemaParams = {
 
 /**
  * JSON-LD for a public blog post: `BlogPosting` + `BreadcrumbList` in a single `@graph`.
+ * Optional `SoftwareSourceCode` and `Table` nodes are linked from `BlogPosting.hasPart`.
  */
 export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): JsonLdGraphSchema {
 	const { post, comments = [], canonicalUrl, companyName, companySiteUrl, companyLogoUrl, requestUrl } = params;
@@ -672,6 +705,13 @@ export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): 
 		author
 	});
 
+	const tableNodes = createBlogTableNodes({
+		html: post.content ?? '',
+		canonicalUrl,
+		blogPostingId,
+		author
+	});
+
 	const interactionStatistic: Record<string, unknown>[] = [];
 	if (post.likeCount != null && post.likeCount > 0) {
 		interactionStatistic.push({
@@ -735,10 +775,12 @@ export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): 
 	if (interactionStatistic.length) {
 		blogPosting.interactionStatistic = interactionStatistic;
 	}
-	if (softwareSourceCodeNodes.length > 0) {
-		blogPosting.hasPart = jsonLdNodeRefs(
-			softwareSourceCodeNodes.map((node) => String(node['@id']))
-		);
+	const hasPartIds = [
+		...softwareSourceCodeNodes.map((node) => String(node['@id'])),
+		...tableNodes.map((node) => String(node['@id']))
+	];
+	if (hasPartIds.length > 0) {
+		blogPosting.hasPart = jsonLdNodeRefs(hasPartIds);
 	}
 
 	const commentNodes: Record<string, unknown>[] = [];
@@ -810,6 +852,7 @@ export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): 
 		breadcrumbList,
 		...imageGraphNodes,
 		...softwareSourceCodeNodes,
+		...tableNodes,
 		...commentNodes,
 		...extraNodes
 	] as Thing[]);

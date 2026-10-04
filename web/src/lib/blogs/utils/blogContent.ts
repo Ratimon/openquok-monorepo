@@ -1,3 +1,4 @@
+import { wrapBlogHtmlTablesForScroll } from '$lib/blogs/utils/blogTables';
 import { buildExternalLinkRel, resolveExternalLinkPolicy } from '$lib/utils/externalLinkRel';
 import { stringToSlug } from '$lib/ui/helpers/common';
 
@@ -195,6 +196,7 @@ function promoteLikelyBlockquotes(html: string): string {
  * - Wraps plain text in paragraphs when no HTML tags are present.
  * - Promotes likely plain-text section titles to h2.
  * - Aligns `<a>` rel/target with ExternalLink defaults (external nofollow; internal followable).
+ * - Wraps HTML tables so wide comparison grids can scroll on small screens.
  */
 export function prepareBlogContentForDisplay(content: string): string {
 	const trimmed = content.trim();
@@ -207,6 +209,7 @@ export function prepareBlogContentForDisplay(content: string): string {
 	html = promoteLikelySectionHeadings(html);
 	html = promoteLikelyBlockquotes(html);
 	html = normalizeBlogContentLinks(html);
+	html = wrapBlogHtmlTablesForScroll(html);
 	return html;
 }
 

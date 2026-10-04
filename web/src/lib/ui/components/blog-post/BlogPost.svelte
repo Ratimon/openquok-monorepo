@@ -203,7 +203,7 @@
 
 					<div
 						bind:this={proseEl}
-						class="blog-post-prose prose prose-lg min-w-0 max-w-none break-words text-base-content prose-headings:font-semibold prose-headings:!text-primary prose-h2:mt-9 prose-h2:mb-4 prose-h2:border-l-4 prose-h2:border-primary prose-h2:pl-3 prose-h3:mt-7 prose-h3:mb-3 prose-headings:scroll-mt-28 prose-p:text-base-content/90 prose-strong:text-base-content prose-a:text-primary prose-blockquote:border-primary/30 prose-blockquote:text-base-content/80 prose-code:text-base-content prose-li:marker:text-base-content/60 [&_pre]:min-w-0 [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_pre.shiki]:whitespace-pre-wrap [&_pre.shiki]:[overflow-wrap:anywhere]"
+						class="blog-post-prose prose prose-lg min-w-0 max-w-none break-words text-base-content prose-headings:font-semibold prose-headings:!text-primary prose-h2:mt-9 prose-h2:mb-4 prose-h2:border-l-4 prose-h2:border-primary prose-h2:pl-3 prose-h3:mt-7 prose-h3:mb-3 prose-headings:scroll-mt-28 prose-p:text-base-content/90 prose-strong:text-base-content prose-a:text-primary prose-blockquote:border-primary/30 prose-blockquote:text-base-content/80 prose-code:text-base-content prose-li:marker:text-base-content/60 [&_pre]:min-w-0 [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_pre.shiki]:whitespace-pre-wrap [&_pre.shiki]:[overflow-wrap:anywhere] [&_.blog-table-scroll]:my-6 [&_.blog-table-scroll]:max-w-full [&_.blog-table-scroll]:overflow-x-auto [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-base-300 [&_th]:bg-base-200 [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:align-top [&_th]:break-words [&_td]:border [&_td]:border-base-300 [&_td]:px-3 [&_td]:py-2 [&_td]:align-top [&_td]:break-words"
 					>
 						{@html contentHtml}
 					</div>
@@ -244,5 +244,29 @@
 		max-height: min(70vh, 26rem);
 		margin-inline: auto;
 		object-fit: contain;
+	}
+
+	:global(.blog-post-prose .blog-table-scroll) {
+		margin: 1.5rem 0;
+		max-width: 100%;
+		overflow-x: auto;
+	}
+
+	:global(.blog-post-prose table) {
+		width: 100%;
+		border-collapse: collapse;
+	}
+
+	:global(.blog-post-prose th),
+	:global(.blog-post-prose td) {
+		padding: 0.5rem 0.75rem;
+		border: 1px solid oklch(var(--bc) / 0.2);
+		vertical-align: top;
+		text-align: left;
+	}
+
+	:global(.blog-post-prose th) {
+		background: oklch(var(--b2));
+		font-weight: 600;
 	}
 </style>
