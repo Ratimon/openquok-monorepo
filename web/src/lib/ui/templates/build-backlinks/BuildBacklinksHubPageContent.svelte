@@ -22,6 +22,7 @@
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import PublicListingsHubBreadcrumb from '$lib/ui/templates/listings/PublicListingsHubBreadcrumb.svelte';
+	import PublicHeroTitle from '$lib/ui/templates/titles/PublicHeroTitle.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 
 	type Props = { data: BuildBacklinksHubPageContentData };
@@ -142,9 +143,11 @@
 				/>
 			</div>
 			{#if statsVm}
-				<h1 class="text-3xl font-black tracking-tight text-balance text-base-content sm:text-4xl">
-					{heroTitle}
-				</h1>
+				<PublicHeroTitle
+					title={heroTitle}
+					headingId="build-backlinks-hub-heading"
+					class="text-base-content sm:text-4xl lg:text-4xl"
+				/>
 				<p
 					class="mx-auto max-w-3xl text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg"
 				>
@@ -159,7 +162,11 @@
 					</Button>
 				</div>
 			{:else}
-				<h1 class="text-2xl font-black tracking-tight text-balance sm:text-3xl">{heroTitle}</h1>
+				<PublicHeroTitle
+					title={heroTitle}
+					headingId="build-backlinks-hub-heading"
+					class="text-2xl sm:text-3xl lg:text-3xl"
+				/>
 				<p class="mx-auto max-w-3xl text-base leading-relaxed text-pretty text-base-content/70">
 					{heroDescription}
 				</p>

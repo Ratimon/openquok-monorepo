@@ -124,6 +124,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'Media Library',
 	'My Playbooks',
 	'playbooks & backlinks',
+	'backlink directory',
 	'My Dashboard',
 	'Auto Plugs',
 	'Calendar',
