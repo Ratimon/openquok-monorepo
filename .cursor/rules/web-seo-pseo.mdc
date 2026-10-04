@@ -18,6 +18,10 @@ globs:
   - web/src/routes/(public)/alternatives/**
   - web/src/routes/(public)/playbooks/**
   - web/src/routes/(public)/building-blocks/**
+  - web/src/routes/(public)/build-backlinks/**
+  - web/src/lib/link-directory/**
+  - web/src/lib/content/utils/formatHubFilterHeroTitle.ts
+  - web/src/lib/content/utils/buildProgrammaticSeoTitles.ts
   - web/src/routes/(public)/social-media-posting-api/**
   - web/src/routes/(public)/social-media-scheduling-api/**
 alwaysApply: false
@@ -40,6 +44,19 @@ Landing (`/`) and pricing FAQ: **web-seo-cms-copy** + **web-landing-faqs**. Hub 
 Forward `pageMetaTags` and `schemaData` through universal `+page.ts` on client nav (**web-sveltekit-universal-page-load**).
 
 Public programmatic routes render in `+page.svelte` — **no** thin `*Page.svelte` wrappers that only forward props (**web-conventions** §7).
+
+## Where SSR SEO copy lives (not `$lib/seo`)
+
+`$lib/seo/` is **infrastructure only**: `createMetaData`, `buildCanonicalUrl`, `withCanonicalMetaTags`, JSON-LD graph helpers, robots. Do **not** move domain-specific title/description builders there.
+
+| Route family | Hub config (keywords, suffix, hero) | Title / description builders | JSON-LD builders |
+| --- | --- | --- | --- |
+| Tools, agents, MCP, API, compare | `hubs/*.ts`, channel/agent/API catalogs | `$lib/content/utils/buildProgrammaticSeoTitles.ts` (meta vs hero split) | `$lib/seo/tools/*`, `createPublicFaqSEOSchema`, domain loads |
+| Playbooks, building-blocks hubs + filters | `$lib/listings/constants/publicListingsHubConfig.ts` | `formatPlaybooksFilterHeroTitle` / `formatBuildingBlocksFilterHeroTitle` → shared `formatHubFilterHeroTitle` | `$lib/listings/utils/createPlaybooksSeoSchema.ts`, `createBuildingBlocksSeoSchema.ts`, `listingSchema.ts` |
+| Build-backlinks hub + filters | `$lib/content/constants/hubs/build-backlinks.ts` | `formatBuildBacklinksFilterHeroTitle` → `formatHubFilterHeroTitle`; site detail → `formatBuildBacklinksSiteSeoCopy.ts` | `$lib/link-directory/utils/createBuildBacklinks*SeoSchema.ts` |
+| Channel detail | `channels/catalog/platforms/{slug}.ts` | `metaTitle` / `heroTitle` on the platform VM | Channel `+page.server.ts` + FAQ/setup JSON-LD helpers |
+
+**Rule:** DTO- or API-driven copy (link-directory sites, listing VMs) stays in the **owning module** (`link-directory/utils`, `listings/utils`). Stateless string templates for the main marketing catalog stay in **`buildProgrammaticSeoTitles.ts`**.
 
 ## pSEO content tiers (where per-channel files live)
 
