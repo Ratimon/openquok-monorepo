@@ -19,6 +19,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			isLoggedIn: boolean;
 			siteVm: LinkDirectorySiteDto;
 			schemaData: unknown;
+			heroTitle: string;
 			metaTitle: string;
 			metaDescription: string;
 			listingsBreadcrumb: {
@@ -34,6 +35,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			currentUser,
 			siteVm: serverData.siteVm,
 			schemaData: serverData.schemaData,
+			heroTitle: serverData.heroTitle,
 			metaTitle: serverData.metaTitle,
 			metaDescription: serverData.metaDescription,
 			listingsBreadcrumb: serverData.listingsBreadcrumb

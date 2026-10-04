@@ -30,6 +30,7 @@
 	let siteVm = $derived(data.siteVm);
 	let schemaData = $derived(data.schemaData);
 	let listingsBreadcrumb = $derived(data.listingsBreadcrumb);
+	let heroTitle = $derived(data.heroTitle);
 	let isLoggedIn = $derived(data.isLoggedIn === true);
 
 	const bookmarksPresenter = publicBuildBacklinksBookmarksPresenter;
@@ -93,7 +94,7 @@
 			{#if siteVm.logoUrl}
 				<img
 					src={siteVm.logoUrl}
-					alt=""
+					alt="{siteVm.title} logo"
 					width="72"
 					height="72"
 					class="size-[4.5rem] rounded-xl border border-base-300/60 bg-base-200 object-contain"
@@ -101,7 +102,7 @@
 			{/if}
 			<div class="min-w-0 flex-1 space-y-2">
 				<PublicListingDetailHeroTitle
-					title={siteVm.title}
+					title={heroTitle}
 					headingId="build-backlinks-site-heading"
 				/>
 				<p>
@@ -159,7 +160,7 @@
 
 		<section class="mt-10 space-y-3" aria-labelledby="bb-opportunities-heading">
 			<h2 id="bb-opportunities-heading" class="text-xl font-bold">
-				Backlink Opportunities
+				Backlink opportunities on {siteVm.title}
 			</h2>
 			<p class="text-sm text-base-content/60">
 				Follow these opportunities in order. Each block is one path on {siteVm.title}, with

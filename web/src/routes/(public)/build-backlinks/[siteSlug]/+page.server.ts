@@ -16,6 +16,12 @@ import {
 	createBuildBacklinksSiteGuidePlatformOrganizationSchema,
 	createBuildBacklinksSiteGuideWebPageSchema
 } from '$lib/link-directory/utils/createBuildBacklinksSiteGuideSeoSchema';
+import {
+	formatBuildBacklinksSiteHeroTitle,
+	formatBuildBacklinksSiteMetaDescription,
+	formatBuildBacklinksSiteMetaTitle,
+	formatBuildBacklinksSiteSeoKeywords
+} from '$lib/link-directory/utils/formatBuildBacklinksSiteSeoCopy';
 import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 
@@ -38,10 +44,11 @@ export async function load({ params, url, fetch, cookies, parent }) {
 	const { companyInformationPm, marketingInformationPm } = await parent();
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 
-	const customTitle = `${site.title} backlink opportunities | ${companyName}`;
-	const customDescription =
-		site.shortDescription?.trim() ||
-		`Ways to earn links on ${site.title}, including effort, cost, and dofollow notes.`;
+	const metaTitleBase = formatBuildBacklinksSiteMetaTitle(site.title);
+	const customTitle = `${metaTitleBase} | ${companyName}`;
+	const customDescription = formatBuildBacklinksSiteMetaDescription(site);
+	const heroTitle = formatBuildBacklinksSiteHeroTitle(site.title);
+	const seoKeywords = formatBuildBacklinksSiteSeoKeywords(site);
 
 	const customImages: MetaDataImage[] | undefined = site.logoUrl
 		? [
@@ -61,6 +68,7 @@ export async function load({ params, url, fetch, cookies, parent }) {
 		customTitle,
 		customDescription,
 		customSlug: getRootPathPublicBuildBacklinksSite(site.slug),
+		customTags: seoKeywords,
 		customImages,
 		requestUrl: url
 	})) satisfies MetaTagsProps;
@@ -68,11 +76,11 @@ export async function load({ params, url, fetch, cookies, parent }) {
 	const canonical = buildCanonicalUrl(url);
 	const pageMetaTags = withCanonicalMetaTags(metaTags, canonical, {
 		openGraph: {
-			title: site.title,
+			title: metaTitleBase,
 			description: customDescription
 		},
 		twitter: {
-			title: site.title,
+			title: metaTitleBase,
 			description: customDescription
 		}
 	});
@@ -88,7 +96,7 @@ export async function load({ params, url, fetch, cookies, parent }) {
 		canonical,
 		origin: url.origin,
 		companyName,
-		name: site.title,
+		name: metaTitleBase,
 		description: customDescription
 	});
 
@@ -128,6 +136,7 @@ export async function load({ params, url, fetch, cookies, parent }) {
 		isLoggedIn,
 		siteVm: site,
 		schemaData,
+		heroTitle,
 		metaTitle: customTitle,
 		metaDescription: customDescription,
 		listingsBreadcrumb
