@@ -14,6 +14,7 @@
 	let howToBlocks = $derived(data.howToBlocks ?? []);
 	let docImages = $derived(data.docImages ?? []);
 	let codeBlocks = $derived(data.codeBlocks ?? []);
+	let tables = $derived(data.tables ?? []);
 	let videoObjectPresets = $derived(data.videoObjectPresets ?? []);
 	let slug = $derived(data.slug);
 	let locale = $derived(data.locale);
@@ -34,6 +35,7 @@
 	{howToBlocks}
 	{docImages}
 	{codeBlocks}
+	{tables}
 	{videoObjectPresets}
 />
 

@@ -320,7 +320,7 @@
 		{/if}
 
 		<div
-			class="prose min-w-0 max-w-3xl break-words text-base-content prose-headings:text-base-content prose-headings:scroll-mt-28 prose-p:text-base-content/90 prose-strong:text-base-content prose-a:text-primary prose-blockquote:border-base-content/20 prose-blockquote:text-base-content/80 prose-code:text-base-content prose-li:marker:text-base-content/60 prose-hr:border-base-300 [&_pre]:min-w-0 [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto [&_td]:break-words [&_th]:break-words"
+			class="prose min-w-0 max-w-3xl break-words text-base-content prose-headings:text-base-content prose-headings:scroll-mt-28 prose-p:text-base-content/90 prose-strong:text-base-content prose-a:text-primary prose-blockquote:border-base-content/20 prose-blockquote:text-base-content/80 prose-code:text-base-content prose-li:marker:text-base-content/60 prose-hr:border-base-300 [&_pre]:min-w-0 [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_.docs-table-scroll]:max-w-full [&_.docs-table-scroll]:overflow-x-auto [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto [&_td]:break-words [&_th]:break-words"
 			bind:this={contentEl}
 		>
 			{@render children()}

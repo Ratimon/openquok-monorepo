@@ -4,6 +4,7 @@
 	import type { DocsCodeBlockFromRaw } from '$lib/docs/utils/content/extractDocsCodeBlocksFromRaw';
 	import type { DocsHowToBlock } from '$lib/docs/utils/content/extractDocsHowToFromRaw';
 	import type { DocsImageFromRaw } from '$lib/docs/utils/content/extractDocsImagesFromRaw';
+	import type { DocsTableFromRaw } from '$lib/docs/utils/content/extractDocsTablesFromRaw';
 	import type { DocsYoutubeVideoPreset } from '$lib/docs/utils/content/extractDocsVideoObjectPresetsFromRaw';
 	import {
 		buildDocsBreadcrumbListItems,
@@ -25,6 +26,7 @@
 		howToBlocks = [],
 		docImages = [],
 		codeBlocks = [],
+		tables = [],
 		pricingSchema = false,
 		videoObjectPresets = []
 	}: {
@@ -35,6 +37,7 @@
 		howToBlocks?: DocsHowToBlock[];
 		docImages?: DocsImageFromRaw[];
 		codeBlocks?: DocsCodeBlockFromRaw[];
+		tables?: DocsTableFromRaw[];
 		pricingSchema?: boolean;
 		videoObjectPresets?: DocsYoutubeVideoPreset[];
 	} = $props();
@@ -66,6 +69,7 @@
 			howToBlocks,
 			images: docImages,
 			codeBlocks,
+			tables,
 			ogImage,
 			ogImageAlt,
 			pricingSchema,

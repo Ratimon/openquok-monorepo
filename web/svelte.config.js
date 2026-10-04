@@ -11,6 +11,7 @@ import { dirname, resolve } from 'path';
 import { mdsvexCodeHighlighter } from './mdsvex.config.mjs';
 import { adapterVercelWithoutPrerenderDeps } from './adapter-vercel-static-docs.mjs';
 import rehypeSlug from 'rehype-slug';
+import { rehypeDocsTables } from './src/lib/docs/utils/seo/rehypeDocsTables.mjs';
 
 /**
  * Adapter selection (build-time):
@@ -55,7 +56,7 @@ const config = {
 			highlight: {
 				highlighter: mdsvexCodeHighlighter
 			},
-			rehypePlugins: [rehypeSlug]
+			rehypePlugins: [rehypeSlug, rehypeDocsTables]
 		}),
 		vitePreprocess({
 			style: {

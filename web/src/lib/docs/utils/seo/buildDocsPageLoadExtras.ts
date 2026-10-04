@@ -13,6 +13,10 @@ import {
 } from '$lib/docs/utils/content/extractDocsImagesFromRaw';
 import type { DocMeta } from '$lib/docs/types';
 import {
+	extractDocsTablesFromRaw,
+	type DocsTableFromRaw
+} from '$lib/docs/utils/content/extractDocsTablesFromRaw';
+import {
 	extractDocsVideoObjectPresetsFromRaw,
 	type DocsYoutubeVideoPreset
 } from '$lib/docs/utils/content/extractDocsVideoObjectPresetsFromRaw';
@@ -30,12 +34,14 @@ export async function buildDocsPageLoadExtras(
 	howToBlocks: DocsHowToBlock[];
 	docImages: DocsImageFromRaw[];
 	codeBlocks: DocsCodeBlockFromRaw[];
+	tables: DocsTableFromRaw[];
 	videoObjectPresets: DocsYoutubeVideoPreset[];
 }> {
 	const howToBlocks = extractDocsHowToBlocksFromRaw(rawContent);
 	const videoObjectPresets = extractDocsVideoObjectPresetsFromRaw(rawContent);
 	const docImages = dedupeDocsImagesFromRaw(extractDocsImagesFromRaw(rawContent));
 	const codeBlocks = extractDocsCodeBlocksFromRaw(rawContent);
+	const tables = extractDocsTablesFromRaw(rawContent);
 
 	const openapiLine = options?.meta?.openapi?.trim();
 	const origin = options?.origin?.trim();
@@ -57,6 +63,7 @@ export async function buildDocsPageLoadExtras(
 		howToBlocks,
 		docImages,
 		codeBlocks,
+		tables,
 		videoObjectPresets
 	};
 }

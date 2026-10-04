@@ -9,6 +9,8 @@ globs:
   - web/src/lib/seo/jsonLdScriptHtml.ts
   - web/src/lib/ui/components/seo/JsonLdHead.svelte
   - web/src/lib/ui/components/docs/DocsSeoHead.svelte
+  - web/src/lib/docs/utils/seo/docsSeoSchema.ts
+  - web/src/lib/docs/utils/content/extractDocsTablesFromRaw.ts
   - web/src/lib/content/utils/create*SEOSchema.ts
   - web/src/lib/blogs/utils/blogSeoSchema.ts
   - web/src/lib/posts/utils/createPostSEOSchema.ts
@@ -115,9 +117,9 @@ Put non-trivial logic in `$lib/<domain>/utils/`; call from `+page.server.ts` onl
 | `buildPublicToolPageJsonLdGraph` | `$lib/seo/tools/buildPublicToolPageJsonLdGraph.ts` | `@graph` for `/tools/{tool}` hub + channel routes (`WebApplication`, `FAQPage`, breadcrumbs, optional extra nodes) |
 | `createPublicToolWebApplicationSchema` | `$lib/seo/tools/createPublicToolWebApplicationSchema.ts` | Typed free-tier `WebApplication` node (`#webapp`) |
 | Tool `HowTo` builders | `$lib/seo/tools/howTo/publicToolHowToSchemas.ts` | Per-tool `HowTo` aligned with on-page flows (best-time timing test, photo editor, skill builder, humanizer, payload wizard) |
-| `createDocsPageSeoSchema` | `$lib/docs/utils/seo/docsSeoSchema.ts` | `JsonLdGraphSchema` (`Organization` + docs `WebSite`, `TechArticle`, breadcrumbs, images, optional `HowTo` from `<Steps>`) |
+| `createDocsPageSeoSchema` | `$lib/docs/utils/seo/docsSeoSchema.ts` | `JsonLdGraphSchema` (`Organization` + docs `WebSite`, `TechArticle`, breadcrumbs, images, optional `HowTo` from `<Steps>`, `SoftwareSourceCode` + `Table` via `hasPart`) |
 | `createSoftwareSourceCodeNodes` | `$lib/seo/softwareSourceCodeNodes.ts` | `SoftwareSourceCode[]` from markdown/OpenAPI code blocks (`isPartOf` → parent article) |
-| `buildDocsPageLoadExtras` | `$lib/docs/utils/seo/buildDocsPageLoadExtras.ts` | `howToBlocks`, `docImages`, `codeBlocks` (raw fences + optional OpenAPI client samples when `meta.openapi` fetch succeeds) |
+| `buildDocsPageLoadExtras` | `$lib/docs/utils/seo/buildDocsPageLoadExtras.ts` | `howToBlocks`, `docImages`, `codeBlocks` (raw fences + optional OpenAPI client samples when `meta.openapi` fetch succeeds), `tables` (GFM markdown tables) |
 | `createLandingDemoSEOSchema` | `$lib/content/utils/createLandingDemoSEOSchema.ts` | `VideoObject` or `{}` |
 | `createOrganizationSEOSchema` | `$lib/content/utils/createOrganizationSEOSchema.ts` | `Organization` |
 | `createBlogPostSEOSchema` | `$lib/blogs/utils/blogSeoSchema.ts` | `JsonLdGraphSchema` |
@@ -142,7 +144,7 @@ Hub loads (`loadPlaybooksHubPage.server.ts`, `loadBuildingBlocksHubPage.server.t
 | **API marketing hub / platform** | `CollectionPage` or `WebPage` + `SoftwareApplication` + `ItemList` + `HowTo` (`#setup-steps`) + `WebPage` (`#pricing` offers) + `ItemList` (`#audience`) + `FAQPage` |
 | **Tool pages** | `WebApplication` (`featureList`, optional `about` on channel routes) + `FAQPage` + optional tool `HowTo` (`#*-howto`) + `BreadcrumbList` — compose via `buildPublicToolPageJsonLdGraph` |
 | **Blog / post preview** | `BlogPosting` or `SocialMediaPosting` + `BreadcrumbList` (+ `FAQPage` / `HowTo` / `Product` with a free `Offer`) + optional `SoftwareSourceCode` via `BlogPosting.hasPart` |
-| **Docs article** | `Organization` (logo) + docs `WebSite` + `TechArticle` + `BreadcrumbList` (+ optional `HowTo` from `<Steps>`) + `ImageObject` + `SoftwareSourceCode` via `TechArticle.hasPart` (fenced markdown + OpenAPI client samples when load-time spec fetch succeeds) |
+| **Docs article** | `Organization` (logo) + docs `WebSite` + `TechArticle` + `BreadcrumbList` (+ optional `HowTo` from `<Steps>`) + `ImageObject` + `SoftwareSourceCode` and `Table` via `TechArticle.hasPart` (fenced markdown + OpenAPI client samples when load-time spec fetch succeeds; GFM tables) |
 | **Blog hubs** | `Blog` + `CollectionPage` + `ItemList` (index); `ProfilePage` + `Person` (author); topic `CollectionPage` + breadcrumbs |
 | **Creator profile** | `ProfilePage` + `Person` |
 | **Playbook / building block detail** | `WebPage` + `Person` + `HowTo` / `CreativeWork` / merged CMS schema |
@@ -192,8 +194,14 @@ Google Product snippets require **`offers`**, **`review`**, or **`aggregateRatin
 
 - **`buildDocsPageLoadExtras`** parses raw markdown (`extractDocsCodeBlocksFromRaw`) and, when frontmatter includes **`openapi:`**, best-effort merges static HTTP client samples from **`fetchOpenapiOperationForDocs`** (cURL, Python, JavaScript, PHP, Go, Java, Ruby). Omit OpenAPI blocks when the spec fetch fails so prerender does not break.
 - Frontmatter **`pricingSchema: true`** (e.g. **`cloud/plans`**) adds a docs **`WebPage`** at `{canonical}#plan-offers` with paid + self-host **`Offer`** nodes from **`createPublicPricingSectionSEOSchema`** (same catalog as **`/pricing`**).
-- **`createDocsPageSeoSchema`** emits **`Organization`** (logo) and a docs **`WebSite`** (`publisher` → org; `TechArticle.publisher` / `isPartOf` → same entities). Sets **`TechArticle.hasPart`** to `@id` refs of each **`SoftwareSourceCode`** node (same pattern as **`BlogPosting.hasPart`** for blog posts). Code snippet **`author`** references the org `@id`, not **`Person`**.
+- **`createDocsPageSeoSchema`** emits **`Organization`** (logo) and a docs **`WebSite`** (`publisher` → org; `TechArticle.publisher` / `isPartOf` → same entities). Sets **`TechArticle.hasPart`** to `@id` refs of each **`SoftwareSourceCode`** node, then each **`Table`** node (same pattern as **`BlogPosting.hasPart`** for blog posts). Code snippet **`author`** references the org `@id`, not **`Person`**.
 - Wired from docs **`+page.ts`** loads → **`DocsSeoHead.svelte`**. Extraction uses raw markdown, not rendered HTML.
+
+### Docs markdown tables (`createDocsPageSeoSchema`)
+
+- **`buildDocsPageLoadExtras`** parses GFM pipe tables (`extractDocsTablesFromRaw`). Pipe rows inside fenced code are skipped.
+- Each table emits Schema.org [`Table`](https://schema.org/Table) (`WebPageElement`): `@id` `{canonical}#doc-table-N`, `cssSelector` `#doc-table-N`, `name` from the nearest preceding `h2`–`h4`, plain-text `text` of header/body cells (MDX `Badge` `text=` labels kept as cell text).
+- Public HTML: mdsvex **`rehypeDocsTables`** wraps each rendered `<table>` in `<div class="docs-table-scroll" id="doc-table-N">` so `cssSelector` matches the DOM.
 
 ### Blog HTML tables (`createBlogPostSEOSchema`)
 

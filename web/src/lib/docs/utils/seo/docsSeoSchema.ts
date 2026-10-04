@@ -4,6 +4,7 @@ import type {
 	ListItem,
 	Organization,
 	SoftwareSourceCode,
+	Table,
 	TechArticle,
 	WebSite
 } from 'schema-dts';
@@ -20,6 +21,11 @@ import {
 import type { DocsCodeBlockFromRaw } from '$lib/docs/utils/content/extractDocsCodeBlocksFromRaw';
 import type { DocsHowToBlock } from '$lib/docs/utils/content/extractDocsHowToFromRaw';
 import type { DocsImageFromRaw } from '$lib/docs/utils/content/extractDocsImagesFromRaw';
+import {
+	docsTableAnchorId,
+	docsTableNodeId,
+	type DocsTableFromRaw
+} from '$lib/docs/utils/content/extractDocsTablesFromRaw';
 import { resolvePublicSiteUrl } from '$lib/docs/utils/site/resolvePublicSiteUrl';
 import { createHowToSEOSchema } from '$lib/seo/createHowToSEOSchema';
 import { guessImageMimeFromFilename } from '$lib/seo/guessImageMimeFromFilename';
@@ -196,6 +202,7 @@ export type CreateDocsPageSeoSchemaParams = {
 	howToBlocks?: DocsHowToBlock[];
 	images?: DocsImageFromRaw[];
 	codeBlocks?: DocsCodeBlockFromRaw[];
+	tables?: DocsTableFromRaw[];
 	/** Frontmatter override for the primary / social preview image. */
 	ogImage?: string;
 	ogImageAlt?: string;
@@ -204,6 +211,32 @@ export type CreateDocsPageSeoSchemaParams = {
 	/** Presets from `<VideoModal videoObjectPreset="…" />` in page MDX. */
 	videoObjectPresets?: DocsYoutubeVideoPreset[];
 };
+
+function createDocsTableNodes(params: {
+	tables: DocsTableFromRaw[];
+	canonicalUrl: string;
+	techArticleId: string;
+	author: Organization;
+}): Table[] {
+	const { tables, canonicalUrl, techArticleId, author } = params;
+
+	return tables.map((table) => {
+		const nodeId = docsTableNodeId(canonicalUrl, table.index);
+		const cssSelector = `#${docsTableAnchorId(table.index)}`;
+
+		return {
+			'@type': 'Table',
+			'@id': nodeId,
+			name: table.name,
+			url: nodeId,
+			...(table.text ? { text: table.text } : {}),
+			encodingFormat: 'text/html',
+			cssSelector,
+			author,
+			isPartOf: jsonLdNodeRef(techArticleId)
+		} satisfies Table;
+	});
+}
 
 /** JSON-LD `@graph` for a docs page: `Organization`, docs `WebSite`, `TechArticle`, breadcrumbs, optional HowTo, and inline images. */
 export function createDocsPageSeoSchema(params: CreateDocsPageSeoSchemaParams): JsonLdGraphSchema {
@@ -217,6 +250,7 @@ export function createDocsPageSeoSchema(params: CreateDocsPageSeoSchemaParams): 
 		howToBlocks = [],
 		images = [],
 		codeBlocks = [],
+		tables = [],
 		ogImage,
 		ogImageAlt,
 		pricingSchema = false,
@@ -275,6 +309,13 @@ export function createDocsPageSeoSchema(params: CreateDocsPageSeoSchemaParams): 
 		author: docsAuthor
 	});
 
+	const tableNodes = createDocsTableNodes({
+		tables,
+		canonicalUrl,
+		techArticleId,
+		author: docsAuthor
+	});
+
 	const videoObjectNodes = createDocsVideoObjectNodes({
 		presets: videoObjectPresets,
 		canonicalUrl,
@@ -291,10 +332,12 @@ export function createDocsPageSeoSchema(params: CreateDocsPageSeoSchemaParams): 
 		isPartOf: jsonLdNodeRef(websiteId)
 	};
 
-	if (softwareSourceCodeNodes.length > 0) {
-		techArticle.hasPart = jsonLdNodeRefs(
-			softwareSourceCodeNodes.map((node) => String(node['@id']))
-		);
+	const hasPartIds = [
+		...softwareSourceCodeNodes.map((node) => String(node['@id'])),
+		...tableNodes.map((node) => String(node['@id']))
+	];
+	if (hasPartIds.length > 0) {
+		techArticle.hasPart = jsonLdNodeRefs(hasPartIds);
 	}
 
 	if (imageNodes.length === 1) {
@@ -351,6 +394,7 @@ export function createDocsPageSeoSchema(params: CreateDocsPageSeoSchemaParams): 
 			...imageNodes,
 			...howToNodes,
 			...softwareSourceCodeNodes,
+			...tableNodes,
 			...videoObjectNodes
 		])
 	);

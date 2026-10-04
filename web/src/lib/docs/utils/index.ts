@@ -12,6 +12,12 @@ export {
 } from '$lib/docs/utils/content/extractDocsHowToFromRaw';
 export { docsStepBodyToPlainText } from '$lib/docs/utils/content/docsStepBodyToPlainText';
 export {
+	extractDocsTablesFromRaw,
+	docsTableAnchorId,
+	docsTableNodeId,
+	type DocsTableFromRaw
+} from '$lib/docs/utils/content/extractDocsTablesFromRaw';
+export {
 	buildDocsBreadcrumbListItems,
 	resolveDocsPageUrl
 } from '$lib/docs/utils/seo/buildDocsBreadcrumbJsonLd';

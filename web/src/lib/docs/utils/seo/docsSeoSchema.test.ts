@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 
 import { DOCS_FALLBACK_SOCIAL_IMAGE_ALT, DOCS_FALLBACK_SOCIAL_IMAGE_SRC } from '$lib/docs/constants/docsSeoDefaults';
 import { extractDocsCodeBlocksFromRaw } from '$lib/docs/utils/content/extractDocsCodeBlocksFromRaw';
+import { extractDocsTablesFromRaw } from '$lib/docs/utils/content/extractDocsTablesFromRaw';
 import {
 	dedupeDocsImagesFromRaw,
 	extractDocsImagesFromRaw
@@ -368,5 +369,89 @@ describe('createDocsPageSeoSchema', () => {
 		});
 		expect(typeof codeNode?.text).toBe('string');
 		expect((codeNode?.text as string).length).toBeGreaterThan(0);
+	});
+
+	it('emits Table nodes from markdown tables and links them via TechArticle.hasPart', () => {
+		const tables = extractDocsTablesFromRaw(`
+## How you connect it
+
+| Connect type | What you do |
+| --- | --- |
+| **OAuth** | You sign in on the platform. |
+`);
+		const canonical = 'https://www.openquok.com/docs/platforms/connect-rules';
+		const schema = createDocsPageSeoSchema({
+			title: 'Connect flow & rules',
+			description: 'How you connect each OpenQuok channel.',
+			canonicalUrl: canonical,
+			requestUrl: new URL(canonical),
+			siteTitle: 'OpenQuok Docs',
+			breadcrumbItems: buildDocsBreadcrumbListItems('/docs/platforms/connect-rules', new URL(canonical)),
+			images: [],
+			tables
+		});
+
+		const techArticle = schema['@graph'].find(
+			(node) =>
+				typeof node === 'object' && node !== null && '@type' in node && node['@type'] === 'TechArticle'
+		) as Record<string, unknown> | undefined;
+
+		expect(techArticle?.hasPart).toEqual({
+			'@id': `${canonical}#doc-table-1`
+		});
+
+		const tableNode = schema['@graph'].find(
+			(node) => typeof node === 'object' && node !== null && '@type' in node && node['@type'] === 'Table'
+		) as Record<string, unknown> | undefined;
+
+		expect(tableNode).toMatchObject({
+			'@type': 'Table',
+			'@id': `${canonical}#doc-table-1`,
+			name: 'How you connect it',
+			encodingFormat: 'text/html',
+			cssSelector: '#doc-table-1',
+			text: 'Connect type | What you do\nOAuth | You sign in on the platform.',
+			isPartOf: { '@id': `${canonical}#techarticle` },
+			author: {
+				'@id': organizationSchemaId('https://www.openquok.com')
+			}
+		});
+	});
+
+	it('lists SoftwareSourceCode before Table on TechArticle.hasPart', () => {
+		const codeBlocks = extractDocsCodeBlocksFromRaw(`
+## Clone
+
+\`\`\`bash
+git clone https://example.com/repo.git
+\`\`\`
+`);
+		const tables = extractDocsTablesFromRaw(`
+## Compare
+
+| A | B |
+| --- | --- |
+| 1 | 2 |
+`);
+		const canonical = 'https://www.openquok.com/docs/platforms/connect-rules';
+		const schema = createDocsPageSeoSchema({
+			title: 'Connect flow & rules',
+			canonicalUrl: canonical,
+			requestUrl: new URL(canonical),
+			siteTitle: 'OpenQuok Docs',
+			breadcrumbItems: buildDocsBreadcrumbListItems('/docs/platforms/connect-rules', new URL(canonical)),
+			codeBlocks,
+			tables
+		});
+
+		const techArticle = schema['@graph'].find(
+			(node) =>
+				typeof node === 'object' && node !== null && '@type' in node && node['@type'] === 'TechArticle'
+		) as Record<string, unknown> | undefined;
+
+		expect(techArticle?.hasPart).toEqual([
+			{ '@id': `${canonical}#doc-code-1` },
+			{ '@id': `${canonical}#doc-table-1` }
+		]);
 	});
 });
