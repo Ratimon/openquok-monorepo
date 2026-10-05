@@ -5,6 +5,7 @@ import type {
 	ExtensionCardViewModel,
 	StackCardViewModel
 } from '$lib/listings/GetListing.presenter.svelte';
+import type { LinkDirectorySiteDto } from '$lib/link-directory/link-directory.types';
 import type { FeatureSimpleCardItem } from '$lib/ui/templates/feature-grid/FeatureSimpleCard.svelte';
 
 function listingDescription(excerpt: string | null, description: string | null): string {
@@ -25,6 +26,15 @@ export function playbookToPreviewCardItem(playbook: StackCardViewModel): Feature
 		title: playbook.title,
 		description: listingDescription(playbook.excerpt, playbook.description),
 		icon: playbook.isOfficial ? icons.OpenQuok.name : icons.LayoutTemplate.name
+	};
+}
+
+export function backlinkSiteToPreviewCardItem(site: LinkDirectorySiteDto): FeatureSimpleCardItem {
+	return {
+		id: site.id,
+		title: site.title,
+		description: listingDescription(site.shortDescription, site.longDescription),
+		icon: icons.Link.name
 	};
 }
 

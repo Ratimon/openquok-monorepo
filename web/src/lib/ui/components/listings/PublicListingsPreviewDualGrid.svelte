@@ -40,6 +40,16 @@
 		<div class="mt-12 space-y-12 sm:mt-14 sm:space-y-14">
 			<PublicListingsPreviewGridBlock
 				{heroTheme}
+				block={previewVm.backlinksBlock}
+				blockKind="backlinks"
+				headingId={previewVm.headingId}
+				{seeAllScrollsToNavbar}
+				highlightClass="text-violet-300"
+				highlightTargetColor="#f5f3ff"
+			/>
+
+			<PublicListingsPreviewGridBlock
+				{heroTheme}
 				block={previewVm.playbooksBlock}
 				blockKind="playbooks"
 				headingId={previewVm.headingId}

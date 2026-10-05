@@ -18,7 +18,7 @@
 		parseLandingHeroTitlePartSegments: (text: string) => { text: string; highlight: boolean }[];
 	};
 
-	type PreviewBlockKind = 'playbooks' | 'building-blocks';
+	type PreviewBlockKind = 'backlinks' | 'playbooks' | 'building-blocks';
 
 	type PreviewGridCell =
 		| {
@@ -58,7 +58,9 @@
 	let cells = $derived(buildPreviewGridCells(block, blockKind));
 
 	function seeAllNavTab(kind: PreviewBlockKind): PublicOpportunitiesNavTab {
-		return kind === 'playbooks' ? 'playbook' : 'building-blocks';
+		if (kind === 'playbooks') return 'playbook';
+		if (kind === 'backlinks') return 'backlinks';
+		return 'building-blocks';
 	}
 
 	function onSeeAllActivate() {

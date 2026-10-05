@@ -7,15 +7,21 @@ import {
 	getRootPathPublicPlaybooksTag
 } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 import {
+	getRootPathPublicBuildBacklinks,
+	getRootPathPublicBuildBacklinksTag
+} from '$lib/area-public/constants/getRootPathPublicBuildBacklinks';
+import {
 	getRootPathPublicSkillBuilder,
 	getRootPathPublicSkillBuilderChannel
 } from '$lib/area-public/constants/getRootPathPublicTools';
+import { linkDirectoryRepository } from '$lib/link-directory/index';
 import { getListingPresenter } from '$lib/listings/index';
 import {
 	DEFAULT_LISTINGS_PREVIEW_ITEMS_PER_BLOCK,
 	type PublicAgentListingsPreviewSection
 } from '$lib/content/constants/agents';
 import {
+	backlinkSiteToPreviewCardItem,
 	buildSeeAllPreviewCardItem,
 	buildSkillBuilderPreviewCardItem,
 	buildingBlockToPreviewCardItem,
@@ -37,6 +43,7 @@ export type PublicListingsPreviewVm = {
 	subtitle: string;
 	title: string;
 	description: string;
+	backlinksBlock: PublicListingsPreviewGridBlockVm;
 	playbooksBlock: PublicListingsPreviewGridBlockVm;
 	buildingBlocksBlock: PublicListingsPreviewGridBlockVm;
 };
@@ -55,13 +62,19 @@ export async function loadAgentListingsPreviewStateless(params: {
 	const tagSlug = params.listingTagSlug?.trim() || null;
 	const tagSlugs = tagSlug ? [tagSlug] : null;
 
-	const [playbooksResult, buildingBlocksResult] = await Promise.all([
+	const [playbooksResult, buildingBlocksResult, backlinksResult] = await Promise.all([
 		getListingPresenter.loadPublishedStacksVm({
 			fetch: params.fetch,
 			limit,
 			tagSlugs
 		}),
 		getListingPresenter.loadPublishedExtensionsVm({
+			fetch: params.fetch,
+			limit,
+			skip: 0,
+			tagSlugs
+		}),
+		linkDirectoryRepository.getPublishedSites({
 			fetch: params.fetch,
 			limit,
 			skip: 0,
@@ -75,6 +88,9 @@ export async function loadAgentListingsPreviewStateless(params: {
 	const buildingBlocksPath = tagSlug
 		? route(getRootPathPublicBuildingBlocksTag(tagSlug))
 		: route(getRootPathPublicBuildingBlocks());
+	const backlinksPath = tagSlug
+		? route(getRootPathPublicBuildBacklinksTag(tagSlug))
+		: route(getRootPathPublicBuildBacklinks());
 	const skillBuilderChannelSlug = params.skillBuilderChannelSlug?.trim() || null;
 	const skillBuilderPath = skillBuilderChannelSlug
 		? route(getRootPathPublicSkillBuilderChannel(skillBuilderChannelSlug))
@@ -86,6 +102,15 @@ export async function loadAgentListingsPreviewStateless(params: {
 		subtitle: previewCopy.subtitle,
 		title: previewCopy.title,
 		description: previewCopy.description,
+		backlinksBlock: {
+			gridLabel: previewCopy.backlinksGridLabel,
+			items: backlinksResult.sites.slice(0, limit).map(backlinkSiteToPreviewCardItem),
+			seeAll: buildSeeAllPreviewCardItem({
+				id: 'see-all-backlinks',
+				href: backlinksPath,
+				description: previewCopy.backlinksSeeAllDescription
+			})
+		},
 		playbooksBlock: {
 			gridLabel: previewCopy.playbooksGridLabel,
 			items: playbooksResult.stacks.slice(0, limit).map(playbookToPreviewCardItem),

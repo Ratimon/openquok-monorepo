@@ -154,14 +154,16 @@ export type PublicAgentFeatureSection = {
 	mediaOnRight?: boolean;
 };
 
-/** Playbooks + building blocks preview grid (static copy; listing cards loaded at runtime). */
+/** Playbooks, building blocks, and backlinks preview grids (static copy; cards loaded at runtime). */
 export type PublicAgentListingsPreviewSection = {
 	headingId: string;
 	subtitle: string;
 	title: string;
 	description: string;
+	backlinksGridLabel: string;
 	playbooksGridLabel: string;
 	buildingBlocksGridLabel: string;
+	backlinksSeeAllDescription: string;
 	playbooksSeeAllDescription: string;
 	playbooksSkillBuilderDescription: string;
 	buildingBlocksSeeAllDescription: string;

@@ -80,12 +80,14 @@ export const DEFAULT_LISTINGS_PREVIEW_ITEMS_PER_BLOCK = 6;
 /** Default listings preview copy shared by agent host landing pages. */
 export const PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION = {
 	headingId: 'agent-listings-preview-heading',
-	subtitle: 'Playbooks & Building Blocks Directories',
+	subtitle: 'Backlinks, Playbooks & Building Blocks',
 	title: 'Explore Viral Formats',
 	description:
-		'Mix playbooks, skills, and MCP servers—then tailor them to your use case.',
+		'Mix backlink site guides, playbooks, skills, and MCP servers—then tailor them to your use case.',
+	backlinksGridLabel: 'Backlinks',
 	playbooksGridLabel: 'Playbooks',
 	buildingBlocksGridLabel: 'Building Blocks',
+	backlinksSeeAllDescription: 'Browse every site guide in the backlink directory.',
 	playbooksSeeAllDescription: 'Browse every published playbook.',
 	playbooksSkillBuilderDescription: 'Build and export a SKILL.md from building blocks.',
 	buildingBlocksSeeAllDescription: 'Browse every published building block.',
