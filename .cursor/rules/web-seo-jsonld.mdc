@@ -111,7 +111,7 @@ Put non-trivial logic in `$lib/<domain>/utils/`; call from `+page.server.ts` onl
 | --- | --- | --- |
 | `createPublicFaqSEOSchema` | `$lib/content/utils/createPublicFaqSEOSchema.ts` | `FAQPage` or `{}` |
 | `createPublicAudienceSectionSEOSchema` | `$lib/content/utils/createPublicAudienceSEOSchema.ts` | `ItemList` (`#audience`) + `BusinessAudience` / `PeopleAudience` or `{}` |
-| `createPublicSetupStepsSEOSchema` | `$lib/content/utils/createPublicSetupStepsSEOSchema.ts` | `HowTo` (`#setup-steps`) from `FeaturesOrdered` steps or `{}` |
+| `createPublicSetupStepsSEOSchema` | `$lib/seo/featuresOrderedHowToSchema.ts` | `HowTo` (`#setup-steps` or per-section `fragmentId`) from `FeaturesOrdered` steps or `{}` |
 | `createPublicPricingSectionSEOSchema` | `$lib/content/utils/createPublicPricingSEOSchema.ts` | `WebPage` (`#pricing`) with paid + self-host `Offer` list or `{}` |
 | `createHowToSEOSchema` | `$lib/seo/createHowToSEOSchema.ts` | Low-level `HowTo` + `HowToStep` builder (docs, blog, setup steps) |
 | `buildPublicToolPageJsonLdGraph` | `$lib/seo/tools/buildPublicToolPageJsonLdGraph.ts` | `@graph` for `/tools/{tool}` hub + channel routes (`WebApplication`, `FAQPage`, breadcrumbs, optional extra nodes) |
@@ -160,9 +160,9 @@ Hub loads (`loadPlaybooksHubPage.server.ts`, `loadBuildingBlocksHubPage.server.t
 - Plain-text `Answer.text` matching accordion copy (HTML answers: `prepareBlogRichTextForDisplay` then `stripHtmlToPlainText`; link labels kept).
 - Returns `{}` when empty — always `filterNonEmptyJsonLdNodes`.
 
-### HowTo setup steps (`createPublicSetupStepsSEOSchema`)
+### HowTo setup steps (`featuresOrderedHowToSchema`)
 
-- Maps visible **`FeaturesOrdered`** sections to [`HowTo`](https://schema.org/HowTo) at `{canonical}#setup-steps`.
+- Maps visible **`FeaturesOrdered`** sections to [`HowTo`](https://schema.org/HowTo) at `{canonical}#setup-steps` (or `buildPublicFeaturesOrderedHowToSchemas` for multiple section ids, e.g. build-backlinks `#howto-site` / `#howto-{opportunity}`).
 - `sectionTitle` → `name` (comma spacing normalized like hero titles); `sectionDescription` or `sectionSubtitle` → `description`; each step `title` / `content` → `HowToStep.name` / `HowToStep.text` (plain text only — no terminal mock HTML).
 - Wired from agent/MCP landing loads (`agentVm.setupSteps*`) and API marketing loads (`getPublicApiHubSetupStepsSection` / `getPublicApiPlatformSetupStepsSection`). MCP pages SSR **both** `#setup-steps` (MCP tab) and `#skill-setup-steps` (skill tab) via `buildPublicMcpSetupStepsSeoSchemas`.
 - Returns `{}` when `steps` is empty or `sectionTitle` is missing — always `filterNonEmptyJsonLdNodes`.

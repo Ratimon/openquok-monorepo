@@ -196,7 +196,7 @@ export type BuildBacklinksGuideSiteInput = Pick<
 	siteUrl?: LinkDirectorySiteDto['siteUrl'];
 };
 
-/** Single VM for site guide `FeaturesOrdered` blocks and JSON-LD (`buildPublicFeaturesOrderedHowToSchemas`). */
+/** Single VM for site guide sections and JSON-LD (`buildPublicFeaturesOrderedHowToSchemas` in `$lib/seo`). */
 export function buildBuildBacklinksGuideSections(params: {
 	canonical: string;
 	site: BuildBacklinksGuideSiteInput | LinkDirectorySiteDto;

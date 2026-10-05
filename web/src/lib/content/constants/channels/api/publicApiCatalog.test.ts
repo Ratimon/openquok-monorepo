@@ -22,7 +22,7 @@ import {
 	getPublicPricingLandingPlanOverrides,
 	getPublicPricingLandingSection
 } from '$lib/billing/constants/publicPricingLandingSectionConfig';
-import { createPublicSetupStepsSEOSchema } from '$lib/content/utils/createPublicSetupStepsSEOSchema';
+import { createPublicSetupStepsSEOSchema } from '$lib/seo/featuresOrderedHowToSchema';
 import {
 	buildPublicApiHubHeroTitle,
 	buildPublicApiPlatformHeroTitle

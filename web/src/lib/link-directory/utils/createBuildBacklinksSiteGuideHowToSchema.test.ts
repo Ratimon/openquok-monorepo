@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { LinkDirectoryOpportunityDto } from '$lib/link-directory/link-directory.types';
 
-import { buildPublicFeaturesOrderedHowToSchemas } from '$lib/content/utils/createPublicSetupStepsSEOSchema';
+import { buildPublicFeaturesOrderedHowToSchemas } from '$lib/seo/featuresOrderedHowToSchema';
 
 import { buildBuildBacklinksGuideSections } from './buildBuildBacklinksGuideSections';
 import {
@@ -137,6 +137,32 @@ describe('createBuildBacklinksSiteGuideHowToSchema', () => {
 				{ url: `${facebookCanonical}#howto-page-about` },
 				{ url: `${facebookCanonical}#howto-page-post` }
 			]
+		});
+	});
+
+	it('resolves howToStepUrl hash links against the page canonical', () => {
+		const nodes = buildPublicFeaturesOrderedHowToSchemas({
+			pageUrl: `${facebookCanonical}#howto-site`,
+			sections: [
+				{
+					sectionId: 'howto-site',
+					sectionTitle: 'Backlink opportunities,on Facebook',
+					steps: [
+						{
+							id: 1,
+							title: 'Add your site to Facebook',
+							content: 'Publish a profile link.',
+							howToStepUrl: '#howto-page-about',
+							iconName: 'Link'
+						}
+					]
+				}
+			]
+		});
+
+		expect(nodes[0]).toMatchObject({
+			'@id': `${facebookCanonical}#howto-site`,
+			step: [{ url: `${facebookCanonical}#howto-page-about` }]
 		});
 	});
 

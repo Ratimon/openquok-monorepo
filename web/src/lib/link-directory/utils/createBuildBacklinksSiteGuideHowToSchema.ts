@@ -1,6 +1,6 @@
 import type { HowTo } from 'schema-dts';
 
-import { buildPublicFeaturesOrderedHowToSchemas } from '$lib/content/utils/createPublicSetupStepsSEOSchema';
+import { buildPublicFeaturesOrderedHowToSchemas } from '$lib/seo/featuresOrderedHowToSchema';
 import type { LinkDirectoryOpportunityDto } from '$lib/link-directory/link-directory.types';
 import {
 	buildBuildBacklinksGuideSections,

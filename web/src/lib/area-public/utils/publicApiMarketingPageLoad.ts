@@ -28,7 +28,7 @@ import {
 	createPublicAudienceSectionSEOSchema,
 	withSchemaOrgAudience
 } from '$lib/content/utils/createPublicAudienceSEOSchema';
-import { createPublicSetupStepsSEOSchema } from '$lib/content/utils/createPublicSetupStepsSEOSchema';
+import { createPublicSetupStepsSEOSchema } from '$lib/seo/featuresOrderedHowToSchema';
 import { createPublicPricingSectionSEOSchema } from '$lib/content/utils/createPublicPricingSEOSchema';
 import {
 	getRootPathSocialMediaPostingApi,

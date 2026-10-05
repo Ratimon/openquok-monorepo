@@ -8,7 +8,7 @@ import { buildListingsHubBreadcrumbItems } from '$lib/content/utils/buildPublicL
 import { linkDirectoryRepository } from '$lib/link-directory/index';
 import { createMetaData, type MetaDataImage } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
-import { buildPublicFeaturesOrderedHowToSchemas } from '$lib/content/utils/createPublicSetupStepsSEOSchema';
+import { buildPublicFeaturesOrderedHowToSchemas } from '$lib/seo/featuresOrderedHowToSchema';
 import {
 	buildBuildBacklinksGuideSections,
 	listBuildBacklinksGuideOpportunityHowToSections

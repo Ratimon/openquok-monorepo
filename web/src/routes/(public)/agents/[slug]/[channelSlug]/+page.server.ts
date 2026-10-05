@@ -21,7 +21,10 @@ import {
 	createPublicAudienceSectionSEOSchema,
 	withSchemaOrgAudience
 } from '$lib/content/utils/createPublicAudienceSEOSchema';
-import { createPublicSetupStepsSEOSchema, buildPublicMcpSetupStepsSeoSchemas } from '$lib/content/utils/createPublicSetupStepsSEOSchema';
+import {
+	buildPublicMcpSetupStepsSeoSchemas,
+	createPublicSetupStepsSEOSchema
+} from '$lib/seo/featuresOrderedHowToSchema';
 import { loadAgentListingsPreviewStateless } from '$lib/listings/server/loadAgentListingsPreview.server';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';

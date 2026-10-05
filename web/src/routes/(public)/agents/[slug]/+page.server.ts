@@ -9,7 +9,10 @@ import {
 	createPublicAudienceSectionSEOSchema,
 	withSchemaOrgAudience
 } from '$lib/content/utils/createPublicAudienceSEOSchema';
-import { createPublicSetupStepsSEOSchema, buildPublicMcpSetupStepsSeoSchemas } from '$lib/content/utils/createPublicSetupStepsSEOSchema';
+import {
+	buildPublicMcpSetupStepsSeoSchemas,
+	createPublicSetupStepsSEOSchema
+} from '$lib/seo/featuresOrderedHowToSchema';
 import {
 	buildAgentsLandingBreadcrumbItems
 } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
