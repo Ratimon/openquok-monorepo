@@ -7,6 +7,7 @@ import type {
 } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import type { LinkDirectorySiteDto } from '$lib/link-directory/index';
 import type { BuildBacklinksGuideSectionVm } from '$lib/link-directory/utils/buildBuildBacklinksGuideSections';
+import type { BuildBacklinksSiteFaqSection } from '$lib/link-directory/utils/buildBuildBacklinksSiteFaqSection';
 
 import type { PageLoad } from './$types';
 
@@ -20,6 +21,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			isLoggedIn: boolean;
 			siteVm: LinkDirectorySiteDto;
 			guideSections: BuildBacklinksGuideSectionVm[];
+			siteFaqSection: BuildBacklinksSiteFaqSection;
 			schemaData: unknown;
 			heroTitle: string;
 			metaTitle: string;
@@ -37,6 +39,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			currentUser,
 			siteVm: serverData.siteVm,
 			guideSections: serverData.guideSections,
+			siteFaqSection: serverData.siteFaqSection,
 			schemaData: serverData.schemaData,
 			heroTitle: serverData.heroTitle,
 			metaTitle: serverData.metaTitle,

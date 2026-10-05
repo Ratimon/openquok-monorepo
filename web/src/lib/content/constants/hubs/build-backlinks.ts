@@ -49,19 +49,9 @@ export const PUBLIC_BUILD_BACKLINKS_HUB: PublicBuildBacklinksHubConfig = {
 					'Each card is one platform or website. Opportunities are specific ways to earn a link there — for example a profile URL, a product submission, or a guest post. Expand a card to compare paths on the same site.'
 			},
 			{
-				title: 'What are tags versus sidebar filters?',
-				description:
-					`Tags are editor labels such as high domain rating or community-moderated platforms. Cost, dofollow, effort, and approval filters use opportunity data — a site appears when any published opportunity on that site matches. Tag landing pages for dofollow or guest posts use the same opportunity rules, not a tag on the site record. Use the left sidebar on the hub to filter the site list; for a full browseable index, open ${faqLink(publicFaqHref.buildBacklinksCategories, 'See All categories')} or ${faqLink(publicFaqHref.buildBacklinksTags, 'See All tags')}.`
-			},
-			{
-				title: 'How do filters work?',
-				description:
-					'Cost, dofollow, effort, and approval filters match when any opportunity on the site qualifies. Domain rating sort uses the site-level estimate shown on the card. Metrics are editor-maintained estimates with a last-updated date.'
-			},
-			{
 				title: 'What counts as a quick win in the hub stats?',
 				description:
-					'<p>The <strong>Quick wins</strong> number in the hero counts each published backlink opportunity that meets all of these rules:</p><ul><li>The opportunity is published (<code>is_admin_published</code> is true).</li><li><code>cost_tier</code> is <code>free</code>.</li><li><code>effort</code> is <code>easy</code>.</li></ul><p>It is strictly <strong>free plus easy effort</strong>. It does not include freemium paths (even when effort is easy), free opportunities marked medium or hard effort, or any rule on <code>approval_mode</code> (instant versus manual review). <strong>Free or freemium</strong> is a separate, broader total.</p>'
+					'<p><strong>Quick wins</strong> counts published playbooks that are free and easy.</p><p>Freemium paths do not count. Free paths with medium or hard effort do not count. Approval speed does not change this number.</p><p>In the stats row, <strong>Free or freemium</strong> shows how many paths you can start without paying. That number is usually higher than Quick wins because it includes freemium and harder free paths too.</p>'
 			},
 			{
 				title: 'Link building is a lot of work — can OpenQuok automate it?',

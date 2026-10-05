@@ -23,6 +23,8 @@ import {
 	formatBuildBacklinksSiteMetaTitle,
 	formatBuildBacklinksSiteSeoKeywords
 } from '$lib/link-directory/utils/formatBuildBacklinksSiteSeoCopy';
+import { buildBuildBacklinksSiteFaqSection } from '$lib/link-directory/utils/buildBuildBacklinksSiteFaqSection';
+import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 
@@ -108,6 +110,7 @@ export async function load({ params, url, fetch, cookies, parent }) {
 	};
 
 	const guideSections = buildBuildBacklinksGuideSections({ canonical, site });
+	const siteFaqSection = buildBuildBacklinksSiteFaqSection({ site, canonical });
 
 	const guideHowToSections = [
 		...guideSections.filter((section) => section.sectionId === 'howto-site'),
@@ -127,7 +130,13 @@ export async function load({ params, url, fetch, cookies, parent }) {
 			),
 			platformOrganization,
 			webPageNode,
-			...guideHowToNodes
+			...guideHowToNodes,
+			createPublicFaqSEOSchema({
+				pageUrl: `${canonical}#faq`,
+				name: siteFaqSection.faqTitle,
+				description: siteFaqSection.faqDescription,
+				items: siteFaqSection.faqItems
+			})
 		])
 	);
 
@@ -136,6 +145,7 @@ export async function load({ params, url, fetch, cookies, parent }) {
 		isLoggedIn,
 		siteVm: site,
 		guideSections,
+		siteFaqSection,
 		schemaData,
 		heroTitle,
 		metaTitle: customTitle,

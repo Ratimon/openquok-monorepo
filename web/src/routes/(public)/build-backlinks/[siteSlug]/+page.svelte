@@ -23,6 +23,7 @@
 	import PublicListingsHubBreadcrumb from '$lib/ui/templates/listings/PublicListingsHubBreadcrumb.svelte';
 	import PublicListingDetailHeroTitle from '$lib/ui/templates/titles/PublicListingDetailHeroTitle.svelte';
 	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
+	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 
 	type Props = { data: PageData };
 
@@ -33,6 +34,7 @@
 	let listingsBreadcrumb = $derived(data.listingsBreadcrumb);
 	let heroTitle = $derived(data.heroTitle);
 	let guideSections = $derived(data.guideSections);
+	let siteFaqSection = $derived(data.siteFaqSection);
 	let isLoggedIn = $derived(data.isLoggedIn === true);
 
 	const bookmarksPresenter = publicBuildBacklinksBookmarksPresenter;
@@ -130,6 +132,15 @@
 							<BuildBacklinksOpportunityGuideSection {section} />
 						{/if}
 					{/each}
+
+					<PublicFaq
+						heroTheme={landingHeroTheme}
+						faqSubtitle={siteFaqSection.faqSubtitle}
+						faqTitle={siteFaqSection.faqTitle}
+						faqDescription={siteFaqSection.faqDescription}
+						faqItems={siteFaqSection.faqItems}
+						sectionClass="mt-16 pt-10 border-t border-base-content/10"
+					/>
 
 					<div class="pt-6">
 						<CenteredDarkCtaBanner

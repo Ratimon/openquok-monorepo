@@ -121,6 +121,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'Reels',
 	'Story',
 	'Storys',
+	'graphemes',
 	'@mentions',
 	// Protected account app heroes
 	'Reusable Templates',
@@ -185,13 +186,26 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'questions'
 ] as const;
 
+function escapeRegExpLiteral(value: string): string {
+	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/** `@` is not a word character, so `\b` never matches before tokens like `@mentions`. */
+function buildHighlightSplitPattern(word: string): string {
+	const escaped = escapeRegExpLiteral(word);
+	if (word.startsWith('@')) {
+		return `(?<=[\\s,]|^)${escaped}(?=$|[\\s,])`;
+	}
+	return `\\b${escaped}\\b`;
+}
+
 const TITLE_PART_HIGHLIGHT_PHRASE = new RegExp(
-	`^(?:${LANDING_HERO_TITLE_HIGHLIGHT_WORDS.join('|')})$`,
+	`^(?:${LANDING_HERO_TITLE_HIGHLIGHT_WORDS.map(escapeRegExpLiteral).join('|')})$`,
 	'i'
 );
 
 const TITLE_PART_HIGHLIGHT_SPLIT = new RegExp(
-	`\\b(${LANDING_HERO_TITLE_HIGHLIGHT_WORDS.join('|')})\\b`,
+	`(${LANDING_HERO_TITLE_HIGHLIGHT_WORDS.map(buildHighlightSplitPattern).join('|')})`,
 	'gi'
 );
 

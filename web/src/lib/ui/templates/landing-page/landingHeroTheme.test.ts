@@ -59,4 +59,15 @@ describe('landingHeroTheme feature-row title clauses', () => {
 		expect(highlights).toContain('hermes');
 		expect(highlights).toContain('approve');
 	});
+
+	it('chips @mentions and graphemes in Bluesky compose feature clause', () => {
+		const blueskyTitle =
+			'Write 300 graphemes, add @mentions, optional link cards, preview before you queue';
+		const [graphemesClause, mentionsClause] = blueskyTitle
+			.split(',')
+			.map((part) => part.trim());
+
+		expect(highlightedTextsInClause(graphemesClause)).toContain('graphemes');
+		expect(highlightedTextsInClause(mentionsClause)).toContain('@mentions');
+	});
 });
