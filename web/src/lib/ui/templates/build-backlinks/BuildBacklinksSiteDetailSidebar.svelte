@@ -3,6 +3,8 @@
 
 	import { icons } from '$data/icons';
 
+	import { getRootPathPublicBuildBacklinksCategory } from '$lib/area-public/constants/getRootPathPublicBuildBacklinks';
+	import { route, url } from '$lib/utils/path';
 	import {
 		formatMetricsUpdatedLabel,
 		formatMonthlyVisitsLabel
@@ -10,18 +12,41 @@
 	import { formatOpportunityIndexTitle } from '$lib/link-directory/utils/formatBuildBacklinksGuideDisplayTitle';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import BuildBacklinksBookmarkButton from '$lib/ui/templates/build-backlinks/BuildBacklinksBookmarkButton.svelte';
 	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
+	import InternalLink from '$lib/ui/links/InternalLink.svelte';
 	import ScrollLink from '$lib/ui/nav-bars/ScrollLink.svelte';
 
 	type MetricRow = { label: string; value: string };
 	type OpportunityJumpLink = { anchorId: string; href: string; eyebrow: string; title: string };
+	type ToggleBookmarkResult =
+		| { ok: true; bookmarked: boolean }
+		| { ok: false; error: string };
 
 	type Props = {
 		site: LinkDirectorySiteDto;
+		isLoggedIn?: boolean;
+		isBookmarked?: boolean;
+		onToggleBookmark?: (params: {
+			siteId: string;
+			siteSlug: string;
+		}) => Promise<ToggleBookmarkResult>;
 		class?: string;
 	};
 
-	let { site, class: className = '' }: Props = $props();
+	let {
+		site,
+		isLoggedIn = false,
+		isBookmarked = false,
+		onToggleBookmark,
+		class: className = ''
+	}: Props = $props();
+
+	const categoryHref = $derived(
+		site.category?.slug?.trim()
+			? url(route(getRootPathPublicBuildBacklinksCategory(site.category.slug.trim())))
+			: null
+	);
 
 	const visitsLabel = $derived(formatMonthlyVisitsLabel(site.monthlyVisits));
 	const metricsUpdated = $derived(formatMetricsUpdatedLabel(site.metricsUpdatedAt));
@@ -91,6 +116,32 @@
 	<div
 		class="space-y-5 rounded-xl border border-primary/25 bg-primary/5 p-4 shadow-sm shadow-primary/5 sm:p-5"
 	>
+		{#if onToggleBookmark || site.category?.name}
+			<div class="flex flex-wrap items-center gap-2">
+				{#if onToggleBookmark}
+					<BuildBacklinksBookmarkButton
+						siteId={site.id}
+						siteSlug={site.slug}
+						{isBookmarked}
+						{isLoggedIn}
+						onToggle={onToggleBookmark}
+					/>
+				{/if}
+				{#if site.category?.name}
+					{#if categoryHref}
+						<InternalLink
+							href={categoryHref}
+							class="badge badge-outline no-underline hover:border-primary hover:bg-base-content/5"
+						>
+							{site.category.name}
+						</InternalLink>
+					{:else}
+						<span class="badge badge-outline">{site.category.name}</span>
+					{/if}
+				{/if}
+			</div>
+		{/if}
+
 		{#if metricRows.length > 0}
 			<div>
 				<h2 class="text-xs font-semibold tracking-wide text-primary/90 uppercase">SEO metrics</h2>

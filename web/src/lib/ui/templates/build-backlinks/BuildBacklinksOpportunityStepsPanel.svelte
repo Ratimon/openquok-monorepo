@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { page } from '$app/state';
 
+	import {
+		PUBLIC_SETUP_STEPS_FOOTER_PROMPT
+	} from '$lib/content/constants/landing/setup-steps-footer';
 	import type { BuildBacklinksGuideSectionVm } from '$lib/link-directory/utils/buildBuildBacklinksGuideSections';
 	import { resolveOpportunityCta } from '$lib/link-directory/utils/resolveOpportunityCtaHref';
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
@@ -8,6 +11,7 @@
 	import type { SafariMockContentId } from '$lib/ui/templates/device-mocks/safari/safariMock.types';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import FeaturesSectionHeader from '$lib/ui/templates/feature-grid/FeaturesSectionHeader.svelte';
 	import BentoPublicChannelFeature from '$lib/ui/templates/bento/minor-templates/BentoPublicChannelFeature.svelte';
 	import SafariMock from '$lib/ui/templates/device-mocks/safari/SafariMock.svelte';
@@ -28,32 +32,33 @@
 	const headingId = $derived(`${section.sectionId}-heading`);
 
 	const showSectionDescription = $derived(Boolean(section.sectionDescription?.trim()));
-	const showSectionFooter = $derived(
-		Boolean(
-			section.footer?.footerPrompt?.trim() &&
-				section.footer?.footerLinkLabel?.trim() &&
-				section.footer?.footerLinkHref?.trim()
-		)
-	);
-
-	const footerHref = $derived.by(() => {
+	const setupStepsAccentBanner = $derived.by(() => {
 		const footer = section.footer;
-		if (!footer?.footerLinkHref?.trim()) {
-			return '';
+		if (!footer?.footerLinkHref?.trim() || !footer.footerLinkLabel?.trim()) {
+			return null;
 		}
-		if (!opportunity) {
-			return hostedMarketingHref(footer.footerLinkHref, page.url.origin);
+
+		let href = footer.footerLinkHref.trim();
+		if (opportunity) {
+			const cta = resolveOpportunityCta({
+				kind: opportunity.openquokCtaKind,
+				channelSlug: opportunity.openquokChannelSlug,
+				ctaHref: opportunity.ctaHref,
+				ctaLabel: opportunity.ctaLabel
+			});
+			if (!cta?.external) {
+				href = hostedMarketingHref(footer.footerLinkHref, page.url.origin);
+			}
+		} else {
+			href = hostedMarketingHref(footer.footerLinkHref, page.url.origin);
 		}
-		const cta = resolveOpportunityCta({
-			kind: opportunity.openquokCtaKind,
-			channelSlug: opportunity.openquokChannelSlug,
-			ctaHref: opportunity.ctaHref,
-			ctaLabel: opportunity.ctaLabel
-		});
-		if (cta?.external) {
-			return footer.footerLinkHref;
-		}
-		return hostedMarketingHref(footer.footerLinkHref, page.url.origin);
+
+		return {
+			title: footer.footerLinkLabel.trim(),
+			description: footer.footerPrompt?.trim() || PUBLIC_SETUP_STEPS_FOOTER_PROMPT,
+			ctaText: footer.footerLinkLabel.trim(),
+			ctaHref: href
+		};
 	});
 
 	let activeStepIndex = $state(0);
@@ -194,13 +199,16 @@
 				</div>
 			</div>
 
-			{#if showSectionFooter}
-				<p class="mt-12 text-center text-sm text-base-content/70 sm:text-base">
-					{section.footer?.footerPrompt}
-					<a href={footerHref} class="link link-primary font-semibold">
-						{section.footer?.footerLinkLabel}
-					</a>
-				</p>
+			{#if setupStepsAccentBanner}
+				<div class="container mx-auto mt-12 max-w-5xl px-0">
+					<AccentSplitCtaBanner
+						title={setupStepsAccentBanner.title}
+						description={setupStepsAccentBanner.description}
+						ctaText={setupStepsAccentBanner.ctaText}
+						ctaHref={setupStepsAccentBanner.ctaHref}
+						sectionClass="py-0"
+					/>
+				</div>
 			{/if}
 		</div>
 	</section>

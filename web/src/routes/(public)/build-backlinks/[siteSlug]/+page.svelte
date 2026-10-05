@@ -4,14 +4,17 @@
 	import type { PageData } from './$types';
 
 	import { prepareBlogRichTextForDisplay } from '$lib/blogs/utils';
-	import { getPublicChannelBySlug } from '$lib/content/constants/channels';
 	import { publicBuildBacklinksBookmarksPresenter } from '$lib/link-directory/index';
-	import { getRootPathPublicBuildBacklinksCategory } from '$lib/area-public/constants/getRootPathPublicBuildBacklinks';
-	import { route, url } from '$lib/utils/path';
+	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
+	import { route } from '$lib/utils/path';
+	import {
+		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
+		CENTERED_DARK_CTA_BANNER_TITLE,
+		PUBLIC_BANNER_CTA_TEXT
+	} from '$lib/config/constants/config';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
-	import BuildBacklinksBookmarkButton from '$lib/ui/templates/build-backlinks/BuildBacklinksBookmarkButton.svelte';
 	import BuildBacklinksOpportunityGuideSection from '$lib/ui/templates/build-backlinks/BuildBacklinksOpportunityGuideSection.svelte';
 	import BuildBacklinksSiteDetailSidebar from '$lib/ui/templates/build-backlinks/BuildBacklinksSiteDetailSidebar.svelte';
 	import BuildBacklinksSiteOpportunitiesOverview from '$lib/ui/templates/build-backlinks/BuildBacklinksSiteOpportunitiesOverview.svelte';
@@ -20,7 +23,6 @@
 	import PublicListingsHubBreadcrumb from '$lib/ui/templates/listings/PublicListingsHubBreadcrumb.svelte';
 	import PublicListingDetailHeroTitle from '$lib/ui/templates/titles/PublicListingDetailHeroTitle.svelte';
 	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
-	import InternalLink from '$lib/ui/links/InternalLink.svelte';
 
 	type Props = { data: PageData };
 
@@ -46,27 +48,9 @@
 			: ''
 	);
 
-	const openquokBanner = $derived.by(() => {
-		const channelSlug = siteVm.openquokChannelSlug?.trim();
-		if (!channelSlug) return null;
-		const channelVm = getPublicChannelBySlug(channelSlug);
-		const channelLabel = channelVm?.heroTitle?.split('\n')[0]?.trim() ?? channelSlug;
-		return {
-			title: `Publish on ${channelLabel} with OpenQuok`,
-			description:
-				'Connect the channel in your workspace, then schedule posts or use plugs on opportunities that support automation.',
-			ctaText: 'Connect channels guide',
-			ctaHref: '/docs/channels/connect'
-		};
-	});
-
 	const isSiteBookmarked = $derived(bookmarksPresenter.isBookmarked(siteVm.slug));
 
-	const categoryHref = $derived(
-		siteVm.category?.slug?.trim()
-			? url(route(getRootPathPublicBuildBacklinksCategory(siteVm.category.slug.trim())))
-			: null
-	);
+	const signUpPath = $derived(route(getRootPathSignup()));
 
 	async function handleToggleBookmark(params: { siteId: string; siteSlug: string }) {
 		return bookmarksPresenter.toggleBookmark({ ...params, title: siteVm.title });
@@ -107,32 +91,16 @@
 								{siteVm.siteUrl}
 							</ExternalLink>
 						</p>
-						<div class="flex flex-wrap items-center gap-2">
-							<BuildBacklinksBookmarkButton
-								siteId={siteVm.id}
-								siteSlug={siteVm.slug}
-								isBookmarked={isSiteBookmarked}
-								{isLoggedIn}
-								onToggle={handleToggleBookmark}
-							/>
-							{#if siteVm.category?.name}
-								{#if categoryHref}
-									<InternalLink
-										href={categoryHref}
-										class="badge badge-outline no-underline hover:border-primary hover:bg-base-content/5"
-									>
-										{siteVm.category.name}
-									</InternalLink>
-								{:else}
-									<span class="badge badge-outline">{siteVm.category.name}</span>
-								{/if}
-							{/if}
-						</div>
 					</div>
 				</header>
 
 				<div class="mt-8 lg:hidden">
-					<BuildBacklinksSiteDetailSidebar site={siteVm} />
+					<BuildBacklinksSiteDetailSidebar
+						site={siteVm}
+						{isLoggedIn}
+						isBookmarked={isSiteBookmarked}
+						onToggleBookmark={handleToggleBookmark}
+					/>
 				</div>
 
 				{#if siteVm.shortDescription?.trim()}
@@ -163,16 +131,15 @@
 						{/if}
 					{/each}
 
-					{#if openquokBanner}
-						<div class="pt-6">
-							<CenteredDarkCtaBanner
-								title={openquokBanner.title}
-								description={openquokBanner.description}
-								ctaText={openquokBanner.ctaText}
-								ctaHref={openquokBanner.ctaHref}
-							/>
-						</div>
-					{/if}
+					<div class="pt-6">
+						<CenteredDarkCtaBanner
+							title={CENTERED_DARK_CTA_BANNER_TITLE}
+							description={CENTERED_DARK_CTA_BANNER_DESCRIPTION}
+							ctaText={PUBLIC_BANNER_CTA_TEXT}
+							ctaHref={signUpPath}
+							sectionClass="pb-4 sm:pb-6"
+						/>
+					</div>
 				</div>
 			</div>
 
@@ -180,7 +147,12 @@
 				<div
 					class="sticky top-24 z-20 max-h-[calc(100dvh-6.5rem)] overflow-y-auto overscroll-contain"
 				>
-					<BuildBacklinksSiteDetailSidebar site={siteVm} />
+					<BuildBacklinksSiteDetailSidebar
+						site={siteVm}
+						{isLoggedIn}
+						isBookmarked={isSiteBookmarked}
+						onToggleBookmark={handleToggleBookmark}
+					/>
 				</div>
 			</aside>
 		</div>
