@@ -55,6 +55,8 @@ export type FeaturesOrderedStep = {
 	/** Inline terminal preview when `deviceMock` is `terminal` (overrides `deviceMockContent`). */
 	terminalCode?: string;
 	mockUrl?: string;
+	/** Optional HowToStep `url` in JSON-LD (fragment or absolute). */
+	howToStepUrl?: string;
 	iconName: IconName;
 };
 

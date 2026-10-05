@@ -1,8 +1,7 @@
-import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
 import type { LinkDirectoryCtaKind } from '$lib/link-directory/link-directory.types';
-import { route } from '$lib/utils/path';
 
 const CONNECT_CHANNELS_DOC = '/docs/channels/connect';
+const CREATING_POSTS_DOC = '/docs/creating-posts';
 const PLUGS_DOC = '/docs/getting-started-for-public-api';
 
 export type ResolvedOpportunityCta = {
@@ -28,8 +27,8 @@ export function resolveOpportunityCta(params: {
 			};
 		case 'schedule_post':
 			return {
-				href: route(getRootPathAccount()),
-				label: ctaLabel?.trim() || 'Open workspace',
+				href: CREATING_POSTS_DOC,
+				label: ctaLabel?.trim() || 'Creating posts guide',
 				external: false
 			};
 		case 'use_plug':

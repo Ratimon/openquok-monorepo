@@ -11,6 +11,7 @@
 	import HermesDocsOverviewMock from '$lib/ui/templates/device-mocks/safari/content/HermesDocsOverviewMock.svelte';
 	import McpClientInstallMock from '$lib/ui/templates/device-mocks/safari/content/McpClientInstallMock.svelte';
 	import McpClientVerifyMock from '$lib/ui/templates/device-mocks/safari/content/McpClientVerifyMock.svelte';
+	import ExternalSitePlaceholderSafariMock from '$lib/ui/templates/device-mocks/safari/content/ExternalSitePlaceholderSafariMock.svelte';
 	import OpenclawDocsOverviewMock from '$lib/ui/templates/device-mocks/safari/content/OpenclawDocsOverviewMock.svelte';
 
 	type Props = {
@@ -32,7 +33,9 @@
 	}
 </script>
 
-{#if content === 'openclaw-docs-overview'}
+{#if content === 'external-site-placeholder'}
+	<ExternalSitePlaceholderSafariMock />
+{:else if content === 'openclaw-docs-overview'}
 	<OpenclawDocsOverviewMock />
 {:else if content === 'hermes-docs-overview'}
 	<HermesDocsOverviewMock />

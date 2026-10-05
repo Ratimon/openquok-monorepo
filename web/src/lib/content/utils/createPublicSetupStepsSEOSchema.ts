@@ -15,6 +15,22 @@ export type PublicSetupStepsSectionCopy = {
 	steps: readonly FeaturesOrderedStep[];
 };
 
+/** One visible `FeaturesOrdered` block → one `HowTo` node (`fragmentId` = DOM `sectionId`). */
+export type PublicFeaturesOrderedHowToSection = PublicSetupStepsSectionCopy & {
+	sectionId: string;
+};
+
+function resolveHowToStepUrl(pageUrl: string, howToStepUrl: string): string {
+	const trimmed = howToStepUrl.trim();
+	if (!trimmed) {
+		return trimmed;
+	}
+	if (trimmed.startsWith('#')) {
+		return `${pageUrl.replace(/#.*$/, '')}${trimmed}`;
+	}
+	return trimmed;
+}
+
 function normalizeHowToName(sectionTitle?: string): string | undefined {
 	if (!sectionTitle?.trim()) {
 		return undefined;
@@ -53,11 +69,34 @@ export function createPublicSetupStepsSEOSchema(
 		fragmentId,
 		name,
 		description: normalizeHowToDescription({ steps, sectionTitle, ...sectionCopy }),
-		steps: steps.map((step) => ({
-			name: step.title.trim(),
-			text: step.content.trim()
-		}))
+		steps: steps.map((step) => {
+			const howToStepUrl = step.howToStepUrl?.trim();
+			return {
+				name: step.title.trim(),
+				text: step.content.trim(),
+				...(howToStepUrl ? { url: resolveHowToStepUrl(pageUrl, howToStepUrl) } : {})
+			};
+		})
 	});
+}
+
+/** Emit one `HowTo` per `FeaturesOrdered` section (e.g. build-backlinks site + opportunity guides). */
+export function buildPublicFeaturesOrderedHowToSchemas(params: {
+	pageUrl: string;
+	sections: readonly PublicFeaturesOrderedHowToSection[];
+}): Array<HowTo | Record<string, never>> {
+	const { pageUrl, sections } = params;
+
+	return sections.map((section) =>
+		createPublicSetupStepsSEOSchema({
+			pageUrl,
+			fragmentId: section.sectionId,
+			sectionTitle: section.sectionTitle,
+			sectionSubtitle: section.sectionSubtitle,
+			sectionDescription: section.sectionDescription,
+			steps: section.steps
+		})
+	);
 }
 
 /** MCP landing pages expose MCP and skill setup tabs — emit both HowTo nodes at SSR. */

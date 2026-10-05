@@ -24,8 +24,28 @@ const PUBLIC_MCP_INTRO_SETUP_STEPS_FOOTER = {
 	footerLinkHref: '/docs/getting-started-for-mcp'
 } satisfies PublicSetupStepsFooter;
 
+const PUBLIC_CREATING_POSTS_SETUP_STEPS_FOOTER = {
+	footerPrompt: PUBLIC_SETUP_STEPS_FOOTER_PROMPT,
+	footerLinkLabel: 'Read the creating posts guide',
+	footerLinkHref: '/docs/creating-posts'
+} satisfies PublicSetupStepsFooter;
+
+const PUBLIC_CONNECT_CHANNELS_SETUP_STEPS_FOOTER = {
+	footerPrompt: PUBLIC_SETUP_STEPS_FOOTER_PROMPT,
+	footerLinkLabel: 'Read the connect channels guide',
+	footerLinkHref: '/docs/channels/connect'
+} satisfies PublicSetupStepsFooter;
+
 export function getPublicApiSetupStepsFooter(): PublicSetupStepsFooter {
 	return PUBLIC_API_SETUP_STEPS_FOOTER;
+}
+
+export function getPublicCreatingPostsSetupStepsFooter(): PublicSetupStepsFooter {
+	return PUBLIC_CREATING_POSTS_SETUP_STEPS_FOOTER;
+}
+
+export function getPublicConnectChannelsSetupStepsFooter(): PublicSetupStepsFooter {
+	return PUBLIC_CONNECT_CHANNELS_SETUP_STEPS_FOOTER;
 }
 
 export function getPublicAgentSetupStepsFooter(docsPath: string): PublicSetupStepsFooter {

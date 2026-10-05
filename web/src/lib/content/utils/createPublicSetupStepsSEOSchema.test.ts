@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { getPublicMcpLandingBySlug } from '$lib/content/constants/mcps/index';
 import {
+	buildPublicFeaturesOrderedHowToSchemas,
 	buildPublicMcpSetupStepsSeoSchemas,
 	createPublicSetupStepsSEOSchema
 } from '$lib/content/utils/createPublicSetupStepsSEOSchema';
@@ -48,6 +49,76 @@ describe('createPublicSetupStepsSEOSchema', () => {
 					text: 'Connect networks in the dashboard.'
 				}
 			]
+		});
+	});
+
+	it('maps howToStepUrl fragments to absolute HowToStep urls', () => {
+		const node = createPublicSetupStepsSEOSchema({
+			pageUrl: 'https://www.openquok.com/build-backlinks/facebook#howto-site',
+			fragmentId: 'howto-site',
+			sectionTitle: 'Backlink opportunities,on Facebook',
+			steps: [
+				{
+					id: 1,
+					title: 'Add your site to Facebook',
+					content: 'Publish a profile link.',
+					howToStepUrl: '#howto-add-site',
+					iconName: 'Link'
+				}
+			]
+		});
+
+		expect(node).toMatchObject({
+			'@id': 'https://www.openquok.com/build-backlinks/facebook#howto-site',
+			step: [
+				{
+					url: 'https://www.openquok.com/build-backlinks/facebook#howto-add-site'
+				}
+			]
+		});
+	});
+
+	it('buildPublicFeaturesOrderedHowToSchemas maps sectionId to fragmentId', () => {
+		const nodes = buildPublicFeaturesOrderedHowToSchemas({
+			pageUrl: 'https://www.openquok.com/build-backlinks/facebook',
+			sections: [
+				{
+					sectionId: 'howto-site',
+					sectionTitle: 'Backlink opportunities,on Facebook',
+					steps: [
+						{
+							id: 1,
+							title: 'Step one',
+							content: 'Do the thing.',
+							howToStepUrl: '#howto-one',
+							iconName: 'Link'
+						}
+					]
+				},
+				{
+					sectionId: 'howto-one',
+					sectionTitle: 'Step one detail',
+					steps: [
+						{
+							id: 1,
+							title: 'Sub-step',
+							content: 'Details.',
+							iconName: 'Link'
+						}
+					]
+				}
+			]
+		});
+
+		expect(nodes).toHaveLength(2);
+		expect(nodes[0]).toMatchObject({
+			'@type': 'HowTo',
+			'@id': 'https://www.openquok.com/build-backlinks/facebook#howto-site',
+			step: [{ url: 'https://www.openquok.com/build-backlinks/facebook#howto-one' }]
+		});
+		expect(nodes[1]).toMatchObject({
+			'@type': 'HowTo',
+			'@id': 'https://www.openquok.com/build-backlinks/facebook#howto-one'
 		});
 	});
 

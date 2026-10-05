@@ -12,6 +12,8 @@
 
 	export type FeatureSimpleCardItem = {
 		id: string;
+		/** Small label above the title (e.g. ordinal eyebrow). */
+		eyebrow?: string;
 		title: string;
 		description: string;
 		icon: IconName;
@@ -107,6 +109,9 @@
 				focusable="false"
 			/>
 		</span>
+		{#if item.eyebrow?.trim()}
+			<p class="text-xs font-semibold tracking-wide text-primary uppercase">{item.eyebrow}</p>
+		{/if}
 		<h3 class="text-base font-bold text-base-content">{item.title}</h3>
 		<p class="text-sm font-medium leading-relaxed text-pretty text-base-content/70">
 			{item.description}

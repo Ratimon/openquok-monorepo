@@ -2,10 +2,15 @@ import { describe, expect, it } from 'vitest';
 
 import type { LinkDirectoryOpportunityDto } from '$lib/link-directory/link-directory.types';
 
+import { buildPublicFeaturesOrderedHowToSchemas } from '$lib/content/utils/createPublicSetupStepsSEOSchema';
+
+import { buildBuildBacklinksGuideSections } from './buildBuildBacklinksGuideSections';
 import {
 	createBuildBacklinksOpportunityHowToSchemas,
 	createBuildBacklinksSiteGuideHowToSchema
 } from './createBuildBacklinksSiteGuideHowToSchema';
+
+const facebookCanonical = 'https://www.openquok.com/build-backlinks/facebook';
 
 function makeOpportunity(
 	overrides: Partial<LinkDirectoryOpportunityDto> = {}
@@ -14,7 +19,7 @@ function makeOpportunity(
 		id: 'opp-1',
 		siteId: 'site-1',
 		slug: 'page-about',
-		title: 'Create Facebook Page with website',
+		title: 'Create Facebook Page, then add your backlink',
 		opportunityTypeId: 'type-1',
 		opportunityType: {
 			id: 'type-1',
@@ -48,19 +53,91 @@ function makeOpportunity(
 describe('createBuildBacklinksSiteGuideHowToSchema', () => {
 	it('orders opportunities by sortOrder for site-level steps', () => {
 		const schema = createBuildBacklinksSiteGuideHowToSchema({
-			canonicalUrl: 'https://example.com/build-backlinks/facebook',
+			canonicalUrl: facebookCanonical,
 			siteTitle: 'Facebook',
 			opportunities: [
 				makeOpportunity({ slug: 'page-post', title: 'Facebook Page post', sortOrder: 20 }),
-				makeOpportunity({ slug: 'page-about', title: 'Create Facebook Page with website', sortOrder: 10 })
+				makeOpportunity({ slug: 'page-about', title: 'Create Facebook Page, then add your backlink', sortOrder: 10 })
 			]
 		});
 
-		expect(schema['@type']).toBe('HowTo');
-		const steps = schema.step as Array<{ name: string; url?: string }>;
-		expect(steps[0].name).toBe('Create Facebook Page with website');
-		expect(steps[0].url).toContain('#page-about');
-		expect(steps[1].name).toBe('Facebook Page post');
+		expect(schema).toMatchObject({
+			'@type': 'HowTo',
+			'@id': `${facebookCanonical}#howto-site`,
+			step: [
+				{
+					name: 'Create Facebook Page, then add your backlink',
+					url: `${facebookCanonical}#howto-page-about`
+				},
+				{
+					name: 'Facebook Page post',
+					url: `${facebookCanonical}#howto-page-post`
+				}
+			]
+		});
+	});
+
+	it('aligns guide section ids with HowTo @id and overview step urls (Facebook-style)', () => {
+		const opportunities = [
+			makeOpportunity({ slug: 'page-post', title: 'Facebook Page post', sortOrder: 20 }),
+			makeOpportunity({
+				slug: 'page-about',
+				title: 'Create Facebook Page, then add your backlink',
+				sortOrder: 10
+			})
+		];
+
+		const guideSections = buildBuildBacklinksGuideSections({
+			canonical: facebookCanonical,
+			site: {
+				title: 'Facebook',
+				siteUrl: 'https://www.facebook.com',
+				shortDescription: 'Earn links on Facebook profiles and pages.',
+				opportunities
+			}
+		});
+
+		const siteHowTo = createBuildBacklinksSiteGuideHowToSchema({
+			canonicalUrl: facebookCanonical,
+			siteTitle: 'Facebook',
+			siteDescription: 'Earn links on Facebook profiles and pages.',
+			opportunities
+		});
+
+		const nestedHowTos = createBuildBacklinksOpportunityHowToSchemas({
+			canonicalUrl: facebookCanonical,
+			opportunities
+		});
+
+		const allHowTos = buildPublicFeaturesOrderedHowToSchemas({
+			pageUrl: facebookCanonical,
+			sections: guideSections
+		});
+
+		expect(guideSections.map((section) => section.sectionId)).toEqual([
+			'howto-site',
+			'howto-page-about',
+			'howto-page-post'
+		]);
+
+		expect(siteHowTo['@id']).toBe(`${facebookCanonical}#howto-site`);
+		expect(nestedHowTos).toHaveLength(2);
+		expect(nestedHowTos.map((node) => node['@id'])).toEqual([
+			`${facebookCanonical}#howto-page-about`,
+			`${facebookCanonical}#howto-page-post`
+		]);
+
+		for (const section of guideSections) {
+			const matching = allHowTos.find((node) => node['@id'] === `${facebookCanonical}#${section.sectionId}`);
+			expect(matching, `missing HowTo for #${section.sectionId}`).toBeDefined();
+		}
+
+		expect(siteHowTo).toMatchObject({
+			step: [
+				{ url: `${facebookCanonical}#howto-page-about` },
+				{ url: `${facebookCanonical}#howto-page-post` }
+			]
+		});
 	});
 
 	it('emits nested HowTo only when opportunity has sub-steps', () => {

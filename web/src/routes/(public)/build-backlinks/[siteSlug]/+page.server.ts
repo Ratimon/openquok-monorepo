@@ -8,10 +8,11 @@ import { buildListingsHubBreadcrumbItems } from '$lib/content/utils/buildPublicL
 import { linkDirectoryRepository } from '$lib/link-directory/index';
 import { createMetaData, type MetaDataImage } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
+import { buildPublicFeaturesOrderedHowToSchemas } from '$lib/content/utils/createPublicSetupStepsSEOSchema';
 import {
-	createBuildBacklinksOpportunityHowToSchemas,
-	createBuildBacklinksSiteGuideHowToSchema
-} from '$lib/link-directory/utils/createBuildBacklinksSiteGuideHowToSchema';
+	buildBuildBacklinksGuideSections,
+	listBuildBacklinksGuideOpportunityHowToSections
+} from '$lib/link-directory/utils/buildBuildBacklinksGuideSections';
 import {
 	createBuildBacklinksSiteGuidePlatformOrganizationSchema,
 	createBuildBacklinksSiteGuideWebPageSchema
@@ -100,23 +101,23 @@ export async function load({ params, url, fetch, cookies, parent }) {
 		description: customDescription
 	});
 
-	const siteGuideHowTo = createBuildBacklinksSiteGuideHowToSchema({
-		canonicalUrl: canonical,
-		siteTitle: site.title,
-		siteDescription: site.shortDescription,
-		opportunities: site.opportunities ?? []
-	});
-
-	const opportunityHowTos = createBuildBacklinksOpportunityHowToSchemas({
-		canonicalUrl: canonical,
-		opportunities: site.opportunities ?? []
-	});
-
 	const listingsBreadcrumb = {
 		kind: 'build-backlinks' as const,
 		variant: 'site' as const,
 		siteLabel: site.title
 	};
+
+	const guideSections = buildBuildBacklinksGuideSections({ canonical, site });
+
+	const guideHowToSections = [
+		...guideSections.filter((section) => section.sectionId === 'howto-site'),
+		...listBuildBacklinksGuideOpportunityHowToSections(guideSections)
+	];
+
+	const guideHowToNodes = buildPublicFeaturesOrderedHowToSchemas({
+		pageUrl: canonical,
+		sections: guideHowToSections
+	});
 
 	const schemaData = createJsonLdGraph(
 		filterNonEmptyJsonLdNodes([
@@ -126,8 +127,7 @@ export async function load({ params, url, fetch, cookies, parent }) {
 			),
 			platformOrganization,
 			webPageNode,
-			siteGuideHowTo,
-			...opportunityHowTos
+			...guideHowToNodes
 		])
 	);
 
@@ -135,6 +135,7 @@ export async function load({ params, url, fetch, cookies, parent }) {
 		pageMetaTags,
 		isLoggedIn,
 		siteVm: site,
+		guideSections,
 		schemaData,
 		heroTitle,
 		metaTitle: customTitle,

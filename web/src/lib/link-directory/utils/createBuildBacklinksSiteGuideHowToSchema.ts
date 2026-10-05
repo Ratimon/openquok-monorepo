@@ -1,12 +1,31 @@
-import type { LinkDirectoryOpportunityDto } from '$lib/link-directory/link-directory.types';
-import { createHowToSEOSchema } from '$lib/seo/createHowToSEOSchema';
+import type { HowTo } from 'schema-dts';
 
-export function sortPublishedOpportunities(
-	opportunities: LinkDirectoryOpportunityDto[]
-): LinkDirectoryOpportunityDto[] {
-	return [...opportunities]
-		.filter((opportunity) => opportunity.isAdminPublished)
-		.sort((a, b) => a.sortOrder - b.sortOrder);
+import { buildPublicFeaturesOrderedHowToSchemas } from '$lib/content/utils/createPublicSetupStepsSEOSchema';
+import type { LinkDirectoryOpportunityDto } from '$lib/link-directory/link-directory.types';
+import {
+	buildBuildBacklinksGuideSections,
+	listBuildBacklinksGuideOpportunityHowToSections,
+	sortPublishedOpportunities
+} from '$lib/link-directory/utils/buildBuildBacklinksGuideSections';
+
+export { sortPublishedOpportunities };
+
+function buildGuideSectionsForSite(params: {
+	canonicalUrl: string;
+	siteTitle: string;
+	siteDescription?: string | null;
+	opportunities: LinkDirectoryOpportunityDto[];
+}) {
+	const { canonicalUrl, siteTitle, siteDescription, opportunities } = params;
+
+	return buildBuildBacklinksGuideSections({
+		canonical: canonicalUrl,
+		site: {
+			title: siteTitle,
+			shortDescription: siteDescription ?? null,
+			opportunities
+		}
+	});
 }
 
 /** Site-level HowTo: each published opportunity is one ordered playbook step. */
@@ -15,58 +34,31 @@ export function createBuildBacklinksSiteGuideHowToSchema(params: {
 	siteTitle: string;
 	siteDescription?: string | null;
 	opportunities: LinkDirectoryOpportunityDto[];
-}) {
-	const { canonicalUrl, siteTitle, siteDescription, opportunities } = params;
-	const ordered = sortPublishedOpportunities(opportunities);
-
-	const steps = ordered
-		.map((opportunity) => {
-			const name = opportunity.title.trim();
-			const text =
-				opportunity.description?.trim() ||
-				`Follow the detailed steps for “${name}” on this guide.`;
-			if (!name) return null;
-			return {
-				name,
-				text,
-				url: `${canonicalUrl}#${opportunity.slug}`
-			};
-		})
-		.filter((step): step is { name: string; text: string; url: string } => step !== null);
-
-	return createHowToSEOSchema({
-		canonicalUrl,
-		fragmentId: 'howto-site',
-		name: `How to earn backlinks on ${siteTitle}`,
-		description: siteDescription?.trim() || undefined,
-		steps
+}): HowTo | Record<string, never> {
+	const sections = buildGuideSectionsForSite(params);
+	const [siteHowTo] = buildPublicFeaturesOrderedHowToSchemas({
+		pageUrl: params.canonicalUrl,
+		sections: sections.filter((section) => section.sectionId === 'howto-site')
 	});
+	return siteHowTo ?? {};
 }
 
 /** Per-opportunity HowTo from JSON sub-steps (when present). */
 export function createBuildBacklinksOpportunityHowToSchemas(params: {
 	canonicalUrl: string;
 	opportunities: LinkDirectoryOpportunityDto[];
-}) {
-	const { canonicalUrl, opportunities } = params;
+}): Array<HowTo | Record<string, never>> {
+	const sections = buildBuildBacklinksGuideSections({
+		canonical: params.canonicalUrl,
+		site: {
+			title: 'Site',
+			shortDescription: null,
+			opportunities: params.opportunities
+		}
+	});
 
-	return sortPublishedOpportunities(opportunities)
-		.map((opportunity) => {
-			const steps = [...(opportunity.steps ?? [])]
-				.sort((a, b) => a.order - b.order)
-				.map((step) => ({
-					name: step.title,
-					text: step.body,
-					url: `${canonicalUrl}#${opportunity.slug}`
-				}));
-
-			return createHowToSEOSchema({
-				canonicalUrl,
-				fragmentId: `howto-${opportunity.slug}`,
-				name: opportunity.title,
-				description: opportunity.description ?? undefined,
-				steps
-			});
-		})
-		.filter((node) => Object.keys(node).length > 0);
+	return buildPublicFeaturesOrderedHowToSchemas({
+		pageUrl: params.canonicalUrl,
+		sections: listBuildBacklinksGuideOpportunityHowToSections(sections)
+	}).filter((node) => Object.keys(node).length > 0);
 }

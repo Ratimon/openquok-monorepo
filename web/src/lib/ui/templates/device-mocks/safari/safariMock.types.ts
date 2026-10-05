@@ -1,4 +1,5 @@
 export type SafariMockContentId =
+	| 'external-site-placeholder'
 	| 'openclaw-docs-overview'
 	| 'hermes-docs-overview'
 	| 'grok-bot-docs-overview'
