@@ -1065,6 +1065,14 @@ var init_GlobalConfig = __esm({
           legacyHeaders: false,
           message: "Too many feedback submissions, please try again later"
         },
+        bookmarkSaved: {
+          windowMs: getEnvNumber("BOOKMARK_SAVED_RATE_LIMIT_WINDOW_MS", 36e5),
+          // 1 hour
+          max: getEnvNumber("BOOKMARK_SAVED_RATE_LIMIT_MAX", 120),
+          standardHeaders: true,
+          legacyHeaders: false,
+          message: "Too many bookmark or saved-site updates, please try again later"
+        },
         integrationConnect: {
           windowMs: getEnvNumber("INTEGRATION_CONNECT_RATE_LIMIT_WINDOW_MS", 9e5),
           // 15 minutes
@@ -9061,6 +9069,23 @@ var init_LinkDirectoryRepository = __esm({
           });
         }
       }
+      async assertPublishedSiteIds(siteIds) {
+        if (siteIds.length === 0) return;
+        const { data, error } = await this.supabase.from(TABLE_SITES).select("id").in("id", siteIds).eq("is_admin_published", true);
+        if (error) {
+          throw new DatabaseError(`Error validating saved sites: ${error.message}`, {
+            cause: error,
+            operation: "select"
+          });
+        }
+        const publishedIds = new Set((data ?? []).map((row) => row.id));
+        const invalidIds = siteIds.filter((id) => !publishedIds.has(id));
+        if (invalidIds.length > 0) {
+          throw new ValidationError(
+            `One or more sites are invalid or not published: ${invalidIds.join(", ")}`
+          );
+        }
+      }
       async findUserSavedSites(userId) {
         const { data, error } = await this.supabase.from(TABLE_SAVED_SITES).select(
           `id, user_id, site_id, sort_order, created_at, outreach_completed_at, site:link_directory_sites(${SELECT_SITE_FOR_SAVED_SITE})`
@@ -15262,6 +15287,10 @@ var init_ListingService = __esm({
         return data;
       }
       async addBookmark(listingId, userId, _authUserId) {
+        const { data: listing } = await this.listingRepository.findListingById(listingId);
+        if (!listing || listing.is_user_published !== true || listing.is_admin_published !== true) {
+          throw new ValidationError("This listing cannot be bookmarked.");
+        }
         await this.listingRepository.addBookmark(userId, listingId);
         await this.listingRepository.insertListingActivity(listingId, "bookmark", userId);
         await this._invalidateUserBookmarkCaches(userId, listingId);
@@ -15583,9 +15612,31 @@ var init_ListingTagService = __esm({
 });
 
 // services/LinkDirectoryService.ts
+function dedupeSiteIdsPreservingOrder(siteIds) {
+  const seen = /* @__PURE__ */ new Set();
+  const deduped = [];
+  for (const siteId of siteIds) {
+    if (seen.has(siteId)) continue;
+    seen.add(siteId);
+    deduped.push(siteId);
+  }
+  return deduped;
+}
+function savedSiteIdsMatchOrderRequest(currentSiteIds, orderedSiteIds) {
+  if (currentSiteIds.length !== orderedSiteIds.length) return false;
+  const currentSet = new Set(currentSiteIds);
+  return orderedSiteIds.every((siteId) => currentSet.has(siteId));
+}
+function sanitizeSavedSiteRowsForRead(rows) {
+  return rows.map((row) => ({
+    ...row,
+    site: row.site && row.site.is_admin_published === true ? row.site : null
+  }));
+}
 var LinkDirectoryService;
 var init_LinkDirectoryService = __esm({
   "services/LinkDirectoryService.ts"() {
+    init_InfraError();
     LinkDirectoryService = class {
       constructor(linkDirectoryRepository2, categoryRepository, tagRepository) {
         this.linkDirectoryRepository = linkDirectoryRepository2;
@@ -15696,13 +15747,24 @@ var init_LinkDirectoryService = __esm({
       }
       async getUserSavedSites(userId) {
         const { data } = await this.linkDirectoryRepository.findUserSavedSites(userId);
-        return data;
+        return sanitizeSavedSiteRowsForRead(data);
       }
       async replaceUserSavedSites(userId, siteIds) {
-        await this.linkDirectoryRepository.replaceUserSavedSites(userId, siteIds);
+        const dedupedSiteIds = dedupeSiteIdsPreservingOrder(siteIds);
+        await this.linkDirectoryRepository.assertPublishedSiteIds(dedupedSiteIds);
+        await this.linkDirectoryRepository.replaceUserSavedSites(userId, dedupedSiteIds);
       }
       async reorderUserSavedSites(userId, siteIds) {
-        await this.linkDirectoryRepository.reorderUserSavedSites(userId, siteIds);
+        const dedupedSiteIds = dedupeSiteIdsPreservingOrder(siteIds);
+        const { data: currentSaved } = await this.linkDirectoryRepository.findUserSavedSites(userId);
+        const currentSiteIds = currentSaved.map((row) => row.site_id);
+        if (!savedSiteIdsMatchOrderRequest(currentSiteIds, dedupedSiteIds)) {
+          throw new ValidationError(
+            "Saved site order must include every saved site exactly once."
+          );
+        }
+        await this.linkDirectoryRepository.assertPublishedSiteIds(dedupedSiteIds);
+        await this.linkDirectoryRepository.reorderUserSavedSites(userId, dedupedSiteIds);
       }
       async setUserSavedSiteOutreachCompleted(userId, siteId, completed) {
         const outreachCompletedAt = completed ? (/* @__PURE__ */ new Date()).toISOString() : null;
@@ -31083,7 +31145,7 @@ var init_generateBlogRSSFeed = __esm({
 });
 
 // middlewares/publicRouteRegistry.ts
-var BLOG_POSTS_PREFIX, BLOG_POST_ACTIVITY_PATH, LISTINGS_PUBLISHED_PREFIX, LISTINGS_STACKS_PUBLISHED_PREFIX, LINK_DIRECTORY_PUBLISHED_PREFIX, LISTING_STAT_PATH, LISTING_COMMENTS_PATH, PUBLIC_PATH_PREFIXES, PUBLIC_PATH_EXACT, BYPASS_PATHS, matchesPublicPathPrefix, matchesPublicPathExact, isPublicImageDownloadGet, isAuthExemptRoute, isPublicReadGet, isPublicWriteRoute, isPublicApiPath, isUploadPath, isIntegrationConnectPath, isWebhookPath, hasDedicatedRateLimiter, normalizeApiRoutePath;
+var BLOG_POSTS_PREFIX, BLOG_POST_ACTIVITY_PATH, LISTINGS_PUBLISHED_PREFIX, LISTINGS_STACKS_PUBLISHED_PREFIX, LINK_DIRECTORY_PUBLISHED_PREFIX, LISTING_STAT_PATH, LISTING_COMMENTS_PATH, PUBLIC_PATH_PREFIXES, PUBLIC_PATH_EXACT, BYPASS_PATHS, matchesPublicPathPrefix, matchesPublicPathExact, isPublicImageDownloadGet, isAuthExemptRoute, isPublicReadGet, isPublicWriteRoute, isPublicApiPath, isUploadPath, isIntegrationConnectPath, LISTING_BOOKMARK_MUTATION_PATH, LINK_DIRECTORY_SAVED_SITE_OUTREACH_PATH, isBookmarkSavedMutationRoute, isWebhookPath, hasDedicatedRateLimiter, normalizeApiRoutePath;
 var init_publicRouteRegistry = __esm({
   "middlewares/publicRouteRegistry.ts"() {
     BLOG_POSTS_PREFIX = "/blog-system/posts/";
@@ -31206,6 +31268,20 @@ var init_publicRouteRegistry = __esm({
     isPublicApiPath = (path7) => path7 === "/public" || path7.startsWith("/public/");
     isUploadPath = (path7) => path7 === "/public/upload" || path7.startsWith("/public/upload/") || path7 === "/public/upload-from-url" || path7 === "/media/upload" || path7 === "/media/upload-server" || path7 === "/media/upload-simple";
     isIntegrationConnectPath = (path7) => /^\/integrations\/social-connect\/[^/]+$/.test(path7) || /^\/integrations\/public\/provider\/[^/]+\/connect$/.test(path7);
+    LISTING_BOOKMARK_MUTATION_PATH = /^\/listings\/[0-9a-f-]{36}\/bookmark$/i;
+    LINK_DIRECTORY_SAVED_SITE_OUTREACH_PATH = /^\/link-directory\/me\/saved-sites\/[0-9a-f-]{36}\/outreach-completion$/i;
+    isBookmarkSavedMutationRoute = (req, routePath) => {
+      if (req.method === "POST" || req.method === "DELETE") {
+        return LISTING_BOOKMARK_MUTATION_PATH.test(routePath);
+      }
+      if (req.method === "PUT") {
+        return routePath === "/link-directory/me/saved-sites" || routePath === "/link-directory/me/saved-sites/order";
+      }
+      if (req.method === "PATCH") {
+        return LINK_DIRECTORY_SAVED_SITE_OUTREACH_PATH.test(routePath);
+      }
+      return false;
+    };
     isWebhookPath = (path7, originalUrl) => path7.includes("/webhooks/") || originalUrl.includes("/webhooks/");
     hasDedicatedRateLimiter = (req, routePath) => isPublicApiPath(routePath) || isUploadPath(routePath) || req.method === "POST" && routePath === "/feedback" || req.method === "POST" && routePath === "/link-directory/submissions" || req.method === "POST" && routePath === "/oauth/token" || req.method === "POST" && isIntegrationConnectPath(routePath) || isPublicWriteRoute(req, routePath);
     normalizeApiRoutePath = (pathName, apiPrefix) => {
@@ -32821,7 +32897,7 @@ var init_LinkDirectoryController = __esm({
         try {
           const body = req.body;
           const auth10 = req;
-          const id = await this.linkDirectoryService.createSubmission(body, auth10.user?.id);
+          const id = await this.linkDirectoryService.createSubmission(body, auth10.user?.publicId);
           res.status(201).json({
             success: true,
             data: { id },
@@ -32834,7 +32910,7 @@ var init_LinkDirectoryController = __esm({
       getUserSavedSites = async (req, res, next) => {
         try {
           const auth10 = req;
-          const userId = auth10.user?.id;
+          const userId = auth10.user?.publicId;
           if (!userId) {
             res.status(401).json({ success: false, message: "Unauthorized" });
             return;
@@ -32851,7 +32927,7 @@ var init_LinkDirectoryController = __esm({
       putUserSavedSites = async (req, res, next) => {
         try {
           const auth10 = req;
-          const userId = auth10.user?.id;
+          const userId = auth10.user?.publicId;
           if (!userId) {
             res.status(401).json({ success: false, message: "Unauthorized" });
             return;
@@ -32871,7 +32947,7 @@ var init_LinkDirectoryController = __esm({
       putUserSavedSitesOrder = async (req, res, next) => {
         try {
           const auth10 = req;
-          const userId = auth10.user?.id;
+          const userId = auth10.user?.publicId;
           if (!userId) {
             res.status(401).json({ success: false, message: "Unauthorized" });
             return;
@@ -32891,7 +32967,7 @@ var init_LinkDirectoryController = __esm({
       patchUserSavedSiteOutreachCompletion = async (req, res, next) => {
         try {
           const auth10 = req;
-          const userId = auth10.user?.id;
+          const userId = auth10.user?.publicId;
           if (!userId) {
             res.status(401).json({ success: false, message: "Unauthorized" });
             return;
@@ -33129,7 +33205,7 @@ var init_LinkDirectoryController = __esm({
       reviewSubmission = async (req, res, next) => {
         try {
           const auth10 = req;
-          const reviewerId = auth10.user?.id;
+          const reviewerId = auth10.user?.publicId;
           if (!reviewerId) {
             res.status(401).json({ success: false, message: "Unauthorized" });
             return;
@@ -41693,11 +41769,13 @@ var linkDirectorySubmissionCreateSchema = zod.z.object({
 var linkDirectorySubmissionReviewSchema = zod.z.object({
   status: zod.z.enum(["approved", "rejected"])
 });
+var LINK_DIRECTORY_SAVED_SITE_IDS_MAX = 500;
+var linkDirectorySavedSiteIdsSchema = zod.z.array(zod.z.string().uuid()).max(LINK_DIRECTORY_SAVED_SITE_IDS_MAX);
 var linkDirectorySavedSitesPutSchema = zod.z.object({
-  siteIds: zod.z.array(zod.z.string().uuid())
+  siteIds: linkDirectorySavedSiteIdsSchema
 });
 var linkDirectorySavedSitesOrderSchema = zod.z.object({
-  siteIds: zod.z.array(zod.z.string().uuid()).min(1)
+  siteIds: linkDirectorySavedSiteIdsSchema.min(1)
 });
 var linkDirectorySavedSiteOutreachCompletionSchema = zod.z.object({
   completed: zod.z.boolean()
@@ -44383,6 +44461,18 @@ var buildRateLimiters = () => ({
     ...config.rateLimit.feedback,
     skip: (req) => shouldSkipRateLimit() || req.method !== "POST"
   }),
+  bookmarkSavedLimiter: createRateLimiter({
+    limiterName: "bookmarkSaved",
+    storeName: "bookmark-saved",
+    windowMs: 60 * 60 * 1e3,
+    // 1 hour
+    max: 120,
+    standardHeaders: true,
+    legacyHeaders: false,
+    ...config.rateLimit.bookmarkSaved,
+    keyGenerator: sessionKeyGenerator,
+    skip: (req) => shouldSkipRateLimit() || !isBookmarkSavedMutationRoute(req, req.path)
+  }),
   integrationConnectLimiter: createRateLimiter({
     limiterName: "integrationConnect",
     storeName: "integration-connect",
@@ -44433,6 +44523,7 @@ var applyRateLimiting = (app2) => {
     mcpLimiter,
     uploadLimiter,
     feedbackLimiter,
+    bookmarkSavedLimiter,
     integrationConnectLimiter,
     oauthTokenLimiter,
     publicWriteLimiter
@@ -44507,6 +44598,14 @@ var applyRateLimiting = (app2) => {
     msg: "Applied feedback rate limiting",
     windowMs: feedbackConfig?.windowMs ?? 60 * 60 * 1e3,
     max: feedbackConfig?.max ?? 10
+  });
+  const bookmarkSavedConfig = config.rateLimit.bookmarkSaved;
+  app2.use(apiPrefix, bookmarkSavedLimiter);
+  logger.info({
+    msg: "Applied bookmark and saved-site mutation rate limiting",
+    windowMs: bookmarkSavedConfig?.windowMs ?? 60 * 60 * 1e3,
+    max: bookmarkSavedConfig?.max ?? 120,
+    key: "JWT sub (peek) or req.user.id"
   });
   const integrationConnectConfig = config.rateLimit.integrationConnect;
   app2.use(`${apiPrefix}/integrations`, integrationConnectLimiter);

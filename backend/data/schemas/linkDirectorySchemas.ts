@@ -180,13 +180,20 @@ export type LinkDirectorySubmissionReviewSchemaType = z.infer<
     typeof linkDirectorySubmissionReviewSchema
 >;
 
+/** Upper bound on saved-site shortlist size (PUT replaces the full set in one request). */
+const LINK_DIRECTORY_SAVED_SITE_IDS_MAX = 500;
+
+const linkDirectorySavedSiteIdsSchema = z
+    .array(z.string().uuid())
+    .max(LINK_DIRECTORY_SAVED_SITE_IDS_MAX);
+
 export const linkDirectorySavedSitesPutSchema = z.object({
-    siteIds: z.array(z.string().uuid()),
+    siteIds: linkDirectorySavedSiteIdsSchema,
 });
 export type LinkDirectorySavedSitesPutSchemaType = z.infer<typeof linkDirectorySavedSitesPutSchema>;
 
 export const linkDirectorySavedSitesOrderSchema = z.object({
-    siteIds: z.array(z.string().uuid()).min(1),
+    siteIds: linkDirectorySavedSiteIdsSchema.min(1),
 });
 export type LinkDirectorySavedSitesOrderSchemaType = z.infer<
     typeof linkDirectorySavedSitesOrderSchema

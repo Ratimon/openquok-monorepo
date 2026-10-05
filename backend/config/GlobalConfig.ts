@@ -446,6 +446,13 @@ export const config: ConfigObject = {
             legacyHeaders: false,
             message: "Too many feedback submissions, please try again later",
         },
+        bookmarkSaved: {
+            windowMs: getEnvNumber("BOOKMARK_SAVED_RATE_LIMIT_WINDOW_MS", 3600000), // 1 hour
+            max: getEnvNumber("BOOKMARK_SAVED_RATE_LIMIT_MAX", 120),
+            standardHeaders: true,
+            legacyHeaders: false,
+            message: "Too many bookmark or saved-site updates, please try again later",
+        },
         integrationConnect: {
             windowMs: getEnvNumber("INTEGRATION_CONNECT_RATE_LIMIT_WINDOW_MS", 900000), // 15 minutes
             max: getEnvNumber("INTEGRATION_CONNECT_RATE_LIMIT_MAX", 30),

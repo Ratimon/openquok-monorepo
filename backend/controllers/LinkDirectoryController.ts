@@ -134,7 +134,7 @@ export class LinkDirectoryController {
         try {
             const body = req.body as LinkDirectorySubmissionCreateSchemaType;
             const auth = req as AuthenticatedRequest;
-            const id = await this.linkDirectoryService.createSubmission(body, auth.user?.id);
+            const id = await this.linkDirectoryService.createSubmission(body, auth.user?.publicId);
             res.status(201).json({
                 success: true,
                 data: { id },
@@ -148,7 +148,7 @@ export class LinkDirectoryController {
     getUserSavedSites = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const auth = req as AuthenticatedRequest;
-            const userId = auth.user?.id;
+            const userId = auth.user?.publicId;
             if (!userId) {
                 res.status(401).json({ success: false, message: "Unauthorized" });
                 return;
@@ -166,7 +166,7 @@ export class LinkDirectoryController {
     putUserSavedSites = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const auth = req as AuthenticatedRequest;
-            const userId = auth.user?.id;
+            const userId = auth.user?.publicId;
             if (!userId) {
                 res.status(401).json({ success: false, message: "Unauthorized" });
                 return;
@@ -187,7 +187,7 @@ export class LinkDirectoryController {
     putUserSavedSitesOrder = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const auth = req as AuthenticatedRequest;
-            const userId = auth.user?.id;
+            const userId = auth.user?.publicId;
             if (!userId) {
                 res.status(401).json({ success: false, message: "Unauthorized" });
                 return;
@@ -212,7 +212,7 @@ export class LinkDirectoryController {
     ): Promise<void> => {
         try {
             const auth = req as AuthenticatedRequest;
-            const userId = auth.user?.id;
+            const userId = auth.user?.publicId;
             if (!userId) {
                 res.status(401).json({ success: false, message: "Unauthorized" });
                 return;
@@ -484,7 +484,7 @@ export class LinkDirectoryController {
     reviewSubmission = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const auth = req as AuthenticatedRequest;
-            const reviewerId = auth.user?.id;
+            const reviewerId = auth.user?.publicId;
             if (!reviewerId) {
                 res.status(401).json({ success: false, message: "Unauthorized" });
                 return;

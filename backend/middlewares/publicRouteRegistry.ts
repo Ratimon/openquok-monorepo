@@ -178,6 +178,27 @@ export const isIntegrationConnectPath = (path: string): boolean =>
     /^\/integrations\/social-connect\/[^/]+$/.test(path) ||
     /^\/integrations\/public\/provider\/[^/]+\/connect$/.test(path);
 
+const LISTING_BOOKMARK_MUTATION_PATH = /^\/listings\/[0-9a-f-]{36}\/bookmark$/i;
+const LINK_DIRECTORY_SAVED_SITE_OUTREACH_PATH =
+    /^\/link-directory\/me\/saved-sites\/[0-9a-f-]{36}\/outreach-completion$/i;
+
+/** Session-auth bookmark and build-backlinks shortlist writes (dedicated rate limiter). */
+export const isBookmarkSavedMutationRoute = (req: Request, routePath: string): boolean => {
+    if (req.method === "POST" || req.method === "DELETE") {
+        return LISTING_BOOKMARK_MUTATION_PATH.test(routePath);
+    }
+    if (req.method === "PUT") {
+        return (
+            routePath === "/link-directory/me/saved-sites" ||
+            routePath === "/link-directory/me/saved-sites/order"
+        );
+    }
+    if (req.method === "PATCH") {
+        return LINK_DIRECTORY_SAVED_SITE_OUTREACH_PATH.test(routePath);
+    }
+    return false;
+};
+
 export const isWebhookPath = (path: string, originalUrl: string): boolean =>
     path.includes("/webhooks/") || originalUrl.includes("/webhooks/");
 

@@ -424,6 +424,14 @@ export class ListingService {
     }
 
     async addBookmark(listingId: string, userId: string, _authUserId?: string): Promise<void> {
+        const { data: listing } = await this.listingRepository.findListingById(listingId);
+        if (
+            !listing ||
+            listing.is_user_published !== true ||
+            listing.is_admin_published !== true
+        ) {
+            throw new ValidationError("This listing cannot be bookmarked.");
+        }
         await this.listingRepository.addBookmark(userId, listingId);
         await this.listingRepository.insertListingActivity(listingId, "bookmark", userId);
         await this._invalidateUserBookmarkCaches(userId, listingId);

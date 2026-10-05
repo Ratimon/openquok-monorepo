@@ -507,6 +507,9 @@ describe("ListingService", () => {
         });
 
         it("adds bookmark, records activity, and invalidates user bookmark cache", async () => {
+            listingRepo.findListingById.mockResolvedValue({
+                data: { ...mockListing, is_user_published: true, is_admin_published: true },
+            });
             const invalidateKey = jest.fn().mockResolvedValue(undefined);
             const invalidatePattern = jest.fn().mockResolvedValue(undefined);
             const service = new ListingService(listingRepo, categoryRepo, undefined, {
@@ -514,10 +517,38 @@ describe("ListingService", () => {
                 invalidatePattern,
             } as never);
             await service.addBookmark(listingId, userId);
+            expect(listingRepo.findListingById).toHaveBeenCalledWith(listingId);
             expect(listingRepo.addBookmark).toHaveBeenCalledWith(userId, listingId);
             expect(listingRepo.insertListingActivity).toHaveBeenCalledWith(listingId, "bookmark", userId);
             expect(invalidateKey).toHaveBeenCalledWith(`listing:bookmarks:user:${userId}`);
             expect(invalidateKey).toHaveBeenCalledWith(`listing:byId:${listingId}`);
+        });
+
+        it("rejects bookmark when listing is not fully published", async () => {
+            listingRepo.findListingById.mockResolvedValue({
+                data: { ...mockListing, is_user_published: true, is_admin_published: false },
+            });
+            const service = new ListingService(listingRepo, categoryRepo);
+            await expect(service.addBookmark(listingId, userId)).rejects.toThrow(ValidationError);
+            expect(listingRepo.addBookmark).not.toHaveBeenCalled();
+            expect(listingRepo.insertListingActivity).not.toHaveBeenCalled();
+        });
+
+        it("rejects bookmark when listing is not user-published", async () => {
+            listingRepo.findListingById.mockResolvedValue({
+                data: { ...mockListing, is_user_published: false, is_admin_published: true },
+            });
+            const service = new ListingService(listingRepo, categoryRepo);
+            await expect(service.addBookmark(listingId, userId)).rejects.toThrow(ValidationError);
+            expect(listingRepo.addBookmark).not.toHaveBeenCalled();
+            expect(listingRepo.findListingById).toHaveBeenCalledWith(listingId);
+        });
+
+        it("rejects bookmark when listing is missing", async () => {
+            listingRepo.findListingById.mockResolvedValue({ data: null as never });
+            const service = new ListingService(listingRepo, categoryRepo);
+            await expect(service.addBookmark(listingId, userId)).rejects.toThrow(ValidationError);
+            expect(listingRepo.addBookmark).not.toHaveBeenCalled();
         });
 
         it("uses per-user cache key for getUserBookmarks when cache provided", async () => {

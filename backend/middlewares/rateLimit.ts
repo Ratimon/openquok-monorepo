@@ -12,6 +12,7 @@ import { BULL_BOARD_ACCESS_COOKIE_NAME } from "../guards/auth/types";
 import { config } from "../config/GlobalConfig";
 import {
     hasDedicatedRateLimiter,
+    isBookmarkSavedMutationRoute,
     isIntegrationConnectPath,
     isPublicReadGet,
     isPublicWriteRoute,
@@ -348,6 +349,18 @@ const buildRateLimiters = () => ({
         ...(config.rateLimit as { feedback?: RateLimitConfig }).feedback,
         skip: (req: Request) => shouldSkipRateLimit() || req.method !== "POST",
     } as RateLimitConfig),
+    bookmarkSavedLimiter: createRateLimiter({
+        limiterName: "bookmarkSaved",
+        storeName: "bookmark-saved",
+        windowMs: 60 * 60 * 1000, // 1 hour
+        max: 120,
+        standardHeaders: true,
+        legacyHeaders: false,
+        ...(config.rateLimit as { bookmarkSaved?: RateLimitConfig }).bookmarkSaved,
+        keyGenerator: sessionKeyGenerator,
+        skip: (req: Request) =>
+            shouldSkipRateLimit() || !isBookmarkSavedMutationRoute(req, req.path),
+    } as RateLimitConfig),
     integrationConnectLimiter: createRateLimiter({
         limiterName: "integrationConnect",
         storeName: "integration-connect",
@@ -400,6 +413,7 @@ export const applyRateLimiting = (app: Express): void => {
         mcpLimiter,
         uploadLimiter,
         feedbackLimiter,
+        bookmarkSavedLimiter,
         integrationConnectLimiter,
         oauthTokenLimiter,
         publicWriteLimiter,
@@ -485,6 +499,15 @@ export const applyRateLimiting = (app: Express): void => {
         msg: "Applied feedback rate limiting",
         windowMs: feedbackConfig?.windowMs ?? 60 * 60 * 1000,
         max: feedbackConfig?.max ?? 10,
+    });
+
+    const bookmarkSavedConfig = (config.rateLimit as { bookmarkSaved?: RateLimitConfig }).bookmarkSaved;
+    app.use(apiPrefix, bookmarkSavedLimiter);
+    logger.info({
+        msg: "Applied bookmark and saved-site mutation rate limiting",
+        windowMs: bookmarkSavedConfig?.windowMs ?? 60 * 60 * 1000,
+        max: bookmarkSavedConfig?.max ?? 120,
+        key: "JWT sub (peek) or req.user.id",
     });
 
     const integrationConnectConfig = (config.rateLimit as { integrationConnect?: RateLimitConfig })

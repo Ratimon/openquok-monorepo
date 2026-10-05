@@ -596,6 +596,31 @@ export class LinkDirectoryRepository {
         }
     }
 
+    async assertPublishedSiteIds(siteIds: string[]): Promise<void> {
+        if (siteIds.length === 0) return;
+
+        const { data, error } = await this.supabase
+            .from(TABLE_SITES)
+            .select("id")
+            .in("id", siteIds)
+            .eq("is_admin_published", true);
+
+        if (error) {
+            throw new DatabaseError(`Error validating saved sites: ${error.message}`, {
+                cause: error as unknown as Error,
+                operation: "select",
+            });
+        }
+
+        const publishedIds = new Set((data ?? []).map((row) => row.id as string));
+        const invalidIds = siteIds.filter((id) => !publishedIds.has(id));
+        if (invalidIds.length > 0) {
+            throw new ValidationError(
+                `One or more sites are invalid or not published: ${invalidIds.join(", ")}`
+            );
+        }
+    }
+
     async findUserSavedSites(userId: string): Promise<{ data: LinkDirectorySavedSiteRow[] }> {
         const { data, error } = await this.supabase
             .from(TABLE_SAVED_SITES)

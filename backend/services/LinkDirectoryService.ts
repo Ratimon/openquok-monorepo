@@ -23,6 +23,33 @@ import type {
     LinkDirectoryTagGroupCreateSchemaType,
     LinkDirectoryTagUpdateSchemaType,
 } from "../data/schemas/linkDirectorySchemas";
+import type { LinkDirectorySavedSiteRow } from "../data/types/linkDirectoryTypes";
+import { ValidationError } from "../errors/InfraError";
+
+function dedupeSiteIdsPreservingOrder(siteIds: string[]): string[] {
+    const seen = new Set<string>();
+    const deduped: string[] = [];
+    for (const siteId of siteIds) {
+        if (seen.has(siteId)) continue;
+        seen.add(siteId);
+        deduped.push(siteId);
+    }
+    return deduped;
+}
+
+function savedSiteIdsMatchOrderRequest(currentSiteIds: string[], orderedSiteIds: string[]): boolean {
+    if (currentSiteIds.length !== orderedSiteIds.length) return false;
+    const currentSet = new Set(currentSiteIds);
+    return orderedSiteIds.every((siteId) => currentSet.has(siteId));
+}
+
+function sanitizeSavedSiteRowsForRead(rows: LinkDirectorySavedSiteRow[]): LinkDirectorySavedSiteRow[] {
+    return rows.map((row) => ({
+        ...row,
+        site: row.site && row.site.is_admin_published === true ? row.site : null,
+    }));
+}
+
 export class LinkDirectoryService {
     constructor(
         private readonly linkDirectoryRepository: LinkDirectoryRepository,
@@ -191,15 +218,26 @@ export class LinkDirectoryService {
 
     async getUserSavedSites(userId: string) {
         const { data } = await this.linkDirectoryRepository.findUserSavedSites(userId);
-        return data;
+        return sanitizeSavedSiteRowsForRead(data);
     }
 
     async replaceUserSavedSites(userId: string, siteIds: string[]): Promise<void> {
-        await this.linkDirectoryRepository.replaceUserSavedSites(userId, siteIds);
+        const dedupedSiteIds = dedupeSiteIdsPreservingOrder(siteIds);
+        await this.linkDirectoryRepository.assertPublishedSiteIds(dedupedSiteIds);
+        await this.linkDirectoryRepository.replaceUserSavedSites(userId, dedupedSiteIds);
     }
 
     async reorderUserSavedSites(userId: string, siteIds: string[]): Promise<void> {
-        await this.linkDirectoryRepository.reorderUserSavedSites(userId, siteIds);
+        const dedupedSiteIds = dedupeSiteIdsPreservingOrder(siteIds);
+        const { data: currentSaved } = await this.linkDirectoryRepository.findUserSavedSites(userId);
+        const currentSiteIds = currentSaved.map((row) => row.site_id);
+        if (!savedSiteIdsMatchOrderRequest(currentSiteIds, dedupedSiteIds)) {
+            throw new ValidationError(
+                "Saved site order must include every saved site exactly once."
+            );
+        }
+        await this.linkDirectoryRepository.assertPublishedSiteIds(dedupedSiteIds);
+        await this.linkDirectoryRepository.reorderUserSavedSites(userId, dedupedSiteIds);
     }
 
     async setUserSavedSiteOutreachCompleted(

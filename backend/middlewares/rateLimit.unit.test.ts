@@ -1,6 +1,6 @@
 import type { Request } from "express";
 
-import { isPublicReadGet } from "./publicRouteRegistry";
+import { isBookmarkSavedMutationRoute, isPublicReadGet } from "./publicRouteRegistry";
 import {
     buildRateLimitExceededLog,
     isPublicCachedGetRequest,
@@ -34,6 +34,7 @@ jest.mock("../config/GlobalConfig", () => ({
             },
             oauthToken: { windowMs: 900000, max: 30, standardHeaders: true, legacyHeaders: false },
             publicWrite: { windowMs: 3600000, max: 60, standardHeaders: true, legacyHeaders: false },
+            bookmarkSaved: { windowMs: 3600000, max: 120, standardHeaders: true, legacyHeaders: false },
         },
     },
 }));
@@ -227,6 +228,61 @@ describe("rateLimit helpers", () => {
         it("matches isPublicReadGet for the request path", () => {
             const req = asReq({ method: "GET", path: "/blog-system/rss" });
             expect(isPublicCachedGetRequest(req)).toBe(isPublicReadGet(req, req.path));
+        });
+    });
+
+    describe("isBookmarkSavedMutationRoute", () => {
+        const listingId = "550e8400-e29b-41d4-a716-446655440000";
+        const siteId = "6ba7b810-9dad-11d1-80b4-00c04fd430c8";
+
+        it("matches listing bookmark POST and DELETE", () => {
+            const path = `/listings/${listingId}/bookmark`;
+            expect(isBookmarkSavedMutationRoute(asReq({ method: "POST", path }), path)).toBe(true);
+            expect(isBookmarkSavedMutationRoute(asReq({ method: "DELETE", path }), path)).toBe(true);
+        });
+
+        it("matches link-directory saved-site PUT and PATCH mutations", () => {
+            expect(
+                isBookmarkSavedMutationRoute(
+                    asReq({ method: "PUT", path: "/link-directory/me/saved-sites" }),
+                    "/link-directory/me/saved-sites"
+                )
+            ).toBe(true);
+            expect(
+                isBookmarkSavedMutationRoute(
+                    asReq({ method: "PUT", path: "/link-directory/me/saved-sites/order" }),
+                    "/link-directory/me/saved-sites/order"
+                )
+            ).toBe(true);
+            const outreachPath = `/link-directory/me/saved-sites/${siteId}/outreach-completion`;
+            expect(
+                isBookmarkSavedMutationRoute(asReq({ method: "PATCH", path: outreachPath }), outreachPath)
+            ).toBe(true);
+        });
+
+        it("does not match reads or unrelated listing routes", () => {
+            const bookmarkPath = `/listings/${listingId}/bookmark`;
+            expect(
+                isBookmarkSavedMutationRoute(asReq({ method: "GET", path: bookmarkPath }), bookmarkPath)
+            ).toBe(false);
+            expect(
+                isBookmarkSavedMutationRoute(
+                    asReq({ method: "GET", path: "/listings/me/bookmarks" }),
+                    "/listings/me/bookmarks"
+                )
+            ).toBe(false);
+            expect(
+                isBookmarkSavedMutationRoute(
+                    asReq({ method: "GET", path: "/link-directory/me/saved-sites" }),
+                    "/link-directory/me/saved-sites"
+                )
+            ).toBe(false);
+            expect(
+                isBookmarkSavedMutationRoute(
+                    asReq({ method: "POST", path: `/listings/${listingId}/like` }),
+                    `/listings/${listingId}/like`
+                )
+            ).toBe(false);
         });
     });
 });
