@@ -200,6 +200,7 @@
 		{activeChannelSlug}
 		activePlatformLabel={comingSoonPlatformLabel}
 		agentLabel={mcpVm.agentLabel}
+		hostSlug={mcpVm.slug}
 	/>
 {/if}
 

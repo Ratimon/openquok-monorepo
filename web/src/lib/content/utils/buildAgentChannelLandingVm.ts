@@ -1,6 +1,12 @@
 import type { PublicFaqItem } from '$lib/content/constants/faq';
 import type { PublicAgentChannelPageConfig } from '$lib/content/constants/agents/channels';
 import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/agents';
+import { getAgentHostProfile } from '$lib/content/constants/agents/host-profiles';
+import {
+	buildAgentChannelEcosystemFaqItems,
+	buildAgentChannelEcosystemHeroDescription,
+	resolveAgentChannelAudienceCards
+} from '$lib/content/constants/agents/ecosystems';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels';
 
 import { SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS } from '$data/social-providers';
@@ -44,6 +50,28 @@ export function buildAgentChannelLandingVm(params: {
 		agentLabel,
 		mode: 'agent-host'
 	});
+	const audienceCards = resolveAgentChannelAudienceCards(
+		audienceSection.audienceCards,
+		baseAgent.slug,
+		channel.slug,
+		platformLabel
+	);
+	const hostProfile = getAgentHostProfile(baseAgent.slug);
+	const heroDescription =
+		hostProfile?.uiArchetype === 'messaging-gateway'
+			? `Message ${agentLabel} from Telegram, WhatsApp, or Slack. Add the openquok-core skill so it schedules ${platformLabel} posts while you review on the calendar or kanban.`
+			: buildAgentChannelEcosystemHeroDescription({
+					hostSlug: baseAgent.slug,
+					agentLabel,
+					platformLabel
+				});
+	const hostFaqTitles = new Set(baseAgent.faqItems.map((item) => item.title));
+	const ecosystemChannelFaqItems = buildAgentChannelEcosystemFaqItems({
+		hostSlug: baseAgent.slug,
+		channelSlug: channel.slug,
+		platformLabel,
+		agentLabel
+	}).filter((item) => !hostFaqTitles.has(item.title));
 	const channelLinks = buildChannelFaqLinks(channel.slug, channel.docsPath);
 	const agentLinks = buildAgentFaqLinks(baseAgent.slug, baseAgent.docsPath);
 	const humanizerChannelLinks = buildToolChannelFaqLinks('humanizer', channel.slug);
@@ -52,6 +80,7 @@ export function buildAgentChannelLandingVm(params: {
 		...baseAgent,
 		heroSecondaryIcon: channel.icon,
 		...audienceSection,
+		audienceCards,
 		metaTitle: buildAgentChannelMetaTitle(platformLabel, agentLabel),
 		metaDescription: channelConfig.metaDescription.replace('OpenClaw', agentLabel),
 		keywords: [
@@ -60,7 +89,7 @@ export function buildAgentChannelLandingVm(params: {
 			)
 		],
 		heroTitle: `Schedule ${platformLabel} from ${agentLabel} then you approve`,
-		heroDescription: `Message ${agentLabel} from Telegram, WhatsApp, or Slack. Add the openquok-core skill so it schedules ${platformLabel} posts while you review on the calendar or kanban.`,
+		heroDescription,
 		workflowSection: baseAgent.workflowSection
 			? {
 					...baseAgent.workflowSection,
@@ -105,7 +134,9 @@ export function buildAgentChannelLandingVm(params: {
 		faqTitle: `${agentLabel} + ${platformLabel}, answered`,
 		faqDescription: `What ${agentLabel} is, how to install openquok-core, scheduling ${platformLabel} posts, human approval, and ${platformLabel} setup questions.`,
 		faqItems: appendChannelLandingFaqItems(
-			baseAgent.faqItems.map((item) => {
+			[
+				...ecosystemChannelFaqItems,
+				...baseAgent.faqItems.map((item) => {
 			if (item.title === 'Which social media platforms are supported?') {
 				return {
 					...item,
@@ -129,7 +160,8 @@ export function buildAgentChannelLandingVm(params: {
 				};
 			}
 			return item;
-			}),
+				})
+			],
 			channel.faqItems
 		)
 	};

@@ -64,7 +64,7 @@ Pick the tier by route family. Tier 1 and Tier 2 both use a `platforms/{slug}.ts
 
 | Tier | Routes | Module pattern | File shape |
 | --- | --- | --- | --- |
-| **1 — Channel identity** | `/channels/{slug}` | `channels/catalog/platforms/{slug}.ts` | **Full** `PublicChannelLandingPageViewModel`; register in `catalog/seeds.ts`. Shared catalog infra: `catalog/types.ts`, `shared.ts`, `feature-bento.ts`. WhoIsFor: `audienceCards` (3) + optional `audienceTailoredCard`; `resolvePublicChannelAudienceCards` in `channels/index.ts` for agent/API surfaces |
+| **1 — Channel identity** | `/channels/{slug}` | `channels/catalog/platforms/{slug}.ts` | **Full** `PublicChannelLandingPageViewModel`; register in `catalog/seeds.ts`. Base WhoIsFor: three `audienceCards` + optional seed `audienceTailoredCard`. Runtime SEO: **`getPublicChannelBySlug`** (`channels/index.ts`) + **`channelPageSeo.ts`**; vendor ecosystems: **web-seo-agent-ecosystems** |
 | **2 — API marketing** | `/social-media-posting-api/{slug}`, scheduling sibling | `channels/api/posting/platforms/{slug}.ts` | **Full** platform page VM (`buildPublicApiPlatformPage`). Export **both** posting and scheduling VMs from the same file; `api/scheduling/index.ts` imports scheduling exports only (no `api/scheduling/platforms/`) |
 | **3 — Derived tools** | `/tools/{tool}/{slug}` | `channels/tool-surfaces/{slug}.ts` + `tools/{tool}/general.ts` | **Sparse** `ChannelToolContentOverride` merged via `mergeChannelToolContentOverride`; register in that tool’s `CHANNEL_CONTENT_OVERRIDES` |
 
@@ -111,7 +111,7 @@ Inventory: `web/src/lib/content/constants/_dev/programmatic-landing/publicProgra
 | --- | --- |
 | `/` | `LandingPage.svelte`, `HeroMain.svelte` |
 | `/channels` | `PublicChannelsHubGrid.svelte` + hub `PublicFaq` |
-| `/channels/{slug}` | `PublicChannelHero.svelte` or `PublicComingSoonIntegrationPage.svelte`; `HeroWithLeftMedia` / `HeroWithRightMedia` + `BentoPublicChannelFeature`; `PublicFaq` |
+| `/channels/{slug}` | `PublicChannelHero` or coming-soon; feature rows + bento; **`PublicChannelAgentIntegrationsGrid`**; **`PublicChannelSiblingGrid`**; `WhoIsFor`; `PublicFaq` |
 | `/agents` | `PublicAgentsHubGrid.svelte` |
 | `/agents/{slug}` | `PublicAgentLandingPage.svelte` or `PublicMcpLandingPage.svelte` |
 | `/agents/{slug}/{channelSlug}` | Same agent/MCP landing template; channel-specific VM |
@@ -133,13 +133,11 @@ Shared chrome: `PublicArea.svelte`, `Footer.svelte` (`PUBLIC_FOOTER_LINKS` — f
 
 ### Channel / agent channel landings
 
-1. Hero (`PublicChannelHero` or coming-soon hero).
-2. Three feature rows (`HeroWithLeftMedia` / `HeroWithRightMedia` — alternate `mediaOnRight`).
-3. Audience / who-is-for (agent pages).
-4. Listings preview (playbooks + building blocks by tag) when not coming soon.
-5. CLI or MCP command reference (agent hosts / MCP clients).
-6. **FAQ** — `<PublicFaq>` with VM `faqSubtitle`, `faqTitle`, `faqDescription`, `faqItems`.
-7. No extra bottom CTA block — pricing CTA lives in hero and feature rows only (**add-social-provider-integration**).
+**`/channels/{slug}`:** Hero → **WhoIsFor** (`getPublicChannelBySlug`) → team/feature rows → **`PublicChannelAgentIntegrationsGrid`** → **`PublicChannelSiblingGrid`** → FAQ → docs/sign-up banners. Vendor ecosystem copy: **web-seo-agent-ecosystems**.
+
+**`/agents/{host}/{channel}`:** Hero → feature rows → **WhoIsFor** (catalog + agent hooks + ecosystem cards) → listings preview (when live) → CLI or MCP reference → FAQ. VM: **`buildAgentChannelLandingVm`** / **`buildMcpChannelLandingVm`**.
+
+Both: `<PublicFaq>` from server VM; no extra bottom CTA block beyond hero/feature rows (**add-social-provider-integration**).
 
 ### Tool pages (humanizer, photo editor, skill builder, best time to post)
 
@@ -208,16 +206,7 @@ Public tool UIs mock workspace features without OAuth or post APIs:
 
 ## Landing and FAQ copy — ASD-STE100
 
-Every pSEO FAQ answer **and** user-facing landing string (channel, agent, MCP, tool, hub config: heroes, hub blurbs, feature descriptions, audience cards) must use **ASD-STE100 Simplified Technical English**:
-
-- Short sentences; one idea per sentence.
-- Active voice; second person when addressing the reader (`you`, `your workspace`).
-- Approved, plain vocabulary — avoid jargon stacks and passive spec lists.
-- **Do not** meta-comment in user-facing copy (never write “this answer uses STE100”).
-
-Feature **titles** may keep comma-split lines for hero theme. **Descriptions** still follow STE100.
-
-Questions stay plain text; answers are HTML fragments from `faqLink` / `faqLinkSelfHostChannelSetup`. New agent/MCP hosts: **add-agent**. New channels: **add-social-provider-integration**.
+Every pSEO FAQ answer **and** user-facing landing string (channel, agent, MCP, tool, hub config) must use **ASD-STE100** — short sentences, active voice, plain vocabulary. Feature **titles** may use comma-split hero lines; **descriptions** and FAQ answers follow STE100. New hosts: **add-agent**; new channels: **add-social-provider-integration**.
 
 ## FAQ link helpers (`publicFaqLinks.ts`)
 
@@ -309,6 +298,7 @@ New pSEO routes that should be discoverable from every page belong here or in he
 
 ## Related rules
 
+- Agent-host ecosystems (Meta / OpenAI-aligned / Grok): **web-seo-agent-ecosystems**
 - Git-default FAQ ids, append sets, pricing subset: **web-landing-faqs**
 - Landing/pricing CMS FAQ (secret-admin): **web-seo-cms-copy**
 - New channel/agent/tool surfaces: **add-social-provider-integration**, **add-agent**

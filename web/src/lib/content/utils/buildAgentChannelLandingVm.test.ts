@@ -97,3 +97,62 @@ describe('buildAgentChannelLandingVm channel FAQ merge', () => {
 		expect(vm.faqItems.length).toBeGreaterThan(baseAgent!.faqItems.length);
 	});
 });
+
+describe('buildAgentChannelLandingVm ecosystem hooks', () => {
+	it('uses muse.ai hero copy for Meta Muse channel pages', () => {
+		const baseAgent = getPublicAgentHostBySlug('meta-muse');
+		const threadsChannel = getPublicChannelBySlug('threads');
+		const threadsConfig = getPublicAgentChannelBySlug('meta-muse', 'threads');
+
+		expect(baseAgent).toBeDefined();
+		expect(threadsChannel).toBeDefined();
+		expect(threadsConfig).toBeDefined();
+
+		const vm = buildAgentChannelLandingVm({
+			baseAgent: baseAgent!,
+			channel: threadsChannel!,
+			channelConfig: threadsConfig!
+		});
+
+		expect(vm.heroDescription).toContain('muse.ai');
+		expect(vm.heroDescription).not.toContain('Telegram');
+		expect(vm.heroDescription).toContain('Threads');
+	});
+
+	it('adds ecosystem audience card and first-class FAQ for Meta Muse + Threads', () => {
+		const baseAgent = getPublicAgentHostBySlug('meta-muse');
+		const threadsChannel = getPublicChannelBySlug('threads');
+		const threadsConfig = getPublicAgentChannelBySlug('meta-muse', 'threads');
+
+		const vm = buildAgentChannelLandingVm({
+			baseAgent: baseAgent!,
+			channel: threadsChannel!,
+			channelConfig: threadsConfig!
+		});
+
+		expect(vm.audienceCards.length).toBeGreaterThan(3);
+		expect(vm.audienceCards.at(-1)?.title).toBe('Meta-owned channels first');
+		expect(vm.audienceCards[0]?.description).toContain('first-class Meta Muse channel');
+
+		const firstClassFaq = vm.faqItems.find((item) =>
+			item.title.includes('first-class for Meta Muse')
+		);
+		expect(firstClassFaq).toBeDefined();
+		expect(firstClassFaq!.description).toContain('/agents/meta-muse/threads');
+	});
+
+	it('keeps Telegram messaging hero for OpenClaw channel pages', () => {
+		const baseAgent = getPublicAgentHostBySlug('openclaw');
+		const facebookChannel = getPublicChannelBySlug('facebook');
+		const facebookConfig = getPublicAgentChannelBySlug('openclaw', 'facebook');
+
+		const vm = buildAgentChannelLandingVm({
+			baseAgent: baseAgent!,
+			channel: facebookChannel!,
+			channelConfig: facebookConfig!
+		});
+
+		expect(vm.heroDescription).toContain('Telegram');
+		expect(vm.heroDescription).toContain('WhatsApp');
+	});
+});

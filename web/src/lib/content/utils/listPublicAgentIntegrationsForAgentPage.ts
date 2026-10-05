@@ -4,7 +4,7 @@ import {
 	getRootPathPublicAgent,
 	getRootPathPublicAgentChannel
 } from '$lib/area-public/constants/getRootPathPublicAgents';
-import { listPublicAgentsForHub } from '$lib/content/constants/agents';
+import { listPublicAgentsForHub, sortAgentIntegrationsForEcosystem } from '$lib/content/constants/agents';
 import { getPublicChannelBySlug } from '$lib/content/constants/channels';
 import { listPublicMcpLandingPages } from '$lib/content/constants/mcps';
 import { buildPublicAgentIntegrationHubCardDescription } from '$lib/content/utils/buildPublicAgentIntegrationsGridCopy';
@@ -46,14 +46,16 @@ function cardDescription(
 }
 
 export function listPublicAgentIntegrationsForAgentPage(
-	channelSlug?: string | null
+	channelSlug?: string | null,
+	activeAgentSlug?: string | null
 ): PublicAgentIntegrationsForAgentPage {
 	const normalizedChannel = channelSlug?.trim().toLowerCase() ?? '';
+	const normalizedHost = activeAgentSlug?.trim().toLowerCase() ?? '';
 	const channel = normalizedChannel ? getPublicChannelBySlug(normalizedChannel) : undefined;
 	const platformLabel = channel?.platformLabel ?? '';
 	const integrationLive = channel?.available ?? true;
 
-	const agentHosts: PublicChannelAgentIntegrationGridItem[] = listPublicAgentsForHub().map(
+	let agentHosts: PublicChannelAgentIntegrationGridItem[] = listPublicAgentsForHub().map(
 		(agent) => ({
 			slug: agent.slug,
 			title: agent.agentLabel,
@@ -71,7 +73,7 @@ export function listPublicAgentIntegrationsForAgentPage(
 		})
 	);
 
-	const mcpClients: PublicChannelAgentIntegrationGridItem[] = listPublicMcpLandingPages().map(
+	let mcpClients: PublicChannelAgentIntegrationGridItem[] = listPublicMcpLandingPages().map(
 		(mcp) => ({
 			slug: mcp.slug,
 			title: mcp.agentLabel,
@@ -88,6 +90,11 @@ export function listPublicAgentIntegrationsForAgentPage(
 			kind: 'mcp-client' as const
 		})
 	);
+
+	if (normalizedHost) {
+		agentHosts = sortAgentIntegrationsForEcosystem(agentHosts, normalizedHost, 'agent-host');
+		mcpClients = sortAgentIntegrationsForEcosystem(mcpClients, normalizedHost, 'mcp-client');
+	}
 
 	return { agentHosts, mcpClients };
 }

@@ -28,12 +28,16 @@
 
 	const headingId = 'public-agent-integrations-sibling-grid-heading';
 
-	const integrations = $derived(listPublicAgentIntegrationsForAgentPage(channelSlug));
+	const integrations = $derived(
+		listPublicAgentIntegrationsForAgentPage(channelSlug, activeAgentSlug)
+	);
 	const agentHostItems = $derived(integrations.agentHosts);
 	const mcpClientItems = $derived(integrations.mcpClients);
 
 	const sectionTitle = $derived(buildPublicAgentIntegrationsGridTitle(agentLabel));
-	const sectionDescription = $derived(buildPublicAgentIntegrationsGridDescription(agentLabel));
+	const sectionDescription = $derived(
+		buildPublicAgentIntegrationsGridDescription(agentLabel, activeAgentSlug)
+	);
 	const sectionSubtitle = buildPublicAgentIntegrationsGridSubtitle();
 	const coreLabel = buildPublicAgentIntegrationsGridCoreLabel();
 	const extensionLabel = buildPublicAgentIntegrationsGridExtensionLabel();

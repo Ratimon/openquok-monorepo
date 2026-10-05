@@ -1,22 +1,48 @@
+import { getChannelPageEcosystemId } from '$lib/content/constants/agents/ecosystems';
+
 export function buildPublicChannelAgentIntegrationsGridSubtitle(): string {
 	return 'Agents & MCP integrations';
 }
 
-/** Title for `FeaturesSectionHeader` — use a colon (not commas) so wrapped lines do not show leading commas. */
-export function buildPublicChannelAgentIntegrationsGridTitle(platformLabel: string): string {
+/** Title for `FeaturesSectionHeader` — colon-separated for gradient-friendly line breaks. */
+export function buildPublicChannelAgentIntegrationsGridTitle(
+	platformLabel: string,
+	channelSlug?: string
+): string {
 	const label = platformLabel.trim();
+	const slug = channelSlug?.trim().toLowerCase() ?? '';
+	const ecosystemId = slug ? getChannelPageEcosystemId(slug) : undefined;
+
 	if (label.length > 0) {
-		return `Schedule ${label} from agents: OpenClaw Cursor and every MCP landing page`;
+		if (ecosystemId === 'xai-grok') {
+			return `Schedule ${label} from Grok Bot, Cursor MCP, and every agent host`;
+		}
+		if (ecosystemId === 'meta-consumer') {
+			return `Schedule ${label} from Meta Muse, OpenClaw, and every agent host`;
+		}
+		return `Schedule ${label} from OpenClaw, Grok Bot, and every agent host`;
 	}
-	return 'Schedule from agents: OpenClaw Cursor and every MCP landing page';
+	return 'Schedule from OpenClaw, Grok Bot, and every agent host';
 }
 
-export function buildPublicChannelAgentIntegrationsGridDescription(platformLabel: string): string {
+export function buildPublicChannelAgentIntegrationsGridDescription(
+	platformLabel: string,
+	channelSlug?: string
+): string {
 	const label = platformLabel.trim();
+	const slug = channelSlug?.trim().toLowerCase() ?? '';
+	const ecosystemId = slug ? getChannelPageEcosystemId(slug) : undefined;
+
 	if (label.length > 0) {
-		return `Open a dedicated page for each autonomous agent or MCP client. You get ${label} workflows, CLI or prompt examples, and FAQs for that integration.`;
+		if (ecosystemId === 'xai-grok') {
+			return `Open a dedicated landing page for Grok Bot, Cursor, and every other agent or MCP client. You get ${label} workflows on xAI’s cloud desktop, openquok-core CLI examples, and integration FAQs.`;
+		}
+		if (ecosystemId === 'meta-consumer') {
+			return `Open Meta Muse, Muse Code, and every other agent landing for ${label}. You get Meta-first workflows, openquok-core CLI examples, and integration FAQs — plus OpenClaw, Cursor, and ChatGPT MCP.`;
+		}
+		return `Open a dedicated landing page for each autonomous agent or MCP client. You get ${label} workflows, openquok-core CLI examples, and integration FAQs — including Cursor, ChatGPT, Claude Code, and more.`;
 	}
-	return 'Open a dedicated page for each autonomous agent or MCP client. You get platform workflows, CLI or prompt examples, and FAQs for that integration.';
+	return 'Open a dedicated landing page for each autonomous agent or MCP client. You get platform workflows, CLI examples, and integration FAQs.';
 }
 
 export function buildPublicChannelAgentIntegrationsGridCoreLabel(): string {

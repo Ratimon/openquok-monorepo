@@ -13,11 +13,6 @@ describe('buildAgentHostLandingPage', () => {
 		expect(page.featureSections[1]?.bentoId).toBe('agent-multi-platform-bulk-scheduling');
 		expect(page.setupStepsTitle).toBe('Five steps,to OpenClaw + OpenQuok');
 		expect(page.faqItems).toHaveLength(10);
-		expect(page.faqItems[1]?.title).toContain('Grok Bot');
-	});
-
-	it('applies overrides.faqItemsAfterFirst after the first default FAQ', () => {
-		const page = buildAgentHostLandingPage(openclawAgentSeed);
 		expect(page.faqItems[0]?.title).toBe('What is OpenClaw?');
 		expect(page.faqItems[1]?.title).toBe('How do I pick OpenClaw vs Grok Bot or Dots?');
 	});

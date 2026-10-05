@@ -2,6 +2,10 @@
 	import type { PublicChannelSiblingGridItem } from '$lib/content/utils/buildPublicChannelSiblingGridCopy';
 
 	import {
+		buildAgentHostEcosystemChannelSiblingGridHubDescription,
+		buildAgentHostEcosystemChannelSiblingGridHubTitle
+	} from '$lib/content/constants/agents/ecosystems';
+	import {
 		buildPublicAgentChannelSiblingGridCardDescription,
 		buildPublicAgentChannelSiblingGridDescription,
 		buildPublicAgentChannelSiblingGridHubDescription,
@@ -25,32 +29,50 @@
 		activePlatformLabel?: string;
 		/** When set, section and card copy reference the agent host or MCP client. */
 		agentLabel?: string | null;
+		/** Agent or MCP slug for ecosystem-aware hub grid copy and ordering from load data. */
+		hostSlug?: string | null;
 	};
 
 	let {
 		channelsVm,
 		activeChannelSlug = null,
 		activePlatformLabel = '',
-		agentLabel = null
+		agentLabel = null,
+		hostSlug = null
 	}: Props = $props();
 
 	const headingId = 'public-channel-sibling-grid-heading';
 
+	const resolvedAgentLabel = $derived(agentLabel?.trim() ?? '');
+	const resolvedHostSlug = $derived(hostSlug?.trim() ?? '');
+
 	const sectionTitle = $derived(
-		agentLabel?.trim()
+		resolvedAgentLabel
 			? activePlatformLabel.trim()
-				? buildPublicAgentChannelSiblingGridTitle(activePlatformLabel, agentLabel)
-				: buildPublicAgentChannelSiblingGridHubTitle(agentLabel)
+				? buildPublicAgentChannelSiblingGridTitle(activePlatformLabel, resolvedAgentLabel)
+				: resolvedHostSlug
+					? buildAgentHostEcosystemChannelSiblingGridHubTitle(
+							resolvedAgentLabel,
+							resolvedHostSlug
+						)
+					: buildPublicAgentChannelSiblingGridHubTitle(resolvedAgentLabel)
 			: buildPublicChannelSiblingGridTitle(activePlatformLabel)
 	);
-	const resolvedAgentLabel = $derived(agentLabel?.trim() ?? '');
 
 	const sectionDescription = $derived(
 		resolvedAgentLabel
 			? activePlatformLabel.trim()
-				? buildPublicAgentChannelSiblingGridDescription(activePlatformLabel, resolvedAgentLabel)
-				: buildPublicAgentChannelSiblingGridHubDescription(resolvedAgentLabel)
-			: buildPublicChannelSiblingGridDescription(activePlatformLabel)
+				? buildPublicAgentChannelSiblingGridDescription(
+						activePlatformLabel,
+						resolvedAgentLabel
+					)
+				: resolvedHostSlug
+					? buildAgentHostEcosystemChannelSiblingGridHubDescription(
+							resolvedAgentLabel,
+							resolvedHostSlug
+						)
+					: buildPublicAgentChannelSiblingGridHubDescription(resolvedAgentLabel)
+			: buildPublicChannelSiblingGridDescription(activePlatformLabel, activeChannelSlug ?? undefined)
 	);
 
 	function cardDescription(platformLabel: string, available: boolean): string {
@@ -129,6 +151,12 @@
 										</span>
 									{:else if !channelVm.available}
 										<PublicSoonBadge label="Soon" />
+									{:else if channelVm.badgeLabel}
+										<span
+											class="rounded-full bg-base-content/8 px-2.5 py-0.5 text-xs font-semibold text-base-content/75"
+										>
+											{channelVm.badgeLabel}
+										</span>
 									{/if}
 								</div>
 							</div>

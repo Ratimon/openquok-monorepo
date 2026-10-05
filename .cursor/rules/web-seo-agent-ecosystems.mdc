@@ -1,0 +1,82 @@
+---
+description: Agent-host vendor ecosystems — first-class channels, WhoIsFor/FAQ/grid copy on host and /channels/{slug} landings (Meta Muse, OpenAI-aligned hosts, Grok Bot/xAI)
+globs:
+  - web/src/lib/content/constants/agents/ecosystems/**
+  - web/src/lib/content/constants/agents/index.ts
+  - web/src/lib/content/constants/channels/index.ts
+  - web/src/lib/content/constants/channels/catalog/channelPageSeo.ts
+  - web/src/lib/content/utils/buildPublicChannelAgentIntegrationsGridCopy.ts
+  - web/src/lib/content/utils/buildPublicChannelSiblingGridCopy.ts
+  - web/src/lib/content/utils/listPublicAgentIntegrationsForChannel.ts
+  - web/src/lib/content/utils/buildAgentChannelLandingVm.ts
+  - web/src/lib/content/constants/agents/channels/index.ts
+  - web/src/lib/ui/templates/landing-page/PublicChannelAgentIntegrationsGrid.svelte
+  - web/src/lib/ui/templates/landing-page/PublicChannelSiblingGrid.svelte
+  - web/src/routes/(public)/channels/[slug]/+page.svelte
+alwaysApply: false
+---
+
+# Web SEO: Agent-host ecosystems
+
+Vendor-aligned **first-class channel** relationships (Meta Muse ↔ Facebook/Instagram/Threads, Grok Bot ↔ X, OpenClaw/Dots ↔ OpenAI-personal-agents sibling grids). Single module: **`web/src/lib/content/constants/agents/ecosystems/index.ts`**.
+
+Host picker scenarios stay in **`agents/decision-scenarios.ts`**. UI archetypes stay in **`agents/host-profiles.ts`** — do not conflate with ecosystem ids.
+
+## Profiles (`AgentHostEcosystemId`)
+
+| Id | Host slugs (`AGENT_HOST_ECOSYSTEM_BY_SLUG`) | First-class channels | Typical MCP pin (`relatedMcpSlugs`) |
+| --- | --- | --- | --- |
+| `meta-consumer` | `meta-muse` | `facebook`, `instagram`, `threads` | `muse-code` |
+| `openai-personal-agents` | `openclaw`, `dots` | — (sibling agents on host landings) | `chatgpt` |
+| `xai-grok` | `grok-bot` | `x` | `cursor` |
+
+Extend **`ECOSYSTEM_PROFILES`**, **`AGENT_HOST_ECOSYSTEM_BY_SLUG`**, and **`audienceTailoredCardByHostSlug`** together when adding a mapped host.
+
+## Where copy runs
+
+| Surface | Entry | Ecosystem behavior |
+| --- | --- | --- |
+| **`/agents/{host}`** | `getPublicAgentHostBySlug` → `withAgentHostEcosystem` (`agents/index.ts`) | Fourth WhoIsFor card; `buildAgentHostEcosystemFaqItems`; hub channel grid sort + badges via `sortAgentChannelHubLinks` |
+| **`/agents/{host}/{channel}`** | `buildAgentChannelLandingVm` | `resolveAgentChannelAudienceCards`, `buildAgentChannelEcosystemHeroDescription`, `buildAgentChannelEcosystemFaqItems` |
+| **`/channels/{slug}`** | `getPublicChannelBySlug` → `withChannelPageSeoCopy` (`channels/index.ts`) | **Inverse** emphasis: ecosystem fourth card (`buildPublicChannelEcosystemAudienceTailoredCard`), first-card hook (`applyPublicChannelPageAudienceFirstCardHook`), prepended FAQs (`buildPublicChannelEcosystemFaqItems`, dedupe by title), then `PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS` |
+| **`/channels/{slug}` grids** | `channelPageSeo.ts`, grid copy utils, `listPublicAgentIntegrationsForChannel` | Pinned agent hosts (`CHANNEL_PAGE_PINNED_AGENT_SLUGS`); MCP sort via `sortAgentIntegrationsForEcosystem` + primary host from `getPrimaryAgentHostSlugForChannelPage`; sibling badges (`enrichPublicChannelSiblingGridItems`) |
+
+Channel seeds keep **three** base `audienceCards` + optional seed-only **`audienceTailoredCard`** (e.g. LinkedIn). Do **not** duplicate ecosystem fourth cards in `catalog/platforms/{slug}.ts` — runtime getters merge them.
+
+Generic fallback when no ecosystem: **`buildPublicChannelAgentAudienceTailoredCard`** in `channelPageSeo.ts`.
+
+## Key symbols (channel page)
+
+- `getChannelPageEcosystemId`, `getPrimaryAgentHostSlugForChannelPage`
+- `buildPublicChannelEcosystemAudienceTailoredCard`, `buildPublicChannelEcosystemFaqItems`
+- `buildPublicChannelAgentIntegrationsGridTitle(platformLabel, channelSlug)` — pass **`channelSlug`** from templates for ecosystem titles
+- `buildPublicChannelSiblingGridDescription(platformLabel, channelSlug)`
+
+## FAQ deduplication
+
+- Host seed FAQs + `buildAgentHostEcosystemFaqItems` must not repeat the same **`title`** (tests in `ecosystems.test.ts`).
+- Channel pages: prepend ecosystem FAQs only when titles are absent from seed **`faqItems`**.
+- OpenAI-personal-agents host ecosystem FAQ builder intentionally returns `[]` — use host **`buildAgentHostPickerFaqDescription`** on OpenClaw/Dots seeds instead.
+
+## Tests
+
+| File | Covers |
+| --- | --- |
+| `ecosystems/ecosystems.test.ts` | Maps, sort, host FAQ, channel id lookup, MCP pins |
+| `channels/catalog/channelPageSeo.test.ts` | `/channels/x` WhoIsFor + Grok pin order |
+| `buildPublicChannelAgentIntegrationsGridCopy.test.ts` | Ecosystem integration titles + list order |
+
+Mock hub links in tests: use **`PublicAgentChannelHubLinkViewModel`** and **`icons.*.name`** (`TikTok`, not `Tiktok`).
+
+## PR checklist (ecosystem touch)
+
+- [ ] Host slug registered in **`AGENT_HOST_ECOSYSTEM_BY_SLUG`** only when product claims a first-class or sibling relationship
+- [ ] **`/channels/{slug}`** and **`/agents/{host}`** smoke: fourth WhoIsFor card, integration grid order, no duplicate FAQ titles
+- [ ] **`pnpm exec vitest run`** on `ecosystems.test.ts` and channel grid copy tests
+- [ ] Neutral vendor copy (**source-project-neutrality**)
+
+## Related rules
+
+- New agent host / MCP: **add-agent** (seeds, channel catalog, host-specific facts)
+- pSEO tiers, templates, ASD-STE100, connect funnel: **web-seo-pseo**
+- FAQ append ids on `getPublicChannelBySlug`: **web-landing-faqs**

@@ -6,7 +6,11 @@ export type PublicChannelSiblingGridItem = {
 	icon: IconName;
 	href: string;
 	available: boolean;
+	/** Shown beside the platform label when the host marks the channel first-class. */
+	badgeLabel?: string;
 };
+
+import { getChannelPageEcosystemId } from '$lib/content/constants/agents/ecosystems';
 
 /** Section copy for the cross-link grid on `/channels/{slug}` and agent channel detail pages. */
 export function buildPublicChannelSiblingGridTitle(platformLabel: string): string {
@@ -44,10 +48,24 @@ export function buildPublicAgentChannelSiblingGridHubDescription(agentLabel: str
 	return 'Pick a channel for agent workflows, examples, and FAQs.';
 }
 
-export function buildPublicChannelSiblingGridDescription(platformLabel: string): string {
+export function buildPublicChannelSiblingGridDescription(
+	platformLabel: string,
+	channelSlug?: string
+): string {
 	const label = platformLabel.trim();
+	const slug = channelSlug?.trim().toLowerCase() ?? '';
+	const ecosystemId = slug ? getChannelPageEcosystemId(slug) : undefined;
+
+	if (label.length > 0 && ecosystemId === 'xai-grok') {
+		return `X is home for Grok Bot on OpenQuok. Connect Instagram, Threads, and every other supported network from the same workspace — dashboard, public API, Cursor MCP, or cloud-desktop agents.`;
+	}
+
+	if (label.length > 0 && ecosystemId === 'meta-consumer') {
+		return `Facebook, Instagram, and Threads are first-class for Meta Muse. Start with ${label}, then schedule X and every other network from one workspace.`;
+	}
+
 	return label.length > 0
-		? `Start with ${label}, then add Instagram, Threads, and every other supported network from one workspace.`
+		? `Start with ${label}, then add Instagram, Threads, and every other supported network from one workspace. Schedule each network from the dashboard, public API, or an agent host.`
 		: 'Schedule every supported network from the same workspace.';
 }
 

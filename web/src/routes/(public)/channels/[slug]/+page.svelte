@@ -9,6 +9,7 @@
 	import { route, url } from '$lib/utils/path';
 	import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
 	import { listPublicChannelsForHub } from '$lib/content/constants/channels/index';
+	import { enrichPublicChannelSiblingGridItems } from '$lib/content/constants/channels/catalog/channelPageSeo';
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
 	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
@@ -57,13 +58,16 @@
 	let accentBannerDescription = $derived(accentSplitDocsCtaBannerDescription(channelVm.platformLabel));
 
 	const siblingChannels = $derived(
-		listPublicChannelsForHub().map((channel) => ({
-			slug: channel.slug,
-			platformLabel: channel.platformLabel,
-			icon: channel.icon,
-			href: route(getRootPathPublicChannel(channel.slug)),
-			available: channel.available
-		}))
+		enrichPublicChannelSiblingGridItems(
+			listPublicChannelsForHub().map((channel) => ({
+				slug: channel.slug,
+				platformLabel: channel.platformLabel,
+				icon: channel.icon,
+				href: route(getRootPathPublicChannel(channel.slug)),
+				available: channel.available
+			})),
+			channelVm.slug
+		)
 	);
 </script>
 

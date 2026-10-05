@@ -33,6 +33,8 @@ export type PublicAgentChannelHubLinkViewModel = {
 	description: string;
 	/** When false, the channel integration is not live yet. */
 	available: boolean;
+	/** Ecosystem first-class channel badge (e.g. Meta Muse on Facebook). */
+	badgeLabel?: string;
 };
 
 export type PublicAgentChannelHostConfig = {

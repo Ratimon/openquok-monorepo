@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+	buildAgentHostEcosystemChannelSiblingGridHubDescription,
+	buildAgentHostEcosystemChannelSiblingGridHubTitle
+} from '$lib/content/constants/agents/ecosystems';
+import {
 	buildPublicAgentChannelSiblingGridCardDescription,
 	buildPublicAgentChannelSiblingGridDescription,
 	buildPublicAgentChannelSiblingGridHubDescription,
@@ -17,8 +21,9 @@ describe('buildPublicChannelSiblingGridCopy', () => {
 			'Beyond TikTok: Every Supported Platform'
 		);
 		expect(buildPublicChannelSiblingGridDescription('TikTok')).toBe(
-			'Start with TikTok, then add Instagram, Threads, and every other supported network from one workspace.'
+			'Start with TikTok, then add Instagram, Threads, and every other supported network from one workspace. Schedule each network from the dashboard, public API, or an agent host.'
 		);
+		expect(buildPublicChannelSiblingGridDescription('X', 'x')).toContain('Grok Bot');
 	});
 
 	it('builds card descriptions for live and coming-soon channels', () => {
@@ -46,5 +51,34 @@ describe('buildPublicChannelSiblingGridCopy', () => {
 		expect(buildPublicAgentChannelSiblingGridCardDescription('Facebook', 'Grok Bot', true)).toBe(
 			'Schedule Facebook from Grok Bot.'
 		);
+	});
+
+	describe('ecosystem-aware agent hub grid copy', () => {
+		it('emphasizes Meta-owned networks for Meta Muse', () => {
+			expect(
+				buildAgentHostEcosystemChannelSiblingGridHubTitle('Meta Muse', 'meta-muse')
+			).toContain('Meta channels first');
+			expect(
+				buildAgentHostEcosystemChannelSiblingGridHubDescription('Meta Muse', 'meta-muse')
+			).toContain('Facebook, Instagram, and Threads');
+		});
+
+		it('emphasizes X for Grok Bot hub copy', () => {
+			expect(buildAgentHostEcosystemChannelSiblingGridHubTitle('Grok Bot', 'grok-bot')).toContain(
+				'X first'
+			);
+			expect(
+				buildAgentHostEcosystemChannelSiblingGridHubDescription('Grok Bot', 'grok-bot')
+			).toContain('Start with X');
+		});
+
+		it('falls back to default hub copy for hosts outside the ecosystem map', () => {
+			expect(buildAgentHostEcosystemChannelSiblingGridHubTitle('Hermes', 'hermes')).toBe(
+				buildPublicAgentChannelSiblingGridHubTitle('Hermes')
+			);
+			expect(
+				buildAgentHostEcosystemChannelSiblingGridHubDescription('Hermes', 'hermes')
+			).toBe(buildPublicAgentChannelSiblingGridHubDescription('Hermes'));
+		});
 	});
 });

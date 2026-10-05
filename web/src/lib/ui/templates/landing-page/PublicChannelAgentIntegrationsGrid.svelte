@@ -31,9 +31,11 @@
 	const agentHostItems = $derived(integrations.agentHosts);
 	const mcpClientItems = $derived(integrations.mcpClients);
 
-	const sectionTitle = $derived(buildPublicChannelAgentIntegrationsGridTitle(platformLabel));
+	const sectionTitle = $derived(
+		buildPublicChannelAgentIntegrationsGridTitle(platformLabel, channelSlug)
+	);
 	const sectionDescription = $derived(
-		buildPublicChannelAgentIntegrationsGridDescription(platformLabel)
+		buildPublicChannelAgentIntegrationsGridDescription(platformLabel, channelSlug)
 	);
 	const sectionSubtitle = buildPublicChannelAgentIntegrationsGridSubtitle();
 	const coreLabel = buildPublicChannelAgentIntegrationsGridCoreLabel();

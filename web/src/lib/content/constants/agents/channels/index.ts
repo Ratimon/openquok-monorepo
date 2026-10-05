@@ -7,6 +7,11 @@ import type {
 	PublicAgentChannelHubLinkViewModel,
 	PublicAgentChannelPageConfig
 } from '$lib/content/constants/agents/channels/types';
+import {
+	AGENT_HOST_FIRST_CLASS_CHANNEL_BADGE,
+	isFirstClassChannelForHost,
+	sortAgentChannelHubLinks
+} from '$lib/content/constants/agents/ecosystems';
 import { buildAgentChannelPageConfig } from '$lib/content/constants/agents/channels/general';
 import { grokBotAgentChannelConfigs, grokBotAgentChannelHost } from '$lib/content/constants/agents/channels/grok-bot';
 import { dotsAgentChannelConfigs, dotsAgentChannelHost } from '$lib/content/constants/agents/channels/dots';
@@ -118,7 +123,7 @@ function mapChannelConfigsToHubLinks(
 	agentSlug: string,
 	configs: readonly PublicAgentChannelPageConfig[]
 ): PublicAgentChannelHubLinkViewModel[] {
-	return configs.map((config) => {
+	const links = configs.map((config) => {
 		const channel = channelBySlug.get(config.channelSlug);
 		return {
 			slug: config.channelSlug,
@@ -129,6 +134,13 @@ function mapChannelConfigsToHubLinks(
 			available: channel?.available ?? false
 		};
 	});
+
+	return sortAgentChannelHubLinks(links, agentSlug).map((link) => ({
+		...link,
+		badgeLabel: isFirstClassChannelForHost(agentSlug, link.slug)
+			? AGENT_HOST_FIRST_CLASS_CHANNEL_BADGE
+			: undefined
+	}));
 }
 
 export function listPublicAgentChannelsForHub(

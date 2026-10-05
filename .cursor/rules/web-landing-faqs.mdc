@@ -89,7 +89,7 @@ faqItems: appendPublicGeneralFaqItems(
 
 ### Detail getters (avoid editing every channel file)
 
-- `getPublicChannelBySlug()` — append `PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS`
+- `getPublicChannelBySlug()` — prepend **`buildPublicChannelEcosystemFaqItems`** when mapped (**web-seo-agent-ecosystems**), then append `PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS`
 - `getPublicAgentHostBySlug()` — append `PUBLIC_AGENT_HOST_FAQ_ITEM_IDS` (no generic MCP primer; hosts cover MCP in tailored copy when relevant)
 - `getPublicMcpLandingBySlug()` — append `PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS`
 

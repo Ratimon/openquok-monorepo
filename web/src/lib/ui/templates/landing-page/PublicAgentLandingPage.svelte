@@ -273,6 +273,7 @@
 		{activeChannelSlug}
 		activePlatformLabel={comingSoonPlatformLabel}
 		agentLabel={agentVm.agentLabel}
+		hostSlug={agentVm.slug}
 	/>
 {/if}
 

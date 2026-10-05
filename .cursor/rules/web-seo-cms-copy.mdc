@@ -24,17 +24,7 @@ Marketing copy that crawlers should index must not rely on client-only presenter
 
 ## CMS FAQ vs pSEO catalog FAQ
 
-Three FAQ patterns share `faqLink` / `publicFaqHref` but differ in **where copy lives** (full wiring: **web-landing-faqs**):
-
-| Surface | Routes | Copy source | Rule |
-| --- | --- | --- | --- |
-| **Landing CMS FAQ** | `/` | Secret-admin **Public FAQ** (`public_faq.ITEMS`); empty → `PUBLIC_FAQ_ITEMS` via `resolvePublicFaqItemsVm` | This file + **web-landing-faqs** |
-| **Pricing FAQ** | `/pricing` | `getPublicPricingFaqItems()` from `PUBLIC_PRICING_FAQ_ITEM_IDS` (not the full CMS list) | **web-landing-faqs** |
-| **pSEO catalog FAQ** | `/channels`, `/agents`, `/tools`, hubs, detail landings | Tailored TypeScript copy + `appendPublicGeneralFaqItems(..., PUBLIC_*_FAQ_ITEM_IDS)` | **web-seo-pseo** + **web-landing-faqs** |
-
-Channel connect funnel (sign-up first, `connectChannelsGuide` primary, `self-host` on `social-integration` links) applies to **pSEO** channel and hub FAQs — not to generic landing/pricing Q&A unless the question is about connecting a network.
-
-Template section order and `PublicFaq` wiring on programmatic routes: **web-seo-pseo**.
+Three FAQ patterns share `faqLink` / `publicFaqHref`. **Wiring and append ids:** **web-landing-faqs**. **Connect funnel and STE100 on catalog landings:** **web-seo-pseo**. **Ecosystem FAQ prepend on channel detail:** **web-seo-agent-ecosystems**.
 
 ## Load pattern (`+page.server.ts`)
 

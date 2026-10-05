@@ -297,11 +297,6 @@ openquok analytics:post <post-id> -d 30`
 				`Yes — when your OpenQuok workspace has Facebook or Instagram connected. Ask Muse to call OpenQuok through a custom connector or openquok-core in the Secure VM. Muse drafts and queues posts; you approve on OpenQuok before anything publishes to your Page or professional account. See ${faqLink(publicFaqHref.channels, 'supported channels')}.`
 		},
 		{
-			title: 'Is Meta Muse the same as Muse Code?',
-			description:
-				`No. Meta Muse is the personal agent product for everyone. Muse Code is Meta's terminal coding agent for developers on macOS and Linux. Muse Code connects to OpenQuok over MCP in ~/.config/muse/settings.json — see the ${faqLink(publicFaqHref.museCodeLanding, 'Muse Code MCP guide')}. Consumer Muse and Muse Code are separate subscriptions and apps.`
-		},
-		{
 			title: 'Does Meta Muse ship a built-in OpenQuok connector?',
 			description:
 				'Not as a pre-reviewed directory connector on day one. Meta says you can ask Muse to create a custom connector when a service exposes an API. OpenQuok publishes a public OpenAPI document and REST API so Muse can wire scheduling without a separate adapter.'

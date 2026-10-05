@@ -1,5 +1,10 @@
 import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/agents/types';
 import {
+	buildAgentHostEcosystemFaqItems,
+	resolveAgentHostAudienceCards
+} from '$lib/content/constants/agents/ecosystems';
+import type { PublicFaqItem } from '$lib/content/constants/faq';
+import {
 	appendPublicGeneralFaqItems,
 	PUBLIC_AGENT_HOST_FAQ_ITEM_IDS
 } from '$lib/content/constants/faq';
@@ -19,6 +24,24 @@ export {
 	getAgentHostProfile,
 	requireAgentHostProfile
 } from '$lib/content/constants/agents/host-profiles';
+export {
+	AGENT_HOST_ECOSYSTEM_BY_SLUG,
+	AGENT_HOST_FIRST_CLASS_CHANNEL_BADGE,
+	buildAgentHostEcosystemChannelSiblingGridHubDescription,
+	buildAgentHostEcosystemChannelSiblingGridHubTitle,
+	buildAgentChannelEcosystemFaqItems,
+	buildAgentChannelEcosystemHeroDescription,
+	buildAgentHostEcosystemFaqItems,
+	getAgentHostEcosystem,
+	getAgentHostEcosystemId,
+	isFirstClassChannelForHost,
+	resolveAgentChannelAudienceCards,
+	resolveAgentHostAudienceCards,
+	sortAgentChannelHubLinks,
+	sortAgentIntegrationsForEcosystem,
+	type AgentHostEcosystem,
+	type AgentHostEcosystemId
+} from '$lib/content/constants/agents/ecosystems';
 export { mergeAgentLandingFaqItems } from '$lib/content/constants/agents/mergeAgentLandingFaqItems';
 export { PUBLIC_AGENTS_HUB } from '$lib/content/constants/hubs/agents';
 export {
@@ -41,6 +64,27 @@ const agentHostBySlug = new Map(
 	PUBLIC_AGENT_HOST_LANDING_PAGES.map((page) => [page.slug, page])
 );
 
+function prependAgentHostEcosystemFaqItems(
+	hostItems: readonly PublicFaqItem[],
+	hostSlug: string
+): PublicFaqItem[] {
+	const hostTitles = new Set(hostItems.map((item) => item.title));
+	const ecosystemItems = buildAgentHostEcosystemFaqItems(hostSlug).filter(
+		(item) => !hostTitles.has(item.title)
+	);
+	return [...ecosystemItems, ...hostItems];
+}
+
+function withAgentHostEcosystem(
+	page: PublicAgentHostLandingPageViewModel
+): PublicAgentHostLandingPageViewModel {
+	return {
+		...page,
+		audienceCards: resolveAgentHostAudienceCards(page.audienceCards, page.slug),
+		faqItems: prependAgentHostEcosystemFaqItems(page.faqItems, page.slug)
+	};
+}
+
 function withAgentHostGeneralFaqs(
 	page: PublicAgentHostLandingPageViewModel
 ): PublicAgentHostLandingPageViewModel {
@@ -53,7 +97,7 @@ function withAgentHostGeneralFaqs(
 export function getPublicAgentHostBySlug(slug: string): PublicAgentHostLandingPageViewModel | undefined {
 	const key = slug.trim().toLowerCase();
 	const page = agentHostBySlug.get(key);
-	return page ? withAgentHostGeneralFaqs(page) : undefined;
+	return page ? withAgentHostGeneralFaqs(withAgentHostEcosystem(page)) : undefined;
 }
 
 export function getAvailablePublicAgentHostBySlug(

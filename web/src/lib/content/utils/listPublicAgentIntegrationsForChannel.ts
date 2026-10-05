@@ -4,6 +4,12 @@ import { getRootPathPublicAgentChannel } from '$lib/area-public/constants/getRoo
 import { listPublicAgentsForHub } from '$lib/content/constants/agents';
 import { getPublicAgentChannelBySlug } from '$lib/content/constants/agents/channels/index';
 import { getPublicChannelBySlug } from '$lib/content/constants/channels';
+import {
+	getPrimaryAgentHostSlugForChannelPage,
+	isFirstClassChannelForHost,
+	sortAgentIntegrationsForEcosystem
+} from '$lib/content/constants/agents/ecosystems';
+import { sortChannelPageAgentIntegrations } from '$lib/content/constants/channels/catalog/channelPageSeo';
 import { listPublicMcpLandingPages } from '$lib/content/constants/mcps';
 import { buildPublicChannelAgentIntegrationCardDescription } from '$lib/content/utils/buildPublicChannelAgentIntegrationsGridCopy';
 import { route } from '$lib/utils/path';
@@ -39,15 +45,24 @@ export function listPublicAgentIntegrationsForChannel(
 		const config = getPublicAgentChannelBySlug(agent.slug, normalizedChannel);
 		if (!config) continue;
 
+		let description = buildPublicChannelAgentIntegrationCardDescription(
+			channel.platformLabel,
+			agent.agentLabel,
+			'agent-host',
+			agent.available && integrationLive
+		);
+		if (
+			isFirstClassChannelForHost(agent.slug, normalizedChannel) &&
+			agent.available &&
+			integrationLive
+		) {
+			description = `${description.replace(/\.$/, '')}. First-class agent host for ${channel.platformLabel}.`;
+		}
+
 		agentHosts.push({
 			slug: agent.slug,
 			title: agent.agentLabel,
-			description: buildPublicChannelAgentIntegrationCardDescription(
-				channel.platformLabel,
-				agent.agentLabel,
-				'agent-host',
-				agent.available && integrationLive
-			),
+			description,
 			icon: agent.icon,
 			href: route(getRootPathPublicAgentChannel(agent.slug, normalizedChannel)),
 			available: agent.available,
@@ -70,5 +85,12 @@ export function listPublicAgentIntegrationsForChannel(
 		kind: 'mcp-client' as const
 	}));
 
-	return { agentHosts, mcpClients };
+	return {
+		agentHosts: sortChannelPageAgentIntegrations(agentHosts, normalizedChannel),
+		mcpClients: (() => {
+			const hostSlug = getPrimaryAgentHostSlugForChannelPage(normalizedChannel);
+			if (!hostSlug) return mcpClients;
+			return sortAgentIntegrationsForEcosystem(mcpClients, hostSlug, 'mcp-client');
+		})()
+	};
 }

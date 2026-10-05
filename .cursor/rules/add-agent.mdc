@@ -36,7 +36,7 @@ Two product surfaces share the `/agents` hub but use **different** content trees
 
 Follow **source-project-neutrality** and **company-brand-icons**. Reference MCP client: **`chatgpt.ts`**, **`claude-cowork.ts`**, **`warp.ts`**. Reference agent host: **`hosts/openclaw.ts`**, **`hosts/hermes.ts`**, **`hosts/grok-bot.ts`**, **`hosts/thinkrail.ts`**, **`hosts/manus.ts`**. Reference agent × channel SEO: **`channels/grok-bot.ts`** + **`agents/channels/index.ts`**.
 
-**User-facing landing copy** (`agents/hosts/{slug}.ts`, `mcps/hosts/{slug}.ts`, `hubs/agents.ts`, MCP `mcps/general.ts`, and `/agents` presenters): write in **ASD-STE100 Simplified Technical English**. Use short sentences. Put one idea in each sentence. Use active voice. Address the reader as **you**. Use plain words. Do not explain in the copy (or in chat) that you follow this style. Feature **titles** may keep comma-split lines for hero theme; **descriptions**, hub blurbs, heroes, audience cards, and FAQ answers must still be STE100.
+**User-facing landing copy** on agent/MCP seeds and hubs: **ASD-STE100** per **web-seo-pseo** (short sentences, active voice, `you`).
 
 **Do not edit `backend/supabase/db/**`** for agent launches (no listing-tag seeds, no blog seeds, no migration re-aggregate). Catalog tags and launch blog posts go in through secret-admin UI — see **C. CMS (blog + listing tag)** below.
 
@@ -154,6 +154,7 @@ Same as MCP clients — `branded-icons.ts`.
 | --- | --- | --- |
 | Decision scenarios | `agents/decision-scenarios.ts` | Blog-aligned buyer scenarios; `buildAgentHostPickerFaqDescription(slug)` for cross-host FAQ |
 | Host profile | `agents/host-profiles.ts` | `uiArchetype`, `traits`, `featureHighlights` (append per tailored ship) |
+| Ecosystem (optional) | `agents/ecosystems/index.ts` | First-class channels, WhoIsFor/FAQ/grid order on host + `/channels/{slug}` — **web-seo-agent-ecosystems** |
 | UI archetype | `agents/archetypes/*` | Shared setup steps + feature rows (e.g. `messaging-gateway` for OpenClaw/Hermes) |
 | Builder | `agents/buildAgentHostLandingPage.ts` | `{name}AgentSeed` → `PublicAgentHostLandingPageViewModel` |
 

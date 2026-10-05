@@ -39,6 +39,7 @@ Root layout (`+layout.server.ts` → `baseMetaTags`) merges with page data in `+
 | Landing / FAQ CMS copy on the server | **web-seo-cms-copy** |
 | Public FAQ ids, tailored + general append, pricing subset | **web-landing-faqs** |
 | Programmatic SEO catalogs, templates, FAQ funnel, ASD-STE100 copy | **web-seo-pseo** |
+| Agent-host vendor ecosystems (first-class channels, `/channels` + `/agents` grids) | **web-seo-agent-ecosystems** |
 | Blog CMS HTML, Skill Builder / specific tool links, FAQ/HowTo fields | **web-seo-blog** |
 | Outbound `rel` / brand social / first-party GitHub | **web-seo-outbound-links** |
 | Self-host → openquok.com marketing hrefs | **web-hosted-marketing-links** |

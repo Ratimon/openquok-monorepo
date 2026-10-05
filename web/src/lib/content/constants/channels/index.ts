@@ -17,9 +17,19 @@ import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/catalog/types';
 import {
+	buildPublicChannelAgentAudienceTailoredCard,
+	buildPublicChannelAudienceSubtitle,
+	buildPublicChannelAudienceTitle
+} from '$lib/content/constants/channels/catalog/channelPageSeo';
+import {
 	appendPublicGeneralFaqItems,
 	PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS
 } from '$lib/content/constants/faq';
+import {
+	applyPublicChannelPageAudienceFirstCardHook,
+	buildPublicChannelEcosystemAudienceTailoredCard,
+	buildPublicChannelEcosystemFaqItems
+} from '$lib/content/constants/agents/ecosystems';
 import { PUBLIC_CHANNEL_LANDING_PAGES } from '$lib/content/constants/channels/catalog/seeds';
 
 export * from '$lib/content/constants/channels/catalog/types';
@@ -50,13 +60,38 @@ export function getPublicChannelAudienceTailoredCard(
 	return channelBySlug.get(key)?.audienceTailoredCard;
 }
 
-/** Append `audienceTailoredCard` when present (channel, agent×channel, API platform pages). */
+/** Append tailored fourth card from seed or default agent/MCP card for channel landings. */
 export function resolvePublicChannelAudienceCards(
 	baseCards: readonly AudienceCard[],
-	slug: string
+	slug: string,
+	platformLabel?: string
 ): AudienceCard[] {
-	const tailored = getPublicChannelAudienceTailoredCard(slug);
-	return tailored ? [...baseCards, tailored] : [...baseCards];
+	const tailored =
+		getPublicChannelAudienceTailoredCard(slug) ??
+		(platformLabel?.trim()
+			? buildPublicChannelEcosystemAudienceTailoredCard(slug, platformLabel) ??
+				buildPublicChannelAgentAudienceTailoredCard(platformLabel)
+			: undefined);
+	if (!tailored) return [...baseCards];
+	if (baseCards.some((card) => card.title === tailored.title)) {
+		return [...baseCards];
+	}
+	return [...baseCards, tailored];
+}
+
+function withChannelPageSeoCopy(
+	page: PublicChannelLandingPageViewModel
+): PublicChannelLandingPageViewModel {
+	return {
+		...page,
+		audienceSubtitle: page.audienceSubtitle?.trim() || buildPublicChannelAudienceSubtitle(page.platformLabel),
+		audienceTitle: buildPublicChannelAudienceTitle(page.platformLabel),
+		audienceCards: applyPublicChannelPageAudienceFirstCardHook(
+			resolvePublicChannelAudienceCards(page.audienceCards, page.slug, page.platformLabel),
+			page.slug,
+			page.platformLabel
+		)
+	};
 }
 
 export function getPublicChannelBySlug(slug: string): PublicChannelLandingPageViewModel | undefined {
@@ -64,9 +99,20 @@ export function getPublicChannelBySlug(slug: string): PublicChannelLandingPageVi
 	const page = channelBySlug.get(key);
 	if (!page) return undefined;
 
+	const withSeo = withChannelPageSeoCopy(page);
+	const ecosystemFaqs = buildPublicChannelEcosystemFaqItems({
+		channelSlug: key,
+		platformLabel: withSeo.platformLabel
+	});
+	const seenFaqTitles = new Set(withSeo.faqItems.map((item) => item.title));
+	const prependedFaqs = ecosystemFaqs.filter((item) => !seenFaqTitles.has(item.title));
+
 	return {
-		...page,
-		faqItems: appendPublicGeneralFaqItems(page.faqItems, PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS)
+		...withSeo,
+		faqItems: appendPublicGeneralFaqItems(
+			[...prependedFaqs, ...withSeo.faqItems],
+			PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS
+		)
 	};
 }
 

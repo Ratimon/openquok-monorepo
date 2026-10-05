@@ -780,7 +780,7 @@ Derived from the base agent host VM (`publicAgentConfig.ts`) plus `buildAgentCha
 | Analytics feature row | Copy + bento from catalog `featureSections[2]` (insights — same as `/channels/{slug}` section 3) |
 | Playbooks & Building Blocks | Filtered by `listingTagSlug` (= channel slug); see-all links → `/playbooks/tags/{slug}` and `/building-blocks/tags/{slug}` |
 | Command reference | Platform CLI table (agent hosts only) from `buildAgentChannelCliCommandReference` |
-| WhoIsFor | `audienceSubtitle`, `audienceTitle`, and `audienceCards` from `channel catalog` (same as `/channels/{slug}`); subtitle/title include `{agentLabel}`; each card keeps platform copy and adds an agent/MCP hook via `buildAgentsChannelAudienceSection.ts` |
+| WhoIsFor | Channel catalog via **`getPublicChannelBySlug`** on `/channels/{slug}`; agent × channel via **`buildAgentsChannelAudienceSection`** + **`resolveAgentChannelAudienceCards`** — ecosystem rules: **web-seo-agent-ecosystems** |
 | FAQ | Platform-focused titles and answers |
 
 Generic `/agents/openclaw` and generic MCP pages (e.g. `/agents/claude-cowork`) keep **social media** hero copy and the **multi-platform** kanban mock (`agentMultiPlatformKanbanMock.ts`). When go-live-ing a new provider, add a representative card there so generic agent and MCP pages reflect the expanded catalog.

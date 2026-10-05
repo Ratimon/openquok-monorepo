@@ -13,7 +13,10 @@ describe('buildPublicChannelAgentIntegrationsGridCopy', () => {
 	it('builds section subtitle, title, and description for a platform', () => {
 		expect(buildPublicChannelAgentIntegrationsGridSubtitle()).toBe('Agents & MCP integrations');
 		expect(buildPublicChannelAgentIntegrationsGridTitle('TikTok')).toBe(
-			'Schedule TikTok from agents: OpenClaw Cursor and every MCP landing page'
+			'Schedule TikTok from OpenClaw, Grok Bot, and every agent host'
+		);
+		expect(buildPublicChannelAgentIntegrationsGridTitle('X', 'x')).toBe(
+			'Schedule X from Grok Bot, Cursor MCP, and every agent host'
 		);
 		expect(buildPublicChannelAgentIntegrationsGridDescription('TikTok')).toContain('TikTok workflows');
 		expect(buildPublicChannelAgentIntegrationsGridExtensionLabel()).toBe('MCP clients');
@@ -46,5 +49,12 @@ describe('listPublicAgentIntegrationsForChannel', () => {
 			agentHosts: [],
 			mcpClients: []
 		});
+	});
+
+	it('pins Grok Bot first on the X channel integration grid', () => {
+		const { agentHosts, mcpClients } = listPublicAgentIntegrationsForChannel('x');
+		expect(agentHosts[0]?.slug).toBe('grok-bot');
+		expect(agentHosts[0]?.description).toContain('First-class');
+		expect(mcpClients[0]?.slug).toBe('cursor');
 	});
 });
