@@ -21,10 +21,11 @@ import {
 	type PublicAgentOpportunitiesPreviewSection
 } from '$lib/content/constants/agents';
 import {
-	backlinkSiteToPreviewCardItem,
+	buildBacklinksPreviewCardItems,
 	buildSeeAllPreviewCardItem,
 	buildSkillBuilderPreviewCardItem,
 	buildingBlockToPreviewCardItem,
+	DEFAULT_FEATURED_BACKLINK_OPPORTUNITIES_PREVIEW,
 	playbookToPreviewCardItem
 } from '$lib/opportunities/utils/buildOpportunitiesPreviewCardItems';
 import { route } from '$lib/utils/path';
@@ -56,6 +57,13 @@ export async function loadAgentOpportunitiesPreviewStateless(params: {
 	listingTagSlug?: string | null;
 	/** When set, playbooks grid links to `/tools/skill-builder/{slug}`; otherwise `/tools/skill-builder`. */
 	skillBuilderChannelSlug?: string | null;
+	/**
+	 * When set (e.g. agent channel slug), load the published site and show its HowTo opportunity cards
+	 * (not the site card) — even when directory tags differ from listing tags.
+	 */
+	featuredBacklinkSiteSlug?: string | null;
+	/** Published HowTo opportunities from the featured site (after the site card). Default 2 when featured slug is set. */
+	featuredBacklinkOpportunityLimit?: number;
 }): Promise<PublicOpportunitiesPreviewVm> {
 	const limit =
 		params.limit ??
@@ -64,25 +72,42 @@ export async function loadAgentOpportunitiesPreviewStateless(params: {
 	const tagSlug = params.listingTagSlug?.trim() || null;
 	const tagSlugs = tagSlug ? [tagSlug] : null;
 
-	const [playbooksResult, buildingBlocksResult, backlinksResult] = await Promise.all([
-		getListingPresenter.loadPublishedStacksVm({
-			fetch: params.fetch,
-			limit,
-			tagSlugs
-		}),
-		getListingPresenter.loadPublishedExtensionsVm({
-			fetch: params.fetch,
-			limit,
-			skip: 0,
-			tagSlugs
-		}),
-		linkDirectoryRepository.getPublishedSites({
-			fetch: params.fetch,
-			limit,
-			skip: 0,
-			tagSlugs
-		})
-	]);
+	const featuredBacklinkSiteSlug = params.featuredBacklinkSiteSlug?.trim() || null;
+
+	const [playbooksResult, buildingBlocksResult, backlinksResult, featuredBacklinkSite] =
+		await Promise.all([
+			getListingPresenter.loadPublishedStacksVm({
+				fetch: params.fetch,
+				limit,
+				tagSlugs
+			}),
+			getListingPresenter.loadPublishedExtensionsVm({
+				fetch: params.fetch,
+				limit,
+				skip: 0,
+				tagSlugs
+			}),
+			linkDirectoryRepository.getPublishedSites({
+				fetch: params.fetch,
+				limit,
+				skip: 0,
+				tagSlugs
+			}),
+			featuredBacklinkSiteSlug
+				? linkDirectoryRepository.getPublishedSiteBySlug(featuredBacklinkSiteSlug, params.fetch)
+				: Promise.resolve(null)
+		]);
+
+	const featuredOpportunityLimit = featuredBacklinkSiteSlug
+		? (params.featuredBacklinkOpportunityLimit ?? DEFAULT_FEATURED_BACKLINK_OPPORTUNITIES_PREVIEW)
+		: 0;
+
+	const backlinkPreviewItems = buildBacklinksPreviewCardItems({
+		featuredSite: featuredBacklinkSite,
+		taggedSites: backlinksResult.sites,
+		limit,
+		featuredOpportunityLimit
+	});
 
 	const playbooksPath = tagSlug
 		? route(getRootPathPublicPlaybooksTag(tagSlug))
@@ -106,7 +131,7 @@ export async function loadAgentOpportunitiesPreviewStateless(params: {
 		description: previewCopy.description,
 		backlinksBlock: {
 			gridLabel: previewCopy.backlinksGridLabel,
-			items: backlinksResult.sites.slice(0, limit).map(backlinkSiteToPreviewCardItem),
+			items: backlinkPreviewItems,
 			seeAll: buildSeeAllPreviewCardItem({
 				id: 'see-all-backlinks',
 				href: backlinksPath,

@@ -94,17 +94,25 @@ export const blueskyChannel = {
 		{
 			iconName: icons.CustomizedDrawnLaptop.name,
 			iconClass: 'text-lime-400',
-			title: 'Community managers',
+			title: 'Team & Social managers',
 			description:
-				'Review agent drafts on kanban. Schedule link posts, images, video, and threaded follow-ups in one workflow.',
+				'Review drafts on kanban as a team. Schedule link posts, images, video, and threaded follow-ups in one workflow.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
-			iconName: icons.CustomizedDrawnRobot.name,
+			iconName: icons.Code.name,
 			iconClass: 'text-emerald-400',
-			title: 'Developers & agents',
+			title: 'Developers',
 			description:
-				'Pipe Bluesky drafts from your backend via the public API, CLI, or MCP. Mention people with @handle autocomplete.',
+				'Pipe Bluesky drafts from your backend via the public API or CLI. Mention people with @handle autocomplete.',
+			containerClass: 'h-full min-h-[18rem]'
+		},
+		{
+			iconName: icons.Rocket.name,
+			iconClass: 'text-violet-400',
+			title: 'Agent operators',
+			description:
+				'Schedule Bluesky posts and reply chains from your agent through MCP. Review drafts on kanban before publish.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],

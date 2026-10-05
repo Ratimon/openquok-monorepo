@@ -109,7 +109,8 @@ export function buildAgentChannelLandingVm(params: {
 		opportunitiesPreviewSection: {
 			...baseAgent.opportunitiesPreviewSection,
 			title: `${platformLabel} viral formats`,
-			description: `Mix ${platformLabel}-focused skills, and MCP servers — then tailor them to your ${agentLabel} workflow.`,
+			description: `Mix ${platformLabel}-focused backlink guides, playbooks, skills, and MCP servers — then tailor them to your ${agentLabel} workflow.`,
+			backlinksSeeAllDescription: `Browse every ${platformLabel} site guide in the backlink directory.`,
 			playbooksSeeAllDescription: `Browse every ${platformLabel} playbook.`,
 			playbooksSkillBuilderDescription: `Build and export a ${platformLabel} SKILL.md from building blocks.`,
 			buildingBlocksSeeAllDescription: `Browse every ${platformLabel} building block.`

@@ -92,17 +92,25 @@ export const threadsChannel = {
 		{
 			iconName: icons.CustomizedDrawnLaptop.name,
 			iconClass: 'text-lime-400',
-			title: 'Social managers',
+			title: 'Team & Social managers',
 			description:
-				'Batch a week of Threads. Review drafts before they publish. Track engagement alongside your other channels.',
+				'Batch a week of Threads in one workspace. Review drafts on kanban before publish. Track engagement alongside your other channels.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
-			iconName: icons.CustomizedDrawnRobot.name,
+			iconName: icons.Code.name,
 			iconClass: 'text-emerald-400',
-			title: 'Developers & agents',
+			title: 'Developers',
 			description:
-				'Pipe Threads drafts from your backend via the public API, CLI, or MCP. Configure Thread-specific settings such as follow-up replies.',
+				'Pipe Threads drafts from your backend via the public API or CLI. Configure thread-specific settings such as follow-up replies.',
+			containerClass: 'h-full min-h-[18rem]'
+		},
+		{
+			iconName: icons.Rocket.name,
+			iconClass: 'text-violet-400',
+			title: 'Agent operators',
+			description:
+				'Schedule Threads from Cursor, OpenClaw, or another MCP host. Review drafts on kanban before they publish.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],

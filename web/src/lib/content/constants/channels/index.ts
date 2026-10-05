@@ -60,18 +60,31 @@ export function getPublicChannelAudienceTailoredCard(
 	return channelBySlug.get(key)?.audienceTailoredCard;
 }
 
+const CHANNEL_AUDIENCE_AGENT_OPERATORS_TITLE = 'Agent operators';
+
+function baseCardsIncludeAgentOperatorsCard(baseCards: readonly AudienceCard[]): boolean {
+	return baseCards.some((card) => card.title === CHANNEL_AUDIENCE_AGENT_OPERATORS_TITLE);
+}
+
 /** Append tailored fourth card from seed or default agent/MCP card for channel landings. */
 export function resolvePublicChannelAudienceCards(
 	baseCards: readonly AudienceCard[],
 	slug: string,
 	platformLabel?: string
 ): AudienceCard[] {
-	const tailored =
-		getPublicChannelAudienceTailoredCard(slug) ??
-		(platformLabel?.trim()
-			? buildPublicChannelEcosystemAudienceTailoredCard(slug, platformLabel) ??
-				buildPublicChannelAgentAudienceTailoredCard(platformLabel)
-			: undefined);
+	const tailoredFromSeed = getPublicChannelAudienceTailoredCard(slug);
+	const ecosystemTailored =
+		!tailoredFromSeed && platformLabel?.trim()
+			? buildPublicChannelEcosystemAudienceTailoredCard(slug, platformLabel)
+			: undefined;
+	const defaultAgentTailored =
+		!tailoredFromSeed &&
+		!ecosystemTailored &&
+		platformLabel?.trim() &&
+		!baseCardsIncludeAgentOperatorsCard(baseCards)
+			? buildPublicChannelAgentAudienceTailoredCard(platformLabel)
+			: undefined;
+	const tailored = tailoredFromSeed ?? ecosystemTailored ?? defaultAgentTailored;
 	if (!tailored) return [...baseCards];
 	if (baseCards.some((card) => card.title === tailored.title)) {
 		return [...baseCards];

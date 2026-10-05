@@ -90,17 +90,25 @@ export const xChannel = {
 		{
 			iconName: icons.CustomizedDrawnLaptop.name,
 			iconClass: 'text-lime-400',
-			title: 'Social managers',
+			title: 'Team & Social managers',
 			description:
-				'Batch a week of X posts. Control reply settings per tweet. Track engagement with your other channels.',
+				'Batch a week of X posts in one workspace. Control reply settings per tweet. Review drafts on kanban before publish.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
-			iconName: icons.CustomizedDrawnRobot.name,
+			iconName: icons.Code.name,
 			iconClass: 'text-emerald-400',
-			title: 'Developers & agents',
+			title: 'Developers',
 			description:
-				'Pipe X drafts from your backend via the public API, CLI, or MCP. Configure thread replies and reply settings per post.',
+				'Pipe X drafts from your backend via the public API or CLI. Configure thread replies and reply settings per post.',
+			containerClass: 'h-full min-h-[18rem]'
+		},
+		{
+			iconName: icons.Rocket.name,
+			iconClass: 'text-violet-400',
+			title: 'Agent operators',
+			description:
+				'Schedule tweets and threads from your agent through MCP. Stay visible on X while you ship product.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],

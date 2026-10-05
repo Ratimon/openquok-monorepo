@@ -118,7 +118,8 @@ export async function load({ url, params, cookies, parent, fetch }) {
 				fetch,
 				previewSection: landingVm.opportunitiesPreviewSection,
 				listingTagSlug: channelConfig.listingTagSlug,
-				skillBuilderChannelSlug: channelSlug
+				skillBuilderChannelSlug: channelSlug,
+				featuredBacklinkSiteSlug: channelSlug
 			});
 
 	const { companyInformationPm, marketingInformationPm } = await parent();

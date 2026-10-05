@@ -16,6 +16,8 @@
 		eyebrow?: string;
 		title: string;
 		description: string;
+		/** When set, the card navigates to this path (e.g. site guide or hub). */
+		href?: string;
 		icon: IconName;
 		iconClass?: string;
 		iconWidth?: string;

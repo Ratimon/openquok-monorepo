@@ -21,11 +21,35 @@ function slugifyAudienceSegment(title: string): string {
 	);
 }
 
+const TEAM_AND_SOCIAL_MANAGERS_TITLE = 'team & social managers';
+
+function normalizeAudienceTitle(title: string): string {
+	return title.trim().toLowerCase();
+}
+
+/**
+ * Schema.org `audienceType` — richer than the visible card title when the UI bundles roles.
+ * @see https://schema.org/audienceType
+ */
+export function resolveSchemaAudienceTypeLabel(title: string): string {
+	const normalized = normalizeAudienceTitle(title);
+	if (normalized === TEAM_AND_SOCIAL_MANAGERS_TITLE) {
+		return 'In-house marketing teams and social media managers';
+	}
+	return title.trim();
+}
+
 /** Maps marketing persona titles to Schema.org audience subtypes. */
 export function resolveAudienceSchemaType(title: string): 'BusinessAudience' | 'PeopleAudience' {
-	const normalized = title.trim().toLowerCase();
+	const normalized = normalizeAudienceTitle(title);
+	if (normalized === TEAM_AND_SOCIAL_MANAGERS_TITLE) {
+		return 'BusinessAudience';
+	}
+	if (/\bsocial managers?\b/.test(normalized) && !/\bteam\b/.test(normalized)) {
+		return 'PeopleAudience';
+	}
 	if (
-		/\b(startup|saas|founder|founders|team|teams|business|company|agency|b2b|enterprise|scaling)\b/.test(
+		/\b(startup|saas|founder|founders|team|teams|business|company|agency|agencies|b2b|enterprise|scaling|e-commerce)\b/.test(
 			normalized
 		)
 	) {
@@ -41,12 +65,14 @@ export function buildSchemaOrgAudienceFromCards(
 	const pageBase = normalizePageBase(pageUrl);
 
 	return cards.map((card) => {
-		const audienceType = resolveAudienceSchemaType(card.title);
+		const schemaSubtype = resolveAudienceSchemaType(card.title);
+		const audienceTypeLabel = resolveSchemaAudienceTypeLabel(card.title);
 		return {
-			'@type': audienceType,
+			'@type': schemaSubtype,
 			'@id': `${pageBase}#audience-${slugifyAudienceSegment(card.title)}`,
 			name: card.title,
-			audienceType: card.title
+			audienceType: audienceTypeLabel,
+			description: card.description
 		} as BusinessAudience | PeopleAudience;
 	});
 }
@@ -84,26 +110,34 @@ export function createPublicAudienceSectionSEOSchema(
 						'@type': resolveAudienceSchemaType(card.title),
 						'@id': `${pageBase}#audience-${slugifyAudienceSegment(card.title)}`,
 						name: card.title,
-						audienceType: card.title
+						audienceType: resolveSchemaAudienceTypeLabel(card.title),
+						description: card.description
 					}
 				}) as ListItem
 		)
 	};
 }
 
+type SchemaOrgThingObject = Extract<Thing, object>;
+
+/** WhoIsFor-derived audience list; replaces any existing Schema.org `audience` on the node. */
+export type ThingWithSchemaOrgAudience<T extends SchemaOrgThingObject> = Omit<T, 'audience'> & {
+	audience?: Array<BusinessAudience | PeopleAudience>;
+};
+
 /** Adds Schema.org `audience` to WebPage / SoftwareApplication / CollectionPage nodes. */
-export function withSchemaOrgAudience<T extends Thing>(
+export function withSchemaOrgAudience<T extends SchemaOrgThingObject>(
 	node: T,
 	copy: PublicAudienceSectionCopy,
 	pageUrl: string
-): T {
+): ThingWithSchemaOrgAudience<T> {
 	const audience = buildSchemaOrgAudienceFromCards(copy.cards, pageUrl);
 	if (audience.length === 0) {
-		return node;
+		return node as ThingWithSchemaOrgAudience<T>;
 	}
 
 	return {
 		...node,
 		audience
-	};
+	} as ThingWithSchemaOrgAudience<T>;
 }

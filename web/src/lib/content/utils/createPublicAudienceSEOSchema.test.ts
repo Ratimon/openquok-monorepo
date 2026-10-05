@@ -5,6 +5,7 @@ import {
 	buildSchemaOrgAudienceFromCards,
 	createPublicAudienceSectionSEOSchema,
 	resolveAudienceSchemaType,
+	resolveSchemaAudienceTypeLabel,
 	withSchemaOrgAudience
 } from '$lib/content/utils/createPublicAudienceSEOSchema';
 
@@ -36,9 +37,19 @@ describe('createPublicAudienceSEOSchema', () => {
 	it('classifies business vs people audience types', () => {
 		expect(resolveAudienceSchemaType('SaaS developers')).toBe('BusinessAudience');
 		expect(resolveAudienceSchemaType('Startup teams')).toBe('BusinessAudience');
+		expect(resolveAudienceSchemaType('Team & Social managers')).toBe('BusinessAudience');
+		expect(resolveAudienceSchemaType('Social managers')).toBe('PeopleAudience');
 		expect(resolveAudienceSchemaType('Vibe coders')).toBe('PeopleAudience');
 		expect(resolveAudienceSchemaType('CLI and SDK users')).toBe('PeopleAudience');
 		expect(resolveAudienceSchemaType('Agent operators')).toBe('PeopleAudience');
+	});
+
+	it('expands bundled team cards for schema audienceType', () => {
+		expect(resolveSchemaAudienceTypeLabel('Team & Social managers')).toBe(
+			'In-house marketing teams and social media managers'
+		);
+		expect(resolveSchemaAudienceTypeLabel('Developers')).toBe('Developers');
+		expect(resolveSchemaAudienceTypeLabel('Agent operators')).toBe('Agent operators');
 	});
 
 	it('builds Audience nodes with stable fragment ids', () => {
@@ -52,7 +63,8 @@ describe('createPublicAudienceSEOSchema', () => {
 			'@type': 'PeopleAudience',
 			'@id': 'https://www.openquok.com/social-media-posting-api#audience-vibe-coders',
 			name: 'Vibe coders',
-			audienceType: 'Vibe coders'
+			audienceType: 'Vibe coders',
+			description: SAMPLE_CARDS[0]?.description
 		});
 	});
 

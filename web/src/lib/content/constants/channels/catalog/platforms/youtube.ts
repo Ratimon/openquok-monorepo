@@ -96,15 +96,23 @@ export const youtubeChannel = {
 			iconClass: 'text-lime-400',
 			title: 'Marketing teams',
 			description:
-				'Batch demos, launch videos, and Shorts. Review drafts and thumbnails in one workflow.',
+				'Batch demos, launch videos, and Shorts. Manage client channels in separate workspaces. Review drafts and thumbnails in one workflow.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
-			iconName: icons.CustomizedDrawnRobot.name,
+			iconName: icons.Code.name,
 			iconClass: 'text-emerald-400',
-			title: 'Agencies & developers',
+			title: 'Developers',
 			description:
-				'Manage client channels in separate workspaces. Schedule via dashboard, API, or MCP.',
+				'Pipe YouTube uploads from your backend via the public API or CLI. Set privacy, tags, and thumbnails before publish.',
+			containerClass: 'h-full min-h-[18rem]'
+		},
+		{
+			iconName: icons.Rocket.name,
+			iconClass: 'text-violet-400',
+			title: 'Agent operators',
+			description:
+				'Queue YouTube uploads and Shorts from your agent through MCP. Review drafts on the calendar before publish.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{

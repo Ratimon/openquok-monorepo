@@ -1,4 +1,9 @@
-import { HttpGateway, HttpMethod, withOptionalCmsFallback } from '$lib/core/HttpGateway';
+import {
+	HttpGateway,
+	HttpMethod,
+	withNotFoundFallback,
+	withOptionalCmsFallback
+} from '$lib/core/HttpGateway';
 import { publicCmsServerRequestOptions } from '$lib/core/publicCmsFetch';
 
 import type { LinkDirectoryConfig } from '$lib/link-directory/constants/config';
@@ -173,15 +178,17 @@ export class LinkDirectoryRepository {
 		siteSlug: string,
 		fetch?: typeof globalThis.fetch
 	): Promise<LinkDirectorySiteDto | null> {
-		const { data: publishedSiteDto, ok } = await this.httpGateway.get<PublishedSiteResponseDto>(
-			this.config.endpoints.getPublishedSiteBySlug(siteSlug),
-			undefined,
-			publicCmsServerRequestOptions(fetch)
-		);
-		if (ok && publishedSiteDto?.success && publishedSiteDto.data) {
-			return publishedSiteDto.data;
-		}
-		return null;
+		return withNotFoundFallback(async () => {
+			const { data: publishedSiteDto, ok } = await this.httpGateway.get<PublishedSiteResponseDto>(
+				this.config.endpoints.getPublishedSiteBySlug(siteSlug),
+				undefined,
+				publicCmsServerRequestOptions(fetch)
+			);
+			if (ok && publishedSiteDto?.success && publishedSiteDto.data) {
+				return publishedSiteDto.data;
+			}
+			return null;
+		}, null);
 	}
 
 	async getActiveCategories(fetch?: typeof globalThis.fetch): Promise<LinkDirectoryCategoryDto[]> {

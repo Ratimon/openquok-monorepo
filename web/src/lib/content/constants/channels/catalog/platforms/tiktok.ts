@@ -96,11 +96,27 @@ export const tiktokChannel = {
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
-			iconName: icons.CustomizedDrawnRobot.name,
-			iconClass: 'text-emerald-400',
-			title: 'Developers & agents',
+			iconName: icons.Users.name,
+			iconClass: 'text-sky-400',
+			title: 'Team & Social managers',
 			description:
-				'Pipe TikTok drafts via API, CLI, or MCP. Set privacy and posting method per video.',
+				'Coordinate brand TikTok in one workspace. Batch videos and carousels, then review drafts on kanban before publish.',
+			containerClass: 'h-full min-h-[18rem]'
+		},
+		{
+			iconName: icons.Code.name,
+			iconClass: 'text-emerald-400',
+			title: 'Developers',
+			description:
+				'Pipe TikTok drafts via the public API or CLI. Set privacy and posting method per video.',
+			containerClass: 'h-full min-h-[18rem]'
+		},
+		{
+			iconName: icons.Rocket.name,
+			iconClass: 'text-violet-400',
+			title: 'Agent operators',
+			description:
+				'Ask your agent to queue TikTok via MCP. Review inbox drafts and trending audio before publish.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],

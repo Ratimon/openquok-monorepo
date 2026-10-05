@@ -28,8 +28,18 @@
 	const cardGridClass = $derived(
 		cards.length === 4
 			? 'grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'
-			: 'grid grid-cols-1 gap-4 md:grid-cols-3'
+			: cards.length === 5
+				? 'grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-6'
+				: 'grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'
 	);
+
+	/** Five cards: 3 on the first row, 2 centered on the second (6-col grid, span-2 cells). */
+	function audienceCardCellClass(index: number, total: number): string {
+		if (total !== 5) return '';
+		if (index < 3) return 'lg:col-span-2';
+		if (index === 3) return 'lg:col-span-2 lg:col-start-2';
+		return 'lg:col-span-2 lg:col-start-4';
+	}
 </script>
 
 <section class="container mx-auto px-4 pb-16 sm:pb-20" aria-labelledby={headingId}>
@@ -53,24 +63,26 @@
 		</div>
 
 		<div class={cardGridClass}>
-			{#each cards as card (card.title)}
-				<AuroraWobbleCard
-					containerClass={card.containerClass}
-					class="flex h-full flex-col gap-4 px-6 py-10 sm:px-8 sm:py-12"
-				>
-					<AbstractIcon
-						name={card.iconName}
-						class="h-14 w-14 shrink-0 {card.iconClass}"
-						width="56"
-						height="56"
-					/>
-					<h3 class="text-left text-2xl font-semibold tracking-tight text-white md:text-3xl">
-						{card.title}
-					</h3>
-					<p class="max-w-[26rem] text-left text-base/6 text-neutral-200">
-						{card.description}
-					</p>
-				</AuroraWobbleCard>
+			{#each cards as card, index (card.title)}
+				<div class={`h-full min-h-0 ${audienceCardCellClass(index, cards.length)}`}>
+					<AuroraWobbleCard
+						containerClass={card.containerClass}
+						class="flex h-full flex-col gap-4 px-6 py-10 sm:px-8 sm:py-12"
+					>
+						<AbstractIcon
+							name={card.iconName}
+							class="h-14 w-14 shrink-0 {card.iconClass}"
+							width="56"
+							height="56"
+						/>
+						<h3 class="text-left text-2xl font-semibold tracking-tight text-white md:text-3xl">
+							{card.title}
+						</h3>
+						<p class="max-w-[26rem] text-left text-base/6 text-neutral-200">
+							{card.description}
+						</p>
+					</AuroraWobbleCard>
+				</div>
 			{/each}
 		</div>
 	</div>

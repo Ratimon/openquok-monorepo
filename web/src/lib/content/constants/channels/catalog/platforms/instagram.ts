@@ -94,15 +94,23 @@ export const instagramChannel = {
 			iconClass: 'text-lime-400',
 			title: 'E-commerce teams',
 			description:
-				'Batch carousels and launch Reels ahead of time. Set post type and collaborators before publish.',
+				'Batch carousels and launch Reels ahead of time. Separate client accounts per workspace. Set post type and collaborators before publish.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
-			iconName: icons.CustomizedDrawnRobot.name,
+			iconName: icons.Code.name,
 			iconClass: 'text-emerald-400',
-			title: 'Agencies & developers',
+			title: 'Developers',
 			description:
-				'Pipe Instagram drafts via dashboard, API, or MCP. Separate client accounts per workspace.',
+				'Pipe Instagram drafts from your backend via the public API or CLI. Set post type and collaborators in provider settings.',
+			containerClass: 'h-full min-h-[18rem]'
+		},
+		{
+			iconName: icons.Rocket.name,
+			iconClass: 'text-violet-400',
+			title: 'Agent operators',
+			description:
+				'Schedule Instagram feed posts, Reels, and Stories from your agent through MCP.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],

@@ -129,7 +129,12 @@
 					stripedTone={blockKind === 'building-blocks' ? 'amber' : 'emerald'}
 				/>
 			{:else}
-				<FeatureSimpleCard item={cell.item} backgroundVariant="hexagon" pattern={context.pattern} />
+				<FeatureSimpleCard
+					item={cell.item}
+					href={cell.item.href}
+					backgroundVariant="hexagon"
+					pattern={context.pattern}
+				/>
 			{/if}
 		{/snippet}
 	</SimpleCardGrid>
