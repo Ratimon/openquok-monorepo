@@ -1,8 +1,10 @@
 import type {
+    AdminLinkDirectorySiteComment,
     LinkDirectorySavedSiteRow,
     LinkDirectoryCategoryRow,
     LinkDirectoryOpportunityRow,
     LinkDirectoryOpportunityTypeRow,
+    LinkDirectorySiteComment,
     LinkDirectorySiteRow,
     LinkDirectorySubmissionRow,
     LinkDirectoryTagRow,
@@ -81,8 +83,33 @@ export type LinkDirectorySiteDto = {
     sortOrder: number;
     tagSlugs: string[];
     publishedAt: string | null;
+    likes: number;
+    views: number;
+    bookmarkCount: number;
+    averageRating: number;
+    ratingsCount: number;
     opportunities: LinkDirectoryOpportunityDto[];
 };
+
+export type LinkDirectorySiteCommentDto = {
+    id: string;
+    content: string;
+    isApproved: boolean;
+    createdAt: string;
+    updatedAt: string | null;
+    parentId: string | null;
+    userId: string;
+    author: {
+        id: string;
+        fullName: string | null;
+        avatarUrl: string | null;
+    } | null;
+};
+
+export interface AdminLinkDirectorySiteCommentDto extends LinkDirectorySiteCommentDto {
+    siteId: string;
+    site: { id: string; title: string; slug: string } | null;
+}
 
 export type LinkDirectorySubmissionDto = {
     id: string;
@@ -185,8 +212,54 @@ export function toLinkDirectorySiteDto(row: LinkDirectorySiteRow): LinkDirectory
         sortOrder: row.sort_order,
         tagSlugs: row.tag_slugs ?? [],
         publishedAt: row.published_at,
+        likes: row.likes ?? 0,
+        views: row.views ?? 0,
+        bookmarkCount: row.bookmark_count ?? 0,
+        averageRating: row.average_rating ?? 0,
+        ratingsCount: row.ratings_count ?? 0,
         opportunities,
     };
+}
+
+function mapSiteComment(row: LinkDirectorySiteComment | AdminLinkDirectorySiteComment): LinkDirectorySiteCommentDto {
+    return {
+        id: row.id,
+        content: row.content,
+        isApproved: row.is_approved,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at ?? null,
+        parentId: row.parent_id ?? null,
+        userId: row.user_id,
+        author: row.author
+            ? {
+                  id: row.author.id,
+                  fullName: row.author.full_name ?? null,
+                  avatarUrl: row.author.avatar_url ?? null,
+              }
+            : null,
+    };
+}
+
+export function toLinkDirectorySiteCommentDtoCollection(
+    rows: LinkDirectorySiteComment[]
+): LinkDirectorySiteCommentDto[] {
+    return rows.map((row) => mapSiteComment(row));
+}
+
+export function toAdminLinkDirectorySiteCommentDto(
+    row: AdminLinkDirectorySiteComment
+): AdminLinkDirectorySiteCommentDto {
+    return {
+        ...mapSiteComment(row),
+        siteId: row.site_id,
+        site: row.site ? { id: row.site.id, title: row.site.title, slug: row.site.slug } : null,
+    };
+}
+
+export function toAdminLinkDirectorySiteCommentDtoCollection(
+    rows: AdminLinkDirectorySiteComment[]
+): AdminLinkDirectorySiteCommentDto[] {
+    return rows.map((row) => toAdminLinkDirectorySiteCommentDto(row));
 }
 
 export function toLinkDirectorySiteDtoCollection(rows: LinkDirectorySiteRow[]): LinkDirectorySiteDto[] {

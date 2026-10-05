@@ -1,9 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
+    AdminLinkDirectorySiteComment,
+    AdminLinkDirectorySiteCommentsFilterOptions,
     AdminLinkDirectorySitesFilterOptions,
     LinkDirectorySavedSiteRow,
     LinkDirectoryOpportunityRow,
     LinkDirectoryOpportunityTypeRow,
+    LinkDirectorySiteComment,
     LinkDirectorySiteRow,
     LinkDirectorySubmissionRow,
     PublishedLinkDirectorySitesFilterOptions,
@@ -11,6 +14,7 @@ import type {
 import type {
     LinkDirectoryOpportunityCreateSchemaType,
     LinkDirectoryOpportunityUpdateSchemaType,
+    LinkDirectorySiteCommentCreateSchemaType,
     LinkDirectorySiteCreateSchemaType,
     LinkDirectorySiteUpdateSchemaType,
     LinkDirectorySubmissionCreateSchemaType,
@@ -26,9 +30,37 @@ const TABLE_TAG_ASSOC = "link_directory_site_tags_association";
 const TABLE_SAVED_SITES = "link_directory_saved_sites";
 const TABLE_SUBMISSIONS = "link_directory_submissions";
 const TABLE_OPP_TYPES = "link_directory_opportunity_types";
+const TABLE_SITE_COMMENTS = "link_directory_site_comments";
+const TABLE_SITE_RATINGS = "link_directory_site_ratings";
 
 const SITE_COLUMNS =
-    "id, slug, title, site_url, logo_url, short_description, long_description, domain_authority, domain_rating, monthly_visits, metrics_source, metrics_updated_at, category_id, is_openquok_auth_supported, openquok_channel_slug, is_admin_published, sort_order, tag_slugs, published_at, created_at, updated_at";
+    "id, slug, title, site_url, logo_url, short_description, long_description, domain_authority, domain_rating, monthly_visits, metrics_source, metrics_updated_at, category_id, is_openquok_auth_supported, openquok_channel_slug, is_admin_published, sort_order, tag_slugs, published_at, likes, views, bookmark_count, average_rating, ratings_count, created_at, updated_at";
+
+const ALLOWED_ADMIN_SITE_COMMENT_SORT_KEYS = new Set(["created_at", "updated_at", "content"]);
+
+const SELECT_SITE_COMMENT = `
+  id,
+  content,
+  is_approved,
+  created_at,
+  updated_at,
+  parent_id,
+  user_id,
+  author:users!user_id(id, full_name, user_profiles(avatar_url))
+`;
+
+const SELECT_SITE_COMMENT_ADMIN = `
+  id,
+  content,
+  is_approved,
+  created_at,
+  updated_at,
+  parent_id,
+  user_id,
+  site_id,
+  author:users!user_id(id, full_name, user_profiles(avatar_url)),
+  site:site_id(id, title, slug)
+`;
 
 const CATEGORY_EMBED =
     "category:link_directory_categories(id, name, slug, headline, description, sort_order, openquok_channels_hub_path)";
@@ -647,6 +679,21 @@ export class LinkDirectoryRepository {
     }
 
     async replaceUserSavedSites(userId: string, siteIds: string[]): Promise<void> {
+        const { data: existingRows, error: fetchError } = await this.supabase
+            .from(TABLE_SAVED_SITES)
+            .select("site_id")
+            .eq("user_id", userId);
+
+        if (fetchError) {
+            throw new DatabaseError(`Error fetching saved sites: ${fetchError.message}`, {
+                cause: fetchError as unknown as Error,
+                operation: "select",
+            });
+        }
+
+        const previousSiteIds = new Set((existingRows ?? []).map((row) => row.site_id as string));
+        const nextSiteIds = new Set(siteIds);
+
         const { error: deleteError } = await this.supabase
             .from(TABLE_SAVED_SITES)
             .delete()
@@ -659,21 +706,32 @@ export class LinkDirectoryRepository {
             });
         }
 
-        if (siteIds.length === 0) return;
+        if (siteIds.length > 0) {
+            const { error: insertError } = await this.supabase.from(TABLE_SAVED_SITES).insert(
+                siteIds.map((siteId, index) => ({
+                    user_id: userId,
+                    site_id: siteId,
+                    sort_order: index,
+                }))
+            );
 
-        const { error: insertError } = await this.supabase.from(TABLE_SAVED_SITES).insert(
-            siteIds.map((siteId, index) => ({
-                user_id: userId,
-                site_id: siteId,
-                sort_order: index,
-            }))
-        );
+            if (insertError) {
+                throw new DatabaseError(`Error saving saved sites: ${insertError.message}`, {
+                    cause: insertError as unknown as Error,
+                    operation: "insert",
+                });
+            }
+        }
 
-        if (insertError) {
-            throw new DatabaseError(`Error saving saved sites: ${insertError.message}`, {
-                cause: insertError as unknown as Error,
-                operation: "insert",
-            });
+        for (const siteId of nextSiteIds) {
+            if (!previousSiteIds.has(siteId)) {
+                await this.incrementSiteBookmarkCount(siteId);
+            }
+        }
+        for (const siteId of previousSiteIds) {
+            if (!nextSiteIds.has(siteId)) {
+                await this.decrementSiteBookmarkCount(siteId);
+            }
         }
     }
 
@@ -772,6 +830,282 @@ export class LinkDirectoryRepository {
             freeOrFreemiumOpportunityCount: freeOrFreemiumResult.count ?? 0,
             quickWinOpportunityCount: quickWinsResult.count ?? 0,
         };
+    }
+
+    private async incrementSiteBookmarkCount(siteId: string): Promise<void> {
+        const { error } = await this.supabase.rpc("increment_link_directory_site_field", {
+            p_site_id: siteId,
+            field_name: "bookmark_count",
+        });
+
+        if (error) {
+            throw new DatabaseError(`Error incrementing site bookmark count: ${error.message}`, {
+                cause: error as unknown as Error,
+                operation: "rpc",
+            });
+        }
+    }
+
+    private async decrementSiteBookmarkCount(siteId: string): Promise<void> {
+        const { data: siteRow, error: fetchError } = await this.supabase
+            .from(TABLE_SITES)
+            .select("bookmark_count")
+            .eq("id", siteId)
+            .single();
+
+        if (fetchError) {
+            throw new DatabaseError(`Error fetching site bookmark count: ${fetchError.message}`, {
+                cause: fetchError as unknown as Error,
+                operation: "select",
+            });
+        }
+
+        const nextCount = Math.max((siteRow?.bookmark_count as number | null) ?? 1, 1) - 1;
+        const { error: updateError } = await this.supabase
+            .from(TABLE_SITES)
+            .update({ bookmark_count: nextCount })
+            .eq("id", siteId);
+
+        if (updateError) {
+            throw new DatabaseError(`Error decrementing site bookmark count: ${updateError.message}`, {
+                cause: updateError as unknown as Error,
+                operation: "update",
+            });
+        }
+    }
+
+    async incrementSiteStatCounter(
+        siteId: string,
+        fieldName: "views" | "likes"
+    ): Promise<void> {
+        const { error } = await this.supabase.rpc("increment_link_directory_site_field", {
+            p_site_id: siteId,
+            field_name: fieldName,
+        });
+
+        if (error) {
+            throw new DatabaseError(`Error incrementing site ${fieldName}: ${error.message}`, {
+                cause: error as unknown as Error,
+                operation: "rpc",
+            });
+        }
+    }
+
+    async findSiteComments(siteId: string): Promise<{ data: LinkDirectorySiteComment[] }> {
+        const { data, error } = await this.supabase
+            .from(TABLE_SITE_COMMENTS)
+            .select(SELECT_SITE_COMMENT)
+            .eq("site_id", siteId)
+            .eq("is_approved", true)
+            .order("created_at", { ascending: true });
+
+        if (error) {
+            throw new DatabaseError(`Error fetching site comments: ${error.message}`, {
+                cause: error as unknown as Error,
+                operation: "select",
+                resource: { type: "table", name: TABLE_SITE_COMMENTS },
+            });
+        }
+
+        return { data: this.mapSiteCommentRows(data ?? []) };
+    }
+
+    async createSiteComment(
+        siteId: string,
+        payload: LinkDirectorySiteCommentCreateSchemaType,
+        userId: string
+    ): Promise<{ id: string; site_id: string }> {
+        const { data, error } = await this.supabase
+            .from(TABLE_SITE_COMMENTS)
+            .insert({
+                site_id: siteId,
+                parent_id: payload.parentId ?? null,
+                content: payload.content,
+                user_id: userId,
+                is_approved: false,
+            })
+            .select("id, site_id")
+            .single();
+
+        if (error || !data?.id) {
+            throw new DatabaseError(`Error creating site comment: ${error?.message ?? "no id returned"}`, {
+                cause: error as unknown as Error,
+                operation: "insert",
+                resource: { type: "table", name: TABLE_SITE_COMMENTS },
+            });
+        }
+
+        return { id: data.id as string, site_id: data.site_id as string };
+    }
+
+    async upsertSiteRating(
+        siteId: string,
+        userId: string,
+        rating: number
+    ): Promise<{ id: string }> {
+        const { data, error } = await this.supabase
+            .from(TABLE_SITE_RATINGS)
+            .upsert(
+                {
+                    site_id: siteId,
+                    user_id: userId,
+                    rating,
+                    updated_at: new Date().toISOString(),
+                },
+                { onConflict: "user_id,site_id" }
+            )
+            .select("id")
+            .single();
+
+        if (error || !data?.id) {
+            throw new DatabaseError(`Error upserting site rating: ${error?.message ?? "no id returned"}`, {
+                cause: error as unknown as Error,
+                operation: "upsert",
+                resource: { type: "table", name: TABLE_SITE_RATINGS },
+            });
+        }
+
+        return { id: data.id as string };
+    }
+
+    async findAdminSiteComments(
+        options: AdminLinkDirectorySiteCommentsFilterOptions
+    ): Promise<{ data: AdminLinkDirectorySiteComment[]; count: number }> {
+        const { limit = 10, searchTerm, sortByKey, sortByOrder, range } = options;
+
+        let query = this.supabase
+            .from(TABLE_SITE_COMMENTS)
+            .select(SELECT_SITE_COMMENT_ADMIN, { count: "exact" });
+
+        if (searchTerm) {
+            query = query.ilike("content", `%${searchTerm}%`);
+        }
+
+        const orderKey = resolveOrderKey(
+            sortByKey ?? undefined,
+            "created_at",
+            ALLOWED_ADMIN_SITE_COMMENT_SORT_KEYS
+        );
+        query = query.order(orderKey, { ascending: sortByOrder ?? false });
+
+        if (range) {
+            query = query.range(range.start, range.end);
+        } else {
+            query = query.range(0, limit - 1);
+        }
+
+        const { data, error, count } = await query;
+
+        if (error) {
+            throw new DatabaseError(`Error fetching admin site comments: ${error.message}`, {
+                cause: error as unknown as Error,
+                operation: "select",
+                resource: { type: "table", name: TABLE_SITE_COMMENTS },
+            });
+        }
+
+        const rows = (data ?? []) as Array<{
+            id: string;
+            content: string;
+            is_approved: boolean;
+            created_at: string;
+            updated_at: string | null;
+            parent_id: string | null;
+            user_id: string;
+            site_id: string;
+            author?:
+                | Array<{ id: string; full_name: string | null; user_profiles?: { avatar_url?: string | null } | null }>
+                | { id: string; full_name: string | null; user_profiles?: { avatar_url?: string | null } | null }
+                | null;
+            site?:
+                | Array<{ id: string; title: string; slug: string }>
+                | { id: string; title: string; slug: string }
+                | null;
+        }>;
+
+        const comments: AdminLinkDirectorySiteComment[] = rows.map((row) => {
+            const base = this.mapSiteCommentRows([row])[0];
+            const rawSite = Array.isArray(row.site) ? row.site[0] ?? null : row.site ?? null;
+            return {
+                ...base,
+                site_id: row.site_id,
+                site: rawSite ? { id: rawSite.id, title: rawSite.title, slug: rawSite.slug } : null,
+            };
+        });
+
+        return { data: comments, count: (count ?? 0) as number };
+    }
+
+    async approveSiteComment(commentId: string): Promise<{ id: string; site_id: string }> {
+        const { data, error } = await this.supabase
+            .from(TABLE_SITE_COMMENTS)
+            .update({ is_approved: true, updated_at: new Date().toISOString() })
+            .eq("id", commentId)
+            .select("id, site_id")
+            .single();
+
+        if (error || !data?.id) {
+            throw new DatabaseError("Error approving site comment", {
+                cause: error as unknown as Error,
+                operation: "update",
+                resource: { type: "table", name: TABLE_SITE_COMMENTS },
+            });
+        }
+        return { id: data.id as string, site_id: data.site_id as string };
+    }
+
+    async deleteSiteComment(commentId: string): Promise<{ site_id: string }> {
+        const { data, error } = await this.supabase
+            .from(TABLE_SITE_COMMENTS)
+            .delete()
+            .eq("id", commentId)
+            .select("site_id")
+            .single();
+
+        if (error || !data?.site_id) {
+            throw new DatabaseError("Error deleting site comment", {
+                cause: error as unknown as Error,
+                operation: "delete",
+                resource: { type: "table", name: TABLE_SITE_COMMENTS },
+            });
+        }
+        return { site_id: data.site_id as string };
+    }
+
+    private mapSiteCommentRows(rows: unknown[]): LinkDirectorySiteComment[] {
+        return rows.map((row) => {
+            const r = row as {
+                id: string;
+                content: string;
+                is_approved: boolean;
+                created_at: string;
+                updated_at: string | null;
+                parent_id: string | null;
+                user_id: string;
+                author?:
+                    | Array<{ id: string; full_name: string | null; user_profiles?: { avatar_url?: string | null } | null }>
+                    | { id: string; full_name: string | null; user_profiles?: { avatar_url?: string | null } | null }
+                    | null;
+            };
+            const rawAuthor = Array.isArray(r.author) ? r.author[0] ?? null : r.author ?? null;
+            const profile = rawAuthor?.user_profiles;
+            const avatar_url =
+                profile && typeof profile === "object" && "avatar_url" in profile
+                    ? profile.avatar_url
+                    : null;
+            return {
+                id: r.id,
+                content: r.content,
+                is_approved: r.is_approved,
+                created_at: r.created_at,
+                updated_at: r.updated_at ?? null,
+                parent_id: r.parent_id ?? null,
+                user_id: r.user_id,
+                author: rawAuthor
+                    ? { id: rawAuthor.id, full_name: rawAuthor.full_name ?? null, avatar_url: avatar_url ?? null }
+                    : null,
+            };
+        });
     }
 
     private async syncSiteTags(siteId: string, tagIds: string[]): Promise<void> {

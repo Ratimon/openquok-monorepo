@@ -25,6 +25,7 @@ import { AdminLinkDirectoryTagsManagerPagePresenter } from '$lib/area-admin/Admi
 import { AdminLinkDirectorySitesManagerPagePresenter } from '$lib/area-admin/AdminLinkDirectorySitesManagerPage.presenter.svelte';
 import { AdminLinkDirectorySiteEditorPagePresenter } from '$lib/area-admin/AdminLinkDirectorySiteEditorPage.presenter.svelte';
 import { AdminLinkDirectorySubmissionsManagerPagePresenter } from '$lib/area-admin/AdminLinkDirectorySubmissionsManagerPage.presenter.svelte';
+import { AdminLinkDirectorySiteCommentsManagerPagePresenter } from '$lib/area-admin/AdminLinkDirectorySiteCommentsManagerPage.presenter.svelte';
 import { emailRepository, getEmailPresenter } from '$lib/email';
 import { imageRepository } from '$lib/core/index';
 import { configRepository } from '$lib/config/Config.repository.svelte';
@@ -102,6 +103,9 @@ const adminLinkDirectorySiteEditorPagePresenter = new AdminLinkDirectorySiteEdit
 const adminLinkDirectorySubmissionsManagerPagePresenter =
 	new AdminLinkDirectorySubmissionsManagerPagePresenter(linkDirectoryRepository);
 
+const adminLinkDirectorySiteCommentsManagerPagePresenter =
+	new AdminLinkDirectorySiteCommentsManagerPagePresenter(linkDirectoryRepository);
+
 const adminPermissionManagerPagePresenter = new AdminPermissionManagerPagePresenter(
 	getRolePresenter,
 	rbacRepository
@@ -152,6 +156,7 @@ export {
 	adminLinkDirectorySitesManagerPagePresenter,
 	adminLinkDirectorySiteEditorPagePresenter,
 	adminLinkDirectorySubmissionsManagerPagePresenter,
+	adminLinkDirectorySiteCommentsManagerPagePresenter,
 	companyInformationFormPresenter,
 	marketingInformationFormPresenter,
 	landingPageFormPresenter,

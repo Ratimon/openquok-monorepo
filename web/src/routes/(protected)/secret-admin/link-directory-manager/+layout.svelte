@@ -12,7 +12,8 @@
 		getRootPathSecretAdminLinkDirectoryManagerNewSite,
 		getRootPathSecretAdminLinkDirectoryManagerCategories,
 		getRootPathSecretAdminLinkDirectoryManagerTags,
-		getRootPathSecretAdminLinkDirectoryManagerSubmissions
+		getRootPathSecretAdminLinkDirectoryManagerSubmissions,
+		getRootPathSecretAdminLinkDirectoryManagerComments
 	} from '$lib/area-admin/constants/getRootPathSecretAdminArea';
 
 	import SidebarSecondary from '$lib/ui/templates/SidebarSecondary.svelte';
@@ -23,6 +24,7 @@
 	const categoriesHref = url(getRootPathSecretAdminLinkDirectoryManagerCategories());
 	const tagsHref = url(getRootPathSecretAdminLinkDirectoryManagerTags());
 	const submissionsHref = url(getRootPathSecretAdminLinkDirectoryManagerSubmissions());
+	const commentsHref = url(getRootPathSecretAdminLinkDirectoryManagerComments());
 
 	type SectionId =
 		| 'dashboard'
@@ -30,7 +32,8 @@
 		| 'new_site'
 		| 'categories'
 		| 'tags'
-		| 'submissions';
+		| 'submissions'
+		| 'comments';
 
 	type Props = {
 		children: Snippet;
@@ -44,10 +47,12 @@
 		{ id: 'new_site', label: 'New site' },
 		{ id: 'categories', label: 'Categories' },
 		{ id: 'tags', label: 'Tags' },
-		{ id: 'submissions', label: 'Submissions' }
+		{ id: 'submissions', label: 'Submissions' },
+		{ id: 'comments', label: 'Comments' }
 	];
 
 	function getCurrentSectionFromPathname(pathname: string): SectionId {
+		if (pathname.includes('/comments')) return 'comments';
 		if (pathname.includes('/submissions')) return 'submissions';
 		if (pathname.includes('/categories')) return 'categories';
 		if (pathname.includes('/tags')) return 'tags';
@@ -70,7 +75,8 @@
 			if (id === 'new_site') return newSiteHref;
 			if (id === 'categories') return categoriesHref;
 			if (id === 'tags') return tagsHref;
-			return submissionsHref;
+			if (id === 'submissions') return submissionsHref;
+			return commentsHref;
 		},
 		getHeaderTitle: () => 'Link directory manager'
 	};

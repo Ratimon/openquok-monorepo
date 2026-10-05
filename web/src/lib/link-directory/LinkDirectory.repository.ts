@@ -11,11 +11,13 @@ import type {
 	LinkDirectorySavedSiteDto,
 	LinkDirectoryCategoryDto,
 	LinkDirectoryOpportunityTypeDto,
+	LinkDirectorySiteCommentDto,
 	LinkDirectorySiteDto,
 	LinkDirectoryTagDto,
 	LinkDirectorySubmissionFormValues
 } from '$lib/link-directory/link-directory.types';
 import type {
+	AdminLinkDirectorySiteCommentVm,
 	LinkDirectoryCategoryFormValues,
 	LinkDirectoryOpportunityApiPayload,
 	LinkDirectoryOpportunityFormValues,
@@ -95,6 +97,36 @@ type TagGroupsResponseDto = {
 	success: boolean;
 	data: Array<{ id: string; name: string; sort_order: number }>;
 };
+
+type SiteCommentsResponseDto = {
+	success: boolean;
+	data: LinkDirectorySiteCommentDto[];
+};
+
+type SiteEngagementMutationResponseDto = {
+	success: boolean;
+	data?: { id: string };
+	message?: string;
+};
+
+type AdminSiteCommentDto = AdminLinkDirectorySiteCommentVm;
+
+type GetAdminSiteCommentsResponseDto = {
+	success: boolean;
+	data?: {
+		commentsResult: AdminSiteCommentDto[];
+		countResult: number;
+	};
+	message?: string;
+};
+
+type ApproveSiteCommentResponseDto = {
+	success: boolean;
+	data?: { id: string };
+	message?: string;
+};
+
+export type LinkDirectorySiteEngagementMutationResult = { ok: true; id?: string } | { ok: false; error: string };
 
 export class LinkDirectoryRepository {
 	constructor(
@@ -689,6 +721,63 @@ export class LinkDirectoryRepository {
 		return [];
 	}
 
+	async getAdminSiteComments(
+		params?: { limit?: number; searchTerm?: string | null },
+		fetch?: typeof globalThis.fetch
+	): Promise<AdminLinkDirectorySiteCommentVm[]> {
+		const query: Record<string, string | number> = {
+			limit: params?.limit ?? 100
+		};
+		const term = params?.searchTerm?.trim();
+		if (term) query.searchTerm = term;
+
+		const { data: getAdminSiteCommentsDto, ok } = await this.httpGateway.get<GetAdminSiteCommentsResponseDto>(
+			this.config.endpoints.getAdminSiteComments,
+			query,
+			this.adminOpts(fetch)
+		);
+
+		if (ok && getAdminSiteCommentsDto?.success && Array.isArray(getAdminSiteCommentsDto.data?.commentsResult)) {
+			return getAdminSiteCommentsDto.data.commentsResult;
+		}
+		return [];
+	}
+
+	async approveAdminSiteComment(
+		commentId: string,
+		fetch?: typeof globalThis.fetch
+	): Promise<LinkDirectoryUpsertResult> {
+		try {
+			const { data: approveSiteCommentDto, ok } = await this.httpGateway.request<ApproveSiteCommentResponseDto>({
+				method: HttpMethod.PATCH,
+				url: this.config.endpoints.approveSiteComment(commentId),
+				...this.adminOpts(fetch)
+			});
+			if (ok && approveSiteCommentDto?.success) {
+				return { ok: true, id: approveSiteCommentDto.data?.id ?? commentId };
+			}
+			return { ok: false, error: approveSiteCommentDto?.message ?? 'Failed to approve comment.' };
+		} catch (err) {
+			return { ok: false, error: this.extractErrorMessage(err) };
+		}
+	}
+
+	async deleteAdminSiteComment(
+		commentId: string,
+		fetch?: typeof globalThis.fetch
+	): Promise<LinkDirectoryUpsertResult> {
+		try {
+			const { data: deleteSiteCommentDto, ok } = await this.httpGateway.delete<MessageResponseDto>(
+				this.config.endpoints.deleteSiteComment(commentId),
+				this.adminOpts(fetch)
+			);
+			if (ok && deleteSiteCommentDto?.success) return { ok: true };
+			return { ok: false, error: deleteSiteCommentDto?.message ?? 'Failed to delete comment.' };
+		} catch (err) {
+			return { ok: false, error: this.extractErrorMessage(err) };
+		}
+	}
+
 	async reviewSubmission(
 		submissionId: string,
 		status: 'approved' | 'rejected',
@@ -703,6 +792,102 @@ export class LinkDirectoryRepository {
 			});
 			if (ok && reviewDto?.success) return { ok: true };
 			return { ok: false, error: reviewDto?.message ?? 'Failed to update submission.' };
+		} catch (err) {
+			return { ok: false, error: this.extractErrorMessage(err) };
+		}
+	}
+
+	async getSiteComments(
+		siteId: string,
+		fetch?: typeof globalThis.fetch
+	): Promise<LinkDirectorySiteCommentDto[]> {
+		const { data: siteCommentsDto, ok } = await this.httpGateway.get<SiteCommentsResponseDto>(
+			this.config.endpoints.getSiteComments(siteId),
+			undefined,
+			publicCmsServerRequestOptions(fetch)
+		);
+		if (ok && siteCommentsDto?.success && Array.isArray(siteCommentsDto.data)) {
+			return siteCommentsDto.data;
+		}
+		return [];
+	}
+
+	async createSiteComment(params: {
+		siteId: string;
+		content: string;
+		parentId: string | null;
+		fetch?: typeof globalThis.fetch;
+	}): Promise<LinkDirectorySiteEngagementMutationResult> {
+		try {
+			const { data: createSiteCommentDto, ok } = await this.httpGateway.post<SiteEngagementMutationResponseDto>(
+				this.config.endpoints.createSiteComment(params.siteId),
+				{
+					content: params.content,
+					parentId: params.parentId
+				},
+				{ withCredentials: true, fetch: params.fetch }
+			);
+			if (ok && createSiteCommentDto?.success && createSiteCommentDto.data?.id) {
+				return { ok: true, id: createSiteCommentDto.data.id };
+			}
+			return {
+				ok: false,
+				error: createSiteCommentDto?.message ?? 'Failed to submit comment.'
+			};
+		} catch (err) {
+			return { ok: false, error: this.extractErrorMessage(err) };
+		}
+	}
+
+	async upsertSiteRating(
+		siteId: string,
+		rating: number,
+		fetch?: typeof globalThis.fetch
+	): Promise<LinkDirectorySiteEngagementMutationResult> {
+		try {
+			const { data: upsertSiteRatingDto, ok } = await this.httpGateway.put<SiteEngagementMutationResponseDto>(
+				this.config.endpoints.upsertSiteRating(siteId),
+				{ rating },
+				{ withCredentials: true, fetch }
+			);
+			if (ok && upsertSiteRatingDto?.success) {
+				return { ok: true, id: upsertSiteRatingDto.data?.id };
+			}
+			return { ok: false, error: upsertSiteRatingDto?.message ?? 'Failed to save rating.' };
+		} catch (err) {
+			return { ok: false, error: this.extractErrorMessage(err) };
+		}
+	}
+
+	async incrementSiteViews(
+		siteId: string,
+		fetch?: typeof globalThis.fetch
+	): Promise<LinkDirectorySiteEngagementMutationResult> {
+		try {
+			const { data: incrementViewsDto, ok } = await this.httpGateway.post<SiteEngagementMutationResponseDto>(
+				this.config.endpoints.postSiteViews(siteId),
+				undefined,
+				{ withCredentials: true, fetch }
+			);
+			if (ok && incrementViewsDto?.success) return { ok: true };
+			return { ok: false, error: incrementViewsDto?.message ?? 'Failed to record view.' };
+		} catch (err) {
+			return { ok: false, error: this.extractErrorMessage(err) };
+		}
+	}
+
+	async incrementSiteLikes(
+		siteId: string,
+		fetch?: typeof globalThis.fetch
+	): Promise<LinkDirectorySiteEngagementMutationResult> {
+		try {
+			const { data: incrementLikesDto, ok } = await this.httpGateway.post<SiteEngagementMutationResponseDto>(
+				this.config.endpoints.postSiteLikes(siteId),
+				undefined,
+				{ withCredentials: true, fetch }
+			);
+			if (ok && incrementLikesDto?.success) return { ok: true };
+			return { ok: false, error: incrementLikesDto?.message ?? 'Failed to record like.' };
 		} catch (err) {
 			return { ok: false, error: this.extractErrorMessage(err) };
 		}

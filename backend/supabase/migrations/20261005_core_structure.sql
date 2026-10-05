@@ -1364,6 +1364,48 @@ COMMENT ON COLUMN public.link_directory_saved_sites.outreach_completed_at IS
 -- ---------------------------
 
 
+-- Module: link-directory, File: 102_20261005_tables.sql
+-- ---------------------------
+-- MODULE NAME: Link Directory
+-- MODULE DATE: 20261005
+-- MODULE SCOPE: Tables
+-- ---------------------------
+
+BEGIN;
+
+ALTER TABLE public.link_directory_sites
+    ADD COLUMN IF NOT EXISTS likes INTEGER NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS views INTEGER NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS bookmark_count INTEGER NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS average_rating DOUBLE PRECISION NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS ratings_count INTEGER NOT NULL DEFAULT 0;
+
+CREATE TABLE IF NOT EXISTS public.link_directory_site_ratings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    site_id UUID NOT NULL REFERENCES public.link_directory_sites(id) ON DELETE CASCADE,
+    rating SMALLINT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (user_id, site_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.link_directory_site_comments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    site_id UUID NOT NULL REFERENCES public.link_directory_sites(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
+    parent_id UUID REFERENCES public.link_directory_site_comments(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    is_approved BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ
+);
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
 -- Module: signature, File: 101_20260430_tables.sql
 -- ---------------------------
 -- MODULE NAME: signature
@@ -1882,6 +1924,32 @@ CREATE INDEX IF NOT EXISTS idx_link_directory_saved_sites_user_sort
     ON public.link_directory_saved_sites (user_id, sort_order);
 CREATE INDEX IF NOT EXISTS idx_link_directory_saved_sites_site_id
     ON public.link_directory_saved_sites (site_id);
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: link-directory, File: 201_20261005_indexes.sql
+-- ---------------------------
+-- MODULE NAME: Link Directory
+-- MODULE DATE: 20261005
+-- MODULE SCOPE: Indexes
+-- ---------------------------
+
+BEGIN;
+
+CREATE INDEX IF NOT EXISTS idx_link_directory_site_ratings_site_id
+    ON public.link_directory_site_ratings (site_id);
+CREATE INDEX IF NOT EXISTS idx_link_directory_site_ratings_user_id
+    ON public.link_directory_site_ratings (user_id);
+
+CREATE INDEX IF NOT EXISTS idx_link_directory_site_comments_site_id
+    ON public.link_directory_site_comments (site_id);
+CREATE INDEX IF NOT EXISTS idx_link_directory_site_comments_user_id
+    ON public.link_directory_site_comments (user_id);
+CREATE INDEX IF NOT EXISTS idx_link_directory_site_comments_parent_id
+    ON public.link_directory_site_comments (parent_id);
 
 -- ---------------------------
 -- END OF FILE
@@ -5072,6 +5140,88 @@ GRANT ALL ON public.link_directory_saved_sites TO authenticated;
 -- ---------------------------
 
 
+-- Module: link-directory, File: 302_20261005_rlsgrants.sql
+-- ---------------------------
+-- MODULE NAME: Link Directory
+-- MODULE DATE: 20261005
+-- MODULE SCOPE: Row Level Security and Grants
+-- ---------------------------
+
+BEGIN;
+
+ALTER TABLE public.link_directory_site_ratings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.link_directory_site_comments ENABLE ROW LEVEL SECURITY;
+
+-- ---------------------------
+-- Ratings
+-- ---------------------------
+
+DROP POLICY IF EXISTS "Users can manage their own link directory site ratings" ON public.link_directory_site_ratings;
+CREATE POLICY "Users can manage their own link directory site ratings" ON public.link_directory_site_ratings
+    FOR ALL TO authenticated
+    USING (
+        user_id = (SELECT id FROM public.users WHERE auth_id = auth.uid())
+    )
+    WITH CHECK (
+        user_id = (SELECT id FROM public.users WHERE auth_id = auth.uid())
+    );
+
+DROP POLICY IF EXISTS "Public can view link directory site ratings" ON public.link_directory_site_ratings;
+CREATE POLICY "Public can view link directory site ratings" ON public.link_directory_site_ratings
+    FOR SELECT TO anon, authenticated USING (true);
+
+-- ---------------------------
+-- Comments
+-- ---------------------------
+
+DROP POLICY IF EXISTS "Everyone can view approved link directory site comments" ON public.link_directory_site_comments;
+CREATE POLICY "Everyone can view approved link directory site comments" ON public.link_directory_site_comments
+    FOR SELECT TO anon, authenticated USING (is_approved = true);
+
+DROP POLICY IF EXISTS "Users can manage their own link directory site comments" ON public.link_directory_site_comments;
+CREATE POLICY "Users can manage their own link directory site comments" ON public.link_directory_site_comments
+    FOR ALL TO authenticated
+    USING (
+        user_id = (SELECT id FROM public.users WHERE auth_id = auth.uid())
+    )
+    WITH CHECK (
+        user_id = (SELECT id FROM public.users WHERE auth_id = auth.uid())
+    );
+
+DROP POLICY IF EXISTS "Super admin admins editors can manage link directory site comments" ON public.link_directory_site_comments;
+CREATE POLICY "Super admin admins editors can manage link directory site comments" ON public.link_directory_site_comments
+    FOR ALL TO authenticated
+    USING (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    )
+    WITH CHECK (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    );
+
+-- ---------------------------
+-- Grants
+-- ---------------------------
+
+GRANT SELECT ON public.link_directory_site_comments TO anon;
+
+GRANT ALL ON public.link_directory_site_ratings TO authenticated;
+GRANT ALL ON public.link_directory_site_comments TO authenticated;
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
 -- Module: signature, File: 301_20260430_rlsgrants.sql
 -- ---------------------------
 -- MODULE NAME: signature
@@ -7418,6 +7568,112 @@ CREATE TRIGGER sync_link_directory_site_tag_slugs_on_change
     AFTER INSERT OR UPDATE OR DELETE ON public.link_directory_site_tags_association
     FOR EACH ROW
     EXECUTE FUNCTION public.trigger_sync_link_directory_site_tag_slugs();
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: link-directory, File: 401_20261005_functions.sql
+-- ---------------------------
+-- MODULE NAME: Link Directory
+-- MODULE DATE: 20261005
+-- MODULE SCOPE: Functions
+-- ---------------------------
+
+BEGIN;
+
+DROP TRIGGER IF EXISTS update_link_directory_site_ratings_updated_at ON public.link_directory_site_ratings;
+CREATE TRIGGER update_link_directory_site_ratings_updated_at
+    BEFORE UPDATE ON public.link_directory_site_ratings
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_link_directory_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_link_directory_site_comments_updated_at ON public.link_directory_site_comments;
+CREATE TRIGGER update_link_directory_site_comments_updated_at
+    BEFORE UPDATE ON public.link_directory_site_comments
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_link_directory_updated_at_column();
+
+CREATE OR REPLACE FUNCTION public.increment_link_directory_site_field(p_site_id UUID, field_name TEXT)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    IF field_name NOT IN ('likes', 'views', 'bookmark_count') THEN
+        RAISE EXCEPTION 'Invalid field name';
+    END IF;
+
+    EXECUTE format(
+        'UPDATE public.link_directory_sites SET %I = %I + 1 WHERE id = $1',
+        field_name,
+        field_name
+    )
+    USING p_site_id;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.increment_link_directory_site_field(UUID, TEXT) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.increment_link_directory_site_field(UUID, TEXT) FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.increment_link_directory_site_field(UUID, TEXT) TO service_role;
+
+CREATE OR REPLACE FUNCTION public.recompute_link_directory_site_rating_aggregate(p_site_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_count INTEGER;
+    v_avg DOUBLE PRECISION;
+BEGIN
+    SELECT COUNT(*)::INTEGER, COALESCE(AVG(rating)::DOUBLE PRECISION, 0)
+    INTO v_count, v_avg
+    FROM public.link_directory_site_ratings
+    WHERE site_id = p_site_id;
+
+    UPDATE public.link_directory_sites
+    SET ratings_count = v_count,
+        average_rating = v_avg
+    WHERE id = p_site_id;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.recompute_link_directory_site_rating_aggregate(UUID) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.recompute_link_directory_site_rating_aggregate(UUID) FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.recompute_link_directory_site_rating_aggregate(UUID) TO service_role;
+
+CREATE OR REPLACE FUNCTION public.trigger_recompute_link_directory_site_rating_aggregate()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    PERFORM public.recompute_link_directory_site_rating_aggregate(COALESCE(NEW.site_id, OLD.site_id));
+    RETURN COALESCE(NEW, OLD);
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.trigger_recompute_link_directory_site_rating_aggregate() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.trigger_recompute_link_directory_site_rating_aggregate() FROM anon, authenticated;
+
+DROP TRIGGER IF EXISTS recompute_link_directory_site_rating_on_change ON public.link_directory_site_ratings;
+CREATE TRIGGER recompute_link_directory_site_rating_on_change
+    AFTER INSERT OR UPDATE OR DELETE ON public.link_directory_site_ratings
+    FOR EACH ROW
+    EXECUTE FUNCTION public.trigger_recompute_link_directory_site_rating_aggregate();
+
+UPDATE public.link_directory_sites s
+SET bookmark_count = COALESCE(saved.cnt, 0)
+FROM (
+    SELECT site_id, COUNT(*)::INTEGER AS cnt
+    FROM public.link_directory_saved_sites
+    GROUP BY site_id
+) saved
+WHERE s.id = saved.site_id;
 
 -- ---------------------------
 -- END OF FILE

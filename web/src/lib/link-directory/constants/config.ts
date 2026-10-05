@@ -33,5 +33,13 @@ export type LinkDirectoryConfig = {
 		deleteTag: (tagId: string) => string;
 		getAdminSubmissions: string;
 		reviewSubmission: (submissionId: string) => string;
+		postSiteViews: (siteId: string) => string;
+		postSiteLikes: (siteId: string) => string;
+		getSiteComments: (siteId: string) => string;
+		createSiteComment: (siteId: string) => string;
+		upsertSiteRating: (siteId: string) => string;
+		getAdminSiteComments: string;
+		approveSiteComment: (commentId: string) => string;
+		deleteSiteComment: (commentId: string) => string;
 	};
 };

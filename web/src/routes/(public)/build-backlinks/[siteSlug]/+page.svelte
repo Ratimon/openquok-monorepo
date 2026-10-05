@@ -1,12 +1,23 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { onMount } from 'svelte';
 
 	import type { PageData } from './$types';
+	import type { ListingCommentViewModel } from '$lib/listings/GetListing.presenter.svelte';
+
+	import { planLimitsForTier } from 'openquok-common';
 
 	import { prepareBlogRichTextForDisplay } from '$lib/blogs/utils';
-	import { publicBuildBacklinksBookmarksPresenter } from '$lib/link-directory/index';
+	import { getBillingPresenter } from '$lib/billing';
+	import {
+		publicBuildBacklinksBookmarksPresenter,
+		publicBuildBacklinksSiteBySlugPagePresenter
+	} from '$lib/link-directory/index';
+	import { authenticationRepository } from '$lib/user-auth';
+	import { getRootPathAccount } from '$lib/area-protected';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
-	import { route } from '$lib/utils/path';
+	import { route, url } from '$lib/utils/path';
+	import { toast } from '$lib/ui/sonner';
 	import {
 		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
 		CENTERED_DARK_CTA_BANNER_TITLE,
@@ -14,8 +25,11 @@
 	} from '$lib/config/constants/config';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
+	import CommunityFeaturesLimitUpgradeModal from '$lib/ui/components/blog-post/CommunityFeaturesLimitUpgradeModal.svelte';
+	import SubjectComments from '$lib/ui/components/community/SubjectComments.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import BuildBacklinksOpportunityGuideSection from '$lib/ui/templates/build-backlinks/BuildBacklinksOpportunityGuideSection.svelte';
+	import BuildBacklinksSiteEngagementBar from '$lib/ui/templates/build-backlinks/BuildBacklinksSiteEngagementBar.svelte';
 	import BuildBacklinksSiteDetailSidebar from '$lib/ui/templates/build-backlinks/BuildBacklinksSiteDetailSidebar.svelte';
 	import BuildBacklinksSiteOpportunitiesOverview from '$lib/ui/templates/build-backlinks/BuildBacklinksSiteOpportunitiesOverview.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
@@ -30,18 +44,62 @@
 	let { data }: Props = $props();
 
 	let siteVm = $derived(data.siteVm);
+	let commentsVm = $derived((data.commentsVm ?? []) as ListingCommentViewModel[]);
 	let schemaData = $derived(data.schemaData);
 	let listingsBreadcrumb = $derived(data.listingsBreadcrumb);
 	let heroTitle = $derived(data.heroTitle);
 	let guideSections = $derived(data.guideSections);
 	let siteFaqSection = $derived(data.siteFaqSection);
-	let isLoggedIn = $derived(data.isLoggedIn === true);
+	let isLoggedIn = $derived(authenticationRepository.isAuthenticated() || data.isLoggedIn === true);
 
 	const bookmarksPresenter = publicBuildBacklinksBookmarksPresenter;
+	const siteBySlugPresenter = publicBuildBacklinksSiteBySlugPagePresenter;
+
+	let viewerCommunityFeaturesEnabled = $state<boolean | null>(null);
+	let showUpgradeModal = $state(false);
+	let extraLikes = $state(0);
+	let bookmarkCountDelta = $state(0);
+
+	const communityEnabled = $derived(viewerCommunityFeaturesEnabled ?? true);
+	let displayLikes = $derived(siteVm.likes + extraLikes);
+	let displaySiteVm = $derived({
+		...siteVm,
+		bookmarkCount: Math.max(0, siteVm.bookmarkCount + bookmarkCountDelta)
+	});
+
+	// /account/billing
+	const rootPathAccount = getRootPathAccount();
+	const accountBillingHref = url(`${route(rootPathAccount)}/billing`);
+
+	$effect(() => {
+		siteVm.id;
+		bookmarkCountDelta = 0;
+		extraLikes = 0;
+	});
 
 	$effect(() => {
 		if (!browser) return;
 		void bookmarksPresenter.hydrate(isLoggedIn);
+	});
+
+	$effect(() => {
+		if (!browser || !isLoggedIn) {
+			viewerCommunityFeaturesEnabled = null;
+			return;
+		}
+		let cancelled = false;
+		void getBillingPresenter.loadOwnedAccountBillingVmStateless().then((vm) => {
+			if (cancelled) return;
+			viewerCommunityFeaturesEnabled = vm ? planLimitsForTier(vm.tier).community_features : false;
+		});
+		return () => {
+			cancelled = true;
+		};
+	});
+
+	onMount(() => {
+		if (!browser || !siteVm?.id) return;
+		void siteBySlugPresenter.recordSiteView(siteVm.id);
 	});
 
 	const longDescriptionHtml = $derived(
@@ -55,8 +113,40 @@
 	const signUpPath = $derived(route(getRootPathSignup()));
 
 	async function handleToggleBookmark(params: { siteId: string; siteSlug: string }) {
-		return bookmarksPresenter.toggleBookmark({ ...params, title: siteVm.title });
+		const result = await bookmarksPresenter.toggleBookmark({ ...params, title: siteVm.title });
+		if (result.ok && params.siteId === siteVm.id) {
+			bookmarkCountDelta += result.bookmarked ? 1 : -1;
+		}
+		return result;
 	}
+
+	async function handleLike() {
+		const result = await siteBySlugPresenter.incrementSiteLikes(siteVm.id);
+		if (result.ok) {
+			extraLikes += 1;
+			toast.success('Thanks for the like!');
+			return;
+		}
+		toast.error(result.error);
+	}
+
+	const siteSidebarProps = $derived({
+		site: displaySiteVm,
+		displayLikes,
+		isLoggedIn,
+		isBookmarked: isSiteBookmarked,
+		onToggleBookmark: handleToggleBookmark,
+		communityEnabled,
+		submitRating: (siteId: string, rating: number) =>
+			siteBySlugPresenter.submitSiteRating(siteId, rating),
+		submittingRating: siteBySlugPresenter.submittingRating,
+		onRatingSignInRequired: () => {
+			toast.error('Sign in to use community features.');
+		},
+		onRatingUpgradeRequired: () => {
+			showUpgradeModal = true;
+		}
+	});
 </script>
 
 <JsonLdHead schemaData={schemaData} />
@@ -96,13 +186,18 @@
 					</div>
 				</header>
 
+				<BuildBacklinksSiteEngagementBar
+					class="mt-6"
+					siteTitle={siteVm.title}
+					siteSlug={siteVm.slug}
+					shareText={siteVm.shortDescription}
+					{displayLikes}
+					onLike={handleLike}
+					likeDisabled={siteBySlugPresenter.submittingLike}
+				/>
+
 				<div class="mt-8 lg:hidden">
-					<BuildBacklinksSiteDetailSidebar
-						site={siteVm}
-						{isLoggedIn}
-						isBookmarked={isSiteBookmarked}
-						onToggleBookmark={handleToggleBookmark}
-					/>
+					<BuildBacklinksSiteDetailSidebar {...siteSidebarProps} />
 				</div>
 
 				{#if siteVm.shortDescription?.trim()}
@@ -142,6 +237,25 @@
 						sectionClass="mt-16 pt-10 border-t border-base-content/10"
 					/>
 
+					<section class="border-t border-base-content/10 py-10">
+						<SubjectComments
+							{commentsVm}
+							subjectId={siteVm.id}
+							{isLoggedIn}
+							submitComment={(params) =>
+								siteBySlugPresenter.submitSiteComment({
+									siteId: params.subjectId,
+									content: params.content,
+									parentId: params.parentId
+								})}
+							submittingComment={siteBySlugPresenter.submittingComment}
+							communityCommentsEnabled={communityEnabled}
+							onUpgradeRequired={() => {
+								showUpgradeModal = true;
+							}}
+						/>
+					</section>
+
 					<div class="pt-6">
 						<CenteredDarkCtaBanner
 							title={CENTERED_DARK_CTA_BANNER_TITLE}
@@ -158,14 +272,14 @@
 				<div
 					class="sticky top-24 z-20 max-h-[calc(100dvh-6.5rem)] overflow-y-auto overscroll-contain"
 				>
-					<BuildBacklinksSiteDetailSidebar
-						site={siteVm}
-						{isLoggedIn}
-						isBookmarked={isSiteBookmarked}
-						onToggleBookmark={handleToggleBookmark}
-					/>
+					<BuildBacklinksSiteDetailSidebar {...siteSidebarProps} />
 				</div>
 			</aside>
 		</div>
 	</div>
 </SectionOuterContainer>
+
+<CommunityFeaturesLimitUpgradeModal
+	bind:open={showUpgradeModal}
+	upgradeHref={accountBillingHref}
+/>

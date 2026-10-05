@@ -120,7 +120,27 @@ export type LinkDirectorySiteDto = {
 	sortOrder: number;
 	tagSlugs: string[];
 	publishedAt: string | null;
+	likes: number;
+	views: number;
+	bookmarkCount: number;
+	averageRating: number;
+	ratingsCount: number;
 	opportunities: LinkDirectoryOpportunityDto[];
+};
+
+export type LinkDirectorySiteCommentDto = {
+	id: string;
+	content: string;
+	isApproved: boolean;
+	createdAt: string;
+	updatedAt: string | null;
+	parentId: string | null;
+	userId: string;
+	author: {
+		id: string;
+		fullName: string | null;
+		avatarUrl: string | null;
+	} | null;
 };
 
 export const linkDirectorySubmissionFormSchema = z.object({

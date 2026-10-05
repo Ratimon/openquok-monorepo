@@ -99,6 +99,28 @@ describe("publicRouteRegistry", () => {
             ).toBe(true);
         });
 
+        it("exempts link directory site stat POST and public comment GET routes", () => {
+            const siteId = "550e8400-e29b-41d4-a716-446655440000";
+            expect(
+                isAuthExemptRoute(
+                    asReq({ method: "POST" }),
+                    `/link-directory/sites/${siteId}/views`
+                )
+            ).toBe(true);
+            expect(
+                isAuthExemptRoute(
+                    asReq({ method: "GET" }),
+                    `/link-directory/sites/${siteId}/comments`
+                )
+            ).toBe(true);
+            expect(
+                isAuthExemptRoute(
+                    asReq({ method: "POST" }),
+                    `/link-directory/sites/${siteId}/comments`
+                )
+            ).toBe(false);
+        });
+
         it("requires auth for protected dashboard routes", () => {
             expect(isAuthExemptRoute(asReq({ method: "GET" }), "/users/me")).toBe(false);
             expect(isAuthExemptRoute(asReq({ method: "GET" }), "/posts")).toBe(false);
@@ -186,6 +208,12 @@ describe("publicRouteRegistry", () => {
                 isPublicWriteRoute(
                     asReq({ method: "PUT" }),
                     "/listings/stats/clicks/550e8400-e29b-41d4-a716-446655440000"
+                )
+            ).toBe(true);
+            expect(
+                isPublicWriteRoute(
+                    asReq({ method: "POST" }),
+                    "/link-directory/sites/550e8400-e29b-41d4-a716-446655440000/likes"
                 )
             ).toBe(true);
         });

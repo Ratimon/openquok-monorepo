@@ -5,7 +5,11 @@ import { error } from '@sveltejs/kit';
 import { getRootPathPublicBuildBacklinksSite } from '$lib/area-public/constants/getRootPathPublicBuildBacklinks';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { buildListingsHubBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
-import { linkDirectoryRepository } from '$lib/link-directory/index';
+import {
+	linkDirectoryRepository,
+	publicBuildBacklinksSiteBySlugPagePresenter
+} from '$lib/link-directory/index';
+import type { ListingCommentViewModel } from '$lib/listings/GetListing.presenter.svelte';
 import { createMetaData, type MetaDataImage } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
 import { buildPublicFeaturesOrderedHowToSchemas } from '$lib/seo/featuresOrderedHowToSchema';
@@ -40,6 +44,12 @@ export async function load({ params, url, fetch, cookies, parent }) {
 	if (!site) {
 		throw error(404, 'Site not found');
 	}
+
+	const commentsVm: ListingCommentViewModel[] =
+		await publicBuildBacklinksSiteBySlugPagePresenter.loadSiteCommentsStateless({
+			siteId: site.id,
+			fetch
+		});
 
 	const accessToken = cookies.get('access_token');
 	const isLoggedIn = !!accessToken;
@@ -143,6 +153,7 @@ export async function load({ params, url, fetch, cookies, parent }) {
 	return {
 		pageMetaTags,
 		isLoggedIn,
+		commentsVm,
 		siteVm: site,
 		guideSections,
 		siteFaqSection,

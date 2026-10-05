@@ -346,6 +346,19 @@ export function createAdminListingCommentsParser(): RequestHandler {
     return createQueryParser<ParsedAdminListingCommentsQuery>(adminListingCommentsRules);
 }
 
+/** Admin link directory site comments list query. */
+export interface ParsedAdminLinkDirectorySiteCommentsQuery extends Record<string, unknown> {
+    limit?: number;
+    searchTerm?: string | null;
+    sortByKey?: string | null;
+    sortByOrder?: boolean | null;
+    range?: { start: number; end: number } | null;
+}
+
+export function createAdminLinkDirectorySiteCommentsParser(): RequestHandler {
+    return createQueryParser<ParsedAdminLinkDirectorySiteCommentsQuery>(adminListingCommentsRules);
+}
+
 /** Admin listing activities list query. */
 export interface ParsedAdminListingActivitiesQuery extends Record<string, unknown> {
     limit?: number;

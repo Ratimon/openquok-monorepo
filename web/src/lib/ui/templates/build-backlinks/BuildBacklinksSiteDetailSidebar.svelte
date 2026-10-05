@@ -10,8 +10,10 @@
 		formatMonthlyVisitsLabel
 	} from '$lib/link-directory/utils/formatLinkDirectoryMetrics';
 	import { formatOpportunityIndexTitle } from '$lib/link-directory/utils/formatBuildBacklinksGuideDisplayTitle';
+	import { buildBuildBacklinksSiteDetailSidebarMetrics } from '$lib/link-directory/utils/buildBuildBacklinksSiteDetailSidebarMetrics';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import SubjectRating from '$lib/ui/components/community/SubjectRating.svelte';
 	import BuildBacklinksBookmarkButton from '$lib/ui/templates/build-backlinks/BuildBacklinksBookmarkButton.svelte';
 	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
 	import InternalLink from '$lib/ui/links/InternalLink.svelte';
@@ -25,20 +27,35 @@
 
 	type Props = {
 		site: LinkDirectorySiteDto;
+		displayLikes: number;
 		isLoggedIn?: boolean;
 		isBookmarked?: boolean;
 		onToggleBookmark?: (params: {
 			siteId: string;
 			siteSlug: string;
 		}) => Promise<ToggleBookmarkResult>;
+		communityEnabled?: boolean;
+		submitRating?: (
+			siteId: string,
+			rating: number
+		) => Promise<{ ok: true } | { ok: false; error: string }>;
+		submittingRating?: boolean;
+		onRatingSignInRequired?: () => void;
+		onRatingUpgradeRequired?: () => void;
 		class?: string;
 	};
 
 	let {
 		site,
+		displayLikes,
 		isLoggedIn = false,
 		isBookmarked = false,
 		onToggleBookmark,
+		communityEnabled = true,
+		submitRating,
+		submittingRating = false,
+		onRatingSignInRequired,
+		onRatingUpgradeRequired,
 		class: className = ''
 	}: Props = $props();
 
@@ -66,6 +83,10 @@
 		);
 		return easiest.charAt(0).toUpperCase() + easiest.slice(1);
 	});
+
+	const communityMetricRows = $derived(
+		buildBuildBacklinksSiteDetailSidebarMetrics(site, displayLikes)
+	);
 
 	const metricRows = $derived.by((): MetricRow[] => {
 		const rows: MetricRow[] = [];
@@ -161,6 +182,33 @@
 				Metrics are estimates from your provider. Last updated {metricsUpdated}.
 			</p>
 		{/if}
+
+		<div>
+			<h2 class="text-xs font-semibold tracking-wide text-primary/90 uppercase">Community</h2>
+			<dl class="mt-3 space-y-3">
+				{#each communityMetricRows as row (row.label)}
+					<div class="flex items-baseline justify-between gap-3">
+						<dt class="text-sm text-base-content/65">{row.label}</dt>
+						<dd class="text-sm font-semibold text-base-content tabular-nums">{row.value}</dd>
+					</div>
+				{/each}
+			</dl>
+			{#if submitRating}
+				<div class="mt-4 border-t border-base-content/10 pt-4">
+					<SubjectRating
+						subjectId={site.id}
+						averageRating={site.averageRating}
+						ratingsCount={site.ratingsCount}
+						{isLoggedIn}
+						communityEnabled={communityEnabled}
+						{submitRating}
+						submitting={submittingRating}
+						onSignInRequired={onRatingSignInRequired}
+						onUpgradeRequired={onRatingUpgradeRequired}
+					/>
+				</div>
+			{/if}
+		</div>
 
 		{#if opportunityJumpLinks.length > 0}
 			<nav aria-label="Jump to backlink opportunities">

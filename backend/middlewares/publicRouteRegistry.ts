@@ -8,6 +8,10 @@ export const LISTINGS_STACKS_PUBLISHED_PREFIX = "/listings/stacks/published/";
 export const LINK_DIRECTORY_PUBLISHED_PREFIX = "/link-directory/published/";
 export const LISTING_STAT_PATH = /^\/listings\/stats\/(views|likes|clicks)\/[^/]+$/;
 export const LISTING_COMMENTS_PATH = /^\/listings\/[0-9a-f-]{36}\/comments$/i;
+export const LINK_DIRECTORY_SITE_STAT_PATH =
+    /^\/link-directory\/sites\/[0-9a-f-]{36}\/(views|likes)$/i;
+export const LINK_DIRECTORY_SITE_COMMENTS_PATH =
+    /^\/link-directory\/sites\/[0-9a-f-]{36}\/comments$/i;
 
 /** Prefix trees that skip user JWT auth (any HTTP method unless narrowed below). */
 export const PUBLIC_PATH_PREFIXES = [
@@ -100,6 +104,14 @@ export const isAuthExemptRoute = (req: Request, routePath: string): boolean => {
         return true;
     }
 
+    if (req.method === "POST" && LINK_DIRECTORY_SITE_STAT_PATH.test(routePath)) {
+        return true;
+    }
+
+    if (req.method === "GET" && LINK_DIRECTORY_SITE_COMMENTS_PATH.test(routePath)) {
+        return true;
+    }
+
     if (req.method === "GET" && routePath.startsWith(LISTINGS_PUBLISHED_PREFIX)) {
         return true;
     }
@@ -155,6 +167,9 @@ export const isPublicWriteRoute = (req: Request, routePath: string): boolean => 
         return true;
     }
     if (req.method === "PUT" && LISTING_STAT_PATH.test(routePath)) {
+        return true;
+    }
+    if (req.method === "POST" && LINK_DIRECTORY_SITE_STAT_PATH.test(routePath)) {
         return true;
     }
     if (req.method === "POST" && routePath === "/link-directory/submissions") {

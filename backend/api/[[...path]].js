@@ -226,12 +226,11 @@ function validateMediaFileUploadSize(size, mimetype, surface) {
   const kind = isVideoMediaMime(mimetype) ? "Video" : "Image";
   return `${kind} must be ${formatLimitLabel(max)} or smaller (file is ${formatLimitLabel(size)}).`;
 }
-var MAX_MEDIA_IMAGE_UPLOAD_BYTES_BACKEND, MAX_MEDIA_VIDEO_UPLOAD_BYTES, MAX_MEDIA_UPLOAD_BYTES, EXTENSION_TO_MIME;
+var MAX_MEDIA_IMAGE_UPLOAD_BYTES_BACKEND, MAX_MEDIA_VIDEO_UPLOAD_BYTES, EXTENSION_TO_MIME;
 var init_uploadLimits = __esm({
   "../common/dist/media/uploadLimits.js"() {
     MAX_MEDIA_IMAGE_UPLOAD_BYTES_BACKEND = 10 * 1024 * 1024;
     MAX_MEDIA_VIDEO_UPLOAD_BYTES = 1024 * 1024 * 1024;
-    MAX_MEDIA_UPLOAD_BYTES = MAX_MEDIA_VIDEO_UPLOAD_BYTES;
     EXTENSION_TO_MIME = {
       png: "image/png",
       jpg: "image/jpeg",
@@ -8667,7 +8666,7 @@ function resolveOrderKey3(candidate, fallback, allowlist) {
 function escapeIlike(term) {
   return term.replace(/[%_\\]/g, "\\$&");
 }
-var TABLE_SITES, TABLE_OPPORTUNITIES, TABLE_TAG_ASSOC2, TABLE_SAVED_SITES, TABLE_SUBMISSIONS, TABLE_OPP_TYPES, SITE_COLUMNS, CATEGORY_EMBED, OPPORTUNITY_EMBED, SELECT_OPPORTUNITY, SELECT_SITE, SELECT_SITE_FOR_SAVED_SITE, ALLOWED_PUBLISHED_SORT_KEYS2, ALLOWED_ADMIN_SORT_KEYS2, LinkDirectoryRepository;
+var TABLE_SITES, TABLE_OPPORTUNITIES, TABLE_TAG_ASSOC2, TABLE_SAVED_SITES, TABLE_SUBMISSIONS, TABLE_OPP_TYPES, TABLE_SITE_COMMENTS, TABLE_SITE_RATINGS, SITE_COLUMNS, ALLOWED_ADMIN_SITE_COMMENT_SORT_KEYS, SELECT_SITE_COMMENT, SELECT_SITE_COMMENT_ADMIN, CATEGORY_EMBED, OPPORTUNITY_EMBED, SELECT_OPPORTUNITY, SELECT_SITE, SELECT_SITE_FOR_SAVED_SITE, ALLOWED_PUBLISHED_SORT_KEYS2, ALLOWED_ADMIN_SORT_KEYS2, LinkDirectoryRepository;
 var init_LinkDirectoryRepository = __esm({
   "repositories/LinkDirectoryRepository.ts"() {
     init_InfraError();
@@ -8679,7 +8678,32 @@ var init_LinkDirectoryRepository = __esm({
     TABLE_SAVED_SITES = "link_directory_saved_sites";
     TABLE_SUBMISSIONS = "link_directory_submissions";
     TABLE_OPP_TYPES = "link_directory_opportunity_types";
-    SITE_COLUMNS = "id, slug, title, site_url, logo_url, short_description, long_description, domain_authority, domain_rating, monthly_visits, metrics_source, metrics_updated_at, category_id, is_openquok_auth_supported, openquok_channel_slug, is_admin_published, sort_order, tag_slugs, published_at, created_at, updated_at";
+    TABLE_SITE_COMMENTS = "link_directory_site_comments";
+    TABLE_SITE_RATINGS = "link_directory_site_ratings";
+    SITE_COLUMNS = "id, slug, title, site_url, logo_url, short_description, long_description, domain_authority, domain_rating, monthly_visits, metrics_source, metrics_updated_at, category_id, is_openquok_auth_supported, openquok_channel_slug, is_admin_published, sort_order, tag_slugs, published_at, likes, views, bookmark_count, average_rating, ratings_count, created_at, updated_at";
+    ALLOWED_ADMIN_SITE_COMMENT_SORT_KEYS = /* @__PURE__ */ new Set(["created_at", "updated_at", "content"]);
+    SELECT_SITE_COMMENT = `
+  id,
+  content,
+  is_approved,
+  created_at,
+  updated_at,
+  parent_id,
+  user_id,
+  author:users!user_id(id, full_name, user_profiles(avatar_url))
+`;
+    SELECT_SITE_COMMENT_ADMIN = `
+  id,
+  content,
+  is_approved,
+  created_at,
+  updated_at,
+  parent_id,
+  user_id,
+  site_id,
+  author:users!user_id(id, full_name, user_profiles(avatar_url)),
+  site:site_id(id, title, slug)
+`;
     CATEGORY_EMBED = "category:link_directory_categories(id, name, slug, headline, description, sort_order, openquok_channels_hub_path)";
     OPPORTUNITY_EMBED = "opportunities:link_directory_opportunities(id, site_id, slug, title, opportunity_type_id, effort, approval_mode, approval_time_hint, dofollow, cost_tier, cost_note, description, steps, openquok_cta_kind, openquok_channel_slug, openquok_plug_name, cta_href, cta_label, sort_order, is_admin_published, published_at, created_at, updated_at, opportunity_type:link_directory_opportunity_types(id, slug, label, description, sort_order))";
     SELECT_OPPORTUNITY = "id, site_id, slug, title, opportunity_type_id, effort, approval_mode, approval_time_hint, dofollow, cost_tier, cost_note, description, steps, openquok_cta_kind, openquok_channel_slug, openquok_plug_name, cta_href, cta_label, sort_order, is_admin_published, published_at, created_at, updated_at, opportunity_type:link_directory_opportunity_types(id, slug, label, description, sort_order)";
@@ -9105,6 +9129,15 @@ var init_LinkDirectoryRepository = __esm({
         };
       }
       async replaceUserSavedSites(userId, siteIds) {
+        const { data: existingRows, error: fetchError } = await this.supabase.from(TABLE_SAVED_SITES).select("site_id").eq("user_id", userId);
+        if (fetchError) {
+          throw new DatabaseError(`Error fetching saved sites: ${fetchError.message}`, {
+            cause: fetchError,
+            operation: "select"
+          });
+        }
+        const previousSiteIds = new Set((existingRows ?? []).map((row) => row.site_id));
+        const nextSiteIds = new Set(siteIds);
         const { error: deleteError } = await this.supabase.from(TABLE_SAVED_SITES).delete().eq("user_id", userId);
         if (deleteError) {
           throw new DatabaseError(`Error clearing saved sites: ${deleteError.message}`, {
@@ -9112,19 +9145,30 @@ var init_LinkDirectoryRepository = __esm({
             operation: "delete"
           });
         }
-        if (siteIds.length === 0) return;
-        const { error: insertError } = await this.supabase.from(TABLE_SAVED_SITES).insert(
-          siteIds.map((siteId, index) => ({
-            user_id: userId,
-            site_id: siteId,
-            sort_order: index
-          }))
-        );
-        if (insertError) {
-          throw new DatabaseError(`Error saving saved sites: ${insertError.message}`, {
-            cause: insertError,
-            operation: "insert"
-          });
+        if (siteIds.length > 0) {
+          const { error: insertError } = await this.supabase.from(TABLE_SAVED_SITES).insert(
+            siteIds.map((siteId, index) => ({
+              user_id: userId,
+              site_id: siteId,
+              sort_order: index
+            }))
+          );
+          if (insertError) {
+            throw new DatabaseError(`Error saving saved sites: ${insertError.message}`, {
+              cause: insertError,
+              operation: "insert"
+            });
+          }
+        }
+        for (const siteId of nextSiteIds) {
+          if (!previousSiteIds.has(siteId)) {
+            await this.incrementSiteBookmarkCount(siteId);
+          }
+        }
+        for (const siteId of previousSiteIds) {
+          if (!nextSiteIds.has(siteId)) {
+            await this.decrementSiteBookmarkCount(siteId);
+          }
         }
       }
       async reorderUserSavedSites(userId, siteIds) {
@@ -9184,6 +9228,171 @@ var init_LinkDirectoryRepository = __esm({
           freeOrFreemiumOpportunityCount: freeOrFreemiumResult.count ?? 0,
           quickWinOpportunityCount: quickWinsResult.count ?? 0
         };
+      }
+      async incrementSiteBookmarkCount(siteId) {
+        const { error } = await this.supabase.rpc("increment_link_directory_site_field", {
+          p_site_id: siteId,
+          field_name: "bookmark_count"
+        });
+        if (error) {
+          throw new DatabaseError(`Error incrementing site bookmark count: ${error.message}`, {
+            cause: error,
+            operation: "rpc"
+          });
+        }
+      }
+      async decrementSiteBookmarkCount(siteId) {
+        const { data: siteRow, error: fetchError } = await this.supabase.from(TABLE_SITES).select("bookmark_count").eq("id", siteId).single();
+        if (fetchError) {
+          throw new DatabaseError(`Error fetching site bookmark count: ${fetchError.message}`, {
+            cause: fetchError,
+            operation: "select"
+          });
+        }
+        const nextCount = Math.max(siteRow?.bookmark_count ?? 1, 1) - 1;
+        const { error: updateError } = await this.supabase.from(TABLE_SITES).update({ bookmark_count: nextCount }).eq("id", siteId);
+        if (updateError) {
+          throw new DatabaseError(`Error decrementing site bookmark count: ${updateError.message}`, {
+            cause: updateError,
+            operation: "update"
+          });
+        }
+      }
+      async incrementSiteStatCounter(siteId, fieldName) {
+        const { error } = await this.supabase.rpc("increment_link_directory_site_field", {
+          p_site_id: siteId,
+          field_name: fieldName
+        });
+        if (error) {
+          throw new DatabaseError(`Error incrementing site ${fieldName}: ${error.message}`, {
+            cause: error,
+            operation: "rpc"
+          });
+        }
+      }
+      async findSiteComments(siteId) {
+        const { data, error } = await this.supabase.from(TABLE_SITE_COMMENTS).select(SELECT_SITE_COMMENT).eq("site_id", siteId).eq("is_approved", true).order("created_at", { ascending: true });
+        if (error) {
+          throw new DatabaseError(`Error fetching site comments: ${error.message}`, {
+            cause: error,
+            operation: "select",
+            resource: { type: "table", name: TABLE_SITE_COMMENTS }
+          });
+        }
+        return { data: this.mapSiteCommentRows(data ?? []) };
+      }
+      async createSiteComment(siteId, payload, userId) {
+        const { data, error } = await this.supabase.from(TABLE_SITE_COMMENTS).insert({
+          site_id: siteId,
+          parent_id: payload.parentId ?? null,
+          content: payload.content,
+          user_id: userId,
+          is_approved: false
+        }).select("id, site_id").single();
+        if (error || !data?.id) {
+          throw new DatabaseError(`Error creating site comment: ${error?.message ?? "no id returned"}`, {
+            cause: error,
+            operation: "insert",
+            resource: { type: "table", name: TABLE_SITE_COMMENTS }
+          });
+        }
+        return { id: data.id, site_id: data.site_id };
+      }
+      async upsertSiteRating(siteId, userId, rating) {
+        const { data, error } = await this.supabase.from(TABLE_SITE_RATINGS).upsert(
+          {
+            site_id: siteId,
+            user_id: userId,
+            rating,
+            updated_at: (/* @__PURE__ */ new Date()).toISOString()
+          },
+          { onConflict: "user_id,site_id" }
+        ).select("id").single();
+        if (error || !data?.id) {
+          throw new DatabaseError(`Error upserting site rating: ${error?.message ?? "no id returned"}`, {
+            cause: error,
+            operation: "upsert",
+            resource: { type: "table", name: TABLE_SITE_RATINGS }
+          });
+        }
+        return { id: data.id };
+      }
+      async findAdminSiteComments(options2) {
+        const { limit = 10, searchTerm, sortByKey, sortByOrder, range } = options2;
+        let query = this.supabase.from(TABLE_SITE_COMMENTS).select(SELECT_SITE_COMMENT_ADMIN, { count: "exact" });
+        if (searchTerm) {
+          query = query.ilike("content", `%${searchTerm}%`);
+        }
+        const orderKey = resolveOrderKey3(
+          sortByKey ?? void 0,
+          "created_at",
+          ALLOWED_ADMIN_SITE_COMMENT_SORT_KEYS
+        );
+        query = query.order(orderKey, { ascending: sortByOrder ?? false });
+        if (range) {
+          query = query.range(range.start, range.end);
+        } else {
+          query = query.range(0, limit - 1);
+        }
+        const { data, error, count } = await query;
+        if (error) {
+          throw new DatabaseError(`Error fetching admin site comments: ${error.message}`, {
+            cause: error,
+            operation: "select",
+            resource: { type: "table", name: TABLE_SITE_COMMENTS }
+          });
+        }
+        const rows = data ?? [];
+        const comments = rows.map((row) => {
+          const base = this.mapSiteCommentRows([row])[0];
+          const rawSite = Array.isArray(row.site) ? row.site[0] ?? null : row.site ?? null;
+          return {
+            ...base,
+            site_id: row.site_id,
+            site: rawSite ? { id: rawSite.id, title: rawSite.title, slug: rawSite.slug } : null
+          };
+        });
+        return { data: comments, count: count ?? 0 };
+      }
+      async approveSiteComment(commentId) {
+        const { data, error } = await this.supabase.from(TABLE_SITE_COMMENTS).update({ is_approved: true, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", commentId).select("id, site_id").single();
+        if (error || !data?.id) {
+          throw new DatabaseError("Error approving site comment", {
+            cause: error,
+            operation: "update",
+            resource: { type: "table", name: TABLE_SITE_COMMENTS }
+          });
+        }
+        return { id: data.id, site_id: data.site_id };
+      }
+      async deleteSiteComment(commentId) {
+        const { data, error } = await this.supabase.from(TABLE_SITE_COMMENTS).delete().eq("id", commentId).select("site_id").single();
+        if (error || !data?.site_id) {
+          throw new DatabaseError("Error deleting site comment", {
+            cause: error,
+            operation: "delete",
+            resource: { type: "table", name: TABLE_SITE_COMMENTS }
+          });
+        }
+        return { site_id: data.site_id };
+      }
+      mapSiteCommentRows(rows) {
+        return rows.map((row) => {
+          const r = row;
+          const rawAuthor = Array.isArray(r.author) ? r.author[0] ?? null : r.author ?? null;
+          const profile = rawAuthor?.user_profiles;
+          const avatar_url = profile && typeof profile === "object" && "avatar_url" in profile ? profile.avatar_url : null;
+          return {
+            id: r.id,
+            content: r.content,
+            is_approved: r.is_approved,
+            created_at: r.created_at,
+            updated_at: r.updated_at ?? null,
+            parent_id: r.parent_id ?? null,
+            user_id: r.user_id,
+            author: rawAuthor ? { id: rawAuthor.id, full_name: rawAuthor.full_name ?? null, avatar_url: avatar_url ?? null } : null
+          };
+        });
       }
       async syncSiteTags(siteId, tagIds) {
         const { error: deleteError } = await this.supabase.from(TABLE_TAG_ASSOC2).delete().eq("site_id", siteId);
@@ -15637,11 +15846,24 @@ var LinkDirectoryService;
 var init_LinkDirectoryService = __esm({
   "services/LinkDirectoryService.ts"() {
     init_InfraError();
+    init_dist();
     LinkDirectoryService = class {
-      constructor(linkDirectoryRepository2, categoryRepository, tagRepository) {
+      constructor(linkDirectoryRepository2, categoryRepository, tagRepository, subscriptionGuard2) {
         this.linkDirectoryRepository = linkDirectoryRepository2;
         this.categoryRepository = categoryRepository;
         this.tagRepository = tagRepository;
+        this.subscriptionGuard = subscriptionGuard2;
+      }
+      async assertPublishedSiteForEngagement(siteId) {
+        await this.linkDirectoryRepository.assertPublishedSiteIds([siteId]);
+      }
+      async assertCommunityFeatures(authUserId) {
+        if (authUserId?.trim() && this.subscriptionGuard) {
+          await this.subscriptionGuard.assert(SubscriptionSection.COMMUNITY_FEATURES, {
+            scope: "account",
+            authUserId
+          });
+        }
       }
       async getPublishedSites(options2) {
         const { data, count } = await this.linkDirectoryRepository.findPublishedSites(options2);
@@ -15773,6 +15995,48 @@ var init_LinkDirectoryService = __esm({
           siteId,
           outreachCompletedAt
         );
+      }
+      async incrementSiteViews(siteId) {
+        await this.assertPublishedSiteForEngagement(siteId);
+        await this.linkDirectoryRepository.incrementSiteStatCounter(siteId, "views");
+      }
+      async incrementSiteLikes(siteId) {
+        await this.assertPublishedSiteForEngagement(siteId);
+        await this.linkDirectoryRepository.incrementSiteStatCounter(siteId, "likes");
+      }
+      async getSiteComments(siteId) {
+        await this.assertPublishedSiteForEngagement(siteId);
+        const { data } = await this.linkDirectoryRepository.findSiteComments(siteId);
+        return data;
+      }
+      async createSiteComment(siteId, payload, userId, authUserId) {
+        await this.assertPublishedSiteForEngagement(siteId);
+        await this.assertCommunityFeatures(authUserId);
+        const result = await this.linkDirectoryRepository.createSiteComment(siteId, payload, userId);
+        return { id: result.id };
+      }
+      async upsertSiteRating(siteId, rating, userId, authUserId) {
+        await this.assertPublishedSiteForEngagement(siteId);
+        await this.assertCommunityFeatures(authUserId);
+        return this.linkDirectoryRepository.upsertSiteRating(siteId, userId, rating);
+      }
+      async getAdminSiteComments(options2) {
+        const normalized = {
+          limit: options2.limit ?? 100,
+          searchTerm: options2.searchTerm ?? null,
+          sortByKey: options2.sortByKey ?? "created_at",
+          sortByOrder: options2.sortByOrder ?? false,
+          range: options2.range ?? null
+        };
+        const { data, count } = await this.linkDirectoryRepository.findAdminSiteComments(normalized);
+        return { comments: data, count };
+      }
+      async approveSiteComment(commentId) {
+        const result = await this.linkDirectoryRepository.approveSiteComment(commentId);
+        return { id: result.id };
+      }
+      async deleteSiteComment(commentId) {
+        await this.linkDirectoryRepository.deleteSiteComment(commentId);
       }
     };
   }
@@ -31002,7 +31266,8 @@ var init_services = __esm({
     linkDirectoryService = new LinkDirectoryService(
       linkDirectoryRepository,
       linkDirectoryCategoryRepository,
-      linkDirectoryTagRepository
+      linkDirectoryTagRepository,
+      subscriptionGuard
     );
     userSessionService = new UserSessionService(
       organizationRepository,
@@ -31145,7 +31410,7 @@ var init_generateBlogRSSFeed = __esm({
 });
 
 // middlewares/publicRouteRegistry.ts
-var BLOG_POSTS_PREFIX, BLOG_POST_ACTIVITY_PATH, LISTINGS_PUBLISHED_PREFIX, LISTINGS_STACKS_PUBLISHED_PREFIX, LINK_DIRECTORY_PUBLISHED_PREFIX, LISTING_STAT_PATH, LISTING_COMMENTS_PATH, PUBLIC_PATH_PREFIXES, PUBLIC_PATH_EXACT, BYPASS_PATHS, matchesPublicPathPrefix, matchesPublicPathExact, isPublicImageDownloadGet, isAuthExemptRoute, isPublicReadGet, isPublicWriteRoute, isPublicApiPath, isUploadPath, isIntegrationConnectPath, LISTING_BOOKMARK_MUTATION_PATH, LINK_DIRECTORY_SAVED_SITE_OUTREACH_PATH, isBookmarkSavedMutationRoute, isWebhookPath, hasDedicatedRateLimiter, normalizeApiRoutePath;
+var BLOG_POSTS_PREFIX, BLOG_POST_ACTIVITY_PATH, LISTINGS_PUBLISHED_PREFIX, LISTINGS_STACKS_PUBLISHED_PREFIX, LINK_DIRECTORY_PUBLISHED_PREFIX, LISTING_STAT_PATH, LISTING_COMMENTS_PATH, LINK_DIRECTORY_SITE_STAT_PATH, LINK_DIRECTORY_SITE_COMMENTS_PATH, PUBLIC_PATH_PREFIXES, PUBLIC_PATH_EXACT, BYPASS_PATHS, matchesPublicPathPrefix, matchesPublicPathExact, isPublicImageDownloadGet, isAuthExemptRoute, isPublicReadGet, isPublicWriteRoute, isPublicApiPath, isUploadPath, isIntegrationConnectPath, LISTING_BOOKMARK_MUTATION_PATH, LINK_DIRECTORY_SAVED_SITE_OUTREACH_PATH, isBookmarkSavedMutationRoute, isWebhookPath, hasDedicatedRateLimiter, normalizeApiRoutePath;
 var init_publicRouteRegistry = __esm({
   "middlewares/publicRouteRegistry.ts"() {
     BLOG_POSTS_PREFIX = "/blog-system/posts/";
@@ -31155,6 +31420,8 @@ var init_publicRouteRegistry = __esm({
     LINK_DIRECTORY_PUBLISHED_PREFIX = "/link-directory/published/";
     LISTING_STAT_PATH = /^\/listings\/stats\/(views|likes|clicks)\/[^/]+$/;
     LISTING_COMMENTS_PATH = /^\/listings\/[0-9a-f-]{36}\/comments$/i;
+    LINK_DIRECTORY_SITE_STAT_PATH = /^\/link-directory\/sites\/[0-9a-f-]{36}\/(views|likes)$/i;
+    LINK_DIRECTORY_SITE_COMMENTS_PATH = /^\/link-directory\/sites\/[0-9a-f-]{36}\/comments$/i;
     PUBLIC_PATH_PREFIXES = [
       "/auth",
       "/company",
@@ -31217,6 +31484,12 @@ var init_publicRouteRegistry = __esm({
       if (req.method === "PUT" && LISTING_STAT_PATH.test(routePath)) {
         return true;
       }
+      if (req.method === "POST" && LINK_DIRECTORY_SITE_STAT_PATH.test(routePath)) {
+        return true;
+      }
+      if (req.method === "GET" && LINK_DIRECTORY_SITE_COMMENTS_PATH.test(routePath)) {
+        return true;
+      }
       if (req.method === "GET" && routePath.startsWith(LISTINGS_PUBLISHED_PREFIX)) {
         return true;
       }
@@ -31258,6 +31531,9 @@ var init_publicRouteRegistry = __esm({
         return true;
       }
       if (req.method === "PUT" && LISTING_STAT_PATH.test(routePath)) {
+        return true;
+      }
+      if (req.method === "POST" && LINK_DIRECTORY_SITE_STAT_PATH.test(routePath)) {
         return true;
       }
       if (req.method === "POST" && routePath === "/link-directory/submissions") {
@@ -32728,8 +33004,42 @@ function toLinkDirectorySiteDto(row) {
     sortOrder: row.sort_order,
     tagSlugs: row.tag_slugs ?? [],
     publishedAt: row.published_at,
+    likes: row.likes ?? 0,
+    views: row.views ?? 0,
+    bookmarkCount: row.bookmark_count ?? 0,
+    averageRating: row.average_rating ?? 0,
+    ratingsCount: row.ratings_count ?? 0,
     opportunities
   };
+}
+function mapSiteComment(row) {
+  return {
+    id: row.id,
+    content: row.content,
+    isApproved: row.is_approved,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at ?? null,
+    parentId: row.parent_id ?? null,
+    userId: row.user_id,
+    author: row.author ? {
+      id: row.author.id,
+      fullName: row.author.full_name ?? null,
+      avatarUrl: row.author.avatar_url ?? null
+    } : null
+  };
+}
+function toLinkDirectorySiteCommentDtoCollection(rows) {
+  return rows.map((row) => mapSiteComment(row));
+}
+function toAdminLinkDirectorySiteCommentDto(row) {
+  return {
+    ...mapSiteComment(row),
+    siteId: row.site_id,
+    site: row.site ? { id: row.site.id, title: row.site.title, slug: row.site.slug } : null
+  };
+}
+function toAdminLinkDirectorySiteCommentDtoCollection(rows) {
+  return rows.map((row) => toAdminLinkDirectorySiteCommentDto(row));
 }
 function toLinkDirectorySiteDtoCollection(rows) {
   return rows.map(toLinkDirectorySiteDto);
@@ -33214,6 +33524,121 @@ var init_LinkDirectoryController = __esm({
           const { status } = req.body;
           await this.linkDirectoryService.reviewSubmission(submissionId, status, reviewerId);
           res.status(200).json({ success: true, message: `Submission marked ${status}.` });
+        } catch (err) {
+          next(err);
+        }
+      };
+      incrementSiteViews = async (req, res, next) => {
+        try {
+          const { siteId } = req.params;
+          await this.linkDirectoryService.incrementSiteViews(siteId);
+          res.status(200).json({ success: true, message: "View recorded" });
+        } catch (err) {
+          next(err);
+        }
+      };
+      incrementSiteLikes = async (req, res, next) => {
+        try {
+          const { siteId } = req.params;
+          await this.linkDirectoryService.incrementSiteLikes(siteId);
+          res.status(200).json({ success: true, message: "Like recorded" });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getSiteComments = async (req, res, next) => {
+        try {
+          const { siteId } = req.params;
+          const comments = await this.linkDirectoryService.getSiteComments(siteId);
+          res.status(200).json({
+            success: true,
+            data: toLinkDirectorySiteCommentDtoCollection(comments)
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      createSiteComment = async (req, res, next) => {
+        try {
+          const auth10 = req;
+          const userId = auth10.user?.publicId;
+          if (!userId) {
+            res.status(401).json({ error: "Authentication required" });
+            return;
+          }
+          const { siteId } = req.params;
+          const body = req.body;
+          const result = await this.linkDirectoryService.createSiteComment(
+            siteId,
+            body,
+            userId,
+            auth10.user?.id
+          );
+          res.status(201).json({
+            success: true,
+            data: result,
+            message: "Comment submitted. It may appear after moderation."
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      upsertSiteRating = async (req, res, next) => {
+        try {
+          const auth10 = req;
+          const userId = auth10.user?.publicId;
+          if (!userId) {
+            res.status(401).json({ error: "Authentication required" });
+            return;
+          }
+          const { siteId } = req.params;
+          const { rating } = req.body;
+          const result = await this.linkDirectoryService.upsertSiteRating(
+            siteId,
+            rating,
+            userId,
+            auth10.user?.id
+          );
+          res.status(200).json({ success: true, data: result, message: "Rating saved." });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getAdminSiteComments = async (req, res, next) => {
+        try {
+          const parsedQuery = req.parsedQuery ?? {};
+          const { comments, count } = await this.linkDirectoryService.getAdminSiteComments({
+            limit: parsedQuery.limit,
+            searchTerm: parsedQuery.searchTerm,
+            sortByKey: parsedQuery.sortByKey,
+            sortByOrder: parsedQuery.sortByOrder,
+            range: parsedQuery.range
+          });
+          res.status(200).json({
+            success: true,
+            data: {
+              commentsResult: toAdminLinkDirectorySiteCommentDtoCollection(comments),
+              countResult: count
+            }
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      approveSiteComment = async (req, res, next) => {
+        try {
+          const { id } = req.params;
+          const result = await this.linkDirectoryService.approveSiteComment(id);
+          res.status(200).json({ success: true, data: result, message: "Comment approved." });
+        } catch (err) {
+          next(err);
+        }
+      };
+      deleteSiteComment = async (req, res, next) => {
+        try {
+          const { id } = req.params;
+          await this.linkDirectoryService.deleteSiteComment(id);
+          res.status(200).json({ success: true, message: "Comment deleted." });
         } catch (err) {
           next(err);
         }
@@ -37130,7 +37555,6 @@ var init_TrackController = __esm({
 // controllers/index.ts
 var controllers_exports = {};
 __export(controllers_exports, {
-  MAX_MEDIA_UPLOAD_BYTES: () => MAX_MEDIA_UPLOAD_BYTES,
   analyticsController: () => analyticsController,
   approvedAppsController: () => approvedAppsController,
   authController: () => authController,
@@ -39628,6 +40052,9 @@ var adminListingCommentsRules = combineParsers(
 function createAdminListingCommentsParser() {
   return createQueryParser(adminListingCommentsRules);
 }
+function createAdminLinkDirectorySiteCommentsParser() {
+  return createQueryParser(adminListingCommentsRules);
+}
 var adminListingActivitiesRules = combineParsers(
   CommonQueryParsers.pagination,
   CommonQueryParsers.sorting,
@@ -41780,6 +42207,17 @@ var linkDirectorySavedSitesOrderSchema = zod.z.object({
 var linkDirectorySavedSiteOutreachCompletionSchema = zod.z.object({
   completed: zod.z.boolean()
 });
+var linkDirectorySiteCommentContent = zod.z.string().min(1, "Comment is required").max(1e3, "Comment must be at most 1000 characters");
+var linkDirectorySiteCommentCreateSchema = zod.z.object({
+  content: linkDirectorySiteCommentContent,
+  parentId: zod.z.string().uuid("Invalid parent comment id").optional().nullable()
+});
+var linkDirectorySiteCommentIdParamSchema = zod.z.object({
+  id: zod.z.string().uuid("Invalid comment id")
+});
+var linkDirectorySiteRatingBodySchema = zod.z.object({
+  rating: zod.z.number().int().min(1, "Rating must be at least 1").max(5, "Rating must be at most 5")
+});
 var linkDirectoryRouter = express.Router();
 var authWithRoles7 = requireFullAuthWithRoles(
   supabase,
@@ -41793,6 +42231,7 @@ var optionalAuth4 = optionalAuthWithRoles(
 );
 var parsePublishedQuery = createPublishedLinkDirectoryParser();
 var parseAdminQuery = createAdminLinkDirectoryParser();
+var parseAdminSiteCommentsQuery = createAdminLinkDirectorySiteCommentsParser();
 var tagBodySchema2 = zod.z.object({
   tagData: linkDirectoryTagCreateSchema,
   tagGroupIds: zod.z.array(zod.z.string().uuid()).optional()
@@ -41824,6 +42263,41 @@ linkDirectoryRouter.post(
   optionalAuth4,
   validateRequest({ body: linkDirectorySubmissionCreateSchema }),
   linkDirectoryController.createSubmission
+);
+linkDirectoryRouter.post(
+  "/sites/:siteId/views",
+  optionalAuth4,
+  validateRequest({ params: linkDirectorySiteIdParamSchema }),
+  linkDirectoryController.incrementSiteViews
+);
+linkDirectoryRouter.post(
+  "/sites/:siteId/likes",
+  optionalAuth4,
+  validateRequest({ params: linkDirectorySiteIdParamSchema }),
+  linkDirectoryController.incrementSiteLikes
+);
+linkDirectoryRouter.get(
+  "/sites/:siteId/comments",
+  validateRequest({ params: linkDirectorySiteIdParamSchema }),
+  linkDirectoryController.getSiteComments
+);
+linkDirectoryRouter.post(
+  "/sites/:siteId/comments",
+  authWithRoles7,
+  validateRequest({
+    params: linkDirectorySiteIdParamSchema,
+    body: linkDirectorySiteCommentCreateSchema
+  }),
+  linkDirectoryController.createSiteComment
+);
+linkDirectoryRouter.put(
+  "/sites/:siteId/ratings",
+  authWithRoles7,
+  validateRequest({
+    params: linkDirectorySiteIdParamSchema,
+    body: linkDirectorySiteRatingBodySchema
+  }),
+  linkDirectoryController.upsertSiteRating
 );
 linkDirectoryRouter.get("/me/saved-sites", authWithRoles7, linkDirectoryController.getUserSavedSites);
 linkDirectoryRouter.put(
@@ -41940,6 +42414,27 @@ linkDirectoryRouter.patch(
   linkDirectoryController.reviewSubmission
 );
 linkDirectoryRouter.get(
+  "/admin/site-comments",
+  authWithRoles7,
+  requireEditor,
+  parseAdminSiteCommentsQuery,
+  linkDirectoryController.getAdminSiteComments
+);
+linkDirectoryRouter.patch(
+  "/admin/site-comments/:id/approve",
+  authWithRoles7,
+  requireEditor,
+  validateRequest({ params: linkDirectorySiteCommentIdParamSchema }),
+  linkDirectoryController.approveSiteComment
+);
+linkDirectoryRouter.delete(
+  "/admin/site-comments/:id",
+  authWithRoles7,
+  requireEditor,
+  validateRequest({ params: linkDirectorySiteCommentIdParamSchema }),
+  linkDirectoryController.deleteSiteComment
+);
+linkDirectoryRouter.get(
   "/all-full",
   authWithRoles7,
   requireEditor,
@@ -42036,6 +42531,7 @@ imageRouter.delete("/delete", authWithRoles8, requireEditor, imageController.del
 imageRouter.get("/proxy", authWithRoles8, requireEditor, imageController.proxyImage);
 
 // routes/MediaRoute.ts
+init_dist();
 init_controllers();
 init_connections();
 init_repositories();
@@ -42157,7 +42653,7 @@ var validateMediaDeleteFolderBody = validateRequest({
 // routes/MediaRoute.ts
 var upload2 = multer__default.default({
   storage: multer__default.default.memoryStorage(),
-  limits: { fileSize: MAX_MEDIA_UPLOAD_BYTES }
+  limits: { fileSize: MAX_MEDIA_VIDEO_UPLOAD_BYTES }
 });
 var authWithRoles9 = requireFullAuthWithRoles(
   supabase,

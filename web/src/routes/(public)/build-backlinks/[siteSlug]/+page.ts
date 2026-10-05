@@ -5,6 +5,7 @@ import type {
 	ListingsHubBreadcrumbKind,
 	ListingsHubBreadcrumbVariant
 } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
+import type { ListingCommentViewModel } from '$lib/listings/GetListing.presenter.svelte';
 import type { LinkDirectorySiteDto } from '$lib/link-directory/index';
 import type { BuildBacklinksGuideSectionVm } from '$lib/link-directory/utils/buildBuildBacklinksGuideSections';
 import type { BuildBacklinksSiteFaqSection } from '$lib/link-directory/utils/buildBuildBacklinksSiteFaqSection';
@@ -19,6 +20,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 		const serverData = data as {
 			pageMetaTags: MetaTagsProps;
 			isLoggedIn: boolean;
+			commentsVm: ListingCommentViewModel[];
 			siteVm: LinkDirectorySiteDto;
 			guideSections: BuildBacklinksGuideSectionVm[];
 			siteFaqSection: BuildBacklinksSiteFaqSection;
@@ -37,6 +39,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			pageMetaTags: serverData.pageMetaTags,
 			isLoggedIn: accurateIsLoggedIn,
 			currentUser,
+			commentsVm: serverData.commentsVm,
 			siteVm: serverData.siteVm,
 			guideSections: serverData.guideSections,
 			siteFaqSection: serverData.siteFaqSection,

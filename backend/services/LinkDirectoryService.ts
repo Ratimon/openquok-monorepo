@@ -2,9 +2,12 @@ import type { LinkDirectoryCategoryRepository } from "../repositories/LinkDirect
 import type { LinkDirectoryRepository } from "../repositories/LinkDirectoryRepository";
 import type { LinkDirectoryTagRepository } from "../repositories/LinkDirectoryTagRepository";
 import type {
+    AdminLinkDirectorySiteComment,
+    AdminLinkDirectorySiteCommentsFilterOptions,
     AdminLinkDirectorySitesFilterOptions,
     LinkDirectoryCategoryRow,
     LinkDirectoryOpportunityTypeRow,
+    LinkDirectorySiteComment,
     LinkDirectorySiteRow,
     LinkDirectorySubmissionRow,
     LinkDirectoryTagGroupRow,
@@ -16,6 +19,7 @@ import type {
     LinkDirectoryCategoryUpdateSchemaType,
     LinkDirectoryOpportunityCreateSchemaType,
     LinkDirectoryOpportunityUpdateSchemaType,
+    LinkDirectorySiteCommentCreateSchemaType,
     LinkDirectorySiteCreateSchemaType,
     LinkDirectorySiteUpdateSchemaType,
     LinkDirectorySubmissionCreateSchemaType,
@@ -25,6 +29,8 @@ import type {
 } from "../data/schemas/linkDirectorySchemas";
 import type { LinkDirectorySavedSiteRow } from "../data/types/linkDirectoryTypes";
 import { ValidationError } from "../errors/InfraError";
+import type { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
+import { SubscriptionSection } from "openquok-common";
 
 function dedupeSiteIdsPreservingOrder(siteIds: string[]): string[] {
     const seen = new Set<string>();
@@ -54,8 +60,22 @@ export class LinkDirectoryService {
     constructor(
         private readonly linkDirectoryRepository: LinkDirectoryRepository,
         private readonly categoryRepository: LinkDirectoryCategoryRepository,
-        private readonly tagRepository: LinkDirectoryTagRepository
+        private readonly tagRepository: LinkDirectoryTagRepository,
+        private readonly subscriptionGuard?: SubscriptionGuardService
     ) {}
+
+    private async assertPublishedSiteForEngagement(siteId: string): Promise<void> {
+        await this.linkDirectoryRepository.assertPublishedSiteIds([siteId]);
+    }
+
+    private async assertCommunityFeatures(authUserId?: string): Promise<void> {
+        if (authUserId?.trim() && this.subscriptionGuard) {
+            await this.subscriptionGuard.assert(SubscriptionSection.COMMUNITY_FEATURES, {
+                scope: "account",
+                authUserId,
+            });
+        }
+    }
 
     async getPublishedSites(
         options: PublishedLinkDirectorySitesFilterOptions
@@ -251,5 +271,67 @@ export class LinkDirectoryService {
             siteId,
             outreachCompletedAt
         );
+    }
+
+    async incrementSiteViews(siteId: string): Promise<void> {
+        await this.assertPublishedSiteForEngagement(siteId);
+        await this.linkDirectoryRepository.incrementSiteStatCounter(siteId, "views");
+    }
+
+    async incrementSiteLikes(siteId: string): Promise<void> {
+        await this.assertPublishedSiteForEngagement(siteId);
+        await this.linkDirectoryRepository.incrementSiteStatCounter(siteId, "likes");
+    }
+
+    async getSiteComments(siteId: string): Promise<LinkDirectorySiteComment[]> {
+        await this.assertPublishedSiteForEngagement(siteId);
+        const { data } = await this.linkDirectoryRepository.findSiteComments(siteId);
+        return data;
+    }
+
+    async createSiteComment(
+        siteId: string,
+        payload: LinkDirectorySiteCommentCreateSchemaType,
+        userId: string,
+        authUserId?: string
+    ): Promise<{ id: string }> {
+        await this.assertPublishedSiteForEngagement(siteId);
+        await this.assertCommunityFeatures(authUserId);
+        const result = await this.linkDirectoryRepository.createSiteComment(siteId, payload, userId);
+        return { id: result.id };
+    }
+
+    async upsertSiteRating(
+        siteId: string,
+        rating: number,
+        userId: string,
+        authUserId?: string
+    ): Promise<{ id: string }> {
+        await this.assertPublishedSiteForEngagement(siteId);
+        await this.assertCommunityFeatures(authUserId);
+        return this.linkDirectoryRepository.upsertSiteRating(siteId, userId, rating);
+    }
+
+    async getAdminSiteComments(
+        options: AdminLinkDirectorySiteCommentsFilterOptions
+    ): Promise<{ comments: AdminLinkDirectorySiteComment[]; count: number }> {
+        const normalized: AdminLinkDirectorySiteCommentsFilterOptions = {
+            limit: options.limit ?? 100,
+            searchTerm: options.searchTerm ?? null,
+            sortByKey: options.sortByKey ?? "created_at",
+            sortByOrder: options.sortByOrder ?? false,
+            range: options.range ?? null,
+        };
+        const { data, count } = await this.linkDirectoryRepository.findAdminSiteComments(normalized);
+        return { comments: data, count };
+    }
+
+    async approveSiteComment(commentId: string): Promise<{ id: string }> {
+        const result = await this.linkDirectoryRepository.approveSiteComment(commentId);
+        return { id: result.id };
+    }
+
+    async deleteSiteComment(commentId: string): Promise<void> {
+        await this.linkDirectoryRepository.deleteSiteComment(commentId);
     }
 }

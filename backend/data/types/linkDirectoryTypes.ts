@@ -102,6 +102,11 @@ export interface LinkDirectorySiteRow {
     sort_order: number;
     tag_slugs: string[] | null;
     published_at: string | null;
+    likes: number;
+    views: number;
+    bookmark_count: number;
+    average_rating: number;
+    ratings_count: number;
     created_at?: string;
     updated_at?: string;
     category?: LinkDirectoryCategoryRow | null;
@@ -148,6 +153,36 @@ export interface LinkDirectorySubmissionRow {
     reviewed_at: string | null;
     created_at: string;
     updated_at: string;
+}
+
+export interface LinkDirectorySiteCommentAuthor {
+    id: string;
+    full_name: string | null;
+    avatar_url: string | null;
+}
+
+export interface LinkDirectorySiteComment {
+    id: string;
+    content: string;
+    is_approved: boolean;
+    created_at: string;
+    updated_at: string | null;
+    parent_id: string | null;
+    user_id: string;
+    author: LinkDirectorySiteCommentAuthor | null;
+}
+
+export interface AdminLinkDirectorySiteComment extends LinkDirectorySiteComment {
+    site_id: string;
+    site: { id: string; title: string; slug: string } | null;
+}
+
+export interface AdminLinkDirectorySiteCommentsFilterOptions {
+    limit?: number;
+    searchTerm?: string | null;
+    sortByKey?: string | null;
+    sortByOrder?: boolean | null;
+    range?: { start: number; end: number } | null;
 }
 
 export interface LinkDirectorySavedSiteRow {

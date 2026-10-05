@@ -31,6 +31,23 @@ export type LinkDirectorySubmissionDto = {
 
 export type LinkDirectoryUpsertResult = { ok: boolean; id?: string; error?: string };
 
+export type AdminLinkDirectorySiteCommentVm = {
+	id: string;
+	content: string;
+	isApproved: boolean;
+	createdAt: string;
+	updatedAt: string | null;
+	parentId: string | null;
+	userId: string;
+	siteId: string;
+	author: {
+		id: string;
+		fullName: string | null;
+		avatarUrl: string | null;
+	} | null;
+	site: { id: string; title: string; slug: string } | null;
+};
+
 export const linkDirectoryCategoryFormSchema = z.object({
 	id: z.string().uuid().optional(),
 	name: z.string().min(1, 'Name is required.').trim(),

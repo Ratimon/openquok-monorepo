@@ -66,6 +66,11 @@ function makeSite(overrides: Partial<LinkDirectorySiteDto> = {}): LinkDirectoryS
 		sortOrder: 0,
 		tagSlugs: [],
 		publishedAt: null,
+		likes: 0,
+		views: 0,
+		bookmarkCount: 0,
+		averageRating: 0,
+		ratingsCount: 0,
 		opportunities: [],
 		...overrides
 	};

@@ -205,3 +205,25 @@ export const linkDirectorySavedSiteOutreachCompletionSchema = z.object({
 export type LinkDirectorySavedSiteOutreachCompletionSchemaType = z.infer<
     typeof linkDirectorySavedSiteOutreachCompletionSchema
 >;
+
+const linkDirectorySiteCommentContent = z
+    .string()
+    .min(1, "Comment is required")
+    .max(1000, "Comment must be at most 1000 characters");
+
+export const linkDirectorySiteCommentCreateSchema = z.object({
+    content: linkDirectorySiteCommentContent,
+    parentId: z.string().uuid("Invalid parent comment id").optional().nullable(),
+});
+export type LinkDirectorySiteCommentCreateSchemaType = z.infer<
+    typeof linkDirectorySiteCommentCreateSchema
+>;
+
+export const linkDirectorySiteCommentIdParamSchema = z.object({
+    id: z.string().uuid("Invalid comment id"),
+});
+
+export const linkDirectorySiteRatingBodySchema = z.object({
+    rating: z.number().int().min(1, "Rating must be at least 1").max(5, "Rating must be at most 5"),
+});
+export type LinkDirectorySiteRatingBodySchemaType = z.infer<typeof linkDirectorySiteRatingBodySchema>;

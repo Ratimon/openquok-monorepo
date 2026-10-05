@@ -1,6 +1,10 @@
 import type { Request, Response, NextFunction } from "express";
 import type { AuthenticatedRequest } from "../guards";
-import type { ParsedPublishedLinkDirectoryQuery, ParsedAdminLinkDirectoryQuery } from "../middlewares/queryParsers";
+import type {
+    ParsedPublishedLinkDirectoryQuery,
+    ParsedAdminLinkDirectoryQuery,
+    ParsedAdminLinkDirectorySiteCommentsQuery,
+} from "../middlewares/queryParsers";
 import type {
     LinkDirectoryCategoryCreateSchemaType,
     LinkDirectoryCategoryUpdateSchemaType,
@@ -16,6 +20,8 @@ import type {
     LinkDirectorySavedSitesPutSchemaType,
     LinkDirectorySavedSitesOrderSchemaType,
     LinkDirectorySavedSiteOutreachCompletionSchemaType,
+    LinkDirectorySiteCommentCreateSchemaType,
+    LinkDirectorySiteRatingBodySchemaType,
 } from "../data/schemas/linkDirectorySchemas";
 import { LinkDirectoryService } from "../services/LinkDirectoryService";
 import {
@@ -26,6 +32,8 @@ import {
     toLinkDirectorySiteDtoCollection,
     toLinkDirectorySubmissionDtoCollection,
     toLinkDirectoryTagDtoCollection,
+    toLinkDirectorySiteCommentDtoCollection,
+    toAdminLinkDirectorySiteCommentDtoCollection,
 } from "../utils/dtos/LinkDirectoryDTO";
 import { DatabaseEntityNotFoundError } from "../errors/InfraError";
 import type {
@@ -493,6 +501,130 @@ export class LinkDirectoryController {
             const { status } = req.body as LinkDirectorySubmissionReviewSchemaType;
             await this.linkDirectoryService.reviewSubmission(submissionId, status, reviewerId);
             res.status(200).json({ success: true, message: `Submission marked ${status}.` });
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    incrementSiteViews = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { siteId } = req.params as { siteId: string };
+            await this.linkDirectoryService.incrementSiteViews(siteId);
+            res.status(200).json({ success: true, message: "View recorded" });
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    incrementSiteLikes = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { siteId } = req.params as { siteId: string };
+            await this.linkDirectoryService.incrementSiteLikes(siteId);
+            res.status(200).json({ success: true, message: "Like recorded" });
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    getSiteComments = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { siteId } = req.params as { siteId: string };
+            const comments = await this.linkDirectoryService.getSiteComments(siteId);
+            res.status(200).json({
+                success: true,
+                data: toLinkDirectorySiteCommentDtoCollection(comments),
+            });
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    createSiteComment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const auth = req as AuthenticatedRequest;
+            const userId = auth.user?.publicId;
+            if (!userId) {
+                res.status(401).json({ error: "Authentication required" });
+                return;
+            }
+            const { siteId } = req.params as { siteId: string };
+            const body = req.body as LinkDirectorySiteCommentCreateSchemaType;
+            const result = await this.linkDirectoryService.createSiteComment(
+                siteId,
+                body,
+                userId,
+                auth.user?.id
+            );
+            res.status(201).json({
+                success: true,
+                data: result,
+                message: "Comment submitted. It may appear after moderation.",
+            });
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    upsertSiteRating = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const auth = req as AuthenticatedRequest;
+            const userId = auth.user?.publicId;
+            if (!userId) {
+                res.status(401).json({ error: "Authentication required" });
+                return;
+            }
+            const { siteId } = req.params as { siteId: string };
+            const { rating } = req.body as LinkDirectorySiteRatingBodySchemaType;
+            const result = await this.linkDirectoryService.upsertSiteRating(
+                siteId,
+                rating,
+                userId,
+                auth.user?.id
+            );
+            res.status(200).json({ success: true, data: result, message: "Rating saved." });
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    getAdminSiteComments = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const parsedQuery =
+                (req as Request & { parsedQuery?: ParsedAdminLinkDirectorySiteCommentsQuery }).parsedQuery ?? {};
+            const { comments, count } = await this.linkDirectoryService.getAdminSiteComments({
+                limit: parsedQuery.limit,
+                searchTerm: parsedQuery.searchTerm,
+                sortByKey: parsedQuery.sortByKey,
+                sortByOrder: parsedQuery.sortByOrder,
+                range: parsedQuery.range,
+            });
+            res.status(200).json({
+                success: true,
+                data: {
+                    commentsResult: toAdminLinkDirectorySiteCommentDtoCollection(comments),
+                    countResult: count,
+                },
+            });
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    approveSiteComment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { id } = req.params as { id: string };
+            const result = await this.linkDirectoryService.approveSiteComment(id);
+            res.status(200).json({ success: true, data: result, message: "Comment approved." });
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    deleteSiteComment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { id } = req.params as { id: string };
+            await this.linkDirectoryService.deleteSiteComment(id);
+            res.status(200).json({ success: true, message: "Comment deleted." });
         } catch (err) {
             next(err);
         }

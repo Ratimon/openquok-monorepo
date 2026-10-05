@@ -11,6 +11,7 @@ import { validateRequest } from "../middlewares/validateRequest";
 import {
     createPublishedLinkDirectoryParser,
     createAdminLinkDirectoryParser,
+    createAdminLinkDirectorySiteCommentsParser,
 } from "../middlewares/queryParsers";
 import { isValidUUID } from "../utils/validation/uuid";
 import {
@@ -35,6 +36,9 @@ import {
     linkDirectorySavedSitesPutSchema,
     linkDirectorySavedSitesOrderSchema,
     linkDirectorySavedSiteOutreachCompletionSchema,
+    linkDirectorySiteCommentCreateSchema,
+    linkDirectorySiteCommentIdParamSchema,
+    linkDirectorySiteRatingBodySchema,
 } from "../data/schemas/linkDirectorySchemas";
 import { z } from "zod";
 
@@ -55,6 +59,7 @@ const optionalAuth = optionalAuthWithRoles(
 
 const parsePublishedQuery = createPublishedLinkDirectoryParser();
 const parseAdminQuery = createAdminLinkDirectoryParser();
+const parseAdminSiteCommentsQuery = createAdminLinkDirectorySiteCommentsParser();
 
 const tagBodySchema = z.object({
     tagData: linkDirectoryTagCreateSchema,
@@ -93,6 +98,42 @@ linkDirectoryRouter.post(
     optionalAuth,
     validateRequest({ body: linkDirectorySubmissionCreateSchema }),
     linkDirectoryController.createSubmission
+);
+
+linkDirectoryRouter.post(
+    "/sites/:siteId/views",
+    optionalAuth,
+    validateRequest({ params: linkDirectorySiteIdParamSchema }),
+    linkDirectoryController.incrementSiteViews
+);
+linkDirectoryRouter.post(
+    "/sites/:siteId/likes",
+    optionalAuth,
+    validateRequest({ params: linkDirectorySiteIdParamSchema }),
+    linkDirectoryController.incrementSiteLikes
+);
+linkDirectoryRouter.get(
+    "/sites/:siteId/comments",
+    validateRequest({ params: linkDirectorySiteIdParamSchema }),
+    linkDirectoryController.getSiteComments
+);
+linkDirectoryRouter.post(
+    "/sites/:siteId/comments",
+    authWithRoles,
+    validateRequest({
+        params: linkDirectorySiteIdParamSchema,
+        body: linkDirectorySiteCommentCreateSchema,
+    }),
+    linkDirectoryController.createSiteComment
+);
+linkDirectoryRouter.put(
+    "/sites/:siteId/ratings",
+    authWithRoles,
+    validateRequest({
+        params: linkDirectorySiteIdParamSchema,
+        body: linkDirectorySiteRatingBodySchema,
+    }),
+    linkDirectoryController.upsertSiteRating
 );
 
 // --- Authenticated saved sites ---
@@ -214,6 +255,28 @@ linkDirectoryRouter.patch(
         body: linkDirectorySubmissionReviewSchema,
     }),
     linkDirectoryController.reviewSubmission
+);
+
+linkDirectoryRouter.get(
+    "/admin/site-comments",
+    authWithRoles,
+    requireEditor,
+    parseAdminSiteCommentsQuery,
+    linkDirectoryController.getAdminSiteComments
+);
+linkDirectoryRouter.patch(
+    "/admin/site-comments/:id/approve",
+    authWithRoles,
+    requireEditor,
+    validateRequest({ params: linkDirectorySiteCommentIdParamSchema }),
+    linkDirectoryController.approveSiteComment
+);
+linkDirectoryRouter.delete(
+    "/admin/site-comments/:id",
+    authWithRoles,
+    requireEditor,
+    validateRequest({ params: linkDirectorySiteCommentIdParamSchema }),
+    linkDirectoryController.deleteSiteComment
 );
 
 // --- Editor: sites list ---

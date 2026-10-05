@@ -415,6 +415,10 @@ export function getRootPathLinkDirectoryManagerSubmissionsSegment(): string {
 	return 'submissions';
 }
 
+export function getRootPathLinkDirectoryManagerCommentsSegment(): string {
+	return 'comments';
+}
+
 export function getRootPathLinkDirectoryManagerNewSegment(): string {
 	return 'new';
 }
@@ -445,4 +449,8 @@ export function getRootPathSecretAdminLinkDirectoryManagerTags(): string {
 
 export function getRootPathSecretAdminLinkDirectoryManagerSubmissions(): string {
 	return `${getRootPathSecretAdminLinkDirectoryManager()}/${getRootPathLinkDirectoryManagerSubmissionsSegment()}`;
+}
+
+export function getRootPathSecretAdminLinkDirectoryManagerComments(): string {
+	return `${getRootPathSecretAdminLinkDirectoryManager()}/${getRootPathLinkDirectoryManagerCommentsSegment()}`;
 }

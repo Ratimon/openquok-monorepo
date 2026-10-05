@@ -170,7 +170,8 @@ export const listingTagService = new ListingTagService(
 export const linkDirectoryService = new LinkDirectoryService(
     linkDirectoryRepository,
     linkDirectoryCategoryRepository,
-    linkDirectoryTagRepository
+    linkDirectoryTagRepository,
+    subscriptionGuard
 );
 export const userSessionService = new UserSessionService(
     organizationRepository,
