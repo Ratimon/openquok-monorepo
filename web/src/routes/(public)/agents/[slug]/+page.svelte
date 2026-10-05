@@ -3,7 +3,7 @@
 	import type { PublicAgentViewModel } from '$lib/area-public/PublicAgentByPage.presenter.svelte';
 	import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/agents';
 	import type { PublicMcpLandingPageViewModel } from '$lib/content/constants/mcps';
-	import type { PublicListingsPreviewVm } from '$lib/listings/server/loadAgentListingsPreview.server';
+	import type { PublicOpportunitiesPreviewVm } from '$lib/opportunities/server/loadAgentOpportunitiesPreview.server';
 
 	import { publicAgentByPagePresenter, isPublicAgentHostLandingPage, isPublicMcpLandingPage } from '$lib/area-public';
 
@@ -20,7 +20,7 @@
 	let schemaData = $derived(data.schemaData);
 
 	let agentVm: PublicAgentViewModel | null = $derived(data.agentVm);
-	let listingsPreviewVm: PublicListingsPreviewVm = $derived(data.listingsPreviewVm);
+	let opportunitiesPreviewVm: PublicOpportunitiesPreviewVm = $derived(data.opportunitiesPreviewVm);
 	let agentChannelLinksVm = $derived(data.agentChannelLinksVm);
 	let agentHostVm: PublicAgentHostLandingPageViewModel | null = $derived(agentVm && isPublicAgentHostLandingPage(agentVm) ? agentVm : null);
 	let mcpVm: PublicMcpLandingPageViewModel | null = $derived(agentVm && isPublicMcpLandingPage(agentVm) ? agentVm : null);
@@ -35,7 +35,7 @@
 {#if mcpVm}
 	<PublicMcpLandingPage
 		mcpVm={mcpVm}
-		{listingsPreviewVm}
+		{opportunitiesPreviewVm}
 		{heroCtaText}
 		{featureCtaText}
 		secondaryCtaHref={secondaryCtaHref}
@@ -44,7 +44,7 @@
 {:else if agentHostVm}
 	<PublicAgentLandingPage
 		agentVm={agentHostVm}
-		{listingsPreviewVm}
+		{opportunitiesPreviewVm}
 		{heroCtaText}
 		{featureCtaText}
 		secondaryCtaHref={secondaryCtaHref}

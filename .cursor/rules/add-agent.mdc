@@ -16,7 +16,7 @@ globs:
   - web/src/content/docs/getting-started-for-mcp/**
   - web/src/routes/(public)/agents/**
   - web/src/routes/(protected)/secret-admin/blog-manager/**
-  - web/src/routes/(protected)/secret-admin/listing-manager/tags/**
+  - web/src/routes/(protected)/secret-admin/catalog-manager/tags/**
   - web/src/lib/ui/templates/landing-page/landingHeroTheme.ts
   - web/src/lib/config/utils/buildPublicFooterLinks.ts
   - .cursor/rules/add-agent.mdc
@@ -261,7 +261,7 @@ Ship code + docs in the PR; add **catalog tag** and **launch blog** yourself in 
 
 ### Listing tag — Listing Manager
 
-1. `/secret-admin/listing-manager/tags` → **Add tag** (or edit an existing tag)
+1. `/secret-admin/catalog-manager/tags` → **Add tag** (or edit an existing tag)
 2. **Name:** must slug correctly (e.g. `Grok Bot` → `grok-bot` via `stringToSlug`)
 3. **Description:** one neutral sentence on skills/CLI for that host
 4. **Tag groups:** check the groups that match the product surface in the tag modal (seeded catalog groups include **Autonomous agents**, **CLI**, **IDE**). Use the **Tag groups** tab on the same page to create or rename groups when needed — do not seed groups via SQL.

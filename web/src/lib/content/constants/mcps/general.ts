@@ -14,7 +14,7 @@ import type {
 	PublicAgentFeatureSection,
 	PublicLandingWorkflowSection
 } from '$lib/content/constants/agents/types';
-import { PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION } from '$lib/content/constants/agents/general';
+import { PUBLIC_AGENT_OPPORTUNITIES_PREVIEW_SECTION } from '$lib/content/constants/agents/general';
 import {
 	getMcpClientConfig,
 	MCP_TOKEN_PLACEHOLDER,
@@ -480,7 +480,7 @@ export function buildMcpLandingPage(seed: McpLandingSeed): PublicMcpLandingPageV
 		skillSetupStepsTitle: `Four steps,to ${label} + openquok-core`,
 		skillSetupSteps: toSkillSetupSteps(label, setupSteps[0], mcpClient),
 		featureSections,
-		listingsPreviewSection: PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION,
+		opportunitiesPreviewSection: PUBLIC_AGENT_OPPORTUNITIES_PREVIEW_SECTION,
 		comparisonSection: buildMcpComparisonSection(label, workflowPhrase),
 		faqSubtitle: 'Frequently asked questions',
 		faqTitle: `${label} + OpenQuok MCP, answered`,

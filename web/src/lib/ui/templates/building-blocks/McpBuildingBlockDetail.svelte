@@ -24,7 +24,7 @@
 	import BuildingBlockBookmarkButton from '$lib/ui/components/building-blocks/BuildingBlockBookmarkButton.svelte';
 	import ListingDetailTagBadges from '$lib/ui/components/listings/ListingDetailTagBadges.svelte';
 	import ListingDetailTypeBadges from '$lib/ui/components/listings/ListingDetailTypeBadges.svelte';
-	import ListingRating from '$lib/ui/components/listings/ListingRating.svelte';
+	import SubjectRating from '$lib/ui/components/community/SubjectRating.svelte';
 	import BuildingBlockMcpToolsTable from '$lib/ui/components/building-blocks/BuildingBlockMcpToolsTable.svelte';
 	import BuildingBlockContentTabs from '$lib/ui/templates/building-blocks/BuildingBlockContentTabs.svelte';
 	import Stargazers from '$lib/ui/icons/Stargazers.svelte';
@@ -173,8 +173,8 @@
 	</div>
 
 	{#if !useDetailSidebar && submitRating}
-		<ListingRating
-			listingId={extensionVm.id}
+		<SubjectRating
+			subjectId={extensionVm.id}
 			averageRating={extensionVm.averageRating}
 			ratingsCount={extensionVm.ratingsCount}
 			{isLoggedIn}

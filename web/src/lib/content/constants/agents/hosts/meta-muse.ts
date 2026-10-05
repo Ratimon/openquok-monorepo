@@ -6,7 +6,7 @@ import {
 	META_MUSE_SKILL_INSTALL_OPTIONS,
 	OPENQUOK_CLI_COMMAND_REFERENCE
 } from '$lib/content/constants/agents/cli-command-reference';
-import { PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION } from '$lib/content/constants/agents/general';
+import { PUBLIC_AGENT_OPPORTUNITIES_PREVIEW_SECTION } from '$lib/content/constants/agents/general';
 import {
 	buildPublishApprovalFaqAnswer,
 	COMPARISON_PUBLISH_CHOICE_FEATURE,
@@ -219,7 +219,7 @@ openquok analytics:platform <integration-uuid> -d 7
 openquok analytics:post <post-id> -d 30`
 		}
 	],
-	listingsPreviewSection: PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION,
+	opportunitiesPreviewSection: PUBLIC_AGENT_OPPORTUNITIES_PREVIEW_SECTION,
 	comparisonSection: {
 		subtitle: 'comparisons',
 		title: 'agent-native scheduling, not another dashboard',

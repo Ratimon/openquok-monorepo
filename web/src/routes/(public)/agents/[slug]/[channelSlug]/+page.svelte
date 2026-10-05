@@ -19,7 +19,7 @@
 
 	let schemaData = $derived(data.schemaData);
 	let landingVm = $derived(data.landingVm);
-	let listingsPreviewVm = $derived(data.listingsPreviewVm);
+	let opportunitiesPreviewVm = $derived(data.opportunitiesPreviewVm);
 	let agentChannelLinksVm = $derived(data.agentChannelLinksVm);
 	let channelSlug = $derived(data.channelSlug);
 	let channelLabel = $derived(data.channelLabel);
@@ -41,7 +41,7 @@
 {#if mcpVm}
 	<PublicMcpLandingPage
 		mcpVm={mcpVm}
-		listingsPreviewVm={listingsPreviewVm}
+		opportunitiesPreviewVm={opportunitiesPreviewVm}
 		{heroCtaText}
 		{featureCtaText}
 		secondaryCtaHref={secondaryCtaHref}
@@ -54,7 +54,7 @@
 {:else if agentHostVm}
 	<PublicAgentLandingPage
 		agentVm={agentHostVm}
-		listingsPreviewVm={listingsPreviewVm}
+		opportunitiesPreviewVm={opportunitiesPreviewVm}
 		{heroCtaText}
 		{featureCtaText}
 		secondaryCtaHref={secondaryCtaHref}

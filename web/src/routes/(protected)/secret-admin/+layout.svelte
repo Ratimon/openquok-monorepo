@@ -17,7 +17,7 @@
 		getRootPathSecretAdminBullBoard,
 		getRootPathSecretAdminConfigManager,
 		getRootPathSecretAdminEmailManager,
-		getRootPathSecretAdminListingManager,
+		getRootPathSecretAdminCatalogManager,
 		getRootPathSecretAdminLinkDirectoryManager
 	} from '$lib/area-admin/constants/getRootPathSecretAdminArea';
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
@@ -52,9 +52,9 @@
 	const rootPathSecretAdminBlogManager = getRootPathSecretAdminBlogManager();
 	const secretAdminBlogManagerHref = url(rootPathSecretAdminBlogManager);
 
-	// /secret-admin/listing-manager
-	const rootPathSecretAdminListingManager = getRootPathSecretAdminListingManager();
-	const secretAdminListingManagerHref = url(rootPathSecretAdminListingManager);
+	// /secret-admin/catalog-manager
+	const rootPathSecretAdminCatalogManager = getRootPathSecretAdminCatalogManager();
+	const secretAdminCatalogManagerHref = url(rootPathSecretAdminCatalogManager);
 
 	// /secret-admin/link-directory-manager
 	const rootPathSecretAdminLinkDirectoryManager = getRootPathSecretAdminLinkDirectoryManager();
@@ -87,7 +87,7 @@
 		{ label: 'Blog Manager', href: secretAdminBlogManagerHref, iconName: icons.FileText.name },
 		{
 			label: 'Playbooks / building blocks manager',
-			href: secretAdminListingManagerHref,
+			href: secretAdminCatalogManagerHref,
 			iconName: icons.LayoutTemplate.name
 		},
 		{

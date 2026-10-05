@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { PublicMcpLandingPageViewModel, PublicMcpIntegrationTab } from '$lib/content/constants/mcps';
 	import type { PublicAgentChannelHubLinkViewModel } from '$lib/content/constants/agents/channels';
-	import type { PublicListingsPreviewVm } from '$lib/listings/server/loadAgentListingsPreview.server';
+	import type { PublicOpportunitiesPreviewVm } from '$lib/opportunities/server/loadAgentOpportunitiesPreview.server';
 	import {
 		resolvePublicMcpSkillSetupSteps,
 		resolvePublicMcpSkillSetupStepsSubtitle,
@@ -28,7 +28,7 @@
 	import PublicLandingWorkflowSection from '$lib/ui/templates/landing-page/PublicLandingWorkflowSection.svelte';
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
-	import PublicListingsPreviewDualGrid from '$lib/ui/components/listings/PublicListingsPreviewDualGrid.svelte';
+	import PublicOpportunitiesPreviewGrid from '$lib/ui/templates/opportunities-preview/PublicOpportunitiesPreviewGrid.svelte';
 	import PublicAgentFeatureSection from '$lib/ui/templates/landing-page/PublicAgentFeatureSection.svelte';
 	import PublicMcpIntegrationSetup from '$lib/ui/templates/landing-page/PublicMcpIntegrationSetup.svelte';
 	import PublicMcpHero from '$lib/ui/templates/landing-page/PublicMcpHero.svelte';
@@ -41,7 +41,7 @@
 
 	type Props = {
 		mcpVm: PublicMcpLandingPageViewModel;
-		listingsPreviewVm: PublicListingsPreviewVm | null;
+		opportunitiesPreviewVm: PublicOpportunitiesPreviewVm | null;
 		heroCtaText: string;
 		featureCtaText: string;
 		secondaryCtaHref: string;
@@ -54,7 +54,7 @@
 
 	let {
 		mcpVm,
-		listingsPreviewVm,
+		opportunitiesPreviewVm,
 		heroCtaText,
 		featureCtaText,
 		secondaryCtaHref,
@@ -175,10 +175,10 @@
 	/>
 {/each}
 
-{#if listingsPreviewVm}
-	<PublicListingsPreviewDualGrid
+{#if opportunitiesPreviewVm}
+	<PublicOpportunitiesPreviewGrid
 		heroTheme={landingHeroTheme}
-		previewVm={listingsPreviewVm}
+		previewVm={opportunitiesPreviewVm}
 	/>
 {/if}
 

@@ -54,13 +54,13 @@ const adminBlogCommentsManagerPagePresenter = new AdminBlogCommentsManagerPagePr
 
 const adminBlogActivitiesManagerPagePresenter = new AdminBlogActivitiesManagerPagePresenter(getBlogPresenter);
 
-/** Edit playbook: `/listing-manager/playbooks/[id]` */
+/** Edit playbook: `/catalog-manager/playbooks/[id]` */
 const adminListingStackEditorPagePresenter = new AdminListingEditorPagePresenter(listingRepository);
-/** New playbook: `/listing-manager/playbooks/new` */
+/** New playbook: `/catalog-manager/playbooks/new` */
 const adminListingNewStackPagePresenter = new AdminListingEditorPagePresenter(listingRepository);
-/** Edit building block: `/listing-manager/building-blocks/[id]` */
+/** Edit building block: `/catalog-manager/building-blocks/[id]` */
 const adminListingExtensionEditorPagePresenter = new AdminListingEditorPagePresenter(listingRepository);
-/** New building block: `/listing-manager/building-blocks/new` */
+/** New building block: `/catalog-manager/building-blocks/new` */
 const adminListingNewExtensionPagePresenter = new AdminListingEditorPagePresenter(listingRepository);
 
 const adminListingExtensionsManagerPagePresenter = new AdminListingExtensionsManagerPagePresenter(

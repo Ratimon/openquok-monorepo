@@ -1,4 +1,4 @@
-import { PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION } from '$lib/content/constants/agents/general';
+import { PUBLIC_AGENT_OPPORTUNITIES_PREVIEW_SECTION } from '$lib/content/constants/agents/general';
 import {
 	buildMessagingGatewayFeatureSections,
 	buildMessagingGatewaySetupSteps
@@ -77,7 +77,7 @@ export function buildAgentHostLandingPage(
 		setupStepsTitle: `Five steps,to ${agentLabel} + OpenQuok`,
 		setupSteps,
 		featureSections,
-		listingsPreviewSection: PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION,
+		opportunitiesPreviewSection: PUBLIC_AGENT_OPPORTUNITIES_PREVIEW_SECTION,
 		comparisonSection: seed.comparisonSection,
 		commandReferenceSection: seed.commandReferenceSection,
 		supportedChannelsSection: seed.supportedChannelsSection,

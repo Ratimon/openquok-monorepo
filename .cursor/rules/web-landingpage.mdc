@@ -77,11 +77,11 @@ Public marketing heroes use a **breadcrumb trail** in place of the old uppercase
 
 ## Component naming
 
-Add route-specific breadcrumb components under `web/src/lib/ui/templates/landing-page/` (or the matching template folder, e.g. `api-marketing/`):
+Add route-specific breadcrumb components under `web/src/lib/ui/templates/landing-page/` (or the matching template folder, e.g. `api-marketing/`, `public-hub/`):
 
 - `PublicAgentsLandingBreadcrumb.svelte`
 - `PublicChannelsLandingBreadcrumb.svelte`
-- `PublicListingsHubBreadcrumb.svelte` (playbooks + building-blocks hubs and filter pages)
+- `public-hub/PublicOpportunitiesHubBreadcrumb.svelte` (playbooks, building-blocks, and build-backlinks hubs and filter pages)
 - `PublicApiMarketingHubBreadcrumb.svelte`
 - `HumanizeHubBreadcrumb.svelte`, `PhotoEditorHubBreadcrumb.svelte`, `SkillBuilderHubBreadcrumb.svelte`, `BestTimeToPostHubBreadcrumb.svelte`, `PayloadWizardHubBreadcrumb.svelte`
 

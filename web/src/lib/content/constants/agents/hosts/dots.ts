@@ -7,7 +7,7 @@ import {
 	DOTS_SKILL_INSTALL_OPTIONS,
 	OPENQUOK_CLI_COMMAND_REFERENCE
 } from '$lib/content/constants/agents/cli-command-reference';
-import { PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION } from '$lib/content/constants/agents/general';
+import { PUBLIC_AGENT_OPPORTUNITIES_PREVIEW_SECTION } from '$lib/content/constants/agents/general';
 import { buildPublishApprovalFaqAnswer } from '$lib/content/constants/schedulingPublishChoice';
 
 export const dotsAgent = {
@@ -212,7 +212,7 @@ openquok posts:list --status draft
 openquok analytics:platform <integration-uuid> -d 7`
 		}
 	],
-	listingsPreviewSection: PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION,
+	opportunitiesPreviewSection: PUBLIC_AGENT_OPPORTUNITIES_PREVIEW_SECTION,
 	comparisonSection: {
 		subtitle: 'comparisons',
 		title: 'always-on dot, not another tab',

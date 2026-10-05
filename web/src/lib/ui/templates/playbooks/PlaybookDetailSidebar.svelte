@@ -16,7 +16,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import BuildingBlockBookmarkButton from '$lib/ui/components/building-blocks/BuildingBlockBookmarkButton.svelte';
-	import ListingRating from '$lib/ui/components/listings/ListingRating.svelte';
+	import SubjectRating from '$lib/ui/components/community/SubjectRating.svelte';
 	import PublicCreatorListingDetailSidebarShell from '$lib/ui/templates/listings/PublicCreatorListingDetailSidebarShell.svelte';
 
 	type Props = {
@@ -115,8 +115,8 @@
 
 	{#snippet actions()}
 		{#if submitRating}
-			<ListingRating
-				listingId={playbookVm.id}
+			<SubjectRating
+				subjectId={playbookVm.id}
 				averageRating={playbookVm.averageRating}
 				ratingsCount={playbookVm.ratingsCount}
 				{isLoggedIn}

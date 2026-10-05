@@ -260,136 +260,136 @@ export function getRootPathSecretAdminConfigManagerPublicFaq(): string {
 }
 
 /**
- * Segment for secret-admin listing manager.
+ * Segment for secret-admin catalog manager.
  */
-export function getRootPathListingManagerSegment(): string {
-	return 'listing-manager';
+export function getRootPathCatalogManagerSegment(): string {
+	return 'catalog-manager';
 }
 
 /**
- * Segment for secret-admin listing manager building blocks.
+ * Segment for secret-admin catalog manager building blocks.
  */
-export function getRootPathListingManagerBuildingBlocksSegment(): string {
+export function getRootPathCatalogManagerBuildingBlocksSegment(): string {
 	return 'building-blocks';
 }
 
 /**
- * Segment for secret-admin listing manager playbooks.
+ * Segment for secret-admin catalog manager playbooks.
  */
-export function getRootPathListingManagerPlaybooksSegment(): string {
+export function getRootPathCatalogManagerPlaybooksSegment(): string {
 	return 'playbooks';
 }
 
 /**
- * Segment for secret-admin listing manager categories.
+ * Segment for secret-admin catalog manager categories.
  */
-export function getRootPathListingManagerCategoriesSegment(): string {
+export function getRootPathCatalogManagerCategoriesSegment(): string {
 	return 'categories';
 }
 
 /**
- * Segment for secret-admin listing manager tags.
+ * Segment for secret-admin catalog manager tags.
  */
-export function getRootPathListingManagerTagsSegment(): string {
+export function getRootPathCatalogManagerTagsSegment(): string {
 	return 'tags';
 }
 
 /**
- * Segment for secret-admin listing manager comments.
+ * Segment for secret-admin catalog manager comments.
  */
-export function getRootPathListingManagerCommentsSegment(): string {
+export function getRootPathCatalogManagerCommentsSegment(): string {
 	return 'comments';
 }
 
 /**
- * Segment for secret-admin listing manager activities.
+ * Segment for secret-admin catalog manager activities.
  */
-export function getRootPathListingManagerActivitiesSegment(): string {
+export function getRootPathCatalogManagerActivitiesSegment(): string {
 	return 'activities';
 }
 
 /**
- * Segment for secret-admin listing manager new listing page.
+ * Segment for secret-admin catalog manager new listing page.
  */
-export function getRootPathListingManagerNewSegment(): string {
+export function getRootPathCatalogManagerNewSegment(): string {
 	return 'new';
 }
 
 /**
- * Full path for secret-admin listing manager (dashboard).
+ * Full path for secret-admin catalog manager (dashboard).
  */
-export function getRootPathSecretAdminListingManager(): string {
-	return `${getRootPathSecretAdminArea()}/${getRootPathListingManagerSegment()}`;
+export function getRootPathSecretAdminCatalogManager(): string {
+	return `${getRootPathSecretAdminArea()}/${getRootPathCatalogManagerSegment()}`;
 }
 
 /**
- * Full path for secret-admin listing manager building blocks list.
+ * Full path for secret-admin catalog manager building blocks list.
  */
-export function getRootPathSecretAdminListingManagerBuildingBlocks(): string {
-	return `${getRootPathSecretAdminListingManager()}/${getRootPathListingManagerBuildingBlocksSegment()}`;
+export function getRootPathSecretAdminCatalogManagerBuildingBlocks(): string {
+	return `${getRootPathSecretAdminCatalogManager()}/${getRootPathCatalogManagerBuildingBlocksSegment()}`;
 }
 
 /**
- * Full path for secret-admin listing manager new building block page.
+ * Full path for secret-admin catalog manager new building block page.
  */
-export function getRootPathSecretAdminListingManagerNewBuildingBlock(): string {
-	return `${getRootPathSecretAdminListingManagerBuildingBlocks()}/${getRootPathListingManagerNewSegment()}`;
+export function getRootPathSecretAdminCatalogManagerNewBuildingBlock(): string {
+	return `${getRootPathSecretAdminCatalogManagerBuildingBlocks()}/${getRootPathCatalogManagerNewSegment()}`;
 }
 
 /**
- * Full path for secret-admin listing manager building block editor.
+ * Full path for secret-admin catalog manager building block editor.
  */
-export function getRootPathSecretAdminListingManagerBuildingBlockEditor(id: string): string {
-	return `${getRootPathSecretAdminListingManagerBuildingBlocks()}/${id}`;
+export function getRootPathSecretAdminCatalogManagerBuildingBlockEditor(id: string): string {
+	return `${getRootPathSecretAdminCatalogManagerBuildingBlocks()}/${id}`;
 }
 
 /**
- * Full path for secret-admin listing manager playbooks list.
+ * Full path for secret-admin catalog manager playbooks list.
  */
-export function getRootPathSecretAdminListingManagerPlaybooks(): string {
-	return `${getRootPathSecretAdminListingManager()}/${getRootPathListingManagerPlaybooksSegment()}`;
+export function getRootPathSecretAdminCatalogManagerPlaybooks(): string {
+	return `${getRootPathSecretAdminCatalogManager()}/${getRootPathCatalogManagerPlaybooksSegment()}`;
 }
 
 /**
- * Full path for secret-admin listing manager new playbook page.
+ * Full path for secret-admin catalog manager new playbook page.
  */
-export function getRootPathSecretAdminListingManagerNewPlaybook(): string {
-	return `${getRootPathSecretAdminListingManagerPlaybooks()}/${getRootPathListingManagerNewSegment()}`;
+export function getRootPathSecretAdminCatalogManagerNewPlaybook(): string {
+	return `${getRootPathSecretAdminCatalogManagerPlaybooks()}/${getRootPathCatalogManagerNewSegment()}`;
 }
 
 /**
- * Full path for secret-admin listing manager playbook editor.
+ * Full path for secret-admin catalog manager playbook editor.
  */
-export function getRootPathSecretAdminListingManagerPlaybookEditor(id: string): string {
-	return `${getRootPathSecretAdminListingManagerPlaybooks()}/${id}`;
+export function getRootPathSecretAdminCatalogManagerPlaybookEditor(id: string): string {
+	return `${getRootPathSecretAdminCatalogManagerPlaybooks()}/${id}`;
 }
 
 /**
- * Full path for secret-admin listing manager categories.
+ * Full path for secret-admin catalog manager categories.
  */
-export function getRootPathSecretAdminListingManagerCategories(): string {
-	return `${getRootPathSecretAdminListingManager()}/${getRootPathListingManagerCategoriesSegment()}`;
+export function getRootPathSecretAdminCatalogManagerCategories(): string {
+	return `${getRootPathSecretAdminCatalogManager()}/${getRootPathCatalogManagerCategoriesSegment()}`;
 }
 
 /**
- * Full path for secret-admin listing manager tags.
+ * Full path for secret-admin catalog manager tags.
  */
-export function getRootPathSecretAdminListingManagerTags(): string {
-	return `${getRootPathSecretAdminListingManager()}/${getRootPathListingManagerTagsSegment()}`;
+export function getRootPathSecretAdminCatalogManagerTags(): string {
+	return `${getRootPathSecretAdminCatalogManager()}/${getRootPathCatalogManagerTagsSegment()}`;
 }
 
 /**
- * Full path for secret-admin listing manager comments.
+ * Full path for secret-admin catalog manager comments.
  */
-export function getRootPathSecretAdminListingManagerComments(): string {
-	return `${getRootPathSecretAdminListingManager()}/${getRootPathListingManagerCommentsSegment()}`;
+export function getRootPathSecretAdminCatalogManagerComments(): string {
+	return `${getRootPathSecretAdminCatalogManager()}/${getRootPathCatalogManagerCommentsSegment()}`;
 }
 
 /**
- * Full path for secret-admin listing manager activities.
+ * Full path for secret-admin catalog manager activities.
  */
-export function getRootPathSecretAdminListingManagerActivities(): string {
-	return `${getRootPathSecretAdminListingManager()}/${getRootPathListingManagerActivitiesSegment()}`;
+export function getRootPathSecretAdminCatalogManagerActivities(): string {
+	return `${getRootPathSecretAdminCatalogManager()}/${getRootPathCatalogManagerActivitiesSegment()}`;
 }
 
 /**

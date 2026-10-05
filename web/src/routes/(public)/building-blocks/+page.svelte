@@ -26,7 +26,7 @@
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
-	import PublicListingsHubBreadcrumb from '$lib/ui/templates/listings/PublicListingsHubBreadcrumb.svelte';
+	import PublicOpportunitiesHubBreadcrumb from '$lib/ui/templates/public-hub/PublicOpportunitiesHubBreadcrumb.svelte';
 	import PublicHeroTitle from '$lib/ui/templates/titles/PublicHeroTitle.svelte';
 	import { PUBLIC_BUILDING_BLOCKS_HUB } from '$lib/listings/constants/publicListingsHubConfig';
 
@@ -75,7 +75,7 @@
 <SectionOuterContainer class="py-10 md:py-14">
 	<header class="container mx-auto max-w-6xl space-y-4 px-4 text-center">
 		<div class="flex justify-center">
-			<PublicListingsHubBreadcrumb {...listingsBreadcrumb} />
+			<PublicOpportunitiesHubBreadcrumb {...listingsBreadcrumb} />
 		</div>
 		<PublicHeroTitle
 			title={heroTitle}

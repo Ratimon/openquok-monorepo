@@ -16,7 +16,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import BuildingBlockBookmarkButton from '$lib/ui/components/building-blocks/BuildingBlockBookmarkButton.svelte';
-	import ListingRating from '$lib/ui/components/listings/ListingRating.svelte';
+	import SubjectRating from '$lib/ui/components/community/SubjectRating.svelte';
 	import BuildingBlockExternalLinkButton from '$lib/ui/templates/building-blocks/BuildingBlockExternalLinkButton.svelte';
 	import PublicCreatorListingDetailSidebarShell from '$lib/ui/templates/listings/PublicCreatorListingDetailSidebarShell.svelte';
 
@@ -138,8 +138,8 @@
 
 	{#snippet actions()}
 		{#if submitRating}
-			<ListingRating
-				listingId={extensionVm.id}
+			<SubjectRating
+				subjectId={extensionVm.id}
 				averageRating={extensionVm.averageRating}
 				ratingsCount={extensionVm.ratingsCount}
 				{isLoggedIn}

@@ -2,7 +2,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import type { PublicFaqItem } from '$lib/content/constants/faq';
 import type { Link } from '$lib/ui/nav-bars/Link';
-import type { PublicListingsPreviewVm } from '$lib/listings/server/loadAgentListingsPreview.server';
+import type { PublicOpportunitiesPreviewVm } from '$lib/opportunities/server/loadAgentOpportunitiesPreview.server';
 import type { PageLoad } from './$types';
 
 import { browser } from '$app/environment';
@@ -25,7 +25,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			landingPageConfigVm: Record<string, string>;
 			publicFaqConfigVm: Record<string, string>;
 			publicFaqItemsVm: PublicFaqItem[];
-			listingsPreviewVm: PublicListingsPreviewVm;
+			opportunitiesPreviewVm: PublicOpportunitiesPreviewVm;
 			schemaData: Record<string, unknown>;
 		};
 
@@ -37,7 +37,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			landingPageConfigVm: serverData.landingPageConfigVm,
 			publicFaqConfigVm: serverData.publicFaqConfigVm,
 			publicFaqItemsVm: serverData.publicFaqItemsVm,
-			listingsPreviewVm: serverData.listingsPreviewVm,
+			opportunitiesPreviewVm: serverData.opportunitiesPreviewVm,
 			schemaData: serverData.schemaData,
 			isLoggedIn: accurateIsLoggedIn,
 			currentUser,

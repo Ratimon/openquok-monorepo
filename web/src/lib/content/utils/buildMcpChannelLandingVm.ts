@@ -72,8 +72,8 @@ export function buildMcpChannelLandingVm(params: {
 			channelConfig,
 			'mcp-client'
 		),
-		listingsPreviewSection: {
-			...baseMcp.listingsPreviewSection,
+		opportunitiesPreviewSection: {
+			...baseMcp.opportunitiesPreviewSection,
 			title: `${platformLabel} viral formats`,
 			description: `Mix ${platformLabel}-focused playbooks, skills, and MCP servers—then tailor them to your ${clientLabel} workflow.`,
 			playbooksSeeAllDescription: `Browse every ${platformLabel} playbook.`,

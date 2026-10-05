@@ -21,7 +21,7 @@
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
-	import PublicListingsHubBreadcrumb from '$lib/ui/templates/listings/PublicListingsHubBreadcrumb.svelte';
+	import PublicOpportunitiesHubBreadcrumb from '$lib/ui/templates/public-hub/PublicOpportunitiesHubBreadcrumb.svelte';
 	import PublicHeroTitle from '$lib/ui/templates/titles/PublicHeroTitle.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 
@@ -134,7 +134,7 @@
 	<header class="border-b border-base-300/60 pb-8">
 		<div class="container mx-auto max-w-6xl space-y-4 px-4 text-center">
 			<div class="flex justify-center">
-				<PublicListingsHubBreadcrumb
+				<PublicOpportunitiesHubBreadcrumb
 					kind={listingsBreadcrumb.kind}
 					variant={listingsBreadcrumb.variant}
 					categoryLabel={listingsBreadcrumb.categoryLabel}

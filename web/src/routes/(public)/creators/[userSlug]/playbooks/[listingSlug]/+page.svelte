@@ -24,7 +24,7 @@
 
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import CommunityFeaturesLimitUpgradeModal from '$lib/ui/components/blog-post/CommunityFeaturesLimitUpgradeModal.svelte';
-	import ListingComments from '$lib/ui/components/listings/ListingComments.svelte';
+	import SubjectComments from '$lib/ui/components/community/SubjectComments.svelte';
 	import ListingHubBreadcrumb from '$lib/ui/components/listings/ListingHubBreadcrumb.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
@@ -348,11 +348,16 @@
 				</section>
 
 				<section class="border-t border-base-content/10 py-10">
-					<ListingComments
+					<SubjectComments
 						{commentsVm}
-						listingId={playbookVm.id}
+						subjectId={playbookVm.id}
 						{isLoggedIn}
-						submitListingComment={(params) => publicPlaybookBySlugPagePresenter.submitListingComment(params)}
+						submitComment={(params) =>
+							publicPlaybookBySlugPagePresenter.submitListingComment({
+								listingId: params.subjectId,
+								content: params.content,
+								parentId: params.parentId
+							})}
 						submittingComment={publicPlaybookBySlugPagePresenter.submittingComment}
 						communityCommentsEnabled={communityEnabled}
 						onUpgradeRequired={() => {

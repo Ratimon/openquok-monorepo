@@ -28,7 +28,7 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
-	import PublicListingsHubBreadcrumb from '$lib/ui/templates/listings/PublicListingsHubBreadcrumb.svelte';
+	import PublicOpportunitiesHubBreadcrumb from '$lib/ui/templates/public-hub/PublicOpportunitiesHubBreadcrumb.svelte';
 	import PublicHeroTitle from '$lib/ui/templates/titles/PublicHeroTitle.svelte';
 
 	type Props = { data: PageData };
@@ -89,7 +89,7 @@
 			<Button variant="outline" href={categoriesOverviewHref} class="mb-2">View all categories</Button>
 		</div>
 		<div class="flex justify-center">
-			<PublicListingsHubBreadcrumb {...listingsBreadcrumb} />
+			<PublicOpportunitiesHubBreadcrumb {...listingsBreadcrumb} />
 		</div>
 		<PublicHeroTitle
 			title={heroTitle}

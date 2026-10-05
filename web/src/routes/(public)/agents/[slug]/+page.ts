@@ -3,7 +3,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import type { PublicAgentViewModel } from '$lib/area-public/PublicAgentByPage.presenter.svelte';
 import type { PublicAgentChannelHubLinkViewModel } from '$lib/content/constants/agents/channels';
-import type { PublicListingsPreviewVm } from '$lib/listings/server/loadAgentListingsPreview.server';
+import type { PublicOpportunitiesPreviewVm } from '$lib/opportunities/server/loadAgentOpportunitiesPreview.server';
 
 import type { PageLoad } from './$types';
 
@@ -21,7 +21,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			pageMetaTags: MetaTagsProps;
 			isLoggedIn: boolean;
 			agentVm: PublicAgentViewModel;
-			listingsPreviewVm: PublicListingsPreviewVm;
+			opportunitiesPreviewVm: PublicOpportunitiesPreviewVm;
 			schemaData: unknown;
 			agentChannelLinksVm: PublicAgentChannelHubLinkViewModel[];
 		};
@@ -34,7 +34,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			isAdmin,
 			isEditor,
 			agentVm: serverData.agentVm,
-			listingsPreviewVm: serverData.listingsPreviewVm,
+			opportunitiesPreviewVm: serverData.opportunitiesPreviewVm,
 			schemaData: serverData.schemaData,
 			agentChannelLinksVm: serverData.agentChannelLinksVm
 		};

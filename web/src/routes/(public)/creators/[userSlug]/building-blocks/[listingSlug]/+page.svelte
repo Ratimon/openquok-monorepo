@@ -21,7 +21,7 @@
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import ListingHubBreadcrumb from '$lib/ui/components/listings/ListingHubBreadcrumb.svelte';
 	import CommunityFeaturesLimitUpgradeModal from '$lib/ui/components/blog-post/CommunityFeaturesLimitUpgradeModal.svelte';
-	import ListingComments from '$lib/ui/components/listings/ListingComments.svelte';
+	import SubjectComments from '$lib/ui/components/community/SubjectComments.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import BuildingBlockCard from '$lib/ui/templates/building-blocks/BuildingBlockCard.svelte';
 	import BuildingBlockDetailSidebar from '$lib/ui/templates/building-blocks/BuildingBlockDetailSidebar.svelte';
@@ -214,12 +214,16 @@
 				{/if}
 
 				<section class="border-t border-base-content/10 py-10">
-					<ListingComments
+					<SubjectComments
 						{commentsVm}
-						listingId={buildingBlockVm.id}
+						subjectId={buildingBlockVm.id}
 						{isLoggedIn}
-						submitListingComment={(params) =>
-							publicBuildingBlockBySlugPagePresenter.submitListingComment(params)}
+						submitComment={(params) =>
+							publicBuildingBlockBySlugPagePresenter.submitListingComment({
+								listingId: params.subjectId,
+								content: params.content,
+								parentId: params.parentId
+							})}
 						submittingComment={publicBuildingBlockBySlugPagePresenter.submittingComment}
 						communityCommentsEnabled={communityEnabled}
 						onUpgradeRequired={() => {

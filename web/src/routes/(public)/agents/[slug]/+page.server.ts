@@ -16,7 +16,7 @@ import {
 import {
 	buildAgentsLandingBreadcrumbItems
 } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
-import { loadAgentListingsPreviewStateless } from '$lib/listings/server/loadAgentListingsPreview.server';
+import { loadAgentOpportunitiesPreviewStateless } from '$lib/opportunities/server/loadAgentOpportunitiesPreview.server';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
 import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
@@ -100,9 +100,9 @@ export async function load({ url, params, cookies, parent, fetch }) {
 	const accessToken = cookies.get('access_token');
 	const isLoggedIn = !!accessToken;
 
-	const listingsPreviewVm = await loadAgentListingsPreviewStateless({
+	const opportunitiesPreviewVm = await loadAgentOpportunitiesPreviewStateless({
 		fetch,
-		previewSection: agentVm.listingsPreviewSection
+		previewSection: agentVm.opportunitiesPreviewSection
 	});
 
 	const { companyInformationPm, marketingInformationPm } = await parent();
@@ -218,7 +218,7 @@ export async function load({ url, params, cookies, parent, fetch }) {
 		pageMetaTags,
 		isLoggedIn,
 		agentVm,
-		listingsPreviewVm,
+		opportunitiesPreviewVm,
 		schemaData,
 		agentChannelLinksVm: listPublicAgentChannelsForHub(agentVm.slug)
 	};

@@ -13,7 +13,7 @@
 	import { route, url } from '$lib/utils/path';
 
 	import { toast } from '$lib/ui/sonner';
-	import EditorListing from '$lib/ui/components/listing-manager/EditorListing.svelte';
+	import EditorListing from '$lib/ui/components/catalog-manager/EditorListing.svelte';
 
 	type Props = { data: PageData };
 

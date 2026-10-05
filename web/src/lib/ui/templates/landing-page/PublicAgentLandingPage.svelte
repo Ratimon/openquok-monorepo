@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/agents';
 	import type { PublicAgentChannelHubLinkViewModel } from '$lib/content/constants/agents/channels';
-	import type { PublicListingsPreviewVm } from '$lib/listings/server/loadAgentListingsPreview.server';
+	import type { PublicOpportunitiesPreviewVm } from '$lib/opportunities/server/loadAgentOpportunitiesPreview.server';
 
 	import {
 		GROK_BOT_CORE_MESSAGING_CHANNELS,
@@ -50,7 +50,7 @@
 
 	import FeaturesOrdered from '$lib/ui/templates/FeaturesOrdered.svelte';
 	import PublicLandingWorkflowSection from '$lib/ui/templates/landing-page/PublicLandingWorkflowSection.svelte';
-	import PublicListingsPreviewDualGrid from '$lib/ui/components/listings/PublicListingsPreviewDualGrid.svelte';
+	import PublicOpportunitiesPreviewGrid from '$lib/ui/templates/opportunities-preview/PublicOpportunitiesPreviewGrid.svelte';
 	import FeatureSimpleCard from '$lib/ui/templates/feature-grid/FeatureSimpleCard.svelte';
 	import SimpleCardGrid from '$lib/ui/templates/feature-grid/SimpleCardGrid.svelte';
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
@@ -67,7 +67,7 @@
 
 	type Props = {
 		agentVm: PublicAgentHostLandingPageViewModel;
-		listingsPreviewVm: PublicListingsPreviewVm | null;
+		opportunitiesPreviewVm: PublicOpportunitiesPreviewVm | null;
 		heroCtaText: string;
 		featureCtaText: string;
 		secondaryCtaHref: string;
@@ -80,7 +80,7 @@
 
 	let {
 		agentVm,
-		listingsPreviewVm,
+		opportunitiesPreviewVm,
 		heroCtaText,
 		featureCtaText,
 		secondaryCtaHref,
@@ -214,10 +214,10 @@
 	/>
 {/each}
 
-{#if listingsPreviewVm}
-	<PublicListingsPreviewDualGrid
+{#if opportunitiesPreviewVm}
+	<PublicOpportunitiesPreviewGrid
 		heroTheme={landingHeroTheme}
-		previewVm={listingsPreviewVm}
+		previewVm={opportunitiesPreviewVm}
 	/>
 {/if}
 

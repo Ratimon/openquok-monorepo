@@ -4,7 +4,7 @@ globs:
   - backend/integrations/**
   - backend/config/GlobalConfig.ts
   - backend/services/IntegrationConnectionService.ts
-  - web/src/routes/(protected)/secret-admin/listing-manager/tags/**
+  - web/src/routes/(protected)/secret-admin/catalog-manager/tags/**
   - web/src/lib/ui/components/posts/providers/**
   - web/src/lib/ui/components/posts/providers/ShowAllProviders.svelte
   - web/src/lib/ui/components/posts/AddEditModal.svelte
@@ -46,7 +46,7 @@ globs:
   - web/src/lib/area-public/constants/getRootPathPublicChannels.ts
   - web/src/lib/area-public/constants/getRootPathPublicAgents.ts
   - web/src/lib/area-public/PublicAgentByPage.presenter.svelte.ts
-  - web/src/lib/listings/server/loadAgentListingsPreview.server.ts
+  - web/src/lib/opportunities/server/loadAgentOpportunitiesPreview.server.ts
   - web/src/routes/(public)/channels/**
   - web/src/routes/(public)/agents/[slug]/[channelSlug]/**
   - web/src/routes/(public)/extensions/**
@@ -91,7 +91,7 @@ Ship **backend + web + docs + public API provider settings page + self-host env 
 | **OAuth** (default) | Yes | Redirect to the platform | `config.integrations.*` + self-host `.env.example` + docker-compose row | **Threads** (single-step), **Instagram (Business)** (Page picker + compose settings), **Facebook Page** (Meta OAuth + link-preview settings) |
 | **Credentials in OpenQuok** | **No** | Paste personal API key / app password into Add Channel | **None** — do not invent empty `{PROVIDER}_*` placeholders | **Dev.to (`devto`)** |
 
-Public landing + bento references: **facebook**, **threads** in `channels/catalog/platforms/` and `web/src/lib/ui/templates/bento/minor-templates/`. Agent channel SEO references: **facebook** at `/agents/openclaw/facebook`. Photo Editor channel references: **facebook**, **instagram** at `/tools/photo-editor/{slug}`. Best Time to Post references: **tiktok**, **linkedin** at `/tools/best-time-to-post/{slug}`; benchmark tables in `web/src/lib/best-time-to-post/constants/benchmarkSlots.ts`. Humanizer references: **linkedin**, **x** at `/tools/humanizer/{slug}`; generic mocked composer at `/tools/humanizer`. Listing tag: `/secret-admin/listing-manager/tags`. Full guide: `web/src/content/docs/contribution-opportunities/add-provider.md`.
+Public landing + bento references: **facebook**, **threads** in `channels/catalog/platforms/` and `web/src/lib/ui/templates/bento/minor-templates/`. Agent channel SEO references: **facebook** at `/agents/openclaw/facebook`. Photo Editor channel references: **facebook**, **instagram** at `/tools/photo-editor/{slug}`. Best Time to Post references: **tiktok**, **linkedin** at `/tools/best-time-to-post/{slug}`; benchmark tables in `web/src/lib/best-time-to-post/constants/benchmarkSlots.ts`. Humanizer references: **linkedin**, **x** at `/tools/humanizer/{slug}`; generic mocked composer at `/tools/humanizer`. Listing tag: `/secret-admin/catalog-manager/tags`. Full guide: `web/src/content/docs/contribution-opportunities/add-provider.md`.
 
 ## Identifier contract
 
@@ -123,7 +123,7 @@ The public **Extensions Hub** (`/extensions`) filters skills and MCP listings by
 
 ### Listing tag — Listing Manager
 
-1. `/secret-admin/listing-manager/tags` → **Add tag** (or edit an existing tag)
+1. `/secret-admin/catalog-manager/tags` → **Add tag** (or edit an existing tag)
 2. **Name:** human label that slugs to `provider.identifier` via `stringToSlug` (punctuation is stripped — e.g. `Dev.to` → `devto`, `YouTube` → `youtube`)
 3. **Description:** one neutral sentence on what the channel integration covers (no third-party attribution)
 4. **Tag groups:** check the hub filter groups in the tag modal (seeded catalog groups include **Social platforms**, **Videos**, **Photos**, **Text**). Use the **Tag groups** tab on the same page to create or rename groups when needed — do not seed groups via SQL.
@@ -761,7 +761,7 @@ Ship platform-specific agent landing pages alongside the generic agent host page
 | Landing VM builder | `buildAgentChannelLandingVm.ts` (agent hosts) and `buildMcpChannelLandingVm.ts` (MCP clients) — merge base VM with platform copy and showcases |
 | Feature section overrides | `buildAgentsChannelFeatureSections.ts` — shared kanban/analytics bento + CLI or MCP prompt snippets |
 | CLI command reference | `web/src/lib/content/utils/buildAgentChannelCliCommandReference.ts` — per-platform commands aligned with `agent/skills/openquok-core/resources/{id}-examples.md` and `examples/*.json` |
-| Listings preview filter | `loadAgentListingsPreviewStateless({ listingTagSlug })` — playbooks + building blocks filtered by `listing_tags.slug` |
+| Opportunities preview filter | `loadAgentOpportunitiesPreviewStateless({ listingTagSlug })` — playbooks + building blocks filtered by `listing_tags.slug` |
 | Presenter | `PublicAgentByPagePresenter.loadAgentChannelStateless(agentSlug, channelSlug)` |
 | Shared page UI | `web/src/lib/ui/templates/landing-page/PublicAgentLandingPage.svelte` and `PublicMcpLandingPage.svelte` — coming-soon channels pass `isChannelComingSoon` (hero swap + skip listings preview) |
 | Route helper | `getRootPathPublicAgentChannel(agentSlug, channelSlug)` in `getRootPathPublicAgents.ts` |
@@ -818,7 +818,7 @@ Host channel VMs: `agents/channels/{host}.ts` (from `listPublicChannelsForHub()`
 - **Best Time to Post:** `PLATFORM_WINDOWS['{identifier}']` in `benchmarkSlots.ts` (no silent `DEFAULT_WINDOWS` for a live channel); `BENCHMARK_SLOTS_LAST_REVIEWED` updated when windows change; optional `CHANNEL_HUB_DESCRIPTIONS` entry; `/tools/best-time-to-post/{slug}` resolves when channel is live; calculator platform picker and **By channel** hub include the new channel automatically.
 - **Humanizer:** all public catalog channels (including coming-soon schedulers) appear as mock chips on `/tools/humanizer` and as `/tools/humanizer/{slug}` pages automatically; optional `CHANNEL_HUB_DESCRIPTIONS` hub blurb; Tools hub Humanizer card shows the new channel in the **By channel** dropdown. Copy and FAQ stay honest (no classifier guarantees). Do not gate Humanizer samples on `available: true`.
 - **Agent channel SEO:** `CHANNEL_PROVIDER_IDENTIFIERS`, `KANBAN_BENTO_BY_CHANNEL`, and `ANALYTICS_BENTO_BY_CHANNEL` in `publicAgentChannelConfig.ts`; `CHANNEL_CLI_RECIPES` + `KANBAN_EXAMPLE_BY_CHANNEL` in `buildAgentChannelCliCommandReference.ts`; `/agents/{agentSlug}/{slug}` resolves for all catalog channels on **agent hosts and MCP clients** (coming-soon when `available: false`); generic agent/MCP kanban mock updated when the catalog gains a platform.
-- **Listing tags:** do **not** edit SQL seeds or re-aggregate migrations. Create the tag in `/secret-admin/listing-manager/tags` with a **Name** that slugs to `provider.identifier` and a one-sentence description; optional attach on openquok-core listings via the tags picker.
+- **Listing tags:** do **not** edit SQL seeds or re-aggregate migrations. Create the tag in `/secret-admin/catalog-manager/tags` with a **Name** that slugs to `provider.identifier` and a one-sentence description; optional attach on openquok-core listings via the tags picker.
 - **Post Preview:** `{id}Preview.svelte` + `ShowAllProviders` branch for the new identifier; shared `postMediaPreviewUrl` / `effectivePreviewMediaUrls` wired; **preview layout fix checklist** completed for image/video networks (phone `max-w`, fixed aspect, `ImageSlider` variant, `classify*PreviewMediaMode` + tests, `mediaStoragePaths` on branch); update **Preview layout status** table in this rule when shipping layout work; public `/p/[postId]` matches composer; when compose settings ship, preview reads `providerSettings` via `read*LaunchSettings`; `AddEditModal` derives settings from `previewChannel.id` (not `followUpTargetIntegrationId`); `ShowAllProviders` passes `providerSettings` to every preview that consumes it.
 - **Follow-up comments:** when `comment()` ships — `followUp.ts` + `replyChainBucketForProvider` + orchestrator `supportsFollowUps` updated; launch `postComment` / `comments` set; `{bucket}.replies` documented in agent + CLI examples; `threads-and-comments.md` platform row; landing/bento copy matches composer (text-only vs media-on-replies); preview/bento show `threadReplies` when marketed.
 - **Cross-account plugs:** when `internalPlugCatalog()` ships cross-account entries — orchestrator plug handlers + `{bucket}.crossAccountPlugs` persistence; extend `CrossAccountPlugSettingsBucket` + `crossAccountSettingsBucketForIdentifier`; `{Provider}CrossAccountPlugsPreview.svelte` wired from `{id}Preview.svelte`; `ShowAllProviders` passes/derives `crossAccountPlugs`; dynamic engagement counts in preview; plug dialog settings flush on close; bento mocks when marketed; agent/MCP docs for `{bucket}.crossAccountPlugs`.

@@ -34,8 +34,8 @@ import { createMetaData, openGraphForPublicPage } from '$lib/seo/createMetaData'
 import { buildCanonicalUrl } from '$lib/seo/buildCanonicalUrl';
 import { applyPublicCmsPageCacheHeaders } from '$lib/seo/publicCmsPageCache';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
-import { LANDING_PAGE_LISTINGS_PREVIEW_SECTION } from '$lib/content/constants/agents';
-import { loadAgentListingsPreviewStateless } from '$lib/listings/server/loadAgentListingsPreview.server';
+import { LANDING_PAGE_OPPORTUNITIES_PREVIEW_SECTION } from '$lib/content/constants/agents';
+import { loadAgentOpportunitiesPreviewStateless } from '$lib/opportunities/server/loadAgentOpportunitiesPreview.server';
 
 export const ssr = true;
 
@@ -79,9 +79,9 @@ export const load: PageServerLoad = async ({ parent, url, fetch, cookies, setHea
 	const publicFaqItemsVm = resolvePublicFaqItemsVm(parsedPublicFaqItemsVm);
 	const publicFaqDefaults = getPublicFaqConfigDefaults();
 
-	const listingsPreviewVm = await loadAgentListingsPreviewStateless({
+	const opportunitiesPreviewVm = await loadAgentOpportunitiesPreviewStateless({
 		fetch,
-		previewSection: LANDING_PAGE_LISTINGS_PREVIEW_SECTION
+		previewSection: LANDING_PAGE_OPPORTUNITIES_PREVIEW_SECTION
 	});
 
 	const companyName =
@@ -211,7 +211,7 @@ export const load: PageServerLoad = async ({ parent, url, fetch, cookies, setHea
 		landingPageConfigVm,
 		publicFaqConfigVm,
 		publicFaqItemsVm,
-		listingsPreviewVm,
+		opportunitiesPreviewVm,
 		schemaData
 	};
 };

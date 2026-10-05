@@ -155,7 +155,7 @@ export type PublicAgentFeatureSection = {
 };
 
 /** Playbooks, building blocks, and backlinks preview grids (static copy; cards loaded at runtime). */
-export type PublicAgentListingsPreviewSection = {
+export type PublicAgentOpportunitiesPreviewSection = {
 	headingId: string;
 	subtitle: string;
 	title: string;
@@ -203,7 +203,7 @@ export type PublicAgentHostLandingPageViewModel = {
 	setupStepsTitle: string;
 	setupSteps: FeaturesOrderedStep[];
 	featureSections: PublicAgentFeatureSection[];
-	listingsPreviewSection: PublicAgentListingsPreviewSection;
+	opportunitiesPreviewSection: PublicAgentOpportunitiesPreviewSection;
 	comparisonSection?: PublicAgentComparisonSection;
 	commandReferenceSection?: PublicAgentCommandReferenceSection;
 	supportedChannelsSection?: PublicAgentSupportedChannelsSection;

@@ -23,7 +23,7 @@
 	import ListingCreatorAttribution from '$lib/ui/templates/listings/ListingCreatorAttribution.svelte';
 	import PublicCreatorListingHero from '$lib/ui/templates/listings/PublicCreatorListingHero.svelte';
 	import PublicListingDetailHeroTitle from '$lib/ui/templates/titles/PublicListingDetailHeroTitle.svelte';
-	import ListingRating from '$lib/ui/components/listings/ListingRating.svelte';
+	import SubjectRating from '$lib/ui/components/community/SubjectRating.svelte';
 	import ListingDetailTagBadges from '$lib/ui/components/listings/ListingDetailTagBadges.svelte';
 	import ListingDetailTypeBadges from '$lib/ui/components/listings/ListingDetailTypeBadges.svelte';
 	import Stargazers from '$lib/ui/icons/Stargazers.svelte';
@@ -152,8 +152,8 @@
 	</div>
 
 	{#if !useDetailSidebar && submitRating}
-		<ListingRating
-			listingId={playbookVm.id}
+		<SubjectRating
+			subjectId={playbookVm.id}
 			averageRating={playbookVm.averageRating}
 			ratingsCount={playbookVm.ratingsCount}
 			{isLoggedIn}

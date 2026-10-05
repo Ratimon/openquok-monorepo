@@ -25,7 +25,7 @@ import {
 	buildPublicMcpSetupStepsSeoSchemas,
 	createPublicSetupStepsSEOSchema
 } from '$lib/seo/featuresOrderedHowToSchema';
-import { loadAgentListingsPreviewStateless } from '$lib/listings/server/loadAgentListingsPreview.server';
+import { loadAgentOpportunitiesPreviewStateless } from '$lib/opportunities/server/loadAgentOpportunitiesPreview.server';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
 import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
@@ -112,11 +112,11 @@ export async function load({ url, params, cookies, parent, fetch }) {
 	const accessToken = cookies.get('access_token');
 	const isLoggedIn = !!accessToken;
 
-	const listingsPreviewVm = isChannelComingSoon
+	const opportunitiesPreviewVm = isChannelComingSoon
 		? null
-		: await loadAgentListingsPreviewStateless({
+		: await loadAgentOpportunitiesPreviewStateless({
 				fetch,
-				previewSection: landingVm.listingsPreviewSection,
+				previewSection: landingVm.opportunitiesPreviewSection,
 				listingTagSlug: channelConfig.listingTagSlug,
 				skillBuilderChannelSlug: channelSlug
 			});
@@ -239,7 +239,7 @@ export async function load({ url, params, cookies, parent, fetch }) {
 		pageMetaTags,
 		isLoggedIn,
 		landingVm,
-		listingsPreviewVm,
+		opportunitiesPreviewVm,
 		schemaData,
 		channelSlug: channelPage.channelSlug,
 		channelLabel: channelPage.channelLabel,

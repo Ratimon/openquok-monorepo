@@ -106,8 +106,8 @@ export function buildAgentChannelLandingVm(params: {
 			channelConfig,
 			'agent-host'
 		),
-		listingsPreviewSection: {
-			...baseAgent.listingsPreviewSection,
+		opportunitiesPreviewSection: {
+			...baseAgent.opportunitiesPreviewSection,
 			title: `${platformLabel} viral formats`,
 			description: `Mix ${platformLabel}-focused skills, and MCP servers — then tailor them to your ${agentLabel} workflow.`,
 			playbooksSeeAllDescription: `Browse every ${platformLabel} playbook.`,

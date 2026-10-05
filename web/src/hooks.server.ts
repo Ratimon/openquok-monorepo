@@ -10,7 +10,13 @@ import {
 	shouldRedirectToMaintenance
 } from '$lib/maintenance/maintenanceMode';
 import { ensureUtf8CharsetResponse } from '$lib/utils/ensureUtf8CharsetResponse';
+import {
+	getRootPathCatalogManagerSegment,
+	getRootPathSecretAdminArea
+} from '$lib/area-admin/constants/getRootPathSecretAdminArea';
 import { route } from '$lib/utils/path';
+
+const LEGACY_SECRET_ADMIN_LISTING_MANAGER_SEGMENT = 'listing-manager';
 
 /**
  * Forward `/api/*` (and local `/uploads/*`) to the backend when:
@@ -120,6 +126,20 @@ export const handle: Handle = async ({ event, resolve }) => {
 		shouldRedirectToMaintenance(event.url.pathname)
 	) {
 		redirect(302, route(getRootPathMaintenance()));
+	}
+
+	const legacyListingManagerPrefix = route(
+		`${getRootPathSecretAdminArea()}/${LEGACY_SECRET_ADMIN_LISTING_MANAGER_SEGMENT}`
+	);
+	if (
+		event.url.pathname === legacyListingManagerPrefix ||
+		event.url.pathname.startsWith(`${legacyListingManagerPrefix}/`)
+	) {
+		const suffix = event.url.pathname.slice(legacyListingManagerPrefix.length);
+		const catalogManagerPath = route(
+			`${getRootPathSecretAdminArea()}/${getRootPathCatalogManagerSegment()}${suffix}`
+		);
+		redirect(302, `${catalogManagerPath}${event.url.search}`);
 	}
 
 	const response = await resolve(event);

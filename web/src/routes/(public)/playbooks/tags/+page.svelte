@@ -12,7 +12,7 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import ListingsPublicHubNav from '$lib/ui/templates/listings/ListingsPublicHubNav.svelte';
-	import PublicListingsHubBreadcrumb from '$lib/ui/templates/listings/PublicListingsHubBreadcrumb.svelte';
+	import PublicOpportunitiesHubBreadcrumb from '$lib/ui/templates/public-hub/PublicOpportunitiesHubBreadcrumb.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import SubSectionInnerContainer from '$lib/ui/layouts/SubSectionInnerContainer.svelte';
 	import SubSectionOuterContainer from '$lib/ui/layouts/SubSectionOuterContainer.svelte';
@@ -55,7 +55,7 @@
 			<section class="flex flex-col gap-2">
 				<div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 					<div class="space-y-2">
-						<PublicListingsHubBreadcrumb
+						<PublicOpportunitiesHubBreadcrumb
 							kind={listingsBreadcrumb.kind}
 							variant={listingsBreadcrumb.variant}
 							categoryLabel={listingsBreadcrumb.categoryLabel}

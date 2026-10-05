@@ -4,7 +4,7 @@ import type {
 	FeaturesOrderedStep,
 	PublicAgentComparisonSection,
 	PublicAgentFeatureSection,
-	PublicAgentListingsPreviewSection,
+	PublicAgentOpportunitiesPreviewSection,
 	PublicLandingWorkflowSection
 } from '$lib/content/constants/agents/types';
 import type { PublicFaqItem } from '$lib/content/constants/faq';
@@ -50,7 +50,7 @@ export type PublicMcpLandingPageViewModel = {
 	skillSetupStepsTitle: string;
 	skillSetupSteps: FeaturesOrderedStep[];
 	featureSections: PublicAgentFeatureSection[];
-	listingsPreviewSection: PublicAgentListingsPreviewSection;
+	opportunitiesPreviewSection: PublicAgentOpportunitiesPreviewSection;
 	comparisonSection?: PublicAgentComparisonSection;
 	faqSubtitle: string;
 	faqTitle: string;

@@ -20,7 +20,7 @@
 	import BuildBacklinksSiteOpportunitiesOverview from '$lib/ui/templates/build-backlinks/BuildBacklinksSiteOpportunitiesOverview.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
-	import PublicListingsHubBreadcrumb from '$lib/ui/templates/listings/PublicListingsHubBreadcrumb.svelte';
+	import PublicOpportunitiesHubBreadcrumb from '$lib/ui/templates/public-hub/PublicOpportunitiesHubBreadcrumb.svelte';
 	import PublicListingDetailHeroTitle from '$lib/ui/templates/titles/PublicListingDetailHeroTitle.svelte';
 	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
@@ -67,7 +67,7 @@
 			class="lg:grid lg:grid-cols-[minmax(0,1fr)_min(100%,18.5rem)] lg:gap-10 xl:gap-12"
 		>
 			<div class="min-w-0">
-				<PublicListingsHubBreadcrumb
+				<PublicOpportunitiesHubBreadcrumb
 					kind={listingsBreadcrumb.kind}
 					variant={listingsBreadcrumb.variant}
 					siteLabel={listingsBreadcrumb.siteLabel ?? siteVm.title}

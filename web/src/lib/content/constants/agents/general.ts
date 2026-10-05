@@ -2,7 +2,7 @@ import { icons } from '$data/icons';
 
 import type {
 	FeaturesAnimatedModel,
-	PublicAgentListingsPreviewSection
+	PublicAgentOpportunitiesPreviewSection
 } from '$lib/content/constants/agents/types';
 
 export const DEFAULT_LLM_MODELS: FeaturesAnimatedModel[] = [
@@ -75,10 +75,10 @@ export const DEFAULT_AGENT_INTEGRATIONS: FeaturesAnimatedModel[] = [
 ];
 
 /** Listing cards per preview grid block (playbooks or building blocks); see-all card is extra. */
-export const DEFAULT_LISTINGS_PREVIEW_ITEMS_PER_BLOCK = 6;
+export const DEFAULT_OPPORTUNITIES_PREVIEW_ITEMS_PER_BLOCK = 6;
 
-/** Default listings preview copy shared by agent host landing pages. */
-export const PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION = {
+/** Default opportunities preview copy shared by agent host landing pages. */
+export const PUBLIC_AGENT_OPPORTUNITIES_PREVIEW_SECTION = {
 	headingId: 'agent-listings-preview-heading',
 	subtitle: 'Backlinks, Playbooks & Building Blocks',
 	title: 'Explore Viral Formats',
@@ -91,11 +91,11 @@ export const PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION = {
 	playbooksSeeAllDescription: 'Browse every published playbook.',
 	playbooksSkillBuilderDescription: 'Build and export a SKILL.md from building blocks.',
 	buildingBlocksSeeAllDescription: 'Browse every published building block.',
-	itemsPerBlockLimit: DEFAULT_LISTINGS_PREVIEW_ITEMS_PER_BLOCK
-} satisfies PublicAgentListingsPreviewSection;
+	itemsPerBlockLimit: DEFAULT_OPPORTUNITIES_PREVIEW_ITEMS_PER_BLOCK
+} satisfies PublicAgentOpportunitiesPreviewSection;
 
 /** Main marketing landing page — same copy as agent previews, distinct section id. */
-export const LANDING_PAGE_LISTINGS_PREVIEW_SECTION = {
-	...PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION,
+export const LANDING_PAGE_OPPORTUNITIES_PREVIEW_SECTION = {
+	...PUBLIC_AGENT_OPPORTUNITIES_PREVIEW_SECTION,
 	headingId: 'landing-listings-preview-heading'
-} satisfies PublicAgentListingsPreviewSection;
+} satisfies PublicAgentOpportunitiesPreviewSection;

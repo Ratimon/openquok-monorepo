@@ -2,7 +2,7 @@
 	import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 	import type { PublicFaqItem } from '$lib/content/constants/faq';
 	import type { PublicAgentFeatureSection as FeatureSectionConfig } from '$lib/content/constants/agents';
-	import type { PublicListingsPreviewVm } from '$lib/listings/server/loadAgentListingsPreview.server';
+	import type { PublicOpportunitiesPreviewVm } from '$lib/opportunities/server/loadAgentOpportunitiesPreview.server';
 
 	import { page } from '$app/state';
 	import { PUBLIC_LANDING_WHO_IS_FOR_CARDS } from '$lib/content/constants/landing/who-is-for';
@@ -36,7 +36,7 @@
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import IconTileGrid from '$lib/ui/templates/feature-grid/IconTileGrid.svelte';
-	import PublicListingsPreviewDualGrid from '$lib/ui/components/listings/PublicListingsPreviewDualGrid.svelte';
+	import PublicOpportunitiesPreviewGrid from '$lib/ui/templates/opportunities-preview/PublicOpportunitiesPreviewGrid.svelte';
 	import PublicMarketingPricingSection from '$lib/ui/components/pricing/PublicMarketingPricingSection.svelte';
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
@@ -45,7 +45,7 @@
 		landingPageConfigVm?: Record<string, string>;
 		publicFaqConfigVm?: Record<string, string>;
 		publicFaqItemsVm?: PublicFaqItem[];
-		listingsPreviewVm: PublicListingsPreviewVm;
+		opportunitiesPreviewVm: PublicOpportunitiesPreviewVm;
 		isLoggedIn?: boolean;
 	};
 
@@ -53,7 +53,7 @@
 		landingPageConfigVm = {},
 		publicFaqConfigVm = {},
 		publicFaqItemsVm = [],
-		listingsPreviewVm,
+		opportunitiesPreviewVm,
 		isLoggedIn = false
 	}: Props = $props();
 
@@ -432,9 +432,9 @@ openquok analytics:post <post-id> -d 30`
 	ctaHref={secondaryCtaHref}
 />
 
-<PublicListingsPreviewDualGrid
+<PublicOpportunitiesPreviewGrid
 	heroTheme={landingHeroTheme}
-	previewVm={listingsPreviewVm}
+	previewVm={opportunitiesPreviewVm}
 	seeAllScrollsToNavbar={true}
 />
 
