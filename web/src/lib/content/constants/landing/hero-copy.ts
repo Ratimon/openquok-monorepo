@@ -6,6 +6,3 @@ export const PUBLIC_LANDING_HERO_TRIAL_CTA = 'Try for free for 7 days';
 
 /** Shorter CTA on feature rows, workflow sections, and sitewide banners. */
 export const PUBLIC_LANDING_COMPACT_TRIAL_CTA = 'Start your free trial';
-
-/** @deprecated Use {@link PUBLIC_LANDING_HERO_TRIAL_CTA} or {@link PUBLIC_LANDING_COMPACT_TRIAL_CTA}. */
-export const PUBLIC_LANDING_GET_STARTED_FOR_FREE_CTA = PUBLIC_LANDING_COMPACT_TRIAL_CTA;

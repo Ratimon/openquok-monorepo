@@ -24,7 +24,7 @@ export const mediaRepository = new MediaRepository(httpGateway, mediaConfig);
 /** PM → VM for media reads; list loads call {@link MediaRepository} then map to VMs. */
 export const getMediaPresenter = new GetMediaPresenter(mediaRepository);
 
-export { MAX_MEDIA_UPLOAD_BYTES, MediaRepository } from './Media.repository.svelte';
+export { MAX_MEDIA_VIDEO_UPLOAD_BYTES, MediaRepository } from './Media.repository.svelte';
 export type {
 	MediaDeleteViewModel,
 	MediaLibraryItemViewModel,

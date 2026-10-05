@@ -31,8 +31,6 @@ export type ComposerHumanizeDraftConstraints = {
 	 * identifiers from selected channels in Global Edit).
 	 */
 	providerIdentifiers?: readonly string[] | null;
-	/** @deprecated Prefer {@link providerIdentifiers}; still used when the array is empty. */
-	providerIdentifier?: string | null;
 	composerMode?: 'global' | 'custom';
 };
 
@@ -71,11 +69,7 @@ export {
 function resolveConstraintProviders(
 	constraints: ComposerHumanizeDraftConstraints
 ): ComposerHumanizeConstraintProvider[] {
-	const fromList = normalizeWriterProviderIdentifiers(constraints.providerIdentifiers);
-	if (fromList.length > 0) return toWriterConstraintProviders(fromList);
-	const single = (constraints.providerIdentifier ?? '').trim();
-	if (single) return toWriterConstraintProviders([single]);
-	return [];
+	return toWriterConstraintProviders(constraints.providerIdentifiers);
 }
 
 function baseSharedContextForMode(mode: HumanizeMode): string {

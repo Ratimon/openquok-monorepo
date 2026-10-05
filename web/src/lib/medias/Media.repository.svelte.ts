@@ -37,7 +37,7 @@ export interface MediaConfig {
 	};
 }
 
-export { MAX_MEDIA_UPLOAD_BYTES, MAX_MEDIA_VIDEO_UPLOAD_BYTES } from 'openquok-common';
+export { MAX_MEDIA_VIDEO_UPLOAD_BYTES } from 'openquok-common';
 
 export interface MediaUploadResponseDto {
 	success: boolean;

@@ -25,6 +25,3 @@ export const DOCS_YOUTUBE_VIDEOS: Record<DocsYoutubeVideoPreset, DocsYoutubeVide
 		schemaFragmentId: 'connect-channels-video'
 	}
 };
-
-/** @deprecated Import preset from `DOCS_YOUTUBE_VIDEOS.connectChannels` */
-export const DOCS_YOUTUBE_CONNECT_CHANNELS = DOCS_YOUTUBE_VIDEOS.connectChannels;

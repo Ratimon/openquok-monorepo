@@ -102,7 +102,6 @@
 			humanizePresenter.setDraftConstraints({
 				maxCharacters: softCharLimit,
 				providerIdentifiers: ids,
-				providerIdentifier: ids[0] ?? focusedProviderIdentifier,
 				composerMode
 			});
 			void humanizePresenter.onOpen();

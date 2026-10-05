@@ -26,8 +26,6 @@ export type ComposerSummarizerDraftConstraints = {
 	 * identifiers from selected channels in Global Edit).
 	 */
 	providerIdentifiers?: readonly string[] | null;
-	/** @deprecated Prefer {@link providerIdentifiers}; still used when the array is empty. */
-	providerIdentifier?: string | null;
 	composerMode?: 'global' | 'custom';
 };
 
@@ -68,11 +66,7 @@ export {
 function resolveConstraintProviders(
 	constraints: ComposerSummarizerDraftConstraints
 ): ComposerSummarizerConstraintProvider[] {
-	const fromList = normalizeWriterProviderIdentifiers(constraints.providerIdentifiers);
-	if (fromList.length > 0) return toWriterConstraintProviders(fromList);
-	const single = (constraints.providerIdentifier ?? '').trim();
-	if (single) return toWriterConstraintProviders([single]);
-	return [];
+	return toWriterConstraintProviders(constraints.providerIdentifiers);
 }
 
 /** Builds a constraint-aware `sharedContext` string for Summarizer.create. */

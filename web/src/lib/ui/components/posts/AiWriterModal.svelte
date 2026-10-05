@@ -97,7 +97,6 @@
 			writerPresenter.setDraftConstraints({
 				maxCharacters: softCharLimit,
 				providerIdentifiers: ids,
-				providerIdentifier: ids[0] ?? focusedProviderIdentifier,
 				composerMode
 			});
 			void writerPresenter.onOpen();

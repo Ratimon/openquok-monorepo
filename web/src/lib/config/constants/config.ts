@@ -922,18 +922,6 @@ export const OPEN_PUBLIC_OPPORTUNITIES_NAV_EVENT = 'open-public-opportunities-na
 
 export type PublicOpportunitiesNavTab = 'backlinks' | 'playbook' | 'building-blocks';
 
-/** @deprecated Use {@link PublicOpportunitiesNavTab} — playbooks dropdown tabs only. */
-export type PublicPlaybooksNavTab = Extract<
-	PublicOpportunitiesNavTab,
-	'playbook' | 'building-blocks'
->;
-
-/** @deprecated Use {@link PUBLIC_NAVBAR_OPPORTUNITIES_ANCHOR_ID}. */
-export const PUBLIC_NAVBAR_PLAYBOOKS_ANCHOR_ID = PUBLIC_NAVBAR_OPPORTUNITIES_ANCHOR_ID;
-
-/** @deprecated Use {@link OPEN_PUBLIC_OPPORTUNITIES_NAV_EVENT}. */
-export const OPEN_PUBLIC_PLAYBOOKS_NAV_EVENT = OPEN_PUBLIC_OPPORTUNITIES_NAV_EVENT;
-
 export interface DropdownLink {
 	href: string;
 	title: string;

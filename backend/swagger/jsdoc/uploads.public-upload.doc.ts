@@ -16,7 +16,7 @@
  *       Multipart upload of one media asset (field name `file`). Accepts
  *       images, video, audio, and PDF; mimetype is inferred from the filename
  *       when the multipart part omits it. The application cap is
- *       `MAX_MEDIA_UPLOAD_BYTES` (1 GB for video). On the hosted API the
+ *       `MAX_MEDIA_VIDEO_UPLOAD_BYTES` (1 GB for video). On the hosted API the
  *       inbound function body is limited to about 4.5 MB — use
  *       `POST /public/upload/create-multipart` (then sign-parts and
  *       complete-multipart) for larger files. The CLI and Node SDK switch

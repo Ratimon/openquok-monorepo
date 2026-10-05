@@ -120,7 +120,7 @@ openquok posts:create \
 <p><Badge text="openquok upload" variant="default" /> posts small files through <Badge text="POST /public/upload" variant="path" />. On OpenQuok Cloud that inbound path is about 4.5 MB. For larger files the CLI automatically uses direct-to-storage multipart (<Badge text="create-multipart" variant="param" /> → PUT parts → <Badge text="complete-multipart" variant="param" />). Prefer the CLI (or the Node SDK) over raw <code>curl</code> for TikTok / Reels / YouTube clips. Application video cap remains 1 GB.</p>
 </Callout>
 
-Per-file size is capped by <Badge text="MAX_MEDIA_UPLOAD_BYTES" variant="envBackend" /> on the backend (1 GB for video). The hosted simple-upload gateway is lower — see the callout above.
+Per-file size is capped by <Badge text="MAX_MEDIA_VIDEO_UPLOAD_BYTES" variant="envBackend" /> on the backend (1 GB for video). The hosted simple-upload gateway is lower — see the callout above.
 
 ## Related
 

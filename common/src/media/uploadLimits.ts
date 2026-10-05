@@ -25,12 +25,6 @@ export const MAX_MEDIA_DIRECT_UPLOAD_BYTES = 4 * 1024 * 1024;
 /** S3-compatible multipart part size (minimum 5 MiB except the last part). */
 export const MEDIA_MULTIPART_PART_BYTES = 5 * 1024 * 1024;
 
-/**
- * Largest single file the API accepts (multer). Matches video cap.
- * @deprecated Prefer {@link maxMediaUploadBytesForMime} for validation.
- */
-export const MAX_MEDIA_UPLOAD_BYTES = MAX_MEDIA_VIDEO_UPLOAD_BYTES;
-
 export type MediaUploadValidationSurface = 'frontend' | 'backend';
 
 function normalizeMime(mimetype: string): string {

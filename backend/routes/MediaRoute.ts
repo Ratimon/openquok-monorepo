@@ -1,7 +1,9 @@
 import { Router } from "express";
 import multer from "multer";
 
-import { mediaController, MAX_MEDIA_UPLOAD_BYTES } from "../controllers/index";
+import { MAX_MEDIA_VIDEO_UPLOAD_BYTES } from "openquok-common";
+
+import { mediaController } from "../controllers/index";
 import { requireFullAuthWithRoles } from "../guards";
 import { supabaseAnonClient } from "../connections/index";
 import { userRepository, rbacRepository } from "../repositories/index";
@@ -18,7 +20,7 @@ import {
 
 const upload = multer({
     storage: multer.memoryStorage(),
-    limits: { fileSize: MAX_MEDIA_UPLOAD_BYTES },
+    limits: { fileSize: MAX_MEDIA_VIDEO_UPLOAD_BYTES },
 });
 
 const authWithRoles = requireFullAuthWithRoles(

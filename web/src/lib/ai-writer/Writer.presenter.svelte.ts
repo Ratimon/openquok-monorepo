@@ -79,7 +79,6 @@ export class WriterPresenter {
 
 	/** Soft character limit mirrored from the composer (for UI + create options). */
 	maxCharacters = $state(COMPOSER_WRITER_LENGTH_SHORT_MAX_CHARS);
-	providerIdentifier = $state<string | null>(null);
 	providerIdentifiers = $state<string[]>([]);
 	constraintProvidersVm = $state<ComposerWriterConstraintProvider[]>([]);
 	composerMode = $state<'global' | 'custom'>('global');
@@ -135,22 +134,14 @@ export class WriterPresenter {
 		const max = Number.isFinite(constraints.maxCharacters)
 			? Math.max(1, Math.floor(constraints.maxCharacters))
 			: COMPOSER_WRITER_LENGTH_SHORT_MAX_CHARS;
-		const ids = normalizeWriterProviderIdentifiers(
-			constraints.providerIdentifiers?.length
-				? constraints.providerIdentifiers
-				: constraints.providerIdentifier
-					? [constraints.providerIdentifier]
-					: []
-		);
+		const ids = normalizeWriterProviderIdentifiers(constraints.providerIdentifiers);
 		this.maxCharacters = max;
 		this.providerIdentifiers = ids;
-		this.providerIdentifier = ids[0] ?? null;
 		this.constraintProvidersVm = toWriterConstraintProviders(ids);
 		this.composerMode = constraints.composerMode ?? 'global';
 		this.createCore = buildComposerWriterCreateOptions({
 			maxCharacters: max,
 			providerIdentifiers: ids,
-			providerIdentifier: this.providerIdentifier,
 			composerMode: this.composerMode
 		});
 	}
@@ -202,7 +193,6 @@ export class WriterPresenter {
 		this.promptText = '';
 		this.pendingToastError = null;
 		this.providerIdentifiers = [];
-		this.providerIdentifier = null;
 		this.constraintProvidersVm = [];
 		this.messageSeq = 0;
 		this.rewriterGate = null;
@@ -418,7 +408,6 @@ export class WriterPresenter {
 		return {
 			maxCharacters: this.maxCharacters,
 			providerIdentifiers: this.providerIdentifiers,
-			providerIdentifier: this.providerIdentifier,
 			composerMode: this.composerMode
 		};
 	}

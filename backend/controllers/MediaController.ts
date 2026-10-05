@@ -12,7 +12,6 @@ import { buildMediaTreeEntities } from "../utils/media/mediaTreeBuilder";
 import { AuthError } from "../errors/AuthError";
 import { UserError, UserValidationError } from "../errors/UserError";
 import {
-    MAX_MEDIA_UPLOAD_BYTES,
     inferMediaMimeType,
     mediaVirtualPathFromFileManagerTarget,
     normalizeMediaVirtualPath,
@@ -1049,5 +1048,3 @@ export class MediaController {
         }
     };
 }
-
-export { MAX_MEDIA_UPLOAD_BYTES };

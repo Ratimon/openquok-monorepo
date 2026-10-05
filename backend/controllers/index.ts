@@ -9,7 +9,7 @@ import { ListingController } from "./ListingController";
 import { ListingTagController } from "./ListingTagController";
 import { LinkDirectoryController } from "./LinkDirectoryController";
 import { ImageController } from "./ImageController";
-import { MediaController, MAX_MEDIA_UPLOAD_BYTES } from "./MediaController";
+import { MediaController } from "./MediaController";
 import { BillingController } from "./BillingController";
 import { StripeWebhookController } from "./StripeWebhookController";
 import { ConfigController } from "./ConfigController";
@@ -109,7 +109,6 @@ export const billingController = new BillingController(
     trialBrowserService
 );
 export const stripeWebhookController = new StripeWebhookController(stripeService);
-export { MAX_MEDIA_UPLOAD_BYTES };
 export const configController = new ConfigController(configService);
 export const emailController = new EmailController(emailService);
 export const integrationController = new IntegrationController(integrationConnectionService, integrationManager);

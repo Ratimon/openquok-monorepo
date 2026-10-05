@@ -88,7 +88,6 @@ export class HumanizePresenter {
 
 	/** Soft character limit mirrored from the composer (for UI + create options). */
 	maxCharacters = $state(COMPOSER_HUMANIZE_LENGTH_SHORT_MAX_CHARS);
-	providerIdentifier = $state<string | null>(null);
 	providerIdentifiers = $state<string[]>([]);
 	constraintProvidersVm = $state<ComposerHumanizeConstraintProvider[]>([]);
 	composerMode = $state<HumanizeComposerMode>('global');
@@ -133,16 +132,9 @@ export class HumanizePresenter {
 		const max = Number.isFinite(constraints.maxCharacters)
 			? Math.max(1, Math.floor(constraints.maxCharacters))
 			: COMPOSER_HUMANIZE_LENGTH_SHORT_MAX_CHARS;
-		const ids = normalizeHumanizeProviderIdentifiers(
-			constraints.providerIdentifiers?.length
-				? constraints.providerIdentifiers
-				: constraints.providerIdentifier
-					? [constraints.providerIdentifier]
-					: []
-		);
+		const ids = normalizeHumanizeProviderIdentifiers(constraints.providerIdentifiers);
 		this.maxCharacters = max;
 		this.providerIdentifiers = ids;
-		this.providerIdentifier = ids[0] ?? null;
 		this.constraintProvidersVm = toHumanizeConstraintProviders(ids);
 		this.composerMode = constraints.composerMode ?? 'global';
 		this.refreshCreateCore();
@@ -199,7 +191,6 @@ export class HumanizePresenter {
 		this.errorMessage = null;
 		this.pendingToastError = null;
 		this.providerIdentifiers = [];
-		this.providerIdentifier = null;
 		this.constraintProvidersVm = [];
 		this.mode = COMPOSER_HUMANIZE_DEFAULTS.mode;
 		this.sourceAudit = null;
@@ -332,7 +323,6 @@ export class HumanizePresenter {
 		return {
 			maxCharacters: this.maxCharacters,
 			providerIdentifiers: this.providerIdentifiers,
-			providerIdentifier: this.providerIdentifier,
 			composerMode: this.composerMode
 		};
 	}

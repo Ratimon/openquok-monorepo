@@ -7,7 +7,7 @@ lastUpdated: 2026-08-23
 
 <script>
 import { Callout, Tabs, TabItem, Steps, Card, CardGrid, LinkCard, Badge, FileTree, Mermaid, DocsExternalLink, ParamField, ResponseField, VideoModal } from '$lib/ui/components/docs/mdx/index.js';
-import { DOCS_YOUTUBE_CONNECT_CHANNELS } from '$lib/docs/constants/docsYoutubeVideos';
+import { DOCS_YOUTUBE_VIDEOS } from '$lib/docs/constants/docsYoutubeVideos';
 
 const docsComponentFlow = `flowchart LR
     MD[".md page"] --> Script["page script import"]
@@ -118,20 +118,20 @@ Use **`VideoModal`** for a clickable thumbnail that opens the same in-page YouTu
 
 <VideoModal
 	videoObjectPreset="connectChannels"
-	youtubeVideoId={DOCS_YOUTUBE_CONNECT_CHANNELS.youtubeVideoId}
-	thumbnailAlt={DOCS_YOUTUBE_CONNECT_CHANNELS.thumbnailAlt}
+	youtubeVideoId={DOCS_YOUTUBE_VIDEOS.connectChannels.youtubeVideoId}
+	thumbnailAlt={DOCS_YOUTUBE_VIDEOS.connectChannels.thumbnailAlt}
 />
 
 ```html
 <script>
 import { VideoModal } from '$lib/ui/components/docs/mdx/index.js';
-import { DOCS_YOUTUBE_CONNECT_CHANNELS } from '$lib/docs/constants/docsYoutubeVideos';
+import { DOCS_YOUTUBE_VIDEOS } from '$lib/docs/constants/docsYoutubeVideos';
 </script>
 
 <VideoModal
 	videoObjectPreset="connectChannels"
-	youtubeVideoId={DOCS_YOUTUBE_CONNECT_CHANNELS.youtubeVideoId}
-	thumbnailAlt={DOCS_YOUTUBE_CONNECT_CHANNELS.thumbnailAlt}
+	youtubeVideoId={DOCS_YOUTUBE_VIDEOS.connectChannels.youtubeVideoId}
+	thumbnailAlt={DOCS_YOUTUBE_VIDEOS.connectChannels.thumbnailAlt}
 />
 ```
 

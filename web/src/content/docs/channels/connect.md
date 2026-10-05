@@ -7,7 +7,7 @@ lastUpdated: 2026-09-30
 
 <script>
 import { Badge, Callout, CardGrid, LinkCard, TabItem, Tabs, VideoModal } from '$lib/ui/components/docs/mdx/index.js';
-import { DOCS_YOUTUBE_CONNECT_CHANNELS } from '$lib/docs/constants/docsYoutubeVideos';
+import { DOCS_YOUTUBE_VIDEOS } from '$lib/docs/constants/docsYoutubeVideos';
 </script>
 
 ## Where to start
@@ -92,8 +92,8 @@ OpenQuok copies an **invite link** to your clipboard (valid for one hour). Send 
 See it in action:
 <VideoModal
 	videoObjectPreset="connectChannels"
-	youtubeVideoId={DOCS_YOUTUBE_CONNECT_CHANNELS.youtubeVideoId}
-	thumbnailAlt={DOCS_YOUTUBE_CONNECT_CHANNELS.thumbnailAlt}
+	youtubeVideoId={DOCS_YOUTUBE_VIDEOS.connectChannels.youtubeVideoId}
+	thumbnailAlt={DOCS_YOUTUBE_VIDEOS.connectChannels.thumbnailAlt}
 />
 
 Invite links work only for **OAuth redirect** networks. Platforms that need credentials pasted in a form are excluded — connect those yourself or ask the client to sign in to OpenQuok and use <Badge text="Add Channel" variant="new" />.

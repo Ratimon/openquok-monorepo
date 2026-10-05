@@ -36,7 +36,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 | Allowed mime types | image/<em>*</em>, video/<em>*</em>, audio/<em>*</em>, <Badge text="application/pdf" variant="default" /> |
 | Simple upload (hosted) | About 4 MB inbound (leave headroom under the 4.5 MB gateway) |
 | Multipart part size | 5 MiB minimum except the last part |
-| Per-file size cap | <Badge text="MAX_MEDIA_UPLOAD_BYTES" variant="envBackend" /> (1 GB for video; shared with the session uploader) |
+| Per-file size cap | <Badge text="MAX_MEDIA_VIDEO_UPLOAD_BYTES" variant="envBackend" /> (1 GB for video; shared with the session uploader) |
 | Auth header | <Badge text="Authorization: Bearer opo_..." variant="default" /> (workspace programmatic token or third-party OAuth app token) |
 
 ## Related Section(s)
