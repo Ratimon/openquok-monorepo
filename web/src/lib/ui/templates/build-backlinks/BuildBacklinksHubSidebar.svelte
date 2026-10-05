@@ -20,7 +20,7 @@
 	import { cn } from '$lib/ui/helpers/common';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import ListingsSearchBar from '$lib/ui/templates/listings/ListingsSearchBar.svelte';
+	import PublicHubSearchBar from '$lib/ui/templates/public-hub/PublicHubSearchBar.svelte';
 
 	type Props = {
 		filtersVm: BuildBacklinksHubFilters;
@@ -95,7 +95,7 @@
 
 <aside class={cn(className)} aria-label="Filter backlink sites">
 	<div class={cn(panelShell, 'space-y-5')}>
-		<ListingsSearchBar
+		<PublicHubSearchBar
 			class="[&_input]:border-primary/20 [&_input]:bg-base-100/50"
 			bind:value={searchDraft}
 			placeholder="Sites or Opportunities…"

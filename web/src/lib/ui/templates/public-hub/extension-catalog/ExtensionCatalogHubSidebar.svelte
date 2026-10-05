@@ -12,10 +12,10 @@
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
-	import ListingsCategorySidebar from '$lib/ui/templates/listings/ListingsCategorySidebar.svelte';
-	import ListingsSearchBar from '$lib/ui/templates/listings/ListingsSearchBar.svelte';
-	import ListingsTagFilter from '$lib/ui/templates/listings/ListingsTagFilter.svelte';
-	import ListingsTypeChips from '$lib/ui/templates/listings/ListingsTypeChips.svelte';
+	import ExtensionCatalogCategorySidebar from '$lib/ui/templates/public-hub/extension-catalog/ExtensionCatalogCategorySidebar.svelte';
+	import ExtensionCatalogTagFilter from '$lib/ui/templates/public-hub/extension-catalog/ExtensionCatalogTagFilter.svelte';
+	import ExtensionCatalogTypeChips from '$lib/ui/templates/public-hub/extension-catalog/ExtensionCatalogTypeChips.svelte';
+	import PublicHubSearchBar from '$lib/ui/templates/public-hub/PublicHubSearchBar.svelte';
 
 	type HubKind = 'building-blocks' | 'playbooks';
 
@@ -91,7 +91,7 @@
 
 <aside class={cn(className)} aria-label={ariaLabel}>
 	<div class={cn(panelShell, 'space-y-5')}>
-		<ListingsSearchBar
+		<PublicHubSearchBar
 			class="[&_input]:border-primary/20 [&_input]:bg-base-100/50"
 			bind:value={searchValue}
 			placeholder={searchPlaceholder}
@@ -164,14 +164,14 @@
 
 		{#if hubKind === 'building-blocks' && activeExtensionType != null && onTypeSelect}
 			<div class={sectionDivider}>
-				<ListingsTypeChips activeType={activeExtensionType} onSelect={onTypeSelect} />
+				<ExtensionCatalogTypeChips activeType={activeExtensionType} onSelect={onTypeSelect} />
 			</div>
 		{/if}
 
 		<div class={sectionDivider}>
 			<h3 class={sectionTitle}>Categories</h3>
 			<div class="mt-2">
-				<ListingsCategorySidebar
+				<ExtensionCatalogCategorySidebar
 					{categoriesVm}
 					{activeCategorySlug}
 					{activeTagPathSlug}
@@ -183,7 +183,7 @@
 		</div>
 
 		<div class={sectionDivider}>
-			<ListingsTagFilter
+			<ExtensionCatalogTagFilter
 				{tagFilterVm}
 				activeTagGroup={activeTagGroup}
 				{activeTags}

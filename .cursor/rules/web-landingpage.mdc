@@ -82,6 +82,7 @@ Add route-specific breadcrumb components under `web/src/lib/ui/templates/landing
 - `PublicAgentsLandingBreadcrumb.svelte`
 - `PublicChannelsLandingBreadcrumb.svelte`
 - `public-hub/PublicOpportunitiesHubBreadcrumb.svelte` (playbooks, building-blocks, and build-backlinks hubs and filter pages)
+- Shared hub chrome: `public-hub/PublicHubSearchBar.svelte`, `PublicCatalogHubNav.svelte`, `PublicCatalogHubStats.svelte`; playbooks/building-blocks catalog filters live under `public-hub/extension-catalog/`
 - `PublicApiMarketingHubBreadcrumb.svelte`
 - `HumanizeHubBreadcrumb.svelte`, `PhotoEditorHubBreadcrumb.svelte`, `SkillBuilderHubBreadcrumb.svelte`, `BestTimeToPostHubBreadcrumb.svelte`, `PayloadWizardHubBreadcrumb.svelte`
 

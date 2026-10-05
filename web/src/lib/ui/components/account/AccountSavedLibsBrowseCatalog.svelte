@@ -9,8 +9,8 @@
 	import AccountViralFormatsKindChips from '$lib/ui/components/extensions/AccountViralFormatsKindChips.svelte';
 	import AccountViralFormatsStackSelectionBar from '$lib/ui/components/extensions/AccountViralFormatsStackSelectionBar.svelte';
 	import AccountListingsCollectionGroup from '$lib/ui/components/extensions/AccountListingsCollectionGroup.svelte';
-	import ListingsExtensionsHubListToolbar from '$lib/ui/templates/listings/ListingsExtensionsHubListToolbar.svelte';
-	import ListingsExtensionsHubSidebar from '$lib/ui/templates/listings/ListingsExtensionsHubSidebar.svelte';
+	import ExtensionCatalogHubListToolbar from '$lib/ui/templates/public-hub/extension-catalog/ExtensionCatalogHubListToolbar.svelte';
+	import ExtensionCatalogHubSidebar from '$lib/ui/templates/public-hub/extension-catalog/ExtensionCatalogHubSidebar.svelte';
 
 	type MenuItemFactory = (item: AccountListingCollectionItemViewModel) => Array<{
 		label: string;
@@ -164,7 +164,7 @@
 </script>
 
 <div class={cn('grid gap-8 lg:grid-cols-[minmax(240px,280px)_1fr]', className)}>
-	<ListingsExtensionsHubSidebar
+	<ExtensionCatalogHubSidebar
 		hubKind={sidebarHubKind}
 		{categoriesVm}
 		{tagFilterVm}
@@ -194,7 +194,7 @@
 			<AccountViralFormatsKindChips activeKind={filters.listingKind} onSelect={onKindSelect} />
 		</div>
 
-		<ListingsExtensionsHubListToolbar
+		<ExtensionCatalogHubListToolbar
 			filteredCount={filteredCount}
 			itemLabelSingular={toolbarItemLabelSingular}
 			itemLabelPlural={toolbarItemLabelPlural}

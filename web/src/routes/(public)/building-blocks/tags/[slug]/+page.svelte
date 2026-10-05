@@ -27,8 +27,8 @@
 	} from '$lib/config/constants/config';
 
 	import BuildingBlocksHubCatalog from '$lib/ui/templates/building-blocks/BuildingBlocksHubCatalog.svelte';
-	import ListingsHubStats from '$lib/ui/templates/listings/ListingsHubStats.svelte';
-	import ListingsPublicHubNav from '$lib/ui/templates/listings/ListingsPublicHubNav.svelte';
+	import PublicCatalogHubStats from '$lib/ui/templates/public-hub/PublicCatalogHubStats.svelte';
+	import PublicCatalogHubNav from '$lib/ui/templates/public-hub/PublicCatalogHubNav.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
@@ -108,9 +108,9 @@
 		<p class="mx-auto max-w-3xl text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg">
 			{heroDescription}
 		</p>
-		<ListingsPublicHubNav active="building-blocks" class="pt-1" />
+		<PublicCatalogHubNav active="building-blocks" class="pt-1" />
 		<div class="flex justify-center pt-2">
-			<ListingsHubStats statsVm={statsVm} />
+			<PublicCatalogHubStats statsVm={statsVm} />
 		</div>
 	</header>
 

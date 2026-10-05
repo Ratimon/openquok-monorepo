@@ -20,8 +20,8 @@
 	} from '$lib/listings/utils/hubListPagination';
 	import { toast } from '$lib/ui/sonner';
 
-	import ListingsExtensionsHubListToolbar from '$lib/ui/templates/listings/ListingsExtensionsHubListToolbar.svelte';
-	import ListingsExtensionsHubSidebar from '$lib/ui/templates/listings/ListingsExtensionsHubSidebar.svelte';
+	import ExtensionCatalogHubListToolbar from '$lib/ui/templates/public-hub/extension-catalog/ExtensionCatalogHubListToolbar.svelte';
+	import ExtensionCatalogHubSidebar from '$lib/ui/templates/public-hub/extension-catalog/ExtensionCatalogHubSidebar.svelte';
 	import Pagination from '$lib/ui/templates/Pagination.svelte';
 	import PlaybookHubCard from '$lib/ui/templates/playbooks/PlaybookHubCard.svelte';
 
@@ -160,7 +160,7 @@
 </script>
 
 <div class={['grid gap-8 lg:grid-cols-[minmax(240px,280px)_1fr]', className]}>
-	<ListingsExtensionsHubSidebar
+	<ExtensionCatalogHubSidebar
 		hubKind="playbooks"
 		{categoriesVm}
 		{tagFilterVm}
@@ -184,7 +184,7 @@
 	/>
 
 	<div class="min-w-0 space-y-4">
-		<ListingsExtensionsHubListToolbar
+		<ExtensionCatalogHubListToolbar
 			filteredCount={displayFilteredCount}
 			itemLabelSingular="playbook"
 			itemLabelPlural="playbooks"

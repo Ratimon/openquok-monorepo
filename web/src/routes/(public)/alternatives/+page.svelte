@@ -15,7 +15,7 @@
 	} from '$lib/config/constants/config';
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
-	import ListingsSearchBar from '$lib/ui/templates/listings/ListingsSearchBar.svelte';
+	import PublicHubSearchBar from '$lib/ui/templates/public-hub/PublicHubSearchBar.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import PublicAlternativesLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicAlternativesLandingBreadcrumb.svelte';
@@ -153,7 +153,7 @@
 	</header>
 
 	<div class="container mx-auto max-w-5xl px-4 pt-8">
-		<ListingsSearchBar
+		<PublicHubSearchBar
 			bind:value={searchQuery}
 			placeholder="Search alternatives…"
 			onchange={handleSearchChange}

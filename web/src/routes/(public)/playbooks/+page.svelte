@@ -20,8 +20,8 @@
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	import PlaybooksHubCatalog from '$lib/ui/templates/playbooks/PlaybooksHubCatalog.svelte';
-	import ListingsHubStats from '$lib/ui/templates/listings/ListingsHubStats.svelte';
-	import ListingsPublicHubNav from '$lib/ui/templates/listings/ListingsPublicHubNav.svelte';
+	import PublicCatalogHubStats from '$lib/ui/templates/public-hub/PublicCatalogHubStats.svelte';
+	import PublicCatalogHubNav from '$lib/ui/templates/public-hub/PublicCatalogHubNav.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
@@ -84,9 +84,9 @@
 		<p class="mx-auto max-w-3xl text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg">
 			{heroDescription}
 		</p>
-		<ListingsPublicHubNav active="playbooks" class="pt-1" />
+		<PublicCatalogHubNav active="playbooks" class="pt-1" />
 		<div class="flex justify-center pt-2">
-			<ListingsHubStats statsVm={statsVm} />
+			<PublicCatalogHubStats statsVm={statsVm} />
 		</div>
 	</header>
 

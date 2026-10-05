@@ -12,7 +12,7 @@
 
 	let {
 		value = $bindable(''),
-		placeholder = 'Search listings…',
+		placeholder = 'Search…',
 		class: className = '',
 		onchange
 	}: Props = $props();
@@ -41,10 +41,10 @@
 </script>
 
 <div class={cn('relative', className)}>
-	<label class="sr-only" for="extensions-search">Search extensions</label>
+	<label class="sr-only" for="public-hub-search">Search catalog</label>
 	<input
 		bind:this={inputEl}
-		id="extensions-search"
+		id="public-hub-search"
 		type="search"
 		class="input input-bordered w-full pr-16"
 		{placeholder}

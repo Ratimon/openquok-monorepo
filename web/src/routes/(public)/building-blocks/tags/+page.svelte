@@ -11,7 +11,7 @@
 	import { Card, CardHeader } from '$lib/ui/card';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
-	import ListingsPublicHubNav from '$lib/ui/templates/listings/ListingsPublicHubNav.svelte';
+	import PublicCatalogHubNav from '$lib/ui/templates/public-hub/PublicCatalogHubNav.svelte';
 	import PublicOpportunitiesHubBreadcrumb from '$lib/ui/templates/public-hub/PublicOpportunitiesHubBreadcrumb.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import SubSectionInnerContainer from '$lib/ui/layouts/SubSectionInnerContainer.svelte';
@@ -62,7 +62,7 @@
 					<Button variant="outline" href={buildingBlocksHubHref}>View all building blocks</Button>
 				</div>
 
-				<ListingsPublicHubNav active="building-blocks" class="mb-6" />
+				<PublicCatalogHubNav active="building-blocks" class="mb-6" />
 
 				{#if tagFilterVm.groups.length > 0}
 					<div class="mb-10">
