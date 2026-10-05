@@ -56,12 +56,12 @@
 </script>
 
 {#if variant === 'embedded'}
-	<div class={cn(PUBLIC_API_JSON_PAYLOAD_EMBEDDED_CLASS, className)}>
+	<div class={cn(PUBLIC_API_JSON_PAYLOAD_EMBEDDED_CLASS, 'relative', className)}>
 		{#if showCopy}
-			<div class="mb-2 flex justify-end">
+			<div class="pointer-events-none absolute top-3 right-3 z-10">
 				<button
 					type="button"
-					class="border-primary/25 bg-base-100/90 text-primary hover:bg-primary/10 inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium transition-colors"
+					class="border-primary/25 bg-base-100/90 text-primary hover:bg-primary/10 pointer-events-auto inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium transition-colors"
 					aria-label="Copy JSON payload"
 					onclick={() => void handleCopy()}
 				>
@@ -70,7 +70,9 @@
 				</button>
 			</div>
 		{/if}
-		<PrimaryThemedCodePreview {code} {kind} />
+		<div class={cn(showCopy && 'pr-16')}>
+			<PrimaryThemedCodePreview {code} {kind} />
+		</div>
 	</div>
 {:else}
 	<div class={cn(PUBLIC_API_JSON_PAYLOAD_BLOCK_CLASS, className)}>

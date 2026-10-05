@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { OpenquokCliCommandReferenceItem } from '$lib/content/constants/agents/cli-command-reference';
 
+	import PublicApiJsonPayloadBlock from '$lib/ui/templates/api-marketing/PublicApiJsonPayloadBlock.svelte';
 	import FeaturesSectionHeader from '$lib/ui/templates/feature-grid/FeaturesSectionHeader.svelte';
-	import TerminalCommandRow from '$lib/ui/templates/device-mocks/terminal/TerminalCommandRow.svelte';
 
 	type LandingHeroTheme = {
 		subtitleClass?: string;
@@ -57,15 +57,19 @@
 							class="grid gap-3 sm:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] sm:items-start sm:gap-6"
 						>
 							<div class="space-y-3">
-								<TerminalCommandRow
-									code={item.command}
-									ariaLabel={`Copy ${item.command} to clipboard`}
+								<PublicApiJsonPayloadBlock
+									shell={item.command}
+									variant="embedded"
+									showCopy={true}
+									class="min-h-0 flex-none"
 								/>
 								{#if item.exampleJson}
-									<TerminalCommandRow
-										code={item.exampleJson}
-										ariaLabel="Copy post JSON payload to clipboard"
-										class="items-start [&_code]:whitespace-pre-wrap"
+									<PublicApiJsonPayloadBlock
+										json={item.exampleJson}
+										label="JSON payload"
+										variant="embedded"
+										showCopy={true}
+										class="min-h-0 flex-none"
 									/>
 								{/if}
 							</div>

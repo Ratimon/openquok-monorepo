@@ -112,5 +112,4 @@
 	);
 </script>
 
-<!-- eslint-disable svelte/no-at-html-tags -->
-{@html html}
+<!-- eslint-disable svelte/no-at-html-tags -->{@html html}
