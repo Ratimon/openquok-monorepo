@@ -50,6 +50,8 @@
 		onRatingUpgradeRequired?: () => void;
 		openQuokHeroVm?: CreatorListingHeroVm | null;
 		heroTitle?: string;
+		/** When true, bookmark, category, rating, and actions render in the page sidebar. */
+		useDetailSidebar?: boolean;
 	};
 
 	let {
@@ -67,7 +69,8 @@
 		onRatingSignInRequired,
 		onRatingUpgradeRequired,
 		openQuokHeroVm = null,
-		heroTitle
+		heroTitle,
+		useDetailSidebar = false
 	}: Props = $props();
 
 	const detailHeroTitle = $derived(heroTitle ?? playbookVm.title);
@@ -104,7 +107,7 @@
 
 <header class="space-y-6 border-b border-base-content/10 pb-8">
 	<div class="flex flex-wrap items-center gap-2">
-		{#if playbookVm.category}
+		{#if !useDetailSidebar && playbookVm.category}
 			<span class="badge badge-outline">
 				{playbookVm.category.name}
 			</span>
@@ -121,7 +124,7 @@
 				title={detailHeroTitle}
 				headingId="playbook-detail-heading"
 			/>
-			{#if onToggleBookmark}
+			{#if !useDetailSidebar && onToggleBookmark}
 				<BuildingBlockBookmarkButton
 					listingId={playbookVm.id}
 					listingKind="stack"
@@ -148,7 +151,7 @@
 		</div>
 	</div>
 
-	{#if submitRating}
+	{#if !useDetailSidebar && submitRating}
 		<ListingRating
 			listingId={playbookVm.id}
 			averageRating={playbookVm.averageRating}
@@ -162,28 +165,30 @@
 		/>
 	{/if}
 
-	<div class="flex flex-wrap gap-2">
-		<Button variant="outline" size="sm" onclick={() => void onLike()} disabled={likeDisabled}>
-			<AbstractIcon name={icons.Star.name} width="16" height="16" aria-hidden="true" />
-			Like ({displayLikes})
-		</Button>
-		<Button variant="outline" size="sm" onclick={() => void handleShare()}>
-			<AbstractIcon name={icons.Share2.name} width="16" height="16" aria-hidden="true" />
-			Share
-		</Button>
-		<Button href={skillBuilderHref} variant="primary" size="sm">Customize this playbook</Button>
-		{#if playbookVm.sourceRepoUrl}
-			<Button
-				href={playbookVm.sourceRepoUrl}
-				variant="ghost"
-				size="sm"
-				target="_blank"
-				rel={externalLinkRelForHref(playbookVm.sourceRepoUrl)}
-			>
-				Source repo
+	{#if !useDetailSidebar}
+		<div class="flex flex-wrap gap-2">
+			<Button variant="outline" size="sm" onclick={() => void onLike()} disabled={likeDisabled}>
+				<AbstractIcon name={icons.Star.name} width="16" height="16" aria-hidden="true" />
+				Like ({displayLikes})
 			</Button>
-		{/if}
-	</div>
+			<Button variant="outline" size="sm" onclick={() => void handleShare()}>
+				<AbstractIcon name={icons.Share2.name} width="16" height="16" aria-hidden="true" />
+				Share
+			</Button>
+			<Button href={skillBuilderHref} variant="primary" size="sm">Customize this playbook</Button>
+			{#if playbookVm.sourceRepoUrl}
+				<Button
+					href={playbookVm.sourceRepoUrl}
+					variant="ghost"
+					size="sm"
+					target="_blank"
+					rel={externalLinkRelForHref(playbookVm.sourceRepoUrl)}
+				>
+					Source repo
+				</Button>
+			{/if}
+		</div>
+	{/if}
 
 	<ListingDetailTagBadges tags={playbookVm.tags} />
 

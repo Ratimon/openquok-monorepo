@@ -31,7 +31,9 @@
 	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
 	import PlaybookContentTabs from '$lib/ui/templates/playbooks/PlaybookContentTabs.svelte';
 	import PlaybookDetailHeader from '$lib/ui/templates/playbooks/PlaybookDetailHeader.svelte';
+	import PlaybookDetailSidebar from '$lib/ui/templates/playbooks/PlaybookDetailSidebar.svelte';
 	import PlaybookModelBindingsSection from '$lib/ui/templates/playbooks/PlaybookModelBindingsSection.svelte';
+	import PublicCreatorListingDetailGrid from '$lib/ui/templates/listings/PublicCreatorListingDetailGrid.svelte';
 
 	type Props = { data: PageData };
 
@@ -163,38 +165,64 @@
 <JsonLdHead schemaData={schemaData} />
 
 <SectionOuterContainer class="py-10 md:py-14">
-	<article class="container mx-auto max-w-4xl px-4">
-		<ListingHubBreadcrumb
-			hubHref={playbooksHubHref}
-			hubLabel="Playbooks"
-			owner={playbookVm.owner}
-			pageTitle={playbookVm.title}
-			class="mb-4"
-		/>
-		<PlaybookDetailHeader
-			playbookVm={playbookVm}
-			{heroTitle}
-			{displayLikes}
-			{skillBuilderHref}
-			openQuokHeroVm={creatorListingHeroVm}
-			onLike={handleLike}
-			likeDisabled={publicPlaybookBySlugPagePresenter.submittingLike}
-			{isBookmarked}
-			{isLoggedIn}
-			onToggleBookmark={handleToggleBookmark}
-			communityEnabled={communityEnabled}
-			submitRating={(listingId, rating) =>
-				publicPlaybookBySlugPagePresenter.submitListingRating(listingId, rating)}
-			submittingRating={publicPlaybookBySlugPagePresenter.submittingRating}
-			onRatingSignInRequired={() => {
-				toast.error('Sign in to use community features.');
-			}}
-			onRatingUpgradeRequired={() => {
-				showUpgradeModal = true;
-			}}
-		/>
+	<PublicCreatorListingDetailGrid>
+		{#snippet main()}
+			<article class="min-w-0">
+				<ListingHubBreadcrumb
+					hubHref={playbooksHubHref}
+					hubLabel="Playbooks"
+					owner={playbookVm.owner}
+					pageTitle={playbookVm.title}
+					class="mb-4"
+				/>
+				<PlaybookDetailHeader
+					playbookVm={playbookVm}
+					{heroTitle}
+					{displayLikes}
+					{skillBuilderHref}
+					openQuokHeroVm={creatorListingHeroVm}
+					onLike={handleLike}
+					likeDisabled={publicPlaybookBySlugPagePresenter.submittingLike}
+					{isBookmarked}
+					{isLoggedIn}
+					onToggleBookmark={handleToggleBookmark}
+					communityEnabled={communityEnabled}
+					submitRating={(listingId, rating) =>
+						publicPlaybookBySlugPagePresenter.submitListingRating(listingId, rating)}
+					submittingRating={publicPlaybookBySlugPagePresenter.submittingRating}
+					onRatingSignInRequired={() => {
+						toast.error('Sign in to use community features.');
+					}}
+					onRatingUpgradeRequired={() => {
+						showUpgradeModal = true;
+					}}
+					useDetailSidebar={true}
+				/>
 
-		<section class="py-8">
+				<div class="mt-8 lg:hidden">
+					<PlaybookDetailSidebar
+						playbookVm={playbookVm}
+						{displayLikes}
+						{skillBuilderHref}
+						onLike={handleLike}
+						likeDisabled={publicPlaybookBySlugPagePresenter.submittingLike}
+						{isBookmarked}
+						{isLoggedIn}
+						onToggleBookmark={handleToggleBookmark}
+						communityEnabled={communityEnabled}
+						submitRating={(listingId, rating) =>
+							publicPlaybookBySlugPagePresenter.submitListingRating(listingId, rating)}
+						submittingRating={publicPlaybookBySlugPagePresenter.submittingRating}
+						onRatingSignInRequired={() => {
+							toast.error('Sign in to use community features.');
+						}}
+						onRatingUpgradeRequired={() => {
+							showUpgradeModal = true;
+						}}
+					/>
+				</div>
+
+				<section class="py-8">
 			<PlaybookContentTabs content={descriptionMarkdown}>
 				{#snippet members()}
 					<PlaybookModelBindingsSection bindings={modelBindings} />
@@ -317,22 +345,47 @@
 					{/if}
 				{/snippet}
 			</PlaybookContentTabs>
-		</section>
+				</section>
 
-		<section class="border-t border-base-content/10 py-10">
-			<ListingComments
-				{commentsVm}
-				listingId={playbookVm.id}
+				<section class="border-t border-base-content/10 py-10">
+					<ListingComments
+						{commentsVm}
+						listingId={playbookVm.id}
+						{isLoggedIn}
+						submitListingComment={(params) => publicPlaybookBySlugPagePresenter.submitListingComment(params)}
+						submittingComment={publicPlaybookBySlugPagePresenter.submittingComment}
+						communityCommentsEnabled={communityEnabled}
+						onUpgradeRequired={() => {
+							showUpgradeModal = true;
+						}}
+					/>
+				</section>
+			</article>
+		{/snippet}
+
+		{#snippet sidebar()}
+			<PlaybookDetailSidebar
+				playbookVm={playbookVm}
+				{displayLikes}
+				{skillBuilderHref}
+				onLike={handleLike}
+				likeDisabled={publicPlaybookBySlugPagePresenter.submittingLike}
+				{isBookmarked}
 				{isLoggedIn}
-				submitListingComment={(params) => publicPlaybookBySlugPagePresenter.submitListingComment(params)}
-				submittingComment={publicPlaybookBySlugPagePresenter.submittingComment}
-				communityCommentsEnabled={communityEnabled}
-				onUpgradeRequired={() => {
+				onToggleBookmark={handleToggleBookmark}
+				communityEnabled={communityEnabled}
+				submitRating={(listingId, rating) =>
+					publicPlaybookBySlugPagePresenter.submitListingRating(listingId, rating)}
+				submittingRating={publicPlaybookBySlugPagePresenter.submittingRating}
+				onRatingSignInRequired={() => {
+					toast.error('Sign in to use community features.');
+				}}
+				onRatingUpgradeRequired={() => {
 					showUpgradeModal = true;
 				}}
 			/>
-		</section>
-	</article>
+		{/snippet}
+	</PublicCreatorListingDetailGrid>
 </SectionOuterContainer>
 
 <CommunityFeaturesLimitUpgradeModal

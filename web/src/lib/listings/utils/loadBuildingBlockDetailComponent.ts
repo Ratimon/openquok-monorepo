@@ -1,4 +1,4 @@
-import type { Component } from 'svelte';
+import type { Component, Snippet } from 'svelte';
 
 import type { ExtensionDetailViewModel } from '$lib/listings/index';
 import type { CreatorListingHeroVm } from '$lib/listings/utils/buildCreatorListingHeroVm';
@@ -31,6 +31,9 @@ export type BuildingBlockDetailComponentProps = {
 	openQuokHeroVm?: CreatorListingHeroVm | null;
 	/** SEO H1; falls back to `extensionVm.title` when omitted. */
 	heroTitle?: string;
+	/** When true, bookmark, category, rating, and actions render in the page sidebar. */
+	useDetailSidebar?: boolean;
+	detailSidebar?: Snippet;
 };
 
 export type BuildingBlockDetailComponent = Component<BuildingBlockDetailComponentProps>;

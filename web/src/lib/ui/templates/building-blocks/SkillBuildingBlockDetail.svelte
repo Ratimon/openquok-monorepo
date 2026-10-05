@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { ExtensionDetailViewModel } from '$lib/listings/index';
 	import type { CreatorListingHeroVm } from '$lib/listings/utils/buildCreatorListingHeroVm';
+	import type { Snippet } from 'svelte';
 
 	import { browser } from '$app/environment';
 
@@ -51,6 +52,8 @@
 		onRatingUpgradeRequired?: () => void;
 		openQuokHeroVm?: CreatorListingHeroVm | null;
 		heroTitle?: string;
+		useDetailSidebar?: boolean;
+		detailSidebar?: Snippet;
 	};
 
 	let {
@@ -68,7 +71,9 @@
 		onRatingSignInRequired,
 		onRatingUpgradeRequired,
 		openQuokHeroVm = null,
-		heroTitle
+		heroTitle,
+		useDetailSidebar = false,
+		detailSidebar
 	}: Props = $props();
 
 	const detailHeroTitle = $derived(heroTitle ?? extensionVm.title);
@@ -127,7 +132,7 @@
 
 <header class="space-y-6 border-b border-base-content/10 pb-8">
 	<div class="flex flex-wrap items-center gap-2">
-		{#if extensionVm.category}
+		{#if !useDetailSidebar && extensionVm.category}
 			<span class="badge badge-outline">{extensionVm.category.name}</span>
 		{/if}
 		<ListingDetailTypeBadges extensionType={extensionVm.extensionType} />
@@ -142,12 +147,12 @@
 				title={detailHeroTitle}
 				headingId="building-block-detail-heading"
 			/>
-			{#if onToggleBookmark}
+			{#if !useDetailSidebar && onToggleBookmark}
 				<BuildingBlockBookmarkButton
 					listingId={extensionVm.id}
 					{isBookmarked}
 					{isLoggedIn}
-							onToggle={onToggleBookmark}
+					onToggle={onToggleBookmark}
 				/>
 			{/if}
 		</div>
@@ -168,7 +173,7 @@
 		</div>
 	</div>
 
-	{#if submitRating}
+	{#if !useDetailSidebar && submitRating}
 		<ListingRating
 			listingId={extensionVm.id}
 			averageRating={extensionVm.averageRating}
@@ -182,31 +187,33 @@
 		/>
 	{/if}
 
-	<div class="flex flex-wrap gap-2">
-		<Button variant="outline" size="sm" onclick={() => void onLike()} disabled={likeDisabled}>
-			<AbstractIcon name={icons.Star.name} width="16" height="16" aria-hidden="true" />
-			Like ({displayLikes})
-		</Button>
-		<Button variant="outline" size="sm" onclick={() => void handleShare()}>
-			<AbstractIcon name={icons.Share2.name} width="16" height="16" aria-hidden="true" />
-			Share
-		</Button>
-		{#if skillsClickUrl}
-			<BuildingBlockExternalLinkButton href={skillsClickUrl} label="Get started" onClick={onExternalClick} />
-		{/if}
-		<Button variant="outline" size="sm" onclick={openSkillMarkdownDownload}>Download SKILL.md</Button>
-		{#if extensionVm.sourceRepoUrl}
-			<Button
-				href={extensionVm.sourceRepoUrl}
-				variant="ghost"
-				size="sm"
-				target="_blank"
-				rel={externalLinkRelForHref(extensionVm.sourceRepoUrl)}
-			>
-				Source repo
+	{#if !useDetailSidebar}
+		<div class="flex flex-wrap gap-2">
+			<Button variant="outline" size="sm" onclick={() => void onLike()} disabled={likeDisabled}>
+				<AbstractIcon name={icons.Star.name} width="16" height="16" aria-hidden="true" />
+				Like ({displayLikes})
 			</Button>
-		{/if}
-	</div>
+			<Button variant="outline" size="sm" onclick={() => void handleShare()}>
+				<AbstractIcon name={icons.Share2.name} width="16" height="16" aria-hidden="true" />
+				Share
+			</Button>
+			{#if skillsClickUrl}
+				<BuildingBlockExternalLinkButton href={skillsClickUrl} label="Get started" onClick={onExternalClick} />
+			{/if}
+			<Button variant="outline" size="sm" onclick={openSkillMarkdownDownload}>Download SKILL.md</Button>
+			{#if extensionVm.sourceRepoUrl}
+				<Button
+					href={extensionVm.sourceRepoUrl}
+					variant="ghost"
+					size="sm"
+					target="_blank"
+					rel={externalLinkRelForHref(extensionVm.sourceRepoUrl)}
+				>
+					Source repo
+				</Button>
+			{/if}
+		</div>
+	{/if}
 
 	<ListingDetailTagBadges tags={extensionVm.tags} />
 
@@ -226,6 +233,12 @@
 		/>
 	{/if}
 </header>
+
+{#if useDetailSidebar && detailSidebar}
+	<div class="mt-6 lg:hidden">
+		{@render detailSidebar()}
+	</div>
+{/if}
 
 {#if extensionVm.installCommandSkills}
 	<section class="border-b border-base-content/10 py-8">
@@ -254,31 +267,33 @@
 	/>
 </section>
 
-<section class="py-8">
-	<h2 class="mb-4 text-lg font-semibold">Stats</h2>
-	<dl class="grid gap-4 sm:grid-cols-2">
-		<div>
-			<dt class="text-sm text-base-content/60">Views</dt>
-			<dd class="text-2xl font-semibold">{extensionVm.views}</dd>
-		</div>
-		<div>
-			<dt class="text-sm text-base-content/60">Likes</dt>
-			<dd class="text-2xl font-semibold">{displayLikes}</dd>
-		</div>
-		<div>
-			<dt class="text-sm text-base-content/60">Bookmarks</dt>
-			<dd class="text-2xl font-semibold">{extensionVm.bookmarkCount}</dd>
-		</div>
-		<div>
-			<dt class="text-sm text-base-content/60">Rating</dt>
-			<dd class="text-2xl font-semibold">
-				{extensionVm.averageRating.toFixed(1)} ({extensionVm.ratingsCount})
-			</dd>
-		</div>
-	</dl>
-	{#if extensionVm.sourceSyncedAt}
-		<p class="mt-4 text-sm text-base-content/60">
-			Last synced from GitHub: {new Date(extensionVm.sourceSyncedAt).toLocaleString()}
-		</p>
-	{/if}
-</section>
+{#if !useDetailSidebar}
+	<section class="py-8">
+		<h2 class="mb-4 text-lg font-semibold">Stats</h2>
+		<dl class="grid gap-4 sm:grid-cols-2">
+			<div>
+				<dt class="text-sm text-base-content/60">Views</dt>
+				<dd class="text-2xl font-semibold">{extensionVm.views}</dd>
+			</div>
+			<div>
+				<dt class="text-sm text-base-content/60">Likes</dt>
+				<dd class="text-2xl font-semibold">{displayLikes}</dd>
+			</div>
+			<div>
+				<dt class="text-sm text-base-content/60">Bookmarks</dt>
+				<dd class="text-2xl font-semibold">{extensionVm.bookmarkCount}</dd>
+			</div>
+			<div>
+				<dt class="text-sm text-base-content/60">Rating</dt>
+				<dd class="text-2xl font-semibold">
+					{extensionVm.averageRating.toFixed(1)} ({extensionVm.ratingsCount})
+				</dd>
+			</div>
+		</dl>
+		{#if extensionVm.sourceSyncedAt}
+			<p class="mt-4 text-sm text-base-content/60">
+				Last synced from GitHub: {new Date(extensionVm.sourceSyncedAt).toLocaleString()}
+			</p>
+		{/if}
+	</section>
+{/if}
