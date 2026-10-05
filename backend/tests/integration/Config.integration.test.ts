@@ -107,7 +107,13 @@ describe("Config integration: cache keys + invalidation", () => {
 
     it("caches and invalidates ConfigService + Blog/Company/Marketing caches", async () => {
         const configService = new ConfigService(configRepository, cacheService, cacheInvalidationService);
-        const blogService = new BlogService(blogRepo, cacheService, cacheInvalidationService, configRepository);
+        const blogService = new BlogService(
+            blogRepo,
+            { notifyBlogCommentCreated: () => undefined } as never,
+            cacheService,
+            cacheInvalidationService,
+            configRepository
+        );
         const companyService = new CompanyService(configRepository, cacheService);
         const marketingService = new MarketingService(configRepository, cacheService);
 

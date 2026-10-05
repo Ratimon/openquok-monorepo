@@ -30,6 +30,7 @@ import type {
 import type { LinkDirectorySavedSiteRow } from "../data/types/linkDirectoryTypes";
 import { ValidationError } from "../errors/InfraError";
 import type { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
+import type { InternalOpsEmailService } from "./InternalOpsEmailService";
 import { SubscriptionSection } from "openquok-common";
 
 function dedupeSiteIdsPreservingOrder(siteIds: string[]): string[] {
@@ -61,7 +62,8 @@ export class LinkDirectoryService {
         private readonly linkDirectoryRepository: LinkDirectoryRepository,
         private readonly categoryRepository: LinkDirectoryCategoryRepository,
         private readonly tagRepository: LinkDirectoryTagRepository,
-        private readonly subscriptionGuard?: SubscriptionGuardService
+        private readonly subscriptionGuard: SubscriptionGuardService | undefined,
+        private readonly internalOpsEmailService: InternalOpsEmailService
     ) {}
 
     private async assertPublishedSiteForEngagement(siteId: string): Promise<void> {
@@ -117,7 +119,16 @@ export class LinkDirectoryService {
         payload: LinkDirectorySubmissionCreateSchemaType,
         userId?: string | null
     ): Promise<string> {
-        return this.linkDirectoryRepository.createSubmission(payload, userId);
+        const submissionId = await this.linkDirectoryRepository.createSubmission(payload, userId);
+        this.internalOpsEmailService.notifyLinkDirectorySubmissionCreated({
+            submissionId,
+            siteUrl: payload.site_url,
+            email: payload.email,
+            proposedTitle: payload.proposed_title,
+            notes: payload.notes,
+            userId: userId ?? undefined,
+        });
+        return submissionId;
     }
 
     async getAdminSites(
@@ -293,11 +304,34 @@ export class LinkDirectoryService {
         siteId: string,
         payload: LinkDirectorySiteCommentCreateSchemaType,
         userId: string,
-        authUserId?: string
+        authUserId?: string,
+        userEmail?: string
     ): Promise<{ id: string }> {
         await this.assertPublishedSiteForEngagement(siteId);
         await this.assertCommunityFeatures(authUserId);
         const result = await this.linkDirectoryRepository.createSiteComment(siteId, payload, userId);
+
+        let siteSlug: string | null = null;
+        let siteTitle: string | null = null;
+        try {
+            const site = await this.getSiteById(siteId);
+            siteSlug = site.slug;
+            siteTitle = site.title;
+        } catch {
+            // Best-effort context for ops email
+        }
+
+        this.internalOpsEmailService.notifyLinkDirectorySiteCommentCreated({
+            commentId: result.id,
+            siteId,
+            siteSlug,
+            siteTitle,
+            content: payload.content,
+            userId,
+            userEmail,
+            parentId: payload.parentId ?? null,
+        });
+
         return { id: result.id };
     }
 

@@ -43,6 +43,7 @@ import { ValidationError } from "../errors/InfraError";
 import { UserAuthorizationError, UserValidationError } from "../errors/UserError";
 import { logger } from "../utils/Logger";
 import type { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
+import type { InternalOpsEmailService } from "./InternalOpsEmailService";
 import { SubscriptionSection } from "openquok-common";
 import type { ListingGithubImportPreview, ListingGithubSyncResult } from "../data/types/extensionTypeModels";
 import { listingImportService } from "./ListingImportService";
@@ -72,6 +73,7 @@ export class ListingService {
     constructor(
         private readonly listingRepository: ListingRepository,
         private readonly listingCategoryRepository: ListingCategoryRepository,
+        private readonly internalOpsEmailService: InternalOpsEmailService,
         private readonly cache?: CacheService,
         private readonly cacheInvalidator?: CacheInvalidationService,
         private readonly configRepository?: ConfigRepository,
@@ -535,7 +537,8 @@ export class ListingService {
     async createListingComment(
         payload: ListingCommentCreateSchemaType,
         userId: string,
-        authUserId?: string
+        authUserId?: string,
+        userEmail?: string
     ): Promise<{ id: string }> {
         await this._assertCommunityFeatures(authUserId);
         const result = await this.listingRepository.createListingComment(payload, userId);
@@ -546,6 +549,28 @@ export class ListingService {
             );
             await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS.LISTING_ADMIN_COMMENTS_LIST}:*`);
         }
+
+        let listingSlug: string | null = null;
+        let listingTitle: string | null = null;
+        try {
+            const listing = await this.getListingById(payload.listing_id);
+            listingSlug = listing.slug ?? null;
+            listingTitle = listing.title ?? null;
+        } catch {
+            // Best-effort context for ops email
+        }
+
+        this.internalOpsEmailService.notifyListingCommentCreated({
+            commentId: result.id,
+            listingId: payload.listing_id,
+            listingSlug,
+            listingTitle,
+            content: payload.content,
+            userId,
+            userEmail,
+            parentId: payload.parent_id ?? null,
+        });
+
         return { id: result.id };
     }
 

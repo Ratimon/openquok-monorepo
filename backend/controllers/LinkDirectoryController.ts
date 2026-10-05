@@ -553,7 +553,8 @@ export class LinkDirectoryController {
                 siteId,
                 body,
                 userId,
-                auth.user?.id
+                auth.user?.id,
+                auth.user?.email
             );
             res.status(201).json({
                 success: true,

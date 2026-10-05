@@ -13,6 +13,8 @@ import {
     buildAdminListingCacheKey,
     type ListingLike,
 } from "../utils/dtos/ListingDTO";
+import type { InternalOpsEmailService } from "./InternalOpsEmailService";
+import type { ListingCommentCreateSchemaType } from "../data/schemas/listingSchemas";
 import { ValidationError } from "../errors/InfraError";
 import { stringToSlug } from "../utils/blog/slug";
 const ownerId = faker.string.uuid();
@@ -103,7 +105,38 @@ function createMockListingRepo(): jest.Mocked<ListingRepository> {
         addBookmark: jest.fn(),
         removeBookmark: jest.fn(),
         findBookmarkedListingsByUserId: jest.fn(),
+        createListingComment: jest.fn(),
     } as unknown as jest.Mocked<ListingRepository>;
+}
+
+function createMockInternalOpsEmailService(): jest.Mocked<
+    Pick<InternalOpsEmailService, "notifyListingCommentCreated">
+> {
+    return {
+        notifyListingCommentCreated: jest.fn(),
+    };
+}
+
+function newListingService(
+    listingRepository: jest.Mocked<ListingRepository>,
+    listingCategoryRepository: jest.Mocked<ListingCategoryRepository>,
+    cache?: unknown,
+    cacheInvalidator?: unknown,
+    configRepository?: unknown,
+    subscriptionGuard?: unknown,
+    userRepository?: unknown,
+    internalOpsEmailService?: Pick<InternalOpsEmailService, "notifyListingCommentCreated">
+): ListingService {
+    return new ListingService(
+        listingRepository,
+        listingCategoryRepository,
+        (internalOpsEmailService ?? createMockInternalOpsEmailService()) as InternalOpsEmailService,
+        cache as never,
+        cacheInvalidator as never,
+        configRepository as never,
+        subscriptionGuard as never,
+        userRepository as never
+    );
 }
 
 function createMockCategoryRepo(): jest.Mocked<ListingCategoryRepository> {
@@ -129,6 +162,13 @@ function createMockConfigRepo(
         getConfigByModuleNameAndProperties: jest.fn().mockResolvedValue({ result: config, error: null }),
     } as unknown as jest.Mocked<ConfigRepository>;
 }
+
+const commentId = faker.string.uuid();
+const commentContent = faker.lorem.sentence();
+const validListingCommentCreatePayload: ListingCommentCreateSchemaType = {
+    listing_id: listingId,
+    content: commentContent,
+};
 
 describe("ListingService", () => {
     let listingRepo: jest.Mocked<ListingRepository>;
@@ -160,7 +200,7 @@ describe("ListingService", () => {
         it("returns listingsResult and countResult from repository when no cache", async () => {
             const listings: ListingLike[] = [{ ...mockListing }];
             listingRepo.findPublishedListings.mockResolvedValue({ data: listings, count: 1 });
-            const service = new ListingService(listingRepo, categoryRepo);
+            const service = newListingService(listingRepo, categoryRepo);
             const result = await service.getPublishedListings({ limit: 10 });
             expect(result.listingsResult).toEqual(listings);
             expect(result.countResult).toBe(1);
@@ -171,7 +211,7 @@ describe("ListingService", () => {
 
         it("normalizes options with defaults", async () => {
             listingRepo.findPublishedListings.mockResolvedValue({ data: [], count: 0 });
-            const service = new ListingService(listingRepo, categoryRepo);
+            const service = newListingService(listingRepo, categoryRepo);
             await service.getPublishedListings({});
             expect(listingRepo.findPublishedListings).toHaveBeenCalledWith(defaultOptions);
         });
@@ -179,7 +219,7 @@ describe("ListingService", () => {
         it("uses cache key from buildPublishedListingCacheKey when cache provided", async () => {
             const payload = { listingsResult: [mockListing], countResult: 1 };
             const getOrSet = jest.fn().mockResolvedValue(payload);
-            const service = new ListingService(listingRepo, categoryRepo, { getOrSet } as never);
+            const service = newListingService(listingRepo, categoryRepo, { getOrSet } as never);
             const options: PublishedListingsFilterOptions = {
                 limit: 5,
                 categorySlug: "ai-agents",
@@ -213,7 +253,7 @@ describe("ListingService", () => {
 
         it("returns admin listings from repository", async () => {
             listingRepo.findAdminListings.mockResolvedValue({ data: [mockListing], count: 1 });
-            const service = new ListingService(listingRepo, categoryRepo);
+            const service = newListingService(listingRepo, categoryRepo);
             const result = await service.getAdminListings({ limit: 10 });
             expect(result.listingsResult).toEqual([mockListing]);
             expect(result.countResult).toBe(1);
@@ -222,7 +262,7 @@ describe("ListingService", () => {
         it("uses cache key from buildAdminListingCacheKey when cache provided", async () => {
             const payload = { listingsResult: [mockListing], countResult: 1 };
             const getOrSet = jest.fn().mockResolvedValue(payload);
-            const service = new ListingService(listingRepo, categoryRepo, { getOrSet } as never);
+            const service = newListingService(listingRepo, categoryRepo, { getOrSet } as never);
             await service.getAdminListings({ limit: 5, listingKind: "stack" });
             const expectedKey = buildAdminListingCacheKey(
                 { ...defaultAdminOptions, limit: 5, listingKind: "stack" },
@@ -235,14 +275,14 @@ describe("ListingService", () => {
 
     describe("getListingById", () => {
         it("throws ValidationError for invalid UUID", async () => {
-            const service = new ListingService(listingRepo, categoryRepo);
+            const service = newListingService(listingRepo, categoryRepo);
             await expect(service.getListingById("not-a-uuid")).rejects.toThrow(ValidationError);
             expect(listingRepo.findListingById).not.toHaveBeenCalled();
         });
 
         it("returns listing from repository when no cache", async () => {
             listingRepo.findListingById.mockResolvedValue({ data: mockListing });
-            const service = new ListingService(listingRepo, categoryRepo);
+            const service = newListingService(listingRepo, categoryRepo);
             const result = await service.getListingById(listingId);
             expect(result).toEqual(mockListing);
             expect(listingRepo.findListingById).toHaveBeenCalledWith(listingId);
@@ -253,7 +293,7 @@ describe("ListingService", () => {
         it("uses extension cache prefix by default", async () => {
             listingRepo.findPublishedListingBySlug.mockResolvedValue({ data: mockListing });
             const getOrSet = jest.fn().mockImplementation(async (_key, factory) => factory());
-            const service = new ListingService(listingRepo, categoryRepo, { getOrSet } as never);
+            const service = newListingService(listingRepo, categoryRepo, { getOrSet } as never);
             await service.getPublishedListingBySlug(slugFromTitle);
             expect(getOrSet).toHaveBeenCalledWith(
                 `listing:published:bySlug:${slugFromTitle}`,
@@ -266,7 +306,7 @@ describe("ListingService", () => {
         it("uses stack cache prefix for stack kind", async () => {
             listingRepo.findPublishedListingBySlug.mockResolvedValue({ data: { ...mockListing, listing_kind: "stack" } });
             const getOrSet = jest.fn().mockImplementation(async (_key, factory) => factory());
-            const service = new ListingService(listingRepo, categoryRepo, { getOrSet } as never);
+            const service = newListingService(listingRepo, categoryRepo, { getOrSet } as never);
             await service.getPublishedListingBySlug("my-stack", "stack");
             expect(getOrSet).toHaveBeenCalledWith(
                 "listing:stack:bySlug:my-stack",
@@ -289,7 +329,7 @@ describe("ListingService", () => {
                 isAdminApproved: false,
                 isUserApproved: true,
             });
-            const service = new ListingService(listingRepo, categoryRepo, undefined, undefined, configRepo);
+            const service = newListingService(listingRepo, categoryRepo, undefined, undefined, configRepo);
             const result = await service.createListing(validCreateBody, ownerId, false);
             expect(result.id).toBe(listingId);
             expect(result.isAdminApproved).toBe(false);
@@ -309,7 +349,7 @@ describe("ListingService", () => {
                 isAdminApproved: true,
                 isUserApproved: true,
             });
-            const service = new ListingService(listingRepo, categoryRepo, undefined, undefined, configRepo);
+            const service = newListingService(listingRepo, categoryRepo, undefined, undefined, configRepo);
             const body: ListingCreateBodySchemaType = {
                 ...validCreateBody,
                 listingData: { ...validCreateBody.listingData, is_admin_published: true },
@@ -332,7 +372,7 @@ describe("ListingService", () => {
                 isUserApproved: true,
             });
             const explicitOwnerId = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
-            const service = new ListingService(listingRepo, categoryRepo, undefined, undefined, configRepo);
+            const service = newListingService(listingRepo, categoryRepo, undefined, undefined, configRepo);
             const body: ListingCreateBodySchemaType = {
                 ...validCreateBody,
                 listingData: {
@@ -361,7 +401,7 @@ describe("ListingService", () => {
                 isAdminApproved: true,
                 isUserApproved: true,
             });
-            const service = new ListingService(listingRepo, categoryRepo, undefined, undefined, configRepo);
+            const service = newListingService(listingRepo, categoryRepo, undefined, undefined, configRepo);
             await service.createListing(validCreateBody, ownerId, false);
             expect(listingRepo.createListing).toHaveBeenCalledWith(
                 validCreateBody.listingData,
@@ -380,7 +420,7 @@ describe("ListingService", () => {
             });
             const invalidateKey = jest.fn().mockResolvedValue(undefined);
             const invalidatePattern = jest.fn().mockResolvedValue(undefined);
-            const service = new ListingService(listingRepo, categoryRepo, undefined, {
+            const service = newListingService(listingRepo, categoryRepo, undefined, {
                 invalidateKey,
                 invalidatePattern,
             } as never, configRepo);
@@ -402,7 +442,7 @@ describe("ListingService", () => {
                 isAdminApproved: true,
                 isUserApproved: true,
             });
-            const service = new ListingService(listingRepo, categoryRepo, undefined, undefined, configRepo);
+            const service = newListingService(listingRepo, categoryRepo, undefined, undefined, configRepo);
             const result = await service.updateListing(validUpdateBody, ownerId, true);
             expect(result.isAdminApproved).toBe(true);
             expect(listingRepo.updateListing).toHaveBeenCalledWith(
@@ -423,7 +463,7 @@ describe("ListingService", () => {
                 isAdminApproved: false,
                 isUserApproved: false,
             });
-            const service = new ListingService(listingRepo, categoryRepo, undefined, undefined, configRepo);
+            const service = newListingService(listingRepo, categoryRepo, undefined, undefined, configRepo);
             const body: ListingUpdateBodySchemaType = {
                 ...validUpdateBody,
                 listingData: { ...validUpdateBody.listingData, is_user_published: false },
@@ -443,7 +483,7 @@ describe("ListingService", () => {
         it("increments counter, records activity, and invalidates stat caches", async () => {
             const invalidateKey = jest.fn().mockResolvedValue(undefined);
             const invalidatePattern = jest.fn().mockResolvedValue(undefined);
-            const service = new ListingService(listingRepo, categoryRepo, undefined, {
+            const service = newListingService(listingRepo, categoryRepo, undefined, {
                 invalidateKey,
                 invalidatePattern,
             } as never);
@@ -458,7 +498,7 @@ describe("ListingService", () => {
     describe("getSkillMarkdown", () => {
         it("delegates to repository getSkillMarkdownContent", async () => {
             listingRepo.getSkillMarkdownContent.mockResolvedValue(skillContent);
-            const service = new ListingService(listingRepo, categoryRepo);
+            const service = newListingService(listingRepo, categoryRepo);
             const result = await service.getSkillMarkdown(slugFromTitle);
             expect(result).toBe(skillContent);
             expect(listingRepo.getSkillMarkdownContent).toHaveBeenCalledWith(slugFromTitle);
@@ -486,7 +526,7 @@ describe("ListingService", () => {
                     },
                 ],
             });
-            const service = new ListingService(listingRepo, categoryRepo);
+            const service = newListingService(listingRepo, categoryRepo);
             const result = await service.getUserBookmarks(userId);
             expect(result).toHaveLength(2);
             expect(result.map((listing) => listing.id)).toEqual([listingId, secondListingId]);
@@ -498,7 +538,7 @@ describe("ListingService", () => {
             listingRepo.findBookmarkedListingsByUserId.mockResolvedValue({
                 data: [{ ...secondListing, is_admin_published: true }],
             });
-            const service = new ListingService(listingRepo, categoryRepo);
+            const service = newListingService(listingRepo, categoryRepo);
             await service.removeBookmark(listingId, userId);
             const result = await service.getUserBookmarks(userId);
             expect(result).toHaveLength(1);
@@ -512,7 +552,7 @@ describe("ListingService", () => {
             });
             const invalidateKey = jest.fn().mockResolvedValue(undefined);
             const invalidatePattern = jest.fn().mockResolvedValue(undefined);
-            const service = new ListingService(listingRepo, categoryRepo, undefined, {
+            const service = newListingService(listingRepo, categoryRepo, undefined, {
                 invalidateKey,
                 invalidatePattern,
             } as never);
@@ -528,7 +568,7 @@ describe("ListingService", () => {
             listingRepo.findListingById.mockResolvedValue({
                 data: { ...mockListing, is_user_published: true, is_admin_published: false },
             });
-            const service = new ListingService(listingRepo, categoryRepo);
+            const service = newListingService(listingRepo, categoryRepo);
             await expect(service.addBookmark(listingId, userId)).rejects.toThrow(ValidationError);
             expect(listingRepo.addBookmark).not.toHaveBeenCalled();
             expect(listingRepo.insertListingActivity).not.toHaveBeenCalled();
@@ -538,7 +578,7 @@ describe("ListingService", () => {
             listingRepo.findListingById.mockResolvedValue({
                 data: { ...mockListing, is_user_published: false, is_admin_published: true },
             });
-            const service = new ListingService(listingRepo, categoryRepo);
+            const service = newListingService(listingRepo, categoryRepo);
             await expect(service.addBookmark(listingId, userId)).rejects.toThrow(ValidationError);
             expect(listingRepo.addBookmark).not.toHaveBeenCalled();
             expect(listingRepo.findListingById).toHaveBeenCalledWith(listingId);
@@ -546,7 +586,7 @@ describe("ListingService", () => {
 
         it("rejects bookmark when listing is missing", async () => {
             listingRepo.findListingById.mockResolvedValue({ data: null as never });
-            const service = new ListingService(listingRepo, categoryRepo);
+            const service = newListingService(listingRepo, categoryRepo);
             await expect(service.addBookmark(listingId, userId)).rejects.toThrow(ValidationError);
             expect(listingRepo.addBookmark).not.toHaveBeenCalled();
         });
@@ -557,7 +597,7 @@ describe("ListingService", () => {
                 { ...secondListing, is_admin_published: true },
             ];
             const getOrSet = jest.fn().mockResolvedValue(bookmarks);
-            const service = new ListingService(listingRepo, categoryRepo, { getOrSet } as never);
+            const service = newListingService(listingRepo, categoryRepo, { getOrSet } as never);
             const result = await service.getUserBookmarks(userId);
             expect(result).toEqual(bookmarks);
             expect(getOrSet).toHaveBeenCalledWith(
@@ -572,9 +612,62 @@ describe("ListingService", () => {
             listingRepo.findBookmarkedListingsByUserId.mockResolvedValue({
                 data: [{ ...mockListing, is_admin_published: true }],
             });
-            const service = new ListingService(listingRepo, categoryRepo);
+            const service = newListingService(listingRepo, categoryRepo);
             const result = await service.getUserBookmarks(userId, userId);
             expect(result).toHaveLength(1);
+        });
+    });
+
+    describe("createListingComment", () => {
+        it("notifyListingCommentCreated after successful createListingComment", async () => {
+            const userEmail = "commenter@example.com";
+            listingRepo.createListingComment.mockResolvedValue({ id: commentId, listing_id: listingId });
+            listingRepo.findListingById.mockResolvedValue({ data: mockListing });
+            const internalOpsEmailService = createMockInternalOpsEmailService();
+            const service = newListingService(
+                listingRepo,
+                categoryRepo,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                internalOpsEmailService
+            );
+
+            await service.createListingComment(validListingCommentCreatePayload, userId, undefined, userEmail);
+
+            expect(internalOpsEmailService.notifyListingCommentCreated).toHaveBeenCalledWith({
+                commentId,
+                listingId,
+                listingSlug: mockListing.slug,
+                listingTitle: mockListing.title,
+                content: commentContent,
+                userId,
+                userEmail,
+                parentId: null,
+            });
+        });
+
+        it("does not notify when createListingComment throws", async () => {
+            listingRepo.createListingComment.mockRejectedValue(new Error("db error"));
+            const internalOpsEmailService = createMockInternalOpsEmailService();
+            const service = newListingService(
+                listingRepo,
+                categoryRepo,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                internalOpsEmailService
+            );
+
+            await expect(
+                service.createListingComment(validListingCommentCreatePayload, userId)
+            ).rejects.toThrow("db error");
+
+            expect(internalOpsEmailService.notifyListingCommentCreated).not.toHaveBeenCalled();
         });
     });
 });

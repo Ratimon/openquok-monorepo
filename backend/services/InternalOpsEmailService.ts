@@ -27,6 +27,48 @@ export type OpsEmailAcquisitionSurveyPayload = {
     subscriptionId?: string | null;
 };
 
+export type OpsEmailLinkDirectorySubmissionPayload = {
+    submissionId: string;
+    siteUrl: string;
+    email: string;
+    proposedTitle?: string | null;
+    notes?: string | null;
+    userId?: string;
+};
+
+export type OpsEmailLinkDirectorySiteCommentPayload = {
+    commentId: string;
+    siteId: string;
+    siteSlug?: string | null;
+    siteTitle?: string | null;
+    content: string;
+    userId: string;
+    userEmail?: string;
+    parentId?: string | null;
+};
+
+export type OpsEmailBlogCommentPayload = {
+    commentId: string;
+    postId: string;
+    postSlug?: string | null;
+    postTitle?: string | null;
+    content: string;
+    userId: string;
+    userEmail?: string;
+    parentId?: string | null;
+};
+
+export type OpsEmailListingCommentPayload = {
+    commentId: string;
+    listingId: string;
+    listingSlug?: string | null;
+    listingTitle?: string | null;
+    content: string;
+    userId: string;
+    userEmail?: string;
+    parentId?: string | null;
+};
+
 function escapeHtml(value: string): string {
     return value
         .replace(/&/g, "&amp;")
@@ -88,6 +130,82 @@ export class InternalOpsEmailService {
 
         void this.sendOpsAlert({
             subject: "OpenQuok: acquisition survey",
+            text: lines.join("\n"),
+            replyTo: payload.userEmail,
+        });
+    }
+
+    notifyLinkDirectorySubmissionCreated(payload: OpsEmailLinkDirectorySubmissionPayload): void {
+        const lines = [
+            `Submission id: ${payload.submissionId}`,
+            `Site URL: ${payload.siteUrl}`,
+            `Email: ${payload.email}`,
+            payload.proposedTitle ? `Proposed title: ${payload.proposedTitle}` : null,
+            payload.notes ? `Notes: ${payload.notes}` : null,
+            payload.userId ? `User id: ${payload.userId}` : null,
+        ].filter((line): line is string => Boolean(line));
+
+        void this.sendOpsAlert({
+            subject: "OpenQuok: build-backlinks site suggestion",
+            text: lines.join("\n"),
+            replyTo: payload.email,
+        });
+    }
+
+    notifyLinkDirectorySiteCommentCreated(
+        payload: OpsEmailLinkDirectorySiteCommentPayload
+    ): void {
+        const lines = [
+            `Comment id: ${payload.commentId}`,
+            `Site id: ${payload.siteId}`,
+            payload.siteSlug ? `Site slug: ${payload.siteSlug}` : null,
+            payload.siteTitle ? `Site title: ${payload.siteTitle}` : null,
+            `Content: ${payload.content}`,
+            `User id: ${payload.userId}`,
+            payload.userEmail ? `User email: ${payload.userEmail}` : null,
+            payload.parentId ? `Parent comment id: ${payload.parentId}` : null,
+        ].filter((line): line is string => Boolean(line));
+
+        void this.sendOpsAlert({
+            subject: "OpenQuok: build-backlinks comment",
+            text: lines.join("\n"),
+            replyTo: payload.userEmail,
+        });
+    }
+
+    notifyBlogCommentCreated(payload: OpsEmailBlogCommentPayload): void {
+        const lines = [
+            `Comment id: ${payload.commentId}`,
+            `Post id: ${payload.postId}`,
+            payload.postSlug ? `Post slug: ${payload.postSlug}` : null,
+            payload.postTitle ? `Post title: ${payload.postTitle}` : null,
+            `Content: ${payload.content}`,
+            `User id: ${payload.userId}`,
+            payload.userEmail ? `User email: ${payload.userEmail}` : null,
+            payload.parentId ? `Parent comment id: ${payload.parentId}` : null,
+        ].filter((line): line is string => Boolean(line));
+
+        void this.sendOpsAlert({
+            subject: "OpenQuok: blog comment",
+            text: lines.join("\n"),
+            replyTo: payload.userEmail,
+        });
+    }
+
+    notifyListingCommentCreated(payload: OpsEmailListingCommentPayload): void {
+        const lines = [
+            `Comment id: ${payload.commentId}`,
+            `Listing id: ${payload.listingId}`,
+            payload.listingSlug ? `Listing slug: ${payload.listingSlug}` : null,
+            payload.listingTitle ? `Listing title: ${payload.listingTitle}` : null,
+            `Content: ${payload.content}`,
+            `User id: ${payload.userId}`,
+            payload.userEmail ? `User email: ${payload.userEmail}` : null,
+            payload.parentId ? `Parent comment id: ${payload.parentId}` : null,
+        ].filter((line): line is string => Boolean(line));
+
+        void this.sendOpsAlert({
+            subject: "OpenQuok: creator listing comment",
             text: lines.join("\n"),
             replyTo: payload.userEmail,
         });

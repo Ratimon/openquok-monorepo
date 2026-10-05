@@ -199,4 +199,100 @@ describe("InternalOpsEmailService", () => {
             expect(emailService.sendPlain).toHaveBeenCalled();
         });
     });
+
+    describe("community submission alerts", () => {
+        beforeEach(() => {
+            opsHolder.alertEmail = "ops@example.com";
+        });
+
+        it("notifyLinkDirectorySubmissionCreated sends subject, replyTo, and site URL", async () => {
+            const submissionId = faker.string.uuid();
+            const siteUrl = "https://example.com/directory";
+
+            service().notifyLinkDirectorySubmissionCreated({
+                submissionId,
+                siteUrl,
+                email: "suggester@example.com",
+                proposedTitle: "My Site",
+            });
+            await flushAsyncOps();
+
+            expect(emailService.sendPlain).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    subject: "OpenQuok: build-backlinks site suggestion",
+                    replyTo: "suggester@example.com",
+                    text: expect.stringContaining(`Site URL: ${siteUrl}`),
+                })
+            );
+        });
+
+        it("notifyLinkDirectorySiteCommentCreated sends subject, replyTo, and content", async () => {
+            const commentId = faker.string.uuid();
+            const siteId = faker.string.uuid();
+
+            service().notifyLinkDirectorySiteCommentCreated({
+                commentId,
+                siteId,
+                siteSlug: "cool-site",
+                content: "Great resource",
+                userId,
+                userEmail: "commenter@example.com",
+            });
+            await flushAsyncOps();
+
+            expect(emailService.sendPlain).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    subject: "OpenQuok: build-backlinks comment",
+                    replyTo: "commenter@example.com",
+                    text: expect.stringContaining("Content: Great resource"),
+                })
+            );
+        });
+
+        it("notifyBlogCommentCreated sends subject, replyTo, and post slug", async () => {
+            const commentId = faker.string.uuid();
+            const postId = faker.string.uuid();
+
+            service().notifyBlogCommentCreated({
+                commentId,
+                postId,
+                postSlug: "hello-world",
+                content: "Nice post",
+                userId,
+                userEmail: "reader@example.com",
+            });
+            await flushAsyncOps();
+
+            expect(emailService.sendPlain).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    subject: "OpenQuok: blog comment",
+                    replyTo: "reader@example.com",
+                    text: expect.stringContaining("Post slug: hello-world"),
+                })
+            );
+        });
+
+        it("notifyListingCommentCreated sends subject, replyTo, and listing title", async () => {
+            const commentId = faker.string.uuid();
+            const listingId = faker.string.uuid();
+
+            service().notifyListingCommentCreated({
+                commentId,
+                listingId,
+                listingTitle: "OpenQuok Core",
+                content: "Helpful playbook",
+                userId,
+                userEmail: "creator@example.com",
+            });
+            await flushAsyncOps();
+
+            expect(emailService.sendPlain).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    subject: "OpenQuok: creator listing comment",
+                    replyTo: "creator@example.com",
+                    text: expect.stringContaining("Listing title: OpenQuok Core"),
+                })
+            );
+        });
+    });
 });

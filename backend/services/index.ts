@@ -148,6 +148,7 @@ subscriptionService.setSubscriptionGuard(subscriptionGuard);
 subscriptionService.setIntegrationService(integrationService);
 export const blogService = new BlogService(
     blogRepository,
+    internalOpsEmailService,
     cacheServiceConnection,
     cacheInvalidationServiceConnection,
     configRepository,
@@ -156,6 +157,7 @@ export const blogService = new BlogService(
 export const listingService = new ListingService(
     listingRepository,
     listingCategoryRepository,
+    internalOpsEmailService,
     cacheServiceConnection,
     cacheInvalidationServiceConnection,
     configRepository,
@@ -171,7 +173,8 @@ export const linkDirectoryService = new LinkDirectoryService(
     linkDirectoryRepository,
     linkDirectoryCategoryRepository,
     linkDirectoryTagRepository,
-    subscriptionGuard
+    subscriptionGuard,
+    internalOpsEmailService
 );
 export const userSessionService = new UserSessionService(
     organizationRepository,

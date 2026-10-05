@@ -150,7 +150,8 @@ export class BlogController {
             const result = await this.blogService.createBlogComment(
                 req.body as BlogCommentCreateSchemaType,
                 userId,
-                authUserId
+                authUserId,
+                authReq.user?.email
             );
             res.status(201).json({
                 success: true,

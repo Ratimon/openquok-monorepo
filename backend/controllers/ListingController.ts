@@ -430,7 +430,8 @@ export class ListingController {
             const result = await this.listingService.createListingComment(
                 req.body as import("../data/schemas/listingSchemas").ListingCommentCreateSchemaType,
                 userId,
-                authReq.user?.id
+                authReq.user?.id,
+                authReq.user?.email
             );
             res.status(201).json({
                 success: true,

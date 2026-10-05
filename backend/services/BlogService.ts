@@ -35,6 +35,7 @@ import { ValidationError } from "../errors/InfraError";
 import { logger } from "../utils/Logger";
 import { BlogPostId } from "../utils/valueObjects/BlogPostId";
 import type { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
+import type { InternalOpsEmailService } from "./InternalOpsEmailService";
 import { SubscriptionSection } from "openquok-common";
 
 /** Domain-scoped cache key prefixes. */
@@ -65,6 +66,7 @@ const BLOG_CACHE_TTL_SEC = 300;
 export class BlogService {
     constructor(
         private readonly blogRepository: BlogRepository,
+        private readonly internalOpsEmailService: InternalOpsEmailService,
         private readonly cache?: CacheService,
         private readonly cacheInvalidator?: CacheInvalidationService,
         private readonly configRepository?: ConfigRepository,
@@ -444,7 +446,8 @@ export class BlogService {
     async createBlogComment(
         payload: BlogCommentCreateSchemaType,
         userId: string,
-        authUserId?: string
+        authUserId?: string,
+        userEmail?: string
     ): Promise<{ id: string }> {
         if (authUserId?.trim() && this.subscriptionGuard) {
             await this.subscriptionGuard.assert(SubscriptionSection.COMMUNITY_FEATURES, {
@@ -460,6 +463,28 @@ export class BlogService {
         await this._invalidatePostCacheForComment({ postId });
         await this._invalidateAdminCommentsListCaches();
         await this.trackBlogActivity(postId, "comment", userId);
+
+        let postSlug: string | null = null;
+        let postTitle: string | null = null;
+        try {
+            const { data: post } = await this.blogRepository.findBlogPostByBlogId(postId);
+            postSlug = post.slug;
+            postTitle = post.title;
+        } catch {
+            // Best-effort context for ops email
+        }
+
+        this.internalOpsEmailService.notifyBlogCommentCreated({
+            commentId: result.id,
+            postId,
+            postSlug,
+            postTitle,
+            content: payload.content,
+            userId,
+            userEmail,
+            parentId: payload.parent_id ?? null,
+        });
+
         return result;
     }
 

@@ -23,6 +23,7 @@ import type {
 } from "../data/schemas/blogSchemas";
 import { ValidationError } from "../errors/InfraError";
 import { stringToSlug } from "../utils/blog/slug";
+import type { InternalOpsEmailService } from "./InternalOpsEmailService";
 
 const topicId = faker.string.uuid();
 const postId = faker.string.uuid();
@@ -111,6 +112,32 @@ const validCommentUpdatePayload: BlogCommentUpdateSchemaType = {
     content: faker.lorem.sentence(),
 };
 
+function createMockInternalOpsEmailService(): jest.Mocked<
+    Pick<InternalOpsEmailService, "notifyBlogCommentCreated">
+> {
+    return {
+        notifyBlogCommentCreated: jest.fn(),
+    };
+}
+
+function newBlogService(
+    blogRepository: jest.Mocked<BlogRepository>,
+    cache?: unknown,
+    cacheInvalidator?: unknown,
+    configRepository?: unknown,
+    subscriptionGuard?: unknown,
+    internalOpsEmailService?: Pick<InternalOpsEmailService, "notifyBlogCommentCreated">
+): BlogService {
+    return new BlogService(
+        blogRepository,
+        (internalOpsEmailService ?? createMockInternalOpsEmailService()) as InternalOpsEmailService,
+        cache as never,
+        cacheInvalidator as never,
+        configRepository as never,
+        subscriptionGuard as never
+    );
+}
+
 function createMockBlogRepo(): jest.Mocked<BlogRepository> {
     return {
         findPublishedBlogPosts: jest.fn(),
@@ -161,7 +188,7 @@ describe("BlogService", () => {
             const posts: BlogPostLike[] = [{ ...mockBlogPost }];
             const count = 1;
             repo.findPublishedBlogPosts.mockResolvedValue({ data: posts, count });
-            const service = new BlogService(repo);
+            const service = newBlogService(repo);
             const result = await service.getPublishedBlogPosts({ limit: 10 });
             expect(result.postsResult).toEqual(posts);
             expect(result.countResult).toBe(count);
@@ -173,7 +200,7 @@ describe("BlogService", () => {
         it("normalizes options with defaults", async () => {
             const posts: BlogPostLike[] = [];
             repo.findPublishedBlogPosts.mockResolvedValue({ data: posts, count: 0 });
-            const service = new BlogService(repo);
+            const service = newBlogService(repo);
             await service.getPublishedBlogPosts({});
             expect(repo.findPublishedBlogPosts).toHaveBeenCalledWith(defaultOptions);
         });
@@ -181,7 +208,7 @@ describe("BlogService", () => {
         it("uses cache key from buildPublishedBlogCacheKey when cache provided", async () => {
             const payload = { postsResult: [mockBlogPost], countResult: 1 };
             const getOrSet = jest.fn().mockResolvedValue(payload);
-            const service = new BlogService(repo, { getOrSet } as never);
+            const service = newBlogService(repo, { getOrSet } as never);
             const options: PublishedBlogPostsFilterOptions = {
                 limit: 5,
                 skip: 0,
@@ -204,7 +231,7 @@ describe("BlogService", () => {
             const posts: BlogPostLike[] = [{ ...mockBlogPost }];
             repo.findPublishedBlogPosts.mockResolvedValue({ data: posts, count: 1 });
             const getOrSet = jest.fn().mockImplementation(async (_key, factory) => factory());
-            const service = new BlogService(repo, { getOrSet } as never);
+            const service = newBlogService(repo, { getOrSet } as never);
             const result = await service.getPublishedBlogPosts({ limit: 20 });
             expect(result.postsResult).toEqual(posts);
             expect(result.countResult).toBe(1);
@@ -228,7 +255,7 @@ describe("BlogService", () => {
             const posts: BlogPostLike[] = [{ ...mockBlogPost }];
             const count = 1;
             repo.findAdminBlogPosts.mockResolvedValue({ data: posts, count });
-            const service = new BlogService(repo);
+            const service = newBlogService(repo);
             const result = await service.getAdminBlogPosts({ limit: 10 });
             expect(result.postsResult).toEqual(posts);
             expect(result.countResult).toBe(count);
@@ -240,7 +267,7 @@ describe("BlogService", () => {
         it("normalizes options with defaults", async () => {
             const posts: BlogPostLike[] = [];
             repo.findAdminBlogPosts.mockResolvedValue({ data: posts, count: 0 });
-            const service = new BlogService(repo);
+            const service = newBlogService(repo);
             await service.getAdminBlogPosts({});
             expect(repo.findAdminBlogPosts).toHaveBeenCalledWith(defaultAdminOptions);
         });
@@ -248,7 +275,7 @@ describe("BlogService", () => {
         it("uses cache key from buildAdminBlogCacheKey when cache provided", async () => {
             const payload = { postsResult: [mockBlogPost], countResult: 1 };
             const getOrSet = jest.fn().mockResolvedValue(payload);
-            const service = new BlogService(repo, { getOrSet } as never);
+            const service = newBlogService(repo, { getOrSet } as never);
             const options: AdminBlogPostsFilterOptions = {
                 limit: 5,
                 topicId: "topic-1",
@@ -270,7 +297,7 @@ describe("BlogService", () => {
             const posts: BlogPostLike[] = [{ ...mockBlogPost }];
             repo.findAdminBlogPosts.mockResolvedValue({ data: posts, count: 1 });
             const getOrSet = jest.fn().mockImplementation(async (_key, factory) => factory());
-            const service = new BlogService(repo, { getOrSet } as never);
+            const service = newBlogService(repo, { getOrSet } as never);
             const result = await service.getAdminBlogPosts({ limit: 20, sortByKey: "updated_at" });
             expect(result.postsResult).toEqual(posts);
             expect(result.countResult).toBe(1);
@@ -305,7 +332,7 @@ describe("BlogService", () => {
 
         it("returns comments and count from repository when no cache", async () => {
             repo.findAdminBlogComments.mockResolvedValue({ data: adminComments, count: 1 });
-            const service = new BlogService(repo);
+            const service = newBlogService(repo);
             const result = await service.getAdminBlogComments({ limit: 10 });
             expect(result.commentsResult).toEqual(adminComments);
             expect(result.countResult).toBe(1);
@@ -317,7 +344,7 @@ describe("BlogService", () => {
         it("uses cache key from buildAdminBlogCommentsCacheKey when cache provided", async () => {
             const payload = { commentsResult: adminComments, countResult: 1 };
             const getOrSet = jest.fn().mockResolvedValue(payload);
-            const service = new BlogService(repo, { getOrSet } as never);
+            const service = newBlogService(repo, { getOrSet } as never);
             await service.getAdminBlogComments({ limit: 5, searchTerm: "foo" });
             const expectedKey = buildAdminBlogCommentsCacheKey(
                 { ...defaultAdminCommentsOptions, limit: 5, searchTerm: "foo" },
@@ -351,7 +378,7 @@ describe("BlogService", () => {
 
         it("returns activities and count from repository when no cache", async () => {
             repo.findAdminBlogActivities.mockResolvedValue({ data: adminActivities, count: 1 });
-            const service = new BlogService(repo);
+            const service = newBlogService(repo);
             const result = await service.getAdminBlogActivities({ limit: 10 });
             expect(result.activitiesResult).toEqual(adminActivities);
             expect(result.countResult).toBe(1);
@@ -363,7 +390,7 @@ describe("BlogService", () => {
         it("uses cache key from buildAdminBlogActivitiesCacheKey when cache provided", async () => {
             const payload = { activitiesResult: adminActivities, countResult: 1 };
             const getOrSet = jest.fn().mockResolvedValue(payload);
-            const service = new BlogService(repo, { getOrSet } as never);
+            const service = newBlogService(repo, { getOrSet } as never);
             await service.getAdminBlogActivities({ limit: 5, post_id: postId });
             const expectedKey = buildAdminBlogActivitiesCacheKey(
                 { ...defaultAdminActivitiesOptions, limit: 5, post_id: postId },
@@ -377,14 +404,14 @@ describe("BlogService", () => {
     describe("trackBlogActivity", () => {
         it("calls insertBlogActivity and invalidates blog:admin:activities:list:* when cacheInvalidator provided", async () => {
             const invalidatePattern = jest.fn().mockResolvedValue(undefined);
-            const service = new BlogService(repo, undefined, { invalidatePattern } as never);
+            const service = newBlogService(repo, undefined, { invalidatePattern } as never);
             await service.trackBlogActivity(postId, "comment", userId);
             expect(repo.insertBlogActivity).toHaveBeenCalledWith(postId, "comment", userId);
             expect(invalidatePattern).toHaveBeenCalledWith("blog:admin:activities:list:*");
         });
 
         it("calls insertBlogActivity with null user_id for anonymous", async () => {
-            const service = new BlogService(repo);
+            const service = newBlogService(repo);
             await service.trackBlogActivity(postId, "view", null);
             expect(repo.insertBlogActivity).toHaveBeenCalledWith(postId, "view", null);
         });
@@ -396,7 +423,7 @@ describe("BlogService", () => {
         it("returns post from repository when no cache", async () => {
             const publishedPost = { ...mockBlogPost, slug, is_admin_approved: true };
             repo.findPublishedBlogPostBySlug.mockResolvedValue({ data: publishedPost });
-            const service = new BlogService(repo);
+            const service = newBlogService(repo);
             const result = await service.getPublishedBlogPostBySlug(slug);
             expect(result).toEqual(publishedPost);
             expect(repo.findPublishedBlogPostBySlug).toHaveBeenCalledWith(slug);
@@ -404,7 +431,7 @@ describe("BlogService", () => {
 
         it("returns null when repository returns null (post not found or not published)", async () => {
             repo.findPublishedBlogPostBySlug.mockResolvedValue({ data: null });
-            const service = new BlogService(repo);
+            const service = newBlogService(repo);
             const result = await service.getPublishedBlogPostBySlug(slug);
             expect(result).toBeNull();
             expect(repo.findPublishedBlogPostBySlug).toHaveBeenCalledWith(slug);
@@ -413,7 +440,7 @@ describe("BlogService", () => {
         it("uses cache when provided (cache hit)", async () => {
             const publishedPost = { ...mockBlogPost, slug };
             const getOrSet = jest.fn().mockResolvedValue(publishedPost);
-            const service = new BlogService(repo, { getOrSet } as never);
+            const service = newBlogService(repo, { getOrSet } as never);
             const result = await service.getPublishedBlogPostBySlug(slug);
             expect(result).toEqual(publishedPost);
             expect(getOrSet).toHaveBeenCalledWith(
@@ -428,7 +455,7 @@ describe("BlogService", () => {
             const publishedPost = { ...mockBlogPost, slug };
             repo.findPublishedBlogPostBySlug.mockResolvedValue({ data: publishedPost });
             const getOrSet = jest.fn().mockImplementation(async (_key, factory) => factory());
-            const service = new BlogService(repo, { getOrSet } as never);
+            const service = newBlogService(repo, { getOrSet } as never);
             const result = await service.getPublishedBlogPostBySlug(slug);
             expect(result).toEqual(publishedPost);
             expect(getOrSet).toHaveBeenCalledWith(
@@ -442,7 +469,7 @@ describe("BlogService", () => {
 
     describe("getBlogPostById", () => {
         it("throws ValidationError for invalid UUID", async () => {
-            const service = new BlogService(repo);
+            const service = newBlogService(repo);
             await expect(service.getBlogPostById("not-a-uuid")).rejects.toThrow(
                 ValidationError
             );
@@ -453,7 +480,7 @@ describe("BlogService", () => {
             repo.findBlogPostByBlogId.mockResolvedValue({
                 data: { ...mockBlogPost },
             });
-            const service = new BlogService(repo);
+            const service = newBlogService(repo);
             const result = await service.getBlogPostById(postId);
             expect(result).toEqual(mockBlogPost);
             expect(repo.findBlogPostByBlogId).toHaveBeenCalledWith(postId);
@@ -476,7 +503,7 @@ describe("BlogService", () => {
                 author: authorWithProfiles,
             };
             repo.findBlogPostByBlogId.mockResolvedValue({ data: postWithTopicAndAuthor });
-            const service = new BlogService(repo);
+            const service = newBlogService(repo);
             const result = await service.getBlogPostById(postId);
             expect(result).not.toBeNull();
             expect(result).toMatchObject({
@@ -498,7 +525,7 @@ describe("BlogService", () => {
 
         it("uses cache when provided", async () => {
             const getOrSet = jest.fn().mockResolvedValue({ ...mockBlogPost });
-            const service = new BlogService(repo, { getOrSet } as never);
+            const service = newBlogService(repo, { getOrSet } as never);
             const result = await service.getBlogPostById(postId);
             expect(result).toEqual(mockBlogPost);
             expect(getOrSet).toHaveBeenCalledWith(
@@ -514,7 +541,7 @@ describe("BlogService", () => {
                 data: { ...mockBlogPost },
             });
             const getOrSet = jest.fn().mockImplementation(async (_key, factory) => factory());
-            const service = new BlogService(repo, { getOrSet } as never);
+            const service = newBlogService(repo, { getOrSet } as never);
             const result = await service.getBlogPostById(postId);
             expect(result).toEqual(mockBlogPost);
             expect(getOrSet).toHaveBeenCalledWith(
@@ -538,7 +565,7 @@ describe("BlogService", () => {
             repo.findBlogPostByBlogId.mockResolvedValue({
                 data: { ...mockBlogPost, id: postId, title: validCreatePayload.title, slug: slugFromTitle },
             });
-            const service = new BlogService(repo);
+            const service = newBlogService(repo);
             const result = await service.createBlogPost(
                 validCreatePayload,
                 userId,
@@ -570,7 +597,7 @@ describe("BlogService", () => {
             repo.findBlogPostByBlogId.mockResolvedValue({
                 data: { ...mockBlogPost, id: postId, slug: slugFromTitle },
             });
-            const service = new BlogService(repo);
+            const service = newBlogService(repo);
             const result = await service.createBlogPost(
                 validCreatePayload,
                 userId,
@@ -599,7 +626,7 @@ describe("BlogService", () => {
             const invalidateKey = jest.fn().mockResolvedValue(undefined);
             const invalidateEntity = jest.fn().mockResolvedValue(undefined);
             const invalidatePattern = jest.fn().mockResolvedValue(undefined);
-            const service = new BlogService(repo, undefined, {
+            const service = newBlogService(repo, undefined, {
                 invalidateKey,
                 invalidateEntity,
                 invalidatePattern,
@@ -620,7 +647,7 @@ describe("BlogService", () => {
         it("returns authors from repository when no cache", async () => {
             const authors: PublishedBlogAuthor[] = [{ ...mockPublishedAuthor }];
             repo.getPublishedBlogAuthors.mockResolvedValue({ data: authors });
-            const service = new BlogService(repo);
+            const service = newBlogService(repo);
             const result = await service.getPublishedBlogAuthors();
             expect(result).toEqual(authors);
             expect(repo.getPublishedBlogAuthors).toHaveBeenCalled();
@@ -628,7 +655,7 @@ describe("BlogService", () => {
 
         it("returns empty array when repository returns empty", async () => {
             repo.getPublishedBlogAuthors.mockResolvedValue({ data: [] });
-            const service = new BlogService(repo);
+            const service = newBlogService(repo);
             const result = await service.getPublishedBlogAuthors();
             expect(result).toEqual([]);
             expect(repo.getPublishedBlogAuthors).toHaveBeenCalled();
@@ -637,7 +664,7 @@ describe("BlogService", () => {
         it("uses cache when provided (cache hit)", async () => {
             const authors: PublishedBlogAuthor[] = [{ ...mockPublishedAuthor }];
             const getOrSet = jest.fn().mockResolvedValue(authors);
-            const service = new BlogService(repo, { getOrSet } as never);
+            const service = newBlogService(repo, { getOrSet } as never);
             const result = await service.getPublishedBlogAuthors();
             expect(result).toEqual(authors);
             expect(getOrSet).toHaveBeenCalledWith(
@@ -652,7 +679,7 @@ describe("BlogService", () => {
             const authors: PublishedBlogAuthor[] = [{ ...mockPublishedAuthor }];
             repo.getPublishedBlogAuthors.mockResolvedValue({ data: authors });
             const getOrSet = jest.fn().mockImplementation(async (_key, factory) => factory());
-            const service = new BlogService(repo, { getOrSet } as never);
+            const service = newBlogService(repo, { getOrSet } as never);
             const result = await service.getPublishedBlogAuthors();
             expect(result).toEqual(authors);
             expect(getOrSet).toHaveBeenCalledWith(
@@ -683,7 +710,7 @@ describe("BlogService", () => {
                     slug: slugFromUpdatedTitle,
                 },
             });
-            const service = new BlogService(repo);
+            const service = newBlogService(repo);
             const result = await service.updateBlogPost(
                 { ...validUpdatePayload, id: updatePostId },
                 false
@@ -715,7 +742,7 @@ describe("BlogService", () => {
             repo.findBlogPostByBlogId.mockResolvedValue({
                 data: { ...mockBlogPost, id: updatePostId, slug: slugFromUpdatedTitle },
             });
-            const service = new BlogService(repo);
+            const service = newBlogService(repo);
             await service.updateBlogPost(
                 { ...validUpdatePayload, is_user_published: true, id: updatePostId },
                 true
@@ -748,7 +775,7 @@ describe("BlogService", () => {
             const invalidateKey = jest.fn().mockResolvedValue(undefined);
             const invalidateEntity = jest.fn().mockResolvedValue(undefined);
             const invalidatePattern = jest.fn().mockResolvedValue(undefined);
-            const service = new BlogService(repo, undefined, {
+            const service = newBlogService(repo, undefined, {
                 invalidateKey,
                 invalidateEntity,
                 invalidatePattern,
@@ -780,7 +807,7 @@ describe("BlogService", () => {
 
         it("returns topics from repository when no cache", async () => {
             repo.findBlogTopics.mockResolvedValue({ data: mockTopics });
-            const service = new BlogService(repo);
+            const service = newBlogService(repo);
             const result = await service.getBlogTopics();
             expect(result).toEqual(mockTopics);
             expect(result).toHaveLength(2);
@@ -798,7 +825,7 @@ describe("BlogService", () => {
 
         it("returns empty array when repository returns empty", async () => {
             repo.findBlogTopics.mockResolvedValue({ data: [] });
-            const service = new BlogService(repo);
+            const service = newBlogService(repo);
             const result = await service.getBlogTopics();
             expect(result).toEqual([]);
             expect(result).toHaveLength(0);
@@ -807,7 +834,7 @@ describe("BlogService", () => {
 
         it("uses cache when provided (cache hit)", async () => {
             const getOrSet = jest.fn().mockResolvedValue(mockTopics);
-            const service = new BlogService(repo, { getOrSet } as never);
+            const service = newBlogService(repo, { getOrSet } as never);
             const result = await service.getBlogTopics();
             expect(result).toEqual(mockTopics);
             expect(result).toHaveLength(2);
@@ -824,7 +851,7 @@ describe("BlogService", () => {
         it("calls repository when cache misses", async () => {
             repo.findBlogTopics.mockResolvedValue({ data: mockTopics });
             const getOrSet = jest.fn().mockImplementation(async (_key, factory) => factory());
-            const service = new BlogService(repo, { getOrSet } as never);
+            const service = newBlogService(repo, { getOrSet } as never);
             const result = await service.getBlogTopics();
             expect(result).toEqual(mockTopics);
             expect(result).toHaveLength(2);
@@ -850,7 +877,7 @@ describe("BlogService", () => {
 
         it("returns active topics from repository when no cache", async () => {
             repo.findActiveBlogTopics.mockResolvedValue({ data: activeTopics });
-            const service = new BlogService(repo);
+            const service = newBlogService(repo);
             const result = await service.getActiveBlogTopics();
             expect(result).toEqual(activeTopics);
             expect(repo.findActiveBlogTopics).toHaveBeenCalledTimes(1);
@@ -859,7 +886,7 @@ describe("BlogService", () => {
         it("uses cache when provided", async () => {
             repo.findActiveBlogTopics.mockResolvedValue({ data: activeTopics });
             const getOrSet = jest.fn().mockResolvedValue(activeTopics);
-            const service = new BlogService(repo, { getOrSet } as never);
+            const service = newBlogService(repo, { getOrSet } as never);
             const result = await service.getActiveBlogTopics();
             expect(result).toEqual(activeTopics);
             expect(getOrSet).toHaveBeenCalledWith("blog:topics:active", expect.any(Function), 300);
@@ -870,7 +897,7 @@ describe("BlogService", () => {
     describe("createBlogTopic", () => {
         it("creates topic and returns id and name from repository", async () => {
             repo.createTopic.mockResolvedValue({ id: topicIdForTopic, name: topicName });
-            const service = new BlogService(repo);
+            const service = newBlogService(repo);
             const result = await service.createBlogTopic(validTopicCreatePayload);
             expect(result).toEqual({ id: topicIdForTopic, name: topicName });
             expect(result).toHaveProperty("id", topicIdForTopic);
@@ -889,7 +916,7 @@ describe("BlogService", () => {
             repo.createTopic.mockResolvedValue({ id: topicIdForTopic, name: topicName });
             const invalidateKey = jest.fn().mockResolvedValue(undefined);
             const invalidatePattern = jest.fn().mockResolvedValue(undefined);
-            const service = new BlogService(repo, undefined, {
+            const service = newBlogService(repo, undefined, {
                 invalidateKey,
                 invalidatePattern,
             } as never);
@@ -912,7 +939,7 @@ describe("BlogService", () => {
                 id: updateTopicId,
                 name: updatedTopicName,
             });
-            const service = new BlogService(repo);
+            const service = newBlogService(repo);
             const result = await service.updateBlogTopic(
                 { ...validTopicUpdatePayload, id: updateTopicId }
             );
@@ -937,7 +964,7 @@ describe("BlogService", () => {
             });
             const invalidateKey = jest.fn().mockResolvedValue(undefined);
             const invalidatePattern = jest.fn().mockResolvedValue(undefined);
-            const service = new BlogService(repo, undefined, {
+            const service = newBlogService(repo, undefined, {
                 invalidateKey,
                 invalidatePattern,
             } as never);
@@ -957,7 +984,7 @@ describe("BlogService", () => {
     describe("createBlogComment", () => {
         it("creates comment and returns id from repository", async () => {
             repo.createComment.mockResolvedValue({ id: commentId });
-            const service = new BlogService(repo);
+            const service = newBlogService(repo);
             const result = await service.createBlogComment(validCommentCreatePayload, userId);
             expect(result).toEqual({ id: commentId });
             expect(result.id).toBe(commentId);
@@ -974,7 +1001,7 @@ describe("BlogService", () => {
 
         it("creates comment with parent_id when provided", async () => {
             repo.createComment.mockResolvedValue({ id: commentId });
-            const service = new BlogService(repo);
+            const service = newBlogService(repo);
             const result = await service.createBlogComment(validCommentCreatePayloadWithParent, userId);
             expect(result.id).toBe(commentId);
             expect(repo.createComment).toHaveBeenCalledWith(
@@ -991,13 +1018,44 @@ describe("BlogService", () => {
             repo.createComment.mockResolvedValue({ id: commentId });
             const invalidateKey = jest.fn().mockResolvedValue(undefined);
             const invalidatePattern = jest.fn().mockResolvedValue(undefined);
-            const service = new BlogService(repo, undefined, { invalidateKey, invalidatePattern } as never);
+            const service = newBlogService(repo, undefined, { invalidateKey, invalidatePattern } as never);
             await service.createBlogComment(validCommentCreatePayload, userId);
             expect(invalidateKey).toHaveBeenCalledWith(`blog:byBlogId:${postId}`);
             expect(invalidateKey).toHaveBeenCalledWith(`blog:comments:byPostId:${postId}`);
             expect(invalidatePattern).toHaveBeenCalledWith("blog:admin:comments:list:*");
             expect(repo.insertBlogActivity).toHaveBeenCalledWith(postId, "comment", userId);
             expect(invalidatePattern).toHaveBeenCalledWith("blog:admin:activities:list:*");
+        });
+
+        it("notifyBlogCommentCreated after successful createBlogComment", async () => {
+            const userEmail = "commenter@example.com";
+            repo.createComment.mockResolvedValue({ id: commentId });
+            repo.findBlogPostByBlogId.mockResolvedValue({ data: mockBlogPost });
+            const internalOpsEmailService = createMockInternalOpsEmailService();
+            const service = newBlogService(repo, undefined, undefined, undefined, undefined, internalOpsEmailService);
+
+            await service.createBlogComment(validCommentCreatePayload, userId, undefined, userEmail);
+
+            expect(internalOpsEmailService.notifyBlogCommentCreated).toHaveBeenCalledWith({
+                commentId,
+                postId,
+                postSlug: mockBlogPost.slug,
+                postTitle: mockBlogPost.title,
+                content: validCommentCreatePayload.content,
+                userId,
+                userEmail,
+                parentId: null,
+            });
+        });
+
+        it("does not notify when createComment throws", async () => {
+            repo.createComment.mockRejectedValue(new Error("db error"));
+            const internalOpsEmailService = createMockInternalOpsEmailService();
+            const service = newBlogService(repo, undefined, undefined, undefined, undefined, internalOpsEmailService);
+
+            await expect(service.createBlogComment(validCommentCreatePayload, userId)).rejects.toThrow("db error");
+
+            expect(internalOpsEmailService.notifyBlogCommentCreated).not.toHaveBeenCalled();
         });
     });
 
@@ -1017,7 +1075,7 @@ describe("BlogService", () => {
 
         it("returns comments from repository when no cache", async () => {
             repo.findPostComments.mockResolvedValue({ data: mockComments });
-            const service = new BlogService(repo);
+            const service = newBlogService(repo);
             const result = await service.getPostComments(postId);
             expect(result).toEqual(mockComments);
             expect(repo.findPostComments).toHaveBeenCalledWith(postId);
@@ -1026,7 +1084,7 @@ describe("BlogService", () => {
         it("uses cache when provided", async () => {
             repo.findPostComments.mockResolvedValue({ data: mockComments });
             const getOrSet = jest.fn().mockResolvedValue(mockComments);
-            const service = new BlogService(repo, { getOrSet } as never);
+            const service = newBlogService(repo, { getOrSet } as never);
             const result = await service.getPostComments(postId);
             expect(result).toEqual(mockComments);
             expect(getOrSet).toHaveBeenCalledWith(
@@ -1043,7 +1101,7 @@ describe("BlogService", () => {
             repo.approveComment.mockResolvedValue({ id: commentId, post_id: postId });
             const invalidateKey = jest.fn().mockResolvedValue(undefined);
             const invalidatePattern = jest.fn().mockResolvedValue(undefined);
-            const service = new BlogService(repo, undefined, { invalidateKey, invalidatePattern } as never);
+            const service = newBlogService(repo, undefined, { invalidateKey, invalidatePattern } as never);
             const result = await service.approveBlogComment(commentId);
             expect(result).toEqual({ id: commentId });
             expect(repo.approveComment).toHaveBeenCalledWith(commentId);
@@ -1058,7 +1116,7 @@ describe("BlogService", () => {
             const invalidateKey = jest.fn().mockResolvedValue(undefined);
             const invalidateEntity = jest.fn().mockResolvedValue(undefined);
             const invalidatePattern = jest.fn().mockResolvedValue(undefined);
-            const service = new BlogService(repo, undefined, {
+            const service = newBlogService(repo, undefined, {
                 invalidateKey,
                 invalidateEntity,
                 invalidatePattern,
@@ -1080,7 +1138,7 @@ describe("BlogService", () => {
         it("calls repo and invalidates topic-related caches", async () => {
             const invalidateKey = jest.fn().mockResolvedValue(undefined);
             const invalidatePattern = jest.fn().mockResolvedValue(undefined);
-            const service = new BlogService(repo, undefined, { invalidateKey, invalidatePattern } as never);
+            const service = newBlogService(repo, undefined, { invalidateKey, invalidatePattern } as never);
             await service.deleteBlogTopic(topicId);
             expect(repo.deleteBlogTopic).toHaveBeenCalledWith(topicId);
             expect(invalidateKey).toHaveBeenCalledWith("blog:topics:list");
@@ -1095,7 +1153,7 @@ describe("BlogService", () => {
             repo.deleteComment.mockResolvedValue({ post_id: postId });
             const invalidateKey = jest.fn().mockResolvedValue(undefined);
             const invalidatePattern = jest.fn().mockResolvedValue(undefined);
-            const service = new BlogService(repo, undefined, { invalidateKey, invalidatePattern } as never);
+            const service = newBlogService(repo, undefined, { invalidateKey, invalidatePattern } as never);
             await service.deleteBlogComment(commentId);
             expect(repo.deleteComment).toHaveBeenCalledWith(commentId);
             expect(invalidateKey).toHaveBeenCalledWith(`blog:byBlogId:${postId}`);
@@ -1107,7 +1165,7 @@ describe("BlogService", () => {
     describe("updateBlogComment", () => {
         it("updates comment and returns id from repository", async () => {
             repo.updateComment.mockResolvedValue({ id: commentId, post_id: postId });
-            const service = new BlogService(repo);
+            const service = newBlogService(repo);
             const result = await service.updateBlogComment(
                 { ...validCommentUpdatePayload, id: commentId },
                 userId
@@ -1126,7 +1184,7 @@ describe("BlogService", () => {
             repo.updateComment.mockResolvedValue({ id: commentId, post_id: postId });
             const invalidateKey = jest.fn().mockResolvedValue(undefined);
             const invalidatePattern = jest.fn().mockResolvedValue(undefined);
-            const service = new BlogService(repo, undefined, { invalidateKey, invalidatePattern } as never);
+            const service = newBlogService(repo, undefined, { invalidateKey, invalidatePattern } as never);
             await service.updateBlogComment(
                 { ...validCommentUpdatePayload, id: commentId },
                 userId
@@ -1140,7 +1198,7 @@ describe("BlogService", () => {
             const updateId = faker.string.uuid();
             const updateContent = faker.lorem.paragraph();
             repo.updateComment.mockResolvedValue({ id: updateId, post_id: postId });
-            const service = new BlogService(repo);
+            const service = newBlogService(repo);
             await service.updateBlogComment(
                 { id: updateId, content: updateContent },
                 userId
