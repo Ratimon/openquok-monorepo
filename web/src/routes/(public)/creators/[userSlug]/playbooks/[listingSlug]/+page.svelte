@@ -40,6 +40,7 @@
 	let playbookVm = $derived(data.playbookVm);
 	let commentsVm = $derived(data.commentsVm);
 	let schemaData = $derived(data.schemaData);
+	let heroTitle = $derived(data.heroTitle);
 	let isLoggedIn = $derived(authenticationRepository.isAuthenticated() || data.isLoggedIn === true);
 	let skillBuilderHref = $derived(url(`${route(getRootPathPublicSkillBuilder())}?stack=${playbookVm.slug}`));
 
@@ -172,6 +173,7 @@
 		/>
 		<PlaybookDetailHeader
 			playbookVm={playbookVm}
+			{heroTitle}
 			{displayLikes}
 			{skillBuilderHref}
 			openQuokHeroVm={creatorListingHeroVm}

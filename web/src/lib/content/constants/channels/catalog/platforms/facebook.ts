@@ -64,7 +64,7 @@ export const facebookChannel = {
 		},
 		{
 			subtitle: 'Stories and post types',
-			title: 'Pick feed, Reel, or Story, publish from one composer, set options per post',
+			title: 'Pick feed, Reel, or Story, publish from one post editor, set options per post',
 			description:
 				'Choose feed, Reel, or Story before you schedule. Attach images or MP4 for Stories. Adjust Page options from channel settings. Use the dashboard or the public API.',
 			bentoId: 'facebook-settings',

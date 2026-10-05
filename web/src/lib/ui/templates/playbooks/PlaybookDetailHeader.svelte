@@ -49,6 +49,7 @@
 		onRatingSignInRequired?: () => void;
 		onRatingUpgradeRequired?: () => void;
 		openQuokHeroVm?: CreatorListingHeroVm | null;
+		heroTitle?: string;
 	};
 
 	let {
@@ -65,8 +66,11 @@
 		submittingRating = false,
 		onRatingSignInRequired,
 		onRatingUpgradeRequired,
-		openQuokHeroVm = null
+		openQuokHeroVm = null,
+		heroTitle
 	}: Props = $props();
+
+	const detailHeroTitle = $derived(heroTitle ?? playbookVm.title);
 
 	const headerSummary = $derived(resolveStackListingHeaderSummary(playbookVm));
 	const displayVersion = $derived(resolveStackVersion(playbookVm));
@@ -114,7 +118,7 @@
 	<div class="space-y-3">
 		<div class="flex flex-wrap items-center gap-3">
 			<PublicListingDetailHeroTitle
-				title={playbookVm.title}
+				title={detailHeroTitle}
 				headingId="playbook-detail-heading"
 			/>
 			{#if onToggleBookmark}

@@ -33,6 +33,7 @@
 	let relatedBuildingBlocksVm = $derived(data.relatedBuildingBlocksVm);
 	let commentsVm = $derived((data.commentsVm ?? []) as ListingCommentViewModel[]);
 	let schemaData = $derived(data.schemaData);
+	let heroTitle = $derived(data.heroTitle);
 	let isLoggedIn = $derived(authenticationRepository.isAuthenticated() || data.isLoggedIn === true);
 
 	// /account/billing
@@ -127,6 +128,7 @@
 		{#await loadBuildingBlockDetailComponent(buildingBlockVm.extensionType) then { default: BuildingBlockDetail }}
 			<BuildingBlockDetail
 				extensionVm={buildingBlockVm}
+				{heroTitle}
 				{displayLikes}
 				onLike={handleLike}
 				onExternalClick={handleExternalClick}

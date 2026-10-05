@@ -4,10 +4,7 @@ import type { DefinedTerm } from 'schema-dts';
 
 import { getRootPathPublicPlaybooks } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 import { publicPlaybooksPagePresenter } from '$lib/area-public';
-import {
-	CONFIG_SCHEMA_COMPANY,
-	CONFIG_SCHEMA_MARKETING
-} from '$lib/config/constants/config';
+import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { PUBLIC_PLAYBOOKS_HUB } from '$lib/listings/constants/publicListingsHubConfig';
 import type { StacksHubFilters } from '$lib/listings/listing.types';
 import { getListingPresenter } from '$lib/listings/index';
@@ -120,8 +117,12 @@ export async function loadPlaybooksHubPage(
 	const canonical = buildCanonicalUrl(url);
 	const pageMetaTags = withCanonicalMetaTags(metaTags, canonical, {
 		openGraph: {
-			title: String(CONFIG_SCHEMA_MARKETING.META_TITLE.default),
-			description: String(CONFIG_SCHEMA_MARKETING.META_DESCRIPTION.default)
+			title: customTitle,
+			description: customDescription
+		},
+		twitter: {
+			title: customTitle,
+			description: customDescription
 		}
 	});
 

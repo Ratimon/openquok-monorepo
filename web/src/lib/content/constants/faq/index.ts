@@ -10,6 +10,7 @@ export type PublicFaqItemId =
 	| 'try-free'
 	| 'self-host-openquok'
 	| 'schedule-posts'
+	| 'manage-social-media'
 	| 'agent-workspace'
 	| 'multi-workspace'
 	| 'oauth-app-counts'
@@ -94,6 +95,12 @@ export const PUBLIC_FAQ_ITEMS: readonly PublicFaqItem[] = [
 		title: 'How do I schedule social media posts with OpenQuok?',
 		description:
 			`${faqLink(publicFaqHref.connectChannelsGuide, 'Connect channels')}, write in ${faqLink(publicFaqHref.docsCreatingPosts, 'Creating posts')}, then pick a time on the ${faqLink(publicFaqHref.docsCalendar, 'calendar')} or ${faqLink(publicFaqHref.docsKanban, 'kanban')}. Agents can use the ${faqLink(publicFaqHref.cliGettingStarted, 'CLI')}, ${faqLink(publicFaqHref.agentSetupGuides, 'agent setup guides')}, or ${faqLink(publicFaqHref.mcpSetupGuides, 'MCP setup guides')}.`
+	},
+	{
+		id: 'manage-social-media',
+		title: 'How do I manage social media with OpenQuok?',
+		description:
+			`${faqLink(publicFaqHref.connectChannelsGuide, 'Connect channels')} to your workspace. Manage drafts and scheduled posts on the ${faqLink(publicFaqHref.docsCalendar, 'calendar')} or ${faqLink(publicFaqHref.docsKanban, 'kanban')}. Review and approve posts before they publish. See ${faqLink(publicFaqHref.channels, 'supported channels')} for every network you can connect.`
 	},
 	{
 		id: 'agent-workspace',

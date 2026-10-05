@@ -29,11 +29,16 @@ export type PublicListingsHubConfig = {
 
 export const PUBLIC_BUILDING_BLOCKS_HUB = {
 	subtitle: 'Building Blocks',
-	title: 'Social Media Scheduler Skills & MCP Servers',
-	filterPageTitleSuffix: 'Scheduler Skills & MCP Servers',
+	title: 'Schedule Social Media Posts — Skills & MCP Servers',
+	filterPageTitleSuffix: 'Social Media Scheduling Skills & MCP',
 	description:
-		'Install skills and MCP servers to schedule social posts from Cursor, Claude, OpenClaw, and the CLI — browse OpenQuok Core and catalog building blocks for drafting, queuing, and approving content on your calendar.',
+		'Schedule and manage social media posts with installable skills and MCP servers — use Cursor, Claude, OpenClaw, and the CLI to draft, queue, and approve content on your calendar. Browse OpenQuok Core and the building blocks catalog.',
 	seoKeywords: [
+		'social media',
+		'social media schedule',
+		'schedule social media posts',
+		'manage social media',
+		'social media scheduling tools',
 		'social media scheduler MCP server',
 		'schedule social media posts from Cursor',
 		'OpenQuok MCP social scheduling',

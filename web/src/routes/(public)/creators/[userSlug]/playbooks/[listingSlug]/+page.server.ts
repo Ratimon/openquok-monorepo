@@ -10,11 +10,15 @@ import {
 	getRootPathPublicCreatorPlaybook
 } from '$lib/area-public/constants/getRootPathPublicCreators';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
-import { PUBLIC_PLAYBOOKS_HUB } from '$lib/listings/constants/publicListingsHubConfig';
+import {
+	formatPublicCreatorListingHeroTitle,
+	formatPublicCreatorListingMetaDescription,
+	formatPublicCreatorListingMetaTitleBase,
+	formatPublicCreatorListingSeoKeywords
+} from '$lib/listings/utils/formatPublicCreatorListingSeoCopy';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
 import { createJsonLdGraph } from '$lib/seo/jsonLdSchema';
-import { resolveStackListingHeaderSummary } from '$lib/listings/utils/resolveStackListingHeaderSummary';
 import { resolveBlueprintWorkflowStepTitle } from '$lib/skill-builder/utils/resolveBlueprintWorkflowStepTitle';
 
 export const ssr = true;
@@ -60,9 +64,11 @@ export async function load({ url, params, cookies, fetch, parent }) {
 
 	const { companyInformationPm, marketingInformationPm } = await parent();
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
-	const customTitle = `${playbookVm.title} | ${companyName}`;
-	const customDescription =
-		resolveStackListingHeaderSummary(playbookVm) ?? `Playbook details for ${playbookVm.title}.`;
+	const metaTitleBase = formatPublicCreatorListingMetaTitleBase(playbookVm.title, 'playbook');
+	const customTitle = `${metaTitleBase} | ${companyName}`;
+	const customDescription = formatPublicCreatorListingMetaDescription(playbookVm, 'playbook');
+	const heroTitle = formatPublicCreatorListingHeroTitle(playbookVm.title, 'playbook');
+	const seoKeywords = formatPublicCreatorListingSeoKeywords(playbookVm, 'playbook');
 
 	const ownerUsername = playbookVm.owner?.username?.trim() ?? userSlug;
 	const metaTags = (await createMetaData({
@@ -70,11 +76,7 @@ export async function load({ url, params, cookies, fetch, parent }) {
 		marketingInformation: marketingInformationPm,
 		customTitle,
 		customDescription,
-		customTags: [
-			playbookVm.title,
-			'social media scheduling playbook',
-			...PUBLIC_PLAYBOOKS_HUB.seoKeywords.slice(0, 4)
-		],
+		customTags: seoKeywords,
 		customSlug: getRootPathPublicCreatorPlaybook(ownerUsername, playbookVm.slug),
 		requestUrl: url
 	})) satisfies MetaTagsProps;
@@ -108,7 +110,7 @@ export async function load({ url, params, cookies, fetch, parent }) {
 		{
 			'@type': 'WebPage',
 			'@id': `${canonical}#webpage`,
-			name: playbookVm.title,
+			name: metaTitleBase,
 			description: customDescription,
 			url: canonical,
 			mainEntity: {
@@ -154,9 +156,22 @@ export async function load({ url, params, cookies, fetch, parent }) {
 		} satisfies HowTo | CreativeWork
 	]);
 
+	const pageMetaTags = withCanonicalMetaTags(metaTags, canonical, {
+		openGraph: {
+			title: metaTitleBase,
+			description: customDescription,
+			...(playbookVm.logoImageUrl ? { images: [{ url: playbookVm.logoImageUrl }] } : {})
+		},
+		twitter: {
+			title: metaTitleBase,
+			description: customDescription
+		}
+	});
+
 	return {
-		pageMetaTags: withCanonicalMetaTags(metaTags, canonical),
+		pageMetaTags,
 		isLoggedIn: !!cookies.get('access_token'),
+		heroTitle,
 		playbookVm,
 		commentsVm: comments,
 		schemaData

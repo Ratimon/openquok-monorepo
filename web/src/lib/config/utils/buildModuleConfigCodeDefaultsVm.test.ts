@@ -14,11 +14,14 @@ describe('buildModuleConfigCodeDefaultsVm', () => {
 		expect(vm.TITLE).toBe('Frequently asked, questions');
 		expect(Array.isArray(vm.ITEMS)).toBe(true);
 		expect((vm.ITEMS as { question: string }[]).length).toBe(PUBLIC_FAQ_ITEMS.length);
-		expect((vm.ITEMS as { question: string }[])[2]?.question).toBe(
+		expect((vm.ITEMS as { question: string }[])[3]?.question).toBe(
 			'How do I schedule social media posts with OpenQuok?'
 		);
+		expect((vm.ITEMS as { question: string }[])[4]?.question).toBe(
+			'How do I manage social media with OpenQuok?'
+		);
 
-		const scheduleAnswer = String((vm.ITEMS as { answer: string }[])[2]?.answer);
+		const scheduleAnswer = String((vm.ITEMS as { answer: string }[])[3]?.answer);
 		expect(scheduleAnswer).toContain(`href="${publicFaqHref.cliGettingStarted}"`);
 		expect(scheduleAnswer).toContain(`href="${publicFaqHref.agentSetupGuides}"`);
 		expect(scheduleAnswer).toContain(`href="${publicFaqHref.mcpSetupGuides}"`);

@@ -146,6 +146,18 @@ describe('PUBLIC_FAQ_ITEMS', () => {
 		assertNoNofollowOnFirstPartyFaqLinks(PUBLIC_FAQ_ITEMS);
 	});
 
+	it('includes manage-social-media with a unique title and calendar links', () => {
+		const manage = PUBLIC_FAQ_ITEMS.find((item) => item.id === 'manage-social-media');
+		const titles = PUBLIC_FAQ_ITEMS.map((item) => item.title);
+		const uniqueTitles = new Set(titles);
+
+		expect(manage?.title).toBe('How do I manage social media with OpenQuok?');
+		expect(uniqueTitles.size).toBe(titles.length);
+		expect(manage?.description).toContain(publicFaqHref.docsCalendar);
+		expect(manage?.description).toContain(publicFaqHref.docsKanban);
+		expect(manage?.description).toContain(publicFaqHref.channels);
+	});
+
 	it('links self-host FAQ answer to all three operator paths', () => {
 		const description =
 			PUBLIC_FAQ_ITEMS.find((item) => item.title === 'Can I self-host OpenQuok?')?.description ??

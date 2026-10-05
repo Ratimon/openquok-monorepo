@@ -29,6 +29,7 @@ import {
 	parsePublicFaqConfigModule,
 	resolvePublicFaqItemsVm
 } from '$lib/content/utils/parsePublicFaqConfig';
+import { PUBLIC_LANDING_SEO_KEYWORDS } from '$lib/seo/constants/publicLandingSeoKeywords';
 import { createMetaData, openGraphForPublicPage } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl } from '$lib/seo/buildCanonicalUrl';
 import { applyPublicCmsPageCacheHeaders } from '$lib/seo/publicCmsPageCache';
@@ -100,15 +101,7 @@ export const load: PageServerLoad = async ({ parent, url, fetch, cookies, setHea
 		marketingInformation: marketingInformationPm,
 		customTitle: `${customTitle} | ${companyName}`,
 		customDescription: heroDescription,
-		customTags: [
-			'social media scheduler',
-			'social media scheduling tool',
-			'schedule social media posts',
-			'social media scheduler free',
-			'post scheduler',
-			'social media posting tool',
-			'social media planning tool'
-		],
+		customTags: [...PUBLIC_LANDING_SEO_KEYWORDS],
 		requestUrl: url
 	});
 

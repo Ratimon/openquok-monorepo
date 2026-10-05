@@ -29,6 +29,8 @@ export type BuildingBlockDetailComponentProps = {
 	onRatingUpgradeRequired?: () => void;
 	/** OpenQuok pairing band — rendered after tags, above Install. */
 	openQuokHeroVm?: CreatorListingHeroVm | null;
+	/** SEO H1; falls back to `extensionVm.title` when omitted. */
+	heroTitle?: string;
 };
 
 export type BuildingBlockDetailComponent = Component<BuildingBlockDetailComponentProps>;

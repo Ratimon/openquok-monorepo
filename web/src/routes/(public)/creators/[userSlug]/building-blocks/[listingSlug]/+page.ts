@@ -23,10 +23,12 @@ export const load: PageLoad = async ({ parent, data }) => {
 			relatedBuildingBlocksVm: ExtensionCardViewModel[];
 			commentsVm: ListingCommentViewModel[];
 			schemaData: unknown;
+			heroTitle: string;
 		};
 
 		return {
 			pageMetaTags: serverData.pageMetaTags,
+			heroTitle: serverData.heroTitle,
 			isLoggedIn: accurateIsLoggedIn,
 			currentUser,
 			isPlatformAdmin,

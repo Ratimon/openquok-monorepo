@@ -49,6 +49,7 @@
 		onRatingSignInRequired?: () => void;
 		onRatingUpgradeRequired?: () => void;
 		openQuokHeroVm?: CreatorListingHeroVm | null;
+		heroTitle?: string;
 	};
 
 	let {
@@ -65,8 +66,11 @@
 		submittingRating = false,
 		onRatingSignInRequired,
 		onRatingUpgradeRequired,
-		openQuokHeroVm = null
+		openQuokHeroVm = null,
+		heroTitle
 	}: Props = $props();
+
+	const detailHeroTitle = $derived(heroTitle ?? extensionVm.title);
 
 	const faqItems = $derived(extensionVm.faq ?? []);
 	const mcpDescription = $derived(extensionVm.descriptionMcp);
@@ -134,7 +138,7 @@
 	<div class="space-y-3">
 		<div class="flex flex-wrap items-center gap-3">
 			<PublicListingDetailHeroTitle
-				title={extensionVm.title}
+				title={detailHeroTitle}
 				headingId="building-block-detail-heading"
 			/>
 			{#if onToggleBookmark}

@@ -9,12 +9,14 @@ import {
 	getRootPathPublicCreator,
 	getRootPathPublicCreatorBuildingBlock
 } from '$lib/area-public/constants/getRootPathPublicCreators';
-import {
-	CONFIG_SCHEMA_COMPANY,
-	CONFIG_SCHEMA_MARKETING
-} from '$lib/config/constants/config';
+import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { mergeListingSchemaIntoGraph } from '$lib/listings/index';
-import { resolveListingHeaderSummary } from '$lib/listings/utils/resolveListingHeaderSummary';
+import {
+	formatPublicCreatorListingHeroTitle,
+	formatPublicCreatorListingMetaDescription,
+	formatPublicCreatorListingMetaTitleBase,
+	formatPublicCreatorListingSeoKeywords
+} from '$lib/listings/utils/formatPublicCreatorListingSeoCopy';
 import { createMetaData, type MetaDataImage } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
 import { createJsonLdGraph } from '$lib/seo/jsonLdSchema';
@@ -55,9 +57,18 @@ export async function load({ url, params, cookies, fetch, parent }) {
 	const { companyInformationPm, marketingInformationPm } = await parent();
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 
-	const customTitle = `${buildingBlockVm.title} | ${companyName}`;
-	const customDescription =
-		resolveListingHeaderSummary(buildingBlockVm) ?? `Building block details for ${buildingBlockVm.title}.`;
+	const metaTitleBase = formatPublicCreatorListingMetaTitleBase(
+		buildingBlockVm.title,
+		'building-block',
+		buildingBlockVm.extensionType
+	);
+	const customTitle = `${metaTitleBase} | ${companyName}`;
+	const customDescription = formatPublicCreatorListingMetaDescription(
+		buildingBlockVm,
+		'building-block'
+	);
+	const heroTitle = formatPublicCreatorListingHeroTitle(buildingBlockVm.title, 'building-block');
+	const seoKeywords = formatPublicCreatorListingSeoKeywords(buildingBlockVm, 'building-block');
 
 	const customImages: MetaDataImage[] | undefined = buildingBlockVm.logoImageUrl
 		? [
@@ -79,19 +90,7 @@ export async function load({ url, params, cookies, fetch, parent }) {
 		customDescription,
 		customSlug: getRootPathPublicCreatorBuildingBlock(ownerUsername, buildingBlockVm.slug),
 		customImages,
-		customTags: [
-			buildingBlockVm.title,
-			buildingBlockVm.category?.name
-				? `${buildingBlockVm.category.name} building block`
-				: 'OpenQuok building block',
-			buildingBlockVm.extensionType === 'mcp'
-				? 'MCP server for social scheduling'
-				: buildingBlockVm.extensionType === 'both'
-					? 'skill and MCP for social scheduling'
-					: buildingBlockVm.extensionType === 'skills'
-						? 'agent skill for social scheduling'
-						: 'social media scheduling building block'
-		].filter(Boolean),
+		customTags: seoKeywords,
 		requestUrl: url
 	})) satisfies MetaTagsProps;
 
@@ -102,12 +101,12 @@ export async function load({ url, params, cookies, fetch, parent }) {
 	const ownerProfileUrl = new URL(`/${getRootPathPublicCreator(ownerUsername)}`, url.origin).href;
 	const pageMetaTags = withCanonicalMetaTags(metaTags, canonical, {
 		openGraph: {
-			title: customTitle,
+			title: metaTitleBase,
 			description: customDescription,
 			...(buildingBlockVm.logoImageUrl ? { images: [{ url: buildingBlockVm.logoImageUrl }] } : {})
 		},
 		twitter: {
-			title: customTitle,
+			title: metaTitleBase,
 			description: customDescription
 		}
 	});
@@ -118,7 +117,7 @@ export async function load({ url, params, cookies, fetch, parent }) {
 				{
 					'@type': 'WebPage',
 					'@id': `${canonical}#webpage`,
-					name: buildingBlockVm.title,
+					name: metaTitleBase,
 					description: customDescription,
 					url: canonical,
 					author: {
@@ -146,6 +145,7 @@ export async function load({ url, params, cookies, fetch, parent }) {
 	return {
 		pageMetaTags,
 		isLoggedIn,
+		heroTitle,
 		buildingBlockVm,
 		relatedBuildingBlocksVm,
 		commentsVm: commentsVm,

@@ -113,10 +113,13 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'Dev.to',
 	'channels',
 	'Shorts',
+	'link previews',
 	'reels',
 	'tweets',
 	'X',
+	'Reel',
 	'Reels',
+	'Story',
 	'Storys',
 	'@mentions',
 	// Protected account app heroes
