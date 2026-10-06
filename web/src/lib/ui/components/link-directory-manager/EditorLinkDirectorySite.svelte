@@ -39,6 +39,8 @@
 	import { parseOptionalIntFormField, trimFormField } from '$lib/utils/trimFormField';
 	import { route, url } from '$lib/utils/path';
 
+	import { icons } from '$data/icons';
+	import ActionVerificationModal from '$lib/ui/modals/ActionVerificationModal.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import ProviderHttpUrlInput from '$lib/ui/components/posts/providers/ProviderHttpUrlInput.svelte';
 	import { Textarea } from '$lib/ui/textarea';
@@ -306,18 +308,27 @@
 		await onOpportunityChange?.();
 	}
 
-	async function deleteOpportunity(opportunityId: string) {
-		const result = await linkDirectoryRepository.deleteOpportunity(opportunityId);
-		if (!result.ok) {
-			toast.error(result.error ?? 'Failed to delete opportunity.');
-			return;
-		}
-		opportunities = opportunities.filter((o) => o.id !== opportunityId);
-		await onOpportunityChange?.();
+	let deleteOpportunityModalOpen = $state(false);
+	let selectedOpportunityToDelete = $state<LinkDirectoryOpportunityDto | null>(null);
+
+	function openDeleteOpportunityModal(opportunity: LinkDirectoryOpportunityDto) {
+		selectedOpportunityToDelete = opportunity;
+		deleteOpportunityModalOpen = true;
 	}
 </script>
 
 <form class="space-y-6" onsubmit={handleSubmit}>
+	<div class="sticky top-0 z-40 flex items-center justify-end">
+		<div class="flex flex-wrap items-center justify-end gap-2 rounded-lg bg-base-200 p-4">
+			<Button type="submit" variant="primary" disabled={submitting} aria-busy={submitting} class="gap-2">
+				{#if submitting}
+					<span class="loading loading-spinner loading-sm shrink-0"></span>
+				{/if}
+				{site?.id ? 'Save site' : 'Create site'}
+			</Button>
+		</div>
+	</div>
+
 	<div class="grid gap-4 md:grid-cols-2">
 		<label class="form-control">
 			<span class="label-text text-sm">Title</span>
@@ -477,10 +488,6 @@
 			Admin published
 		</label>
 	</div>
-
-	<Button type="submit" variant="primary" disabled={submitting}>
-		{submitting ? 'Saving…' : site?.id ? 'Save site' : 'Create site'}
-	</Button>
 </form>
 
 {#if site?.id}
@@ -534,11 +541,37 @@
 								existingOpportunities={opportunities}
 								onSaved={handleOpportunitySaved}
 							/>
-							<Button variant="ghost" size="sm" onclick={() => deleteOpportunity(opportunity.id)}>Delete</Button>
+							<Button variant="ghost" size="sm" onclick={() => openDeleteOpportunityModal(opportunity)}
+								>Delete</Button
+							>
 						</div>
 					</li>
 				{/each}
 			</ul>
 		{/if}
 	</section>
+{/if}
+
+{#if selectedOpportunityToDelete}
+	<ActionVerificationModal
+		data={{ opportunityId: selectedOpportunityToDelete.id }}
+		bind:open={deleteOpportunityModalOpen}
+		executionFunction={async () => {
+			const opportunityId = selectedOpportunityToDelete!.id;
+			const result = await linkDirectoryRepository.deleteOpportunity(opportunityId);
+			if (result.ok) {
+				opportunities = opportunities.filter((o) => o.id !== opportunityId);
+				await onOpportunityChange?.();
+				selectedOpportunityToDelete = null;
+				return { success: true, message: 'Opportunity deleted.' };
+			}
+			return { success: false, message: result.error ?? 'Failed to delete opportunity.' };
+		}}
+		buttonIconName={icons.Trash.name}
+		buttonText=""
+		modalTitle="Delete opportunity"
+		modalDescription={`Remove “${selectedOpportunityToDelete.title}” from this site guide. This cannot be undone.`}
+		modalVerficationWithAnswer={true}
+		modalVerificationAnswer="YES"
+	/>
 {/if}
