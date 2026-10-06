@@ -13,6 +13,10 @@ export const LINK_DIRECTORY_SITE_STAT_PATH =
 export const LINK_DIRECTORY_SITE_COMMENTS_PATH =
     /^\/link-directory\/sites\/[0-9a-f-]{36}\/comments$/i;
 
+/** Cache-Control for editor-managed public detail GETs (blog post, listing/stack slug, link-directory site). */
+export const EDITOR_MANAGED_PUBLIC_DETAIL_CACHE_CONTROL =
+    "private, no-cache, must-revalidate";
+
 /** Prefix trees that skip user JWT auth (any HTTP method unless narrowed below). */
 export const PUBLIC_PATH_PREFIXES = [
     "/auth",
@@ -156,6 +160,40 @@ export const isAuthExemptRoute = (req: Request, routePath: string): boolean => {
 export const isPublicReadGet = (req: Request, routePath: string): boolean => {
     if (req.method !== "GET") return false;
     return isAuthExemptRoute(req, routePath);
+};
+
+/**
+ * Public CMS detail routes whose body changes in secret-admin (path-only; no request method).
+ * Hub/list indexes and taxonomy stay on default cache — see `resolvePublicCmsCacheControl`.
+ */
+export const isEditorManagedPublicDetailRoute = (routePath: string): boolean => {
+    if (routePath.startsWith(LINK_DIRECTORY_PUBLISHED_PREFIX)) {
+        if (routePath === "/link-directory/published/stats") return false;
+        return routePath.length > LINK_DIRECTORY_PUBLISHED_PREFIX.length;
+    }
+
+    if (routePath.startsWith(BLOG_POSTS_PREFIX)) {
+        const remainder = routePath.slice(BLOG_POSTS_PREFIX.length);
+        if (!remainder) return false;
+        if (!remainder.includes("/")) return true;
+        return /^[^/]+\/comments$/.test(remainder);
+    }
+
+    if (
+        routePath.startsWith(LISTINGS_PUBLISHED_PREFIX) &&
+        routePath.length > LISTINGS_PUBLISHED_PREFIX.length
+    ) {
+        return true;
+    }
+
+    if (
+        routePath.startsWith(LISTINGS_STACKS_PUBLISHED_PREFIX) &&
+        routePath.length > LISTINGS_STACKS_PUBLISHED_PREFIX.length
+    ) {
+        return true;
+    }
+
+    return false;
 };
 
 /** Anonymous write routes that use the dedicated public write limiter. */

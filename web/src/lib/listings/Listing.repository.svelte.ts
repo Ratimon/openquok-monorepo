@@ -1,5 +1,8 @@
 import { HttpGateway, HttpMethod, withClientErrorFallback, withOptionalCmsFallback } from '$lib/core/HttpGateway';
-import { publicCmsServerRequestOptions } from '$lib/core/publicCmsFetch';
+import {
+	publicCmsEditorManagedDetailRequestOptions,
+	publicCmsServerRequestOptions
+} from '$lib/core/publicCmsFetch';
 
 import {
 	getDefaultSchemaTypeForListingKind,
@@ -757,7 +760,7 @@ export class ListingRepository {
 		const { data: getPublishedBySlugDto, ok } = await this.httpGateway.get<GetListingResponseDto>(
 			this.config.endpoints.getPublishedBySlug(slug),
 			undefined,
-			publicCmsServerRequestOptions(fetch)
+			publicCmsEditorManagedDetailRequestOptions(fetch)
 		);
 		if (ok && getPublishedBySlugDto?.success && getPublishedBySlugDto.data) {
 			return this.toListingPm(getPublishedBySlugDto.data);
@@ -806,7 +809,7 @@ export class ListingRepository {
 		const { data: getPublishedStackDto, ok } = await this.httpGateway.get<GetListingResponseDto>(
 			this.config.endpoints.getPublishedStackBySlug(slug),
 			undefined,
-			publicCmsServerRequestOptions(fetch)
+			publicCmsEditorManagedDetailRequestOptions(fetch)
 		);
 		if (ok && getPublishedStackDto?.success && getPublishedStackDto.data) {
 			return this.toListingPm(getPublishedStackDto.data);

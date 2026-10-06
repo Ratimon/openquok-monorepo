@@ -1,7 +1,11 @@
 import type { Request, Response } from "express";
 
 import { config } from "../../config/GlobalConfig";
-import { isPublicReadGet } from "../../middlewares/publicRouteRegistry";
+import {
+    EDITOR_MANAGED_PUBLIC_DETAIL_CACHE_CONTROL,
+    isEditorManagedPublicDetailRoute,
+    isPublicReadGet,
+} from "../../middlewares/publicRouteRegistry";
 
 export interface PublicCmsCacheConfig {
     enabled?: boolean;
@@ -53,6 +57,11 @@ export const resolvePublicCmsCacheControl = (req: Request, routePath: string): s
         const maxAge = cmsCache.imageMaxAgeSeconds ?? 3600;
         const swr = cmsCache.imageStaleWhileRevalidateSeconds ?? 86400;
         return buildCacheControlHeader(maxAge, swr);
+    }
+
+    // Editor-managed detail (blog post/comments, listing/stack slug, link-directory site) — no CDN/browser cache.
+    if (isEditorManagedPublicDetailRoute(routePath)) {
+        return EDITOR_MANAGED_PUBLIC_DETAIL_CACHE_CONTROL;
     }
 
     const maxAge = cmsCache.maxAgeSeconds ?? 60;

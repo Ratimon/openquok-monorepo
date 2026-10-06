@@ -2,6 +2,7 @@ import type { Request } from "express";
 
 import {
     isAuthExemptRoute,
+    isEditorManagedPublicDetailRoute,
     isPublicReadGet,
     isPublicWriteRoute,
     normalizeApiRoutePath,
@@ -231,6 +232,36 @@ describe("publicRouteRegistry", () => {
             expect(normalizeApiRoutePath("/api/v1/company/information/", "/api/v1")).toBe(
                 "/company/information"
             );
+        });
+    });
+
+    describe("isEditorManagedPublicDetailRoute", () => {
+        const detailRoutes = [
+            "/blog-system/posts/how-to-edit-video",
+            "/blog-system/posts/550e8400-e29b-41d4-a716-446655440000/comments",
+            "/listings/published/openquok-playbook",
+            "/listings/stacks/published/my-stack",
+            "/link-directory/published/facebook",
+        ];
+
+        const nonDetailRoutes = [
+            "/blog-system/posts",
+            "/blog-system/rss",
+            "/blog-system/posts/my-post/activity",
+            "/listings/published",
+            "/listings/stacks/published",
+            "/listings/creators/openquok",
+            "/link-directory/published",
+            "/link-directory/published/stats",
+            "/users/me",
+        ];
+
+        it.each(detailRoutes)("returns true for editor-managed detail %s", (path) => {
+            expect(isEditorManagedPublicDetailRoute(path)).toBe(true);
+        });
+
+        it.each(nonDetailRoutes)("returns false for hub, taxonomy, or protected %s", (path) => {
+            expect(isEditorManagedPublicDetailRoute(path)).toBe(false);
         });
     });
 });

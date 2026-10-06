@@ -16,6 +16,7 @@
 		buildLinkDirectoryLogoPublicUrl,
 		resolveLinkDirectoryLogoStorageKey
 	} from '$lib/link-directory/utils/linkDirectoryLogoImages';
+	import { sortLinkDirectoryOpportunitySteps } from '$lib/link-directory/utils/normalizeLinkDirectoryOpportunityStepsForSave';
 	import {
 		shouldSyncSlugFromTitle,
 		slugFromTitle
@@ -82,7 +83,6 @@
 	let title = $state('');
 	let siteUrl = $state('');
 	let logoStorageKey = $state('');
-	let logoExternalUrl = $state('');
 	let shortDescription = $state('');
 	let longDescription = $state('');
 	let domainRating = $state('');
@@ -156,13 +156,7 @@
 	function hydrateLogoFieldsFromUrl(raw: string) {
 		const trimmed = raw.trim();
 		const storageKey = trimmed ? resolveLinkDirectoryLogoStorageKey(trimmed) : null;
-		if (storageKey) {
-			logoStorageKey = storageKey;
-			logoExternalUrl = '';
-			return;
-		}
-		logoStorageKey = '';
-		logoExternalUrl = trimmed;
+		logoStorageKey = storageKey ?? '';
 	}
 
 	function onSlugFieldInput() {
@@ -176,26 +170,8 @@
 		if (normalized !== siteUrl) siteUrl = normalized;
 	}
 
-	function normalizeLogoExternalUrlOnBlur() {
-		const trimmed = logoExternalUrl.trim();
-		if (!trimmed) return;
-		const normalized = normalizeHttpUrlInputIfLikely(trimmed);
-		if (normalized !== logoExternalUrl) logoExternalUrl = normalized;
-	}
-
 	function onLogoStorageKeyChange(nextKey: string) {
 		logoStorageKey = nextKey;
-		if (nextKey.trim()) {
-			logoExternalUrl = '';
-		}
-	}
-
-	function onLogoExternalUrlInput() {
-		if (logoExternalUrl.trim()) {
-			logoStorageKey = '';
-			logoUploadRef?.clearPendingLocalFile?.();
-			logoImagePresenter.reset();
-		}
 	}
 
 	const handleLoadLogoImage = async (databaseName: DatabaseName, imageUrl: string) => {
@@ -227,14 +203,13 @@
 			return buildLinkDirectoryLogoPublicUrl(uploadedPath);
 		}
 
-		const external = normalizeHttpUrlInputIfLikely(logoExternalUrl.trim());
-		if (external) {
-			if (external !== logoExternalUrl) logoExternalUrl = external;
-			return external;
-		}
-
 		if (logoStorageKey.trim()) {
 			return buildLinkDirectoryLogoPublicUrl(logoStorageKey);
+		}
+
+		const existingLogo = site?.logoUrl?.trim() ?? '';
+		if (existingLogo && !resolveLinkDirectoryLogoStorageKey(existingLogo)) {
+			return existingLogo;
 		}
 
 		return null;
@@ -384,7 +359,8 @@
 		<div class="form-control md:col-span-2 space-y-3">
 			<span class="label-text text-sm">Site logo</span>
 			<p class="text-xs text-base-content/70">
-				Upload a square logo (shown at 56×56 on the Build Backlinks hub). Saved as a public URL in the catalog.
+				Upload a square logo (shown at 56×56 on the Build Backlinks hub). Stored in link_directory_logos and
+				served as a public catalog URL.
 			</p>
 			<SupabaseImageUploadArea
 				bind:this={logoUploadRef}
@@ -403,21 +379,6 @@
 				onToastMessageChange={(show) => (logoImagePresenter.uploadAreaVm.showToastMessage = show)}
 				onReset={() => logoImagePresenter.reset()}
 			/>
-			<div class="flex items-center gap-3">
-				<div class="bg-base-300 h-px flex-1"></div>
-				<span class="text-base-content/50 text-xs">or paste external logo URL</span>
-				<div class="bg-base-300 h-px flex-1"></div>
-			</div>
-			<label class="form-control">
-				<span class="label-text text-sm">External logo URL</span>
-				<ProviderHttpUrlInput
-					id="link-directory-external-logo-url"
-					bind:value={logoExternalUrl}
-					placeholder="https://…"
-					oninput={onLogoExternalUrlInput}
-					onblur={normalizeLogoExternalUrlOnBlur}
-				/>
-			</label>
 		</div>
 		<label class="form-control md:col-span-2">
 			<span class="label-text text-sm">Sort order (catalog promotion)</span>
@@ -538,13 +499,32 @@
 		{:else}
 			<ul class="space-y-3">
 				{#each opportunities as opportunity (opportunity.id)}
+					{@const playbookSteps = sortLinkDirectoryOpportunitySteps(opportunity.steps)}
 					<li class="border border-base-300 rounded-xl p-4 flex flex-wrap items-start justify-between gap-3">
-						<div>
+						<div class="min-w-0 flex-1">
 							<p class="font-medium">{opportunity.title}</p>
 							<p class="text-xs font-mono text-base-content/60">{opportunity.slug}</p>
 							<p class="text-sm text-base-content/70 mt-1">
 								{opportunity.opportunityType?.label ?? 'Type'} · {opportunity.effort} · {opportunity.costTier}
 							</p>
+							{#if playbookSteps.length > 0}
+								<ol class="mt-3 space-y-1.5 border-t border-base-300/60 pt-3">
+									{#each playbookSteps as step, stepIndex (step.order)}
+										<li class="text-sm text-base-content/75">
+											<span class="font-medium text-base-content/85">
+												{stepIndex + 1}. {step.title}
+											</span>
+											{#if step.body.trim()}
+												<span class="text-base-content/65"> — {step.body}</span>
+											{/if}
+										</li>
+									{/each}
+								</ol>
+							{:else}
+								<p class="mt-2 text-xs text-base-content/50">
+									No playbook steps — the public guide falls back to this opportunity title and description.
+								</p>
+							{/if}
 						</div>
 						<div class="flex gap-2">
 							<LinkDirectoryOpportunityUpsertModal

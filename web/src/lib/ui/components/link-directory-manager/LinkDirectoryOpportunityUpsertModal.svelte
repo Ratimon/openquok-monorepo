@@ -2,6 +2,7 @@
 	import type {
 		LinkDirectoryCtaKind,
 		LinkDirectoryOpportunityDto,
+		LinkDirectoryOpportunityStepDto,
 		LinkDirectoryOpportunityTypeDto
 	} from '$lib/link-directory/link-directory.types';
 	import { linkDirectoryOpportunityFormSchema } from '$lib/link-directory/link-directory-admin.types';
@@ -11,6 +12,10 @@
 		shouldSyncSlugFromTitle,
 		slugFromTitle
 	} from '$lib/link-directory/utils/linkDirectoryAdminSlugSync';
+	import {
+		normalizeLinkDirectoryOpportunityStepsForSave,
+		sortLinkDirectoryOpportunitySteps
+	} from '$lib/link-directory/utils/normalizeLinkDirectoryOpportunityStepsForSave';
 
 	import { normalizeHttpUrlInputIfLikely } from '$lib/utils/normalizeHttpUrlInput';
 	import { toast } from '$lib/ui/sonner';
@@ -22,6 +27,7 @@
 	import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '$lib/ui/dialog';
 
 	import LinkDirectoryOpenQuokChannelSelect from '$lib/ui/components/link-directory-manager/LinkDirectoryOpenQuokChannelSelect.svelte';
+	import LinkDirectoryOpportunityStepsEditor from '$lib/ui/components/link-directory-manager/LinkDirectoryOpportunityStepsEditor.svelte';
 
 	const opportunitySortOrderHint =
 		'Playbook order on site guide (10, 20, 30…).';
@@ -61,6 +67,9 @@
 	let openquokPlugName = $state('');
 	let ctaHref = $state('');
 	let ctaLabel = $state('');
+	let playbookSteps = $state<LinkDirectoryOpportunityStepDto[]>([]);
+	/** Bumps when the dialog opens so the steps editor remounts after sync hydrate. */
+	let stepsEditorSession = $state(0);
 
 	const showExternalLinkFields = $derived(
 		openquokCtaKind === 'none' || openquokCtaKind === 'external_doc'
@@ -71,10 +80,7 @@
 	const showPlugName = $derived(openquokCtaKind === 'use_plug');
 	const externalHrefRequired = $derived(openquokCtaKind === 'external_doc');
 
-	$effect(() => {
-		if (!dialogOpen) {
-			return;
-		}
+	function hydrateFormFromOpportunity() {
 		const isEdit = Boolean(opportunity?.id);
 		slugManuallyEdited = isEdit;
 		slug = opportunity?.slug ?? '';
@@ -94,7 +100,14 @@
 		sortOrder = isEdit
 			? (opportunity?.sortOrder ?? 10)
 			: defaultLinkDirectoryOpportunitySortOrder(existingOpportunities);
-	});
+		playbookSteps = sortLinkDirectoryOpportunitySteps(opportunity?.steps);
+	}
+
+	function openDialog() {
+		hydrateFormFromOpportunity();
+		stepsEditorSession += 1;
+		dialogOpen = true;
+	}
 
 	$effect(() => {
 		if (!dialogOpen) {
@@ -126,6 +139,7 @@
 		const parsedSortOrder = Number(sortOrder);
 		const normalizedCtaHref = normalizeHttpUrlInputIfLikely(ctaHref.trim());
 		if (normalizedCtaHref !== ctaHref) ctaHref = normalizedCtaHref;
+		const normalizedSteps = normalizeLinkDirectoryOpportunityStepsForSave(playbookSteps);
 		const payload = {
 			...(opportunity?.id ? { id: opportunity.id } : {}),
 			slug: resolvedSlug,
@@ -138,7 +152,7 @@
 			description: description.trim() || null,
 			is_admin_published: isPublished,
 			sort_order: Number.isFinite(parsedSortOrder) ? Math.trunc(parsedSortOrder) : 0,
-			steps: opportunity?.steps ?? [],
+			steps: normalizedSteps,
 			openquok_cta_kind: openquokCtaKind,
 			openquok_channel_slug: openquokChannelSlug.trim() || null,
 			openquok_plug_name: openquokPlugName.trim() || null,
@@ -193,7 +207,7 @@
 	}
 </script>
 
-<Button variant={opportunity ? 'ghost' : 'outline'} size="sm" onclick={() => (dialogOpen = true)}>
+<Button variant={opportunity ? 'ghost' : 'outline'} size="sm" onclick={openDialog}>
 	{opportunity ? 'Edit' : 'Add opportunity'}
 </Button>
 
@@ -271,6 +285,17 @@
 				<span class="label-text text-sm">Description</span>
 				<Textarea bind:value={description} rows={3} />
 			</label>
+
+			{#if dialogOpen}
+				{#key `${opportunity?.id ?? 'new'}-${stepsEditorSession}`}
+					<LinkDirectoryOpportunityStepsEditor
+						initialSteps={playbookSteps}
+						onChange={(next) => {
+							playbookSteps = next;
+						}}
+					/>
+				{/key}
+			{/if}
 
 			<fieldset class="space-y-3 rounded-xl border border-base-300 p-4">
 				<legend class="px-1 text-sm font-medium">OpenQuok CTA (site guide row)</legend>

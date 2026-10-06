@@ -9016,11 +9016,14 @@ var init_LinkDirectoryRepository = __esm({
       }
       async updateOpportunity(payload) {
         const { id, ...fields } = payload;
-        const { data, error } = await this.supabase.from(TABLE_OPPORTUNITIES).update({
+        const updateRow = {
           ...fields,
-          slug: fields.slug ?? stringToSlug(payload.title),
-          steps: fields.steps ?? void 0
-        }).eq("id", id).select("id").single();
+          slug: fields.slug ?? stringToSlug(payload.title)
+        };
+        if (fields.steps !== void 0) {
+          updateRow.steps = fields.steps;
+        }
+        const { data, error } = await this.supabase.from(TABLE_OPPORTUNITIES).update(updateRow).eq("id", id).select("id").single();
         if (error) {
           if (error.message.includes("duplicate key value")) {
             throw new ValidationError("An opportunity with this slug already exists on this site.");
@@ -14295,8 +14298,9 @@ var init_BlogService = __esm({
     };
     BLOG_CACHE_TTL_SEC = 300;
     BlogService = class {
-      constructor(blogRepository3, cache, cacheInvalidator, configRepository2, subscriptionGuard2) {
+      constructor(blogRepository3, internalOpsEmailService2, cache, cacheInvalidator, configRepository2, subscriptionGuard2) {
         this.blogRepository = blogRepository3;
+        this.internalOpsEmailService = internalOpsEmailService2;
         this.cache = cache;
         this.cacheInvalidator = cacheInvalidator;
         this.configRepository = configRepository2;
@@ -14603,7 +14607,7 @@ var init_BlogService = __esm({
        * Payload must contain post_id (schema refine enforces on create). No id validation here—repo/DB surfaces errors.
        * Invalidates the post's by-id cache so post detail (e.g. with comments) stays fresh.
        */
-      async createBlogComment(payload, userId, authUserId) {
+      async createBlogComment(payload, userId, authUserId, userEmail) {
         if (authUserId?.trim() && this.subscriptionGuard) {
           await this.subscriptionGuard.assert(SubscriptionSection.COMMUNITY_FEATURES, {
             scope: "account",
@@ -14618,6 +14622,24 @@ var init_BlogService = __esm({
         await this._invalidatePostCacheForComment({ postId });
         await this._invalidateAdminCommentsListCaches();
         await this.trackBlogActivity(postId, "comment", userId);
+        let postSlug = null;
+        let postTitle = null;
+        try {
+          const { data: post } = await this.blogRepository.findBlogPostByBlogId(postId);
+          postSlug = post.slug;
+          postTitle = post.title;
+        } catch {
+        }
+        this.internalOpsEmailService.notifyBlogCommentCreated({
+          commentId: result.id,
+          postId,
+          postSlug,
+          postTitle,
+          content: payload.content,
+          userId,
+          userEmail,
+          parentId: payload.parent_id ?? null
+        });
         return result;
       }
       /**
@@ -15226,9 +15248,10 @@ var init_ListingService = __esm({
     };
     LISTING_CACHE_TTL_SEC = 300;
     ListingService = class {
-      constructor(listingRepository2, listingCategoryRepository2, cache, cacheInvalidator, configRepository2, subscriptionGuard2, userRepository2) {
+      constructor(listingRepository2, listingCategoryRepository2, internalOpsEmailService2, cache, cacheInvalidator, configRepository2, subscriptionGuard2, userRepository2) {
         this.listingRepository = listingRepository2;
         this.listingCategoryRepository = listingCategoryRepository2;
+        this.internalOpsEmailService = internalOpsEmailService2;
         this.cache = cache;
         this.cacheInvalidator = cacheInvalidator;
         this.configRepository = configRepository2;
@@ -15587,7 +15610,7 @@ var init_ListingService = __esm({
         if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
         return factory();
       }
-      async createListingComment(payload, userId, authUserId) {
+      async createListingComment(payload, userId, authUserId, userEmail) {
         await this._assertCommunityFeatures(authUserId);
         const result = await this.listingRepository.createListingComment(payload, userId);
         await this.listingRepository.insertListingActivity(payload.listing_id, "comment", userId);
@@ -15597,6 +15620,24 @@ var init_ListingService = __esm({
           );
           await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS8.LISTING_ADMIN_COMMENTS_LIST}:*`);
         }
+        let listingSlug = null;
+        let listingTitle = null;
+        try {
+          const listing = await this.getListingById(payload.listing_id);
+          listingSlug = listing.slug ?? null;
+          listingTitle = listing.title ?? null;
+        } catch {
+        }
+        this.internalOpsEmailService.notifyListingCommentCreated({
+          commentId: result.id,
+          listingId: payload.listing_id,
+          listingSlug,
+          listingTitle,
+          content: payload.content,
+          userId,
+          userEmail,
+          parentId: payload.parent_id ?? null
+        });
         return { id: result.id };
       }
       async upsertListingRating(listingId, rating, userId, authUserId) {
@@ -15848,11 +15889,12 @@ var init_LinkDirectoryService = __esm({
     init_InfraError();
     init_dist();
     LinkDirectoryService = class {
-      constructor(linkDirectoryRepository2, categoryRepository, tagRepository, subscriptionGuard2) {
+      constructor(linkDirectoryRepository2, categoryRepository, tagRepository, subscriptionGuard2, internalOpsEmailService2) {
         this.linkDirectoryRepository = linkDirectoryRepository2;
         this.categoryRepository = categoryRepository;
         this.tagRepository = tagRepository;
         this.subscriptionGuard = subscriptionGuard2;
+        this.internalOpsEmailService = internalOpsEmailService2;
       }
       async assertPublishedSiteForEngagement(siteId) {
         await this.linkDirectoryRepository.assertPublishedSiteIds([siteId]);
@@ -15889,7 +15931,16 @@ var init_LinkDirectoryService = __esm({
         return data;
       }
       async createSubmission(payload, userId) {
-        return this.linkDirectoryRepository.createSubmission(payload, userId);
+        const submissionId = await this.linkDirectoryRepository.createSubmission(payload, userId);
+        this.internalOpsEmailService.notifyLinkDirectorySubmissionCreated({
+          submissionId,
+          siteUrl: payload.site_url,
+          email: payload.email,
+          proposedTitle: payload.proposed_title,
+          notes: payload.notes,
+          userId: userId ?? void 0
+        });
+        return submissionId;
       }
       async getAdminSites(options2) {
         const { data, count } = await this.linkDirectoryRepository.findAdminSites(options2);
@@ -16009,10 +16060,28 @@ var init_LinkDirectoryService = __esm({
         const { data } = await this.linkDirectoryRepository.findSiteComments(siteId);
         return data;
       }
-      async createSiteComment(siteId, payload, userId, authUserId) {
+      async createSiteComment(siteId, payload, userId, authUserId, userEmail) {
         await this.assertPublishedSiteForEngagement(siteId);
         await this.assertCommunityFeatures(authUserId);
         const result = await this.linkDirectoryRepository.createSiteComment(siteId, payload, userId);
+        let siteSlug = null;
+        let siteTitle = null;
+        try {
+          const site = await this.getSiteById(siteId);
+          siteSlug = site.slug;
+          siteTitle = site.title;
+        } catch {
+        }
+        this.internalOpsEmailService.notifyLinkDirectorySiteCommentCreated({
+          commentId: result.id,
+          siteId,
+          siteSlug,
+          siteTitle,
+          content: payload.content,
+          userId,
+          userEmail,
+          parentId: payload.parentId ?? null
+        });
         return { id: result.id };
       }
       async upsertSiteRating(siteId, rating, userId, authUserId) {
@@ -30927,6 +30996,72 @@ var init_InternalOpsEmailService = __esm({
           replyTo: payload.userEmail
         });
       }
+      notifyLinkDirectorySubmissionCreated(payload) {
+        const lines = [
+          `Submission id: ${payload.submissionId}`,
+          `Site URL: ${payload.siteUrl}`,
+          `Email: ${payload.email}`,
+          payload.proposedTitle ? `Proposed title: ${payload.proposedTitle}` : null,
+          payload.notes ? `Notes: ${payload.notes}` : null,
+          payload.userId ? `User id: ${payload.userId}` : null
+        ].filter((line) => Boolean(line));
+        void this.sendOpsAlert({
+          subject: "OpenQuok: build-backlinks site suggestion",
+          text: lines.join("\n"),
+          replyTo: payload.email
+        });
+      }
+      notifyLinkDirectorySiteCommentCreated(payload) {
+        const lines = [
+          `Comment id: ${payload.commentId}`,
+          `Site id: ${payload.siteId}`,
+          payload.siteSlug ? `Site slug: ${payload.siteSlug}` : null,
+          payload.siteTitle ? `Site title: ${payload.siteTitle}` : null,
+          `Content: ${payload.content}`,
+          `User id: ${payload.userId}`,
+          payload.userEmail ? `User email: ${payload.userEmail}` : null,
+          payload.parentId ? `Parent comment id: ${payload.parentId}` : null
+        ].filter((line) => Boolean(line));
+        void this.sendOpsAlert({
+          subject: "OpenQuok: build-backlinks comment",
+          text: lines.join("\n"),
+          replyTo: payload.userEmail
+        });
+      }
+      notifyBlogCommentCreated(payload) {
+        const lines = [
+          `Comment id: ${payload.commentId}`,
+          `Post id: ${payload.postId}`,
+          payload.postSlug ? `Post slug: ${payload.postSlug}` : null,
+          payload.postTitle ? `Post title: ${payload.postTitle}` : null,
+          `Content: ${payload.content}`,
+          `User id: ${payload.userId}`,
+          payload.userEmail ? `User email: ${payload.userEmail}` : null,
+          payload.parentId ? `Parent comment id: ${payload.parentId}` : null
+        ].filter((line) => Boolean(line));
+        void this.sendOpsAlert({
+          subject: "OpenQuok: blog comment",
+          text: lines.join("\n"),
+          replyTo: payload.userEmail
+        });
+      }
+      notifyListingCommentCreated(payload) {
+        const lines = [
+          `Comment id: ${payload.commentId}`,
+          `Listing id: ${payload.listingId}`,
+          payload.listingSlug ? `Listing slug: ${payload.listingSlug}` : null,
+          payload.listingTitle ? `Listing title: ${payload.listingTitle}` : null,
+          `Content: ${payload.content}`,
+          `User id: ${payload.userId}`,
+          payload.userEmail ? `User email: ${payload.userEmail}` : null,
+          payload.parentId ? `Parent comment id: ${payload.parentId}` : null
+        ].filter((line) => Boolean(line));
+        void this.sendOpsAlert({
+          subject: "OpenQuok: creator listing comment",
+          text: lines.join("\n"),
+          replyTo: payload.userEmail
+        });
+      }
       async resolveRecipients() {
         const override = config.ops?.alertEmail?.trim();
         if (override) {
@@ -31244,6 +31379,7 @@ var init_services = __esm({
     subscriptionService.setIntegrationService(integrationService);
     blogService = new BlogService(
       blogRepository,
+      internalOpsEmailService,
       cacheServiceConnection,
       cacheInvalidationServiceConnection,
       configRepository,
@@ -31252,6 +31388,7 @@ var init_services = __esm({
     listingService = new ListingService(
       listingRepository,
       listingCategoryRepository,
+      internalOpsEmailService,
       cacheServiceConnection,
       cacheInvalidationServiceConnection,
       configRepository,
@@ -31267,7 +31404,8 @@ var init_services = __esm({
       linkDirectoryRepository,
       linkDirectoryCategoryRepository,
       linkDirectoryTagRepository,
-      subscriptionGuard
+      subscriptionGuard,
+      internalOpsEmailService
     );
     userSessionService = new UserSessionService(
       organizationRepository,
@@ -31410,7 +31548,7 @@ var init_generateBlogRSSFeed = __esm({
 });
 
 // middlewares/publicRouteRegistry.ts
-var BLOG_POSTS_PREFIX, BLOG_POST_ACTIVITY_PATH, LISTINGS_PUBLISHED_PREFIX, LISTINGS_STACKS_PUBLISHED_PREFIX, LINK_DIRECTORY_PUBLISHED_PREFIX, LISTING_STAT_PATH, LISTING_COMMENTS_PATH, LINK_DIRECTORY_SITE_STAT_PATH, LINK_DIRECTORY_SITE_COMMENTS_PATH, PUBLIC_PATH_PREFIXES, PUBLIC_PATH_EXACT, BYPASS_PATHS, matchesPublicPathPrefix, matchesPublicPathExact, isPublicImageDownloadGet, isAuthExemptRoute, isPublicReadGet, isPublicWriteRoute, isPublicApiPath, isUploadPath, isIntegrationConnectPath, LISTING_BOOKMARK_MUTATION_PATH, LINK_DIRECTORY_SAVED_SITE_OUTREACH_PATH, isBookmarkSavedMutationRoute, isWebhookPath, hasDedicatedRateLimiter, normalizeApiRoutePath;
+var BLOG_POSTS_PREFIX, BLOG_POST_ACTIVITY_PATH, LISTINGS_PUBLISHED_PREFIX, LISTINGS_STACKS_PUBLISHED_PREFIX, LINK_DIRECTORY_PUBLISHED_PREFIX, LISTING_STAT_PATH, LISTING_COMMENTS_PATH, LINK_DIRECTORY_SITE_STAT_PATH, LINK_DIRECTORY_SITE_COMMENTS_PATH, EDITOR_MANAGED_PUBLIC_DETAIL_CACHE_CONTROL, PUBLIC_PATH_PREFIXES, PUBLIC_PATH_EXACT, BYPASS_PATHS, matchesPublicPathPrefix, matchesPublicPathExact, isPublicImageDownloadGet, isAuthExemptRoute, isPublicReadGet, isEditorManagedPublicDetailRoute, isPublicWriteRoute, isPublicApiPath, isUploadPath, isIntegrationConnectPath, LISTING_BOOKMARK_MUTATION_PATH, LINK_DIRECTORY_SAVED_SITE_OUTREACH_PATH, isBookmarkSavedMutationRoute, isWebhookPath, hasDedicatedRateLimiter, normalizeApiRoutePath;
 var init_publicRouteRegistry = __esm({
   "middlewares/publicRouteRegistry.ts"() {
     BLOG_POSTS_PREFIX = "/blog-system/posts/";
@@ -31422,6 +31560,7 @@ var init_publicRouteRegistry = __esm({
     LISTING_COMMENTS_PATH = /^\/listings\/[0-9a-f-]{36}\/comments$/i;
     LINK_DIRECTORY_SITE_STAT_PATH = /^\/link-directory\/sites\/[0-9a-f-]{36}\/(views|likes)$/i;
     LINK_DIRECTORY_SITE_COMMENTS_PATH = /^\/link-directory\/sites\/[0-9a-f-]{36}\/comments$/i;
+    EDITOR_MANAGED_PUBLIC_DETAIL_CACHE_CONTROL = "private, no-cache, must-revalidate";
     PUBLIC_PATH_PREFIXES = [
       "/auth",
       "/company",
@@ -31523,6 +31662,25 @@ var init_publicRouteRegistry = __esm({
       if (req.method !== "GET") return false;
       return isAuthExemptRoute(req, routePath);
     };
+    isEditorManagedPublicDetailRoute = (routePath) => {
+      if (routePath.startsWith(LINK_DIRECTORY_PUBLISHED_PREFIX)) {
+        if (routePath === "/link-directory/published/stats") return false;
+        return routePath.length > LINK_DIRECTORY_PUBLISHED_PREFIX.length;
+      }
+      if (routePath.startsWith(BLOG_POSTS_PREFIX)) {
+        const remainder = routePath.slice(BLOG_POSTS_PREFIX.length);
+        if (!remainder) return false;
+        if (!remainder.includes("/")) return true;
+        return /^[^/]+\/comments$/.test(remainder);
+      }
+      if (routePath.startsWith(LISTINGS_PUBLISHED_PREFIX) && routePath.length > LISTINGS_PUBLISHED_PREFIX.length) {
+        return true;
+      }
+      if (routePath.startsWith(LISTINGS_STACKS_PUBLISHED_PREFIX) && routePath.length > LISTINGS_STACKS_PUBLISHED_PREFIX.length) {
+        return true;
+      }
+      return false;
+    };
     isPublicWriteRoute = (req, routePath) => {
       if (req.method === "POST" && routePath === "/company/t") {
         return true;
@@ -31608,6 +31766,9 @@ var init_publicCmsCache = __esm({
         const maxAge2 = cmsCache.imageMaxAgeSeconds ?? 3600;
         const swr2 = cmsCache.imageStaleWhileRevalidateSeconds ?? 86400;
         return buildCacheControlHeader(maxAge2, swr2);
+      }
+      if (isEditorManagedPublicDetailRoute(routePath)) {
+        return EDITOR_MANAGED_PUBLIC_DETAIL_CACHE_CONTROL;
       }
       const maxAge = cmsCache.maxAgeSeconds ?? 60;
       const swr = cmsCache.staleWhileRevalidateSeconds ?? 300;
@@ -31758,7 +31919,8 @@ var init_BlogController = __esm({
           const result = await this.blogService.createBlogComment(
             req.body,
             userId,
-            authUserId
+            authUserId,
+            authReq.user?.email
           );
           res.status(201).json({
             success: true,
@@ -32512,7 +32674,8 @@ var init_ListingController = __esm({
           const result = await this.listingService.createListingComment(
             req.body,
             userId,
-            authReq.user?.id
+            authReq.user?.id,
+            authReq.user?.email
           );
           res.status(201).json({
             success: true,
@@ -33572,7 +33735,8 @@ var init_LinkDirectoryController = __esm({
             siteId,
             body,
             userId,
-            auth10.user?.id
+            auth10.user?.id,
+            auth10.user?.email
           );
           res.status(201).json({
             success: true,

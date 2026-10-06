@@ -4,7 +4,10 @@ import {
 	withClientErrorFallback,
 	withNotFoundFallback
 } from '$lib/core/HttpGateway';
-import { publicCmsServerRequestOptions } from '$lib/core/publicCmsFetch';
+import {
+	publicCmsEditorManagedDetailRequestOptions,
+	publicCmsServerRequestOptions
+} from '$lib/core/publicCmsFetch';
 import type {
 	BlogPostFormSchemaType,
 	BlogSeoFaqItem,
@@ -534,7 +537,7 @@ export class BlogRepository {
 			const { data: dto, ok } = await this.httpGateway.get<GetBlogPostResponseDto>(
 				this.config.endpoints.getPostById(identifier),
 				undefined,
-				publicCmsServerRequestOptions(fetch)
+				publicCmsEditorManagedDetailRequestOptions(fetch)
 			);
 			if (ok && dto?.success && dto.data) return this.toBlogPostPm(dto.data);
 			return null;
@@ -744,7 +747,7 @@ export class BlogRepository {
 		const { data: dto, ok } = await this.httpGateway.get<GetPostCommentsResponseDto>(
 			this.config.endpoints.getPostComments(postId),
 			undefined,
-			publicCmsServerRequestOptions(fetch)
+			publicCmsEditorManagedDetailRequestOptions(fetch)
 		);
 		if (ok && dto?.success && Array.isArray(dto.data)) {
 			return dto.data.map((row) => this.toBlogPostCommentPm(row));

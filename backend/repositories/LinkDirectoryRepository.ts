@@ -509,13 +509,16 @@ export class LinkDirectoryRepository {
 
     async updateOpportunity(payload: LinkDirectoryOpportunityUpdateSchemaType): Promise<string> {
         const { id, ...fields } = payload;
+        const updateRow: Record<string, unknown> = {
+            ...fields,
+            slug: fields.slug ?? stringToSlug(payload.title),
+        };
+        if (fields.steps !== undefined) {
+            updateRow.steps = fields.steps;
+        }
         const { data, error } = await this.supabase
             .from(TABLE_OPPORTUNITIES)
-            .update({
-                ...fields,
-                slug: fields.slug ?? stringToSlug(payload.title),
-                steps: fields.steps ?? undefined,
-            })
+            .update(updateRow)
             .eq("id", id)
             .select("id")
             .single();

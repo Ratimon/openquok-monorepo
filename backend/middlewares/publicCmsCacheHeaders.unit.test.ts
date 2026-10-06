@@ -76,6 +76,58 @@ describe("publicCmsCache", () => {
                 resolvePublicCmsCacheControl(asReq({ method: "GET" }), "/users/me")
             ).toBeNull();
         });
+
+        it("does not cache link directory published site detail (editor-managed steps)", () => {
+            expect(
+                resolvePublicCmsCacheControl(
+                    asReq({ method: "GET" }),
+                    "/link-directory/published/facebook"
+                )
+            ).toBe("private, no-cache, must-revalidate");
+        });
+
+        it("still caches link directory published hub list", () => {
+            expect(
+                resolvePublicCmsCacheControl(asReq({ method: "GET" }), "/link-directory/published")
+            ).toBe("public, max-age=60, stale-while-revalidate=300");
+        });
+
+        it("still caches link directory published stats", () => {
+            expect(
+                resolvePublicCmsCacheControl(
+                    asReq({ method: "GET" }),
+                    "/link-directory/published/stats"
+                )
+            ).toBe("public, max-age=60, stale-while-revalidate=300");
+        });
+
+        const editorManagedDetailRoutes = [
+            "/blog-system/posts/how-to-edit-video",
+            "/blog-system/posts/550e8400-e29b-41d4-a716-446655440000/comments",
+            "/listings/published/openquok-playbook",
+            "/listings/stacks/published/my-stack",
+        ];
+
+        it.each(editorManagedDetailRoutes)(
+            "returns no-cache for editor-managed detail %s",
+            (path) => {
+                expect(
+                    resolvePublicCmsCacheControl(asReq({ method: "GET" }), path)
+                ).toBe("private, no-cache, must-revalidate");
+            }
+        );
+
+        it("still caches blog post list hub", () => {
+            expect(
+                resolvePublicCmsCacheControl(asReq({ method: "GET" }), "/blog-system/posts")
+            ).toBe("public, max-age=60, stale-while-revalidate=300");
+        });
+
+        it("still caches listings published hub", () => {
+            expect(
+                resolvePublicCmsCacheControl(asReq({ method: "GET" }), "/listings/published")
+            ).toBe("public, max-age=60, stale-while-revalidate=300");
+        });
     });
 
     describe("applyPublicCmsCacheHeadersForRequest", () => {

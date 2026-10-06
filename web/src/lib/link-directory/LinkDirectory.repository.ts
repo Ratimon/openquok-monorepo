@@ -4,7 +4,10 @@ import {
 	withNotFoundFallback,
 	withOptionalCmsFallback
 } from '$lib/core/HttpGateway';
-import { publicCmsServerRequestOptions } from '$lib/core/publicCmsFetch';
+import {
+	publicCmsEditorManagedDetailRequestOptions,
+	publicCmsServerRequestOptions
+} from '$lib/core/publicCmsFetch';
 
 import type { LinkDirectoryConfig } from '$lib/link-directory/constants/config';
 import type {
@@ -214,7 +217,7 @@ export class LinkDirectoryRepository {
 			const { data: publishedSiteDto, ok } = await this.httpGateway.get<PublishedSiteResponseDto>(
 				this.config.endpoints.getPublishedSiteBySlug(siteSlug),
 				undefined,
-				publicCmsServerRequestOptions(fetch)
+				publicCmsEditorManagedDetailRequestOptions(fetch)
 			);
 			if (ok && publishedSiteDto?.success && publishedSiteDto.data) {
 				return publishedSiteDto.data;
