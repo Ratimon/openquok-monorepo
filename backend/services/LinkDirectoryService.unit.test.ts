@@ -3,7 +3,24 @@ import type { LinkDirectoryRepository } from "../repositories/LinkDirectoryRepos
 import type { LinkDirectoryCategoryRepository } from "../repositories/LinkDirectoryCategoryRepository";
 import type { LinkDirectoryTagRepository } from "../repositories/LinkDirectoryTagRepository";
 import type { InternalOpsEmailService } from "./InternalOpsEmailService";
+import type { LinkDirectorySiteRow } from "../data/types/linkDirectoryTypes";
+import type {
+    LinkDirectoryOpportunityUpdateSchemaType,
+    LinkDirectorySiteUpdateSchemaType,
+} from "../data/schemas/linkDirectorySchemas";
 import { ValidationError } from "../errors/InfraError";
+
+const siteId = "aaaaaaaa-bbbb-cccc-dddd-000000000001";
+const siteSlug = "example-site";
+const previousSiteSlug = "old-example-site";
+const opportunityId = "bbbbbbbb-bbbb-bbbb-bbbb-000000000002";
+
+const mockPublishedSite = {
+    id: siteId,
+    slug: siteSlug,
+    title: "Example",
+    site_url: "https://example.com",
+} as LinkDirectorySiteRow;
 
 function createMockInternalOpsEmailService(): jest.Mocked<
     Pick<
@@ -18,15 +35,26 @@ function createMockInternalOpsEmailService(): jest.Mocked<
 }
 
 function createLinkDirectoryService(
-    linkDirectoryRepository: LinkDirectoryRepository
+    linkDirectoryRepository: LinkDirectoryRepository,
+    cache?: { getOrSet: jest.Mock },
+    cacheInvalidator?: { invalidateKey: jest.Mock; invalidatePattern: jest.Mock }
 ): LinkDirectoryService {
     return new LinkDirectoryService(
         linkDirectoryRepository,
         {} as LinkDirectoryCategoryRepository,
         {} as LinkDirectoryTagRepository,
         undefined,
-        createMockInternalOpsEmailService() as unknown as InternalOpsEmailService
+        createMockInternalOpsEmailService() as unknown as InternalOpsEmailService,
+        cache as never,
+        cacheInvalidator as never
     );
+}
+
+function expectPublishedCatalogInvalidation(invalidateKey: jest.Mock, invalidatePattern: jest.Mock): void {
+    expect(invalidatePattern).toHaveBeenCalledWith("linkDirectory:published:list:*");
+    expect(invalidatePattern).toHaveBeenCalledWith("linkDirectory:admin:sites:list:*");
+    expect(invalidatePattern).toHaveBeenCalledWith("linkDirectory:published:bySlug:*");
+    expect(invalidateKey).toHaveBeenCalledWith("linkDirectory:published:hubStats");
 }
 
 function createMockLinkDirectoryRepository(): jest.Mocked<
@@ -332,5 +360,142 @@ describe("LinkDirectoryService ops email alerts", () => {
         ).rejects.toThrow("db error");
 
         expect(internalOpsEmailService.notifyLinkDirectorySiteCommentCreated).not.toHaveBeenCalled();
+    });
+});
+
+describe("LinkDirectoryService cache", () => {
+    describe("getPublishedSiteBySlug", () => {
+        it("loads from repository when cache is not configured", async () => {
+            const linkDirectoryRepository = {
+                findPublishedSiteBySlug: jest.fn().mockResolvedValue({ data: mockPublishedSite }),
+            } as unknown as LinkDirectoryRepository;
+            const service = createLinkDirectoryService(linkDirectoryRepository);
+
+            const result = await service.getPublishedSiteBySlug(siteSlug);
+
+            expect(result).toEqual(mockPublishedSite);
+            expect(linkDirectoryRepository.findPublishedSiteBySlug).toHaveBeenCalledWith(siteSlug);
+        });
+
+        it("uses cache.getOrSet with slug key and TTL when cache is configured", async () => {
+            const linkDirectoryRepository = {
+                findPublishedSiteBySlug: jest.fn(),
+            } as unknown as LinkDirectoryRepository;
+            const getOrSet = jest.fn().mockResolvedValue(mockPublishedSite);
+            const service = createLinkDirectoryService(linkDirectoryRepository, { getOrSet });
+
+            const result = await service.getPublishedSiteBySlug(siteSlug);
+
+            expect(result).toEqual(mockPublishedSite);
+            expect(getOrSet).toHaveBeenCalledWith(
+                `linkDirectory:published:bySlug:${siteSlug}`,
+                expect.any(Function),
+                300
+            );
+            expect(linkDirectoryRepository.findPublishedSiteBySlug).not.toHaveBeenCalled();
+        });
+
+        it("runs repository factory when getOrSet invokes the factory", async () => {
+            const linkDirectoryRepository = {
+                findPublishedSiteBySlug: jest.fn().mockResolvedValue({ data: mockPublishedSite }),
+            } as unknown as LinkDirectoryRepository;
+            const getOrSet = jest.fn().mockImplementation(async (_key, factory) => factory());
+            const service = createLinkDirectoryService(linkDirectoryRepository, { getOrSet });
+
+            await service.getPublishedSiteBySlug(siteSlug);
+
+            expect(getOrSet).toHaveBeenCalledWith(
+                `linkDirectory:published:bySlug:${siteSlug}`,
+                expect.any(Function),
+                300
+            );
+            expect(linkDirectoryRepository.findPublishedSiteBySlug).toHaveBeenCalledWith(siteSlug);
+        });
+    });
+
+    describe("updateSite", () => {
+        const updatePayload: LinkDirectorySiteUpdateSchemaType = {
+            id: siteId,
+            slug: siteSlug,
+            title: "Example",
+            site_url: "https://example.com",
+        };
+
+        it("invalidates published catalog caches after a successful update", async () => {
+            const invalidateKey = jest.fn().mockResolvedValue(undefined);
+            const invalidatePattern = jest.fn().mockResolvedValue(undefined);
+            const linkDirectoryRepository = {
+                findSiteById: jest.fn().mockResolvedValue({ data: mockPublishedSite }),
+                updateSite: jest.fn().mockResolvedValue(siteId),
+            } as unknown as LinkDirectoryRepository;
+            const service = createLinkDirectoryService(linkDirectoryRepository, undefined, {
+                invalidateKey,
+                invalidatePattern,
+            });
+
+            await service.updateSite(updatePayload);
+
+            expect(linkDirectoryRepository.updateSite).toHaveBeenCalledWith(updatePayload, undefined);
+            expectPublishedCatalogInvalidation(invalidateKey, invalidatePattern);
+            expect(invalidateKey).toHaveBeenCalledWith(`linkDirectory:published:bySlug:${siteSlug}`);
+        });
+
+        it("invalidates previous slug when the site slug changes", async () => {
+            const invalidateKey = jest.fn().mockResolvedValue(undefined);
+            const invalidatePattern = jest.fn().mockResolvedValue(undefined);
+            const linkDirectoryRepository = {
+                findSiteById: jest.fn().mockResolvedValue({
+                    data: { ...mockPublishedSite, slug: previousSiteSlug },
+                }),
+                updateSite: jest.fn().mockResolvedValue(siteId),
+            } as unknown as LinkDirectoryRepository;
+            const service = createLinkDirectoryService(linkDirectoryRepository, undefined, {
+                invalidateKey,
+                invalidatePattern,
+            });
+
+            await service.updateSite(updatePayload);
+
+            expect(invalidateKey).toHaveBeenCalledWith(`linkDirectory:published:bySlug:${siteSlug}`);
+            expect(invalidateKey).toHaveBeenCalledWith(
+                `linkDirectory:published:bySlug:${previousSiteSlug}`
+            );
+        });
+    });
+
+    describe("updateOpportunity", () => {
+        const updatePayload: LinkDirectoryOpportunityUpdateSchemaType = {
+            id: opportunityId,
+            slug: "guest-post",
+            title: "Guest post",
+            opportunity_type_id: "cccccccc-cccc-cccc-cccc-000000000003",
+            effort: "easy",
+            approval_mode: "instant",
+            dofollow: "dofollow",
+            cost_tier: "free",
+            steps: [{ order: 1, title: "Step", body: "Do the thing" }],
+        };
+
+        it("invalidates published catalog caches for the parent site after update", async () => {
+            const invalidateKey = jest.fn().mockResolvedValue(undefined);
+            const invalidatePattern = jest.fn().mockResolvedValue(undefined);
+            const linkDirectoryRepository = {
+                findOpportunityById: jest.fn().mockResolvedValue({
+                    data: { id: opportunityId, site_id: siteId },
+                }),
+                findSiteById: jest.fn().mockResolvedValue({ data: mockPublishedSite }),
+                updateOpportunity: jest.fn().mockResolvedValue(opportunityId),
+            } as unknown as LinkDirectoryRepository;
+            const service = createLinkDirectoryService(linkDirectoryRepository, undefined, {
+                invalidateKey,
+                invalidatePattern,
+            });
+
+            await service.updateOpportunity(updatePayload);
+
+            expect(linkDirectoryRepository.updateOpportunity).toHaveBeenCalledWith(updatePayload);
+            expectPublishedCatalogInvalidation(invalidateKey, invalidatePattern);
+            expect(invalidateKey).toHaveBeenCalledWith(`linkDirectory:published:bySlug:${siteSlug}`);
+        });
     });
 });

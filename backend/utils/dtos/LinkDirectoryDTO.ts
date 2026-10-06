@@ -1,5 +1,6 @@
 import type {
     AdminLinkDirectorySiteComment,
+    AdminLinkDirectorySitesFilterOptions,
     LinkDirectorySavedSiteRow,
     LinkDirectoryCategoryRow,
     LinkDirectoryOpportunityRow,
@@ -8,6 +9,7 @@ import type {
     LinkDirectorySiteRow,
     LinkDirectorySubmissionRow,
     LinkDirectoryTagRow,
+    PublishedLinkDirectorySitesFilterOptions,
 } from "../../data/types/linkDirectoryTypes";
 
 export type LinkDirectoryCategoryDto = {
@@ -343,4 +345,47 @@ export function toLinkDirectorySavedSiteDtoCollection(
     rows: LinkDirectorySavedSiteRow[]
 ): LinkDirectorySavedSiteDto[] {
     return rows.map(toLinkDirectorySavedSiteDto);
+}
+
+function sortedFilterValues(values: string[] | null | undefined): string {
+    if (!values?.length) return "none";
+    return values.slice().sort().join(",");
+}
+
+export function buildPublishedLinkDirectorySitesCacheKey(
+    options: PublishedLinkDirectorySitesFilterOptions,
+    prefix: string
+): string {
+    const range = options.range ? `start:${options.range.start}:end:${options.range.end}` : "none";
+    return [
+        prefix,
+        `limit:${options.limit ?? 20}`,
+        `skip:${options.skip ?? 0}`,
+        `search:${options.searchTerm ?? "none"}`,
+        `tags:${sortedFilterValues(options.tagSlugs)}`,
+        `category:${options.categorySlug ?? "none"}`,
+        `costTiers:${sortedFilterValues(options.costTiers)}`,
+        `dofollow:${sortedFilterValues(options.dofollow)}`,
+        `effort:${sortedFilterValues(options.effort)}`,
+        `approval:${sortedFilterValues(options.approvalMode)}`,
+        `oppTypes:${sortedFilterValues(options.opportunityTypeSlugs)}`,
+        `sort:${options.sortByKey ?? "none"}`,
+        `order:${options.sortByOrder ? "asc" : "desc"}`,
+        `range:${range}`,
+    ].join(":");
+}
+
+export function buildAdminLinkDirectorySitesCacheKey(
+    options: AdminLinkDirectorySitesFilterOptions,
+    prefix: string
+): string {
+    const range = options.range ? `start:${options.range.start}:end:${options.range.end}` : "none";
+    return [
+        prefix,
+        `limit:${options.limit ?? 50}`,
+        `search:${options.searchTerm ?? "none"}`,
+        `sort:${options.sortByKey ?? "created_at"}`,
+        `order:${options.sortByOrder ? "asc" : "desc"}`,
+        `range:${range}`,
+    ].join(":");
 }

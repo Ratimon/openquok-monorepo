@@ -15861,6 +15861,216 @@ var init_ListingTagService = __esm({
   }
 });
 
+// utils/dtos/LinkDirectoryDTO.ts
+function mapCategory(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    headline: row.headline,
+    description: row.description,
+    sortOrder: row.sort_order,
+    openquokChannelsHubPath: row.openquok_channels_hub_path
+  };
+}
+function mapOpportunityType(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    slug: row.slug,
+    label: row.label,
+    description: row.description,
+    sortOrder: row.sort_order
+  };
+}
+function mapOpportunity(row) {
+  const typeRow = row.opportunity_type ?? null;
+  return {
+    id: row.id,
+    siteId: row.site_id,
+    slug: row.slug,
+    title: row.title,
+    opportunityTypeId: row.opportunity_type_id,
+    opportunityType: mapOpportunityType(typeRow),
+    effort: row.effort,
+    approvalMode: row.approval_mode,
+    approvalTimeHint: row.approval_time_hint,
+    dofollow: row.dofollow,
+    costTier: row.cost_tier,
+    costNote: row.cost_note,
+    description: row.description,
+    steps: row.steps ?? [],
+    openquokCtaKind: row.openquok_cta_kind,
+    openquokChannelSlug: row.openquok_channel_slug,
+    openquokPlugName: row.openquok_plug_name,
+    ctaHref: row.cta_href,
+    ctaLabel: row.cta_label,
+    sortOrder: row.sort_order,
+    isAdminPublished: row.is_admin_published,
+    publishedAt: row.published_at
+  };
+}
+function toLinkDirectorySiteDto(row) {
+  const opportunities = (row.opportunities ?? []).map(mapOpportunity);
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    siteUrl: row.site_url,
+    logoUrl: row.logo_url,
+    shortDescription: row.short_description,
+    longDescription: row.long_description,
+    domainAuthority: row.domain_authority,
+    domainRating: row.domain_rating,
+    monthlyVisits: row.monthly_visits,
+    metricsSource: row.metrics_source,
+    metricsUpdatedAt: row.metrics_updated_at,
+    categoryId: row.category_id,
+    category: mapCategory(row.category ?? null),
+    isOpenquokAuthSupported: row.is_openquok_auth_supported,
+    openquokChannelSlug: row.openquok_channel_slug,
+    isAdminPublished: row.is_admin_published,
+    sortOrder: row.sort_order,
+    tagSlugs: row.tag_slugs ?? [],
+    publishedAt: row.published_at,
+    likes: row.likes ?? 0,
+    views: row.views ?? 0,
+    bookmarkCount: row.bookmark_count ?? 0,
+    averageRating: row.average_rating ?? 0,
+    ratingsCount: row.ratings_count ?? 0,
+    opportunities
+  };
+}
+function mapSiteComment(row) {
+  return {
+    id: row.id,
+    content: row.content,
+    isApproved: row.is_approved,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at ?? null,
+    parentId: row.parent_id ?? null,
+    userId: row.user_id,
+    author: row.author ? {
+      id: row.author.id,
+      fullName: row.author.full_name ?? null,
+      avatarUrl: row.author.avatar_url ?? null
+    } : null
+  };
+}
+function toLinkDirectorySiteCommentDtoCollection(rows) {
+  return rows.map((row) => mapSiteComment(row));
+}
+function toAdminLinkDirectorySiteCommentDto(row) {
+  return {
+    ...mapSiteComment(row),
+    siteId: row.site_id,
+    site: row.site ? { id: row.site.id, title: row.site.title, slug: row.site.slug } : null
+  };
+}
+function toAdminLinkDirectorySiteCommentDtoCollection(rows) {
+  return rows.map((row) => toAdminLinkDirectorySiteCommentDto(row));
+}
+function toLinkDirectorySiteDtoCollection(rows) {
+  return rows.map(toLinkDirectorySiteDto);
+}
+function toLinkDirectoryCategoryDto(row) {
+  return mapCategory(row);
+}
+function toLinkDirectoryCategoryDtoCollection(rows) {
+  return rows.map(toLinkDirectoryCategoryDto);
+}
+function toLinkDirectoryTagDto(row) {
+  const groups = row.link_directory_tag_groups?.map((assoc) => {
+    const group = assoc.link_directory_tag_groups;
+    return group ? { id: group.id, name: group.name, sortOrder: group.sort_order } : null;
+  }).filter((g) => g !== null) ?? [];
+  return {
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    headline: row.headline,
+    description: row.description,
+    groups
+  };
+}
+function toLinkDirectoryTagDtoCollection(rows) {
+  return rows.map(toLinkDirectoryTagDto);
+}
+function toLinkDirectoryOpportunityTypeDtoCollection(rows) {
+  return rows.map((row) => mapOpportunityType(row));
+}
+function toLinkDirectorySubmissionDto(row) {
+  return {
+    id: row.id,
+    status: row.status,
+    email: row.email,
+    userId: row.user_id,
+    siteUrl: row.site_url,
+    proposedTitle: row.proposed_title,
+    notes: row.notes,
+    payload: row.payload ?? {},
+    reviewedBy: row.reviewed_by,
+    reviewedAt: row.reviewed_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+function toLinkDirectorySubmissionDtoCollection(rows) {
+  return rows.map(toLinkDirectorySubmissionDto);
+}
+function toLinkDirectorySavedSiteDto(row) {
+  return {
+    id: row.id,
+    siteId: row.site_id,
+    sortOrder: row.sort_order,
+    createdAt: row.created_at,
+    outreachCompletedAt: row.outreach_completed_at ?? null,
+    site: row.site ? toLinkDirectorySiteDto(row.site) : null
+  };
+}
+function toLinkDirectorySavedSiteDtoCollection(rows) {
+  return rows.map(toLinkDirectorySavedSiteDto);
+}
+function sortedFilterValues(values) {
+  if (!values?.length) return "none";
+  return values.slice().sort().join(",");
+}
+function buildPublishedLinkDirectorySitesCacheKey(options2, prefix) {
+  const range = options2.range ? `start:${options2.range.start}:end:${options2.range.end}` : "none";
+  return [
+    prefix,
+    `limit:${options2.limit ?? 20}`,
+    `skip:${options2.skip ?? 0}`,
+    `search:${options2.searchTerm ?? "none"}`,
+    `tags:${sortedFilterValues(options2.tagSlugs)}`,
+    `category:${options2.categorySlug ?? "none"}`,
+    `costTiers:${sortedFilterValues(options2.costTiers)}`,
+    `dofollow:${sortedFilterValues(options2.dofollow)}`,
+    `effort:${sortedFilterValues(options2.effort)}`,
+    `approval:${sortedFilterValues(options2.approvalMode)}`,
+    `oppTypes:${sortedFilterValues(options2.opportunityTypeSlugs)}`,
+    `sort:${options2.sortByKey ?? "none"}`,
+    `order:${options2.sortByOrder ? "asc" : "desc"}`,
+    `range:${range}`
+  ].join(":");
+}
+function buildAdminLinkDirectorySitesCacheKey(options2, prefix) {
+  const range = options2.range ? `start:${options2.range.start}:end:${options2.range.end}` : "none";
+  return [
+    prefix,
+    `limit:${options2.limit ?? 50}`,
+    `search:${options2.searchTerm ?? "none"}`,
+    `sort:${options2.sortByKey ?? "created_at"}`,
+    `order:${options2.sortByOrder ? "asc" : "desc"}`,
+    `range:${range}`
+  ].join(":");
+}
+var init_LinkDirectoryDTO = __esm({
+  "utils/dtos/LinkDirectoryDTO.ts"() {
+  }
+});
+
 // services/LinkDirectoryService.ts
 function dedupeSiteIdsPreservingOrder(siteIds) {
   const seen = /* @__PURE__ */ new Set();
@@ -15883,18 +16093,32 @@ function sanitizeSavedSiteRowsForRead(rows) {
     site: row.site && row.site.is_admin_published === true ? row.site : null
   }));
 }
-var LinkDirectoryService;
+var CACHE_KEYS10, LINK_DIRECTORY_CACHE_TTL_SEC, LinkDirectoryService;
 var init_LinkDirectoryService = __esm({
   "services/LinkDirectoryService.ts"() {
+    init_LinkDirectoryDTO();
     init_InfraError();
     init_dist();
+    CACHE_KEYS10 = {
+      PUBLISHED_LIST: "linkDirectory:published:list",
+      PUBLISHED_BY_SLUG: "linkDirectory:published:bySlug",
+      PUBLISHED_HUB_STATS: "linkDirectory:published:hubStats",
+      TAXONOMY_CATEGORIES_ACTIVE: "linkDirectory:taxonomy:categories:active",
+      TAXONOMY_TAGS_ACTIVE: "linkDirectory:taxonomy:tags:active",
+      TAXONOMY_OPPORTUNITY_TYPES: "linkDirectory:taxonomy:opportunityTypes",
+      COMMENTS_BY_SITE_ID: "linkDirectory:comments:bySiteId",
+      ADMIN_SITES_LIST: "linkDirectory:admin:sites:list"
+    };
+    LINK_DIRECTORY_CACHE_TTL_SEC = 300;
     LinkDirectoryService = class {
-      constructor(linkDirectoryRepository2, categoryRepository, tagRepository, subscriptionGuard2, internalOpsEmailService2) {
+      constructor(linkDirectoryRepository2, categoryRepository, tagRepository, subscriptionGuard2, internalOpsEmailService2, cache, cacheInvalidator) {
         this.linkDirectoryRepository = linkDirectoryRepository2;
         this.categoryRepository = categoryRepository;
         this.tagRepository = tagRepository;
         this.subscriptionGuard = subscriptionGuard2;
         this.internalOpsEmailService = internalOpsEmailService2;
+        this.cache = cache;
+        this.cacheInvalidator = cacheInvalidator;
       }
       async assertPublishedSiteForEngagement(siteId) {
         await this.linkDirectoryRepository.assertPublishedSiteIds([siteId]);
@@ -15907,28 +16131,120 @@ var init_LinkDirectoryService = __esm({
           });
         }
       }
+      async _resolveSiteSlug(siteId) {
+        try {
+          const site = await this.getSiteById(siteId);
+          return site.slug;
+        } catch {
+          return null;
+        }
+      }
+      async _invalidatePublishedCatalogCaches(options2) {
+        if (!this.cacheInvalidator) return;
+        await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS10.PUBLISHED_LIST}:*`);
+        await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS10.ADMIN_SITES_LIST}:*`);
+        await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS10.PUBLISHED_BY_SLUG}:*`);
+        await this.cacheInvalidator.invalidateKey(CACHE_KEYS10.PUBLISHED_HUB_STATS);
+        for (const slug of options2?.siteSlugs ?? []) {
+          await this.cacheInvalidator.invalidateKey(`${CACHE_KEYS10.PUBLISHED_BY_SLUG}:${slug}`);
+        }
+      }
+      async _invalidateSiteMutationCaches(params) {
+        const slugs = [...params?.siteSlugs ?? []];
+        if (params?.previousSiteSlug && !slugs.includes(params.previousSiteSlug)) {
+          slugs.push(params.previousSiteSlug);
+        }
+        if (params?.siteId) {
+          const slug = await this._resolveSiteSlug(params.siteId);
+          if (slug && !slugs.includes(slug)) slugs.push(slug);
+        }
+        await this._invalidatePublishedCatalogCaches({
+          siteSlugs: slugs.length > 0 ? slugs : void 0
+        });
+      }
+      async _invalidateSiteStatCaches(siteId) {
+        if (!this.cacheInvalidator) return;
+        const slug = await this._resolveSiteSlug(siteId);
+        await this._invalidatePublishedCatalogCaches({
+          siteSlugs: slug ? [slug] : void 0
+        });
+      }
+      async _invalidateTaxonomyCaches() {
+        if (!this.cacheInvalidator) return;
+        await this.cacheInvalidator.invalidateKey(CACHE_KEYS10.TAXONOMY_CATEGORIES_ACTIVE);
+        await this.cacheInvalidator.invalidateKey(CACHE_KEYS10.TAXONOMY_TAGS_ACTIVE);
+        await this.cacheInvalidator.invalidateKey(CACHE_KEYS10.TAXONOMY_OPPORTUNITY_TYPES);
+        await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS10.PUBLISHED_LIST}:*`);
+      }
+      async _invalidateSiteCommentsCache(siteId) {
+        if (!this.cacheInvalidator) return;
+        await this.cacheInvalidator.invalidateKey(`${CACHE_KEYS10.COMMENTS_BY_SITE_ID}:${siteId}`);
+      }
       async getPublishedSites(options2) {
-        const { data, count } = await this.linkDirectoryRepository.findPublishedSites(options2);
-        return { sites: data, count };
+        const normalized = {
+          limit: options2.limit ?? 20,
+          skip: options2.skip ?? 0,
+          searchTerm: options2.searchTerm ?? null,
+          tagSlugs: options2.tagSlugs ?? null,
+          categorySlug: options2.categorySlug ?? null,
+          costTiers: options2.costTiers ?? null,
+          dofollow: options2.dofollow ?? null,
+          effort: options2.effort ?? null,
+          approvalMode: options2.approvalMode ?? null,
+          opportunityTypeSlugs: options2.opportunityTypeSlugs ?? null,
+          sortByKey: options2.sortByKey ?? null,
+          sortByOrder: options2.sortByOrder ?? null,
+          range: options2.range ?? null
+        };
+        const cacheKey = buildPublishedLinkDirectorySitesCacheKey(normalized, CACHE_KEYS10.PUBLISHED_LIST);
+        const factory = async () => {
+          const { data, count } = await this.linkDirectoryRepository.findPublishedSites(normalized);
+          return { sites: data, count };
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LINK_DIRECTORY_CACHE_TTL_SEC);
+        return factory();
       }
       async getPublishedSiteBySlug(siteSlug) {
-        const { data } = await this.linkDirectoryRepository.findPublishedSiteBySlug(siteSlug);
-        return data;
+        const cacheKey = `${CACHE_KEYS10.PUBLISHED_BY_SLUG}:${siteSlug}`;
+        const factory = async () => {
+          const { data } = await this.linkDirectoryRepository.findPublishedSiteBySlug(siteSlug);
+          return data;
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LINK_DIRECTORY_CACHE_TTL_SEC);
+        return factory();
       }
       async getPublishedHubStats() {
-        return this.linkDirectoryRepository.findPublishedHubStats();
+        const cacheKey = CACHE_KEYS10.PUBLISHED_HUB_STATS;
+        const factory = async () => this.linkDirectoryRepository.findPublishedHubStats();
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LINK_DIRECTORY_CACHE_TTL_SEC);
+        return factory();
       }
       async getActiveCategories() {
-        const { data } = await this.categoryRepository.findActiveCategories();
-        return data;
+        const cacheKey = CACHE_KEYS10.TAXONOMY_CATEGORIES_ACTIVE;
+        const factory = async () => {
+          const { data } = await this.categoryRepository.findActiveCategories();
+          return data;
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LINK_DIRECTORY_CACHE_TTL_SEC);
+        return factory();
       }
       async getActiveTags() {
-        const { data } = await this.tagRepository.findActiveTags();
-        return data;
+        const cacheKey = CACHE_KEYS10.TAXONOMY_TAGS_ACTIVE;
+        const factory = async () => {
+          const { data } = await this.tagRepository.findActiveTags();
+          return data;
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LINK_DIRECTORY_CACHE_TTL_SEC);
+        return factory();
       }
       async getOpportunityTypes() {
-        const { data } = await this.linkDirectoryRepository.findOpportunityTypes();
-        return data;
+        const cacheKey = CACHE_KEYS10.TAXONOMY_OPPORTUNITY_TYPES;
+        const factory = async () => {
+          const { data } = await this.linkDirectoryRepository.findOpportunityTypes();
+          return data;
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LINK_DIRECTORY_CACHE_TTL_SEC);
+        return factory();
       }
       async createSubmission(payload, userId) {
         const submissionId = await this.linkDirectoryRepository.createSubmission(payload, userId);
@@ -15943,43 +16259,89 @@ var init_LinkDirectoryService = __esm({
         return submissionId;
       }
       async getAdminSites(options2) {
-        const { data, count } = await this.linkDirectoryRepository.findAdminSites(options2);
-        return { sites: data, count };
+        const normalized = {
+          limit: options2.limit ?? 50,
+          searchTerm: options2.searchTerm ?? null,
+          sortByKey: options2.sortByKey ?? "created_at",
+          sortByOrder: options2.sortByOrder ?? false,
+          range: options2.range ?? null
+        };
+        const cacheKey = buildAdminLinkDirectorySitesCacheKey(normalized, CACHE_KEYS10.ADMIN_SITES_LIST);
+        const factory = async () => {
+          const { data, count } = await this.linkDirectoryRepository.findAdminSites(normalized);
+          return { sites: data, count };
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LINK_DIRECTORY_CACHE_TTL_SEC);
+        return factory();
       }
       async getSiteById(siteId) {
         const { data } = await this.linkDirectoryRepository.findSiteById(siteId);
         return data;
       }
       async createSite(payload, tagIds = []) {
-        return this.linkDirectoryRepository.createSite(payload, tagIds);
+        const siteId = await this.linkDirectoryRepository.createSite(payload, tagIds);
+        await this._invalidateSiteMutationCaches({ siteSlugs: [payload.slug] });
+        return siteId;
       }
       async updateSite(payload, tagIds) {
-        return this.linkDirectoryRepository.updateSite(payload, tagIds);
+        let previousSiteSlug;
+        try {
+          const existing = await this.getSiteById(payload.id);
+          if (existing.slug !== payload.slug) previousSiteSlug = existing.slug;
+        } catch {
+        }
+        const siteId = await this.linkDirectoryRepository.updateSite(payload, tagIds);
+        await this._invalidateSiteMutationCaches({
+          siteSlugs: [payload.slug],
+          previousSiteSlug
+        });
+        return siteId;
       }
       async deleteSite(siteId) {
+        let siteSlug;
+        try {
+          const existing = await this.getSiteById(siteId);
+          siteSlug = existing.slug;
+        } catch {
+        }
         await this.linkDirectoryRepository.deleteSite(siteId);
+        await this._invalidateSiteMutationCaches({
+          siteSlugs: siteSlug ? [siteSlug] : void 0
+        });
       }
       async createOpportunity(siteId, payload) {
-        return this.linkDirectoryRepository.createOpportunity(siteId, payload);
+        const opportunityId = await this.linkDirectoryRepository.createOpportunity(siteId, payload);
+        await this._invalidateSiteMutationCaches({ siteId });
+        return opportunityId;
       }
       async updateOpportunity(payload) {
-        return this.linkDirectoryRepository.updateOpportunity(payload);
+        const { data: opportunity } = await this.linkDirectoryRepository.findOpportunityById(payload.id);
+        const opportunityId = await this.linkDirectoryRepository.updateOpportunity(payload);
+        await this._invalidateSiteMutationCaches({ siteId: opportunity.site_id });
+        return opportunityId;
       }
       async deleteOpportunity(opportunityId) {
+        const { data: opportunity } = await this.linkDirectoryRepository.findOpportunityById(opportunityId);
         await this.linkDirectoryRepository.deleteOpportunity(opportunityId);
+        await this._invalidateSiteMutationCaches({ siteId: opportunity.site_id });
       }
       async getAllCategories() {
         const { data } = await this.categoryRepository.findAllCategories();
         return data;
       }
       async createCategory(payload) {
-        return this.categoryRepository.createCategory(payload);
+        const categoryId = await this.categoryRepository.createCategory(payload);
+        await this._invalidateTaxonomyCaches();
+        return categoryId;
       }
       async updateCategory(payload) {
-        return this.categoryRepository.updateCategory(payload);
+        const categoryId = await this.categoryRepository.updateCategory(payload);
+        await this._invalidateTaxonomyCaches();
+        return categoryId;
       }
       async deleteCategory(categoryId) {
         await this.categoryRepository.deleteCategory(categoryId);
+        await this._invalidateTaxonomyCaches();
       }
       async getAllTags() {
         const { data } = await this.tagRepository.findAllTags();
@@ -15990,22 +16352,32 @@ var init_LinkDirectoryService = __esm({
         return data;
       }
       async createTag(payload, groupIds) {
-        return this.tagRepository.createTag(payload, groupIds);
+        const tagId = await this.tagRepository.createTag(payload, groupIds);
+        await this._invalidateTaxonomyCaches();
+        return tagId;
       }
       async updateTag(payload, groupIds) {
-        return this.tagRepository.updateTag(payload, groupIds);
+        const tagId = await this.tagRepository.updateTag(payload, groupIds);
+        await this._invalidateTaxonomyCaches();
+        return tagId;
       }
       async deleteTag(tagId) {
         await this.tagRepository.deleteTag(tagId);
+        await this._invalidateTaxonomyCaches();
       }
       async createTagGroup(payload) {
-        return this.tagRepository.createTagGroup(payload);
+        const tagGroupId = await this.tagRepository.createTagGroup(payload);
+        await this._invalidateTaxonomyCaches();
+        return tagGroupId;
       }
       async updateTagGroup(tagGroupId, payload) {
-        return this.tagRepository.updateTagGroup(tagGroupId, payload);
+        const id = await this.tagRepository.updateTagGroup(tagGroupId, payload);
+        await this._invalidateTaxonomyCaches();
+        return id;
       }
       async deleteTagGroup(tagGroupId) {
         await this.tagRepository.deleteTagGroup(tagGroupId);
+        await this._invalidateTaxonomyCaches();
       }
       async getAdminSubmissions() {
         const { data } = await this.linkDirectoryRepository.findAdminSubmissions();
@@ -16050,15 +16422,22 @@ var init_LinkDirectoryService = __esm({
       async incrementSiteViews(siteId) {
         await this.assertPublishedSiteForEngagement(siteId);
         await this.linkDirectoryRepository.incrementSiteStatCounter(siteId, "views");
+        await this._invalidateSiteStatCaches(siteId);
       }
       async incrementSiteLikes(siteId) {
         await this.assertPublishedSiteForEngagement(siteId);
         await this.linkDirectoryRepository.incrementSiteStatCounter(siteId, "likes");
+        await this._invalidateSiteStatCaches(siteId);
       }
       async getSiteComments(siteId) {
         await this.assertPublishedSiteForEngagement(siteId);
-        const { data } = await this.linkDirectoryRepository.findSiteComments(siteId);
-        return data;
+        const cacheKey = `${CACHE_KEYS10.COMMENTS_BY_SITE_ID}:${siteId}`;
+        const factory = async () => {
+          const { data } = await this.linkDirectoryRepository.findSiteComments(siteId);
+          return data;
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LINK_DIRECTORY_CACHE_TTL_SEC);
+        return factory();
       }
       async createSiteComment(siteId, payload, userId, authUserId, userEmail) {
         await this.assertPublishedSiteForEngagement(siteId);
@@ -16082,6 +16461,7 @@ var init_LinkDirectoryService = __esm({
           userEmail,
           parentId: payload.parentId ?? null
         });
+        await this._invalidateSiteCommentsCache(siteId);
         return { id: result.id };
       }
       async upsertSiteRating(siteId, rating, userId, authUserId) {
@@ -16102,20 +16482,22 @@ var init_LinkDirectoryService = __esm({
       }
       async approveSiteComment(commentId) {
         const result = await this.linkDirectoryRepository.approveSiteComment(commentId);
+        await this._invalidateSiteCommentsCache(result.site_id);
         return { id: result.id };
       }
       async deleteSiteComment(commentId) {
-        await this.linkDirectoryRepository.deleteSiteComment(commentId);
+        const result = await this.linkDirectoryRepository.deleteSiteComment(commentId);
+        await this._invalidateSiteCommentsCache(result.site_id);
       }
     };
   }
 });
 
 // services/ConfigService.ts
-var CACHE_KEYS10, CONFIG_CACHE_TTL_SEC, ConfigService;
+var CACHE_KEYS11, CONFIG_CACHE_TTL_SEC, ConfigService;
 var init_ConfigService = __esm({
   "services/ConfigService.ts"() {
-    CACHE_KEYS10 = {
+    CACHE_KEYS11 = {
       CONFIG: "config",
       BLOG_INFORMATION: "config:module:blog:information"
     };
@@ -16127,7 +16509,7 @@ var init_ConfigService = __esm({
         this.cacheInvalidator = cacheInvalidator;
       }
       async getModuleConfig(moduleName) {
-        const cacheKey = `${CACHE_KEYS10.CONFIG}:${moduleName}`;
+        const cacheKey = `${CACHE_KEYS11.CONFIG}:${moduleName}`;
         const factory = async () => {
           const { data } = await this.configRepository.getConfigByModuleName(moduleName);
           return data.config ?? {};
@@ -16147,8 +16529,8 @@ var init_ConfigService = __esm({
       }
       async invalidateConfigRelatedCaches() {
         if (!this.cacheInvalidator) return;
-        await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS10.CONFIG}:*`);
-        await this.cacheInvalidator.invalidateKey(CACHE_KEYS10.BLOG_INFORMATION);
+        await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS11.CONFIG}:*`);
+        await this.cacheInvalidator.invalidateKey(CACHE_KEYS11.BLOG_INFORMATION);
       }
     };
   }
@@ -24561,16 +24943,16 @@ var init_RefreshIntegrationService = __esm({
 
 // services/IntegrationService.ts
 function buildIntegrationDomainCacheKey(organizationId, integrationIdentifier, segment) {
-  return `${CACHE_KEYS11.INTEGRATION}:${organizationId}:${integrationIdentifier}:${segment}`;
+  return `${CACHE_KEYS12.INTEGRATION}:${organizationId}:${integrationIdentifier}:${segment}`;
 }
 function integrationCustomersListCacheKey(organizationId) {
-  return `${CACHE_KEYS11.INTEGRATION_CUSTOMERS_LIST}:${organizationId}`;
+  return `${CACHE_KEYS12.INTEGRATION_CUSTOMERS_LIST}:${organizationId}`;
 }
-var CACHE_KEYS11, ANALYTICS_CACHE_TTL_SEC, INTEGRATION_CUSTOMERS_LIST_TTL_SEC, IntegrationService;
+var CACHE_KEYS12, ANALYTICS_CACHE_TTL_SEC, INTEGRATION_CUSTOMERS_LIST_TTL_SEC, IntegrationService;
 var init_IntegrationService = __esm({
   "services/IntegrationService.ts"() {
     init_Logger();
-    CACHE_KEYS11 = {
+    CACHE_KEYS12 = {
       INTEGRATION: "integration",
       /** Per-org list cache key is `${INTEGRATION_CUSTOMERS_LIST}:${organizationId}`. */
       INTEGRATION_CUSTOMERS_LIST: "integration:customers:list"
@@ -24679,7 +25061,7 @@ var init_IntegrationService = __esm({
       async invalidateIntegrationDomainCacheForProvider(organizationId, providerIdentifier) {
         if (!this.cacheInvalidator) return;
         await this.cacheInvalidator.invalidatePattern(
-          `${CACHE_KEYS11.INTEGRATION}:${organizationId}:${providerIdentifier}:*`
+          `${CACHE_KEYS12.INTEGRATION}:${organizationId}:${providerIdentifier}:*`
         );
         logger.debug({
           msg: "Invalidated integration domain cache",
@@ -24729,20 +25111,20 @@ var init_IntegrationService = __esm({
 
 // services/PlugService.ts
 function plugsListCacheKey(organizationId, integrationId) {
-  return `${CACHE_KEYS12.PLUG_LIST}:${organizationId}:${integrationId}`;
+  return `${CACHE_KEYS13.PLUG_LIST}:${organizationId}:${integrationId}`;
 }
 function plugsActivatedCacheKey(organizationId, integrationId) {
-  return `${CACHE_KEYS12.PLUG_ACTIVATED}:${organizationId}:${integrationId}`;
+  return `${CACHE_KEYS13.PLUG_ACTIVATED}:${organizationId}:${integrationId}`;
 }
 function plugRowCacheKey(plugId) {
-  return `${CACHE_KEYS12.PLUG_ROW}:${plugId}`;
+  return `${CACHE_KEYS13.PLUG_ROW}:${plugId}`;
 }
-var CACHE_KEYS12, PLUG_CACHE_TTL_SEC, PlugService;
+var CACHE_KEYS13, PLUG_CACHE_TTL_SEC, PlugService;
 var init_PlugService = __esm({
   "services/PlugService.ts"() {
     init_InfraError();
     init_Logger();
-    CACHE_KEYS12 = {
+    CACHE_KEYS13 = {
       INTEGRATION: "integration",
       PLUG_LIST: "plug:list",
       PLUG_ACTIVATED: "plug:activated",
@@ -24849,7 +25231,7 @@ var init_PlugService = __esm({
       async invalidateIntegrationDomainCacheForProvider(organizationId, providerIdentifier) {
         if (!this.cacheInvalidator) return;
         await this.cacheInvalidator.invalidatePattern(
-          `${CACHE_KEYS12.INTEGRATION}:${organizationId}:${providerIdentifier}:*`
+          `${CACHE_KEYS13.INTEGRATION}:${organizationId}:${providerIdentifier}:*`
         );
         logger.debug({
           msg: "Invalidated integration domain cache (plug mutation)",
@@ -24924,7 +25306,7 @@ function integrationLikeToRecord(row) {
     additional_settings: row.additional_settings
   };
 }
-var CACHE_KEYS13, OAUTH_STATE_TTL_SEC, IntegrationConnectionService;
+var CACHE_KEYS14, OAUTH_STATE_TTL_SEC, IntegrationConnectionService;
 var init_IntegrationConnectionService = __esm({
   "services/IntegrationConnectionService.ts"() {
     init_dist();
@@ -24939,7 +25321,7 @@ var init_IntegrationConnectionService = __esm({
     init_providerProfilePictureFetch();
     init_Logger();
     init_additionalSettings();
-    CACHE_KEYS13 = {
+    CACHE_KEYS14 = {
       oauth: {
         login: (state) => `login:${state}`,
         organization: (state) => `organization:${state}`,
@@ -25186,15 +25568,15 @@ var init_IntegrationConnectionService = __esm({
         const { codeVerifier, state, url } = await integrationProvider.generateAuthUrl(clientInformation);
         const cache = this.requireCache();
         if (opts.refresh) {
-          await cache.set(CACHE_KEYS13.oauth.refresh(state), opts.refresh, OAUTH_STATE_TTL_SEC);
+          await cache.set(CACHE_KEYS14.oauth.refresh(state), opts.refresh, OAUTH_STATE_TTL_SEC);
         }
         if (opts.onboarding === "true") {
-          await cache.set(CACHE_KEYS13.oauth.onboarding(state), "true", OAUTH_STATE_TTL_SEC);
+          await cache.set(CACHE_KEYS14.oauth.onboarding(state), "true", OAUTH_STATE_TTL_SEC);
         }
-        await cache.set(CACHE_KEYS13.oauth.organization(state), organizationId, OAUTH_STATE_TTL_SEC);
-        await cache.set(CACHE_KEYS13.oauth.login(state), codeVerifier, OAUTH_STATE_TTL_SEC);
+        await cache.set(CACHE_KEYS14.oauth.organization(state), organizationId, OAUTH_STATE_TTL_SEC);
+        await cache.set(CACHE_KEYS14.oauth.login(state), codeVerifier, OAUTH_STATE_TTL_SEC);
         if (clientInformation) {
-          await cache.set(CACHE_KEYS13.oauth.external(state), JSON.stringify(clientInformation), OAUTH_STATE_TTL_SEC);
+          await cache.set(CACHE_KEYS14.oauth.external(state), JSON.stringify(clientInformation), OAUTH_STATE_TTL_SEC);
         }
         return { url };
       }
@@ -25372,7 +25754,7 @@ var init_IntegrationConnectionService = __esm({
           throw new AppError("Integration not found", 404);
         }
         const cache = this.requireCache();
-        const getCodeVerifier = integrationProvider.customFields ? "none" : await cache.get(CACHE_KEYS13.oauth.login(body.state));
+        const getCodeVerifier = integrationProvider.customFields ? "none" : await cache.get(CACHE_KEYS14.oauth.login(body.state));
         if (!getCodeVerifier && !integrationProvider.customFields) {
           throw new AppError(
             "Invalid OAuth state: login verifier missing for this state (expired, already used, or cache unavailable). Remove any partial channel and connect again.",
@@ -25381,9 +25763,9 @@ var init_IntegrationConnectionService = __esm({
           );
         }
         if (!integrationProvider.customFields) {
-          await this.invalidateOAuthCacheKey(CACHE_KEYS13.oauth.login(body.state));
+          await this.invalidateOAuthCacheKey(CACHE_KEYS14.oauth.login(body.state));
         }
-        const organizationKey = CACHE_KEYS13.oauth.organization(body.state);
+        const organizationKey = CACHE_KEYS14.oauth.organization(body.state);
         const organizationId = await cache.get(organizationKey);
         if (!organizationId || typeof organizationId !== "string") {
           throw new AppError("Organization not found", 400);
@@ -25391,14 +25773,14 @@ var init_IntegrationConnectionService = __esm({
         if (authUserId) {
           await this.assertOrganizationMember(authUserId, organizationId);
         }
-        const detailsRaw = await cache.get(CACHE_KEYS13.oauth.external(body.state));
+        const detailsRaw = await cache.get(CACHE_KEYS14.oauth.external(body.state));
         if (detailsRaw) {
-          await this.invalidateOAuthCacheKey(CACHE_KEYS13.oauth.external(body.state));
+          await this.invalidateOAuthCacheKey(CACHE_KEYS14.oauth.external(body.state));
         }
-        const refreshState = await cache.get(CACHE_KEYS13.oauth.refresh(body.state));
-        if (refreshState) await this.invalidateOAuthCacheKey(CACHE_KEYS13.oauth.refresh(body.state));
-        const onboarding = await cache.get(CACHE_KEYS13.oauth.onboarding(body.state));
-        if (onboarding) await this.invalidateOAuthCacheKey(CACHE_KEYS13.oauth.onboarding(body.state));
+        const refreshState = await cache.get(CACHE_KEYS14.oauth.refresh(body.state));
+        if (refreshState) await this.invalidateOAuthCacheKey(CACHE_KEYS14.oauth.refresh(body.state));
+        const onboarding = await cache.get(CACHE_KEYS14.oauth.onboarding(body.state));
+        if (onboarding) await this.invalidateOAuthCacheKey(CACHE_KEYS14.oauth.onboarding(body.state));
         let clientInformation;
         if (detailsRaw && typeof detailsRaw === "string") {
           clientInformation = JSON.parse(detailsRaw);
@@ -25611,7 +25993,7 @@ var init_IntegrationConnectionService = __esm({
           );
         }
         const cache = this.requireCache();
-        const organizationKey = CACHE_KEYS13.oauth.organization(state);
+        const organizationKey = CACHE_KEYS14.oauth.organization(state);
         const organizationId = await cache.get(organizationKey);
         if (!organizationId || typeof organizationId !== "string") {
           throw new AppError(
@@ -26313,11 +26695,11 @@ function sleepMs8(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 function tagsListCacheKey(organizationId) {
-  return `${CACHE_KEYS14.POSTS_TAGS_LIST}:${organizationId}`;
+  return `${CACHE_KEYS15.POSTS_TAGS_LIST}:${organizationId}`;
 }
 function calendarPostsCacheKey(params) {
   const integrationKey = params.integrationIds != null && params.integrationIds.length > 0 ? [...params.integrationIds].sort().join(",") : "all";
-  return `${CACHE_KEYS14.POSTS_CALENDAR_LIST}:${params.organizationId}:${params.startIso}:${params.endIso}:${integrationKey}`;
+  return `${CACHE_KEYS15.POSTS_CALENDAR_LIST}:${params.organizationId}:${params.startIso}:${params.endIso}:${integrationKey}`;
 }
 async function invalidatePostsCalendarListCachesForOrganization(organizationId, cacheInvalidator, cache) {
   const pattern = `${POSTS_CALENDAR_LIST_CACHE_PREFIX}:${organizationId}:*`;
@@ -26382,7 +26764,7 @@ function socialPlatformLabelFromProviderIdentifier(integrationManager2, provider
   if (registered?.name) return registered.name;
   return id.split("-").map((w) => w.length > 0 ? w[0].toUpperCase() + w.slice(1).toLowerCase() : "").join(" ");
 }
-var DEFAULT_TAG_COLOR, POSTS_CALENDAR_LIST_CACHE_PREFIX, CACHE_KEYS14, POSTS_CACHE_TTL_SEC, POST_ANALYTICS_CACHE_TTL_SEC, PostsService;
+var DEFAULT_TAG_COLOR, POSTS_CALENDAR_LIST_CACHE_PREFIX, CACHE_KEYS15, POSTS_CACHE_TTL_SEC, POST_ANALYTICS_CACHE_TTL_SEC, PostsService;
 var init_PostsService = __esm({
   "services/PostsService.ts"() {
     init_PostDTO();
@@ -26398,7 +26780,7 @@ var init_PostsService = __esm({
     init_dist();
     DEFAULT_TAG_COLOR = "#6366f1";
     POSTS_CALENDAR_LIST_CACHE_PREFIX = "posts:calendar:list";
-    CACHE_KEYS14 = {
+    CACHE_KEYS15 = {
       POSTS: "posts",
       /** Full key = `${POSTS_GROUP}:${postGroup}` */
       POSTS_GROUP: "posts:group",
@@ -26857,7 +27239,7 @@ var init_PostsService = __esm({
         }
         const organizationId = rows[0].organization_id;
         await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
-        const cacheKey = `${CACHE_KEYS14.POSTS_GROUP}:${postGroup}`;
+        const cacheKey = `${CACHE_KEYS15.POSTS_GROUP}:${postGroup}`;
         const factory = async () => this.buildPostGroupDetails(postGroup, rows);
         if (this.cache) {
           return this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);
@@ -26876,7 +27258,7 @@ var init_PostsService = __esm({
         if (rows[0].organization_id !== organizationId) {
           throw new AppError("Post group does not belong to that workspace", 400);
         }
-        const cacheKey = `${CACHE_KEYS14.POSTS_GROUP}:${postGroup}`;
+        const cacheKey = `${CACHE_KEYS15.POSTS_GROUP}:${postGroup}`;
         const factory = async () => this.buildPostGroupDetails(postGroup, rows);
         if (this.cache) {
           return this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);
@@ -27254,7 +27636,7 @@ var init_PostsService = __esm({
         if (share !== "true") {
           throw new AppError("Forbidden", 403);
         }
-        const cacheKey = `${CACHE_KEYS14.POSTS_PREVIEW}:${postId}`;
+        const cacheKey = `${CACHE_KEYS15.POSTS_PREVIEW}:${postId}`;
         const factory = async () => {
           const row = await this.postsRepository.getPostById(postId);
           if (!row) {
@@ -27950,7 +28332,7 @@ var init_PostsService = __esm({
         if (postIds.length === 0) return;
         const invalidateWithInvalidator = async () => {
           for (const id of postIds) {
-            await this.cacheInvalidator.invalidateKey(`${CACHE_KEYS14.POSTS_PREVIEW}:${id}`);
+            await this.cacheInvalidator.invalidateKey(`${CACHE_KEYS15.POSTS_PREVIEW}:${id}`);
           }
         };
         if (this.cacheInvalidator) {
@@ -27968,7 +28350,7 @@ var init_PostsService = __esm({
         if (this.cache) {
           try {
             for (const id of postIds) {
-              await this.cache.del(`${CACHE_KEYS14.POSTS_PREVIEW}:${id}`);
+              await this.cache.del(`${CACHE_KEYS15.POSTS_PREVIEW}:${id}`);
             }
           } catch (error) {
             logger.error({
@@ -27985,9 +28367,9 @@ var init_PostsService = __esm({
       async _invalidatePostMutationCaches(params) {
         const { organizationId, postGroup, postIds } = params;
         const invalidateWithInvalidator = async () => {
-          await this.cacheInvalidator.invalidateKey(`${CACHE_KEYS14.POSTS_GROUP}:${postGroup}`);
+          await this.cacheInvalidator.invalidateKey(`${CACHE_KEYS15.POSTS_GROUP}:${postGroup}`);
           for (const id of postIds) {
-            await this.cacheInvalidator.invalidateKey(`${CACHE_KEYS14.POSTS_PREVIEW}:${id}`);
+            await this.cacheInvalidator.invalidateKey(`${CACHE_KEYS15.POSTS_PREVIEW}:${id}`);
           }
           await invalidatePostsCalendarListCachesForOrganization(
             organizationId,
@@ -27995,7 +28377,7 @@ var init_PostsService = __esm({
             void 0
           );
           await this.cacheInvalidator.invalidateKey(tagsListCacheKey(organizationId));
-          await this.cacheInvalidator.invalidateEntity(CACHE_KEYS14.POSTS, postGroup);
+          await this.cacheInvalidator.invalidateEntity(CACHE_KEYS15.POSTS, postGroup);
           logger.debug({
             msg: "Invalidated post mutation caches",
             organizationId,
@@ -28018,9 +28400,9 @@ var init_PostsService = __esm({
         }
         if (this.cache) {
           try {
-            await this.cache.del(`${CACHE_KEYS14.POSTS_GROUP}:${postGroup}`);
+            await this.cache.del(`${CACHE_KEYS15.POSTS_GROUP}:${postGroup}`);
             for (const id of postIds) {
-              await this.cache.del(`${CACHE_KEYS14.POSTS_PREVIEW}:${id}`);
+              await this.cache.del(`${CACHE_KEYS15.POSTS_PREVIEW}:${id}`);
             }
             await invalidatePostsCalendarListCachesForOrganization(organizationId, void 0, this.cache);
             await this.cache.del(tagsListCacheKey(organizationId));
@@ -28260,14 +28642,14 @@ var init_SignatureError = __esm({
 
 // services/SignatureService.ts
 function signaturesListCacheKey(organizationId) {
-  return `${CACHE_KEYS15.SIGNATURE_LIST_BYORGID}:${organizationId}`;
+  return `${CACHE_KEYS16.SIGNATURE_LIST_BYORGID}:${organizationId}`;
 }
-var CACHE_KEYS15, SIGNATURE_CACHE_TTL_SEC, SignatureService;
+var CACHE_KEYS16, SIGNATURE_CACHE_TTL_SEC, SignatureService;
 var init_SignatureService = __esm({
   "services/SignatureService.ts"() {
     init_SignatureError();
     init_Logger();
-    CACHE_KEYS15 = {
+    CACHE_KEYS16 = {
       SIGNATURE: "signature",
       /** Full key = `${SIGNATURE_LIST_BYORGID}:${organizationId}` */
       SIGNATURE_LIST_BYORGID: "signature:list:byOrgId"
@@ -28390,17 +28772,17 @@ var init_SetError = __esm({
 
 // services/SetsService.ts
 function setsListCacheKey(organizationId) {
-  return `${CACHE_KEYS16.SET_LIST_BYORGID}:${organizationId}`;
+  return `${CACHE_KEYS17.SET_LIST_BYORGID}:${organizationId}`;
 }
 function setByIdCacheKey(setId) {
-  return `${CACHE_KEYS16.SET_BY_SETID}:${setId}`;
+  return `${CACHE_KEYS17.SET_BY_SETID}:${setId}`;
 }
-var CACHE_KEYS16, SETS_CACHE_TTL_SEC, SetsService;
+var CACHE_KEYS17, SETS_CACHE_TTL_SEC, SetsService;
 var init_SetsService = __esm({
   "services/SetsService.ts"() {
     init_SetError();
     init_Logger();
-    CACHE_KEYS16 = {
+    CACHE_KEYS17 = {
       /** Full key = `${SET_LIST_BYORGID}:${organizationId}` */
       SET_LIST_BYORGID: "sets:list:byOrgId",
       /** Full key = `${SET_BY_SETID}:${setId}` */
@@ -31405,7 +31787,9 @@ var init_services = __esm({
       linkDirectoryCategoryRepository,
       linkDirectoryTagRepository,
       subscriptionGuard,
-      internalOpsEmailService
+      internalOpsEmailService,
+      cacheServiceConnection,
+      cacheInvalidationServiceConnection
     );
     userSessionService = new UserSessionService(
       organizationRepository,
@@ -33091,182 +33475,6 @@ var init_ListingTagController = __esm({
         }
       };
     };
-  }
-});
-
-// utils/dtos/LinkDirectoryDTO.ts
-function mapCategory(row) {
-  if (!row) return null;
-  return {
-    id: row.id,
-    name: row.name,
-    slug: row.slug,
-    headline: row.headline,
-    description: row.description,
-    sortOrder: row.sort_order,
-    openquokChannelsHubPath: row.openquok_channels_hub_path
-  };
-}
-function mapOpportunityType(row) {
-  if (!row) return null;
-  return {
-    id: row.id,
-    slug: row.slug,
-    label: row.label,
-    description: row.description,
-    sortOrder: row.sort_order
-  };
-}
-function mapOpportunity(row) {
-  const typeRow = row.opportunity_type ?? null;
-  return {
-    id: row.id,
-    siteId: row.site_id,
-    slug: row.slug,
-    title: row.title,
-    opportunityTypeId: row.opportunity_type_id,
-    opportunityType: mapOpportunityType(typeRow),
-    effort: row.effort,
-    approvalMode: row.approval_mode,
-    approvalTimeHint: row.approval_time_hint,
-    dofollow: row.dofollow,
-    costTier: row.cost_tier,
-    costNote: row.cost_note,
-    description: row.description,
-    steps: row.steps ?? [],
-    openquokCtaKind: row.openquok_cta_kind,
-    openquokChannelSlug: row.openquok_channel_slug,
-    openquokPlugName: row.openquok_plug_name,
-    ctaHref: row.cta_href,
-    ctaLabel: row.cta_label,
-    sortOrder: row.sort_order,
-    isAdminPublished: row.is_admin_published,
-    publishedAt: row.published_at
-  };
-}
-function toLinkDirectorySiteDto(row) {
-  const opportunities = (row.opportunities ?? []).map(mapOpportunity);
-  return {
-    id: row.id,
-    slug: row.slug,
-    title: row.title,
-    siteUrl: row.site_url,
-    logoUrl: row.logo_url,
-    shortDescription: row.short_description,
-    longDescription: row.long_description,
-    domainAuthority: row.domain_authority,
-    domainRating: row.domain_rating,
-    monthlyVisits: row.monthly_visits,
-    metricsSource: row.metrics_source,
-    metricsUpdatedAt: row.metrics_updated_at,
-    categoryId: row.category_id,
-    category: mapCategory(row.category ?? null),
-    isOpenquokAuthSupported: row.is_openquok_auth_supported,
-    openquokChannelSlug: row.openquok_channel_slug,
-    isAdminPublished: row.is_admin_published,
-    sortOrder: row.sort_order,
-    tagSlugs: row.tag_slugs ?? [],
-    publishedAt: row.published_at,
-    likes: row.likes ?? 0,
-    views: row.views ?? 0,
-    bookmarkCount: row.bookmark_count ?? 0,
-    averageRating: row.average_rating ?? 0,
-    ratingsCount: row.ratings_count ?? 0,
-    opportunities
-  };
-}
-function mapSiteComment(row) {
-  return {
-    id: row.id,
-    content: row.content,
-    isApproved: row.is_approved,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at ?? null,
-    parentId: row.parent_id ?? null,
-    userId: row.user_id,
-    author: row.author ? {
-      id: row.author.id,
-      fullName: row.author.full_name ?? null,
-      avatarUrl: row.author.avatar_url ?? null
-    } : null
-  };
-}
-function toLinkDirectorySiteCommentDtoCollection(rows) {
-  return rows.map((row) => mapSiteComment(row));
-}
-function toAdminLinkDirectorySiteCommentDto(row) {
-  return {
-    ...mapSiteComment(row),
-    siteId: row.site_id,
-    site: row.site ? { id: row.site.id, title: row.site.title, slug: row.site.slug } : null
-  };
-}
-function toAdminLinkDirectorySiteCommentDtoCollection(rows) {
-  return rows.map((row) => toAdminLinkDirectorySiteCommentDto(row));
-}
-function toLinkDirectorySiteDtoCollection(rows) {
-  return rows.map(toLinkDirectorySiteDto);
-}
-function toLinkDirectoryCategoryDto(row) {
-  return mapCategory(row);
-}
-function toLinkDirectoryCategoryDtoCollection(rows) {
-  return rows.map(toLinkDirectoryCategoryDto);
-}
-function toLinkDirectoryTagDto(row) {
-  const groups = row.link_directory_tag_groups?.map((assoc) => {
-    const group = assoc.link_directory_tag_groups;
-    return group ? { id: group.id, name: group.name, sortOrder: group.sort_order } : null;
-  }).filter((g) => g !== null) ?? [];
-  return {
-    id: row.id,
-    name: row.name,
-    slug: row.slug,
-    headline: row.headline,
-    description: row.description,
-    groups
-  };
-}
-function toLinkDirectoryTagDtoCollection(rows) {
-  return rows.map(toLinkDirectoryTagDto);
-}
-function toLinkDirectoryOpportunityTypeDtoCollection(rows) {
-  return rows.map((row) => mapOpportunityType(row));
-}
-function toLinkDirectorySubmissionDto(row) {
-  return {
-    id: row.id,
-    status: row.status,
-    email: row.email,
-    userId: row.user_id,
-    siteUrl: row.site_url,
-    proposedTitle: row.proposed_title,
-    notes: row.notes,
-    payload: row.payload ?? {},
-    reviewedBy: row.reviewed_by,
-    reviewedAt: row.reviewed_at,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at
-  };
-}
-function toLinkDirectorySubmissionDtoCollection(rows) {
-  return rows.map(toLinkDirectorySubmissionDto);
-}
-function toLinkDirectorySavedSiteDto(row) {
-  return {
-    id: row.id,
-    siteId: row.site_id,
-    sortOrder: row.sort_order,
-    createdAt: row.created_at,
-    outreachCompletedAt: row.outreach_completed_at ?? null,
-    site: row.site ? toLinkDirectorySiteDto(row.site) : null
-  };
-}
-function toLinkDirectorySavedSiteDtoCollection(rows) {
-  return rows.map(toLinkDirectorySavedSiteDto);
-}
-var init_LinkDirectoryDTO = __esm({
-  "utils/dtos/LinkDirectoryDTO.ts"() {
   }
 });
 

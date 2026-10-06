@@ -1,136 +1,131 @@
 ---
 title: Rate limiting
-description: Set rate limits on API and auth routes.
+description: How OpenQuok caps traffic so sign-in, your workspace, and public pages stay reliable.
 order: 9
-lastUpdated: 2026-09-17
+lastUpdated: 2026-10-06
 ---
 
 <script>
-import { Badge, Callout, DocsExternalLink } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Overview
 
-The backend uses <DocsExternalLink href="https://www.npmjs.com/package/express-rate-limit">express-rate-limit</DocsExternalLink>. Route rules live in <Badge text="backend/middlewares/publicRouteRegistry.ts" variant="path" />. Limits and auth skip rules use the same registry.
+**Rate limiting** means OpenQuok counts how many requests someone sends in a time window. A request can be from a signed-in user, an API key, or a visitor IP address.
 
-| Limiter | Scope | Key | Default (production) |
-| --- | --- | --- | --- |
-| <Badge text="publicRead" variant="default" /> | Public CMS GETs (<Badge text="/company/*" variant="path" />, <Badge text="/blog-system/*" variant="path" />, <Badge text="/listings/*" variant="path" />, allowlisted <Badge text="GET /image/download" variant="path" />) | Trusted client IP | 600 / hr |
-| <Badge text="session" variant="default" /> | Authenticated API under <Badge text="API_PREFIX" variant="envBackend" /> | JWT <code>sub</code> | 2000 / hr |
-| <Badge text="global" variant="default" /> | Other anonymous routes | Trusted client IP | 120 / hr |
-| <Badge text="auth" variant="default" /> | <Badge text="/auth" variant="path" /> (not <Badge text="/oauth/*" variant="path" />) | IP | 50 / 15 min |
-| <Badge text="oauth" variant="default" /> | <Badge text="/auth/oauth/*" variant="path" /> | IP | 20 / 5 min |
-| <Badge text="publicApi" variant="default" /> | <Badge text="/public/*" variant="path" /> | <Badge text="opo_" variant="default" /> token or IP | 30 / hr |
-| <Badge text="mcp" variant="default" /> | <Badge text="/mcp" variant="path" /> | Bearer, path token, or IP | 120 / hr |
-| <Badge text="upload" variant="default" /> | <Badge text="/media/upload*" variant="path" />, <Badge text="/public/upload*" variant="path" /> | Token or IP | 20 / hr |
-| <Badge text="feedback" variant="default" /> | <Badge text="POST /feedback" variant="path" /> | IP | 10 / hr |
-| <Badge text="integrationConnect" variant="default" /> | OAuth connect under <Badge text="/integrations" variant="path" /> | IP | 30 / 15 min |
-| <Badge text="oauthToken" variant="default" /> | <Badge text="POST /oauth/token" variant="path" /> | IP | 30 / 15 min |
-| <Badge text="publicWrite" variant="default" /> | Listing stats, blog activity, conversion tracking | IP | 60 / hr |
+When the count goes over the cap, the API returns **429 Too Many Requests**. The person must wait until the window resets.
 
-Config: <Badge text="backend/middlewares/rateLimit.ts" variant="path" />, <Badge text="backend/config/GlobalConfig.ts" variant="path" />.
+Limits protect sign-in, the dashboard, public blog and listing pages, uploads, and integrations. Messages from social networks (webhooks) are **not** rate limited. Those go server to server.
 
-<Callout type="note">
-Routes with a dedicated limiter do not use <Badge text="global" variant="default" />. Public CMS GETs use <Badge text="publicRead" variant="default" /> — they are not unlimited. <Badge text="/webhooks/*" variant="path" /> skip all limiters.
-</Callout>
+The table below shows typical production caps. You can change them with environment variables (see <a href="#environment-variables">Environment variables</a>).
 
-<Callout type="warning">
-Behind Vercel SSR and Cloudflare, many requests can share one edge IP. Set <Badge text="TRUST_CLOUDFLARE_HEADERS" variant="envBackend" /> when you use Cloudflare. Public CMS GETs also send <code>Cache-Control</code> headers to reduce origin load.
-</Callout>
+## Limits by area
 
-## Client IP
+Each row is one rule. One request matches **one** rule, not every rule at once.
 
-<Badge text="backend/middlewares/trustedClientIp.ts" variant="path" /> picks the IP for keys and 429 logs:
+| Area | Who it applies to | Default cap (production) |
+| --- | --- | --- |
+| Public blog, listings, and similar **read** pages | Visitors (by IP) | 600 requests per hour |
+| Signed-in **workspace API** | Your account (by user id) | 2000 requests per hour |
+| Other **anonymous** API calls | Visitors (by IP) | 120 requests per hour |
+| **Sign-in and password** routes | By IP | 50 requests per 15 minutes |
+| **OAuth sign-in** (Google and similar) | By IP | 20 requests per 5 minutes |
+| **Public API** (API keys) | Per key, or IP if no key | 30 requests per hour |
+| **MCP** tools endpoint | Token or IP | 120 requests per hour |
+| **File uploads** | Token or IP | 20 requests per hour |
+| **Feedback** form | By IP | 10 requests per hour |
+| **Connect a social channel** | By IP | 30 requests per 15 minutes |
+| **OAuth token exchange** for apps | By IP | 30 requests per 15 minutes |
+| Small **public write** actions (stats, activity) | By IP | 60 requests per hour |
 
-- <Badge text="TRUST_CLOUDFLARE_HEADERS" variant="envBackend" /> — use <code>CF-Connecting-IP</code> instead of <code>req.ip</code> (default <Badge text="true" variant="new" /> in production when <Badge text="NOT_SECURED" variant="envBackend" /> is <Badge text="false" variant="new" />).
-- <Badge text="VERIFY_CLOUDFLARE_IP_RANGE" variant="envBackend" /> — use <code>CF-Connecting-IP</code> only when <code>req.ip</code> is a Cloudflare edge IP.
+Public read pages are **not** unlimited. The first row stops heavy scraping from overloading your server.
 
-## Redis store
+## Visitor IP address
 
-When <Badge text="RATE_LIMIT_REDIS_ENABLED" variant="envBackend" /> is <Badge text="true" variant="new" /> (production default), all limiters use Redis. They share <Badge text="REDIS_HOST" variant="envBackend" /> and <Badge text="REDIS_PORT" variant="envBackend" /> with cache and BullMQ. Set <Badge text="RATE_LIMIT_REDIS_PREFIX" variant="envBackend" /> and optional <Badge text="RATE_LIMIT_REDIS_DB" variant="envBackend" /> to tune keys. If Redis is off or down at startup, counters stay in memory per API instance.
+The API needs each visitor’s real IP to count fairly.
 
-## CMS cache headers
+If **Cloudflare** sits in front of OpenQuok, set <Badge text="TRUST_CLOUDFLARE_HEADERS" variant="envBackend" /> so the API sees the visitor IP, not one shared edge IP. Without that, many real users can look like one person and hit limits too soon.
 
-Public CMS GETs (same routes as <Badge text="publicRead" variant="default" />) get <code>Cache-Control</code> from <Badge text="backend/middlewares/publicCmsCacheHeaders.ts" variant="path" />:
+Optional <Badge text="VERIFY_CLOUDFLARE_IP_RANGE" variant="envBackend" /> only trusts that header when the request really came through Cloudflare.
 
-| Route kind | Default header |
+## Shared counters with Redis
+
+In production, counters usually live in **Redis** when <Badge text="RATE_LIMIT_REDIS_ENABLED" variant="envBackend" /> is on. Then every API server shares the same counts.
+
+Redis uses the same host settings as cache (<Badge text="REDIS_HOST" variant="envBackend" />, <Badge text="REDIS_PORT" variant="envBackend" />). If Redis is off or unreachable at startup, each API instance keeps its own in-memory counts until Redis is available.
+
+## Public content cache (related)
+
+Public read routes also send **cache headers**. Browsers and CDNs can reuse responses for a short time. That lowers load and helps you stay under read limits.
+
+| Content type | Typical behavior |
 | --- | --- |
-| CMS JSON | <code>public, max-age=60, stale-while-revalidate=300</code> |
-| <Badge text="GET /blog-system/rss" variant="path" /> | <code>public, max-age=86400</code> |
-| Public images | <code>public, max-age=3600, stale-while-revalidate=86400</code> |
+| List and hub pages (indexes, categories, tags) | Short public cache (about 1 minute) |
+| Single pages you edit in secret-admin | No cache — fresh after save |
+| RSS feed | Longer cache (about 1 day) |
+| Public images | About 1 hour, with a longer stale window |
 
-Anonymous public HTML uses matching hints in <Badge text="web/src/lib/seo/publicCmsPageCache.ts" variant="path" />. Tune with <Badge text="PUBLIC_CMS_CACHE_ENABLED" variant="envBackend" /> and <Badge text="PUBLIC_CMS_CACHE_*" variant="envBackend" /> (on by default when <Badge text="NOT_SECURED" variant="envBackend" /> is <Badge text="false" variant="new" />).
+The public **website** follows similar rules. For why more than one cache layer exists, see <a href="/docs/configuration-backend/cache-design#public-content-and-caching">Cache design → Public content and caching</a>.
 
-## 429 logs
+Tune cache duration with <Badge text="PUBLIC_CMS_CACHE_ENABLED" variant="envBackend" /> and <Badge text="PUBLIC_CMS_CACHE_*" variant="envBackend" />.
 
-Search logs for <code>Rate limit exceeded</code>. Fields: <code>limiter</code>, <code>trustedClientIp</code>, <code>userId</code>, <code>path</code>, <code>method</code>, <code>windowMs</code>, <code>max</code>.
+<Callout type="warning" title="Cloudflare and Vercel">
+<p>Many visitors can share one edge IP if IP headers are wrong. Set <Badge text="TRUST_CLOUDFLARE_HEADERS" variant="envBackend" /> when you use Cloudflare. Public page caching also reduces how often every visit hits your API.</p>
+</Callout>
+
+## When something is blocked
+
+Search API logs for <code>Rate limit exceeded</code>. Each line shows which rule fired, the IP, the path, and the cap.
+
+If real users hit limits, raise the cap for that area (public read or signed-in session). Lower caps only when you see abuse.
 
 ## Environment variables
 
-Set <Badge text="RATE_LIMIT_ENABLED" variant="envBackend" /> to <Badge text="false" variant="new" /> to disable all limiters.
+Set <Badge text="RATE_LIMIT_ENABLED" variant="envBackend" /> to <Badge text="false" variant="new" /> to turn off all limiters. Do not do this in production.
 
-| Group | Variables |
+Copy <Badge text="backend/.env.development.example" variant="path" /> to <Badge text="backend/.env.development.local" variant="path" /> for sample values when you test locally:
+
+```bash
+# From repo root — example only; adjust values for your machine
+cp backend/.env.development.example backend/.env.development.local
+```
+
+| Group | What you change |
 | --- | --- |
 | Master switch | <Badge text="RATE_LIMIT_ENABLED" variant="envBackend" /> |
-| Client IP | <Badge text="TRUST_CLOUDFLARE_HEADERS" variant="envBackend" />, <Badge text="VERIFY_CLOUDFLARE_IP_RANGE" variant="envBackend" /> |
-| Public read | <Badge text="PUBLIC_READ_RATE_LIMIT_WINDOW_MS" variant="envBackend" />, <Badge text="PUBLIC_READ_RATE_LIMIT_MAX" variant="envBackend" /> |
-| Session | <Badge text="SESSION_RATE_LIMIT_WINDOW_MS" variant="envBackend" />, <Badge text="SESSION_RATE_LIMIT_MAX" variant="envBackend" /> |
-| Global | <Badge text="RATE_LIMIT_WINDOW_MS" variant="envBackend" />, <Badge text="RATE_LIMIT_MAX" variant="envBackend" /> |
-| Auth / OAuth | <Badge text="AUTH_RATE_LIMIT_*" variant="envBackend" />, <Badge text="OAUTH_RATE_LIMIT_*" variant="envBackend" /> |
-| Public API / MCP | <Badge text="PUBLIC_API_RATE_LIMIT_*" variant="envBackend" />, <Badge text="MCP_RATE_LIMIT_*" variant="envBackend" /> |
-| Upload / feedback | <Badge text="UPLOAD_RATE_LIMIT_*" variant="envBackend" />, <Badge text="FEEDBACK_RATE_LIMIT_*" variant="envBackend" /> |
-| Integrations | <Badge text="INTEGRATION_CONNECT_RATE_LIMIT_*" variant="envBackend" />, <Badge text="OAUTH_TOKEN_RATE_LIMIT_*" variant="envBackend" /> |
+| Visitor IP | <Badge text="TRUST_CLOUDFLARE_HEADERS" variant="envBackend" />, <Badge text="VERIFY_CLOUDFLARE_IP_RANGE" variant="envBackend" /> |
+| Public read pages | <Badge text="PUBLIC_READ_RATE_LIMIT_WINDOW_MS" variant="envBackend" />, <Badge text="PUBLIC_READ_RATE_LIMIT_MAX" variant="envBackend" /> |
+| Signed-in workspace | <Badge text="SESSION_RATE_LIMIT_WINDOW_MS" variant="envBackend" />, <Badge text="SESSION_RATE_LIMIT_MAX" variant="envBackend" /> |
+| Other anonymous API | <Badge text="RATE_LIMIT_WINDOW_MS" variant="envBackend" />, <Badge text="RATE_LIMIT_MAX" variant="envBackend" /> |
+| Sign-in and OAuth | <Badge text="AUTH_RATE_LIMIT_*" variant="envBackend" />, <Badge text="OAUTH_RATE_LIMIT_*" variant="envBackend" /> |
+| Public API and MCP | <Badge text="PUBLIC_API_RATE_LIMIT_*" variant="envBackend" />, <Badge text="MCP_RATE_LIMIT_*" variant="envBackend" /> |
+| Uploads and feedback | <Badge text="UPLOAD_RATE_LIMIT_*" variant="envBackend" />, <Badge text="FEEDBACK_RATE_LIMIT_*" variant="envBackend" /> |
+| Channel connect and app tokens | <Badge text="INTEGRATION_CONNECT_RATE_LIMIT_*" variant="envBackend" />, <Badge text="OAUTH_TOKEN_RATE_LIMIT_*" variant="envBackend" /> |
 | Public writes | <Badge text="PUBLIC_WRITE_RATE_LIMIT_*" variant="envBackend" /> |
 | Redis store | <Badge text="RATE_LIMIT_REDIS_ENABLED" variant="envBackend" />, <Badge text="RATE_LIMIT_REDIS_PREFIX" variant="envBackend" />, <Badge text="RATE_LIMIT_REDIS_DB" variant="envBackend" /> |
-| CMS cache | <Badge text="PUBLIC_CMS_CACHE_ENABLED" variant="envBackend" />, <Badge text="PUBLIC_CMS_CACHE_MAX_AGE" variant="envBackend" />, <Badge text="PUBLIC_CMS_CACHE_STALE_WHILE_REVALIDATE" variant="envBackend" />, <Badge text="PUBLIC_CMS_RSS_CACHE_MAX_AGE" variant="envBackend" />, <Badge text="PUBLIC_CMS_IMAGE_CACHE_*" variant="envBackend" /> |
+| Public page cache | <Badge text="PUBLIC_CMS_CACHE_ENABLED" variant="envBackend" />, <Badge text="PUBLIC_CMS_CACHE_MAX_AGE" variant="envBackend" />, <Badge text="PUBLIC_CMS_CACHE_STALE_WHILE_REVALIDATE" variant="envBackend" />, <Badge text="PUBLIC_CMS_RSS_CACHE_MAX_AGE" variant="envBackend" />, <Badge text="PUBLIC_CMS_IMAGE_CACHE_*" variant="envBackend" /> |
 
-## Example (development)
-
-Copy <Badge text="backend/.env.development.example" variant="envBackend" /> to <Badge text="backend/.env.development.local" variant="envBackend" /> and adjust:
+Example production-related values (full list is in the example env file):
 
 ```bash
 RATE_LIMIT_ENABLED=true
-
-# Global (session / dashboard API)
-RATE_LIMIT_WINDOW_MS=3600000
-RATE_LIMIT_MAX=60
-
-# Auth
-AUTH_RATE_LIMIT_WINDOW_MS=900000
-AUTH_RATE_LIMIT_MAX=50
-
-# OAuth (Google)
-OAUTH_RATE_LIMIT_WINDOW_MS=300000
-OAUTH_RATE_LIMIT_MAX=20
-
-# Public API (per opo_ token)
-PUBLIC_API_RATE_LIMIT_WINDOW_MS=3600000
-PUBLIC_API_RATE_LIMIT_MAX=30
-
-# Uploads
-UPLOAD_RATE_LIMIT_WINDOW_MS=3600000
-UPLOAD_RATE_LIMIT_MAX=20
-
-# Feedback
-FEEDBACK_RATE_LIMIT_WINDOW_MS=3600000
-FEEDBACK_RATE_LIMIT_MAX=10
-
-# Integration connect + OAuth token exchange
-INTEGRATION_CONNECT_RATE_LIMIT_WINDOW_MS=900000
-INTEGRATION_CONNECT_RATE_LIMIT_MAX=30
-OAUTH_TOKEN_RATE_LIMIT_WINDOW_MS=900000
-OAUTH_TOKEN_RATE_LIMIT_MAX=30
-
-# Anonymous public writes
-PUBLIC_WRITE_RATE_LIMIT_WINDOW_MS=3600000
-PUBLIC_WRITE_RATE_LIMIT_MAX=60
+RATE_LIMIT_REDIS_ENABLED=true
+TRUST_CLOUDFLARE_HEADERS=true
+PUBLIC_READ_RATE_LIMIT_MAX=600
+SESSION_RATE_LIMIT_MAX=2000
 ```
 
-## Production deploy
+## Production checklist
 
-1. Deploy the API with <Badge text="NOT_SECURED" variant="envBackend" /> set to <Badge text="false" variant="new" /> and Redis configured.
-2. Check startup logs for <code>store: redis</code> when <Badge text="RATE_LIMIT_REDIS_ENABLED" variant="envBackend" /> is on.
-3. Watch <code>Rate limit exceeded</code> logs. Raise <Badge text="PUBLIC_READ_RATE_LIMIT_MAX" variant="envBackend" /> or <Badge text="SESSION_RATE_LIMIT_MAX" variant="envBackend" /> for real traffic. Lower caps only when you confirm abuse.
-4. If a public page returns 503, check for <code>limiter: &quot;publicRead&quot;</code> in API logs. Confirm <code>CF-Connecting-IP</code> behind Cloudflare and <code>Cache-Control</code> on CMS GETs.
+<Callout type="note" title="Deploy">
+<p>Run the API in production mode (<Badge text="NOT_SECURED" variant="envBackend" /> set to <Badge text="false" variant="new" />) with Redis configured. After deploy, confirm logs show Redis for rate limits when <Badge text="RATE_LIMIT_REDIS_ENABLED" variant="envBackend" /> is on. Watch <code>Rate limit exceeded</code> in logs. Raise caps if real users hit limits. If many visitors see errors on a public page, check public read limits and Cloudflare IP settings.</p>
+</Callout>
 
-Workers and the web app do not need rate-limit env vars. See <a href="/docs/installation/production-deployment">Production deployment</a>.
+Workers and the web app do not need these variables. See <a href="/docs/installation/production-deployment">Production deployment</a>.
+
+## Related
+
+<CardGrid>
+<LinkCard title="Cache design" description="Source of Truth, Redis, and public page caching." href="/docs/configuration-backend/cache-design" />
+<LinkCard title="Redis cache" description="Connect Redis for cache and shared rate limits." href="/docs/configuration-backend/redis" />
+</CardGrid>

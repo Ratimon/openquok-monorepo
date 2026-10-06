@@ -1,5 +1,10 @@
 import type { Request, Response } from "express";
 
+/**
+ * API `Cache-Control` for anonymous public CMS GETs (hubs, RSS, images, editor-managed detail).
+ * Complements Redis read-aside on services — does not replace SSR `no-store` or HTML document cache policy.
+ * See `web/src/content/docs/configuration-backend/cache-design.md` → Public CMS HTTP cache layers.
+ */
 import { config } from "../../config/GlobalConfig";
 import {
     EDITOR_MANAGED_PUBLIC_DETAIL_CACHE_CONTROL,

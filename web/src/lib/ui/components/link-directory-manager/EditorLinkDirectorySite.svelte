@@ -36,6 +36,7 @@
 	import { getRootPathSecretAdminLinkDirectoryManagerSiteEditor } from '$lib/area-admin/constants/getRootPathSecretAdminArea';
 	import { getRootPathPublicBuildBacklinksSite } from '$lib/area-public/constants/getRootPathPublicBuildBacklinks';
 	import { normalizeHttpUrlInputIfLikely } from '$lib/utils/normalizeHttpUrlInput';
+	import { parseOptionalIntFormField, trimFormField } from '$lib/utils/trimFormField';
 	import { route, url } from '$lib/utils/path';
 
 	import Button from '$lib/ui/buttons/Button.svelte';
@@ -100,7 +101,9 @@
 	const editorialTags = $derived(tags.filter((tag) => isBuildBacklinksEditorialTagSlug(tag.slug)));
 
 	const publicSiteGuidePath = $derived(
-		slug.trim() ? route(getRootPathPublicBuildBacklinksSite(slug.trim())) : ''
+		trimFormField(slug)
+			? route(getRootPathPublicBuildBacklinksSite(trimFormField(slug)))
+			: ''
 	);
 
 	$effect(() => {
@@ -138,7 +141,7 @@
 	});
 
 	$effect(() => {
-		if (site?.id || openquokChannelHintApplied || openquokChannelSlug.trim()) {
+		if (site?.id || openquokChannelHintApplied || trimFormField(openquokChannelSlug)) {
 			return;
 		}
 		const candidate = slugFromTitle(title);
@@ -164,7 +167,7 @@
 	}
 
 	function normalizeSiteUrlOnBlur() {
-		const trimmed = siteUrl.trim();
+		const trimmed = trimFormField(siteUrl);
 		if (!trimmed) return;
 		const normalized = normalizeHttpUrlInputIfLikely(trimmed);
 		if (normalized !== siteUrl) siteUrl = normalized;
@@ -203,8 +206,8 @@
 			return buildLinkDirectoryLogoPublicUrl(uploadedPath);
 		}
 
-		if (logoStorageKey.trim()) {
-			return buildLinkDirectoryLogoPublicUrl(logoStorageKey);
+		if (trimFormField(logoStorageKey)) {
+			return buildLinkDirectoryLogoPublicUrl(trimFormField(logoStorageKey));
 		}
 
 		const existingLogo = site?.logoUrl?.trim() ?? '';
@@ -216,7 +219,7 @@
 	}
 
 	function handleOpenQuokChannelChange(next: string) {
-		if (next.trim()) {
+		if (trimFormField(next)) {
 			isOpenquokAuthSupported = true;
 		}
 	}
@@ -231,20 +234,17 @@
 
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
-		const dr = domainRating.trim() ? Number.parseInt(domainRating, 10) : null;
-		const da = domainAuthority.trim() ? Number.parseInt(domainAuthority, 10) : null;
-		const visits = monthlyVisits.trim() ? Number.parseInt(monthlyVisits, 10) : null;
-		const parsedDr = Number.isFinite(dr) ? dr : null;
-		const parsedDa = Number.isFinite(da) ? da : null;
-		const parsedVisits = Number.isFinite(visits) ? visits : null;
+		const parsedDr = parseOptionalIntFormField(domainRating);
+		const parsedDa = parseOptionalIntFormField(domainAuthority);
+		const parsedVisits = parseOptionalIntFormField(monthlyVisits);
 		const metricsPatch = resolveLinkDirectoryManualMetricsOnSave(site, {
 			domainRating: parsedDr,
 			domainAuthority: parsedDa,
 			monthlyVisits: parsedVisits,
-			metricsSource: metricsSource.trim() || null
+			metricsSource: trimFormField(metricsSource) || null
 		});
-		const resolvedSlug = slug.trim() || slugFromTitle(title.trim());
-		const normalizedSiteUrl = normalizeHttpUrlInputIfLikely(siteUrl.trim());
+		const resolvedSlug = trimFormField(slug) || slugFromTitle(trimFormField(title));
+		const normalizedSiteUrl = normalizeHttpUrlInputIfLikely(trimFormField(siteUrl));
 		if (normalizedSiteUrl !== siteUrl) siteUrl = normalizedSiteUrl;
 		const resolvedLogoUrl = await resolveLogoUrlForSave();
 		if (resolvedLogoUrl === false) {
@@ -253,20 +253,20 @@
 		const payload = {
 			...(site?.id ? { id: site.id } : {}),
 			slug: resolvedSlug,
-			title: title.trim(),
+			title: trimFormField(title),
 			site_url: normalizedSiteUrl,
 			logo_url: resolvedLogoUrl,
-			short_description: shortDescription.trim() || null,
-			long_description: longDescription.trim() || null,
+			short_description: trimFormField(shortDescription) || null,
+			long_description: trimFormField(longDescription) || null,
 			domain_rating: parsedDr,
 			domain_authority: parsedDa,
 			monthly_visits: parsedVisits,
 			...metricsPatch,
 			category_id: categoryId || null,
-			openquok_channel_slug: openquokChannelSlug.trim() || null,
+			openquok_channel_slug: trimFormField(openquokChannelSlug) || null,
 			is_openquok_auth_supported: isOpenquokAuthSupported,
 			is_admin_published: isAdminPublished,
-			sort_order: Number.parseInt(sortOrder, 10) || 0,
+			sort_order: parseOptionalIntFormField(sortOrder) ?? 0,
 			tagIds: selectedTagIds
 		};
 		const result = linkDirectorySiteFormSchema.safeParse(payload);
@@ -514,7 +514,7 @@
 											<span class="font-medium text-base-content/85">
 												{stepIndex + 1}. {step.title}
 											</span>
-											{#if step.body.trim()}
+											{#if trimFormField(step.body)}
 												<span class="text-base-content/65"> — {step.body}</span>
 											{/if}
 										</li>

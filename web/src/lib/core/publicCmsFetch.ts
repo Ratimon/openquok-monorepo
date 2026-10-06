@@ -5,7 +5,9 @@ import type { ApiRequestOptions } from '$lib/core/HttpGateway';
  * Pairs with backend `Cache-Control` on `/company/*`, `/blog-system/*`, `/listings/*`, etc.
  *
  * Editor-managed **detail** reads (post/listing/stack/site by slug, blog comments) use
- * {@link publicCmsEditorManagedDetailRequestOptions} so SSR matches backend `private, no-cache`.
+ * {@link publicCmsEditorManagedDetailRequestOptions} (`cache: 'no-store'`) so SvelteKit does not
+ * reuse stale JSON when the API is `private, no-cache`. HTML document headers are separate — see
+ * `applyPublicHtmlCacheHeadersForPathname` and cache-design → Public CMS HTTP cache layers.
  */
 export function publicCmsServerRequestOptions(
 	fetch?: typeof globalThis.fetch

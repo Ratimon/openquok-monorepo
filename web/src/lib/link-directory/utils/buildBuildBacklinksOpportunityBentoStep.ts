@@ -1,9 +1,11 @@
 import { icons, type IconName } from '$data/icons';
+import { socialProviderDisplayLabel } from '$data/social-providers';
 
 import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
 import type { FeaturesOrderedStep } from '$lib/content/constants/agents/types';
 import type { PublicChannelFeatureBentoId } from '$lib/content/constants/channels/catalog/feature-bento';
 import type { LinkDirectoryOpportunityDto } from '$lib/link-directory/link-directory.types';
+import { resolveSchedulePostComposerBentoId } from '$lib/link-directory/utils/resolveSchedulePostComposerBentoId';
 import { route } from '$lib/utils/path';
 
 const CONNECT_CHANNELS_DOC = '/docs/channels/connect';
@@ -23,11 +25,7 @@ export type BuildBacklinksOpportunityBentoFields = Pick<
 	channelBentoId?: PublicChannelFeatureBentoId;
 };
 
-/** OpenQuok composer bentos for schedule_post sub-steps (draft / publish), by channel slug. */
-const SCHEDULE_POST_CHANNEL_BENTO: Partial<Record<string, PublicChannelFeatureBentoId>> = {
-	facebook: 'facebook-post-editor'
-};
-
+/** Sub-step orders that show the OpenQuok composer bento instead of Safari (draft / publish). */
 const SCHEDULE_POST_COMPOSER_STEP_ORDERS = new Set([2, 3]);
 
 function resolveOpportunityMockUrl(
@@ -108,7 +106,7 @@ export function buildBuildBacklinksOpportunityBentoStep(
 
 /**
  * Per sub-step media when the active step should differ from the section default
- * (e.g. Facebook Page post: Safari on step 1, composer bento on draft / publish steps).
+ * (Safari on step 1, OpenQuok composer bento on draft / publish steps when a channel is set).
  */
 export function buildBuildBacklinksOpportunityStepMedia(
 	opportunity: LinkDirectoryOpportunityDto,
@@ -120,15 +118,17 @@ export function buildBuildBacklinksOpportunityStepMedia(
 	}
 
 	const channelSlug = opportunity.openquokChannelSlug?.trim();
-	const channelBentoId = channelSlug ? SCHEDULE_POST_CHANNEL_BENTO[channelSlug] : undefined;
+	const channelBentoId = resolveSchedulePostComposerBentoId(channelSlug);
 	if (!channelBentoId) {
 		return undefined;
 	}
 
+	const platformLabel = channelSlug ? socialProviderDisplayLabel(channelSlug) : 'social';
+
 	if (SCHEDULE_POST_COMPOSER_STEP_ORDERS.has(stepOrder)) {
 		return {
 			channelBentoId,
-			mediaAlt: 'Draft and schedule a Facebook Page post in OpenQuok',
+			mediaAlt: `Draft and schedule a ${platformLabel} post in OpenQuok`,
 			iconName: icons.CalendarClock.name
 		};
 	}
@@ -137,7 +137,7 @@ export function buildBuildBacklinksOpportunityStepMedia(
 		return safariSectionMedia(
 			resolveOpportunityMockUrl(opportunity, siteUrl) ??
 				resolveSchedulePostMockUrl(opportunity.openquokChannelSlug),
-			'Confirm your Facebook Page setup',
+			`Prepare on ${platformLabel} or your site`,
 			icons.MousePointerClickIcon.name
 		);
 	}

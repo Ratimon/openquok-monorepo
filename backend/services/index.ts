@@ -174,7 +174,9 @@ export const linkDirectoryService = new LinkDirectoryService(
     linkDirectoryCategoryRepository,
     linkDirectoryTagRepository,
     subscriptionGuard,
-    internalOpsEmailService
+    internalOpsEmailService,
+    cacheServiceConnection,
+    cacheInvalidationServiceConnection
 );
 export const userSessionService = new UserSessionService(
     organizationRepository,

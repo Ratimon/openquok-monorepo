@@ -5,7 +5,7 @@ import {
 	PUBLIC_NAVBAR_MOBILE_LINKS
 } from '$lib/config/constants/config';
 import { createPublicHeaderNavigationSchema } from '$lib/seo/createPublicHeaderNavigationSchema';
-import { applyPublicCmsPageCacheHeaders } from '$lib/seo/publicCmsPageCache';
+import { applyPublicHtmlCacheHeadersForPathname } from '$lib/seo/publicCmsPageCache';
 import type { Link } from '$lib/ui/nav-bars/Link';
 
 export const ssr = true;
@@ -17,7 +17,7 @@ export const load: LayoutServerLoad = async ({ cookies, parent, setHeaders, url 
 	const isLoggedIn = !!accessToken;
 
 	if (!isLoggedIn) {
-		applyPublicCmsPageCacheHeaders(setHeaders);
+		applyPublicHtmlCacheHeadersForPathname(url.pathname, setHeaders);
 	}
 
 	const navbarDesktopLinks: Link[] = [...PUBLIC_NAVBAR_LINKS];

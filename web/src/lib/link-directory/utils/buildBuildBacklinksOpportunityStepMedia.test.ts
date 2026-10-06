@@ -58,6 +58,24 @@ describe('buildBuildBacklinksOpportunityStepMedia', () => {
 		}
 	});
 
+	it('uses Bluesky composer bento on steps 2 and 3', () => {
+		for (const order of [2, 3]) {
+			const media = buildBuildBacklinksOpportunityStepMedia(
+				makeOpportunity({ openquokChannelSlug: 'bluesky' }),
+				order
+			);
+			expect(media).toMatchObject({ channelBentoId: 'bluesky-threads' });
+		}
+	});
+
+	it('uses Instagram post editor when channel slug is instagram-business', () => {
+		const media = buildBuildBacklinksOpportunityStepMedia(
+			makeOpportunity({ openquokChannelSlug: 'instagram-business' }),
+			2
+		);
+		expect(media).toMatchObject({ channelBentoId: 'instagram-post-editor' });
+	});
+
 	it('returns undefined for non-schedule_post opportunities', () => {
 		expect(
 			buildBuildBacklinksOpportunityStepMedia(

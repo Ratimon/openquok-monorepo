@@ -144,6 +144,6 @@ You can keep <Badge text="CACHE_PROVIDER=memory" variant="envBackend" /> for loc
 ## Related
 
 <CardGrid>
-<LinkCard title="Cache design" description="Source of truth, Redis roles, invalidation, and connection limits" href="/docs/configuration-backend/cache-design" />
+<LinkCard title="Cache design" description="Database vs Redis, public page caching, and connection limits." href="/docs/configuration-backend/cache-design" />
 <LinkCard title="Redis &amp; queues" description="BullMQ keys and redis-cli for workers" href="/docs/configuration-worker/redis" />
 </CardGrid>

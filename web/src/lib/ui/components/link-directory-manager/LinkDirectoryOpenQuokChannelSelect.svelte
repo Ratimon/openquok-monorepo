@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { listAvailablePublicChannels } from '$lib/content/constants/channels';
 	import { publicChannelSelectLabel } from '$lib/link-directory/utils/publicChannelSelectLabel';
+	import { trimFormField } from '$lib/utils/trimFormField';
 
 	const helperText =
 		'Only networks users connect in OpenQuok workspace. Slug must match the integration identifier (e.g. bluesky, facebook).';
@@ -33,7 +34,7 @@
 				label: `${publicChannelSelectLabel(channel)} (${channel.slug})`
 			}))
 		];
-		const trimmed = value.trim();
+		const trimmed = trimFormField(value);
 		if (trimmed && !bySlug.has(trimmed)) {
 			rows.push({ value: trimmed, label: `${trimmed} (not in public channel catalog)` });
 		}

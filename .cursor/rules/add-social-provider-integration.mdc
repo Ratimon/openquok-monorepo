@@ -1,5 +1,5 @@
 ---
-description: Checklist for adding a social channel — backend provider + web composer/OAuth + cross-account plug preview + docs + public API provider settings page + self-host env + public SEO landing page + agent channel SEO routes + public Photo Editor channel routes + public Best Time to Post channel routes + public Humanizer channel routes + feature bento showcases + auto-derived site footer links + Extensions Hub listing tag (secret-admin)
+description: Checklist for adding a social channel — backend provider + web composer/OAuth + cross-account plug preview + docs + public API provider settings page + self-host env + public SEO landing page + build-backlinks schedule_post composer bento + agent channel SEO routes + public Photo Editor channel routes + public Best Time to Post channel routes + public Humanizer channel routes + feature bento showcases + auto-derived site footer links + Extensions Hub listing tag (secret-admin)
 globs:
   - backend/integrations/**
   - backend/config/GlobalConfig.ts
@@ -37,7 +37,8 @@ globs:
   - backend/utils/dtos/PostDTO.ts
   - orchestrator/activities/scheduledSocialPostActivities.ts
   - web/src/lib/content/constants/channels/**
-  - web/src/content/constants/publicChannelFeatureBentoConfig.ts
+  - web/src/lib/link-directory/utils/resolveSchedulePostComposerBentoId.ts
+  - web/src/lib/link-directory/utils/buildBuildBacklinksOpportunityBentoStep.ts
   - web/src/content/constants/publicAgentChannelConfig.ts
   - web/src/content/utils/buildAgentChannelLandingVm.ts
   - web/src/content/utils/buildMcpChannelLandingVm.ts
@@ -481,7 +482,7 @@ Each live `/channels/{slug}` page renders three feature rows via `HeroWithLeftMe
 
 | Layer | Path / action |
 | --- | --- |
-| Bento ID union | Add `{slug}-…` literals to `web/src/lib/content/constants/publicChannelFeatureBentoConfig.ts` |
+| Bento ID union | Add `{slug}-…` literals to `web/src/lib/content/constants/channels/catalog/feature-bento.ts` |
 | Router component | Branch in `web/src/lib/ui/templates/bento/minor-templates/BentoPublicChannelFeature.svelte` |
 | Catalog wiring | Set `bentoId` (not `imageSrc`) on each `featureSections` row in `channels/catalog/platforms/{slug}.ts` |
 | Mock data | `web/src/lib/ui/templates/bento/minor-templates/{slug}/{slug}LandingMock.ts` (+ optional `{slug}LandingKanbanMock.ts`, `{slug}LandingAnalyticsMock.ts`) |
@@ -503,6 +504,32 @@ Each live `/channels/{slug}` page renders three feature rows via `HeroWithLeftMe
 - Feature copy (title, description, FAQ) must match what the bento demonstrates.
 
 **Do not** use competitor landing pages as a feature checklist; document only OpenQuok behavior.
+
+### Build Backlinks site guides (`schedule_post` composer bento)
+
+Public `/build-backlinks/{siteSlug}` opportunity sections use **OpenQuok CTA → Schedule post (workspace)** (`schedule_post`) plus **OpenQuok channel** slug to pick the right panel when editors add playbook steps in link-directory manager.
+
+| Step order | Right media (when channel resolves) |
+| --- | --- |
+| **1** | Safari mock (site URL, `ctaHref`, or `/channels/{slug}`) |
+| **2–3** | OpenQuok composer bento (not Safari) |
+
+Resolver: `web/src/lib/link-directory/utils/resolveSchedulePostComposerBentoId.ts` (used by `buildBuildBacklinksOpportunityStepMedia` in `buildBuildBacklinksOpportunityBentoStep.ts`). Unit tests: `resolveSchedulePostComposerBentoId.test.ts`.
+
+**When go-live-ing a provider with composer support, wire build-backlinks in the same PR as `{slug}-post-editor` (or documented fallback):**
+
+| Action | Path |
+| --- | --- |
+| Add `{catalogSlug}-post-editor` to the bento union | `web/src/lib/content/constants/channels/catalog/feature-bento.ts` |
+| Router + composer preview wrapper | `BentoPublicChannelFeature.svelte` + `bento/minor-templates/{slug}/` (same bar as **Feature bento showcases** — section 2 compose row) |
+| Register catalog slug → bento id | `POST_EDITOR_BENTO_BY_CATALOG_SLUG` in `resolveSchedulePostComposerBentoId.ts` — key is **public channel catalog slug** (e.g. `instagram`), not always `provider.identifier` |
+| Integration id ≠ catalog slug | Also append to `INTEGRATION_ID_TO_CATALOG_SLUG` (e.g. `instagram-business` → `instagram`, `linkedin-page` → `linkedin`) |
+| No `{slug}-post-editor` bento yet | Set `COMPOSER_BENTO_BY_CATALOG_SLUG` to the compose showcase id used on `/channels/{slug}` (e.g. Bluesky → `bluesky-threads`); do not leave `schedule_post` opportunities on Safari-only for steps 2–3 |
+| Tests | Extend `resolveSchedulePostComposerBentoId.test.ts` (and step media tests if behavior is non-obvious) |
+
+**Link-directory admin (no extra code):** opportunity **OpenQuok CTA kind** = Schedule post, **OpenQuok channel** = integration identifier or catalog slug matching the maps above. Step **title/body** do not select media — only CTA + channel + step **order** (2–3 show composer).
+
+**Do not** assume build-backlinks updates automatically when only backend `integrationManager` registers a provider; without the resolver + bento rows, `schedule_post` stays Safari for every step.
 
 ### CTA (detail pages)
 
@@ -790,7 +817,7 @@ Generic `/agents/openclaw` and generic MCP pages (e.g. `/agents/claude-cowork`) 
 Host channel VMs: `agents/channels/{host}.ts` (from `listPublicChannelsForHub()`). MCP × channel: composed per **web-seo-pseo** file map (`mcps/channels/index.ts`). New catalog channels appear on agent/MCP channel routes **after** bento showcases and CLI/MCP examples exist. When adding or go-live-ing a provider, also update:
 
 1. **`CHANNEL_PROVIDER_IDENTIFIERS`** in `publicAgentChannelConfig.ts` — jq filter ids (match `integrations:list` identifiers; mirror Skill Builder).
-2. **`KANBAN_BENTO_BY_CHANNEL`** and **`ANALYTICS_BENTO_BY_CHANNEL`** — map slug → `{slug}-bulk-scheduling` and `{slug}-insights` (requires bento IDs in `publicChannelFeatureBentoConfig.ts` and branches in `BentoPublicChannelFeature.svelte`; same bar as `/channels/{slug}`).
+2. **`KANBAN_BENTO_BY_CHANNEL`** and **`ANALYTICS_BENTO_BY_CHANNEL`** — map slug → `{slug}-bulk-scheduling` and `{slug}-insights` (requires bento IDs in `channels/catalog/feature-bento.ts` and branches in `BentoPublicChannelFeature.svelte`; same bar as `/channels/{slug}`).
 3. **`CHANNEL_CLI_RECIPES`**, **`KANBAN_EXAMPLE_BY_CHANNEL`**, and **`kanbanMcpPrompts` / `analyticsMcpPrompts`** in `publicAgentChannelConfig.ts` / `buildAgentChannelCliCommandReference.ts` — CLI commands (agent hosts) and example prompts (MCP clients), aligned with `resources/{id}-examples.md` and `examples/*.json`.
 4. **`agentMultiPlatformKanbanMock.ts`** (optional but recommended) — one mock kanban card for the new platform on generic agent host pages.
 
@@ -803,7 +830,8 @@ Host channel VMs: `agents/channels/{host}.ts` (from `listPublicChannelsForHub()`
 - Unit tests added/updated for non-trivial paths.
 - **`web/src/data/social-providers.ts`:** display name + icon for new slug; **`SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS`** includes exact `provider.identifier` when `analytics()` / `postAnalytics()` ship (not a parent alias like `instagram` for `instagram-business`).
 - **`channels/catalog/platforms/{slug}.ts`:** `slug` / `platformId` match `provider.identifier`; `docsPath` matches setup guide; `available` reflects ship state; **`featureSections` use `bentoId`**, not generic `/landing/*.mp4`, at go-live; **each `featureSections[].title` has ≥3 comma-separated phrases**.
-- **Feature bento:** IDs in `publicChannelFeatureBentoConfig.ts`; branches in `BentoPublicChannelFeature.svelte`; mock + preview Svelte under `bento/minor-templates/`; showcases match shipped features only.
+- **Feature bento:** IDs in `channels/catalog/feature-bento.ts` (and related router/mock files under `bento/minor-templates/`); branches in `BentoPublicChannelFeature.svelte`; showcases match shipped features only.
+- **Build Backlinks `schedule_post`:** `{catalogSlug}-post-editor` (or `COMPOSER_BENTO_BY_CATALOG_SLUG` fallback) registered in `resolveSchedulePostComposerBentoId.ts`; `INTEGRATION_ID_TO_CATALOG_SLUG` when `provider.identifier` differs from catalog slug; unit test in `resolveSchedulePostComposerBentoId.test.ts`.
 - **Landing page:** hero + feature sections + FAQ filled; **copy is problem-first, user-facing, and ASD-STE100** (short sentences, active voice, `you`; not feature/spec lists); hero + feature CTAs from `hero-copy.ts` → `/pricing`.
 - **Main landing icons:** when go-live-ing a channel, update `web/src/data/landing-social-platforms.ts` — add the provider to `HERO_SOCIAL_PLATFORMS` and `FEATURES_GRID_SOCIAL_PLATFORMS` / `FEATURES_GRID_SOCIAL_ROWS` (not only `/channels/{slug}`). Prefer glyph icons (`icons.*Glyph`) with `GLYPH_TILE` when peers use them.
 - **Hub:** new channel appears on `/channels` (coming-soon badge or live link).
