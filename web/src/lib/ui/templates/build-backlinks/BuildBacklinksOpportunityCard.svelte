@@ -31,6 +31,12 @@
 	const typeLabel = $derived(
 		opportunity.opportunityType?.label ?? 'Opportunity'
 	);
+
+	const descriptionPlain = $derived(
+		opportunity.description?.trim()
+			? linkDirectoryRichTextToPlainText(opportunity.description)
+			: ''
+	);
 </script>
 
 <article
@@ -58,9 +64,9 @@
 
 	<p class="mt-1 text-xs font-medium uppercase tracking-wide text-base-content/55">{typeLabel}</p>
 
-	{#if opportunity.description?.trim()}
+	{#if descriptionPlain}
 		<p class="mt-2 line-clamp-3 flex-1 text-xs leading-relaxed text-base-content/70">
-			{opportunity.description}
+			{descriptionPlain}
 		</p>
 	{/if}
 

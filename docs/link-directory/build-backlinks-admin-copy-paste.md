@@ -6,7 +6,8 @@ Use **secret-admin → link directory manager** to edit sites and opportunities.
 
 - **Site:** **Site URL**, metrics, **Short description** (plain text), **Long description** (HTML), category, tags, OpenQuok fields — then opportunities below.
 - **Each opportunity:** one intro paragraph (HTML); **two steps** (plain title + HTML body each); title line with **effort · approval · dofollow · cost · sort** ([settings table](#opportunity-settings-reference)); **CTA (modal)** line — [CTA table](#opportunity-cta-reference); mention **nofollow** where accurate; call out **OpenQuok** only on `connect_channel` / `schedule_post` CTAs.
-- **Sort order:** opportunities `10`, `20`, `30` (…); site `sort_order` `0` (hub sorts by DR by default).
+- **OpenQuok social channels** (Instagram, Facebook, YouTube, TikTok, Dev.to): mirror **`profile-personal` (10) · `profile-brand` (15) · post/thread/video (20)**. Dev.to uses **`profile-personal` (10)** only. **LinkedIn** adds **`publish-article` (25)** (desktop article; not OpenQuok-scheduled). **X**, **Bluesky**, and **Threads** add **`helpful-reply` (30)** · Comment link · **`use_plug`** (`x-auto-plug`, `bluesky-auto-plug`, `threads-autoPlugPost`). **LinkedIn** uses **`comment-with-link` (30)** with **`linkedin-page-auto-plug`**.
+- **Sort order:** social playbooks use `10` / `15` / `20` (personal · brand · post); other sites may use `10`, `20`, `30` (…); site `sort_order` `0` (hub sorts by DR by default).
 - **Published:** turn on **Admin published** for site and each opportunity.
 
 ---
@@ -60,6 +61,7 @@ Example: `Post link · medium · instant · dofollow · free · sort \`30\`` (Gi
 
 | **OpenQuok CTA kind** | `none` \| `connect_channel` \| `schedule_post` \| `external_doc` \| `use_plug` (rare) |
 | **OpenQuok channel** | Required when kind is `connect_channel` or `schedule_post` |
+| **OpenQuok plug name** | Required when kind is `use_plug` — catalog identifier (e.g. `threads-autoPlugPost`) |
 | **External link URL** | Shown when kind is `none` (optional) or `external_doc` (required — labeled **Setup guide URL** in UI) |
 | **Button label** | Optional in UI; set a short label for the guide-row button (defaults exist if blank) |
 | **Sort order** | `10`, `20`, `30`, `40`, … |
@@ -73,7 +75,7 @@ Example: `Post link · medium · instant · dofollow · free · sort \`30\`` (Gi
 | `connect_channel` | Yes (`bluesky`, `facebook`, …) | Leave empty |
 | `schedule_post` | Yes | Leave empty |
 | `external_doc` | Leave empty | Required — official setup or pricing URL |
-| `use_plug` | — | Plug name field instead (not used in exemplar sites) |
+| `use_plug` | Leave empty | Leave empty — set **OpenQuok plug name** to the catalog identifier (e.g. `threads-autoPlugPost`) |
 
 Copy **Kind · channel · URL · label** from the [Opportunity CTA reference](#opportunity-cta-reference) table or from each opportunity block below.
 
@@ -144,7 +146,9 @@ Modal dropdowns **Effort**, **Approval**, **Dofollow**, and **Cost** (plus optio
 | **bluesky** | `profile-personal` | 10 | easy | instant | — | nofollow | free | — |
 | **bluesky** | `profile-brand` | 15 | easy | instant | — | nofollow | free | — |
 | **bluesky** | `scheduled-thread` | 20 | medium | instant | — | nofollow | free | — |
-| **facebook** | `page-about-link` | 10 | easy | instant | — | nofollow | free | — |
+| **bluesky** | `helpful-reply` | 30 | hard | manual_review | Post author and community norms vary | nofollow | free | — |
+| **facebook** | `profile-personal` | 10 | easy | instant | — | nofollow | free | — |
+| **facebook** | `page-about-link` | 15 | easy | instant | — | nofollow | free | — |
 | **facebook** | `page-post` | 20 | medium | instant | — | nofollow | free | — |
 | **reddit** | `subreddit-post` | 10 | medium | manual_review | Varies by subreddit moderators | nofollow | free | — |
 | **reddit** | `profile-bio` | 20 | easy | instant | — | nofollow | free | — |
@@ -153,23 +157,35 @@ Modal dropdowns **Effort**, **Approval**, **Dofollow**, and **Cost** (plus optio
 | **github** | `profile-website-social` | 20 | easy | instant | — | nofollow | free | — |
 | **github** | `github-pages-site` | 30 | medium | instant | — | dofollow | free | — |
 | **github** | `ghcr-container-package` | 40 | medium | instant | — | nofollow | free | — |
-| **uneed** | `paid-launch` | 10 | medium | manual_review | Usually within a few business days | dofollow | paid | Check current pricing on Uneed |
+| **uneed** | `free-launch` | 10 | hard | manual_review | Launch date assigned (up to ~5 months) | unknown | free | Dofollow at upvote score 20; stay live at score 10 — see Pricing |
+| **uneed** | `paid-launch` | 15 | medium | manual_review | Fast-track ~14 days or chosen date (paid tiers) | dofollow | paid | Skip the line $29.99 · Fast-track $14.99 · Relaunch $15 — re-check Pricing |
 | **uneed** | `free-profile` | 20 | easy | instant | — | nofollow | free | — |
-| **open-launch** | `submit-project` | 10 | medium | manual_review | Launch queue | unknown | freemium | Paid boosts optional — see Pricing |
+| **open-launch** | `free-launch` | 10 | hard | manual_review | Free queue fully booked into 2027 | unknown | free | Dofollow only if top 3 daily or badge on your site — see Pricing |
+| **open-launch** | `premium-launch` | 20 | medium | manual_review | Premium slots daily; launches 8:00 AM UTC | dofollow | paid | $12/launch per Pricing (re-check) |
 | **awesome-selfhosted** | `list-pr` | 10 | hard | manual_review | Maintainer review | nofollow | free | — |
-| **threads** | `business-profile-link` | 10 | easy | instant | — | nofollow | free | — |
+| **threads** | `profile-personal` | 10 | easy | instant | — | nofollow | free | — |
+| **threads** | `profile-brand` | 15 | easy | instant | — | nofollow | free | — |
 | **threads** | `thread-post-link` | 20 | medium | instant | — | nofollow | free | — |
-| **instagram** | `bio-link-business` | 10 | easy | instant | — | nofollow | free | — |
+| **threads** | `helpful-reply` | 30 | hard | manual_review | Thread author and community norms vary | nofollow | free | — |
+| **instagram** | `profile-personal` | 10 | easy | instant | — | nofollow | free | — |
+| **instagram** | `profile-brand` | 15 | easy | instant | — | nofollow | free | — |
 | **instagram** | `feed-reel-caption-link` | 20 | medium | instant | — | nofollow | free | — |
-| **youtube** | `channel-about-links` | 10 | easy | instant | — | nofollow | free | — |
+| **youtube** | `profile-personal` | 10 | easy | instant | — | nofollow | free | — |
+| **youtube** | `profile-brand` | 15 | easy | instant | — | nofollow | free | — |
 | **youtube** | `video-description-link` | 20 | medium | instant | — | nofollow | free | — |
-| **tiktok** | `profile-website-link` | 10 | easy | instant | — | nofollow | free | — |
+| **tiktok** | `profile-personal` | 10 | easy | instant | — | nofollow | free | — |
+| **tiktok** | `profile-brand` | 15 | easy | instant | — | nofollow | free | — |
 | **tiktok** | `video-caption-link` | 20 | medium | instant | — | nofollow | free | — |
-| **linkedin** | `company-page-website` | 10 | easy | instant | — | nofollow | free | — |
+| **linkedin** | `profile-personal` | 10 | easy | instant | — | nofollow | free | — |
+| **linkedin** | `profile-brand` | 15 | easy | instant | — | nofollow | free | — |
 | **linkedin** | `page-link-post` | 20 | medium | instant | — | nofollow | free | — |
-| **x** | `profile-website-bio` | 10 | easy | instant | — | nofollow | free | — |
+| **linkedin** | `publish-article` | 25 | medium | instant | — | nofollow | free | — |
+| **linkedin** | `comment-with-link` | 30 | hard | manual_review | Post author and feed norms vary | nofollow | free | — |
+| **x** | `profile-personal` | 10 | easy | instant | — | nofollow | free | — |
+| **x** | `profile-brand` | 15 | easy | instant | — | nofollow | free | — |
 | **x** | `post-with-link` | 20 | medium | instant | — | nofollow | free | — |
-| **devto** | `profile-website` | 10 | easy | instant | — | nofollow | free | — |
+| **x** | `helpful-reply` | 30 | hard | manual_review | Post author and community norms vary | nofollow | free | — |
+| **devto** | `profile-personal` | 10 | easy | instant | — | nofollow | free | — |
 | **devto** | `article-project-link` | 20 | medium | instant | — | nofollow | free | — |
 
 ---
@@ -183,7 +199,9 @@ Paste into the opportunity modal **OpenQuok CTA** fieldset. Use em dash **—** 
 | **bluesky** | `profile-personal` | 10 | `connect_channel` | `bluesky` | — | `Connect Bluesky` |
 | **bluesky** | `profile-brand` | 15 | `connect_channel` | `bluesky` | — | `Connect Bluesky` |
 | **bluesky** | `scheduled-thread` | 20 | `schedule_post` | `bluesky` | — | `Schedule with OpenQuok` |
-| **facebook** | `page-about-link` | 10 | `connect_channel` | `facebook` | — | `Connect Facebook` |
+| **bluesky** | `helpful-reply` | 30 | `use_plug` | — | — | `Plugs and automation` (plug name **`bluesky-auto-plug`**) |
+| **facebook** | `profile-personal` | 10 | `connect_channel` | `facebook` | — | `Connect Facebook` |
+| **facebook** | `page-about-link` | 15 | `connect_channel` | `facebook` | — | `Connect Facebook` |
 | **facebook** | `page-post` | 20 | `schedule_post` | `facebook` | — | `Schedule post` |
 | **reddit** | `subreddit-post` | 10 | `none` | — | `https://www.reddit.com/submit` | `Open Reddit submit` |
 | **reddit** | `profile-bio` | 20 | `none` | — | `https://www.reddit.com/settings/profile` | `Edit profile` |
@@ -192,23 +210,35 @@ Paste into the opportunity modal **OpenQuok CTA** fieldset. Use em dash **—** 
 | **github** | `profile-website-social` | 20 | `external_doc` | — | `https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-github-profile/customizing-your-profile/adding-social-links-to-your-profile` | `Add social links to your profile` |
 | **github** | `github-pages-site` | 30 | `none` | — | `https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site` | `GitHub Pages guide` |
 | **github** | `ghcr-container-package` | 40 | `none` | — | `https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry` | `Container registry docs` |
-| **uneed** | `paid-launch` | 10 | `external_doc` | — | `https://uneed.best` | `View Uneed pricing` |
+| **uneed** | `free-launch` | 10 | `external_doc` | — | `https://uneed.best/pricing` | `Uneed pricing` |
+| **uneed** | `paid-launch` | 15 | `external_doc` | — | `https://uneed.best/pricing` | `Uneed pricing` |
 | **uneed** | `free-profile` | 20 | `none` | — | `https://uneed.best` | `Create profile` |
-| **open-launch** | `submit-project` | 10 | `external_doc` | — | `https://open-launch.com` | `Open Launch site` |
+| **open-launch** | `free-launch` | 10 | `external_doc` | — | `https://open-launch.com/pricing` | `Open Launch pricing` |
+| **open-launch** | `premium-launch` | 20 | `external_doc` | — | `https://open-launch.com/pricing` | `Open Launch pricing` |
 | **awesome-selfhosted** | `list-pr` | 10 | `none` | — | `https://github.com/awesome-selfhosted/awesome-selfhosted-data/blob/master/CONTRIBUTING.md` | `Contributing guide` |
-| **threads** | `business-profile-link` | 10 | `connect_channel` | `threads` | — | `Connect Threads` |
+| **threads** | `profile-personal` | 10 | `connect_channel` | `threads` | — | `Connect Threads` |
+| **threads** | `profile-brand` | 15 | `connect_channel` | `threads` | — | `Connect Threads` |
 | **threads** | `thread-post-link` | 20 | `schedule_post` | `threads` | — | `Schedule post` |
-| **instagram** | `bio-link-business` | 10 | `connect_channel` | `instagram` | — | `Connect Instagram` |
+| **threads** | `helpful-reply` | 30 | `use_plug` | — | — | `Plugs and automation` (plug name **`threads-autoPlugPost`**) |
+| **instagram** | `profile-personal` | 10 | `connect_channel` | `instagram` | — | `Connect Instagram` |
+| **instagram** | `profile-brand` | 15 | `connect_channel` | `instagram` | — | `Connect Instagram` |
 | **instagram** | `feed-reel-caption-link` | 20 | `schedule_post` | `instagram` | — | `Schedule post` |
-| **youtube** | `channel-about-links` | 10 | `connect_channel` | `youtube` | — | `Connect YouTube` |
+| **youtube** | `profile-personal` | 10 | `connect_channel` | `youtube` | — | `Connect YouTube` |
+| **youtube** | `profile-brand` | 15 | `connect_channel` | `youtube` | — | `Connect YouTube` |
 | **youtube** | `video-description-link` | 20 | `schedule_post` | `youtube` | — | `Schedule post` |
-| **tiktok** | `profile-website-link` | 10 | `connect_channel` | `tiktok` | — | `Connect TikTok` |
+| **tiktok** | `profile-personal` | 10 | `connect_channel` | `tiktok` | — | `Connect TikTok` |
+| **tiktok** | `profile-brand` | 15 | `connect_channel` | `tiktok` | — | `Connect TikTok` |
 | **tiktok** | `video-caption-link` | 20 | `schedule_post` | `tiktok` | — | `Schedule post` |
-| **linkedin** | `company-page-website` | 10 | `connect_channel` | `linkedin` | — | `Connect LinkedIn` |
+| **linkedin** | `profile-personal` | 10 | `connect_channel` | `linkedin` | — | `Connect LinkedIn` |
+| **linkedin** | `profile-brand` | 15 | `connect_channel` | `linkedin` | — | `Connect LinkedIn` |
 | **linkedin** | `page-link-post` | 20 | `schedule_post` | `linkedin` | — | `Schedule post` |
-| **x** | `profile-website-bio` | 10 | `connect_channel` | `x` | — | `Connect X` |
+| **linkedin** | `publish-article` | 25 | `external_doc` | — | `https://www.linkedin.com/help/linkedin/answer/a522427` | `Publish articles on LinkedIn` |
+| **linkedin** | `comment-with-link` | 30 | `use_plug` | — | — | `Plugs and automation` (plug name **`linkedin-page-auto-plug`**) |
+| **x** | `profile-personal` | 10 | `connect_channel` | `x` | — | `Connect X` |
+| **x** | `profile-brand` | 15 | `connect_channel` | `x` | — | `Connect X` |
 | **x** | `post-with-link` | 20 | `schedule_post` | `x` | — | `Schedule post` |
-| **devto** | `profile-website` | 10 | `connect_channel` | `devto` | — | `Connect Dev.to` |
+| **x** | `helpful-reply` | 30 | `use_plug` | — | — | `Plugs and automation` (plug name **`x-auto-plug`**) |
+| **devto** | `profile-personal` | 10 | `connect_channel` | `devto` | — | `Connect Dev.to` |
 | **devto** | `article-project-link` | 20 | `schedule_post` | `devto` | — | `Schedule post` |
 
 **Note:** Reddit opp 3 uses a policy doc CTA in the table above (better than linking generic OpenQuok docs). Seed exemplar may still say `Read plug docs` until you re-save in admin.
@@ -227,7 +257,7 @@ Paste into the opportunity modal **OpenQuok CTA** fieldset. Use em dash **—** 
 - **Long (HTML — paste into Long description):**
 
 ```html
-<p><a href="https://bsky.app/">Bluesky</a> supports website links on profiles and in posts. Multi-post threads can carry a primary link—see the <a href="https://docs.bsky.app/docs/advanced-guides/posts">posts guide</a> or schedule threads in <a href="https://www.openquok.com/channels/bluesky">OpenQuok</a>.</p>
+<p><a href="https://bsky.app/">Bluesky</a> supports website links on profiles, posts, and replies. Multi-post threads can carry a primary link—see the <a href="https://docs.bsky.app/docs/advanced-guides/posts">posts guide</a>, schedule in <a href="https://www.openquok.com/channels/bluesky">OpenQuok</a>, or use plugs to automate a follow-up reply on posts you publish.</p>
 ```
 
 **Opportunity 1 — Personal profile link** (`profile-personal`) · Profile link · easy · instant · nofollow · free · sort `10`
@@ -311,6 +341,37 @@ Paste into the opportunity modal **OpenQuok CTA** fieldset. Use em dash **—** 
 ```
 
 
+**Opportunity 4 — Reply with link** (`helpful-reply`) · Comment link · hard · manual_review · nofollow · free · sort `30`
+
+**Approval hint:** Post author and community norms vary
+
+**CTA (modal):** kind `use_plug` · channel — · plug `bluesky-auto-plug` · URL — · label `Plugs and automation`
+
+**OpenQuok plug name (modal):** `bluesky-auto-plug` (optional reach boost: `bluesky-auto-repost`)
+
+**Description (HTML — paste into Description):**
+
+```html
+<p>Reply on <a href="https://bsky.app/">Bluesky</a> with a helpful comment and your URL when it fits—links are typically nofollow. On posts you publish, OpenQuok <strong>Auto plug post</strong> (<code>bluesky-auto-plug</code>) sends an automated reply with your link after your like threshold so you do not have to bump the post yourself. <a href="https://www.openquok.com/docs/getting-started-for-public-api">Set up plugs</a> after you connect Bluesky.</p>
+```
+
+**Step 1 title:** Reply with a helpful link
+
+**Step 1 instructions (HTML):**
+
+```html
+<p>On <a href="https://bsky.app/">Bluesky</a>, join a relevant conversation, add a useful reply, and include your URL once when it fits the thread—links are typically nofollow.</p>
+```
+
+**Step 2 title:** Automate a follow-up on your posts
+
+**Step 2 instructions (HTML):**
+
+```html
+<p>On posts you publish, connect Bluesky in <a href="https://www.openquok.com/channels/bluesky">OpenQuok</a> and attach plug <code>bluesky-auto-plug</code> (like threshold + reply with your link). OpenQuok publishes the reply when your rules match. Optional: <code>bluesky-auto-repost</code> reposts after likes for extra reach—no link in the repost itself.</p>
+```
+
+
 ---
 
 ### Facebook (`facebook`)
@@ -325,7 +386,34 @@ Paste into the opportunity modal **OpenQuok CTA** fieldset. Use em dash **—** 
 <p><a href="https://www.facebook.com/">Facebook</a> Pages and profiles can surface your site URL. Posts and follow-up comments extend reach when policy allows external links.</p>
 ```
 
-**Opportunity 1 — Create a business Page** (`page-about-link`) · Profile link · easy · instant · nofollow · free · sort `10`
+**Opportunity 1 — Personal profile link** (`profile-personal`) · Profile link · easy · instant · nofollow · free · sort `10`
+
+**CTA (modal):** kind `connect_channel` · channel `facebook` · URL — · label `Connect Facebook`
+
+**Description (HTML — paste into Description):**
+
+```html
+<p>Use your main personal <a href="https://www.facebook.com/">Facebook</a> profile—the account you post from as yourself—and add your site in <strong>Intro</strong> or the website field on your profile when Meta shows it. Good for founders who want one handle for you and your project. Links are typically nofollow; value is clicks and discovery.</p>
+```
+
+**Step 1 title:** Open your personal profile
+
+**Step 1 instructions (HTML):**
+
+```html
+<p>Log in at <a href="https://www.facebook.com/">facebook.com</a>, open your personal profile (not a Page), and choose <strong>Edit profile</strong> or <strong>Edit details</strong>.</p>
+```
+
+**Step 2 title:** Add your link
+
+**Step 2 instructions (HTML):**
+
+```html
+<p>Add your URL in <strong>Website</strong> or your intro text once, save, and confirm on your public profile view.</p>
+```
+
+
+**Opportunity 2 — Create a business Page** (`page-about-link`) · Profile link · easy · instant · nofollow · free · sort `15`
 
 **CTA (modal):** kind `connect_channel` · channel `facebook` · URL — · label `Connect Facebook`
 
@@ -352,7 +440,7 @@ Paste into the opportunity modal **OpenQuok CTA** fieldset. Use em dash **—** 
 ```
 
 
-**Opportunity 2 — Facebook Page post** (`page-post`) · Post link · medium · instant · nofollow · free · sort `20`
+**Opportunity 3 — Facebook Page post** (`page-post`) · Post link · medium · instant · nofollow · free · sort `20`
 
 **CTA (modal):** kind `schedule_post` · channel `facebook` · URL — · label `Schedule post`
 
@@ -607,43 +695,76 @@ Paste into the opportunity modal **OpenQuok CTA** fieldset. Use em dash **—** 
 - **Site URL:** `https://uneed.best`
 - **Category:** Launch platforms · **OpenQuok auth:** No · **Tags:** (none required)
 - **DR · DA · traffic:** 75 · 38 · 188,000/mo · **Metrics source:** `ahrefs_dr_2026-10; semrush_traffic_2026-08`
-- **Short:** Launch directory with paid product features and a free maker profile.
+- **Short:** Launch directory — free launch queue, paid fast-track slots, and a free maker profile (nofollow).
 - **Long (HTML — paste into Long description):**
 
 ```html
-<p><a href="https://uneed.best/">Uneed</a> combines a paid launch slot with a free profile link. Plan budget and copy before submitting.</p>
+<p><a href="https://uneed.best/">Uneed</a> is a product launchpad: <strong>Join the line</strong> ($0) for a new product, paid <strong>Skip the line</strong> / <strong>Fast-track</strong> / <strong>Relaunch</strong> options on <a href="https://uneed.best/pricing">Pricing</a>, plus a free maker profile. Uneed cites a <strong>75 DR</strong> domain; launch backlinks are <strong>dofollow</strong> when you meet their upvote rules—maker profile website links are <strong>nofollow</strong>. Advertising and paid reviews are separate products on Pricing.</p>
 ```
 
-**Opportunity 1 — Paid launch listing** (`paid-launch`) · Product submission · medium · manual_review · dofollow · paid · sort `10`
+**Opportunity 1 — Free launch (join the line)** (`free-launch`) · Product submission · hard · manual_review · unknown · free · sort `10`
 
-**Approval hint:** Usually within a few business days · **Cost note:** Check current pricing on Uneed
+**Approval hint:** Uneed assigns your launch date (up to about five months out)
 
-**CTA (modal):** kind `external_doc` · channel — · URL `https://uneed.best` · label `View Uneed pricing`
+**Cost note:** $0 — upvote score 10 to stay published; score 20 for dofollow per Pricing
+
+**CTA (modal):** kind `external_doc` · channel — · URL `https://uneed.best/pricing` · label `Uneed pricing`
 
 **Description (HTML — paste into Description):**
 
 ```html
-<p>Featured launch placement with a prominent product link on <a href="https://uneed.best/">Uneed</a>. Uneed markets a <strong>75 DR</strong> domain and <strong>do-follow</strong> backlinks for qualifying <a href="https://uneed.best/pricing">launch listings</a> (not free maker profiles)—confirm <code>rel</code> on your live product card before you budget.</p>
+<p>Launch a <strong>new product</strong> on the free <strong>Join the line</strong> tier at <a href="https://uneed.best/pricing">Uneed pricing</a> ($0). Uneed picks your launch date (at most about five months out). You need an upvote score of <strong>10</strong> for the listing to stay live and <strong>20</strong> for a <strong>dofollow</strong> backlink from their <strong>75 DR</strong> domain—confirm <code>rel</code> on your live product page after launch day.</p>
 ```
 
-**Step 1 title:** Review launch tiers
+**Step 1 title:** Read free launch rules
 
 **Step 1 instructions (HTML):**
 
 ```html
-<p>Check current pricing and placement on <a href="https://uneed.best/">uneed.best</a>.</p>
+<p>On <a href="https://uneed.best/pricing">Pricing</a>, open <strong>Launch → New product → Join the line</strong> and note upvote thresholds (10 to stay published, 20 for dofollow) and how the queue assigns dates.</p>
 ```
 
-**Step 2 title:** Submit your product
+**Step 2 title:** Submit and earn upvotes
 
 **Step 2 instructions (HTML):**
 
 ```html
-<p>Complete the listing on <a href="https://uneed.best/">Uneed</a> with your homepage URL and assets they require.</p>
+<p>Submit your product on <a href="https://uneed.best/">Uneed</a> with accurate URL and assets. Promote launch day to reach score 20 if you want the dofollow backlink—inspect the listing link after you go live.</p>
 ```
 
 
-**Opportunity 2 — Free maker profile** (`free-profile`) · Profile link · easy · instant · nofollow · free · sort `20`
+**Opportunity 2 — Paid launch** (`paid-launch`) · Product submission · medium · manual_review · dofollow · paid · sort `15`
+
+**Approval hint:** Timing depends on tier (chosen date, ~14 days fast-track, or relaunch slot)
+
+**Cost note:** Skip the line $29.99 (pick date; dofollow guaranteed per Pricing) · Fast-track $14.99 (~14 days; dofollow from score 10) · Relaunch $15 for an existing Uneed product
+
+**CTA (modal):** kind `external_doc` · channel — · URL `https://uneed.best/pricing` · label `Uneed pricing`
+
+**Description (HTML — paste into Description):**
+
+```html
+<p>Paid launch tiers on <a href="https://uneed.best/pricing">Uneed</a> trade money for speed and clearer backlink rules: <strong>Skip the line</strong> ($29.99) lets you choose the launch date with a guaranteed dofollow backlink; <strong>Fast-track</strong> ($14.99) assigns a slot in about 14 days with dofollow from upvote score 10; <strong>Relaunch</strong> ($15) is for a product you already launched on Uneed. All cite homepage visibility and a 75 DR dofollow path when terms are met—verify <code>rel</code> on your card.</p>
+```
+
+**Step 1 title:** Pick a paid launch tier
+
+**Step 1 instructions (HTML):**
+
+```html
+<p>Compare <strong>Skip the line</strong>, <strong>Fast-track</strong>, and <strong>Relaunch</strong> on <a href="https://uneed.best/pricing">Pricing</a> against your timeline and SEO goal (guaranteed dofollow vs score-based).</p>
+```
+
+**Step 2 title:** Pay and launch
+
+**Step 2 instructions (HTML):**
+
+```html
+<p>Checkout the tier you need, complete the product listing, and confirm the live Uneed page links to your site with <code>rel="dofollow"</code> (or follow Pricing’s score rules for fast-track).</p>
+```
+
+
+**Opportunity 3 — Free maker profile** (`free-profile`) · Profile link · easy · instant · nofollow · free · sort `20`
 
 **CTA (modal):** kind `none` · channel — · URL `https://uneed.best` · label `Create profile`
 
@@ -666,7 +787,7 @@ Paste into the opportunity modal **OpenQuok CTA** fieldset. Use em dash **—** 
 **Step 2 instructions (HTML):**
 
 ```html
-<p>Open your public profile (for example <a href="https://www.uneed.best/profile/openquok">uneed.best/profile/your-handle</a>), right-click the website link → Inspect, and confirm <code>rel</code> includes <code>nofollow</code>. Re-check after Uneed updates—the paid launch listing may differ from free profiles.</p>
+<p>Open your public profile (for example <a href="https://www.uneed.best/profile/openquok">uneed.best/profile/your-handle</a>), right-click the website link → Inspect, and confirm <code>rel</code> includes <code>nofollow</code>. Re-check after Uneed updates—launch listings use different rules than profiles.</p>
 ```
 
 
@@ -681,35 +802,68 @@ Paste into the opportunity modal **OpenQuok CTA** fieldset. Use em dash **—** 
 - **Long (HTML — paste into Long description):**
 
 ```html
-<p><a href="https://open-launch.com/">Open Launch</a> is a launch platform for tech products: submit your project, earn badges, and aim for listing backlinks—see <a href="https://open-launch.com/">Submit Project</a> and <a href="https://open-launch.com/pricing">Pricing</a>. Confirm <code>rel</code> on your live listing; paid SEO packages may differ from free submissions.</p>
+<p><a href="https://open-launch.com/">Open Launch</a> lists tech products on a daily launch homepage (launches at <strong>8:00 AM UTC</strong>). Choose a <strong>free</strong> slot (long waitlist; conditional dofollow) or <strong>Premium</strong> ($12/launch, guaranteed dofollow per <a href="https://open-launch.com/pricing">Pricing</a>). A separate SEO Growth Package exists for article + launch bundles—see Pricing if you need content, not just a listing.</p>
 ```
 
-**Opportunity 1 — Submit your product** (`submit-project`) · Product submission · medium · manual_review · unknown · freemium · sort `10`
+**Opportunity 1 — Free launch** (`free-launch`) · Product submission · hard · manual_review · unknown · free · sort `10`
 
-**Approval hint:** Launch queue · **Cost note:** Optional paid placement / SEO packages on Pricing
+**Approval hint:** Free queue fully booked into 2027
 
-**CTA (modal):** kind `external_doc` · channel — · URL `https://open-launch.com` · label `Open Launch site`
+**Cost note:** $0 — dofollow only if you rank top 3 that day or display Open Launch’s badge on your site (per Pricing)
+
+**CTA (modal):** kind `external_doc` · channel — · URL `https://open-launch.com/pricing` · label `Open Launch pricing`
 
 **Description (HTML — paste into Description):**
 
 ```html
-<p>List your product on <a href="https://open-launch.com/">Open Launch</a> with name, URL, and category so it can appear in daily launches and leaderboards. Dofollow vs nofollow depends on how your listing is rendered—inspect the live project page after approval.</p>
+<p>Join the <strong>Free Launch</strong> queue on <a href="https://open-launch.com/">Open Launch</a> ($0). You can be featured on the homepage, but <a href="https://open-launch.com/pricing">Pricing</a> states a <strong>dofollow</strong> backlink only if you finish <strong>top 3</strong> in the daily ranking or display their badge on your site—otherwise treat the listing as typically nofollow until you verify <code>rel</code> on your live page. Free slots were fully booked into 2027 when we last checked Pricing; use their waitlist flow if free is all you need.</p>
 ```
 
-**Step 1 title:** Review launch rules
+**Step 1 title:** Read free launch rules
 
 **Step 1 instructions (HTML):**
 
 ```html
-<p>Read how submissions work on <a href="https://open-launch.com/">open-launch.com</a> (categories, streaks, and visibility)—align your one-line pitch and homepage URL with their launch audience.</p>
+<p>Open <a href="https://open-launch.com/pricing">Open Launch pricing</a> and confirm free availability, dofollow conditions (top 3 or badge), and daily launch time (8:00 AM UTC).</p>
 ```
 
-**Step 2 title:** Submit your project
+**Step 2 title:** Join the waitlist or submit free
 
 **Step 2 instructions (HTML):**
 
 ```html
-<p>Submit via <a href="https://open-launch.com/">Open Launch</a> with accurate product URL and assets; after it goes live, inspect your listing link’s <code>rel</code> attribute and badge embed if you use one.</p>
+<p>Start a launch from <a href="https://open-launch.com/">open-launch.com</a> when free is open, or follow Pricing to get emailed when free reopens. After you go live, inspect your listing URL’s <code>rel</code> attribute and add the badge if you are chasing the dofollow path.</p>
+```
+
+
+**Opportunity 2 — Premium launch** (`premium-launch`) · Product submission · medium · manual_review · dofollow · paid · sort `20`
+
+**Approval hint:** Limited premium slots per day; launches at 8:00 AM UTC
+
+**Cost note:** $12/launch (Premium) per Pricing — re-check before you pay
+
+**CTA (modal):** kind `external_doc` · channel — · URL `https://open-launch.com/pricing` · label `Open Launch pricing`
+
+**Description (HTML — paste into Description):**
+
+```html
+<p><strong>Premium Launch</strong> on <a href="https://open-launch.com/pricing">Open Launch</a> is the paid path when you need a slot soon: Pricing advertises launch the next day (subject to availability), homepage feature, and a <strong>guaranteed dofollow</strong> backlink from their domain (they cite DR 71 on Pricing—re-check in your SEO tool). Limited premium slots per day; launches run at 8:00 AM UTC.</p>
+```
+
+**Step 1 title:** Reserve a premium slot
+
+**Step 1 instructions (HTML):**
+
+```html
+<p>On <a href="https://open-launch.com/pricing">Pricing</a>, review Premium Launch ($12/launch), remaining slots for your target day, and what is included versus the free tier.</p>
+```
+
+**Step 2 title:** Submit and verify your link
+
+**Step 2 instructions (HTML):**
+
+```html
+<p>Complete checkout and submit your product URL and assets. After the launch goes live, confirm the homepage listing uses a <strong>dofollow</strong> link to your site and save the badge or listing URL for your records.</p>
 ```
 
 
@@ -786,10 +940,37 @@ Create each site with **Admin published** on. Map **OpenQuok channel slug** to t
 - **Long (HTML — paste into Long description):**
 
 ```html
-<p><a href="https://www.threads.net/">Threads</a> supports links in posts and profile fields. Treat outbound links as typically nofollow; focus on traffic and visibility.</p>
+<p><a href="https://www.threads.net/">Threads</a> supports links in posts, profile fields, and replies. Treat outbound links as typically nofollow; focus on traffic and visibility. On threads you publish, OpenQuok plugs can add a follow-up reply with your URL after engagement.</p>
 ```
 
-**Opp 1 — Business profile link** (`business-profile-link`) · Profile link · easy · instant · nofollow · free · sort `10`
+**Opp 1 — Personal profile link** (`profile-personal`) · Profile link · easy · instant · nofollow · free · sort `10`
+
+**CTA (modal):** kind `connect_channel` · channel `threads` · URL — · label `Connect Threads`
+
+**Description (HTML — paste into Description):**
+
+```html
+<p>Use your main personal <a href="https://www.threads.net/">Threads</a> profile—the one tied to your day-to-day Instagram login—and add your site in bio or profile fields before you post. Good for founders who want one handle for you and your project. Links are typically nofollow.</p>
+```
+
+**Step 1 title:** Open your personal profile
+
+**Step 1 instructions (HTML):**
+
+```html
+<p>Open <a href="https://www.threads.net/">Threads</a> with the personal Instagram-linked account you use as yourself, then open profile settings.</p>
+```
+
+**Step 2 title:** Add your link
+
+**Step 2 instructions (HTML):**
+
+```html
+<p>Paste your URL in the profile link or bio field Meta provides, save, and confirm on your public profile.</p>
+```
+
+
+**Opp 2 — Brand profile link** (`profile-brand`) · Profile link · easy · instant · nofollow · free · sort `15`
 
 **CTA (modal):** kind `connect_channel` · channel `threads` · URL — · label `Connect Threads`
 
@@ -816,7 +997,7 @@ Create each site with **Admin published** on. Map **OpenQuok channel slug** to t
 ```
 
 
-**Opp 2 — Thread post with link** (`thread-post-link`) · Post link · medium · instant · nofollow · free · sort `20`
+**Opp 3 — Thread post with link** (`thread-post-link`) · **Thread link** · medium · instant · nofollow · free · sort `20`
 
 **CTA (modal):** kind `schedule_post` · channel `threads` · URL — · label `Schedule post`
 
@@ -843,6 +1024,37 @@ Create each site with **Admin published** on. Map **OpenQuok channel slug** to t
 ```
 
 
+**Opp 4 — Reply with link** (`helpful-reply`) · Comment link · hard · manual_review · nofollow · free · sort `30`
+
+**Approval hint:** Thread author and community norms vary
+
+**CTA (modal):** kind `use_plug` · channel — · plug `threads-autoPlugPost` · URL — · label `Plugs and automation`
+
+**OpenQuok plug name (modal):** `threads-autoPlugPost` (or `threads-internal-follow-up` for a timed same-account reply without a like threshold)
+
+**Description (HTML — paste into Description):**
+
+```html
+<p>Reply on <a href="https://www.threads.net/">Threads</a> with a helpful comment and your URL when it fits—links are typically nofollow. On threads you publish, OpenQuok <strong>Auto plug post</strong> and <strong>Delayed follow-up reply</strong> automate a follow-up with your link after likes or on your schedule so you do not have to bump the thread yourself. <a href="https://www.openquok.com/docs/getting-started-for-public-api">Set up plugs</a> after you connect Threads.</p>
+```
+
+**Step 1 title:** Reply with a helpful link
+
+**Step 1 instructions (HTML):**
+
+```html
+<p>On <a href="https://www.threads.net/">Threads</a>, join a relevant conversation, add a useful reply, and include your URL once when it fits the thread—links are typically nofollow.</p>
+```
+
+**Step 2 title:** Automate a follow-up on your threads
+
+**Step 2 instructions (HTML):**
+
+```html
+<p>On threads you publish, connect Threads in <a href="https://www.openquok.com/channels/threads">OpenQuok</a> and attach plug <code>threads-autoPlugPost</code> (like threshold + reply with your link) or <code>threads-internal-follow-up</code> (delay + reply copy). OpenQuok publishes the follow-up when your rules match so you do not have to bump the thread yourself.</p>
+```
+
+
 ---
 
 ### Instagram (`instagram`)
@@ -857,7 +1069,34 @@ Create each site with **Admin published** on. Map **OpenQuok channel slug** to t
 <p><a href="https://www.instagram.com/">Instagram</a> Business profiles use a single bio link; posts and Reels can mention your URL in captions. Links are typically nofollow.</p>
 ```
 
-**Opp 1 — Bio link on Business profile** (`bio-link-business`) · Profile link · easy · instant · nofollow · free · sort `10`
+**Opp 1 — Personal profile link** (`profile-personal`) · Profile link · easy · instant · nofollow · free · sort `10`
+
+**CTA (modal):** kind `connect_channel` · channel `instagram` · URL — · label `Connect Instagram`
+
+**Description (HTML — paste into Description):**
+
+```html
+<p>Use your personal <a href="https://www.instagram.com/">Instagram</a> (Creator or personal) account and put your site in the bio link when available—see <a href="https://help.instagram.com/566810106753081">add a link to your profile</a>. Good for founders building in public on one handle. Links are typically nofollow.</p>
+```
+
+**Step 1 title:** Open your personal profile
+
+**Step 1 instructions (HTML):**
+
+```html
+<p>Go to <strong>Edit profile</strong> on the Instagram account you use as yourself in the app or on web.</p>
+```
+
+**Step 2 title:** Set the bio link
+
+**Step 2 instructions (HTML):**
+
+```html
+<p>Add your website in the link field per <a href="https://help.instagram.com/566810106753081">Instagram Help</a>, save, and test from a logged-out view.</p>
+```
+
+
+**Opp 2 — Brand profile bio link** (`profile-brand`) · Profile link · easy · instant · nofollow · free · sort `15`
 
 **CTA (modal):** kind `connect_channel` · channel `instagram` · URL — · label `Connect Instagram`
 
@@ -884,7 +1123,7 @@ Create each site with **Admin published** on. Map **OpenQuok channel slug** to t
 ```
 
 
-**Opp 2 — Feed or Reel caption link** (`feed-reel-caption-link`) · Post link · medium · instant · nofollow · free · sort `20`
+**Opp 3 — Feed or Reel caption link** (`feed-reel-caption-link`) · Post link · medium · instant · nofollow · free · sort `20`
 
 **CTA (modal):** kind `schedule_post` · channel `instagram` · URL — · label `Schedule post`
 
@@ -925,14 +1164,41 @@ Create each site with **Admin published** on. Map **OpenQuok channel slug** to t
 <p><a href="https://www.youtube.com/">YouTube</a> channels can surface your site in About and in video descriptions. Links on youtube.com are typically nofollow; traffic value is high.</p>
 ```
 
-**Opp 1 — Channel About links** (`channel-about-links`) · Profile link · easy · instant · nofollow · free · sort `10`
+**Opp 1 — Personal channel About links** (`profile-personal`) · Profile link · easy · instant · nofollow · free · sort `10`
 
 **CTA (modal):** kind `connect_channel` · channel `youtube` · URL — · label `Connect YouTube`
 
 **Description (HTML — paste into Description):**
 
 ```html
-<p>Add your primary website in the channel About section and custom links—see <a href="https://support.google.com/youtube/answer/9979691">add links to your channel banner and profile</a>.</p>
+<p>On your personal <a href="https://www.youtube.com/">YouTube</a> channel (founder or creator account), add your site in channel <strong>About</strong> and custom links—see <a href="https://support.google.com/youtube/answer/9979691">channel links help</a>. Good when you build in public under your own name. Links are typically nofollow.</p>
+```
+
+**Step 1 title:** Open YouTube Studio
+
+**Step 1 instructions (HTML):**
+
+```html
+<p>Open <a href="https://studio.youtube.com/">YouTube Studio</a> for your personal channel → <strong>Customization</strong> → <strong>Basic info</strong> / <strong>Links</strong>.</p>
+```
+
+**Step 2 title:** Add your site
+
+**Step 2 instructions (HTML):**
+
+```html
+<p>Enter your homepage and allowed custom links, then save—confirm on the public channel About tab.</p>
+```
+
+
+**Opp 2 — Brand channel About links** (`profile-brand`) · Profile link · easy · instant · nofollow · free · sort `15`
+
+**CTA (modal):** kind `connect_channel` · channel `youtube` · URL — · label `Connect YouTube`
+
+**Description (HTML — paste into Description):**
+
+```html
+<p>On your <strong>brand</strong> YouTube channel (separate from your personal creator login), add your primary website in channel About and custom links—see <a href="https://support.google.com/youtube/answer/9979691">add links to your channel banner and profile</a>.</p>
 ```
 
 **Step 1 title:** Open YouTube Studio
@@ -952,7 +1218,7 @@ Create each site with **Admin published** on. Map **OpenQuok channel slug** to t
 ```
 
 
-**Opp 2 — Video description link** (`video-description-link`) · Post link · medium · instant · nofollow · free · sort `20`
+**Opp 3 — Video description link** (`video-description-link`) · Post link · medium · instant · nofollow · free · sort `20`
 
 **CTA (modal):** kind `schedule_post` · channel `youtube` · URL — · label `Schedule post`
 
@@ -990,60 +1256,60 @@ Create each site with **Admin published** on. Map **OpenQuok channel slug** to t
 - **Long (HTML — paste into Long description):**
 
 ```html
-<p><a href="https://www.tiktok.com/">TikTok</a> profiles can include a website link when account features allow. Links are typically nofollow; strong for awareness and clicks.</p>
+<p><a href="https://www.tiktok.com/">TikTok</a> profiles can add a website link once the account has <strong>at least 1,000 followers</strong> (see <a href="https://support.tiktok.com/en/using-tiktok/exploring-videos/adding-a-link-to-your-profile">adding a link to your profile</a>). Links are typically nofollow; under 1k, use captions in videos instead.</p>
 ```
 
-**Opp 1 — Profile website link** (`profile-website-link`) · Profile link · easy · instant · nofollow · free · sort `10`
+**Opp 1 — Personal profile website link** (`profile-personal`) · Profile link · easy · instant · nofollow · free · sort `10`
 
 **CTA (modal):** kind `connect_channel` · channel `tiktok` · URL — · label `Connect TikTok`
 
 **Description (HTML — paste into Description):**
 
 ```html
-<p>Add your site to the website field on your TikTok profile when your account tier allows it—see <a href="https://support.tiktok.com/en/using-tiktok/exploring-videos/adding-a-link-to-your-profile">adding a link to your profile</a>.</p>
+<p>Add your site to the website field on your personal <a href="https://www.tiktok.com/">TikTok</a> profile once you have <strong>at least 1,000 followers</strong>—see <a href="https://support.tiktok.com/en/using-tiktok/exploring-videos/adding-a-link-to-your-profile">adding a link to your profile</a>. Use the account you post from as yourself. Links are typically nofollow.</p>
 ```
 
-**Step 1 title:** Open profile edit
+**Step 1 title:** Confirm you are eligible
 
 **Step 1 instructions (HTML):**
 
 ```html
-<p><a href="https://www.tiktok.com/">TikTok</a> app → <strong>Profile</strong> → <strong>Edit profile</strong>.</p>
+<p>On your personal account, check that you have <strong>at least 1,000 followers</strong>—TikTok unlocks the profile website field at that threshold per <a href="https://support.tiktok.com/en/using-tiktok/exploring-videos/adding-a-link-to-your-profile">TikTok Help</a>. If you are under 1k, grow the account or use the video-caption playbook on this guide instead.</p>
 ```
 
-**Step 2 title:** Add website
+**Step 2 title:** Add your website
 
 **Step 2 instructions (HTML):**
 
 ```html
-<p>Paste your URL in the website field per <a href="https://support.tiktok.com/en/using-tiktok/exploring-videos/adding-a-link-to-your-profile">TikTok Help</a>, save, and confirm on your public profile.</p>
+<p><a href="https://www.tiktok.com/">TikTok</a> app → <strong>Profile</strong> → <strong>Edit profile</strong> → paste your URL in <strong>Website</strong>, save, and confirm on your public profile.</p>
 ```
 
 
-**Opp 2 — Video caption link** (`video-caption-link`) · Post link · medium · instant · nofollow · free · sort `20`
+**Opp 2 — Brand profile website link** (`profile-brand`) · Profile link · easy · instant · nofollow · free · sort `15`
 
-**CTA (modal):** kind `schedule_post` · channel `tiktok` · URL — · label `Schedule post`
+**CTA (modal):** kind `connect_channel` · channel `tiktok` · URL — · label `Connect TikTok`
 
 **Description (HTML — paste into Description):**
 
 ```html
-<p>Mention your URL in a video caption or on-screen text when it fits the content. Schedule in <a href="https://www.openquok.com/channels/tiktok">OpenQuok</a> if you queue TikTok with other networks.</p>
+<p>Add your site to the website field on your <strong>brand</strong> TikTok profile (separate login from your personal account) once that account has <strong>at least 1,000 followers</strong>—see <a href="https://support.tiktok.com/en/using-tiktok/exploring-videos/adding-a-link-to-your-profile">adding a link to your profile</a>. Links are typically nofollow.</p>
 ```
 
-**Step 1 title:** Plan the video
+**Step 1 title:** Confirm the brand account is eligible
 
 **Step 1 instructions (HTML):**
 
 ```html
-<p>Include your URL in caption or verbal CTA as allowed by <a href="https://www.tiktok.com/community-guidelines/en">TikTok Community Guidelines</a>.</p>
+<p>Sign in to your brand TikTok (not your personal login) and confirm <strong>at least 1,000 followers</strong> so the website field is available—see <a href="https://support.tiktok.com/en/using-tiktok/exploring-videos/adding-a-link-to-your-profile">TikTok Help</a>.</p>
 ```
 
-**Step 2 title:** Publish or schedule
+**Step 2 title:** Add your website
 
 **Step 2 instructions (HTML):**
 
 ```html
-<p>Post in TikTok or schedule in <a href="https://www.openquok.com/channels/tiktok">OpenQuok</a> after the channel is connected.</p>
+<p><a href="https://www.tiktok.com/">TikTok</a> app → <strong>Profile</strong> → <strong>Edit profile</strong> → paste your marketing URL in <strong>Website</strong>, save, and confirm on the public brand profile.</p>
 ```
 
 
@@ -1058,17 +1324,44 @@ Create each site with **Admin published** on. Map **OpenQuok channel slug** to t
 - **Long (HTML — paste into Long description):**
 
 ```html
-<p><a href="https://www.linkedin.com/">LinkedIn</a> Company Pages and personal profiles can list your site. Post links in updates are typically nofollow; strong for buyer research.</p>
+<p><a href="https://www.linkedin.com/">LinkedIn</a> Company Pages and personal profiles can list your site. Feed posts, <a href="https://www.linkedin.com/help/linkedin/answer/a522427">native articles</a>, and comments can carry your URL—links are typically nofollow. Short posts can be scheduled in OpenQuok; articles are published on LinkedIn desktop. Plugs can add a follow-up comment on Page posts you publish.</p>
 ```
 
-**Opp 1 — Company Page website** (`company-page-website`) · Profile link · easy · instant · nofollow · free · sort `10`
+**Opp 1 — Personal profile link** (`profile-personal`) · Profile link · easy · instant · nofollow · free · sort `10`
 
 **CTA (modal):** kind `connect_channel` · channel `linkedin` · URL — · label `Connect LinkedIn`
 
 **Description (HTML — paste into Description):**
 
 ```html
-<p>Create a <a href="https://www.linkedin.com/company/setup/new/">LinkedIn Company Page</a> for your brand (not only a personal profile). Add your primary website in Page details before you share link posts—see <a href="https://www.linkedin.com/help/linkedin/answer/a521928">add a website to your Page</a>.</p>
+<p>On your personal <a href="https://www.linkedin.com/">LinkedIn</a> member profile, add your site in the <strong>Contact info</strong> / website field—see <a href="https://www.linkedin.com/help/linkedin/answer/a542685">add website to your profile</a>. Good for founders who want buyers to find you and your project on one profile. Links are typically nofollow.</p>
+```
+
+**Step 1 title:** Open your profile
+
+**Step 1 instructions (HTML):**
+
+```html
+<p>Go to your LinkedIn profile → <strong>Edit public profile</strong> → <strong>Contact info</strong>.</p>
+```
+
+**Step 2 title:** Add your website
+
+**Step 2 instructions (HTML):**
+
+```html
+<p>Enter your homepage URL, save, and confirm on your public member profile.</p>
+```
+
+
+**Opp 2 — Company Page website** (`profile-brand`) · Profile link · easy · instant · nofollow · free · sort `15`
+
+**CTA (modal):** kind `connect_channel` · channel `linkedin` · URL — · label `Connect LinkedIn`
+
+**Description (HTML — paste into Description):**
+
+```html
+<p>Create a <a href="https://www.linkedin.com/help/linkedin/answer/a543852">LinkedIn Company Page</a> for your brand (not only a personal profile). You must confirm you are authorized to act for the company; LinkedIn may require <a href="https://www.linkedin.com/help/linkedin/answer/a1423367">workplace verification</a> with a <strong>work email on your company domain</strong> (not Gmail or Yahoo) before the Page can be created—see <a href="https://www.linkedin.com/help/linkedin/answer/a726850">troubleshoot creating a Page</a>. Add your primary website in Page details before link posts—see <a href="https://www.linkedin.com/help/linkedin/answer/a521928">add a website to your Page</a>.</p>
 ```
 
 **Step 1 title:** Create or claim a Company Page
@@ -1076,7 +1369,7 @@ Create each site with **Admin published** on. Map **OpenQuok channel slug** to t
 **Step 1 instructions (HTML):**
 
 ```html
-<p>Set up the Page at <a href="https://www.linkedin.com/company/setup/new/">linkedin.com/company/setup/new</a> with your brand name and category.</p>
+<p>Sign in with a personal LinkedIn account that has <strong>more than one connection</strong> (new accounts may need to wait one day). Follow <a href="https://www.linkedin.com/help/linkedin/answer/a543852">Create a LinkedIn Page</a>—check the box that you are authorized to act for the organization. If LinkedIn blocks you, complete workplace verification with a work email at your company domain (e.g. <code>you@yourcompany.com</code>) per <a href="https://www.linkedin.com/help/linkedin/answer/a726850">LinkedIn Help</a>. If a Page already exists, request admin access instead of creating a duplicate.</p>
 ```
 
 **Step 2 title:** Add your website
@@ -1088,7 +1381,7 @@ Create each site with **Admin published** on. Map **OpenQuok channel slug** to t
 ```
 
 
-**Opp 2 — Page or profile link post** (`page-link-post`) · Post link · medium · instant · nofollow · free · sort `20`
+**Opp 3 — Page or profile link post** (`page-link-post`) · Post link · medium · instant · nofollow · free · sort `20`
 
 **CTA (modal):** kind `schedule_post` · channel `linkedin` · URL — · label `Schedule post`
 
@@ -1115,6 +1408,64 @@ Create each site with **Admin published** on. Map **OpenQuok channel slug** to t
 ```
 
 
+**Opp 4 — Publish article** (`publish-article`) · Post link · medium · instant · nofollow · free · sort `25`
+
+**CTA (modal):** kind `external_doc` · channel — · URL `https://www.linkedin.com/help/linkedin/answer/a522427` · label `Publish articles on LinkedIn`
+
+**Description (HTML — paste into Description):**
+
+```html
+<p>Publish a long-form <a href="https://www.linkedin.com/help/linkedin/answer/a522427">LinkedIn article</a> from your member profile or as a <strong>Page</strong> content admin—desktop only (not the mobile app). Use the editor’s <strong>Link</strong> tool to add your product or docs URL in the body; optional SEO title and description help discovery. Articles appear on your profile Activity and in followers’ feeds. Outbound links are typically nofollow—verify <code>rel</code> on your live article. This path is separate from short feed posts you can schedule in <a href="https://www.openquok.com/channels/linkedin">OpenQuok</a>.</p>
+```
+
+**Step 1 title:** Draft the article on desktop
+
+**Step 1 instructions (HTML):**
+
+```html
+<p>On LinkedIn desktop, click <strong>Write article</strong> on the homepage. Outline a useful piece for your audience, add headings, and insert your site with the <strong>Link</strong> tool—see <a href="https://www.linkedin.com/help/linkedin/answer/a522427">publish articles on LinkedIn</a> and <a href="https://www.linkedin.com/help/linkedin/answer/a569569">publish as your Page</a> if you post as a Company Page.</p>
+```
+
+**Step 2 title:** Publish and share
+
+**Step 2 instructions (HTML):**
+
+```html
+<p>Choose <strong>Publish as</strong> (yourself or your Page), set SEO settings if helpful, then click <strong>Publish</strong>. Share the article URL on other channels; confirm your homepage link uses the treatment you expect for SEO.</p>
+```
+
+
+**Opp 5 — Comment with link** (`comment-with-link`) · Comment link · hard · manual_review · nofollow · free · sort `30`
+
+**Approval hint:** Post author and feed norms vary
+
+**CTA (modal):** kind `use_plug` · channel — · plug `linkedin-page-auto-plug` · URL — · label `Plugs and automation`
+
+**OpenQuok plug name (modal):** `linkedin-page-auto-plug` (Company Page posts; optional cross-account comment: `linkedin-add-comment`)
+
+**Description (HTML — paste into Description):**
+
+```html
+<p>Comment on a relevant <a href="https://www.linkedin.com/">LinkedIn</a> post with helpful context and your URL when it fits—links are typically nofollow. On updates your <strong>Company Page</strong> publishes, OpenQuok <strong>Auto plug post</strong> (<code>linkedin-page-auto-plug</code>) adds a promotional comment with your link after your like threshold. <a href="https://www.openquok.com/docs/getting-started-for-public-api">Set up plugs</a> after you connect LinkedIn.</p>
+```
+
+**Step 1 title:** Comment with a helpful link
+
+**Step 1 instructions (HTML):**
+
+```html
+<p>Find a post where you can add real value, write a short comment, and include your URL once when it belongs in the conversation—see <a href="https://www.linkedin.com/help/linkedin/answer/a524054">comment on LinkedIn posts</a>.</p>
+```
+
+**Step 2 title:** Automate a comment on your Page posts
+
+**Step 2 instructions (HTML):**
+
+```html
+<p>After you schedule or publish a Page update in <a href="https://www.openquok.com/channels/linkedin">OpenQuok</a>, attach plug <code>linkedin-page-auto-plug</code> (likes threshold + comment with your link). Optional: <code>linkedin-add-comment</code> posts a comment from another connected LinkedIn channel on your update.</p>
+```
+
+
 ---
 
 ### X (`x`)
@@ -1126,25 +1477,25 @@ Create each site with **Admin published** on. Map **OpenQuok channel slug** to t
 - **Long (HTML — paste into Long description):**
 
 ```html
-<p><a href="https://x.com/">X</a> profiles support a website field and pinned posts; post links are typically nofollow but drive traffic and brand search.</p>
+<p><a href="https://x.com/">X</a> profiles support a website field and posts with links; outbound links are typically nofollow. Schedule posts in <a href="https://www.openquok.com/channels/x">OpenQuok</a>, or use plugs to automate a reply with your URL on posts you publish.</p>
 ```
 
-**Opp 1 — Profile website and bio** (`profile-website-bio`) · Profile link · easy · instant · nofollow · free · sort `10`
+**Opp 1 — Personal profile link** (`profile-personal`) · Profile link · easy · instant · nofollow · free · sort `10`
 
 **CTA (modal):** kind `connect_channel` · channel `x` · URL — · label `Connect X`
 
 **Description (HTML — paste into Description):**
 
 ```html
-<p>Add your site in the Website field and bio on your X profile—see <a href="https://help.x.com/en/managing-your-account/how-to-customize-your-profile">customize your profile</a>. Treat links as nofollow for SEO; value is discovery and clicks.</p>
+<p>Use your main personal <a href="https://x.com/">X</a> account—the one you post from as yourself—and add your site in the <strong>Website</strong> field and/or bio. Good for founders who want one handle for you and your project. See <a href="https://help.x.com/en/managing-your-account/how-to-customize-your-profile">customize your profile</a>. Links are typically nofollow.</p>
 ```
 
-**Step 1 title:** Edit profile
+**Step 1 title:** Edit your personal profile
 
 **Step 1 instructions (HTML):**
 
 ```html
-<p><strong>Profile</strong> → <strong>Edit profile</strong> on <a href="https://x.com/">x.com</a>.</p>
+<p><strong>Profile</strong> → <strong>Edit profile</strong> on <a href="https://x.com/">x.com</a> while signed into your personal account.</p>
 ```
 
 **Step 2 title:** Add your URL
@@ -1156,7 +1507,34 @@ Create each site with **Admin published** on. Map **OpenQuok channel slug** to t
 ```
 
 
-**Opp 2 — Post with link** (`post-with-link`) · Post link · medium · instant · nofollow · free · sort `20`
+**Opp 2 — Brand profile link** (`profile-brand`) · Profile link · easy · instant · nofollow · free · sort `15`
+
+**CTA (modal):** kind `connect_channel` · channel `x` · URL — · label `Connect X`
+
+**Description (HTML — paste into Description):**
+
+```html
+<p>Create or use a separate <a href="https://x.com/">X</a> account for your company or product—not your personal login—and set your marketing site in <strong>Website</strong> and bio before you post product updates. Outbound links are typically nofollow.</p>
+```
+
+**Step 1 title:** Create or switch to brand account
+
+**Step 1 instructions (HTML):**
+
+```html
+<p>Register or sign in to the X handle that matches your brand. Keep this login separate from your personal account.</p>
+```
+
+**Step 2 title:** Add your business URL
+
+**Step 2 instructions (HTML):**
+
+```html
+<p>On the brand profile, open <strong>Edit profile</strong>, enter your company site in <strong>Website</strong>, save, and confirm on the public profile.</p>
+```
+
+
+**Opp 3 — Post with link** (`post-with-link`) · Post link · medium · instant · nofollow · free · sort `20`
 
 **CTA (modal):** kind `schedule_post` · channel `x` · URL — · label `Schedule post`
 
@@ -1183,13 +1561,44 @@ Create each site with **Admin published** on. Map **OpenQuok channel slug** to t
 ```
 
 
+**Opp 4 — Reply with link** (`helpful-reply`) · Comment link · hard · manual_review · nofollow · free · sort `30`
+
+**Approval hint:** Post author and community norms vary
+
+**CTA (modal):** kind `use_plug` · channel — · plug `x-auto-plug` · URL — · label `Plugs and automation`
+
+**OpenQuok plug name (modal):** `x-auto-plug` (optional reach boost: `x-auto-repost`)
+
+**Description (HTML — paste into Description):**
+
+```html
+<p>Reply on <a href="https://x.com/">X</a> with a helpful comment and your URL when it fits—links are typically nofollow. On posts you publish, OpenQuok <strong>Auto plug post</strong> (<code>x-auto-plug</code>) sends an automated reply with your link after your like threshold so you do not have to bump the post yourself. <a href="https://www.openquok.com/docs/getting-started-for-public-api">Set up plugs</a> after you connect X.</p>
+```
+
+**Step 1 title:** Reply with a helpful link
+
+**Step 1 instructions (HTML):**
+
+```html
+<p>On <a href="https://x.com/">X</a>, reply to a relevant post with useful context and include your URL once when it fits the conversation—links are typically nofollow.</p>
+```
+
+**Step 2 title:** Automate a follow-up on your posts
+
+**Step 2 instructions (HTML):**
+
+```html
+<p>On posts you publish, connect X in <a href="https://www.openquok.com/channels/x">OpenQuok</a> and attach plug <code>x-auto-plug</code> (like threshold + reply with your link). OpenQuok publishes the reply when your rules match. Optional: <code>x-auto-repost</code> reposts after likes for extra reach—the repost itself does not add a new URL.</p>
+```
+
+
 ---
 
 ### Dev.to (`devto`)
 
 - **Site URL:** `https://dev.to`
 - **OpenQuok auth:** Yes · **Channel:** `devto` · **Category:** Social platforms · **Tags:** High domain rating
-- **DR · DA · traffic:** 91 · 85 · 9,200,000/mo
+- **DR · DA · traffic:** 91 · 85 · 5,800,000/mo
 - **Short:** Developer blogging — profile and articles with contextual links.
 - **Long (HTML — paste into Long description):**
 
@@ -1197,14 +1606,14 @@ Create each site with **Admin published** on. Map **OpenQuok channel slug** to t
 <p><a href="https://dev.to/">Dev.to</a> profiles and posts support links to your project or docs. Follow <a href="https://dev.to/code-of-conduct">community guidelines</a>; links are typically nofollow on the platform.</p>
 ```
 
-**Opp 1 — Dev.to profile website** (`profile-website`) · Profile link · easy · instant · nofollow · free · sort `10`
+**Opp 1 — Personal profile link** (`profile-personal`) · Profile link · easy · instant · nofollow · free · sort `10`
 
 **CTA (modal):** kind `connect_channel` · channel `devto` · URL — · label `Connect Dev.to`
 
 **Description (HTML — paste into Description):**
 
 ```html
-<p>Set your website on your <a href="https://dev.to/settings">Dev.to profile settings</a> before you publish articles that link back to your product.</p>
+<p>Use your personal <a href="https://dev.to/">Dev.to</a> account and set your website in <a href="https://dev.to/settings">profile settings</a> before you publish articles that link back to your product—Dev.to is individual profiles only (no separate brand login). Links are typically nofollow.</p>
 ```
 
 **Step 1 title:** Open profile settings
@@ -1257,6 +1666,7 @@ Create each site with **Admin published** on. Map **OpenQuok channel slug** to t
 
 1. Upload a **square logo** per site in the editor (export from [`branded-icons.ts`](web/src/data/icons/branded-icons.ts) or official brand assets).
 2. Hard-refresh hub and site guides while logged out; confirm opportunity counts in FAQ blocks.
-3. Optional: sync exemplar seed [`502_20251001_seed_link_directory_exemplar.sql`](backend/supabase/db/link-directory/502_20251001_seed_link_directory_exemplar.sql) in a follow-up PR so fresh environments match production.
+3. **Existing admin rows:** if you already published opportunities under old slugs (`profile-website-bio`, `business-profile-link`, `bio-link-business`, `company-page-website`, `channel-about-links`, `profile-website-link`, `profile-website` on Dev.to, `submit-project` on Open Launch), either **rename slug + re-sort** to match this handbook or **add** the new rows and unpublish duplicates—Open Launch should be **`free-launch` @ `10`** and **`premium-launch` @ `20`** instead of a single `submit-project`.
+4. Optional: sync exemplar seed [`502_20251001_seed_link_directory_exemplar.sql`](backend/supabase/db/link-directory/502_20251001_seed_link_directory_exemplar.sql) in a follow-up PR so fresh environments match production.
 
 Metrics are **estimates** — **monthly visits** from [Semrush Traffic Analytics](https://www.semrush.com/trending-websites/global/all) (August 2026 snapshot in the handbook); re-check Semrush overviews quarterly. Re-check **DA** on Moz and **DR** on Ahrefs when you rebaseline. Hub copy aggregates published opportunity counts automatically.

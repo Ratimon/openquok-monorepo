@@ -121,11 +121,11 @@
 						headingLevel="h2"
 					/>
 					{#if showSectionDescription}
-						<p
-							class="text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg"
+						<div
+							class="prose prose-sm max-w-none text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg dark:prose-invert"
 						>
-							{section.sectionDescription}
-						</p>
+							{@html sectionDescriptionHtml}
+						</div>
 					{/if}
 				</div>
 			</div>
