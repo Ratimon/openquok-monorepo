@@ -1,10 +1,12 @@
 import type { BillingPricingViewModel, GetBillingPresenter } from '$lib/billing/GetBilling.presenter.svelte';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 
+import { shouldAutoProvisionDefaultWorkspace } from '$lib/billing/utils/shouldAutoProvisionDefaultWorkspace';
 import {
 	isCheckoutIdResolved,
 	persistResolvedCheckoutId
 } from '$lib/billing/utils/resolvedCheckoutIds';
+import { authenticationRepository } from '$lib/user-auth/index';
 
 /**
  * Evaluates whether a free-tier workspace should see the first-billing gate
@@ -30,6 +32,8 @@ export class FirstBillingGatePresenter {
 	/** Checkout id already handled this session — avoids `replaceState` (conflicts with PostHog rrweb). */
 	resolvedCheckoutId = $state<string | null>(null);
 	checkoutReturnInFlightFor = $state<string | null>(null);
+	/** Workspace list failed while the gate needed an org — UI should offer retry, not auto-create. */
+	workspaceListError = $state(false);
 
 	private evaluateInflight: Promise<void> | null = null;
 	/** Workspace key last passed through {@link evaluate}; drives {@link hasResolvedGate}. */
@@ -93,6 +97,7 @@ export class FirstBillingGatePresenter {
 		orgKey: string
 	): Promise<void> {
 		this.loading = true;
+		this.workspaceListError = false;
 		try {
 			if (!organizationId) {
 				await this.workspaceSettingsPresenter.load({ includeTeam: false });
@@ -100,10 +105,19 @@ export class FirstBillingGatePresenter {
 			let resolvedOrganizationId =
 				this.workspaceSettingsPresenter.currentWorkspaceId ?? undefined;
 
+			const isPlatformAdmin =
+				authenticationRepository.currentUser?.isPlatformAdmin === true;
+			const listOutcome = this.workspaceSettingsPresenter.workspaceListOutcome;
+			const ownedWorkspaceCount = this.workspaceSettingsPresenter.workspacesVm.length;
+
 			// Recover users who signed in via Google (or similar) before default-org creation existed.
 			if (
 				!resolvedOrganizationId &&
-				this.workspaceSettingsPresenter.workspacesVm.length === 0
+				shouldAutoProvisionDefaultWorkspace(
+					listOutcome,
+					ownedWorkspaceCount,
+					isPlatformAdmin
+				)
 			) {
 				const created = await this.workspaceSettingsPresenter.createWorkspace(
 					'My Organization',
@@ -113,6 +127,11 @@ export class FirstBillingGatePresenter {
 					resolvedOrganizationId =
 						this.workspaceSettingsPresenter.currentWorkspaceId ?? undefined;
 				}
+			} else if (
+				!resolvedOrganizationId &&
+				this.workspaceSettingsPresenter.workspaceListOutcome === 'error'
+			) {
+				this.workspaceListError = true;
 			}
 
 			const resolvedOrgKey = resolvedOrganizationId?.trim() || '__none__';

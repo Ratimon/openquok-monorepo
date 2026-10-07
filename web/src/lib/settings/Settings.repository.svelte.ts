@@ -53,9 +53,14 @@ export interface OrganizationDto {
 
 export interface ListMyOrganizationsResponseDto {
 	success: boolean;
-	data: OrganizationWithRoleProgrammerModel[];
+	data: OrganizationWithRoleDto[];
 	message?: string;
 }
+
+export type ListMyOrganizationsResult = {
+	outcome: 'ok' | 'error';
+	organizations: OrganizationWithRoleProgrammerModel[];
+};
 
 export interface CreateOrganizationResponseDto {
 	success: boolean;
@@ -257,7 +262,7 @@ export class SettingsRepository {
 		private readonly config: SettingsConfig
 	) {}
 
-	public async listMyOrganizations(): Promise<OrganizationWithRoleProgrammerModel[]> {
+	public async listMyOrganizations(): Promise<ListMyOrganizationsResult> {
 		try {
 			const { ok, data: listMyOrganizationsDto } = await this.httpGateway.get<ListMyOrganizationsResponseDto>(
 				this.config.endpoints.list,
@@ -265,15 +270,13 @@ export class SettingsRepository {
 				{ withCredentials: true }
 			);
 			if (ok && listMyOrganizationsDto?.success && Array.isArray(listMyOrganizationsDto.data)) {
-				const mapped = listMyOrganizationsDto.data.map(toOrganizationWithRolePm);
-				this.organizationsPm = mapped;
-				return mapped;
+				const organizations = listMyOrganizationsDto.data.map(toOrganizationWithRolePm);
+				this.organizationsPm = organizations;
+				return { outcome: 'ok', organizations };
 			}
-			this.organizationsPm = [];
-			return [];
+			return { outcome: 'error', organizations: this.organizationsPm };
 		} catch {
-			this.organizationsPm = [];
-			return [];
+			return { outcome: 'error', organizations: this.organizationsPm };
 		}
 	}
 

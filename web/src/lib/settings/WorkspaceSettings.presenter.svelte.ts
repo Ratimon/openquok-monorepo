@@ -89,6 +89,8 @@ export class WorkspaceSettingsPresenter {
 	public toastIsError = $state(false);
 
 	public workspacesVm = $state<WorkspaceCardViewModel[]>([]);
+	/** Last workspace list fetch: `idle` before any load, then `ok` or `error`. */
+	public workspaceListOutcome = $state<'idle' | 'ok' | 'error'>('idle');
 	public currentWorkspaceId = $state<string | null>(null);
 	public teamMembersVm = $state<TeamMemberViewModel[]>([]);
 
@@ -135,6 +137,11 @@ export class WorkspaceSettingsPresenter {
 		return workspaceRole === 'admin' || workspaceRole === 'owner';
 	}
 
+	/** True when the list API succeeded and the user has no workspaces (confirmed empty). */
+	public get confirmedEmptyWorkspaces(): boolean {
+		return this.workspaceListOutcome === 'ok' && this.workspacesVm.length === 0;
+	}
+
 	public async load(options?: { includeTeam?: boolean }): Promise<void> {
 		if (this.loadInflight) return this.loadInflight;
 		const includeTeam = options?.includeTeam !== false;
@@ -142,12 +149,17 @@ export class WorkspaceSettingsPresenter {
 			this.status = WorkspaceSettingsStatus.LOADING;
 			try {
 				// Fetch workspace list and active session org in parallel to avoid a sequential waterfall.
-				const [{ workspacesVm, userId }, sessionOrgId] = await Promise.all([
+				const [{ workspacesVm, userId, listOutcome }, sessionOrgId] = await Promise.all([
 					this.getWorkspacePresenter.getWorkspaceSettingsData(),
 					this.currentWorkspaceId ? Promise.resolve(null) : this.profileRepository.getActiveWorkspaceIdFromSession()
 				]);
 				this.userId = userId;
-				this.workspacesVm = workspacesVm;
+				this.workspaceListOutcome = listOutcome;
+				if (listOutcome === 'ok') {
+					this.workspacesVm = workspacesVm;
+				} else if (workspacesVm.length > 0) {
+					this.workspacesVm = workspacesVm;
+				}
 				if (!includeTeam) {
 					// Keep prior team list when background-refreshing workspace selection for the dock.
 					// The settings page explicitly loads team for the selected workspace.

@@ -11,8 +11,9 @@
 		preloadStripe,
 		tierDisplayName
 	} from '$lib/billing';
+	import { shouldAutoProvisionDefaultWorkspace } from '$lib/billing/utils/shouldAutoProvisionDefaultWorkspace';
 	import { icons } from '$data/icons';
-	import { signoutPresenter, SignoutStatus } from '$lib/user-auth/index';
+	import { authenticationRepository, signoutPresenter, SignoutStatus } from '$lib/user-auth/index';
 	import { workspaceSettingsPresenter, WorkspaceSettingsStatus } from '$lib/settings';
 	import { cn } from '$lib/ui/helpers/common';
 	import { url } from '$lib/utils/path';
@@ -68,21 +69,49 @@
 			(workspaceSettingsPresenter.status === WorkspaceSettingsStatus.LOADING ||
 				workspaceSettingsPresenter.status === WorkspaceSettingsStatus.CREATING)
 	);
+	const isPlatformAdmin = $derived(
+		authenticationRepository.currentUser?.isPlatformAdmin === true
+	);
+	const workspaceListLoadFailed = $derived(
+		workspaceSettingsPresenter.workspaceListOutcome === 'error' ||
+			firstBillingGatePresenter.workspaceListError
+	);
+	const canAutoProvisionWorkspace = $derived(
+		shouldAutoProvisionDefaultWorkspace(
+			workspaceSettingsPresenter.workspaceListOutcome,
+			workspaceSettingsPresenter.workspacesVm.length,
+			isPlatformAdmin
+		)
+	);
 	const missingWorkspace = $derived(
 		!organizationId &&
 			workspaceSettingsPresenter.status !== WorkspaceSettingsStatus.LOADING &&
 			workspaceSettingsPresenter.status !== WorkspaceSettingsStatus.CREATING
 	);
+	const missingWorkspaceListError = $derived(missingWorkspace && workspaceListLoadFailed);
+	const missingWorkspaceConfirmedEmpty = $derived(
+		missingWorkspace && canAutoProvisionWorkspace
+	);
 	/** Keep the payment shell mounted while the session secret is in flight. */
 	const showPaymentShell = $derived(workspaceReady && (!checkoutLoadFailed || Boolean(checkoutSecret)));
 
+	async function retryWorkspaceList(): Promise<void> {
+		await workspaceSettingsPresenter.load({ includeTeam: false });
+		void firstBillingGatePresenter.evaluate({ force: true });
+	}
+
 	async function ensureWorkspaceAndCheckout(): Promise<void> {
-		if (!organizationId) {
+		if (organizationId) {
+			void refreshCheckoutSecret();
+			return;
+		}
+		if (canAutoProvisionWorkspace) {
 			await workspaceSettingsPresenter.createWorkspace('My Organization', { silent: true });
 			void firstBillingGatePresenter.evaluate({ force: true });
 			return;
 		}
-		void refreshCheckoutSecret();
+		toast.error('Could not load your workspaces. Try again.');
+		await retryWorkspaceList();
 	}
 
 	async function refreshCheckoutSecret(): Promise<void> {
@@ -230,7 +259,20 @@
 				<div class="flex flex-1 items-center justify-center py-16">
 					<span class="loading loading-spinner loading-lg text-primary"></span>
 				</div>
-			{:else if missingWorkspace}
+			{:else if missingWorkspaceListError}
+				<div
+					class="flex flex-1 flex-col items-center justify-center gap-4 py-16 text-center"
+					role="alert"
+				>
+					<p class="text-base text-base-content/80">
+						We could not load your workspaces. Plans are still available — retry to connect checkout
+						to a workspace.
+					</p>
+					<Button variant="primary" onclick={() => void retryWorkspaceList()}>
+						Retry loading workspaces
+					</Button>
+				</div>
+			{:else if missingWorkspaceConfirmedEmpty}
 				<div
 					class="flex flex-1 flex-col items-center justify-center gap-4 py-16 text-center"
 					role="alert"
@@ -242,6 +284,15 @@
 					<Button variant="primary" onclick={() => void ensureWorkspaceAndCheckout()}>
 						Create workspace
 					</Button>
+				</div>
+			{:else if missingWorkspace}
+				<div
+					class="flex flex-1 flex-col items-center justify-center gap-4 py-16 text-center"
+					role="alert"
+				>
+					<p class="text-base text-base-content/80">
+						Select or create a workspace to start checkout.
+					</p>
 				</div>
 			{:else if !showPaymentShell}
 				<div

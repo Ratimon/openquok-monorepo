@@ -54,6 +54,7 @@ export const workspaceSettingsPresenter = new WorkspaceSettingsPresenter(
 export { SettingsRepository } from '$lib/settings/Settings.repository.svelte';
 export type {
 	SettingsConfig,
+	ListMyOrganizationsResult,
 	OrganizationWithRoleDto,
 	OrganizationDto,
 	OrganizationProgrammerModel,
