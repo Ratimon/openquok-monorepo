@@ -7,6 +7,7 @@ import {
 	type PublicMcpSkillSetupResolveInput
 } from '$lib/content/constants/mcps/index';
 import { createHowToSEOSchema } from '$lib/seo/createHowToSEOSchema';
+import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 
 export type PublicSetupStepsSectionCopy = {
 	sectionTitle?: string;
@@ -73,7 +74,7 @@ export function createPublicSetupStepsSEOSchema(
 			const howToStepUrl = step.howToStepUrl?.trim();
 			return {
 				name: step.title.trim(),
-				text: step.content.trim(),
+				text: stripHtmlToPlainText((step.content ?? '').trim()),
 				...(howToStepUrl ? { url: resolveHowToStepUrl(pageUrl, howToStepUrl) } : {})
 			};
 		})

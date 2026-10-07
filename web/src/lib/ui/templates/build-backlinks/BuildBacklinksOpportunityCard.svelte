@@ -11,6 +11,7 @@
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import InternalLink from '$lib/ui/links/InternalLink.svelte';
+	import { linkDirectoryRichTextToPlainText } from '$lib/link-directory/utils/linkDirectoryRichText';
 	import { buildBacklinksFilterBadgeClass } from '$lib/ui/templates/build-backlinks/buildBacklinksFilterBadgeClass';
 
 	type Props = {

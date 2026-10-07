@@ -36,6 +36,11 @@
 	import { getRootPathSecretAdminLinkDirectoryManagerSiteEditor } from '$lib/area-admin/constants/getRootPathSecretAdminArea';
 	import { getRootPathPublicBuildBacklinksSite } from '$lib/area-public/constants/getRootPathPublicBuildBacklinks';
 	import { normalizeHttpUrlInputIfLikely } from '$lib/utils/normalizeHttpUrlInput';
+	import {
+		formatMonthlyVisitsEditorDisplay,
+		formatMonthlyVisitsEditorExactHint,
+		parseMonthlyVisitsFormField
+	} from '$lib/link-directory/utils/monthlyVisitsFormField';
 	import { parseOptionalIntFormField, trimFormField } from '$lib/utils/trimFormField';
 	import { route, url } from '$lib/utils/path';
 
@@ -43,12 +48,14 @@
 	import ActionVerificationModal from '$lib/ui/modals/ActionVerificationModal.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import ProviderHttpUrlInput from '$lib/ui/components/posts/providers/ProviderHttpUrlInput.svelte';
+	import LinkDirectoryRichHtmlField from '$lib/ui/components/link-directory-manager/LinkDirectoryRichHtmlField.svelte';
 	import { Textarea } from '$lib/ui/textarea';
 	import { Input } from '$lib/ui/input';
 
 	import LinkDirectoryMetricsAdminNotice from '$lib/ui/components/link-directory-manager/LinkDirectoryMetricsAdminNotice.svelte';
 	import LinkDirectoryOpenQuokChannelSelect from '$lib/ui/components/link-directory-manager/LinkDirectoryOpenQuokChannelSelect.svelte';
 	import LinkDirectoryOpportunityUpsertModal from '$lib/ui/components/link-directory-manager/LinkDirectoryOpportunityUpsertModal.svelte';
+	import { linkDirectoryRichTextToPlainText } from '$lib/link-directory/utils/linkDirectoryRichText';
 	import SupabaseImageUploadArea from '$lib/ui/supabase/SupabaseImageUploadArea.svelte';
 
 	type Props = {
@@ -108,6 +115,19 @@
 			: ''
 	);
 
+	const parsedMonthlyVisits = $derived(parseMonthlyVisitsFormField(monthlyVisits));
+	const monthlyVisitsExactHint = $derived(formatMonthlyVisitsEditorExactHint(parsedMonthlyVisits));
+	const monthlyVisitsParseError = $derived(
+		trimFormField(monthlyVisits) && parsedMonthlyVisits == null
+			? 'Use 1.21 billion, 520M, or 1,210,000,000'
+			: null
+	);
+
+	function handleMonthlyVisitsBlur() {
+		if (parsedMonthlyVisits == null) return;
+		monthlyVisits = formatMonthlyVisitsEditorDisplay(parsedMonthlyVisits);
+	}
+
 	$effect(() => {
 		slugManuallyEdited = Boolean(site?.id);
 		openquokChannelHintApplied = Boolean(site?.id);
@@ -119,7 +139,8 @@
 		longDescription = site?.longDescription ?? '';
 		domainRating = site?.domainRating != null ? String(site.domainRating) : '';
 		domainAuthority = site?.domainAuthority != null ? String(site.domainAuthority) : '';
-		monthlyVisits = site?.monthlyVisits != null ? String(site.monthlyVisits) : '';
+		monthlyVisits =
+			site?.monthlyVisits != null ? formatMonthlyVisitsEditorDisplay(site.monthlyVisits) : '';
 		metricsSource = site?.metricsSource ?? '';
 		categoryId = site?.categoryId ?? '';
 		openquokChannelSlug = site?.openquokChannelSlug ?? '';
@@ -238,7 +259,11 @@
 		e.preventDefault();
 		const parsedDr = parseOptionalIntFormField(domainRating);
 		const parsedDa = parseOptionalIntFormField(domainAuthority);
-		const parsedVisits = parseOptionalIntFormField(monthlyVisits);
+		const parsedVisits = parseMonthlyVisitsFormField(monthlyVisits);
+		if (trimFormField(monthlyVisits) && parsedVisits == null) {
+			toast.error('Monthly visits could not be parsed. Try 1.21 billion or 1,210,000,000.');
+			return;
+		}
 		const metricsPatch = resolveLinkDirectoryManualMetricsOnSave(site, {
 			domainRating: parsedDr,
 			domainAuthority: parsedDa,
@@ -430,7 +455,20 @@
 			</label>
 			<label class="form-control">
 				<span class="label-text text-sm">Monthly visits</span>
-				<Input type="number" min="0" bind:value={monthlyVisits} />
+				<Input
+					type="text"
+					inputmode="decimal"
+					autocomplete="off"
+					bind:value={monthlyVisits}
+					placeholder="e.g. 1.21 billion or 1,210,000,000"
+					onblur={handleMonthlyVisitsBlur}
+					aria-invalid={monthlyVisitsParseError ? true : undefined}
+				/>
+				{#if monthlyVisitsExactHint}
+					<span class="label-text-alt text-base-content/60">{monthlyVisitsExactHint}</span>
+				{:else if monthlyVisitsParseError}
+					<span class="label-text-alt text-error">{monthlyVisitsParseError}</span>
+				{/if}
 			</label>
 			<label class="form-control md:col-span-3">
 				<span class="label-text text-sm">Metrics source (internal note)</span>
@@ -444,12 +482,16 @@
 
 	<label class="form-control">
 		<span class="label-text text-sm">Short description</span>
+		<span class="label-text-alt text-base-content/60">Plain text only (hub card).</span>
 		<Textarea bind:value={shortDescription} rows={2} />
 	</label>
-	<label class="form-control">
-		<span class="label-text text-sm">Long description (markdown)</span>
-		<Textarea bind:value={longDescription} rows={6} />
-	</label>
+	<LinkDirectoryRichHtmlField
+		label="Long description"
+		bind:value={longDescription}
+		rows={8}
+		visualEditor={true}
+		{userId}
+	/>
 
 	{#if editorialTags.length > 0}
 		<div>
@@ -496,6 +538,7 @@
 			<h2 class="text-lg font-semibold">Opportunities</h2>
 			<LinkDirectoryOpportunityUpsertModal
 				siteId={site.id}
+				{userId}
 				{opportunityTypes}
 				existingOpportunities={opportunities}
 				onSaved={handleOpportunitySaved}
@@ -522,7 +565,9 @@
 												{stepIndex + 1}. {step.title}
 											</span>
 											{#if trimFormField(step.body)}
-												<span class="text-base-content/65"> — {step.body}</span>
+												<span class="text-base-content/65">
+													— {linkDirectoryRichTextToPlainText(step.body)}
+												</span>
 											{/if}
 										</li>
 									{/each}
@@ -536,6 +581,7 @@
 						<div class="flex gap-2">
 							<LinkDirectoryOpportunityUpsertModal
 								siteId={site.id}
+								{userId}
 								{opportunity}
 								{opportunityTypes}
 								existingOpportunities={opportunities}

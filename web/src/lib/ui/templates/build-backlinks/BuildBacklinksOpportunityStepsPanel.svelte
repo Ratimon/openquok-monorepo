@@ -5,6 +5,7 @@
 		PUBLIC_SETUP_STEPS_FOOTER_PROMPT
 	} from '$lib/content/constants/landing/setup-steps-footer';
 	import type { BuildBacklinksGuideSectionVm } from '$lib/link-directory/utils/buildBuildBacklinksGuideSections';
+	import { prepareLinkDirectoryRichTextForDisplay } from '$lib/link-directory/utils/linkDirectoryRichText';
 	import { resolveOpportunityCta } from '$lib/link-directory/utils/resolveOpportunityCtaHref';
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
@@ -32,6 +33,11 @@
 	const headingId = $derived(`${section.sectionId}-heading`);
 
 	const showSectionDescription = $derived(Boolean(section.sectionDescription?.trim()));
+	const sectionDescriptionHtml = $derived(
+		section.sectionDescription?.trim()
+			? prepareLinkDirectoryRichTextForDisplay(section.sectionDescription)
+			: ''
+	);
 	const setupStepsAccentBanner = $derived.by(() => {
 		const footer = section.footer;
 		if (!footer?.footerLinkHref?.trim() || !footer.footerLinkLabel?.trim()) {
@@ -79,6 +85,10 @@
 
 	function handleStepClick(index: number) {
 		activeStepIndex = index;
+	}
+
+	function stepBodyHtml(body: string): string {
+		return body.trim() ? prepareLinkDirectoryRichTextForDisplay(body) : '';
 	}
 </script>
 
@@ -164,9 +174,11 @@
 											{step.displayTitle}
 										</p>
 										<h3 class="text-lg font-bold lg:text-2xl">{step.stepTitle}</h3>
-										<p class="max-w-md text-base text-base-content/70">
-											{step.content}
-										</p>
+										<div
+											class="prose prose-sm max-w-md text-base text-base-content/70 dark:prose-invert"
+										>
+											{@html stepBodyHtml(step.content)}
+										</div>
 									</div>
 								</button>
 							</li>

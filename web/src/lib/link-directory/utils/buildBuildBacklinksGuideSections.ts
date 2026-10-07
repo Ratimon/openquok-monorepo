@@ -21,6 +21,7 @@ import {
 } from '$lib/link-directory/utils/formatBuildBacklinksGuideDisplayTitle';
 import { buildBacklinksGuideOrdinalIcon } from '$lib/link-directory/utils/buildBacklinksGuideOrdinalIcon';
 import { resolveOpportunityCta } from '$lib/link-directory/utils/resolveOpportunityCtaHref';
+import { linkDirectoryRichTextToPlainText } from '$lib/link-directory/utils/linkDirectoryRichText';
 
 export type BuildBacklinksGuideOverviewCardVm = {
 	slug: string;
@@ -230,13 +231,13 @@ export function buildBuildBacklinksGuideSections(params: {
 			if (!name) {
 				return null;
 			}
-			const sectionMedia = buildBuildBacklinksOpportunityBentoStep(opportunity, siteUrl);
 			return {
 				slug: opportunity.slug,
 				eyebrow: formatOpportunityIndexTitle(index + 1),
 				title: name,
 				description:
-					opportunity.description?.trim() || opportunityStepFallbackText(name),
+					linkDirectoryRichTextToPlainText(opportunity.description?.trim() || '') ||
+					opportunityStepFallbackText(name),
 				anchorId: `howto-${opportunity.slug}`,
 				icon: buildBacklinksGuideOrdinalIcon(index + 1)
 			};

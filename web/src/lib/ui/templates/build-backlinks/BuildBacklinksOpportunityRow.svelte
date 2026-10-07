@@ -6,6 +6,7 @@
 
 	import { resolveOpportunityCta } from '$lib/link-directory/utils/resolveOpportunityCtaHref';
 	import { hostedMarketingAnchorAttrs } from '$lib/utils/hostedMarketingHref';
+	import { prepareLinkDirectoryRichTextForDisplay } from '$lib/link-directory/utils/linkDirectoryRichText';
 
 	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
 	import InternalLink from '$lib/ui/links/InternalLink.svelte';
@@ -55,6 +56,16 @@
 	);
 
 	const isExpanded = $derived(layout === 'expanded');
+
+	const descriptionHtml = $derived(
+		opportunity.description?.trim()
+			? prepareLinkDirectoryRichTextForDisplay(opportunity.description)
+			: ''
+	);
+
+	function stepBodyHtml(body: string): string {
+		return body.trim() ? prepareLinkDirectoryRichTextForDisplay(body) : '';
+	}
 </script>
 
 {#snippet badges()}
@@ -128,8 +139,10 @@
 
 {#snippet body()}
 	<div class="text-sm text-base-content/80">
-		{#if opportunity.description?.trim()}
-			<p class="leading-relaxed">{opportunity.description}</p>
+		{#if descriptionHtml}
+			<div class="prose prose-sm max-w-none leading-relaxed dark:prose-invert">
+				{@html descriptionHtml}
+			</div>
 		{/if}
 		{#if opportunity.approvalTimeHint?.trim()}
 			<p class="mt-2 text-xs text-base-content/60">Approval: {opportunity.approvalTimeHint}</p>
@@ -143,7 +156,9 @@
 				{#each sortedSteps as step (step.order)}
 					<li id={isExpanded ? opportunity.slug : undefined}>
 						<span class="font-medium text-base-content">{step.title}</span>
-						<p class="text-base-content/75">{step.body}</p>
+						<div class="prose prose-sm max-w-none text-base-content/75 dark:prose-invert">
+							{@html stepBodyHtml(step.body)}
+						</div>
 					</li>
 				{/each}
 			</ol>

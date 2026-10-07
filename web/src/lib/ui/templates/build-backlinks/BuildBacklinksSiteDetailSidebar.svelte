@@ -11,6 +11,10 @@
 	} from '$lib/link-directory/utils/formatLinkDirectoryMetrics';
 	import { formatOpportunityIndexTitle } from '$lib/link-directory/utils/formatBuildBacklinksGuideDisplayTitle';
 	import { buildBuildBacklinksSiteDetailSidebarMetrics } from '$lib/link-directory/utils/buildBuildBacklinksSiteDetailSidebarMetrics';
+	import {
+		buildBacklinksSiteEffortSidebarMetricLabel,
+		formatBuildBacklinksSiteEffortSidebarValue
+	} from '$lib/link-directory/utils/formatBuildBacklinksSiteEffortSummary';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import SubjectRating from '$lib/ui/components/community/SubjectRating.svelte';
@@ -72,17 +76,8 @@
 		(site.opportunities ?? []).filter((opportunity) => opportunity.isAdminPublished).length
 	);
 
-	const effortLabel = $derived.by((): string | null => {
-		const efforts = (site.opportunities ?? [])
-			.filter((opportunity) => opportunity.isAdminPublished)
-			.map((opportunity) => opportunity.effort);
-		if (efforts.length === 0) return null;
-		const rank: Record<string, number> = { easy: 0, medium: 1, hard: 2 };
-		const easiest = efforts.reduce((best, effort) =>
-			(rank[effort] ?? 99) < (rank[best] ?? 99) ? effort : best
-		);
-		return easiest.charAt(0).toUpperCase() + easiest.slice(1);
-	});
+	const effortSidebarValue = $derived(formatBuildBacklinksSiteEffortSidebarValue(site.opportunities));
+	const effortSidebarLabel = $derived(buildBacklinksSiteEffortSidebarMetricLabel(site.opportunities));
 
 	const communityMetricRows = $derived(
 		buildBuildBacklinksSiteDetailSidebarMetrics(site, displayLikes)
@@ -99,8 +94,8 @@
 		if (visitsLabel) {
 			rows.push({ label: 'Monthly traffic', value: visitsLabel });
 		}
-		if (effortLabel) {
-			rows.push({ label: 'Difficulty', value: effortLabel });
+		if (effortSidebarValue) {
+			rows.push({ label: effortSidebarLabel, value: effortSidebarValue });
 		}
 		if (publishedOpportunityCount > 0) {
 			rows.push({

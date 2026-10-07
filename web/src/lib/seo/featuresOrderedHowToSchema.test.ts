@@ -51,6 +51,31 @@ describe('featuresOrderedHowToSchema', () => {
 		});
 	});
 
+	it('strips HTML from HowTo step text', () => {
+		const node = createPublicSetupStepsSEOSchema({
+			pageUrl: 'https://www.openquok.com/build-backlinks/reddit',
+			sectionTitle: 'Subreddit post',
+			steps: [
+				{
+					id: 1,
+					title: 'Pick a subreddit',
+					content: '<p>Read the <a href="https://www.reddit.com/">subreddit</a> rules.</p>',
+					iconName: 'Link'
+				}
+			]
+		});
+
+		expect(node).toMatchObject({
+			'@type': 'HowTo',
+			step: [
+				{
+					'@type': 'HowToStep',
+					text: 'Read the subreddit rules.'
+				}
+			]
+		});
+	});
+
 	it('returns empty object when steps are missing', () => {
 		expect(
 			createPublicSetupStepsSEOSchema({

@@ -271,7 +271,22 @@ export class HttpGateway {
 			responseData = (await res.arrayBuffer()) as T;
 		} else {
 			const text = await res.text();
-			responseData = (effectiveType === 'json' && text ? JSON.parse(text) : text) as T;
+			if (effectiveType === 'json' && text) {
+				try {
+					responseData = JSON.parse(text) as T;
+				} catch {
+					throw new ApiError(`Request failed with status ${res.status}`, {
+						status: res.status,
+						statusText: res.statusText,
+						headers: responseHeaders,
+						data: { message: 'Response was not JSON' },
+						request: options,
+						ok: false
+					});
+				}
+			} else {
+				responseData = text as T;
+			}
 		}
 
 		const response: ApiResponse<T> = {

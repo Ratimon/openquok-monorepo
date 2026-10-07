@@ -804,15 +804,17 @@ export class LinkDirectoryRepository {
 		siteId: string,
 		fetch?: typeof globalThis.fetch
 	): Promise<LinkDirectorySiteCommentDto[]> {
-		const { data: siteCommentsDto, ok } = await this.httpGateway.get<SiteCommentsResponseDto>(
-			this.config.endpoints.getSiteComments(siteId),
-			undefined,
-			publicCmsServerRequestOptions(fetch)
-		);
-		if (ok && siteCommentsDto?.success && Array.isArray(siteCommentsDto.data)) {
-			return siteCommentsDto.data;
-		}
-		return [];
+		return withOptionalCmsFallback(async () => {
+			const { data: siteCommentsDto, ok } = await this.httpGateway.get<SiteCommentsResponseDto>(
+				this.config.endpoints.getSiteComments(siteId),
+				undefined,
+				publicCmsServerRequestOptions(fetch)
+			);
+			if (ok && siteCommentsDto?.success && Array.isArray(siteCommentsDto.data)) {
+				return siteCommentsDto.data;
+			}
+			return [];
+		}, []);
 	}
 
 	async createSiteComment(params: {

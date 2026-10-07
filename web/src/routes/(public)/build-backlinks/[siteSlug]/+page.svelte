@@ -7,7 +7,7 @@
 
 	import { planLimitsForTier } from 'openquok-common';
 
-	import { prepareBlogRichTextForDisplay } from '$lib/blogs/utils';
+	import { prepareLinkDirectoryRichTextForDisplay } from '$lib/link-directory/utils/linkDirectoryRichText';
 	import { getBillingPresenter } from '$lib/billing';
 	import {
 		publicBuildBacklinksBookmarksPresenter,
@@ -104,7 +104,7 @@
 
 	const longDescriptionHtml = $derived(
 		siteVm.longDescription?.trim()
-			? prepareBlogRichTextForDisplay(siteVm.longDescription)
+			? prepareLinkDirectoryRichTextForDisplay(siteVm.longDescription)
 			: ''
 	);
 

@@ -8,7 +8,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Field from '$lib/ui/field';
-	import { Textarea } from '$lib/ui/textarea';
+	import LinkDirectoryRichHtmlField from '$lib/ui/components/link-directory-manager/LinkDirectoryRichHtmlField.svelte';
 	import { Input } from '$lib/ui/input';
 	import { sortLinkDirectoryOpportunitySteps } from '$lib/link-directory/utils/normalizeLinkDirectoryOpportunityStepsForSave';
 
@@ -16,10 +16,11 @@
 
 	type Props = {
 		initialSteps: LinkDirectoryOpportunityStepDto[];
+		userId: string;
 		onChange: (steps: LinkDirectoryOpportunityStepDto[]) => void;
 	};
 
-	let { initialSteps, onChange }: Props = $props();
+	let { initialSteps, userId, onChange }: Props = $props();
 
 	function hydrateSteps(items: LinkDirectoryOpportunityStepDto[]): LocalStepRow[] {
 		return sortLinkDirectoryOpportunitySteps(items).map((step) => ({
@@ -137,17 +138,16 @@
 						/>
 					</Field.Group>
 
-					<Field.Group>
-						<Field.Label for="link-directory-step-body-{step.id}">Step instructions</Field.Label>
-						<Textarea
-							id="link-directory-step-body-{step.id}"
-							class="min-h-20"
-							rows={3}
-							placeholder="Plain-text instructions shown on the site guide."
-							value={step.body}
-							oninput={(e) => updateStep(index, 'body', e.currentTarget.value)}
-						/>
-					</Field.Group>
+					<LinkDirectoryRichHtmlField
+						id="link-directory-step-body-{step.id}"
+						label="Step instructions"
+						value={step.body}
+						onValueChange={(next) => updateStep(index, 'body', next)}
+						rows={4}
+						visualEditor={true}
+						{userId}
+						placeholder="<p>Instructions with optional <a href=&quot;https://…&quot;>links</a>.</p>"
+					/>
 				</div>
 			{/each}
 		</div>

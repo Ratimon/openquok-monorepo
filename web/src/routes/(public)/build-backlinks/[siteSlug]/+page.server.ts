@@ -122,33 +122,38 @@ export async function load({ params, url, fetch, cookies, parent }) {
 	const guideSections = buildBuildBacklinksGuideSections({ canonical, site });
 	const siteFaqSection = buildBuildBacklinksSiteFaqSection({ site, canonical });
 
-	const guideHowToSections = [
-		...guideSections.filter((section) => section.sectionId === 'howto-site'),
-		...listBuildBacklinksGuideOpportunityHowToSections(guideSections)
-	];
+	let schemaData = createJsonLdGraph([]);
+	try {
+		const guideHowToSections = [
+			...guideSections.filter((section) => section.sectionId === 'howto-site'),
+			...listBuildBacklinksGuideOpportunityHowToSections(guideSections)
+		];
 
-	const guideHowToNodes = buildPublicFeaturesOrderedHowToSchemas({
-		pageUrl: canonical,
-		sections: guideHowToSections
-	});
+		const guideHowToNodes = buildPublicFeaturesOrderedHowToSchemas({
+			pageUrl: canonical,
+			sections: guideHowToSections
+		});
 
-	const schemaData = createJsonLdGraph(
-		filterNonEmptyJsonLdNodes([
-			createBreadcrumbListSchema(
-				buildListingsHubBreadcrumbItems(listingsBreadcrumb),
-				url.origin
-			),
-			platformOrganization,
-			webPageNode,
-			...guideHowToNodes,
-			createPublicFaqSEOSchema({
-				pageUrl: `${canonical}#faq`,
-				name: siteFaqSection.faqTitle,
-				description: siteFaqSection.faqDescription,
-				items: siteFaqSection.faqItems
-			})
-		])
-	);
+		schemaData = createJsonLdGraph(
+			filterNonEmptyJsonLdNodes([
+				createBreadcrumbListSchema(
+					buildListingsHubBreadcrumbItems(listingsBreadcrumb),
+					url.origin
+				),
+				platformOrganization,
+				webPageNode,
+				...guideHowToNodes,
+				createPublicFaqSEOSchema({
+					pageUrl: `${canonical}#faq`,
+					name: siteFaqSection.faqTitle,
+					description: siteFaqSection.faqDescription,
+					items: siteFaqSection.faqItems
+				})
+			])
+		);
+	} catch (schemaError) {
+		console.error('Build Backlinks site JSON-LD failed', siteSlug, schemaError);
+	}
 
 	return {
 		pageMetaTags,

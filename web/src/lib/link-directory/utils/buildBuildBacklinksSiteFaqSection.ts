@@ -8,6 +8,10 @@ import type {
 } from '$lib/link-directory/link-directory.types';
 import { formatMonthlyVisitsLabel } from '$lib/link-directory/utils/formatLinkDirectoryMetrics';
 import { summarizePublishedOpportunityDofollow } from '$lib/link-directory/utils/formatBuildBacklinksSiteSeoCopy';
+import {
+	formatLinkDirectoryEffortLabel,
+	summarizeEasiestPublishedEffort
+} from '$lib/link-directory/utils/formatBuildBacklinksSiteEffortSummary';
 
 export type BuildBacklinksSiteFaqSection = {
 	faqSubtitle: string;
@@ -24,16 +28,11 @@ function publishedOpportunities(site: Pick<LinkDirectorySiteDto, 'opportunities'
 }
 
 function formatEffortLabel(effort: LinkDirectoryEffort): string {
-	return effort.charAt(0).toUpperCase() + effort.slice(1);
+	return formatLinkDirectoryEffortLabel(effort);
 }
 
 function summarizeEasiestEffort(opportunities: LinkDirectoryOpportunityDto[]): LinkDirectoryEffort | null {
-	if (opportunities.length === 0) return null;
-	const rank: Record<LinkDirectoryEffort, number> = { easy: 0, medium: 1, hard: 2 };
-	return opportunities.reduce<LinkDirectoryEffort>((best, opportunity) =>
-		rank[opportunity.effort] < rank[best] ? opportunity.effort : best,
-		opportunities[0].effort
-	);
+	return summarizeEasiestPublishedEffort(opportunities);
 }
 
 function formatDofollowFaqAnswer(siteTitle: string, opportunities: LinkDirectoryOpportunityDto[]): string {

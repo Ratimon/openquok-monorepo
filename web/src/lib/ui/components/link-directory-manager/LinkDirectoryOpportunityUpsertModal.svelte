@@ -22,7 +22,7 @@
 
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import ProviderHttpUrlInput from '$lib/ui/components/posts/providers/ProviderHttpUrlInput.svelte';
-	import { Textarea } from '$lib/ui/textarea';
+	import LinkDirectoryRichHtmlField from '$lib/ui/components/link-directory-manager/LinkDirectoryRichHtmlField.svelte';
 	import { Input } from '$lib/ui/input';
 	import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '$lib/ui/dialog';
 
@@ -34,6 +34,7 @@
 
 	type Props = {
 		siteId: string;
+		userId: string;
 		opportunity?: LinkDirectoryOpportunityDto;
 		opportunityTypes: LinkDirectoryOpportunityTypeDto[];
 		existingOpportunities?: LinkDirectoryOpportunityDto[];
@@ -42,6 +43,7 @@
 
 	let {
 		siteId,
+		userId,
 		opportunity,
 		opportunityTypes,
 		existingOpportunities = [],
@@ -281,15 +283,19 @@
 					</select>
 				</label>
 			</div>
-			<label class="form-control w-full">
-				<span class="label-text text-sm">Description</span>
-				<Textarea bind:value={description} rows={3} />
-			</label>
+			<LinkDirectoryRichHtmlField
+				label="Description"
+				bind:value={description}
+				rows={5}
+				visualEditor={true}
+				{userId}
+			/>
 
 			{#if dialogOpen}
 				{#key `${opportunity?.id ?? 'new'}-${stepsEditorSession}`}
 					<LinkDirectoryOpportunityStepsEditor
 						initialSteps={playbookSteps}
+						{userId}
 						onChange={(next) => {
 							playbookSteps = next;
 						}}
