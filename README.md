@@ -243,6 +243,7 @@ Learn more at [Architecture](https://www.openquok.com/docs/getting-started-for-d
 - [Team collaboration in OpenQuok](https://www.openquok.com/blog/team-collaboration-in-openquok-workspaces-clients-and-preview-links) — workspaces, channel groups per client, invite links, templates, and preview links for sign-off
 - [Warm up a TikTok account](https://www.openquok.com/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience) — device setup and posting cadence before you scale carousels or agent-scheduled posts
 - [Meta Business verification for Facebook apps](https://www.openquok.com/blog/how-to-pass-meta-business-verification-for-a-facebook-app-or-skip-it-with-openquok) — pass Meta’s checks or connect Facebook through OpenQuok without a standalone app review path
+- [How to build free backlinks for SEO with OpenQuok](https://www.openquok.com/blog/how-to-build-free-backlinks-for-seo-with-openquok) — use the [Build Backlinks](https://www.openquok.com/build-backlinks) hub, site playbooks, and the Humanizer for SEO and AEO
 
 **Contributing**
 
