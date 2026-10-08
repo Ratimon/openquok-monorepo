@@ -24,7 +24,7 @@ export const xChannel = {
 	platformId: 'x',
 	platformLabel: 'X',
 	icon: icons.X.name,
-	heroTitle: 'Schedule X tweets, re-tweets, and thread replies',
+	heroTitle: 'Schedule X tweets, re-tweets and thread replies',
 	heroDescription:
 		'Connect an X profile with OAuth. Queue tweets and thread replies on the calendar. Tune who can reply and community settings per post. Publish from the dashboard, public API, or CLI.',
 	metaTitle: 'X Post Scheduler',

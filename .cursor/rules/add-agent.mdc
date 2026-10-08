@@ -19,6 +19,8 @@ globs:
   - web/src/routes/(protected)/secret-admin/catalog-manager/tags/**
   - web/src/lib/ui/templates/landing-page/landingHeroTheme.ts
   - web/src/lib/config/utils/buildPublicFooterLinks.ts
+  - README.md
+  - assets/readme/agents-mcp/**
   - .cursor/rules/add-agent.mdc
 alwaysApply: false
 ---
@@ -119,7 +121,17 @@ Docs sidebar autogenerates from `mcp-setup-guides/` — no `config.ts` edit for 
 
 Do **not** add MCP clients under `agent-setup-guides/` (that section is for CLI / openquok-core agent hosts).
 
-### 6. Optional
+### 6. Root README (required)
+
+**`README.md`** → **Supported Agents & MCP**:
+
+1. Add `assets/readme/agents-mcp/{slug}.svg` (32×32; match brand mark; keep distinct from sibling products — e.g. Grok Build ≠ Grok Bot).
+2. Append an `<a href="https://www.openquok.com/agents/{slug}">…</a>` icon in the icon row.
+3. Name the client in the **MCP clients** prose list on the same section.
+
+Do this in the **same PR** as the seed — do not wait for a reminder.
+
+### 7. Optional
 
 | File | When |
 | --- | --- |
@@ -133,6 +145,7 @@ Do **not** add MCP clients under `agent-setup-guides/` (that section is for CLI 
 - [ ] `landingHeroTheme.ts` — `LANDING_HERO_TITLE_HIGHLIGHT_WORDS` includes the client label
 - [ ] Mock verify/install/workflow/analytics unions + theme
 - [ ] `mcp-setup-guides/{slug}.md` + index `LinkCard` + `getting-started-for-mcp/setup.md` table
+- [ ] **`README.md`** — `assets/readme/agents-mcp/{slug}.svg` + icon row link + **MCP clients** prose name
 - [ ] Landing copy (hero, hub, audience, FAQ) is concise ASD-STE100 (short sentences, active voice, `you`)
 - [ ] Smoke `/agents/{slug}`, Developers → Access client chip, `/docs/mcp-setup-guides/{slug}`, footer **MCP Integrations** link to `/agents/{slug}`
 
@@ -202,7 +215,17 @@ Ship **`/agents/{slug}/{channelSlug}`** pages and the hub **“Every Supported C
 
 **Do not** ship a new **`agents/hosts/{slug}.ts`** without **`agents/channels/{slug}.ts`** + **`PUBLIC_AGENT_CHANNEL_HOST_SLUGS`** unless product explicitly defers all channel pages (rare — document why in the PR).
 
-### 6. Skills / CLI
+### 6. Root README (required)
+
+Same as MCP clients — **`README.md`** → **Supported Agents & MCP**:
+
+1. Add `assets/readme/agents-mcp/{slug}.svg` (32×32; match brand mark).
+2. Append an `<a href="https://www.openquok.com/agents/{slug}">…</a>` icon in the icon row (agent hosts sit before MCP client icons when order is clear; otherwise append with peers).
+3. Name the host in the **Agent hosts** prose list on the same section.
+
+Do this in the **same PR** as the seed — do not wait for a reminder.
+
+### 7. Skills / CLI
 
 Update `agent/skills/openquok-core/` (`SKILL.md` metadata JSON for the host when discovery differs) and related docs under `getting-started-for-cli` / `cli-usages` only when the host’s install path changes.
 
@@ -258,6 +281,7 @@ Update `agent/skills/openquok-core/` (`SKILL.md` metadata JSON for the host when
 - [ ] `agent-setup-guides/{slug}.md` + index card + cross-mentions in hub/CLI/FAQ copy
 - [ ] **`agents/channels/{slug}.ts`** + **`PUBLIC_AGENT_CHANNEL_HOST_SLUGS`** / **`channelConfigsByHostSlug`** / **`AGENT_CHANNEL_HOSTS`** in **`agents/channels/index.ts`**
 - [ ] Smoke **`/agents/{slug}`** — **Every Supported Channels** grid + at least one **`/agents/{slug}/{channelSlug}`** link
+- [ ] **`README.md`** — `assets/readme/agents-mcp/{slug}.svg` + icon row link + **Agent hosts** prose name
 - [ ] **CMS:** listing tag + launch blog via secret-admin (see **C**); no `backend/supabase/db` edits
 - [ ] Landing copy (hero, hub, audience, FAQ) is concise ASD-STE100 (short sentences, active voice, `you`)
 - [ ] Smoke `/agents/{slug}`, docs page, footer **Autonomous Agent Integrations** link to `/agents/{slug}`
@@ -304,3 +328,4 @@ Deliver paste-ready HTML/FAQ/How-to in the PR description or operator handoff �
 - Classify a desktop/cloud teammate or skill-based IDE host as an MCP client when it uses CLI + skills (Grok Bot, ThinkRail, Manus → agent host).
 - Hand-edit MCP or agent-host rows in **`buildPublicFooterLinks.ts`** or **`PUBLIC_FOOTER_LINKS`** for catalog slugs — append to **`mcps/seeds.ts`** or **`agents/seeds.ts`** instead.
 - Ship an agent host landing (**`agents/hosts/{slug}.ts`**) without **`agents/channels/{slug}.ts`** and **`PUBLIC_AGENT_CHANNEL_HOST_SLUGS`** — the hub page will miss **Every Supported Channels** and channel detail routes will 404.
+- Ship a new agent host or MCP client without updating **`README.md`** **Supported Agents & MCP** (icon SVG under `assets/readme/agents-mcp/`, icon row `<a>`, and the matching **Agent hosts** / **MCP clients** prose list).
