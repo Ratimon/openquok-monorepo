@@ -19,6 +19,7 @@ export type CompareProductSlug =
 	| 'post-bridge'
 	| 'postfast'
 	| 'postpeer'
+	| 'post2all'
 	| 'postiz'
 	| 'recurpost'
 	| 'socialclaw'

@@ -24,6 +24,7 @@ import { openpostCompareProduct } from '$lib/content/constants/competitors/openp
 import { openquokCompareProduct } from '$lib/content/constants/competitors/openquok';
 import { postBridgeCompareProduct } from '$lib/content/constants/competitors/post-bridge';
 import { postfastCompareProduct } from '$lib/content/constants/competitors/postfast';
+import { post2allCompareProduct } from '$lib/content/constants/competitors/post2all';
 import { postpeerCompareProduct } from '$lib/content/constants/competitors/postpeer';
 import { postizCompareProduct } from '$lib/content/constants/competitors/postiz';
 import { recurpostCompareProduct } from '$lib/content/constants/competitors/recurpost';
@@ -52,6 +53,7 @@ export { breakreachCompareProduct } from '$lib/content/constants/competitors/bre
 export { clawPostCompareProduct } from '$lib/content/constants/competitors/claw-post';
 export { postBridgeCompareProduct } from '$lib/content/constants/competitors/post-bridge';
 export { postfastCompareProduct } from '$lib/content/constants/competitors/postfast';
+export { post2allCompareProduct } from '$lib/content/constants/competitors/post2all';
 export { postpeerCompareProduct } from '$lib/content/constants/competitors/postpeer';
 export { postizCompareProduct } from '$lib/content/constants/competitors/postiz';
 export { recurpostCompareProduct } from '$lib/content/constants/competitors/recurpost';
@@ -76,6 +78,7 @@ export const PUBLIC_COMPARE_PRODUCTS: readonly CompareProduct[] = [
 	postBridgeCompareProduct,
 	postfastCompareProduct,
 	postpeerCompareProduct,
+	post2allCompareProduct,
 	postizCompareProduct,
 	socialclawCompareProduct,
 	socialyncCompareProduct,

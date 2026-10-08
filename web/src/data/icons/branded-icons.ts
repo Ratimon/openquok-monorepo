@@ -62,6 +62,7 @@ export type BrandedIconName =
     | "PostBridge"
     | "PostFast"
     | "PostPeer"
+    | "Post2all"
     | "Postiz"
     | "QQ"
     | "RecurPost"
@@ -543,6 +544,13 @@ export const brandedIcons = {
         box: 24,
         fill: true,
         svg: `<rect width="24" height="24" rx="5" fill="#F87171"/><path fill="#fff" d="M12 5.5c-2.8 0-5 2.2-5 5s2.2 5 5 5c.8 0 1.5-.2 2.1-.5V19h2.4V10.5c0-2.8-2.2-5-5-5zm0 2.2c1.5 0 2.8 1.3 2.8 2.8S13.5 13.3 12 13.3s-2.8-1.3-2.8-2.8S10.5 7.7 12 7.7z"/>`
+    },
+    /** post2all product mark. post2all is a trademark of its respective owner. */
+    Post2all: {
+        name: "Post2all",
+        box: 24,
+        fill: true,
+        svg: `<rect width="24" height="24" rx="4.5" fill="#07121E"/><path fill="#fff" d="M12.5 4h2.5v.5H12.5V4zM7 4.5h4v.5H7v-.5zM11.5 4.5h4v.5h-4v-.5zM7 5h4v.5H7V5zM11.5 5h4.5v.5h-4.5V5zM7 5.5h9.5v.5H7v-.5zM7 6h9.5v.5H7V6zM7.5 6.5h9.5v.5H7.5v-.5zM7.5 7h3.5v.5H7.5V7zM13 7h4v.5h-4V7zM7.5 7.5h3.5v.5H7.5v-.5zM13 7.5h4v.5h-4v-.5zM7.5 8h3.5v.5H7.5V8zM13 8h4v.5h-4V8zM7.5 8.5h3.5v.5H7.5v-.5zM13 8.5h4v.5h-4v-.5zM7.5 9h3.5v.5H7.5V9zM13 9h4v.5h-4V9zM7.5 9.5h3.5v.5H7.5v-.5zM13 9.5h4v.5h-4v-.5zM7.5 10h3.5v.5H7.5v-.5zM13 10h4v.5h-4v-.5zM7.5 10.5h3.5v.5H7.5v-.5zM13 10.5h4v.5h-4v-.5zM7.5 11h3.5v.5H7.5v-.5zM13 11h4v.5h-4v-.5zM7.5 11.5h3.5v.5H7.5v-.5zM13 11.5h4v.5h-4v-.5zM7.5 12h3.5v.5H7.5v-.5zM12.5 12h4.5v.5h-4.5v-.5zM7.5 12.5h9v.5h-9v-.5zM7.5 13h9v.5h-9v-.5zM7.5 13.5h9v.5h-9v-.5zM7.5 14h3v.5h-3V14zM11 14h5v.5h-5v-.5zM7.5 14.5h3v.5h-3v-.5zM11.5 14.5h4v.5h-4v-.5zM7.5 15h3v.5h-3V15zM11.5 15h4v.5h-4V15zM7.5 15.5h3v.5h-3v-.5zM12 15.5h2.5v.5H12v-.5zM7.5 16h3v.5h-3V16zM7.5 16.5h3.5v.5h-3.5v-.5zM7.5 17h3.5v.5h-3.5V17zM7.5 17.5h3.5v.5h-3.5v-.5zM7.5 18h3.5v.5h-3.5V18zM7.5 18.5h3.5v.5h-3.5v-.5zM7 19h4v.5H7V19zM7.5 19.5h3.5v.5h-3.5v-.5z"/>`
     },
     /** Postiz product mark. Postiz is a trademark of its respective owner. */
     Postiz: {

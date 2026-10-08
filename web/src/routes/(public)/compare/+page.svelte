@@ -103,6 +103,10 @@
 			containerClass:
 				'bg-linear-to-br from-red-400/30 via-rose-300/20 to-orange-300/20 text-red-50 ring-red-300/35'
 		},
+		post2all: {
+			containerClass:
+				'bg-linear-to-br from-stone-600/35 via-stone-500/25 to-amber-200/20 text-stone-50 ring-stone-400/40'
+		},
 		postiz: {
 			containerClass:
 				'bg-linear-to-br from-violet-400/30 via-purple-300/20 to-fuchsia-300/20 text-violet-100 ring-violet-300/35'

@@ -38,6 +38,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	'post-bridge': 'https://www.post-bridge.com',
 	postfast: 'https://postfa.st',
 	postpeer: 'https://www.postpeer.dev',
+	post2all: 'https://www.post2all.com',
 	postiz: 'https://postiz.com',
 	recurpost: 'https://recurpost.com',
 	socialclaw: 'https://getsocialclaw.com',
@@ -59,6 +60,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	| 'post-bridge'
 	| 'postfast'
 	| 'postpeer'
+	| 'post2all'
 	| 'postiz'
 	| 'recurpost'
 	| 'socialclaw'

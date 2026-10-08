@@ -141,6 +141,12 @@
 			cardContainerClass:
 				'bg-linear-to-br from-red-400/20 via-rose-300/16 to-orange-300/16 text-red-50 ring-red-300/28'
 		},
+		post2all: {
+			heroContainerClass:
+				'bg-linear-to-br from-stone-600/35 via-stone-500/25 to-amber-200/20 text-stone-50 ring-stone-400/40',
+			cardContainerClass:
+				'bg-linear-to-br from-stone-600/28 via-stone-500/20 to-amber-200/16 text-stone-50 ring-stone-400/32'
+		},
 		postiz: {
 			heroContainerClass:
 				'bg-linear-to-br from-violet-400/30 via-purple-300/20 to-fuchsia-300/20 text-violet-100 ring-violet-300/35',
