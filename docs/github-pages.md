@@ -13,3 +13,19 @@ If **Deploy GitHub Pages** fails with `Failed to create deployment (status: 404)
 Published URL (default): `https://ratimon.github.io/openquok-monorepo/`
 
 Org-owned repos may need an admin to allow Pages under organization settings.
+
+## Job stuck on “waiting for github-pages deployment approval”
+
+GitHub created a **`github-pages` environment** with **required reviewers** (common on first Pages + Actions setup). The workflow will sit in **Waiting** until someone approves it — it does not time out on its own.
+
+**Approve this run**
+
+1. Open the workflow run (e.g. **Actions** → **Deploy GitHub Pages** → run **#2**).
+2. On the yellow banner or the **deploy** job, click **Review deployments** (or **View pending deployments**).
+3. Select the **github-pages** environment → **Approve and deploy**.
+
+**Optional — skip approval on future pushes** (repo admins only)
+
+1. [Settings → Environments → github-pages](https://github.com/Ratimon/openquok-monorepo/settings/environments).
+2. Under **Deployment protection rules**, remove **Required reviewers** (or add only people who should gate production Pages).
+3. Save. The next workflow run deploys without a manual step.
