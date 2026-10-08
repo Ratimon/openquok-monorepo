@@ -316,11 +316,6 @@ openquok analytics:post <post-id> -d 30`
 				`openquok-core is CLI-first for repeatable Bot workflows on the shared cloud computer. MCP fits ad hoc editor tools — see ${faqLink(publicFaqHref.cursorLanding, 'OpenQuok for Cursor')} or ${faqLink(publicFaqHref.mcpSetupGuides, 'MCP setup')}. Many teams use both.`
 		},
 		{
-			title: 'How does Grok Bot relate to Cursor?',
-			description:
-				`Grok Bot is the always-on teammate; ${faqLink(publicFaqHref.cursorLanding, 'Cursor MCP')} is OpenQuok inside Agent and Composer. Same workspace and approval flow — pick Grok Bot for messaging-first volume or Cursor when you stay in the repo. See the ${faqLink(publicFaqHref.blogGrokBot, 'Grok Bot scheduling walkthrough')}.`
-		},
-		{
 			title: 'Is it free to start?',
 			description:
 				`OpenQuok offers a 7-day free trial for scheduling on ${faqLink(publicFaqHref.pricing, 'Pricing')}. Grok Bot access depends on your xAI or Cursor plan eligibility — install the app, create a Bot, add openquok-core, and begin scheduling from desktop chat.`

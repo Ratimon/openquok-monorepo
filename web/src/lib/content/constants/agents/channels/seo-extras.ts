@@ -46,8 +46,7 @@ const HOST_PLATFORM_SEO_EXTRAS: Readonly<
 		Discord: ['Hermes Discord agent schedule posts']
 	},
 	'grok-bot': {
-		X: ['Grok Bot X scheduling', 'xAI agent schedule X posts'],
-		LinkedIn: ['Grok Bot LinkedIn drafts', 'cloud computer social scheduling']
+		X: ['Grok Bot X scheduling', 'xAI agent schedule X posts']
 	},
 	dots: {
 		LinkedIn: ['Dots LinkedIn scheduling', 'ChatGPT dot LinkedIn drafts'],

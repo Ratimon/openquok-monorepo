@@ -8,7 +8,7 @@ export const PUBLIC_AGENTS_HUB = {
 	subtitle: 'Agents',
 	title: 'Social media CLI and MCP for AI agents',
 	description:
-		'Install openquok-core on OpenClaw, Hermes, Grok Bot, Dots, Meta Muse, ThinkRail, Manus, or another skill host. Or connect OpenQuok in Cursor, Claude Code, Codex, and other MCP clients. Schedule posts from chat. You approve what goes live.',
+		'Install openquok-core on OpenClaw, Hermes, Grok Bot, Dots, Meta Muse, ThinkRail, Manus, or another skill host. Or connect OpenQuok in Cursor, Claude Code, Codex, Grok Build, and other MCP clients. Schedule posts from chat. You approve what goes live.',
 	cliInstallTitle: 'Install the CLI:',
 	skillInstallTitle: 'Install our core skill:',
 	autonomousAgentHubSubtitle: 'Autonomous Agent',
@@ -18,7 +18,7 @@ export const PUBLIC_AGENTS_HUB = {
 	mcpHubSubtitle: 'MCP',
 	mcpHubTitle: 'Native MCP clients',
 	mcpHubDescription:
-		'Add OpenQuok where you already chat with an AI agent. Use Cursor or Claude Code in the IDE. Use Warp in the terminal. Pick a client below for setup and a copy-paste MCP config.',
+		'Add OpenQuok where you already chat with an AI agent. Use Cursor or Claude Code in the IDE. Use Warp or Grok Build in the terminal. Pick a client below for setup and a copy-paste MCP config.',
 	mcpConfigTitle: 'Copy configuration',
 	mcpConfigDescription:
 		'Generate a programmatic token after sign-up. Paste the snippet for your client. You do not need the CLI skill.',
@@ -26,9 +26,9 @@ export const PUBLIC_AGENTS_HUB = {
 		subtitle: 'Hosted Agent vs MCP client',
 		title: 'agent hosts vs MCP clients match the tool to how you work',
 		description:
-			'Both paths connect to OpenQuok. Use an agent host such as OpenClaw, Hermes, Grok Bot, Dots, Meta Muse, ThinkRail, or Manus for messaging, memory, and parallel sessions. Use an MCP client such as Codex or Claude Code for focused work in your editor or terminal.',
+			'Both paths connect to OpenQuok. Use an agent host such as OpenClaw, Hermes, Grok Bot, Dots, Meta Muse, ThinkRail, or Manus for messaging, memory, and parallel sessions. Use an MCP client such as Codex, Claude Code, or Grok Build for focused work in your editor or terminal.',
 		leftTitle: 'Agent hosts (OpenClaw, Hermes, Grok Bot, Dots, Meta Muse, ThinkRail, Manus)',
-		rightTitle: 'MCP clients (Codex, Claude Code, Cursor)',
+		rightTitle: 'MCP clients (Codex, Claude Code, Cursor, Grok Build)',
 		points: [
 			{
 				left: 'Schedule from Telegram, Discord, Slack, or WhatsApp',
@@ -56,7 +56,7 @@ export const PUBLIC_AGENTS_HUB = {
 		faqSubtitle: 'Frequently asked questions',
 		faqTitle: 'Agent hosts vs MCP clients, answered',
 		faqDescription:
-			'How OpenClaw, Hermes, Grok Bot, Dots, Meta Muse, ThinkRail, and Manus differ from Cursor, Codex, and Claude Code. When to pick each path. How they connect to OpenQuok. What each costs to run. Why many teams use both.',
+			'How OpenClaw, Hermes, Grok Bot, Dots, Meta Muse, ThinkRail, and Manus differ from Cursor, Codex, Claude Code, and Grok Build. When to pick each path. How they connect to OpenQuok. What each costs to run. Why many teams use both.',
 		faqItems: appendPublicGeneralFaqItems(
 			[
 			{
@@ -67,7 +67,7 @@ export const PUBLIC_AGENTS_HUB = {
 			{
 				title: 'When should I choose an MCP client?',
 				description:
-					'Choose an MCP client when OpenQuok lives in your editor or terminal. You get native tool calls. You do not install a skill. <a href="/agents/cursor">Cursor</a>, Claude Code, and Codex fit focused repo work. Warp fits terminal-first workflows.'
+					'Choose an MCP client when OpenQuok lives in your editor or terminal. You get native tool calls. You do not install a skill. <a href="/agents/cursor">Cursor</a>, Claude Code, and Codex fit focused repo work. Warp and <a href="/agents/grok-build">Grok Build</a> fit terminal-first workflows.'
 			},
 			{
 				title: 'How do I pay for agent hosts vs MCP clients?',
@@ -87,7 +87,7 @@ export const PUBLIC_AGENTS_HUB = {
 			{
 				title: 'Which path gives me persistent memory?',
 				description:
-					'Agent hosts like OpenClaw, Hermes, <a href="/agents/grok-bot">Grok Bot</a>, <a href="/agents/dots">Dots</a>, <a href="/agents/meta-muse">Meta Muse</a>, <a href="/agents/thinkrail">ThinkRail</a>, and <a href="/agents/manus">Manus</a> are built for long-lived sessions — they remember preferences, past decisions, and project context across conversations. MCP clients like <a href="/agents/cursor">Cursor</a> typically run per-session: productive for focused coding sprints, but you start fresh when you open a new session unless the client stores its own project notes.'
+					'Agent hosts like OpenClaw, Hermes, <a href="/agents/grok-bot">Grok Bot</a>, <a href="/agents/dots">Dots</a>, <a href="/agents/meta-muse">Meta Muse</a>, <a href="/agents/thinkrail">ThinkRail</a>, and <a href="/agents/manus">Manus</a> are built for long-lived sessions — they remember preferences, past decisions, and project context across conversations. MCP clients like <a href="/agents/cursor">Cursor</a> and <a href="/agents/grok-build">Grok Build</a> typically run per-session: productive for focused coding sprints, but you start fresh when you open a new session unless the client stores its own project notes.'
 			},
 			{
 				title: 'Do I still approve posts before they publish?',

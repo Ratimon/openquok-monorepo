@@ -12,7 +12,8 @@ export const MCP_CLIENTS = [
 	'Codex',
 	'Antigravity CLI',
 	'Warp',
-	'Muse Code'
+	'Muse Code',
+	'Grok Build'
 ] as const;
 
 export type McpClient = (typeof MCP_CLIENTS)[number];
@@ -32,7 +33,8 @@ export const MCP_CLIENT_DOCS_SLUG: Record<McpClient, string> = {
 	Codex: 'codex',
 	'Antigravity CLI': 'antigravity-cli',
 	Warp: 'warp',
-	'Muse Code': 'muse-code'
+	'Muse Code': 'muse-code',
+	'Grok Build': 'grok-build'
 };
 
 const json = (obj: object) => JSON.stringify(obj, null, 2);
@@ -136,6 +138,11 @@ export function getMcpClientConfig(
 						}
 					}),
 					hint: 'Add to ~/.config/muse/settings.json (schema_version must be 1).'
+				};
+			case 'Grok Build':
+				return {
+					config: `grok mcp add --transport http ${MCP_SERVER_NAME} "${urlWithKey}"`,
+					hint: 'Run this in your terminal. You can also set url in ~/.grok/config.toml under [[mcp.servers]].'
 				};
 		}
 	}
@@ -244,6 +251,11 @@ export function getMcpClientConfig(
 					}
 				}),
 				hint: 'Add to ~/.config/muse/settings.json (schema_version must be 1).'
+			};
+		case 'Grok Build':
+			return {
+				config: `# ~/.grok/config.toml\n\n[[mcp.servers]]\nname = "${MCP_SERVER_NAME}"\ntype = "http"\nurl = "${urlBase}"\nheaders.Authorization = "${bearer}"`,
+				hint: 'Add to ~/.grok/config.toml, or run grok mcp add --transport http openquok with the MCP URL.'
 			};
 	}
 }

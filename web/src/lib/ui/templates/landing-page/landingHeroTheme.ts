@@ -100,6 +100,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'Cursor',
 	'Claude',
 	'Warp',
+	'Grok Build',
 	'Amp',
 	'dockerized',
 	// Social channels & networks

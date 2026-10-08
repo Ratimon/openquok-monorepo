@@ -1,7 +1,7 @@
 ---
 title: Manus
 description: Import openquok-core in Manus 2.0 Studio (Skills, Cloud Computer, Automations). Manus path — not the separate Cue app.
-order: 6
+order: 7
 lastUpdated: 2026-09-30
 ---
 

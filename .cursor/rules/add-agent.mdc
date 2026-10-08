@@ -32,7 +32,7 @@ Two product surfaces share the `/agents` hub but use **different** content trees
 | Kind | Examples | Landing seed | Docs section | Developer Access |
 | --- | --- | --- | --- | --- |
 | **Agent host** | OpenClaw, Hermes, Grok Bot, ThinkRail, Manus | `web/src/lib/content/constants/agents/hosts/{slug}.ts` | `web/src/content/docs/agent-setup-guides/` | openquok-core / CLI skill (not `MCP_CLIENTS`) |
-| **MCP client** | Cursor, ChatGPT, Warp | `web/src/lib/content/constants/mcps/{slug}.ts` | `web/src/content/docs/mcp-setup-guides/` | `getMcpClientConfig` + `MCP_CLIENTS` |
+| **MCP client** | Cursor, ChatGPT, Warp, Grok Build | `web/src/lib/content/constants/mcps/{slug}.ts` | `web/src/content/docs/mcp-setup-guides/` | `getMcpClientConfig` + `MCP_CLIENTS` |
 
 Follow **source-project-neutrality** and **company-brand-icons**. Reference MCP client: **`chatgpt.ts`**, **`claude-cowork.ts`**, **`warp.ts`**. Reference agent host: **`hosts/openclaw.ts`**, **`hosts/hermes.ts`**, **`hosts/grok-bot.ts`**, **`hosts/thinkrail.ts`**, **`hosts/manus.ts`**. Reference agent × channel SEO: **`channels/grok-bot.ts`** + **`agents/channels/index.ts`**.
 
@@ -212,12 +212,21 @@ Update `agent/skills/openquok-core/` (`SKILL.md` metadata JSON for the host when
 - Cloud computer + desktop/iOS chat; skill via **`/workspace/openquok-core/SKILL.md`** and **Settings → Plugins** (or `/` in chat).
 - Reference implementation: **`hosts/grok-bot.ts`**, **`grok-bot-messaging-channels.ts`**, **`GROK_BOT_SKILL_INSTALL_OPTIONS`**, **`channels/grok-bot.ts`**.
 
+### Grok Build specifics (`grok-build`)
+
+- **MCP client**, not an agent host — `MCP_CLIENTS` + `mcps/hosts/grok-build.ts` + `mcp-setup-guides/grok-build.md`. Do **not** add `agents/hosts/grok-build.ts` or `agent-setup-guides/grok-build.md`.
+- **Not** Grok Bot — Grok Bot is the always-on cloud teammate (`hosts/grok-bot.ts`). Grok Build is xAI's terminal coding agent CLI (`grok mcp add`, `~/.grok/config.toml`). Cross-link **`/agents/grok-bot`** in FAQ and docs.
+- Primary connect: **`grok mcp add --transport http openquok`** with the token in the URL (path auth) or Bearer in **`~/.grok/config.toml`** (header auth). A Grok web custom connector does not configure this CLI.
+- Reference implementation: **`mcps/hosts/grok-build.ts`**, **`getMcpClientConfig`** `'Grok Build'` cases, MCP mock theme unions (`mcp-verify-grok-build`, `mcp-install-grok-build`). Terminal layout mocks (`grok.com/build`). Icon: **`GrokBuild`** (Grok AI swirl), not **`GrokBot`** (X-letter mark).
+- Ecosystem: **`MCP_CLIENT_ECOSYSTEM_BY_SLUG['grok-build'] = 'xai-grok'`** — fourth WhoIsFor card **X as your home network** (same title as Grok Bot, terminal-agent copy).
+
 ### Meta Muse specifics (`meta-muse`)
 
 - **Not** Muse Code — consumer personal agent (custom connectors, Secure VM). **Do not** reuse `mcps/muse-code.ts` or `mcp-setup-guides/muse-code.md` for this host.
 - **Not** an MCP client — no `MCP_CLIENTS` entry. Primary path: custom connector from `https://www.openquok.com/api/v1/openapi.json` + programmatic token in Muse credential prompts; optional `openquok-core` / CLI inside the Secure VM; hosted MCP only when the Muse environment exposes it.
 - Reference implementation: **`hosts/meta-muse.ts`**, **`meta-muse-messaging-channels.ts`**, **`META_MUSE_SKILL_INSTALL_OPTIONS`**, **`channels/meta-muse.ts`**. Mobile-first mocks (`iphone-15-pro`), not OpenClaw Telegram fallback.
 - Cross-link **`/agents/muse-code`** and **`mcp-setup-guides/muse-code.md`** in FAQ and docs so readers do not confuse Meta Muse with Muse Code on dev.meta.ai.
+- Muse Code MCP: **`MCP_CLIENT_ECOSYSTEM_BY_SLUG['muse-code'] = 'meta-consumer'`** — fourth WhoIsFor card **Meta-owned channels first** (same title as Meta Muse, MCP-client copy).
 
 ### ThinkRail specifics (`thinkrail`)
 

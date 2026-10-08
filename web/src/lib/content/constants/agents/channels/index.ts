@@ -154,13 +154,19 @@ export function listPublicAgentChannelsForHub(
 	}
 
 	if (getAvailablePublicMcpLandingBySlug(normalizedSlug)) {
-		return listPublicChannelsForHub().map((channel) => ({
+		const links = listPublicChannelsForHub().map((channel) => ({
 			slug: channel.slug,
 			platformLabel: channel.platformLabel,
 			icon: channel.icon,
 			href: route(getRootPathPublicAgentChannel(normalizedSlug, channel.slug)),
 			description: hubDescriptionForChannel(channel.slug, channel.platformLabel),
 			available: channel.available
+		}));
+		return sortAgentChannelHubLinks(links, normalizedSlug).map((link) => ({
+			...link,
+			badgeLabel: isFirstClassChannelForHost(normalizedSlug, link.slug)
+				? AGENT_HOST_FIRST_CLASS_CHANNEL_BADGE
+				: undefined
 		}));
 	}
 

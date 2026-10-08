@@ -45,7 +45,7 @@ const ECOSYSTEM_PROFILES: Record<AgentHostEcosystemId, AgentHostEcosystem> = {
 		id: 'xai-grok',
 		firstClassChannelSlugs: ['x'],
 		relatedAgentSlugs: [],
-		relatedMcpSlugs: ['cursor']
+		relatedMcpSlugs: ['grok-build', 'cursor']
 	}
 };
 
@@ -55,6 +55,12 @@ export const AGENT_HOST_ECOSYSTEM_BY_SLUG: Readonly<Record<string, AgentHostEcos
 	dots: 'openai-personal-agents',
 	'meta-muse': 'meta-consumer',
 	'grok-bot': 'xai-grok'
+};
+
+/** MCP client slug → ecosystem id for WhoIsFor / first-class channel copy. */
+export const MCP_CLIENT_ECOSYSTEM_BY_SLUG: Readonly<Record<string, AgentHostEcosystemId>> = {
+	'muse-code': 'meta-consumer',
+	'grok-build': 'xai-grok'
 };
 
 const audienceTailoredCardByHostSlug: Readonly<Record<string, AudienceCard>> = {
@@ -92,6 +98,25 @@ const audienceTailoredCardByHostSlug: Readonly<Record<string, AudienceCard>> = {
 	}
 };
 
+const audienceTailoredCardByMcpSlug: Readonly<Record<string, AudienceCard>> = {
+	'muse-code': {
+		iconName: icons.MuseCode.name,
+		iconClass: 'text-sky-400',
+		title: 'Meta-owned channels first',
+		description:
+			'Facebook, Instagram, and Threads are first-class for Muse Code. You can still schedule every other supported network from the same OpenQuok workspace.',
+		containerClass: CARD_CONTAINER_CLASS
+	},
+	'grok-build': {
+		iconName: icons.GrokBuild.name,
+		iconClass: 'text-rose-400',
+		title: 'X as your home network',
+		description:
+			'Grok Build fits xAI’s terminal coding agent. X is first-class; connect other networks in OpenQuok when you need them.',
+		containerClass: CARD_CONTAINER_CLASS
+	}
+};
+
 function normalizeHostSlug(slug: string): string {
 	return slug.trim().toLowerCase();
 }
@@ -100,9 +125,27 @@ export function getAgentHostEcosystemId(hostSlug: string): AgentHostEcosystemId 
 	return AGENT_HOST_ECOSYSTEM_BY_SLUG[normalizeHostSlug(hostSlug)];
 }
 
+export function getMcpClientEcosystemId(mcpSlug: string): AgentHostEcosystemId | undefined {
+	return MCP_CLIENT_ECOSYSTEM_BY_SLUG[normalizeHostSlug(mcpSlug)];
+}
+
+function getLandingEcosystemId(slug: string): AgentHostEcosystemId | undefined {
+	const key = normalizeHostSlug(slug);
+	return AGENT_HOST_ECOSYSTEM_BY_SLUG[key] ?? MCP_CLIENT_ECOSYSTEM_BY_SLUG[key];
+}
+
 export function getAgentHostEcosystem(hostSlug: string): AgentHostEcosystem | undefined {
-	const id = getAgentHostEcosystemId(hostSlug);
+	const id = getLandingEcosystemId(hostSlug);
 	return id ? ECOSYSTEM_PROFILES[id] : undefined;
+}
+
+function appendAudienceTailoredCard(
+	baseCards: readonly AudienceCard[],
+	tailored: AudienceCard | undefined
+): AudienceCard[] {
+	if (!tailored) return [...baseCards];
+	if (baseCards.some((card) => card.title === tailored.title)) return [...baseCards];
+	return [...baseCards, tailored];
 }
 
 /** Append optional fourth WhoIsFor card when the host maps to an ecosystem profile. */
@@ -110,16 +153,45 @@ export function resolveAgentHostAudienceCards(
 	baseCards: readonly AudienceCard[],
 	hostSlug: string
 ): AudienceCard[] {
-	const tailored = audienceTailoredCardByHostSlug[normalizeHostSlug(hostSlug)];
-	return tailored ? [...baseCards, tailored] : [...baseCards];
+	return appendAudienceTailoredCard(
+		baseCards,
+		audienceTailoredCardByHostSlug[normalizeHostSlug(hostSlug)]
+	);
 }
 
-function metaMuseFirstClassChannelFaqDescription(): string {
-	const links = buildAgentFaqLinks('meta-muse', '/docs/agent-setup-guides/meta-muse');
+/** Append optional fourth WhoIsFor card when the MCP client maps to an ecosystem profile. */
+export function resolveMcpClientAudienceCards(
+	baseCards: readonly AudienceCard[],
+	mcpSlug: string
+): AudienceCard[] {
+	return appendAudienceTailoredCard(
+		baseCards,
+		audienceTailoredCardByMcpSlug[normalizeHostSlug(mcpSlug)]
+	);
+}
+
+function metaConsumerContrastFaqDescription(): string {
+	return `${faqLink(publicFaqHref.metaMuseLanding, 'Meta Muse')} is Meta’s consumer personal agent on muse.ai and WhatsApp with Muse Secure VM. ${faqLink(publicFaqHref.museCodeLanding, 'Muse Code')} is the developer MCP client on dev.meta.ai. They are separate apps and subscriptions. Use the matching OpenQuok setup guide for each product.`;
+}
+
+function metaOwnedFirstClassChannelFaqDescription(agentSlug: string, docsPath: string, agentLabel: string): string {
+	const links = buildAgentFaqLinks(agentSlug, docsPath);
 	const fb = faqLink(links.agentChannel('facebook'), 'Facebook');
 	const ig = faqLink(links.agentChannel('instagram'), 'Instagram');
 	const threads = faqLink(links.agentChannel('threads'), 'Threads');
-	return `Facebook, Instagram, and Threads are first-class Meta Muse channels on OpenQuok. Start with ${fb}, ${ig}, or ${threads}, then add other networks from the same workspace.`;
+	return `Facebook, Instagram, and Threads are first-class ${agentLabel} channels on OpenQuok. Start with ${fb}, ${ig}, or ${threads}, then add other networks from the same workspace.`;
+}
+
+function xaiGrokSurfaceCompareFaqDescription(): string {
+	const grokBot = faqLink(publicFaqHref.grokBotLanding, 'Grok Bot');
+	const grokBuild = faqLink(publicFaqHref.grokBuildLanding, 'Grok Build');
+	const cursor = faqLink(publicFaqHref.cursorLanding, 'Cursor');
+	return `${grokBot} is an always-on teammate on xAI’s cloud computer. You message it from desktop or iOS. ${grokBuild} is xAI’s terminal coding agent. You connect OpenQuok over MCP in the shell. ${cursor} is OpenQuok inside Agent and Composer. Same workspace and approval flow. Pick Grok Bot for messaging-first volume. Pick Grok Build when you live in the terminal. Pick Cursor when you stay in the repo.`;
+}
+
+function xFirstClassChannelFaqDescription(agentSlug: string, docsPath: string, agentLabel: string): string {
+	const xChannel = faqLink(buildAgentFaqLinks(agentSlug, docsPath).agentChannel('x'), 'X');
+	return `${xChannel} is first-class for ${agentLabel} on OpenQuok. Connect other networks when your workflow needs them.`;
 }
 
 function buildOpenAiPersonalAgentsFaqItems(_hostSlug: string): PublicFaqItem[] {
@@ -136,11 +208,15 @@ export function buildAgentHostEcosystemFaqItems(hostSlug: string): PublicFaqItem
 		return [
 			{
 				title: 'How is Meta Muse different from Muse Code?',
-				description: `${faqLink(publicFaqHref.metaMuseLanding, 'Meta Muse')} is Meta’s consumer personal agent on muse.ai and WhatsApp with Muse Secure VM. ${faqLink(publicFaqHref.museCodeLanding, 'Muse Code')} is the developer MCP client on dev.meta.ai. They are separate apps and subscriptions. Use the matching OpenQuok setup guide for each product.`
+				description: metaConsumerContrastFaqDescription()
 			},
 			{
 				title: 'Which channels are first-class for Meta Muse?',
-				description: metaMuseFirstClassChannelFaqDescription()
+				description: metaOwnedFirstClassChannelFaqDescription(
+					'meta-muse',
+					'/docs/agent-setup-guides/meta-muse',
+					'Meta Muse'
+				)
 			}
 		];
 	}
@@ -150,14 +226,14 @@ export function buildAgentHostEcosystemFaqItems(hostSlug: string): PublicFaqItem
 	}
 
 	if (ecosystemId === 'xai-grok' && slug === 'grok-bot') {
-		const xChannel = faqLink(
-			buildAgentFaqLinks('grok-bot', '/docs/agent-setup-guides/grok-bot').agentChannel('x'),
-			'X'
-		);
 		return [
 			{
+				title: 'How is Grok Bot different from Grok Build or Cursor?',
+				description: xaiGrokSurfaceCompareFaqDescription()
+			},
+			{
 				title: 'Which channel is first-class for Grok Bot?',
-				description: `${xChannel} is first-class for Grok Bot on OpenQuok. Grok Bot runs on xAI’s cloud computer with many named Bots. Connect other networks when your workflow needs them.`
+				description: `${xFirstClassChannelFaqDescription('grok-bot', '/docs/agent-setup-guides/grok-bot', 'Grok Bot')} Grok Bot runs on xAI’s cloud computer with many named Bots.`
 			},
 			{
 				title: 'How does Grok Bot compare to OpenClaw or Dots?',
@@ -169,19 +245,77 @@ export function buildAgentHostEcosystemFaqItems(hostSlug: string): PublicFaqItem
 	return [];
 }
 
+/** Tailored FAQ rows for ecosystem MCP clients — merge on the MCP VM without duplicating titles. */
+export function buildMcpClientEcosystemFaqItems(mcpSlug: string): PublicFaqItem[] {
+	const slug = normalizeHostSlug(mcpSlug);
+
+	if (slug === 'muse-code') {
+		return [
+			{
+				title: 'How is Muse Code different from Meta Muse?',
+				description: metaConsumerContrastFaqDescription()
+			},
+			{
+				title: 'Which channels are first-class for Muse Code?',
+				description: metaOwnedFirstClassChannelFaqDescription(
+					'muse-code',
+					'/docs/mcp-setup-guides/muse-code',
+					'Muse Code'
+				)
+			}
+		];
+	}
+
+	if (slug === 'grok-build') {
+		return [
+			{
+				title: 'How is Grok Build different from Grok Bot or Cursor?',
+				description: xaiGrokSurfaceCompareFaqDescription()
+			},
+			{
+				title: 'Which channel is first-class for Grok Build?',
+				description: xFirstClassChannelFaqDescription(
+					'grok-build',
+					'/docs/mcp-setup-guides/grok-build',
+					'Grok Build'
+				)
+			}
+		];
+	}
+
+	if (slug === 'cursor') {
+		return [
+			{
+				title: 'How is Cursor different from Grok Bot or Grok Build?',
+				description: xaiGrokSurfaceCompareFaqDescription()
+			}
+		];
+	}
+
+	return [];
+}
+
 export function isFirstClassChannelForHost(hostSlug: string, channelSlug: string): boolean {
-	const ecosystem = getAgentHostEcosystem(hostSlug);
+	const id = getLandingEcosystemId(hostSlug);
+	const ecosystem = id ? ECOSYSTEM_PROFILES[id] : undefined;
 	if (!ecosystem) return false;
 	const channel = channelSlug.trim().toLowerCase();
 	return ecosystem.firstClassChannelSlugs.includes(channel);
 }
 
 function firstClassChannelAudienceHook(hostSlug: string, platformLabel: string): string {
-	const ecosystemId = getAgentHostEcosystemId(hostSlug);
+	const slug = normalizeHostSlug(hostSlug);
+	const ecosystemId = getLandingEcosystemId(slug);
 	if (ecosystemId === 'meta-consumer') {
+		if (slug === 'muse-code') {
+			return `${platformLabel} is a first-class Muse Code channel on OpenQuok.`;
+		}
 		return `${platformLabel} is a first-class Meta Muse channel on OpenQuok.`;
 	}
 	if (ecosystemId === 'xai-grok') {
+		if (slug === 'grok-build') {
+			return `${platformLabel} is first-class for Grok Build on OpenQuok.`;
+		}
 		return `${platformLabel} is first-class for Grok Bot on OpenQuok.`;
 	}
 	return `${platformLabel} is a first-class channel for this host on OpenQuok.`;
@@ -269,7 +403,8 @@ export function sortAgentChannelHubLinks(
 	links: readonly PublicAgentChannelHubLinkViewModel[],
 	hostSlug: string
 ): PublicAgentChannelHubLinkViewModel[] {
-	const ecosystem = getAgentHostEcosystem(hostSlug);
+	const id = getLandingEcosystemId(hostSlug);
+	const ecosystem = id ? ECOSYSTEM_PROFILES[id] : undefined;
 	if (!ecosystem || ecosystem.firstClassChannelSlugs.length === 0) {
 		return [...links];
 	}
@@ -439,7 +574,11 @@ export function buildPublicChannelEcosystemFaqItems(params: {
 		return [
 			{
 				title: `Is ${platformLabel} first-class for Meta Muse?`,
-				description: `Yes. ${platformLabel} is a first-class Meta Muse channel on OpenQuok. ${metaMuseFirstClassChannelFaqDescription()}`
+				description: `Yes. ${platformLabel} is a first-class Meta Muse channel on OpenQuok. ${metaOwnedFirstClassChannelFaqDescription(
+					'meta-muse',
+					'/docs/agent-setup-guides/meta-muse',
+					'Meta Muse'
+				)}`
 			}
 		];
 	}

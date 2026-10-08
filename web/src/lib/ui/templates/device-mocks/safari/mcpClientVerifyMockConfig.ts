@@ -15,7 +15,8 @@ export type McpVerifySafariMockContentId =
 	| 'mcp-verify-codex'
 	| 'mcp-verify-antigravity-cli'
 	| 'mcp-verify-warp'
-	| 'mcp-verify-muse-code';
+	| 'mcp-verify-muse-code'
+	| 'mcp-verify-grok-build';
 
 export type McpInstallSafariMockContentId =
 	| 'mcp-install-cursor'
@@ -28,7 +29,8 @@ export type McpInstallSafariMockContentId =
 	| 'mcp-install-codex'
 	| 'mcp-install-antigravity-cli'
 	| 'mcp-install-warp'
-	| 'mcp-install-muse-code';
+	| 'mcp-install-muse-code'
+	| 'mcp-install-grok-build';
 
 export type McpVerifyMockLayout = 'ide' | 'terminal' | 'cowork';
 
@@ -183,6 +185,18 @@ const THEMES: Record<McpClient, McpClientVerifyMockTheme> = {
 		accentSoftClass: 'bg-blue-500/15 text-blue-100',
 		borderClass: 'border-white/10',
 		configFileHint: 'settings.json'
+	},
+	'Grok Build': {
+		layout: 'terminal',
+		mockUrl: 'grok.com/build',
+		productLabel: 'Grok Build',
+		panelLabel: 'grok',
+		icon: icons.GrokBuild.name,
+		surfaceClass: 'bg-[#0a0a0a]',
+		accentClass: 'text-zinc-200',
+		accentSoftClass: 'bg-white/10 text-zinc-100',
+		borderClass: 'border-white/10',
+		configFileHint: 'config.toml'
 	}
 };
 

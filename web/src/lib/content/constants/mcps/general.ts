@@ -35,6 +35,7 @@ import {
 	WORKFLOW_PUBLISH_CHOICE_SENTENCE
 } from '$lib/content/constants/schedulingPublishChoice';
 
+import { resolveMcpClientAudienceCards } from '$lib/content/constants/agents/ecosystems';
 import { mergeMcpLandingFaqItems } from '$lib/content/constants/mcps/mergeMcpLandingFaqItems';
 import type { McpLandingSeed, PublicMcpIntegrationViewModel, PublicMcpLandingPageViewModel } from '$lib/content/constants/mcps/types';
 
@@ -472,7 +473,10 @@ export function buildMcpLandingPage(seed: McpLandingSeed): PublicMcpLandingPageV
 		workflowSection: buildMcpWorkflowSection(label, mcpClient, workflowPhrase),
 		audienceSubtitle: audience.audienceSubtitle,
 		audienceTitle: audience.audienceTitle,
-		audienceCards: overrides?.audienceCards ?? audience.audienceCards,
+		audienceCards: resolveMcpClientAudienceCards(
+			overrides?.audienceCards ?? audience.audienceCards,
+			slug
+		),
 		setupStepsSubtitle: 'How it works',
 		setupStepsTitle: `Five steps,to ${label} + OpenQuok`,
 		setupSteps: toSetupSteps(label, setupSteps, mcpClient),

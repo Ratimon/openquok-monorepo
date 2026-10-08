@@ -1,7 +1,9 @@
 import type { FeaturesOrderedStep } from '$lib/content/constants/agents/types';
+import { buildMcpClientEcosystemFaqItems } from '$lib/content/constants/agents/ecosystems';
 import {
 	appendPublicGeneralFaqItems,
-	PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS
+	PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS,
+	type PublicFaqItem
 } from '$lib/content/constants/faq';
 import { buildMcpLandingPage, toSkillSetupSteps } from '$lib/content/constants/mcps/general';
 import { MCP_LANDING_SEEDS } from '$lib/content/constants/mcps/seeds';
@@ -20,6 +22,7 @@ export { devin_desktopMcpSeed } from '$lib/content/constants/mcps/hosts/devin-de
 export { ampMcpSeed } from '$lib/content/constants/mcps/hosts/amp';
 export { warpMcpSeed } from '$lib/content/constants/mcps/hosts/warp';
 export { muse_codeMcpSeed } from '$lib/content/constants/mcps/hosts/muse-code';
+export { grok_buildMcpSeed } from '$lib/content/constants/mcps/hosts/grok-build';
 export { MCP_LANDING_SEEDS, listPublicMcpLandingSeedsForFooter } from '$lib/content/constants/mcps/seeds';
 export { buildMcpChannelLandingVm } from '$lib/content/constants/mcps/channels';
 
@@ -60,19 +63,33 @@ export function resolvePublicMcpSkillSetupStepsSubtitle(
 
 const mcpBySlug = new Map(PUBLIC_MCP_LANDING_PAGES.map((page) => [page.slug, page]));
 
-function withMcpLandingGeneralFaqs(
+function prependMcpClientEcosystemFaqItems(
+	items: readonly PublicFaqItem[],
+	mcpSlug: string
+): PublicFaqItem[] {
+	const existingTitles = new Set(items.map((item) => item.title));
+	const ecosystemItems = buildMcpClientEcosystemFaqItems(mcpSlug).filter(
+		(item) => !existingTitles.has(item.title)
+	);
+	return [...ecosystemItems, ...items];
+}
+
+function withMcpLandingEcosystemAndGeneralFaqs(
 	page: PublicMcpLandingPageViewModel
 ): PublicMcpLandingPageViewModel {
 	return {
 		...page,
-		faqItems: appendPublicGeneralFaqItems(page.faqItems, PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS)
+		faqItems: appendPublicGeneralFaqItems(
+			prependMcpClientEcosystemFaqItems(page.faqItems, page.slug),
+			PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS
+		)
 	};
 }
 
 export function getPublicMcpLandingBySlug(slug: string): PublicMcpLandingPageViewModel | undefined {
 	const key = slug.trim().toLowerCase();
 	const page = mcpBySlug.get(key);
-	return page ? withMcpLandingGeneralFaqs(page) : undefined;
+	return page ? withMcpLandingEcosystemAndGeneralFaqs(page) : undefined;
 }
 
 export function getAvailablePublicMcpLandingBySlug(slug: string): PublicMcpLandingPageViewModel | undefined {

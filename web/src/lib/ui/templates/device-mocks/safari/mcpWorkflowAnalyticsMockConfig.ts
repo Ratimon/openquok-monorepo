@@ -15,7 +15,8 @@ export type McpWorkflowAnalyticsMockContentId =
 	| 'mcp-analytics-codex'
 	| 'mcp-analytics-antigravity-cli'
 	| 'mcp-analytics-warp'
-	| 'mcp-analytics-muse-code';
+	| 'mcp-analytics-muse-code'
+	| 'mcp-analytics-grok-build';
 
 export const MCP_ANALYTICS_USER_PROMPT =
 	'What performed best on my channels over the last 7 days? Break down impressions and engagement.';

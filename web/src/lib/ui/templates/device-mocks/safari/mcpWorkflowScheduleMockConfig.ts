@@ -15,7 +15,8 @@ export type McpWorkflowScheduleMockContentId =
 	| 'mcp-workflow-codex'
 	| 'mcp-workflow-antigravity-cli'
 	| 'mcp-workflow-warp'
-	| 'mcp-workflow-muse-code';
+	| 'mcp-workflow-muse-code'
+	| 'mcp-workflow-grok-build';
 
 export const MCP_WORKFLOW_USER_PROMPT =
 	'Queue my launch announcement on Facebook, Instagram, and Threads — attach the hero image and set it for tomorrow at 9am.';

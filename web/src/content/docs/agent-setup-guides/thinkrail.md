@@ -1,7 +1,7 @@
 ---
 title: ThinkRail
 description: Install the OpenQuok CLI and skill in ThinkRail.
-order: 3
+order: 4
 lastUpdated: 2026-08-29
 ---
 

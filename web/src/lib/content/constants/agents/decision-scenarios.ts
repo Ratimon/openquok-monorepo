@@ -83,7 +83,7 @@ export function buildAgentHostPickerFaqDescription(forHostSlug: string): string 
 	}
 
 	if (slug === 'grok-bot') {
-		return `Choose Grok Bot for many named Bots on one xAI cloud desktop without server ops. Choose ${faqLink(publicFaqHref.openclawLanding, 'OpenClaw')} when you must self-host and message from Telegram, WhatsApp, or Slack. Choose ${faqLink(publicFaqHref.dotsLanding, 'Dots')} for OpenAI workplace chat. See the ${blog}.`;
+		return `Choose Grok Bot for many named Bots on one xAI cloud desktop without server ops. Choose ${faqLink(publicFaqHref.grokBuildLanding, 'Grok Build')} MCP when you want the xAI coding agent in your terminal. Choose ${faqLink(publicFaqHref.openclawLanding, 'OpenClaw')} when you must self-host and message from Telegram, WhatsApp, or Slack. Choose ${faqLink(publicFaqHref.dotsLanding, 'Dots')} for OpenAI workplace chat. See the ${blog}.`;
 	}
 
 	if (slug === 'openclaw' || slug === 'hermes') {

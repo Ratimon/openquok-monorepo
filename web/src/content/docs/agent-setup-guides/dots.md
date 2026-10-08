@@ -1,7 +1,7 @@
 ---
 title: Dots
 description: Install openquok-core on OpenAI Dots — always-on ChatGPT agents with a cloud computer. Schedule from ChatGPT, Slack, or Teams. Not the ChatGPT MCP connector path.
-order: 7
+order: 8
 lastUpdated: 2026-10-01
 ---
 

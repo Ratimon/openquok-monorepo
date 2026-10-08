@@ -6,6 +6,7 @@ import {
 	SHARED_CHANNEL_SEO_KEYWORDS
 } from '$lib/content/constants/channels/catalog/shared';
 
+import { resolveMcpClientAudienceCards } from '$lib/content/constants/agents/ecosystems';
 import { appendChannelLandingFaqItems } from '$lib/content/utils/buildAgentChannelLandingVm';
 import { customizeAgentsChannelFeatureSections } from '$lib/content/utils/buildAgentsChannelFeatureSections';
 import { buildAgentsChannelAudienceSection } from '$lib/content/utils/buildAgentsChannelAudienceSection';
@@ -33,6 +34,7 @@ export function buildMcpChannelLandingVm(params: {
 		agentLabel: clientLabel,
 		mode: 'mcp-client'
 	});
+	const audienceCards = resolveMcpClientAudienceCards(audienceSection.audienceCards, baseMcp.slug);
 	const channelKeywords = channel.keywords
 		.filter((keyword) => !SHARED_CHANNEL_KEYWORD_SET.has(keyword))
 		.slice(0, 4);
@@ -44,6 +46,7 @@ export function buildMcpChannelLandingVm(params: {
 		...baseMcp,
 		heroSecondaryIcon: channel.icon,
 		...audienceSection,
+		audienceCards,
 		metaTitle: buildMcpChannelMetaTitle(platformLabel, clientLabel),
 		metaDescription: `Connect ${clientLabel} to OpenQuok MCP to draft and schedule ${platformLabel} posts from your editor or terminal. Publish now, schedule for later, or approve drafts on the calendar or kanban.`,
 		keywords: [

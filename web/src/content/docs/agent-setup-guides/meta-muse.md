@@ -1,7 +1,7 @@
 ---
 title: Meta Muse
 description: Connect OpenQuok to Meta Muse for Facebook, Instagram, Threads, and WhatsApp — custom connector, public API, or openquok-core in Muse Secure VM.
-order: 5
+order: 6
 lastUpdated: 2026-09-29
 ---
 

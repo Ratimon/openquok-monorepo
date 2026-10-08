@@ -28,15 +28,16 @@ Host picker scenarios stay in **`agents/decision-scenarios.ts`**. UI archetypes 
 | --- | --- | --- | --- |
 | `meta-consumer` | `meta-muse` | `facebook`, `instagram`, `threads` | `muse-code` |
 | `openai-personal-agents` | `openclaw`, `dots` | — (sibling agents on host landings) | `chatgpt` |
-| `xai-grok` | `grok-bot` | `x` | `cursor` |
+| `xai-grok` | `grok-bot` | `x` | `grok-build`, `cursor` |
 
-Extend **`ECOSYSTEM_PROFILES`**, **`AGENT_HOST_ECOSYSTEM_BY_SLUG`**, and **`audienceTailoredCardByHostSlug`** together when adding a mapped host.
+Extend **`ECOSYSTEM_PROFILES`**, **`AGENT_HOST_ECOSYSTEM_BY_SLUG`**, and **`audienceTailoredCardByHostSlug`** together when adding a mapped host. Mapped MCP clients go in **`MCP_CLIENT_ECOSYSTEM_BY_SLUG`** + **`audienceTailoredCardByMcpSlug`** (`grok-build` → X home network, `muse-code` → Meta-owned channels first).
 
 ## Where copy runs
 
 | Surface | Entry | Ecosystem behavior |
 | --- | --- | --- |
 | **`/agents/{host}`** | `getPublicAgentHostBySlug` → `withAgentHostEcosystem` (`agents/index.ts`) | Fourth WhoIsFor card; `buildAgentHostEcosystemFaqItems`; hub channel grid sort + badges via `sortAgentChannelHubLinks` |
+| **`/agents/{mcp}`** | `getPublicMcpLandingBySlug` → `buildMcpClientEcosystemFaqItems` + `resolveMcpClientAudienceCards` | Fourth WhoIsFor card for mapped MCP clients (`grok-build`, `muse-code`); Muse Code ↔ Meta Muse FAQs; Grok Build/Cursor ↔ Grok Bot compare FAQs; hub channel grid sort + first-class badges |
 | **`/agents/{host}/{channel}`** | `buildAgentChannelLandingVm` | `resolveAgentChannelAudienceCards`, `buildAgentChannelEcosystemHeroDescription`, `buildAgentChannelEcosystemFaqItems` |
 | **`/channels/{slug}`** | `getPublicChannelBySlug` → `withChannelPageSeoCopy` (`channels/index.ts`) | **Inverse** emphasis: ecosystem fourth card (`buildPublicChannelEcosystemAudienceTailoredCard`), first-card hook (`applyPublicChannelPageAudienceFirstCardHook`), prepended FAQs (`buildPublicChannelEcosystemFaqItems`, dedupe by title), then `PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS` |
 | **`/channels/{slug}` grids** | `channelPageSeo.ts`, grid copy utils, `listPublicAgentIntegrationsForChannel` | Pinned agent hosts (`CHANNEL_PAGE_PINNED_AGENT_SLUGS`); MCP sort via `sortAgentIntegrationsForEcosystem` + primary host from `getPrimaryAgentHostSlugForChannelPage`; sibling badges (`enrichPublicChannelSiblingGridItems`) |
@@ -54,7 +55,7 @@ Generic fallback when no ecosystem: **`buildPublicChannelAgentAudienceTailoredCa
 
 ## FAQ deduplication
 
-- Host seed FAQs + `buildAgentHostEcosystemFaqItems` must not repeat the same **`title`** (tests in `ecosystems.test.ts`).
+- Host seed FAQs + `buildAgentHostEcosystemFaqItems` must not repeat the same **`title`** (tests in `ecosystems.test.ts`). MCP seeds + `buildMcpClientEcosystemFaqItems` follow the same rule (`getPublicMcpLandingBySlug`).
 - Channel pages: prepend ecosystem FAQs only when titles are absent from seed **`faqItems`**.
 - OpenAI-personal-agents host ecosystem FAQ builder intentionally returns `[]` — use host **`buildAgentHostPickerFaqDescription`** on OpenClaw/Dots seeds instead.
 

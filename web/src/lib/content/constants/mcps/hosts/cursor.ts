@@ -28,12 +28,6 @@ export const cursorMcpSeed = {
 			'Why use Cursor MCP instead of an agent host?': {
 				description: `${faqLink(publicFaqHref.grokBotLanding, 'Grok Bot')}, ${faqLink(publicFaqHref.thinkrailLanding, 'ThinkRail')}, ${faqLink(faqHrefAgent('openclaw'), 'OpenClaw')}, and ${faqLink(faqHrefAgent('hermes'), 'Hermes')} fit always-on chat and messaging. Cursor fits in-repo MCP tool calls. Pick Cursor when you already ship there. Pick an agent host for messaging and scale. Many teams use both.`
 			}
-		},
-		faqItemsAfterFirst: [
-			{
-				title: 'What is Grok Bot and how does it relate to Cursor?',
-				description: `${faqLink(publicFaqHref.grokBotLanding, 'Grok Bot')} is the always-on teammate. This page is OpenQuok inside Agent and Composer. Pick Grok Bot for messaging-first volume. Pick Cursor when you stay in the repo. See the ${faqLink(publicFaqHref.blogGrokBot, 'Grok Bot scheduling walkthrough')}.`
-			}
-		]
+		}
 	}
 } satisfies McpLandingSeed;

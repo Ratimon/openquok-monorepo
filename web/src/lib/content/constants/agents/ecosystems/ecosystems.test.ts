@@ -2,18 +2,22 @@ import { describe, expect, it } from 'vitest';
 
 import { PUBLIC_AGENT_HOST_LANDING_PAGES } from '$lib/content/constants/agents/seeds';
 import { getPublicAgentHostBySlug } from '$lib/content/constants/agents';
+import { getPublicMcpLandingBySlug } from '$lib/content/constants/mcps';
 import {
 	AGENT_HOST_ECOSYSTEM_BY_SLUG,
 	AGENT_HOST_FIRST_CLASS_CHANNEL_BADGE,
 	buildAgentHostEcosystemChannelSiblingGridHubDescription,
 	buildAgentHostEcosystemChannelSiblingGridHubTitle,
 	buildAgentHostEcosystemFaqItems,
+	buildMcpClientEcosystemFaqItems,
 	buildPublicChannelEcosystemAudienceTailoredCard,
 	getAgentHostEcosystem,
 	getAgentHostEcosystemId,
 	getChannelPageEcosystemId,
+	getMcpClientEcosystemId,
 	isFirstClassChannelForHost,
 	resolveAgentHostAudienceCards,
+	resolveMcpClientAudienceCards,
 	sortAgentChannelHubLinks,
 	sortAgentIntegrationsForEcosystem
 } from '$lib/content/constants/agents/ecosystems';
@@ -105,6 +109,8 @@ describe('isFirstClassChannelForHost', () => {
 		expect(isFirstClassChannelForHost('grok-bot', 'x')).toBe(true);
 		expect(isFirstClassChannelForHost('grok-bot', 'facebook')).toBe(false);
 		expect(isFirstClassChannelForHost('meta-muse', 'threads')).toBe(true);
+		expect(isFirstClassChannelForHost('grok-build', 'x')).toBe(true);
+		expect(isFirstClassChannelForHost('muse-code', 'threads')).toBe(true);
 	});
 });
 
@@ -163,6 +169,58 @@ describe('buildAgentHostEcosystemFaqItems', () => {
 		expect(titles).toContain('How is Meta Muse different from Muse Code?');
 		expect(titles).not.toContain('Is Meta Muse the same as Muse Code?');
 	});
+
+	it('compares Grok Bot with Grok Build and Cursor', () => {
+		const page = getPublicAgentHostBySlug('grok-bot');
+		expect(page).toBeDefined();
+		const titles = page!.faqItems.map((item) => item.title);
+		expect(titles).toContain('How is Grok Bot different from Grok Build or Cursor?');
+		expect(titles).not.toContain('How does Grok Bot relate to Grok Build or Cursor?');
+		const compare = page!.faqItems.find(
+			(item) => item.title === 'How is Grok Bot different from Grok Build or Cursor?'
+		);
+		expect(compare?.description).toContain(publicFaqHref.grokBuildLanding);
+		expect(compare?.description).toContain(publicFaqHref.cursorLanding);
+	});
+});
+
+describe('buildMcpClientEcosystemFaqItems', () => {
+	it('mirrors Meta Muse contrast and first-class channels on Muse Code', () => {
+		const items = buildMcpClientEcosystemFaqItems('muse-code');
+		expect(items.map((item) => item.title)).toEqual([
+			'How is Muse Code different from Meta Muse?',
+			'Which channels are first-class for Muse Code?'
+		]);
+		const html = items.map((item) => item.description).join(' ');
+		expect(html).toContain(publicFaqHref.metaMuseLanding);
+		expect(html).toContain('/agents/muse-code/threads');
+		const page = getPublicMcpLandingBySlug('muse-code');
+		expect(page?.faqItems.map((item) => item.title)).toContain(
+			'How is Muse Code different from Meta Muse?'
+		);
+	});
+
+	it('compares Grok Build and Cursor with Grok Bot', () => {
+		const grokBuild = getPublicMcpLandingBySlug('grok-build');
+		const cursor = getPublicMcpLandingBySlug('cursor');
+		expect(grokBuild?.faqItems.map((item) => item.title)).toContain(
+			'How is Grok Build different from Grok Bot or Cursor?'
+		);
+		expect(grokBuild?.faqItems.map((item) => item.title)).toContain(
+			'Which channel is first-class for Grok Build?'
+		);
+		expect(cursor?.faqItems.map((item) => item.title)).toContain(
+			'How is Cursor different from Grok Bot or Grok Build?'
+		);
+		const grokBuildCompare = grokBuild?.faqItems.find(
+			(item) => item.title === 'How is Grok Build different from Grok Bot or Cursor?'
+		);
+		expect(grokBuildCompare?.description).toContain(publicFaqHref.grokBotLanding);
+		expect(grokBuildCompare?.description).toContain(publicFaqHref.cursorLanding);
+		expect(cursor?.faqItems.find((item) => item.title.includes('Grok Bot'))?.description).toContain(
+			publicFaqHref.grokBuildLanding
+		);
+	});
 });
 
 describe('resolveAgentHostAudienceCards', () => {
@@ -171,6 +229,32 @@ describe('resolveAgentHostAudienceCards', () => {
 		expect(withMeta).toHaveLength(2);
 		const without = resolveAgentHostAudienceCards([BASE_AUDIENCE_CARD], 'hermes');
 		expect(without).toHaveLength(1);
+	});
+});
+
+describe('resolveMcpClientAudienceCards', () => {
+	it('appends X-home-network for Grok Build and Meta-owned for Muse Code', () => {
+		expect(getMcpClientEcosystemId('grok-build')).toBe('xai-grok');
+		expect(getMcpClientEcosystemId('muse-code')).toBe('meta-consumer');
+		expect(resolveMcpClientAudienceCards([BASE_AUDIENCE_CARD], 'grok-build').at(-1)?.title).toBe(
+			'X as your home network'
+		);
+		expect(resolveMcpClientAudienceCards([BASE_AUDIENCE_CARD], 'muse-code').at(-1)?.title).toBe(
+			'Meta-owned channels first'
+		);
+		expect(resolveMcpClientAudienceCards([BASE_AUDIENCE_CARD], 'cursor')).toHaveLength(1);
+	});
+
+	it('lands Grok Build and Muse Code with four WhoIsFor cards', () => {
+		expect(getPublicMcpLandingBySlug('grok-build')?.audienceCards).toHaveLength(4);
+		expect(getPublicMcpLandingBySlug('grok-build')?.audienceCards.at(-1)?.title).toBe(
+			'X as your home network'
+		);
+		expect(getPublicMcpLandingBySlug('muse-code')?.audienceCards).toHaveLength(4);
+		expect(getPublicMcpLandingBySlug('muse-code')?.audienceCards.at(-1)?.title).toBe(
+			'Meta-owned channels first'
+		);
+		expect(getPublicMcpLandingBySlug('cursor')?.audienceCards).toHaveLength(3);
 	});
 });
 
@@ -209,13 +293,14 @@ describe('channel page ecosystem (/channels/{slug})', () => {
 		);
 	});
 
-	it('pins cursor MCP for Grok Bot ecosystem', () => {
+	it('pins grok-build then cursor MCP for Grok Bot ecosystem', () => {
 		const items = [
 			{ slug: 'chatgpt', title: 'ChatGPT' },
-			{ slug: 'cursor', title: 'Cursor' }
+			{ slug: 'cursor', title: 'Cursor' },
+			{ slug: 'grok-build', title: 'Grok Build' }
 		];
-		expect(sortAgentIntegrationsForEcosystem(items, 'grok-bot', 'mcp-client')[0]?.slug).toBe(
-			'cursor'
+		expect(sortAgentIntegrationsForEcosystem(items, 'grok-bot', 'mcp-client').map((item) => item.slug)).toEqual(
+			['grok-build', 'cursor', 'chatgpt']
 		);
 	});
 });

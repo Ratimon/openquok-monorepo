@@ -33,6 +33,7 @@ For **agent hosts** that run the CLI skill (OpenClaw, Hermes Agent, Grok Bot, Do
 <LinkCard title="Amp" description="Add OpenQuok with amp mcp add or Amp settings.json." href="/docs/mcp-setup-guides/amp" />
 <LinkCard title="Warp" description="Warp is an AI-native terminal with built-in MCP. Ship code, debug deploys, and schedule social from one window." href="/docs/mcp-setup-guides/warp" />
 <LinkCard title="Muse Code" description="Add OpenQuok in ~/.config/muse/settings.json with streamable HTTP MCP." href="/docs/mcp-setup-guides/muse-code" />
+<LinkCard title="Grok Build" description="Add OpenQuok with grok mcp add. Schedule social posts from the Grok Build terminal." href="/docs/mcp-setup-guides/grok-build" />
 </CardGrid>
 
 <Callout type="note" title="Server name">

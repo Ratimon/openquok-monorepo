@@ -114,6 +114,22 @@ describe('getMcpClientConfig', () => {
 		expect(parsed.mcp_servers[MCP_SERVER_NAME].transport).toBe('streamable_http');
 		expect(parsed.mcp_servers[MCP_SERVER_NAME].url).toBe(`${MCP_BASE}/mcp/${API_KEY}`);
 	});
+
+	it('generates Grok Build path auth as grok mcp add with token in URL', () => {
+		const { config, hint } = getMcpClientConfig('Grok Build', 'path', MCP_BASE, API_KEY);
+		expect(config).toContain(`grok mcp add --transport http ${MCP_SERVER_NAME}`);
+		expect(config).toContain(`${MCP_BASE}/mcp/${API_KEY}`);
+		expect(hint).toContain('~/.grok/config.toml');
+	});
+
+	it('generates Grok Build header auth as ~/.grok/config.toml', () => {
+		const { config, hint } = getMcpClientConfig('Grok Build', 'header', MCP_BASE, API_KEY);
+		expect(config).toContain('[[mcp.servers]]');
+		expect(config).toContain(`name = "${MCP_SERVER_NAME}"`);
+		expect(config).toContain(`url = "${MCP_BASE}/mcp"`);
+		expect(config).toContain(`headers.Authorization = "Bearer ${API_KEY}"`);
+		expect(hint).toContain('~/.grok/config.toml');
+	});
 });
 
 describe('maskApiKeyInConfig', () => {

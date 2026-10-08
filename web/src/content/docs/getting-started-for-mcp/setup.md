@@ -82,6 +82,7 @@ For step-by-step guides with troubleshooting, see <a href="/docs/mcp-setup-guide
 | <Badge text="Antigravity CLI" variant="default" /> | <Badge text="~/.gemini/config/mcp_config.json" variant="path" /> | <a href="/docs/mcp-setup-guides/antigravity-cli">Antigravity CLI</a> |
 | <Badge text="Warp" variant="default" /> | Settings → MCP Servers | <a href="/docs/mcp-setup-guides/warp">Warp</a> |
 | <Badge text="Muse Code" variant="default" /> | <Badge text="~/.config/muse/settings.json" variant="path" /> | <a href="/docs/mcp-setup-guides/muse-code">Muse Code</a> |
+| <Badge text="Grok Build" variant="default" /> | Terminal <Badge text="grok mcp add" variant="default" /> or <Badge text="~/.grok/config.toml" variant="path" /> | <a href="/docs/mcp-setup-guides/grok-build">Grok Build</a> |
 
 ### Cursor (header auth)
 
@@ -161,7 +162,7 @@ Run this checklist after copying a snippet from the dashboard. Use a workspace t
 ## Related Section(s)
 
 <CardGrid>
-<LinkCard title="MCP setup guides" description="Step-by-step guides for Cursor, Claude Code, ChatGPT, Warp, and other clients" href="/docs/mcp-setup-guides" />
+<LinkCard title="MCP setup guides" description="Step-by-step guides for Cursor, Claude Code, ChatGPT, Warp, Grok Build, and other clients" href="/docs/mcp-setup-guides" />
 <LinkCard title="MCP introduction" description="Endpoints, authentication, and v1 tool list" href="/docs/getting-started-for-mcp" />
 <LinkCard title="Tools reference" description="schedulePostTool input shape and provider settings" href="/docs/mcp-references/tools" />
 <LinkCard title="MCP examples" description="Copy-paste agent workflows for scheduling posts by platform" href="/docs/mcp-examples" />
