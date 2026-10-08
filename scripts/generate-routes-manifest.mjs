@@ -23,8 +23,14 @@ const OUTPUT_FILE = path.join(__dirname, '../backend/static/routes-manifest.json
 const AGENT_HOST_PAGE_REGEX =
 	/pageType:\s*['"]agent-host['"][\s\S]*?slug:\s*['"]([^'"]+)['"][\s\S]*?available:\s*(true|false)/g;
 
+/** Host seed files omit `pageType`; they still export `slug` + `available`. */
+const AGENT_HOST_SEED_REGEX =
+	/slug:\s*['"]([^'"]+)['"][\s\S]*?available:\s*(true|false)/g;
+
 const CHANNEL_PAGE_REGEX =
 	/slug:\s*['"]([^'"]+)['"],\s*\n\s*platformId:[\s\S]*?available:\s*(true|false)/g;
+
+const CATALOG_TS_SKIP = new Set(['index.ts', 'types.ts', 'shared.ts', 'hub.ts', 'builders.ts']);
 
 const EXCLUDED_PATTERNS = {
 	includes: ['(protected)', '(auth)', 'not-found'],
@@ -140,15 +146,47 @@ function scanRoutes(dirPath, previousFolder = '') {
 	return routes;
 }
 
+function isCatalogSeedTsFile(name) {
+	if (!name.endsWith('.ts')) return false;
+	if (name.endsWith('.test.ts') || name.endsWith('.d.ts')) return false;
+	return !CATALOG_TS_SKIP.has(name);
+}
+
 function readCatalogDirFiles(dirPath) {
 	if (!fs.existsSync(dirPath)) return [];
 
-	const skip = new Set(['index.ts', 'types.ts', 'shared.ts', 'hub.ts', 'builders.ts']);
+	const contents = [];
 
-	return fs
-		.readdirSync(dirPath, { withFileTypes: true })
-		.filter((entry) => entry.isFile() && entry.name.endsWith('.ts') && !skip.has(entry.name))
-		.map((entry) => fs.readFileSync(path.join(dirPath, entry.name), 'utf-8'));
+	const walk = (currentDir) => {
+		for (const entry of fs.readdirSync(currentDir, { withFileTypes: true })) {
+			const fullPath = path.join(currentDir, entry.name);
+			if (entry.isDirectory()) {
+				walk(fullPath);
+				continue;
+			}
+			if (entry.isFile() && isCatalogSeedTsFile(entry.name)) {
+				contents.push(fs.readFileSync(fullPath, 'utf-8'));
+			}
+		}
+	};
+
+	walk(dirPath);
+	return contents;
+}
+
+function readCatalogFiles(constantsDir, preferredSegments, fallbackSegment) {
+	const preferredDir = path.join(constantsDir, ...preferredSegments);
+	if (fs.existsSync(preferredDir)) {
+		const preferredFiles = readCatalogDirFiles(preferredDir);
+		if (preferredFiles.length > 0) return preferredFiles;
+	}
+	return readCatalogDirFiles(path.join(constantsDir, fallbackSegment));
+}
+
+function extractAgentHostSlugs(content) {
+	const fromPageType = extractAvailableSlugs(content, AGENT_HOST_PAGE_REGEX);
+	if (fromPageType.length > 0) return fromPageType;
+	return extractAvailableSlugs(content, AGENT_HOST_SEED_REGEX);
 }
 
 function extractMcpSeedSlugs(content) {
@@ -177,13 +215,15 @@ function extractAvailableSlugs(content, regex) {
 }
 
 function extractPublicCatalogSlugs(constantsDir = WEB_CONSTANTS_DIR) {
-	const agentFiles = readCatalogDirFiles(path.join(constantsDir, 'agents'));
-	const channelFiles = readCatalogDirFiles(path.join(constantsDir, 'channels'));
-	const mcpFiles = readCatalogDirFiles(path.join(constantsDir, 'mcps'));
-
-	const agentHosts = agentFiles.flatMap((content) =>
-		extractAvailableSlugs(content, AGENT_HOST_PAGE_REGEX)
+	const agentFiles = readCatalogFiles(constantsDir, ['agents', 'hosts'], 'agents');
+	const channelFiles = readCatalogFiles(
+		constantsDir,
+		['channels', 'catalog', 'platforms'],
+		'channels'
 	);
+	const mcpFiles = readCatalogFiles(constantsDir, ['mcps', 'hosts'], 'mcps');
+
+	const agentHosts = agentFiles.flatMap((content) => extractAgentHostSlugs(content));
 	const mcpClients = mcpFiles.flatMap((content) => extractMcpSeedSlugs(content));
 	const channels = channelFiles.flatMap((content) =>
 		extractAvailableSlugs(content, CHANNEL_PAGE_REGEX)
@@ -196,7 +236,11 @@ function extractPublicCatalogSlugs(constantsDir = WEB_CONSTANTS_DIR) {
 }
 
 function extractAllChannelSlugs(constantsDir = WEB_CONSTANTS_DIR) {
-	const channelFiles = readCatalogDirFiles(path.join(constantsDir, 'channels'));
+	const channelFiles = readCatalogFiles(
+		constantsDir,
+		['channels', 'catalog', 'platforms'],
+		'channels'
+	);
 	const slugs = [];
 
 	for (const content of channelFiles) {

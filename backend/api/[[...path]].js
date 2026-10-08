@@ -40655,13 +40655,46 @@ var PUBLIC_API_MARKETING_HUB_PATHS = [
 ];
 var PUBLIC_API_POSTING_PLATFORM_SLUGS_REGEX = /export const PUBLIC_API_POSTING_PLATFORM_SLUGS:\s*readonly[^=]*=\s*\[([\s\S]*?)\]/;
 var AGENT_HOST_PAGE_REGEX = /pageType:\s*['"]agent-host['"][\s\S]*?slug:\s*['"]([^'"]+)['"][\s\S]*?available:\s*(true|false)/g;
+var AGENT_HOST_SEED_REGEX = /slug:\s*['"]([^'"]+)['"][\s\S]*?available:\s*(true|false)/g;
 var CHANNEL_PAGE_REGEX = /slug:\s*['"]([^'"]+)['"],\s*\n\s*platformId:[\s\S]*?available:\s*(true|false)/g;
+var CATALOG_TS_SKIP = /* @__PURE__ */ new Set(["index.ts", "types.ts", "shared.ts", "hub.ts", "builders.ts"]);
 var CHANNEL_SLUG_REGEX = /slug:\s*['"]([^'"]+)['"],\s*\n\s*platformId:/g;
 var COMPARE_PRODUCT_SLUG_REGEX = /slug:\s*['"]([^'"]+)['"],/;
+function isCatalogSeedTsFile(name) {
+  if (!name.endsWith(".ts")) return false;
+  if (name.endsWith(".test.ts") || name.endsWith(".d.ts")) return false;
+  return !CATALOG_TS_SKIP.has(name);
+}
 function readCatalogDirFiles(dirPath) {
   if (!fs2__default.default.existsSync(dirPath)) return [];
-  const skip = /* @__PURE__ */ new Set(["index.ts", "types.ts", "shared.ts", "hub.ts", "builders.ts"]);
-  return fs2__default.default.readdirSync(dirPath, { withFileTypes: true }).filter((entry) => entry.isFile() && entry.name.endsWith(".ts") && !skip.has(entry.name)).map((entry) => fs2__default.default.readFileSync(path3__default.default.join(dirPath, entry.name), "utf-8"));
+  const contents = [];
+  const walk = (currentDir) => {
+    for (const entry of fs2__default.default.readdirSync(currentDir, { withFileTypes: true })) {
+      const fullPath = path3__default.default.join(currentDir, entry.name);
+      if (entry.isDirectory()) {
+        walk(fullPath);
+        continue;
+      }
+      if (entry.isFile() && isCatalogSeedTsFile(entry.name)) {
+        contents.push(fs2__default.default.readFileSync(fullPath, "utf-8"));
+      }
+    }
+  };
+  walk(dirPath);
+  return contents;
+}
+function readCatalogFiles(constantsDir, preferredSegments, fallbackSegment) {
+  const preferredDir = path3__default.default.join(constantsDir, ...preferredSegments);
+  if (fs2__default.default.existsSync(preferredDir)) {
+    const preferredFiles = readCatalogDirFiles(preferredDir);
+    if (preferredFiles.length > 0) return preferredFiles;
+  }
+  return readCatalogDirFiles(path3__default.default.join(constantsDir, fallbackSegment));
+}
+function extractAgentHostSlugs(content) {
+  const fromPageType = extractAvailableSlugs(content, AGENT_HOST_PAGE_REGEX);
+  if (fromPageType.length > 0) return fromPageType;
+  return extractAvailableSlugs(content, AGENT_HOST_SEED_REGEX);
 }
 function extractMcpSeedSlugs(content) {
   const slugs = [];
@@ -40683,12 +40716,14 @@ function extractAvailableSlugs(content, regex) {
   return slugs;
 }
 function extractPublicCatalogSlugsFromDir(constantsDir) {
-  const agentFiles = readCatalogDirFiles(path3__default.default.join(constantsDir, "agents"));
-  const channelFiles = readCatalogDirFiles(path3__default.default.join(constantsDir, "channels"));
-  const mcpFiles = readCatalogDirFiles(path3__default.default.join(constantsDir, "mcps"));
-  const agentHosts = agentFiles.flatMap(
-    (content) => extractAvailableSlugs(content, AGENT_HOST_PAGE_REGEX)
+  const agentFiles = readCatalogFiles(constantsDir, ["agents", "hosts"], "agents");
+  const channelFiles = readCatalogFiles(
+    constantsDir,
+    ["channels", "catalog", "platforms"],
+    "channels"
   );
+  const mcpFiles = readCatalogFiles(constantsDir, ["mcps", "hosts"], "mcps");
+  const agentHosts = agentFiles.flatMap((content) => extractAgentHostSlugs(content));
   const mcpClients = mcpFiles.flatMap((content) => extractMcpSeedSlugs(content));
   const channels = channelFiles.flatMap(
     (content) => extractAvailableSlugs(content, CHANNEL_PAGE_REGEX)
@@ -40736,7 +40771,11 @@ function isIndexableManifestPath(url) {
   return true;
 }
 function extractAllChannelSlugs(constantsDir) {
-  const channelFiles = readCatalogDirFiles(path3__default.default.join(constantsDir, "channels"));
+  const channelFiles = readCatalogFiles(
+    constantsDir,
+    ["channels", "catalog", "platforms"],
+    "channels"
+  );
   const slugs = [];
   for (const content of channelFiles) {
     for (const match of content.matchAll(CHANNEL_SLUG_REGEX)) {
