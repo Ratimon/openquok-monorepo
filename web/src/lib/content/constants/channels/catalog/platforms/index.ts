@@ -9,6 +9,7 @@ export { devtoChannel } from '$lib/content/constants/channels/catalog/platforms/
 export { facebookChannel } from '$lib/content/constants/channels/catalog/platforms/facebook';
 export { instagramChannel } from '$lib/content/constants/channels/catalog/platforms/instagram';
 export { linkedinChannel } from '$lib/content/constants/channels/catalog/platforms/linkedin';
+export { skoolChannel } from '$lib/content/constants/channels/catalog/platforms/skool';
 export { threadsChannel } from '$lib/content/constants/channels/catalog/platforms/threads';
 export { tiktokChannel } from '$lib/content/constants/channels/catalog/platforms/tiktok';
 export { xChannel } from '$lib/content/constants/channels/catalog/platforms/x';

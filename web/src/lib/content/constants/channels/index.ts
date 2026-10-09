@@ -40,6 +40,7 @@ export {
 	facebookChannel,
 	instagramChannel,
 	linkedinChannel,
+	skoolChannel,
 	threadsChannel,
 	tiktokChannel,
 	xChannel,

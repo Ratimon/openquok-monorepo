@@ -1,0 +1,20 @@
+{
+  "scheduledAt": "2026-01-01T12:00:00.000Z",
+  "status": "scheduled",
+  "body": "Share a screenshot or graphic with the post body.",
+  "integrationIds": ["<integration-id>"],
+  "media": [
+    {
+      "id": "<media-id>",
+      "path": "https://cdn.example.com/workspace/skool-cover.png"
+    }
+  ],
+  "providerSettingsByIntegrationId": {
+    "<integration-id>": {
+      "skool": {
+        "title": "New resource drop",
+        "group": "<group-id>"
+      }
+    }
+  }
+}

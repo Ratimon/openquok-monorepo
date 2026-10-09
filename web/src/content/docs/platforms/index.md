@@ -2,7 +2,7 @@
 title: Overview - Rules by Different Platforms
 description: Diffetent Rules for the OpenQuok social scheduler — naming, connect flows, media and caption rules, and analytics by network.
 order: 0
-lastUpdated: 2026-09-22
+lastUpdated: 2026-10-09
 sidebar:
   label: Overview
 ---
@@ -15,7 +15,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 > What each connected channel accepts before OpenQuok sends a post.
 
-Diferent platforms has diffetent rules on caption length, attachment count, and extra fields. OpenQuok ships **eleven** channels today.
+Diferent platforms has diffetent rules on caption length, attachment count, and extra fields. OpenQuok ships **twelve** channels today.
 
 <p class="not-prose flex flex-wrap items-center gap-3">
 <a href="/channels/facebook" title="Facebook Page"><img src="/docs/_assets/platforms/socials/facebook.svg" alt="Facebook Page" width="32" height="32" /></a>
@@ -27,6 +27,7 @@ Diferent platforms has diffetent rules on caption length, attachment count, and 
 <a href="/channels/tiktok" title="TikTok"><img src="/docs/_assets/platforms/socials/tiktok.svg" alt="TikTok" width="32" height="32" /></a>
 <a href="/channels/devto" title="Dev.to"><img src="/docs/_assets/platforms/socials/devto.svg" alt="Dev.to" width="32" height="32" /></a>
 <a href="/channels/bluesky" title="Bluesky"><img src="/docs/_assets/platforms/socials/bluesky.svg" alt="Bluesky" width="32" height="32" /></a>
+<a href="/channels/skool" title="Skool"><img src="/docs/_assets/platforms/socials/skool.svg" alt="Skool" width="32" height="32" /></a>
 </p>
 
 This section is the reference how they disagree when you write in the dashboard, schedule through the API, or use MCP tools.
@@ -46,6 +47,7 @@ The dashboard and marketing site use short labels. The public API, CLI, MCP tool
 | **LinkedIn Page** | <Badge text="linkedin-page" variant="param" /> |
 | **Dev.to** | <Badge text="devto" variant="param" /> |
 | **Bluesky** | <Badge text="bluesky" variant="param" /> |
+| **Skool** | <Badge text="skool" variant="param" /> |
 
 Most other networks use the same name in the app and in the API (for example <Badge text="threads" variant="param" />, <Badge text="tiktok" variant="param" />, <Badge text="x" variant="param" />). The full list with channel keys is in <a href="/docs/platforms/connect-rules">Connect rules</a>.
 
@@ -71,6 +73,7 @@ This table then shows whether you can add multi-part in the post editor, and whi
 | **Threads**, **X**, **Bluesky** | <Badge text="threads" variant="param" />, <Badge text="x" variant="param" />, <Badge text="bluesky" variant="param" /> | Yes | Thread reply (media allowed on follow-ups) |
 | **Instagram** (both), **LinkedIn** (both) | <Badge text="instagram-business" variant="param" />, <Badge text="instagram-standalone" variant="param" />, <Badge text="linkedin" variant="param" />, <Badge text="linkedin-page" variant="param" /> | Yes | Comment (text only on follow-ups) |
 | **Facebook Page** | <Badge text="facebook" variant="param" /> | Yes | Comment (one image per follow-up, no video) |
+| **Skool** | <Badge text="skool" variant="param" /> | Yes | Comment (when the group allows; see composer) |
 | **YouTube**, **TikTok**, **Dev.to** | <Badge text="youtube" variant="param" />, <Badge text="tiktok" variant="param" />, <Badge text="devto" variant="param" /> | No | — |
 
 Facebook **Stories** do not support follow-up comments. How to add rows and delays in the composer is in <a href="/docs/creating-posts/threads-and-comments">Threads and comments</a>. Attachment and length rules for follow-ups are in <a href="/docs/platforms/media-rules">Media rules</a>.
@@ -97,7 +100,7 @@ Upload limits (file size and format) are separate from per-network rules. See <a
 
 <CardGrid>
 <LinkCard title="Creating posts" description="Composer flow, save options, and cross-links" href="/docs/creating-posts" />
-<LinkCard title="Connect a channel" description="OAuth redirect and credentials flows" href="/docs/channels/connect" />
+<LinkCard title="Connect a channel" description="OAuth, credentials, and browser extension flows" href="/docs/channels/connect" />
 <LinkCard title="Provider settings" description="Public API identifier and payload reference" href="/docs/public-api-providers" />
 <LinkCard title="CLI examples" description="Copy-paste openquok recipes by network" href="/docs/cli-examples" />
 </CardGrid>

@@ -37,7 +37,7 @@
 				Back
 			</Button>
 			<SectionTitle>Terms and Conditions of Use for {companyName}</SectionTitle>
-			<SectionDescription>Last updated September 24, 2026</SectionDescription>
+			<SectionDescription>Last updated October 9, 2026</SectionDescription>
 		</SectionHeaderContainer>
 		<SubSectionOuterContainer class="max-w-3xl !py-4">
 			<SubSectionInnerContainer
@@ -315,6 +315,17 @@
 					suspensions, rate limits, policy changes, or API changes. If a platform changes or ends API
 					access in a way that affects the Services, we may modify or discontinue the affected
 					integration without liability to you.
+				</p>
+				<p>
+					<strong>Optional browser-extension channels.</strong> For some platforms that do not offer
+					public OAuth for third-party schedulers, you may connect using our optional Chrome browser
+					extension. You install the extension, remain signed in on that platform’s website, and
+					initiate connect from the dashboard. The extension reads session identifiers (such as
+					cookies) from that site only when you start connect or when you allow periodic refresh. This
+					is not an official OAuth authorization from the platform. You are solely responsible for
+					compliance with that platform’s terms, acceptable-use rules, and any restrictions on
+					automated or third-party access. We may modify or discontinue browser-extension channels if
+					the platform changes its site, policies, or technical controls.
 				</p>
 
 				<h2>9. AI, agents, and automation</h2>

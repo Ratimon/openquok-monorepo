@@ -9,7 +9,7 @@ openquok integrations:list | jq -r '.[] | {id, identifier}'
 openquok integrations:settings <integration-uuid>
 ```
 
-Meta channels today: `threads`, `facebook`, `instagram-standalone`, `instagram-business`. LinkedIn: `linkedin`, `linkedin-page`. Dev.to: `devto` (`tags`, `organizations`). Call `integrations:trigger` only for `methodName` values listed under `output.tools`.
+Meta channels today: `threads`, `facebook`, `instagram-standalone`, `instagram-business`. LinkedIn: `linkedin`, `linkedin-page`. Dev.to: `devto` (`tags`, `organizations`). Skool: `skool` (`groups`, `label` with `{ "id": "<groupId>" }`). Call `integrations:trigger` only for `methodName` values listed under `output.tools`.
 
 ## Allow-listed provider tools
 

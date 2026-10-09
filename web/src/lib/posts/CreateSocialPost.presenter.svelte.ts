@@ -620,7 +620,7 @@ export class CreateSocialPostPresenter {
 			});
 			if (!hasSupport) {
 				toast.message(
-					'Add at least one supported channel (Threads, X, Instagram, LinkedIn, Facebook, or Bluesky) to use follow-up comments.'
+					'Add at least one supported channel (Threads, X, Instagram, LinkedIn, Facebook, Bluesky, or Skool) to use follow-up comments.'
 				);
 				return false;
 			}
@@ -639,7 +639,7 @@ export class CreateSocialPostPresenter {
 				);
 			} else {
 				toast.message(
-					'Select at least one supported channel (Threads, X, Instagram, LinkedIn, Facebook, or Bluesky) to add follow-up comments.'
+					'Select at least one supported channel (Threads, X, Instagram, LinkedIn, Facebook, Bluesky, or Skool) to add follow-up comments.'
 				);
 			}
 			return false;

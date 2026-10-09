@@ -910,7 +910,8 @@ async function maybePublishThreadsReplies(params: {
         pid === "linkedin" ||
         pid === "linkedin-page" ||
         pid === "facebook" ||
-        pid === "bluesky";
+        pid === "bluesky" ||
+        pid === "skool";
     if (!supportsFollowUps) return publishedPostId;
     if (typeof social.comment !== "function") return publishedPostId;
     if (!publishedPostId) return publishedPostId;

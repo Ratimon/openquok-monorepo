@@ -229,7 +229,8 @@ export const isUploadPath = (path: string): boolean =>
 
 export const isIntegrationConnectPath = (path: string): boolean =>
     /^\/integrations\/social-connect\/[^/]+$/.test(path) ||
-    /^\/integrations\/public\/provider\/[^/]+\/connect$/.test(path);
+    /^\/integrations\/public\/provider\/[^/]+\/connect$/.test(path) ||
+    path === "/integrations/extension-refresh";
 
 const LISTING_BOOKMARK_MUTATION_PATH = /^\/listings\/[0-9a-f-]{36}\/bookmark$/i;
 const LINK_DIRECTORY_SAVED_SITE_OUTREACH_PATH =

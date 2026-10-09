@@ -106,6 +106,15 @@ Shared recipes — use the same JSON with `instagram-standalone` or `instagram-b
 | [bluesky-images.json](./bluesky-images.json) | Multi-image post |
 | [bluesky-follow-up.json](./bluesky-follow-up.json) | `bluesky.replies` follow-up |
 
+## Skool
+
+| File | Scenario |
+| --- | --- |
+| [skool-text-title-group.json](./skool-text-title-group.json) | Text post + required title and group |
+| [skool-with-label.json](./skool-with-label.json) | Optional label id (flat keys) |
+| [skool-with-image.json](./skool-with-image.json) | Main post with uploaded image |
+| [skool-follow-up.json](./skool-follow-up.json) | `skool.replies` follow-up comments |
+
 ## Multi-channel
 
 | File | Scenario |

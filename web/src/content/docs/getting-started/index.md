@@ -31,6 +31,7 @@ Connect channels in a workspace. Write a post/content in the post editor, reuse 
 <a href="/channels/tiktok" title="TikTok"><img src="/docs/_assets/platforms/socials/tiktok.svg" alt="TikTok" width="32" height="32" /></a>
 <a href="/channels/devto" title="Dev.to"><img src="/docs/_assets/platforms/socials/devto.svg" alt="Dev.to" width="32" height="32" /></a>
 <a href="/channels/bluesky" title="Bluesky"><img src="/docs/_assets/platforms/socials/bluesky.svg" alt="Bluesky" width="32" height="32" /></a>
+<a href="/channels/skool" title="Skool"><img src="/docs/_assets/platforms/socials/skool.svg" alt="Skool" width="32" height="32" /></a>
 </p>
 
 

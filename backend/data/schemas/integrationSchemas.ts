@@ -113,3 +113,11 @@ export const validateIntegrationConnectPrefillRequest: RequestHandler = validate
 export const validateIntegrationMentionsRequest: RequestHandler = validateRequest({
     body: integrationMentionsBodySchema,
 });
+
+export const extensionRefreshBodySchema = z.object({
+    code: z.string().min(1, "code is required"),
+});
+
+export const validateExtensionRefreshBody: RequestHandler = validateRequest({
+    body: extensionRefreshBodySchema,
+});

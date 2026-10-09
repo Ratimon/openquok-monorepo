@@ -1,8 +1,8 @@
 ---
 title: Connect flow & rules
-description: How you connect each OpenQuok channel in Add Channel — OAuth, credentials, self-host operator OAuth keys, and channel keys.
+description: How you connect each OpenQuok channel in Add Channel — OAuth, credentials, browser extension, self-host operator OAuth keys, and channel keys.
 order: 1
-lastUpdated: 2026-09-22
+lastUpdated: 2026-10-09
 sidebar:
   label: Connect rules
 ---
@@ -15,7 +15,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 > How you link each network to your workspace in **Add Channel**, and which **channel key** the API uses for that connection.
 
-OpenQuok registers **eleven** channels. Connect each one once per workspace account. See <a href="/docs/channels/connect">Connect a channel</a>.
+OpenQuok registers **twelve** channels. Connect each one once per workspace account. See <a href="/docs/channels/connect">Connect a channel</a>.
 
 <p class="not-prose flex flex-wrap items-center gap-3">
 <a href="/channels/facebook" title="Facebook Page"><img src="/docs/_assets/platforms/socials/facebook.svg" alt="Facebook Page" width="32" height="32" /></a>
@@ -27,6 +27,7 @@ OpenQuok registers **eleven** channels. Connect each one once per workspace acco
 <a href="/channels/tiktok" title="TikTok"><img src="/docs/_assets/platforms/socials/tiktok.svg" alt="TikTok" width="32" height="32" /></a>
 <a href="/channels/devto" title="Dev.to"><img src="/docs/_assets/platforms/socials/devto.svg" alt="Dev.to" width="32" height="32" /></a>
 <a href="/channels/bluesky" title="Bluesky"><img src="/docs/_assets/platforms/socials/bluesky.svg" alt="Bluesky" width="32" height="32" /></a>
+<a href="/channels/skool" title="Skool"><img src="/docs/_assets/platforms/socials/skool.svg" alt="Skool" width="32" height="32" /></a>
 </p>
 
 Instagram and LinkedIn each map to **two** channel keys in the table below (Business and Standalone, or personal profile and Page).
@@ -41,12 +42,13 @@ Instagram and LinkedIn each map to **two** channel keys in the table below (Busi
 | --- | --- |
 | **OAuth** | OpenQuok sends you to the platform. You sign in and approve access there. You return to OpenQuok. Some networks then ask you to pick a Page, Instagram account, or YouTube channel. |
 | **Credentials in OpenQuok** | You paste your own API key in a dialog. The self-host operator does not add platform OAuth keys for that channel. |
+| **Browser extension** | You install the OpenQuok Chrome extension, stay signed in on the platform site, and approve a dashboard prompt. OpenQuok reads session cookies through the extension — not platform OAuth. See <a href="/docs/installation/chrome-extension">Browser extension</a>. |
 
 ![Open The modal to connect a channel](/docs/_assets/channel-groups/add-channel-modal.webp)
 
 When you **self-host** OpenQuok, the **operator** (who runs the server) must register an OAuth app with each network and set that app’s client ID and secret in <a href="/docs/configuration-backend">backend environment variables</a>. Workspace members then connect their own accounts in Add Channel.
 
-The last column marks which channels need that operator setup (**Yes** for OAuth networks, **No** when the user pastes a personal API key instead).
+The last column marks which channels need that operator setup (**Yes** for OAuth networks, **No** when the user pastes a personal API key or uses the browser extension instead).
 
 <Callout type="tip">
 <p>On <a href="/docs/cloud">OpenQuok Cloud</a>, those OAuth apps are already configured — you only sign in to your account. For <strong>self-hosting</strong>, see <a href="/docs/social-integration">Social integrations</a> and <a href="/docs/installation/docker-compose#social-channels-optional">Docker Compose → Social channels</a>.</p>
@@ -70,12 +72,13 @@ The last column marks which channels need that operator setup (**Yes** for OAuth
 | **X** | <Badge text="x" variant="param" /> | OAuth | Yes |
 | **Bluesky** | <Badge text="bluesky" variant="param" /> | Credentials in OpenQuok | No |
 | **Dev.to** | <Badge text="devto" variant="param" /> | Credentials in OpenQuok | No |
+| **Skool** | <Badge text="skool" variant="param" /> | Browser extension | No |
 
 ## Connect in the dashboard only
 
 Most channels use **OAuth**: you click the network in **Add Channel**, sign in on the platform site, and return to OpenQuok.
 
-**Dev.to** and **Bluesky** are different. You just paste credentials in Add Channel.
+**Dev.to** and **Bluesky** use credentials in Add Channel. **Skool** uses the <a href="/docs/installation/chrome-extension">OpenQuok browser extension</a> while you are signed in on Skool — there is no Skool OAuth app for operators to configure.
 
 Operator setup for each OAuth network is in <a href="/docs/social-integration">Social integrations</a>.
 
@@ -85,5 +88,7 @@ Operator setup for each OAuth network is in <a href="/docs/social-integration">S
 <LinkCard title="Platforms overview" description="App names vs API keys, follow-ups, and how rules apply" href="/docs/platforms" />
 <LinkCard title="Media rules" description="Attachments, character caps, and caption editors" href="/docs/platforms/media-rules" />
 <LinkCard title="Per-channel settings" description="Composer Settings fields per network" href="/docs/platforms/per-channel-settings" />
-<LinkCard title="Connect a channel" description="OAuth and credentials step by step" href="/docs/channels/connect" />
+<LinkCard title="Connect a channel" description="OAuth, credentials, and browser extension step by step" href="/docs/channels/connect" />
+<LinkCard title="Browser extension" description="Install the extension and set VITE_OPENQUOK_BROWSER_EXTENSION_ID" href="/docs/installation/chrome-extension" />
+<LinkCard title="Skool" description="Connect Skool with the browser extension" href="/docs/social-integration/skool" />
 </CardGrid>

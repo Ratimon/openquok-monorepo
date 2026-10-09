@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { BrowserExtensionSessionCookie } from 'openquok-common';
+
 	import type { ContinueSocialIntegrationViewModel } from '$lib/integrations';
 	import type { IntegrationCatalogCustomField } from '$lib/integrations/utils/credentialsConnect';
 	import type { TwoStepPickerViewModel } from '$lib/integrations/continue-provider';
@@ -33,6 +35,10 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import CircularProgressBar from '$lib/ui/circular-progress-bar/CircularProgressBar.svelte';
 	import ContinueProviderPicker from '$lib/ui/components/posts/providers/ContinueProviderPicker.svelte';
+	import { afterExtensionChannelConnect } from '$lib/integrations/browser-extension/afterExtensionChannelConnect';
+	import { encodeExtensionConnectCode } from '$lib/integrations/browser-extension/extensionConnectCode';
+	import { removeBrowserExtensionRefreshToken } from '$lib/integrations/browser-extension/extensionRefreshRegistration';
+	import BrowserExtensionConnectDialog from '$lib/ui/components/posts/BrowserExtensionConnectDialog.svelte';
 	import CredentialsConnectForm from '$lib/ui/components/posts/CredentialsConnectForm.svelte';
 	import GoogleApiPrivacyNotice from '$lib/ui/components/legal/GoogleApiPrivacyNotice.svelte';
 	import TiktokApiPrivacyNotice from '$lib/ui/components/legal/TiktokApiPrivacyNotice.svelte';
@@ -68,6 +74,8 @@
 	let credentialsSubmitting = $state(false);
 	/** Authorize `url` already fetched (non-http state). Reused on submit so state stays single-use. */
 	let credentialsAuthorizeState = $state<string | null>(null);
+	let extensionConnectActive = $state(false);
+	let extensionSubmitting = $state(false);
 
 	const provider = $derived(page.params.provider ?? '');
 
@@ -202,6 +210,12 @@
 				await goto(accountUrl, { replaceState: true });
 				return;
 			}
+
+			await afterExtensionChannelConnect({
+				providerId: p,
+				integrationId: connectResult.data.id,
+				extensionToken: connectResult.data.extensionToken
+			});
 
 			if (continueIntegrationPresenter.showToastMessage) {
 				if (continueIntegrationPresenter.toastKind === 'success') {
@@ -370,6 +384,10 @@
 
 		removingConflictChannel = true;
 		try {
+			await removeBrowserExtensionRefreshToken({
+				providerId: conflict.existingProviderIdentifier || vm.provider,
+				integrationId: conflict.existingIntegrationId
+			});
 			const del = await integrationsRepository.deleteChannel({
 				organizationId: vm.organizationId,
 				integrationId: conflict.existingIntegrationId
@@ -519,6 +537,57 @@
 		}
 	}
 
+	async function detectBrowserExtensionProvider(p: string): Promise<boolean> {
+		try {
+			const catalog = await integrationsRepository.getCatalog();
+			const item = catalog.find((row) => row.identifier === p);
+			if (!item?.isChromeExtension) return false;
+			extensionConnectActive = true;
+			return true;
+		} catch {
+			return false;
+		}
+	}
+
+	async function submitExtensionConnect(cookies: BrowserExtensionSessionCookie[]) {
+		const p = provider;
+		extensionSubmitting = true;
+		busy = true;
+		try {
+			let state = credentialsAuthorizeState;
+			if (!state) {
+				if (!workspaceSettingsPresenter.currentWorkspaceId) {
+					await workspaceSettingsPresenter.load({ includeTeam: false });
+				}
+				const organizationId =
+					organizationIdParam || workspaceSettingsPresenter.currentWorkspaceId || '';
+				if (!organizationId) {
+					toast.error('Create or select a workspace before connecting a channel.');
+					await goto(absoluteUrl(`${accountPath}/settings?section=workspace`), {
+						replaceState: true
+					});
+					return;
+				}
+				const resPm = await integrationsRepository.getAuthorizeUrl({
+					organizationId,
+					provider: p,
+					externalUrl: returnTo,
+					...(refresh && { refresh }),
+					...(onboarding === 'true' && { onboarding: 'true' })
+				});
+				if (!('url' in resPm)) {
+					toast.error(resPm.error);
+					return;
+				}
+				state = resPm.url;
+				credentialsAuthorizeState = state;
+			}
+			await finishOAuthCallback(p, encodeExtensionConnectCode(cookies), state, refresh);
+		} finally {
+			extensionSubmitting = false;
+		}
+	}
+
 	async function submitCredentials(values: Record<string, string>) {
 		const p = provider;
 		credentialsSubmitting = true;
@@ -571,6 +640,10 @@
 			busy = false;
 			return;
 		}
+		if (extensionConnectActive) {
+			busy = false;
+			return;
+		}
 
 		busy = true;
 		signInRequiredForOAuthStart = false;
@@ -612,6 +685,11 @@
 		}
 
 		if (await detectCredentialsProvider(p)) {
+			busy = false;
+			return;
+		}
+
+		if (await detectBrowserExtensionProvider(p)) {
 			busy = false;
 			return;
 		}
@@ -674,6 +752,18 @@
 			onCancel={cancelContinuePicker}
 		/>
 	{/if}
+{:else if extensionConnectActive}
+	<BrowserExtensionConnectDialog
+		open={true}
+		providerName={providerLabel}
+		providerIdentifier={provider}
+		submitting={extensionSubmitting}
+		onSubmit={submitExtensionConnect}
+		onCancel={() => {
+			extensionConnectActive = false;
+			void goto(absoluteUrl(returnTo), { replaceState: true });
+		}}
+	/>
 {:else if credentialsActive}
 	<div class="mx-auto max-w-lg px-4 py-10">
 		<h1 class="text-xl font-semibold text-base-content">Connect {providerLabel}</h1>

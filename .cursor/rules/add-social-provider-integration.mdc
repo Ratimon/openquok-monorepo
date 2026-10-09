@@ -13,7 +13,14 @@ globs:
   - web/src/lib/ui/components/posts/SettingsAccordion.svelte
   - web/src/lib/ui/components/posts/IntegrationContinue.svelte
   - web/src/lib/integrations/continue-provider/**
+  - web/src/lib/integrations/browser-extension/**
   - web/src/lib/integrations/ContinueIntegration.presenter.svelte.ts
+  - extension/**
+  - common/src/browser-extension/**
+  - web/src/content/docs/installation/chrome-extension.md
+  - web/src/routes/(legal)/terms/+page.svelte
+  - web/src/routes/(legal)/privacy-policy/+page.svelte
+  - web/src/routes/(legal)/cookie-policy/+page.svelte
   - web/src/data/social-providers.ts
   - web/src/lib/area-protected/ProtectedAnalyticsPage.presenter.svelte.ts
   - web/src/routes/(protected)/account/analytics/**
@@ -85,12 +92,13 @@ alwaysApply: false
 
 # Adding a social provider
 
-Ship **backend + web + docs + public API provider settings page + self-host env + public channel landing page + agent channel SEO routes + public Photo Editor channel routes + public Best Time to Post channel routes + public Humanizer channel routes + feature bento showcases** in one change. Add the **Extensions Hub listing tag in secret-admin** (not SQL seeds). Connect is a fork of this checklist, not a separate product surface — pick **OAuth** (default) or **credentials in OpenQuok**.
+Ship **backend + web + docs + public API provider settings page + self-host env + public channel landing page + agent channel SEO routes + public Photo Editor channel routes + public Best Time to Post channel routes + public Humanizer channel routes + feature bento showcases** in one change. Add the **Extensions Hub listing tag in secret-admin** (not SQL seeds). Connect is a fork of this checklist, not a separate product surface — pick **OAuth** (default), **credentials in OpenQuok**, or **browser extension**.
 
 | Family | Operator developer app? | User action | OpenQuok env keys | Reference |
 | --- | --- | --- | --- | --- |
 | **OAuth** (default) | Yes | Redirect to the platform | `config.integrations.*` + self-host `.env.example` + docker-compose row | **Threads** (single-step), **Instagram (Business)** (Page picker + compose settings), **Facebook Page** (Meta OAuth + link-preview settings) |
 | **Credentials in OpenQuok** | **No** | Paste personal API key / app password into Add Channel | **None** — do not invent empty `{PROVIDER}_*` placeholders | **Dev.to (`devto`)** |
+| **Browser extension** | **No** | Install OpenQuok extension, stay signed in on platform site, approve dashboard connect | **`VITE_OPENQUOK_BROWSER_EXTENSION_ID`** on web; extension `externally_connectable` for self-host origins | **Skool (`skool`)** — `common/src/browser-extension/`, `extension/`, `web/src/lib/integrations/browser-extension/` |
 
 Public landing + bento references: **facebook**, **threads** in `channels/catalog/platforms/` and `web/src/lib/ui/templates/bento/minor-templates/`. Agent channel SEO references: **facebook** at `/agents/openclaw/facebook`. Photo Editor channel references: **facebook**, **instagram** at `/tools/photo-editor/{slug}`. Best Time to Post references: **tiktok**, **linkedin** at `/tools/best-time-to-post/{slug}`; benchmark tables in `web/src/lib/best-time-to-post/constants/benchmarkSlots.ts`. Humanizer references: **linkedin**, **x** at `/tools/humanizer/{slug}`; generic mocked composer at `/tools/humanizer`. Listing tag: `/secret-admin/catalog-manager/tags`. Full guide: `web/src/content/docs/contribution-opportunities/add-provider.md`.
 
@@ -105,10 +113,13 @@ Use one kebab-case slug everywhere: `provider.identifier`, DB `provider_identifi
    `generateAuthUrl` / `authenticate` are **OAuth code exchange** (default) **or credentials**:
    - **OAuth:** `generateAuthUrl` returns a platform authorize URL; `authenticate` exchanges `code`.
    - **Credentials:** implement `customFields()` (catalog metadata: `key`, `label`, `validation` regex, `type`). Session `getIntegrationUrl` still seeds org/state cache — `generateAuthUrl` returns a random `state` and sets `url` to that `state` (not a real redirect). `authenticate` decodes `code` as base64 JSON (e.g. `{ apiKey }`), validates against the platform, and stores the secret as `accessToken`. Reference: **Dev.to (`devto`)**.
+   - **Browser extension:** set `isChromeExtension = true` and `extensionCookies` (aligned with `common/src/browser-extension/cookieSessionProviders.ts`). Same state + base64 JSON `code` as credentials, but payload is session cookies from the extension. Store encrypted session JSON in `integrations.token`. Return signed **`extensionToken`** on connect for `POST /integrations/extension-refresh`. Register cookie provider in `extension/` + shared catalog. Reference: **Skool (`skool`)**.
 2. **Register** — add `new YourProvider()` in `backend/integrations/integrationManager.ts` (no new REST routes).
 3. **Config (OAuth only)** — operator app secrets via `config.integrations.*` in `GlobalConfig.ts` + `.env.development.example`. Also add the same empty keys to **`infra/self-host/.env.example`** (Social provider apps section) so self-host operators get the vars. Redirect URI: `oauthFrontendOrigin()` + `oauthFrontendSocialCallbackPath(identifier)`.
 
    **Credentials (`customFields()` set):** skip `GlobalConfig`, `.env.development.example`, and `infra/self-host/.env.example` — do not invent empty `{PROVIDER}_*` placeholders. Document in `web/src/content/docs/installation/docker-compose.md` that the channel needs **no** operator developer app. Session `getIntegrationUrl` still seeds cache for the dashboard form; `GET /public/social/:identifier` (`getIntegrationUrlPublicApi`) must **400** (connect this channel in the dashboard with an API key). Do not add a new public connect route.
+
+   **Browser extension (`isChromeExtension`):** skip operator OAuth env keys. Document `VITE_OPENQUOK_BROWSER_EXTENSION_ID` in `web/.env.development.example` and ship `web/src/content/docs/installation/chrome-extension.md`. Self-host: note `externally_connectable` manifest customization. `GET /public/social/:identifier` must **400** (dashboard + extension only). Wire `IntegrationConnectionService` verifier skip + `extensionToken` on connect; extension refresh route + JWT helper beside invite tokens.
 4. **Between-steps OAuth** — when `isBetweenSteps: true`: implement `pages()` + `fetchPageInformation()`; extend `IntegrationConnectionService.saveProviderPageForOrganization` / `preservesUserTokenForRefresh` if user token must stay in `refresh_token` (Meta Page pattern).
 5. **Provider settings at publish** — read from `postDetails.settings.providerSettings`. Accept **flat CLI keys** and **nested web buckets** (e.g. `providerSettings.url` and `providerSettings.facebook.url`). Export a resolver + unit tests beside publish helpers.
 6. **replies (`comment`)** — when the platform API can publish a **reply or comment on the user’s own post** after the main publish (thread reply, quote-less reply, nested comment, etc.), implement `comment()` on the provider class (not only `post`). Read text from `postDetails.message` and **media from `postDetails.settings`** when the network allows attachments on replies. Unit-test comment payload shaping (text-only vs one image vs carousel) beside publish helpers. If the network **cannot** schedule same-account follow-ups, omit `comment()` and set `postComment: 'NONE'` in launch config — do not claim follow-ups on the landing page or in agent recipes.
@@ -161,7 +172,12 @@ Connect catalog is backend-driven; composer wiring is **opt-in per provider**.
    - **Add Channel** — `AddProvider.svelte` shows the provider in the normal grid and opens the credentials dialog (password input + regex from catalog). Submit: `getAuthorizeUrl` (seeds cache; returned `url` is the `state`) then `connectSocial` with that `state` and `code` = `btoa(JSON.stringify({ apiKey }))`.
    - **Invite links** — keep filtering `customFields` providers out of invite-link copy.
    - **Continue / refresh** — `IntegrationContinue.svelte` must **not** set `window.location.href` to a non-URL `state` string. When the catalog has `customFields`, reuse the same credentials form so `?refresh=` works without an OAuth redirect.
-7. **User connect guide** — update `web/src/content/docs/channels/connect.md`: OAuth providers under the OAuth redirect tab (follow-up picker table when `isBetweenSteps`); credentials providers in the credentials table. When a new connect family ships, add a tab there before users see it in Add Channel.
+7. **Browser extension connect** (`isChromeExtension` on the catalog) — extension + dashboard, not platform OAuth:
+   - **Add Channel** — `AddProvider.svelte` opens `BrowserExtensionConnectDialog.svelte` (ToS / risk copy aligned with legal pages), then PING + GET_COOKIES via `web/src/lib/integrations/browser-extension/`, then `connectSocial` with base64 JSON cookies.
+   - **Invite links** — exclude `isChromeExtension` providers (same as credentials).
+   - **After connect** — `IntegrationContinue.svelte` / `afterExtensionChannelConnect` → STORE_REFRESH_TOKEN with `extensionToken` + backend URL; disconnect → REMOVE_REFRESH_TOKEN.
+   - **Docs** — `web/src/content/docs/installation/chrome-extension.md` + `web/src/content/docs/social-integration/{identifier}.md` (Skool reference).
+8. **User connect guide** — update `web/src/content/docs/channels/connect.md`: OAuth tab; credentials table; **browser extension** tab when `isChromeExtension` ships. Update `web/src/content/docs/platforms/connect-rules.md` fourth connect type row + catalog table.
 
 Keep composer validation aligned with backend publish rules (`checkValidity` ↔ `validateCreatePost` / publish helper constraints).
 
@@ -567,12 +583,34 @@ Footer columns are assembled in `web/src/lib/config/constants/config.ts` from bu
 
 See also **web-seo-pseo** → Footer inventory.
 
+### Marketing platform icon strips (three surfaces — same PR as catalog)
+
+When a channel is registered in **`PUBLIC_CHANNEL_LANDING_PAGES`** (`channels/catalog/seeds.ts`), update **all three** public icon strips in the **same PR** as the catalog entry — do not wait for `available: true` and do not rely on `/channels/{slug}` alone.
+
+| # | Surface | What to update |
+| --- | --- | --- |
+| 1 | **Main landing hero** | `web/src/data/landing-social-platforms.ts` — `HERO_SOCIAL_PLATFORMS` (strip in `HeroMain.svelte`), `FEATURES_GRID_SOCIAL_PLATFORMS`, and `FEATURES_GRID_SOCIAL_ROWS`. Prefer `icons.*Glyph` + `GLYPH_TILE` when peer networks use glyph tiles. |
+| 2 | **Repository README** | `README.md` — **Supported platforms** `<p>` icon row (`https://www.openquok.com/channels/{slug}`) and nearby prose lists (e.g. **Connect channels** bullet). Add `assets/readme/socials/{slug}.svg` (32×32; match other social marks — vector SVG preferred, embedded PNG acceptable when no official vector exists). |
+| 3 | **Docs getting started** | `web/src/content/docs/getting-started/index.md` — same icon row markup (`/channels/{slug}`, `/docs/_assets/platforms/socials/{slug}.svg`). Add `web/static/docs/_assets/platforms/socials/{slug}.svg` (copy from `assets/readme/socials/{slug}.svg` when identical). |
+
+**Docs mirrors (keep in sync with getting started):** duplicate the same `<a><img …></a>` row on:
+
+- `web/src/content/docs/platforms/index.md`
+- `web/src/content/docs/platforms/connect-rules.md`
+
+Use the same channel order across all five markdown files when practical (Facebook → Threads → Instagram → LinkedIn → X → YouTube → TikTok → Dev.to → Bluesky → …).
+
+**App UI icons** (`web/src/data/icons/branded-icons.ts`, `social-providers.ts`) are separate from strip SVGs — ship both when the channel is user-visible.
+
+**Do not** add a channel to the hub catalog without completing the three surfaces above (common miss: README + docs assets while only updating `landing-social-platforms.ts`).
+
 ## Docs and agent resources (user-facing providers)
 
 | Artifact | Path |
 | --- | --- |
-| Connect flows (user guide) | `web/src/content/docs/channels/connect.md` — keep the **two** (or future **four**) connection-flow tabs aligned with shipped providers. **OAuth:** list the network under the OAuth redirect tab (and the follow-up picker table when `isBetweenSteps`). **Credentials (`customFields`):** add a row to the credentials table and mention invite-link exclusion. Update when a new connect family ships (e.g. in-app dialog, browser extension). |
-| Setup guide | `web/src/content/docs/social-integration/{id}.md` + `index.md` LinkCard. **Credentials:** document where the **user** creates the API key (platform settings); skip operator ID/secret rows and backend env sections. **OAuth:** operator app + redirect URI as today. |
+| Connect flows (user guide) | `web/src/content/docs/channels/connect.md` — keep OAuth, credentials, and **browser extension** tabs aligned with shipped providers. **OAuth:** OAuth redirect tab (+ follow-up picker when `isBetweenSteps`). **Credentials:** credentials table + invite exclusion. **Browser extension:** extension tab + link to `installation/chrome-extension.md`. |
+| Setup guide | `web/src/content/docs/social-integration/{id}.md` + `index.md` LinkCard. **Credentials:** user API key path; no operator OAuth env. **Browser extension:** extension install + platform login; no operator OAuth env. **OAuth:** operator app + redirect URI as today. |
+| Browser extension install | `web/src/content/docs/installation/chrome-extension.md` when `isChromeExtension` — build/load unpacked, `VITE_OPENQUOK_BROWSER_EXTENSION_ID`, self-host `externally_connectable`. |
 | CLI examples (human docs) | `web/src/content/docs/cli-examples/{id}.md` |
 | **Public API provider settings** | `web/src/content/docs/public-api-providers/{identifier}.md` + hub updates in `public-api-providers/index.md` |
 | Follow-up replies (user docs) | `web/src/content/docs/creating-posts/threads-and-comments.md` — platform table when the channel supports scheduled follow-ups |
@@ -826,6 +864,7 @@ Host channel VMs: `agents/channels/{host}.ts` (from `listPublicChannelsForHub()`
 - Provider registered in `integrationManager.ts` and `getLaunchProviderConfig` (if composer support).
 - **OAuth only:** Redirect URI in platform console matches `/integration/oauth/{identifier}` exactly.
 - **Credentials only:** no new env vars; docker-compose callout that there is no operator app; dashboard Add Channel / refresh connect works; `GET /public/social/{identifier}` returns 400.
+- **Browser extension only:** `VITE_OPENQUOK_BROWSER_EXTENSION_ID` on web; extension package + cookie catalog; connect returns `extensionToken`; `GET /public/social/{identifier}` returns 400; legal/privacy/cookie docs mention extension session handling.
 - `providerSettings` shape documented for CLI (`providerSettingsByIntegrationId`) and resolved in backend publish code.
 - Unit tests added/updated for non-trivial paths.
 - **`web/src/data/social-providers.ts`:** display name + icon for new slug; **`SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS`** includes exact `provider.identifier` when `analytics()` / `postAnalytics()` ship (not a parent alias like `instagram` for `instagram-business`).
@@ -833,10 +872,10 @@ Host channel VMs: `agents/channels/{host}.ts` (from `listPublicChannelsForHub()`
 - **Feature bento:** IDs in `channels/catalog/feature-bento.ts` (and related router/mock files under `bento/minor-templates/`); branches in `BentoPublicChannelFeature.svelte`; showcases match shipped features only.
 - **Build Backlinks `schedule_post`:** `{catalogSlug}-post-editor` (or `COMPOSER_BENTO_BY_CATALOG_SLUG` fallback) registered in `resolveSchedulePostComposerBentoId.ts`; `INTEGRATION_ID_TO_CATALOG_SLUG` when `provider.identifier` differs from catalog slug; unit test in `resolveSchedulePostComposerBentoId.test.ts`.
 - **Landing page:** hero + feature sections + FAQ filled; **copy is problem-first, user-facing, and ASD-STE100** (short sentences, active voice, `you`; not feature/spec lists); hero + feature CTAs from `hero-copy.ts` → `/pricing`.
-- **Main landing icons:** when go-live-ing a channel, update `web/src/data/landing-social-platforms.ts` — add the provider to `HERO_SOCIAL_PLATFORMS` and `FEATURES_GRID_SOCIAL_PLATFORMS` / `FEATURES_GRID_SOCIAL_ROWS` (not only `/channels/{slug}`). Prefer glyph icons (`icons.*Glyph`) with `GLYPH_TILE` when peers use them.
+- **Marketing platform icon strips (three surfaces):** `landing-social-platforms.ts` (`HERO_SOCIAL_PLATFORMS` + features grid rows); `README.md` icon row + prose + `assets/readme/socials/{slug}.svg`; `getting-started/index.md` + `web/static/docs/_assets/platforms/socials/{slug}.svg`; mirror row on `platforms/index.md` and `platforms/connect-rules.md` (see **Marketing platform icon strips** above).
 - **Hub:** new channel appears on `/channels` (coming-soon badge or live link).
 - **Site footer:** no manual `PUBLIC_FOOTER_LINKS` / `buildPublicFooterLinks.ts` edits for the provider slug — **Supported Channels** picks up the catalog entry; **How to self-host with different social channels** picks up `social-integration/{identifier}.md` (non-draft, with `title` + `order`); tool columns follow live-channel rules above. Spot-check footer labels and hrefs before merge.
-- **Connect user guide:** `web/src/content/docs/channels/connect.md` — OAuth provider listed under OAuth redirect (and follow-up picker table when `isBetweenSteps`); credentials provider row in the credentials table; invite-link note if `customFields`.
+- **Connect user guide:** `web/src/content/docs/channels/connect.md` — OAuth, credentials, and browser-extension tabs; `platforms/connect-rules.md` fourth family row; invite-link note for `customFields` / `isChromeExtension`.
 - **Agent skill:** `resources/{identifier}-examples.md` with Supported features + Agent tasks + Provider settings + recipes; `SKILL.md` **Channels** row updated; `web/src/content/docs/cli-examples/{id}.md` shipped or updated for human docs; sync `web/src/content/docs/public-api-providers/{identifier}.md` when `providerSettingsByIntegrationId` shapes change.
 - **Public API provider docs:** `web/src/content/docs/public-api-providers/{identifier}.md` with correct `{DisplayName} Settings` title; hub `index.md` catalog row + LinkCard; `platforms/connect-rules.md` and `media-rules.md` rows when new network; follow-up/plug sections match shipped backend only.
 - **Self-host (OAuth):** new OAuth env keys in `infra/self-host/.env.example` (Social provider apps); matching row in `web/src/content/docs/installation/docker-compose.md` **Optional: Social provider apps**; do not add secrets to the `web` Compose service (API/workers only via `.env`).

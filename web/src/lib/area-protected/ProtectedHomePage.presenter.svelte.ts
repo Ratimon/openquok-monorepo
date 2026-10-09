@@ -16,6 +16,7 @@ import type {
 	WorkspaceChannelGroupViewModel
 } from '$lib/channels/GetChannel.presenter.svelte';
 
+import { removeBrowserExtensionRefreshToken } from '$lib/integrations/browser-extension/extensionRefreshRegistration';
 import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
 import { userFacingChannelDeleteError } from '$lib/integrations/utils/userFacingChannelDeleteError';
 import { absoluteUrl, route, url } from '$lib/utils/path';
@@ -319,6 +320,13 @@ export class ProtectedHomePagePresenter {
 		const orgId = this.workspaceSettingsPresenter.currentWorkspaceId;
 		if (!orgId) {
 			return { ok: false, error: 'No workspace selected.' };
+		}
+		const channel = this.connectedChannelsVm.find((row) => row.id === integrationId);
+		if (channel?.identifier) {
+			await removeBrowserExtensionRefreshToken({
+				providerId: channel.identifier,
+				integrationId
+			});
 		}
 		const resPm = await this.integrationsRepository.deleteChannel({
 			organizationId: orgId,

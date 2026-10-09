@@ -108,6 +108,8 @@ export interface ConnectSocialSuccessProgrammerModel {
 	inBetweenSteps: boolean;
 	refreshNeeded: boolean;
 	onboarding: boolean;
+	/** Signed JWT for the browser extension refresh loop (chrome-extension providers only). */
+	extensionToken?: string;
 	pages?: InstagramBusinessConnectPageRow[] | FacebookConnectPageRow[];
 }
 

@@ -37,7 +37,7 @@
 				Back
 			</Button>
 			<SectionTitle>Privacy Policy for {companyName}</SectionTitle>
-			<SectionDescription>Last updated October 2, 2026</SectionDescription>
+			<SectionDescription>Last updated October 9, 2026</SectionDescription>
 		</SectionHeaderContainer>
 		<SubSectionOuterContainer class="max-w-3xl !py-4">
 			<SubSectionInnerContainer
@@ -200,6 +200,23 @@
 						and refresh tokens (encrypted at rest), the scopes you granted, the Platform username and
 						identifier, and account-level metadata (for example profile picture, follower or
 						subscriber counts, page IDs, and channel IDs).
+					</li>
+					<li>
+						<strong>Browser-extension session channels:</strong> When you connect a Platform through
+						our optional Chrome browser extension (for example Skool), you initiate the flow from the
+						dashboard while signed in on that Platform’s website. The extension reads session
+						identifiers required to act as your account (such as HTTP cookies for that domain) and
+						sends them to our API over HTTPS. We validate the session with the Platform, store the
+						session payload encrypted at rest on our servers, and use it only to provide scheduling
+						and publishing you request. After connect, we may issue a signed refresh token returned
+						to the extension; the extension stores that token in Chrome local storage and, on a
+						periodic schedule you enable by connecting, sends updated session identifiers to our
+						<strong>extension-refresh</strong> endpoint so long-lived channels stay valid. Disconnecting
+						the channel in your workspace stops future refresh and removes the stored refresh token
+						from the extension when you use disconnect in the product. We do not use extension
+						session data for advertising. See also our
+						<a href="/cookie-policy" class="link link-hover">Cookie Policy</a> for how this relates
+						to first-party cookies on {companyUrl}.
 					</li>
 					<li id="google-api-services">
 						<strong>YouTube and Google API Services:</strong> For YouTube specifically, the

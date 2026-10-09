@@ -6,6 +6,7 @@ import {
 	facebookChannel,
 	instagramChannel,
 	linkedinChannel,
+	skoolChannel,
 	threadsChannel,
 	tiktokChannel,
 	xChannel,
@@ -26,6 +27,7 @@ export const PUBLIC_CHANNEL_LANDING_PAGES: readonly PublicChannelLandingPageView
 	xChannel,
 	blueskyChannel,
 	devtoChannel,
+	skoolChannel,
 	...COMING_SOON_CHANNELS
 ];
 

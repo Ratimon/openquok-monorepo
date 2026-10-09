@@ -138,6 +138,19 @@ Channel key: <Badge text="devto" variant="param" />
 | **Series** | Optional series name |
 | **Organization** | Post under a Dev.to organization when applicable |
 
+### Skool
+
+Channel key: <Badge text="skool" variant="param" />
+
+| Setting | Purpose |
+| --- | --- |
+| **Title** | Post title (**required**, min 1 character) |
+| **Group** | Target Skool group id (**required**) — load options from the picker or <Badge text="integrations:trigger" variant="default" /> <Badge text="groups" variant="default" /> |
+| **Label** | Optional label id for the group — <Badge text="label" variant="default" /> tool with group id |
+| **Follow-up comments** | Same-account comment chain after publish — see <a href="/docs/creating-posts/threads-and-comments">Threads and comments</a> |
+
+Connect with the <a href="/docs/installation/chrome-extension">OpenQuok browser extension</a> while signed in on skool.com. API keys for the table above live under the <Badge text="skool" variant="default" /> bucket in <Badge text="providerSettingsByIntegrationId" variant="param" />. See <a href="/docs/public-api-providers/skool">Skool Settings</a>.
+
 ## Platform details
 
 Most platforms behave as you expect. These rules catch people out often.

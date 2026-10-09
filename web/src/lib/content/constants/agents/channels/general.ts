@@ -32,7 +32,8 @@ const CHANNEL_PROVIDER_IDENTIFIERS: Record<string, readonly string[]> = {
 	linkedin: ['linkedin', 'linkedin-page'],
 	x: ['x'],
 	devto: ['devto'],
-	bluesky: ['bluesky']
+	bluesky: ['bluesky'],
+	skool: ['skool']
 };
 
 const KANBAN_BENTO_BY_CHANNEL: Record<string, PublicChannelFeatureBentoId> = {

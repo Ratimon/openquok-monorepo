@@ -17,6 +17,8 @@ export interface ContinueSocialIntegrationViewModel {
 	onboarding: boolean;
 	/** Present when OAuth returned `pages` on the connect response. */
 	pages?: ContinueConnectPageRow[];
+	/** Present when connect used the browser extension (periodic session refresh). */
+	extensionToken?: string;
 }
 
 function toContinueSocialIntegrationViewModel(
@@ -29,8 +31,9 @@ function toContinueSocialIntegrationViewModel(
 		inBetweenSteps: pm.inBetweenSteps,
 		onboarding: pm.onboarding
 	};
-	if (!Array.isArray(pm.pages) || pm.pages.length === 0) return base;
-	return { ...base, pages: pm.pages as ContinueConnectPageRow[] };
+	const withToken = pm.extensionToken ? { ...base, extensionToken: pm.extensionToken } : base;
+	if (!Array.isArray(pm.pages) || pm.pages.length === 0) return withToken;
+	return { ...withToken, pages: pm.pages as ContinueConnectPageRow[] };
 }
 
 export enum ContinueIntegrationStatus {

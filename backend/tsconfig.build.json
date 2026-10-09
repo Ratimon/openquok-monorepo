@@ -16,6 +16,7 @@
     "dist",
     "tests/**",
     "**/*.test.ts",
+    "**/*.unit.harness.ts",
     "handler/**",
     "tsup.config.ts"
   ]

@@ -28,6 +28,7 @@ Copy-pasteable recipes for the `openquok` CLI grouped by social network. Each pa
 <LinkCard title="X" description="Tweets, media, thread replies, finisher, and analytics" href="/docs/cli-examples/x" />
 <LinkCard title="Dev.to" description="Markdown articles with title, tags, canonical URL, and organization" href="/docs/cli-examples/devto" />
 <LinkCard title="Bluesky" description="Text, images, video, and bluesky.replies follow-ups" href="/docs/cli-examples/bluesky" />
+<LinkCard title="Skool" description="Title, group, label, images, and skool.replies follow-ups (extension connect)" href="/docs/cli-examples/skool" />
 </CardGrid>
 
 ## Conventions used in these pages

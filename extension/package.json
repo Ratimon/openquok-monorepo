@@ -1,0 +1,26 @@
+{
+  "name": "@openquok/browser-extension",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OpenQuok browser extension for cookie-session social channels (Skool and similar)",
+  "type": "module",
+  "scripts": {
+    "prepare:icons": "node ./scripts/prepare-icons.mjs",
+    "build": "pnpm run prepare:icons && vite build && node ./scripts/copy-static.mjs",
+    "zip": "pnpm run build && node ./scripts/zip.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "openquok-common": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.304",
+    "sharp": "^0.34.5",
+    "typescript": "^5.9.3",
+    "vite": "^6.3.5"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "license": "AGPL-3.0-or-later"
+}

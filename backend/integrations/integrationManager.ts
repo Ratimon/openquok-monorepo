@@ -15,6 +15,7 @@ import { YoutubeProvider } from "./providers/youtube/youtubeProvider";
 import { XProvider } from "./providers/x/xProvider";
 import { DevToProvider } from "./providers/devto/devtoProvider";
 import { BlueskyProvider } from "./providers/bluesky/blueskyProvider";
+import { SkoolProvider } from "./providers/skool/skoolProvider";
 
 const socialIntegrationList: SocialProvider[] = [
     new ThreadsProvider(),
@@ -28,6 +29,7 @@ const socialIntegrationList: SocialProvider[] = [
     new XProvider(),
     new DevToProvider(),
     new BlueskyProvider(),
+    new SkoolProvider(),
 ];
 
 export class IntegrationManager {

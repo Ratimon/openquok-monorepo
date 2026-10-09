@@ -17,11 +17,15 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/co
 <p>These guides are for self-hosters who run OpenQuok themselves and register their own social developer apps. On <a href="/docs/cloud">OpenQuok Cloud</a>, those apps are already configured — you only connect your account.</p>
 </Callout>
 
-OpenQuok connects **social channels** through the **backend** integration layer: organization-scoped channels, optional **programmatic** APIs authenticated with a workspace <Badge text="opo_" variant="default" /> token, and one of two connect families.
+OpenQuok connects **social channels** through the **backend** integration layer: organization-scoped channels, optional **programmatic** APIs authenticated with a workspace <Badge text="opo_" variant="default" /> token, and one of three connect families.
 
 <strong>Most</strong> channels use <strong>OAuth</strong>. You apply for developer app , set redirect URIs, request API acess and store client IDs and secrets in backend environment.
 
-<strong>Some</strong> channels ( eg. Dev.to) use a <strong>personal API key</strong> the user pastes in Add Channel. See <a href="/docs/getting-started-for-public-api#authentication">Public API authentication</a> for token setup.
+<strong>Some</strong> channels (for example Dev.to and Bluesky) use a <strong>personal API key</strong> the user pastes in Add Channel.
+
+<strong>Skool</strong> uses the <strong>browser extension</strong> — no operator OAuth app. Set <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_ID" variant="envWeb" /> on the web app and distribute the extension; see <a href="/docs/installation/chrome-extension">Browser extension</a>.
+
+See <a href="/docs/getting-started-for-public-api#authentication">Public API authentication</a> for workspace API token setup.
 
 <Callout type="danger">
 Never commit <Badge text="THREADS_APP_SECRET" variant="envBackend" /> or other provider secrets. Use <Badge text="backend/.env.development.local" variant="envBackend" /> (or your host’s secret store in production).
@@ -40,6 +44,8 @@ Never commit <Badge text="THREADS_APP_SECRET" variant="envBackend" /> or other p
 <LinkCard title="X" description="Connect X (Twitter) so you can schedule posts" href="/docs/social-integration/x" />
 <LinkCard title="Dev.to" description="Connect with a personal API key and schedule markdown articles" href="/docs/social-integration/devto" />
 <LinkCard title="Bluesky" description="Connect with an app password and schedule text, media, and follow-up replies" href="/docs/social-integration/bluesky" />
+<LinkCard title="Skool" description="Connect with the browser extension — no operator OAuth app" href="/docs/social-integration/skool" />
+<LinkCard title="Browser extension" description="Build and install the OpenQuok Chrome extension" href="/docs/installation/chrome-extension" />
 <LinkCard title="Adding a provider" description="How to add a new social channel as a contributor" href="/docs/contribution-opportunities/add-provider" />
 </CardGrid>
 

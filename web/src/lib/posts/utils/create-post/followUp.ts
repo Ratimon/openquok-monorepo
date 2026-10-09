@@ -9,7 +9,8 @@ export type FollowUpProviderBucket =
 	| 'x'
 	| 'linkedin'
 	| 'facebook'
-	| 'bluesky';
+	| 'bluesky'
+	| 'skool';
 
 export function channelSupportsFollowUpComments(identifier: string | null | undefined): boolean {
 	const id = (identifier ?? '').toLowerCase();
@@ -20,7 +21,8 @@ export function channelSupportsFollowUpComments(identifier: string | null | unde
 		id === 'linkedin' ||
 		id === 'linkedin-page' ||
 		id === 'facebook' ||
-		id === 'bluesky'
+		id === 'bluesky' ||
+		id === 'skool'
 	);
 }
 
@@ -45,6 +47,7 @@ export function followUpBucketForChannel(
 	if (id === 'linkedin' || id === 'linkedin-page') return 'linkedin';
 	if (id === 'facebook') return 'facebook';
 	if (id === 'bluesky') return 'bluesky';
+	if (id === 'skool') return 'skool';
 	return 'threads';
 }
 

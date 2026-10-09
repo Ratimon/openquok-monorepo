@@ -23,6 +23,7 @@
 	import CrossAccountPlugs from '$lib/ui/components/posts/plugs/CrossAccountPlugs.svelte';
 	import YoutubeSettings from '$lib/ui/components/posts/providers/youtube/YoutubeSettings.svelte';
 	import DevtoSettings from '$lib/ui/components/posts/providers/devto/DevtoSettings.svelte';
+	import SkoolSettings from '$lib/ui/components/posts/providers/skool/SkoolSettings.svelte';
 	import TiktokSettings from '$lib/ui/components/posts/providers/tiktok/TiktokSettings.svelte';
 	import XSettings from '$lib/ui/components/posts/providers/x/XSettings.svelte';
 	import BlueskySettings from '$lib/ui/components/posts/providers/bluesky/BlueskySettings.svelte';
@@ -90,6 +91,13 @@
 			series?: string;
 			tags: DevtoTagOption[];
 			mainImage?: { path: string };
+		};
+		skool: {
+			title: string;
+			group: string;
+			groupLabel?: string;
+			label?: string;
+			labelLabel?: string;
 		};
 		bluesky: {
 			linkUrl?: string;
@@ -200,6 +208,12 @@
 	let dtSeries = $state('');
 	let dtTags = $state<DevtoTagOption[]>([]);
 	let dtMainImage = $state<{ path: string } | undefined>(undefined);
+
+	let skTitle = $state('');
+	let skGroup = $state('');
+	let skGroupLabel = $state('');
+	let skLabel = $state('');
+	let skLabelLabel = $state('');
 
 	let bskyLinkUrl = $state('');
 	let bskyLinkTitle = $state('');
@@ -429,6 +443,19 @@
 			dtTags = [];
 			dtMainImage = undefined;
 		}
+		if (s.skool && typeof s.skool === 'object') {
+			skTitle = typeof s.skool.title === 'string' ? s.skool.title : '';
+			skGroup = typeof s.skool.group === 'string' ? s.skool.group : '';
+			skGroupLabel = typeof s.skool.groupLabel === 'string' ? s.skool.groupLabel : '';
+			skLabel = typeof s.skool.label === 'string' ? s.skool.label : '';
+			skLabelLabel = typeof s.skool.labelLabel === 'string' ? s.skool.labelLabel : '';
+		} else {
+			skTitle = '';
+			skGroup = '';
+			skGroupLabel = '';
+			skLabel = '';
+			skLabelLabel = '';
+		}
 		if (s.bluesky && typeof s.bluesky === 'object') {
 			bskyLinkUrl = typeof s.bluesky.linkUrl === 'string' ? s.bluesky.linkUrl : '';
 			bskyLinkTitle = typeof s.bluesky.linkTitle === 'string' ? s.bluesky.linkTitle : '';
@@ -550,6 +577,20 @@
 					...(dtOrganization ? { organization: dtOrganization } : {}),
 					...(series ? { series } : {}),
 					...(dtMainImage?.path ? { mainImage: dtMainImage } : {})
+				}
+			};
+		} else if (identifier === 'skool') {
+			const group = skGroup.trim();
+			const groupLabel = skGroupLabel.trim();
+			const label = skLabel.trim();
+			const labelLabel = skLabelLabel.trim();
+			next = {
+				skool: {
+					title: skTitle.trim(),
+					group,
+					...(groupLabel ? { groupLabel } : {}),
+					...(label && label !== 'none' ? { label } : {}),
+					...(labelLabel ? { labelLabel } : {})
 				}
 			};
 		} else if (identifier === 'bluesky') {
@@ -699,6 +740,17 @@
 			{organizationId}
 			integrationId={channel.id}
 			{uploadUid}
+			{disabled}
+		/>
+	{:else if identifier === 'skool'}
+		<SkoolSettings
+			bind:title={skTitle}
+			bind:group={skGroup}
+			bind:groupLabel={skGroupLabel}
+			bind:label={skLabel}
+			bind:labelLabel={skLabelLabel}
+			{organizationId}
+			integrationId={channel.id}
 			{disabled}
 		/>
 	{:else if identifier === 'bluesky'}

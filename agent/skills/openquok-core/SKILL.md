@@ -123,7 +123,7 @@ Details: [resources/command-reference.md](./resources/command-reference.md#authe
 | 6 | `analytics:platform` / `analytics:post` with `-d 7` \| `30` \| `90` |
 | 7 | Missing release id: `posts:missing` → `posts:connect --release-id` |
 
-Connect new channels in the web app; the CLI only uses UUIDs from `integrations:list`.
+Connect new channels in the web app; the CLI only uses UUIDs from `integrations:list`. **Browser extension channels** (Skool): connect in the dashboard with the extension while signed in on the platform site — the CLI cannot complete connect.
 
 ### Integration discovery
 
@@ -215,6 +215,7 @@ Provider settings overview: [resources/provider-settings.md](./resources/provide
 | X | `x` | text/media, thread replies, finisher, reply settings, internal + global plugs, analytics | [x-examples.md](./resources/x-examples.md) |
 | Dev.to | `devto` | markdown article, title/tags/cover/canonical/org/series, `tags` + `organizations` tools, analytics | [devto-examples.md](./resources/devto-examples.md) |
 | Bluesky | `bluesky` | text/media (≤4 images or 1 MP4), follow-up replies (`bluesky.replies`), mentions | [bluesky-examples.md](./resources/bluesky-examples.md) |
+| Skool | `skool` | title/group/label, images, follow-up comments (`skool.replies`); extension connect in dashboard | [skool-examples.md](./resources/skool-examples.md) |
 
 Threads publish failures: [threads-publish.md](./resources/threads-publish.md).
 

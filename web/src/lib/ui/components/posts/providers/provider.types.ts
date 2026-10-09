@@ -81,6 +81,16 @@ export type DevtoLaunchProviderSettings = {
 	mainImage?: { path: string };
 };
 
+export type SkoolSelectOption = { value: string; label: string };
+
+export type SkoolLaunchProviderSettings = {
+	title: string;
+	group: string;
+	groupLabel?: string;
+	label?: string;
+	labelLabel?: string;
+};
+
 export type BlueskyThreadGateSetting =
 	| 'everyone'
 	| 'mentioned'

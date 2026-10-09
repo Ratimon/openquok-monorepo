@@ -5,6 +5,7 @@ packages:
   - 'agent'
   - 'agent/server'
   - 'common'
+  - 'extension'
   - 'backend'
   - 'orchestrator'
   - 'sdk'

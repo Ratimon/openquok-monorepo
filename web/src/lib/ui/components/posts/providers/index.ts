@@ -8,6 +8,7 @@ import { tiktokProvider } from '$lib/ui/components/posts/providers/tiktok/tiktok
 import { xProvider } from '$lib/ui/components/posts/providers/x/x.provider';
 import { youtubeProvider } from '$lib/ui/components/posts/providers/youtube/youtube.provider';
 import { devtoProvider } from '$lib/ui/components/posts/providers/devto/devto.provider';
+import { skoolProvider } from '$lib/ui/components/posts/providers/skool/skool.provider';
 import { blueskyProvider } from '$lib/ui/components/posts/providers/bluesky/bluesky.provider';
 
 const DEFAULT_PROVIDER: LaunchProviderConfig = {
@@ -42,6 +43,8 @@ export function getLaunchProviderConfig(identifier: string | null | undefined): 
 	if (id === 'linkedin' || id === 'linkedin-page') return linkedinProvider;
 
 	if (id === 'devto') return devtoProvider;
+
+	if (id === 'skool') return skoolProvider;
 
 	if (id === 'bluesky') return blueskyProvider;
 

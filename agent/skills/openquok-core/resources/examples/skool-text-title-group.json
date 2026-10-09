@@ -1,0 +1,14 @@
+{
+  "scheduledAt": "2026-01-01T12:00:00.000Z",
+  "status": "scheduled",
+  "body": "Weekly community update — queue this before you forget to post in the group feed.",
+  "integrationIds": ["<integration-id>"],
+  "providerSettingsByIntegrationId": {
+    "<integration-id>": {
+      "skool": {
+        "title": "Week 12 — shipping notes",
+        "group": "<group-id>"
+      }
+    }
+  }
+}

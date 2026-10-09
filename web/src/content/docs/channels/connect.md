@@ -1,8 +1,8 @@
 ---
 title: Connect a channel
-description: The two ways OpenQuok connects a social account today — OAuth or pasted credentials.
+description: How OpenQuok connects a social account — OAuth redirect, pasted credentials, or the browser extension.
 order: 1
-lastUpdated: 2026-09-30
+lastUpdated: 2026-10-09
 ---
 
 <script>
@@ -27,15 +27,11 @@ Pick the network you want. OpenQuok picks the connection flow for that platform 
 
 ![Open The modal to choose a channel to be conncted](/docs/_assets/channel-groups/add-channel-modal.webp)
 
-## The two connection flows
+## Connection flows
 
-OpenQuok currently supports **two** ways to connect. Which one you get depends on the platform, not on a setting in your workspace.
+OpenQuok supports **three** ways to connect. Which one you get depends on the platform, not on a setting in your workspace.
 
-<Callout type="note" title="More flows later">
-<p>Additional connection types — such as in-app setup dialogs or a browser extension for networks without a public API — may ship in future releases. When they do, this page will list them here.</p>
-</Callout>
-
-<Tabs items={["OAuth redirect", "Credentials you supply"]} variant="line">
+<Tabs items={["OAuth redirect", "Credentials you supply", "Browser extension"]} variant="line">
 <TabItem label="OAuth redirect">
 
 <p>The usual path: X, LinkedIn, Threads, TikTok, Instagram, Facebook Page, YouTube, and most other listed networks.</p>
@@ -79,6 +75,26 @@ OpenQuok currently supports **two** ways to connect. Which one you get depends o
 <p>Credentials are stored encrypted. To change them later, open the channel menu on <strong>My Dashboard</strong> and click <Badge text="Refresh connection" variant="default" /> — paste a new key when the form appears.</p>
 
 </TabItem>
+<TabItem label="Browser extension">
+
+<p>Some networks have no public OAuth for schedulers. You install the <strong>OpenQuok browser extension</strong> in Chrome, stay signed in on the platform site, and connect from <Badge text="Add Channel" variant="new" />.</p>
+
+<p>Today that includes <strong>Skool</strong>:</p>
+
+<ol>
+<li>Install the extension — see <a href="/docs/installation/chrome-extension">Browser extension</a>.</li>
+<li>Sign in on <strong>skool.com</strong> in the same Chrome profile.</li>
+<li>Click <strong>Skool</strong> in <Badge text="Add Channel" variant="new" />, read the notice, and approve cookie access.</li>
+<li>OpenQuok validates your session and saves the channel. The extension can refresh cookies about every 24 hours.</li>
+</ol>
+
+<Callout type="warning">
+<p>Session cookies are as sensitive as a login. Use a platform-specific flow only when you accept that platform’s rules. OpenQuok encrypts the session on the server; the extension stores a signed refresh token locally. See our <a href="/privacy-policy">Privacy Policy</a> and <a href="/terms">Terms of Service</a>.</p>
+</Callout>
+
+<p>To reconnect, sign in on Skool again and use <Badge text="Refresh connection" variant="default" /> on the dashboard.</p>
+
+</TabItem>
 </Tabs>
 
 ## Let clients connect their own account
@@ -96,7 +112,7 @@ See it in action:
 	thumbnailAlt={DOCS_YOUTUBE_VIDEOS.connectChannels.thumbnailAlt}
 />
 
-Invite links work only for **OAuth redirect** networks. Platforms that need credentials pasted in a form are excluded — connect those yourself or ask the client to sign in to OpenQuok and use <Badge text="Add Channel" variant="new" />.
+Invite links work only for **OAuth redirect** networks. Platforms that need credentials pasted in a form or the **browser extension** are excluded — connect those yourself or ask the client to sign in to OpenQuok and use <Badge text="Add Channel" variant="new" />.
 
 See <a href="/docs/channels/channel-groups">Channel groups</a> when you want client channels bundled and filtered together.
 
@@ -134,6 +150,8 @@ See <a href="/docs/troubleshooting/oauth-connect">Troubleshooting → OAuth and 
 <LinkCard title="Channel groups" description="Group channels by client or brand" href="/docs/channels/channel-groups" />
 <LinkCard title="Dev.to" description="Create an API key and connect Dev.to" href="/docs/social-integration/devto" />
 <LinkCard title="Bluesky" description="Create an app password and connect Bluesky" href="/docs/social-integration/bluesky" />
+<LinkCard title="Skool" description="Connect with the OpenQuok browser extension" href="/docs/social-integration/skool" />
+<LinkCard title="Browser extension" description="Build, install, and configure the extension ID" href="/docs/installation/chrome-extension" />
 <LinkCard title="Quickstart" description="Connect a channel and schedule your first post" href="/docs/getting-started/quickstart" />
 <LinkCard title="OAuth and channel connect" description="Invalid state, Redis, and provider errors" href="/docs/troubleshooting/oauth-connect" />
 </CardGrid>

@@ -39,6 +39,8 @@ import {
     isVerifiedFromAdditionalSettings,
     parseAdditionalSettings,
 } from "../utils/integrations/additionalSettings";
+import { config } from "../config/GlobalConfig";
+import { signExtensionRefreshToken, verifyExtensionRefreshToken } from "../utils/auth/extensionRefreshToken";
 
 /** Domain-scoped cache key builders for short-lived OAuth state (`login:`, `organization:`, `refresh:`, etc.). */
 const CACHE_KEYS = {
@@ -491,7 +493,7 @@ export class IntegrationConnectionService {
                 throw new AppError("Integration not allowed", 400);
             }
             const integrationProvider = this.manager.getSocialIntegration(integration);
-            if (integrationProvider?.customFields) {
+            if (integrationProvider?.customFields || integrationProvider?.isChromeExtension) {
                 throw new AppError("Connect this channel in the dashboard with an API key", 400);
             }
             return await this.buildOAuthAuthorizationUrl(organizationId, integration, opts, "public");
@@ -685,10 +687,13 @@ export class IntegrationConnectionService {
 
         const cache = this.requireCache();
 
-        const getCodeVerifier = integrationProvider.customFields
+        const usesDashboardConnect =
+            !!integrationProvider.customFields || !!integrationProvider.isChromeExtension;
+
+        const getCodeVerifier = usesDashboardConnect
             ? "none"
             : ((await cache.get(CACHE_KEYS.oauth.login(body.state))) as string | null);
-        if (!getCodeVerifier && !integrationProvider.customFields) {
+        if (!getCodeVerifier && !usesDashboardConnect) {
             throw new AppError(
                 "Invalid OAuth state: login verifier missing for this state (expired, already used, or cache unavailable). Remove any partial channel and connect again.",
                 400,
@@ -696,7 +701,7 @@ export class IntegrationConnectionService {
             );
         }
 
-        if (!integrationProvider.customFields) {
+        if (!usesDashboardConnect) {
             await this.invalidateOAuthCacheKey(CACHE_KEYS.oauth.login(body.state));
         }
 
@@ -872,6 +877,21 @@ export class IntegrationConnectionService {
             await this.invalidateOAuthCacheKey(organizationKey);
         }
 
+        const inviteSecret =
+            (config.auth as { inviteTokenSecret?: string })?.inviteTokenSecret?.trim() ?? "";
+        const extensionToken =
+            integrationProvider.isChromeExtension && inviteSecret ?
+                signExtensionRefreshToken(
+                    {
+                        integrationId: row.id,
+                        organizationId: row.organization_id,
+                        internalId: row.internal_id,
+                        provider: integration,
+                    },
+                    inviteSecret
+                )
+            :   undefined;
+
         return {
             id: row.id,
             organizationId: row.organization_id,
@@ -885,7 +905,84 @@ export class IntegrationConnectionService {
             refreshNeeded: false,
             onboarding: onboarding === "true",
             pages,
+            ...(extensionToken ? { extensionToken } : {}),
         };
+    }
+
+    /**
+     * POST /integrations/extension-refresh — re-validates extension-harvested cookies and updates the channel token.
+     * Authenticated with a signed extension refresh JWT returned from social connect.
+     */
+    async extensionRefresh(code: string, bearerToken: string): Promise<{ ok: true }> {
+        const secret = (config.auth as { inviteTokenSecret?: string })?.inviteTokenSecret?.trim() ?? "";
+        const payload = verifyExtensionRefreshToken(bearerToken, secret);
+        if (!payload) {
+            throw new AppError("Invalid extension refresh token", 401);
+        }
+
+        const row = await this.integrations.getById(payload.organizationId, payload.integrationId);
+        if (!row || row.deleted_at) {
+            throw new AppError("Integration not found", 404);
+        }
+        if (row.provider_identifier !== payload.provider) {
+            throw new AppError("Integration provider mismatch", 400);
+        }
+        if (row.internal_id !== payload.internalId) {
+            throw new AppError("Integration account mismatch", 400);
+        }
+
+        const integrationProvider = this.manager.getSocialIntegration(row.provider_identifier);
+        if (!integrationProvider?.isChromeExtension) {
+            throw new AppError("Extension refresh is not supported for this channel", 400);
+        }
+
+        const authResult = await this.safeAuthenticate(
+            integrationProvider,
+            { code },
+            "none",
+            undefined
+        );
+
+        if ("error" in authResult && !("accessToken" in authResult)) {
+            await this.integrations.setRefreshNeeded(payload.organizationId, row.id, true);
+            throw new AppError((authResult as { error: string }).error, 400, {
+                metadata: { refresh_needed: true },
+            });
+        }
+
+        const resolvedAuth = authResult as AuthTokenDetails;
+        if (!resolvedAuth.id) {
+            await this.integrations.setRefreshNeeded(payload.organizationId, row.id, true);
+            throw new AppError("Invalid session cookies", 400, { metadata: { refresh_needed: true } });
+        }
+
+        if (String(resolvedAuth.id) !== String(row.internal_id)) {
+            await this.integrations.setRefreshNeeded(payload.organizationId, row.id, true);
+            throw new AppError("Skool account changed — reconnect this channel", 400, {
+                metadata: { refresh_needed: true },
+            });
+        }
+
+        await this.integrations.upsertIntegration({
+            organizationId: payload.organizationId,
+            internalId: row.internal_id,
+            name: row.name,
+            picture: row.picture,
+            providerIdentifier: row.provider_identifier,
+            integrationType: row.type === "article" ? "article" : "social",
+            token: resolvedAuth.accessToken,
+            refreshToken: resolvedAuth.refreshToken ?? "",
+            expiresInSeconds: resolvedAuth.expiresIn,
+            profile: row.profile,
+            inBetweenSteps: row.in_between_steps,
+            additionalSettingsJson: row.additional_settings ?? "[]",
+            customInstanceDetails: row.custom_instance_details,
+            postingTimesJson: row.posting_times,
+            rootInternalId: row.root_internal_id,
+            clearRefreshNeeded: true,
+        });
+
+        return { ok: true };
     }
 
     async connectSocialMedia(

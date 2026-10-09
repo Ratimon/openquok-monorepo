@@ -33,7 +33,7 @@
 				Back
 			</Button>
 			<SectionTitle>Cookie Policy</SectionTitle>
-			<SectionDescription>Last updated October 2, 2026</SectionDescription>
+			<SectionDescription>Last updated October 9, 2026</SectionDescription>
 		</SectionHeaderContainer>
 		<SubSectionOuterContainer class="max-w-3xl !py-4">
 			<SubSectionInnerContainer
@@ -80,6 +80,21 @@
 			</ul>
 
 			<h2>
+				Third-party site cookies (browser extension connect)</h2>
+			<p>
+				OpenQuok’s own website cookies (above) are separate from cookies on social platforms you
+				visit in Chrome. When you choose to connect certain channels through our optional browser
+				extension, you start the flow on {companyUrl}. The extension reads session cookies from the
+				platform’s domain (for example Skool) only at that time and when you allow periodic session
+				refresh. Those cookies are sent to our API so we can validate and store an encrypted session
+				for publishing — not for ads or cross-site tracking on {companyUrl}. We do not set those
+				third-party cookies on your behalf; they are set by the platform when you sign in there.
+				Disconnect the channel in OpenQuok and clear site data for that platform in Chrome if you
+				want to end local access. Details are in our
+				<a href="/privacy-policy" class="link link-hover">Privacy Policy</a>.
+			</p>
+
+			<h2>
 				Local browser storage</h2>
 			<p>
 				Some features use the browser’s <strong>local storage</strong> API instead of HTTP cookies.
@@ -87,6 +102,15 @@
 				for third-party advertising.
 			</p>
 			<ul>
+				<li>
+					<strong>OpenQuok browser extension (Chrome)</strong> — when you connect a
+					browser-extension channel, the extension may store a signed refresh token and related
+					settings in <strong>Chrome extension local storage</strong> so it can call our
+					extension-refresh API with updated session identifiers about once per day. Removing the
+					extension or disconnecting the channel in OpenQuok ends that storage for new refreshes.
+					Session cookies themselves remain on the platform site until you sign out or clear that
+					site’s data in Chrome.
+				</li>
 				<li>
 					<strong><code>openquok:build-backlinks-bookmarks:v1</code></strong> — on the
 					<a href="/build-backlinks" class="link link-hover">Build Backlinks</a> hub, stores the

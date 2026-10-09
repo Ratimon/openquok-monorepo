@@ -39,6 +39,7 @@ Full JSON body: `openquok posts:create --json ./examples/<file>.json` with `prov
 | LinkedIn / LinkedIn Page (main post) | `post_as_images_carousel`, `carousel_name` | `linkedin.postAsImagesCarousel`, `linkedin.carouselName`, `linkedin.crossAccountPlugs` |
 | TikTok privacy / inbox | `privacy_level`, `content_posting_method`, `title`, `comment`, `duet`, `stitch`, … | `tiktok.privacy_level`, `tiktok.content_posting_method`, … |
 | Dev.to article | `title`, `tags`, `canonical`, `organization`, `series`, `main_image` / `mainImage` | `devto.title`, `devto.tags`, `devto.canonical`, `devto.organization`, `devto.series`, `devto.mainImage` |
+| Skool community post | `title`, `group`, `group_id` / `groupId`, `label` | `skool.title`, `skool.group`, `skool.label`, `skool.replies` |
 
 Backend publish helpers accept **flat API keys** and **nested web buckets** where noted in each channel doc. For **scheduled follow-up replies**, always nest under the provider bucket in `--providerSettingsByIntegrationId` — that is what the worker reads at publish time (not a top-level `replies` key).
 
@@ -55,6 +56,7 @@ Same-account reply chains after the main post publish live in `providerSettingsB
 | `instagram`, `instagram-business`, `instagram-standalone` | `instagram` | Text only |
 | `linkedin`, `linkedin-page` | `linkedin` | Text only |
 | `facebook` | `facebook` | Optional — max **one image** per reply, no video |
+| `skool` | `skool` | Optional (`media` on reply rows when the group allows) |
 
 Each reply row:
 
@@ -181,3 +183,5 @@ Returns `output.rules`, `output.maxLength`, `output.tools` (allow-listed `integr
 | TikTok | [tiktok-examples.md](./tiktok-examples.md) | `privacy_level`, `content_posting_method`, toggles, `title` |
 | X | [x-examples.md](./x-examples.md) | `x.replies`, finisher, reply audience, community, labels, `crossAccountPlugs` |
 | Dev.to | [devto-examples.md](./devto-examples.md) | `title`, `tags`, `canonical`, `organization`, `series`, `mainImage` + analytics |
+| Bluesky | [bluesky-examples.md](./bluesky-examples.md) | `bluesky.replies`, link card, quote, thread gate |
+| Skool | [skool-examples.md](./skool-examples.md) | `title`, `group`, `label`, `skool.replies` (extension connect) |

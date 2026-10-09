@@ -2,225 +2,38 @@ import type { IntegrationService } from "./IntegrationService";
 import type { PlugService } from "./PlugService";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import type { PostsRepository } from "../repositories/PostsRepository";
-import type { UserOrganizationLike } from "../utils/dtos/OrganizationDTO";
-import type { IntegrationLike } from "../utils/dtos/IntegrationDTO";
 import type { RefreshIntegrationService } from "./RefreshIntegrationService";
-import type { AuthTokenDetails, SocialProvider } from "../integrations/social.integrations.interface";
+import type { SocialProvider } from "../integrations/social.integrations.interface";
 import type CacheService from "../connections/cache/CacheService";
 import type CacheInvalidationService from "../connections/cache/CacheInvalidationService";
 
-import { faker } from "@faker-js/faker";
 import { IntegrationConnectionService } from "./IntegrationConnectionService";
-import { IntegrationManager } from "../integrations/integrationManager";
+import type { IntegrationManager } from "../integrations/integrationManager";
 import { DevToProvider } from "../integrations/providers/devto/devtoProvider";
 
 import { UserNotFoundError } from "../errors/UserError";
 import { OrganizationForbiddenError } from "../errors/OrganizationError";
 import { AppError } from "../errors/AppError";
 import { ProviderAccessTokenExpiredError } from "../errors/ProviderIntegrationErrors";
-
-const orgId = faker.string.uuid();
-const authUserId = faker.string.uuid();
-const userId = faker.string.uuid();
-const integrationId = faker.string.uuid();
-
-function mockFindUserIdByAuthIdResult(userIdValue: string | null) {
-    return { userId: userIdValue, error: null };
-}
-
-function mockFindMembershipResult(membership: UserOrganizationLike | null) {
-    return { membership, error: null };
-}
-
-function activeMembershipRow(): UserOrganizationLike {
-    return {
-        id: faker.string.uuid(),
-        user_id: userId,
-        organization_id: orgId,
-        role: "member",
-        disabled: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-    };
-}
-
-function sampleRow(overrides: Partial<IntegrationLike> = {}): IntegrationLike {
-    const base: IntegrationLike = {
-        id: integrationId,
-        organization_id: orgId,
-        internal_id: "int-internal",
-        name: "Channel",
-        picture: null,
-        provider_identifier: "threads",
-        type: "social",
-        token: "tok",
-        disabled: false,
-        token_expiration: null,
-        refresh_token: null,
-        profile: "prof",
-        deleted_at: null,
-        in_between_steps: false,
-        refresh_needed: false,
-        posting_times: "[]",
-        custom_instance_details: null,
-        additional_settings: "[]",
-        customer_id: null,
-        customer_name: null,
-        root_internal_id: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-    };
-    return { ...base, ...overrides };
-}
-
-function createMockIntegrations(): jest.Mocked<Pick<
-    IntegrationService,
-    | "listByOrganization"
-    | "getById"
-    | "findActiveByInternalId"
-    | "upsertIntegration"
-    | "updateIntegrationById"
-    | "setRefreshNeeded"
-    | "setPostingTimes"
-    | "disableChannel"
-    | "enableChannel"
-    | "softDeleteChannel"
-    | "customers"
-    | "createIntegrationCustomer"
-    | "updateIntegrationGroup"
-    | "updateOnCustomerName"
->> {
-    return {
-        listByOrganization: jest.fn(),
-        getById: jest.fn(),
-        findActiveByInternalId: jest.fn().mockResolvedValue(null),
-        upsertIntegration: jest.fn(),
-        updateIntegrationById: jest.fn(),
-        setRefreshNeeded: jest.fn().mockResolvedValue(undefined),
-        setPostingTimes: jest.fn(),
-        disableChannel: jest.fn(),
-        enableChannel: jest.fn(),
-        softDeleteChannel: jest.fn(),
-        customers: jest.fn(),
-        createIntegrationCustomer: jest.fn(),
-        updateIntegrationGroup: jest.fn(),
-        updateOnCustomerName: jest.fn(),
-    };
-}
-
-function createMockPlugService(): jest.Mocked<
-    Pick<
-        PlugService,
-        | "listIntegrationPlugs"
-        | "getPlugRowById"
-        | "upsertIntegrationPlug"
-        | "deleteIntegrationPlug"
-        | "setIntegrationPlugActivated"
-    >
-> {
-    return {
-        listIntegrationPlugs: jest.fn(),
-        getPlugRowById: jest.fn(),
-        upsertIntegrationPlug: jest.fn(),
-        deleteIntegrationPlug: jest.fn(),
-        setIntegrationPlugActivated: jest.fn(),
-    };
-}
-
-function createMockPostsRepo(): jest.Mocked<
-    Pick<
-        PostsRepository,
-        | "listPostGroupsForIntegration"
-        | "listPostsByGroup"
-        | "softDeletePostsByGroup"
-        | "deleteTagAssignmentsForPostIds"
-    >
-> {
-    return {
-        listPostGroupsForIntegration: jest.fn().mockResolvedValue([]),
-        listPostsByGroup: jest.fn().mockResolvedValue([]),
-        softDeletePostsByGroup: jest.fn().mockResolvedValue([]),
-        deleteTagAssignmentsForPostIds: jest.fn().mockResolvedValue(undefined),
-    };
-}
-
-function createMockOrgRepo(): jest.Mocked<Pick<OrganizationRepository, "findUserIdByAuthId" | "findMembership">> {
-    return {
-        findUserIdByAuthId: jest.fn(),
-        findMembership: jest.fn(),
-    };
-}
-
-function createMockCache(): jest.Mocked<Pick<CacheService, "get" | "set" | "del">> {
-    return {
-        get: jest.fn(),
-        set: jest.fn().mockResolvedValue(true),
-        del: jest.fn().mockResolvedValue(true),
-    };
-}
-
-const defaultOAuthUser: AuthTokenDetails = {
-    id: "acct-1",
-    accessToken: "access",
-    expiresIn: 3600,
-    refreshToken: "refresh",
-    name: "Name",
-    username: "user",
-    additionalSettings: [],
-};
-
-/** Minimal {@link SocialProvider} for unit tests; override fields per scenario. */
-function createMockProvider(overrides: Partial<SocialProvider> = {}): SocialProvider {
-    const base: SocialProvider = {
-        identifier: "threads",
-        name: "Threads",
-        editor: "normal",
-        isBetweenSteps: false,
-        scopes: [],
-        maxLength: () => 10_000,
-        generateAuthUrl: jest.fn().mockResolvedValue({
-            codeVerifier: "code-verifier",
-            state: "oauth-state-xyz",
-            url: "https://oauth.example/authorize",
-        }),
-        authenticate: jest.fn().mockResolvedValue(defaultOAuthUser),
-        refreshToken: jest.fn().mockResolvedValue({
-            ...defaultOAuthUser,
-            accessToken: "refreshed-access",
-        }),
-        post: jest.fn().mockResolvedValue([]),
-    };
-    return { ...base, ...overrides };
-}
-
-const livePlugCatalog = new IntegrationManager();
-
-function createMockManager(provider: SocialProvider): jest.Mocked<
-    Pick<
-        IntegrationManager,
-        | "getAllowedSocialsIntegrations"
-        | "getSocialIntegration"
-        | "listGlobalPlugCatalog"
-        | "getInternalPlugDefinitionsForProvider"
-        | "validatePlugFieldsAgainstCatalog"
-        | "getAllTools"
-        | "getAllRulesDescription"
-    >
-> {
-    return {
-        getAllowedSocialsIntegrations: jest.fn().mockReturnValue([provider.identifier]),
-        getSocialIntegration: jest.fn((id: string) => (id === provider.identifier ? provider : undefined)),
-        listGlobalPlugCatalog: jest.fn(() => livePlugCatalog.listGlobalPlugCatalog()),
-        getInternalPlugDefinitionsForProvider: jest.fn((id: string) =>
-            livePlugCatalog.getInternalPlugDefinitionsForProvider(id)
-        ),
-        validatePlugFieldsAgainstCatalog: jest.fn((params) =>
-            livePlugCatalog.validatePlugFieldsAgainstCatalog(params)
-        ),
-        getAllTools: jest.fn(() => ({ [provider.identifier]: provider.tools?.() ?? [] })),
-        getAllRulesDescription: jest.fn(() => ({ [provider.identifier]: provider.rules ?? "" })),
-    };
-}
+import {
+    orgId,
+    authUserId,
+    userId,
+    integrationId,
+    mockFindUserIdByAuthIdResult,
+    mockFindMembershipResult,
+    activeMembershipRow,
+    sampleRow,
+    createMockIntegrations,
+    createMockPlugService,
+    createMockPostsRepo,
+    createMockOrgRepo,
+    createMockCache,
+    createMockProvider,
+    createMockManager,
+    defaultOAuthUser,
+} from "./integrationConnectionService.unit.harness";
+import { faker } from "@faker-js/faker";
 
 describe("IntegrationConnectionService", () => {
     let integrations: ReturnType<typeof createMockIntegrations>;
@@ -455,6 +268,18 @@ describe("IntegrationConnectionService", () => {
             await expect(service().getIntegrationUrlPublicApi(orgId, "devto", {})).rejects.toMatchObject({
                 statusCode: 400,
                 message: "Connect this channel in the dashboard with an API key",
+            });
+        });
+
+        it("returns 400 when the provider uses the browser extension (dashboard only)", async () => {
+            const provider = createMockProvider({
+                identifier: "skool",
+                isChromeExtension: true,
+            });
+            manager = createMockManager(provider);
+
+            await expect(service().getIntegrationUrlPublicApi(orgId, "skool", {})).rejects.toMatchObject({
+                statusCode: 400,
             });
         });
     });
@@ -1045,6 +870,7 @@ describe("IntegrationConnectionService", () => {
             expect(integrations.setRefreshNeeded).toHaveBeenCalledWith(orgId, row.id, false);
             expect(out.refreshNeeded).toBe(false);
         });
+
     });
 
     describe("saveProviderPage", () => {
@@ -1484,284 +1310,6 @@ describe("IntegrationConnectionService", () => {
                 integrationId,
                 JSON.stringify([{ time: 200 }])
             );
-        });
-    });
-
-    describe("plugs", () => {
-        const plugId = faker.string.uuid();
-
-        function mockActiveMember() {
-            orgRepo.findUserIdByAuthId.mockResolvedValue(mockFindUserIdByAuthIdResult(userId));
-            orgRepo.findMembership.mockResolvedValue(mockFindMembershipResult(activeMembershipRow()));
-        }
-
-        it("getPlugCatalog returns threads global plugs shape", () => {
-            const out = service().getPlugCatalog();
-            expect(out.plugs.map((p) => p.identifier)).toContain("threads");
-            const threadsEntry = out.plugs.find((p) => p.identifier === "threads");
-            expect(threadsEntry?.plugs.some((g) => g.methodName === "autoPlugPost")).toBe(true);
-        });
-
-        it("getPlugCatalog returns bluesky global plugs shape", () => {
-            const out = service().getPlugCatalog();
-            expect(out.plugs.map((p) => p.identifier)).toContain("bluesky");
-            const blueskyEntry = out.plugs.find((p) => p.identifier === "bluesky");
-            expect(blueskyEntry?.plugs.some((g) => g.methodName === "autoRepostPost")).toBe(true);
-            expect(blueskyEntry?.plugs.some((g) => g.methodName === "autoPlugPost")).toBe(true);
-        });
-
-        it("getInternalPlugDefinitions requires membership and returns Threads internal plugs", async () => {
-            mockActiveMember();
-            const out = await service().getInternalPlugDefinitions(authUserId, orgId, "threads");
-            expect(out.internalPlugs.some((p) => p.methodName === "threadsInternalFollowUp")).toBe(true);
-        });
-
-        it("getInternalPlugDefinitions throws OrganizationForbiddenError when not a member", async () => {
-            orgRepo.findUserIdByAuthId.mockResolvedValue(mockFindUserIdByAuthIdResult(userId));
-            orgRepo.findMembership.mockResolvedValue(mockFindMembershipResult(null));
-            await expect(service().getInternalPlugDefinitions(authUserId, orgId, "threads")).rejects.toBeInstanceOf(
-                OrganizationForbiddenError
-            );
-        });
-
-        it("listIntegrationPlugs delegates after integration exists", async () => {
-            mockActiveMember();
-            integrations.getById.mockResolvedValue(sampleRow());
-            const rows = [{ id: plugId, organization_id: orgId, integration_id: integrationId, plug_function: "autoPlugPost", data: "{}", activated: true }];
-            plugs.listIntegrationPlugs.mockResolvedValue(rows);
-            const out = await service().listIntegrationPlugs(authUserId, orgId, integrationId);
-            expect(out).toBe(rows);
-            expect(plugs.listIntegrationPlugs).toHaveBeenCalledWith(orgId, integrationId);
-        });
-
-        it("listIntegrationPlugs throws 404 when integration missing", async () => {
-            mockActiveMember();
-            integrations.getById.mockResolvedValue(null);
-            await expect(service().listIntegrationPlugs(authUserId, orgId, integrationId)).rejects.toMatchObject({
-                statusCode: 404,
-                message: "Integration not found",
-            });
-        });
-
-        it("listIntegrationPlugs throws 404 when integration soft-deleted", async () => {
-            mockActiveMember();
-            integrations.getById.mockResolvedValue(sampleRow({ deleted_at: new Date().toISOString() }));
-            await expect(service().listIntegrationPlugs(authUserId, orgId, integrationId)).rejects.toMatchObject({
-                statusCode: 404,
-            });
-        });
-
-        it("upsertIntegrationPlug validates fields and delegates", async () => {
-            mockActiveMember();
-            integrations.getById.mockResolvedValue(sampleRow({ provider_identifier: "threads" }));
-            const newId = faker.string.uuid();
-            plugs.upsertIntegrationPlug.mockResolvedValue({ id: newId, activated: true });
-            const body = {
-                func: "autoPlugPost",
-                fields: [
-                    { name: "likesAmount", value: "10" },
-                    { name: "post", value: "Hello world" },
-                ],
-            };
-            const out = await service().upsertIntegrationPlug(authUserId, orgId, integrationId, body);
-            expect(out).toEqual({ id: newId, activated: true });
-            expect(plugs.upsertIntegrationPlug).toHaveBeenCalledWith({
-                organizationId: orgId,
-                integrationId,
-                plugFunction: "autoPlugPost",
-                dataJson: JSON.stringify(body.fields),
-                plugId: undefined,
-            });
-        });
-
-        it("upsertIntegrationPlug with plugId checks existing row then delegates", async () => {
-            mockActiveMember();
-            const plugId = faker.string.uuid();
-            integrations.getById.mockResolvedValue(sampleRow({ provider_identifier: "threads" }));
-            plugs.getPlugRowById.mockResolvedValue({
-                id: plugId,
-                organization_id: orgId,
-                integration_id: integrationId,
-                plug_function: "autoPlugPost",
-                data: "{}",
-                activated: true,
-            });
-            plugs.upsertIntegrationPlug.mockResolvedValue({ id: plugId, activated: true });
-            const body = {
-                plugId,
-                func: "autoPlugPost",
-                fields: [
-                    { name: "likesAmount", value: "5" },
-                    { name: "post", value: "Updated" },
-                ],
-            };
-            const out = await service().upsertIntegrationPlug(authUserId, orgId, integrationId, body);
-            expect(out).toEqual({ id: plugId, activated: true });
-            expect(plugs.getPlugRowById).toHaveBeenCalledWith(plugId);
-            expect(plugs.upsertIntegrationPlug).toHaveBeenCalledWith({
-                organizationId: orgId,
-                integrationId,
-                plugFunction: "autoPlugPost",
-                dataJson: JSON.stringify(body.fields),
-                plugId,
-            });
-        });
-
-        it("upsertIntegrationPlug throws 404 when plugId row belongs to another integration", async () => {
-            mockActiveMember();
-            const plugId = faker.string.uuid();
-            integrations.getById.mockResolvedValue(sampleRow({ provider_identifier: "threads" }));
-            plugs.getPlugRowById.mockResolvedValue({
-                id: plugId,
-                organization_id: orgId,
-                integration_id: faker.string.uuid(),
-                plug_function: "autoPlugPost",
-                data: "{}",
-                activated: true,
-            });
-            await expect(
-                service().upsertIntegrationPlug(authUserId, orgId, integrationId, {
-                    plugId,
-                    func: "autoPlugPost",
-                    fields: [
-                        { name: "likesAmount", value: "1" },
-                        { name: "post", value: "abc def ghi" },
-                    ],
-                })
-            ).rejects.toMatchObject({ statusCode: 404 });
-            expect(plugs.upsertIntegrationPlug).not.toHaveBeenCalled();
-        });
-
-        it("upsertIntegrationPlug throws 400 when plug unknown for provider", async () => {
-            mockActiveMember();
-            integrations.getById.mockResolvedValue(sampleRow({ provider_identifier: "threads" }));
-            await expect(
-                service().upsertIntegrationPlug(authUserId, orgId, integrationId, {
-                    func: "noSuchPlug",
-                    fields: [{ name: "x", value: "y" }],
-                })
-            ).rejects.toMatchObject({ statusCode: 400 });
-            expect(plugs.upsertIntegrationPlug).not.toHaveBeenCalled();
-        });
-
-        it("upsertIntegrationPlug throws 404 when integration missing", async () => {
-            mockActiveMember();
-            integrations.getById.mockResolvedValue(null);
-            await expect(
-                service().upsertIntegrationPlug(authUserId, orgId, integrationId, {
-                    func: "autoPlugPost",
-                    fields: [
-                        { name: "likesAmount", value: "1" },
-                        { name: "post", value: "abc" },
-                    ],
-                })
-            ).rejects.toMatchObject({ statusCode: 404 });
-        });
-
-        it("setIntegrationPlugActivated returns id when plug belongs to org", async () => {
-            mockActiveMember();
-            plugs.getPlugRowById.mockResolvedValue({
-                id: plugId,
-                organization_id: orgId,
-                integration_id: integrationId,
-                plug_function: "autoPlugPost",
-                data: "{}",
-                activated: true,
-            });
-            plugs.setIntegrationPlugActivated.mockResolvedValue({ id: plugId });
-            const out = await service().setIntegrationPlugActivated(authUserId, orgId, plugId, false);
-            expect(out).toEqual({ id: plugId });
-            expect(plugs.setIntegrationPlugActivated).toHaveBeenCalledWith(orgId, plugId, false);
-        });
-
-        it("setIntegrationPlugActivated throws 404 when plug row missing", async () => {
-            mockActiveMember();
-            plugs.getPlugRowById.mockResolvedValue(null);
-            await expect(
-                service().setIntegrationPlugActivated(authUserId, orgId, plugId, true)
-            ).rejects.toMatchObject({ statusCode: 404, message: "Plug not found" });
-        });
-
-        it("setIntegrationPlugActivated throws 404 when plug belongs to another org", async () => {
-            mockActiveMember();
-            plugs.getPlugRowById.mockResolvedValue({
-                id: plugId,
-                organization_id: faker.string.uuid(),
-                integration_id: integrationId,
-                plug_function: "autoPlugPost",
-                data: "{}",
-                activated: true,
-            });
-            await expect(
-                service().setIntegrationPlugActivated(authUserId, orgId, plugId, true)
-            ).rejects.toMatchObject({ statusCode: 404, message: "Plug not found" });
-            expect(plugs.setIntegrationPlugActivated).not.toHaveBeenCalled();
-        });
-
-        it("setIntegrationPlugActivated throws 404 when service update returns null", async () => {
-            mockActiveMember();
-            plugs.getPlugRowById.mockResolvedValue({
-                id: plugId,
-                organization_id: orgId,
-                integration_id: integrationId,
-                plug_function: "autoPlugPost",
-                data: "{}",
-                activated: true,
-            });
-            plugs.setIntegrationPlugActivated.mockResolvedValue(null);
-            await expect(
-                service().setIntegrationPlugActivated(authUserId, orgId, plugId, true)
-            ).rejects.toMatchObject({ statusCode: 404, message: "Plug not found" });
-        });
-
-        it("deleteIntegrationPlug delegates when plug belongs to org", async () => {
-            mockActiveMember();
-            plugs.getPlugRowById.mockResolvedValue({
-                id: plugId,
-                organization_id: orgId,
-                integration_id: integrationId,
-                plug_function: "autoPlugPost",
-                data: "{}",
-                activated: true,
-            });
-            plugs.deleteIntegrationPlug.mockResolvedValue({ id: plugId });
-            const out = await service().deleteIntegrationPlug(authUserId, orgId, plugId);
-            expect(out).toEqual({ id: plugId });
-            expect(plugs.deleteIntegrationPlug).toHaveBeenCalledWith(orgId, plugId);
-        });
-
-        it("deleteIntegrationPlug throws 404 when plug missing", async () => {
-            mockActiveMember();
-            plugs.getPlugRowById.mockResolvedValue(null);
-            await expect(service().deleteIntegrationPlug(authUserId, orgId, plugId)).rejects.toMatchObject({
-                statusCode: 404,
-                message: "Plug not found",
-            });
-            expect(plugs.deleteIntegrationPlug).not.toHaveBeenCalled();
-        });
-
-        it("publicListIntegrationPlugs skips membership and delegates", async () => {
-            integrations.getById.mockResolvedValue(sampleRow());
-            const rows = [{ id: plugId, organization_id: orgId, integration_id: integrationId, plug_function: "autoPlugPost", data: "{}", activated: true }];
-            plugs.listIntegrationPlugs.mockResolvedValue(rows);
-            const out = await service().publicListIntegrationPlugs(orgId, integrationId);
-            expect(out).toBe(rows);
-            expect(orgRepo.findMembership).not.toHaveBeenCalled();
-        });
-
-        it("publicUpsertIntegrationPlug validates and delegates without membership", async () => {
-            integrations.getById.mockResolvedValue(sampleRow());
-            plugs.upsertIntegrationPlug.mockResolvedValue({ id: plugId, activated: true });
-            const body = {
-                func: "autoPlugPost",
-                fields: [
-                    { name: "likesAmount", value: "10" },
-                    { name: "post", value: "Thanks for the love!" },
-                ],
-            };
-            const out = await service().publicUpsertIntegrationPlug(orgId, integrationId, body);
-            expect(out).toEqual({ id: plugId, activated: true });
-            expect(orgRepo.findMembership).not.toHaveBeenCalled();
         });
     });
 

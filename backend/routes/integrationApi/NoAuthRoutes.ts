@@ -4,6 +4,7 @@ import { optionalAuthWithRoles } from "../../guards";
 import { supabaseAnonClient } from "../../connections/index";
 import { userRepository, rbacRepository } from "../../repositories/index";
 import {
+    validateExtensionRefreshBody,
     validateSaveProviderPageNoAuth,
     validateSocialConnectBody,
 } from "../../data/schemas/integrationSchemas";
@@ -20,6 +21,11 @@ integrationNoAuthRouter.post(
     optionalAuth,
     validateSocialConnectBody,
     integrationController.connectSocialMediaNoAuth
+);
+integrationNoAuthRouter.post(
+    "/extension-refresh",
+    validateExtensionRefreshBody,
+    integrationController.extensionRefresh
 );
 integrationNoAuthRouter.post(
     "/public/provider/:id/connect",

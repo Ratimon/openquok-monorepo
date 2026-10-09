@@ -336,6 +336,34 @@ const CHANNEL_CLI_RECIPES: Record<string, readonly AgentChannelCliRecipe[]> = {
 			'bluesky-follow-up.json',
 			'Schedule a post and follow-up replies on bluesky.replies'
 		)
+	],
+	skool: [
+		{
+			command: discoverIntegrationCommand(['skool']),
+			description: 'Discover your Skool integration UUID'
+		},
+		{
+			command: 'openquok integrations:settings "$SKOOL_ID"',
+			description: 'Get Skool posting rules, title/group schema, and allow-listed tools'
+		},
+		{
+			command: 'openquok integrations:trigger "$SKOOL_ID" groups',
+			description: 'List Skool groups as { value, label } options'
+		},
+		{
+			command: 'openquok integrations:trigger "$SKOOL_ID" label -d \'{"id":"<group-id>"}\'',
+			description: 'List labels for a Skool group'
+		},
+		postsCreateJsonCommand(
+			'skool-text-title-group.json',
+			'Schedule a Skool post with title and group'
+		),
+		postsCreateJsonCommand('skool-with-label.json', 'Schedule with an optional label id'),
+		postsCreateJsonCommand('skool-with-image.json', 'Schedule a Skool post with a cover image'),
+		postsCreateJsonCommand(
+			'skool-follow-up.json',
+			'Schedule a post and follow-up comments on skool.replies'
+		)
 	]
 };
 
@@ -355,7 +383,8 @@ const KANBAN_EXAMPLE_BY_CHANNEL: Record<string, string> = {
 	linkedin: 'linkedin-text-post.json',
 	x: 'x-text-only.json',
 	devto: 'devto-article-title-tags.json',
-	bluesky: 'bluesky-text-only.json'
+	bluesky: 'bluesky-text-only.json',
+	skool: 'skool-text-title-group.json'
 };
 
 /** Kanban feature section CLI snippet for a platform. */
@@ -389,7 +418,11 @@ export function buildAgentChannelFollowUpCliCommands(
 	platformLabel: string
 ): string {
 	const exampleFile =
-		channelSlug === 'bluesky' ? 'bluesky-follow-up.json' : `${channelSlug}-follow-up-replies.json`;
+		channelSlug === 'bluesky'
+			? 'bluesky-follow-up.json'
+			: channelSlug === 'skool'
+				? 'skool-follow-up.json'
+				: `${channelSlug}-follow-up-replies.json`;
 	return `# ${platformLabel} post with follow-up reply
 openquok posts:create --json ./examples/${exampleFile}`;
 }

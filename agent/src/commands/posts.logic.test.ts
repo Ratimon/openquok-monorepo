@@ -84,6 +84,7 @@ describe("replyChainBucketForProvider", () => {
     expect(replyChainBucketForProvider("linkedin-page")).toBe("linkedin");
     expect(replyChainBucketForProvider("facebook")).toBe("facebook");
     expect(replyChainBucketForProvider("bluesky")).toBe("bluesky");
+    expect(replyChainBucketForProvider("skool")).toBe("skool");
     expect(replyChainBucketForProvider(undefined)).toBe("threads");
   });
 });

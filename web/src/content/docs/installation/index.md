@@ -26,6 +26,7 @@ import { Callout, Tabs, TabItem, Steps, Card, CardGrid, LinkCard, Badge, FileTre
 <LinkCard title="Development environment" description="Local development commands" href="/docs/installation/development-environment" />
 <LinkCard title="Production Vercel" description="Vercel deployment detail for backend and web" href="/docs/installation/vercel" />
 <LinkCard title="Production Railway (workers)" description="Railway deployment detail for Always-on orchestrator worker services" href="/docs/installation/railway" />
+<LinkCard title="Browser extension" description="Chrome extension for Skool and other cookie-session channels" href="/docs/installation/chrome-extension" />
 </CardGrid>
 
 ## Related Section(s)

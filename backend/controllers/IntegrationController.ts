@@ -437,6 +437,22 @@ export class IntegrationController {
         }
     };
 
+    /** POST /integrations/extension-refresh — browser extension periodic cookie refresh. */
+    extensionRefresh = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authHeader = req.headers.authorization;
+            const bearer =
+                typeof authHeader === "string" && authHeader.startsWith("Bearer ") ?
+                    authHeader.slice("Bearer ".length).trim()
+                :   "";
+            const body = req.body as { code: string };
+            const data = await this.integrationConnectionService.extensionRefresh(body.code, bearer);
+            res.status(200).json({ success: true, data });
+        } catch (error) {
+            next(error);
+        }
+    };
+
     /** POST /integrations/mentions — @-mention autocomplete for a connected channel. */
     searchIntegrationMentions = async (req: Request, res: Response, next: NextFunction) => {
         try {

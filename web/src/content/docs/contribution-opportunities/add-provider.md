@@ -2,7 +2,7 @@
 title: Adding a social provider
 description: Contributor guide for implementing a new social integration in OpenQuok
 order: 1
-lastUpdated: 2026-08-30
+lastUpdated: 2026-10-09
 ---
 
 <script>
@@ -21,8 +21,9 @@ Pick one family:
 | --- | --- | --- | --- | --- |
 | <strong>OAuth</strong> (default) | Yes | Redirect to the platform | <Badge text="config.integrations.*" variant="path" /> plus self-host <code>.env.example</code> and a docker-compose row | Threads, Instagram, Facebook Page |
 | <strong>Credentials in OpenQuok</strong> | No | Paste a personal API key into Add Channel | None — do not invent empty provider env placeholders | Dev.to (<Badge text="devto" variant="default" />) |
+| <strong>Browser extension</strong> | No | Install extension, sign in on platform, approve dashboard connect | <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_ID" variant="envWeb" /> on web; extension <Badge text="externally_connectable" variant="param" /> for self-host origins | Skool (<Badge text="skool" variant="default" />) |
 
-Use <strong>Facebook</strong> (<Badge text="facebook" variant="default" />), <strong>Instagram (Business)</strong> (<Badge text="instagram-business" variant="default" />), and <strong>Threads</strong> (<Badge text="threads" variant="default" />) as OAuth references. Use <strong>Dev.to</strong> (<Badge text="devto" variant="default" />) as the credentials-in-app reference.
+Use <strong>Facebook</strong> (<Badge text="facebook" variant="default" />), <strong>Instagram (Business)</strong> (<Badge text="instagram-business" variant="default" />), and <strong>Threads</strong> (<Badge text="threads" variant="default" />) as OAuth references. Use <strong>Dev.to</strong> (<Badge text="devto" variant="default" />) as the credentials-in-app reference. Use <strong>Skool</strong> (<Badge text="skool" variant="default" />) as the browser-extension reference.
 
 <Callout type="note">
 The provider <Badge text="identifier" variant="param" /> slug (kebab-case) lives everywhere: database <Badge text="provider_identifier" variant="param" />, OAuth callback path <Badge text="/integration/oauth/[identifier]" variant="path" />, catalog entries, CLI filters, and web routing.
@@ -43,6 +44,13 @@ The provider <Badge text="identifier" variant="param" /> slug (kebab-case) lives
 2. Web calls <Badge text="GET /api/v1/integrations/social/:provider" variant="path" /> → `generateAuthUrl()` seeds org/state cache. The returned <Badge text="url" variant="param" /> is the <Badge text="state" variant="param" /> string, not a platform redirect.
 3. Web calls <Badge text="POST /api/v1/integrations/social-connect/:provider" variant="path" /> with that <Badge text="state" variant="param" /> and <Badge text="code" variant="param" /> as base64 JSON of the pasted key.
 4. <Badge text="authenticate()" variant="param" /> validates the key with the platform and stores it as the access token. Refresh reuses the same form — do not send <code>window.location</code> to a non-URL state.
+
+<strong>Browser extension:</strong>
+
+1. Register the provider in <Badge text="common/src/browser-extension/cookieSessionProviders.ts" variant="path" /> and ship the <Badge text="@openquok/browser-extension" variant="default" /> package with matching <Badge text="host_permissions" variant="param" />.
+2. Backend: set <Badge text="isChromeExtension: true" variant="param" />, <Badge text="extensionCookies" variant="param" />, and <Badge text="authenticate()" variant="param" /> that decodes base64 JSON cookies (same <Badge text="state" variant="param" /> + <Badge text="code" variant="param" /> shape as credentials). Return <Badge text="extensionToken" variant="param" /> from connect for periodic refresh.
+3. Web: <Badge text="AddProvider.svelte" variant="path" /> → extension notice → PING → GET_COOKIES → <Badge text="connectSocial" variant="param" />; <Badge text="IntegrationContinue.svelte" variant="path" /> calls STORE_REFRESH_TOKEN after connect; disconnect removes it.
+4. <Badge text="GET /api/v1/public/social/:identifier" variant="path" /> returns <strong>400</strong> (dashboard + extension only). Document <a href="/docs/installation/chrome-extension">Browser extension</a> and <a href="/docs/social-integration/skool">Skool</a>.
 
 <Callout type="note" title="No public OAuth URL">
 <p>Session <code>getIntegrationUrl</code> still seeds cache for the dashboard form. <Badge text="GET /api/v1/public/social/:identifier" variant="path" /> returns <strong>400</strong> for credentials providers — connect in the dashboard with an API key. Do not add a new public connect route.</p>
@@ -184,6 +192,16 @@ Reuse <Badge text="IntegrationContinue.svelte" variant="path" /> on route <Badge
 - Add a config under <Badge text="web/src/lib/integrations/continue-provider/" variant="path" /> and register it in <Badge text="continue-provider/index.ts" variant="path" /> (title, empty-state copy, icon, and <Badge text="toSaveParams" variant="param" /> for <Badge text="saveProviderPage" variant="param" />).
 - Connect response <Badge text="pages" variant="param" /> is passed through <Badge text="ContinueIntegration.presenter.svelte.ts" variant="path" />; the shared <Badge text="ContinueProviderPicker.svelte" variant="path" /> renders the list.
 
+### 4b. Browser extension connect UI
+
+When the catalog includes <Badge text="isChromeExtension" variant="param" />:
+
+- Show the provider in Add Channel; open the browser-extension notice dialog before cookie harvest.
+- Use <Badge text="web/src/lib/integrations/browser-extension/" variant="path" /> (<Badge text="extensionClient.ts" variant="path" />, <Badge text="extensionConnectFlow.ts" variant="path" />) — message types live in <Badge text="openquok-common" variant="default" />.
+- Submit: <Badge text="getAuthorizeUrl" variant="param" /> then <Badge text="connectSocial" variant="param" /> with <Badge text="code" variant="param" /> = base64 JSON of session cookies from the extension.
+- After connect, register <Badge text="extensionToken" variant="param" /> with the extension for <Badge text="POST /api/v1/integrations/extension-refresh" variant="path" />.
+- Exclude from invite links (same as credentials). Ship <a href="/docs/installation/chrome-extension">installation</a> and a matching <Badge text="web/src/content/docs/social-integration/[identifier].md" variant="path" /> user guide.
+
 ### 4. Credentials connect UI
 
 When the catalog includes <Badge text="customFields" variant="param" />:
@@ -209,6 +227,7 @@ When shipping a user-facing provider, add:
 | Artifact | Location |
 | --- | --- |
 | Setup guide | <Badge text="web/src/content/docs/social-integration/[id].md" variant="path" /> |
+| Browser extension install | <Badge text="web/src/content/docs/installation/chrome-extension.md" variant="path" /> when <Badge text="isChromeExtension" variant="param" /> |
 | Index LinkCard | <Badge text="social-integration/index.md" variant="path" /> |
 | CLI examples | <Badge text="web/src/content/docs/cli-examples/[id].md" variant="path" /> |
 | Composer editor modes | <Badge text="web/src/content/docs/creating-posts/writing-the-post.md" variant="path" /> — update **Editor by platform** **Used by** for the provider’s <Badge text="editor" variant="param" /> (`normal`, `markdown`, `html`, `none`) |
@@ -226,6 +245,7 @@ Follow <a href="/docs/documentation-contribution">Documentation contribution</a>
 <LinkCard title="Instagram" description="Business (Page picker) and Standalone Login" href="/docs/social-integration/instagram" />
 <LinkCard title="Facebook Page" description="Facebook Login, Page picker, feed and video publish" href="/docs/social-integration/facebook" />
 <LinkCard title="Dev.to" description="Credentials-in-app API key, markdown articles, tags and organizations tools" href="/docs/social-integration/devto" />
+<LinkCard title="Skool" description="Browser extension session cookies, groups, and follow-up comments" href="/docs/social-integration/skool" />
 </CardGrid>
 
 ## PR review prompts
@@ -235,6 +255,7 @@ Before opening a PR, confirm:
 - Provider is registered in <Badge text="integrationManager.ts" variant="path" />.
 - <strong>OAuth:</strong> Redirect URI in the platform console matches <Badge text="/integration/oauth/[identifier]" variant="path" /> exactly. New operator env keys exist in <Badge text="infra/self-host/.env.example" variant="path" /> and the docker-compose social-apps table.
 - <strong>Credentials:</strong> no new env vars; docker-compose callout that there is no operator app; dashboard Add Channel and refresh work; <Badge text="GET /public/social/[identifier]" variant="path" /> returns 400.
+- <strong>Browser extension:</strong> <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_ID" variant="envWeb" /> documented; extension build + <Badge text="externally_connectable" variant="param" /> for self-host; connect returns <Badge text="extensionToken" variant="param" />; <Badge text="GET /public/social/[identifier]" variant="path" /> returns 400.
 - No secrets or third-party project names in comments or docs (repo neutrality rule).
 - Composer validation matches backend `validateCreatePost` / publish rules.
 - <strong>Post Preview:</strong> when compose settings ship, preview reads <Badge text="providerSettings" variant="param" /> via <Badge text="read*LaunchSettings" variant="param" />; Settings changes update preview live; <Badge text="AddEditModal.svelte" variant="path" /> derives settings from the preview channel (not <Badge text="followUpTargetIntegrationId" variant="param" />).

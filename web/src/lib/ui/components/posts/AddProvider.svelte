@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { BrowserExtensionSessionCookie } from 'openquok-common';
+
 	import type { IntegrationCatalogItemProgrammerModel } from '$lib/integrations/Integrations.repository.svelte';
 	import type { IntegrationCatalogCustomField } from '$lib/integrations/utils/credentialsConnect';
 	import type { ButtonSize, ButtonVariant } from '$lib/ui/buttons/Button.svelte';
@@ -21,7 +23,10 @@
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import ChannelLimitUpgradeModal from '$lib/ui/components/channels/ChannelLimitUpgradeModal.svelte';
+	import BrowserExtensionConnectDialog from '$lib/ui/components/posts/BrowserExtensionConnectDialog.svelte';
 	import CredentialsConnectDialog from '$lib/ui/components/posts/CredentialsConnectDialog.svelte';
+	import { afterExtensionChannelConnect } from '$lib/integrations/browser-extension/afterExtensionChannelConnect';
+	import { encodeExtensionConnectCode } from '$lib/integrations/browser-extension/extensionConnectCode';
 	import * as Dialog from '$lib/ui/dialog';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Tooltip from '$lib/ui/tooltip';
@@ -102,6 +107,11 @@
 	let credentialsProviderIdentifier = $state('');
 	let credentialsFields = $state<IntegrationCatalogCustomField[]>([]);
 	let credentialsFinished = $state(false);
+	let extensionOpen = $state(false);
+	let extensionSubmitting = $state(false);
+	let extensionProviderName = $state('channel');
+	let extensionProviderIdentifier = $state('');
+	let extensionFinished = $state(false);
 
 	function openAddChannelFlow() {
 		if (channelLimitFull) {
@@ -170,6 +180,14 @@
 		}
 
 		const catalogItem = providers.find((p) => p.identifier === identifier);
+		if (catalogItem?.isChromeExtension) {
+			open = false;
+			extensionProviderIdentifier = identifier;
+			extensionProviderName = catalogItem?.name ?? identifier;
+			extensionFinished = false;
+			extensionOpen = true;
+			return;
+		}
 		const fields = normalizeCatalogCustomFields(catalogItem?.customFields);
 		if (catalogItemHasCustomFields(catalogItem)) {
 			open = false;
@@ -236,6 +254,57 @@
 		credentialsOpen = false;
 		credentialsProviderIdentifier = '';
 		credentialsFields = [];
+		if (!open) open = true;
+	}
+
+	async function submitExtensionConnect(cookies: BrowserExtensionSessionCookie[]) {
+		const workspaceId = workspaceSettingsPresenter.currentWorkspaceId;
+		const identifier = extensionProviderIdentifier;
+		if (!workspaceId || !identifier) {
+			toast.error('Create or select a workspace before connecting a channel.');
+			return;
+		}
+		extensionSubmitting = true;
+		try {
+			const authorizeVm = await integrationsRepository.getAuthorizeUrl({
+				organizationId: workspaceId,
+				provider: identifier,
+				...(onboarding ? { onboarding: 'true' } : {})
+			});
+			if (!('url' in authorizeVm)) {
+				toast.error(authorizeVm.error);
+				return;
+			}
+			const connectResult = await integrationsRepository.connectSocial(identifier, {
+				state: authorizeVm.url,
+				code: encodeExtensionConnectCode(cookies),
+				timezone: timezoneOffsetMinutes()
+			});
+			if (!connectResult.ok) {
+				toast.error(connectResult.error);
+				return;
+			}
+			await afterExtensionChannelConnect({
+				providerId: identifier,
+				integrationId: connectResult.data.id,
+				extensionToken: connectResult.data.extensionToken
+			});
+			toast.success(`${extensionProviderName} connected.`);
+			extensionFinished = true;
+			extensionOpen = false;
+			const afterConnect = returnToPath ?? accountPath;
+			const successQs = new URLSearchParams({ added: identifier });
+			if (onboarding) successQs.set('onboarding', 'true');
+			await goto(absoluteUrl(`${afterConnect}?${successQs}`));
+		} finally {
+			extensionSubmitting = false;
+		}
+	}
+
+	function cancelExtensionConnect() {
+		if (extensionFinished) return;
+		extensionOpen = false;
+		extensionProviderIdentifier = '';
 		if (!open) open = true;
 	}
 </script>
@@ -444,6 +513,15 @@
 	submitting={credentialsSubmitting}
 	onSubmit={submitCredentials}
 	onCancel={cancelCredentials}
+/>
+
+<BrowserExtensionConnectDialog
+	bind:open={extensionOpen}
+	providerName={extensionProviderName}
+	providerIdentifier={extensionProviderIdentifier}
+	submitting={extensionSubmitting}
+	onSubmit={submitExtensionConnect}
+	onCancel={cancelExtensionConnect}
 />
 
 <ChannelLimitUpgradeModal bind:open={upgradeDialogOpen} {upgradeHref} />
