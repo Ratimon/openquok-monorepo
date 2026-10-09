@@ -321,20 +321,18 @@ function firstClassChannelAudienceHook(hostSlug: string, platformLabel: string):
 	return `${platformLabel} is a first-class channel for this host on OpenQuok.`;
 }
 
-/** WhoIsFor on agent × channel pages: host ecosystem card plus first-class hook on card 0. */
-export function resolveAgentChannelAudienceCards(
-	baseCards: readonly AudienceCard[],
-	hostSlug: string,
+function applyFirstClassAudienceHook(
+	cards: readonly AudienceCard[],
+	surfaceSlug: string,
 	channelSlug: string,
 	platformLabel: string
 ): AudienceCard[] {
-	const withHostCard = resolveAgentHostAudienceCards(baseCards, hostSlug);
-	if (!isFirstClassChannelForHost(hostSlug, channelSlug) || withHostCard.length === 0) {
-		return withHostCard;
+	if (!isFirstClassChannelForHost(surfaceSlug, channelSlug) || cards.length === 0) {
+		return [...cards];
 	}
 
-	const hook = firstClassChannelAudienceHook(hostSlug, platformLabel);
-	const [first, ...rest] = withHostCard;
+	const hook = firstClassChannelAudienceHook(surfaceSlug, platformLabel);
+	const [first, ...rest] = cards;
 	return [
 		{
 			...first,
@@ -342,6 +340,36 @@ export function resolveAgentChannelAudienceCards(
 		},
 		...rest
 	];
+}
+
+/** WhoIsFor on agent × channel pages: host ecosystem card plus first-class hook on card 0. */
+export function resolveAgentChannelAudienceCards(
+	baseCards: readonly AudienceCard[],
+	hostSlug: string,
+	channelSlug: string,
+	platformLabel: string
+): AudienceCard[] {
+	return applyFirstClassAudienceHook(
+		resolveAgentHostAudienceCards(baseCards, hostSlug),
+		hostSlug,
+		channelSlug,
+		platformLabel
+	);
+}
+
+/** WhoIsFor on MCP × channel pages: client ecosystem card plus first-class hook on card 0. */
+export function resolveMcpChannelAudienceCards(
+	baseCards: readonly AudienceCard[],
+	mcpSlug: string,
+	channelSlug: string,
+	platformLabel: string
+): AudienceCard[] {
+	return applyFirstClassAudienceHook(
+		resolveMcpClientAudienceCards(baseCards, mcpSlug),
+		mcpSlug,
+		channelSlug,
+		platformLabel
+	);
 }
 
 /** Up to one channel-tailored ecosystem FAQ (host landing FAQs are merged separately on the base VM). */

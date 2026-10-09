@@ -3,7 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { getPublicAgentHostBySlug } from '$lib/content/constants/agents';
 import { getPublicAgentChannelBySlug } from '$lib/content/constants/agents/channels';
 import { getPublicChannelBySlug } from '$lib/content/constants/channels';
+import { getPublicMcpLandingBySlug } from '$lib/content/constants/mcps';
 import { buildAgentChannelLandingVm } from '$lib/content/utils/buildAgentChannelLandingVm';
+import { buildMcpChannelLandingVm } from '$lib/content/utils/buildMcpChannelLandingVm';
 
 function capabilitiesFaqDescription(faqItems: { title: string; description: string }[]) {
 	return faqItems.find((item) => item.title.startsWith('What can ') && item.title.includes(' with '))
@@ -132,6 +134,7 @@ describe('buildAgentChannelLandingVm ecosystem hooks', () => {
 
 		expect(vm.audienceCards.length).toBeGreaterThan(3);
 		expect(vm.audienceCards.at(-1)?.title).toBe('Meta-owned channels first');
+		expect(vm.audienceCards.map((card) => card.title)).not.toContain('Meta Muse first-class');
 		expect(vm.audienceCards[0]?.description).toContain('first-class Meta Muse channel');
 
 		const firstClassFaq = vm.faqItems.find((item) =>
@@ -154,5 +157,43 @@ describe('buildAgentChannelLandingVm ecosystem hooks', () => {
 
 		expect(vm.heroDescription).toContain('Telegram');
 		expect(vm.heroDescription).toContain('WhatsApp');
+	});
+
+	it('does not duplicate Grok Bot cloud-desktop copy on Grok Bot × X', () => {
+		const baseAgent = getPublicAgentHostBySlug('grok-bot');
+		const xChannel = getPublicChannelBySlug('x');
+		const xConfig = getPublicAgentChannelBySlug('grok-bot', 'x');
+		const vm = buildAgentChannelLandingVm({
+			baseAgent: baseAgent!,
+			channel: xChannel!,
+			channelConfig: xConfig!
+		});
+		const titles = vm.audienceCards.map((card) => card.title);
+		expect(titles).toContain('X as your home network');
+		expect(titles).not.toContain('Grok Bot & xAI cloud desktop');
+		expect(vm.audienceCards.at(-1)?.description).toContain('cloud computer');
+	});
+});
+
+describe('buildMcpChannelLandingVm audience cards', () => {
+	it('uses Grok Build X-home-network on /agents/grok-build/x, not the /channels/x Grok Bot card', () => {
+		const baseMcp = getPublicMcpLandingBySlug('grok-build');
+		const xChannel = getPublicChannelBySlug('x');
+		const xConfig = getPublicAgentChannelBySlug('grok-build', 'x');
+		expect(baseMcp).toBeDefined();
+		expect(xChannel).toBeDefined();
+		expect(xConfig).toBeDefined();
+
+		const vm = buildMcpChannelLandingVm({
+			baseMcp: baseMcp!,
+			channel: xChannel!,
+			channelConfig: xConfig!
+		});
+		const titles = vm.audienceCards.map((card) => card.title);
+		expect(titles).toContain('X as your home network');
+		expect(titles).not.toContain('Grok Bot & xAI cloud desktop');
+		expect(vm.audienceCards.at(-1)?.description).toContain('terminal coding agent');
+		expect(vm.audienceCards[0]?.description).toContain('first-class for Grok Build');
+		expect(xChannel!.audienceCards.at(-1)?.title).toBe('Grok Bot & xAI cloud desktop');
 	});
 });

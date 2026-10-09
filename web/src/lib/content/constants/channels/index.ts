@@ -60,6 +60,13 @@ export function getPublicChannelAudienceTailoredCard(
 	return channelBySlug.get(key)?.audienceTailoredCard;
 }
 
+/** Seed WhoIsFor cards only — excludes `/channels/{slug}` ecosystem merge. */
+export function getPublicChannelSeedAudienceCards(slug: string): AudienceCard[] {
+	const key = slug.trim().toLowerCase();
+	const page = channelBySlug.get(key);
+	return page ? [...page.audienceCards] : [];
+}
+
 const CHANNEL_AUDIENCE_AGENT_OPERATORS_TITLE = 'Agent operators';
 
 function baseCardsIncludeAgentOperatorsCard(baseCards: readonly AudienceCard[]): boolean {

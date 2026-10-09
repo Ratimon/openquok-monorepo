@@ -40,6 +40,7 @@ export {
 	isFirstClassChannelForHost,
 	resolveAgentChannelAudienceCards,
 	resolveAgentHostAudienceCards,
+	resolveMcpChannelAudienceCards,
 	resolveMcpClientAudienceCards,
 	sortAgentChannelHubLinks,
 	sortAgentIntegrationsForEcosystem,

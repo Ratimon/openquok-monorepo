@@ -17,6 +17,8 @@ import {
 	getMcpClientEcosystemId,
 	isFirstClassChannelForHost,
 	resolveAgentHostAudienceCards,
+	resolveAgentChannelAudienceCards,
+	resolveMcpChannelAudienceCards,
 	resolveMcpClientAudienceCards,
 	sortAgentChannelHubLinks,
 	sortAgentIntegrationsForEcosystem
@@ -229,6 +231,27 @@ describe('resolveAgentHostAudienceCards', () => {
 		expect(withMeta).toHaveLength(2);
 		const without = resolveAgentHostAudienceCards([BASE_AUDIENCE_CARD], 'hermes');
 		expect(without).toHaveLength(1);
+	});
+});
+
+describe('resolveMcpChannelAudienceCards', () => {
+	it('appends Grok Build X-home-network and first-class hook, not the /channels/x Grok Bot card', () => {
+		const cards = resolveMcpChannelAudienceCards([BASE_AUDIENCE_CARD], 'grok-build', 'x', 'X');
+		expect(cards.map((card) => card.title)).toEqual(['Base', 'X as your home network']);
+		expect(cards[0]?.description).toContain('first-class for Grok Build');
+		expect(cards.at(-1)?.description).toContain('terminal coding agent');
+		expect(buildPublicChannelEcosystemAudienceTailoredCard('x', 'X')?.title).toBe(
+			'Grok Bot & xAI cloud desktop'
+		);
+	});
+});
+
+describe('resolveAgentChannelAudienceCards', () => {
+	it('uses Grok Bot X-home-network instead of the channel-page cloud-desktop card', () => {
+		const cards = resolveAgentChannelAudienceCards([BASE_AUDIENCE_CARD], 'grok-bot', 'x', 'X');
+		expect(cards.map((card) => card.title)).toEqual(['Base', 'X as your home network']);
+		expect(cards[0]?.description).toContain('first-class for Grok Bot');
+		expect(cards.at(-1)?.description).toContain('cloud computer');
 	});
 });
 

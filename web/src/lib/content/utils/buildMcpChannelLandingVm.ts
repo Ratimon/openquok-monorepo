@@ -6,7 +6,7 @@ import {
 	SHARED_CHANNEL_SEO_KEYWORDS
 } from '$lib/content/constants/channels/catalog/shared';
 
-import { resolveMcpClientAudienceCards } from '$lib/content/constants/agents/ecosystems';
+import { resolveMcpChannelAudienceCards } from '$lib/content/constants/agents/ecosystems';
 import { appendChannelLandingFaqItems } from '$lib/content/utils/buildAgentChannelLandingVm';
 import { customizeAgentsChannelFeatureSections } from '$lib/content/utils/buildAgentsChannelFeatureSections';
 import { buildAgentsChannelAudienceSection } from '$lib/content/utils/buildAgentsChannelAudienceSection';
@@ -34,7 +34,12 @@ export function buildMcpChannelLandingVm(params: {
 		agentLabel: clientLabel,
 		mode: 'mcp-client'
 	});
-	const audienceCards = resolveMcpClientAudienceCards(audienceSection.audienceCards, baseMcp.slug);
+	const audienceCards = resolveMcpChannelAudienceCards(
+		audienceSection.audienceCards,
+		baseMcp.slug,
+		channel.slug,
+		platformLabel
+	);
 	const channelKeywords = channel.keywords
 		.filter((keyword) => !SHARED_CHANNEL_KEYWORD_SET.has(keyword))
 		.slice(0, 4);
