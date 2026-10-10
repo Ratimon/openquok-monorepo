@@ -44,7 +44,7 @@ describe('buildAgentChannelLandingVm analytics FAQ honesty', () => {
 			channelConfig: {
 				...facebookConfig!,
 				// Synthetic future channel — not on SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS
-				providerIdentifiers: ['bluesky']
+				providerIdentifiers: ['skool']
 			}
 		});
 
@@ -56,7 +56,7 @@ describe('buildAgentChannelLandingVm analytics FAQ honesty', () => {
 		expect(description).toContain('posts:create');
 	});
 
-	it('omits analytics on real Bluesky agent channel config', () => {
+	it('includes analytics on Bluesky agent channel config', () => {
 		expect(baseAgent).toBeDefined();
 		const blueskyChannel = getPublicChannelBySlug('bluesky');
 		const blueskyConfig = getPublicAgentChannelBySlug('openclaw', 'bluesky');
@@ -70,8 +70,30 @@ describe('buildAgentChannelLandingVm analytics FAQ honesty', () => {
 		});
 
 		const description = capabilitiesFaqDescription(vm.faqItems);
+		expect(description).toContain('analytics:platform');
+		expect(blueskyConfig!.analyticsCliCommands).toContain('analytics:platform');
+	});
+
+	it('omits analytics marketing on Grok Bot × Skool', () => {
+		const grokBot = getPublicAgentHostBySlug('grok-bot');
+		const skoolChannel = getPublicChannelBySlug('skool');
+		const skoolConfig = getPublicAgentChannelBySlug('grok-bot', 'skool');
+		expect(grokBot).toBeDefined();
+		expect(skoolChannel).toBeDefined();
+		expect(skoolConfig).toBeDefined();
+
+		const vm = buildAgentChannelLandingVm({
+			baseAgent: grokBot!,
+			channel: skoolChannel!,
+			channelConfig: skoolConfig!
+		});
+
+		const description = capabilitiesFaqDescription(vm.faqItems);
 		expect(description).not.toContain('analytics:platform');
-		expect(blueskyConfig!.analyticsCliCommands).not.toContain('analytics:platform');
+		expect(vm.featureSections.some((section) => section.subtitle === 'Scale what works')).toBe(
+			false
+		);
+		expect(vm.featureSections.some((section) => section.bentoId === 'skool-follow-ups')).toBe(true);
 	});
 });
 

@@ -28,6 +28,7 @@ export { linkedinToolSurfaceMeta } from '$lib/content/constants/channels/tool-su
 export { threadsToolSurfaceMeta } from '$lib/content/constants/channels/tool-surfaces/threads';
 export { tiktokToolSurfaceMeta } from '$lib/content/constants/channels/tool-surfaces/tiktok';
 export { xToolSurfaceMeta } from '$lib/content/constants/channels/tool-surfaces/x';
+export { skoolToolSurfaceMeta } from '$lib/content/constants/channels/tool-surfaces/skool';
 export { youtubeToolSurfaceMeta } from '$lib/content/constants/channels/tool-surfaces/youtube';
 
 export { TOOL_SURFACE_CHANNEL_SLUGS, TOOL_SURFACE_CHANNEL_META };

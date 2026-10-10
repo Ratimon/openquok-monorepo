@@ -67,4 +67,6 @@ export type SkillBuilderChannelHubLinkViewModel = {
 	icon: IconName;
 	href: string;
 	description: string;
+	/** False when `/channels/{slug}` is still coming soon — recipes page is still available. */
+	schedulerAvailable: boolean;
 };

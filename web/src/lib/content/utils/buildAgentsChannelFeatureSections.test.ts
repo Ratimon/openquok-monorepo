@@ -38,32 +38,35 @@ describe('customizeAgentsChannelFeatureSections', () => {
 		expect(analyticsRow?.description).toContain('per-Page');
 	});
 
-	it('uses the follow-up feature row when the channel has no insights bento', () => {
-		const baseAgent = getPublicAgentHostBySlug('openclaw');
-		const blueskyChannel = getPublicChannelBySlug('bluesky');
-		const blueskyConfig = getPublicAgentChannelBySlug('openclaw', 'bluesky');
+	it('uses channel follow-ups in the analytics slot and drops scale when analytics are unsupported', () => {
+		const baseAgent = getPublicAgentHostBySlug('grok-bot');
+		const skoolChannel = getPublicChannelBySlug('skool');
+		const skoolConfig = getPublicAgentChannelBySlug('grok-bot', 'skool');
 
 		expect(baseAgent).toBeDefined();
-		expect(blueskyChannel).toBeDefined();
-		expect(blueskyConfig).toBeDefined();
+		expect(skoolChannel).toBeDefined();
+		expect(skoolConfig).toBeDefined();
 
-		const threadsSection = blueskyChannel!.featureSections.find(
-			(section) => section.bentoId === 'bluesky-threads'
+		const followUpsSection = skoolChannel!.featureSections.find(
+			(section) => section.bentoId === 'skool-follow-ups'
 		);
-		expect(threadsSection).toBeDefined();
+		expect(followUpsSection).toBeDefined();
 
 		const sections = customizeAgentsChannelFeatureSections(
 			baseAgent!.featureSections,
-			blueskyChannel!,
-			blueskyConfig!,
+			skoolChannel!,
+			skoolConfig!,
 			'agent-host'
 		);
 
-		const analyticsRow = sections.find((section) => section.bentoId === 'bluesky-threads');
-		expect(analyticsRow).toBeDefined();
-		expect(analyticsRow?.subtitle).toBe('Follow-up replies');
-		expect(analyticsRow?.title).toBe(threadsSection!.title);
-		expect(analyticsRow?.cliCommands).toContain('bluesky-follow-up.json');
-		expect(analyticsRow?.cliCommands).not.toContain('analytics:platform');
+		expect(sections.some((section) => section.subtitle === 'Scale what works')).toBe(false);
+		expect(sections.some((section) => section.subtitle === 'Analytics')).toBe(false);
+
+		const followUpRow = sections.find((section) => section.bentoId === 'skool-follow-ups');
+		expect(followUpRow).toBeDefined();
+		expect(followUpRow?.subtitle).toBe('Follow-up comments');
+		expect(followUpRow?.title).toBe(followUpsSection!.title);
+		expect(followUpRow?.cliCommands).toContain('skool-follow-up.json');
+		expect(followUpRow?.cliCommands).not.toContain('analytics:platform');
 	});
 });

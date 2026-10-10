@@ -132,7 +132,8 @@ export function getPublicChannelBySlug(slug: string): PublicChannelLandingPageVi
 		...withSeo,
 		faqItems: appendPublicGeneralFaqItems(
 			[...prependedFaqs, ...withSeo.faqItems],
-			PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS
+			PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS,
+			{ generalFirst: true }
 		)
 	};
 }

@@ -7,6 +7,7 @@ import {
 	sortChannelPageAgentIntegrations
 } from '$lib/content/constants/channels/catalog/channelPageSeo';
 import { getPublicChannelBySlug } from '$lib/content/constants/channels';
+import { PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS } from '$lib/content/constants/faq';
 
 describe('channelPageSeo', () => {
 	it('builds WhoIsFor title and subtitle from the platform label', () => {
@@ -20,7 +21,10 @@ describe('channelPageSeo', () => {
 		expect(page?.audienceCards.length).toBeGreaterThanOrEqual(4);
 		expect(page?.audienceCards.at(-1)?.title).toBe('Grok Bot & xAI cloud desktop');
 		expect(page?.audienceCards[0]?.description).toContain('first-class for Grok Bot');
-		expect(page?.faqItems[0]?.title).toBe('Which agent is first-class for X?');
+		expect(page?.faqItems[0]?.id).toBe('what-is-channel');
+		expect(page?.faqItems[PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS.length]?.title).toBe(
+			'Which agent is first-class for X?'
+		);
 	});
 
 	it('sorts pinned agent hosts for channel integration grids', () => {

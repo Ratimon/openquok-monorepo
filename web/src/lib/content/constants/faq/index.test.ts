@@ -58,6 +58,17 @@ describe('appendPublicGeneralFaqItems', () => {
 
 		expect(merged.filter((item) => item.id === 'try-free')).toHaveLength(1);
 	});
+
+	it('can place shared general items before tailored copy on channel slug pages', () => {
+		const tailored = [{ title: 'How do I connect Skool?', description: 'Extension connect.' }];
+		const merged = appendPublicGeneralFaqItems(tailored, PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS, {
+			generalFirst: true
+		});
+
+		expect(merged[0]?.id).toBe('what-is-channel');
+		expect(merged[PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS.length]?.title).toBe(tailored[0].title);
+		expect(merged.length).toBe(PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS.length + 1);
+	});
 });
 
 describe('resolvePublicFaqItemsVm', () => {

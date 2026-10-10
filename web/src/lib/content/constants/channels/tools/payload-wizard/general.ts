@@ -74,7 +74,11 @@ const CHANNEL_HUB_DESCRIPTIONS: Record<string, string> = {
 	youtube: 'Draft title, privacy, tags, and thumbnail settings.',
 	facebook: 'Compose Page feed, Reel, and link-preview payloads.',
 	threads: 'Model thread replies and cross-account comment plugs.',
-	linkedin: 'Preview text posts, video uploads, and document carousels.'
+	linkedin: 'Preview text posts, video uploads, and document carousels.',
+	devto: 'Draft article bodies with tags, series, and cover settings.',
+	bluesky: 'Model text posts, images, and bluesky.replies follow-ups.',
+	skool:
+		'Shape Skool group posts with title, group, category, media, and skool.replies in provider settings.'
 };
 
 function buildChannelPageConfig(slug: (typeof PUBLIC_API_POSTING_PLATFORM_SLUGS)[number]): PayloadWizardChannelPageConfig {

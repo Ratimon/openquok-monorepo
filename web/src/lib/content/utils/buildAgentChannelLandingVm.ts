@@ -9,7 +9,7 @@ import {
 } from '$lib/content/constants/agents/ecosystems';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels';
 
-import { SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS } from '$data/social-providers';
+import { channelProviderIdentifiersSupportAnalytics } from '$data/social-providers';
 
 import { customizeAgentsChannelFeatureSections } from '$lib/content/utils/buildAgentsChannelFeatureSections';
 import { buildAgentsChannelAudienceSection } from '$lib/content/utils/buildAgentsChannelAudienceSection';
@@ -20,8 +20,6 @@ import {
 	buildToolChannelFaqLinks,
 	faqLink
 } from '$lib/content/utils/publicFaqLinks';
-
-const ANALYTICS_CAPABLE_IDENTIFIERS = new Set<string>(SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS);
 
 /** Agent/MCP channel landings keep host/client FAQs first, then channel catalog FAQs (deduped by title). */
 export function appendChannelLandingFaqItems(
@@ -42,8 +40,8 @@ export function buildAgentChannelLandingVm(params: {
 	const { baseAgent, channel, channelConfig } = params;
 	const platformLabel = channel.platformLabel;
 	const agentLabel = baseAgent.agentLabel;
-	const supportsAnalytics = channelConfig.providerIdentifiers.some((id) =>
-		ANALYTICS_CAPABLE_IDENTIFIERS.has(id)
+	const supportsAnalytics = channelProviderIdentifiersSupportAnalytics(
+		channelConfig.providerIdentifiers
 	);
 	const audienceSection = buildAgentsChannelAudienceSection({
 		channel,

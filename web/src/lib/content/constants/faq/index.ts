@@ -252,25 +252,52 @@ export function resolvePublicFaqItemsByIds(ids: readonly PublicFaqItemId[]): Pub
 		.filter((item): item is PublicFaqItem => item != null);
 }
 
+export type MergePublicGeneralFaqOptions = {
+	/** When true, shared general items appear before tailored copy (e.g. `/channels/{slug}`). */
+	generalFirst?: boolean;
+};
+
+function mergePublicGeneralFaqItems(
+	tailoredItems: readonly PublicFaqItem[],
+	generalIds: readonly PublicFaqItemId[],
+	options?: MergePublicGeneralFaqOptions
+): PublicFaqItem[] {
+	const general = resolvePublicFaqItemsByIds(generalIds);
+	const seenIds = new Set<PublicFaqItemId>();
+	const seenTitles = new Set<string>();
+	const merged: PublicFaqItem[] = [];
+
+	const pushUnique = (items: readonly PublicFaqItem[]) => {
+		for (const item of items) {
+			if (item.id && seenIds.has(item.id)) continue;
+			if (seenTitles.has(item.title)) continue;
+			if (item.id) seenIds.add(item.id);
+			seenTitles.add(item.title);
+			merged.push(item);
+		}
+	};
+
+	if (options?.generalFirst) {
+		pushUnique(general);
+		pushUnique(tailoredItems);
+	} else {
+		pushUnique(tailoredItems);
+		pushUnique(general);
+	}
+
+	return merged;
+}
+
 /**
- * Keeps page-specific FAQ copy first, then appends curated git-default items by id.
- * Skips general items when the same `id` or `title` already appears in `tailoredItems`.
+ * Merges curated git-default FAQ items with page-specific copy.
+ * Default order: tailored first, then general. Use `{ generalFirst: true }` for channel slug pages.
  */
 export function appendPublicGeneralFaqItems(
 	tailoredItems: readonly PublicFaqItem[],
-	generalIds: readonly PublicFaqItemId[]
+	generalIds: readonly PublicFaqItemId[],
+	options?: MergePublicGeneralFaqOptions
 ): PublicFaqItem[] {
-	const seenIds = new Set(
-		tailoredItems.map((item) => item.id).filter((id): id is PublicFaqItemId => id != null)
-	);
-	const seenTitles = new Set(tailoredItems.map((item) => item.title));
-	const general = resolvePublicFaqItemsByIds(generalIds).filter((item) => {
-		if (item.id && seenIds.has(item.id)) return false;
-		if (seenTitles.has(item.title)) return false;
-		return true;
-	});
-
-	return [...tailoredItems, ...general];
+	return mergePublicGeneralFaqItems(tailoredItems, generalIds, options);
 }
 
 /** Curated `/pricing` FAQ — same copy as {@link PUBLIC_FAQ_ITEMS}, billing and plan features only. */

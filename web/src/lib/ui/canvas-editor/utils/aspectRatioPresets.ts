@@ -433,6 +433,27 @@ export const ASPECT_RATIO_PRESETS: AspectRatioPreset[] = [
 		exportHeight: 675,
 		hint: '1200×675 — landscape image post.'
 	},
+	/* Skool (no official size — common feed attachments) */
+	{
+		id: 'skool-landscape-169',
+		label: 'Skool',
+		menuTitle: 'Post (16:9)',
+		ratioW: 16,
+		ratioH: 9,
+		exportWidth: 1200,
+		exportHeight: 675,
+		hint: '1200×675 — wide inline image (Skool has no required aspect ratio).'
+	},
+	{
+		id: 'skool-square',
+		label: 'Skool',
+		menuTitle: 'Square (1:1)',
+		ratioW: 1,
+		ratioH: 1,
+		exportWidth: 1080,
+		exportHeight: 1080,
+		hint: '1080×1080 — square graphic for community posts.'
+	},
 	/* Pinterest */
 	{
 		id: 'pin-standard',
@@ -632,6 +653,11 @@ export const ASPECT_RATIO_PLATFORM_GROUPS: readonly AspectPlatformGroup[] = [
 		title: 'Bluesky',
 		presetIds: ['bluesky-square', 'bluesky-portrait-45', 'bluesky-landscape-169']
 	},
+	{
+		id: 'skool',
+		title: 'Skool',
+		presetIds: ['skool-landscape-169', 'skool-square']
+	},
 	{ id: 'pinterest', title: 'Pinterest', presetIds: ['pin-standard'] },
 	{ id: 'snapchat', title: 'Snapchat', presetIds: ['sc-story'] },
 	{
@@ -675,6 +701,7 @@ export function aspectPlatformGroupIdForProviderIdentifier(identifier: string | 
 	if (id === 'devto') return 'devto';
 	if (id === 'x' || id === 'twitter') return 'x';
 	if (id === 'bluesky') return 'bluesky';
+	if (id === 'skool') return 'skool';
 	if (id === 'linkedin') return 'linkedin';
 	return 'general';
 }

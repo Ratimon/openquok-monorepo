@@ -137,6 +137,16 @@ const PLATFORM_WINDOWS: Record<string, readonly DayWindow[]> = {
 		{ weekday: 5, times: [{ hour: 9, minute: 0 }, { hour: 12, minute: 0 }, { hour: 18, minute: 0 }] },
 		{ weekday: 6, times: [{ hour: 17, minute: 0 }, { hour: 9, minute: 0 }, { hour: 12, minute: 0 }] },
 		{ weekday: 7, times: [{ hour: 9, minute: 0 }, { hour: 16, minute: 0 }, { hour: 18, minute: 0 }] }
+	],
+	// Community / course feeds: weekday check-ins (local clock) — validate in your Skool group.
+	skool: [
+		{ weekday: 1, times: [{ hour: 9, minute: 0 }, { hour: 12, minute: 0 }, { hour: 18, minute: 0 }] },
+		{ weekday: 2, times: [{ hour: 9, minute: 0 }, { hour: 12, minute: 0 }, { hour: 18, minute: 0 }] },
+		{ weekday: 3, times: [{ hour: 10, minute: 0 }, { hour: 12, minute: 30 }, { hour: 18, minute: 0 }] },
+		{ weekday: 4, times: [{ hour: 9, minute: 0 }, { hour: 12, minute: 0 }, { hour: 17, minute: 30 }] },
+		{ weekday: 5, times: [{ hour: 9, minute: 0 }, { hour: 12, minute: 0 }, { hour: 16, minute: 0 }] },
+		{ weekday: 6, times: [{ hour: 10, minute: 0 }, { hour: 12, minute: 0 }, { hour: 17, minute: 0 }] },
+		{ weekday: 7, times: [{ hour: 10, minute: 0 }, { hour: 13, minute: 0 }, { hour: 18, minute: 0 }] }
 	]
 };
 

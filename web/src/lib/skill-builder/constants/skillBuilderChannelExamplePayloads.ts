@@ -385,3 +385,72 @@ export const BLUESKY_FOLLOW_UP_PAYLOAD = {
 		}
 	}
 } as const;
+
+export const SKOOL_TEXT_TITLE_GROUP_PAYLOAD = {
+	scheduledAt: '2026-01-01T12:00:00.000Z',
+	status: 'scheduled',
+	body: 'Weekly community update — queue this before you forget to post in the group feed.',
+	integrationIds: ['<integration-id>'],
+	providerSettingsByIntegrationId: {
+		'<integration-id>': {
+			skool: {
+				title: 'Week 12 — shipping notes',
+				group: '<group-id>'
+			}
+		}
+	}
+} as const;
+
+export const SKOOL_WITH_LABEL_PAYLOAD = {
+	scheduledAt: '2026-01-01T12:00:00.000Z',
+	status: 'scheduled',
+	body: 'Pinned-style announcement for members who filter by category.',
+	integrationIds: ['<integration-id>'],
+	providerSettingsByIntegrationId: {
+		'<integration-id>': {
+			skool: {
+				title: 'Office hours this Friday',
+				group: '<group-id>',
+				label: '<label-id>'
+			}
+		}
+	}
+} as const;
+
+export const SKOOL_WITH_IMAGE_PAYLOAD = {
+	scheduledAt: '2026-01-01T12:00:00.000Z',
+	status: 'scheduled',
+	body: 'Share a screenshot or graphic with the post body.',
+	integrationIds: ['<integration-id>'],
+	media: [{ id: '<media-id>', path: 'https://cdn.example.com/workspace/skool-cover.png' }],
+	providerSettingsByIntegrationId: {
+		'<integration-id>': {
+			skool: {
+				title: 'New resource drop',
+				group: '<group-id>'
+			}
+		}
+	}
+} as const;
+
+export const SKOOL_FOLLOW_UP_PAYLOAD = {
+	scheduledAt: '2026-01-01T12:00:00.000Z',
+	status: 'scheduled',
+	body: 'Main Skool post — follow-up comments publish after delays.',
+	integrationIds: ['<integration-id>'],
+	providerSettingsByIntegrationId: {
+		'<integration-id>': {
+			skool: {
+				title: 'Launch thread',
+				group: '<group-id>',
+				replies: [
+					{
+						id: 'reply-1',
+						message: 'Details and link in this comment.',
+						delaySeconds: 300
+					}
+				]
+			}
+		}
+	}
+} as const;

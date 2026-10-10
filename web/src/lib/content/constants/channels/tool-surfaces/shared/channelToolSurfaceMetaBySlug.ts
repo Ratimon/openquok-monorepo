@@ -6,6 +6,7 @@ import { linkedinToolSurfaceMeta } from '$lib/content/constants/channels/tool-su
 import { threadsToolSurfaceMeta } from '$lib/content/constants/channels/tool-surfaces/threads';
 import { tiktokToolSurfaceMeta } from '$lib/content/constants/channels/tool-surfaces/tiktok';
 import { xToolSurfaceMeta } from '$lib/content/constants/channels/tool-surfaces/x';
+import { skoolToolSurfaceMeta } from '$lib/content/constants/channels/tool-surfaces/skool';
 import { youtubeToolSurfaceMeta } from '$lib/content/constants/channels/tool-surfaces/youtube';
 import type { ToolSurfaceChannelMeta } from '$lib/content/constants/channels/tool-surfaces/shared/channelToolSurfaceMeta.types';
 
@@ -19,7 +20,8 @@ export const TOOL_SURFACE_CHANNEL_SLUGS: readonly string[] = [
 	linkedinToolSurfaceMeta.slug,
 	xToolSurfaceMeta.slug,
 	blueskyToolSurfaceMeta.slug,
-	devtoToolSurfaceMeta.slug
+	devtoToolSurfaceMeta.slug,
+	skoolToolSurfaceMeta.slug
 ];
 
 export const TOOL_SURFACE_CHANNEL_META: Record<string, ToolSurfaceChannelMeta> = {
@@ -31,7 +33,8 @@ export const TOOL_SURFACE_CHANNEL_META: Record<string, ToolSurfaceChannelMeta> =
 	[linkedinToolSurfaceMeta.slug]: linkedinToolSurfaceMeta,
 	[xToolSurfaceMeta.slug]: xToolSurfaceMeta,
 	[blueskyToolSurfaceMeta.slug]: blueskyToolSurfaceMeta,
-	[devtoToolSurfaceMeta.slug]: devtoToolSurfaceMeta
+	[devtoToolSurfaceMeta.slug]: devtoToolSurfaceMeta,
+	[skoolToolSurfaceMeta.slug]: skoolToolSurfaceMeta
 };
 
 export function getToolSurfaceChannelMeta(slug: string): ToolSurfaceChannelMeta {

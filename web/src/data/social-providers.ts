@@ -20,6 +20,16 @@ export const SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS = [
 export type SupportedAnalyticsProviderIdentifier =
 	(typeof SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS)[number];
 
+export function providerSupportsOpenQuokAnalytics(identifier: string): boolean {
+	return (SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS as readonly string[]).includes(identifier);
+}
+
+export function channelProviderIdentifiersSupportAnalytics(
+	providerIdentifiers: readonly string[]
+): boolean {
+	return providerIdentifiers.some(providerSupportsOpenQuokAnalytics);
+}
+
 /** Allowed lookback windows for account and post analytics (API accepts only these values). */
 export const ANALYTICS_DATE_WINDOW_DAYS_OPTIONS = [7, 30, 90] as const;
 

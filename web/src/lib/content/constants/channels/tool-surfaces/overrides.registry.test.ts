@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { listAvailablePublicChannels } from '$lib/content/constants/channels';
+import { listAvailablePublicChannels, listPublicChannelsForHub } from '$lib/content/constants/channels';
 import {
 	bestTimeToolContentOverridesBySlug,
 	photoEditorToolContentOverridesBySlug,
@@ -12,9 +12,14 @@ import { getCanvasChannelBySlug } from '$lib/content/constants/channels/tools/ph
 import { getSkillBuilderChannelContentOverride } from '$lib/content/constants/channels/tools/skill-builder/general';
 
 describe('tool-surfaces registry', () => {
-	it('covers every live channel catalog slug', () => {
-		const catalogSlugs = listAvailablePublicChannels().map((c) => c.slug).sort();
-		expect([...TOOL_SURFACE_CHANNEL_SLUGS].sort()).toEqual(catalogSlugs);
+	it('includes tool-surface meta for every live channel and prepared coming-soon channels', () => {
+		const hubSlugs = new Set(listPublicChannelsForHub().map((c) => c.slug));
+		for (const slug of TOOL_SURFACE_CHANNEL_SLUGS) {
+			expect(hubSlugs.has(slug)).toBe(true);
+		}
+		const liveSlugs = listAvailablePublicChannels().map((c) => c.slug).sort();
+		const liveWithMeta = TOOL_SURFACE_CHANNEL_SLUGS.filter((slug) => liveSlugs.includes(slug)).sort();
+		expect(liveWithMeta).toEqual(liveSlugs);
 	});
 
 	it('registers best-time, photo-editor, and skill-builder overrides for each slug', () => {

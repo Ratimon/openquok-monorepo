@@ -1,6 +1,9 @@
 /**
  * Skool channel landing (`available: false` until store extension + go-live flip).
  *
+ * No OpenQuok workspace or per-post analytics — `skool` is omitted from
+ * `SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS` in `web/src/data/social-providers.ts`.
+ *
  * Extensions Hub listing tag: create in `/secret-admin/catalog-manager/tags` (Name **Skool** → slug `skool`).
  * Do not SQL-seed `listing_tags`. Tag groups: **Social platforms**, **Text**.
  */

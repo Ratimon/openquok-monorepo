@@ -54,7 +54,8 @@ const CHANNEL_HUB_DESCRIPTIONS: Record<string, string> = {
 	linkedin: 'Drop stock phrasing from professional feed posts.',
 	x: 'Shorten drafts for a more conversational post.',
 	devto: 'Rewrite technical articles so they read less machine-written.',
-	bluesky: 'Tighten microblog drafts for a more natural Bluesky voice.'
+	bluesky: 'Tighten microblog drafts for a more natural Bluesky voice.',
+	skool: 'Rewrite community announcements so they sound less machine-written.'
 };
 
 function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): HumanizeChannelPageConfig {

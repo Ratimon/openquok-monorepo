@@ -6,6 +6,7 @@
 	import { route, url } from '$lib/utils/path';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import PublicSoonBadge from '$lib/ui/components/PublicSoonBadge.svelte';
 
 	type Props = {
 		channelLinksVm: SkillBuilderChannelHubLinkViewModel[];
@@ -83,30 +84,53 @@
 					aria-current={isActive ? 'page' : undefined}
 					class="group flex h-full flex-col gap-3 rounded-2xl border p-4 transition {isActive
 						? 'border-primary bg-primary/5 ring-2 ring-primary/30'
-						: 'border-base-content/10 bg-base-200/40 hover:border-primary/40 hover:bg-base-200/70'}"
+						: channelVm.schedulerAvailable
+							? 'border-base-content/10 bg-base-200/40 hover:border-primary/40 hover:bg-base-200/70'
+							: 'border-dashed border-base-content/15 bg-base-200/20 opacity-90 hover:border-base-content/25 hover:bg-base-200/30'}"
 				>
-					<span
-						class="grid size-10 place-items-center rounded-lg border border-white/10 bg-base-100/80"
-						aria-hidden="true"
-					>
-						<AbstractIcon
-							name={channelVm.icon}
-							width="22"
-							height="22"
-							class="size-5"
-							focusable="false"
-						/>
-					</span>
+					<div class="flex items-start justify-between gap-2">
+						<span
+							class="grid size-10 shrink-0 place-items-center rounded-lg border border-white/10 bg-base-100/80"
+							aria-hidden="true"
+						>
+							<AbstractIcon
+								name={channelVm.icon}
+								width="22"
+								height="22"
+								class="size-5 {channelVm.schedulerAvailable ? '' : 'opacity-70'}"
+								focusable="false"
+							/>
+						</span>
+						{#if !channelVm.schedulerAvailable}
+							<PublicSoonBadge label="Scheduler soon" />
+						{/if}
+					</div>
 					<span class="space-y-1 text-left">
-						<span class="block text-sm font-bold text-base-content group-hover:text-primary">
+						<span
+							class="block text-sm font-bold {channelVm.schedulerAvailable
+								? 'text-base-content group-hover:text-primary'
+								: 'text-base-content/80'}"
+						>
 							{channelVm.platformLabel}
 						</span>
-						<span class="line-clamp-2 block text-xs leading-relaxed text-base-content/65">
+						<span
+							class="line-clamp-2 block text-xs leading-relaxed {channelVm.schedulerAvailable
+								? 'text-base-content/65'
+								: 'text-base-content/55'}"
+						>
 							{channelVm.description}
 						</span>
 					</span>
-					<span class="mt-auto text-xs font-semibold text-primary">
-						{isActive ? 'Current page' : 'Open builder →'}
+					<span
+						class="mt-auto text-xs font-semibold {channelVm.schedulerAvailable
+							? 'text-primary'
+							: 'text-base-content/50'}"
+					>
+						{isActive
+							? 'Current page'
+							: channelVm.schedulerAvailable
+								? 'Open builder →'
+								: 'Preview recipes →'}
 					</span>
 				</a>
 			</li>

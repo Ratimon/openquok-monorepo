@@ -2,6 +2,7 @@ import type { IconName } from '$data/icons';
 
 import {
 	listAvailablePublicChannels,
+	listPublicChannelsForHub,
 	type PublicChannelLandingPageViewModel
 } from '$lib/content/constants/channels';
 import { getRootPathPublicSkillBuilderChannel } from '$lib/area-public/constants/getRootPathPublicTools';
@@ -52,7 +53,11 @@ import {
 	DEVTO_ORGANIZATION_PAYLOAD,
 	BLUESKY_TEXT_ONLY_PAYLOAD,
 	BLUESKY_IMAGES_PAYLOAD,
-	BLUESKY_FOLLOW_UP_PAYLOAD
+	BLUESKY_FOLLOW_UP_PAYLOAD,
+	SKOOL_FOLLOW_UP_PAYLOAD,
+	SKOOL_TEXT_TITLE_GROUP_PAYLOAD,
+	SKOOL_WITH_IMAGE_PAYLOAD,
+	SKOOL_WITH_LABEL_PAYLOAD
 } from '$lib/skill-builder/constants/skillBuilderChannelExamplePayloads';
 
 type SkillBuilderChannelRecipe = {
@@ -88,6 +93,8 @@ export type SkillBuilderChannelPageConfig = {
 	keywords: readonly string[];
 	cliExamplesPath: string;
 	recipes: readonly SkillBuilderChannelRecipe[];
+	/** When false, channel scheduler is coming soon — Skill Builder recipes still ship for SEO. */
+	schedulerAvailable: boolean;
 	/** Optional extra paragraph under the hero meta description. */
 	heroLead?: string;
 };
@@ -110,7 +117,8 @@ const CHANNEL_PROVIDER_IDENTIFIERS: Record<string, readonly string[]> = {
 	linkedin: ['linkedin', 'linkedin-page'],
 	x: ['x'],
 	devto: ['devto'],
-	bluesky: ['bluesky']
+	bluesky: ['bluesky'],
+	skool: ['skool']
 };
 
 const CHANNEL_RECIPES: Record<string, readonly SkillBuilderChannelRecipe[]> = {
@@ -316,6 +324,32 @@ const CHANNEL_RECIPES: Record<string, readonly SkillBuilderChannelRecipe[]> = {
 			prompt: 'Schedule a main post and a delayed reply on bluesky.replies.',
 			examplePayload: { ...BLUESKY_FOLLOW_UP_PAYLOAD }
 		}
+	],
+	skool: [
+		{
+			id: 'skool-title-group',
+			label: 'Title and group',
+			prompt: 'Schedule a Skool community post with skool.title and skool.group in provider settings.',
+			examplePayload: { ...SKOOL_TEXT_TITLE_GROUP_PAYLOAD }
+		},
+		{
+			id: 'skool-label',
+			label: 'With category',
+			prompt: 'Set skool.label (category) with title and group before you schedule.',
+			examplePayload: { ...SKOOL_WITH_LABEL_PAYLOAD }
+		},
+		{
+			id: 'skool-image',
+			label: 'Post with image',
+			prompt: 'Attach media on the post row; OpenQuok uploads to Skool at publish time.',
+			examplePayload: { ...SKOOL_WITH_IMAGE_PAYLOAD }
+		},
+		{
+			id: 'skool-follow-up',
+			label: 'Follow-up comment',
+			prompt: 'Schedule the main post and delayed comments on skool.replies.',
+			examplePayload: { ...SKOOL_FOLLOW_UP_PAYLOAD }
+		}
 	]
 };
 
@@ -328,7 +362,9 @@ const CHANNEL_HUB_DESCRIPTIONS: Record<string, string> = {
 	linkedin: 'Profile and company Page text posts; Page global plugs.',
 	x: 'Text posts, reply threads, cross-account reposts, and global plugs.',
 	devto: 'Markdown articles with title, tags, cover, series, and canonical URL.',
-	bluesky: 'Text posts, up to four images per post, one video per post, and follow-up replies.'
+	bluesky: 'Text posts, up to four images per post, one video per post, and follow-up replies.',
+	skool:
+		'Community posts with title, group, category, image attachments, and follow-up comments (browser extension connect).'
 };
 
 function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): SkillBuilderChannelPageConfig {
@@ -356,7 +392,8 @@ function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): Ski
 			...channel.keywords.slice(0, 4)
 		],
 		cliExamplesPath: `/docs/cli-examples/${channel.slug}`,
-		recipes
+		recipes,
+		schedulerAvailable: channel.available
 	};
 
 	return mergeChannelToolContentOverride(
@@ -365,7 +402,14 @@ function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): Ski
 	);
 }
 
-const channelConfigs = listAvailablePublicChannels().map(buildChannelPageConfig);
+/** Live schedulers plus coming-soon catalog channels that have Skill Builder recipes. */
+export function listSkillBuilderCatalogChannels(): PublicChannelLandingPageViewModel[] {
+	return listPublicChannelsForHub().filter(
+		(channel) => channel.available || (CHANNEL_RECIPES[channel.slug]?.length ?? 0) > 0
+	);
+}
+
+const channelConfigs = listSkillBuilderCatalogChannels().map(buildChannelPageConfig);
 const channelConfigBySlug = new Map(channelConfigs.map((config) => [config.channelSlug, config]));
 
 export function getSkillBuilderChannelBySlug(slug: string): SkillBuilderChannelPageConfig | undefined {
@@ -379,6 +423,7 @@ export function listSkillBuilderChannelsForHub(): SkillBuilderChannelHubLinkView
 		platformLabel: config.platformLabel,
 		icon: config.icon,
 		href: route(getRootPathPublicSkillBuilderChannel(config.channelSlug)),
-		description: config.hubDescription
+		description: config.hubDescription,
+		schedulerAvailable: config.schedulerAvailable
 	}));
 }
