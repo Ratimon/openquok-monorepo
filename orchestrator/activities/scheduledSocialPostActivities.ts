@@ -3,17 +3,24 @@ import type { AuthTokenDetails, IntegrationRecord, PostDetails, PostResponse } f
 import type { IntegrationRepository } from "backend/repositories/IntegrationRepository.js";
 import type { PlugRepository } from "backend/repositories/PlugRepository.js";
 import type { IntegrationLike } from "backend/utils/dtos/IntegrationDTO.js";
-import type { FollowUpReplyDraft, PostMediaItemInput, PostThreadReplyLike, SocialPostLike } from "backend/utils/dtos/PostDTO.js";
+import type { PostThreadReplyLike, SocialPostLike } from "backend/utils/dtos/PostDTO.js";
 import type { NotificationService } from "backend/services/NotificationService.js";
 import type { NotificationEmailType } from "openquok-common";
 
-import { extractFollowUpRepliesFromProviderSettingsObject } from "backend/utils/dtos/PostDTO.js";
 import { computeNextRepeatPublishDateIso } from "backend/utils/posts/recurringPublishDate.js";
 import { convertPostMediaPngToJpeg } from "backend/integrations/utils/convertPostMediaToJpeg.js";
 import { stripComposerBodyForEditor } from "backend/utils/content/stripComposerBodyForEditor.js";
 import { ProviderAccessTokenExpiredError } from "backend/errors/ProviderIntegrationErrors.js";
 import { logger } from "backend/utils/Logger.js";
 import { RefreshIntegrationService } from "backend/services/RefreshIntegrationService.js";
+
+import { publishFollowUpRepliesIfConfigured } from "../providers/scheduledPublish/publishFollowUpReplies.js";
+import { publishThreadFinisherIfConfigured } from "../providers/scheduledPublish/publishThreadFinisher.js";
+import {
+    parsePostsJsonColumn,
+    parseProviderSettingsFromPostRow,
+} from "../providers/scheduledPublish/postRowSettings.js";
+import { providerDisplayName } from "../providers/scheduledPublish/registry.js";
 
 export type ScheduledPostsRepository = {
     listPostsByGroup: (postGroup: string) => Promise<SocialPostLike[]>;
@@ -118,25 +125,6 @@ function postPublishErrorForStorage(err: unknown, max = 4000): string {
     return `Publish failed: ${raw}`.slice(0, max);
 }
 
-/**
- * `posts.settings` / `posts.image` are json/jsonb. PostgREST + the Supabase JS client often return them as
- * parsed objects; some paths still use stringified JSON. Treat both so orchestration never silently drops
- * `providerSettings` (e.g. Instagram follow-up replies).
- */
-function parsePostsJsonColumn(raw: unknown): unknown {
-    if (raw == null) return null;
-    if (typeof raw === "string") {
-        const t = raw.trim();
-        if (!t) return null;
-        try {
-            return JSON.parse(t) as unknown;
-        } catch {
-            return null;
-        }
-    }
-    return raw;
-}
-
 function integrationRowToRecord(row: IntegrationLike): IntegrationRecord {
     return {
         id: row.id,
@@ -193,17 +181,6 @@ function firstPostResponse(r: PostResponse[] | void): { releaseId: string; relea
         return { releaseId: "", releaseUrl: "" };
     }
     return { releaseId: x.postId ?? x.id, releaseUrl: x.releaseURL ?? "" };
-}
-
-function parseProviderSettingsFromPostRow(row: SocialPostLike): Record<string, unknown> | null {
-    const o = parsePostsJsonColumn(row.settings as unknown);
-    if (!o || typeof o !== "object" || Array.isArray(o)) return null;
-    const root = o as Record<string, unknown>;
-    const ps = root.providerSettings;
-    if (ps && typeof ps === "object" && !Array.isArray(ps)) {
-        return ps as Record<string, unknown>;
-    }
-    return null;
 }
 
 function sleepMs(ms: number): Promise<void> {
@@ -603,44 +580,6 @@ async function runPostPublishPlugPipeline(
     }
 }
 
-function threadsThreadFinisherMessageFromSettings(settings: Record<string, unknown> | null): string | null {
-    const s = settings as { threads?: unknown } | null;
-    const threads = (s && typeof s.threads === "object" ? (s.threads as any) : null) as
-        | { enabled?: unknown; message?: unknown }
-        | null;
-    if (!threads) return null;
-    if (threads.enabled !== true) return null;
-    const msg = typeof threads.message === "string" ? threads.message.trim() : "";
-    return msg.length > 0 ? msg : null;
-}
-
-function xThreadFinisherMessageFromSettings(settings: Record<string, unknown> | null): string | null {
-    const s = settings as { x?: unknown } | null;
-    const x = (s && typeof s.x === "object" ? (s.x as any) : null) as
-        | { enabled?: unknown; message?: unknown }
-        | null;
-    if (!x) return null;
-    if (x.enabled !== true) return null;
-    const msg = typeof x.message === "string" ? x.message.trim() : "";
-    return msg.length > 0 ? msg : null;
-}
-
-function threadFinisherMessageFromSettings(
-    providerIdentifier: string,
-    settings: Record<string, unknown> | null
-): string | null {
-    const pid = providerIdentifier.trim().toLowerCase();
-    if (pid === "x") return xThreadFinisherMessageFromSettings(settings);
-    if (pid === "threads") return threadsThreadFinisherMessageFromSettings(settings);
-    return null;
-}
-
-function capitalizeProvider(id: string): string {
-    const t = id.trim();
-    if (!t) return t;
-    return t[0].toUpperCase() + t.slice(1);
-}
-
 /** Notification behavior: best-effort; never fails publishing. */
 async function notify(
     service: Pick<NotificationService, "inAppNotification"> | undefined,
@@ -708,7 +647,7 @@ async function resolveIntegrationOrFail(
     }
     if (provider.deleted_at) {
         await deps.postsRepository.markPostState(postId, "ERROR", "That channel is no longer connected");
-        const label = capitalizeProvider(provider.provider_identifier);
+        const label = providerDisplayName(provider.provider_identifier);
         const chName = provider.name || "channel";
         await notify(
             ns,
@@ -723,7 +662,7 @@ async function resolveIntegrationOrFail(
     }
     if (provider.refresh_needed) {
         await deps.postsRepository.markPostState(postId, "ERROR", "Reconnect the channel, then try again");
-        const label = capitalizeProvider(provider.provider_identifier);
+        const label = providerDisplayName(provider.provider_identifier);
         const chName = provider.name || "channel";
         await notify(
             ns,
@@ -738,7 +677,7 @@ async function resolveIntegrationOrFail(
     }
     if (provider.disabled) {
         await deps.postsRepository.markPostState(postId, "ERROR", "That channel is disabled");
-        const label = capitalizeProvider(provider.provider_identifier);
+        const label = providerDisplayName(provider.provider_identifier);
         const chName = provider.name || "channel";
         await notify(
             ns,
@@ -775,7 +714,7 @@ async function resolveSocialProviderOrFail(
             ns,
             input.organizationId,
             "We couldn't publish your post",
-            `No integration handler is registered for ${capitalizeProvider(input.providerIdentifier)}.`,
+            `No integration handler is registered for ${providerDisplayName(input.providerIdentifier)}.`,
             true,
             false,
             "fail"
@@ -783,349 +722,6 @@ async function resolveSocialProviderOrFail(
         return { ok: false };
     }
     return { ok: true, social };
-}
-
-type ThreadsReplySettings = FollowUpReplyDraft;
-
-function followUpRepliesFromStoredProviderSettings(
-    providerIdentifier: string,
-    settings: Record<string, unknown> | null
-): ThreadsReplySettings[] {
-    return extractFollowUpRepliesFromProviderSettingsObject(settings, providerIdentifier);
-}
-
-function isFacebookStoryProviderSettings(
-    providerSettings: Record<string, unknown> | null
-): boolean {
-    if (!providerSettings) return false;
-    const facebook = providerSettings.facebook;
-    if (facebook && typeof facebook === "object" && !Array.isArray(facebook)) {
-        const fb = facebook as Record<string, unknown>;
-        if (fb.postType === "story" || fb.post_type === "story") return true;
-    }
-    if (providerSettings.postType === "story" || providerSettings.post_type === "story") return true;
-    return false;
-}
-
-function followUpCommentMediaAllowed(providerIdentifier: string): boolean {
-    const pid = providerIdentifier.trim().toLowerCase();
-    return pid === "threads" || pid === "x" || pid === "facebook" || pid === "skool" || pid === "bluesky";
-}
-
-/** Skool comments need the same group (and category) as the root post — replies do not carry their own. */
-function skoolProviderSettingsForFollowUpComment(
-    rootProviderSettings: Record<string, unknown> | null
-): Record<string, unknown> | null {
-    if (!rootProviderSettings) return null;
-    const copy: Record<string, unknown> = { ...rootProviderSettings };
-    const skool = copy.skool;
-    if (skool && typeof skool === "object" && !Array.isArray(skool)) {
-        const { replies: _omit, ...skoolWithoutReplies } = skool as Record<string, unknown>;
-        copy.skool = skoolWithoutReplies;
-    }
-    return copy;
-}
-
-function buildFollowUpCommentSettings(
-    media: PostMediaItemInput[] | undefined,
-    providerIdentifier: string,
-    rootProviderSettings?: Record<string, unknown> | null
-): Record<string, unknown> {
-    const pid = providerIdentifier.trim().toLowerCase();
-    const out: Record<string, unknown> = {};
-
-    if (pid === "skool") {
-        const ps = skoolProviderSettingsForFollowUpComment(rootProviderSettings ?? null);
-        if (ps) {
-            out.providerSettings = ps;
-        }
-    }
-
-    if (followUpCommentMediaAllowed(providerIdentifier) && media?.length) {
-        out.media = { items: media };
-    }
-
-    return out;
-}
-
-function sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-/** Instagram media can take a moment after publish before comments are accepted. */
-const INSTAGRAM_COMMENT_SETTLE_MS = 2_000;
-
-async function maybePublishThreadsThreadFinisher(params: {
-    post: SocialPostLike;
-    integration: IntegrationLike;
-    record: IntegrationRecord;
-    social: any;
-    /** Root Threads id (same as orchestrator passes to replies). */
-    publishedPostId: string;
-    /** Tip of the reply chain — finisher publishes under this id (not the root). */
-    replyParentId: string;
-    deps: PublishDeps;
-}): Promise<string> {
-    const { post, integration, record, social, publishedPostId, replyParentId, deps } = params;
-    const pid = integration.provider_identifier.trim().toLowerCase();
-    if (pid !== "threads" && pid !== "x") return replyParentId;
-    if (typeof social.comment !== "function") return replyParentId;
-    if (!publishedPostId) return replyParentId;
-
-    const providerSettings = parseProviderSettingsFromPostRow(post);
-    const finisher = threadFinisherMessageFromSettings(integration.provider_identifier, providerSettings);
-    if (!finisher) return replyParentId;
-
-    const organizationId = post.organization_id;
-    const postId = post.id;
-    const ns = deps.notificationService;
-
-    try {
-        const res: PostResponse[] = await social.comment(
-            integration.internal_id,
-            publishedPostId,
-            replyParentId,
-            integration.token,
-            [{ id: postId, message: finisher, settings: {} }],
-            record
-        );
-        const nextId = firstPostResponse(res).releaseId?.trim();
-        logger.info({
-            msg: "[Orchestrator] thread-finisher comment published",
-            postId,
-            organizationId,
-            provider: integration.provider_identifier,
-        });
-        return nextId || replyParentId;
-    } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        const networkLabel = pid === "x" ? "X" : "Threads";
-        logger.warn({
-            msg: "[Orchestrator] thread-finisher comment failed (best-effort)",
-            postId,
-            organizationId,
-            provider: integration.provider_identifier,
-            error: msg,
-        });
-        await notify(
-            ns,
-            organizationId,
-            `We published your post, but the ${networkLabel} thread finisher failed`,
-            `Your ${networkLabel} post was published, but the closing thread message could not be posted. ${msg}`,
-            true,
-            false,
-            "info"
-        );
-        return replyParentId;
-    }
-}
-
-async function maybePublishThreadsReplies(params: {
-    post: SocialPostLike;
-    integration: IntegrationLike;
-    record: IntegrationRecord;
-    social: any;
-    publishedPostId: string;
-    deps: PublishDeps;
-}): Promise<string> {
-    const { post, integration, record, social, publishedPostId, deps } = params;
-    const pid = integration.provider_identifier.trim().toLowerCase();
-    const supportsFollowUps =
-        pid === "threads" ||
-        pid === "x" ||
-        pid.startsWith("instagram") ||
-        pid === "linkedin" ||
-        pid === "linkedin-page" ||
-        pid === "facebook" ||
-        pid === "bluesky" ||
-        pid === "skool";
-    if (!supportsFollowUps) return publishedPostId;
-    if (typeof social.comment !== "function") return publishedPostId;
-    if (!publishedPostId) return publishedPostId;
-
-    // Canonical reply program lives in `posts.settings.providerSettings` (composer). `post_thread_replies`
-    // mirrors it for QUEUE/PUBLISHED state — prefer settings when drafts exist so we never skip because the
-    // DB mirror is empty, out of sync, or has unusable rows while settings still has the real copy.
-    const providerSettings = parseProviderSettingsFromPostRow(post);
-    if (pid === "facebook" && isFacebookStoryProviderSettings(providerSettings)) {
-        logger.info({
-            msg: "[Orchestrator] skipping follow-up replies for Facebook Story",
-            postId: post.id,
-            organizationId: post.organization_id,
-            provider: integration.provider_identifier,
-        });
-        return publishedPostId;
-    }
-    const fromSettings = followUpRepliesFromStoredProviderSettings(integration.provider_identifier, providerSettings);
-
-    let fromDb: ThreadsReplySettings[] = [];
-    if (typeof deps.postsRepository.listThreadRepliesByPostId === "function") {
-        try {
-            const rows = await deps.postsRepository.listThreadRepliesByPostId(post.id);
-            fromDb = (rows ?? [])
-                .filter((r: PostThreadReplyLike) => !r.deleted_at && r.state === "QUEUE")
-                .map((r: PostThreadReplyLike) => ({
-                    id: r.id,
-                    message: typeof r.content === "string" ? r.content : "",
-                    delaySeconds: r.delay_seconds ?? 0,
-                }))
-                .filter((r) => r.message.trim().length > 0);
-        } catch {
-            fromDb = [];
-        }
-    }
-
-    /** Prefer composer `settings` for text/delays; when `post_thread_replies` has the same count, reuse DB row ids so `updateThreadReplyPublishResult` hits real UUIDs. */
-    let replies: ThreadsReplySettings[];
-    if (fromSettings.length > 0) {
-        if (fromDb.length === fromSettings.length) {
-            replies = fromSettings.map((s, i) => ({
-                ...s,
-                id: typeof fromDb[i]?.id === "string" && fromDb[i]!.id.trim() ? fromDb[i]!.id : s.id,
-            }));
-        } else {
-            replies = fromSettings;
-        }
-    } else {
-        replies = fromDb;
-    }
-
-    if (replies.length === 0) {
-        logger.info({
-            msg: "[Orchestrator] no follow-up replies to publish for channel",
-            postId: post.id,
-            organizationId: post.organization_id,
-            provider: integration.provider_identifier,
-            settingsDraftCount: fromSettings.length,
-            dbQueueReplyCount: fromDb.length,
-        });
-        return publishedPostId;
-    }
-
-    logger.info({
-        msg: "[Orchestrator] publishing scheduled follow-up replies",
-        postId: post.id,
-        organizationId: post.organization_id,
-        provider: integration.provider_identifier,
-        replyCount: replies.length,
-        source:
-            fromSettings.length > 0
-                ? fromDb.length === fromSettings.length
-                    ? "posts.settings+post_thread_replies_ids"
-                    : "posts.settings"
-                : "post_thread_replies",
-    });
-
-    if (pid.startsWith("instagram")) {
-        await sleep(INSTAGRAM_COMMENT_SETTLE_MS);
-    }
-
-    const organizationId = post.organization_id;
-    const postId = post.id;
-    const ns = deps.notificationService;
-    const networkLabel = pid.startsWith("instagram")
-        ? "Instagram"
-        : pid === "x"
-          ? "X"
-          : pid === "linkedin" || pid === "linkedin-page"
-            ? "LinkedIn"
-            : pid === "facebook"
-              ? "Facebook"
-              : pid === "bluesky"
-                ? "Bluesky"
-                : pid === "skool"
-                  ? "Skool"
-                  : "Threads";
-
-    let lastCommentId: string | undefined = publishedPostId;
-    for (const r of replies) {
-        const delayMs = Math.max(0, Math.floor((r.delaySeconds ?? 0) * 1000));
-        if (delayMs > 0) {
-            await sleep(delayMs);
-        }
-        try {
-            const res: PostResponse[] = await social.comment(
-                integration.internal_id,
-                publishedPostId,
-                lastCommentId,
-                integration.token,
-                [
-                    {
-                        id: postId,
-                        message: r.message,
-                        settings: buildFollowUpCommentSettings(
-                            r.media,
-                            integration.provider_identifier,
-                            providerSettings
-                        ),
-                    },
-                ],
-                record
-            );
-            const next = firstPostResponse(res).releaseId;
-            lastCommentId = next || lastCommentId;
-            if (typeof deps.postsRepository.updateThreadReplyPublishResult === "function") {
-                try {
-                    const { releaseId, releaseUrl } = firstPostResponse(res);
-                    await deps.postsRepository.updateThreadReplyPublishResult(r.id, {
-                        state: "PUBLISHED",
-                        releaseId: releaseId || null,
-                        releaseUrl: releaseUrl || null,
-                        error: null,
-                    });
-                } catch (dbErr) {
-                    const dbMsg = dbErr instanceof Error ? dbErr.message : String(dbErr);
-                    logger.warn({
-                        msg: "[Orchestrator] updateThreadReplyPublishResult failed after successful comment",
-                        postId,
-                        organizationId,
-                        replyId: r.id,
-                        error: dbMsg,
-                    });
-                }
-            }
-        } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err);
-            logger.warn({
-                msg: "[Orchestrator] follow-up comment failed (best-effort)",
-                postId,
-                organizationId,
-                provider: integration.provider_identifier,
-                error: msg,
-            });
-            if (typeof deps.postsRepository.updateThreadReplyPublishResult === "function") {
-                try {
-                    await deps.postsRepository.updateThreadReplyPublishResult(r.id, {
-                        state: "ERROR",
-                        releaseId: null,
-                        releaseUrl: null,
-                        error: msg.slice(0, 4000),
-                    });
-                } catch (dbErr) {
-                    const dbMsg = dbErr instanceof Error ? dbErr.message : String(dbErr);
-                    logger.warn({
-                        msg: "[Orchestrator] updateThreadReplyPublishResult failed while recording comment error",
-                        postId,
-                        organizationId,
-                        replyId: r.id,
-                        error: dbMsg,
-                    });
-                }
-            }
-            await notify(
-                ns,
-                organizationId,
-                `We published your post, but a ${networkLabel} follow-up failed`,
-                `Your ${networkLabel} post was published, but one of the scheduled follow-up comments could not be posted. ${msg}`,
-                true,
-                false,
-                "info"
-            );
-            // Keep going to attempt later replies and finisher.
-        }
-    }
-
-    return lastCommentId ?? publishedPostId;
 }
 
 /**
@@ -1334,7 +930,7 @@ async function publishRootForRow(
                 error: null,
             });
             {
-                const label = capitalizeProvider(intRow.provider_identifier);
+                const label = providerDisplayName(intRow.provider_identifier);
                 const atUrl = releaseUrl?.trim() ? ` at ${releaseUrl}` : "";
                 const subject = `Your post has been published on ${label}`;
                 const message = `Your post has been published on ${label}${atUrl}`;
@@ -1376,7 +972,7 @@ async function publishRootForRow(
             if (isNonRefreshablePublishError(message)) {
                 const errText = `Could not publish (${message})`;
                 await deps.postsRepository.markPostState(postId, "ERROR", errText);
-                const label = capitalizeProvider(intRow.provider_identifier);
+                const label = providerDisplayName(intRow.provider_identifier);
                 const chName = intRow.name || "channel";
                 await notify(
                     ns,
@@ -1392,7 +988,7 @@ async function publishRootForRow(
             if (social.isChromeExtension) {
                 const errText = `Could not publish (${message})`;
                 await deps.postsRepository.markPostState(postId, "ERROR", errText);
-                const label = capitalizeProvider(intRow.provider_identifier);
+                const label = providerDisplayName(intRow.provider_identifier);
                 const chName = intRow.name || "channel";
                 await notify(
                     ns,
@@ -1408,7 +1004,7 @@ async function publishRootForRow(
             if (attempt >= PUBLISH_ATTEMPTS - 1) {
                 const stored = postPublishErrorForStorage(err, 4000);
                 await deps.postsRepository.markPostState(postId, "ERROR", stored);
-                const label = capitalizeProvider(intRow.provider_identifier);
+                const label = providerDisplayName(intRow.provider_identifier);
                 const chName = intRow.name || "channel";
                 await notify(
                     ns,
@@ -1425,7 +1021,7 @@ async function publishRootForRow(
             if (!refreshed) {
                 const errText = `Could not publish (${message}) and token refresh did not complete`;
                 await deps.postsRepository.markPostState(postId, "ERROR", errText);
-                const label = capitalizeProvider(intRow.provider_identifier);
+                const label = providerDisplayName(intRow.provider_identifier);
                 const chName = intRow.name || "channel";
                 await notify(
                     ns,
@@ -1503,23 +1099,33 @@ async function runFollowUpsCommentsPhase(deps: PublishDeps, ctx: PublishedRootCo
     const post = await refreshPostRowForFollowUps(deps, ctx);
     const record = integrationRowToRecord(intRow);
 
+    const notifyForFollowUps = (
+        organizationId: string,
+        subject: string,
+        message: string,
+        sendEmail: boolean,
+        digest: boolean,
+        type: NotificationEmailType
+    ) => notify(deps.notificationService, organizationId, subject, message, sendEmail, digest, type);
+
     let threadsLeafId = releaseId;
-    threadsLeafId = await maybePublishThreadsReplies({
+    threadsLeafId = await publishFollowUpRepliesIfConfigured({
         post,
         integration: intRow,
         record,
         social,
         publishedPostId: releaseId,
-        deps,
+        postsRepository: deps.postsRepository,
+        notify: notifyForFollowUps,
     });
-    threadsLeafId = await maybePublishThreadsThreadFinisher({
+    threadsLeafId = await publishThreadFinisherIfConfigured({
         post,
         integration: intRow,
         record,
         social,
         publishedPostId: releaseId,
         replyParentId: threadsLeafId,
-        deps,
+        notify: notifyForFollowUps,
     });
 
     ctx.threadsReplyTipAfterComments = threadsLeafId;
