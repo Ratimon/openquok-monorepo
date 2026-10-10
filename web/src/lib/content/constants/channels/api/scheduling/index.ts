@@ -1,8 +1,6 @@
 /**
- * Scheduling API platform pages share per-slug modules with posting: each
- * `api/posting/platforms/{slug}.ts` exports both `*PostingPlatform` and
- * `*SchedulingPlatform`. This folder is hub + registry only — no duplicate
- * `scheduling/platforms/` tree.
+ * Scheduling API hub + registry. Per-slug VMs live in `scheduling/platforms/{slug}.ts`
+ * (mirror of `posting/platforms/{slug}.ts` for the posting capability).
  */
 import type {
 	PublicApiHubPageViewModel,
@@ -14,6 +12,8 @@ import { buildPublicApiPlatformHubCard } from '$lib/content/constants/channels/a
 import { PUBLIC_API_POSTING_PLATFORM_SLUGS } from '$lib/content/constants/channels/api/posting/index';
 import {
 	blueskyPublicApiSchedulingPlatform,
+	devtoPublicApiSchedulingPlatform,
+	skoolPublicApiSchedulingPlatform,
 	facebookPublicApiSchedulingPlatform,
 	instagramPublicApiSchedulingPlatform,
 	linkedinPublicApiSchedulingPlatform,
@@ -21,7 +21,7 @@ import {
 	tiktokPublicApiSchedulingPlatform,
 	xPublicApiSchedulingPlatform,
 	youtubePublicApiSchedulingPlatform
-} from '$lib/content/constants/channels/api/posting/platforms/index';
+} from '$lib/content/constants/channels/api/scheduling/platforms/index';
 import { publicApiSchedulingHubPage } from '$lib/content/constants/channels/api/scheduling/general';
 
 export { publicApiSchedulingHubPage } from '$lib/content/constants/channels/api/scheduling/general';
@@ -38,7 +38,9 @@ const schedulingPlatformBySlug = new Map<PublicApiPlatformSlug, PublicApiPlatfor
 	['facebook', facebookPublicApiSchedulingPlatform],
 	['threads', threadsPublicApiSchedulingPlatform],
 	['linkedin', linkedinPublicApiSchedulingPlatform],
-	['bluesky', blueskyPublicApiSchedulingPlatform]
+	['bluesky', blueskyPublicApiSchedulingPlatform],
+	['devto', devtoPublicApiSchedulingPlatform],
+	['skool', skoolPublicApiSchedulingPlatform]
 ]);
 
 export function getPublicApiSchedulingHubPage(): PublicApiHubPageViewModel {

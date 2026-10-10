@@ -1,6 +1,12 @@
 import blueskyFollowUp from '$openquok-core-examples/bluesky-follow-up.json?raw';
 import blueskyImages from '$openquok-core-examples/bluesky-images.json?raw';
 import blueskyTextOnly from '$openquok-core-examples/bluesky-text-only.json?raw';
+import devtoArticleTitleTags from '$openquok-core-examples/devto-article-title-tags.json?raw';
+import devtoCanonical from '$openquok-core-examples/devto-canonical.json?raw';
+import devtoSeries from '$openquok-core-examples/devto-series.json?raw';
+import skoolFollowUp from '$openquok-core-examples/skool-follow-up.json?raw';
+import skoolTextTitleGroup from '$openquok-core-examples/skool-text-title-group.json?raw';
+import skoolWithLabel from '$openquok-core-examples/skool-with-label.json?raw';
 import facebookLinkPreview from '$openquok-core-examples/facebook-link-preview.json?raw';
 import facebookReel from '$openquok-core-examples/facebook-reel.json?raw';
 import facebookTextOnly from '$openquok-core-examples/facebook-text-only.json?raw';
@@ -62,7 +68,9 @@ function buildExamplesForCapability(
 		facebook: 'Facebook',
 		threads: 'Threads',
 		linkedin: 'LinkedIn',
-		bluesky: 'Bluesky'
+		bluesky: 'Bluesky',
+		devto: 'Dev.to',
+		skool: 'Skool'
 	};
 	const platformLabel = channelLabels[slug];
 
@@ -271,6 +279,48 @@ const BLUESKY_ROWS = [
 	}
 ] as const;
 
+const DEVTO_ROWS = [
+	{
+		id: 'article',
+		label: 'Article with title and tags',
+		requestJson: devtoArticleTitleTags,
+		sourceFile: 'devto-article-title-tags.json'
+	},
+	{
+		id: 'series',
+		label: 'Series',
+		requestJson: devtoSeries,
+		sourceFile: 'devto-series.json'
+	},
+	{
+		id: 'canonical',
+		label: 'Canonical URL',
+		requestJson: devtoCanonical,
+		sourceFile: 'devto-canonical.json'
+	}
+] as const;
+
+const SKOOL_ROWS = [
+	{
+		id: 'title-group',
+		label: 'Title and group',
+		requestJson: skoolTextTitleGroup,
+		sourceFile: 'skool-text-title-group.json'
+	},
+	{
+		id: 'label',
+		label: 'With label',
+		requestJson: skoolWithLabel,
+		sourceFile: 'skool-with-label.json'
+	},
+	{
+		id: 'follow-up',
+		label: 'Follow-up comment',
+		requestJson: skoolFollowUp,
+		sourceFile: 'skool-follow-up.json'
+	}
+] as const;
+
 export const PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM: Record<
 	PublicApiPlatformSlug,
 	{ posting: PublicApiFormatExample[]; scheduling: PublicApiFormatExample[] }
@@ -306,5 +356,13 @@ export const PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM: Record<
 	bluesky: {
 		posting: buildExamplesForCapability('bluesky', 'posting', [...BLUESKY_ROWS]),
 		scheduling: buildExamplesForCapability('bluesky', 'scheduling', [...BLUESKY_ROWS])
+	},
+	devto: {
+		posting: buildExamplesForCapability('devto', 'posting', [...DEVTO_ROWS]),
+		scheduling: buildExamplesForCapability('devto', 'scheduling', [...DEVTO_ROWS])
+	},
+	skool: {
+		posting: buildExamplesForCapability('skool', 'posting', [...SKOOL_ROWS]),
+		scheduling: buildExamplesForCapability('skool', 'scheduling', [...SKOOL_ROWS])
 	}
 };

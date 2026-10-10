@@ -1356,6 +1356,22 @@ async function publishRootForRow(
                 );
                 return null;
             }
+            if (social.isChromeExtension) {
+                const errText = `Could not publish (${message})`;
+                await deps.postsRepository.markPostState(postId, "ERROR", errText);
+                const label = capitalizeProvider(intRow.provider_identifier);
+                const chName = intRow.name || "channel";
+                await notify(
+                    ns,
+                    organizationId,
+                    `We couldn't post to ${label} for ${chName}`,
+                    `We couldn't post to ${label} for ${chName}. ${message} Reconnect the channel in Chrome via the OpenQuok extension if your Skool session changed.`,
+                    true,
+                    false,
+                    "fail"
+                );
+                return null;
+            }
             if (attempt >= PUBLISH_ATTEMPTS - 1) {
                 const stored = postPublishErrorForStorage(err, 4000);
                 await deps.postsRepository.markPostState(postId, "ERROR", stored);

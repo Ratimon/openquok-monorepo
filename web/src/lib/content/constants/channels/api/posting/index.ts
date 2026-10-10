@@ -8,6 +8,8 @@ import { buildPublicApiPlatformHubCard } from '$lib/content/constants/channels/a
 import { publicApiPostingHubPage } from '$lib/content/constants/channels/api/posting/general';
 import {
 	blueskyPublicApiPostingPlatform,
+	devtoPublicApiPostingPlatform,
+	skoolPublicApiPostingPlatform,
 	facebookPublicApiPostingPlatform,
 	instagramPublicApiPostingPlatform,
 	linkedinPublicApiPostingPlatform,
@@ -27,7 +29,9 @@ export const PUBLIC_API_POSTING_PLATFORM_SLUGS: readonly PublicApiPlatformSlug[]
 	'facebook',
 	'threads',
 	'linkedin',
-	'bluesky'
+	'bluesky',
+	'devto',
+	'skool'
 ];
 
 const postingPlatformBySlug = new Map<PublicApiPlatformSlug, PublicApiPlatformPageViewModel>([
@@ -38,7 +42,9 @@ const postingPlatformBySlug = new Map<PublicApiPlatformSlug, PublicApiPlatformPa
 	['facebook', facebookPublicApiPostingPlatform],
 	['threads', threadsPublicApiPostingPlatform],
 	['linkedin', linkedinPublicApiPostingPlatform],
-	['bluesky', blueskyPublicApiPostingPlatform]
+	['bluesky', blueskyPublicApiPostingPlatform],
+	['devto', devtoPublicApiPostingPlatform],
+	['skool', skoolPublicApiPostingPlatform]
 ]);
 
 export function getPublicApiPostingHubPage(): PublicApiHubPageViewModel {

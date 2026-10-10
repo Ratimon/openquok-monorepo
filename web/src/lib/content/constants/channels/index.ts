@@ -3,7 +3,7 @@
  *
  * **pSEO tiers under `channels/`** (see `web-seo-pseo.mdc`):
  * - **Tier 1** — `catalog/platforms/{slug}.ts` + `catalog/seeds.ts` → `/channels/{slug}`
- * - **Tier 2** — `api/posting/platforms/{slug}.ts` → posting/scheduling API marketing
+ * - **Tier 2** — `api/posting/platforms/{slug}.ts` and `api/scheduling/platforms/{slug}.ts` → API marketing
  * - **Tier 3** — `tool-surfaces/{slug}.ts` + `tools/{tool}/general.ts` → `/tools/{tool}/{slug}` patches
  *
  * **Different folders (not channel identity):**

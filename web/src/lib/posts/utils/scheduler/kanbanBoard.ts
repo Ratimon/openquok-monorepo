@@ -127,7 +127,7 @@ export function stateToKanbanColumn(
 	nowMs = Date.now()
 ): PostKanbanColumnId | null {
 	if (state === 'DRAFT') return 'draft';
-	if (state === 'QUEUE') return 'scheduled';
+	if (state === 'QUEUE' || state === 'ERROR') return 'scheduled';
 	if (state === 'PUBLISHED') {
 		if (manualFinish) {
 			return isUpcomingPublishDate(publishDateIso ?? '', nowMs) ? 'scheduled' : 'published';

@@ -34,6 +34,10 @@ describe('stateToKanbanColumn', () => {
 	it('places normal published posts in published', () => {
 		expect(stateToKanbanColumn('PUBLISHED', null, PAST_ISO, NOW_MS)).toBe('published');
 	});
+
+	it('places failed posts in scheduled so the card stays visible with error chrome', () => {
+		expect(stateToKanbanColumn('ERROR', null, PAST_ISO, NOW_MS)).toBe('scheduled');
+	});
 });
 
 describe('matchesKanbanUpcomingTimeFilter', () => {

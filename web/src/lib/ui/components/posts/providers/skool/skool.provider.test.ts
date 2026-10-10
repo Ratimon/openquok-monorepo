@@ -41,7 +41,8 @@ describe('skool.provider', () => {
 	it('validates title and group', () => {
 		expect(checkSkoolLaunchValidity({ title: '', group: 'g1' })).toBe('Skool posts require a title');
 		expect(checkSkoolLaunchValidity({ title: 'Hi', group: '' })).toBe('Select a Skool group');
-		expect(checkSkoolLaunchValidity({ title: 'Hi', group: 'g1' })).toBe(true);
+		expect(checkSkoolLaunchValidity({ title: 'Hi', group: 'g1' })).toBe('Select a Skool category');
+		expect(checkSkoolLaunchValidity({ title: 'Hi', group: 'g1', label: 'cat-1' })).toBe(true);
 	});
 
 	it('exports backend-aligned character cap', () => {

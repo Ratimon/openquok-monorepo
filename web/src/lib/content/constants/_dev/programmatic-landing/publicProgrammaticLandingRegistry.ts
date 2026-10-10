@@ -8,7 +8,7 @@
  *
  * **pSEO content tiers** (not everything lives under `platforms/`):
  * - **Tier 1** — `channels/catalog/platforms/{slug}.ts` full `/channels/{slug}` VM.
- * - **Tier 2** — `channels/api/posting/platforms/{slug}.ts` (and scheduling) full API marketing VM.
+ * - **Tier 2** — `channels/api/posting/platforms/{slug}.ts` and `channels/api/scheduling/platforms/{slug}.ts`.
  * - **Tier 3** — `channels/tool-surfaces/{slug}.ts` sparse tool patches; merged in `tools/{tool}/general.ts`.
  * Agent host×channel pages stay host-first in `agents/channels/{host}.ts` (derived from catalog).
  * MCP client×channel pages compose `mcps/hosts/{mcp}.ts` + `channels/catalog/platforms/{channel}.ts` via `buildMcpChannelLandingVm` — see `mcps/channels/index.ts`.
@@ -219,7 +219,7 @@ export const PUBLIC_PROGRAMMATIC_LANDING_SURFACES: readonly ProgrammaticLandingS
 			symbol: 'getPublicApiPlatformAudienceSection'
 		},
 		tailored: {
-			modulePath: 'web/src/lib/content/constants/channels/api/posting/platforms/{slug}.ts',
+			modulePath: 'web/src/lib/content/constants/channels/api/scheduling/platforms/{slug}.ts',
 			symbol: 'buildPublicApiPlatformPage params'
 		}
 	},

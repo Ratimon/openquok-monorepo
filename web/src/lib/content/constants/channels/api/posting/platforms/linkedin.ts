@@ -24,18 +24,3 @@ export const linkedinPublicApiPostingPlatform: PublicApiPlatformPageViewModel =
 			'Post to LinkedIn with OpenQuok POST /public/posts. Text, video, document carousels, and follow-up comments from one JSON payload.',
 		keywords: KEYWORDS
 	});
-
-export const linkedinPublicApiSchedulingPlatform: PublicApiPlatformPageViewModel =
-	buildPublicApiPlatformPage({
-		slug: SLUG,
-		capability: 'scheduling',
-		formatExamples: PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM[SLUG].scheduling,
-		heroDescription:
-			'Schedule LinkedIn profile and Page posts for a future publish time. Send scheduledAt in UTC, name PDF document carousels, and queue follow-up comments — one POST /public/posts payload.',
-		metaTitle: 'LinkedIn Scheduling API — Queue Posts with POST /public/posts',
-		metaDescription:
-			'Schedule LinkedIn posts with OpenQuok POST /public/posts. Queue text, video, PDF document carousels, and follow-up comments with scheduledAt in UTC.',
-		faqDescription:
-			'Connect LinkedIn, set scheduledAt in UTC, and schedule text posts, video, document carousels, and follow-up comments from your app or agent.',
-		keywords: KEYWORDS
-	});

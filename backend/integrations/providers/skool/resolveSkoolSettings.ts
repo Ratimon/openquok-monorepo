@@ -89,6 +89,6 @@ export const SKOOL_SETTINGS_SCHEMA = {
     properties: {
         title: { type: "string", minLength: SKOOL_TITLE_MIN_LENGTH, description: "Post title" },
         group: { type: "string", description: "Skool group id to publish in" },
-        label: { type: "string", description: "Optional label id (omit or use none for default)" },
+        label: { type: "string", description: "Category (label) id — required for most Skool groups" },
     },
 } as const;

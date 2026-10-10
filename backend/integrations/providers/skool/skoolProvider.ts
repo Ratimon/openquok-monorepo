@@ -53,7 +53,7 @@ export class SkoolProvider implements SocialProvider {
     toolTip = "Connect with the OpenQuok browser extension while logged in to Skool";
 
     rules =
-        "Skool posts require a title, a group, and optional label. Body text is plain. Images upload to Skool storage at publish time. Follow-up comments on your own posts are supported when the group allows it.";
+        "Skool posts require a title, a group, and a category (label). Body text is plain. Images upload to Skool storage at publish time. Follow-up comments on your own posts are supported when the group allows it.";
 
     maxLength(_additionalSettings?: unknown): number {
         return SKOOL_MAX_LENGTH;
@@ -68,6 +68,9 @@ export class SkoolProvider implements SocialProvider {
         }
         if (!resolved.groupId) {
             return "Select a Skool group";
+        }
+        if (!resolved.labelId) {
+            return "Select a Skool category";
         }
         return null;
     }

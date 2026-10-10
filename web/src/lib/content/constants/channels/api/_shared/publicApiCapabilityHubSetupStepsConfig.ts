@@ -7,6 +7,7 @@ import {
 	PUBLIC_API_CREATE_POST_ENDPOINT,
 	prettyPublicApiJson
 } from '$lib/content/constants/channels/api/_shared/shared';
+import { isPublicApiSelfConnectSlug } from '$lib/content/constants/channels/api/_shared/publicApiSelfConnectPlatforms';
 import { icons } from '$data/icons';
 
 export type PublicApiHubSetupStepsSection = {
@@ -46,7 +47,7 @@ const SHARED_SETUP_STEPS: readonly [FeaturesOrderedStep, FeaturesOrderedStep] = 
 		id: 2,
 		title: '2. Connect your channels',
 		content:
-			'Connect networks in the dashboard, then list UUIDs with GET /public/integrations. OpenQuok Cloud handles OAuth — no developer app required.',
+			'Connect networks in the dashboard (OAuth on most platforms; app password, API key, or browser extension on others), then list UUIDs with GET /public/integrations.',
 		deviceMock: 'terminal',
 		terminalCode: buildPublicApiIntegrationsListTerminalCode(),
 		mediaAlt: 'List connected integrations with GET /public/integrations',
@@ -113,6 +114,7 @@ export function getPublicApiPlatformSetupStepsSection(
 	const hub = getPublicApiHubSetupStepsSection(capability);
 	const [step1, step2, step3] = hub.setupSteps;
 	const providerIdentifier = getPublicApiProviderIdentifier(platformSlug);
+	const selfConnect = isPublicApiSelfConnectSlug(platformSlug);
 	const resolvedRequestJson =
 		platformRequestJson?.trim() ||
 		(capability === 'posting' ? HUB_POSTING_REQUEST_JSON : HUB_SCHEDULING_REQUEST_JSON);
@@ -132,7 +134,9 @@ export function getPublicApiPlatformSetupStepsSection(
 			{
 				...step2,
 				title: `2. Connect ${platformLabel}`,
-				content: `Connect ${platformLabel} in the dashboard, then list channels with GET /public/integrations and match identifier \`${providerIdentifier}\`.`,
+				content: selfConnect
+					? `Connect ${platformLabel} in the dashboard with your own credentials (not the public OAuth URL). Then list channels with GET /public/integrations and match identifier \`${providerIdentifier}\`.`
+					: `Connect ${platformLabel} in the dashboard, then list channels with GET /public/integrations and match identifier \`${providerIdentifier}\`.`,
 				terminalCode: buildPublicApiIntegrationsListTerminalCode({ providerIdentifier }),
 				mediaAlt: `List ${platformLabel} integration UUID with GET /public/integrations`
 			},

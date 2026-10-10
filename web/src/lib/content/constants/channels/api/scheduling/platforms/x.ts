@@ -12,15 +12,15 @@ const KEYWORDS = [
 	'schedule tweets API'
 ];
 
-export const xPublicApiPostingPlatform: PublicApiPlatformPageViewModel = buildPublicApiPlatformPage({
+export const xPublicApiSchedulingPlatform: PublicApiPlatformPageViewModel = buildPublicApiPlatformPage({
 	slug: SLUG,
-	capability: 'posting',
-	formatExamples: PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM[SLUG].posting,
+	capability: 'scheduling',
+	formatExamples: PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM[SLUG].scheduling,
 	heroPlatformLabel: 'Twitter / X',
 	heroDescription:
-		'Publish to Twitter/X through one simple API for apps, automations, and AI workflows. Post tweets, thread replies, and media with reply audience and cross-account repost settings.',
-	metaTitle: 'X Posting API',
+		'Schedule Twitter/X posts through one simple API. Queue tweets and thread chains for a future instant with scheduledAt in UTC and chained follow-up replies.',
+	metaTitle: 'X Scheduling API',
 	metaDescription:
-		'Post to X with OpenQuok POST /public/posts. Tweets, scheduled thread replies, media, and cross-account reposts from one JSON payload.',
+		'Schedule X posts with OpenQuok POST /public/posts. Queue tweets, thread replies, and media for a future publish time in UTC.',
 	keywords: KEYWORDS
 });

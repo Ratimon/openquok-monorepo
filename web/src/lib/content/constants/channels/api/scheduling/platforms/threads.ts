@@ -12,15 +12,15 @@ const KEYWORDS = [
 	'schedule Threads via API'
 ];
 
-export const threadsPublicApiPostingPlatform: PublicApiPlatformPageViewModel =
+export const threadsPublicApiSchedulingPlatform: PublicApiPlatformPageViewModel =
 	buildPublicApiPlatformPage({
 		slug: SLUG,
-		capability: 'posting',
-		formatExamples: PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM[SLUG].posting,
+		capability: 'scheduling',
+		formatExamples: PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM[SLUG].scheduling,
 		heroDescription:
-			'Publish Threads posts with media, follow-up replies, internal plugs, and cross-account comments through POST /public/posts.',
-		metaTitle: 'Threads Posting API',
+			'Queue Threads posts and reply chains for a future publish time. Set scheduledAt in UTC with threads.replies and plug settings.',
+		metaTitle: 'Threads Scheduling API',
 		metaDescription:
-			'Post to Threads with OpenQuok POST /public/posts. Text, media carousels, thread replies, and cross-account plugs from one JSON payload.',
+			'Schedule Threads posts with OpenQuok POST /public/posts. Queue text, media, thread replies, and cross-account plugs for a future UTC time.',
 		keywords: KEYWORDS
 	});

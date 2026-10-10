@@ -12,7 +12,9 @@ export type PublicApiPlatformSlug =
 	| 'facebook'
 	| 'threads'
 	| 'linkedin'
-	| 'bluesky';
+	| 'bluesky'
+	| 'devto'
+	| 'skool';
 
 /** Tabbed static request/response pair on platform slug pages. */
 export type PublicApiFormatExample = {

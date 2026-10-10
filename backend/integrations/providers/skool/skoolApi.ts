@@ -17,7 +17,38 @@ export function mapSkoolApiBodyError(body: string): string | undefined {
     if (body.includes("cannot post to this label")) {
         return "Cannot post to this label";
     }
+    if (body.includes("You must select a category")) {
+        return "Select a Skool category in post settings";
+    }
+    try {
+        const parsed = JSON.parse(body) as { fields?: Array<{ error?: string }> };
+        const fields = parsed?.fields;
+        if (Array.isArray(fields)) {
+            for (const field of fields) {
+                const err = field?.error;
+                if (typeof err === "string" && err.trim()) {
+                    return err.trim();
+                }
+            }
+        }
+    } catch {
+        /* not JSON */
+    }
     return undefined;
+}
+
+function formatSkoolHttpError(status: number, text: string): string {
+    const mapped = mapSkoolApiBodyError(text);
+    if (mapped) return mapped;
+    const trimmed = text.trim();
+    if (trimmed.startsWith("<") && trimmed.toLowerCase().includes("cloudfront")) {
+        return `Skool blocked this request (HTTP ${status}). Sign in on skool.com in Chrome, reconnect via the extension, and try again.`;
+    }
+    if (trimmed && !trimmed.startsWith("<")) {
+        const snippet = trimmed.length > 400 ? `${trimmed.slice(0, 400)}…` : trimmed;
+        return `Skool API error (HTTP ${status}): ${snippet}`;
+    }
+    return `Skool API error (HTTP ${status})`;
 }
 
 async function readSkoolResponseText(res: Response): Promise<string> {
@@ -47,8 +78,7 @@ export async function fetchSkoolSelf(cookies: SkoolSessionCookies): Promise<Skoo
     const res = await skoolFetch("/self", cookies, { method: "GET" });
     const text = await readSkoolResponseText(res);
     if (!res.ok) {
-        const mapped = mapSkoolApiBodyError(text);
-        throw new Error(mapped ?? `Skool session validation failed (HTTP ${res.status})`);
+        throw new Error(formatSkoolHttpError(res.status, text).replace(/^Skool API error/, "Skool session validation failed"));
     }
     let json: SkoolSelfProfile;
     try {
@@ -70,8 +100,7 @@ export async function skoolFetchJson<T>(
     const res = await skoolFetch(path, cookies, init);
     const text = await readSkoolResponseText(res);
     if (!res.ok) {
-        const mapped = mapSkoolApiBodyError(text);
-        throw new Error(mapped ?? `Skool API error (HTTP ${res.status})`);
+        throw new Error(formatSkoolHttpError(res.status, text));
     }
     try {
         return JSON.parse(text) as T;

@@ -119,7 +119,12 @@
 				data: { id: groupId }
 			});
 			if (result.ok) {
-				labels = parseOptions(result.output);
+				const loaded = parseOptions(result.output).filter((opt) => opt.value !== 'none');
+				labels = loaded;
+				if (loaded.length === 1 && !label.trim()) {
+					label = loaded[0]!.value;
+					labelLabel = loaded[0]!.label;
+				}
 			} else {
 				labels = [];
 			}
@@ -178,7 +183,7 @@
 	</div>
 
 	<div class="space-y-1">
-		<label class="text-xs font-medium text-base-content/70" for="skool-label">Label (optional)</label>
+		<label class="text-xs font-medium text-base-content/70" for="skool-label">Category</label>
 		<select
 			id="skool-label"
 			class="border-base-300 bg-base-100 w-full rounded-md border px-3 py-2 text-sm disabled:opacity-50"
@@ -187,7 +192,13 @@
 			disabled={disabled || !group || labelsLoading}
 		>
 			<option value="">
-				{labelsLoading ? 'Loading labels…' : group ? 'Default label' : 'Select a group first'}
+				{labelsLoading
+					? 'Loading categories…'
+					: group
+						? displayLabels.length
+							? 'Select a category'
+							: 'No categories loaded — refresh connection'
+						: 'Select a group first'}
 			</option>
 			{#each displayLabels as opt (opt.value)}
 				<option value={opt.value}>{opt.label}</option>

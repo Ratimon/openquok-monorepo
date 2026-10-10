@@ -10,8 +10,14 @@ import type {
 import type { PublicFaqItem } from '$lib/content/constants/faq';
 import {
 	appendPublicGeneralFaqItems,
-	PUBLIC_API_PLATFORM_FAQ_ITEM_IDS
+	PUBLIC_API_PLATFORM_FAQ_ITEM_IDS,
+	PUBLIC_API_SELF_CONNECT_PLATFORM_FAQ_ITEM_IDS
 } from '$lib/content/constants/faq';
+import {
+	buildPublicApiPersonalAccountFaqItem,
+	buildPublicApiSelfConnectDescription,
+	isPublicApiSelfConnectSlug
+} from '$lib/content/constants/channels/api/_shared/publicApiSelfConnectPlatforms';
 import { buildPublicApiPlatformHeroTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
 import {
 	buildChannelFaqLinks,
@@ -145,7 +151,9 @@ const PROVIDER_IDENTIFIER_BY_SLUG: Record<PublicApiPlatformSlug, string> = {
 	facebook: 'facebook',
 	threads: 'threads',
 	linkedin: 'linkedin',
-	bluesky: 'bluesky'
+	bluesky: 'bluesky',
+	devto: 'devto',
+	skool: 'skool'
 };
 
 const PUBLIC_API_PROVIDERS_DOCS_BY_SLUG: Record<PublicApiPlatformSlug, string> = {
@@ -156,7 +164,9 @@ const PUBLIC_API_PROVIDERS_DOCS_BY_SLUG: Record<PublicApiPlatformSlug, string> =
 	facebook: 'public-api-providers/facebook',
 	threads: 'public-api-providers/threads',
 	linkedin: 'public-api-providers/linkedin',
-	bluesky: 'public-api-providers/bluesky'
+	bluesky: 'public-api-providers/bluesky',
+	devto: 'public-api-providers/devto',
+	skool: 'public-api-providers/skool'
 };
 
 const CLI_EXAMPLES_HREF_BY_SLUG: Record<PublicApiPlatformSlug, string> = {
@@ -167,7 +177,9 @@ const CLI_EXAMPLES_HREF_BY_SLUG: Record<PublicApiPlatformSlug, string> = {
 	facebook: publicFaqHref.cliFacebook,
 	threads: publicFaqHref.cliThreads,
 	linkedin: publicFaqHref.cliLinkedin,
-	bluesky: publicFaqHref.cliBluesky
+	bluesky: publicFaqHref.cliBluesky,
+	devto: publicFaqHref.cliDevto,
+	skool: publicFaqHref.cliSkool
 };
 
 export function getPublicApiProviderIdentifier(slug: PublicApiPlatformSlug): string {
@@ -201,10 +213,15 @@ export function buildPublicApiPlatformFaqItems(
 	const links = buildChannelFaqLinks(slug, channel.docsPath);
 	const providerDocsHref = faqHrefDocs(PUBLIC_API_PROVIDERS_DOCS_BY_SLUG[slug]);
 	const capabilityLabel = capability === 'posting' ? 'post' : 'schedule';
-	const connectDescription =
-		slug === 'bluesky'
-			? `${faqLink(publicFaqHref.signUp, 'Sign up for free')}, open a workspace, and choose Connect channel → ${platformLabel}. Enter your handle or email, PDS service URL (https://bsky.social for most accounts), and an app password from Bluesky settings — not your main password. For self-hosted deployments, see the ${faqLinkSelfHostChannelSetup(channel.docsPath, platformLabel)}.`
-			: `${faqLink(publicFaqHref.signUp, 'Sign up for free')}, open a workspace, and choose Connect channel → ${platformLabel}. Complete OAuth in the dashboard. OpenQuok Cloud registers the developer app for you. For self-hosted deployments, see the ${faqLinkSelfHostChannelSetup(channel.docsPath, platformLabel)}.`;
+	const connectDescription = isPublicApiSelfConnectSlug(slug)
+		? buildPublicApiSelfConnectDescription(slug, platformLabel, channel.docsPath)
+		: `${faqLink(publicFaqHref.signUp, 'Sign up for free')}, open a workspace, and choose Connect channel → ${platformLabel}. Complete OAuth in the dashboard. OpenQuok Cloud registers the developer app for you. For self-hosted deployments, see the ${faqLinkSelfHostChannelSetup(channel.docsPath, platformLabel)}.`;
+	const personalAccountFaq = isPublicApiSelfConnectSlug(slug)
+		? buildPublicApiPersonalAccountFaqItem(slug, platformLabel)
+		: null;
+	const appendedFaqIds = isPublicApiSelfConnectSlug(slug)
+		? PUBLIC_API_SELF_CONNECT_PLATFORM_FAQ_ITEM_IDS
+		: PUBLIC_API_PLATFORM_FAQ_ITEM_IDS;
 	const schedulingLead =
 		capability === 'scheduling'
 			? 'Set `scheduledAt` to an ISO-8601 UTC timestamp for the publish time. OpenQuok stores the instant in UTC and publishes when the worker dequeues the row.'
@@ -216,6 +233,7 @@ export function buildPublicApiPlatformFaqItems(
 			title: `How do I connect ${platformLabel} before I call the API?`,
 			description: connectDescription
 		},
+		...(personalAccountFaq ? [personalAccountFaq] : []),
 		{
 			title: `Where do I find the ${platformLabel} integration UUID?`,
 			description:
@@ -237,7 +255,7 @@ export function buildPublicApiPlatformFaqItems(
 				`Use the interactive Payload Wizard on this page with sample channels, or open the full wizard in your workspace after you sign in. Copy JSON stays free on public pages. Provider field reference: ${faqLink(providerDocsHref, `${platformLabel} settings`)}. Channel landing: ${faqLink(links.channelLanding, platformLabel)}.`
 		}
 	],
-		PUBLIC_API_PLATFORM_FAQ_ITEM_IDS
+		appendedFaqIds
 	);
 }
 

@@ -79,6 +79,9 @@ export function checkSkoolLaunchValidity(settings: SkoolLaunchProviderSettings):
 	if (!settings.group.trim()) {
 		return 'Select a Skool group';
 	}
+	if (!settings.label?.trim()) {
+		return 'Select a Skool category';
+	}
 	return true;
 }
 

@@ -360,10 +360,16 @@ export const PUBLIC_API_SCHEDULING_HUB_FAQ_ITEM_IDS: readonly PublicFaqItemId[] 
 	'try-free'
 ];
 
-/** API marketing platform slugs (`/social-media-*-api/{slug}`). */
+/** API marketing platform slugs (`/social-media-*-api/{slug}`) — OAuth networks. */
 export const PUBLIC_API_PLATFORM_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
 	'what-is-channel',
 	'oauth-app-counts',
+	'schedule-posts'
+];
+
+/** Self-connect API marketing slugs (app password, API key, extension) — omit OAuth-app-counts FAQ. */
+export const PUBLIC_API_SELF_CONNECT_PLATFORM_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
+	'what-is-channel',
 	'schedule-posts'
 ];
 

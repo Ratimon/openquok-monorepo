@@ -30,7 +30,7 @@ import {
 import { PUBLIC_API_MARKETING_HUB_FEATURE_SECTIONS } from '$lib/content/constants/channels/api/_shared/publicApiCapabilityHubFeatureConfig';
 
 describe('publicApiCatalog', () => {
-	it('registers eight posting platform slugs', () => {
+	it('registers ten posting platform slugs', () => {
 		expect(PUBLIC_API_POSTING_PLATFORM_SLUGS).toEqual([
 			'tiktok',
 			'x',
@@ -39,7 +39,9 @@ describe('publicApiCatalog', () => {
 			'facebook',
 			'threads',
 			'linkedin',
-			'bluesky'
+			'bluesky',
+			'devto',
+			'skool'
 		]);
 	});
 
@@ -55,13 +57,15 @@ describe('publicApiCatalog', () => {
 	});
 
 	it('rejects unknown slugs', () => {
-		expect(isPublicApiPlatformSlug('devto')).toBe(false);
-		expect(getPublicApiPostingPlatformBySlug('devto')).toBeUndefined();
+		expect(isPublicApiPlatformSlug('myspace')).toBe(false);
+		expect(getPublicApiPostingPlatformBySlug('myspace')).toBeUndefined();
+		expect(isPublicApiPlatformSlug('devto')).toBe(true);
+		expect(getPublicApiPostingPlatformBySlug('skool')?.slug).toBe('skool');
 	});
 
 	it('builds hub platform cards from channel catalog', () => {
 		const cards = listPublicApiPostingPlatformsForHub();
-		expect(cards).toHaveLength(8);
+		expect(cards).toHaveLength(10);
 		expect(cards.map((card) => card.slug)).toEqual(PUBLIC_API_POSTING_PLATFORM_SLUGS);
 		expect(cards[0]?.platformLabel).toBe('TikTok');
 	});
@@ -130,6 +134,14 @@ describe('publicApiCatalog', () => {
 		const blueskyPosting = getPublicApiPlatformAudienceSection('posting', 'Bluesky', 'bluesky');
 		expect(blueskyPosting.audienceCards).toHaveLength(4);
 		expect(blueskyPosting.audienceCards[3]?.title).toBe('Federated & custom-PDS users');
+
+		const devtoPosting = getPublicApiPostingPlatformBySlug('devto');
+		expect(devtoPosting?.faqItems.some((item) => item.title.includes('my own account'))).toBe(
+			true
+		);
+		expect(
+			devtoPosting?.faqItems.some((item) => item.title.includes('OAuth app counts'))
+		).toBe(false);
 
 		const tiktokPosting = getPublicApiPlatformAudienceSection('posting', 'TikTok');
 		expect(tiktokPosting.audienceTitle).toContain('TikTok');

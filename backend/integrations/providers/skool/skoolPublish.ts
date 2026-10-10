@@ -239,7 +239,7 @@ export async function fetchSkoolLabelOptions(
 
     const labelsCsv = metadata?.labels?.trim();
     if (!labelsCsv) {
-        return [{ value: "none", label: "Default Label" }];
+        return [];
     }
 
     const labelIds = labelsCsv.split(",").map((s) => s.trim()).filter(Boolean);

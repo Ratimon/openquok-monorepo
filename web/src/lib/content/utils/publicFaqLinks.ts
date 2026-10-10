@@ -164,6 +164,7 @@ export const publicFaqHref = {
 	cliBluesky: faqHrefDocs('cli-examples/bluesky'),
 	cliYoutube: faqHrefDocs('cli-examples/youtube'),
 	cliDevto: faqHrefDocs('cli-examples/devto'),
+	cliSkool: faqHrefDocs('cli-examples/skool'),
 	humanizerTool: route(getRootPathPublicHumanizer()),
 	skillBuilderTool: route(getRootPathPublicSkillBuilder()),
 	photoEditorTool: route(getRootPathPublicPhotoEditor()),
