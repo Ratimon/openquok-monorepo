@@ -41,6 +41,9 @@
 	import BentoBlueskyInsights from '$lib/ui/templates/bento/minor-templates/bluesky/BentoBlueskyInsights.svelte';
 	import BentoBlueskyMedia from '$lib/ui/templates/bento/minor-templates/bluesky/BentoBlueskyMedia.svelte';
 	import BentoBlueskyThreads from '$lib/ui/templates/bento/minor-templates/bluesky/BentoBlueskyThreads.svelte';
+	import BentoSkoolBulkScheduling from '$lib/ui/templates/bento/minor-templates/skool/BentoSkoolBulkScheduling.svelte';
+	import BentoSkoolFollowUps from '$lib/ui/templates/bento/minor-templates/skool/BentoSkoolFollowUps.svelte';
+	import BentoSkoolSettings from '$lib/ui/templates/bento/minor-templates/skool/BentoSkoolSettings.svelte';
 
 	type Props = {
 		bentoId: PublicChannelFeatureBentoId;
@@ -130,4 +133,10 @@
 	<BentoBlueskyThreads {isLoggedIn} />
 {:else if bentoId === 'bluesky-insights'}
 	<BentoBlueskyInsights />
+{:else if bentoId === 'skool-bulk-scheduling'}
+	<BentoSkoolBulkScheduling />
+{:else if bentoId === 'skool-settings'}
+	<BentoSkoolSettings {isLoggedIn} />
+{:else if bentoId === 'skool-follow-ups'}
+	<BentoSkoolFollowUps {isLoggedIn} />
 {/if}

@@ -9,7 +9,8 @@ const INTEGRATION_ID_TO_CATALOG_SLUG: Record<string, string> = {
 
 /** Channels without a `{slug}-post-editor` bento — use closest composer showcase on `/channels/{slug}`. */
 const COMPOSER_BENTO_BY_CATALOG_SLUG: Partial<Record<string, PublicChannelFeatureBentoId>> = {
-	bluesky: 'bluesky-threads'
+	bluesky: 'bluesky-threads',
+	skool: 'skool-settings'
 };
 
 const POST_EDITOR_BENTO_BY_CATALOG_SLUG: Record<string, PublicChannelFeatureBentoId> = {

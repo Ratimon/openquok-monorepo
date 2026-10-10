@@ -39,7 +39,7 @@ Install the stack, configure each service, connect social OAuth, and assign admi
 
 ## Self-hosted defaults
 
-For the full operator stack (API, web, Redis, workers), use <a href="/docs/installation/docker-compose">Docker Compose (self-host)</a>. After <code>up --build</code>, open <Badge text="http://localhost:4007" variant="default" /> — Compose serves the UI; you do not run the Vite dev server for that path.
+For the full operator stack (API, web, Redis, workers), use <a href="/docs/installation/docker-compose">Docker Compose (self-host)</a>. After <code>up --build</code>, open <Badge text="http://localhost:4007" variant="default" /> — Compose serves the UI; you do not run the Vite dev server.
 
 <Callout type="tip" title="Without Email">
 <p>Set <Badge text="EMAIL_ENABLED" variant="envBackend" />{' '}<code>=false</code> — no outbound mail; signup marks users verified.</p>

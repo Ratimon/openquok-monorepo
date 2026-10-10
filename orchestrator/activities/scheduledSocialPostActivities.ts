@@ -809,16 +809,43 @@ function isFacebookStoryProviderSettings(
 
 function followUpCommentMediaAllowed(providerIdentifier: string): boolean {
     const pid = providerIdentifier.trim().toLowerCase();
-    return pid === "threads" || pid === "x" || pid === "facebook";
+    return pid === "threads" || pid === "x" || pid === "facebook" || pid === "skool" || pid === "bluesky";
+}
+
+/** Skool comments need the same group (and category) as the root post — replies do not carry their own. */
+function skoolProviderSettingsForFollowUpComment(
+    rootProviderSettings: Record<string, unknown> | null
+): Record<string, unknown> | null {
+    if (!rootProviderSettings) return null;
+    const copy: Record<string, unknown> = { ...rootProviderSettings };
+    const skool = copy.skool;
+    if (skool && typeof skool === "object" && !Array.isArray(skool)) {
+        const { replies: _omit, ...skoolWithoutReplies } = skool as Record<string, unknown>;
+        copy.skool = skoolWithoutReplies;
+    }
+    return copy;
 }
 
 function buildFollowUpCommentSettings(
     media: PostMediaItemInput[] | undefined,
-    providerIdentifier: string
+    providerIdentifier: string,
+    rootProviderSettings?: Record<string, unknown> | null
 ): Record<string, unknown> {
-    if (!followUpCommentMediaAllowed(providerIdentifier)) return {};
-    if (!media?.length) return {};
-    return { media: { items: media } };
+    const pid = providerIdentifier.trim().toLowerCase();
+    const out: Record<string, unknown> = {};
+
+    if (pid === "skool") {
+        const ps = skoolProviderSettingsForFollowUpComment(rootProviderSettings ?? null);
+        if (ps) {
+            out.providerSettings = ps;
+        }
+    }
+
+    if (followUpCommentMediaAllowed(providerIdentifier) && media?.length) {
+        out.media = { items: media };
+    }
+
+    return out;
 }
 
 function sleep(ms: number): Promise<void> {
@@ -1006,7 +1033,9 @@ async function maybePublishThreadsReplies(params: {
               ? "Facebook"
               : pid === "bluesky"
                 ? "Bluesky"
-                : "Threads";
+                : pid === "skool"
+                  ? "Skool"
+                  : "Threads";
 
     let lastCommentId: string | undefined = publishedPostId;
     for (const r of replies) {
@@ -1024,7 +1053,11 @@ async function maybePublishThreadsReplies(params: {
                     {
                         id: postId,
                         message: r.message,
-                        settings: buildFollowUpCommentSettings(r.media, integration.provider_identifier),
+                        settings: buildFollowUpCommentSettings(
+                            r.media,
+                            integration.provider_identifier,
+                            providerSettings
+                        ),
                     },
                 ],
                 record

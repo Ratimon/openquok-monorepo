@@ -2,7 +2,7 @@
 title: Media rules
 description: Per-network media, character caps, follow-up attachments, and caption editors for the OpenQuok composer.
 order: 2
-lastUpdated: 2026-09-27
+lastUpdated: 2026-10-10
 sidebar:
   label: Media rules
 ---
@@ -34,6 +34,7 @@ The **Characters** column is the main caption or body. The same cap applies to e
 | **TikTok** | <Badge text="tiktok" variant="param" /> | **≥1** attachment; **one MP4** <strong>or</strong> **1–35** JPEG/PNG/WEBP photos (never mixed) | **2,000** |
 | **Dev.to** | <Badge text="devto" variant="param" /> | Markdown body; optional **cover image** in Settings (not required on the media strip) | **100,000** (body) |
 | **Bluesky** | <Badge text="bluesky" variant="param" /> | Text-only OK; up to **4** images <strong>or</strong> **1** MP4 (never mixed; MP4 max **300 MB**, **10** min) | **300** graphemes |
+| **Skool** | <Badge text="skool" variant="param" /> | Text-only OK; images on the media strip (uploaded to Skool at publish); **no** native video on the OpenQuok path | **5,000** |
 
 <Callout type="note">
 <p> On X, the limit depends on the post type: <strong>280</strong> characters for a standard post, <strong>4,000</strong> when the connected account is verified, and up to <strong>100,000</strong> in long-form <strong>article</strong> mode on the platform. OpenQuok schedules standard and verified posts only — it uses the <strong>280</strong> or <strong>4,000</strong> cap from the table.</p>
@@ -47,7 +48,7 @@ The **Characters** column is the main caption or body. The same cap applies to e
 <p>In <strong>Global</strong> mode, one shared media list must satisfy every selected network. Unlock a channel to give it its own attachments. See <a href="/docs/creating-posts/global-vs-per-channel">Global vs per-channel</a>.</p>
 </Callout>
 
-Connect methods are in <a href="/docs/platforms/connect-rules">Connect rules</a>. Extra length limits in **Settings** are in <a href="/docs/platforms/per-channel-settings">Per-channel settings</a> — for example YouTube **title** (**2–100** characters), Dev.to **title** (at least **2** characters), and TikTok photo carousel **title** (up to **90** characters).
+Connect methods are in <a href="/docs/platforms/connect-rules">Connect rules</a>. Extra length limits in **Settings** are in <a href="/docs/platforms/per-channel-settings">Per-channel settings</a> — for example YouTube **title** (**2–100** characters), Dev.to **title** (at least **2** characters), TikTok photo carousel **title** (up to **90** characters), and Skool **title** (at least **1** character) plus **category** for the target group.
 
 | Where you work | Length check |
 | --- | --- |
@@ -62,6 +63,7 @@ Connect methods are in <a href="/docs/platforms/connect-rules">Connect rules</a>
 | <Badge text="instagram-business" variant="param" />, <Badge text="instagram-standalone" variant="param" />, <Badge text="linkedin" variant="param" />, <Badge text="linkedin-page" variant="param" /> | Text only |
 | <Badge text="facebook" variant="param" /> | One image per follow-up (no video) |
 | <Badge text="youtube" variant="param" />, <Badge text="tiktok" variant="param" />, <Badge text="devto" variant="param" /> | Follow-ups not supported |
+| <Badge text="skool" variant="param" /> | Yes (same upload rules as the main post) |
 
 Terminology for thread replies vs comments is in <a href="/docs/platforms">Platforms overview</a>. Composer steps are in <a href="/docs/creating-posts/threads-and-comments">Threads and comments</a>.
 
@@ -78,7 +80,7 @@ Each channel uses one caption editor mode when you unlock it in per-channel mode
 
 | Editor | Channel keys |
 | --- | --- |
-| **Standard** | <Badge text="threads" variant="param" />, <Badge text="facebook" variant="param" />, <Badge text="instagram-business" variant="param" />, <Badge text="instagram-standalone" variant="param" />, <Badge text="linkedin" variant="param" />, <Badge text="linkedin-page" variant="param" />, <Badge text="youtube" variant="param" />, <Badge text="tiktok" variant="param" />, <Badge text="bluesky" variant="param" /> |
+| **Standard** | <Badge text="threads" variant="param" />, <Badge text="facebook" variant="param" />, <Badge text="instagram-business" variant="param" />, <Badge text="instagram-standalone" variant="param" />, <Badge text="linkedin" variant="param" />, <Badge text="linkedin-page" variant="param" />, <Badge text="youtube" variant="param" />, <Badge text="tiktok" variant="param" />, <Badge text="bluesky" variant="param" />, <Badge text="skool" variant="param" /> |
 | **Markdown** | <Badge text="devto" variant="param" /> |
 | **HTML** | <Badge text="x" variant="param" /> (published as plain text after strip) |
 

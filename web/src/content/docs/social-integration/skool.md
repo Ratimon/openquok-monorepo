@@ -12,17 +12,17 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$li
 ## Overview
 
 <Callout type="note">
-<p>Operators and self-host installs do <strong>not</strong> register a Skool developer app or add Skool OAuth keys to the backend. Each member connects with the <strong>OpenQuok browser extension</strong> while logged in to Skool.</p>
+<p>Self-host installs do <strong>not</strong> register a Skool developer app or add Skool secrets to the backend. Each member connects with the <strong>OpenQuok browser extension</strong> while logged in to Skool.</p>
 </Callout>
 
-OpenQuok uses your active Skool browser session: the extension reads required session cookies, the API validates them against Skool, and OpenQuok stores the session encrypted for publishing.
+OpenQuok uses your active Skool browser session. Our OpenQuok chrome extension reads required session cookies, and OpenQuok stores the session encrypted for publishing.
 
 <Callout type="danger">
-<p>Anyone who can use your Skool session can post as you. Sign out of Skool on shared computers, disconnect the channel in OpenQuok when you are done, and review <DocsExternalLink href="https://www.skool.com/legal">Skool’s terms</DocsExternalLink> before you connect.</p>
+<p>Anyone who can use your Skool session can post as you. Sign out of Skool when you are done, and review <DocsExternalLink href="https://www.skool.com/legal">Skool’s terms</DocsExternalLink> before you connect.</p>
 </Callout>
 
 <Callout type="warning">
-<p>Cookie-based connect may conflict with platform rules. You accept that risk when you enable Skool. OpenQuok does not guarantee access if Skool changes its site or APIs.</p>
+<p>Cookie-based connect may conflict with platform rules. You accept that risk. OpenQuok does not guarantee access if Skool changes its site or APIs.</p>
 </Callout>
 
 ## Prerequisites
@@ -41,7 +41,7 @@ OpenQuok uses your active Skool browser session: the extension reads required se
 
 ### Install and configure the extension
 
-Follow <a href="/docs/installation/chrome-extension">Browser extension</a>. Confirm the extension ID matches your dashboard env.
+Follow <a href="/docs/installation/chrome-extension">Browser extension</a>. Confirm the extension ID matches your env.
 
 ### Sign in on Skool
 
@@ -49,11 +49,20 @@ Open Skool and sign in. The extension needs <Badge text="auth_token" variant="pa
 
 ### Add the channel
 
-In your workspace, open <Badge text="Add Channel" variant="new" /> → <strong>Skool</strong>. Read the browser-extension notice, then continue. OpenQuok pings the extension, reads cookies, validates your account, and saves the channel.
+In your workspace, open <Badge text="Add Channel" variant="new" /> → <strong>Skool</strong>. Read the browser-extension notice, then continue.
+
+![Load Unpacked OpenQuok Chrome Extension](/docs/_assets//social-integration/skool/read-skool-notice.webp)
+
+
+OpenQuok reads cookies, validates your account, and saves the channel.
 
 ### Allow automatic refresh
 
-After a successful connect, OpenQuok registers a refresh token in the extension. About every 24 hours the extension sends updated cookies so scheduled posts keep working. Disconnecting the channel removes that registration when you use <Badge text="Disconnect" variant="default" /> on the dashboard.
+After a successful connect, OpenQuok registers a refresh token in the extension.
+
+About every 24 hours the extension sends updated cookies so scheduled posts keep working. 
+
+Disconnecting the channel removes that registration when you use <Badge text="Disconnect" variant="default" /> on the dashboard.
 
 </Steps>
 

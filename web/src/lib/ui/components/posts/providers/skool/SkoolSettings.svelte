@@ -9,7 +9,10 @@
 	const LANDING_MOCK_GROUPS: SkoolSelectOption[] = [
 		{ value: 'mock-group-1', label: 'OpenQuok Community' }
 	];
-	const LANDING_MOCK_LABELS: SkoolSelectOption[] = [{ value: 'none', label: 'Default label' }];
+	const LANDING_MOCK_LABELS: SkoolSelectOption[] = [
+		{ value: 'mock-label-announcements', label: 'Announcements' },
+		{ value: 'mock-label-wins', label: 'Wins' }
+	];
 
 	type Props = {
 		title?: string;

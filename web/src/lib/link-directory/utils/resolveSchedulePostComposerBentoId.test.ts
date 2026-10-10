@@ -19,6 +19,10 @@ describe('resolveSchedulePostComposerBentoId', () => {
 		expect(resolveSchedulePostComposerBentoId('bluesky')).toBe('bluesky-threads');
 	});
 
+	it('maps skool to settings composer bento', () => {
+		expect(resolveSchedulePostComposerBentoId('skool')).toBe('skool-settings');
+	});
+
 	it('returns undefined for empty or unknown slugs', () => {
 		expect(resolveSchedulePostComposerBentoId(null)).toBeUndefined();
 		expect(resolveSchedulePostComposerBentoId('')).toBeUndefined();

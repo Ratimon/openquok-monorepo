@@ -1,6 +1,6 @@
 ---
 title: OpenQuok browser extension
-description: Install the OpenQuok Chrome extension for cookie-session channels such as Skool — build, load unpacked, and web env.
+description: Install the OpenQuok Chrome extension for cookie-session channels.
 order: 8
 lastUpdated: 2026-10-09
 sidebar:
@@ -13,9 +13,15 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$li
 
 ## Overview
 
-Some networks do not offer a public OAuth app for schedulers. OpenQuok connects those channels through the <strong>OpenQuok browser extension</strong> (Chrome, Manifest V3). The extension reads <strong>session cookies</strong> from the platform site only when you start connect in the dashboard. OpenQuok validates the session on the server and stores it encrypted.
+Some networks do not offer a public OAuth apps.
 
-Today the extension supports <strong>Skool</strong> (<Badge text="skool" variant="param" />). More cookie-session providers may register in the shared catalog later.
+OpenQuok connects those channels through the <strong>OpenQuok Chrome browser extension</strong>.
+
+The extension reads <strong>session cookies</strong> from the platform site only when you start connect in the dashboard. OpenQuok validates the session on the server and stores it encrypted.
+
+<Callout type="note">
+<p>Today the extension supports <strong>Skool</strong>. More cookie-session providers may register in the shared catalog later.</p>
+</Callout>
 
 <Callout type="warning">
 <p>Session-based connect is not the same as official platform OAuth. You are responsible for complying with the platform you connect — including its terms of use. OpenQuok may change or remove an extension channel if the platform changes access.</p>
@@ -26,8 +32,7 @@ Today the extension supports <strong>Skool</strong> (<Badge text="skool" variant
 | Audience | Action |
 | --- | --- |
 | <strong>Workspace members</strong> | Install the extension in Chrome, stay signed in on the platform, then use <Badge text="Add Channel" variant="new" /> in the dashboard. |
-| <strong>Self-host operators</strong> | Build or distribute the extension, set <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_ID" variant="envWeb" /> on the web app, and add your dashboard HTTPS origin to <Badge text="externally_connectable" variant="param" /> in the extension manifest if it is not <Badge text="localhost" variant="default" /> or <Badge text="*.openquok.com" variant="default" />. |
-| <strong>OpenQuok Cloud</strong> | Use the published extension ID your operator documents; no backend OAuth keys for Skool. |
+| <strong>Self-host operators</strong> | Build the extension, set <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_ID" variant="envWeb" /> on the web app, and add your dashboard HTTPS origin to <Badge text="externally_connectable" variant="param" /> in the extension manifest. |
 
 ## Environment variables (web)
 
@@ -37,10 +42,10 @@ The dashboard sends messages to the extension with <Badge text="chrome.runtime.s
 | --- | --- |
 | <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_ID" variant="envWeb" /> | Chrome extension ID from <strong>Extensions → Details</strong> (or the Chrome Web Store listing when published). |
 
-Copy the key from <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/.env.development.example"><Badge text="web/.env.development.example" variant="path" /></DocsExternalLink> into <Badge text="web/.env.development.local" variant="envWeb" />. Restart the Vite dev server after changes.
+Copy the key from <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/.env.development.example"><Badge text="web/.env.development.example" variant="path" /></DocsExternalLink> into <Badge text="web/.env.development.local" variant="envWeb" />. Restart the dev server after changes.
 
 <Callout type="note">
-<p>Skool does not use operator OAuth secrets in <Badge text="backend/.env" variant="envBackend" />. Session refresh uses a signed token stored in the extension plus periodic cookie refresh — see <a href="/docs/social-integration/skool">Skool setup</a> and our <a href="/privacy-policy">Privacy Policy</a>.</p>
+<p>Extension channels do not need platform OAuth keys in your server config. The extension keeps your login up to date in the background while you stay signed in on the platform site. See <a href="/docs/channels/connect">Connect a channel</a> and our <a href="/privacy-policy">Privacy Policy</a>.</p>
 </Callout>
 
 ## Install from source (unpacked)
@@ -65,15 +70,17 @@ Output is in <Badge text="extension/dist/" variant="path" />.
 
 Open <strong>chrome://extensions</strong>, enable <strong>Developer mode</strong>, click <strong>Load unpacked</strong>, and select <Badge text="extension/dist" variant="path" />.
 
+![Load Unpacked OpenQuok Chrome Extension](/docs/_assets/installation/local-extension.webp)
+
 Copy the <strong>ID</strong> shown on the extension card into <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_ID" variant="envWeb" /> for your web deployment.
 
 ### Sign in on the platform
 
-For Skool, open <DocsExternalLink href="https://www.skool.com/">skool.com</DocsExternalLink> in the <strong>same Chrome profile</strong> and sign in before you connect in OpenQuok.
+Open the platform site in the <strong>same Chrome profile</strong> as the extension and sign in.
 
 ### Connect in the dashboard
 
-In OpenQuok, choose <Badge text="Add Channel" variant="new" /> → <strong>Skool</strong>. Read the browser-extension notice, then approve cookie access when prompted.
+In OpenQuok, choose <Badge text="Add Channel" variant="new" />. Read the browser-extension notice, then approve cookie access when prompted.
 
 </Steps>
 

@@ -53,13 +53,15 @@ export const skoolChannel = {
 			title: 'Queue Skool posts, batch drafts on the calendar, weeks ahead',
 			description:
 				'Community momentum fades when you only post in real time. Put Skool posts on the OpenQuok calendar for the groups you run. Review agent and human drafts on the kanban board. Move them to Scheduled when you are ready.',
+			bentoId: 'skool-bulk-scheduling',
 			mediaOnRight: true
 		},
 		{
 			subtitle: 'Group settings',
-			title: 'Pick the Skool group, set title and label, before you approve',
+			title: 'Pick the Skool group, set title and category, before you approve',
 			description:
-				'Choose the target group from your connected account. Add a post title and optional label in Settings. Attach images when your group allows media. Preview the card before you queue the slot.',
+				'Choose the target group from your connected account. Add a post title and category in Settings. Attach images when your group allows media. Preview the card before you queue the slot.',
+			bentoId: 'skool-settings',
 			mediaOnRight: false
 		},
 		{
@@ -67,6 +69,7 @@ export const skoolChannel = {
 			title: 'Add Skool comments after the post, set delays, keep the thread',
 			description:
 				'When the group allows it, add follow-up comment rows in the composer with delays and optional media. OpenQuok publishes the main post first. Then it posts each comment on your connected account.',
+			bentoId: 'skool-follow-ups',
 			mediaOnRight: true
 		}
 	],

@@ -621,6 +621,19 @@ Use the same channel order across all five markdown files when practical (Facebo
 | Agent settings hub | `agent/skills/openquok-core/resources/provider-settings.md` — update when merge semantics or cross-channel setting patterns change |
 | Agent workflows | `agent/skills/openquok-core/resources/patterns.md`, `command-reference.md` |
 | Composer editor modes (user) | `web/src/content/docs/creating-posts/writing-the-post.md` — **Editor by platform** **Used by** for the provider’s `editor` |
+| **Media and character caps (user)** | `web/src/content/docs/platforms/media-rules.md` — see **Platforms media and settings** below |
+| **Composer Settings reference (user)** | `web/src/content/docs/platforms/per-channel-settings.md` — see **Platforms media and settings** below |
+
+### Platforms media and settings (required when composer or public API ships)
+
+Update **both** files in the **same PR** as `connect-rules.md` (not only `public-api-providers/{identifier}.md`).
+
+| File | What to add or update |
+| --- | --- |
+| `web/src/content/docs/platforms/media-rules.md` | **Media and character caps** table row (main-post media rules + character cap from `maxLength()` / publish helpers); **Media on follow-up comments** row when `comment()` ships or `postComment` is not `NONE`; **Caption editors** row for the provider’s `SocialProvider.editor`; **Settings-only media** row when hero/thumbnail/cover is Settings-only (not the media strip). Bump `lastUpdated`. |
+| `web/src/content/docs/platforms/per-channel-settings.md` | `### {Display name}` section: channel key badge, Settings table (required title/group/category/privacy fields from `{id}Settings.svelte`), callouts for connect family (OAuth / credentials / browser extension), links to `social-integration/{id}.md` and `public-api-providers/{identifier}.md`. Bump `lastUpdated`. |
+
+Copy must match `validateCreatePost`, publish resolvers, and composer validation — not landing-page marketing.
 
 ### Agent skill file (`resources/{id}-examples.md`)
 
@@ -877,7 +890,8 @@ Host channel VMs: `agents/channels/{host}.ts` (from `listPublicChannelsForHub()`
 - **Site footer:** no manual `PUBLIC_FOOTER_LINKS` / `buildPublicFooterLinks.ts` edits for the provider slug — **Supported Channels** picks up the catalog entry; **How to self-host with different social channels** picks up `social-integration/{identifier}.md` (non-draft, with `title` + `order`); tool columns follow live-channel rules above. Spot-check footer labels and hrefs before merge.
 - **Connect user guide:** `web/src/content/docs/channels/connect.md` — OAuth, credentials, and browser-extension tabs; `platforms/connect-rules.md` fourth family row; invite-link note for `customFields` / `isChromeExtension`.
 - **Agent skill:** `resources/{identifier}-examples.md` with Supported features + Agent tasks + Provider settings + recipes; `SKILL.md` **Channels** row updated; `web/src/content/docs/cli-examples/{id}.md` shipped or updated for human docs; sync `web/src/content/docs/public-api-providers/{identifier}.md` when `providerSettingsByIntegrationId` shapes change.
-- **Public API provider docs:** `web/src/content/docs/public-api-providers/{identifier}.md` with correct `{DisplayName} Settings` title; hub `index.md` catalog row + LinkCard; `platforms/connect-rules.md` and `media-rules.md` rows when new network; follow-up/plug sections match shipped backend only.
+- **Public API provider docs:** `web/src/content/docs/public-api-providers/{identifier}.md` with correct `{DisplayName} Settings` title; hub `index.md` catalog row + LinkCard; `platforms/connect-rules.md` catalog row when new network; follow-up/plug sections match shipped backend only.
+- **Platforms media and settings:** `media-rules.md` — caps table, follow-up media row (if applicable), caption editor row, settings-only media (if applicable); `per-channel-settings.md` — `### {Display name}` Settings table + connect callouts; both `lastUpdated` bumped (see **Platforms media and settings** above).
 - **Self-host (OAuth):** new OAuth env keys in `infra/self-host/.env.example` (Social provider apps); matching row in `web/src/content/docs/installation/docker-compose.md` **Optional: Social provider apps**; do not add secrets to the `web` Compose service (API/workers only via `.env`).
 - **Self-host (credentials):** no `{PROVIDER}_*` keys; docker-compose notes that the channel uses a user API key in the dashboard.
 - **Skill Builder SEO:** `CHANNEL_PROVIDER_IDENTIFIERS` + `CHANNEL_RECIPES` in `publicSkillBuilderChannelConfig.ts`; example payloads in `skillBuilderChannelExamplePayloads.ts`; `/tools/skill-builder/{slug}` resolves for live channels; Tools hub card exposes channel picker.

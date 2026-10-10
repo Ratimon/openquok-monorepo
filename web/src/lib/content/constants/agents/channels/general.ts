@@ -45,7 +45,8 @@ const KANBAN_BENTO_BY_CHANNEL: Record<string, PublicChannelFeatureBentoId> = {
 	linkedin: 'linkedin-bulk-scheduling',
 	x: 'x-bulk-scheduling',
 	devto: 'devto-bulk-scheduling',
-	bluesky: 'bluesky-bulk-scheduling'
+	bluesky: 'bluesky-bulk-scheduling',
+	skool: 'skool-bulk-scheduling'
 };
 
 const ANALYTICS_BENTO_BY_CHANNEL: Record<string, PublicChannelFeatureBentoId> = {

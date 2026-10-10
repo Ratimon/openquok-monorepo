@@ -666,6 +666,68 @@ describe("scheduledSocialPostActivities / plugPipeline", () => {
         );
     });
 
+    it("publishes skool follow-up comments with root group settings on the comment payload", async () => {
+        const integrationRepo = createIntegrationRepoMock();
+        integrationRepo.getById.mockResolvedValue(minimalIntegration({ provider_identifier: "skool" }));
+
+        const comment = jest.fn().mockResolvedValue([{ postId: "skool-comment-1" }]);
+        const manager = createPlugAwareIntegrationManager({
+            skool: {
+                post: jest.fn().mockResolvedValue([{ postId: "skool-root-1" }]),
+                comment,
+            },
+        });
+
+        const refreshService: Pick<RefreshIntegrationService, "refresh"> = { refresh: jest.fn().mockResolvedValue(false) };
+
+        const settingsJson = JSON.stringify({
+            providerSettings: {
+                skool: {
+                    title: "Weekly update",
+                    group: "group-abc",
+                    label: "label-xyz",
+                    replies: [{ id: faker.string.uuid(), message: "Thanks for reading!", delaySeconds: 0 }],
+                },
+            },
+        });
+
+        const publish = createPublishScheduledGroupHandler({
+            postsRepository: basePostsRepo(
+                minimalPost({
+                    integration_id: integrationId,
+                    settings: settingsJson,
+                })
+            ) as unknown as ScheduledPostsRepository,
+            integrationRepository: integrationRepo,
+            integrationManager: manager,
+            refreshService,
+        });
+
+        await publish({ organizationId: orgId, postGroup });
+
+        expect(comment).toHaveBeenCalledTimes(1);
+        expect(comment).toHaveBeenCalledWith(
+            "int-internal",
+            "skool-root-1",
+            "skool-root-1",
+            "tok",
+            [
+                expect.objectContaining({
+                    message: "Thanks for reading!",
+                    settings: expect.objectContaining({
+                        providerSettings: expect.objectContaining({
+                            skool: expect.objectContaining({
+                                group: "group-abc",
+                                label: "label-xyz",
+                            }),
+                        }),
+                    }),
+                }),
+            ],
+            expect.any(Object)
+        );
+    });
+
     describe("repeat scheduling", () => {
         function createRepeatPublishHandler(
             postOverrides: Partial<SocialPostLike> = {},

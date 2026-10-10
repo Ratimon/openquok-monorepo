@@ -124,6 +124,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'Storys',
 	'graphemes',
 	'@mentions',
+	'skool',
 	// Protected account app heroes
 	'Reusable Templates',
 	'Media Library',
