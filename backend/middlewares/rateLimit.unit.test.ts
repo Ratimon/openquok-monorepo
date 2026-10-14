@@ -254,10 +254,6 @@ describe("rateLimit helpers", () => {
                     "/link-directory/me/saved-sites/order"
                 )
             ).toBe(true);
-            const outreachPath = `/link-directory/me/saved-sites/${siteId}/outreach-completion`;
-            expect(
-                isBookmarkSavedMutationRoute(asReq({ method: "PATCH", path: outreachPath }), outreachPath)
-            ).toBe(true);
         });
 
         it("does not match reads or unrelated listing routes", () => {

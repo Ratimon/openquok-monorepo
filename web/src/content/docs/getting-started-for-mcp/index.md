@@ -118,7 +118,7 @@ OAuth2 access tokens from third-party apps also use the <Badge text="opo_" varia
 
 | Group | Tool | Purpose |
 | --- | --- | --- |
-| Channels | <Badge text="groupList" variant="default" /> | List channel groups (customers) |
+| Channels | <Badge text="groupList" variant="default" /> | List business profiles (customers) |
 | Channels | <Badge text="integrationList" variant="default" /> | List connected social channels; optionally filter by group |
 | Channels | <Badge text="integrationSchema" variant="default" /> | Character limits, compose settings, and allow-listed provider tools |
 | Channels | <Badge text="triggerTool" variant="default" /> | Invoke an allow-listed provider method on a connected channel |

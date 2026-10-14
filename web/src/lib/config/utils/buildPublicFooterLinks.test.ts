@@ -234,7 +234,7 @@ describe('buildPublicFooterLinks', () => {
 			href: '/docs/apis-integrations/list'
 		});
 		expect(integrations).toContainEqual({
-			label: 'List Channel Groups',
+			label: 'List Business Profiles',
 			href: '/docs/apis-integrations/groups'
 		});
 	});

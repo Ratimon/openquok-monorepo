@@ -35,7 +35,6 @@ import {
     linkDirectorySubmissionReviewSchema,
     linkDirectorySavedSitesPutSchema,
     linkDirectorySavedSitesOrderSchema,
-    linkDirectorySavedSiteOutreachCompletionSchema,
     linkDirectorySiteCommentCreateSchema,
     linkDirectorySiteCommentIdParamSchema,
     linkDirectorySiteRatingBodySchema,
@@ -150,16 +149,6 @@ linkDirectoryRouter.put(
     validateRequest({ body: linkDirectorySavedSitesOrderSchema }),
     linkDirectoryController.putUserSavedSitesOrder
 );
-linkDirectoryRouter.patch(
-    "/me/saved-sites/:siteId/outreach-completion",
-    authWithRoles,
-    validateRequest({
-        params: linkDirectorySiteIdParamSchema,
-        body: linkDirectorySavedSiteOutreachCompletionSchema,
-    }),
-    linkDirectoryController.patchUserSavedSiteOutreachCompletion
-);
-
 // --- Editor: taxonomy ---
 linkDirectoryRouter.get(
     "/categories/all-full",

@@ -1,21 +1,5 @@
-import { resolve } from 'node:path';
-import { defineConfig } from 'vite';
-
-export default defineConfig({
-	build: {
-		outDir: 'dist',
-		emptyOutDir: true,
-		rollupOptions: {
-			input: {
-				background: resolve(__dirname, 'src/background.ts'),
-			},
-			output: {
-				entryFileNames: '[name].js',
-				format: 'es',
-			},
-		},
-		target: 'es2022',
-		minify: false,
-		sourcemap: true,
-	},
-});
+/**
+ * Extension builds use `scripts/build-extension.mjs` (one self-contained module per manifest entry).
+ * This file remains for tooling that expects a default Vite config path.
+ */
+export { default } from './vite.main.config.ts';

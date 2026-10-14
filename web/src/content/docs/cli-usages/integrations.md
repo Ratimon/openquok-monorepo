@@ -23,7 +23,7 @@ The <Badge text="integrations:*" variant="default" />  wraps the <a href="/docs/
 openquok integrations:list
 ```
 
-Filter to one channel group (customer):
+Filter to one business profile (customer):
 
 ```bash
 openquok integrations:groups

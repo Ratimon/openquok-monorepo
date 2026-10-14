@@ -55,6 +55,9 @@
 	import LinkDirectoryMetricsAdminNotice from '$lib/ui/components/link-directory-manager/LinkDirectoryMetricsAdminNotice.svelte';
 	import LinkDirectoryOpenQuokChannelSelect from '$lib/ui/components/link-directory-manager/LinkDirectoryOpenQuokChannelSelect.svelte';
 	import LinkDirectoryOpportunityUpsertModal from '$lib/ui/components/link-directory-manager/LinkDirectoryOpportunityUpsertModal.svelte';
+	import LinkDirectoryAutoLaunchDestinationModal from '$lib/ui/components/link-directory-manager/LinkDirectoryAutoLaunchDestinationModal.svelte';
+	import { autoLaunchRepository } from '$lib/auto-launch/index';
+	import type { DirectoryLaunchProviderSummary } from '$lib/auto-launch/auto-launch.types';
 	import { linkDirectoryRichTextToPlainText } from '$lib/link-directory/utils/linkDirectoryRichText';
 	import SupabaseImageUploadArea from '$lib/ui/supabase/SupabaseImageUploadArea.svelte';
 
@@ -106,6 +109,20 @@
 	let sortOrder = $state('0');
 	let selectedTagIds = $state<string[]>([]);
 	let opportunities = $state<LinkDirectoryOpportunityDto[]>([]);
+	let providerCatalog = $state<DirectoryLaunchProviderSummary[]>([]);
+
+	$effect(() => {
+		if (site?.id) {
+			void autoLaunchRepository.listAdminProviderCatalog().then((rows) => {
+				providerCatalog = rows;
+			});
+		}
+	});
+
+	function providerLabelForSlug(slug: string | null | undefined): string {
+		if (!slug) return '';
+		return providerCatalog.find((p) => p.identifier === slug)?.name ?? slug;
+	}
 
 	const editorialTags = $derived(tags.filter((tag) => isBuildBacklinksEditorialTagSlug(tag.slug)));
 
@@ -556,6 +573,12 @@
 							<p class="text-xs font-mono text-base-content/60">{opportunity.slug}</p>
 							<p class="text-sm text-base-content/70 mt-1">
 								{opportunity.opportunityType?.label ?? 'Type'} · {opportunity.effort} · {opportunity.costTier}
+								{#if opportunity.autoLaunchEnabled}
+									· <span class="text-primary">Extension launch</span>
+									{#if opportunity.autoLaunchProviderSlug}
+										<span class="font-mono text-xs">({opportunity.autoLaunchProviderSlug})</span>
+									{/if}
+								{/if}
 							</p>
 							{#if playbookSteps.length > 0}
 								<ol class="mt-3 space-y-1.5 border-t border-base-300/60 pt-3">
@@ -578,7 +601,15 @@
 								</p>
 							{/if}
 						</div>
-						<div class="flex gap-2">
+						<div class="flex flex-wrap gap-2">
+							{#if opportunity.autoLaunchEnabled && opportunity.autoLaunchProviderSlug}
+								<LinkDirectoryAutoLaunchDestinationModal
+									opportunityId={opportunity.id}
+									opportunityTitle={opportunity.title}
+									providerSlug={opportunity.autoLaunchProviderSlug}
+									providerLabel={providerLabelForSlug(opportunity.autoLaunchProviderSlug)}
+								/>
+							{/if}
 							<LinkDirectoryOpportunityUpsertModal
 								siteId={site.id}
 								{userId}

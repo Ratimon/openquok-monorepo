@@ -660,7 +660,7 @@ export class LinkDirectoryRepository {
         const { data, error } = await this.supabase
             .from(TABLE_SAVED_SITES)
             .select(
-                `id, user_id, site_id, sort_order, created_at, outreach_completed_at, site:link_directory_sites(${SELECT_SITE_FOR_SAVED_SITE})`
+                `id, user_id, site_id, sort_order, created_at, site:link_directory_sites(${SELECT_SITE_FOR_SAVED_SITE})`
             )
             .eq("user_id", userId)
             .order("sort_order", { ascending: true });
@@ -753,34 +753,6 @@ export class LinkDirectoryRepository {
                     siteId,
                 });
             }
-        }
-    }
-
-    async setUserSavedSiteOutreachCompleted(
-        userId: string,
-        siteId: string,
-        outreachCompletedAt: string | null
-    ): Promise<void> {
-        const { data, error } = await this.supabase
-            .from(TABLE_SAVED_SITES)
-            .update({ outreach_completed_at: outreachCompletedAt })
-            .eq("user_id", userId)
-            .eq("site_id", siteId)
-            .select("id")
-            .maybeSingle();
-
-        if (error) {
-            throw new DatabaseError(`Error updating saved site outreach completion: ${error.message}`, {
-                cause: error as unknown as Error,
-                operation: "update",
-            });
-        }
-
-        if (!data) {
-            throw new DatabaseEntityNotFoundError("Saved site not found for outreach completion update", {
-                userId,
-                siteId,
-            });
         }
     }
 

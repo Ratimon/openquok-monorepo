@@ -46,7 +46,8 @@ describe('publicFaqLinks', () => {
 		expect(publicFaqHref.docsSchedulingRepeat).toBe(
 			'/docs/creating-posts/scheduling#repeating-a-post'
 		);
-		expect(publicFaqHref.docsChannelGroups).toBe('/docs/channels/channel-groups');
+		expect(publicFaqHref.docsBusinessProfiles).toBe('/docs/channels/business-profiles');
+		expect(publicFaqHref.docsChannelGroups).toBe('/docs/channels/business-profiles');
 		expect(publicFaqHref.channels).toBe('/channels');
 		expect(publicFaqHref.cliGettingStarted).toBe('/docs/getting-started-for-cli');
 		expect(publicFaqHref.cliSetupGuides).toBe('/docs/getting-started-for-cli');

@@ -39,17 +39,17 @@ A **channel** is one connected social account — one X profile, one LinkedIn Pa
 
 <strong>Disable</strong> pauses new posts but keeps the channel in the workspace — on Cloud it still uses a connected slot. <strong>Delete</strong> removes the channel and frees a slot once its posts are gone. See <a href="/docs/channels/manage">Manage a channel</a> and <a href="/docs/billing/limits">Cloud limits</a>.
 
-## Channel groups
+<h2 id="business-profiles">Business profiles</h2>
 
-A **channel group** bundles channels — usually one client or brand. Groups filter the <strong>My Dashboard</strong> <strong>Posts</strong> kanban and the calendar, and let you pick that bundle in the post editor.
+A **business profile** bundles channels — usually one client or brand. Profiles filter the <strong>My Dashboard</strong> <strong>Posts</strong> kanban and the calendar, and let you pick that bundle in the post editor.
 
 <Callout type="tip">
-<p>The <strong>Channel groups</strong> dropdown on those boards is part of the <a href="#smart-filter">smart filter</a>. See <a href="/docs/channels/channel-groups">Channel groups</a> for how to create groups, filter the board, and select a whole client in the composer.</p>
+<p>The <strong>Business profiles</strong> dropdown on those boards is part of the <a href="#smart-filter">smart filter</a>. See <a href="/docs/channels/channel-groups">Business profiles</a> for how to create profiles, filter the board, and select a whole client in the composer.</p>
 </Callout>
 
-![Add channel to a channel group](/docs/_assets/glossary/add-to-group.webp)
+![Link a channel to a business profile](/docs/_assets/glossary/add-to-group.webp)
 
-The public API names the same concept **customers**. See <a href="/docs/apis-integrations/groups">Channel groups API</a>.
+The public API names the same concept **customers**. See <a href="/docs/apis-integrations/groups">List business profiles (API)</a>.
 
 <h2 id="post-group">Post and post group</h2>
 
@@ -140,15 +140,15 @@ See <a href="/docs/posts-management/calendar#recurring-posts">Recurring posts on
 
 A **smart filter** is how you narrow a table or board to the channels, posts, templates, or plugs you are working on. Plans list this as **Smart filters**.
 
-<p>On <a href="/account">My Dashboard</a>, open the <strong>Channels</strong> tab, switch to table view (<Badge text="the grid icon" variant="param" />), then click <Badge text="Add filters" variant="param" />. You can match social platform, connected account, group name, or status.</p>
+<p>On <a href="/account">My Dashboard</a>, open the <strong>Channels</strong> tab, switch to table view (<Badge text="the grid icon" variant="param" />), then click <Badge text="Add filters" variant="param" />. You can match social platform, connected account, business profile name, or status.</p>
 
 ![Group Connected Channels Using Smart Filter](/docs/_assets/channel-groups/smart-filter-connected-channel.webp)
 
 <p>The same <Badge text="Add filters" variant="param" /> control sits on the tables at <a href="/account/templates">Templates</a> and <a href="/account/plugs">Auto Plugs</a> — for example social channel and tags on templates, or rule and active on plugs.</p>
 
-<p>On the calendar and the <strong>My Dashboard</strong> <strong>Posts</strong> kanban, smart filters are the dropdowns: <strong>Channel groups</strong>, platforms, and tags. The calendar also has post types. On the kanban, separate <strong>upcoming</strong> time filters apply to drafted and scheduled posts, <strong>past</strong> filters apply to published posts, and you can narrow by review status and source (Agent or Human). See <a href="/docs/posts-management/kanban">Kanban board</a>.</p>
+<p>On the calendar and the <strong>My Dashboard</strong> <strong>Posts</strong> kanban, smart filters are the dropdowns: <strong>Business profiles</strong>, platforms, and tags. The calendar also has post types. On the kanban, separate <strong>upcoming</strong> time filters apply to drafted and scheduled posts, <strong>past</strong> filters apply to published posts, and you can narrow by review status and source (Agent or Human). See <a href="/docs/posts-management/kanban">Kanban board</a>.</p>
 
-<p>See <a href="/docs/channels/manage">Manage a channel</a>, <a href="/docs/channels/channel-groups">Channel groups</a>, <a href="/account/templates">Templates</a>, and <a href="/docs/automations/plugs">Plugs</a>.</p>
+<p>See <a href="/docs/channels/manage">Manage a channel</a>, <a href="/docs/channels/channel-groups">Business profiles</a>, <a href="/account/templates">Templates</a>, and <a href="/docs/automations/plugs">Plugs</a>.</p>
 
 ## Post states
 
@@ -235,7 +235,7 @@ Agent-created drafts can include a **review note** on the kanban card. Clear or 
 <LinkCard title="Saved" description="Explore, Library, backlinks, and your catalog listings" href="/docs/saved" />
 <LinkCard title="Tour the app" description="Sidebar, header, My Dashboard tabs, composer, settings, and billing" href="/docs/getting-started/tour-the-app" />
 <LinkCard title="Team" description="Workspace invites and roles" href="/docs/settings/team" />
-<LinkCard title="Channel groups" description="Bundle channels by client or brand" href="/docs/channels/channel-groups" />
+<LinkCard title="Business profiles" description="Bundle channels by client or brand" href="/docs/channels/channel-groups" />
 <LinkCard title="CLI introduction" description="Terminal access for scripts and agents" href="/docs/getting-started-for-cli" />
 <LinkCard title="MCP introduction" description="Natural-language scheduling from your editor" href="/docs/getting-started-for-mcp" />
 </CardGrid>

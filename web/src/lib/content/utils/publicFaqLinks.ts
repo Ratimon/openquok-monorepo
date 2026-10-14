@@ -111,7 +111,9 @@ export const publicFaqHref = {
 	docsSavedBacklinks: faqHrefDocs('saved/backlinks'),
 	docsThreadsComments: faqHrefDocs('creating-posts/threads-and-comments'),
 	docsAiGeneration: faqHrefDocs('creating-posts/ai-generation'),
-	docsChannelGroups: faqHrefDocs('channels/channel-groups'),
+	docsBusinessProfiles: faqHrefDocs('channels/business-profiles'),
+	/** @deprecated Use docsBusinessProfiles */
+	docsChannelGroups: faqHrefDocs('channels/business-profiles'),
 	docsManageChannels: faqHrefDocs('channels/manage'),
 	docsConnectRules: faqHrefDocs('platforms/connect-rules'),
 	docsHelp: faqHrefDocs('help'),

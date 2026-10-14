@@ -110,3 +110,14 @@ export function buildLinkDirectoryLogoPublicUrl(storagePath: string): string {
 	const apiBase = trimApiBase();
 	return `${apiBase}/api/v1/image/download?databaseName=${LINK_DIRECTORY_LOGOS_BUCKET}&imageUrl=${encodeURIComponent(trimmed)}`;
 }
+
+/** Browser-ready logo URL from a published link-directory site `logoUrl` field (storage key or full URL). */
+export function resolveLinkDirectorySiteLogoDisplayUrl(
+	logoUrl: string | null | undefined
+): string | null {
+	const trimmed = logoUrl?.trim();
+	if (!trimmed) return null;
+	if (/^https?:\/\//i.test(trimmed)) return trimmed;
+	const built = buildLinkDirectoryLogoPublicUrl(trimmed);
+	return built.trim() ? built : null;
+}

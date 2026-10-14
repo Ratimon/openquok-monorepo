@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "prepare:icons": "node ./scripts/prepare-icons.mjs",
-    "build": "pnpm run prepare:icons && vite build && node ./scripts/copy-static.mjs",
+    "build": "pnpm run prepare:icons && node ./scripts/build-extension.mjs && node ./scripts/copy-static.mjs",
     "zip": "pnpm run build && node ./scripts/zip.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },

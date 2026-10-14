@@ -31,6 +31,14 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Tooltip from '$lib/ui/tooltip';
 	import ChannelConnectLegalFooter from '$lib/ui/components/legal/ChannelConnectLegalFooter.svelte';
+	import AddDirectoryLaunch from '$lib/ui/components/auto-launch/AddDirectoryLaunch.svelte';
+	import { autoLaunchRepository } from '$lib/auto-launch';
+	import {
+		buildDirectoryAddChannelTiles,
+		directoryAddChannelLogoFallbackLabel,
+		type DirectoryAddChannelTileVm
+	} from '$lib/auto-launch/buildDirectoryAddChannelTiles';
+	import { linkDirectoryRepository } from '$lib/link-directory';
 
 	// /account
 	const rootPathAccount = getRootPathAccount();
@@ -112,7 +120,10 @@
 	let extensionProviderName = $state('channel');
 	let extensionProviderIdentifier = $state('');
 	let extensionFinished = $state(false);
-
+	let directoryTiles = $state<DirectoryAddChannelTileVm[]>([]);
+	let directoryLaunchOpen = $state(false);
+	let activeDirectoryTile = $state<DirectoryAddChannelTileVm | null>(null);
+	let directoryLogoFailedBySiteKey = $state<Record<string, boolean>>({});
 	function openAddChannelFlow() {
 		if (channelLimitFull) {
 			upgradeDialogOpen = true;
@@ -140,6 +151,25 @@
 	}
 
 	$effect(() => {
+	async function loadDirectoryAddChannelTiles() {
+		try {
+			const [destinations, publishedSites] = await Promise.all([
+				autoLaunchRepository.listDestinations(),
+				linkDirectoryRepository.getPublishedSites({ limit: 500, skip: 0 })
+			]);
+			const sitesBySlug = new Map(
+				publishedSites.sites.map((site) => [
+					site.slug,
+					{ title: site.title, logoUrl: site.logoUrl }
+				])
+			);
+			directoryTiles = buildDirectoryAddChannelTiles(destinations, sitesBySlug);
+		} catch {
+			directoryTiles = [];
+		}
+		directoryLogoFailedBySiteKey = {};
+	}
+
 		if (!open) return;
 		void ensureWorkspaceLoaded().then(() => {
 			if (!workspaceSettingsPresenter.currentWorkspaceId) {
@@ -149,6 +179,7 @@
 			}
 			void loadProviders();
 		});
+			void loadDirectoryAddChannelTiles();
 	});
 
 	function onPickProvider(identifier: string) {
@@ -307,6 +338,16 @@
 		extensionProviderIdentifier = '';
 		if (!open) open = true;
 	}
+
+	function openDirectoryLaunchPicker(tile: DirectoryAddChannelTileVm) {
+		open = false;
+		activeDirectoryTile = tile;
+		directoryLaunchOpen = true;
+	}
+
+	function directoryTileShowsLogo(tile: DirectoryAddChannelTileVm): boolean {
+		return Boolean(tile.logoUrl) && !directoryLogoFailedBySiteKey[tile.siteKey];
+	}
 </script>
 
 <Dialog.Root bind:open>
@@ -453,7 +494,46 @@
 							: 'grid-cols-2 sm:grid-cols-3 md:grid-cols-5'
 					)}
 				>
-				{#each visibleProviders as p (p.identifier)}
+					{#if !invite}
+						{#each directoryTiles as tile (tile.siteKey)}
+							<button
+								type="button"
+								class="group relative flex min-h-[5.5rem] w-full min-w-0 max-w-none flex-col items-stretch justify-start gap-1.5 overflow-visible rounded-xl border border-base-300 bg-base-100 px-2 py-2 text-center whitespace-normal hover:bg-base-200"
+								onclick={() => openDirectoryLaunchPicker(tile)}
+							>
+								<div class="mx-auto grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-base-200">
+									{#if directoryTileShowsLogo(tile) && tile.logoUrl}
+										<img
+											src={tile.logoUrl}
+											alt=""
+											class="h-6 w-6 rounded object-contain"
+											width="24"
+											height="24"
+											onerror={() => {
+												directoryLogoFailedBySiteKey = {
+													...directoryLogoFailedBySiteKey,
+													[tile.siteKey]: true
+												};
+											}}
+										/>
+									{:else}
+										<span
+											class="text-xs font-semibold tracking-tight text-base-content/80"
+											aria-hidden="true"
+										>
+											{directoryAddChannelLogoFallbackLabel(tile.label)}
+										</span>
+									{/if}
+								</div>
+								<div
+									class="min-w-0 w-full shrink text-balance break-words text-sm font-medium leading-snug text-base-content"
+								>
+									{tile.label}
+								</div>
+							</button>
+						{/each}
+					{/if}
+					{#each visibleProviders as p (p.identifier)}
 					<button
 						type="button"
 						class="group relative flex min-h-[5.5rem] w-full min-w-0 max-w-none flex-col items-stretch justify-start gap-1.5 overflow-visible rounded-xl border border-base-300 bg-base-100 px-2 py-2 text-center whitespace-normal hover:bg-base-200"
@@ -525,4 +605,12 @@
 />
 
 <ChannelLimitUpgradeModal bind:open={upgradeDialogOpen} {upgradeHref} />
+
+<AddDirectoryLaunch
+	showTrigger={false}
+	bind:launcherOpen={directoryLaunchOpen}
+	{returnToPath}
+	providerSlugPrefix={activeDirectoryTile?.providerSlugPrefix}
+	destinationsDialogTitle={activeDirectoryTile?.dialogTitle ?? 'Launch to directory'}
+/>
 

@@ -1,4 +1,20 @@
 export {
+	AUTO_LAUNCH_MESSAGE_TYPE,
+	coerceAutoLaunchHandoffRequestFields,
+	isAutoLaunchHandoffRequestFields,
+	isAutoLaunchMessageType,
+	isAutoLaunchRuntimeMessage,
+	toAutoLaunchHandoffSession,
+	type AutoLaunchCompleteMessage,
+	type AutoLaunchFillAllMessage,
+	type AutoLaunchFillStepMessage,
+	type AutoLaunchHandoffRequestFields,
+	type AutoLaunchMessageType,
+	type AutoLaunchProgressMessage,
+	type AutoLaunchRuntimeMessage,
+	type AutoLaunchStartMessage,
+} from './autoLaunchMessages.js';
+export {
 	BROWSER_EXTENSION_MESSAGE_TYPE,
 	isBrowserExtensionErrorResponse,
 	isBrowserExtensionMessageType,
@@ -20,5 +36,20 @@ export {
 	listCookieSessionProviderSummaries,
 	type CookieSessionProvider,
 } from './cookieSessionProviders.js';
-export { PAGE_ASSIST_PROVIDERS, type PageAssistProvider } from './pageAssist.js';
+export {
+	directoryLaunchProviders,
+	getDirectoryLaunchProvider,
+	isDirectoryLaunchProviderId,
+	listDirectoryLaunchProviderSummaries,
+	type AutoLaunchCompletePayload,
+	type AutoLaunchExtensionConfig,
+	type AutoLaunchHandoffSession,
+	type AutoLaunchProfileSnapshot,
+	type AutoLaunchProgressPayload,
+	type DirectoryLaunchProvider,
+	type FieldFillResult,
+	type FieldFillStatus,
+	type LaunchStep,
+	type LaunchStepField,
+} from './pageAssist.js';
 export type { BrowserExtensionCookieRef } from './types.js';

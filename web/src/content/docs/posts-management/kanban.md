@@ -86,15 +86,15 @@ After a recurrence publishes, the card moves to <Badge text="Published posts" va
 
 The filter row uses the same <a href="/docs/getting-started/glossary#smart-filter">smart filter</a> pattern as the calendar. Controls below apply across all three columns unless noted.
 
-### Channel groups, platforms, and tags
+### Business profiles, platforms, and tags
 
 | Control | Effect |
 | --- | --- |
-| **Channel groups** | Limit cards to channels in the groups you pick. See <a href="/docs/channels/channel-groups">Channel groups</a>. |
+| **Business profiles** | Limit cards to channels in the profiles you pick. See <a href="/docs/channels/channel-groups">Business profiles</a>. |
 | **Platforms** | Show only posts tied to selected social platforms (when you have more than one platform connected). |
 | **Tags** | Match <a href="/docs/getting-started/glossary#tag">tags</a> on the post group. |
 
-![Filter Kanban Post by Channel group, Platform, and Post type](/docs/_assets/posts-management/kanban-group-platform-type-filters.webp)
+![Filter Kanban Post by business profile, platform, and post type](/docs/_assets/posts-management/kanban-group-platform-type-filters.webp)
 
 ### Review and source
 

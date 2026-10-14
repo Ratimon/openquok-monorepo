@@ -25,6 +25,7 @@ import {
     subscriptionRepository,
     acquisitionSurveyRepository,
     trialBrowserRepository,
+    autoLaunchRepository,
 } from "../repositories/index";
 import { AuthenticationService } from "./AuthenticationService";
 import { UserService } from "./UserService";
@@ -61,6 +62,7 @@ import { TrialBrowserService } from "./TrialBrowserService";
 import { TrackService } from "./TrackService";
 import { InternalOpsEmailService } from "./InternalOpsEmailService";
 import { AcquisitionSurveyService } from "./AcquisitionSurveyService";
+import { AutoLaunchService } from "./AutoLaunchService";
 import { config } from "../config/GlobalConfig";
 
 export const integrationManager = new IntegrationManager();
@@ -257,6 +259,8 @@ export const setsService = new SetsService(
     cacheInvalidationServiceConnection
 );
 
+export const autoLaunchService = new AutoLaunchService(autoLaunchRepository, integrationConnectionService);
+
 export const analyticsService = new AnalyticsService(
     integrationService,
     integrationManager,
@@ -284,6 +288,7 @@ export { PostsService } from "./PostsService";
 export { MediaService } from "./MediaService";
 export { SignatureService } from "./SignatureService";
 export { SetsService } from "./SetsService";
+export { AutoLaunchService } from "./AutoLaunchService";
 export { AnalyticsService } from "./AnalyticsService";
 export { SubscriptionService } from "./SubscriptionService";
 export { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";

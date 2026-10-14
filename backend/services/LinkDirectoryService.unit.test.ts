@@ -60,7 +60,6 @@ function expectPublishedCatalogInvalidation(invalidateKey: jest.Mock, invalidate
 function createMockLinkDirectoryRepository(): jest.Mocked<
     Pick<
         LinkDirectoryRepository,
-        | "setUserSavedSiteOutreachCompleted"
         | "assertPublishedSiteIds"
         | "replaceUserSavedSites"
         | "reorderUserSavedSites"
@@ -68,45 +67,12 @@ function createMockLinkDirectoryRepository(): jest.Mocked<
     >
 > {
     return {
-        setUserSavedSiteOutreachCompleted: jest.fn(),
         assertPublishedSiteIds: jest.fn(),
         replaceUserSavedSites: jest.fn(),
         reorderUserSavedSites: jest.fn(),
         findUserSavedSites: jest.fn(),
     };
 }
-
-describe("LinkDirectoryService saved site outreach completion", () => {
-    it("sets outreach_completed_at when marking done", async () => {
-        const linkDirectoryRepository = createMockLinkDirectoryRepository();
-        const service = createLinkDirectoryService(
-            linkDirectoryRepository as unknown as LinkDirectoryRepository
-        );
-
-        await service.setUserSavedSiteOutreachCompleted("user-1", "site-1", true);
-
-        expect(linkDirectoryRepository.setUserSavedSiteOutreachCompleted).toHaveBeenCalledWith(
-            "user-1",
-            "site-1",
-            expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/)
-        );
-    });
-
-    it("clears outreach_completed_at when marking not done", async () => {
-        const linkDirectoryRepository = createMockLinkDirectoryRepository();
-        const service = createLinkDirectoryService(
-            linkDirectoryRepository as unknown as LinkDirectoryRepository
-        );
-
-        await service.setUserSavedSiteOutreachCompleted("user-1", "site-1", false);
-
-        expect(linkDirectoryRepository.setUserSavedSiteOutreachCompleted).toHaveBeenCalledWith(
-            "user-1",
-            "site-1",
-            null
-        );
-    });
-});
 
 describe("LinkDirectoryService saved sites", () => {
     it("replaceUserSavedSites dedupes ids and validates published sites", async () => {
@@ -146,8 +112,8 @@ describe("LinkDirectoryService saved sites", () => {
         const linkDirectoryRepository = createMockLinkDirectoryRepository();
         linkDirectoryRepository.findUserSavedSites.mockResolvedValue({
             data: [
-                { id: "row-1", user_id: "user-1", site_id: "site-b", sort_order: 0, created_at: "", outreach_completed_at: null },
-                { id: "row-2", user_id: "user-1", site_id: "site-a", sort_order: 1, created_at: "", outreach_completed_at: null },
+                { id: "row-1", user_id: "user-1", site_id: "site-b", sort_order: 0, created_at: "" },
+                { id: "row-2", user_id: "user-1", site_id: "site-a", sort_order: 1, created_at: "" },
             ],
         });
         const service = createLinkDirectoryService(
@@ -170,7 +136,7 @@ describe("LinkDirectoryService saved sites", () => {
         const linkDirectoryRepository = createMockLinkDirectoryRepository();
         linkDirectoryRepository.findUserSavedSites.mockResolvedValue({
             data: [
-                { id: "row-1", user_id: "user-1", site_id: "site-a", sort_order: 0, created_at: "", outreach_completed_at: null },
+                { id: "row-1", user_id: "user-1", site_id: "site-a", sort_order: 0, created_at: "" },
             ],
         });
         const service = createLinkDirectoryService(
@@ -188,7 +154,7 @@ describe("LinkDirectoryService saved sites", () => {
         const linkDirectoryRepository = createMockLinkDirectoryRepository();
         linkDirectoryRepository.findUserSavedSites.mockResolvedValue({
             data: [
-                { id: "row-1", user_id: "user-1", site_id: "site-a", sort_order: 0, created_at: "", outreach_completed_at: null },
+                { id: "row-1", user_id: "user-1", site_id: "site-a", sort_order: 0, created_at: "" },
             ],
         });
         linkDirectoryRepository.assertPublishedSiteIds.mockRejectedValue(
@@ -215,7 +181,6 @@ describe("LinkDirectoryService saved sites", () => {
                     site_id: "site-a",
                     sort_order: 0,
                     created_at: "",
-                    outreach_completed_at: null,
                     site: { id: "site-a", is_admin_published: false } as never,
                 },
                 {
@@ -224,7 +189,6 @@ describe("LinkDirectoryService saved sites", () => {
                     site_id: "site-b",
                     sort_order: 1,
                     created_at: "",
-                    outreach_completed_at: null,
                     site: { id: "site-b", is_admin_published: true } as never,
                 },
             ],

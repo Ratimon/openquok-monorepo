@@ -10,7 +10,6 @@ export type LinkDirectoryConfig = {
 		getMySavedSites: string;
 		putMySavedSites: string;
 		putMySavedSitesOrder: string;
-		patchSavedSiteOutreachCompletion: (siteId: string) => string;
 		getAdminSites: string;
 		getSiteById: (siteId: string) => string;
 		createSite: string;

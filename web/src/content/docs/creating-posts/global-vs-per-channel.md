@@ -51,7 +51,7 @@ When one network needs its own caption or attachments:
 
 ### Select your channels
 
-Turn on every channel that should receive this post — or pick a <a href="/docs/channels/channel-groups">channel group</a> to select a whole brand at once.
+Turn on every channel that should receive this post — or pick a <a href="/docs/channels/channel-groups">business profile</a> to select a whole brand at once.
 
 ### Click the channel avatar
 

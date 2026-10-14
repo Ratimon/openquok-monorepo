@@ -29,7 +29,7 @@ The preview opens in a new tab. Click <Badge text="Share with Others" variant="e
 - The scheduled date, when one is set.
 - A comment box when collaboration is enabled on your plan.
 
-They do not see your workspace, other channel groups, or any other posts. No OpenQuok account is required to read the page.
+They do not see your workspace, other business profiles, or any other posts. No OpenQuok account is required to read the page.
 
 ## A simple review cycle
 
@@ -56,12 +56,12 @@ Apply changes in the composer, then move the post to <Badge text="Scheduled" var
 
 </Steps>
 
-## Pair with channel groups
+## Pair with business profiles
 
 If you run social for multiple clients, the usual flow is:
 
-1. Put their channels in a <a href="/docs/channels/channel-groups">channel group</a>.
-2. Filter <strong>My Dashboard</strong> or the calendar to that group.
+1. Link their channels to a <a href="/docs/channels/channel-groups">business profile</a>.
+2. Filter <strong>My Dashboard</strong> or the calendar to that profile.
 3. Draft their week.
 4. Send preview links for posts that need sign-off.
 5. Schedule once you have heard back.
@@ -85,7 +85,7 @@ If you run social for multiple clients, the usual flow is:
 <LinkCard title="Calendar" description="Filters, chips, and opening posts from the grid" href="/docs/posts-management/calendar" />
 <LinkCard title="Kanban board" description="Columns, filters, and opening posts from My Dashboard" href="/docs/posts-management/kanban" />
 <LinkCard title="Scheduling" description="Save as draft until client sign-off, then add to calendar" href="/docs/creating-posts/scheduling" />
-<LinkCard title="Channel groups" description="Bundle a client’s channels and filter the calendar" href="/docs/channels/channel-groups" />
+<LinkCard title="Business profiles" description="Bundle a client’s channels and filter the calendar" href="/docs/channels/channel-groups" />
 <LinkCard title="Glossary" description="Draft, scheduled, and preview link terminology" href="/docs/getting-started/glossary" />
 <LinkCard title="Cloud limits" description="Shareable preview availability by plan" href="/docs/billing/limits" />
 </CardGrid>

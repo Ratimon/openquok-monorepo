@@ -307,6 +307,20 @@ export class IntegrationConnectionService {
         return this.integrations.createIntegrationCustomer(organizationId, name);
     }
 
+    async updateIntegrationCustomerName(
+        authUserId: string,
+        organizationId: string,
+        customerId: string,
+        name: string
+    ): Promise<void> {
+        await this.assertOrganizationMember(authUserId, organizationId);
+        await this.integrations.updateIntegrationCustomerName(organizationId, customerId, name);
+    }
+
+    async findIntegrationCustomerByOrgAndName(organizationId: string, name: string) {
+        return this.integrations.findIntegrationCustomerByOrgAndName(organizationId, name);
+    }
+
     async assignIntegrationCustomer(
         authUserId: string,
         organizationId: string,

@@ -3,7 +3,8 @@
 		CreateSocialPostChannelViewModel,
 		HomeChannelGroupViewModel,
 		HomeChannelsLayoutModeViewModel,
-		HomeChannelRowViewModel
+		HomeChannelRowViewModel,
+		WorkspaceChannelGroupViewModel
 	} from '$lib/channels';
 	import type { HomeChannelsGridFilterBuilderPresenter } from '$lib/channels/HomeChannelsGridFilterBuilder.presenter.svelte';
 	import type { HomeChannelsGridTablePresenter } from '$lib/channels/HomeChannelsGridTable.presenter.svelte';
@@ -22,6 +23,8 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import ChannelLimitUpgradeModal from '$lib/ui/components/channels/ChannelLimitUpgradeModal.svelte';
 	import ChannelsChipsLayout from '$lib/ui/components/channels/ChannelsChipsLayout.svelte';
+	import type { AutoLaunchProductProfileDto } from '$lib/auto-launch/auto-launch.types';
+	import { autoLaunchRepository } from '$lib/auto-launch';
 	import ChannelsGridLayout from '$lib/ui/components/channels/ChannelsGridLayout.svelte';
 	import {
 		channelsGridActionsKey,
@@ -60,6 +63,7 @@
 		/** Plan `channel_per_workspace` cap; omit or pass under 1 when not enforced (e.g. FREE). */
 		allowedChannelCount?: number | null;
 		billingHref?: string;
+		channelGroups?: WorkspaceChannelGroupViewModel[];
 	};
 
 	let {
@@ -82,7 +86,8 @@
 		onAddAnotherChannel,
 		onOpenChannelActions,
 		allowedChannelCount = null,
-		billingHref
+		billingHref,
+		channelGroups = []
 	}: Props = $props();
 
 	let channelUpgradeDialogOpen = $state(false);
@@ -151,6 +156,28 @@
 	let windowWidthPx = $state(0);
 	let groupDetailsOpen = $state<Record<string, boolean>>({});
 	let ungroupedDetailsOpen = $state(true);
+	let productProfiles = $state<AutoLaunchProductProfileDto[]>([]);
+
+	const productProfilesByGroupId = $derived.by(() => {
+		const map = new Map<string, AutoLaunchProductProfileDto[]>();
+		for (const profile of productProfiles) {
+			if (!profile.integrationCustomerId) continue;
+			const list = map.get(profile.integrationCustomerId) ?? [];
+			list.push(profile);
+			map.set(profile.integrationCustomerId, list);
+		}
+		return map;
+	});
+
+	$effect(() => {
+		if (!workspaceId) {
+			productProfiles = [];
+			return;
+		}
+		void autoLaunchRepository.listProfiles(workspaceId).then((rows) => {
+			productProfiles = rows;
+		});
+	});
 
 	const channelsGridFilteredRowsVm = $derived.by(() => {
 		const filter = createHomeChannelsGridTableFilter(channelsFilterPresenter.value);
@@ -312,7 +339,7 @@
 	<div class="flex flex-wrap items-center justify-between gap-3">
 		<div class="flex min-w-0 flex-wrap items-center gap-3">
 			<h2 id="connected-channels-heading" class="text-xl font-bold text-base-content">
-				Connected channels
+				Linked channels
 				{#if channelCountLabel}
 					<span
 						class={isChannelLimitFull || isActiveChannelLimitFull
@@ -510,6 +537,7 @@
 			{onSetDisabled}
 			{onRemove}
 			onAddAnotherChannel={tryAddAnotherChannel}
+			{productProfilesByGroupId}
 		/>
 	{/if}
 

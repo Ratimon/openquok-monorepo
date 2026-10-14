@@ -27,6 +27,7 @@ import { ApprovedAppsController } from "./ApprovedAppsController";
 import { ThirdPartyController } from "./ThirdPartyController";
 import { SignatureController } from "./SignatureController";
 import { SetsController } from "./SetsController";
+import { AutoLaunchController } from "./AutoLaunchController";
 import { AnalyticsController } from "./AnalyticsController";
 import {
     authenticationService,
@@ -55,6 +56,7 @@ import {
     trackService,
     signatureService,
     setsService,
+    autoLaunchService,
     analyticsService,
     userSessionService,
     acquisitionSurveyService,
@@ -124,4 +126,5 @@ export const approvedAppsController = new ApprovedAppsController(oauthService);
 export const thirdPartyController = new ThirdPartyController();
 export const signatureController = new SignatureController(signatureService);
 export const setsController = new SetsController(setsService);
+export const autoLaunchController = new AutoLaunchController(autoLaunchService);
 export const analyticsController = new AnalyticsController(analyticsService, integrationConnectionService, postsService);

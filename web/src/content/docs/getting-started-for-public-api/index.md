@@ -97,9 +97,9 @@ Skip hand-writing JSON — open the <a href="/social-media-posting-api">Payload 
 
 It's the same <a href="/docs/creating-posts">post editor</a> you already use in the OpenQuok app, but the schedule buttons are swapped for <Badge text="Copy scheduled payload" variant="new" /> and <Badge text="Copy draft payload" variant="default" />, so you can drop the result straight into a <Badge text="POST /api/v1/public/posts" variant="default" /> request body.
 
-## Channel groups
+## Business profiles
 
-Workspaces can organize connected channels into **channel groups** (the dashboard calls them customers). Use them to scope list and calendar queries to one client or brand.
+Workspaces organize connected channels into **business profiles**. The public API and CLI call the same concept **customers** (`GET /public/groups`). Use them to scope list and calendar queries to one client or brand.
 
 | Action | HTTP | SDK |
 | --- | --- | --- |
@@ -107,18 +107,18 @@ Workspaces can organize connected channels into **channel groups** (the dashboar
 | List channels in a group | <Badge text="GET /public/integrations?group=" variant="path" /> | <Badge text="integrations()" variant="default" /> with <Badge text="group" variant="param" /> |
 
 ```bash
-# List channel groups, then filter integrations to one group
+# List business profiles (customers), then filter integrations to one profile
 curl -H "Authorization: Bearer opo_your_programmatic_token" \
   https://api.openquok.com/api/v1/public/groups
 
 curl -H "Authorization: Bearer opo_your_programmatic_token" \
-  "https://api.openquok.com/api/v1/public/integrations?group=<channel-group-id>"
+  "https://api.openquok.com/api/v1/public/integrations?group=<customer-id>"
 ```
 
 The same <Badge text="group" variant="param" /> filter is available on <Badge text="GET /public/posts/list" variant="path" /> via <Badge text="customerGroupId" variant="param" /> — see <a href="/docs/apis-posts/list">List Posts</a>.
 
 <Callout type="tip" title="CLI equivalent">
-<p><Badge text="openquok integrations:groups" variant="default" /> lists groups; <Badge text="openquok integrations:list --group &lt;channel-group-id&gt;" variant="default" /> filters channels. See <a href="/docs/cli-usages/integrations">CLI integrations</a>.</p>
+<p><Badge text="openquok integrations:groups" variant="default" /> lists business profiles; <Badge text="openquok integrations:list --group &lt;customer-id&gt;" variant="default" /> filters channels. See <a href="/docs/cli-usages/integrations">CLI integrations</a>.</p>
 </Callout>
 
 ## Plugs
@@ -160,7 +160,7 @@ Not every provider exposes plugs — Threads, X, and LinkedIn Page support globa
 
 ## Start Integrating with SDK
 
-<Badge text="@openquok/node-sdk" variant="experimental" /> is a small, typed Node.js wrapper around OpenQuok's programmatic API (<Badge text="/api/v1/public" variant="default" />). Use it to schedule posts, manage post groups, upload media, list channel groups, configure global plugs, and inspect connected channels from any Node.js script or backend.
+<Badge text="@openquok/node-sdk" variant="experimental" /> is a small, typed Node.js wrapper around OpenQuok's programmatic API (<Badge text="/api/v1/public" variant="default" />). Use it to schedule posts, manage post groups, upload media, list business profiles, configure global plugs, and inspect connected channels from any Node.js script or backend.
 
 
 ### Installation
@@ -186,7 +186,7 @@ const openquok = new Openquok('opo_your_programmatic_token', {
 
 await openquok.isConnected();
 
-// List channel groups, then channels in the first group
+// List business profiles, then channels in the first profile
 const groups = await openquok.listGroups();
 const channels = groups[0]
 	? await openquok.integrations({ group: groups[0].id })

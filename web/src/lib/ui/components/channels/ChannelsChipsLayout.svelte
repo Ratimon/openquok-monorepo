@@ -14,6 +14,9 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import { cn } from '$lib/ui/helpers/common';
 	import { postsLimitKey, type PostsLimitContext } from '$lib/ui/components/posts/postsLimitContext';
+	import type { AutoLaunchProductProfileDto } from '$lib/auto-launch/auto-launch.types';
+
+	import AddDirectoryLaunch from '$lib/ui/components/auto-launch/AddDirectoryLaunch.svelte';
 	import ChannelRows from '$lib/ui/components/channels/ChannelRows.svelte';
 
 	type Props = {
@@ -33,6 +36,7 @@
 		onRemove: (id: string) => Promise<boolean>;
 		onAddAnotherChannel: (identifier: string) => void;
 		channelLimitFull?: boolean;
+		productProfilesByGroupId?: Map<string, AutoLaunchProductProfileDto[]>;
 	};
 
 	let {
@@ -51,7 +55,8 @@
 		onSetDisabled,
 		onRemove,
 		onAddAnotherChannel,
-		channelLimitFull = false
+		channelLimitFull = false,
+		productProfilesByGroupId = new Map()
 	}: Props = $props();
 
 	const postsLimitCtx = getContext<PostsLimitContext | undefined>(postsLimitKey);
@@ -68,9 +73,7 @@
 
 {#if channelGroupSectionsVm.length > 0}
 	<div class="mt-4 space-y-2">
-		<h4 class="text-sm font-semibold text-base-content/80">
-			Grouped channels
-		</h4>
+		<h4 class="text-sm font-semibold text-base-content/80">Business profiles</h4>
 		{#each channelGroupSectionsVm as group (group.id)}
 			<details class="rounded-lg border border-base-300 bg-base-200/40"
 				bind:open={groupDetailsOpen[group.id]}
@@ -136,6 +139,28 @@
 						{onRemove}
 						{onAddAnotherChannel}
 					/>
+					{#if (productProfilesByGroupId.get(group.id) ?? []).length > 0}
+						<div class="mt-4 border-t border-base-300 pt-3">
+							<p class="text-xs font-semibold uppercase tracking-wide text-base-content/60">
+								Directory launches
+							</p>
+							<ul class="mt-2 space-y-2">
+								{#each productProfilesByGroupId.get(group.id) ?? [] as profile (profile.id)}
+									<li
+										class="flex flex-wrap items-center justify-between gap-2 rounded-md border border-base-300/80 bg-base-100 px-2 py-2"
+									>
+										<span class="text-sm font-medium text-base-content">{profile.name}</span>
+										<AddDirectoryLaunch
+											buttonLabel="Launch"
+											buttonVariant="outline"
+											buttonClass="btn-xs"
+											productProfileId={profile.id}
+										/>
+									</li>
+								{/each}
+							</ul>
+						</div>
+					{/if}
 				</div>
 			</details>
 		{/each}
@@ -146,7 +171,7 @@
 	<div class="mt-4 space-y-2">
 		<div class="flex flex-wrap items-center justify-between gap-2">
 			<h4 class="text-sm font-semibold text-base-content/80">
-				Ungrouped channels
+				Not linked to a business profile
 			</h4>
 			<div class="flex flex-wrap items-center justify-end gap-2">
 				<Button
@@ -190,7 +215,10 @@
 			</div>
 		</div>
 		<p class="text-sm text-base-content/70">
-			To add a channel to a group, open its menu and select <span class="font-medium text-base-content">Move / add to group</span>.
+			Open a channel menu and choose
+			<span class="font-medium text-base-content">Move / add to business profile</span>, or use
+			<span class="font-medium text-base-content">Add Channel</span> → Uneed for directory-only launches.
+			Create a profile on the <span class="font-medium text-base-content">Products</span> tab first if needed.
 		</p>
 		{#if channelGroupSectionsVm.length === 0}
 			<details class="rounded-lg border border-base-300 bg-base-200/40" bind:open={ungroupedDetailsOpen}>

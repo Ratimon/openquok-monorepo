@@ -66,6 +66,7 @@ import {
 	getRootPathCalendar,
 	getRootPathMedia,
 	getRootPathPlugs,
+	getRootPathProducts,
 	getRootPathSavedHub,
 	getRootPathTemplates
 } from '$lib/area-protected/getRootPathProtectedArea';
@@ -961,6 +962,7 @@ export const ACCOUNT_MAIN_SIDEBAR_LINKS: AccountMainSidebarLinkConfig[] = [
 	{ segment: getRootPathTemplates(), title: 'Templates', iconName: icons.LayoutTemplate.name },
 	{ segment: getRootPathSavedHub(), title: 'Saved', iconName: icons.Bookmark.name },
 	{ segment: getRootPathPlugs(), title: 'Auto Plugs', iconName: icons.Sparkles.name },
+	{ segment: getRootPathProducts(), title: 'My Products', iconName: icons.Rocket.name },
 	{ segment: getRootPathAnalytics(), title: 'Analytics', iconName: icons.ChartBar.name },
 	{ segment: getRootPathMedia(), title: 'Media', iconName: icons.Image.name }
 ];

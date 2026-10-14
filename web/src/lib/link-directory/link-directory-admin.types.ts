@@ -128,7 +128,14 @@ const linkDirectoryOpportunityFormObjectSchema = z.object({
 	cta_href: z.string().max(2000).optional().nullable(),
 	cta_label: z.string().max(200).optional().nullable(),
 	sort_order: z.number().int().optional(),
-	is_admin_published: z.boolean().optional()
+	is_admin_published: z.boolean().optional(),
+	auto_launch_enabled: z.boolean().optional(),
+	auto_launch_provider_slug: z
+		.string()
+		.max(120)
+		.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Invalid provider slug')
+		.nullable()
+		.optional()
 });
 
 export const linkDirectoryOpportunityFormSchema = linkDirectoryOpportunityFormObjectSchema.superRefine(
@@ -168,6 +175,13 @@ export const linkDirectoryOpportunityFormSchema = linkDirectoryOpportunityFormOb
 				}
 			}
 		}
+		if (data.auto_launch_enabled && !data.auto_launch_provider_slug?.trim()) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				message: 'Select an extension provider when auto-launch is enabled.',
+				path: ['auto_launch_provider_slug']
+			});
+		}
 	}
 );
 
@@ -192,5 +206,7 @@ export type LinkDirectoryOpportunityApiPayload = {
 	cta_label?: string | null;
 	sort_order?: number;
 	is_admin_published?: boolean;
+	auto_launch_enabled?: boolean;
+	auto_launch_provider_slug?: string | null;
 	id?: string;
 };

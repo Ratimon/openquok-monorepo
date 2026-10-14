@@ -1,8 +1,8 @@
 ---
-title: Channel groups
-description: Group OpenQuok channels by client or brand, and focus every channel in a group at once in the post editor.
+title: Business profiles
+description: Link OpenQuok channels to a business profile (client or brand), filter the dashboard by profile, and select every channel in a profile at once in the post editor.
 order: 4
-lastUpdated: 2026-09-29
+lastUpdated: 2026-10-14
 ---
 
 <script>
@@ -11,45 +11,43 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## What they are
 
-> Bundle channels by client or brand — and pick a whole group at once in the composer.
+> Bundle channels by client or brand — and pick every channel in a business profile at once in the composer.
 
-A **channel group** is a label you put on one or more channels — usually one client, one brand, or one project. Each channel belongs to at most one group. Channels with no group stay in the **Ungrouped** list.
+A **business profile** is a workspace label for one or more channels — usually one client, one brand, or one project. Each channel links to at most one business profile. Channels with no profile appear under **Not linked to a business profile**.
 
-If you manage social for more than one client, groups keep <strong>My Dashboard</strong> readable and let you focus on one account at a time.
+If you manage social for more than one client, business profiles keep <strong>My Dashboard</strong> readable and let you focus on one account at a time. The same profile can also hold **product** details for directory launches on the **Products** tab.
 
-## Put a channel in a group
+## Link a channel to a business profile
 
-On <a href="/account">My Dashboard</a> or the <a href="/account/calendar">calendar</a>, open a channel’s menu and click <Badge text="Move / add to group" variant="default" />.
+On <a href="/account">My Dashboard</a> or the <a href="/account/calendar">calendar</a>, open a channel’s menu and click <Badge text="Move / add to business profile" variant="default" />.
 
-![Add channel to a channel group](/docs/_assets/glossary/add-to-group.webp)
+![Link a channel to a business profile](/docs/_assets/glossary/add-to-group.webp)
 
-<p>Then, in the dialog, pick an existing group or type a new name and click <Badge text="Save" variant="new" />.This will create the group when the name is new.</p>
+<p>Then, in the dialog, pick an existing business profile or type a new name and click <Badge text="Save" variant="new" />. A new profile is created when the name is new.</p>
 
-![Grouped and Ungrouped Channels](/docs/_assets/channel-groups/grouped-channel-dialog.webp)
+![Business profiles and unlinked channels](/docs/_assets/channel-groups/grouped-channel-dialog.webp)
 
-<p>To move the channel back to the ungrouped list, open a channel’s menu again and click <Badge text="Remove from group" variant="default" />.</p>
+<p>To unlink a channel, open the channel menu again and choose <strong>Remove from business profile</strong> (or clear the profile in the same dialog).</p>
 
 ## What you get on the Channels tab
 
-On <Badge text="My Dashboard" variant="default" /> → <Badge text="Channels" variant="default" />, once at least one channel is grouped, the grid shows **Grouped accounts/channels** — collapsible sections, one per group.
+On <Badge text="My Dashboard" variant="default" /> → <Badge text="Channels" variant="default" />, linked channels appear in collapsible **business profile** sections. Each section lists that profile’s channels and offers shortcuts to compose or open the calendar for that profile.
 
-![Grouped and Ungrouped channels](/docs/_assets/channel-groups/grouped-ungrouped-channel.webp)
+![Linked business profiles and unlinked channels](/docs/_assets/channel-groups/grouped-ungrouped-channel.webp)
 
-Each section lists that group’s channels and offers shortcuts to compose or open the calendar for that group.
+Channels not linked to any profile are listed separately (**Not linked to a business profile**).
 
-Channels not in any group appear under **Ungrouped accounts/channels**.
+## Filtering posts and calendar
 
-## Filtering Channels
+When you have at least one business profile, a **Business profiles** filter appears on the <Badge text="Posts" variant="default" /> tab toolbar on <Badge text="My Dashboard" variant="default" /> and on the calendar toolbar. (Some screens may still show the legacy label <strong>Channel groups</strong> until UI copy is fully updated.)
 
-When you have groups, a **Channel groups** filter appears on the <Badge text="Posts" variant="default" /> tab toolbar on <Badge text="My Dashboard" variant="default" /> and on the calendar toolbar.
+Use it to hide every other client’s posts. Select one profile, several profiles, or **Ungrouped channels** / unlinked channels only.
 
-Use it to hide every other client’s posts. Select one group, several groups, or **Ungrouped channels** only.
+## Pick a whole profile in the composer
 
-## Pick a whole group in the composer
+In the post editor, open <Badge text="Select grouped channels" variant="default" />. OpenQuok selects every ready channel in that business profile in one click — handy when the same caption should go to all of a client’s networks.
 
-In the post editor, open <Badge text="Select grouped channels" variant="default" />. OpenQuok selects every ready channel in that group in one click — handy when the same caption should go to all of a client’s networks.
-
-You can still add or remove individual channel after that.
+You can still add or remove individual channels after that.
 
 ## Connect a client’s channel first
 
@@ -57,20 +55,20 @@ You do not need their OpenQuok login. Send an **invite link**, so they authorize
 
 ![Send Invitation Links](/docs/_assets/channel-groups/send-invite.webp)
 
-When the channel appears in your workspace, assign it to their group.
+When the channel appears in your workspace, link it to their business profile.
 
 See <a href="/docs/channels/connect">Connect a channel</a> for invite links and which networks support them.
 
 ## Approval workflow
 
-Grouping pairs with <a href="/docs/posts-management/approvals">Approvals</a>: put a client’s channels in one group, draft their week, then send preview links for sign-off before anything publishes.
+Business profiles pair with <a href="/docs/posts-management/approvals">Approvals</a>: put a client’s channels in one profile, draft their week, then send preview links for sign-off before anything publishes.
 
 ## API and automations
 
-The dashboard says <strong>channel group</strong>. The public API and CLI call the same thing <strong>customers</strong>.
+The dashboard uses <strong>business profile</strong>. The public API and CLI call the same concept <strong>customers</strong> (see <Badge text="GET /public/integrations/groups" variant="path" />).
 
 <CardGrid>
-<LinkCard title="List Channel Groups" description="Publig APIs to get ids for filtering integrations and posts" href="/docs/apis-integrations/groups" />
+<LinkCard title="List business profiles (API)" description="Public API — customer ids for filtering integrations and posts" href="/docs/apis-integrations/groups" />
 <LinkCard title="CLI integrations" description="Agentic CLI workflows" href="/docs/cli-usages/integrations" />
 </CardGrid>
 
@@ -81,5 +79,5 @@ The dashboard says <strong>channel group</strong>. The public API and CLI call t
 <LinkCard title="Manage a channel" description="Reconnect, disable, or remove a connected account" href="/docs/channels/manage" />
 <LinkCard title="Posting time slots" description="Usual posting hours per channel" href="/docs/channels/time-slots" />
 <LinkCard title="Approvals" description="Preview links and client comments before you schedule" href="/docs/posts-management/approvals" />
-<LinkCard title="Glossary" description="Channel groups, preview links, and calendar vs kanban" href="/docs/getting-started/glossary" />
+<LinkCard title="Glossary" description="Business profiles, preview links, and calendar vs kanban" href="/docs/getting-started/glossary" />
 </CardGrid>

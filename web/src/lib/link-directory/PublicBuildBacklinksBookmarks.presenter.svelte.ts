@@ -15,25 +15,18 @@ export type BuildBacklinksBookmarkToggleResult =
 export class PublicBuildBacklinksBookmarksPresenter {
 	public orderedSlugs = $state<string[]>([]);
 	public siteTitleBySlug = $state<Record<string, string>>({});
-	public outreachCompletedAtBySlug = $state<Record<string, string | null>>({});
 	public isLoggedIn = $state(false);
 	public hydrating = $state(false);
 	public canReorder = $state(false);
-	public canMarkComplete = $state(false);
 	public savingShortlist = $state(false);
 
 	private siteIdBySlug = new Map<string, string>();
 	private persistedOrderSlugs: string[] = [];
-	private persistedOutreachCompletedAtBySlug: Record<string, string | null> = {};
 
 	constructor(private readonly linkDirectoryRepository: LinkDirectoryRepository) {}
 
 	isBookmarked(siteSlug: string): boolean {
 		return this.orderedSlugs.includes(siteSlug);
-	}
-
-	isCompleted(siteSlug: string): boolean {
-		return Boolean(this.outreachCompletedAtBySlug[siteSlug]);
 	}
 
 	hasUnsavedOrderChanges(): boolean {
@@ -45,16 +38,7 @@ export class PublicBuildBacklinksBookmarksPresenter {
 	}
 
 	hasUnsavedShortlistChanges(): boolean {
-		if (!this.isLoggedIn) return false;
-		return this.hasUnsavedOrderChanges() || this.hasUnsavedOutreachChanges();
-	}
-
-	private hasUnsavedOutreachChanges(): boolean {
-		for (const slug of this.orderedSlugs) {
-			const persistedDone = Boolean(this.persistedOutreachCompletedAtBySlug[slug]);
-			if (this.isCompleted(slug) !== persistedDone) return true;
-		}
-		return false;
+		return this.hasUnsavedOrderChanges();
 	}
 
 	getSiteIdForSlug(siteSlug: string): string | undefined {
@@ -64,7 +48,6 @@ export class PublicBuildBacklinksBookmarksPresenter {
 	async hydrate(isLoggedIn: boolean, fetch?: typeof globalThis.fetch): Promise<void> {
 		this.isLoggedIn = isLoggedIn;
 		this.canReorder = isLoggedIn;
-		this.canMarkComplete = isLoggedIn;
 		this.hydrating = true;
 		try {
 			if (isLoggedIn) {
@@ -130,10 +113,7 @@ export class PublicBuildBacklinksBookmarksPresenter {
 		return { ok: true, bookmarked: nextBookmarked };
 	}
 
-	moveBookmark(
-		siteSlug: string,
-		direction: 'up' | 'down'
-	): { ok: boolean; error?: string } {
+	moveBookmark(siteSlug: string, direction: 'up' | 'down'): { ok: boolean; error?: string } {
 		if (!this.isLoggedIn) {
 			return { ok: false, error: 'Sign in to reorder saved sites.' };
 		}
@@ -145,7 +125,6 @@ export class PublicBuildBacklinksBookmarksPresenter {
 		if (targetIndex < 0 || targetIndex >= this.orderedSlugs.length) {
 			return { ok: true };
 		}
-
 		const next = [...this.orderedSlugs];
 		const [removed] = next.splice(index, 1);
 		next.splice(targetIndex, 0, removed);
@@ -165,63 +144,20 @@ export class PublicBuildBacklinksBookmarksPresenter {
 
 		this.savingShortlist = true;
 		try {
-			for (const siteSlug of this.orderedSlugs) {
-				const persistedDone = Boolean(this.persistedOutreachCompletedAtBySlug[siteSlug]);
-				const nextDone = this.isCompleted(siteSlug);
-				if (nextDone === persistedDone) continue;
+			const siteIds = this.orderedSlugs
+				.map((slug) => this.siteIdBySlug.get(slug))
+				.filter((id): id is string => Boolean(id));
 
-				const siteId = this.siteIdBySlug.get(siteSlug);
-				if (!siteId) {
-					return { ok: false, error: 'Site is not bookmarked.' };
-				}
-
-				const result = await this.linkDirectoryRepository.setSavedSiteOutreachCompletion(
-					siteId,
-					nextDone,
-					fetch
-				);
-				if (!result.ok) {
-					await this.hydrateAuthenticated(fetch);
-					return { ok: false, error: result.error };
-				}
-			}
-
-			if (this.hasUnsavedOrderChanges()) {
-				const siteIds = this.orderedSlugs
-					.map((slug) => this.siteIdBySlug.get(slug))
-					.filter((id): id is string => Boolean(id));
-
-				const result = await this.linkDirectoryRepository.reorderMySavedSites(siteIds, fetch);
-				if (!result.ok) {
-					await this.hydrateAuthenticated(fetch);
-					return { ok: false, error: result.error };
-				}
-				this.applyServerSavedSites(result.savedSites);
-			} else {
+			const result = await this.linkDirectoryRepository.reorderMySavedSites(siteIds, fetch);
+			if (!result.ok) {
 				await this.hydrateAuthenticated(fetch);
+				return { ok: false, error: result.error };
 			}
-
+			this.applyServerSavedSites(result.savedSites);
 			return { ok: true };
 		} finally {
 			this.savingShortlist = false;
 		}
-	}
-
-	toggleCompleted(siteSlug: string): { ok: boolean; error?: string } {
-		if (!this.isLoggedIn) {
-			return { ok: false, error: 'Sign in to track progress.' };
-		}
-
-		if (!this.siteIdBySlug.get(siteSlug)) {
-			return { ok: false, error: 'Site is not bookmarked.' };
-		}
-
-		const nextCompleted = !this.isCompleted(siteSlug);
-		this.outreachCompletedAtBySlug = {
-			...this.outreachCompletedAtBySlug,
-			[siteSlug]: nextCompleted ? new Date().toISOString() : null
-		};
-		return { ok: true };
 	}
 
 	private async hydrateAuthenticated(fetch?: typeof globalThis.fetch): Promise<void> {
@@ -259,12 +195,10 @@ export class PublicBuildBacklinksBookmarksPresenter {
 
 	private applyServerSavedSites(savedSites: LinkDirectorySavedSiteDto[]): void {
 		const slugs: string[] = [];
-		const outreachCompletedAtBySlug: Record<string, string | null> = {};
 		for (const row of savedSites) {
 			const slug = row.site?.slug;
 			if (!slug) continue;
 			slugs.push(slug);
-			outreachCompletedAtBySlug[slug] = row.outreachCompletedAt ?? null;
 			this.rememberSite({
 				siteId: row.siteId,
 				siteSlug: slug,
@@ -273,8 +207,6 @@ export class PublicBuildBacklinksBookmarksPresenter {
 		}
 		this.orderedSlugs = slugs;
 		this.persistedOrderSlugs = [...slugs];
-		this.outreachCompletedAtBySlug = outreachCompletedAtBySlug;
-		this.persistedOutreachCompletedAtBySlug = { ...outreachCompletedAtBySlug };
 	}
 
 	private applyLocalState(
@@ -286,8 +218,6 @@ export class PublicBuildBacklinksBookmarksPresenter {
 		}
 		this.orderedSlugs = entries.map((entry) => entry.slug);
 		this.persistedOrderSlugs = [];
-		this.outreachCompletedAtBySlug = {};
-		this.persistedOutreachCompletedAtBySlug = {};
 	}
 
 	private rememberSite(params: {

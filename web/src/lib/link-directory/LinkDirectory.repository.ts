@@ -308,32 +308,6 @@ export class LinkDirectoryRepository {
 		}
 	}
 
-	async setSavedSiteOutreachCompletion(
-		siteId: string,
-		completed: boolean,
-		fetch?: typeof globalThis.fetch
-	): Promise<{ ok: boolean; savedSites: LinkDirectorySavedSiteDto[]; error?: string }> {
-		try {
-			const { data: savedSitesDto, ok } = await this.httpGateway.request<SavedSitesResponseDto>({
-				method: HttpMethod.PATCH,
-				url: this.config.endpoints.patchSavedSiteOutreachCompletion(siteId),
-				data: { completed },
-				withCredentials: true,
-				fetch
-			});
-			if (ok && savedSitesDto?.success && Array.isArray(savedSitesDto.data)) {
-				return { ok: true, savedSites: savedSitesDto.data };
-			}
-			return {
-				ok: false,
-				savedSites: [],
-				error: savedSitesDto?.message ?? 'Failed to update outreach completion.'
-			};
-		} catch {
-			return { ok: false, savedSites: [], error: 'Failed to update outreach completion.' };
-		}
-	}
-
 	private adminOpts(fetch?: typeof globalThis.fetch) {
 		return { withCredentials: true, fetch };
 	}

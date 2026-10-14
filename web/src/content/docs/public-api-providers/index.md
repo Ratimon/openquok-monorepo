@@ -132,7 +132,7 @@ Channels omitted from <Badge text="mediaByIntegrationId" variant="param" /> inhe
 ## Related Section(s)
 
 <CardGrid>
-<LinkCard title="Public API Overview" description="Authentication, channel groups, global plugs, SDK quickstart, and the Payload Wizard" href="/docs/getting-started-for-public-api" />
+<LinkCard title="Public API Overview" description="Authentication, business profiles, global plugs, SDK quickstart, and the Payload Wizard" href="/docs/getting-started-for-public-api" />
 <LinkCard title="Integrations APIs" description="Connect / inspect / trigger endpoints around connected channels" href="/docs/apis-integrations" />
 <LinkCard title="Posts APIs" description="Schedule, update, and delete post groups against connected channels" href="/docs/apis-posts" />
 <LinkCard title="Media rules" description="Character caps, media rules, and caption editors" href="/docs/platforms/media-rules" />

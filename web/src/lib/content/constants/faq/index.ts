@@ -238,7 +238,7 @@ export const PUBLIC_FAQ_ITEMS: readonly PublicFaqItem[] = [
 		id: 'too-many-channels',
 		title: 'I have connnected too many channels, what should I do?',
 		description:
-			`Group channels by client or brand, or disable ones you do not need. See ${faqLink(publicFaqHref.docsChannelGroups, 'Channel groups')} and ${faqLink(publicFaqHref.docsManageChannels, 'Manage channels')}. API: ${faqLink(publicFaqHref.channelGroups, 'channel groups')}.`
+			`Link channels to business profiles by client or brand, or disable ones you do not need. See ${faqLink(publicFaqHref.docsChannelGroups, 'Business profiles')} and ${faqLink(publicFaqHref.docsManageChannels, 'Manage channels')}. API: ${faqLink(publicFaqHref.channelGroups, 'List business profiles')}.`
 	}
 ];
 

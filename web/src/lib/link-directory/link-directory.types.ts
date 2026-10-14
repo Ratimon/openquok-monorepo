@@ -69,6 +69,8 @@ export type LinkDirectoryOpportunityDto = {
 	sortOrder: number;
 	isAdminPublished: boolean;
 	publishedAt: string | null;
+	autoLaunchEnabled?: boolean;
+	autoLaunchProviderSlug?: string | null;
 };
 
 export type LinkDirectoryCategoryDto = {
@@ -95,7 +97,6 @@ export type LinkDirectorySavedSiteDto = {
 	siteId: string;
 	sortOrder: number;
 	createdAt: string;
-	outreachCompletedAt: string | null;
 	site: LinkDirectorySiteDto | null;
 };
 

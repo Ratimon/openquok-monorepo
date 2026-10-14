@@ -37,7 +37,7 @@ OpenQuok supports Meta Threads, Instagram (Business and Standalone), Facebook Pa
 <LinkCard title="Connect a channel" description="Add Channel, sign-in flows, API keys, and invite links for clients" href="/docs/channels/connect" />
 <LinkCard title="Manage a channel" description="Reconnect, disable, or disconnect a connected account" href="/docs/channels/manage" />
 <LinkCard title="Posting time slots" description="Set usual posting hours per channel and how suggestions use them" href="/docs/channels/time-slots" />
-<LinkCard title="Channel groups" description="Bundle channels by client or brand and filter My Dashboard and the calendar" href="/docs/channels/channel-groups" />
+<LinkCard title="Business profiles" description="Bundle channels by client or brand and filter My Dashboard and the calendar" href="/docs/channels/channel-groups" />
 </CardGrid>
 
 ## Related
@@ -45,7 +45,7 @@ OpenQuok supports Meta Threads, Instagram (Business and Standalone), Facebook Pa
 <CardGrid>
 <LinkCard title="Creating posts" description="Post editor, channels, media, and scheduling" href="/docs/creating-posts" />
 <LinkCard title="Quickstart" description="First channel and first scheduled post in five steps" href="/docs/getting-started/quickstart" />
-<LinkCard title="Glossary" description="Workspace, channel groups, and calendar vs kanban" href="/docs/getting-started/glossary" />
+<LinkCard title="Glossary" description="Workspace, business profiles, and calendar vs kanban" href="/docs/getting-started/glossary" />
 <LinkCard title="Tour the app" description="Where Add Channel lives on My Dashboard and in the composer" href="/docs/getting-started/tour-the-app" />
 <LinkCard title="Social integrations" description="Operator setup for self-hosted installs — OAuth apps and env keys" href="/docs/social-integration" />
 </CardGrid>

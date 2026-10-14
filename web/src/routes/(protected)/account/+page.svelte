@@ -77,6 +77,8 @@
 	import AccountHomeNotificationsFeed from '$lib/ui/components/home/AccountHomeNotificationsFeed.svelte';
 	import AccountPlanOverviewSection from '$lib/ui/components/home/AccountPlanOverviewSection.svelte';
 	import MyChannelsSection from '$lib/ui/components/channels/MyChannelsSection.svelte';
+	import MyProductsTab from '$lib/ui/components/account/MyProductsTab.svelte';
+	import type { AccountHomeDashboardTab } from '$lib/ui/components/home/AccountHomeDashboardTabs.svelte';
 	import MyWorkspacesSection from '$lib/ui/components/workspaces/MyWorkspacesSection.svelte';
 	import { postsLimitKey } from '$lib/ui/components/posts/postsLimitContext';
 	import {
@@ -183,6 +185,7 @@
 
 	const listStatus = $derived(protectedHomePagePresenter.listStatus);
 	const channelGroupSectionsVm = $derived(protectedHomePagePresenter.channelGroupSectionsVm);
+	const channelGroupsVm = $derived(protectedHomePagePresenter.channelGroupsVm);
 	const channelRowsUngroupedVm = $derived(
 		protectedHomePagePresenter.channelRowsUngroupedVm
 	);
@@ -303,8 +306,15 @@
 	const notificationsDockPreview = $derived(protectedLayoutPagePresenter.getNotificationsDockPreview());
 	const feedUnreadCount = $derived(protectedLayoutPagePresenter.editorDockNotificationUnreadCount);
 
-	let homeDashboardTab = $state<'channels' | 'posts' | 'feed'>('channels');
+	let homeDashboardTab = $state<AccountHomeDashboardTab>('channels');
 	let homeDashboardTabWorkspaceId = $state<string | null>(null);
+
+	$effect(() => {
+		const tabParam = page.url.searchParams.get('tab');
+		if (tabParam === 'products' || tabParam === 'channels' || tabParam === 'posts' || tabParam === 'feed') {
+			homeDashboardTab = tabParam;
+		}
+	});
 
 	$effect(() => {
 		const orgId = workspaceId;
@@ -1091,6 +1101,9 @@
 				showPostsTab={showPostKanbanBoard}
 				feedUnreadCount={feedUnreadCount}
 			>
+				{#snippet products()}
+					<MyProductsTab />
+				{/snippet}
 				{#snippet channels()}
 					<MyChannelsSection
 						workspaceId={workspaceId}
@@ -1100,6 +1113,7 @@
 						allowedChannelCount={allowedChannelCountVm}
 						billingHref={accountBillingHref}
 						{channelGroupSectionsVm}
+						channelGroups={channelGroupsVm}
 						{channelRowsUngroupedVm}
 						channelsGridPresenter={channelsGridPresenter}
 						channelsFilterPresenter={channelsFilterPresenter}

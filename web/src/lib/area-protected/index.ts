@@ -4,6 +4,7 @@ export {
 	getRootPathAnalytics,
 	getRootPathMedia,
 	getRootPathPlugs,
+	getRootPathProducts,
 	getRootPathTemplates,
 	getRootPathSavedHub,
 	getRootPathBuildingBlockEditor,
@@ -64,6 +65,7 @@ import {
 	HomeChannelsGridTablePresenter,
 	getChannelPresenter
 } from '$lib/channels';
+import { AutoLaunchProductsPresenter, autoLaunchRepository } from '$lib/auto-launch';
 
 const developersSettingsPresenter = new DevelopersSettingsPresenter(settingsRepository, workspaceSettingsPresenter);
 
@@ -132,10 +134,16 @@ const postKanbanBoardPresenter = new PostKanbanBoardPresenter(
 
 const getHomeWorkspacesPresenter = new GetHomeWorkspacesPresenter();
 
+const autoLaunchProductsPresenter = new AutoLaunchProductsPresenter(
+	autoLaunchRepository,
+	workspaceSettingsPresenter
+);
+
 const protectedHomePagePresenter = new ProtectedHomePagePresenter(
 	integrationsRepository,
 	settingsRepository,
 	workspaceSettingsPresenter,
+	autoLaunchProductsPresenter,
 	createSocialPostPresenter,
 	postKanbanBoardPresenter,
 	homeChannelsGridTable,
@@ -264,6 +272,7 @@ export {
 	protectedMediaPagePresenter,
 	ProtectedPayloadWizardPagePresenter,
 	protectedPayloadWizardPagePresenter,
+	autoLaunchProductsPresenter,
 	GenerateMediaModalPresenter,
 	composerMediaModalPresenter,
 	mediaLibraryMediaModalPresenter,

@@ -28,6 +28,9 @@
 
 	import LinkDirectoryOpenQuokChannelSelect from '$lib/ui/components/link-directory-manager/LinkDirectoryOpenQuokChannelSelect.svelte';
 	import LinkDirectoryOpportunityStepsEditor from '$lib/ui/components/link-directory-manager/LinkDirectoryOpportunityStepsEditor.svelte';
+	import LinkDirectoryAutoLaunchDestinationModal from '$lib/ui/components/link-directory-manager/LinkDirectoryAutoLaunchDestinationModal.svelte';
+	import { autoLaunchRepository } from '$lib/auto-launch/index';
+	import type { DirectoryLaunchProviderSummary } from '$lib/auto-launch/auto-launch.types';
 
 	const opportunitySortOrderHint =
 		'Playbook order on site guide (10, 20, 30…).';
@@ -70,6 +73,9 @@
 	let ctaHref = $state('');
 	let ctaLabel = $state('');
 	let playbookSteps = $state<LinkDirectoryOpportunityStepDto[]>([]);
+	let autoLaunchEnabled = $state(false);
+	let autoLaunchProviderSlug = $state('');
+	let providerCatalog = $state<DirectoryLaunchProviderSummary[]>([]);
 	/** Bumps when the dialog opens so the steps editor remounts after sync hydrate. */
 	let stepsEditorSession = $state(0);
 
@@ -103,13 +109,20 @@
 			? (opportunity?.sortOrder ?? 10)
 			: defaultLinkDirectoryOpportunitySortOrder(existingOpportunities);
 		playbookSteps = sortLinkDirectoryOpportunitySteps(opportunity?.steps);
+		autoLaunchEnabled = opportunity?.autoLaunchEnabled ?? false;
+		autoLaunchProviderSlug = opportunity?.autoLaunchProviderSlug ?? '';
 	}
 
-	function openDialog() {
+	async function openDialog() {
 		hydrateFormFromOpportunity();
 		stepsEditorSession += 1;
+		providerCatalog = await autoLaunchRepository.listAdminProviderCatalog();
 		dialogOpen = true;
 	}
+
+	const selectedProviderLabel = $derived(
+		providerCatalog.find((p) => p.identifier === autoLaunchProviderSlug)?.name ?? ''
+	);
 
 	$effect(() => {
 		if (!dialogOpen) {
@@ -159,7 +172,9 @@
 			openquok_channel_slug: openquokChannelSlug.trim() || null,
 			openquok_plug_name: openquokPlugName.trim() || null,
 			cta_href: normalizedCtaHref || null,
-			cta_label: ctaLabel.trim() || null
+			cta_label: ctaLabel.trim() || null,
+			auto_launch_enabled: autoLaunchEnabled,
+			auto_launch_provider_slug: autoLaunchEnabled ? autoLaunchProviderSlug.trim() || null : null
 		};
 		const result = linkDirectoryOpportunityFormSchema.safeParse(payload);
 		if (!result.success) {
@@ -198,7 +213,9 @@
 				ctaLabel: result.data.cta_label ?? null,
 				sortOrder: result.data.sort_order ?? 0,
 				isAdminPublished: result.data.is_admin_published ?? true,
-				publishedAt: opportunity?.publishedAt ?? null
+				publishedAt: opportunity?.publishedAt ?? null,
+				autoLaunchEnabled: result.data.auto_launch_enabled ?? false,
+				autoLaunchProviderSlug: result.data.auto_launch_provider_slug ?? null
 			};
 			await onSaved(vm);
 			dialogOpen = false;
@@ -345,6 +362,49 @@
 					<span class="label-text text-sm">Button label (optional)</span>
 					<Input bind:value={ctaLabel} placeholder="Leave blank for default label" />
 				</label>
+			</fieldset>
+
+			<fieldset class="space-y-3 rounded-xl border border-base-300 p-4">
+				<legend class="px-1 text-sm font-medium">Browser extension auto-launch</legend>
+				<label class="flex items-center gap-2 text-sm">
+					<input
+						type="checkbox"
+						class="checkbox checkbox-sm"
+						bind:checked={autoLaunchEnabled}
+					/>
+					Show in Add Channel directory launch (requires extension + destination config)
+				</label>
+				{#if autoLaunchEnabled}
+					<label class="form-control w-full">
+						<span class="label-text text-sm">Extension provider</span>
+						<select
+							class="select select-bordered w-full font-mono text-sm"
+							bind:value={autoLaunchProviderSlug}
+							required
+						>
+							<option value="">Select provider…</option>
+							{#each providerCatalog as provider (provider.identifier)}
+								<option value={provider.identifier}>{provider.name}</option>
+							{/each}
+						</select>
+						<span class="label-text-alt mt-1 block text-left leading-snug text-base-content/70">
+							Must match a shipped extension content script. Add new providers in the extension
+							manifest before selecting here.
+						</span>
+					</label>
+					{#if opportunity?.id && autoLaunchProviderSlug}
+						<LinkDirectoryAutoLaunchDestinationModal
+							opportunityId={opportunity.id}
+							opportunityTitle={title.trim() || opportunity.title}
+							providerSlug={autoLaunchProviderSlug}
+							providerLabel={selectedProviderLabel}
+						/>
+					{:else if autoLaunchEnabled && !opportunity?.id}
+						<p class="text-xs text-base-content/60">
+							Save this opportunity first, then edit it to configure auto-fill fields.
+						</p>
+					{/if}
+				{/if}
 			</fieldset>
 
 			<label class="flex items-center gap-2 text-sm">

@@ -19,7 +19,6 @@ import type {
     LinkDirectoryTagUpdateSchemaType,
     LinkDirectorySavedSitesPutSchemaType,
     LinkDirectorySavedSitesOrderSchemaType,
-    LinkDirectorySavedSiteOutreachCompletionSchemaType,
     LinkDirectorySiteCommentCreateSchemaType,
     LinkDirectorySiteRatingBodySchemaType,
 } from "../data/schemas/linkDirectorySchemas";
@@ -207,32 +206,6 @@ export class LinkDirectoryController {
                 success: true,
                 data: toLinkDirectorySavedSiteDtoCollection(savedSites),
                 message: "Saved site order updated.",
-            });
-        } catch (err) {
-            next(err);
-        }
-    };
-
-    patchUserSavedSiteOutreachCompletion = async (
-        req: Request,
-        res: Response,
-        next: NextFunction
-    ): Promise<void> => {
-        try {
-            const auth = req as AuthenticatedRequest;
-            const userId = auth.user?.publicId;
-            if (!userId) {
-                res.status(401).json({ success: false, message: "Unauthorized" });
-                return;
-            }
-            const siteId = (req.params as { siteId: string }).siteId;
-            const { completed } = req.body as LinkDirectorySavedSiteOutreachCompletionSchemaType;
-            await this.linkDirectoryService.setUserSavedSiteOutreachCompleted(userId, siteId, completed);
-            const savedSites = await this.linkDirectoryService.getUserSavedSites(userId);
-            res.status(200).json({
-                success: true,
-                data: toLinkDirectorySavedSiteDtoCollection(savedSites),
-                message: completed ? "Outreach marked done." : "Outreach marked not done.",
             });
         } catch (err) {
             next(err);

@@ -456,19 +456,6 @@ export class LinkDirectoryService {
         await this.linkDirectoryRepository.reorderUserSavedSites(userId, dedupedSiteIds);
     }
 
-    async setUserSavedSiteOutreachCompleted(
-        userId: string,
-        siteId: string,
-        completed: boolean
-    ): Promise<void> {
-        const outreachCompletedAt = completed ? new Date().toISOString() : null;
-        await this.linkDirectoryRepository.setUserSavedSiteOutreachCompleted(
-            userId,
-            siteId,
-            outreachCompletedAt
-        );
-    }
-
     async incrementSiteViews(siteId: string): Promise<void> {
         await this.assertPublishedSiteForEngagement(siteId);
         await this.linkDirectoryRepository.incrementSiteStatCounter(siteId, "views");

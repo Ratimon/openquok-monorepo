@@ -1265,6 +1265,11 @@ CREATE TABLE IF NOT EXISTS public.link_directory_sites (
     is_admin_published BOOLEAN NOT NULL DEFAULT false,
     sort_order INTEGER NOT NULL DEFAULT 0,
     tag_slugs TEXT[],
+    likes INTEGER NOT NULL DEFAULT 0,
+    views INTEGER NOT NULL DEFAULT 0,
+    bookmark_count INTEGER NOT NULL DEFAULT 0,
+    average_rating DOUBLE PRECISION NOT NULL DEFAULT 0,
+    ratings_count INTEGER NOT NULL DEFAULT 0,
     fts TSVECTOR GENERATED ALWAYS AS (
         to_tsvector(
             'english'::regconfig,
@@ -1314,6 +1319,8 @@ CREATE TABLE IF NOT EXISTS public.link_directory_opportunities (
     -- Lower runs first on site guide pages (step 1, step 2, …).
     sort_order INTEGER NOT NULL DEFAULT 0,
     is_admin_published BOOLEAN NOT NULL DEFAULT false,
+    auto_launch_enabled BOOLEAN NOT NULL DEFAULT false,
+    auto_launch_provider_slug TEXT,
     UNIQUE (site_id, slug)
 );
 
@@ -1321,11 +1328,36 @@ COMMENT ON COLUMN public.link_directory_opportunities.sort_order IS
     'Display order on the site guide: ascending playbook sequence (opportunity 1, then 2, …).';
 COMMENT ON COLUMN public.link_directory_opportunities.steps IS
     'JSON array of {order, title, body} sub-steps for this opportunity (schema.org HowToStep).';
+COMMENT ON COLUMN public.link_directory_opportunities.auto_launch_enabled IS
+    'When true, build-backlinks and account surfaces may open the directory launch modal for this opportunity.';
+COMMENT ON COLUMN public.link_directory_opportunities.auto_launch_provider_slug IS
+    'Matches auto_launch_destinations.provider_slug when auto_launch_enabled is true.';
 
 CREATE TABLE IF NOT EXISTS public.link_directory_site_tags_association (
     site_id UUID NOT NULL REFERENCES public.link_directory_sites(id) ON DELETE CASCADE,
     link_directory_tag_id UUID NOT NULL REFERENCES public.link_directory_tags(id) ON DELETE CASCADE,
     PRIMARY KEY (site_id, link_directory_tag_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.link_directory_site_ratings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    site_id UUID NOT NULL REFERENCES public.link_directory_sites(id) ON DELETE CASCADE,
+    rating SMALLINT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (user_id, site_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.link_directory_site_comments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    site_id UUID NOT NULL REFERENCES public.link_directory_sites(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
+    parent_id UUID REFERENCES public.link_directory_site_comments(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    is_approved BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ
 );
 
 CREATE TABLE IF NOT EXISTS public.link_directory_submissions (
@@ -1349,57 +1381,134 @@ CREATE TABLE IF NOT EXISTS public.link_directory_saved_sites (
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     site_id UUID NOT NULL REFERENCES public.link_directory_sites(id) ON DELETE CASCADE,
     sort_order INTEGER NOT NULL DEFAULT 0,
-    outreach_completed_at TIMESTAMPTZ NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (user_id, site_id)
 );
 
 COMMENT ON TABLE public.link_directory_saved_sites IS
-    'Per-user shortlist of link directory sites (Saved → Backlinks): private order and outreach progress.';
-COMMENT ON COLUMN public.link_directory_saved_sites.outreach_completed_at IS
-    'When the signed-in user marked personal outreach on this site as done; null means not completed.';
+    'Per-user shortlist of link directory sites (Saved → Backlinks): private order only.';
 
 -- ---------------------------
 -- END OF FILE
 -- ---------------------------
 
 
--- Module: link-directory, File: 102_20261005_tables.sql
+-- Module: auto-launch, File: 101_20261013_tables.sql
 -- ---------------------------
--- MODULE NAME: Link Directory
--- MODULE DATE: 20261005
+-- MODULE NAME: Auto Launch
+-- MODULE DATE: 20261013
 -- MODULE SCOPE: Tables
 -- ---------------------------
 
 BEGIN;
 
-ALTER TABLE public.link_directory_sites
-    ADD COLUMN IF NOT EXISTS likes INTEGER NOT NULL DEFAULT 0,
-    ADD COLUMN IF NOT EXISTS views INTEGER NOT NULL DEFAULT 0,
-    ADD COLUMN IF NOT EXISTS bookmark_count INTEGER NOT NULL DEFAULT 0,
-    ADD COLUMN IF NOT EXISTS average_rating DOUBLE PRECISION NOT NULL DEFAULT 0,
-    ADD COLUMN IF NOT EXISTS ratings_count INTEGER NOT NULL DEFAULT 0;
-
-CREATE TABLE IF NOT EXISTS public.link_directory_site_ratings (
+CREATE TABLE IF NOT EXISTS public.auto_launch_product_profiles (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-    site_id UUID NOT NULL REFERENCES public.link_directory_sites(id) ON DELETE CASCADE,
-    rating SMALLINT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    integration_customer_id UUID REFERENCES public.integration_customers(id) ON DELETE SET NULL,
+    name TEXT NOT NULL,
+    tagline TEXT,
+    description TEXT,
+    website_url TEXT,
+    logo_url TEXT,
+    profile_data JSONB NOT NULL DEFAULT '{}'::jsonb,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE (user_id, site_id)
+    created_by_user_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
+    deleted_at TIMESTAMPTZ
 );
 
-CREATE TABLE IF NOT EXISTS public.link_directory_site_comments (
+COMMENT ON TABLE public.auto_launch_product_profiles IS
+    'Reusable product snapshots for directory launch flows; scoped to a workspace with optional channel-group label.';
+COMMENT ON COLUMN public.auto_launch_product_profiles.profile_data IS
+    'Extension-oriented fields (makers, media URLs, pricing type, etc.) not stored as first-class columns.';
+COMMENT ON COLUMN public.auto_launch_product_profiles.integration_customer_id IS
+    'Optional link to a channel group for My Channels directory launch grouping; not a social integration row.';
+
+CREATE TABLE IF NOT EXISTS public.auto_launch_destinations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    site_id UUID NOT NULL REFERENCES public.link_directory_sites(id) ON DELETE CASCADE,
-    user_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
-    parent_id UUID REFERENCES public.link_directory_site_comments(id) ON DELETE CASCADE,
-    content TEXT NOT NULL,
-    is_approved BOOLEAN NOT NULL DEFAULT false,
+    provider_slug TEXT NOT NULL,
+    link_directory_opportunity_id UUID REFERENCES public.link_directory_opportunities(id) ON DELETE SET NULL,
+    name TEXT NOT NULL,
+    short_description TEXT,
+    submission_path TEXT NOT NULL DEFAULT 'extension'
+        CHECK (submission_path IN ('extension', 'auto')),
+    start_url TEXT NOT NULL,
+    extension_config JSONB NOT NULL DEFAULT '{}'::jsonb,
+    is_published BOOLEAN NOT NULL DEFAULT false,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    picker_group_key TEXT,
+    picker_group_title TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_auto_launch_destinations_provider_slug UNIQUE (provider_slug)
 );
+
+COMMENT ON TABLE public.auto_launch_destinations IS
+    'Executable launch targets (extension fill config + start URL) joined to editorial opportunities when present.';
+COMMENT ON COLUMN public.auto_launch_destinations.submission_path IS
+    'v1 uses extension only; auto is reserved for a future server-side submit path.';
+COMMENT ON COLUMN public.auto_launch_destinations.extension_config IS
+    'Manifest for the browser extension: startUrlPatterns, steps[].fields[], proof hints, and version.';
+COMMENT ON COLUMN public.auto_launch_destinations.picker_group_key IS
+    'When set, destinations with the same key are shown as variants in one Add Channel launch card.';
+COMMENT ON COLUMN public.auto_launch_destinations.picker_group_title IS
+    'Optional card title for the picker group; first non-null title among variants is used.';
+
+CREATE TABLE IF NOT EXISTS public.auto_launch_submissions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    product_profile_id UUID NOT NULL REFERENCES public.auto_launch_product_profiles(id) ON DELETE RESTRICT,
+    destination_id UUID NOT NULL REFERENCES public.auto_launch_destinations(id) ON DELETE RESTRICT,
+    status TEXT NOT NULL DEFAULT 'draft'
+        CHECK (status IN (
+            'draft',
+            'intent',
+            'in_progress',
+            'completed',
+            'cancelled',
+            'failed'
+        )),
+    profile_snapshot JSONB NOT NULL DEFAULT '{}'::jsonb,
+    extension_config_snapshot JSONB NOT NULL DEFAULT '{}'::jsonb,
+    evidence JSONB NOT NULL DEFAULT '{}'::jsonb,
+    listing_url TEXT,
+    intent_created_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
+    created_by_user_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
+    completed_by_user_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+COMMENT ON TABLE public.auto_launch_submissions IS
+    'One launch attempt per intent handoff; profile and extension config are frozen at intent time.';
+COMMENT ON COLUMN public.auto_launch_submissions.evidence IS
+    'Proof from the extension after human submit on the directory site (final URL, timestamps, optional media refs).';
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: launch-showcase, File: 101_20261013_tables.sql
+-- ---------------------------
+-- MODULE NAME: Launch Showcase
+-- MODULE DATE: 20261013
+-- MODULE SCOPE: Tables
+-- ---------------------------
+
+BEGIN;
+
+-- Stub only: full schema for launch showcase ships in a later milestone.
+-- See docs/auto-launch/launch-showcase.md for entries, entitlements, and boost accounting.
+CREATE TABLE IF NOT EXISTS public.launch_showcase_boost_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+COMMENT ON TABLE public.launch_showcase_boost_events IS
+    'Placeholder for future launch showcase boost and spend events; expand before any product surface reads this table.';
 
 -- ---------------------------
 -- END OF FILE
@@ -1954,6 +2063,136 @@ CREATE INDEX IF NOT EXISTS idx_link_directory_site_comments_parent_id
 -- ---------------------------
 -- END OF FILE
 -- ---------------------------
+
+
+-- Module: auto-launch, File: 201_20261013_indexes.sql
+-- ---------------------------
+-- MODULE NAME: Auto Launch
+-- MODULE DATE: 20261013
+-- MODULE SCOPE: Indexes
+-- ---------------------------
+
+BEGIN;
+
+CREATE INDEX IF NOT EXISTS idx_auto_launch_product_profiles_org
+    ON public.auto_launch_product_profiles (organization_id, created_at DESC)
+    WHERE deleted_at IS NULL;
+
+CREATE INDEX IF NOT EXISTS idx_auto_launch_product_profiles_integration_customer
+    ON public.auto_launch_product_profiles (integration_customer_id)
+    WHERE integration_customer_id IS NOT NULL AND deleted_at IS NULL;
+
+CREATE INDEX IF NOT EXISTS idx_auto_launch_destinations_published_sort
+    ON public.auto_launch_destinations (is_published, sort_order);
+
+CREATE INDEX IF NOT EXISTS idx_auto_launch_destinations_opportunity_id
+    ON public.auto_launch_destinations (link_directory_opportunity_id);
+
+CREATE INDEX IF NOT EXISTS idx_auto_launch_submissions_org_created
+    ON public.auto_launch_submissions (organization_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_auto_launch_submissions_destination
+    ON public.auto_launch_submissions (destination_id);
+
+CREATE INDEX IF NOT EXISTS idx_auto_launch_submissions_profile
+    ON public.auto_launch_submissions (product_profile_id);
+
+CREATE INDEX IF NOT EXISTS idx_auto_launch_submissions_status
+    ON public.auto_launch_submissions (organization_id, status);
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: auto-launch, File: 203_20261014_business_profile_invariants.sql
+-- ---------------------------
+-- MODULE NAME: Auto Launch
+-- MODULE DATE: 20261014
+-- MODULE SCOPE: Indexes (business profile 1:1 with integration_customers)
+-- ---------------------------
+
+BEGIN;
+
+-- Keep one active product profile per channel group before adding the unique index.
+WITH ranked AS (
+    SELECT
+        id,
+        ROW_NUMBER() OVER (
+            PARTITION BY integration_customer_id
+            ORDER BY updated_at DESC NULLS LAST, created_at DESC NULLS LAST
+        ) AS rn
+    FROM public.auto_launch_product_profiles
+    WHERE deleted_at IS NULL
+      AND integration_customer_id IS NOT NULL
+)
+UPDATE public.auto_launch_product_profiles AS p
+SET
+    integration_customer_id = NULL,
+    updated_at = NOW()
+FROM ranked AS r
+WHERE p.id = r.id
+  AND r.rn > 1;
+
+DO $$
+DECLARE
+    rec RECORD;
+    cust_id UUID;
+BEGIN
+    FOR rec IN
+        SELECT id, organization_id, name
+        FROM public.auto_launch_product_profiles
+        WHERE deleted_at IS NULL
+          AND integration_customer_id IS NULL
+    LOOP
+        SELECT ic.id
+        INTO cust_id
+        FROM public.integration_customers AS ic
+        WHERE ic.organization_id = rec.organization_id
+          AND lower(ic.name) = lower(rec.name)
+        LIMIT 1;
+
+        IF cust_id IS NULL THEN
+            INSERT INTO public.integration_customers (organization_id, name, updated_at)
+            VALUES (rec.organization_id, rec.name, NOW())
+            RETURNING id INTO cust_id;
+        END IF;
+
+        UPDATE public.auto_launch_product_profiles
+        SET integration_customer_id = cust_id, updated_at = NOW()
+        WHERE id = rec.id;
+    END LOOP;
+END $$;
+
+INSERT INTO public.auto_launch_product_profiles (
+    organization_id,
+    integration_customer_id,
+    name,
+    profile_data,
+    created_at,
+    updated_at
+)
+SELECT
+    c.organization_id,
+    c.id,
+    c.name,
+    '{}'::jsonb,
+    NOW(),
+    NOW()
+FROM public.integration_customers AS c
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM public.auto_launch_product_profiles AS p
+    WHERE p.integration_customer_id = c.id
+      AND p.deleted_at IS NULL
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_auto_launch_product_profiles_integration_customer_active
+    ON public.auto_launch_product_profiles (integration_customer_id)
+    WHERE integration_customer_id IS NOT NULL AND deleted_at IS NULL;
+
+COMMENT ON INDEX public.uq_auto_launch_product_profiles_integration_customer_active IS
+    'At most one active auto-launch product profile per workspace channel group (business profile).';
 
 
 -- Module: signature, File: 201_20260430_indexes.sql
@@ -5216,6 +5455,223 @@ GRANT SELECT ON public.link_directory_site_comments TO anon;
 
 GRANT ALL ON public.link_directory_site_ratings TO authenticated;
 GRANT ALL ON public.link_directory_site_comments TO authenticated;
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: auto-launch, File: 302_20261013_rlsgrants.sql
+-- ---------------------------
+-- MODULE NAME: Auto Launch
+-- MODULE DATE: 20261013
+-- MODULE SCOPE: Row Level Security and Grants
+-- ---------------------------
+
+BEGIN;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.auto_launch_product_profiles TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.auto_launch_product_profiles TO service_role;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.auto_launch_submissions TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.auto_launch_submissions TO service_role;
+
+GRANT SELECT ON public.auto_launch_destinations TO anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.auto_launch_destinations TO service_role;
+
+ALTER TABLE public.auto_launch_product_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.auto_launch_destinations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.auto_launch_submissions ENABLE ROW LEVEL SECURITY;
+
+-- ---------------------------
+-- Product profiles (workspace members)
+-- ---------------------------
+
+DROP POLICY IF EXISTS "Members can view auto launch product profiles" ON public.auto_launch_product_profiles;
+CREATE POLICY "Members can view auto launch product profiles"
+ON public.auto_launch_product_profiles
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING (
+    deleted_at IS NULL
+    AND EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = auto_launch_product_profiles.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can insert auto launch product profiles" ON public.auto_launch_product_profiles;
+CREATE POLICY "Members can insert auto launch product profiles"
+ON public.auto_launch_product_profiles
+AS PERMISSIVE
+FOR INSERT
+TO authenticated
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = auto_launch_product_profiles.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can update auto launch product profiles" ON public.auto_launch_product_profiles;
+CREATE POLICY "Members can update auto launch product profiles"
+ON public.auto_launch_product_profiles
+AS PERMISSIVE
+FOR UPDATE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = auto_launch_product_profiles.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = auto_launch_product_profiles.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can delete auto launch product profiles" ON public.auto_launch_product_profiles;
+CREATE POLICY "Members can delete auto launch product profiles"
+ON public.auto_launch_product_profiles
+AS PERMISSIVE
+FOR DELETE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = auto_launch_product_profiles.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+-- ---------------------------
+-- Destinations (published catalog)
+-- ---------------------------
+
+DROP POLICY IF EXISTS "Everyone can view published auto launch destinations" ON public.auto_launch_destinations;
+CREATE POLICY "Everyone can view published auto launch destinations"
+ON public.auto_launch_destinations
+AS PERMISSIVE
+FOR SELECT
+TO anon, authenticated
+USING (is_published = true);
+
+DROP POLICY IF EXISTS "Super admin admins editors can manage auto launch destinations" ON public.auto_launch_destinations;
+CREATE POLICY "Super admin admins editors can manage auto launch destinations"
+ON public.auto_launch_destinations
+AS PERMISSIVE
+FOR ALL
+TO authenticated
+USING (
+    public.is_super_admin(auth.uid())
+    OR EXISTS (
+        SELECT 1 FROM public.users u
+        JOIN public.user_roles ur ON ur.user_id = u.id
+        WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+    )
+)
+WITH CHECK (
+    public.is_super_admin(auth.uid())
+    OR EXISTS (
+        SELECT 1 FROM public.users u
+        JOIN public.user_roles ur ON ur.user_id = u.id
+        WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+    )
+);
+
+-- ---------------------------
+-- Submissions (workspace members)
+-- ---------------------------
+
+DROP POLICY IF EXISTS "Members can view auto launch submissions" ON public.auto_launch_submissions;
+CREATE POLICY "Members can view auto launch submissions"
+ON public.auto_launch_submissions
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = auto_launch_submissions.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can insert auto launch submissions" ON public.auto_launch_submissions;
+CREATE POLICY "Members can insert auto launch submissions"
+ON public.auto_launch_submissions
+AS PERMISSIVE
+FOR INSERT
+TO authenticated
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = auto_launch_submissions.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can update auto launch submissions" ON public.auto_launch_submissions;
+CREATE POLICY "Members can update auto launch submissions"
+ON public.auto_launch_submissions
+AS PERMISSIVE
+FOR UPDATE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = auto_launch_submissions.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = auto_launch_submissions.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can delete auto launch submissions" ON public.auto_launch_submissions;
+CREATE POLICY "Members can delete auto launch submissions"
+ON public.auto_launch_submissions
+AS PERMISSIVE
+FOR DELETE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = auto_launch_submissions.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
 
 -- ---------------------------
 -- END OF FILE
@@ -11433,6 +11889,457 @@ ON CONFLICT (id) DO NOTHING;
 -- ---------------------------
 -- END OF FILE
 -- ---------------------------
+
+
+-- Module: auto-launch, File: 502_20261013_seed_uneed_destinations.sql
+-- ---------------------------
+-- MODULE NAME: Auto Launch
+-- MODULE DATE: 20261013
+-- MODULE SCOPE: Seed (Uneed destinations + editorial opportunity flags)
+-- ---------------------------
+-- Idempotent: matches opportunities on link_directory_sites.slug = 'uneed' + known opportunity
+-- slugs (production CMS rows use random UUIDs; local exemplar uses fixed UUIDs).
+
+BEGIN;
+
+-- Local / exemplar gap only: no Join-the-line row yet (production uses slug free-launch-join-the-line-).
+INSERT INTO public.link_directory_opportunities (
+    id,
+    site_id,
+    published_at,
+    slug,
+    title,
+    opportunity_type_id,
+    effort,
+    approval_mode,
+    approval_time_hint,
+    dofollow,
+    cost_tier,
+    cost_note,
+    description,
+    steps,
+    openquok_cta_kind,
+    openquok_channel_slug,
+    openquok_plug_name,
+    cta_href,
+    cta_label,
+    sort_order,
+    is_admin_published
+)
+SELECT
+    'd5f7d000-0020-4000-a000-000000000015'::uuid,
+    u.id,
+    NOW(),
+    'free-launch',
+    'Free queue launch (Join the line)',
+    'd5f7d000-0004-4000-a000-000000000006'::uuid,
+    'hard',
+    'manual_review',
+    'Launch date assigned (up to about five months)',
+    'unknown',
+    'free',
+    NULL,
+    'Submit a new product on the free Join the line tier. Uneed assigns your launch date; upvote score 10 keeps the listing live and 20 earns a dofollow backlink per their pricing page.',
+    '[]'::jsonb,
+    'external_doc',
+    NULL,
+    NULL,
+    'https://uneed.best/pricing',
+    'Uneed pricing',
+    10,
+    true
+FROM public.link_directory_sites u
+WHERE u.slug = 'uneed'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM public.link_directory_opportunities o
+      WHERE o.site_id = u.id
+        AND o.slug IN (
+            'free-launch',
+            'free-launch-join-the-line',
+            'free-launch-join-the-line-'
+        )
+  )
+ON CONFLICT (site_id, slug) DO UPDATE SET
+    title = EXCLUDED.title,
+    opportunity_type_id = EXCLUDED.opportunity_type_id,
+    effort = EXCLUDED.effort,
+    approval_mode = EXCLUDED.approval_mode,
+    approval_time_hint = EXCLUDED.approval_time_hint,
+    dofollow = EXCLUDED.dofollow,
+    cost_tier = EXCLUDED.cost_tier,
+    cost_note = EXCLUDED.cost_note,
+    description = EXCLUDED.description,
+    cta_href = EXCLUDED.cta_href,
+    cta_label = EXCLUDED.cta_label,
+    sort_order = EXCLUDED.sort_order,
+    is_admin_published = EXCLUDED.is_admin_published,
+    published_at = COALESCE(public.link_directory_opportunities.published_at, EXCLUDED.published_at);
+
+UPDATE public.link_directory_opportunities o
+SET sort_order = 15
+FROM public.link_directory_sites s
+WHERE o.site_id = s.id
+  AND s.slug = 'uneed'
+  AND o.slug = 'paid-launch';
+
+UPDATE public.link_directory_opportunities o
+SET
+    auto_launch_enabled = true,
+    auto_launch_provider_slug = 'uneed-join-line'
+FROM public.link_directory_sites s
+WHERE o.site_id = s.id
+  AND s.slug = 'uneed'
+  AND o.slug IN (
+      'free-launch-join-the-line-',
+      'free-launch-join-the-line',
+      'free-launch'
+  );
+
+UPDATE public.link_directory_opportunities o
+SET
+    auto_launch_enabled = true,
+    auto_launch_provider_slug = 'uneed-paid-launch'
+FROM public.link_directory_sites s
+WHERE o.site_id = s.id
+  AND s.slug = 'uneed'
+  AND o.slug = 'paid-launch';
+
+UPDATE public.link_directory_opportunities o
+SET
+    auto_launch_enabled = true,
+    auto_launch_provider_slug = 'uneed-maker-profile'
+FROM public.link_directory_sites s
+WHERE o.site_id = s.id
+  AND s.slug = 'uneed'
+  AND o.slug IN ('free-profile', 'free-maker-profile', '-free-maker-profile');
+
+INSERT INTO public.auto_launch_destinations (
+    id,
+    provider_slug,
+    link_directory_opportunity_id,
+    name,
+    short_description,
+    submission_path,
+    start_url,
+    extension_config,
+    is_published,
+    sort_order,
+    picker_group_key,
+    picker_group_title
+)
+SELECT
+    v.id,
+    v.provider_slug,
+    v.opportunity_id,
+    v.name,
+    v.short_description,
+    v.submission_path,
+    v.start_url,
+    v.extension_config,
+    v.is_published,
+    v.sort_order,
+    v.picker_group_key,
+    v.picker_group_title
+FROM (
+    VALUES
+        (
+            'd5f7d000-0030-4000-a000-000000000001'::uuid,
+            'uneed-join-line'::text,
+            (
+                SELECT o.id
+                FROM public.link_directory_opportunities o
+                INNER JOIN public.link_directory_sites s ON s.id = o.site_id
+                WHERE s.slug = 'uneed'
+                  AND o.slug IN (
+                      'free-launch-join-the-line-',
+                      'free-launch-join-the-line',
+                      'free-launch'
+                  )
+                ORDER BY
+                    CASE o.slug
+                        WHEN 'free-launch-join-the-line-' THEN 1
+                        WHEN 'free-launch-join-the-line' THEN 2
+                        WHEN 'free-launch' THEN 3
+                        ELSE 4
+                    END
+                LIMIT 1
+            ),
+            'Uneed — Join the line',
+            'Free product queue on Uneed; extension fills the listing form after you open Pricing.',
+            'extension',
+            'https://uneed.best/pricing',
+            $json${
+            "version": 1,
+            "startUrlPatterns": [
+                "https://uneed.best/*",
+                "https://www.uneed.best/*"
+            ],
+            "readyUrlHint": "pricing",
+            "steps": [
+                {
+                    "id": "product_info",
+                    "label": "Product info",
+                    "fields": [
+                        {
+                            "key": "name",
+                            "label": "Product name",
+                            "profilePath": "name",
+                            "selectorHint": "input[name*='name' i], input[placeholder*='product' i]"
+                        },
+                        {
+                            "key": "tagline",
+                            "label": "Tagline",
+                            "profilePath": "tagline",
+                            "selectorHint": "input[name*='tagline' i], textarea[name*='tagline' i]"
+                        },
+                        {
+                            "key": "description",
+                            "label": "Description",
+                            "profilePath": "description",
+                            "selectorHint": "textarea[name*='description' i]"
+                        },
+                        {
+                            "key": "website",
+                            "label": "Website",
+                            "profilePath": "website_url",
+                            "selectorHint": "input[type='url'], input[name*='url' i]"
+                        },
+                        {
+                            "key": "pricing_type",
+                            "label": "Pricing",
+                            "profilePath": "profile_data.pricing_type",
+                            "selectorHint": "select[name*='pricing' i], [role='combobox'][aria-label*='pricing' i]"
+                        }
+                    ]
+                },
+                {
+                    "id": "media",
+                    "label": "Logo & screenshots",
+                    "fields": [
+                        {
+                            "key": "logo",
+                            "label": "Logo",
+                            "profilePath": "logo_url",
+                            "selectorHint": "input[type='file'][accept*='image']"
+                        },
+                        {
+                            "key": "gallery",
+                            "label": "Gallery images",
+                            "profilePath": "profile_data.gallery_urls",
+                            "selectorHint": "input[type='file'][accept*='image']:not(:first-of-type)"
+                        }
+                    ]
+                }
+            ],
+            "proof": {
+                "successPathRegex": "/product/|/launch/",
+                "listingUrlSelector": "a[href*='uneed.best'][href*='/product']"
+            }
+        }$json$::jsonb,
+            true,
+            10,
+            'uneed-product-listing'::text,
+            'Product listing'::text
+        ),
+        (
+            'd5f7d000-0030-4000-a000-000000000002'::uuid,
+            'uneed-paid-launch'::text,
+            (
+                SELECT o.id
+                FROM public.link_directory_opportunities o
+                INNER JOIN public.link_directory_sites s ON s.id = o.site_id
+                WHERE s.slug = 'uneed'
+                  AND o.slug = 'paid-launch'
+                LIMIT 1
+            ),
+            'Uneed — Paid launch',
+            'Skip the line, fast-track, or relaunch tiers; same listing fields as the free queue.',
+            'extension',
+            'https://uneed.best/pricing',
+            $json${
+            "version": 1,
+            "startUrlPatterns": [
+                "https://uneed.best/*",
+                "https://www.uneed.best/*"
+            ],
+            "readyUrlHint": "pricing",
+            "steps": [
+                {
+                    "id": "product_info",
+                    "label": "Product info",
+                    "fields": [
+                        {
+                            "key": "name",
+                            "label": "Product name",
+                            "profilePath": "name",
+                            "selectorHint": "input[name*='name' i], input[placeholder*='product' i]"
+                        },
+                        {
+                            "key": "tagline",
+                            "label": "Tagline",
+                            "profilePath": "tagline",
+                            "selectorHint": "input[name*='tagline' i], textarea[name*='tagline' i]"
+                        },
+                        {
+                            "key": "description",
+                            "label": "Description",
+                            "profilePath": "description",
+                            "selectorHint": "textarea[name*='description' i]"
+                        },
+                        {
+                            "key": "website",
+                            "label": "Website",
+                            "profilePath": "website_url",
+                            "selectorHint": "input[type='url'], input[name*='url' i]"
+                        },
+                        {
+                            "key": "pricing_type",
+                            "label": "Pricing",
+                            "profilePath": "profile_data.pricing_type",
+                            "selectorHint": "select[name*='pricing' i], [role='combobox'][aria-label*='pricing' i]"
+                        }
+                    ]
+                },
+                {
+                    "id": "media",
+                    "label": "Logo & screenshots",
+                    "fields": [
+                        {
+                            "key": "logo",
+                            "label": "Logo",
+                            "profilePath": "logo_url",
+                            "selectorHint": "input[type='file'][accept*='image']"
+                        },
+                        {
+                            "key": "gallery",
+                            "label": "Gallery images",
+                            "profilePath": "profile_data.gallery_urls",
+                            "selectorHint": "input[type='file'][accept*='image']:not(:first-of-type)"
+                        }
+                    ]
+                },
+                {
+                    "id": "launch_notes",
+                    "label": "Launch details",
+                    "fields": [
+                        {
+                            "key": "launch_date",
+                            "label": "Preferred launch date",
+                            "profilePath": "profile_data.launch_date",
+                            "selectorHint": "input[type='date'], [data-test*='date' i]"
+                        },
+                        {
+                            "key": "tier_note",
+                            "label": "Tier or promo code",
+                            "profilePath": "profile_data.paid_tier_note",
+                            "selectorHint": "input[name*='promo' i], input[name*='code' i]"
+                        }
+                    ]
+                }
+            ],
+            "proof": {
+                "successPathRegex": "/product/|/launch/",
+                "listingUrlSelector": "a[href*='uneed.best'][href*='/product']"
+            }
+        }$json$::jsonb,
+            true,
+            20,
+            'uneed-product-listing'::text,
+            'Product listing'::text
+        ),
+        (
+            'd5f7d000-0030-4000-a000-000000000003'::uuid,
+            'uneed-maker-profile'::text,
+            (
+                SELECT o.id
+                FROM public.link_directory_opportunities o
+                INNER JOIN public.link_directory_sites s ON s.id = o.site_id
+                WHERE s.slug = 'uneed'
+                  AND o.slug IN ('free-profile', 'free-maker-profile', '-free-maker-profile')
+                ORDER BY
+                    CASE o.slug
+                        WHEN '-free-maker-profile' THEN 1
+                        WHEN 'free-maker-profile' THEN 2
+                        WHEN 'free-profile' THEN 3
+                        ELSE 4
+                    END
+                LIMIT 1
+            ),
+            'Uneed — Maker profile',
+            'Free maker profile with a website field (typically nofollow).',
+            'extension',
+            'https://uneed.best/',
+            $json${
+            "version": 1,
+            "startUrlPatterns": [
+                "https://uneed.best/*",
+                "https://www.uneed.best/*"
+            ],
+            "readyUrlHint": "profile",
+            "steps": [
+                {
+                    "id": "profile_info",
+                    "label": "Profile",
+                    "fields": [
+                        {
+                            "key": "name",
+                            "label": "Display name",
+                            "profilePath": "name",
+                            "selectorHint": "input[name*='name' i], input[placeholder*='name' i]"
+                        },
+                        {
+                            "key": "website",
+                            "label": "Website",
+                            "profilePath": "website_url",
+                            "selectorHint": "input[type='url'], input[name*='website' i]"
+                        },
+                        {
+                            "key": "tagline",
+                            "label": "Bio or tagline",
+                            "profilePath": "tagline",
+                            "selectorHint": "textarea[name*='bio' i], textarea[name*='about' i]"
+                        }
+                    ]
+                }
+            ],
+            "proof": {
+                "successPathRegex": "/profile/",
+                "listingUrlSelector": "a[href*='uneed.best/profile']"
+            }
+        }$json$::jsonb,
+            true,
+            30,
+            NULL::text,
+            NULL::text
+        )
+) AS v (
+    id,
+    provider_slug,
+    opportunity_id,
+    name,
+    short_description,
+    submission_path,
+    start_url,
+    extension_config,
+    is_published,
+    sort_order,
+    picker_group_key,
+    picker_group_title
+)
+WHERE v.opportunity_id IS NOT NULL
+ON CONFLICT (provider_slug) DO UPDATE SET
+    link_directory_opportunity_id = EXCLUDED.link_directory_opportunity_id,
+    name = EXCLUDED.name,
+    short_description = EXCLUDED.short_description,
+    submission_path = EXCLUDED.submission_path,
+    start_url = EXCLUDED.start_url,
+    extension_config = EXCLUDED.extension_config,
+    is_published = EXCLUDED.is_published,
+    sort_order = EXCLUDED.sort_order,
+    picker_group_key = EXCLUDED.picker_group_key,
+    picker_group_title = EXCLUDED.picker_group_title,
+    updated_at = NOW();
 
 
 -- Module: user-auth, File: 602_20250310_cron.sql

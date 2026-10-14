@@ -77,6 +77,8 @@ export interface LinkDirectoryOpportunityRow {
     sort_order: number;
     is_admin_published: boolean;
     published_at: string | null;
+    auto_launch_enabled: boolean;
+    auto_launch_provider_slug: string | null;
     created_at?: string;
     updated_at?: string;
     opportunity_type?: LinkDirectoryOpportunityTypeRow | null;
@@ -191,6 +193,5 @@ export interface LinkDirectorySavedSiteRow {
     site_id: string;
     sort_order: number;
     created_at: string;
-    outreach_completed_at: string | null;
     site?: LinkDirectorySiteRow | null;
 }

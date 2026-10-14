@@ -233,9 +233,6 @@ export const isIntegrationConnectPath = (path: string): boolean =>
     path === "/integrations/extension-refresh";
 
 const LISTING_BOOKMARK_MUTATION_PATH = /^\/listings\/[0-9a-f-]{36}\/bookmark$/i;
-const LINK_DIRECTORY_SAVED_SITE_OUTREACH_PATH =
-    /^\/link-directory\/me\/saved-sites\/[0-9a-f-]{36}\/outreach-completion$/i;
-
 /** Session-auth bookmark and build-backlinks shortlist writes (dedicated rate limiter). */
 export const isBookmarkSavedMutationRoute = (req: Request, routePath: string): boolean => {
     if (req.method === "POST" || req.method === "DELETE") {
@@ -246,9 +243,6 @@ export const isBookmarkSavedMutationRoute = (req: Request, routePath: string): b
             routePath === "/link-directory/me/saved-sites" ||
             routePath === "/link-directory/me/saved-sites/order"
         );
-    }
-    if (req.method === "PATCH") {
-        return LINK_DIRECTORY_SAVED_SITE_OUTREACH_PATH.test(routePath);
     }
     return false;
 };

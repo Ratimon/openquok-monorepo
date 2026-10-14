@@ -19,7 +19,7 @@ A typical agent workflow: <Badge text="integrationList" variant="default" /> →
 
 ### groupList
 
-List channel groups (customers) for the authenticated workspace. Use a group's <Badge text="id" variant="param" /> with <Badge text="integrationList" variant="default" /> when you only need channels in one group.
+List business profiles (API: customers) for the authenticated workspace. Use a profile's <Badge text="id" variant="param" /> with <Badge text="integrationList" variant="default" /> when you only need channels in one profile.
 
 **Input:** none
 
@@ -44,7 +44,7 @@ List connected social channels for the authenticated workspace.
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| <Badge text="group" variant="param" /> | string | No | Channel group id from <Badge text="groupList" variant="default" />; when set, only channels in that group are returned |
+| <Badge text="group" variant="param" /> | string | No | Business profile id (customer) from <Badge text="groupList" variant="default" />; when set, only channels in that profile are returned |
 
 **Output:**
 
@@ -210,7 +210,7 @@ List posts in a date window for the workspace.
 | <Badge text="start" variant="param" /> | string | No | Start ISO timestamp; default is 30 local calendar days before today |
 | <Badge text="end" variant="param" /> | string | No | End ISO timestamp; default is 30 local calendar days after today |
 | <Badge text="integrationIds" variant="param" /> | string[] | No | Filter to specific connected channel ids |
-| <Badge text="customerGroupId" variant="param" /> | string | No | Filter to a channel group id from <Badge text="groupList" variant="default" /> |
+| <Badge text="customerGroupId" variant="param" /> | string | No | Filter to a business profile id from <Badge text="groupList" variant="default" /> |
 
 **Output:**
 

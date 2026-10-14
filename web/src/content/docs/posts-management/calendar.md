@@ -63,14 +63,14 @@ The filter row uses the same <a href="/docs/getting-started/glossary#smart-filte
 
 | Filter | What it limits |
 | --- | --- |
-| **Channel groups** | Posts for channels in the groups you pick — see <a href="/docs/channels/channel-groups">Channel groups</a> |
+| **Business profiles** | Posts for channels in the profiles you pick — see <a href="/docs/channels/channel-groups">Business profiles</a> |
 | **Platforms** | Posts for selected social platforms (shown when you have more than one) |
 | **Post types** | Draft, scheduled, published, failed, or repeating rows |
 | **Tags** | Posts with specific <a href="/docs/getting-started/glossary#tag">tags</a> |
 
-#### Filtering by channel group
+#### Filtering by business profile
 
-When you run social for more than one client or brand, put each account in a <a href="/docs/channels/channel-groups">channel group</a>. The **Channel groups** control limits the grid to those channels — pick one group, several, or **Ungrouped channels** only.
+When you run social for more than one client or brand, link each account to a <a href="/docs/channels/channel-groups">business profile</a>. The **Business profiles** control limits the grid to those channels — pick one profile, several, or **Ungrouped channels** only.
 
 ![Calendar's Filter by (un)grouped channel](/docs/_assets/posts-management/calendar-group-filter.webp)
 

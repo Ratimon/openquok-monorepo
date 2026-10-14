@@ -87,7 +87,7 @@ The post editor is a modal, not a sidebar page. Open it with <Badge text="Create
 | --- | --- |
 | <Badge text="Add Channel" variant="new" /> | <strong>My Dashboard</strong> **Channels** tab, **Add channel** on the current workspace card, or the channel picker in the composer |
 | Reconnect or disconnect a channel | Channel card menu on the **Channels** tab |
-| Channel groups | Group controls on the **Channels** tab and kanban filters on the **Posts** tab — see <a href="/docs/channels/channel-groups">Channel groups</a> |
+| Business profiles | Profile sections on the **Channels** tab and filters on the **Posts** tab — see <a href="/docs/channels/channel-groups">Business profiles</a> |
 | Smart filters | **Channels** tab table <Badge text="Add filters" variant="default" />; kanban and calendar dropdowns; Templates and Auto Plugs tables — see <a href="/docs/getting-started/glossary#smart-filter">Smart filter</a> |
 | Per-network fields | Composer, beside the preview |
 | Tags | Composer footer — see <a href="/docs/getting-started/glossary#tag">Tag</a> in the glossary |

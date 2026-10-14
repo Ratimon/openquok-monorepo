@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
 	buildLinkDirectoryLogoPublicUrl,
 	extractLinkDirectoryLogoStoragePathFromImageSrc,
+	resolveLinkDirectorySiteLogoDisplayUrl,
 	resolveLinkDirectoryLogoStorageKey
 } from '$lib/link-directory/utils/linkDirectoryLogoImages';
 
@@ -63,6 +64,25 @@ describe('resolveLinkDirectoryLogoStorageKey', () => {
 
 	it('returns null for unrelated external URLs', () => {
 		expect(resolveLinkDirectoryLogoStorageKey('https://cdn.example.com/logo.png')).toBeNull();
+	});
+});
+
+describe('resolveLinkDirectorySiteLogoDisplayUrl', () => {
+	it('returns null for empty values', () => {
+		expect(resolveLinkDirectorySiteLogoDisplayUrl(null)).toBeNull();
+		expect(resolveLinkDirectorySiteLogoDisplayUrl('')).toBeNull();
+	});
+
+	it('passes through absolute http(s) URLs', () => {
+		expect(resolveLinkDirectorySiteLogoDisplayUrl('https://cdn.example.com/logo.png')).toBe(
+			'https://cdn.example.com/logo.png'
+		);
+	});
+
+	it('builds a download URL for storage keys', () => {
+		expect(resolveLinkDirectorySiteLogoDisplayUrl('user-1/logo.webp')).toBe(
+			buildLinkDirectoryLogoPublicUrl('user-1/logo.webp')
+		);
 	});
 });
 

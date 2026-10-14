@@ -20,8 +20,6 @@ const linkDirectoryConfig: LinkDirectoryConfig = {
 		getMySavedSites: '/api/v1/link-directory/me/saved-sites',
 		putMySavedSites: '/api/v1/link-directory/me/saved-sites',
 		putMySavedSitesOrder: '/api/v1/link-directory/me/saved-sites/order',
-		patchSavedSiteOutreachCompletion: (siteId: string) =>
-			`/api/v1/link-directory/me/saved-sites/${encodeURIComponent(siteId)}/outreach-completion`,
 		getAdminSites: '/api/v1/link-directory/all-full',
 		getSiteById: (siteId: string) => `/api/v1/link-directory/sites/${siteId}`,
 		createSite: '/api/v1/link-directory/sites',

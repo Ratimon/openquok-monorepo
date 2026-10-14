@@ -6,13 +6,14 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Tabs from '$lib/ui/tabs';
 
-	export type AccountHomeDashboardTab = 'channels' | 'posts' | 'feed';
+	export type AccountHomeDashboardTab = 'channels' | 'posts' | 'feed' | 'products';
 
 	type Props = {
 		activeTab?: AccountHomeDashboardTab;
 		showPostsTab: boolean;
 		feedUnreadCount?: number;
 		channels: Snippet;
+		products: Snippet;
 		posts: Snippet;
 		feed: Snippet;
 	};
@@ -22,6 +23,7 @@
 		showPostsTab,
 		feedUnreadCount = 0,
 		channels,
+		products,
 		posts,
 		feed
 	}: Props = $props();
@@ -49,6 +51,16 @@
 						aria-hidden="true"
 					/>
 					<span class="truncate">Channels</span>
+				</Tabs.Trigger>
+				<Tabs.Trigger value="products" class={tabTriggerClass}>
+					<AbstractIcon
+						name={icons.Rocket.name}
+						class="size-4 shrink-0"
+						width="16"
+						height="16"
+						aria-hidden="true"
+					/>
+					<span class="truncate">Products</span>
 				</Tabs.Trigger>
 				<Tabs.Trigger value="posts" class={tabTriggerClass}>
 					<AbstractIcon
@@ -105,6 +117,8 @@
 	<div class="min-w-0">
 		{#if activeTab === 'channels'}
 			{@render channels()}
+		{:else if activeTab === 'products'}
+			{@render products()}
 		{:else if activeTab === 'posts' && showPostsTab}
 			<div class="min-w-0 overflow-x-auto">
 				{@render posts()}

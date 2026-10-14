@@ -35,12 +35,12 @@ export const OPENQUOK_CORE_MCP_LISTING_TOOLS: readonly McpListingToolRow[] = [
 	{
 		name: 'groupList',
 		description:
-			'List channel groups (customers) for the authenticated workspace. Use a group id with integrationList to filter channels.'
+			'List business profiles (customers) for the authenticated workspace. Use a profile id with integrationList to filter channels.'
 	},
 	{
 		name: 'integrationList',
 		description:
-			'List connected social media channels for the authenticated workspace. Optionally filter by channel group id from groupList.'
+			'List connected social media channels for the authenticated workspace. Optionally filter by business profile id from groupList.'
 	},
 	{
 		name: 'integrationSchema',
@@ -65,7 +65,7 @@ export const OPENQUOK_CORE_MCP_LISTING_TOOLS: readonly McpListingToolRow[] = [
 	{
 		name: 'postsList',
 		description:
-			'List posts in a date window for the workspace (optional integration ids or channel group). Default window matches the public list API.'
+			'List posts in a date window for the workspace (optional integration ids or business profile). Default window matches the public list API.'
 	},
 	{
 		name: 'postsFindSlot',

@@ -35,6 +35,11 @@ export function getRootPathPlugs(): string {
 	return 'plugs';
 }
 
+/** Product profiles for directory launch (extension-assisted submissions). */
+export function getRootPathProducts(): string {
+	return 'products';
+}
+
 /** Content sets (saved composer presets) segment under the account area. */
 export function getRootPathTemplates(): string {
 	return 'templates';
