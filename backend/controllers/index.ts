@@ -64,7 +64,13 @@ import {
 } from "../services/index";
 import { TrackController } from "./TrackController";
 import { subscriptionRepository } from "../repositories/index";
-import { userRepository, storageR2Repository, storageSupabaseRepository } from "../repositories/index";
+import {
+    autoLaunchRepository,
+    organizationRepository,
+    userRepository,
+    storageR2Repository,
+    storageSupabaseRepository,
+} from "../repositories/index";
 import { UploadFactory } from "../connections/upload/upload.factory";
 
 export const authController = new AuthController(
@@ -95,7 +101,12 @@ export const blogController = new BlogController(blogService);
 export const listingController = new ListingController(listingService);
 export const listingTagController = new ListingTagController(listingTagService);
 export const linkDirectoryController = new LinkDirectoryController(linkDirectoryService);
-export const imageController = new ImageController(storageSupabaseRepository, integrationConnectionService);
+export const imageController = new ImageController(
+    storageSupabaseRepository,
+    integrationConnectionService,
+    organizationRepository,
+    autoLaunchRepository
+);
 export const mediaController = new MediaController(
     mediaService,
     subscriptionService,

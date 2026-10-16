@@ -63,6 +63,18 @@ describe("publicRouteRegistry", () => {
                 )
             ).toBe(true);
             expect(
+                isAuthExemptRoute(
+                    asReq({
+                        method: "GET",
+                        query: {
+                            databaseName: "auto_launch_profile_media",
+                            imageUrl: "550e8400-e29b-41d4-a716-446655440000/660e8400-e29b-41d4-a716-446655440001/0.1.webp",
+                        },
+                    }),
+                    "/image/download"
+                )
+            ).toBe(true);
+            expect(
                 isAuthExemptRoute(asReq({ method: "GET", query: {} }), "/image/download")
             ).toBe(false);
             expect(

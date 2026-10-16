@@ -14,7 +14,8 @@
     }
   },
   "scripts": {
-    "build": "pnpm exec tsc -p tsconfig.json"
+    "build": "pnpm exec tsc -p tsconfig.json",
+    "test:unit": "cross-env NODE_ENV=development node ../backend/node_modules/jest/bin/jest.js --config jest.config.cjs --no-coverage"
   },
   "devDependencies": {
     "typescript": "^5.6.3"

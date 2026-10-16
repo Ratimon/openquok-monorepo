@@ -1,3 +1,5 @@
+import { mergeBusinessProfileData, type BusinessProfileData } from "openquok-common";
+
 import { config } from "../config/GlobalConfig";
 import type { AutoLaunchRepository } from "../repositories/AutoLaunchRepository";
 import type { IntegrationConnectionService } from "./IntegrationConnectionService";
@@ -25,14 +27,25 @@ import {
     dedupeAutoLaunchSubmissionsByDestination,
 } from "./autoLaunch/dedupeAutoLaunchSubmissions";
 import {
+    computeListingFingerprintForSubmission,
+    isCompletedSubmissionListingStale,
+    resolveSubmissionSyncStatus,
+} from "./autoLaunch/submissionListingSync";
+import {
     buildProfileSnapshot,
     toSubmissionIntentDto,
     type AutoLaunchAdminDestinationDto,
     type AutoLaunchSubmissionCompleteDto,
+    type AutoLaunchSubmissionDto,
     type AutoLaunchSubmissionIntentDto,
     toAutoLaunchAdminDestinationDto,
+    toAutoLaunchSubmissionDtoCollection,
 } from "../utils/dtos/AutoLaunchDTO";
 import { signLaunchToken, verifyLaunchToken } from "../utils/auth/launchToken";
+import {
+    parseBusinessProfileDataInput,
+    parseBusinessProfileDataPatch,
+} from "../data/schemas/businessProfileDataSchemas";
 
 function launchTokenSecret(): string {
     return (config.auth as { securitySecret?: string })?.securitySecret?.trim() ?? "";
@@ -157,7 +170,7 @@ export class AutoLaunchService {
             description?: string | null;
             websiteUrl?: string | null;
             logoUrl?: string | null;
-            profileData: Record<string, unknown>;
+            profileData: Record<string, unknown> | BusinessProfileData;
         }
     ): Promise<AutoLaunchProductProfileRow> {
         await this.integrationConnectionService.assertOrganizationMember(authUserId, input.organizationId);
@@ -175,7 +188,9 @@ export class AutoLaunchService {
             description: input.description ?? null,
             websiteUrl: input.websiteUrl ?? null,
             logoUrl: input.logoUrl ?? null,
-            profileData: input.profileData,
+            profileData: parseBusinessProfileDataInput(
+                input.profileData as Record<string, unknown> | undefined
+            ),
             createdByUserId: authUserId,
         });
     }
@@ -239,7 +254,7 @@ export class AutoLaunchService {
             websiteUrl?: string | null;
             logoUrl?: string | null;
             integrationCustomerId?: string | null;
-            profileData?: Record<string, unknown>;
+            profileData?: Record<string, unknown> | BusinessProfileData;
         }
     ): Promise<AutoLaunchProductProfileRow> {
         const existing = await this.autoLaunchRepository.findProfileById(profileId);
@@ -271,6 +286,14 @@ export class AutoLaunchService {
             }
         }
 
+        const nextProfileData =
+            patch.profileData !== undefined
+                ? mergeBusinessProfileData(
+                      existing.profile_data,
+                      parseBusinessProfileDataPatch(patch.profileData as Record<string, unknown>)
+                  )
+                : undefined;
+
         const updated = await this.autoLaunchRepository.updateProfile({
             profileId,
             organizationId: existing.organization_id,
@@ -281,7 +304,7 @@ export class AutoLaunchService {
                 websiteUrl: patch.websiteUrl,
                 logoUrl: patch.logoUrl,
                 integrationCustomerId: patch.integrationCustomerId,
-                profileData: patch.profileData,
+                profileData: nextProfileData,
             },
         });
         if (!updated) {
@@ -370,14 +393,34 @@ export class AutoLaunchService {
         authUserId: string,
         organizationId: string,
         filters: { productProfileId?: string; destinationId?: string }
-    ): Promise<AutoLaunchSubmissionRow[]> {
+    ): Promise<AutoLaunchSubmissionDto[]> {
         await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
         const rows = await this.autoLaunchRepository.listSubmissions({
             organizationId,
             productProfileId: filters.productProfileId,
             destinationId: filters.destinationId,
         });
-        return dedupeAutoLaunchSubmissionsByDestination(rows);
+        const deduped = dedupeAutoLaunchSubmissionsByDestination(rows);
+        const profileIds = deduped.map((row) => row.product_profile_id);
+        const profiles = await this.autoLaunchRepository.findProfilesByIds({
+            organizationId,
+            profileIds,
+        });
+        const liveSnapshotByProfileId = new Map(
+            profiles.map((profile) => [profile.id, buildProfileSnapshot(profile)])
+        );
+
+        const syncStatusBySubmissionId = new Map(
+            deduped.map((row) => [
+                row.id,
+                resolveSubmissionSyncStatus(
+                    row,
+                    liveSnapshotByProfileId.get(row.product_profile_id) ?? null
+                ),
+            ])
+        );
+
+        return toAutoLaunchSubmissionDtoCollection(deduped, { syncStatusBySubmissionId });
     }
 
     async recordManualSubmissionComplete(
@@ -398,6 +441,10 @@ export class AutoLaunchService {
 
         const profileSnapshot = buildProfileSnapshot(profile);
         const extensionConfig = destination.extension_config ?? {};
+        const listingProfileFingerprint = computeListingFingerprintForSubmission(
+            profileSnapshot,
+            extensionConfig
+        );
 
         const existingCompleted =
             await this.autoLaunchRepository.findLatestSubmissionForProductDestination({
@@ -407,6 +454,19 @@ export class AutoLaunchService {
                 statuses: ["completed"],
             });
         if (existingCompleted) {
+            if (
+                isCompletedSubmissionListingStale(existingCompleted, profileSnapshot)
+            ) {
+                return this.autoLaunchRepository.updateCompletedSubmissionListingSync({
+                    submissionId: existingCompleted.id,
+                    organizationId: input.organizationId,
+                    profileSnapshot,
+                    extensionConfigSnapshot: extensionConfig,
+                    listingProfileFingerprint,
+                    listingUrl: input.listingUrl ?? undefined,
+                    completedByUserId: authUserId,
+                });
+            }
             return existingCompleted;
         }
 
@@ -421,6 +481,8 @@ export class AutoLaunchService {
             const completed = await this.autoLaunchRepository.completeSubmission({
                 submissionId: openSubmission.id,
                 organizationId: input.organizationId,
+                profileSnapshot,
+                listingProfileFingerprint,
                 evidence: { source: "manual_web" },
                 listingUrl: input.listingUrl ?? null,
                 completedByUserId: authUserId,
@@ -440,6 +502,7 @@ export class AutoLaunchService {
             destinationId: destination.id,
             profileSnapshot,
             extensionConfigSnapshot: extensionConfig,
+            listingProfileFingerprint,
             listingUrl: input.listingUrl ?? null,
             evidence: { source: "manual_web" },
             createdByUserId: authUserId,
@@ -483,21 +546,43 @@ export class AutoLaunchService {
                 statuses: AUTO_LAUNCH_OPEN_SUBMISSION_STATUSES,
             });
 
-        const submission = openSubmission
-            ? await this.autoLaunchRepository.refreshSubmissionIntent({
-                  submissionId: openSubmission.id,
-                  organizationId: input.organizationId,
-                  profileSnapshot,
-                  extensionConfigSnapshot: extensionConfig,
-              })
-            : await this.autoLaunchRepository.insertSubmissionIntent({
-                  organizationId: input.organizationId,
-                  productProfileId: input.productProfileId,
-                  destinationId: destination.id,
-                  profileSnapshot,
-                  extensionConfigSnapshot: extensionConfig,
-                  createdByUserId: authUserId,
-              });
+        let submission: AutoLaunchSubmissionRow;
+        if (openSubmission) {
+            submission = await this.autoLaunchRepository.refreshSubmissionIntent({
+                submissionId: openSubmission.id,
+                organizationId: input.organizationId,
+                profileSnapshot,
+                extensionConfigSnapshot: extensionConfig,
+            });
+        } else {
+            const latestCompleted =
+                await this.autoLaunchRepository.findLatestSubmissionForProductDestination({
+                    organizationId: input.organizationId,
+                    productProfileId: input.productProfileId,
+                    destinationId: destination.id,
+                    statuses: ["completed"],
+                });
+            if (
+                latestCompleted &&
+                isCompletedSubmissionListingStale(latestCompleted, profileSnapshot)
+            ) {
+                submission = await this.autoLaunchRepository.reopenSubmissionForResync({
+                    submissionId: latestCompleted.id,
+                    organizationId: input.organizationId,
+                    profileSnapshot,
+                    extensionConfigSnapshot: extensionConfig,
+                });
+            } else {
+                submission = await this.autoLaunchRepository.insertSubmissionIntent({
+                    organizationId: input.organizationId,
+                    productProfileId: input.productProfileId,
+                    destinationId: destination.id,
+                    profileSnapshot,
+                    extensionConfigSnapshot: extensionConfig,
+                    createdByUserId: authUserId,
+                });
+            }
+        }
 
         const secret = launchTokenSecret();
         const launchToken = signLaunchToken(
@@ -548,10 +633,23 @@ export class AutoLaunchService {
             };
         }
 
+        const profile = await this.autoLaunchRepository.findProfileById(existing.product_profile_id);
+        if (!profile || profile.organization_id !== payload.organizationId) {
+            throw new AutoLaunchProfileNotFoundError(existing.product_profile_id);
+        }
+
+        const profileSnapshot = buildProfileSnapshot(profile);
+        const listingProfileFingerprint = computeListingFingerprintForSubmission(
+            profileSnapshot,
+            existing.extension_config_snapshot
+        );
+
         const listingUrl = input.listingUrl ?? existing.listing_url;
         const updated = await this.autoLaunchRepository.completeSubmission({
             submissionId: existing.id,
             organizationId: payload.organizationId,
+            profileSnapshot,
+            listingProfileFingerprint,
             evidence: input.evidence,
             listingUrl: listingUrl ?? null,
             completedByUserId: authUserId,

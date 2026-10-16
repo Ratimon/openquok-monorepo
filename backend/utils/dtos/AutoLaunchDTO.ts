@@ -1,3 +1,6 @@
+import type { BusinessProfileData } from "openquok-common";
+
+import { resolveAutoLaunchProfileImageUrl } from "../images/autoLaunchProfileMediaImages";
 import type {
     AutoLaunchDestinationListRow,
     AutoLaunchDestinationRow,
@@ -26,7 +29,7 @@ export type AutoLaunchProductProfileDto = {
     description: string | null;
     websiteUrl: string | null;
     logoUrl: string | null;
-    profileData: Record<string, unknown>;
+    profileData: BusinessProfileData;
     createdAt: string;
     updatedAt: string;
 };
@@ -58,6 +61,8 @@ export type AutoLaunchAdminDestinationDto = AutoLaunchDestinationDto & {
     updatedAt: string;
 };
 
+export type AutoLaunchSubmissionSyncStatus = "pending" | "synced" | "stale";
+
 export type AutoLaunchSubmissionDto = {
     id: string;
     organizationId: string;
@@ -67,6 +72,8 @@ export type AutoLaunchSubmissionDto = {
     listingUrl: string | null;
     intentCreatedAt: string | null;
     completedAt: string | null;
+    listingSyncedAt: string | null;
+    syncStatus: AutoLaunchSubmissionSyncStatus;
     createdAt: string;
     updatedAt: string;
 };
@@ -88,14 +95,29 @@ export type AutoLaunchSubmissionCompleteDto = {
     alreadyCompleted: boolean;
 };
 
+function resolveSnapshotProfileData(profileData: BusinessProfileData): BusinessProfileData {
+    const gallery = profileData.gallery_urls;
+    if (!Array.isArray(gallery) || gallery.length === 0) {
+        return profileData;
+    }
+
+    const gallery_urls = gallery.map((entry) => {
+        if (typeof entry !== "string") return entry;
+        return resolveAutoLaunchProfileImageUrl(entry) ?? entry;
+    });
+
+    return { ...profileData, gallery_urls };
+}
+
 export function buildProfileSnapshot(row: AutoLaunchProductProfileRow): AutoLaunchProfileSnapshot {
+    const profileData = (row.profile_data ?? {}) as BusinessProfileData;
     return {
         name: row.name,
         tagline: row.tagline,
         description: row.description,
         website_url: row.website_url,
-        logo_url: row.logo_url,
-        profile_data: row.profile_data ?? {},
+        logo_url: resolveAutoLaunchProfileImageUrl(row.logo_url) ?? row.logo_url,
+        profile_data: resolveSnapshotProfileData(profileData),
         integration_customer_id: row.integration_customer_id,
     };
 }
@@ -194,7 +216,18 @@ export function toAutoLaunchAdminDestinationDtoCollection(
     return (rows ?? []).map(toAutoLaunchAdminDestinationDto);
 }
 
-export function toAutoLaunchSubmissionDto(row: AutoLaunchSubmissionRow): AutoLaunchSubmissionDto {
+export function toAutoLaunchSubmissionDto(
+    row: AutoLaunchSubmissionRow,
+    options?: { syncStatus?: AutoLaunchSubmissionSyncStatus }
+): AutoLaunchSubmissionDto {
+    const syncStatus =
+        options?.syncStatus ??
+        (row.status === "completed"
+            ? row.listing_profile_fingerprint
+                ? "synced"
+                : "stale"
+            : "pending");
+
     return {
         id: row.id,
         organizationId: row.organization_id,
@@ -204,13 +237,23 @@ export function toAutoLaunchSubmissionDto(row: AutoLaunchSubmissionRow): AutoLau
         listingUrl: row.listing_url,
         intentCreatedAt: row.intent_created_at,
         completedAt: row.completed_at,
+        listingSyncedAt: row.listing_synced_at,
+        syncStatus,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
     };
 }
 
-export function toAutoLaunchSubmissionDtoCollection(rows: AutoLaunchSubmissionRow[]): AutoLaunchSubmissionDto[] {
-    return (rows ?? []).map(toAutoLaunchSubmissionDto);
+export function toAutoLaunchSubmissionDtoCollection(
+    rows: AutoLaunchSubmissionRow[],
+    options?: {
+        syncStatusBySubmissionId?: Map<string, AutoLaunchSubmissionSyncStatus>;
+    }
+): AutoLaunchSubmissionDto[] {
+    const syncById = options?.syncStatusBySubmissionId;
+    return (rows ?? []).map((row) =>
+        toAutoLaunchSubmissionDto(row, syncById ? { syncStatus: syncById.get(row.id) } : undefined)
+    );
 }
 
 export function toSubmissionIntentDto(params: {

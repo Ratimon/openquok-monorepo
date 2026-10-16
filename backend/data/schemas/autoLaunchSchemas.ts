@@ -1,6 +1,11 @@
+import { LAUNCH_STEP_FIELD_FILL_MODES } from "openquok-common";
 import { z } from "zod";
 
-const profileDataSchema = z.record(z.string(), z.unknown()).optional().default({});
+import { businessProfileDataSchema } from "./businessProfileDataSchemas";
+
+const profileDataSchema = businessProfileDataSchema.optional().default({});
+
+const logoUrlSchema = z.string().max(2000).nullable().optional();
 
 const providerSlugSchema = z
     .string()
@@ -13,6 +18,7 @@ const launchStepFieldSchema = z.object({
     label: z.string().min(1).max(200),
     profilePath: z.string().min(1).max(200),
     selectorHint: z.string().max(500).optional(),
+    fillMode: z.enum(LAUNCH_STEP_FIELD_FILL_MODES).optional(),
 });
 
 const launchStepSchema = z.object({
@@ -97,7 +103,7 @@ export const createAutoLaunchProfileBodySchema = z.object({
     tagline: z.string().max(500, "Tagline is too long").trim().nullable().optional(),
     description: z.string().max(50_000, "Description is too large").nullable().optional(),
     websiteUrl: z.string().url("Invalid website URL").max(2000).nullable().optional(),
-    logoUrl: z.string().url("Invalid logo URL").max(2000).nullable().optional(),
+    logoUrl: logoUrlSchema,
     profileData: profileDataSchema,
 });
 
@@ -107,9 +113,9 @@ export const updateAutoLaunchProfileBodySchema = z
         tagline: z.string().max(500).trim().nullable().optional(),
         description: z.string().max(50_000).nullable().optional(),
         websiteUrl: z.string().url().max(2000).nullable().optional(),
-        logoUrl: z.string().url().max(2000).nullable().optional(),
+        logoUrl: logoUrlSchema,
         integrationCustomerId: z.string().uuid().nullable().optional(),
-        profileData: profileDataSchema.optional(),
+        profileData: businessProfileDataSchema.optional(),
     })
     .refine((body) => Object.keys(body).length > 0, { message: "At least one field is required" });
 

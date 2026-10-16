@@ -1,7 +1,7 @@
 -- ---------------------------
 -- MODULE NAME: Auto Launch
 -- MODULE DATE: 20261013
--- MODULE SCOPE: Row Level Security and Grants
+-- MODULE SCOPE: Row Level Security and Grants (tables + storage auto_launch_profile_media)
 -- ---------------------------
 
 BEGIN;
@@ -208,6 +208,87 @@ USING (
           AND uo.disabled = FALSE
     )
 );
+
+-- ---------------------------
+-- Storage: auto_launch_profile_media
+-- Paths: {organizationId}/{profileId}/...
+-- ---------------------------
+
+CREATE OR REPLACE FUNCTION public.auto_launch_profile_media_path_allowed(object_name text)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+    SELECT
+        coalesce(array_length(storage.foldername(object_name), 1), 0) >= 2
+        AND EXISTS (
+            SELECT 1
+            FROM public.user_organizations uo
+            JOIN public.users u ON u.id = uo.user_id
+            JOIN public.auto_launch_product_profiles p
+                ON p.id::text = (storage.foldername(object_name))[2]
+                AND p.organization_id::text = (storage.foldername(object_name))[1]
+            WHERE u.auth_id = auth.uid()
+              AND uo.disabled = FALSE
+              AND uo.organization_id = p.organization_id
+              AND p.deleted_at IS NULL
+        );
+$$;
+
+DROP POLICY IF EXISTS "Allow org members to upload auto launch profile media" ON storage.objects;
+CREATE POLICY "Allow org members to upload auto launch profile media"
+    ON storage.objects
+    AS PERMISSIVE
+    FOR INSERT
+    TO authenticated
+    WITH CHECK (
+        bucket_id = 'auto_launch_profile_media'::text
+        AND auth.role() = 'authenticated'::text
+        AND auth.uid() = owner
+        AND public.auto_launch_profile_media_path_allowed(name)
+    );
+
+DROP POLICY IF EXISTS "Allow org members to update auto launch profile media" ON storage.objects;
+CREATE POLICY "Allow org members to update auto launch profile media"
+    ON storage.objects
+    AS PERMISSIVE
+    FOR UPDATE
+    TO authenticated
+    USING (
+        bucket_id = 'auto_launch_profile_media'::text
+        AND auth.role() = 'authenticated'::text
+        AND auth.uid() = owner
+        AND public.auto_launch_profile_media_path_allowed(name)
+    )
+    WITH CHECK (
+        bucket_id = 'auto_launch_profile_media'::text
+        AND auth.role() = 'authenticated'::text
+        AND auth.uid() = owner
+        AND public.auto_launch_profile_media_path_allowed(name)
+    );
+
+DROP POLICY IF EXISTS "Allow org members to delete auto launch profile media" ON storage.objects;
+CREATE POLICY "Allow org members to delete auto launch profile media"
+    ON storage.objects
+    AS PERMISSIVE
+    FOR DELETE
+    TO authenticated
+    USING (
+        bucket_id = 'auto_launch_profile_media'::text
+        AND auth.role() = 'authenticated'::text
+        AND auth.uid() = owner
+        AND public.auto_launch_profile_media_path_allowed(name)
+    );
+
+DROP POLICY IF EXISTS "Allow service_role to manage auto launch profile media" ON storage.objects;
+CREATE POLICY "Allow service_role to manage auto launch profile media"
+    ON storage.objects
+    AS PERMISSIVE
+    FOR ALL
+    TO service_role
+    USING (bucket_id = 'auto_launch_profile_media'::text);
 
 -- ---------------------------
 -- END OF FILE

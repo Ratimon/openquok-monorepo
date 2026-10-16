@@ -9,6 +9,8 @@
 	import { icons } from '$data/icons';
 
 	import AddDirectoryLaunch from '$lib/ui/components/auto-launch/AddDirectoryLaunch.svelte';
+	import type { BusinessProfileDataFormValues } from '$lib/auto-launch/auto-launch.types';
+
 	import ProductProfileComposer from '$lib/ui/components/auto-launch/ProductProfileComposer.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
@@ -22,8 +24,14 @@
 	let composerOpen = $state(false);
 	let composerSubmitting = $state(false);
 	let editingProfileId = $state<string | null>(null);
+	let composerRef: ProductProfileComposer | undefined = $state();
 	let destinationNameById = $state<Record<string, string>>({});
+	let destinationSlugById = $state<Record<string, string>>({});
 	let submissionsByProfileId = $state<Record<string, AutoLaunchSubmissionDto[]>>({});
+
+	function staleListingCount(submissions: AutoLaunchSubmissionDto[]): number {
+		return submissions.filter((s) => s.syncStatus === 'stale').length;
+	}
 
 	const editingProfile = $derived(
 		editingProfileId ? profiles.find((p) => p.id === editingProfileId) ?? null : null
@@ -36,6 +44,7 @@
 			...profiles.map((p) => autoLaunchRepository.listSubmissions(workspaceId, { productProfileId: p.id }))
 		]);
 		destinationNameById = Object.fromEntries(destinations.map((d) => [d.id, d.name]));
+		destinationSlugById = Object.fromEntries(destinations.map((d) => [d.id, d.providerSlug]));
 		const byProfile: Record<string, typeof submissionLists[number]> = {};
 		profiles.forEach((p, i) => {
 			byProfile[p.id] = submissionLists[i] ?? [];
@@ -61,18 +70,38 @@
 		composerOpen = true;
 	}
 
-	async function saveProfile(values: {
+	type ProfileSavePayload = {
 		name: string;
 		tagline: string | null;
 		description: string | null;
 		websiteUrl: string | null;
 		logoUrl: string | null;
-	}) {
+		profileData: BusinessProfileDataFormValues;
+		integrationCustomerId?: string | null;
+	};
+
+	function withUploadedMedia(
+		values: ProfileSavePayload,
+		media: { logoUrl?: string | null; galleryUrls?: string[] }
+	): ProfileSavePayload {
+		return {
+			...values,
+			logoUrl: media.logoUrl !== undefined ? media.logoUrl : values.logoUrl,
+			profileData: {
+				...values.profileData,
+				gallery_urls: media.galleryUrls ?? values.profileData.gallery_urls
+			}
+		};
+	}
+
+	async function saveProfile(values: ProfileSavePayload) {
 		if (!workspaceId) return;
 		composerSubmitting = true;
 		try {
 			if (editingProfileId) {
-				const result = await autoLaunchRepository.updateProfile(editingProfileId, values);
+				const media = await composerRef?.uploadMediaForProfile(editingProfileId);
+				const payload = withUploadedMedia(values, media ?? {});
+				const result = await autoLaunchRepository.updateProfile(editingProfileId, payload);
 				if (!result.ok) {
 					toast.error(result.error);
 					return;
@@ -82,11 +111,25 @@
 				const result = await autoLaunchRepository.createProfile({
 					organizationId: workspaceId,
 					...values,
-					profileData: {}
+					integrationCustomerId: values.integrationCustomerId ?? null
 				});
 				if (!result.ok) {
 					toast.error(result.error);
 					return;
+				}
+				const newId = result.profile.id;
+				const media = await composerRef?.uploadMediaForProfile(newId);
+				const hasMediaPatch =
+					media &&
+					(media.logoUrl !== undefined ||
+						(media.galleryUrls !== undefined && media.galleryUrls.length > 0));
+				if (hasMediaPatch) {
+					const patch = withUploadedMedia(values, media);
+					const patchResult = await autoLaunchRepository.updateProfile(newId, patch);
+					if (!patchResult.ok) {
+						toast.error(patchResult.error);
+						return;
+					}
 				}
 				toast.success('Business profile created.');
 			}
@@ -135,6 +178,8 @@
 {:else}
 	<ul class="mt-6 space-y-3">
 		{#each profiles as profile (profile.id)}
+			{@const profileSubmissions = submissionsByProfileId[profile.id] ?? []}
+			{@const profileStaleCount = staleListingCount(profileSubmissions)}
 			<li class="rounded-xl border border-base-300 p-4">
 				<div class="flex flex-wrap items-start justify-between gap-3">
 					<div class="min-w-0">
@@ -144,6 +189,15 @@
 						{/if}
 						{#if profile.websiteUrl}
 							<p class="mt-1 text-sm text-base-content/60">{profile.websiteUrl}</p>
+						{/if}
+						{#if profileStaleCount > 0}
+							<p class="mt-2 text-xs text-warning">
+								{profileStaleCount}
+								{profileStaleCount === 1
+									? 'directory listing may be out of date'
+									: 'directory listings may be out of date'}
+								after profile edits. Re-fill to update the live listing.
+							</p>
 						{/if}
 					</div>
 					<div class="flex flex-wrap gap-2">
@@ -170,18 +224,47 @@
 						</Button>
 					</div>
 				</div>
-				{#if (submissionsByProfileId[profile.id] ?? []).length > 0}
+				{#if profileSubmissions.length > 0}
 					<div class="mt-3 border-t border-base-300/60 pt-3">
 						<p class="text-xs font-medium text-base-content/80">Directory launches (this product)</p>
 						<ul class="mt-2 space-y-1.5">
-							{#each submissionsByProfileId[profile.id] ?? [] as submission (submission.id)}
-								<li class="flex flex-wrap items-center gap-2 text-xs text-base-content/70">
-									<span class="font-medium text-base-content/85">
-										{destinationNameById[submission.destinationId] ?? 'Directory'}
-									</span>
-									<span class="badge badge-xs badge-ghost">{submission.status}</span>
-									{#if submission.completedAt}
-										<span>· {new Date(submission.completedAt).toLocaleDateString()}</span>
+							{#each profileSubmissions as submission (submission.id)}
+								<li class="space-y-1.5 text-xs text-base-content/70">
+									<div class="flex flex-wrap items-center gap-2">
+										<span class="font-medium text-base-content/85">
+											{destinationNameById[submission.destinationId] ?? 'Directory'}
+										</span>
+										{#if submission.status === 'completed'}
+											{#if submission.syncStatus === 'synced'}
+												<span class="badge badge-xs badge-success badge-outline">Synced</span>
+											{:else if submission.syncStatus === 'stale'}
+												<span class="badge badge-xs badge-warning">Profile changed</span>
+											{/if}
+										{:else}
+											<span class="badge badge-xs badge-ghost">{submission.status}</span>
+										{/if}
+										{#if submission.completedAt}
+											<span>· Completed {new Date(submission.completedAt).toLocaleDateString()}</span>
+										{/if}
+										{#if submission.syncStatus === 'synced' && submission.listingSyncedAt}
+											<span>· Synced {new Date(submission.listingSyncedAt).toLocaleDateString()}</span>
+										{/if}
+									</div>
+									{#if submission.status === 'completed' && submission.syncStatus === 'stale'}
+										<p class="text-base-content/60">
+											Fields this directory uses no longer match your business profile. Re-fill with the
+											extension to update the live listing.
+										</p>
+										{#if destinationSlugById[submission.destinationId]}
+											<AddDirectoryLaunch
+												buttonLabel="Re-fill"
+												buttonVariant="outline"
+												buttonClass="btn-xs"
+												sitePickerFirst={false}
+												productProfileId={profile.id}
+												destinationProviderSlug={destinationSlugById[submission.destinationId]}
+											/>
+										{/if}
 									{/if}
 								</li>
 							{/each}
@@ -197,7 +280,9 @@
 {/if}
 
 <ProductProfileComposer
+	bind:this={composerRef}
 	bind:open={composerOpen}
+	organizationId={workspaceId}
 	initial={editingProfile}
 	submitting={composerSubmitting}
 	title={editingProfileId ? 'Edit business profile' : 'New business profile'}

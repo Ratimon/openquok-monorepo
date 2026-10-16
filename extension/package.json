@@ -8,7 +8,9 @@
     "prepare:icons": "node ./scripts/prepare-icons.mjs",
     "build": "pnpm run prepare:icons && node ./scripts/build-extension.mjs && node ./scripts/copy-static.mjs",
     "zip": "pnpm run build && node ./scripts/zip.mjs",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node ./run-vitest.mjs",
+    "test:unit": "node ./run-vitest.mjs run src"
   },
   "dependencies": {
     "openquok-common": "workspace:*"

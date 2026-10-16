@@ -20,7 +20,6 @@ import {
     toAutoLaunchProductProfileDto,
     toAutoLaunchProductProfileDtoCollection,
     toAutoLaunchSubmissionDto,
-    toAutoLaunchSubmissionDtoCollection,
     toBusinessProfileDtoCollection,
 } from "../utils/dtos/AutoLaunchDTO";
 
@@ -160,11 +159,11 @@ export class AutoLaunchController {
             const authUserId = authReq.user?.id;
             if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
             const query = req.query as unknown as ListAutoLaunchSubmissionsQuery;
-            const rows = await this.autoLaunchService.listSubmissions(authUserId, query.organizationId, {
+            const submissions = await this.autoLaunchService.listSubmissions(authUserId, query.organizationId, {
                 productProfileId: query.productProfileId,
                 destinationId: query.destinationId,
             });
-            res.status(200).json({ success: true, data: toAutoLaunchSubmissionDtoCollection(rows) });
+            res.status(200).json({ success: true, data: submissions });
         } catch (error) {
             next(error);
         }

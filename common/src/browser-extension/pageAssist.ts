@@ -12,11 +12,22 @@ export type AutoLaunchExtensionConfig = {
 	proof?: Record<string, unknown>;
 };
 
+/** How the extension fill engine should set a destination form control (default `text`). */
+export const LAUNCH_STEP_FIELD_FILL_MODES = [
+	'text',
+	'select',
+	'boolean',
+	'rich_html',
+	'tags',
+] as const;
+export type LaunchStepFieldFillMode = (typeof LAUNCH_STEP_FIELD_FILL_MODES)[number];
+
 export type LaunchStepField = {
 	key: string;
 	label: string;
 	profilePath: string;
 	selectorHint?: string;
+	fillMode?: LaunchStepFieldFillMode;
 };
 
 export type LaunchStep = {

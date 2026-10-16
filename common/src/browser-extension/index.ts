@@ -49,7 +49,9 @@ export {
 	type DirectoryLaunchProvider,
 	type FieldFillResult,
 	type FieldFillStatus,
+	LAUNCH_STEP_FIELD_FILL_MODES,
 	type LaunchStep,
 	type LaunchStepField,
+	type LaunchStepFieldFillMode,
 } from './pageAssist.js';
 export type { BrowserExtensionCookieRef } from './types.js';

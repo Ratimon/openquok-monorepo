@@ -38,11 +38,12 @@
 			label: step.label,
 			fields: step.localFields
 				.filter((f) => f.key.trim() && f.label.trim() && f.profilePath.trim())
-				.map(({ key, label, profilePath, selectorHint }) => ({
+				.map(({ key, label, profilePath, selectorHint, fillMode }) => ({
 					key: key.trim(),
 					label: label.trim(),
 					profilePath: profilePath.trim(),
-					...(selectorHint?.trim() ? { selectorHint: selectorHint.trim() } : {})
+					...(selectorHint?.trim() ? { selectorHint: selectorHint.trim() } : {}),
+					...(fillMode ? { fillMode } : {})
 				}))
 		}));
 	}

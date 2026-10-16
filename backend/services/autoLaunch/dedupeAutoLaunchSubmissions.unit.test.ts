@@ -20,6 +20,8 @@ function row(
         completed_at: overrides.status === "completed" ? faker.date.recent().toISOString() : null,
         created_by_user_id: null,
         completed_by_user_id: null,
+        listing_profile_fingerprint: null,
+        listing_synced_at: null,
         created_at: faker.date.past().toISOString(),
         updated_at: faker.date.recent().toISOString(),
         ...overrides,

@@ -22,6 +22,7 @@ export type AutoLaunchExtensionStep = {
         label: string;
         profilePath: string;
         selectorHint?: string;
+        fillMode?: "text" | "select" | "boolean" | "rich_html" | "tags";
     }>;
 };
 
@@ -92,6 +93,8 @@ export type AutoLaunchSubmissionRow = {
     completed_at: string | null;
     created_by_user_id: string | null;
     completed_by_user_id: string | null;
+    listing_profile_fingerprint: string | null;
+    listing_synced_at: string | null;
     created_at: string;
     updated_at: string;
 };

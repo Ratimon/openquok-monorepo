@@ -1,3 +1,5 @@
+export const AUTO_LAUNCH_PROFILE_MEDIA_BUCKET = 'auto_launch_profile_media' as const;
+
 export type AutoLaunchConfig = {
 	endpoints: {
 		destinations: string;

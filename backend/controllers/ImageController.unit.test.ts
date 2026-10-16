@@ -3,6 +3,8 @@ import http from "http";
 import https from "https";
 
 import { ImageController } from "./ImageController";
+import type { AutoLaunchRepository } from "../repositories/AutoLaunchRepository";
+import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import type { StorageSupabaseRepository } from "../repositories/StorageSupabaseRepository";
 import type { IntegrationConnectionService } from "../services/IntegrationConnectionService";
 
@@ -18,20 +20,35 @@ function createMockResponse(): jest.Mocked<Response> {
 describe("ImageController", () => {
     let storageRepository: jest.Mocked<StorageSupabaseRepository>;
     let integrationConnectionService: jest.Mocked<IntegrationConnectionService>;
+    let organizationRepository: jest.Mocked<OrganizationRepository>;
+    let autoLaunchRepository: jest.Mocked<AutoLaunchRepository>;
     let controller: ImageController;
 
     beforeEach(() => {
         storageRepository = {
             downloadImage: jest.fn(),
             uploadImage: jest.fn(),
+            uploadImageUnderPrefix: jest.fn(),
             deleteImage: jest.fn(),
             listBlogImages: jest.fn(),
         } as unknown as jest.Mocked<StorageSupabaseRepository>;
         integrationConnectionService = {
             getIntegrationAvatarImage: jest.fn(),
         } as unknown as jest.Mocked<IntegrationConnectionService>;
+        organizationRepository = {
+            findUserIdByAuthId: jest.fn(),
+            findMembership: jest.fn(),
+        } as unknown as jest.Mocked<OrganizationRepository>;
+        autoLaunchRepository = {
+            findProfileById: jest.fn(),
+        } as unknown as jest.Mocked<AutoLaunchRepository>;
 
-        controller = new ImageController(storageRepository, integrationConnectionService);
+        controller = new ImageController(
+            storageRepository,
+            integrationConnectionService,
+            organizationRepository,
+            autoLaunchRepository
+        );
     });
 
     describe("getByUrl", () => {

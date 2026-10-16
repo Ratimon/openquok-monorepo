@@ -147,7 +147,7 @@
 					>
 						<p class="text-sm text-base-content/90">
 							<span class="font-medium text-base-content">One workspace = one context.</span>
-							Use separate workspaces for different brands or clients to keep AI context focused.
+							Use for different brands to keep AI context focused.
 						</p>
 					</HomeAccountNoticeBanner>
 				{:else}
@@ -160,7 +160,7 @@
 						<p class="mt-1 text-base-content/90">
 							Workspaces exist to keep the context focused. Connecting too many social
 							channels or installing too many skills can cause context rot and hallucinations.
-							Use separate workspaces for different brands, or clients.
+							Use for different brands.
 						</p>
 					</HomeAccountNoticeBanner>
 				{/if}
@@ -172,7 +172,7 @@
 				{:else}
 					<p class="text-sm text-base-content/70">
 						You own {ownerCards.length} workspace{ownerCards.length === 1 ? '' : 's'} — you manage
-						billing, invites, and plan limits.
+						billing, invites, and plan limits here.
 					</p>
 				{/if}
 

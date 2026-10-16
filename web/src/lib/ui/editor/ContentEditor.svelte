@@ -25,6 +25,7 @@
 	} from '$lib/ui/editor/extensions/contentEditorBlogImage';
 	import { ContentEditorCodeBlock } from '$lib/ui/editor/extensions/contentEditorCodeBlock';
 	import { contentEditorTableKit } from '$lib/ui/editor/extensions/contentEditorTable';
+	import { stripInlineImagesFromRichHtml } from '$lib/utils/stripInlineImagesFromRichHtml';
 
 	let element: HTMLElement;
 	let editor = $state<TiptapEditor>();
@@ -53,6 +54,8 @@
 		showLength?: boolean;
 		maxLength?: number;
 		placeholder?: string;
+		enableInlineImages?: boolean;
+		linkPlaceholder?: string;
 	};
 
 	let {
@@ -66,39 +69,49 @@
 		beforeInlineImageAction,
 		showLength,
 		maxLength,
-		placeholder
+		placeholder,
+		enableInlineImages = true,
+		linkPlaceholder
 	}: Props = $props();
 
 	onMount(() => {
-		editor = new Editor({
-			element: element,
-			extensions: [
-				StarterKit.configure({
-					codeBlock: false,
-					link: {
-						openOnClick: false
-						// rel/target applied in normalizeBlogContentLinks (ExternalLink-aligned)
-					}
-				}),
-				ContentEditorCodeBlock.configure({
-					HTMLAttributes: {
-						class: 'blog-editor-code-block'
-					}
-				}),
-				contentEditorTableKit,
-				Placeholder.configure({
-					placeholder: placeholder || 'Write something...'
-				}),
+		const extensions = [
+			StarterKit.configure({
+				codeBlock: false,
+				link: {
+					openOnClick: false
+					// rel/target applied in normalizeBlogContentLinks (ExternalLink-aligned)
+				}
+			}),
+			ContentEditorCodeBlock.configure({
+				HTMLAttributes: {
+					class: 'blog-editor-code-block'
+				}
+			}),
+			contentEditorTableKit,
+			Placeholder.configure({
+				placeholder: placeholder || 'Write something...'
+			})
+		];
+		if (enableInlineImages) {
+			extensions.push(
 				ContentEditorBlogImage.configure({
 					HTMLAttributes: {
 						class:
 							'mx-auto block h-auto w-auto max-h-[min(70vh,26rem)] max-w-full rounded-md border border-base-300'
 					}
 				})
-			],
+			);
+		}
+
+		editor = new Editor({
+			element: element,
+			extensions,
 			content:
 				outputType === 'html'
-					? normalizeBlogInlineImagesInHtml(prepareBlogContentForDisplay(content || ''))
+					? enableInlineImages
+						? normalizeBlogInlineImagesInHtml(prepareBlogContentForDisplay(content || ''))
+						: (content || '')
 					: (content || ''),
 			editorProps: {
 				attributes: {
@@ -192,7 +205,11 @@
 			}
 			next = doc.innerHTML;
 		}
-		return normalizeBlogContentLinks(next);
+		next = normalizeBlogContentLinks(next);
+		if (!enableInlineImages) {
+			next = stripInlineImagesFromRichHtml(next);
+		}
+		return next;
 	}
 
 	function insertLocalImagePreview(file: File, alt?: string): void {
@@ -315,6 +332,9 @@
 			if (newContent === '<p></p>') {
 				newContent = '';
 			}
+			if (!enableInlineImages) {
+				newContent = stripInlineImagesFromRichHtml(newContent);
+			}
 		}
 
 		currentContent = newContent;
@@ -359,6 +379,8 @@
 			onInsertLocalImagePreview={insertLocalImagePreview}
 			onInsertImageFromLibrary={insertImageFromLibrary}
 			{beforeInlineImageAction}
+			{enableInlineImages}
+			{linkPlaceholder}
 		/>
 	{/if}
 

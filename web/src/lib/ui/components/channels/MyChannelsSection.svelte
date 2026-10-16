@@ -23,8 +23,6 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import ChannelLimitUpgradeModal from '$lib/ui/components/channels/ChannelLimitUpgradeModal.svelte';
 	import ChannelsChipsLayout from '$lib/ui/components/channels/ChannelsChipsLayout.svelte';
-	import type { AutoLaunchProductProfileDto } from '$lib/auto-launch/auto-launch.types';
-	import { autoLaunchRepository } from '$lib/auto-launch';
 	import ChannelsGridLayout from '$lib/ui/components/channels/ChannelsGridLayout.svelte';
 	import {
 		channelsGridActionsKey,
@@ -156,29 +154,6 @@
 	let windowWidthPx = $state(0);
 	let groupDetailsOpen = $state<Record<string, boolean>>({});
 	let ungroupedDetailsOpen = $state(true);
-	let productProfiles = $state<AutoLaunchProductProfileDto[]>([]);
-
-	const productProfilesByGroupId = $derived.by(() => {
-		const map = new Map<string, AutoLaunchProductProfileDto[]>();
-		for (const profile of productProfiles) {
-			if (!profile.integrationCustomerId) continue;
-			const list = map.get(profile.integrationCustomerId) ?? [];
-			list.push(profile);
-			map.set(profile.integrationCustomerId, list);
-		}
-		return map;
-	});
-
-	$effect(() => {
-		if (!workspaceId) {
-			productProfiles = [];
-			return;
-		}
-		void autoLaunchRepository.listProfiles(workspaceId).then((rows) => {
-			productProfiles = rows;
-		});
-	});
-
 	const channelsGridFilteredRowsVm = $derived.by(() => {
 		const filter = createHomeChannelsGridTableFilter(channelsFilterPresenter.value);
 		return homeChannelTableRowsVm.filter(filter);
@@ -537,7 +512,6 @@
 			{onSetDisabled}
 			{onRemove}
 			onAddAnotherChannel={tryAddAnotherChannel}
-			{productProfilesByGroupId}
 		/>
 	{/if}
 

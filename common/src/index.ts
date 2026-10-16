@@ -88,9 +88,30 @@ export {
 	type DirectoryLaunchProvider,
 	type FieldFillResult,
 	type FieldFillStatus,
+	LAUNCH_STEP_FIELD_FILL_MODES,
 	type LaunchStep,
 	type LaunchStepField,
+	type LaunchStepFieldFillMode,
 } from './browser-extension/index.js';
+export {
+	buildListingProfileFingerprintPayload,
+	collectProfilePathsFromExtensionConfig,
+	computeListingProfileFingerprint,
+	resolveProfilePathValue,
+} from './auto-launch/listingProfileFingerprint.js';
+export {
+	BUSINESS_PROFILE_INCLUDED_ASSET_SLUGS,
+	BUSINESS_PROFILE_MAX_GALLERY_URLS,
+	BUSINESS_PROFILE_MAX_TAGS,
+	BUSINESS_PROFILE_PRICING_TYPES,
+	BUSINESS_PROFILE_SELLING_REASON_MIN_LENGTH,
+	EMPTY_BUSINESS_PROFILE_DATA,
+	mergeBusinessProfileData,
+	normalizeBusinessProfileData,
+	type BusinessProfileData,
+	type BusinessProfileIncludedAssetSlug,
+	type BusinessProfilePricingType,
+} from './auto-launch/businessProfileData.js';
 export {
 	MEDIA_VIRTUAL_GENERAL,
 	MEDIA_VIRTUAL_POSTS,

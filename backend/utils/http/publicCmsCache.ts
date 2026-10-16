@@ -44,7 +44,8 @@ const isPublicCmsImageDownloadGet = (req: Request, routePath: string): boolean =
     return (
         dbName === "blog_images" ||
         dbName === "listing_images" ||
-        dbName === "link_directory_logos"
+        dbName === "link_directory_logos" ||
+        dbName === "auto_launch_profile_media"
     );
 };
 

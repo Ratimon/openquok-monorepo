@@ -20,7 +20,7 @@ const DESTINATION_COLS =
     "id, provider_slug, link_directory_opportunity_id, name, short_description, submission_path, start_url, extension_config, is_published, sort_order, picker_group_key, picker_group_title, created_at, updated_at";
 
 const SUBMISSION_COLS =
-    "id, organization_id, product_profile_id, destination_id, status, profile_snapshot, extension_config_snapshot, evidence, listing_url, intent_created_at, completed_at, created_by_user_id, completed_by_user_id, created_at, updated_at";
+    "id, organization_id, product_profile_id, destination_id, status, profile_snapshot, extension_config_snapshot, evidence, listing_url, intent_created_at, completed_at, created_by_user_id, completed_by_user_id, listing_profile_fingerprint, listing_synced_at, created_at, updated_at";
 
 type DestinationJoinRow = AutoLaunchDestinationRow & {
     link_directory_opportunity?: {
@@ -190,6 +190,32 @@ export class AutoLaunchRepository {
             });
         }
         return (data ?? null) as AutoLaunchProductProfileRow | null;
+    }
+
+    async findProfilesByIds(params: {
+        organizationId: string;
+        profileIds: string[];
+    }): Promise<AutoLaunchProductProfileRow[]> {
+        const uniqueIds = [...new Set(params.profileIds)].filter(Boolean);
+        if (uniqueIds.length === 0) {
+            return [];
+        }
+
+        const { data, error } = await this.supabase
+            .from(PROFILES_TABLE)
+            .select(PROFILE_COLS)
+            .eq("organization_id", params.organizationId)
+            .in("id", uniqueIds)
+            .is("deleted_at", null);
+
+        if (error) {
+            throw new DatabaseError("Error finding auto-launch product profiles by id", {
+                cause: error as unknown as Error,
+                operation: "findProfilesByIds",
+                resource: { type: "table", name: PROFILES_TABLE },
+            });
+        }
+        return (data ?? []) as AutoLaunchProductProfileRow[];
     }
 
     async insertProfile(params: {
@@ -464,6 +490,7 @@ export class AutoLaunchRepository {
         destinationId: string;
         profileSnapshot: Record<string, unknown>;
         extensionConfigSnapshot: AutoLaunchExtensionConfig;
+        listingProfileFingerprint: string;
         listingUrl: string | null;
         evidence: Record<string, unknown>;
         createdByUserId: string;
@@ -478,6 +505,8 @@ export class AutoLaunchRepository {
                 status: "completed",
                 profile_snapshot: params.profileSnapshot,
                 extension_config_snapshot: params.extensionConfigSnapshot,
+                listing_profile_fingerprint: params.listingProfileFingerprint,
+                listing_synced_at: now,
                 evidence: params.evidence,
                 listing_url: params.listingUrl,
                 intent_created_at: now,
@@ -503,6 +532,8 @@ export class AutoLaunchRepository {
     async completeSubmission(params: {
         submissionId: string;
         organizationId: string;
+        profileSnapshot: Record<string, unknown>;
+        listingProfileFingerprint: string;
         evidence: Record<string, unknown>;
         listingUrl: string | null;
         completedByUserId: string;
@@ -512,6 +543,9 @@ export class AutoLaunchRepository {
             .from(SUBMISSIONS_TABLE)
             .update({
                 status: "completed" as AutoLaunchSubmissionStatus,
+                profile_snapshot: params.profileSnapshot,
+                listing_profile_fingerprint: params.listingProfileFingerprint,
+                listing_synced_at: now,
                 evidence: params.evidence,
                 listing_url: params.listingUrl,
                 completed_at: now,
@@ -532,6 +566,81 @@ export class AutoLaunchRepository {
             });
         }
         return (data ?? null) as AutoLaunchSubmissionRow | null;
+    }
+
+    async reopenSubmissionForResync(params: {
+        submissionId: string;
+        organizationId: string;
+        profileSnapshot: Record<string, unknown>;
+        extensionConfigSnapshot: AutoLaunchExtensionConfig;
+    }): Promise<AutoLaunchSubmissionRow> {
+        const now = new Date().toISOString();
+        const { data, error } = await this.supabase
+            .from(SUBMISSIONS_TABLE)
+            .update({
+                status: "in_progress" as AutoLaunchSubmissionStatus,
+                profile_snapshot: params.profileSnapshot,
+                extension_config_snapshot: params.extensionConfigSnapshot,
+                intent_created_at: now,
+                completed_at: null,
+                completed_by_user_id: null,
+                updated_at: now,
+            })
+            .eq("id", params.submissionId)
+            .eq("organization_id", params.organizationId)
+            .eq("status", "completed")
+            .select(SUBMISSION_COLS)
+            .single();
+
+        if (error || !data) {
+            throw new DatabaseError("Error reopening auto-launch submission for resync", {
+                cause: (error ?? new Error("no row")) as Error,
+                operation: "reopenSubmissionForResync",
+                resource: { type: "table", name: SUBMISSIONS_TABLE },
+            });
+        }
+        return data as AutoLaunchSubmissionRow;
+    }
+
+    async updateCompletedSubmissionListingSync(params: {
+        submissionId: string;
+        organizationId: string;
+        profileSnapshot: Record<string, unknown>;
+        extensionConfigSnapshot: AutoLaunchExtensionConfig;
+        listingProfileFingerprint: string;
+        listingUrl?: string | null;
+        completedByUserId: string;
+    }): Promise<AutoLaunchSubmissionRow> {
+        const now = new Date().toISOString();
+        const update: Record<string, unknown> = {
+            profile_snapshot: params.profileSnapshot,
+            extension_config_snapshot: params.extensionConfigSnapshot,
+            listing_profile_fingerprint: params.listingProfileFingerprint,
+            listing_synced_at: now,
+            completed_by_user_id: params.completedByUserId,
+            updated_at: now,
+        };
+        if (params.listingUrl !== undefined) {
+            update.listing_url = params.listingUrl;
+        }
+
+        const { data, error } = await this.supabase
+            .from(SUBMISSIONS_TABLE)
+            .update(update)
+            .eq("id", params.submissionId)
+            .eq("organization_id", params.organizationId)
+            .eq("status", "completed")
+            .select(SUBMISSION_COLS)
+            .single();
+
+        if (error || !data) {
+            throw new DatabaseError("Error updating completed auto-launch submission listing sync", {
+                cause: (error ?? new Error("no row")) as Error,
+                operation: "updateCompletedSubmissionListingSync",
+                resource: { type: "table", name: SUBMISSIONS_TABLE },
+            });
+        }
+        return data as AutoLaunchSubmissionRow;
     }
 
     async listAllDestinations(): Promise<AutoLaunchDestinationListRow[]> {

@@ -77,6 +77,8 @@ CREATE TABLE IF NOT EXISTS public.auto_launch_submissions (
     extension_config_snapshot JSONB NOT NULL DEFAULT '{}'::jsonb,
     evidence JSONB NOT NULL DEFAULT '{}'::jsonb,
     listing_url TEXT,
+    listing_profile_fingerprint TEXT,
+    listing_synced_at TIMESTAMPTZ,
     intent_created_at TIMESTAMPTZ,
     completed_at TIMESTAMPTZ,
     created_by_user_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
@@ -89,6 +91,10 @@ COMMENT ON TABLE public.auto_launch_submissions IS
     'One launch attempt per intent handoff; profile and extension config are frozen at intent time.';
 COMMENT ON COLUMN public.auto_launch_submissions.evidence IS
     'Proof from the extension after human submit on the directory site (final URL, timestamps, optional media refs).';
+COMMENT ON COLUMN public.auto_launch_submissions.listing_profile_fingerprint IS
+    'SHA-256 hex digest of fill-relevant profile paths at last successful directory sync (application-computed).';
+COMMENT ON COLUMN public.auto_launch_submissions.listing_synced_at IS
+    'When listing_profile_fingerprint was last aligned with the live product profile for this submission.';
 
 -- ---------------------------
 -- END OF FILE

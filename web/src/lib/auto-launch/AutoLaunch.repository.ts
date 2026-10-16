@@ -9,6 +9,7 @@ import type {
 	AutoLaunchSubmissionDto,
 	AutoLaunchSubmissionIntentDto,
 	AutoLaunchUpsertResult,
+	BusinessProfileData,
 	BusinessProfileDto,
 	DirectoryLaunchProviderSummary
 } from '$lib/auto-launch/auto-launch.types';
@@ -86,7 +87,7 @@ export class AutoLaunchRepository {
 		websiteUrl?: string | null;
 		logoUrl?: string | null;
 		integrationCustomerId?: string | null;
-		profileData?: Record<string, unknown>;
+		profileData?: BusinessProfileData;
 	}): Promise<{ ok: true; profile: AutoLaunchProductProfileDto } | { ok: false; error: string }> {
 		const { data: createDto, ok } = await this.httpGateway.post<ProfileMutationResponseDto>(
 			this.config.endpoints.profiles,
@@ -108,7 +109,7 @@ export class AutoLaunchRepository {
 			websiteUrl?: string | null;
 			logoUrl?: string | null;
 			integrationCustomerId?: string | null;
-			profileData?: Record<string, unknown>;
+			profileData?: BusinessProfileData;
 		}
 	): Promise<{ ok: true; profile: AutoLaunchProductProfileDto } | { ok: false; error: string }> {
 		const { data: updateDto, ok } = await this.httpGateway.request<ProfileMutationResponseDto>({
