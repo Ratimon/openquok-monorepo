@@ -9,6 +9,8 @@ export type AutoLaunchConfig = {
 		submissions: string;
 		submissionIntent: string;
 		submissionRecordComplete: string;
+		submissionListingDetails: (id: string) => string;
+		submissionById: (id: string) => string;
 		adminProviderCatalog: string;
 		adminDestinations: string;
 		adminDestinationById: (id: string) => string;

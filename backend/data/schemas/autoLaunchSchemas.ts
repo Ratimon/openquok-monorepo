@@ -147,11 +147,71 @@ export const completeSubmissionBodySchema = z.object({
     evidence: z.record(z.string(), z.unknown()).optional().default({}),
 });
 
+const optionalListingUrlSchema = z
+    .string()
+    .trim()
+    .max(2000)
+    .optional()
+    .transform((value) => {
+        if (!value) return undefined;
+        try {
+            return new URL(value).toString();
+        } catch {
+            return undefined;
+        }
+    });
+
+const optionalAuthEmailSchema = z
+    .union([z.string().email().max(320), z.literal(""), z.null(), z.undefined()])
+    .transform((value) => {
+        if (value == null || value === "") return null;
+        return value.trim();
+    });
+
+const requiredListingUrlSchema = z
+    .string()
+    .trim()
+    .min(1, "listingUrl is required")
+    .max(2000)
+    .refine((value) => {
+        try {
+            new URL(value);
+            return true;
+        } catch {
+            return false;
+        }
+    }, "Invalid listing URL")
+    .transform((value) => new URL(value).toString());
+
+const requiredAuthEmailSchema = z
+    .string()
+    .trim()
+    .min(1, "authEmail is required")
+    .email("Invalid auth email")
+    .max(320);
+
 export const recordManualSubmissionCompleteBodySchema = z.object({
     organizationId: z.string().uuid("Invalid organization id"),
     productProfileId: z.string().uuid("Invalid product profile id"),
     destinationId: z.string().uuid("Invalid destination id"),
-    listingUrl: z.string().url().max(2000).optional(),
+    listingUrl: requiredListingUrlSchema,
+    listingDofollow: z.boolean(),
+    authEmail: requiredAuthEmailSchema,
+});
+
+export const autoLaunchSubmissionIdParamSchema = z.object({
+    id: z.string().uuid("Invalid submission id"),
+});
+
+export const deleteAutoLaunchSubmissionQuerySchema = z.object({
+    organizationId: z.string().uuid("Invalid organization id"),
+});
+
+export const updateSubmissionListingDetailsBodySchema = z.object({
+    organizationId: z.string().uuid("Invalid organization id"),
+    listingUrl: optionalListingUrlSchema,
+    listingDofollow: z.boolean().optional(),
+    authEmail: optionalAuthEmailSchema.optional(),
 });
 
 export type ListAutoLaunchProfilesQuery = z.infer<typeof listAutoLaunchProfilesQuerySchema>;
@@ -162,5 +222,7 @@ export type ListAutoLaunchSubmissionsQuery = z.infer<typeof listAutoLaunchSubmis
 export type CreateSubmissionIntentBody = z.infer<typeof createSubmissionIntentBodySchema>;
 export type CompleteSubmissionBody = z.infer<typeof completeSubmissionBodySchema>;
 export type RecordManualSubmissionCompleteBody = z.infer<typeof recordManualSubmissionCompleteBodySchema>;
+export type UpdateSubmissionListingDetailsBody = z.infer<typeof updateSubmissionListingDetailsBodySchema>;
+export type DeleteAutoLaunchSubmissionQuery = z.infer<typeof deleteAutoLaunchSubmissionQuerySchema>;
 export type CreateAdminAutoLaunchDestinationBody = z.infer<typeof createAdminAutoLaunchDestinationBodySchema>;
 export type UpdateAdminAutoLaunchDestinationBody = z.infer<typeof updateAdminAutoLaunchDestinationBodySchema>;

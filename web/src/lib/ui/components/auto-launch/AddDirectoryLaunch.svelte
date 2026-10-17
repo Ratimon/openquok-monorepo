@@ -1,11 +1,16 @@
 <script lang="ts">
-	import type { AutoLaunchDestinationDto, AutoLaunchProductProfileDto } from '$lib/auto-launch/auto-launch.types';
+	import type {
+		AutoLaunchDestinationDto,
+		AutoLaunchProductProfileDto,
+		AutoLaunchSubmissionDto
+	} from '$lib/auto-launch/auto-launch.types';
+
+	import { page } from '$app/state';
 
 	import { getRootPathAccount } from '$lib/area-protected';
 	import { autoLaunchRepository } from '$lib/auto-launch';
 	import {
 		buildDirectoryAddChannelTiles,
-		directoryAddChannelLogoFallbackLabel,
 		type DirectoryAddChannelTileVm
 	} from '$lib/auto-launch/buildDirectoryAddChannelTiles';
 	import { buildDirectoryLaunchPickerItems } from '$lib/auto-launch/groupDirectoryLaunchDestinations';
@@ -22,7 +27,9 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import BrowserExtensionConnectDialog from '$lib/ui/components/posts/BrowserExtensionConnectDialog.svelte';
 	import ProductProfileComposer from '$lib/ui/components/auto-launch/ProductProfileComposer.svelte';
+	import DirectoryChannelListingDetailsModal from '$lib/ui/components/auto-launch/DirectoryChannelListingDetailsModal.svelte';
 	import DirectoryLaunchDestinationActions from '$lib/ui/components/auto-launch/DirectoryLaunchDestinationActions.svelte';
+	import DirectoryAddChannelTileIcon from '$lib/ui/components/auto-launch/DirectoryAddChannelTileIcon.svelte';
 	import { cn } from '$lib/ui/helpers/common';
 
 	type Props = {
@@ -44,6 +51,7 @@
 		launcherOpen?: boolean;
 		/** Open directory site tiles first (same pattern as Add Channel), then paths for that site. */
 		sitePickerFirst?: boolean;
+		onDirectoryListingSaved?: (submission: AutoLaunchSubmissionDto) => void | Promise<void>;
 	};
 
 	let {
@@ -59,7 +67,8 @@
 		destinationsDialogTitle = 'Launch to directory',
 		showTrigger = true,
 		launcherOpen = $bindable(false),
-		sitePickerFirst = false
+		sitePickerFirst = false,
+		onDirectoryListingSaved
 	}: Props = $props();
 
 	const rootPathAccount = getRootPathAccount();
@@ -92,7 +101,15 @@
 	let busyDestinationId = $state<string | null>(null);
 	let completedDestinationIds = $state<Set<string>>(new Set());
 
+	let listingDetailsOpen = $state(false);
+	let listingDetailsSubmitting = $state(false);
+	let manualCompleteDestination = $state<AutoLaunchDestinationDto | null>(null);
+	let manualCompleteProfileId = $state<string | null>(null);
+
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
+	const suggestedAuthEmail = $derived(
+		(page.data as App.LayoutData)?.currentUser?.email?.trim() ?? null
+	);
 
 	const effectiveProviderSlugPrefix = $derived(
 		(pickedSitePrefix ?? providerSlugPrefix)?.trim() || ''
@@ -103,6 +120,10 @@
 	);
 
 	const scopedDestinations = $derived.by(() => {
+		const singleSlug = destinationProviderSlug?.trim();
+		if (singleSlug) {
+			return destinations.filter((d) => d.providerSlug === singleSlug);
+		}
 		const prefix = effectiveProviderSlugPrefix;
 		if (!prefix) return destinations;
 		return destinations.filter((d) => d.providerSlug.startsWith(prefix));
@@ -268,7 +289,7 @@
 				extensionOpen = true;
 				pendingIntentProfileId = selectedProfileId;
 			} else {
-				void markDestinationComplete(destination, selectedProfileId);
+				openManualCompleteModal(destination, selectedProfileId);
 			}
 			return;
 		}
@@ -280,26 +301,47 @@
 		beginDestinationFlow(destination, 'extension');
 	}
 
-	async function markDestinationComplete(
-		destination: AutoLaunchDestinationDto,
-		profileId: string
-	) {
+	function openManualCompleteModal(destination: AutoLaunchDestinationDto, profileId: string) {
+		manualCompleteDestination = destination;
+		manualCompleteProfileId = profileId;
+		listingDetailsOpen = true;
+	}
+
+	async function submitManualComplete(values: {
+		destinationId: string;
+		listingUrl: string;
+		listingDofollow: boolean;
+		authEmail: string;
+	}) {
 		const orgId = workspaceId;
-		if (!orgId) return;
+		const profileId = manualCompleteProfileId;
+		const destination = manualCompleteDestination;
+		if (!orgId || !profileId || !destination) return;
+
+		listingDetailsSubmitting = true;
 		busyDestinationId = destination.id;
 		try {
 			const result = await autoLaunchRepository.recordManualSubmissionComplete({
 				organizationId: orgId,
 				productProfileId: profileId,
-				destinationId: destination.id
+				destinationId: values.destinationId,
+				listingUrl: values.listingUrl,
+				listingDofollow: values.listingDofollow,
+				authEmail: values.authEmail
 			});
 			if (!result.ok) {
 				toast.error(result.error);
 				return;
 			}
 			toast.success('Marked as complete for this product.');
+			listingDetailsOpen = false;
+			manualCompleteDestination = null;
+			manualCompleteProfileId = null;
+			destinationsOpen = false;
+			await onDirectoryListingSaved?.(result.submission);
 			await refreshCompletedDestinations();
 		} finally {
+			listingDetailsSubmitting = false;
 			busyDestinationId = null;
 		}
 	}
@@ -313,7 +355,7 @@
 			return;
 		}
 		if (pendingFlow === 'manual') {
-			void markDestinationComplete(destination, id);
+			openManualCompleteModal(destination, id);
 			return;
 		}
 		destinationsOpen = false;
@@ -349,7 +391,7 @@
 		userSelectedProfileId = created.profile.id;
 		const destination = selectedDestination;
 		if (pendingFlow === 'manual' && destination) {
-			void markDestinationComplete(destination, created.profile.id);
+			openManualCompleteModal(destination, created.profile.id);
 			return;
 		}
 		extensionOpen = true;
@@ -464,25 +506,16 @@
 						onclick={() => openDestinationsForSite(tile)}
 					>
 						<div class="grid h-10 w-10 place-items-center rounded-lg bg-base-200">
-							{#if directoryTileShowsLogo(tile) && tile.logoUrl}
-								<img
-									src={tile.logoUrl}
-									alt=""
-									class="h-6 w-6 rounded object-contain"
-									width="24"
-									height="24"
-									onerror={() => {
-										directoryLogoFailedBySiteKey = {
-											...directoryLogoFailedBySiteKey,
-											[tile.siteKey]: true
-										};
-									}}
-								/>
-							{:else}
-								<span class="text-xs font-semibold text-base-content/80">
-									{directoryAddChannelLogoFallbackLabel(tile.label)}
-								</span>
-							{/if}
+							<DirectoryAddChannelTileIcon
+								{tile}
+								showLogo={directoryTileShowsLogo(tile)}
+								onLogoError={() => {
+									directoryLogoFailedBySiteKey = {
+										...directoryLogoFailedBySiteKey,
+										[tile.siteKey]: true
+									};
+								}}
+							/>
 						</div>
 						<span class="line-clamp-2 text-xs font-medium text-base-content">{tile.label}</span>
 					</button>
@@ -616,7 +649,7 @@
 		{/if}
 
 		<Dialog.Footer class="gap-2">
-			<Button type="button" variant="outline" onclick={cancelProfilePicker}>Back</Button>
+			<Button type="button" variant="ghost" onclick={cancelProfilePicker}>Back</Button>
 			<Button type="button" onclick={openCreateProfile}>New product profile</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
@@ -634,3 +667,30 @@
 	onSubmit={submitExtensionHandoff}
 	onCancel={cancelExtension}
 />
+
+{#if manualCompleteDestination && manualCompleteProfileId}
+	<DirectoryChannelListingDetailsModal
+		bind:open={listingDetailsOpen}
+		mode="complete"
+		siteLabel={manualCompleteDestination.name}
+		variantOptions={[
+			{
+				destinationId: manualCompleteDestination.id,
+				label: manualCompleteDestination.name
+			}
+		]}
+		initialDestinationId={manualCompleteDestination.id}
+		initialListingUrl=""
+		initialListingDofollow={false}
+		initialAuthEmail=""
+		{suggestedAuthEmail}
+		submitting={listingDetailsSubmitting}
+		onSubmit={submitManualComplete}
+		onCancel={() => {
+			if (listingDetailsSubmitting) return;
+			listingDetailsOpen = false;
+			manualCompleteDestination = null;
+			manualCompleteProfileId = null;
+		}}
+	/>
+{/if}

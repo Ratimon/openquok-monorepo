@@ -3,6 +3,11 @@
 	import type { CreateSocialPostChannelViewModel } from '$lib/channels';
 	import type { SetRowViewModel, SetSnapshotViewModel } from '$lib/sets';
 	import type { PostsLimitContext } from '$lib/ui/components/posts/postsLimitContext';
+	import type { AccountHomeDashboardTab } from '$lib/ui/components/home/AccountHomeDashboardTabs.svelte';
+	import type {
+		AutoLaunchProfileMediaPatch,
+		AutoLaunchProfileSavePayload
+	} from '$lib/auto-launch/AutoLaunchProducts.presenter.svelte';
 
 	// --- App / routing ---
 	import { browser } from '$app/environment';
@@ -26,9 +31,7 @@
 		protectedSettingsPagePresenter,
 		WorkspaceSettingsStatus
 	} from '$lib/area-protected';
-	import { STACK_HOME_WORKSPACE_CHANNEL_PREVIEW_LIMIT } from '$lib/area-protected/GetHomeWorkspaces.presenter.svelte';
 	import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
-	import { getRootPathPublicAgents } from '$lib/area-public/constants/getRootPathPublicAgents';
 	import { getRootPathPublicBlogPost } from '$lib/area-public/constants/getRootPathPublicBlog';
 	import { getSetPresenter } from '$lib/sets';
 	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
@@ -78,7 +81,6 @@
 	import AccountPlanOverviewSection from '$lib/ui/components/home/AccountPlanOverviewSection.svelte';
 	import MyChannelsSection from '$lib/ui/components/channels/MyChannelsSection.svelte';
 	import MyProductsTab from '$lib/ui/components/account/MyProductsTab.svelte';
-	import type { AccountHomeDashboardTab } from '$lib/ui/components/home/AccountHomeDashboardTabs.svelte';
 	import MyWorkspacesSection from '$lib/ui/components/workspaces/MyWorkspacesSection.svelte';
 	import { postsLimitKey } from '$lib/ui/components/posts/postsLimitContext';
 	import {
@@ -107,12 +109,6 @@
 	const cliDocsHref = $derived(
 		hostedMarketingHref(`${publicDocsPath}/getting-started-for-cli`, page.url.origin)
 	);
-	const cliAuthDocsHref = $derived(
-		hostedMarketingHref(`${publicDocsPath}/getting-started-for-cli/authentication`, page.url.origin)
-	);
-	const thinkrailGuideHref = $derived(
-		hostedMarketingHref(`${publicDocsPath}/agent-setup-guides/thinkrail`, page.url.origin)
-	);
 	const mcpSetupGuidesHref = $derived(
 		hostedMarketingHref(`${publicDocsPath}/mcp-setup-guides`, page.url.origin)
 	);
@@ -125,13 +121,8 @@
 		)
 	);
 
-	const rootPathPublicAgents = getRootPathPublicAgents();
-	const publicAgentsPath = route(rootPathPublicAgents);
-
 	const pagePresenter = protectedHomePagePresenter;
-	const homeWorkspacesOverviewOptions = {
-		channelPreviewLimit: STACK_HOME_WORKSPACE_CHANNEL_PREVIEW_LIMIT
-	};
+	const autoLaunchProductsPresenter = pagePresenter.autoLaunchProductsPresenter;
 	const postKanbanBoard = pagePresenter.postKanbanBoardPresenter;
 	const channelsGridPresenter = pagePresenter.channelsGridTable;
 	const channelsFilterPresenter = pagePresenter.channelsGridFilterBuilder;
@@ -190,6 +181,10 @@
 		protectedHomePagePresenter.channelRowsUngroupedVm
 	);
 	const connectedChannelsVm = $derived(protectedHomePagePresenter.connectedChannelsVm);
+
+	const productsLoadingVm = $derived(autoLaunchProductsPresenter.loading);
+	const productLaunchCardRowsVm = $derived(autoLaunchProductsPresenter.profileLaunchCardRowsVm);
+	const productsEditingProfileVm = $derived(autoLaunchProductsPresenter.editingProfileVm);
 
 	$effect(() => {
 		const orgId = workspaceId;
@@ -887,10 +882,26 @@
 	});
 
 	$effect(() => {
+		const orgId = workspaceId;
+		if (!orgId || !browser) return;
+		scheduleDeferredWork(() => {
+			void autoLaunchProductsPresenter.loadProductsTab();
+		}, 'soon');
+	});
+
+	$effect(() => {
+		void autoLaunchProductsPresenter.profilesVm;
+		autoLaunchProductsPresenter.syncComposerFromUrl(
+			page.url.searchParams.get('edit'),
+			page.url.searchParams.get('tab')
+		);
+	});
+
+	$effect(() => {
 		const workspaceIdsKey = workspacesVm.map((w) => w.id).join(',');
 		if (!workspaceIdsKey || !browser) return;
 		scheduleDeferredWork(() => {
-			void pagePresenter.loadMyWorkspacesOverview(currentUser, homeWorkspacesOverviewOptions);
+			void pagePresenter.loadMyWorkspacesOverview(currentUser);
 		}, 'soon');
 	});
 
@@ -915,6 +926,32 @@
 		if (changed) pagePresenter.myWorkspacesCardsVm = next;
 	});
 
+	async function handleProductsSaveProfile(
+		values: AutoLaunchProfileSavePayload,
+		uploadMediaForProfile: (profileId: string) => Promise<AutoLaunchProfileMediaPatch | undefined>
+	): Promise<void> {
+		const resultVm = await autoLaunchProductsPresenter.saveProfile(values, uploadMediaForProfile);
+		if (!resultVm.ok) {
+			toast.error(resultVm.error);
+			return;
+		}
+		toast.success(
+			resultVm.created ? 'Business profile created.' : 'Business profile updated.'
+		);
+		if (resultVm.shouldRefreshChannelGroups) {
+			void pagePresenter.loadChannelGroups();
+		}
+	}
+
+	async function handleProductsDeleteProfile(profileId: string): Promise<void> {
+		const resultVm = await autoLaunchProductsPresenter.deleteProfile(profileId);
+		if (!resultVm.ok) {
+			toast.error(resultVm.error);
+			return;
+		}
+		toast.success('Business profile removed.');
+	}
+
 	function handleSwitchWorkspace(nextWorkspaceId: string) {
 		workspaceSettingsPresenter.switchWorkspace(nextWorkspaceId);
 	}
@@ -934,7 +971,7 @@
 	async function handleAcceptPendingInvite(inviteId: string) {
 		const result = await workspaceSettingsPresenter.acceptPendingInvite(inviteId);
 		if (result.success) {
-			void pagePresenter.loadMyWorkspacesOverview(currentUser, homeWorkspacesOverviewOptions);
+			void pagePresenter.loadMyWorkspacesOverview(currentUser);
 		}
 		return result;
 	}
@@ -942,7 +979,7 @@
 	async function handleCreateWorkspace(name: string) {
 		const result = await protectedSettingsPagePresenter.createWorkspace(name);
 		if (result.success) {
-			void pagePresenter.loadMyWorkspacesOverview(currentUser, homeWorkspacesOverviewOptions);
+			void pagePresenter.loadMyWorkspacesOverview(currentUser);
 		}
 		return result;
 	}
@@ -950,7 +987,7 @@
 	$effect(() => {
 		if (listStatus !== 'ready' || !workspaceId || !browser) return;
 		scheduleDeferredWork(() => {
-			void pagePresenter.loadMyWorkspacesOverview(currentUser, homeWorkspacesOverviewOptions);
+			void pagePresenter.loadMyWorkspacesOverview(currentUser);
 		}, 'soon');
 	});
 </script>
@@ -1102,7 +1139,27 @@
 				feedUnreadCount={feedUnreadCount}
 			>
 				{#snippet products()}
-					<MyProductsTab />
+					<MyProductsTab
+						workspaceId={workspaceId}
+						suggestedAuthEmail={currentUser?.email?.trim() ?? null}
+						loading={productsLoadingVm}
+						profileLaunchCardRowsVm={productLaunchCardRowsVm}
+						bind:composerOpen={autoLaunchProductsPresenter.composerOpen}
+						composerSubmitting={autoLaunchProductsPresenter.composerSubmitting}
+						editingProfile={productsEditingProfileVm}
+						composerInitialTab={autoLaunchProductsPresenter.composerInitialTab}
+						onOpenCreate={() => autoLaunchProductsPresenter.openCreateComposer()}
+						onOpenEdit={(profileId, tab) => autoLaunchProductsPresenter.openEditComposer(profileId, tab)}
+						onDeleteProfile={(id) => void handleProductsDeleteProfile(id)}
+						onSaveProfile={handleProductsSaveProfile}
+						onComposerCancel={() => autoLaunchProductsPresenter.closeComposer()}
+						onDirectoryListingSaved={(submission) => {
+							autoLaunchProductsPresenter.applySubmission(submission);
+						}}
+						onDirectoryListingRemoved={({ productProfileId, submissionId }) => {
+							autoLaunchProductsPresenter.removeSubmission(productProfileId, submissionId);
+						}}
+					/>
 				{/snippet}
 				{#snippet channels()}
 					<MyChannelsSection

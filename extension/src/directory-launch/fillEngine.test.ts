@@ -1,5 +1,5 @@
 import type { AutoLaunchProfileSnapshot, LaunchStepField } from 'openquok-common';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { countFilled, fillLaunchField, fillLaunchStep } from './fillEngine.js';
 
@@ -34,16 +34,16 @@ describe('fillLaunchField', () => {
 		document.body.innerHTML = '';
 	});
 
-	it('returns not_in_profile when the profile path is empty', () => {
-		const result = fillLaunchField(
+	it('returns not_in_profile when the profile path is empty', async () => {
+		const result = await fillLaunchField(
 			snapshot({ name: '   ' }),
 			field({ key: 'name', label: 'Name', profilePath: 'name' })
 		);
 		expect(result.status).toBe('not_in_profile');
 	});
 
-	it('returns not_found when selectorHint does not match', () => {
-		const result = fillLaunchField(
+	it('returns not_found when selectorHint does not match', async () => {
+		const result = await fillLaunchField(
 			snapshot(),
 			field({
 				key: 'name',
@@ -55,12 +55,12 @@ describe('fillLaunchField', () => {
 		expect(result.status).toBe('not_found');
 	});
 
-	it('fills text inputs by default', () => {
+	it('fills text inputs by default', async () => {
 		const input = document.createElement('input');
 		input.id = 'product-name';
 		document.body.appendChild(input);
 
-		const result = fillLaunchField(
+		const result = await fillLaunchField(
 			snapshot(),
 			field({
 				key: 'name',
@@ -74,7 +74,7 @@ describe('fillLaunchField', () => {
 		expect(input.value).toBe('Acme');
 	});
 
-	it('fills native select controls when fillMode is select', () => {
+	it('fills native select controls when fillMode is select', async () => {
 		const select = document.createElement('select');
 		select.id = 'pricing';
 		const free = document.createElement('option');
@@ -86,7 +86,7 @@ describe('fillLaunchField', () => {
 		select.append(free, paid);
 		document.body.appendChild(select);
 
-		const result = fillLaunchField(
+		const result = await fillLaunchField(
 			snapshot({ profile_data: { pricing_type: 'paid' } }),
 			field({
 				key: 'pricing',
@@ -101,13 +101,13 @@ describe('fillLaunchField', () => {
 		expect(select.value).toBe('paid');
 	});
 
-	it('toggles checkbox inputs when fillMode is boolean', () => {
+	it('toggles checkbox inputs when fillMode is boolean', async () => {
 		const checkbox = document.createElement('input');
 		checkbox.type = 'checkbox';
 		checkbox.id = 'open-source';
 		document.body.appendChild(checkbox);
 
-		const result = fillLaunchField(
+		const result = await fillLaunchField(
 			snapshot({ profile_data: { is_open_source: true } }),
 			field({
 				key: 'open_source',
@@ -122,14 +122,14 @@ describe('fillLaunchField', () => {
 		expect(checkbox.checked).toBe(true);
 	});
 
-	it('sets rich HTML on contenteditable targets when fillMode is rich_html', () => {
+	it('sets rich HTML on contenteditable targets when fillMode is rich_html', async () => {
 		const editor = document.createElement('div');
 		editor.className = 'ProseMirror';
 		editor.id = 'description';
 		document.body.appendChild(editor);
 
 		const html = '<p>Ship <strong>faster</strong></p>';
-		const result = fillLaunchField(
+		const result = await fillLaunchField(
 			snapshot({ description: html }),
 			field({
 				key: 'description',
@@ -144,12 +144,12 @@ describe('fillLaunchField', () => {
 		expect(editor.innerHTML).toBe(html);
 	});
 
-	it('enters tag chips when fillMode is tags', () => {
+	it('enters tag chips when fillMode is tags', async () => {
 		const input = document.createElement('input');
 		input.id = 'tags';
 		document.body.appendChild(input);
 
-		const result = fillLaunchField(
+		const result = await fillLaunchField(
 			snapshot({ profile_data: { tags: ['devtools', 'saas'] } }),
 			field({
 				key: 'tags',
@@ -164,33 +164,90 @@ describe('fillLaunchField', () => {
 		expect(input.value).toBe('saas');
 	});
 
-	it('skips file inputs', () => {
-		const file = document.createElement('input');
-		file.type = 'file';
-		file.id = 'logo';
-		document.body.appendChild(file);
+	it('enters PeerPush discovery tag lists from comma-joined profile arrays', async () => {
+		const input = document.createElement('input');
+		input.id = 'categories';
+		document.body.appendChild(input);
 
-		const result = fillLaunchField(
+		const result = await fillLaunchField(
+			snapshot({
+				profile_data: {
+					categories: ['Developer Tools', 'Productivity'],
+					use_cases: ['Launch marketing'],
+					platforms: ['Web', 'macOS'],
+				},
+			}),
+			field({
+				key: 'categories',
+				label: 'Categories',
+				profilePath: 'profile_data.categories',
+				selectorHint: '#categories',
+				fillMode: 'tags',
+			})
+		);
+
+		expect(result.status).toBe('found');
+		expect(input.value).toBe('Productivity');
+	});
+
+	it('fills optional MRR as text from profile_data.monthly_revenue_usd', async () => {
+		const input = document.createElement('input');
+		input.id = 'mrr';
+		document.body.appendChild(input);
+
+		const result = await fillLaunchField(
+			snapshot({ profile_data: { monthly_revenue_usd: 4200 } }),
+			field({
+				key: 'monthly_revenue_usd',
+				label: 'Monthly recurring revenue (optional)',
+				profilePath: 'profile_data.monthly_revenue_usd',
+				selectorHint: '#mrr',
+			})
+		);
+
+		expect(result.status).toBe('found');
+		expect(input.value).toBe('4200');
+	});
+
+	it('fills logo file inputs from stored profile media', async () => {
+		const fileInput = document.createElement('input');
+		fileInput.type = 'file';
+		fileInput.id = 'logo';
+		document.body.appendChild(fileInput);
+
+		vi.stubGlobal(
+			'fetch',
+			vi.fn().mockResolvedValue({
+				ok: true,
+				blob: async () => new Blob(['png'], { type: 'image/png' }),
+			})
+		);
+
+		const result = await fillLaunchField(
 			snapshot({ logo_url: 'org/profile/logo.png' }),
 			field({
 				key: 'logo',
 				label: 'Logo',
 				profilePath: 'logo_url',
-				selectorHint: '#logo'
-			})
+				selectorHint: '#logo',
+				fillMode: 'file',
+			}),
+			{ dashboardOrigin: 'https://app.openquok.com' }
 		);
 
-		expect(result.status).toBe('skipped');
+		expect(result.status).toBe('found');
+		expect(fileInput.files?.length).toBe(1);
+		vi.unstubAllGlobals();
 	});
 });
 
 describe('fillLaunchStep', () => {
-	it('aggregates per-field results and counts filled rows', () => {
+	it('aggregates per-field results and counts filled rows', async () => {
 		const input = document.createElement('input');
 		input.id = 'name';
 		document.body.appendChild(input);
 
-		const results = fillLaunchStep(snapshot(), {
+		const results = await fillLaunchStep(snapshot(), {
 			id: 'general',
 			label: 'General',
 			fields: [

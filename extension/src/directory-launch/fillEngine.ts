@@ -6,7 +6,12 @@ import type {
 	LaunchStepFieldFillMode,
 } from 'openquok-common';
 
-import { resolveProfileValue } from './profileValues.js';
+import { fetchProfileMediaFile } from './profileMediaFetch.js';
+import { resolveProfileStoragePathList, resolveProfileValue } from './profileValues.js';
+
+export type FillLaunchContext = {
+	dashboardOrigin: string;
+};
 
 function stripHtmlToPlainText(html: string): string {
 	return html
@@ -33,6 +38,87 @@ function queryFieldElement(selectorHint?: string): Element | null {
 		}
 	}
 	return null;
+}
+
+function queryFileInputs(selectorHint?: string): HTMLInputElement[] {
+	const results: HTMLInputElement[] = [];
+	const seen = new Set<HTMLInputElement>();
+	const parts = selectorHint?.trim()
+		? selectorHint.split(',').map((part) => part.trim()).filter(Boolean)
+		: ['input[type="file"]'];
+	for (const selector of parts) {
+		try {
+			for (const el of document.querySelectorAll(selector)) {
+				if (el instanceof HTMLInputElement && el.type === 'file' && !seen.has(el)) {
+					seen.add(el);
+					results.push(el);
+				}
+			}
+		} catch {
+			/* invalid selector */
+		}
+	}
+	return results;
+}
+
+function defaultFileInputIndex(field: LaunchStepField, fillMode: LaunchStepFieldFillMode): number {
+	if (field.fileInputIndex !== undefined) return field.fileInputIndex;
+	if (fillMode === 'files' || field.profilePath.includes('gallery_urls')) return 1;
+	return 0;
+}
+
+function resolveFileInput(field: LaunchStepField, fillMode: LaunchStepFieldFillMode): HTMLInputElement | null {
+	const index = defaultFileInputIndex(field, fillMode);
+	const fromHint = queryFileInputs(field.selectorHint);
+	if (fromHint[index]) return fromHint[index];
+	if (index === 0 && fromHint[0]) return fromHint[0];
+	const all = Array.from(document.querySelectorAll('input[type="file"]')).filter(
+		(el): el is HTMLInputElement => el instanceof HTMLInputElement
+	);
+	return all[index] ?? null;
+}
+
+function asFileList(files: File[]): FileList {
+	const list = {
+		length: files.length,
+		item(index: number) {
+			return files[index] ?? null;
+		},
+		*[Symbol.iterator]() {
+			for (const file of files) yield file;
+		},
+	} as FileList;
+	return list;
+}
+
+function assignFilesToInput(input: HTMLInputElement, files: File[]): boolean {
+	if (files.length === 0) return false;
+	if (typeof DataTransfer !== 'undefined') {
+		const transfer = new DataTransfer();
+		for (const file of files) {
+			transfer.items.add(file);
+		}
+		input.files = transfer.files;
+	} else {
+		Object.defineProperty(input, 'files', {
+			configurable: true,
+			value: asFileList(files),
+		});
+	}
+	input.dispatchEvent(new Event('input', { bubbles: true }));
+	input.dispatchEvent(new Event('change', { bubbles: true }));
+	return true;
+}
+
+function isFileFillMode(fillMode: LaunchStepFieldFillMode | undefined): boolean {
+	return fillMode === 'file' || fillMode === 'files';
+}
+
+function resolveFillMode(field: LaunchStepField): LaunchStepFieldFillMode {
+	if (field.fillMode) return field.fillMode;
+	if (field.profilePath === 'logo_url') return 'file';
+	if (field.profilePath.includes('gallery_urls')) return 'files';
+	return 'text';
 }
 
 function setNativeInputValue(element: HTMLInputElement | HTMLTextAreaElement, value: string): void {
@@ -258,10 +344,78 @@ function fillByMode(
 	}
 }
 
-export function fillLaunchField(
+async function fillFileLaunchField(
 	snapshot: AutoLaunchProfileSnapshot,
-	field: LaunchStepField
-): FieldFillResult {
+	field: LaunchStepField,
+	context: FillLaunchContext
+): Promise<FieldFillResult> {
+	const paths = resolveProfileStoragePathList(snapshot, field.profilePath);
+	if (paths.length === 0) {
+		return { key: field.key, label: field.label, status: 'not_in_profile' };
+	}
+
+	const fillMode = resolveFillMode(field);
+	const input = resolveFileInput(field, fillMode);
+	if (!input) {
+		return {
+			key: field.key,
+			label: field.label,
+			status: 'not_found',
+			message: 'File input not found on this page.',
+		};
+	}
+
+	const pathsToLoad = fillMode === 'files' ? paths : [paths[0]];
+	const files: File[] = [];
+
+	for (const path of pathsToLoad) {
+		const file = await fetchProfileMediaFile(context.dashboardOrigin, path);
+		if (file) files.push(file);
+	}
+
+	if (files.length === 0) {
+		return {
+			key: field.key,
+			label: field.label,
+			status: 'error',
+			message: 'Could not download image from OpenQuok.',
+		};
+	}
+
+	const assigned = assignFilesToInput(input, files);
+	if (!assigned) {
+		return {
+			key: field.key,
+			label: field.label,
+			status: 'error',
+			message: 'Could not attach file to the upload control.',
+		};
+	}
+
+	return { key: field.key, label: field.label, status: 'found' };
+}
+
+export async function fillLaunchField(
+	snapshot: AutoLaunchProfileSnapshot,
+	field: LaunchStepField,
+	context?: FillLaunchContext
+): Promise<FieldFillResult> {
+	const fillMode = resolveFillMode(field);
+
+	if (isFileFillMode(fillMode)) {
+		if (!context?.dashboardOrigin?.trim()) {
+			return {
+				key: field.key,
+				label: field.label,
+				status: 'error',
+				message: 'OpenQuok dashboard origin missing — restart launch from OpenQuok.',
+			};
+		}
+		return fillFileLaunchField(snapshot, field, {
+			dashboardOrigin: context.dashboardOrigin.trim(),
+		});
+	}
+
 	const value = resolveProfileValue(snapshot, field.profilePath);
 	if (value === null || value === undefined) {
 		return { key: field.key, label: field.label, status: 'not_in_profile' };
@@ -282,11 +436,9 @@ export function fillLaunchField(
 			key: field.key,
 			label: field.label,
 			status: 'skipped',
-			message: 'File uploads must be added manually.',
+			message: 'Set fillMode to "file" or "files" for upload fields.',
 		};
 	}
-
-	const fillMode = field.fillMode ?? 'text';
 
 	try {
 		const filled = fillByMode(element, value, fillMode);
@@ -305,12 +457,17 @@ export function fillLaunchField(
 	}
 }
 
-export function fillLaunchStep(
+export async function fillLaunchStep(
 	snapshot: AutoLaunchProfileSnapshot,
-	step: LaunchStep
-): FieldFillResult[] {
+	step: LaunchStep,
+	context?: FillLaunchContext
+): Promise<FieldFillResult[]> {
 	const fields = step.fields ?? [];
-	return fields.map((field) => fillLaunchField(snapshot, field));
+	const results: FieldFillResult[] = [];
+	for (const field of fields) {
+		results.push(await fillLaunchField(snapshot, field, context));
+	}
+	return results;
 }
 
 export function countFilled(results: FieldFillResult[]): { filled: number; total: number } {

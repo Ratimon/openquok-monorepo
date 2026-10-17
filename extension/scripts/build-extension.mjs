@@ -20,6 +20,8 @@ const contentScriptSpecs = [
 	{ name: 'uneed-join-line', file: 'uneed-join-line.ts' },
 	{ name: 'uneed-paid-launch', file: 'uneed-paid-launch.ts' },
 	{ name: 'uneed-maker-profile', file: 'uneed-maker-profile.ts' },
+	{ name: 'peerpush-standard-launch', file: 'peerpush-standard-launch.ts' },
+	{ name: 'peerpush-free-queue', file: 'peerpush-free-queue.ts' },
 ];
 
 let emptyOutDir = true;

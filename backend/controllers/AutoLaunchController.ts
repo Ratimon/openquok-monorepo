@@ -183,6 +183,44 @@ export class AutoLaunchController {
         }
     };
 
+    /** DELETE /auto-launch/submissions/:id?organizationId= */
+    deleteSubmission = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+            const submissionId = String(req.params.id ?? "");
+            const query = req.query as unknown as import("../data/schemas/autoLaunchSchemas").DeleteAutoLaunchSubmissionQuery;
+            await this.autoLaunchService.deleteCompletedSubmission(
+                authUserId,
+                submissionId,
+                query.organizationId
+            );
+            res.status(200).json({ success: true, data: null });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** PATCH /auto-launch/submissions/:id/listing-details */
+    updateSubmissionListingDetails = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+            const submissionId = String(req.params.id ?? "");
+            const body = req.body as import("../data/schemas/autoLaunchSchemas").UpdateSubmissionListingDetailsBody;
+            const row = await this.autoLaunchService.updateSubmissionListingDetails(
+                authUserId,
+                submissionId,
+                body
+            );
+            res.status(200).json({ success: true, data: toAutoLaunchSubmissionDto(row) });
+        } catch (error) {
+            next(error);
+        }
+    };
+
     /** POST /auto-launch/submissions/intent */
     createSubmissionIntent = async (req: Request, res: Response, next: NextFunction) => {
         try {

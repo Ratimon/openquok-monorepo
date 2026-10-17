@@ -9,8 +9,13 @@ import type {
 } from 'openquok-common';
 import {
 	BUSINESS_PROFILE_INCLUDED_ASSET_SLUGS,
+	BUSINESS_PROFILE_MAX_ALTERNATIVES,
+	BUSINESS_PROFILE_MAX_CATEGORIES,
 	BUSINESS_PROFILE_MAX_GALLERY_URLS,
+	BUSINESS_PROFILE_MAX_PLATFORMS,
 	BUSINESS_PROFILE_MAX_TAGS,
+	BUSINESS_PROFILE_MAX_TARGET_AUDIENCES,
+	BUSINESS_PROFILE_MAX_USE_CASES,
 	BUSINESS_PROFILE_PRICING_TYPES,
 	BUSINESS_PROFILE_SELLING_REASON_MIN_LENGTH
 } from 'openquok-common';
@@ -57,11 +62,11 @@ export type AutoLaunchDestinationDto = {
 	siteTitle: string | null;
 	pickerGroupKey: string | null;
 	pickerGroupTitle: string | null;
+	extensionConfig: AutoLaunchExtensionConfig;
 };
 
 export type AutoLaunchAdminDestinationDto = AutoLaunchDestinationDto & {
 	linkDirectoryOpportunityId: string | null;
-	extensionConfig: AutoLaunchExtensionConfig;
 	isPublished: boolean;
 	createdAt: string;
 	updatedAt: string;
@@ -83,6 +88,8 @@ export type AutoLaunchSubmissionDto = {
 	destinationId: string;
 	status: string;
 	listingUrl: string | null;
+	listingDofollow: boolean;
+	authEmail: string | null;
 	intentCreatedAt: string | null;
 	completedAt: string | null;
 	listingSyncedAt: string | null;
@@ -170,6 +177,31 @@ export const businessProfileDataFormSchema = z
 			])
 		),
 		category: nullableTrimmedString(200),
+		categories: z
+			.array(z.string().trim().min(1).max(80))
+			.max(BUSINESS_PROFILE_MAX_CATEGORIES)
+			.optional()
+			.default([]),
+		use_cases: z
+			.array(z.string().trim().min(1).max(80))
+			.max(BUSINESS_PROFILE_MAX_USE_CASES)
+			.optional()
+			.default([]),
+		target_audiences: z
+			.array(z.string().trim().min(1).max(80))
+			.max(BUSINESS_PROFILE_MAX_TARGET_AUDIENCES)
+			.optional()
+			.default([]),
+		platforms: z
+			.array(z.string().trim().min(1).max(80))
+			.max(BUSINESS_PROFILE_MAX_PLATFORMS)
+			.optional()
+			.default([]),
+		alternatives: z
+			.array(z.string().trim().min(1).max(200))
+			.max(BUSINESS_PROFILE_MAX_ALTERNATIVES)
+			.optional()
+			.default([]),
 		pricing_type: z
 			.union([z.enum(BUSINESS_PROFILE_PRICING_TYPES), z.null(), z.literal('')])
 			.optional()

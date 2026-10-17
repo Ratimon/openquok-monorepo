@@ -55,6 +55,25 @@ h1 {
 	margin-top: 6px;
 }
 
+.field-label {
+	display: block;
+	font-size: 11px;
+	color: #94a3b8;
+	margin-bottom: 4px;
+}
+
+.channel-select {
+	width: 100%;
+	box-sizing: border-box;
+	margin-bottom: 10px;
+	padding: 8px 10px;
+	border-radius: 8px;
+	border: 1px solid #334155;
+	background: #1e293b;
+	color: #e2e8f0;
+	font-size: 12px;
+}
+
 .actions {
 	display: flex;
 	flex-direction: column;

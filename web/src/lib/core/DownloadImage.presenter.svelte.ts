@@ -20,20 +20,27 @@ export class DownloadImagePresenter {
 	constructor(private readonly imageRepository: ImageRepository) {}
 
 	public async loadImage(databaseName: DatabaseName, imageUrl: string) {
-		const prev = this.imageVm.imageUrl;
-		if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev);
-		this.imageVm = { imageUrl: null, status: DownloadStatus.LOADING };
-
-		const blobPm = await this.imageRepository.getImageBlobByUrl(databaseName, imageUrl);
-		if (blobPm?.blob instanceof Blob) {
-			this.imageVm = {
-				imageUrl: URL.createObjectURL(blobPm.blob),
-				status: DownloadStatus.SUCCESS
-			};
+		const storageKey = imageUrl.trim();
+		if (!storageKey) {
+			this.imageVm.imageUrl = null;
+			this.imageVm.status = DownloadStatus.UNKNOWN;
 			return this.imageVm;
 		}
 
-		this.imageVm = { imageUrl: null, status: DownloadStatus.UNKNOWN };
+		const prev = this.imageVm.imageUrl;
+		if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev);
+		this.imageVm.imageUrl = null;
+		this.imageVm.status = DownloadStatus.LOADING;
+
+		const blobPm = await this.imageRepository.getImageBlobByUrl(databaseName, storageKey);
+		if (blobPm?.blob instanceof Blob) {
+			this.imageVm.imageUrl = URL.createObjectURL(blobPm.blob);
+			this.imageVm.status = DownloadStatus.SUCCESS;
+			return this.imageVm;
+		}
+
+		this.imageVm.imageUrl = null;
+		this.imageVm.status = DownloadStatus.UNKNOWN;
 		return this.imageVm;
 	}
 }

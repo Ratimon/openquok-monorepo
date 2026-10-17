@@ -1,6 +1,6 @@
 import type { ZodIssue } from 'zod';
 
-export type BusinessProfileComposerTab = 'general' | 'media' | 'socials' | 'sell';
+export type BusinessProfileComposerTab = 'general' | 'discovery' | 'media' | 'socials' | 'sell';
 
 const FIELD_LABELS: Record<string, string> = {
 	name: 'Product name',
@@ -10,6 +10,11 @@ const FIELD_LABELS: Record<string, string> = {
 	logoUrl: 'Logo',
 	'profileData.slug': 'Directory slug',
 	'profileData.category': 'Category',
+	'profileData.categories': 'Categories',
+	'profileData.use_cases': 'Use cases',
+	'profileData.target_audiences': 'Target audiences',
+	'profileData.platforms': 'Platforms',
+	'profileData.alternatives': 'Similar products',
 	'profileData.pricing_type': 'Pricing',
 	'profileData.tags': 'Tags',
 	'profileData.repository_url': 'Repository URL',
@@ -39,6 +44,17 @@ export function businessProfileFieldKeyFromIssue(path: (string | number)[]): str
 }
 
 export function businessProfileTabForFieldKey(key: string): BusinessProfileComposerTab {
+	if (
+		key === 'profileData.category' ||
+		key === 'profileData.categories' ||
+		key === 'profileData.use_cases' ||
+		key === 'profileData.target_audiences' ||
+		key === 'profileData.platforms' ||
+		key === 'profileData.alternatives'
+	) {
+		return 'discovery';
+	}
+	if (key === 'profileData.social_github' || key === 'profileData.repository_url') return 'general';
 	if (key.startsWith('profileData.social_')) return 'socials';
 	if (key === 'logoUrl' || key === 'profileData.launch_video_url' || key === 'profileData.gallery_urls') {
 		return 'media';

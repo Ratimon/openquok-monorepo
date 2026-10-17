@@ -19,6 +19,7 @@
   "permissions": ["cookies", "alarms", "storage", "tabs"],
   "host_permissions": [
     "*://*.skool.com/*",
+    "*://*.peerpush.com/*",
     "*://*.uneed.best/*",
     "https://*.openquok.com/*",
     "http://localhost/*",
@@ -40,6 +41,18 @@
     {
       "matches": ["https://uneed.best/*", "https://www.uneed.best/*"],
       "js": ["content/directory-launch/uneed-maker-profile.js"],
+      "type": "module",
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://peerpush.com/*", "https://www.peerpush.com/*"],
+      "js": ["content/directory-launch/peerpush-standard-launch.js"],
+      "type": "module",
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://peerpush.com/*", "https://www.peerpush.com/*"],
+      "js": ["content/directory-launch/peerpush-free-queue.js"],
       "type": "module",
       "run_at": "document_idle"
     }

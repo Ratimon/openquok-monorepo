@@ -16,6 +16,9 @@ import {
     listAutoLaunchSubmissionsQuerySchema,
     listBusinessProfilesQuerySchema,
     recordManualSubmissionCompleteBodySchema,
+    autoLaunchSubmissionIdParamSchema,
+    deleteAutoLaunchSubmissionQuerySchema,
+    updateSubmissionListingDetailsBodySchema,
     updateAdminAutoLaunchDestinationBodySchema,
     updateAutoLaunchProfileBodySchema,
 } from "../data/schemas/autoLaunchSchemas";
@@ -79,6 +82,24 @@ autoLaunchRouter.post(
     auth,
     validateRequest({ body: recordManualSubmissionCompleteBodySchema }),
     autoLaunchController.recordManualSubmissionComplete
+);
+autoLaunchRouter.patch(
+    "/submissions/:id/listing-details",
+    auth,
+    validateRequest({
+        params: autoLaunchSubmissionIdParamSchema,
+        body: updateSubmissionListingDetailsBodySchema,
+    }),
+    autoLaunchController.updateSubmissionListingDetails
+);
+autoLaunchRouter.delete(
+    "/submissions/:id",
+    auth,
+    validateRequest({
+        params: autoLaunchSubmissionIdParamSchema,
+        query: deleteAutoLaunchSubmissionQuerySchema,
+    }),
+    autoLaunchController.deleteSubmission
 );
 autoLaunchRouter.post(
     "/submissions/intent",

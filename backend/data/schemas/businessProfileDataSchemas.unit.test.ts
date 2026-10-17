@@ -22,6 +22,24 @@ describe("businessProfileDataSchema", () => {
         expect(result.success).toBe(false);
     });
 
+    it("rejects more than three categories", () => {
+        const result = businessProfileDataSchema.safeParse({
+            categories: ["a", "b", "c", "d"],
+        });
+        expect(result.success).toBe(false);
+    });
+
+    it("accepts discovery list fields within limits", () => {
+        const result = businessProfileDataSchema.safeParse({
+            categories: ["SaaS", "AI"],
+            use_cases: ["launch"],
+            target_audiences: ["founders"],
+            platforms: ["Web", "iOS"],
+            alternatives: ["https://example.com/alternative"],
+        });
+        expect(result.success).toBe(true);
+    });
+
     it("rejects more than three gallery paths", () => {
         const result = businessProfileDataSchema.safeParse({
             gallery_urls: ["org/p/1.png", "org/p/2.png", "org/p/3.png", "org/p/4.png"],

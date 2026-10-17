@@ -1,5 +1,6 @@
 import type { BusinessProfileData } from "openquok-common";
 
+import { parseSubmissionListingEvidence } from "../../services/autoLaunch/submissionListingEvidence";
 import { resolveAutoLaunchProfileImageUrl } from "../images/autoLaunchProfileMediaImages";
 import type {
     AutoLaunchDestinationListRow,
@@ -51,11 +52,12 @@ export type AutoLaunchDestinationDto = {
     siteTitle: string | null;
     pickerGroupKey: string | null;
     pickerGroupTitle: string | null;
+    /** Fill steps for extension autofill and profile readiness (published destinations only). */
+    extensionConfig: AutoLaunchExtensionConfig;
 };
 
 export type AutoLaunchAdminDestinationDto = AutoLaunchDestinationDto & {
     linkDirectoryOpportunityId: string | null;
-    extensionConfig: AutoLaunchExtensionConfig;
     isPublished: boolean;
     createdAt: string;
     updatedAt: string;
@@ -70,6 +72,9 @@ export type AutoLaunchSubmissionDto = {
     destinationId: string;
     status: AutoLaunchSubmissionRow["status"];
     listingUrl: string | null;
+    /** User-reported whether the live listing link is dofollow (defaults false when unset). */
+    listingDofollow: boolean;
+    authEmail: string | null;
     intentCreatedAt: string | null;
     completedAt: string | null;
     listingSyncedAt: string | null;
@@ -191,6 +196,7 @@ export function toAutoLaunchDestinationDto(row: AutoLaunchDestinationListRow): A
         siteTitle: row.site_title ?? null,
         pickerGroupKey: row.picker_group_key ?? null,
         pickerGroupTitle: row.picker_group_title ?? null,
+        extensionConfig: row.extension_config ?? {},
     };
 }
 
@@ -228,6 +234,8 @@ export function toAutoLaunchSubmissionDto(
                 : "stale"
             : "pending");
 
+    const listingEvidence = parseSubmissionListingEvidence(row.evidence);
+
     return {
         id: row.id,
         organizationId: row.organization_id,
@@ -235,6 +243,8 @@ export function toAutoLaunchSubmissionDto(
         destinationId: row.destination_id,
         status: row.status,
         listingUrl: row.listing_url,
+        listingDofollow: listingEvidence.listingDofollow,
+        authEmail: listingEvidence.authEmail,
         intentCreatedAt: row.intent_created_at,
         completedAt: row.completed_at,
         listingSyncedAt: row.listing_synced_at,

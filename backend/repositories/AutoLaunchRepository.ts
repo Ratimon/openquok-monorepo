@@ -643,6 +643,66 @@ export class AutoLaunchRepository {
         return data as AutoLaunchSubmissionRow;
     }
 
+    async updateSubmissionListingDetails(params: {
+        submissionId: string;
+        organizationId: string;
+        listingUrl?: string | null;
+        evidence: Record<string, unknown>;
+        completedByUserId?: string;
+    }): Promise<AutoLaunchSubmissionRow> {
+        const now = new Date().toISOString();
+        const update: Record<string, unknown> = {
+            evidence: params.evidence,
+            updated_at: now,
+        };
+        if (params.listingUrl !== undefined) {
+            update.listing_url = params.listingUrl;
+        }
+        if (params.completedByUserId) {
+            update.completed_by_user_id = params.completedByUserId;
+        }
+
+        const { data, error } = await this.supabase
+            .from(SUBMISSIONS_TABLE)
+            .update(update)
+            .eq("id", params.submissionId)
+            .eq("organization_id", params.organizationId)
+            .select(SUBMISSION_COLS)
+            .single();
+
+        if (error || !data) {
+            throw new DatabaseError("Error updating auto-launch submission listing details", {
+                cause: (error ?? new Error("no row")) as Error,
+                operation: "updateSubmissionListingDetails",
+                resource: { type: "table", name: SUBMISSIONS_TABLE },
+            });
+        }
+        return data as AutoLaunchSubmissionRow;
+    }
+
+    async deleteSubmission(submissionId: string, organizationId: string): Promise<void> {
+        const { error, count } = await this.supabase
+            .from(SUBMISSIONS_TABLE)
+            .delete({ count: "exact" })
+            .eq("id", submissionId)
+            .eq("organization_id", organizationId);
+
+        if (error) {
+            throw new DatabaseError("Error deleting auto-launch submission", {
+                cause: error as unknown as Error,
+                operation: "deleteSubmission",
+                resource: { type: "table", name: SUBMISSIONS_TABLE },
+            });
+        }
+        if (!count) {
+            throw new DatabaseError("Auto-launch submission not found for delete", {
+                cause: new Error("no row"),
+                operation: "deleteSubmission",
+                resource: { type: "table", name: SUBMISSIONS_TABLE },
+            });
+        }
+    }
+
     async listAllDestinations(): Promise<AutoLaunchDestinationListRow[]> {
         const { data, error } = await this.supabase
             .from(DESTINATIONS_TABLE)

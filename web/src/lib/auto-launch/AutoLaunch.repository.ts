@@ -149,7 +149,7 @@ export class AutoLaunchRepository {
 			{ withCredentials: true }
 		);
 		if (ok && submissionsDto?.data) {
-			return submissionsDto.data;
+			return submissionsDto.data.map((row) => this.normalizeSubmission(row));
 		}
 		return [];
 	}
@@ -175,15 +175,61 @@ export class AutoLaunchRepository {
 		organizationId: string;
 		productProfileId: string;
 		destinationId: string;
-		listingUrl?: string;
+		listingUrl: string;
+		listingDofollow: boolean;
+		authEmail: string;
 	}): Promise<{ ok: true; submission: AutoLaunchSubmissionDto } | { ok: false; error: string }> {
 		const { data: recordDto, ok } = await this.httpGateway.post<
 			ListResponseDto<AutoLaunchSubmissionDto>
 		>(this.config.endpoints.submissionRecordComplete, payload, { withCredentials: true });
 		if (ok && recordDto?.data) {
-			return { ok: true, submission: recordDto.data };
+			return { ok: true, submission: this.normalizeSubmission(recordDto.data) };
 		}
 		return { ok: false, error: 'Could not mark this launch as complete.' };
+	}
+
+	async updateSubmissionListingDetails(
+		submissionId: string,
+		payload: {
+			organizationId: string;
+			listingUrl?: string;
+			listingDofollow?: boolean;
+			authEmail?: string | null;
+		}
+	): Promise<{ ok: true; submission: AutoLaunchSubmissionDto } | { ok: false; error: string }> {
+		const { data: recordDto, ok } = await this.httpGateway.request<ListResponseDto<AutoLaunchSubmissionDto>>(
+			{
+				method: HttpMethod.PATCH,
+				url: this.config.endpoints.submissionListingDetails(submissionId),
+				data: payload,
+				withCredentials: true
+			}
+		);
+		if (ok && recordDto?.data) {
+			return { ok: true, submission: this.normalizeSubmission(recordDto.data) };
+		}
+		return { ok: false, error: 'Could not update listing details.' };
+	}
+
+	async deleteCompletedSubmission(
+		submissionId: string,
+		organizationId: string
+	): Promise<{ ok: true } | { ok: false; error: string }> {
+		const { ok } = await this.httpGateway.request<{ success: boolean }>({
+			method: HttpMethod.DELETE,
+			url: this.config.endpoints.submissionById(submissionId),
+			params: { organizationId },
+			withCredentials: true
+		});
+		return ok ? { ok: true } : { ok: false, error: 'Could not remove this directory completion.' };
+	}
+
+	private normalizeSubmission(dto: AutoLaunchSubmissionDto): AutoLaunchSubmissionDto {
+		return {
+			...dto,
+			listingDofollow: dto.listingDofollow ?? false,
+			authEmail: dto.authEmail ?? null
+		};
 	}
 
 	private adminOpts(fetch?: typeof globalThis.fetch) {

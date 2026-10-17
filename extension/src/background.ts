@@ -1,15 +1,29 @@
-import { AUTO_LAUNCH_MESSAGE_TYPE } from 'openquok-common';
+import { isAutoLaunchMessageType } from 'openquok-common';
 
 import { handleAutoLaunchRuntimeMessage } from './auto-launch/backgroundHandlers.js';
 import { handleExternalMessage } from './messageHandler.js';
 import { ensureRefreshAlarms, handleRefreshAlarm } from './refresh/alarms.js';
 
+function replyWhenDone(
+	promise: Promise<unknown>,
+	sendResponse: (response?: unknown) => void
+): void {
+	void promise
+		.then((result) => sendResponse(result))
+		.catch((error: unknown) => {
+			sendResponse({
+				ok: false,
+				error: error instanceof Error ? error.message : 'Extension handler failed.',
+			});
+		});
+}
+
 chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
-	void handleExternalMessage(message, sender).then(sendResponse);
+	replyWhenDone(handleExternalMessage(message, sender), sendResponse);
 	return true;
 });
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 	if (!message || typeof message !== 'object') return;
 
 	const record = message as Record<string, unknown>;
@@ -17,10 +31,10 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 	if (typeof type !== 'string') return;
 
 	const isAutoLaunch =
-		type.startsWith('OPENQUOK_AUTO_LAUNCH') || type === AUTO_LAUNCH_MESSAGE_TYPE.PROGRESS;
+		type.startsWith('OPENQUOK_AUTO_LAUNCH') || isAutoLaunchMessageType(type);
 
 	if (isAutoLaunch) {
-		void handleAutoLaunchRuntimeMessage(record).then(sendResponse);
+		replyWhenDone(handleAutoLaunchRuntimeMessage(record, sender), sendResponse);
 		return true;
 	}
 

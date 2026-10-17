@@ -12,6 +12,9 @@ const autoLaunchConfig: AutoLaunchConfig = {
 		submissions: '/api/v1/auto-launch/submissions',
 		submissionIntent: '/api/v1/auto-launch/submissions/intent',
 		submissionRecordComplete: '/api/v1/auto-launch/submissions/record-complete',
+		submissionListingDetails: (id: string) =>
+			`/api/v1/auto-launch/submissions/${encodeURIComponent(id)}/listing-details`,
+		submissionById: (id: string) => `/api/v1/auto-launch/submissions/${encodeURIComponent(id)}`,
 		adminProviderCatalog: '/api/v1/auto-launch/admin/provider-catalog',
 		adminDestinations: '/api/v1/auto-launch/admin/destinations',
 		adminDestinationById: (id: string) =>

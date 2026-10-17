@@ -21,7 +21,12 @@ import type {
     CreateAdminAutoLaunchDestinationBody,
     RecordManualSubmissionCompleteBody,
     UpdateAdminAutoLaunchDestinationBody,
+    UpdateSubmissionListingDetailsBody,
 } from "../data/schemas/autoLaunchSchemas";
+import {
+    buildManualListingEvidence,
+    mergeSubmissionListingEvidence,
+} from "./autoLaunch/submissionListingEvidence";
 import {
     AUTO_LAUNCH_OPEN_SUBMISSION_STATUSES,
     dedupeAutoLaunchSubmissionsByDestination,
@@ -445,6 +450,11 @@ export class AutoLaunchService {
             profileSnapshot,
             extensionConfig
         );
+        const listingEvidence = buildManualListingEvidence({
+            listingDofollow: input.listingDofollow,
+            authEmail: input.authEmail ?? null,
+        });
+        const listingUrl = input.listingUrl ?? null;
 
         const existingCompleted =
             await this.autoLaunchRepository.findLatestSubmissionForProductDestination({
@@ -457,7 +467,7 @@ export class AutoLaunchService {
             if (
                 isCompletedSubmissionListingStale(existingCompleted, profileSnapshot)
             ) {
-                return this.autoLaunchRepository.updateCompletedSubmissionListingSync({
+                const synced = await this.autoLaunchRepository.updateCompletedSubmissionListingSync({
                     submissionId: existingCompleted.id,
                     organizationId: input.organizationId,
                     profileSnapshot,
@@ -466,8 +476,27 @@ export class AutoLaunchService {
                     listingUrl: input.listingUrl ?? undefined,
                     completedByUserId: authUserId,
                 });
+                return this.autoLaunchRepository.updateSubmissionListingDetails({
+                    submissionId: synced.id,
+                    organizationId: input.organizationId,
+                    listingUrl,
+                    evidence: mergeSubmissionListingEvidence(synced.evidence, {
+                        listingDofollow: input.listingDofollow,
+                        authEmail: input.authEmail ?? null,
+                    }),
+                    completedByUserId: authUserId,
+                });
             }
-            return existingCompleted;
+            return this.autoLaunchRepository.updateSubmissionListingDetails({
+                submissionId: existingCompleted.id,
+                organizationId: input.organizationId,
+                listingUrl,
+                evidence: mergeSubmissionListingEvidence(existingCompleted.evidence, {
+                    listingDofollow: input.listingDofollow,
+                    authEmail: input.authEmail ?? null,
+                }),
+                completedByUserId: authUserId,
+            });
         }
 
         const openSubmission =
@@ -483,8 +512,8 @@ export class AutoLaunchService {
                 organizationId: input.organizationId,
                 profileSnapshot,
                 listingProfileFingerprint,
-                evidence: { source: "manual_web" },
-                listingUrl: input.listingUrl ?? null,
+                evidence: listingEvidence,
+                listingUrl,
                 completedByUserId: authUserId,
             });
             if (completed) {
@@ -503,9 +532,56 @@ export class AutoLaunchService {
             profileSnapshot,
             extensionConfigSnapshot: extensionConfig,
             listingProfileFingerprint,
-            listingUrl: input.listingUrl ?? null,
-            evidence: { source: "manual_web" },
+            listingUrl,
+            evidence: listingEvidence,
             createdByUserId: authUserId,
+        });
+    }
+
+    async deleteCompletedSubmission(
+        authUserId: string,
+        submissionId: string,
+        organizationId: string
+    ): Promise<void> {
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+
+        const submission = await this.autoLaunchRepository.findSubmissionById(submissionId);
+        if (!submission || submission.organization_id !== organizationId) {
+            throw new AutoLaunchSubmissionNotFoundError(submissionId);
+        }
+        if (submission.status !== "completed") {
+            throw new AutoLaunchIntentNotAvailableError(
+                "Only completed directory launches can be removed."
+            );
+        }
+
+        await this.autoLaunchRepository.deleteSubmission(submissionId, organizationId);
+    }
+
+    async updateSubmissionListingDetails(
+        authUserId: string,
+        submissionId: string,
+        input: UpdateSubmissionListingDetailsBody
+    ): Promise<AutoLaunchSubmissionRow> {
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, input.organizationId);
+
+        const submission = await this.autoLaunchRepository.findSubmissionById(submissionId);
+        if (!submission || submission.organization_id !== input.organizationId) {
+            throw new AutoLaunchSubmissionNotFoundError(submissionId);
+        }
+
+        const listingUrl =
+            input.listingUrl !== undefined ? (input.listingUrl ?? null) : submission.listing_url;
+
+        return this.autoLaunchRepository.updateSubmissionListingDetails({
+            submissionId,
+            organizationId: input.organizationId,
+            listingUrl,
+            evidence: mergeSubmissionListingEvidence(submission.evidence, {
+                listingDofollow: input.listingDofollow,
+                authEmail: input.authEmail ?? null,
+            }),
+            completedByUserId: authUserId,
         });
     }
 

@@ -1,7 +1,12 @@
 import {
     BUSINESS_PROFILE_INCLUDED_ASSET_SLUGS,
+    BUSINESS_PROFILE_MAX_ALTERNATIVES,
+    BUSINESS_PROFILE_MAX_CATEGORIES,
     BUSINESS_PROFILE_MAX_GALLERY_URLS,
+    BUSINESS_PROFILE_MAX_PLATFORMS,
     BUSINESS_PROFILE_MAX_TAGS,
+    BUSINESS_PROFILE_MAX_TARGET_AUDIENCES,
+    BUSINESS_PROFILE_MAX_USE_CASES,
     BUSINESS_PROFILE_PRICING_TYPES,
     BUSINESS_PROFILE_SELLING_REASON_MIN_LENGTH,
     type BusinessProfileData,
@@ -55,6 +60,31 @@ export const businessProfileDataSchema = z
     .object({
         slug: slugField,
         category: nullableTrimmedString(200),
+        categories: z
+            .array(z.string().trim().min(1).max(80))
+            .max(BUSINESS_PROFILE_MAX_CATEGORIES)
+            .nullable()
+            .optional(),
+        use_cases: z
+            .array(z.string().trim().min(1).max(80))
+            .max(BUSINESS_PROFILE_MAX_USE_CASES)
+            .nullable()
+            .optional(),
+        target_audiences: z
+            .array(z.string().trim().min(1).max(80))
+            .max(BUSINESS_PROFILE_MAX_TARGET_AUDIENCES)
+            .nullable()
+            .optional(),
+        platforms: z
+            .array(z.string().trim().min(1).max(80))
+            .max(BUSINESS_PROFILE_MAX_PLATFORMS)
+            .nullable()
+            .optional(),
+        alternatives: z
+            .array(z.string().trim().min(1).max(200))
+            .max(BUSINESS_PROFILE_MAX_ALTERNATIVES)
+            .nullable()
+            .optional(),
         pricing_type: z.enum(BUSINESS_PROFILE_PRICING_TYPES).nullable().optional(),
         tags: z
             .array(z.string().trim().min(1).max(80))

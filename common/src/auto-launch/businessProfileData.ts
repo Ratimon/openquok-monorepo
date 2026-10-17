@@ -1,6 +1,21 @@
 /** Max product tags stored in `profile_data.tags` (directory listing forms). */
 export const BUSINESS_PROFILE_MAX_TAGS = 3;
 
+/** Max product categories in `profile_data.categories` (discovery / product type). */
+export const BUSINESS_PROFILE_MAX_CATEGORIES = 3;
+
+/** Max use cases in `profile_data.use_cases`. */
+export const BUSINESS_PROFILE_MAX_USE_CASES = 3;
+
+/** Max target audiences in `profile_data.target_audiences`. */
+export const BUSINESS_PROFILE_MAX_TARGET_AUDIENCES = 3;
+
+/** Max platforms in `profile_data.platforms` (where the product is available). */
+export const BUSINESS_PROFILE_MAX_PLATFORMS = 5;
+
+/** Max similar products in `profile_data.alternatives`. */
+export const BUSINESS_PROFILE_MAX_ALTERNATIVES = 5;
+
 /** Max gallery image storage paths in `profile_data.gallery_urls`. */
 export const BUSINESS_PROFILE_MAX_GALLERY_URLS = 3;
 
@@ -30,6 +45,11 @@ export type BusinessProfileIncludedAssetSlug = (typeof BUSINESS_PROFILE_INCLUDED
 export type BusinessProfileData = {
 	slug?: string | null;
 	category?: string | null;
+	categories?: string[] | null;
+	use_cases?: string[] | null;
+	target_audiences?: string[] | null;
+	platforms?: string[] | null;
+	alternatives?: string[] | null;
 	pricing_type?: BusinessProfilePricingType | null;
 	tags?: string[] | null;
 	is_open_source?: boolean | null;
@@ -84,6 +104,26 @@ export function normalizeBusinessProfileData(
 
 	const category = trimToNull(value.category);
 	if (category !== undefined) out.category = category;
+
+	if (value.categories !== undefined) {
+		out.categories = normalizeStringArray(value.categories);
+	}
+
+	if (value.use_cases !== undefined) {
+		out.use_cases = normalizeStringArray(value.use_cases);
+	}
+
+	if (value.target_audiences !== undefined) {
+		out.target_audiences = normalizeStringArray(value.target_audiences);
+	}
+
+	if (value.platforms !== undefined) {
+		out.platforms = normalizeStringArray(value.platforms);
+	}
+
+	if (value.alternatives !== undefined) {
+		out.alternatives = normalizeStringArray(value.alternatives);
+	}
 
 	if (value.pricing_type !== undefined) {
 		const pt = value.pricing_type;

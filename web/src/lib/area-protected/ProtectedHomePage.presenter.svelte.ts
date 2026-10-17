@@ -6,6 +6,7 @@ import type { PostKanbanBoardPresenter } from '$lib/posts/PostKanbanBoard.presen
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 import {
 	GetHomeWorkspacesPresenter,
+	STACK_HOME_WORKSPACE_CHANNEL_PREVIEW_LIMIT,
 	type HomeWorkspaceCardViewModel
 } from '$lib/area-protected/GetHomeWorkspaces.presenter.svelte';
 import type { HomeChannelsGridFilterBuilderPresenter } from '$lib/channels/HomeChannelsGridFilterBuilder.presenter.svelte';
@@ -177,7 +178,8 @@ export class ProtectedHomePagePresenter {
 							currentUser,
 							isCurrent: workspace.id === currentWorkspaceId,
 							getChannelPresenter: this.getChannelPresenter,
-							channelPreviewLimit: options?.channelPreviewLimit
+							channelPreviewLimit:
+								options?.channelPreviewLimit ?? STACK_HOME_WORKSPACE_CHANNEL_PREVIEW_LIMIT
 						});
 					})
 				);

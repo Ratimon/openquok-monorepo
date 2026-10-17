@@ -1,0 +1,217 @@
+---
+description: Agent checklist for a new directory / auto-launch destination (extension autofill on My Products) — seeds, extension, web tiles, readiness, docs (one PR). Deep mapping docs/auto-launch/extension-ui-patterns.md; migrations backend-migrations-naming.mdc.
+globs:
+  - backend/supabase/db/link-directory/**
+  - backend/supabase/db/auto-launch/**
+  - backend/repositories/AutoLaunchRepository.ts
+  - backend/services/AutoLaunchService.ts
+  - backend/services/AutoLaunchService.unit.test.ts
+  - backend/routes/AutoLaunchRoute.ts
+  - backend/utils/dtos/AutoLaunchDTO.ts
+  - backend/data/types/autoLaunchTypes.ts
+  - common/src/auto-launch/**
+  - common/src/browser-extension/pageAssist.ts
+  - extension/src/content/directory-launch/**
+  - extension/src/directory-launch/**
+  - extension/scripts/build-extension.mjs
+  - extension/manifest.json
+  - web/src/lib/auto-launch/**
+  - web/src/lib/ui/components/auto-launch/**
+  - web/src/lib/ui/components/posts/AddProvider.svelte
+  - web/src/lib/ui/components/posts/BrowserExtensionConnectDialog.svelte
+  - web/src/lib/integrations/browser-extension/**
+  - web/src/data/icons/branded-icons.ts
+  - web/static/icons/link-directory/**
+  - docs/auto-launch/**
+  - backend/scripts/aggregate_migrations_all.mjs
+alwaysApply: false
+---
+
+# Adding a directory integration (auto-launch / “auto-pilot”)
+
+**Agent:** Ship **one PR** that completes every item in [PR checklist](#pr-checklist). Directory launches are **not** social `SocialProvider` channels: users keep a **business profile** in OpenQuok, open the directory site in their browser, and the **OpenQuok extension** autofills forms from `extension_config` after a dashboard handoff. Also follow **backend-migrations-naming**, **backend-migrations-seed**, **source-project-neutrality**, and **company-brand-icons** for logos.
+
+**Extended reference:** field mapping, step rail behavior, and manual smoke tests — `docs/auto-launch/extension-ui-patterns.md`.
+
+**Contrast with social providers:** See **add-social-provider-integration.mdc** for OAuth/credentials/extension **posting** channels. Directory integrations reuse the **browser extension** install path (`BrowserExtensionConnectDialog`, `VITE_OPENQUOK_BROWSER_EXTENSION_ID`) but do **not** add `backend/integrations/providers/*` or composer preview tiles unless you are also shipping a social channel.
+
+## Connect family (v1)
+
+| Path | User flow | Backend | Extension |
+| --- | --- | --- | --- |
+| **Extension directory launch** (only shipped path) | My Products → Add directory launch / Launch → extension handoff → user submits on directory site | `auto_launch_destinations` + `submissions/intent` API | Per-`provider_slug` content script + shared fill engine |
+
+`submission_path = 'auto'` is reserved; do not implement server-side submit in the same PR unless explicitly scoped.
+
+## Identifier contract
+
+| Concept | Format | Where it must match |
+| --- | --- | --- |
+| **Site slug** | kebab-case, DNS-like (`peerpush`, `uneed`) | `link_directory_sites.slug`, Add Channel tile grouping (`directorySiteKeyFromProviderSlug`), bundled logo path `/icons/link-directory/{slug}.svg` |
+| **Opportunity slug** | kebab-case per listing path (`standard-launch`, `free-queue`, `paid-launch`) | `link_directory_opportunities.slug` (unique per `site_id`) |
+| **Provider slug** | `{site}-{variant}` or stable product name (`peerpush-standard-launch`, `uneed-join-line`) | `auto_launch_destinations.provider_slug`, `link_directory_opportunities.auto_launch_provider_slug`, `extension` content script registration, `common/src/browser-extension/pageAssist.ts` `directoryLaunchProviders`, handoff JWT / tests |
+
+One **published** `auto_launch_destinations` row per executable variant. Multiple variants on one site can share `picker_group_key` / `picker_group_title` so Add Channel shows one card with a variant picker.
+
+## Data model (two layers)
+
+1. **Editorial / SEO (link directory)** — `link_directory_sites` + `link_directory_opportunities` (cost, dofollow, steps, CTA). Surfaces on **Build backlinks** hub and secret-admin link-directory manager.
+2. **Executable (auto-launch)** — `auto_launch_destinations.extension_config` (steps, `profilePath`, `fillMode`, `proof`) + `start_url`. Surfaces on **Account → My Products**, Add Channel directory tiles, extension.
+
+Wire opportunities to destinations:
+
+- `link_directory_opportunities.auto_launch_enabled = true`
+- `link_directory_opportunities.auto_launch_provider_slug = <provider_slug>`
+- `auto_launch_destinations.link_directory_opportunity_id` → opportunity UUID
+
+Opportunity metadata flows to the dashboard as `opportunityDofollow`, `opportunityCostNote`, etc. (`AutoLaunchRepository` join → `AutoLaunchDTO`).
+
+### Dofollow / cost (catalog)
+
+| `dofollow` | UI badge (directory launch picker) |
+| --- | --- |
+| `dofollow` | Dofollow |
+| `nofollow` | Nofollow |
+| `unknown` | Link type unknown |
+| `null` | (hidden) |
+
+Label helper: `web/src/lib/auto-launch/utils/directoryLaunchPickerLabels.ts`. Prefer **`dofollow`** for paid listing paths when the directory documents a normal website link; use **`unknown`** for free/conditional tiers when policy is unclear (mirror Uneed Join the line). Do not guess `nofollow` without editorial evidence.
+
+## SQL seeds (typical new site)
+
+Follow **backend-migrations-naming**: `link-directory/504_<YYYYMMDD>_seed_<subject>.sql`, `auto-launch/503_<YYYYMMDD>_seed_<subject>_destination.sql` (adjust numeric prefix within tier). Use real calendar date in filename and `MODULE DATE` header.
+
+| Step | File / location | What to add |
+| --- | --- | --- |
+| 1 | `backend/supabase/db/link-directory/504_*_seed_<site>.sql` | `link_directory_sites` row (slug, title, `site_url`, `logo_url`, metrics, tags) |
+| 2 | Same file | One or more `link_directory_opportunities` rows (`dofollow`, `cost_tier`, `cost_note`, `description`, `steps`, `cta_href`, `auto_launch_*`) |
+| 3 | `backend/supabase/db/auto-launch/503_*_seed_<site>_destination.sql` | `INSERT INTO auto_launch_destinations` with full `extension_config` JSON (`version`, `startUrlPatterns`, `readyUrlHint`, `steps[]`, `proof`) |
+| 4 | — | Re-run `node backend/scripts/aggregate_migrations_all.mjs` (never edit aggregated `supabase/migrations/*_core_structure.sql` by hand) |
+
+**Reference seeds:** Uneed — `link-directory/502_20251001_seed_link_directory_exemplar.sql` + `auto-launch/502_20261013_seed_uneed_destinations.sql`. PeerPush — `link-directory/504_20261016_seed_peerpush.sql` + `auto-launch/503_20261016_seed_peerpush_destination.sql`.
+
+**Storage:** Profile logo/gallery uploads use bucket seeded in `auto-launch/502_20261013_seed_uneed_destinations.sql` (`auto_launch_profile_media`).
+
+## `extension_config` authoring
+
+| Field | Purpose |
+| --- | --- |
+| `startUrlPatterns` | Host/path globs where the content script may run |
+| `readyUrlHint` | Substring hint for “on the right page” (e.g. `pricing`, `submit`) |
+| `steps[].fields[]` | `profilePath` (e.g. `name`, `profile_data.categories`), `fillMode` (`text`, `rich_html`, `tags`, `select`, `boolean`, file) |
+| `proof` | `successPathRegex`, `listingUrlSelector` for completion / listing URL capture |
+
+Readiness and card hints use the same paths (`common/src/auto-launch/profileLaunchReadiness.ts`). When adding fields, update:
+
+- `web/src/lib/ui/components/auto-launch/ProductProfileComposer.svelte` (if users must edit them)
+- `web/src/lib/auto-launch/businessProfileFormValidation.ts` (which composer tab opens on error)
+- `common/src/auto-launch/businessProfileData.ts` limits if new arrays/tags apply
+
+Extension fill behavior: `extension/src/directory-launch/fillEngine.ts`, `profileValues.ts` (+ `fillEngine.test.ts` for tag/array quirks).
+
+## Browser extension
+
+| Step | File |
+| --- | --- |
+| Register provider metadata | `common/src/browser-extension/pageAssist.ts` — add to `directoryLaunchProviders` (identifier, name, `contentScriptEntry`, `hostPatterns`, `hostPermission`) |
+| Content script entry | `extension/src/content/directory-launch/<provider-slug>.ts` — `registerDirectoryLaunchProvider('<provider-slug>')` |
+| Build | `extension/scripts/build-extension.mjs` — `contentScriptSpecs` row |
+| Manifest | `extension/manifest.json` — `content_scripts` block (`matches` + `js` path) |
+| Rebuild | `pnpm common:build` then `pnpm --filter @openquok/browser-extension build`; reload unpacked `extension/dist` |
+
+`getDirectoryLaunchProvider(providerSlug)` must resolve or the content script logs a warning and no-ops.
+
+## Backend API (usually unchanged per destination)
+
+Routes: `backend/routes/AutoLaunchRoute.ts`. Service/repository: `backend/services/AutoLaunchService.ts`, `backend/repositories/AutoLaunchRepository.ts`. DTOs: `backend/utils/dtos/AutoLaunchDTO.ts`.
+
+Add or extend **unit tests** in `backend/services/AutoLaunchService.unit.test.ts` when behavior changes (intent token, submission lifecycle). Launch tokens: `backend/utils/auth/launchToken.unit.test.ts`.
+
+## Web dashboard
+
+| Area | Files |
+| --- | --- |
+| My Products list / cards | `web/src/lib/ui/components/account/MyProductsTab.svelte`, `BusinessProfileCard.svelte`, `BusinessProfileDirectoryPanel.svelte` |
+| Profile editor | `ProductProfileComposer.svelte`, `BusinessProfileGalleryUpload.svelte`, `BusinessProfileLogoUpload.svelte` |
+| Add Channel / launch dialogs | `AddDirectoryLaunch.svelte`, `AddProvider.svelte`, `DirectoryLaunchDestinationActions.svelte`, `DirectoryAddChannelTileIcon.svelte` |
+| Tile logos | `web/src/lib/auto-launch/buildDirectoryAddChannelTiles.ts` — `BUNDLED_DIRECTORY_LOGO_SLUGS`, `DIRECTORY_SITE_BRANDED_ICONS`; test `buildDirectoryAddChannelTiles.test.ts` |
+| Static marks | `web/static/icons/link-directory/<site>.svg`, `web/src/data/icons/branded-icons.ts` |
+| Handoff | `web/src/lib/auto-launch/browser-extension/directoryLaunchHandoff.ts`, `preflightDirectoryLaunchExtension.ts` |
+| Card VM / readiness copy | `web/src/lib/auto-launch/utils/buildProfileLaunchCardVm.ts` (+ test) |
+| Repository (web) | `web/src/lib/auto-launch/AutoLaunch.repository.ts` |
+
+Extension connect modal for launch: `BrowserExtensionConnectDialog.svelte` (`connectPurpose="directory-launch"`).
+
+## Link directory CMS (production edits)
+
+Operators can also create sites/opportunities in **secret-admin** without new seeds: `web/src/lib/ui/components/link-directory-manager/` (e.g. `LinkDirectoryOpportunityUpsertModal.svelte` — `dofollow`, cost, steps). Seeds remain the source of truth for **dev/staging exemplars** and CI aggregates.
+
+## Tests to touch when adding a destination
+
+| Test file | Why |
+| --- | --- |
+| `common/src/auto-launch/profileLaunchReadiness.test.ts` | Readiness paths per `provider_slug` |
+| `web/src/lib/auto-launch/buildDirectoryAddChannelTiles.test.ts` | Site key + logo/branding |
+| `web/src/lib/auto-launch/utils/buildProfileLaunchCardVm.test.ts` | Card aggregate labels |
+| `web/src/lib/auto-launch/businessProfileFormValidation.test.ts` | Tab routing for new `profilePath`s |
+| `extension/src/directory-launch/fillEngine.test.ts` | Fill modes / DOM assumptions |
+| `web/src/lib/auto-launch/browser-extension/directoryLaunchHandoff.test.ts` | Handoff payload shape |
+
+## Docs (same PR)
+
+| Artifact | Action |
+| --- | --- |
+| `docs/auto-launch/extension-ui-patterns.md` | Add row to seeded destinations table; `profilePath` ↔ composer tab mapping; update manual smoke test counts (`N` published destinations) |
+| `docs/auto-launch/launch-showcase.md` | Update only if showcase marketing references the site |
+
+No **public-api-surface-sync** unless you add new public API routes (current auto-launch is session-authenticated dashboard API, not `/api/v1/public/*`).
+
+## PR checklist
+
+Use as the execution list.
+
+**Link directory (catalog)**
+
+- [ ] `link_directory_sites` seed (or CMS) with slug, URLs, descriptions, tags
+- [ ] `link_directory_opportunities` per variant: `dofollow`, `cost_tier`, `cost_note`, `steps`, CTA; `auto_launch_enabled` + `auto_launch_provider_slug` when extension ships
+- [ ] Site/opportunity copy accurate vs live directory pricing and terms (**source-project-neutrality**)
+
+**Auto-launch (executable)**
+
+- [ ] `auto_launch_destinations` row: unique `provider_slug`, `start_url`, `is_published`, `sort_order`, full `extension_config`
+- [ ] `link_directory_opportunity_id` FK set; opportunity slugs stable for idempotent seeds
+- [ ] Aggregated migrations regenerated (`aggregate_migrations_all.mjs`)
+
+**Extension**
+
+- [ ] `pageAssist.ts` provider entry
+- [ ] `extension/src/content/directory-launch/<slug>.ts` + build script + manifest `content_scripts`
+- [ ] Extension build verified; handoff opens `start_url` (and optional tab from `openDirectoryLaunchStartUrl`)
+
+**Web & profile**
+
+- [ ] Composer / validation cover every required `profilePath` in config
+- [ ] Add Channel tile: bundled SVG + `branded-icons` + `buildDirectoryAddChannelTiles` when logo should not depend on remote `logo_url`
+- [ ] Readiness hints and directory launch badges behave (`directoryLaunchPickerLabels`, card VM tests updated)
+
+**Tests & docs**
+
+- [ ] Unit tests above updated or added for new slug / paths
+- [ ] `extension-ui-patterns.md` mapping + smoke test checklist
+- [ ] Manual smoke: Account → My Products → create/edit profile → Launch → fill → mark complete; card `submitted` count increments
+
+## Reference implementations
+
+| Site | Provider slugs (v1) | Start URLs |
+| --- | --- | --- |
+| Uneed | `uneed-join-line`, `uneed-paid-launch`, `uneed-maker-profile` | `uneed.best/pricing`, pricing, `/` |
+| PeerPush | `peerpush-free-queue`, `peerpush-standard-launch` | `peerpush.com/pricing`, `peerpush.com/submit` |
+
+## Do not
+
+- Edit aggregated `backend/supabase/migrations/*_core_structure.sql` directly
+- Reuse `safari-pinned-tab` or favicon traces as product logos; use real marks under `web/static/icons/link-directory/`
+- Set `dofollow` to `unknown` on paid listing paths when catalog copy already promises a normal website link (fix seed + ON CONFLICT update)
+- Add a `provider_slug` without registering it in **both** `pageAssist.ts` and extension build/manifest
+- Confuse **site slug** (`peerpush`) with **provider slug** (`peerpush-standard-launch`) in seeds or tests
+- Ship a new destination without updating readiness/docs smoke expectations for published destination count

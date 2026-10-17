@@ -113,6 +113,7 @@ function createMockRepo(): jest.Mocked<AutoLaunchRepository> {
         completeSubmission: jest.fn(),
         reopenSubmissionForResync: jest.fn(),
         updateCompletedSubmissionListingSync: jest.fn(),
+        updateSubmissionListingDetails: jest.fn(),
     } as unknown as jest.Mocked<AutoLaunchRepository>;
 }
 
@@ -560,6 +561,7 @@ describe("AutoLaunchService", () => {
             );
             repo.findLatestSubmissionForProductDestination.mockResolvedValue(existingCompleted);
             repo.updateCompletedSubmissionListingSync.mockResolvedValue(updated);
+            repo.updateSubmissionListingDetails.mockResolvedValue(updated);
 
             const service = new AutoLaunchService(
                 repo,
@@ -571,6 +573,8 @@ describe("AutoLaunchService", () => {
                 productProfileId: profileId,
                 destinationId,
                 listingUrl: "https://uneed.best/product/acme-renamed",
+                listingDofollow: true,
+                authEmail: "founder@acme.test",
             });
 
             expect(row).toBe(updated);
@@ -586,7 +590,7 @@ describe("AutoLaunchService", () => {
             expect(repo.insertManualCompletedSubmission).not.toHaveBeenCalled();
         });
 
-        it("returns existing completed row without update when listing is still synced", async () => {
+        it("updates listing details on existing completed row when listing is still synced", async () => {
             const profile = profileRow({ name: "Acme" });
             const snapshot = buildProfileSnapshot(profile);
             const fingerprint = computeListingFingerprintForSubmission(snapshot, extensionConfig);
@@ -602,6 +606,7 @@ describe("AutoLaunchService", () => {
                 destinationRow({ extension_config: extensionConfig })
             );
             repo.findLatestSubmissionForProductDestination.mockResolvedValue(existingCompleted);
+            repo.updateSubmissionListingDetails.mockResolvedValue(existingCompleted);
 
             const service = new AutoLaunchService(
                 repo,
@@ -612,9 +617,13 @@ describe("AutoLaunchService", () => {
                 organizationId,
                 productProfileId: profileId,
                 destinationId,
+                listingUrl: "https://uneed.best/product/acme",
+                listingDofollow: false,
+                authEmail: "founder@acme.test",
             });
 
             expect(row).toBe(existingCompleted);
+            expect(repo.updateSubmissionListingDetails).toHaveBeenCalled();
             expect(repo.updateCompletedSubmissionListingSync).not.toHaveBeenCalled();
             expect(repo.insertManualCompletedSubmission).not.toHaveBeenCalled();
         });

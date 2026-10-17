@@ -1,5 +1,18 @@
+import { directorySiteKeyFromProviderSlug } from 'openquok-common';
+
 import type { AutoLaunchDestinationDto } from '$lib/auto-launch/auto-launch.types';
+import type { BrandedIconName } from '$data/icons';
 import { resolveLinkDirectorySiteLogoDisplayUrl } from '$lib/link-directory/utils/linkDirectoryLogoImages';
+
+export { directorySiteKeyFromProviderSlug };
+
+/** Static logos under `web/static/icons/link-directory/{slug}.svg` (dev + prod). */
+const BUNDLED_DIRECTORY_LOGO_SLUGS = new Set<string>(['peerpush', 'uneed']);
+
+const DIRECTORY_SITE_BRANDED_ICONS: Record<string, BrandedIconName> = {
+	peerpush: 'PeerPush',
+	uneed: 'Uneed'
+};
 
 export type LinkDirectorySiteBranding = {
 	title: string;
@@ -11,27 +24,23 @@ export type DirectoryAddChannelTileVm = {
 	siteKey: string;
 	label: string;
 	logoUrl: string | null;
+	brandedIconName: BrandedIconName | null;
 	providerSlugPrefix: string;
 	dialogTitle: string;
 };
 
-/**
- * Site key for grouping destinations with `link_directory_sites.slug`.
- * Prefers longest published slug prefix (`product-hunt-launch` + slug `product-hunt` → `product-hunt`).
- */
-export function directorySiteKeyFromProviderSlug(
-	providerSlug: string,
-	publishedSiteSlugs: Iterable<string> = []
-): string {
-	const trimmed = providerSlug.trim();
-	const slugs = [...publishedSiteSlugs].sort((a, b) => b.length - a.length);
-	for (const slug of slugs) {
-		if (trimmed === slug || trimmed.startsWith(`${slug}-`)) {
-			return slug;
-		}
+export function directoryAddChannelBrandedIconName(siteKey: string): BrandedIconName | null {
+	return DIRECTORY_SITE_BRANDED_ICONS[siteKey] ?? null;
+}
+
+function resolveDirectoryAddChannelLogoUrl(
+	siteKey: string,
+	rawLogo: string | null
+): string | null {
+	if (BUNDLED_DIRECTORY_LOGO_SLUGS.has(siteKey)) {
+		return `/icons/link-directory/${siteKey}.svg`;
 	}
-	const dash = trimmed.indexOf('-');
-	return dash === -1 ? trimmed : trimmed.slice(0, dash);
+	return rawLogo ? resolveLinkDirectorySiteLogoDisplayUrl(rawLogo) : null;
 }
 
 /** Short label when no uploaded logo is available (e.g. Uneed → `Un`). */
@@ -71,7 +80,8 @@ export function buildDirectoryAddChannelTiles(
 		tiles.push({
 			siteKey,
 			label,
-			logoUrl: rawLogo ? resolveLinkDirectorySiteLogoDisplayUrl(rawLogo) : null,
+			logoUrl: resolveDirectoryAddChannelLogoUrl(siteKey, rawLogo),
+			brandedIconName: directoryAddChannelBrandedIconName(siteKey),
 			providerSlugPrefix: `${siteKey}-`,
 			dialogTitle: `${label} launches`
 		});

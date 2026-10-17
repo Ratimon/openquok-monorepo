@@ -35,10 +35,21 @@
 	let localFile = $state<File | null>(null);
 	let localPreviewUrl = $state<string | null>(null);
 	let selectedPreview = $state<string | null>(null);
+	let loadedStorageKey = $state('');
+
+	function resolvedStoredPreview(
+		blobOrUrl: string | null | undefined,
+		storagePath: string | null
+	): string | null {
+		if (blobOrUrl?.startsWith('blob:') || /^https?:\/\//i.test(blobOrUrl ?? '')) {
+			return blobOrUrl ?? null;
+		}
+		return storagePath ? resolveAutoLaunchProfileImageUrl(storagePath) : null;
+	}
 
 	let displayUrl = $derived(
 		localPreviewUrl ??
-			uploadAreaPresenter.uploadAreaVm.imageURL ??
+			resolvedStoredPreview(uploadAreaPresenter.uploadAreaVm.imageURL, value) ??
 			(value ? resolveAutoLaunchProfileImageUrl(value) : null)
 	);
 
@@ -47,15 +58,17 @@
 	);
 
 	$effect(() => {
-		const path = value;
-		if (!path || localFile) return;
-		void uploadAreaPresenter.loadImage(databaseName, path);
-	});
+		if (localFile) return;
 
-	$effect(() => {
-		if (!value && !localFile) {
+		const storageKey = (value ?? '').trim();
+		if (storageKey === loadedStorageKey) return;
+
+		loadedStorageKey = storageKey;
+		if (!storageKey) {
 			uploadAreaPresenter.reset();
+			return;
 		}
+		void uploadAreaPresenter.loadImage(databaseName, storageKey);
 	});
 
 	function handleFileChange(event: Event) {

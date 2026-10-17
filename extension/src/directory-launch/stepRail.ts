@@ -342,5 +342,16 @@ function wildcardToRegExp(pattern: string): RegExp {
 export function isReadyPage(config: AutoLaunchExtensionConfig): boolean {
 	const hint = config.readyUrlHint?.toLowerCase();
 	if (!hint) return pageMatchesConfig(config);
-	return window.location.href.toLowerCase().includes(hint);
+	const href = window.location.href.toLowerCase();
+	if (hint === 'submit') {
+		try {
+			const path = new URL(window.location.href).pathname.replace(/\/+$/, '') || '/';
+			if (path !== '/submit' && href.includes('submit')) {
+				return true;
+			}
+		} catch {
+			/* ignore */
+		}
+	}
+	return href.includes(hint);
 }

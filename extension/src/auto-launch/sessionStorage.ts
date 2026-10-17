@@ -7,6 +7,8 @@ export type StoredAutoLaunchState = {
 	/** Dashboard origin that sent the handoff (used for API auth cookies). */
 	dashboardOrigin: string;
 	receivedAt: number;
+	/** Tab receiving START / fill commands (survives in-tab and same-tab navigations). */
+	handoffTabId?: number | null;
 };
 
 export async function loadAutoLaunchState(): Promise<StoredAutoLaunchState | null> {

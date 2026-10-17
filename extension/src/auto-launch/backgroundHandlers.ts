@@ -74,31 +74,114 @@ async function findTabIdForStartUrlWithRetry(
 	return null;
 }
 
+async function sendStartToTab(
+	tabId: number,
+	session: AutoLaunchHandoffSession,
+	dashboardOrigin?: string
+): Promise<void> {
+	try {
+		await chrome.tabs.sendMessage(tabId, {
+			type: AUTO_LAUNCH_MESSAGE_TYPE.START,
+			session,
+			...(dashboardOrigin ? { dashboardOrigin } : {}),
+		});
+	} catch {
+		/* content script loads after navigation — attach listener will retry */
+	}
+}
+
+async function sendStartToTabWithStoredOrigin(
+	tabId: number,
+	session: AutoLaunchHandoffSession
+): Promise<void> {
+	const state = await loadAutoLaunchState();
+	await sendStartToTab(tabId, session, state?.dashboardOrigin);
+}
+
+async function setHandoffTabId(tabId: number): Promise<void> {
+	const state = await loadAutoLaunchState();
+	if (!state) return;
+	if (state.handoffTabId === tabId) return;
+	await saveAutoLaunchState({ ...state, handoffTabId: tabId });
+}
+
 function attachAutoLaunchStartWhenTabReady(tabId: number, session: AutoLaunchHandoffSession): void {
+	void setHandoffTabId(tabId);
 	const onUpdated = (updatedTabId: number, info: chrome.tabs.TabChangeInfo) => {
 		if (updatedTabId !== tabId || info.status !== 'complete') return;
-		chrome.tabs.onUpdated.removeListener(onUpdated);
-		void chrome.tabs
-			.sendMessage(tabId, {
-				type: AUTO_LAUNCH_MESSAGE_TYPE.START,
-				session,
-			})
-			.catch(() => {
-				/* content script may load on next navigation */
-			});
+		void sendStartToTabWithStoredOrigin(tabId, session);
 	};
 	chrome.tabs.onUpdated.addListener(onUpdated);
 	void chrome.tabs.get(tabId).then((tab) => {
 		if (tab.status === 'complete') {
-			chrome.tabs.onUpdated.removeListener(onUpdated);
-			void chrome.tabs
-				.sendMessage(tabId, {
-					type: AUTO_LAUNCH_MESSAGE_TYPE.START,
-					session,
-				})
-				.catch(() => {
-					/* content script may load on next navigation */
-				});
+			void sendStartToTabWithStoredOrigin(tabId, session);
+		}
+	});
+}
+
+function ensureHandoffTabNavigationWatcher(): void {
+	if (handoffTabWatcherRegistered) return;
+	handoffTabWatcherRegistered = true;
+
+	chrome.tabs.onCreated.addListener((tab) => {
+		if (typeof tab.id !== 'number' || !tab.openerTabId) return;
+		void (async () => {
+			const state = await loadAutoLaunchState();
+			if (!state?.session) return;
+			if (state.handoffTabId !== tab.openerTabId) return;
+			const adopt = async (tabId: number, url?: string) => {
+				if (!url || !tabUrlMatchesSession(url, state.session)) return;
+				await saveAutoLaunchState({ ...state, handoffTabId: tabId });
+				const onReady = (updatedId: number, info: chrome.tabs.TabChangeInfo) => {
+					if (updatedId !== tabId || info.status !== 'complete') return;
+					chrome.tabs.onUpdated.removeListener(onReady);
+					void sendStartToTab(tabId, state.session, state.dashboardOrigin);
+				};
+				chrome.tabs.onUpdated.addListener(onReady);
+			};
+			if (tab.url) {
+				await adopt(tab.id, tab.url);
+			} else {
+				const onUrl = (updatedId: number, info: chrome.tabs.TabChangeInfo) => {
+					if (updatedId !== tab.id || !info.url) return;
+					chrome.tabs.onUpdated.removeListener(onUrl);
+					void adopt(tab.id, info.url);
+				};
+				chrome.tabs.onUpdated.addListener(onUrl);
+			}
+		})();
+	});
+
+	chrome.tabs.onUpdated.addListener((tabId, info) => {
+		if (info.status !== 'complete') return;
+		void (async () => {
+			const state = await loadAutoLaunchState();
+			if (!state?.session) return;
+			const trackedId = state.handoffTabId;
+			if (trackedId != null && tabId !== trackedId) return;
+			const tab = await chrome.tabs.get(tabId);
+			if (!tab.url || !tabUrlMatchesSession(tab.url, state.session)) return;
+			if (trackedId == null) {
+				await saveAutoLaunchState({ ...state, handoffTabId: tabId });
+			}
+			await sendStartToTab(tabId, state.session, state.dashboardOrigin);
+		})();
+	});
+}
+
+let handoffTabWatcherRegistered = false;
+
+function tabUrlMatchesSession(tabUrl: string, session: AutoLaunchHandoffSession): boolean {
+	const patterns = session.extensionConfig.startUrlPatterns ?? [];
+	if (patterns.length === 0) {
+		return tabUrl.startsWith(session.startUrl) || tabUrl.includes(session.startUrl);
+	}
+	return patterns.some((pattern) => {
+		try {
+			const escaped = pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
+			return new RegExp(`^${escaped}$`, 'i').test(tabUrl);
+		} catch {
+			return tabUrl.includes(pattern.replace(/\*/g, ''));
 		}
 	});
 }
@@ -143,6 +226,7 @@ export async function persistHandoff(
 		dashboardOrigin: origin,
 		receivedAt: Date.now(),
 	};
+	ensureHandoffTabNavigationWatcher();
 	await saveAutoLaunchState(state);
 	broadcastPopup({ type: POPUP_UI_MESSAGE.STATE_CHANGED, state });
 
@@ -163,16 +247,37 @@ async function activeTabId(): Promise<number | null> {
 	return typeof tab?.id === 'number' ? tab.id : null;
 }
 
-async function sendToActiveTabContent(message: Record<string, unknown>): Promise<unknown> {
-	const tabId = await activeTabId();
+async function resolveHandoffTabId(): Promise<number | null> {
+	const state = await loadAutoLaunchState();
+	if (state?.handoffTabId != null) {
+		try {
+			await chrome.tabs.get(state.handoffTabId);
+			return state.handoffTabId;
+		} catch {
+			/* tab closed */
+		}
+	}
+	if (state?.session.startUrl) {
+		const found = await findTabIdForStartUrlWithRetry(state.session.startUrl, 4, 80);
+		if (found !== null) {
+			await saveAutoLaunchState({ ...state, handoffTabId: found });
+			return found;
+		}
+	}
+	return activeTabId();
+}
+
+async function sendToHandoffTabContent(message: Record<string, unknown>): Promise<unknown> {
+	const tabId = await resolveHandoffTabId();
 	if (tabId === null) {
-		throw new Error('No active tab.');
+		throw new Error('No directory tab found. Open the directory site for this launch.');
 	}
 	return chrome.tabs.sendMessage(tabId, message);
 }
 
 export async function handleAutoLaunchRuntimeMessage(
-	message: Record<string, unknown>
+	message: Record<string, unknown>,
+	sender?: chrome.runtime.MessageSender
 ): Promise<unknown> {
 	const type = message.type;
 
@@ -183,6 +288,47 @@ export async function handleAutoLaunchRuntimeMessage(
 	if (type === 'OPENQUOK_AUTO_LAUNCH_CLEAR') {
 		await clearAutoLaunchState();
 		broadcastPopup({ type: POPUP_UI_MESSAGE.STATE_CHANGED, state: null });
+		return { ok: true };
+	}
+
+	if (type === 'OPENQUOK_AUTO_LAUNCH_ATTACH_TAB') {
+		const providerSlug =
+			typeof message.providerSlug === 'string' ? message.providerSlug.trim() : '';
+		const state = await loadAutoLaunchState();
+		if (!state || !providerSlug || state.session.providerSlug !== providerSlug) {
+			return { ok: false };
+		}
+		const fromMessage = (message as { senderTabId?: number }).senderTabId;
+		const fromSender = sender?.tab?.id;
+		const resolvedTabId =
+			typeof fromMessage === 'number'
+				? fromMessage
+				: typeof fromSender === 'number'
+					? fromSender
+					: (await activeTabId()) ?? undefined;
+		if (resolvedTabId === undefined) {
+			return { ok: false };
+		}
+		const tab = await chrome.tabs.get(resolvedTabId);
+		if (!tab.url || !tabUrlMatchesSession(tab.url, state.session)) {
+			return { ok: false };
+		}
+		await saveAutoLaunchState({ ...state, handoffTabId: resolvedTabId });
+		await sendStartToTab(resolvedTabId, state.session, state.dashboardOrigin);
+		return { ok: true };
+	}
+
+	if (type === 'OPENQUOK_AUTO_LAUNCH_FOCUS_TAB') {
+		const state = await loadAutoLaunchState();
+		const tabId = state?.handoffTabId;
+		if (tabId == null) {
+			return { ok: false, error: 'No directory tab tracked for this launch.' };
+		}
+		await chrome.tabs.update(tabId, { active: true });
+		const tab = await chrome.tabs.get(tabId);
+		if (tab.windowId != null) {
+			await chrome.windows.update(tab.windowId, { focused: true });
+		}
 		return { ok: true };
 	}
 
@@ -240,9 +386,10 @@ export async function handleAutoLaunchRuntimeMessage(
 		type === AUTO_LAUNCH_MESSAGE_TYPE.FILL_STEP
 	) {
 		try {
-			const response = await sendToActiveTabContent({
+			const response = await sendToHandoffTabContent({
 				...message,
 				session: state.session,
+				dashboardOrigin: state.dashboardOrigin,
 			});
 			return response ?? { ok: true };
 		} catch (error) {

@@ -33,6 +33,24 @@ describe('normalizeBusinessProfileData', () => {
 		).toEqual({ tags: ['alpha', 'beta'] });
 	});
 
+	it('normalizes discovery list fields', () => {
+		expect(
+			normalizeBusinessProfileData({
+				categories: [' SaaS '],
+				use_cases: ['launch'],
+				target_audiences: [' founders '],
+				platforms: ['Web'],
+				alternatives: ['  Other Tool  '],
+			})
+		).toEqual({
+			categories: ['SaaS'],
+			use_cases: ['launch'],
+			target_audiences: ['founders'],
+			platforms: ['Web'],
+			alternatives: ['Other Tool'],
+		});
+	});
+
 	it('ignores unknown pricing_type values', () => {
 		expect(
 			normalizeBusinessProfileData({

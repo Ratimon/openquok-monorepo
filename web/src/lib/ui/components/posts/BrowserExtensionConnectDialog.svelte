@@ -141,7 +141,7 @@
 		<ChannelConnectLegalFooter browserExtension />
 
 		<Dialog.Footer class="gap-2 sm:gap-2">
-			<Button type="button" variant="outline" disabled={busy} onclick={handleCancel}>
+			<Button type="button" variant="ghost" disabled={busy} onclick={handleCancel}>
 				Cancel
 			</Button>
 			<Button type="button" disabled={busy} onclick={() => void handleConnect()}>

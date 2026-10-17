@@ -25,7 +25,8 @@ function destination(partial: Partial<AutoLaunchDestinationDto> & Pick<AutoLaunc
 		pickerGroupKey: null,
 		pickerGroupTitle: null,
 		siteDomainRating: null,
-		siteTitle: partial.siteTitle ?? null
+		siteTitle: partial.siteTitle ?? null,
+		extensionConfig: partial.extensionConfig ?? { steps: [] }
 	};
 }
 
@@ -69,7 +70,17 @@ describe('buildDirectoryAddChannelTiles', () => {
 		expect(tiles[0]?.siteKey).toBe('other-site');
 		expect(tiles[1]?.siteKey).toBe('uneed');
 		expect(tiles[1]?.providerSlugPrefix).toBe('uneed-');
-		expect(tiles[1]?.logoUrl).toContain('link_directory_logos');
+		expect(tiles[1]?.logoUrl).toBe('/icons/link-directory/uneed.svg');
+		expect(tiles[1]?.brandedIconName).toBe('Uneed');
+	});
+
+	it('assigns bundled logo and branded icon for peerpush', () => {
+		const tiles = buildDirectoryAddChannelTiles(
+			[destination({ providerSlug: 'peerpush-standard-launch', siteTitle: 'PeerPush' })],
+			new Map([['peerpush', { title: 'PeerPush', logoUrl: 'https://www.openquok.com/icons/link-directory/peerpush.svg' }]])
+		);
+		expect(tiles[0]?.logoUrl).toBe('/icons/link-directory/peerpush.svg');
+		expect(tiles[0]?.brandedIconName).toBe('PeerPush');
 	});
 
 	it('ignores non-extension destinations', () => {

@@ -8,7 +8,15 @@
 
 	import { autoLaunchProductProfileFormSchema } from '$lib/auto-launch';
 	import { parseBusinessProfileFormIssues } from '$lib/auto-launch/businessProfileFormValidation';
-	import { BUSINESS_PROFILE_MAX_TAGS, BUSINESS_PROFILE_PRICING_TYPES } from 'openquok-common';
+	import {
+		BUSINESS_PROFILE_MAX_ALTERNATIVES,
+		BUSINESS_PROFILE_MAX_CATEGORIES,
+		BUSINESS_PROFILE_MAX_PLATFORMS,
+		BUSINESS_PROFILE_MAX_TAGS,
+		BUSINESS_PROFILE_MAX_TARGET_AUDIENCES,
+		BUSINESS_PROFILE_MAX_USE_CASES,
+		BUSINESS_PROFILE_PRICING_TYPES
+	} from 'openquok-common';
 	import { BUSINESS_PROFILE_INCLUDED_ASSET_OPTIONS } from '$lib/auto-launch/utils/businessProfileIncludedAssetLabels';
 	import { suggestBusinessProfileSlug } from '$lib/auto-launch/utils/suggestBusinessProfileSlug';
 	import { icons } from '$data/icons';
@@ -22,12 +30,13 @@
 	import RichHtmlField from '$lib/ui/components/rich-text/RichHtmlField.svelte';
 	import BusinessProfileGalleryUpload from '$lib/ui/components/auto-launch/BusinessProfileGalleryUpload.svelte';
 	import BusinessProfileLogoUpload from '$lib/ui/components/auto-launch/BusinessProfileLogoUpload.svelte';
+	import BusinessProfileSocialUrlField from '$lib/ui/components/auto-launch/BusinessProfileSocialUrlField.svelte';
 	import { Switch } from '$lib/ui/switch';
 	import { Checkbox } from '$lib/ui/checkbox';
 	import ProviderHttpUrlInput from '$lib/ui/components/posts/providers/ProviderHttpUrlInput.svelte';
 	import { normalizeHttpUrlInputIfLikely } from '$lib/utils/normalizeHttpUrlInput';
 
-	type ComposerTab = 'general' | 'media' | 'socials' | 'sell';
+	type ComposerTab = 'general' | 'discovery' | 'media' | 'socials' | 'sell';
 
 	type SubmitValues = AutoLaunchProductProfileFormValues;
 
@@ -35,6 +44,8 @@
 		open?: boolean;
 		organizationId?: string | null;
 		initial?: Partial<AutoLaunchProductProfileDto> | null;
+		/** Opens the composer on this tab when the dialog opens (e.g. Discovery readiness CTA). */
+		initialTab?: ComposerTab | null;
 		submitting?: boolean;
 		title?: string;
 		onSubmit: (values: SubmitValues) => void | Promise<void>;
@@ -45,6 +56,7 @@
 		open = $bindable(false),
 		organizationId = null,
 		initial = null,
+		initialTab = null,
 		submitting = false,
 		title = 'Product profile',
 		onSubmit,
@@ -86,7 +98,16 @@
 	let websiteUrl = $state('');
 	let logoUrl = $state<string | null>(null);
 
-	let category = $state('');
+	let categories = $state<string[]>([]);
+	let useCases = $state<string[]>([]);
+	let targetAudiences = $state<string[]>([]);
+	let platforms = $state<string[]>([]);
+	let alternatives = $state<string[]>([]);
+	let categoriesInput = $state('');
+	let useCasesInput = $state('');
+	let targetAudiencesInput = $state('');
+	let platformsInput = $state('');
+	let alternativesInput = $state('');
 	let pricingType = $state<(typeof BUSINESS_PROFILE_PRICING_TYPES)[number] | ''>('');
 	let tags = $state<string[]>([]);
 	let tagInput = $state('');
@@ -96,7 +117,6 @@
 	let galleryUrls = $state<string[]>([]);
 
 	let socialX = $state('');
-	let socialGithub = $state('');
 	let socialInstagram = $state('');
 	let socialLinkedin = $state('');
 	let socialTiktok = $state('');
@@ -121,9 +141,16 @@
 
 	function profileDataFromForm(): BusinessProfileDataFormInput {
 		const emptyToUndefined = (value: string) => (value.trim() ? value.trim() : undefined);
+		const syncedCategories = [...categories];
+		const primaryCategory = syncedCategories[0] ?? undefined;
 		return {
 			slug: directorySlug ? directorySlug : undefined,
-			category: emptyToUndefined(category),
+			category: primaryCategory,
+			categories: syncedCategories,
+			use_cases: useCases,
+			target_audiences: targetAudiences,
+			platforms,
+			alternatives,
 			pricing_type: pricingType === '' ? undefined : pricingType,
 			tags,
 			is_open_source: isOpenSource,
@@ -131,7 +158,7 @@
 			launch_video_url: emptyToUndefined(launchVideoUrl),
 			gallery_urls: galleryUrls,
 			social_x: emptyToUndefined(socialX),
-			social_github: emptyToUndefined(socialGithub),
+			social_github: emptyToUndefined(repositoryUrl),
 			social_instagram: emptyToUndefined(socialInstagram),
 			social_linkedin: emptyToUndefined(socialLinkedin),
 			social_tiktok: emptyToUndefined(socialTiktok),
@@ -157,16 +184,29 @@
 		websiteUrl = source?.websiteUrl ?? '';
 		logoUrl = source?.logoUrl ?? null;
 
-		category = pd.category ?? '';
+		categories =
+			pd.categories && pd.categories.length > 0
+				? [...pd.categories]
+				: pd.category
+					? [pd.category]
+					: [];
+		useCases = pd.use_cases ? [...pd.use_cases] : [];
+		targetAudiences = pd.target_audiences ? [...pd.target_audiences] : [];
+		platforms = pd.platforms ? [...pd.platforms] : [];
+		alternatives = pd.alternatives ? [...pd.alternatives] : [];
+		categoriesInput = '';
+		useCasesInput = '';
+		targetAudiencesInput = '';
+		platformsInput = '';
+		alternativesInput = '';
 		pricingType = pd.pricing_type ?? '';
 		tags = pd.tags ? [...pd.tags] : [];
 		isOpenSource = Boolean(pd.is_open_source);
-		repositoryUrl = pd.repository_url ?? '';
+		repositoryUrl = pd.repository_url ?? pd.social_github ?? '';
 		launchVideoUrl = pd.launch_video_url ?? '';
 		galleryUrls = pd.gallery_urls ? [...pd.gallery_urls] : [];
 
 		socialX = pd.social_x ?? '';
-		socialGithub = pd.social_github ?? '';
 		socialInstagram = pd.social_instagram ?? '';
 		socialLinkedin = pd.social_linkedin ?? '';
 		socialTiktok = pd.social_tiktok ?? '';
@@ -184,13 +224,16 @@
 		includedAssets = pd.included_assets ? [...pd.included_assets] : [];
 
 		tagInput = '';
-		activeTab = 'general';
+		activeTab = initialTab ?? 'general';
 	}
 
 	$effect(() => {
 		if (!open) return;
 		formFieldErrors = {};
 		hydrateFromInitial(initial);
+		if (initialTab) {
+			activeTab = initialTab;
+		}
 	});
 
 	function normalizeWebsiteUrlOnBlur() {
@@ -224,6 +267,110 @@
 
 	function removeTag(tag: string) {
 		tags = tags.filter((t) => t !== tag);
+	}
+
+	function addStringListItem(
+		current: string[],
+		input: string,
+		maxItems: number,
+		maxLength: number,
+		fieldLabel: string
+	): { items: string[]; nextInput: string } | null {
+		const next = input.trim().slice(0, maxLength);
+		if (!next) return null;
+		if (current.length >= maxItems) {
+			toast.error(`You can add up to ${maxItems} ${fieldLabel.toLowerCase()}.`);
+			return null;
+		}
+		if (current.some((t) => t.toLowerCase() === next.toLowerCase())) {
+			return { items: current, nextInput: '' };
+		}
+		return { items: [...current, next], nextInput: '' };
+	}
+
+	function addCategories() {
+		const result = addStringListItem(
+			categories,
+			categoriesInput,
+			BUSINESS_PROFILE_MAX_CATEGORIES,
+			80,
+			'categories'
+		);
+		if (!result) return;
+		categories = result.items;
+		categoriesInput = result.nextInput;
+	}
+
+	function removeCategoriesItem(item: string) {
+		categories = categories.filter((t) => t !== item);
+	}
+
+	function addUseCases() {
+		const result = addStringListItem(
+			useCases,
+			useCasesInput,
+			BUSINESS_PROFILE_MAX_USE_CASES,
+			80,
+			'use cases'
+		);
+		if (!result) return;
+		useCases = result.items;
+		useCasesInput = result.nextInput;
+	}
+
+	function removeUseCase(item: string) {
+		useCases = useCases.filter((t) => t !== item);
+	}
+
+	function addTargetAudience() {
+		const result = addStringListItem(
+			targetAudiences,
+			targetAudiencesInput,
+			BUSINESS_PROFILE_MAX_TARGET_AUDIENCES,
+			80,
+			'target audiences'
+		);
+		if (!result) return;
+		targetAudiences = result.items;
+		targetAudiencesInput = result.nextInput;
+	}
+
+	function removeTargetAudience(item: string) {
+		targetAudiences = targetAudiences.filter((t) => t !== item);
+	}
+
+	function addPlatform() {
+		const result = addStringListItem(
+			platforms,
+			platformsInput,
+			BUSINESS_PROFILE_MAX_PLATFORMS,
+			80,
+			'platforms'
+		);
+		if (!result) return;
+		platforms = result.items;
+		platformsInput = result.nextInput;
+	}
+
+	function removePlatform(item: string) {
+		platforms = platforms.filter((t) => t !== item);
+	}
+
+	function addAlternative() {
+		const result = addStringListItem(
+			alternatives,
+			alternativesInput,
+			BUSINESS_PROFILE_MAX_ALTERNATIVES,
+			200,
+			'similar products'
+		);
+		if (!result) return;
+		alternatives = result.items;
+		alternativesInput = result.nextInput;
+	}
+
+	function removeAlternative(item: string) {
+		alternatives = alternatives.filter((t) => t !== item);
 	}
 
 	function toggleIncludedAsset(slugValue: string, checked: boolean) {
@@ -303,22 +450,47 @@
 >
 	<Dialog.Content
 		class="max-h-[min(90vh,840px)] max-w-[calc(100%-2rem)] gap-4 overflow-y-auto sm:max-w-4xl"
-		showCloseButton={!submitting}
+		showCloseButton={false}
 	>
-		<Dialog.Header>
-			<Dialog.Title>{title}</Dialog.Title>
-			<Dialog.Description class="text-sm text-base-content/70">
-				Match directory listing forms (general copy, media, socials, and acquisition fields). The extension
-				uses this profile when filling submissions.
-			</Dialog.Description>
-		</Dialog.Header>
+		<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+			<Dialog.Header class="flex-1 gap-1.5 pe-0 text-start">
+				<Dialog.Title>{title}</Dialog.Title>
+				<Dialog.Description class="text-sm text-base-content/70">
+					Match directory listing forms (general copy, media, socials, and acquisition fields). The extension
+					uses this profile when filling submissions.
+				</Dialog.Description>
+			</Dialog.Header>
+			<div class="flex shrink-0 items-center justify-end gap-2">
+				<Button type="button" variant="ghost" size="sm" disabled={submitting} onclick={handleCancel}>
+					Cancel
+				</Button>
+				<Button type="submit" form="business-profile-composer-form" size="sm" disabled={submitting}>
+					{#if submitting}
+						<AbstractIcon
+							name={icons.LoaderCircle.name}
+							class="mr-2 h-4 w-4 animate-spin"
+							width="16"
+							height="16"
+						/>
+						Saving…
+					{:else}
+						Save profile
+					{/if}
+				</Button>
+			</div>
+		</div>
 
-		<form class="flex min-h-0 flex-col gap-4" onsubmit={(e) => void handleSubmit(e)}>
+		<form
+			id="business-profile-composer-form"
+			class="flex min-h-0 flex-col gap-4"
+			onsubmit={(e) => void handleSubmit(e)}
+		>
 			<Tabs.Root bind:value={activeTab} class="w-full">
 				<Tabs.List
 					class="inline-flex w-full flex-wrap gap-1 rounded-xl border-2 border-base-content/15 bg-base-200/60 p-1 shadow-sm !border-solid"
 				>
 					<Tabs.Trigger value="general" class={tabTriggerClass}>General</Tabs.Trigger>
+					<Tabs.Trigger value="discovery" class={tabTriggerClass}>Discovery</Tabs.Trigger>
 					<Tabs.Trigger value="media" class={tabTriggerClass}>Media</Tabs.Trigger>
 					<Tabs.Trigger value="socials" class={tabTriggerClass}>Socials</Tabs.Trigger>
 					<Tabs.Trigger value="sell" class={tabTriggerClass}>Sell</Tabs.Trigger>
@@ -376,26 +548,6 @@
 								{#if fieldErr('websiteUrl')}
 									<p class="text-xs text-error" role="alert">{fieldErr('websiteUrl')}</p>
 								{/if}
-							</label>
-							<label class="form-control w-full gap-1">
-								<span class="text-sm font-medium text-base-content">Category</span>
-								<input
-									class={inputClasses('profileData.category')}
-									type="text"
-									list="business-profile-categories"
-									bind:value={category}
-									maxlength={200}
-									disabled={submitting}
-									aria-invalid={fieldInvalid('profileData.category')}
-								/>
-								{#if fieldErr('profileData.category')}
-									<p class="text-xs text-error" role="alert">{fieldErr('profileData.category')}</p>
-								{/if}
-								<datalist id="business-profile-categories">
-									{#each COMMON_CATEGORIES as cat (cat)}
-										<option value={cat}></option>
-									{/each}
-								</datalist>
 							</label>
 							<label class="form-control w-full gap-1">
 								<span class="text-sm font-medium text-base-content">Tagline</span>
@@ -523,6 +675,147 @@
 								{/if}
 							</div>
 						</div>
+					{:else if activeTab === 'discovery'}
+						<div class="grid gap-4 sm:grid-cols-2">
+							<p class="text-sm text-base-content/70 sm:col-span-2">
+								Discovery fields power directory search and filters (for example PeerPush categories, use cases,
+								and platforms). The first category is also used for single-category directories such as Uneed.
+							</p>
+							{#each [
+								{
+									label: 'Categories',
+									hint: `Product type (max ${BUSINESS_PROFILE_MAX_CATEGORIES}). First entry is used for single-category directories.`,
+									fieldKey: 'profileData.categories',
+									legacyFieldKey: 'profileData.category',
+									datalistId: 'business-profile-categories',
+									items: categories,
+									input: categoriesInput,
+									max: BUSINESS_PROFILE_MAX_CATEGORIES,
+									maxLen: 80,
+									onAdd: addCategories,
+									onRemove: removeCategoriesItem,
+									setInput: (v: string) => (categoriesInput = v)
+								},
+								{
+									label: 'Use cases',
+									hint: `How people use your product (max ${BUSINESS_PROFILE_MAX_USE_CASES})`,
+									fieldKey: 'profileData.use_cases',
+									items: useCases,
+									input: useCasesInput,
+									max: BUSINESS_PROFILE_MAX_USE_CASES,
+									maxLen: 80,
+									onAdd: addUseCases,
+									onRemove: removeUseCase,
+									setInput: (v: string) => (useCasesInput = v)
+								},
+								{
+									label: 'Target audiences',
+									hint: `Who it is for (max ${BUSINESS_PROFILE_MAX_TARGET_AUDIENCES})`,
+									fieldKey: 'profileData.target_audiences',
+									items: targetAudiences,
+									input: targetAudiencesInput,
+									max: BUSINESS_PROFILE_MAX_TARGET_AUDIENCES,
+									maxLen: 80,
+									onAdd: addTargetAudience,
+									onRemove: removeTargetAudience,
+									setInput: (v: string) => (targetAudiencesInput = v)
+								},
+								{
+									label: 'Platforms',
+									hint: `Where the product is available (max ${BUSINESS_PROFILE_MAX_PLATFORMS})`,
+									fieldKey: 'profileData.platforms',
+									items: platforms,
+									input: platformsInput,
+									max: BUSINESS_PROFILE_MAX_PLATFORMS,
+									maxLen: 80,
+									onAdd: addPlatform,
+									onRemove: removePlatform,
+									setInput: (v: string) => (platformsInput = v),
+									wide: true
+								},
+								{
+									label: 'Similar products',
+									hint: `Names or URLs of alternatives (max ${BUSINESS_PROFILE_MAX_ALTERNATIVES})`,
+									fieldKey: 'profileData.alternatives',
+									items: alternatives,
+									input: alternativesInput,
+									max: BUSINESS_PROFILE_MAX_ALTERNATIVES,
+									maxLen: 200,
+									onAdd: addAlternative,
+									onRemove: removeAlternative,
+									setInput: (v: string) => (alternativesInput = v),
+									wide: true
+								}
+							] as row (row.fieldKey)}
+								<div class={cn('form-control w-full gap-1', row.wide && 'sm:col-span-2')}>
+									<span class="text-sm font-medium text-base-content">{row.label}</span>
+									<p class="text-xs text-base-content/60">{row.hint}</p>
+									{#if fieldErr(row.fieldKey) || ('legacyFieldKey' in row && row.legacyFieldKey && fieldErr(row.legacyFieldKey))}
+										<p class="text-xs text-error" role="alert">
+											{fieldErr(row.fieldKey) ??
+												('legacyFieldKey' in row && row.legacyFieldKey
+													? fieldErr(row.legacyFieldKey)
+													: '')}
+										</p>
+									{/if}
+									<div class="flex flex-wrap gap-2">
+										{#each row.items as item (item)}
+											<span class="badge badge-outline gap-1 pr-1">
+												{item}
+												<button
+													type="button"
+													class="rounded-full px-1 hover:bg-base-content/10"
+													disabled={submitting}
+													aria-label="Remove {row.label} {item}"
+													onclick={() => row.onRemove(item)}
+												>
+													<AbstractIcon name={icons.X2.name} width="12" height="12" />
+												</button>
+											</span>
+										{/each}
+									</div>
+									<div class="flex gap-2">
+										<input
+											class={cn(
+												'input input-bordered input-sm min-w-0 flex-1',
+												(fieldInvalid(row.fieldKey) ||
+													('legacyFieldKey' in row &&
+														row.legacyFieldKey &&
+														fieldInvalid(row.legacyFieldKey))) &&
+													'input-error'
+											)}
+											type="text"
+											value={row.input}
+											list={'datalistId' in row ? row.datalistId : undefined}
+											oninput={(e) => row.setInput(e.currentTarget.value)}
+											placeholder="Add {row.label.toLowerCase()}"
+											maxlength={row.maxLen}
+											disabled={submitting || row.items.length >= row.max}
+											onkeydown={(e) => {
+												if (e.key === 'Enter') {
+													e.preventDefault();
+													row.onAdd();
+												}
+											}}
+										/>
+										<Button
+											type="button"
+											variant="outline"
+											size="sm"
+											disabled={submitting || row.items.length >= row.max}
+											onclick={row.onAdd}
+										>
+											Add
+										</Button>
+									</div>
+								</div>
+							{/each}
+							<datalist id="business-profile-categories">
+								{#each COMMON_CATEGORIES as cat (cat)}
+									<option value={cat}></option>
+								{/each}
+							</datalist>
+						</div>
 					{:else if activeTab === 'media'}
 						<div class="grid gap-4 sm:grid-cols-2">
 							<div class="sm:col-span-2">
@@ -566,32 +859,70 @@
 							</div>
 						</div>
 					{:else if activeTab === 'socials'}
-						<div class="grid gap-3 sm:grid-cols-2">
-							{#each [
-								{ label: 'X (Twitter)', key: 'profileData.social_x', value: socialX, set: (v: string) => (socialX = v) },
-								{ label: 'GitHub', key: 'profileData.social_github', value: socialGithub, set: (v: string) => (socialGithub = v) },
-								{ label: 'Instagram', key: 'profileData.social_instagram', value: socialInstagram, set: (v: string) => (socialInstagram = v) },
-								{ label: 'LinkedIn', key: 'profileData.social_linkedin', value: socialLinkedin, set: (v: string) => (socialLinkedin = v) },
-								{ label: 'TikTok', key: 'profileData.social_tiktok', value: socialTiktok, set: (v: string) => (socialTiktok = v) },
-								{ label: 'Facebook', key: 'profileData.social_facebook', value: socialFacebook, set: (v: string) => (socialFacebook = v) },
-								{ label: 'YouTube', key: 'profileData.social_youtube', value: socialYoutube, set: (v: string) => (socialYoutube = v) },
-								{ label: 'Bluesky', key: 'profileData.social_bluesky', value: socialBluesky, set: (v: string) => (socialBluesky = v), wide: true }
-							] as row (row.key)}
-								<label class={cn('form-control w-full gap-1', row.wide && 'sm:col-span-2')}>
-									<span class="text-sm font-medium text-base-content">{row.label}</span>
-									<input
-										class={inputClasses(row.key)}
-										type="url"
-										value={row.value}
-										oninput={(e) => row.set(e.currentTarget.value)}
-										disabled={submitting}
-										aria-invalid={fieldInvalid(row.key)}
-									/>
-									{#if fieldErr(row.key)}
-										<p class="text-xs text-error" role="alert">{fieldErr(row.key)}</p>
-									{/if}
-								</label>
-							{/each}
+						<div class="space-y-3">
+							<p class="text-xs text-base-content/60">
+								Optional profile links for directory autofill. Adds https:// on blur when a value looks
+								like a URL; save validates full https:// URLs.
+							</p>
+							<div class="grid gap-3 sm:grid-cols-2">
+								<BusinessProfileSocialUrlField
+									id="business-profile-social-x"
+									label="X (Twitter)"
+									bind:value={socialX}
+									disabled={submitting}
+									invalid={fieldInvalid('profileData.social_x')}
+									error={fieldErr('profileData.social_x')}
+								/>
+								<BusinessProfileSocialUrlField
+									id="business-profile-social-instagram"
+									label="Instagram"
+									bind:value={socialInstagram}
+									disabled={submitting}
+									invalid={fieldInvalid('profileData.social_instagram')}
+									error={fieldErr('profileData.social_instagram')}
+								/>
+								<BusinessProfileSocialUrlField
+									id="business-profile-social-linkedin"
+									label="LinkedIn"
+									bind:value={socialLinkedin}
+									disabled={submitting}
+									invalid={fieldInvalid('profileData.social_linkedin')}
+									error={fieldErr('profileData.social_linkedin')}
+								/>
+								<BusinessProfileSocialUrlField
+									id="business-profile-social-tiktok"
+									label="TikTok"
+									bind:value={socialTiktok}
+									disabled={submitting}
+									invalid={fieldInvalid('profileData.social_tiktok')}
+									error={fieldErr('profileData.social_tiktok')}
+								/>
+								<BusinessProfileSocialUrlField
+									id="business-profile-social-facebook"
+									label="Facebook"
+									bind:value={socialFacebook}
+									disabled={submitting}
+									invalid={fieldInvalid('profileData.social_facebook')}
+									error={fieldErr('profileData.social_facebook')}
+								/>
+								<BusinessProfileSocialUrlField
+									id="business-profile-social-youtube"
+									label="YouTube"
+									bind:value={socialYoutube}
+									disabled={submitting}
+									invalid={fieldInvalid('profileData.social_youtube')}
+									error={fieldErr('profileData.social_youtube')}
+								/>
+								<BusinessProfileSocialUrlField
+									id="business-profile-social-bluesky"
+									label="Bluesky"
+									bind:value={socialBluesky}
+									disabled={submitting}
+									invalid={fieldInvalid('profileData.social_bluesky')}
+									error={fieldErr('profileData.social_bluesky')}
+									wide
+								/>
+							</div>
 						</div>
 					{:else}
 						<div class="space-y-4">
@@ -624,7 +955,10 @@
 									/>
 								</label>
 								<label class="form-control w-full gap-1">
-									<span class="text-sm font-medium text-base-content">Monthly revenue (USD)</span>
+									<span class="text-sm font-medium text-base-content">
+										Monthly recurring revenue (optional)
+									</span>
+									<p class="text-xs text-base-content/60">USD; used on some directory forms (e.g. PeerPush).</p>
 									<input
 										class="input input-bordered w-full"
 										type="text"
@@ -691,25 +1025,6 @@
 					{/if}
 				</div>
 			</Tabs.Root>
-
-			<Dialog.Footer class="gap-2 pt-2 sm:gap-2">
-				<Button type="button" variant="outline" disabled={submitting} onclick={handleCancel}>
-					Cancel
-				</Button>
-				<Button type="submit" disabled={submitting}>
-					{#if submitting}
-						<AbstractIcon
-							name={icons.LoaderCircle.name}
-							class="mr-2 h-4 w-4 animate-spin"
-							width="16"
-							height="16"
-						/>
-						Saving…
-					{:else}
-						Save profile
-					{/if}
-				</Button>
-			</Dialog.Footer>
 		</form>
 	</Dialog.Content>
 </Dialog.Root>

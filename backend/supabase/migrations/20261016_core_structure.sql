@@ -11919,6 +11919,253 @@ ON CONFLICT (id) DO NOTHING;
 -- ---------------------------
 
 
+-- Module: link-directory, File: 504_20261016_seed_peerpush.sql
+-- ---------------------------
+-- MODULE NAME: Link Directory
+-- MODULE DATE: 20261016
+-- MODULE SCOPE: Seed (PeerPush site, free queue + Standard launch opportunities, catalog logo path)
+-- ---------------------------
+
+BEGIN;
+
+INSERT INTO public.link_directory_sites (
+    id,
+    published_at,
+    slug,
+    title,
+    site_url,
+    logo_url,
+    short_description,
+    long_description,
+    domain_rating,
+    monthly_visits,
+    metrics_source,
+    metrics_updated_at,
+    category_id,
+    is_openquok_auth_supported,
+    openquok_channel_slug,
+    is_admin_published,
+    sort_order,
+    tag_slugs
+) VALUES
+    (
+        'd5f7d000-0010-4000-a000-000000000008',
+        NOW(),
+        'peerpush',
+        'PeerPush',
+        'https://peerpush.com',
+        'https://www.openquok.com/icons/link-directory/peerpush.svg',
+        'Product discovery for people and AI with structured listings and a builder community.',
+        'PeerPush catalogs products with controlled vocabularies for use cases, audiences, platforms, and pricing so humans and AI assistants can discover tools. Free submissions join a publishing queue; Standard Launch publishes instantly with a permanent listing.',
+        52,
+        1388303,
+        'editor_estimate',
+        NOW(),
+        'd5f7d000-0001-4000-a000-000000000002',
+        false,
+        NULL,
+        true,
+        0,
+        ARRAY['high-dr']::text[]
+    )
+ON CONFLICT (id) DO UPDATE SET
+    slug = EXCLUDED.slug,
+    title = EXCLUDED.title,
+    site_url = EXCLUDED.site_url,
+    logo_url = COALESCE(EXCLUDED.logo_url, public.link_directory_sites.logo_url),
+    short_description = EXCLUDED.short_description,
+    long_description = EXCLUDED.long_description,
+    domain_rating = EXCLUDED.domain_rating,
+    monthly_visits = EXCLUDED.monthly_visits,
+    metrics_source = EXCLUDED.metrics_source,
+    metrics_updated_at = EXCLUDED.metrics_updated_at,
+    category_id = EXCLUDED.category_id,
+    is_openquok_auth_supported = EXCLUDED.is_openquok_auth_supported,
+    openquok_channel_slug = EXCLUDED.openquok_channel_slug,
+    is_admin_published = EXCLUDED.is_admin_published,
+    sort_order = EXCLUDED.sort_order,
+    tag_slugs = EXCLUDED.tag_slugs,
+    published_at = COALESCE(public.link_directory_sites.published_at, EXCLUDED.published_at);
+
+INSERT INTO public.link_directory_site_tags_association (site_id, link_directory_tag_id)
+SELECT s.id, t.id
+FROM public.link_directory_sites s
+JOIN public.link_directory_tags t ON t.slug = ANY (s.tag_slugs)
+WHERE s.slug = 'peerpush'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO public.link_directory_opportunities (
+    id,
+    site_id,
+    published_at,
+    slug,
+    title,
+    opportunity_type_id,
+    effort,
+    approval_mode,
+    approval_time_hint,
+    dofollow,
+    cost_tier,
+    cost_note,
+    description,
+    steps,
+    openquok_cta_kind,
+    openquok_channel_slug,
+    openquok_plug_name,
+    cta_href,
+    cta_label,
+    sort_order,
+    is_admin_published,
+    auto_launch_enabled,
+    auto_launch_provider_slug
+)
+SELECT
+    'd5f7d000-0020-4000-a000-000000000016'::uuid,
+    s.id,
+    NOW(),
+    'standard-launch',
+    'Standard launch',
+    'd5f7d000-0004-4000-a000-000000000006'::uuid,
+    'medium',
+    'manual_review',
+    'Usually within a few business days after publish',
+    'dofollow',
+    'paid',
+    'Check current pricing on PeerPush',
+    'Standard Launch ($39 one-time on peerpush.com/pricing) publishes instantly with a permanent listing link to your website. Product pages on PeerPush typically link to your site without nofollow on listing pages — confirm rel on your live peerpush.com/p/… URL.',
+    '[
+        {"order":1,"title":"Review pricing","body":"Compare Standard Launch with the free queue on https://peerpush.com/pricing before you checkout."},
+        {"order":2,"title":"Open submit","body":"Sign in at https://peerpush.com/submit and start a new product submission."},
+        {"order":3,"title":"Publish listing","body":"Confirm copy, discovery tags, screenshots, and pricing. Complete checkout for Standard Launch to go live immediately."}
+    ]'::jsonb,
+    'external_doc',
+    NULL,
+    NULL,
+    'https://peerpush.com/submit',
+    'Submit on PeerPush',
+    15,
+    true,
+    true,
+    'peerpush-standard-launch'
+FROM public.link_directory_sites s
+WHERE s.slug = 'peerpush'
+ON CONFLICT (site_id, slug) DO UPDATE SET
+    title = EXCLUDED.title,
+    opportunity_type_id = EXCLUDED.opportunity_type_id,
+    effort = EXCLUDED.effort,
+    approval_mode = EXCLUDED.approval_mode,
+    approval_time_hint = EXCLUDED.approval_time_hint,
+    dofollow = EXCLUDED.dofollow,
+    cost_tier = EXCLUDED.cost_tier,
+    cost_note = EXCLUDED.cost_note,
+    description = EXCLUDED.description,
+    steps = EXCLUDED.steps,
+    openquok_cta_kind = EXCLUDED.openquok_cta_kind,
+    openquok_channel_slug = EXCLUDED.openquok_channel_slug,
+    openquok_plug_name = EXCLUDED.openquok_plug_name,
+    cta_href = EXCLUDED.cta_href,
+    cta_label = EXCLUDED.cta_label,
+    sort_order = EXCLUDED.sort_order,
+    is_admin_published = EXCLUDED.is_admin_published,
+    auto_launch_enabled = EXCLUDED.auto_launch_enabled,
+    auto_launch_provider_slug = EXCLUDED.auto_launch_provider_slug,
+    published_at = COALESCE(public.link_directory_opportunities.published_at, EXCLUDED.published_at);
+
+INSERT INTO public.link_directory_opportunities (
+    id,
+    site_id,
+    published_at,
+    slug,
+    title,
+    opportunity_type_id,
+    effort,
+    approval_mode,
+    approval_time_hint,
+    dofollow,
+    cost_tier,
+    cost_note,
+    description,
+    steps,
+    openquok_cta_kind,
+    openquok_channel_slug,
+    openquok_plug_name,
+    cta_href,
+    cta_label,
+    sort_order,
+    is_admin_published,
+    auto_launch_enabled,
+    auto_launch_provider_slug
+)
+SELECT
+    'd5f7d000-0020-4000-a000-000000000017'::uuid,
+    s.id,
+    NOW(),
+    'free-queue',
+    'Free submission queue',
+    'd5f7d000-0004-4000-a000-000000000006'::uuid,
+    'hard',
+    'manual_review',
+    'Waits behind paid Standard Launch submissions',
+    'unknown',
+    'free',
+    NULL,
+    'Submit for free on peerpush.com/pricing and wait in line behind paid launches. You still add a website URL on the listing; PeerPush does not document dofollow vs nofollow for the free tier — verify rel on your public product page after publish.',
+    '[
+        {"order":1,"title":"Open pricing","body":"Review Standard Launch vs the free queue on https://peerpush.com/pricing."},
+        {"order":2,"title":"Submit for free","body":"Choose Submit for Free and complete the product form at https://peerpush.com/submit."},
+        {"order":3,"title":"Wait for publish","body":"Free listings publish after paid queue volume clears; confirm your live listing URL when it goes live."}
+    ]'::jsonb,
+    'external_doc',
+    NULL,
+    NULL,
+    'https://peerpush.com/pricing',
+    'PeerPush pricing',
+    10,
+    true,
+    true,
+    'peerpush-free-queue'
+FROM public.link_directory_sites s
+WHERE s.slug = 'peerpush'
+ON CONFLICT (site_id, slug) DO UPDATE SET
+    title = EXCLUDED.title,
+    opportunity_type_id = EXCLUDED.opportunity_type_id,
+    effort = EXCLUDED.effort,
+    approval_mode = EXCLUDED.approval_mode,
+    approval_time_hint = EXCLUDED.approval_time_hint,
+    dofollow = EXCLUDED.dofollow,
+    cost_tier = EXCLUDED.cost_tier,
+    cost_note = EXCLUDED.cost_note,
+    description = EXCLUDED.description,
+    steps = EXCLUDED.steps,
+    openquok_cta_kind = EXCLUDED.openquok_cta_kind,
+    openquok_channel_slug = EXCLUDED.openquok_channel_slug,
+    openquok_plug_name = EXCLUDED.openquok_plug_name,
+    cta_href = EXCLUDED.cta_href,
+    cta_label = EXCLUDED.cta_label,
+    sort_order = EXCLUDED.sort_order,
+    is_admin_published = EXCLUDED.is_admin_published,
+    auto_launch_enabled = EXCLUDED.auto_launch_enabled,
+    auto_launch_provider_slug = EXCLUDED.auto_launch_provider_slug,
+    published_at = COALESCE(public.link_directory_opportunities.published_at, EXCLUDED.published_at);
+
+UPDATE public.link_directory_sites s
+SET tag_slugs = sub.slugs
+FROM (
+    SELECT
+        sta.site_id,
+        ARRAY_AGG(t.slug ORDER BY t.slug) AS slugs
+    FROM public.link_directory_site_tags_association sta
+    INNER JOIN public.link_directory_tags t ON t.id = sta.link_directory_tag_id
+    WHERE sta.site_id IN (SELECT id FROM public.link_directory_sites WHERE slug = 'peerpush')
+    GROUP BY sta.site_id
+) sub
+WHERE s.id = sub.site_id;
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
 -- Module: auto-launch, File: 502_20261013_seed_uneed_destinations.sql
 -- ---------------------------
 -- MODULE NAME: Auto Launch
@@ -12786,6 +13033,232 @@ FROM (
     picker_group_title
 )
 WHERE v.opportunity_id IS NOT NULL
+ON CONFLICT (provider_slug) DO UPDATE SET
+    link_directory_opportunity_id = EXCLUDED.link_directory_opportunity_id,
+    name = EXCLUDED.name,
+    short_description = EXCLUDED.short_description,
+    submission_path = EXCLUDED.submission_path,
+    start_url = EXCLUDED.start_url,
+    extension_config = EXCLUDED.extension_config,
+    is_published = EXCLUDED.is_published,
+    sort_order = EXCLUDED.sort_order,
+    picker_group_key = EXCLUDED.picker_group_key,
+    picker_group_title = EXCLUDED.picker_group_title,
+    updated_at = NOW();
+
+
+-- Module: auto-launch, File: 503_20261016_seed_peerpush_destination.sql
+-- ---------------------------
+-- MODULE NAME: Auto Launch
+-- MODULE DATE: 20261016
+-- MODULE SCOPE: Seed (PeerPush free queue + Standard launch destinations + extension_config)
+-- ---------------------------
+-- PeerPush submit form: logo file upload uses extension file fill (no fillMode on file steps).
+-- Tag-style discovery fields use fillMode "tags"; description uses rich_html where the editor is ProseMirror-like.
+
+BEGIN;
+
+INSERT INTO public.auto_launch_destinations (
+    id,
+    provider_slug,
+    link_directory_opportunity_id,
+    name,
+    short_description,
+    submission_path,
+    start_url,
+    extension_config,
+    is_published,
+    sort_order,
+    picker_group_key,
+    picker_group_title
+)
+SELECT
+    'd5f7d000-0030-4000-a000-000000000004'::uuid,
+    'peerpush-standard-launch'::text,
+    o.id,
+    'PeerPush — Standard launch',
+    'Instant publish on PeerPush; extension autofills the submit flow at peerpush.com/submit.',
+    'extension',
+    'https://peerpush.com/submit',
+    $json${
+        "version": 1,
+        "startUrlPatterns": [
+            "https://peerpush.com/*",
+            "https://www.peerpush.com/*"
+        ],
+        "readyUrlHint": "submit",
+        "steps": [
+            {
+                "id": "basic",
+                "label": "Basic",
+                "fields": [
+                    {
+                        "key": "name",
+                        "label": "Product name",
+                        "profilePath": "name",
+                        "fillMode": "text",
+                        "selectorHint": "input[name*='name' i], input[placeholder*='product name' i], input[aria-label*='name' i]"
+                    },
+                    {
+                        "key": "tagline",
+                        "label": "Tagline",
+                        "profilePath": "tagline",
+                        "fillMode": "text",
+                        "selectorHint": "input[name*='tagline' i], textarea[name*='tagline' i], input[placeholder*='tagline' i], input[aria-label*='tagline' i]"
+                    },
+                    {
+                        "key": "description",
+                        "label": "Description",
+                        "profilePath": "description",
+                        "fillMode": "rich_html",
+                        "selectorHint": "[contenteditable='true'], .ProseMirror, .tiptap, textarea[name*='description' i], textarea[placeholder*='description' i]"
+                    },
+                    {
+                        "key": "website",
+                        "label": "Website",
+                        "profilePath": "website_url",
+                        "fillMode": "text",
+                        "selectorHint": "input[type='url'], input[name*='website' i], input[name*='url' i], input[placeholder*='website' i]"
+                    },
+                    {
+                        "key": "logo",
+                        "label": "Logo",
+                        "profilePath": "logo_url",
+                        "selectorHint": "input[type='file'][accept*='image']"
+                    }
+                ]
+            },
+            {
+                "id": "discovery",
+                "label": "Discovery",
+                "fields": [
+                    {
+                        "key": "categories",
+                        "label": "Categories",
+                        "profilePath": "profile_data.categories",
+                        "fillMode": "tags",
+                        "selectorHint": "input[name*='categor' i], [placeholder*='categor' i], [role='combobox'][aria-label*='categor' i]"
+                    },
+                    {
+                        "key": "use_cases",
+                        "label": "Use cases",
+                        "profilePath": "profile_data.use_cases",
+                        "fillMode": "tags",
+                        "selectorHint": "input[name*='use' i][name*='case' i], [placeholder*='use case' i], [aria-label*='use case' i]"
+                    },
+                    {
+                        "key": "target_audiences",
+                        "label": "Target audience",
+                        "profilePath": "profile_data.target_audiences",
+                        "fillMode": "tags",
+                        "selectorHint": "input[name*='audience' i], [placeholder*='audience' i], [aria-label*='audience' i]"
+                    },
+                    {
+                        "key": "pricing_type",
+                        "label": "Pricing",
+                        "profilePath": "profile_data.pricing_type",
+                        "fillMode": "select",
+                        "selectorHint": "select[name*='pricing' i], [role='combobox'][aria-label*='pricing' i], button[aria-label*='pricing' i]"
+                    },
+                    {
+                        "key": "platforms",
+                        "label": "Platforms",
+                        "profilePath": "profile_data.platforms",
+                        "fillMode": "tags",
+                        "selectorHint": "input[name*='platform' i], [placeholder*='platform' i], [aria-label*='platform' i]"
+                    },
+                    {
+                        "key": "alternatives",
+                        "label": "Similar products",
+                        "profilePath": "profile_data.alternatives",
+                        "fillMode": "tags",
+                        "selectorHint": "input[name*='alternative' i], input[name*='similar' i], [placeholder*='alternative' i], [placeholder*='similar' i]"
+                    },
+                    {
+                        "key": "monthly_revenue_usd",
+                        "label": "Monthly recurring revenue (optional)",
+                        "profilePath": "profile_data.monthly_revenue_usd",
+                        "fillMode": "text",
+                        "selectorHint": "input[name*='mrr' i], input[name*='monthly' i][name*='revenue' i], input[placeholder*='MRR' i], input[aria-label*='revenue' i]"
+                    }
+                ]
+            },
+            {
+                "id": "media",
+                "label": "Media",
+                "fields": [
+                    {
+                        "key": "gallery",
+                        "label": "Screenshots",
+                        "profilePath": "profile_data.gallery_urls",
+                        "selectorHint": "input[type='file'][accept*='image']:not(:only-of-type), input[type='file'][multiple][accept*='image']"
+                    }
+                ]
+            }
+        ],
+        "proof": {
+            "successPathRegex": "/p/|/submit",
+            "listingUrlSelector": "a[href*='peerpush.com/p/']"
+        }
+    }$json$::jsonb,
+    true,
+    40,
+    NULL::text,
+    NULL::text
+FROM public.link_directory_opportunities o
+INNER JOIN public.link_directory_sites s ON s.id = o.site_id
+WHERE s.slug = 'peerpush'
+  AND o.slug = 'standard-launch'
+ON CONFLICT (provider_slug) DO UPDATE SET
+    link_directory_opportunity_id = EXCLUDED.link_directory_opportunity_id,
+    name = EXCLUDED.name,
+    short_description = EXCLUDED.short_description,
+    submission_path = EXCLUDED.submission_path,
+    start_url = EXCLUDED.start_url,
+    extension_config = EXCLUDED.extension_config,
+    is_published = EXCLUDED.is_published,
+    sort_order = EXCLUDED.sort_order,
+    picker_group_key = EXCLUDED.picker_group_key,
+    picker_group_title = EXCLUDED.picker_group_title,
+    updated_at = NOW();
+
+INSERT INTO public.auto_launch_destinations (
+    id,
+    provider_slug,
+    link_directory_opportunity_id,
+    name,
+    short_description,
+    submission_path,
+    start_url,
+    extension_config,
+    is_published,
+    sort_order,
+    picker_group_key,
+    picker_group_title
+)
+SELECT
+    'd5f7d000-0030-4000-a000-000000000005'::uuid,
+    'peerpush-free-queue'::text,
+    o.id,
+    'PeerPush — Free queue',
+    'Free queue on PeerPush; extension autofills after you open pricing and start submit.',
+    'extension',
+    'https://peerpush.com/pricing',
+    jsonb_set(COALESCE(std.extension_config, '{}'::jsonb), '{readyUrlHint}', '"pricing"'::jsonb),
+    true,
+    35,
+    NULL::text,
+    NULL::text
+FROM public.link_directory_opportunities o
+INNER JOIN public.link_directory_sites s ON s.id = o.site_id
+CROSS JOIN LATERAL (
+    SELECT extension_config
+    FROM public.auto_launch_destinations
+    WHERE provider_slug = 'peerpush-standard-launch'
+    LIMIT 1
+) std
+WHERE s.slug = 'peerpush'
+  AND o.slug = 'free-queue'
 ON CONFLICT (provider_slug) DO UPDATE SET
     link_directory_opportunity_id = EXCLUDED.link_directory_opportunity_id,
     name = EXCLUDED.name,

@@ -19,4 +19,34 @@ describe('parseBusinessProfileFormIssues', () => {
 			expect(parsed.firstTabWithError).toBe('general');
 		}
 	});
+
+	it('routes legacy single category errors to the discovery tab', () => {
+		const result = autoLaunchProductProfileFormSchema.safeParse({
+			name: 'Acme',
+			profileData: {
+				category: 'x'.repeat(201)
+			}
+		});
+		expect(result.success).toBe(false);
+		if (!result.success) {
+			const parsed = parseBusinessProfileFormIssues(result.error.issues);
+			expect(parsed.fieldErrors['profileData.category']).toBeTruthy();
+			expect(parsed.firstTabWithError).toBe('discovery');
+		}
+	});
+
+	it('routes discovery field errors to the discovery tab', () => {
+		const result = autoLaunchProductProfileFormSchema.safeParse({
+			name: 'Acme',
+			profileData: {
+				categories: ['a', 'b', 'c', 'd']
+			}
+		});
+		expect(result.success).toBe(false);
+		if (!result.success) {
+			const parsed = parseBusinessProfileFormIssues(result.error.issues);
+			expect(parsed.fieldErrors['profileData.categories']).toBeTruthy();
+			expect(parsed.firstTabWithError).toBe('discovery');
+		}
+	});
 });

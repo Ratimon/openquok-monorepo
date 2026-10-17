@@ -99,10 +99,33 @@ export {
 	computeListingProfileFingerprint,
 	resolveProfilePathValue,
 } from './auto-launch/listingProfileFingerprint.js';
+export { directorySiteKeyFromProviderSlug } from './auto-launch/directorySiteKey.js';
+export {
+	directoryExclusiveOpportunityGroupKey,
+	getDirectorySiteOpportunityProgress,
+	type DirectorySiteOpportunityProgress
+} from './auto-launch/directoryOpportunityProgress.js';
+export {
+	collectProfileFieldsFromExtensionConfig,
+	getDestinationReadiness,
+	getProfileLaunchSummary,
+	type DestinationLaunchReadiness,
+	type ProfileLaunchDestinationInput,
+	type ProfileLaunchDestinationSummaryRow,
+	type ProfileLaunchMissingField,
+	type ProfileLaunchSubmissionInput,
+	type ProfileLaunchSummary,
+	type ProfileLaunchSummaryNextGap,
+} from './auto-launch/profileLaunchReadiness.js';
 export {
 	BUSINESS_PROFILE_INCLUDED_ASSET_SLUGS,
+	BUSINESS_PROFILE_MAX_ALTERNATIVES,
+	BUSINESS_PROFILE_MAX_CATEGORIES,
 	BUSINESS_PROFILE_MAX_GALLERY_URLS,
+	BUSINESS_PROFILE_MAX_PLATFORMS,
 	BUSINESS_PROFILE_MAX_TAGS,
+	BUSINESS_PROFILE_MAX_TARGET_AUDIENCES,
+	BUSINESS_PROFILE_MAX_USE_CASES,
 	BUSINESS_PROFILE_PRICING_TYPES,
 	BUSINESS_PROFILE_SELLING_REASON_MIN_LENGTH,
 	EMPTY_BUSINESS_PROFILE_DATA,

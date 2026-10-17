@@ -13,10 +13,14 @@ import {
 	pageMatchesConfig,
 } from './stepRail.js';
 
+const AUTO_LAUNCH_ATTACH_TAB = 'OPENQUOK_AUTO_LAUNCH_ATTACH_TAB';
+
 type ContentCommandMessage = {
 	type: string;
 	session?: AutoLaunchHandoffSession;
 	stepId?: string;
+	providerSlug?: string;
+	dashboardOrigin?: string;
 };
 
 export function registerDirectoryLaunchProvider(providerSlug: string): void {
@@ -28,6 +32,7 @@ export function registerDirectoryLaunchProvider(providerSlug: string): void {
 	const provider = providerMeta;
 
 	let activeSession: AutoLaunchHandoffSession | null = null;
+	let activeDashboardOrigin: string | null = null;
 	const fieldResultsByStep: Record<string, FieldFillResult[]> = {};
 
 	const rail = new DirectoryLaunchStepRail({
@@ -86,7 +91,7 @@ export function registerDirectoryLaunchProvider(providerSlug: string): void {
 		if (!step) {
 			return { ok: false, error: `Unknown step "${stepId}".` };
 		}
-		const results = fillLaunchStep(activeSession.profileSnapshot, step);
+		const results = await fillLaunchStep(activeSession.profileSnapshot, step, fillContext());
 		fieldResultsByStep[stepId] = results;
 		const index = steps.findIndex((s) => s.id === stepId);
 		sendProgress(stepId, step.label, index, steps.length, results);
@@ -101,12 +106,22 @@ export function registerDirectoryLaunchProvider(providerSlug: string): void {
 		const steps = activeSession.extensionConfig.steps ?? [];
 		for (let i = 0; i < steps.length; i++) {
 			const step = steps[i];
-			const results = fillLaunchStep(activeSession.profileSnapshot, step);
+			const results = await fillLaunchStep(activeSession.profileSnapshot, step, fillContext());
 			fieldResultsByStep[step.id] = results;
 			sendProgress(step.id, step.label, i, steps.length, results);
 		}
 		renderRail();
 		return { ok: true };
+	}
+
+	function fillContext() {
+		return activeDashboardOrigin ? { dashboardOrigin: activeDashboardOrigin } : undefined;
+	}
+
+	function rememberDashboardOrigin(origin?: string): void {
+		if (typeof origin === 'string' && origin.trim()) {
+			activeDashboardOrigin = origin.trim();
+		}
 	}
 
 	function activateSession(session: AutoLaunchHandoffSession): void {
@@ -117,35 +132,64 @@ export function registerDirectoryLaunchProvider(providerSlug: string): void {
 		renderRail();
 	}
 
+	function requestAttachFromBackground(): void {
+		if (!pageMatchesConfig({ startUrlPatterns: provider.hostPatterns })) return;
+		chrome.runtime.sendMessage({ type: AUTO_LAUNCH_ATTACH_TAB, providerSlug }, () => {
+			void chrome.runtime.lastError;
+		});
+	}
+
+	requestAttachFromBackground();
+
 	chrome.runtime.onMessage.addListener((message: ContentCommandMessage, _sender, sendResponse) => {
-		if (!message || typeof message !== 'object') return;
+		if (!message || typeof message !== 'object') return false;
 
-		if (message.type === AUTO_LAUNCH_MESSAGE_TYPE.START && message.session) {
-			activateSession(message.session);
+		const session = message.session;
+		if (session && session.providerSlug !== providerSlug) {
+			return false;
+		}
+
+		if (message.type === AUTO_LAUNCH_MESSAGE_TYPE.START && session) {
+			rememberDashboardOrigin(message.dashboardOrigin);
+			activateSession(session);
 			sendResponse({ ok: true });
-			return true;
+			return false;
 		}
 
-		if (message.session && message.session.providerSlug !== providerSlug) {
-			return;
-		}
+		rememberDashboardOrigin(message.dashboardOrigin);
 
-		if (message.session) {
-			activeSession = message.session;
-			rail.mount();
-			renderRail();
+		if (session) {
+			activeSession = session;
+			if (pageMatchesConfig(session.extensionConfig)) {
+				rail.mount();
+				renderRail();
+			}
 		}
 
 		if (message.type === AUTO_LAUNCH_MESSAGE_TYPE.FILL_STEP && message.stepId) {
-			void runFillStep(message.stepId).then(sendResponse);
+			void runFillStep(message.stepId)
+				.then((result) => sendResponse(result))
+				.catch((error: unknown) => {
+					sendResponse({
+						ok: false,
+						error: error instanceof Error ? error.message : 'Fill step failed.',
+					});
+				});
 			return true;
 		}
 
 		if (message.type === AUTO_LAUNCH_MESSAGE_TYPE.FILL_ALL) {
-			void runFillAll().then(sendResponse);
+			void runFillAll()
+				.then((result) => sendResponse(result))
+				.catch((error: unknown) => {
+					sendResponse({
+						ok: false,
+						error: error instanceof Error ? error.message : 'Fill all failed.',
+					});
+				});
 			return true;
 		}
 
-		return undefined;
+		return false;
 	});
 }
