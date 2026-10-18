@@ -58,10 +58,10 @@
 		mode === 'edit' && Boolean(submissionId?.trim()) && Boolean(onMarkIncomplete)
 	);
 
-	let destinationId = $state(initialDestinationId);
-	let listingUrl = $state(initialListingUrl);
-	let listingDofollow = $state(initialListingDofollow);
-	let authEmail = $state(initialAuthEmail);
+	let destinationId = $state('');
+	let listingUrl = $state('');
+	let listingDofollow = $state(false);
+	let authEmail = $state('');
 	let fieldErrors = $state<DirectoryListingDetailsFieldErrors>({});
 
 	const requireAllFields = $derived(mode === 'complete');

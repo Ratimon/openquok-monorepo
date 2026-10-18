@@ -1,7 +1,7 @@
 ---
 title: Business profiles
 description: Link OpenQuok channels to a business profile (client or brand), filter the dashboard by profile, and select every channel in a profile at once in the post editor.
-order: 4
+order: 3
 lastUpdated: 2026-10-14
 ---
 
@@ -13,7 +13,12 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 > Bundle channels by client or brand — and pick every channel in a business profile at once in the composer.
 
-A **business profile** is a workspace label for one or more channels — usually one client, one brand, or one project. Each channel links to at most one business profile. Channels with no profile appear under **Not linked to a business profile**.
+A **business profile** is a workspace label for one or more channels — usually one client, one brand, or one project. Each channel links to at most one business profile.
+
+<Callout type="note">
+<p>Channels with no profile are shown under <strong>Not linked to a business profile</strong> section.</p>
+</Callout>
+
 
 If you manage social for more than one client, business profiles keep <strong>My Dashboard</strong> readable and let you focus on one account at a time. The same profile can also hold **product** details for directory launches on the **Products** tab.
 

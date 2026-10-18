@@ -8,7 +8,7 @@
  *
  * **Different folders (not channel identity):**
  * - `content/constants/landing/` — shared CTAs, breadcrumbs, who-is-for for `/` and hub chrome
- * - `content/constants/self-hosting/landing.ts` — `/self-hosting` page only (filename is historical)
+ * - `content/constants/marketing/self-hosting-landing.ts` — `/self-hosting` page only
  *
  * Import `getPublicChannelBySlug` / `listAvailablePublicChannels` from here — not legacy `public*Config` shims.
  */
@@ -30,6 +30,7 @@ import {
 	buildPublicChannelEcosystemAudienceTailoredCard,
 	buildPublicChannelEcosystemFaqItems
 } from '$lib/content/constants/agents/ecosystems';
+import { PUBLIC_DIRECTORY_CHANNEL_LANDING_PAGES } from '$lib/content/constants/channels/catalog/directory-seeds';
 import { PUBLIC_CHANNEL_LANDING_PAGES } from '$lib/content/constants/channels/catalog/seeds';
 
 export * from '$lib/content/constants/channels/catalog/types';
@@ -50,21 +51,37 @@ export {
 	PUBLIC_CHANNEL_LANDING_PAGES,
 	listPublicChannelLandingSeedsForFooter
 } from '$lib/content/constants/channels/catalog/seeds';
+export { PUBLIC_DIRECTORY_CHANNEL_LANDING_PAGES } from '$lib/content/constants/channels/catalog/directory-seeds';
+export {
+	peerpushDirectoryChannel,
+	uneedDirectoryChannel
+} from '$lib/content/constants/channels/catalog/directory-platforms/index';
 
 const channelBySlug = new Map(PUBLIC_CHANNEL_LANDING_PAGES.map((page) => [page.slug, page]));
+const directoryChannelBySlug = new Map(
+	PUBLIC_DIRECTORY_CHANNEL_LANDING_PAGES.map((page) => [page.slug, page])
+);
+
+function getChannelSeedBySlug(key: string): PublicChannelLandingPageViewModel | undefined {
+	return channelBySlug.get(key) ?? directoryChannelBySlug.get(key);
+}
+
+function isDirectoryChannelKind(page: PublicChannelLandingPageViewModel): boolean {
+	return page.channelKind === 'directory';
+}
 
 /** Optional fourth WhoIsFor card from `audienceTailoredCard` on the channel seed. */
 export function getPublicChannelAudienceTailoredCard(
 	slug: string
 ): AudienceCard | undefined {
 	const key = slug.trim().toLowerCase();
-	return channelBySlug.get(key)?.audienceTailoredCard;
+	return getChannelSeedBySlug(key)?.audienceTailoredCard;
 }
 
 /** Seed WhoIsFor cards only — excludes `/channels/{slug}` ecosystem merge. */
 export function getPublicChannelSeedAudienceCards(slug: string): AudienceCard[] {
 	const key = slug.trim().toLowerCase();
-	const page = channelBySlug.get(key);
+	const page = getChannelSeedBySlug(key);
 	return page ? [...page.audienceCards] : [];
 }
 
@@ -117,8 +134,19 @@ function withChannelPageSeoCopy(
 
 export function getPublicChannelBySlug(slug: string): PublicChannelLandingPageViewModel | undefined {
 	const key = slug.trim().toLowerCase();
-	const page = channelBySlug.get(key);
+	const page = getChannelSeedBySlug(key);
 	if (!page) return undefined;
+
+	if (isDirectoryChannelKind(page)) {
+		return {
+			...page,
+			faqItems: appendPublicGeneralFaqItems(
+				[...page.faqItems],
+				PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS,
+				{ generalFirst: true }
+			)
+		};
+	}
 
 	const withSeo = withChannelPageSeoCopy(page);
 	const ecosystemFaqs = buildPublicChannelEcosystemFaqItems({
@@ -140,6 +168,10 @@ export function getPublicChannelBySlug(slug: string): PublicChannelLandingPageVi
 
 export function listPublicChannelsForHub(): PublicChannelLandingPageViewModel[] {
 	return [...PUBLIC_CHANNEL_LANDING_PAGES];
+}
+
+export function listPublicDirectoryChannelsForHub(): PublicChannelLandingPageViewModel[] {
+	return [...PUBLIC_DIRECTORY_CHANNEL_LANDING_PAGES];
 }
 
 export function listAvailablePublicChannels(): PublicChannelLandingPageViewModel[] {

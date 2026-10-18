@@ -230,10 +230,41 @@ export const PUBLIC_PROGRAMMATIC_LANDING_SURFACES: readonly ProgrammaticLandingS
 		channelParam: null,
 		scale: 'none',
 		generic: {
-			modulePath: 'web/src/lib/content/constants/self-hosting/whoIsFor.ts',
+			modulePath: 'web/src/lib/content/constants/marketing/self-hosting-landing.ts',
 			symbol: 'PUBLIC_SELF_HOSTING_WHO_IS_FOR_SECTION'
 		},
 		tailored: null
+	},
+	{
+		id: 'directory-submission-tool',
+		routePattern: '/directory-submission-tool',
+		hubPath: null,
+		channelParam: null,
+		scale: 'none',
+		generic: {
+			modulePath: 'web/src/lib/content/constants/marketing/directory-submission-landing.ts',
+			symbol: 'PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG'
+		},
+		tailored: null,
+		notes:
+			'Submitator-style directory landing — human review, steady pace, process steps, three-way pricing compare.'
+	},
+	{
+		id: 'social-autopilot-landing',
+		routePattern: '/social-media-management',
+		hubPath: null,
+		channelParam: null,
+		scale: 'none',
+		generic: {
+			modulePath: 'web/src/lib/seo/loadPublicCmsLandingPage.server.ts',
+			symbol: 'loadPublicCmsLandingPage'
+		},
+		tailored: {
+			modulePath: 'web/src/lib/ui/templates/landing-page/LandingPage.svelte',
+			symbol: 'LandingPage'
+		},
+		notes:
+			'Programmatic hero/who-is-for/FEATURE_* in `social-autopilot-landing.ts`. FAQ via `publicMarketingLandingFaqs` (`social-autopilot` id). Tail matches home: CMS `landing_page` (demo, icon grid, pricing headings), opportunities preview (playbooks + building blocks), pricing section, hub doc banners.'
 	},
 	{
 		id: 'tools-hub',
@@ -372,6 +403,8 @@ export function getProgrammaticLandingPageCounts(): ProgrammaticPageCounts {
 		'scheduling-api-hub': 1,
 		'scheduling-api-platform': api.length,
 		'self-hosting': 1,
+		'directory-submission-tool': 1,
+		'social-autopilot-landing': 1,
 		'tools-hub': 1,
 		humanizer: listHumanizeChannelsForHub().length + 1,
 		'photo-editor': listCanvasChannelsForHub().length + 1,

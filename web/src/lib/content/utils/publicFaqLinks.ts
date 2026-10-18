@@ -122,6 +122,7 @@ export const publicFaqHref = {
 	tools: route(getRootPathPublicTools()),
 	compare: route(getRootPathPublicCompare()),
 	compareOpenquokBuffer: faqHrefComparePair('openquok', 'buffer'),
+	compareOpenquokHootsuite: faqHrefComparePair('openquok', 'hootsuite'),
 	compareOpenquokLater: faqHrefComparePair('openquok', 'later'),
 	alternatives: route(getRootPathPublicAlternatives()),
 	alternativesLater: route(getRootPathPublicAlternativesTarget('later')),

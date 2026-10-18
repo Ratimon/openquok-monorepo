@@ -37,7 +37,10 @@
 			</div>
 
 			<div class="mb-6 flex justify-center">
-				<PublicChannelsLandingBreadcrumb platformLabel={channelVm.platformLabel} />
+				<PublicChannelsLandingBreadcrumb
+					platformLabel={channelVm.platformLabel}
+					channelKind={channelVm.channelKind ?? 'social'}
+				/>
 			</div>
 
 			<PublicHeroTitle

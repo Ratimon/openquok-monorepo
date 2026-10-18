@@ -19,6 +19,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			pageMetaTags: MetaTagsProps;
 			isLoggedIn: boolean;
 			channelsVm: PublicChannelViewModel[];
+			directoryChannelsVm: PublicChannelViewModel[];
 			schemaData: unknown;
 		};
 
@@ -30,6 +31,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			isAdmin,
 			isEditor,
 			channelsVm: serverData.channelsVm,
+			directoryChannelsVm: serverData.directoryChannelsVm,
 			schemaData: serverData.schemaData
 		};
 	}

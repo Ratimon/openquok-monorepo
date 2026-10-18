@@ -10,7 +10,7 @@ import {
 	type PublicPricingCompareRowId
 } from '$lib/billing/constants/publicPricingCatalog';
 import { listAvailablePublicChannelCompareLabels } from '$lib/content/constants/channels';
-import { PUBLIC_SELF_HOST_PRICING_FOOTNOTE_CONFIG } from '$lib/content/constants/self-hosting/landing';
+import { PUBLIC_SELF_HOST_PRICING_FOOTNOTE_CONFIG } from '$lib/content/constants/marketing/self-hosting-landing';
 import { formatBytes } from '$lib/medias';
 import { icons } from '$data/icons';
 

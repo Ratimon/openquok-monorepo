@@ -3,7 +3,10 @@
 
 	import { page } from '$app/state';
 	import { icons } from '$data/icons';
-	import { listPublicChannelsForHub } from '$lib/content/constants/channels';
+	import {
+		listPublicChannelsForHub,
+		listPublicDirectoryChannelsForHub
+	} from '$lib/content/constants/channels';
 	import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
 	import { hostedMarketingAnchorAttrs } from '$lib/utils/hostedMarketingHref';
 	import { isParentRoute, route } from '$lib/utils/path';
@@ -33,8 +36,10 @@
 		onAfterNavigate
 	}: Props = $props();
 
-	const channels = listPublicChannelsForHub();
-	const columns = splitIntoColumns(channels, 3);
+	const socialChannels = listPublicChannelsForHub();
+	const directoryChannels = listPublicDirectoryChannelsForHub();
+	const socialColumns = splitIntoColumns(socialChannels, 3);
+	const directoryColumns = splitIntoColumns(directoryChannels, 2);
 
 	let isActive = $derived(isParentRoute(page.url.pathname, channelsPath));
 
@@ -57,43 +62,69 @@
 	const seeAll = $derived(hostedMarketingAnchorAttrs(channelsPath, page.url.origin));
 </script>
 
+{#snippet channelLink(channel: PublicChannelLandingPageViewModel)}
+	{@const marketing = channelAnchor(channel)}
+	<a
+		href={marketing.href}
+		target={marketing.target}
+		rel={marketing.rel}
+		onclick={handleNavigate}
+		class="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm font-semibold transition-colors hover:bg-base-100/80 hover:text-primary {channel.available
+			? 'text-base-content'
+			: 'text-base-content/60'}"
+	>
+		<span class="flex min-w-0 items-center gap-2.5">
+			<span
+				class="grid size-7 shrink-0 place-items-center rounded-md border border-white/10 bg-base-100/80"
+				aria-hidden="true"
+			>
+				<AbstractIcon
+					name={channel.icon}
+					width="16"
+					height="16"
+					class="size-4 {channel.available ? '' : 'opacity-60'}"
+					focusable="false"
+				/>
+			</span>
+			<span class="truncate">{channel.platformLabel}</span>
+		</span>
+		{#if !channel.available}
+			<PublicSoonBadge />
+		{/if}
+	</a>
+{/snippet}
+
 {#snippet channelsNavContent()}
-	<div class="grid grid-cols-2 gap-x-6 gap-y-1 sm:grid-cols-3" aria-label="Social channels">
-		{#each columns as column (column.map((channel) => channel.slug).join('-'))}
-			<div class="flex min-w-0 flex-col gap-0.5">
-				{#each column as channel (channel.slug)}
-					{@const marketing = channelAnchor(channel)}
-					<a
-						href={marketing.href}
-						target={marketing.target}
-						rel={marketing.rel}
-						onclick={handleNavigate}
-						class="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm font-semibold transition-colors hover:bg-base-100/80 hover:text-primary {channel.available
-							? 'text-base-content'
-							: 'text-base-content/60'}"
-					>
-						<span class="flex min-w-0 items-center gap-2.5">
-							<span
-								class="grid size-7 shrink-0 place-items-center rounded-md border border-white/10 bg-base-100/80"
-								aria-hidden="true"
-							>
-								<AbstractIcon
-									name={channel.icon}
-									width="16"
-									height="16"
-									class="size-4 {channel.available ? '' : 'opacity-60'}"
-									focusable="false"
-								/>
-							</span>
-							<span class="truncate">{channel.platformLabel}</span>
-						</span>
-						{#if !channel.available}
-							<PublicSoonBadge />
-						{/if}
-					</a>
-				{/each}
-			</div>
-		{/each}
+	<div>
+		<p class="px-2 pb-1 text-xs font-semibold uppercase tracking-wide text-base-content/50">
+			Social Media
+		</p>
+		<div class="grid grid-cols-2 gap-x-6 gap-y-1 sm:grid-cols-3" aria-label="Social media platforms">
+			{#each socialColumns as column (column.map((channel) => channel.slug).join('-'))}
+				<div class="flex min-w-0 flex-col gap-0.5">
+					{#each column as channel (channel.slug)}
+						{@render channelLink(channel)}
+					{/each}
+				</div>
+			{/each}
+		</div>
+	</div>
+	<div class="mt-3 border-t border-base-content/10 pt-3">
+		<p class="px-2 pb-1 text-xs font-semibold uppercase tracking-wide text-base-content/50">
+			Directory Launch
+		</p>
+		<div
+			class="grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-2"
+			aria-label="Directory launch platforms"
+		>
+			{#each directoryColumns as column (column.map((channel) => channel.slug).join('-'))}
+				<div class="flex min-w-0 flex-col gap-0.5">
+					{#each column as channel (channel.slug)}
+						{@render channelLink(channel)}
+					{/each}
+				</div>
+			{/each}
+		</div>
 	</div>
 	<div class="mt-2 border-t border-base-content/10 pt-2">
 		<a

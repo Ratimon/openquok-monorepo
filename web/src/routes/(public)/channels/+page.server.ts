@@ -4,7 +4,7 @@ import type { ItemList } from 'schema-dts';
 
 import { publicChannelsPagePresenter } from '$lib/area-public';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
-import { PUBLIC_CHANNELS_HUB_FAQ } from '$lib/content/constants/hubs/channels';
+import { PUBLIC_CHANNELS_HUB, PUBLIC_CHANNELS_HUB_FAQ } from '$lib/content/constants/hubs/channels';
 import { buildChannelsLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
@@ -19,18 +19,20 @@ import {
 export const ssr = true;
 
 function buildChannelsItemListSchema(params: {
+	listId: string;
+	name: string;
+	description: string;
 	canonical: string;
 	origin: string;
 	channels: Array<{ slug: string; platformLabel: string; description: string }>;
 }): ItemList {
-	const { canonical, origin, channels } = params;
+	const { listId, name, description, canonical, origin, channels } = params;
 
 	return {
 		'@type': 'ItemList',
-		'@id': `${canonical}#channels-list`,
-		name: 'Social media scheduler channels',
-		description:
-			'Available social media channels and integrations you can connect and schedule from one workspace.',
+		'@id': `${canonical}#${listId}`,
+		name,
+		description,
 		url: canonical,
 		numberOfItems: channels.length,
 		itemListElement: channels.map((channel, index) => ({
@@ -51,10 +53,10 @@ export async function load({ url, cookies, parent }) {
 
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 	const channelsVm = publicChannelsPagePresenter.loadChannelsHubStateless();
+	const directoryChannelsVm = publicChannelsPagePresenter.loadDirectoryChannelsHubStateless();
 
-	const customTitle = 'Social media scheduler channels';
-	const customDescription =
-		'Connect Facebook, Threads, Instagram, YouTube, TikTok, and more to OpenQuok — the social media scheduler that lets you schedule social media posts from one workspace while you approve what goes live.';
+	const customTitle = PUBLIC_CHANNELS_HUB.metaTitle;
+	const customDescription = PUBLIC_CHANNELS_HUB.metaDescription;
 
 	const metaTags = (await createMetaData({
 		companyInformation: companyInformationPm,
@@ -67,6 +69,11 @@ export async function load({ url, cookies, parent }) {
 			'social media scheduling tool',
 			'schedule social media posts',
 			'social media posting tool',
+			'AI agents',
+			'submit startup to directories',
+			'product directory launch',
+			'directory submission tool',
+			'startup directory submission',
 			'Facebook scheduler',
 			'Threads scheduler',
 			'Instagram scheduler'
@@ -94,9 +101,10 @@ export async function load({ url, cookies, parent }) {
 				name: customTitle,
 				description: customDescription,
 				url: canonical,
-				mainEntity: {
-					'@id': `${canonical}#channels-list`
-				},
+				mainEntity: [
+					{ '@id': `${canonical}#social-channels-list` },
+					{ '@id': `${canonical}#directory-channels-list` }
+				],
 				isPartOf: {
 					'@type': 'WebSite',
 					name: companyName,
@@ -104,9 +112,24 @@ export async function load({ url, cookies, parent }) {
 				}
 			},
 			buildChannelsItemListSchema({
+				listId: 'social-channels-list',
+				name: PUBLIC_CHANNELS_HUB.socialHubTitle,
+				description: PUBLIC_CHANNELS_HUB.socialHubDescription,
 				canonical,
 				origin: url.origin,
 				channels: channelsVm.map((channel) => ({
+					slug: channel.slug,
+					platformLabel: channel.platformLabel,
+					description: channel.hubDescription ?? channel.metaDescription
+				}))
+			}),
+			buildChannelsItemListSchema({
+				listId: 'directory-channels-list',
+				name: PUBLIC_CHANNELS_HUB.directoryHubTitle,
+				description: PUBLIC_CHANNELS_HUB.directoryHubDescription,
+				canonical,
+				origin: url.origin,
+				channels: directoryChannelsVm.map((channel) => ({
 					slug: channel.slug,
 					platformLabel: channel.platformLabel,
 					description: channel.hubDescription ?? channel.metaDescription
@@ -118,10 +141,7 @@ export async function load({ url, cookies, parent }) {
 				description: PUBLIC_CHANNELS_HUB_FAQ.faqDescription,
 				items: PUBLIC_CHANNELS_HUB_FAQ.faqItems
 			}),
-			createBreadcrumbListSchema(
-				buildChannelsLandingBreadcrumbItems({}),
-				url.origin
-			)
+			createBreadcrumbListSchema(buildChannelsLandingBreadcrumbItems({}), url.origin)
 		])
 	);
 
@@ -129,6 +149,7 @@ export async function load({ url, cookies, parent }) {
 		pageMetaTags,
 		isLoggedIn,
 		channelsVm,
+		directoryChannelsVm,
 		schemaData
 	};
 }

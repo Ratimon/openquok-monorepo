@@ -2,6 +2,7 @@
  * `/self-hosting` programmatic landing config only.
  *
  * Not the home page (`/`) — see `landing/`. Not social channel pages — see `channels/catalog/platforms/`.
+ * Lives under `marketing/` with other fixed-route landings (`directory-submission-landing.ts`, etc.).
  */
 import { icons } from '$data/icons';
 import type { IconName } from '$data/icons';

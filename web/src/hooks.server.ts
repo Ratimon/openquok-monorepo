@@ -14,6 +14,10 @@ import {
 	getRootPathCatalogManagerSegment,
 	getRootPathSecretAdminArea
 } from '$lib/area-admin/constants/getRootPathSecretAdminArea';
+import {
+	getRootPathPublicSocialAutopilotLanding,
+	PUBLIC_SOCIAL_AUTOPILOT_LANDING_LEGACY_PATH
+} from '$lib/area-public/constants/getRootPathPublicSocialAutopilotLanding';
 import { route } from '$lib/utils/path';
 
 const LEGACY_SECRET_ADMIN_LISTING_MANAGER_SEGMENT = 'listing-manager';
@@ -126,6 +130,11 @@ export const handle: Handle = async ({ event, resolve }) => {
 		shouldRedirectToMaintenance(event.url.pathname)
 	) {
 		redirect(302, route(getRootPathMaintenance()));
+	}
+
+	const legacySocialAutopilotPath = route(`/${PUBLIC_SOCIAL_AUTOPILOT_LANDING_LEGACY_PATH}`);
+	if (event.url.pathname === legacySocialAutopilotPath) {
+		redirect(308, route(getRootPathPublicSocialAutopilotLanding()));
 	}
 
 	const legacyListingManagerPrefix = route(

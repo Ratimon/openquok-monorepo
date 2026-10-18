@@ -1,3 +1,10 @@
+import type {
+    AutoLaunchExtensionConfig,
+    LaunchStep as AutoLaunchExtensionStep,
+} from "openquok-common";
+
+export type { AutoLaunchExtensionConfig, AutoLaunchExtensionStep };
+
 export type AutoLaunchSubmissionStatus =
     | "draft"
     | "intent"
@@ -5,26 +12,6 @@ export type AutoLaunchSubmissionStatus =
     | "completed"
     | "cancelled"
     | "failed";
-
-export type AutoLaunchExtensionConfig = {
-    version?: number;
-    startUrlPatterns?: string[];
-    readyUrlHint?: string;
-    steps?: AutoLaunchExtensionStep[];
-    proof?: Record<string, unknown>;
-};
-
-export type AutoLaunchExtensionStep = {
-    id: string;
-    label: string;
-    fields?: Array<{
-        key: string;
-        label: string;
-        profilePath: string;
-        selectorHint?: string;
-        fillMode?: "text" | "select" | "boolean" | "rich_html" | "tags";
-    }>;
-};
 
 /** Merged channel group + product profile row for business profile pickers. */
 export type BusinessProfileListRow = {

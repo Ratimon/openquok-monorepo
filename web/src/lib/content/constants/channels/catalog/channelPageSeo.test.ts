@@ -6,7 +6,11 @@ import {
 	buildPublicChannelAudienceTitle,
 	sortChannelPageAgentIntegrations
 } from '$lib/content/constants/channels/catalog/channelPageSeo';
-import { getPublicChannelBySlug } from '$lib/content/constants/channels';
+import {
+	getPublicChannelBySlug,
+	listPublicChannelsForHub,
+	listPublicDirectoryChannelsForHub
+} from '$lib/content/constants/channels';
 import { PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS } from '$lib/content/constants/faq';
 
 describe('channelPageSeo', () => {
@@ -42,5 +46,18 @@ describe('channelPageSeo', () => {
 
 	it('buildPublicChannelAgentAudienceTailoredCard mentions MCP clients', () => {
 		expect(buildPublicChannelAgentAudienceTailoredCard('Threads').description).toContain('MCP');
+	});
+
+	it('resolves directory channel slugs without social ecosystem merges', () => {
+		const peerpush = getPublicChannelBySlug('peerpush');
+		expect(peerpush?.channelKind).toBe('directory');
+		expect(peerpush?.audienceTitle).toBe('Who launches on PeerPush with OpenQuok?');
+		expect(peerpush?.audienceCards).toHaveLength(3);
+		expect(peerpush?.faqItems.some((item) => item.title.includes('Grok Bot'))).toBe(false);
+
+		const socialSlugs = new Set(listPublicChannelsForHub().map((c) => c.slug));
+		expect(socialSlugs.has('peerpush')).toBe(false);
+		expect(socialSlugs.has('uneed')).toBe(false);
+		expect(listPublicDirectoryChannelsForHub().map((c) => c.slug)).toEqual(['peerpush', 'uneed']);
 	});
 });

@@ -10,6 +10,8 @@ describe('publicProgrammaticLandingRegistry', () => {
 	it('lists channel-scaled surfaces referenced in the footer', () => {
 		const ids = PUBLIC_PROGRAMMATIC_LANDING_SURFACES.map((s) => s.id);
 		expect(ids).toContain('channel-detail');
+		expect(ids).toContain('directory-submission-tool');
+		expect(ids).toContain('social-autopilot-landing');
 		expect(ids).toContain('posting-api-platform');
 		expect(ids).toContain('humanizer');
 		expect(ids).toContain('payload-wizard');

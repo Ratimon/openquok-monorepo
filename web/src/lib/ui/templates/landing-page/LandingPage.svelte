@@ -1,15 +1,13 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
+
 	import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 	import type { PublicFaqItem } from '$lib/content/constants/faq';
-	import type { PublicAgentFeatureSection as FeatureSectionConfig } from '$lib/content/constants/agents';
 	import type { PublicOpportunitiesPreviewVm } from '$lib/opportunities/server/loadAgentOpportunitiesPreview.server';
 
 	import { page } from '$app/state';
 	import { PUBLIC_LANDING_WHO_IS_FOR_CARDS } from '$lib/content/constants/landing/who-is-for';
-	import {
-		PUBLIC_LANDING_COMPACT_TRIAL_CTA,
-		PUBLIC_LANDING_HERO_TRIAL_CTA
-	} from '$lib/content/constants/landing/hero-copy';
+	import { PUBLIC_LANDING_HERO_TRIAL_CTA } from '$lib/content/constants/landing/hero-copy';
 	import {
 		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
 		CENTERED_DARK_CTA_BANNER_TITLE,
@@ -21,17 +19,9 @@
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 	import { route } from '$lib/utils/path';
 
-	import AnimatedBeamMultipleAgent from '$lib/ui/templates/landing-page/AnimatedBeamMultipleAgent.svelte';
-	import Iphone15ProMock from '$lib/ui/templates/device-mocks/iphone-15-pro/Iphone15ProMock.svelte';
-	import Iphone15ProMockContent from '$lib/ui/templates/device-mocks/iphone-15-pro/Iphone15ProMockContent.svelte';
 	import HeroDemo from '$lib/ui/templates/landing-page/HeroDemo.svelte';
 	import HeroMain from '$lib/ui/templates/landing-page/HeroMain.svelte';
-	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
-	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
-	import BentoLandingComposeSettings from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingComposeSettings.svelte';
-	import BentoLandingCrossAccountPlugs from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingCrossAccountPlugs.svelte';
-	import PublicAgentFeatureSection from '$lib/ui/templates/landing-page/PublicAgentFeatureSection.svelte';
-	import PublicLandingTeamFeatureHero from '$lib/ui/templates/landing-page/PublicLandingTeamFeatureHero.svelte';
+	import PublicLandingCmsFeatureSections from '$lib/ui/templates/landing-page/PublicLandingCmsFeatureSections.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
@@ -47,6 +37,7 @@
 		publicFaqItemsVm?: PublicFaqItem[];
 		opportunitiesPreviewVm: PublicOpportunitiesPreviewVm;
 		isLoggedIn?: boolean;
+		heroBreadcrumb?: Snippet;
 	};
 
 	let {
@@ -54,7 +45,8 @@
 		publicFaqConfigVm = {},
 		publicFaqItemsVm = [],
 		opportunitiesPreviewVm,
-		isLoggedIn = false
+		isLoggedIn = false,
+		heroBreadcrumb
 	}: Props = $props();
 
 	const heroTitle = $derived(
@@ -104,151 +96,6 @@
 			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURES_GRID_DESCRIPTION.default)
 	);
 
-	const feature1Subtitle = $derived(
-		landingPageConfigVm.FEATURE_1_SUBTITLE ||
-			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_1_SUBTITLE.default)
-	);
-	const feature1Title = $derived(
-		landingPageConfigVm.FEATURE_1_TITLE ||
-			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_1_TITLE.default)
-	);
-	const feature1Description = $derived(
-		landingPageConfigVm.FEATURE_1_DESCRIPTION ||
-			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_1_DESCRIPTION.default)
-	);
-
-	const feature2Subtitle = $derived(
-		landingPageConfigVm.FEATURE_2_SUBTITLE ||
-			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_2_SUBTITLE.default)
-	);
-	const feature2Title = $derived(
-		landingPageConfigVm.FEATURE_2_TITLE ||
-			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_2_TITLE.default)
-	);
-	const feature2Description = $derived(
-		landingPageConfigVm.FEATURE_2_DESCRIPTION ||
-			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_2_DESCRIPTION.default)
-	);
-
-	const feature3Subtitle = $derived(
-		landingPageConfigVm.FEATURE_3_SUBTITLE ||
-			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_3_SUBTITLE.default)
-	);
-	const feature3Title = $derived(
-		landingPageConfigVm.FEATURE_3_TITLE ||
-			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_3_TITLE.default)
-	);
-	const feature3Description = $derived(
-		landingPageConfigVm.FEATURE_3_DESCRIPTION ||
-			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_3_DESCRIPTION.default)
-	);
-
-	const feature4Subtitle = $derived(
-		landingPageConfigVm.FEATURE_4_SUBTITLE ||
-			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_4_SUBTITLE.default)
-	);
-	const feature4Title = $derived(
-		landingPageConfigVm.FEATURE_4_TITLE ||
-			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_4_TITLE.default)
-	);
-	const feature4Description = $derived(
-		landingPageConfigVm.FEATURE_4_DESCRIPTION ||
-			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_4_DESCRIPTION.default)
-	);
-
-	const feature5Subtitle = $derived(
-		landingPageConfigVm.FEATURE_5_SUBTITLE ||
-			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_5_SUBTITLE.default)
-	);
-	const feature5Title = $derived(
-		landingPageConfigVm.FEATURE_5_TITLE ||
-			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_5_TITLE.default)
-	);
-	const feature5Description = $derived(
-		landingPageConfigVm.FEATURE_5_DESCRIPTION ||
-			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_5_DESCRIPTION.default)
-	);
-
-	const feature6Subtitle = $derived(
-		landingPageConfigVm.FEATURE_6_SUBTITLE ||
-			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_6_SUBTITLE.default)
-	);
-	const feature6Title = $derived(
-		landingPageConfigVm.FEATURE_6_TITLE ||
-			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_6_TITLE.default)
-	);
-	const feature6Description = $derived(
-		landingPageConfigVm.FEATURE_6_DESCRIPTION ||
-			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_6_DESCRIPTION.default)
-	);
-
-	const feature7Subtitle = $derived(
-		landingPageConfigVm.FEATURE_7_SUBTITLE ||
-			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_7_SUBTITLE.default)
-	);
-	const feature7Title = $derived(
-		landingPageConfigVm.FEATURE_7_TITLE ||
-			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_7_TITLE.default)
-	);
-	const feature7Description = $derived(
-		landingPageConfigVm.FEATURE_7_DESCRIPTION ||
-			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_7_DESCRIPTION.default)
-	);
-
-	const feature8Subtitle = $derived(
-		landingPageConfigVm.FEATURE_8_SUBTITLE ||
-			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_8_SUBTITLE.default)
-	);
-	const feature8Title = $derived(
-		landingPageConfigVm.FEATURE_8_TITLE ||
-			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_8_TITLE.default)
-	);
-	const feature8Description = $derived(
-		landingPageConfigVm.FEATURE_8_DESCRIPTION ||
-			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_8_DESCRIPTION.default)
-	);
-
-	const feature9Subtitle = $derived(
-		landingPageConfigVm.FEATURE_9_SUBTITLE ||
-			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_9_SUBTITLE.default)
-	);
-	const feature9Title = $derived(
-		landingPageConfigVm.FEATURE_9_TITLE ||
-			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_9_TITLE.default)
-	);
-	const feature9Description = $derived(
-		landingPageConfigVm.FEATURE_9_DESCRIPTION ||
-			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_9_DESCRIPTION.default)
-	);
-
-	const feature9Section = $derived<FeatureSectionConfig>({
-		subtitle: feature9Subtitle,
-		title: feature9Title,
-		description: feature9Description,
-		parallelMocks: [
-			{
-				deviceMock: 'desktop',
-				deviceMockContent: 'agent-parallel-schedule',
-				imageAlt: 'Desktop agent session scheduling posts in parallel'
-			},
-			{
-				deviceMock: 'iphone-15-pro',
-				deviceMockContent: 'telegram-analytics',
-				imageAlt: 'Mobile agent chat pulling post analytics while desktop sessions run'
-			}
-		],
-		imageAlt: 'Parallel OpenQuok agent sessions on desktop and mobile',
-		mediaOnRight: true,
-		cliCommandsTitle: 'Parallel CLI sessions',
-		cliCommands: `# Session A — draft + schedule
-openquok posts:create -c "…" -s "…" -t draft -i "<uuid>"
-openquok posts:status <post-id> -s schedule
-
-# Session B — metrics (runs at the same time)
-openquok analytics:platform <integration-uuid> -d 7
-openquok analytics:post <post-id> -d 30`
-	});
-
 	const pricingSubtitle = $derived(
 		landingPageConfigVm.PRICING_SUBTITLE ||
 			String(CONFIG_SCHEMA_LANDING_PAGE.PRICING_SUBTITLE.default)
@@ -275,7 +122,6 @@ openquok analytics:post <post-id> -d 30`
 	);
 
 	const heroCtaText = PUBLIC_LANDING_HERO_TRIAL_CTA;
-	const featureCtaText = PUBLIC_LANDING_COMPACT_TRIAL_CTA;
 	const secondaryCtaHref = $derived(hostedMarketingHref('/pricing', page.url.origin));
 
 	// /sign-up
@@ -298,6 +144,7 @@ openquok analytics:post <post-id> -d 30`
 	ctaHrefPrimary={secondaryCtaHref}
 	githubOwner="Ratimon"
 	githubRepo="openquok-monorepo"
+	breadcrumb={heroBreadcrumb}
 />
 
 <HeroDemo
@@ -317,120 +164,10 @@ openquok analytics:post <post-id> -d 30`
 	cards={whoIsForCards}
 />
 
-<HeroWithRightMedia
-	heroTheme={landingHeroTheme}
-	landingSubtitle={feature1Subtitle}
-	landingTitle={feature1Title}
-	landingDescription={feature1Description}
-	ctaText={featureCtaText}
-	ctaHref={secondaryCtaHref}
-	mediaContainerClass="max-w-4xl"
->
-	{#snippet rightMedia()}
-		<div
-			class="flex h-full w-full flex-col items-center gap-6 sm:flex-row sm:items-stretch sm:gap-4"
-			aria-hidden="true"
-		>
-			<div class="flex min-h-72 min-w-0 flex-1 items-stretch">
-				<AnimatedBeamMultipleAgent />
-			</div>
-			<div
-				class="mx-auto flex h-[360px] w-full max-w-[200px] shrink-0 items-center justify-center overflow-hidden sm:h-full sm:max-w-[220px] lg:max-w-[240px]"
-			>
-				<Iphone15ProMock class="h-full w-auto max-w-full">
-					<Iphone15ProMockContent content="telegram-connect" />
-				</Iphone15ProMock>
-			</div>
-		</div>
-	{/snippet}
-</HeroWithRightMedia>
-
-<PublicLandingTeamFeatureHero
-	heroTheme={landingHeroTheme}
-	landingSubtitle={feature2Subtitle}
-	landingTitle={feature2Title}
-	landingDescription={feature2Description}
-	ctaText={featureCtaText}
-	ctaHref={secondaryCtaHref}
+<PublicLandingCmsFeatureSections
+	{landingPageConfigVm}
 	{isLoggedIn}
-/>
-
-<HeroWithRightMedia
-	heroTheme={landingHeroTheme}
-	landingSubtitle={feature3Subtitle}
-	landingTitle={feature3Title}
-	landingDescription={feature3Description}
-	ctaText={featureCtaText}
-	ctaHref={secondaryCtaHref}
->
-	{#snippet rightMedia()}
-		<BentoLandingComposeSettings {isLoggedIn} />
-	{/snippet}
-</HeroWithRightMedia>
-
-<HeroWithLeftMedia
-	heroTheme={landingHeroTheme}
-	landingSubtitle={feature4Subtitle}
-	landingTitle={feature4Title}
-	landingDescription={feature4Description}
-	ctaText={featureCtaText}
-	ctaHref={secondaryCtaHref}
->
-	{#snippet leftMedia()}
-		<BentoLandingCrossAccountPlugs {isLoggedIn} />
-	{/snippet}
-</HeroWithLeftMedia>
-
-<HeroWithRightMedia
-	heroTheme={landingHeroTheme}
-	landingSubtitle={feature5Subtitle}
-	landingTitle={feature5Title}
-	landingDescription={feature5Description}
-	imageSrc="/landing/5-calendar-filters-views.mp4"
-	imageAlt="Calendar day, week, month, and list views with smart filters"
-	ctaText={featureCtaText}
-	ctaHref={secondaryCtaHref}
-/>
-
-<HeroWithLeftMedia
-	heroTheme={landingHeroTheme}
-	landingSubtitle={feature6Subtitle}
-	landingTitle={feature6Title}
-	landingDescription={feature6Description}
-	imageSrc="/landing/6-kanban-filters-drag-drop.mp4"
-	imageAlt="Kanban board with drag-and-drop review workflow"
-	ctaText={featureCtaText}
-	ctaHref={secondaryCtaHref}
-/>
-
-<HeroWithRightMedia
-	heroTheme={landingHeroTheme}
-	landingSubtitle={feature7Subtitle}
-	landingTitle={feature7Title}
-	landingDescription={feature7Description}
-	imageSrc="/landing/7-file-manager.mp4"
-	imageAlt="Workspace-scoped file manager for media assets"
-	ctaText={featureCtaText}
-	ctaHref={secondaryCtaHref}
-/>
-
-<HeroWithLeftMedia
-	heroTheme={landingHeroTheme}
-	landingSubtitle={feature8Subtitle}
-	landingTitle={feature8Title}
-	landingDescription={feature8Description}
-	imageSrc="/landing/8-analytics.mp4"
-	imageAlt="Analytics dashboard across social channels"
-	ctaText={featureCtaText}
-	ctaHref={secondaryCtaHref}
-/>
-
-<PublicAgentFeatureSection
-	section={feature9Section}
-	index={8}
-	ctaText={featureCtaText}
-	ctaHref={secondaryCtaHref}
-/>
+	/>
 
 <PublicOpportunitiesPreviewGrid
 	heroTheme={landingHeroTheme}
@@ -440,6 +177,7 @@ openquok analytics:post <post-id> -d 30`
 
 <IconTileGrid
 	heroTheme={landingHeroTheme}
+	variant="home"
 	landingTitle={featuresGridTitle}
 	landingDescription={featuresGridDescription}
 />

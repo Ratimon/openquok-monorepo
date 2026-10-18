@@ -1,7 +1,7 @@
 ---
 title: Posting time slots
 description: Set usual posting times for scheduling suggestions.
-order: 3
+order: 4
 lastUpdated: 2026-09-16
 ---
 

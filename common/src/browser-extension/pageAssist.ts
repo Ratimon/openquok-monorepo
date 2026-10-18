@@ -6,7 +6,7 @@
 /** Mirrors `auto_launch_destinations.extension_config` (API / seeds). */
 export type AutoLaunchExtensionConfig = {
 	version?: number;
-	startUrlPatterns?: string[];
+	startUrlPatterns?: readonly string[];
 	readyUrlHint?: string;
 	steps?: LaunchStep[];
 	proof?: Record<string, unknown>;

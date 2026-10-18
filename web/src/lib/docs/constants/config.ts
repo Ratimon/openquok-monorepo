@@ -49,6 +49,11 @@ export const docsSidebarGeneral: DocsSidebarSection[] = [
 		autogenerate: { directory: 'channels' }
 	},
 	{
+		label: 'Directory submission',
+		icon: icons.Rocket.name,
+		autogenerate: { directory: 'directory-submission' }
+	},
+	{
 		label: 'Creating posts',
 		icon: icons.NotebookPen.name,
 		autogenerate: { directory: 'creating-posts' }
@@ -256,6 +261,11 @@ export const docsSidebarSelfHosting: DocsSidebarSection[] = [
 		label: 'Social integrations',
 		icon: icons.Share2.name,
 		autogenerate: { directory: 'social-integration' }
+	},
+	{
+		label: 'Directory integration',
+		icon: icons.Share2.name,
+		autogenerate: { directory: 'directory-integration' }
 	}
 ];
 

@@ -8,7 +8,10 @@
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 	import { route, url } from '$lib/utils/path';
 	import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
-	import { listPublicChannelsForHub } from '$lib/content/constants/channels/index';
+	import {
+		listPublicChannelsForHub,
+		listPublicDirectoryChannelsForHub
+	} from '$lib/content/constants/channels/index';
 	import { enrichPublicChannelSiblingGridItems } from '$lib/content/constants/channels/catalog/channelPageSeo';
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
 	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
@@ -43,6 +46,7 @@
 	let schemaData = $derived(data.schemaData);
 	let channelVm: PublicChannelViewModel = $derived(data.channelVm);
 	let isLoggedIn = $derived(data.isLoggedIn === true);
+	let isDirectoryChannel = $derived(channelVm.channelKind === 'directory');
 
 	const heroCtaText = pagePresenter.heroCtaText;
 	const featureCtaText = pagePresenter.featureCtaText;
@@ -59,13 +63,15 @@
 
 	const siblingChannels = $derived(
 		enrichPublicChannelSiblingGridItems(
-			listPublicChannelsForHub().map((channel) => ({
-				slug: channel.slug,
-				platformLabel: channel.platformLabel,
-				icon: channel.icon,
-				href: route(getRootPathPublicChannel(channel.slug)),
-				available: channel.available
-			})),
+			(isDirectoryChannel ? listPublicDirectoryChannelsForHub() : listPublicChannelsForHub()).map(
+				(channel) => ({
+					slug: channel.slug,
+					platformLabel: channel.platformLabel,
+					icon: channel.icon,
+					href: route(getRootPathPublicChannel(channel.slug)),
+					available: channel.available
+				})
+			),
 			channelVm.slug
 		)
 	);
@@ -86,6 +92,7 @@
 			heroOnly
 			platformLabel={channelVm.platformLabel}
 			icon={channelVm.icon}
+			channelKind={channelVm.channelKind ?? 'social'}
 		/>
 	{/if}
 
@@ -96,17 +103,19 @@
 		cards={channelVm.audienceCards}
 	/>
 
-	<PublicLandingTeamFeatureHero
-		heroTheme={landingHeroTheme}
-		landingSubtitle={String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_2_SUBTITLE.default)}
-		landingTitle={String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_2_TITLE.default)}
-		landingDescription={String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_2_DESCRIPTION.default)}
-		showCta={false}
-		ctaText={featureCtaText}
-		ctaHref={secondaryCtaHref}
-		bgColorClass="bg-base-100"
-		{isLoggedIn}
-	/>
+	{#if !isDirectoryChannel}
+		<PublicLandingTeamFeatureHero
+			heroTheme={landingHeroTheme}
+			landingSubtitle={String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_2_SUBTITLE.default)}
+			landingTitle={String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_2_TITLE.default)}
+			landingDescription={String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_2_DESCRIPTION.default)}
+			showCta={false}
+			ctaText={featureCtaText}
+			ctaHref={secondaryCtaHref}
+			bgColorClass="bg-base-100"
+			{isLoggedIn}
+		/>
+	{/if}
 
 	{#each channelVm.featureSections as section, index (index)}
 		{#snippet sectionBento()}
@@ -145,10 +154,12 @@
 		{/if}
 	{/each}
 
-	<PublicChannelAgentIntegrationsGrid
-		channelSlug={channelVm.slug}
-		platformLabel={channelVm.platformLabel}
-	/>
+	{#if !isDirectoryChannel}
+		<PublicChannelAgentIntegrationsGrid
+			channelSlug={channelVm.slug}
+			platformLabel={channelVm.platformLabel}
+		/>
+	{/if}
 
 	<PublicChannelSiblingGrid
 		channelsVm={siblingChannels}

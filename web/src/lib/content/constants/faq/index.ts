@@ -76,7 +76,7 @@ export const PUBLIC_FAQ_ITEMS: readonly PublicFaqItem[] = [
 		id: 'switch-from-buffer-hootsuite',
 		title: 'Why switch from Buffer or Hootsuite?',
 		description:
-			`Buffer and Hootsuite charge $75–$200/month for enterprise feature most teams never use. OpenQuok covers the same UI scheduling basics including connect channels, compose, calendar, multi-channel publish. We also cover agent-first features like workspaces, integrations, and API/CLI access. Same workflow when you post by hand; built for when agents do the work. Less cost, less clutter, and real support from Meta and OpenQuok team. See ${faqLink(publicFaqHref.compareOpenquokBuffer, 'OpenQuok vs Buffer')} and the ${faqLink(publicFaqHref.blogBufferAlternatives, 'Buffer alternatives guide')}.`
+			`Legacy schedulers stack per-seat fees and enterprise tiers for calendar basics. OpenQuok covers connect channels, compose, calendar, multi-channel publish, and agent-first paths — workspaces, MCP, CLI, and API scheduling with human approval. Same workflow when you post by hand; built for when agents draft the work. Compare feature-by-feature on ${faqLink(publicFaqHref.compareOpenquokBuffer, 'OpenQuok vs Buffer')} and ${faqLink(publicFaqHref.compareOpenquokHootsuite, 'OpenQuok vs Hootsuite')}, or browse ${faqLink(publicFaqHref.compare, 'all comparisons')}.`
 	},
 	{
 		id: 'try-free',
@@ -257,35 +257,36 @@ export type MergePublicGeneralFaqOptions = {
 	generalFirst?: boolean;
 };
 
-function mergePublicGeneralFaqItems(
-	tailoredItems: readonly PublicFaqItem[],
-	generalIds: readonly PublicFaqItemId[],
-	options?: MergePublicGeneralFaqOptions
+/** Dedupe by `id` and exact `title`; earlier lists win. */
+export function mergePublicFaqItemsUnique(
+	...lists: readonly (readonly PublicFaqItem[])[]
 ): PublicFaqItem[] {
-	const general = resolvePublicFaqItemsByIds(generalIds);
 	const seenIds = new Set<PublicFaqItemId>();
 	const seenTitles = new Set<string>();
 	const merged: PublicFaqItem[] = [];
 
-	const pushUnique = (items: readonly PublicFaqItem[]) => {
-		for (const item of items) {
+	for (const list of lists) {
+		for (const item of list) {
 			if (item.id && seenIds.has(item.id)) continue;
 			if (seenTitles.has(item.title)) continue;
 			if (item.id) seenIds.add(item.id);
 			seenTitles.add(item.title);
 			merged.push(item);
 		}
-	};
-
-	if (options?.generalFirst) {
-		pushUnique(general);
-		pushUnique(tailoredItems);
-	} else {
-		pushUnique(tailoredItems);
-		pushUnique(general);
 	}
 
 	return merged;
+}
+
+function mergePublicGeneralFaqItems(
+	tailoredItems: readonly PublicFaqItem[],
+	generalIds: readonly PublicFaqItemId[],
+	options?: MergePublicGeneralFaqOptions
+): PublicFaqItem[] {
+	const general = resolvePublicFaqItemsByIds(generalIds);
+	return options?.generalFirst
+		? mergePublicFaqItemsUnique(general, tailoredItems)
+		: mergePublicFaqItemsUnique(tailoredItems, general);
 }
 
 /**
@@ -310,6 +311,29 @@ export const PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
 	'what-is-mcp',
 	'try-free',
 	'schedule-posts'
+];
+
+/** `/social-media-management` — shared catalog first; page-specific copy appended after. */
+export const PUBLIC_SOCIAL_AUTOPILOT_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
+	'switch-from-buffer-hootsuite',
+	'try-free',
+	'self-host-openquok',
+	'schedule-posts',
+	'manage-social-media',
+	'agent-workspace',
+	'multi-workspace',
+	'what-is-mcp',
+	'agent-host-vs-mcp-billing',
+	'what-is-channel',
+	'duplicate-platform-channels',
+	'team-members',
+	'reach-official-api',
+	'repeated-posts',
+	'templates',
+	'analytics',
+	'schedule-comments-threads',
+	'what-are-plugs',
+	'ai-writer-summarizer'
 ];
 
 /** `/agents/{slug}` host landings — trial and scheduling; MCP is covered per host (and on `/agents`). */
@@ -402,6 +426,10 @@ export const PUBLIC_API_SELF_CONNECT_PLATFORM_FAQ_ITEM_IDS: readonly PublicFaqIt
 
 export function getPublicAgentsHubFaqItems(): PublicFaqItem[] {
 	return resolvePublicFaqItemsByIds(PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS);
+}
+
+export function getPublicSocialAutopilotFaqItems(): PublicFaqItem[] {
+	return resolvePublicFaqItemsByIds(PUBLIC_SOCIAL_AUTOPILOT_FAQ_ITEM_IDS);
 }
 
 export function getPublicAgentHostFaqItems(): PublicFaqItem[] {

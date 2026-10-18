@@ -99,3 +99,12 @@ export const LANDING_PAGE_OPPORTUNITIES_PREVIEW_SECTION = {
 	...PUBLIC_AGENT_OPPORTUNITIES_PREVIEW_SECTION,
 	headingId: 'landing-listings-preview-heading'
 } satisfies PublicAgentOpportunitiesPreviewSection;
+
+/** `/social-media-management` — playbooks and building blocks only (no backlinks grid). */
+export const SOCIAL_AUTOPILOT_OPPORTUNITIES_PREVIEW_SECTION = {
+	...PUBLIC_AGENT_OPPORTUNITIES_PREVIEW_SECTION,
+	headingId: 'social-autopilot-listings-preview-heading',
+	subtitle: 'Playbooks & Building Blocks',
+	description:
+		'Mix playbooks, skills, and MCP servers—then tailor them to your social scheduling workflow.'
+} satisfies PublicAgentOpportunitiesPreviewSection;

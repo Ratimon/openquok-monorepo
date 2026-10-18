@@ -1,3 +1,4 @@
+/** Who-is-for section for `/self-hosting` (see `self-hosting-landing.ts`). */
 import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 import { icons } from '$data/icons';
 

@@ -15,13 +15,16 @@
 		sectionClass?: string;
 		/** When true, See All scrolls to the Playbooks navbar and opens the matching tab. */
 		seeAllScrollsToNavbar?: boolean;
+		/** When false, hides the backlinks grid (playbooks and building blocks still render). */
+		showBacklinksBlock?: boolean;
 	};
 
 	let {
 		heroTheme,
 		previewVm,
 		sectionClass = 'py-16 sm:py-20',
-		seeAllScrollsToNavbar = false
+		seeAllScrollsToNavbar = false,
+		showBacklinksBlock = true
 	}: Props = $props();
 </script>
 
@@ -39,15 +42,17 @@
 		/>
 
 		<div class="mt-12 space-y-12 sm:mt-14 sm:space-y-14">
-			<PublicOpportunitiesPreviewGridBlock
-				{heroTheme}
-				block={previewVm.backlinksBlock}
-				blockKind="backlinks"
-				headingId={previewVm.headingId}
-				{seeAllScrollsToNavbar}
-				highlightClass="text-violet-300"
-				highlightTargetColor="#f5f3ff"
-			/>
+			{#if showBacklinksBlock}
+				<PublicOpportunitiesPreviewGridBlock
+					{heroTheme}
+					block={previewVm.backlinksBlock}
+					blockKind="backlinks"
+					headingId={previewVm.headingId}
+					{seeAllScrollsToNavbar}
+					highlightClass="text-violet-300"
+					highlightTargetColor="#f5f3ff"
+				/>
+			{/if}
 
 			<PublicOpportunitiesPreviewGridBlock
 				{heroTheme}
