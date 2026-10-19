@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+	import type { PublicDirectoryChannelSlug } from '$lib/content/constants/channels/catalog/directory-platforms/directoryChannelProcessSection';
 	import type { PublicChannelViewModel } from '$lib/area-public/PublicChannelByPage.presenter.svelte';
 
 	import { page } from '$app/state';
@@ -37,6 +38,7 @@
 	import PublicChannelAgentIntegrationsGrid from '$lib/ui/templates/landing-page/PublicChannelAgentIntegrationsGrid.svelte';
 	import PublicChannelSiblingGrid from '$lib/ui/templates/landing-page/PublicChannelSiblingGrid.svelte';
 	import PublicLandingTeamFeatureHero from '$lib/ui/templates/landing-page/PublicLandingTeamFeatureHero.svelte';
+	import FeaturesOrdered from '$lib/ui/templates/FeaturesOrdered.svelte';
 
 	type Props = { data: PageData };
 
@@ -61,6 +63,20 @@
 
 	let accentBannerTitle = $derived(accentSplitDocsCtaBannerTitle(channelVm.platformLabel));
 	let accentBannerDescription = $derived(accentSplitDocsCtaBannerDescription(channelVm.platformLabel));
+
+	const directoryProcessSectionId = 'directory-channel-process';
+
+	const directoryProcessFooterHref = $derived(
+		channelVm.processSection
+			? hostedMarketingHref(channelVm.processSection.stepsFooter.footerLinkHref, page.url.origin)
+			: ''
+	);
+
+	const directoryChannelSlug = $derived(
+		isDirectoryChannel && (channelVm.slug === 'peerpush' || channelVm.slug === 'uneed')
+			? (channelVm.slug as PublicDirectoryChannelSlug)
+			: undefined
+	);
 
 	const siblingChannels = $derived(
 		enrichPublicChannelSiblingGridItems(
@@ -105,6 +121,23 @@
 		landingTitle={channelVm.audienceTitle}
 		cards={channelVm.audienceCards}
 	/>
+
+	{#if channelVm.processSection}
+		<FeaturesOrdered
+			steps={[...channelVm.processSection.steps]}
+			sectionId={directoryProcessSectionId}
+			heroTheme={landingHeroTheme}
+			sectionSubtitle={channelVm.processSection.subtitle}
+			sectionTitle={channelVm.processSection.title}
+			sectionDescription={channelVm.processSection.description}
+			footerPrompt={channelVm.processSection.stepsFooter.footerPrompt}
+			footerLinkLabel={channelVm.processSection.stepsFooter.footerLinkLabel}
+			footerLinkHref={directoryProcessFooterHref}
+			directoryChannelSlug={directoryChannelSlug}
+			sectionClass="scroll-mt-24 border-t border-base-content/10 bg-base-100 py-16 sm:py-20"
+			collapseDelay={8000}
+		/>
+	{/if}
 
 	{#if !isDirectoryChannel}
 		<PublicLandingTeamFeatureHero

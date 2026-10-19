@@ -53,6 +53,7 @@ describe('channelPageSeo', () => {
 		expect(peerpush?.channelKind).toBe('directory');
 		expect(peerpush?.audienceTitle).toBe('Who launches on PeerPush with OpenQuok?');
 		expect(peerpush?.audienceCards).toHaveLength(3);
+		expect(peerpush?.processSection?.steps).toHaveLength(5);
 		expect(peerpush?.featureSections.map((s) => s.bentoId)).toEqual([
 			'directory-profile-cases',
 			'directory-extension-autofill',

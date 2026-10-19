@@ -42,6 +42,7 @@ export type FeaturesOrderedMarketingPanelId =
 	| 'directory-pick-destinations'
 	| 'directory-extension-autofill'
 	| 'directory-human-pace'
+	| 'directory-launch-opportunities'
 	| 'directory-track-status';
 
 export type FeaturesOrderedStep = {

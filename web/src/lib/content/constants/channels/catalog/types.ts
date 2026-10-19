@@ -1,5 +1,6 @@
 import type { IconName } from '$data/icons';
 
+import type { DirectoryChannelProcessSection } from '$lib/content/constants/channels/catalog/directory-platforms/directoryChannelProcessSection';
 import type { PublicChannelFeatureBentoId } from '$lib/content/constants/channels/catalog/feature-bento';
 import type { PublicFaqItem } from '$lib/content/constants/faq';
 import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
@@ -34,6 +35,8 @@ export type PublicChannelLandingPageViewModel = {
 	hubDescription?: string;
 	keywords: string[];
 	featureSections: PublicChannelFeatureSection[];
+	/** Directory PSEO: five-step how-it-works block (tool-landing style). */
+	processSection?: DirectoryChannelProcessSection;
 	audienceSubtitle: string;
 	audienceTitle: string;
 	/** Three base persona cards on `/channels/{slug}`. */

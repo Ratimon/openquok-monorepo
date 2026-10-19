@@ -2,7 +2,7 @@
 	import { page } from '$app/state';
 
 	import type { PublicAgentFeatureSection as FeatureSectionConfig } from '$lib/content/constants/agents';
-	import type { PublicSocialAutopilotProductFeatureSections } from '$lib/content/constants/marketing/social-autopilot-landing';
+	import type { SocialAutopilotProductFeatureSectionsConfig } from '$lib/content/constants/marketing/social-autopilot-landing';
 	import { PUBLIC_LANDING_COMPACT_TRIAL_CTA } from '$lib/content/constants/landing/hero-copy';
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 
@@ -18,7 +18,7 @@
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	type Props = {
-		sections: PublicSocialAutopilotProductFeatureSections;
+		sections: SocialAutopilotProductFeatureSectionsConfig;
 		isLoggedIn?: boolean;
 	};
 

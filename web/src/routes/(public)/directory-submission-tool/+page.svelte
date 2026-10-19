@@ -168,11 +168,6 @@
 		/>
 	</div>
 
-	<PublicDirectorySubmissionProductFeatureSections
-		sections={landing.productFeatureSections}
-		{isLoggedIn}
-	/>
-
 	<FeaturesOrdered
 		steps={[...landing.processSection.steps]}
 		sectionId={processSectionId}
@@ -185,6 +180,11 @@
 		footerLinkHref={processStepsFooterHref}
 		sectionClass="scroll-mt-24 border-t border-base-content/10 bg-base-100 py-16 sm:py-20"
 		collapseDelay={8000}
+	/>
+
+	<PublicDirectorySubmissionProductFeatureSections
+		sections={landing.productFeatureSections}
+		{isLoggedIn}
 	/>
 
 	<WithWithout

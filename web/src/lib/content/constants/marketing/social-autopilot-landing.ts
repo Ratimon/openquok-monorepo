@@ -39,7 +39,7 @@ export type PublicSocialAutopilotParallelScaleSection = PublicSocialAutopilotSec
 };
 
 /** Nine product feature heroes (copy duplicated from `CONFIG_SCHEMA_LANDING_PAGE` FEATURE_* defaults). */
-export type PublicSocialAutopilotProductFeatureSections = {
+export type SocialAutopilotProductFeatureSectionsConfig = {
 	feature1: PublicSocialAutopilotSectionHeader;
 	feature2: PublicSocialAutopilotSectionHeader;
 	feature3: PublicSocialAutopilotSectionHeader;
@@ -50,6 +50,9 @@ export type PublicSocialAutopilotProductFeatureSections = {
 	feature8: PublicSocialAutopilotSectionHeader;
 	feature9ParallelScale: PublicSocialAutopilotParallelScaleSection;
 };
+
+export type PublicSocialAutopilotProductFeatureSections =
+	SocialAutopilotProductFeatureSectionsConfig;
 
 export type PublicSocialAutopilotLandingConfig = {
 	metaTitle: string;

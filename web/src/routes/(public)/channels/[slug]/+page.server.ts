@@ -19,6 +19,7 @@ import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
 import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
+import { createPublicSetupStepsSEOSchema } from '$lib/seo/featuresOrderedHowToSchema';
 import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
 
 export const ssr = true;
@@ -186,6 +187,16 @@ export async function load({ url, params, cookies, parent }) {
 				description: channelVm.faqDescription,
 				items: channelVm.faqItems
 			}),
+			channelVm.processSection
+				? createPublicSetupStepsSEOSchema({
+						pageUrl: canonical,
+						fragmentId: 'directory-channel-process',
+						sectionTitle: channelVm.processSection.title,
+						sectionDescription: channelVm.processSection.description,
+						sectionSubtitle: channelVm.processSection.subtitle,
+						steps: channelVm.processSection.steps
+					})
+				: {},
 			createBreadcrumbListSchema(
 				buildChannelsLandingBreadcrumbItems({
 					platformLabel: channelVm.platformLabel,

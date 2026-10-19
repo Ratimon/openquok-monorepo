@@ -1,6 +1,7 @@
 import { icons } from '$data/icons';
 
 import { buildDirectoryChannelFeatureSections } from '$lib/content/constants/channels/catalog/directory-platforms/directoryChannelFeatureSections';
+import { buildDirectoryChannelProcessSection } from '$lib/content/constants/channels/catalog/directory-platforms/directoryChannelProcessSection';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/catalog/types';
 import {
 	faqHrefDocs,
@@ -40,6 +41,17 @@ export const uneedDirectoryChannel = {
 		discoveryFieldsLabel: 'Uneed pricing and maker fields',
 		autofillDescription:
 			'Pick Join the line, paid launch, or maker profile in My Products. The extension opens uneed.best with your profile. Edit fields, then submit on Uneed.'
+	}),
+	processSection: buildDirectoryChannelProcessSection({
+		channelSlug: 'uneed',
+		platformLabel: 'Uneed',
+		siteHost: 'uneed.best',
+		safariMockContentId: 'directory-site-uneed',
+		buildBacklinksSiteSlug: 'uneed',
+		siteRulesStepContent:
+			'Uneed sets backlink and listing rules per flow on uneed.best. Skim the policy for your variant before you launch from My Products — OpenQuok autofills, you publish on Uneed.',
+		launchOpportunityStepContent:
+			'Choose Join the line (free wait), a paid launch slot, or maker profile in My Products. Each path has different timing and dofollow terms — pick what matches your goals, then confirm details on Uneed.'
 	}),
 	audienceSubtitle: 'Built for product makers',
 	audienceTitle: 'Who launches on Uneed with OpenQuok?',

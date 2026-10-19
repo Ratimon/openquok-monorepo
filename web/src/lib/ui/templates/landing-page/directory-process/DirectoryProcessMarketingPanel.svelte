@@ -6,13 +6,16 @@
 	import BentoLandingDirectoryHumanPacePreview from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingDirectoryHumanPacePreview.svelte';
 	import BentoLandingDirectoryProfileCasesPreview from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingDirectoryProfileCasesPreview.svelte';
 	import BentoLandingDirectoryTrackStatusPreview from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingDirectoryTrackStatusPreview.svelte';
+	import DirectoryChannelLaunchOptionsPreview from '$lib/ui/templates/bento/minor-templates/landing/DirectoryChannelLaunchOptionsPreview.svelte';
+	import type { PublicDirectoryChannelSlug } from '$lib/content/constants/channels/catalog/directory-platforms/directoryChannelProcessSection';
 
 	type Props = {
 		panel: FeaturesOrderedMarketingPanelId;
 		ariaLabel?: string;
+		directoryChannelSlug?: PublicDirectoryChannelSlug;
 	};
 
-	let { panel, ariaLabel }: Props = $props();
+	let { panel, ariaLabel, directoryChannelSlug }: Props = $props();
 </script>
 
 <div
@@ -30,6 +33,8 @@
 		<BentoLandingDirectoryAutofillPreview />
 	{:else if panel === 'directory-human-pace'}
 		<BentoLandingDirectoryHumanPacePreview />
+	{:else if panel === 'directory-launch-opportunities' && directoryChannelSlug}
+		<DirectoryChannelLaunchOptionsPreview channelSlug={directoryChannelSlug} />
 	{:else if panel === 'directory-track-status'}
 		<BentoLandingDirectoryTrackStatusPreview />
 	{/if}

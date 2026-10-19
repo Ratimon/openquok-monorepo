@@ -1,6 +1,7 @@
 import { icons } from '$data/icons';
 
 import { buildDirectoryChannelFeatureSections } from '$lib/content/constants/channels/catalog/directory-platforms/directoryChannelFeatureSections';
+import { buildDirectoryChannelProcessSection } from '$lib/content/constants/channels/catalog/directory-platforms/directoryChannelProcessSection';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/catalog/types';
 import {
 	faqHrefDocs,
@@ -40,6 +41,17 @@ export const peerpushDirectoryChannel = {
 		discoveryFieldsLabel: 'PeerPush categories',
 		autofillDescription:
 			'Pick Standard launch or Free queue in My Products. The extension opens peerpush.com with your profile. Edit fields, then submit on PeerPush.'
+	}),
+	processSection: buildDirectoryChannelProcessSection({
+		channelSlug: 'peerpush',
+		platformLabel: 'PeerPush',
+		siteHost: 'peerpush.com',
+		safariMockContentId: 'directory-site-peerpush',
+		buildBacklinksSiteSlug: 'peerpush',
+		siteRulesStepContent:
+			'PeerPush sets its own dofollow and listing rules on peerpush.com. Read them before you add a launch in My Products — OpenQuok maps your profile, you submit on the site.',
+		launchOpportunityStepContent:
+			'PeerPush offers Standard launch (paid, faster publish) and a free queue. Pick the destination in My Products that fits your budget. Dofollow terms can differ by variant — confirm on PeerPush before you pay.'
 	}),
 	audienceSubtitle: 'Built for indie founders',
 	audienceTitle: 'Who launches on PeerPush with OpenQuok?',

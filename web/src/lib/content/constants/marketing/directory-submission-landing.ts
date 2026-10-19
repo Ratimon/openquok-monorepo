@@ -85,15 +85,15 @@ export type PublicDirectorySubmissionLandingConfig = {
 		audienceTitle: string;
 		audienceCards: readonly AudienceCard[];
 	};
+	processSection: PublicDirectorySubmissionSectionHeader & {
+		steps: readonly FeaturesOrderedStep[];
+		stepsFooter: PublicSetupStepsFooter;
+	};
 	productFeatureSections: PublicDirectorySubmissionProductFeatureSections;
 	compareSection: PublicDirectorySubmissionSectionHeader & {
 		withoutTitle: string;
 		withTitle: string;
 		points: readonly ComparisonPoint[];
-	};
-	processSection: PublicDirectorySubmissionSectionHeader & {
-		steps: readonly FeaturesOrderedStep[];
-		stepsFooter: PublicSetupStepsFooter;
 	};
 	pricingComparisonSection: PublicDirectorySubmissionSectionHeader & {
 		footnote: string;
@@ -236,7 +236,6 @@ export const PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG: PublicDirectorySubmissi
 			}
 		]
 	},
-	productFeatureSections: directorySubmissionToolProductFeatureSections,
 	processSection: {
 		subtitle: 'How it works',
 		title: 'Human-paced directory launch',
@@ -270,11 +269,12 @@ export const PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG: PublicDirectorySubmissi
 			},
 			{
 				id: 4,
-				title: 'Submit at your pace',
-				content: 'List a few sites per session, not many in one day.',
+				title: 'Plan launch timing',
+				content:
+					'Batch a few launches on one day when a platform’s algo favors momentum (e.g. GitHub). Otherwise spread them across sessions. Each directory sets its own dofollow and eligibility rules — read them before you submit.',
 				iconName: icons.Timer.name,
 				marketingPanel: 'directory-human-pace',
-				mediaAlt: 'Calendar with a few listings per week'
+				mediaAlt: 'Calendar with batched and spaced directory launches'
 			},
 			{
 				id: 5,
@@ -291,6 +291,7 @@ export const PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG: PublicDirectorySubmissi
 			footerLinkHref: buildBacklinksHref
 		}
 	},
+	productFeatureSections: directorySubmissionToolProductFeatureSections,
 	compareSection: {
 		subtitle: 'Comparisons',
 		title: 'steady directory listings, not bulk automation',
