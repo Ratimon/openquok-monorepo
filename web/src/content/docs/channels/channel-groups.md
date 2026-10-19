@@ -19,7 +19,6 @@ A **business profile** is a workspace label for one or more channels — usually
 <p>Channels with no profile are shown under <strong>Not linked to a business profile</strong> section.</p>
 </Callout>
 
-
 If you manage social for more than one client, business profiles keep <strong>My Dashboard</strong> readable and let you focus on one account at a time. The same profile can also hold **product** details for directory launches on the **Products** tab.
 
 ## Link a channel to a business profile

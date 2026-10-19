@@ -1,5 +1,6 @@
 import { icons } from '$data/icons';
 
+import { buildDirectoryChannelFeatureSections } from '$lib/content/constants/channels/catalog/directory-platforms/directoryChannelFeatureSections';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/catalog/types';
 import {
 	faqHrefDocs,
@@ -34,29 +35,12 @@ export const uneedDirectoryChannel = {
 		'dofollow backlink',
 		'OpenQuok directory launch'
 	],
-	featureSections: [
-		{
-			subtitle: 'Business profile',
-			title: 'One profile for tagline, pricing context, and maker details',
-			description:
-				'Save product copy, URLs, logo, and Uneed-specific fields in My Products. Readiness highlights what is still missing before you open uneed.best. Update the profile once and reuse it across Uneed variants.',
-			mediaOnRight: true
-		},
-		{
-			subtitle: 'Extension autofill',
-			title: 'Pick a Uneed variant, autofill the form, you publish on Uneed',
-			description:
-				'Choose Join the line, paid launch, or maker profile from the directory launch picker. OpenQuok hands off to the right Uneed URL. The extension fills mapped fields. You control the final submit on Uneed.',
-			mediaOnRight: false
-		},
-		{
-			subtitle: 'Track submissions',
-			title: 'Record listing URL, mark complete, see free vs paid progress',
-			description:
-				'When Uneed accepts your listing, mark the destination submitted in OpenQuok. Store the public URL for your records. My Products shows per-variant status so you know what is still in progress.',
-			mediaOnRight: true
-		}
-	],
+	featureSections: buildDirectoryChannelFeatureSections({
+		platformLabel: 'Uneed',
+		discoveryFieldsLabel: 'Uneed pricing and maker fields',
+		autofillDescription:
+			'Pick Join the line, paid launch, or maker profile in My Products. The extension opens uneed.best with your profile. Edit fields, then submit on Uneed.'
+	}),
 	audienceSubtitle: 'Built for product makers',
 	audienceTitle: 'Who launches on Uneed with OpenQuok?',
 	audienceCards: [

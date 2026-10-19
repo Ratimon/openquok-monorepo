@@ -28,6 +28,7 @@
 
 	type Props = {
 		heroTheme: LandingHeroTheme;
+		landingSubtitle?: string;
 		landingTitle?: string;
 		landingDescription?: string;
 		variant?: IconTileGridVariant;
@@ -39,6 +40,7 @@
 
 	let {
 		heroTheme,
+		landingSubtitle = 'Supported Channels',
 		landingTitle = '',
 		landingDescription = '',
 		variant = 'social',
@@ -76,6 +78,7 @@
 		<FeaturesSectionHeader
 			{heroTheme}
 			{headingId}
+			subtitle={landingSubtitle}
 			title={landingTitle}
 			description={landingDescription}
 		/>

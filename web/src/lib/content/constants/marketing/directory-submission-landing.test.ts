@@ -36,8 +36,8 @@ describe('PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG', () => {
 			PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG.hero.trustLine,
 			...PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG.hero.bullets,
 			...PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG.compareSection.points.flatMap((point) => [
-				point.left,
-				point.right
+				point.pain,
+				point.feature
 			])
 		]
 			.join(' ')

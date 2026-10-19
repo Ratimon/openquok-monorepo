@@ -27,12 +27,10 @@ You can pick a directory as a destination channel, open the directory in Chrome,
 <p><strong>Social channels</strong> connect with OAuth or API keys and schedule posts from OpenQuok. <strong>Directory launches</strong> reuse your product profile and the extension. They do not add a posting channel to the composer calendar.</p>
 </Callout>
 
+<Callout type="note">
+<p>For a product overview with cost comparison and FAQs, see the <a href="/directory-submission-tool">directory submission tool</a> page.</p>
+</Callout>
 
-## DIY submission vs done-for-you packages
-
-Done-for-you vendors sell bulk submission as a one-time package. They submit on your behalf and send a report when they finish. OpenQuok is **submission software**: you build a business profile, autofill each directory form with the browser extension, and click submit on the directory site. You keep logins and approvals. That tradeoff can save money when you launch more than once or manage several products, because you are not buying a new bulk package for every wave. Public list prices on those vendor packages often fall in the $60–$140+ range per campaign (verify on their sites; prices change). OpenQuok workspace pricing is separate, and paid listing fees on PeerPush, Uneed, and other directories are still yours to pay on each site.
-
-For a product overview with cost comparison and FAQs, see the <a href="/directory-submission-tool">directory submission tool</a> page.
 
 
 ## Where to work in the app

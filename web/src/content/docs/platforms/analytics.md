@@ -2,7 +2,7 @@
 title: Analytics
 description: Which OpenQuok channels report account-level and per-post insights in the workspace Analytics area and Statistics modal.
 order: 4
-lastUpdated: 2026-09-27
+lastUpdated: 2026-10-18
 ---
 
 <script>
@@ -19,6 +19,10 @@ Some networks also expose **per-post metrics** on individual post cards and in t
 
 <Callout type="warning">
 <p>Availability depends on what each platform's API returns for the connected account type. OpenQuok cannot show insights when the network does not expose them for that channel.</p>
+</Callout>
+
+<Callout type="note">
+<p><strong>Directory launch</strong> platforms are not connected social integrations. Workspace <strong>Analytics</strong> and per-post <strong>Statistics</strong> apply to the social channel keys in the tables below only. Track directory submissions on <a href="/account/products">My Products</a> — see <a href="/docs/directory-submission/track-submissions">Track submissions</a>.</p>
 </Callout>
 
 ## Account insights
@@ -93,6 +97,7 @@ OpenQuok supports <strong>eleven</strong> channel keys for posting (<a href="/do
 <LinkCard title="Workspace analytics" description="Targeted channels, Overview, Trends, and metric cards" href="/docs/insights/workspace-analytics" />
 <LinkCard title="Per-post metrics" description="Statistics from My Dashboard and the calendar" href="/docs/insights/per-post-metrics" />
 <LinkCard title="Actions and stats" description="Post card actions, failures, and the Statistics entry point" href="/docs/posts-management/actions-and-stats" />
-<LinkCard title="Connect rules" description="Full channel catalog and connect methods" href="/docs/platforms/connect-rules" />
+<LinkCard title="Connect rules" description="Social channel keys and directory launch platforms" href="/docs/platforms/connect-rules" />
+<LinkCard title="Track submissions" description="Directory listing readiness and completion" href="/docs/directory-submission/track-submissions" />
 <LinkCard title="CLI Examples" description="CLI commands for analytics" href="/docs/cli-examples" />
 </CardGrid>

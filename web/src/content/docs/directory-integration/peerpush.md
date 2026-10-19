@@ -6,7 +6,7 @@ lastUpdated: 2026-10-17
 ---
 
 <script>
-import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Overview
@@ -38,13 +38,34 @@ Before you click <Badge text="Launch to directory" variant="new" /> → PeerPush
 
 The readiness badge on the PeerPush card lists anything still missing. Fix gaps in the profile editor instead of retyping on peerpush.com.
 
-## Workflow summary
+## Launch workflow
 
-1. Install the <a href="/docs/installation/chrome-extension">OpenQuok browser extension</a>.
-2. Open <a href="/account/products">My Products</a> and select your product profile.
-3. Launch **Standard launch** or **Free queue**.
-4. In Chrome, confirm autofilled fields on PeerPush. Edit as needed. Submit on PeerPush.
-5. Mark the launch complete in OpenQuok and save the **listing URL** when it is live.
+<Steps
+	howToName="Launch on PeerPush from OpenQuok"
+	howToDescription="Install the extension, autofill from your business profile, submit on peerpush.com, and save the listing URL in My Products."
+>
+
+### Install the extension
+
+Install the <a href="/docs/installation/chrome-extension">OpenQuok browser extension</a> in Chrome and pin it for directory autofill.
+
+### Open your product profile
+
+On <a href="/account/products">My Products</a>, select the business profile you want to launch.
+
+### Start Standard launch or Free queue
+
+Choose <strong>Standard launch</strong> or <strong>Free queue</strong> on the PeerPush destination card.
+
+### Review and submit on PeerPush
+
+Open the PeerPush tab from the extension. Confirm autofilled fields. Edit anything that needs a change. Click submit (or join the queue) on PeerPush.
+
+### Mark complete and save the listing URL
+
+Return to OpenQuok. Mark the launch complete and paste the live <strong>listing URL</strong> when PeerPush publishes your page.
+
+</Steps>
 
 ## Editorial catalog and marketing pages
 

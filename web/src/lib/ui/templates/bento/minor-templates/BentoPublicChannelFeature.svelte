@@ -44,6 +44,9 @@
 	import BentoSkoolBulkScheduling from '$lib/ui/templates/bento/minor-templates/skool/BentoSkoolBulkScheduling.svelte';
 	import BentoSkoolFollowUps from '$lib/ui/templates/bento/minor-templates/skool/BentoSkoolFollowUps.svelte';
 	import BentoSkoolSettings from '$lib/ui/templates/bento/minor-templates/skool/BentoSkoolSettings.svelte';
+	import BentoLandingDirectoryAutofillPreview from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingDirectoryAutofillPreview.svelte';
+	import BentoLandingDirectoryProfileCases from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingDirectoryProfileCases.svelte';
+	import BentoLandingDirectoryTrackStatusPreview from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingDirectoryTrackStatusPreview.svelte';
 
 	type Props = {
 		bentoId: PublicChannelFeatureBentoId;
@@ -139,4 +142,10 @@
 	<BentoSkoolSettings {isLoggedIn} />
 {:else if bentoId === 'skool-follow-ups'}
 	<BentoSkoolFollowUps {isLoggedIn} />
+{:else if bentoId === 'directory-profile-cases'}
+	<BentoLandingDirectoryProfileCases />
+{:else if bentoId === 'directory-extension-autofill'}
+	<BentoLandingDirectoryAutofillPreview />
+{:else if bentoId === 'directory-track-status'}
+	<BentoLandingDirectoryTrackStatusPreview />
 {/if}

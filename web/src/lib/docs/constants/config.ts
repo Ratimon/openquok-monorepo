@@ -89,7 +89,7 @@ export const docsSidebarGeneral: DocsSidebarSection[] = [
 		autogenerate: { directory: 'settings' }
 	},
 	{
-		label: 'Social Platform rules',
+		label: 'Channel Platform rules',
 		icon: icons.Globe.name,
 		autogenerate: { directory: 'platforms' }
 	},

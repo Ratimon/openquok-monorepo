@@ -40,4 +40,7 @@ export type PublicChannelFeatureBentoId =
 	| 'bluesky-insights'
 	| 'skool-bulk-scheduling'
 	| 'skool-settings'
-	| 'skool-follow-ups';
+	| 'skool-follow-ups'
+	| 'directory-profile-cases'
+	| 'directory-extension-autofill'
+	| 'directory-track-status';

@@ -164,7 +164,6 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'bluesky',
 	'Dev.to',
 	'channels',
-	'directory',
 	'Shorts',
 	'link previews',
 	'reels',
@@ -177,6 +176,12 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'graphemes',
 	'@mentions',
 	'skool',
+	// Social channels & networks
+	'directory',
+	'multiple directories',
+	'submission costs',
+	'PeerPush',
+	'Uneed',
 	// Protected account app heroes
 	'Reusable Templates',
 	'Media Library',

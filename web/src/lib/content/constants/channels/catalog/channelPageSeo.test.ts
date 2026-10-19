@@ -53,6 +53,11 @@ describe('channelPageSeo', () => {
 		expect(peerpush?.channelKind).toBe('directory');
 		expect(peerpush?.audienceTitle).toBe('Who launches on PeerPush with OpenQuok?');
 		expect(peerpush?.audienceCards).toHaveLength(3);
+		expect(peerpush?.featureSections.map((s) => s.bentoId)).toEqual([
+			'directory-profile-cases',
+			'directory-extension-autofill',
+			'directory-track-status'
+		]);
 		expect(peerpush?.faqItems.some((item) => item.title.includes('Grok Bot'))).toBe(false);
 
 		const socialSlugs = new Set(listPublicChannelsForHub().map((c) => c.slug));

@@ -1,5 +1,6 @@
 import { icons } from '$data/icons';
 
+import { buildDirectoryChannelFeatureSections } from '$lib/content/constants/channels/catalog/directory-platforms/directoryChannelFeatureSections';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/catalog/types';
 import {
 	faqHrefDocs,
@@ -34,29 +35,12 @@ export const peerpushDirectoryChannel = {
 		'product launch directory',
 		'OpenQuok directory launch'
 	],
-	featureSections: [
-		{
-			subtitle: 'Business profile',
-			title: 'One product profile, name, tagline, logo, and discovery fields',
-			description:
-				'Store your product name, tagline, description, website, logo, and PeerPush categories in My Products. OpenQuok checks readiness before you launch. Fix missing fields in the composer instead of retyping on every directory.',
-			mediaOnRight: true
-		},
-		{
-			subtitle: 'Extension autofill',
-			title: 'Open PeerPush submit, autofill from your profile, you approve each field',
-			description:
-				'Choose Standard launch or the free queue from the directory launch picker. OpenQuok opens peerpush.com with the extension. Fields map from your profile. You edit anything on the page and click submit on PeerPush.',
-			mediaOnRight: false
-		},
-		{
-			subtitle: 'Track submissions',
-			title: 'Mark submitted, save listing URL, see progress on My Products',
-			description:
-				'After you publish on PeerPush, mark the launch complete in OpenQuok. Add the live listing URL when you have it. Cards show readiness and submitted counts per destination variant.',
-			mediaOnRight: true
-		}
-	],
+	featureSections: buildDirectoryChannelFeatureSections({
+		platformLabel: 'PeerPush',
+		discoveryFieldsLabel: 'PeerPush categories',
+		autofillDescription:
+			'Pick Standard launch or Free queue in My Products. The extension opens peerpush.com with your profile. Edit fields, then submit on PeerPush.'
+	}),
 	audienceSubtitle: 'Built for indie founders',
 	audienceTitle: 'Who launches on PeerPush with OpenQuok?',
 	audienceCards: [

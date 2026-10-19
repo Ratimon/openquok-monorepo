@@ -1,8 +1,8 @@
 ---
 title: Connect flow & rules
-description: How you connect each OpenQuok channel in Add Channel — OAuth, credentials, browser extension, self-host operator OAuth keys, and channel keys.
+description: How you connect each OpenQuok channel in Add Channel — OAuth, credentials, browser extension, self-host operator OAuth keys, channel keys, and how directory launches differ.
 order: 1
-lastUpdated: 2026-10-09
+lastUpdated: 2026-10-18
 sidebar:
   label: Connect rules
 ---
@@ -15,7 +15,11 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 > How you link each network to your workspace in **Add Channel**, and which **channel key** the API uses for that connection.
 
-OpenQuok registers **twelve** channels. Connect each one once per workspace account. See <a href="/docs/channels/connect">Connect a channel</a>.
+OpenQuok registers **twelve** social posting channels. Connect each one once per workspace account. See <a href="/docs/channels/connect">Connect a channel</a>.
+
+<Callout type="note">
+<p><strong>Directory launch</strong> sites (PeerPush, Uneed, and future catalog rows) are not OAuth posting integrations. They are listed under <a href="#directory-launch-platforms">Directory launch platforms</a> below.</p>
+</Callout>
 
 <p class="not-prose flex flex-wrap items-center gap-3">
 <a href="/channels/facebook" title="Facebook Page"><img src="/docs/_assets/platforms/socials/facebook.svg" alt="Facebook Page" width="32" height="32" /></a>
@@ -82,12 +86,27 @@ Most channels use **OAuth**: you click the network in **Add Channel**, sign in o
 
 Operator setup for each OAuth network is in <a href="/docs/social-integration">Social integrations</a>.
 
+## Directory launch platforms
+
+> Product directories you launch from <a href="/account/products">My Products</a> — not scheduled through the post composer or <Badge text="POST /public/posts" variant="path" />.
+
+Directory destinations still appear on the public <a href="/channels">Channels hub</a> and may show as tiles in **Add Channel** when you wire a launch to a business profile. There is **no** OAuth to the directory site and **no** social **channel key** for the public posting API.
+
+| Display name | Catalog slug | How you enable it | Social posting channel key |
+| --- | --- | --- | --- |
+| **PeerPush** | <Badge text="peerpush" variant="param" /> | Business profile on My Products; <Badge text="Launch to directory" variant="new" /> or Add Channel tile; <a href="/docs/installation/chrome-extension">browser extension</a> autofill on peerpush.com | — |
+| **Uneed** | <Badge text="uneed" variant="param" /> | Same pattern on uneed.best | — |
+
+Field mapping, variants, and submission tracking are in <a href="/docs/directory-submission">Directory submission</a> and per-site guides under <a href="/docs/directory-integration">Directory integration</a>.
+
 ## Related
 
 <CardGrid>
 <LinkCard title="Platforms overview" description="App names vs API keys, follow-ups, and how rules apply" href="/docs/platforms" />
 <LinkCard title="Media rules" description="Attachments, character caps, and caption editors" href="/docs/platforms/media-rules" />
 <LinkCard title="Per-channel settings" description="Composer Settings fields per network" href="/docs/platforms/per-channel-settings" />
+<LinkCard title="Directory integration" description="Directory vs social channel families" href="/docs/directory-integration" />
+<LinkCard title="Directory submission" description="My Products workflow and extension handoff" href="/docs/directory-submission" />
 <LinkCard title="Connect a channel" description="OAuth, credentials, and browser extension step by step" href="/docs/channels/connect" />
 <LinkCard title="Browser extension" description="Install the extension and set VITE_OPENQUOK_BROWSER_EXTENSION_ID" href="/docs/installation/chrome-extension" />
 <LinkCard title="Skool" description="Connect Skool with the browser extension" href="/docs/social-integration/skool" />

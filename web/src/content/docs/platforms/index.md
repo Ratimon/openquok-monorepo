@@ -1,8 +1,8 @@
 ---
 title: Overview - Rules by Different Platforms
-description: Diffetent Rules for the OpenQuok social scheduler — naming, connect flows, media and caption rules, and analytics by network.
+description: Social posting rules for the OpenQuok scheduler — naming, connect flows, media and caption rules, and analytics by network; directory launches are documented separately.
 order: 0
-lastUpdated: 2026-10-09
+lastUpdated: 2026-10-18
 sidebar:
   label: Overview
 ---
@@ -15,7 +15,11 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 > What each connected channel accepts before OpenQuok sends a post.
 
-Diferent platforms has diffetent rules on caption length, attachment count, and extra fields. OpenQuok ships **twelve** channels today.
+Different social networks have different rules on caption length, attachment count, and extra fields. OpenQuok ships **twelve** social posting channels today.
+
+<Callout type="note" title="Directory launch platforms">
+<p>This section is for <strong>social posting</strong> only. <strong>Directory launch</strong> destinations (for example <a href="/channels/peerpush">PeerPush</a> and <a href="/channels/uneed">Uneed</a>) use a business profile and the browser extension — not composer media caps or <Badge text="POST /public/posts" variant="path" />. See <a href="/docs/directory-integration">Directory integration</a> and <a href="/docs/platforms/connect-rules#directory-launch-platforms">Connect rules → Directory launch platforms</a>.</p>
+</Callout>
 
 <p class="not-prose flex flex-wrap items-center gap-3">
 <a href="/channels/facebook" title="Facebook Page"><img src="/docs/_assets/platforms/socials/facebook.svg" alt="Facebook Page" width="32" height="32" /></a>
@@ -33,7 +37,7 @@ Diferent platforms has diffetent rules on caption length, attachment count, and 
 This section is the reference how they disagree when you write in the dashboard, schedule through the API, or use MCP tools.
 
 <Callout type="tip">
-<p>For step-by-step connect flows, see <a href="/docs/channels/connect">Connect a channel</a>. For operator developer apps on self-host, see <a href="/docs/social-integration">Social integrations</a>. For JSON field names on create post, see <a href="/docs/public-api-providers">Provider settings</a>.</p>
+<p>For step-by-step connect flows, see <a href="/docs/channels/connect">Connect a channel</a>. For directory launches from <a href="/account/products">My Products</a>, see <a href="/docs/directory-submission">Directory submission</a>. For operator developer apps on self-host, see <a href="/docs/social-integration">Social integrations</a>. For JSON field names on create post, see <a href="/docs/public-api-providers">Provider settings</a>.</p>
 </Callout>
 
 ## Names in the app vs API
@@ -101,6 +105,8 @@ Upload limits (file size and format) are separate from per-network rules. See <a
 <CardGrid>
 <LinkCard title="Creating posts" description="Composer flow, save options, and cross-links" href="/docs/creating-posts" />
 <LinkCard title="Connect a channel" description="OAuth, credentials, and browser extension flows" href="/docs/channels/connect" />
+<LinkCard title="Directory integration" description="How directory destinations differ from OAuth social channels" href="/docs/directory-integration" />
+<LinkCard title="Channels overview" description="Social connect vs directory launch in one workspace" href="/docs/channels" />
 <LinkCard title="Provider settings" description="Public API identifier and payload reference" href="/docs/public-api-providers" />
 <LinkCard title="CLI examples" description="Copy-paste openquok recipes by network" href="/docs/cli-examples" />
 </CardGrid>

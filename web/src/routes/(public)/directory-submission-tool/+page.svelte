@@ -17,7 +17,7 @@
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
-	import Compare from '$lib/ui/templates/Compare.svelte';
+	import WithWithout from '$lib/ui/templates/WithWithout.svelte';
 	import FeaturesOrdered from '$lib/ui/templates/FeaturesOrdered.svelte';
 	import FeaturesSectionHeader from '$lib/ui/templates/feature-grid/FeaturesSectionHeader.svelte';
 	import IconTileGrid from '$lib/ui/templates/feature-grid/IconTileGrid.svelte';
@@ -29,6 +29,7 @@
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
 	import PublicDirectorySubmissionLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicDirectorySubmissionLandingBreadcrumb.svelte';
+	import PublicDirectorySubmissionProductFeatureSections from '$lib/ui/templates/landing-page/PublicDirectorySubmissionProductFeatureSections.svelte';
 	import PublicHeroTitle from '$lib/ui/templates/titles/PublicHeroTitle.svelte';
 	import {
 		landingHeroTheme,
@@ -43,6 +44,7 @@
 	const faqSection = getPublicMarketingLandingFaqSection('directory-submission');
 
 	let schemaData = $derived(data.schemaData);
+	let isLoggedIn = $derived(data.isLoggedIn ?? false);
 
 	const faqHeroTheme: LandingHeroTheme = {
 		...landingHeroTheme,
@@ -58,6 +60,9 @@
 	);
 	const heroSecondaryHref = $derived(
 		hostedMarketingHref(landing.hero.secondaryCta.href, page.url.origin)
+	);
+	const processStepsFooterHref = $derived(
+		hostedMarketingHref(landing.processSection.stepsFooter.footerLinkHref, page.url.origin)
 	);
 	const pricingHref = $derived(hostedMarketingHref(publicFaqHref.pricing, page.url.origin));
 
@@ -163,14 +168,9 @@
 		/>
 	</div>
 
-	<Compare
-		heroTheme={landingHeroTheme}
-		landingSubtitle={landing.compareSection.subtitle}
-		landingTitle={landing.compareSection.title}
-		landingDescription={landing.compareSection.description}
-		leftTitle={landing.compareSection.leftTitle}
-		rightTitle={landing.compareSection.rightTitle}
-		points={[...landing.compareSection.points]}
+	<PublicDirectorySubmissionProductFeatureSections
+		sections={landing.productFeatureSections}
+		{isLoggedIn}
 	/>
 
 	<FeaturesOrdered
@@ -180,26 +180,23 @@
 		sectionSubtitle={landing.processSection.subtitle}
 		sectionTitle={landing.processSection.title}
 		sectionDescription={landing.processSection.description}
+		footerPrompt={landing.processSection.stepsFooter.footerPrompt}
+		footerLinkLabel={landing.processSection.stepsFooter.footerLinkLabel}
+		footerLinkHref={processStepsFooterHref}
 		sectionClass="scroll-mt-24 border-t border-base-content/10 bg-base-100 py-16 sm:py-20"
 		collapseDelay={8000}
 	/>
 
-	{#each landing.featureRows as section, index (`feature-${index}`)}
-		<section
-			class="border-t border-base-content/10 bg-base-100 py-16 sm:py-20"
-			aria-labelledby={`directory-submission-feature-${index}-heading`}
-		>
-			<div class="container mx-auto max-w-4xl px-4">
-				<FeaturesSectionHeader
-					heroTheme={sectionHeroTheme}
-					headingId={`directory-submission-feature-${index}-heading`}
-					subtitle={section.subtitle}
-					title={section.title}
-					description={section.description}
-				/>
-			</div>
-		</section>
-	{/each}
+	<WithWithout
+		heroTheme={landingHeroTheme}
+		landingSubtitle={landing.compareSection.subtitle}
+		landingTitle={landing.compareSection.title}
+		landingDescription={landing.compareSection.description}
+		withoutTitle={landing.compareSection.withoutTitle}
+		withTitle={landing.compareSection.withTitle}
+		points={[...landing.compareSection.points]}
+		sectionClass="border-t border-base-content/10 bg-base-200 py-16 sm:py-20"
+	/>
 
 	<section
 		class="border-t border-base-content/10 bg-base-200/30 py-16 sm:py-20"
@@ -261,6 +258,7 @@
 	<IconTileGrid
 		heroTheme={landingHeroTheme}
 		variant="directory"
+		landingSubtitle={landing.featuresGridSection.subtitle}
 		landingTitle={landing.featuresGridSection.title}
 		landingDescription={landing.featuresGridSection.description}
 		linkTiles={true}

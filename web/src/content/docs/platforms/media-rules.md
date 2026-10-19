@@ -2,7 +2,7 @@
 title: Media rules
 description: Per-network media, character caps, follow-up attachments, and caption editors for the OpenQuok composer.
 order: 2
-lastUpdated: 2026-10-10
+lastUpdated: 2026-10-18
 sidebar:
   label: Media rules
 ---
@@ -16,6 +16,10 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 > What each network accepts for attachments, caption length, and follow-up media before OpenQuok publishes.
 
 The composer blocks a post that breaks these rules before it reaches the platform. File size and MIME limits are separate. See <a href="/docs/creating-posts/media#limits-and-formats">Media → Limits and formats</a>.
+
+<Callout type="note">
+<p><strong>Directory launch</strong> platforms do not publish through the composer. Profile and form-field limits come from each directory site, not this table. See <a href="/docs/directory-submission">Directory submission</a>.</p>
+</Callout>
 
 ## Media and character caps
 

@@ -87,6 +87,10 @@
 			String(CONFIG_SCHEMA_LANDING_PAGE.AUDIENCE_TITLE.default)
 	);
 
+	const featuresGridSubtitle = $derived(
+		landingPageConfigVm.FEATURES_GRID_SUBTITLE ||
+			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURES_GRID_SUBTITLE.default)
+	);
 	const featuresGridTitle = $derived(
 		landingPageConfigVm.FEATURES_GRID_TITLE ||
 			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURES_GRID_TITLE.default)
@@ -178,6 +182,7 @@
 <IconTileGrid
 	heroTheme={landingHeroTheme}
 	variant="home"
+	landingSubtitle={featuresGridSubtitle}
 	landingTitle={featuresGridTitle}
 	landingDescription={featuresGridDescription}
 />

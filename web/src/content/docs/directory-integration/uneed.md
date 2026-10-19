@@ -6,7 +6,7 @@ lastUpdated: 2026-10-17
 ---
 
 <script>
-import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Overview
@@ -38,13 +38,34 @@ Fill your business profile before launch:
 
 Readiness on the Uneed card mirrors missing `profilePath` values in the extension config. Update the profile once and reuse it across all three variants.
 
-## Workflow summary
+## Launch workflow
 
-1. Install the <a href="/docs/installation/chrome-extension">OpenQuok browser extension</a>.
-2. On <a href="/account/products">My Products</a>, open your product and choose a Uneed variant.
-3. Complete autofill on uneed.best. Adjust tone or pricing details on the page.
-4. Submit or pay on Uneed.
-5. Return to OpenQuok to mark complete and store the public **listing URL**.
+<Steps
+	howToName="Launch on Uneed from OpenQuok"
+	howToDescription="Install the extension, pick a Uneed variant from My Products, submit on uneed.best, and save the listing URL in OpenQuok."
+>
+
+### Install the extension
+
+Install the <a href="/docs/installation/chrome-extension">OpenQuok browser extension</a> in Chrome and pin it for directory autofill.
+
+### Open your product and pick a variant
+
+On <a href="/account/products">My Products</a>, open your product and choose <strong>Join the line</strong>, <strong>Paid launch</strong>, or <strong>Maker profile</strong>.
+
+### Review autofill on Uneed
+
+Open uneed.best from the extension handoff. Adjust tone, pricing, or maker details on the page before you submit.
+
+### Submit or pay on Uneed
+
+Complete submit or checkout on Uneed. OpenQuok does not charge Uneed fees for you.
+
+### Mark complete and save the listing URL
+
+Return to OpenQuok. Mark the variant complete and store the public <strong>listing URL</strong>.
+
+</Steps>
 
 You can also start from <Badge text="Add Channel" variant="new" /> when Uneed appears as a directory tile — the same variants open from there.
 

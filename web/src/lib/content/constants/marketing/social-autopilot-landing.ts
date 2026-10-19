@@ -227,7 +227,7 @@ openquok analytics:post <post-id> -d 30`
 		}
 	},
 	featuresGridSection: {
-		subtitle: '',
+		subtitle: 'Supported Channels',
 		title: 'Supported social media channels',
 		description:
 			'Connect the networks you publish to and manage them from one workspace — no switching tools per platform.'

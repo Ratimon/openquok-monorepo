@@ -2,7 +2,7 @@
 title: Per-channel settings
 description: Composer Settings per network — privacy, post type, titles, disclosures, and publish options in OpenQuok.
 order: 3
-lastUpdated: 2026-10-10
+lastUpdated: 2026-10-18
 sidebar:
   label: Per-channel settings
 ---
@@ -16,6 +16,10 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 > Extra fields in the composer **Settings** panel that a network needs before you can schedule or publish.
 
 Open **Settings** in the purple accordion while that channel is focused. Required fields block save until you fill them. API and CLI payloads use <Badge text="providerSettingsByIntegrationId" variant="param" /> — field names are in <a href="/docs/public-api-providers">Provider settings</a>. Media and character caps are in <a href="/docs/platforms/media-rules">Media rules</a>.
+
+<Callout type="note">
+<p><strong>Directory launch</strong> destinations have no composer <strong>Settings</strong> panel. Configure the business profile on <a href="/account/products">My Products</a> instead. See <a href="/docs/directory-integration">Directory integration</a>.</p>
+</Callout>
 
 ### X
 

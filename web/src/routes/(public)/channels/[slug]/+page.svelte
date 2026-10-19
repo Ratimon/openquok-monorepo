@@ -18,6 +18,7 @@
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import BentoPublicChannelFeature from '$lib/ui/templates/bento/minor-templates/BentoPublicChannelFeature.svelte';
+	import { PUBLIC_LANDING_GETTING_STARTED_GUIDE_CTA } from '$lib/content/constants/landing/hero-copy';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import {
 		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
@@ -86,6 +87,8 @@
 			heroTheme={landingHeroTheme}
 			ctaText={heroCtaText}
 			ctaHref={secondaryCtaHref}
+			docsCtaText={PUBLIC_LANDING_GETTING_STARTED_GUIDE_CTA}
+			docsCtaHref={channelVm.docsPath}
 		/>
 	{:else}
 		<PublicComingSoonIntegrationPage

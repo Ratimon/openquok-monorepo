@@ -658,6 +658,13 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		inputType: 'input',
 		maxInputLength: 40
 	},
+	FEATURES_GRID_SUBTITLE: {
+		description: 'Tag above the home landing icon grid headline',
+		type: 'string',
+		default: 'Supported Channels',
+		inputType: 'input',
+		maxInputLength: 60
+	},
 	FEATURES_GRID_TITLE: {
 		description:
 			'Headline for the home landing icon grid (social + directory; accent words like "channels" and "directory" highlight)',

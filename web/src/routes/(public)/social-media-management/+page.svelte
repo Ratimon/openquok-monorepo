@@ -139,6 +139,7 @@
 
 	<IconTileGrid
 		heroTheme={landingHeroTheme}
+		landingSubtitle={landing.featuresGridSection.subtitle}
 		landingTitle={landing.featuresGridSection.title}
 		landingDescription={landing.featuresGridSection.description}
 		linkTiles={true}
