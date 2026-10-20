@@ -1,21 +1,25 @@
 <script lang="ts">
 	import type { AutoLaunchProductProfileDto } from '$lib/auto-launch/auto-launch.types';
-	import type {
-		DirectorySeoCompetitorDto,
-		DirectorySeoHistoryPointDto,
-		DirectorySeoWorkspaceOverviewDto
-	} from '$lib/directory-seo';
+	import type { DirectorySeoHistoryChartSeriesViewModel } from '$lib/directory-seo/buildDirectorySeoHistoryChartSeries';
+	import type { DirectorySeoWorkspaceOverviewDto } from '$lib/directory-seo';
 	import {
 		DIRECTORY_SEO_HISTORY_WINDOW_DAYS,
 		type DirectorySeoHistoryWindowDays
 	} from '$lib/directory-seo/directorySeoHistoryWindows';
+	import {
+		formatDirectorySeoDelta,
+		formatDirectorySeoDr
+	} from '$lib/directory-seo/formatDirectorySeoDisplay';
+	import type { DirectorySeoHistoryCompareOptionViewModel } from '$lib/directory-seo/GetDirectorySeo.presenter.svelte';
 
 	import { icons } from '$data/icons';
 
 	import DirectorySeoCompetitorDrChart from '$lib/ui/components/directory-analytics/DirectorySeoCompetitorDrChart.svelte';
+	import DirectorySeoCompetitorListItem from '$lib/ui/components/directory-analytics/DirectorySeoCompetitorListItem.svelte';
 	import DirectorySeoDrHistoryChart from '$lib/ui/components/directory-analytics/DirectorySeoDrHistoryChart.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
+	import HomeAccountNoticeBanner from '$lib/ui/components/home/HomeAccountNoticeBanner.svelte';
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/ui/select';
 
 	type Props = {
@@ -23,10 +27,17 @@
 		error: string | null;
 		mainProfiles: AutoLaunchProductProfileDto[];
 		selectedProfileId: string | null;
+		selectedProfileName: string | null;
+		missingWebsiteUrl: boolean;
 		overview: DirectorySeoWorkspaceOverviewDto | null;
-		history: DirectorySeoHistoryPointDto[];
+		historyChartSeries: DirectorySeoHistoryChartSeriesViewModel[];
+		historyCompareOptions: DirectorySeoHistoryCompareOptionViewModel[];
 		historyWindowDays: DirectorySeoHistoryWindowDays;
+		canRefreshRatings: boolean;
+		refreshButtonHint: string | undefined;
+		manualRefreshBlocked: boolean;
 		onHistoryWindowDaysChange: (days: DirectorySeoHistoryWindowDays) => void;
+		onToggleHistoryCompareCompetitor: (domain: string) => void;
 		competitorCap: number;
 		refreshing: boolean;
 		competitorDomain: string;
@@ -38,9 +49,10 @@
 		onCompetitorLabelChange: (value: string) => void;
 		onAddCompetitor: () => void;
 		onRemoveCompetitor: (domain: string) => void;
-		/** When set, shown when the workspace has no main product profiles yet. */
+		competitorLabelSavingDomain?: string | null;
+		onUpdateCompetitorLabel: (domain: string, label: string | null) => void | Promise<void>;
+		billingHref?: string;
 		createProfileHref?: string;
-		/** Opens product profile composer (e.g. add website URL on General tab). */
 		editProfileWebsiteHref?: string | null;
 	};
 
@@ -49,10 +61,17 @@
 		error,
 		mainProfiles,
 		selectedProfileId,
+		selectedProfileName,
+		missingWebsiteUrl,
 		overview,
-		history,
+		historyChartSeries,
+		historyCompareOptions,
 		historyWindowDays,
+		canRefreshRatings,
+		refreshButtonHint,
+		manualRefreshBlocked,
 		onHistoryWindowDaysChange,
+		onToggleHistoryCompareCompetitor,
 		competitorCap,
 		refreshing,
 		competitorDomain,
@@ -64,71 +83,28 @@
 		onCompetitorLabelChange,
 		onAddCompetitor,
 		onRemoveCompetitor,
+		competitorLabelSavingDomain = null,
+		onUpdateCompetitorLabel,
+		billingHref,
 		createProfileHref,
 		editProfileWebsiteHref
 	}: Props = $props();
 
 	const hasMainProfiles = $derived(mainProfiles.length > 0);
-	const selectedProfile = $derived(
-		mainProfiles.find((profile) => profile.id === selectedProfileId) ?? null
-	);
-	const missingWebsiteUrl = $derived(
-		Boolean(selectedProfileId && selectedProfile && !selectedProfile.websiteUrl?.trim())
-	);
-	const manualRefreshBlocked = $derived.by(() => {
-		const nextAt = overview?.manualRefreshAvailableAt;
-		if (!nextAt) return false;
-		const ms = Date.parse(nextAt);
-		return Number.isFinite(ms) && Date.now() < ms;
-	});
-
-	const manualRefreshTitle = $derived.by(() => {
-		if (missingWebsiteUrl) {
-			return 'Add a website URL to your product profile before refreshing domain rating';
-		}
-		const nextAt = overview?.manualRefreshAvailableAt;
-		if (nextAt && manualRefreshBlocked) {
-			return `You can refresh again after ${new Date(nextAt).toLocaleString()}`;
-		}
-		return undefined;
-	});
-
-	const canRefreshRatings = $derived(
-		Boolean(
-			selectedProfileId &&
-				!missingWebsiteUrl &&
-				!refreshing &&
-				!manualRefreshBlocked &&
-				(overview?.providerConfigured ?? true)
-		)
-	);
-
-	const refreshButtonHint = $derived.by(() => {
-		if (canRefreshRatings) return undefined;
-		if (manualRefreshTitle) return manualRefreshTitle;
-		if (refreshing) return 'Refresh in progress…';
-		if (!selectedProfileId) return 'Select a product profile first';
-		if (overview?.providerConfigured === false) {
-			return 'Domain rating lookup is not configured on this server';
-		}
-		return undefined;
-	});
-
 	const productDomain = $derived(overview?.productDomain ?? null);
 	const competitors = $derived(overview?.competitors ?? []);
-	const canAddCompetitor = $derived(competitors.length < competitorCap);
-
-	function formatDr(value: number | null | undefined): string {
-		if (value == null || !Number.isFinite(value)) return '—';
-		return String(Math.round(value));
-	}
-
-	function formatDelta(value: number | null | undefined): string {
-		if (value == null || !Number.isFinite(value)) return '';
-		const sign = value > 0 ? '+' : '';
-		return `${sign}${value}`;
-	}
-
+	const competitorLimit = $derived(competitorCap >= 1 ? competitorCap : null);
+	const competitorCountLabel = $derived(
+		competitorLimit != null ? `${competitors.length}/${competitorLimit}` : null
+	);
+	const isCompetitorLimitFull = $derived(
+		competitorLimit != null && competitors.length >= competitorLimit
+	);
+	const showCompetitorUpgradeCta = $derived(isCompetitorLimitFull && Boolean(billingHref));
+	const canAddCompetitor = $derived(!isCompetitorLimitFull);
+	const showCompetitorPlanNotice = $derived(
+		competitors.length > 0 && competitorLimit != null
+	);
 </script>
 
 <section class="space-y-6">
@@ -155,12 +131,7 @@
 			</Select>
 		</div>
 		<span class="inline-flex" title={refreshButtonHint}>
-			<Button
-				type="button"
-				variant="outline"
-				disabled={!canRefreshRatings}
-				onclick={onRefresh}
-			>
+			<Button type="button" variant="outline" disabled={!canRefreshRatings} onclick={onRefresh}>
 				{#if refreshing}
 					<AbstractIcon name={icons.LoaderCircle.name} class="size-4 animate-spin" width="16" height="16" />
 				{/if}
@@ -197,8 +168,8 @@
 		>
 			<p class="text-base font-medium text-base-content">Website URL required</p>
 			<p class="mx-auto max-w-md text-sm text-base-content/70">
-				Add your product website on <span class="font-medium">{selectedProfile?.name ?? 'this profile'}</span> so OpenQuok
-				can look up domain rating for Directory analytics.
+				Add your product website on <span class="font-medium">{selectedProfileName ?? 'this profile'}</span>
+				so OpenQuok can look up domain rating for Directory analytics.
 			</p>
 			{#if editProfileWebsiteHref}
 				<Button type="button" variant="primary" href={editProfileWebsiteHref}>
@@ -221,7 +192,7 @@
 		<div class="grid gap-4 sm:grid-cols-3">
 			<div class="rounded-lg border border-base-300 bg-base-100/60 px-4 py-3">
 				<p class="text-xs font-medium uppercase tracking-wide text-base-content/55">Your domain DR</p>
-				<p class="mt-1 text-2xl font-semibold">{formatDr(productDomain?.domainRating)}</p>
+				<p class="mt-1 text-2xl font-semibold">{formatDirectorySeoDr(productDomain?.domainRating)}</p>
 				{#if productDomain?.domain}
 					<p class="mt-0.5 truncate text-xs text-base-content/55" title={productDomain.domain}>
 						{productDomain.domain}
@@ -229,9 +200,9 @@
 				{/if}
 				{#if productDomain}
 					<p class="mt-1 text-xs text-base-content/60">
-						7d {formatDelta(productDomain.delta7Days)}
-						· 30d {formatDelta(productDomain.delta30Days)}
-						· 90d {formatDelta(productDomain.delta90Days)}
+						7d {formatDirectorySeoDelta(productDomain.delta7Days)}
+						· 30d {formatDirectorySeoDelta(productDomain.delta30Days)}
+						· 90d {formatDirectorySeoDelta(productDomain.delta90Days)}
 					</p>
 				{/if}
 				{#if manualRefreshBlocked && overview?.manualRefreshAvailableAt}
@@ -263,72 +234,151 @@
 						{/each}
 					</div>
 				</div>
-				<DirectorySeoDrHistoryChart points={history} />
+				{#if historyCompareOptions.length > 0}
+					<div
+						class="mb-2 flex flex-wrap items-center gap-1.5"
+						role="group"
+						aria-label="Compare competitors on history chart"
+					>
+						<span class="text-xs text-base-content/55">Compare:</span>
+						{#each historyCompareOptions as option (option.domain)}
+							<Button
+								type="button"
+								variant={option.selected ? 'primary' : 'outline'}
+								size="sm"
+								class="h-7 min-h-0 rounded-full px-2.5 text-xs"
+								onclick={() => onToggleHistoryCompareCompetitor(option.domain)}
+							>
+								{option.label}
+							</Button>
+						{/each}
+					</div>
+				{/if}
+				<DirectorySeoDrHistoryChart series={historyChartSeries} />
 			</div>
 		</div>
 
 		<div class="space-y-3 rounded-xl border border-base-300 bg-base-100/60 p-4">
 			<div class="flex flex-wrap items-center justify-between gap-2">
-				<h4 class="text-base font-semibold text-base-content">Competitors</h4>
-				<p class="text-xs text-base-content/60">
-					{competitors.length}/{competitorCap} on your plan
-				</p>
+				<h4 class="text-base font-semibold text-base-content">
+					Competitors
+					{#if competitorCountLabel}
+						<span class={isCompetitorLimitFull ? 'text-warning' : 'text-base-content/70'}>
+							({competitorCountLabel})
+						</span>
+					{/if}
+				</h4>
+				{#if showCompetitorUpgradeCta && billingHref}
+					<Button href={billingHref} variant="outline" size="sm" class="gap-1.5">
+						<AbstractIcon name={icons.ArrowUp.name} class="size-4" width="16" height="16" />
+						Upgrade plan
+					</Button>
+				{/if}
 			</div>
+
+			{#if showCompetitorPlanNotice}
+				<HomeAccountNoticeBanner
+					iconName={isCompetitorLimitFull ? icons.Sparkles.name : icons.Info.name}
+					tone={isCompetitorLimitFull ? 'upgrade' : 'neutral'}
+					dismissible={!isCompetitorLimitFull}
+				>
+					<p class="text-base-content/90">
+						{#if isCompetitorLimitFull}
+							You have reached your plan competitor limit
+							<span class="font-medium tabular-nums">({competitorCountLabel})</span>. Upgrade to
+							track more domains on Directory analytics.
+						{:else}
+							Competitors on your plan:
+							<span class="font-medium tabular-nums">{competitorCountLabel}</span>
+							used for this profile. Upgrade for a higher cap.
+						{/if}
+					</p>
+					{#snippet actions()}
+						{#if showCompetitorUpgradeCta && billingHref}
+							<Button href={billingHref} variant="secondary" size="sm" class="gap-1.5">
+								<AbstractIcon name={icons.ArrowUp.name} class="size-4" width="16" height="16" />
+								Upgrade plan
+							</Button>
+						{/if}
+					{/snippet}
+				</HomeAccountNoticeBanner>
+			{/if}
 
 			<DirectorySeoCompetitorDrChart {productDomain} {competitors} />
 
-			{#if competitors.length > 0}
-				<ul class="space-y-2 border-t border-base-300/70 pt-3">
-					{#each competitors as competitor (competitor.domain)}
-						<li class="flex flex-wrap items-center justify-between gap-2 text-sm">
-							<span class="font-medium">{competitor.label?.trim() || competitor.domain}</span>
-							<div class="flex items-center gap-2">
-								<span class="tabular-nums text-base-content/80">DR {formatDr(competitor.domainRating)}</span>
+			{#if competitors.length === 0 && canAddCompetitor}
+				<p class="text-sm text-base-content/65">
+					Add competitor domains to compare domain rating side by side.
+				</p>
+			{/if}
+
+			{#if competitors.length > 0 || canAddCompetitor}
+				<ul class="grid list-none gap-3 border-t border-base-300/70 pt-3 sm:grid-cols-2">
+					{#each competitors as competitor, index (competitor.domain)}
+						<DirectorySeoCompetitorListItem
+							{competitor}
+							colorIndex={index + 1}
+							saving={competitorLabelSavingDomain === competitor.domain}
+							onSaveLabel={(label) => onUpdateCompetitorLabel(competitor.domain, label)}
+							onRemove={() => onRemoveCompetitor(competitor.domain)}
+						/>
+					{/each}
+					{#if canAddCompetitor}
+						<li
+							class="flex h-full flex-col gap-3 rounded-lg border border-dashed border-base-300/80 bg-base-200/50 p-4 shadow-sm"
+							aria-labelledby="add-competitor-heading"
+						>
+							<div class="space-y-0.5">
+								<p id="add-competitor-heading" class="text-base font-semibold text-base-content">
+									Add competitor
+								</p>
+								<p class="text-xs text-base-content/55">Track another domain on charts and DR compare.</p>
+							</div>
+							<div class="flex flex-1 flex-col gap-3">
+								<label class="flex flex-col gap-1.5 text-xs">
+									<span class="font-medium text-base-content/70">Domain</span>
+									<input
+										class="input input-bordered input-sm w-full"
+										value={competitorDomain}
+										oninput={(event) => onCompetitorDomainChange(event.currentTarget.value)}
+										placeholder="competitor.com"
+									/>
+								</label>
+								<label class="flex flex-col gap-1.5 text-xs">
+									<span class="font-medium text-base-content/70">Display name (optional)</span>
+									<input
+										class="input input-bordered input-sm w-full"
+										value={competitorLabel}
+										oninput={(event) => onCompetitorLabelChange(event.currentTarget.value)}
+										placeholder="Competitor"
+									/>
+								</label>
+							</div>
+							<div class="border-t border-base-300/60 pt-3">
 								<Button
 									type="button"
-									variant="ghost"
+									variant="primary"
 									size="sm"
-									class="btn-xs h-7 min-h-0"
-									onclick={() => onRemoveCompetitor(competitor.domain)}
+									class="min-h-8 w-full"
+									disabled={addingCompetitor || !competitorDomain.trim()}
+									onclick={onAddCompetitor}
 								>
-									Remove
+									Add competitor
 								</Button>
 							</div>
 						</li>
-					{/each}
+					{/if}
 				</ul>
-			{:else}
-				<p class="text-sm text-base-content/65">Add competitor domains to compare domain rating side by side.</p>
 			{/if}
 
-			{#if canAddCompetitor}
-				<div class="flex flex-wrap items-end gap-2 border-t border-base-300/70 pt-3">
-					<label class="flex min-w-[160px] flex-1 flex-col gap-1 text-xs">
-						<span class="text-base-content/70">Domain</span>
-						<input
-							class="input input-bordered input-sm w-full"
-							value={competitorDomain}
-							oninput={(event) => onCompetitorDomainChange(event.currentTarget.value)}
-							placeholder="competitor.com"
-						/>
-					</label>
-					<label class="flex min-w-[140px] flex-1 flex-col gap-1 text-xs">
-						<span class="text-base-content/70">Label (optional)</span>
-						<input
-							class="input input-bordered input-sm w-full"
-							value={competitorLabel}
-							oninput={(event) => onCompetitorLabelChange(event.currentTarget.value)}
-							placeholder="Competitor"
-						/>
-					</label>
-					<Button
-						type="button"
-						variant="primary"
-						size="sm"
-						disabled={addingCompetitor || !competitorDomain.trim()}
-						onclick={onAddCompetitor}
-					>
-						Add competitor
+			{#if isCompetitorLimitFull && billingHref}
+				<div
+					class="flex flex-wrap items-center justify-between gap-3 border-t border-base-300/70 pt-3 text-sm text-base-content/80"
+				>
+					<p>Remove a competitor or upgrade your plan to add another domain.</p>
+					<Button href={billingHref} variant="warning" size="sm" class="gap-1.5">
+						<AbstractIcon name={icons.Lock.name} class="size-4" width="16" height="16" />
+						Competitor limit reached
 					</Button>
 				</div>
 			{/if}

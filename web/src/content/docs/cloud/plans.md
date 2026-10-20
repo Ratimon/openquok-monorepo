@@ -2,7 +2,7 @@
 title: OpenQuok's Plans and limits
 description: Cloud plan tiers, prices, and included features.
 order: 1
-lastUpdated: 2026-09-26
+lastUpdated: 2026-10-20
 pricingSchema: true
 sidebar:
   label: Paid Plans
@@ -31,6 +31,8 @@ Yearly billing gives a 20% discount compared to paying monthly for the same year
 | **Public API, CLI, and MCP** | Yes | Yes | Yes | Yes |
 | **OAuth apps and MCP servers** | 1 | 3 (1/ workspace) | 5 (1/ workspace) | 10 (1/ workspace) |
 | **AI Writer and Summarizer** | Unlimited (experimental) | Unlimited (experimental) | Unlimited (experimental) | Unlimited (experimental) |
+| **Directory analytics (domain rating)** | Yes | Yes | Yes | Yes |
+| **Directory competitors (per workspace)** | 2 | 3 | 5 | 10 |
 | **Scheduling, analytics, agents, plugs** | Yes | Yes | Yes | Yes |
 
 <Callout type="note">
@@ -61,7 +63,11 @@ Yearly billing gives a 20% discount compared to paying monthly for the same year
 
 **On-device AI Writer and Summarizer** run in a supported Chromium browser. They do not use Cloud credits. Status is experimental.
 
-**Scheduling, analytics, agents, plugs** covers calendar, kanban, multi-channel publish, templates, signatures, agent skills, and plug rules. Every paid tier includes these.
+**Directory analytics (domain rating)** is the **Directory** tab on <a href="/account/analytics">Analytics</a>: domain rating for your product website, history charts, and manual refresh. Unpaid Cloud accounts do not get this tab.
+
+**Directory competitors (per workspace)** are extra domains you add on that tab to compare DR against your site. The cap is **per workspace**, not shared across workspaces on the account. Remove a competitor to free a slot, or upgrade for a higher cap. See <a href="/docs/insights/domain-analytics">Domain analytics</a>.
+
+**Scheduling, analytics, agents, plugs** covers calendar, kanban, multi-channel publish, templates, signatures, agent skills, social channel analytics, and plug rules. Every paid tier includes these.
 
 ## There is no free plan
 

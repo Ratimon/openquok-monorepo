@@ -4,8 +4,11 @@ import type { SeoDomainMetricSnapshotRow } from "../data/types/directorySeoTypes
 import { ValidationError } from "../errors/InfraError";
 import {
     fetchBacklinksSummaryLive,
+    fetchBacklinksTimeseriesSummaryLive,
     isDataForSeoConfigured,
     type BacklinksSummaryLiveResult,
+    type BacklinksTimeseriesSummaryLiveResult,
+    type FetchBacklinksTimeseriesSummaryLiveOptions,
 } from "../connections/dataforseo/dataforseoClient";
 import { normalizeSeoDomain } from "../connections/dataforseo/normalizeSeoDomain";
 import type { DirectorySeoRepository } from "../repositories/DirectorySeoRepository";
@@ -26,21 +29,45 @@ export type DirectorySeoWeeklyRefreshResult = {
 
 export type DirectorySeoBacklinksClient = {
     fetchBacklinksSummaryLive(domain: string): Promise<BacklinksSummaryLiveResult>;
+    fetchBacklinksTimeseriesSummaryLive(
+        domain: string,
+        options: FetchBacklinksTimeseriesSummaryLiveOptions
+    ): Promise<BacklinksTimeseriesSummaryLiveResult>;
 };
+
+const HISTORY_BACKFILL_DAYS_CAP = 366;
 
 function directorySeoConfig(): {
     cacheTtlMs: number;
     weeklyRefreshEnabled: boolean;
+    historyBackfillMaxDays: number;
+    historyBackfillTtlMs: number;
 } {
     const directorySeo = config.directorySeo as {
         cacheTtlHours?: number;
         weeklyRefreshEnabled?: boolean;
+        historyBackfillMaxDays?: number;
+        historyBackfillTtlDays?: number;
     };
     const hours = directorySeo?.cacheTtlHours ?? 168;
+    const historyBackfillMaxDays = Math.max(1, directorySeo?.historyBackfillMaxDays ?? 90);
+    const historyBackfillTtlDays = Math.max(1, directorySeo?.historyBackfillTtlDays ?? 7);
     return {
         cacheTtlMs: Math.max(1, hours) * 60 * 60 * 1000,
         weeklyRefreshEnabled: directorySeo?.weeklyRefreshEnabled ?? true,
+        historyBackfillMaxDays,
+        historyBackfillTtlMs: historyBackfillTtlDays * 24 * 60 * 60 * 1000,
     };
+}
+
+function formatUtcDateOnly(date: Date): string {
+    return date.toISOString().slice(0, 10);
+}
+
+function addUtcDays(date: Date, days: number): Date {
+    const copy = new Date(date.getTime());
+    copy.setUTCDate(copy.getUTCDate() + days);
+    return copy;
 }
 
 function ratingsEqual(a: number | null | undefined, b: number | null | undefined): boolean {
@@ -59,6 +86,7 @@ export class DirectorySeoService {
         private readonly subscriptionService: SubscriptionService,
         private readonly backlinksClient: DirectorySeoBacklinksClient = {
             fetchBacklinksSummaryLive,
+            fetchBacklinksTimeseriesSummaryLive,
         }
     ) {}
 
@@ -194,6 +222,87 @@ export class DirectorySeoService {
             }
         }
         return { attempted: stale.length, refreshed };
+    }
+
+    /**
+     * Import daily domain-rating history from DataForSEO when cache is missing or past backfill TTL.
+     * Failures are logged and do not throw — callers can still read existing history rows.
+     */
+    async ensureProviderHistoryBackfill(rawDomain: string, requestedDays: number): Promise<void> {
+        const domain = normalizeSeoDomain(rawDomain);
+        if (!domain) {
+            return;
+        }
+
+        if (!this.isProviderConfigured()) {
+            return;
+        }
+
+        const { historyBackfillMaxDays } = directorySeoConfig();
+        const backfillDays = Math.min(
+            HISTORY_BACKFILL_DAYS_CAP,
+            Math.max(Math.max(1, requestedDays), historyBackfillMaxDays)
+        );
+
+        const snapshot = await this.directorySeoRepository.getSnapshot(domain);
+        if (this.isProviderHistoryBackfillFresh(snapshot?.provider_history_backfilled_at)) {
+            return;
+        }
+
+        const now = new Date();
+        const dateTo = formatUtcDateOnly(now);
+        const dateFrom = formatUtcDateOnly(addUtcDays(now, -backfillDays));
+        const sinceIso = `${dateFrom}T00:00:00.000Z`;
+
+        try {
+            const timeseries = await this.backlinksClient.fetchBacklinksTimeseriesSummaryLive(
+                domain,
+                { dateFrom, dateTo, groupRange: "day" }
+            );
+
+            const points = timeseries.points.map((point) => ({
+                domainRating: point.domainRating,
+                capturedAt: point.capturedAt,
+            }));
+
+            await this.directorySeoRepository.replaceProviderHistoryForDomain({
+                domain,
+                sinceIso,
+                points,
+            });
+
+            const backfilledAt = new Date().toISOString();
+            await this.directorySeoRepository.updateProviderHistoryBackfilledAt(domain, backfilledAt);
+
+            logger.info({
+                msg: "[DirectorySeo] Provider history backfill completed",
+                domain,
+                backfillDays,
+                pointCount: points.length,
+            });
+        } catch (err) {
+            logger.warn({
+                msg: "[DirectorySeo] Provider history backfill failed",
+                domain,
+                backfillDays,
+                err,
+            });
+        }
+    }
+
+    private isProviderHistoryBackfillFresh(
+        backfilledAtIso: string | null | undefined,
+        nowMs = Date.now()
+    ): boolean {
+        if (!backfilledAtIso) {
+            return false;
+        }
+        const backfilledAt = Date.parse(backfilledAtIso);
+        if (!Number.isFinite(backfilledAt)) {
+            return false;
+        }
+        const { historyBackfillTtlMs } = directorySeoConfig();
+        return nowMs - backfilledAt < historyBackfillTtlMs;
     }
 
     private shouldRecordHistory(

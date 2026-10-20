@@ -23,6 +23,12 @@ export const directorySeoDeleteCompetitorBodySchema = z.object({
     domain: z.string().min(1).max(253).trim(),
 });
 
+export const directorySeoUpdateCompetitorBodySchema = z.object({
+    organizationId: z.string().uuid("Invalid organization id"),
+    domain: z.string().min(1).max(253).trim(),
+    label: z.string().max(200).trim().nullable(),
+});
+
 export const directorySeoRefreshBodySchema = z.object({
     organizationId: z.string().uuid("Invalid organization id"),
     productProfileId: z.string().uuid("Invalid product profile id"),
@@ -33,4 +39,5 @@ export type DirectorySeoWorkspaceQuery = z.infer<typeof directorySeoWorkspaceQue
 export type DirectorySeoWorkspaceHistoryQuery = z.infer<typeof directorySeoWorkspaceHistoryQuerySchema>;
 export type DirectorySeoAddCompetitorBody = z.infer<typeof directorySeoAddCompetitorBodySchema>;
 export type DirectorySeoDeleteCompetitorBody = z.infer<typeof directorySeoDeleteCompetitorBodySchema>;
+export type DirectorySeoUpdateCompetitorBody = z.infer<typeof directorySeoUpdateCompetitorBodySchema>;
 export type DirectorySeoRefreshBody = z.infer<typeof directorySeoRefreshBodySchema>;

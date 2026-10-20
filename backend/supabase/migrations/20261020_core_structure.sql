@@ -1501,7 +1501,7 @@ COMMENT ON COLUMN public.auto_launch_submissions.listing_synced_at IS
 -- ---------------------------
 -- MODULE NAME: Auto Launch
 -- MODULE DATE: 20261019
--- MODULE SCOPE: Tables (directory SEO metrics, competitors, profile variants)
+-- MODULE SCOPE: Tables (directory SEO metrics, competitors, profile variants, history backfill)
 -- ---------------------------
 
 BEGIN;
@@ -1511,7 +1511,8 @@ CREATE TABLE IF NOT EXISTS public.seo_domain_metric_snapshots (
     domain TEXT PRIMARY KEY,
     domain_rating NUMERIC(6, 2),
     source TEXT NOT NULL DEFAULT 'dataforseo',
-    checked_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    checked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    provider_history_backfilled_at TIMESTAMPTZ
 );
 
 COMMENT ON TABLE public.seo_domain_metric_snapshots IS
@@ -1520,16 +1521,24 @@ COMMENT ON COLUMN public.seo_domain_metric_snapshots.domain IS
     'Normalized hostname (lowercase, no scheme or path).';
 COMMENT ON COLUMN public.seo_domain_metric_snapshots.source IS
     'Provider that produced domain_rating (v1: dataforseo backlinks summary).';
+COMMENT ON COLUMN public.seo_domain_metric_snapshots.provider_history_backfilled_at IS
+    'When provider daily timeseries was last imported for chart backfill; NULL until first successful backfill.';
 
 CREATE TABLE IF NOT EXISTS public.seo_domain_metric_history (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     domain TEXT NOT NULL,
     domain_rating NUMERIC(6, 2),
-    captured_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    captured_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    origin TEXT NOT NULL DEFAULT 'live_refresh',
+    CONSTRAINT chk_seo_domain_metric_history_origin CHECK (
+        origin IN ('live_refresh', 'provider_timeseries')
+    )
 );
 
 COMMENT ON TABLE public.seo_domain_metric_history IS
     'Append-only domain rating samples for charting product and competitor domains.';
+COMMENT ON COLUMN public.seo_domain_metric_history.origin IS
+    'live_refresh = housekeeping/API snapshot sample; provider_timeseries = imported daily rank from DataForSEO backfill.';
 
 CREATE TABLE IF NOT EXISTS public.directory_seo_competitors (
     organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,

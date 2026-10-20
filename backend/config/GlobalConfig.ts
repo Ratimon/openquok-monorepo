@@ -521,6 +521,10 @@ export const config: ConfigObject = {
             "DIRECTORY_SEO_WEEKLY_REFRESH_INTERVAL_MS",
             7 * 24 * 60 * 60 * 1000
         ),
+        /** Max daily history window imported from DataForSEO timeseries (default 90 days). */
+        historyBackfillMaxDays: getEnvNumber("DIRECTORY_SEO_HISTORY_BACKFILL_MAX_DAYS", 90),
+        /** Skip repeat timeseries imports per domain until this TTL elapses (default 7 days). */
+        historyBackfillTtlDays: getEnvNumber("DIRECTORY_SEO_HISTORY_BACKFILL_TTL_DAYS", 7),
     },
 
     /**

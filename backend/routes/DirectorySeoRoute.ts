@@ -6,6 +6,7 @@ import { validateRequest } from "../middlewares/validateRequest";
 import {
     directorySeoAddCompetitorBodySchema,
     directorySeoDeleteCompetitorBodySchema,
+    directorySeoUpdateCompetitorBodySchema,
     directorySeoRefreshBodySchema,
     directorySeoWorkspaceHistoryQuerySchema,
     directorySeoWorkspaceQuerySchema,
@@ -37,6 +38,12 @@ directorySeoRouter.delete(
     auth,
     validateRequest({ body: directorySeoDeleteCompetitorBodySchema }),
     directorySeoController.deleteCompetitor
+);
+directorySeoRouter.patch(
+    "/workspace/competitors",
+    auth,
+    validateRequest({ body: directorySeoUpdateCompetitorBodySchema }),
+    directorySeoController.updateCompetitor
 );
 directorySeoRouter.post(
     "/workspace/refresh",

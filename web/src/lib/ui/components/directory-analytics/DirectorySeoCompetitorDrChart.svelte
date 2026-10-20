@@ -5,6 +5,8 @@
 	import { BarChart } from 'layerchart';
 	import { cubicInOut } from 'svelte/easing';
 
+	import { directorySeoChartColorAt } from '$lib/directory-seo/directorySeoChartColors';
+
 	import * as Chart from '$lib/ui/chart';
 
 	type Props = {
@@ -17,32 +19,42 @@
 	type CompareRow = {
 		name: string;
 		rating: number;
+		color: string;
 	};
 
 	const chartData = $derived.by((): CompareRow[] => {
 		const rows: CompareRow[] = [];
+		let colorIndex = 0;
 		if (productDomain?.domainRating != null && Number.isFinite(productDomain.domainRating)) {
 			const label = productDomain.domain
 				? `You (${productDomain.domain})`
 				: 'Your domain';
 			rows.push({
 				name: label,
-				rating: Math.round(productDomain.domainRating)
+				rating: Math.round(productDomain.domainRating),
+				color: directorySeoChartColorAt(colorIndex)
 			});
+			colorIndex += 1;
 		}
 		for (const competitor of competitors) {
 			if (competitor.domainRating == null || !Number.isFinite(competitor.domainRating)) continue;
 			rows.push({
 				name: competitor.label?.trim() || competitor.domain,
-				rating: Math.round(competitor.domainRating)
+				rating: Math.round(competitor.domainRating),
+				color: directorySeoChartColorAt(colorIndex)
 			});
+			colorIndex += 1;
 		}
 		return rows;
 	});
 
-	const chartConfig = {
-		rating: { label: 'Domain rating', color: 'var(--chart-1)' }
-	} satisfies Chart.ChartConfig;
+	const chartConfig = $derived.by((): Chart.ChartConfig => {
+		const config: Chart.ChartConfig = {};
+		for (const row of chartData) {
+			config[row.name] = { label: row.name, color: row.color };
+		}
+		return config;
+	});
 
 	const chartHeightClass = $derived.by(() => {
 		const rows = chartData.length;
@@ -69,11 +81,12 @@
 			xScale={scaleLinear().domain([0, 100]).nice()}
 			y="name"
 			x="rating"
+			c="color"
 			padding={{ left: 8, right: 8 }}
 			grid={{ x: true, y: false }}
 			rule={false}
 			axis={true}
-			series={[{ key: 'rating', label: chartConfig.rating.label, color: chartConfig.rating.color }]}
+			series={[{ key: 'rating', label: 'Domain rating', color: directorySeoChartColorAt(0) }]}
 			props={{
 				bars: {
 					stroke: 'none',

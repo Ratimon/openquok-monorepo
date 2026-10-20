@@ -1,8 +1,11 @@
+export type SeoDomainMetricHistoryOrigin = "live_refresh" | "provider_timeseries";
+
 export type SeoDomainMetricSnapshotRow = {
     domain: string;
     domain_rating: number | null;
     source: string;
     checked_at: string;
+    provider_history_backfilled_at: string | null;
 };
 
 export type SeoDomainMetricHistoryRow = {
@@ -10,6 +13,7 @@ export type SeoDomainMetricHistoryRow = {
     domain: string;
     domain_rating: number | null;
     captured_at: string;
+    origin: SeoDomainMetricHistoryOrigin;
 };
 
 export type DirectorySeoCompetitorRow = {

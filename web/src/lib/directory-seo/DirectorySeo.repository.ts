@@ -4,7 +4,7 @@ import { HttpMethod } from '$lib/core/HttpGateway';
 import type { DirectorySeoConfig } from '$lib/directory-seo/constants/config';
 import type {
 	DirectorySeoCompetitorDto,
-	DirectorySeoHistoryPointDto,
+	DirectorySeoWorkspaceHistoryDto,
 	DirectorySeoWorkspaceOverviewDto
 } from '$lib/directory-seo/directory-seo.types';
 
@@ -40,9 +40,9 @@ export class DirectorySeoRepository {
 		organizationId: string;
 		productProfileId: string;
 		days: number;
-	}): Promise<DirectorySeoHistoryPointDto[]> {
+	}): Promise<DirectorySeoWorkspaceHistoryDto> {
 		const { data: historyDto, ok } = await this.httpGateway.get<
-			ListResponseDto<DirectorySeoHistoryPointDto[]>
+			ListResponseDto<DirectorySeoWorkspaceHistoryDto>
 		>(
 			this.config.endpoints.workspaceHistory,
 			{
@@ -55,7 +55,7 @@ export class DirectorySeoRepository {
 		if (ok && historyDto?.data) {
 			return historyDto.data;
 		}
-		return [];
+		return { product: [], competitors: [] };
 	}
 
 	async addCompetitor(payload: {
@@ -72,6 +72,22 @@ export class DirectorySeoRepository {
 			return { ok: true, competitor: addDto.data };
 		}
 		return { ok: false, error: 'Could not add competitor.' };
+	}
+
+	async updateCompetitor(payload: {
+		organizationId: string;
+		domain: string;
+		label: string | null;
+	}): Promise<{ ok: true; competitor: DirectorySeoCompetitorDto } | { ok: false; error: string }> {
+		const { data: patchDto, ok } = await this.httpGateway.patch<ListResponseDto<DirectorySeoCompetitorDto>>(
+			this.config.endpoints.workspaceCompetitors,
+			payload,
+			{ withCredentials: true }
+		);
+		if (ok && patchDto?.data) {
+			return { ok: true, competitor: patchDto.data };
+		}
+		return { ok: false, error: 'Could not update competitor label.' };
 	}
 
 	async deleteCompetitor(payload: {

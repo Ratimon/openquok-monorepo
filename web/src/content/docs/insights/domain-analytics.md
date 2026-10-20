@@ -32,10 +32,25 @@ Without a website URL, OpenQuok cannot look up a domain rating.
 | Area | Meaning |
 | --- | --- |
 | **Your domain DR** | A score for your website hostname, with change over **7**, **30**, and **90** days |
-| **History** | A chart of recent samples for your domain |
+| **History** | A line chart for your domain over **7**, **30**, or **90** days |
 | **Competitors** | Other domains you add to compare against your site |
 
-Competitor limits depend on your plan. Each competitor shows a label and current DR.
+Competitor limits depend on your plan (**2** / **3** / **5** / **10** per workspace on Solo / Team / Ultimate / Max). Each competitor shows a label and current DR. Use **Edit** in the competitor list to rename the label (charts and compare pills use the label). See <a href="/docs/cloud/plans">Plans and limits</a> and <a href="/docs/billing/limits">Limits</a>.
+
+## History chart
+
+The first time you open the Directory tab (or switch the history range) after a domain has no imported history, OpenQuok may pull **daily** domain-rating points from DataForSEO so the chart is not a single dot. Those points are stored and reused for about **one week** before a refresh import can run again.
+
+After that, the chart blends:
+
+- **Imported daily series** — past days from the provider backfill.
+- **Live samples** — new points when OpenQuok refreshes your snapshot (about weekly via cache, or when you use **Refresh ratings**).
+
+The score uses the same **0–100** scale as the headline DR. Gaps can appear when the provider has no rank for a day.
+
+<Callout type="note">
+<p>Paid workspaces need a configured DataForSEO key on the server for live DR and history import. Without it, the page shows cached or empty values only.</p>
+</Callout>
 
 ## Refresh ratings
 
@@ -55,4 +70,5 @@ On <a href="/account/products">My Products</a>, the directory grid shows **DR** 
 <LinkCard title="Insights overview" description="Social analytics, per-post stats, and how the tabs fit together" href="/docs/insights" />
 <LinkCard title="Workspace analytics" description="Connected channel performance on the Social tab" href="/docs/insights/workspace-analytics" />
 <LinkCard title="Business profiles" description="Main profiles, website URL, and directory variants" href="/docs/directory-submission/profile-variants" />
+<LinkCard title="Limits" description="Directory competitor caps and upgrade paths" href="/docs/billing/limits" />
 </CardGrid>

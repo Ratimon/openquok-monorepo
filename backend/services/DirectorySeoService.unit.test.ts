@@ -1,5 +1,6 @@
 import { faker } from "@faker-js/faker";
 
+import * as dataforseoClient from "../connections/dataforseo/dataforseoClient";
 import type { DirectorySeoRepository } from "../repositories/DirectorySeoRepository";
 import type { SubscriptionService } from "./SubscriptionService";
 import { DirectorySeoService } from "./DirectorySeoService";
@@ -7,7 +8,13 @@ import { DirectorySeoService } from "./DirectorySeoService";
 jest.mock("../config/GlobalConfig", () => ({
     config: {
         dataforseo: { apiKey: "dGVzdDpzZWNyZXQ=" },
-        directorySeo: { enabled: true, cacheTtlHours: 168, weeklyRefreshEnabled: true },
+        directorySeo: {
+            enabled: true,
+            cacheTtlHours: 168,
+            weeklyRefreshEnabled: true,
+            historyBackfillMaxDays: 90,
+            historyBackfillTtlDays: 7,
+        },
     },
 }));
 
@@ -24,6 +31,8 @@ function createMocks() {
         upsertSnapshot: jest.fn(),
         getLatestHistory: jest.fn(),
         insertHistory: jest.fn(),
+        replaceProviderHistoryForDomain: jest.fn(),
+        updateProviderHistoryBackfilledAt: jest.fn(),
     };
 
     const subscriptionService = {
@@ -32,6 +41,9 @@ function createMocks() {
 
     const backlinksClient = {
         fetchBacklinksSummaryLive: jest.fn().mockResolvedValue({ domainRating: 55 }),
+        fetchBacklinksTimeseriesSummaryLive: jest.fn().mockResolvedValue({
+            points: [{ capturedAt: "2026-10-01T00:00:00.000Z", domainRating: 42 }],
+        }),
     };
 
     return { directorySeoRepository, subscriptionService, backlinksClient };
@@ -134,6 +146,81 @@ describe("DirectorySeoService", () => {
         const result = await service.runWeeklyRefresh();
         expect(result).toEqual({ attempted: 1, refreshed: 1 });
         expect(backlinksClient.fetchBacklinksSummaryLive).toHaveBeenCalledWith("acme.test");
+    });
+
+    describe("ensureProviderHistoryBackfill", () => {
+        it("skips when provider_history_backfilled_at is within TTL", async () => {
+            const { directorySeoRepository, subscriptionService, backlinksClient } = createMocks();
+            directorySeoRepository.getSnapshot.mockResolvedValue({
+                domain: "acme.test",
+                domain_rating: 40,
+                source: "dataforseo",
+                checked_at: new Date().toISOString(),
+                provider_history_backfilled_at: new Date().toISOString(),
+            });
+
+            const service = new DirectorySeoService(
+                directorySeoRepository as unknown as DirectorySeoRepository,
+                subscriptionService as unknown as SubscriptionService,
+                backlinksClient
+            );
+
+            await service.ensureProviderHistoryBackfill("acme.test", 30);
+            expect(backlinksClient.fetchBacklinksTimeseriesSummaryLive).not.toHaveBeenCalled();
+        });
+
+        it("imports timeseries and updates backfill timestamp when stale or missing", async () => {
+            const { directorySeoRepository, subscriptionService, backlinksClient } = createMocks();
+            directorySeoRepository.getSnapshot.mockResolvedValue({
+                domain: "acme.test",
+                domain_rating: 40,
+                source: "dataforseo",
+                checked_at: new Date().toISOString(),
+                provider_history_backfilled_at: null,
+            });
+
+            const service = new DirectorySeoService(
+                directorySeoRepository as unknown as DirectorySeoRepository,
+                subscriptionService as unknown as SubscriptionService,
+                backlinksClient
+            );
+
+            await service.ensureProviderHistoryBackfill("https://acme.test", 30);
+
+            expect(backlinksClient.fetchBacklinksTimeseriesSummaryLive).toHaveBeenCalledWith(
+                "acme.test",
+                expect.objectContaining({ groupRange: "day" })
+            );
+            expect(directorySeoRepository.replaceProviderHistoryForDomain).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    domain: "acme.test",
+                    points: [{ domainRating: 42, capturedAt: "2026-10-01T00:00:00.000Z" }],
+                })
+            );
+            expect(directorySeoRepository.updateProviderHistoryBackfilledAt).toHaveBeenCalledWith(
+                "acme.test",
+                expect.any(String)
+            );
+        });
+
+        it("does not call DataForSEO when the provider is disabled", async () => {
+            const configuredSpy = jest
+                .spyOn(dataforseoClient, "isDataForSeoConfigured")
+                .mockReturnValue(false);
+
+            const { directorySeoRepository, subscriptionService, backlinksClient } = createMocks();
+            const service = new DirectorySeoService(
+                directorySeoRepository as unknown as DirectorySeoRepository,
+                subscriptionService as unknown as SubscriptionService,
+                backlinksClient
+            );
+
+            await service.ensureProviderHistoryBackfill("acme.test", 30);
+            expect(backlinksClient.fetchBacklinksTimeseriesSummaryLive).not.toHaveBeenCalled();
+            expect(directorySeoRepository.getSnapshot).not.toHaveBeenCalled();
+
+            configuredSpy.mockRestore();
+        });
     });
 
 });

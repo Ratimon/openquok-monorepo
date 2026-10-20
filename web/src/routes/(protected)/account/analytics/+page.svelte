@@ -4,7 +4,7 @@
 	// --- Navigation & routing ---
 	import { goto } from '$app/navigation';
 	import { getContext } from 'svelte';
-	import { route } from '$lib/utils/path';
+	import { route, url } from '$lib/utils/path';
 
 	// --- Area presenters (singletons from composition root) ---
 	import {
@@ -45,23 +45,18 @@
 	const rootPathAccount = getRootPathAccount();
 	const accountPath = route(rootPathAccount);
 
-	/** Same singleton as exported name; shorter reads in markup (matches calendar page pattern). */
-	const analyticsPresenter = protectedAnalyticsPagePresenter;
+	const pagePresenter = protectedAnalyticsPagePresenter;
 	const channelCapCtx = getContext<ChannelCapContext | undefined>(channelCapKey);
 
 	// --- Routes (static, base-aware via `route`) ---
 	const accountRoot = accountPath;
-	const createBusinessProfileHref = $derived(`${accountPath}/products?newProfile=1`);
-	const editProfileWebsiteHref = $derived.by(() => {
-		const profileId = analyticsPresenter.selectedDirectoryProfileId;
-		if (!profileId) return null;
-		const params = new URLSearchParams({
-			tab: 'products',
-			edit: profileId,
-			profileComposerTab: 'general'
-		});
-		return `${accountPath}?${params.toString()}`;
-	});
+	const accountBillingHref = $derived(url(`${accountRoot}/billing`));
+	const directoryCreateProfileHref = $derived(
+		pagePresenter.getDirectoryCreateProfileHref(accountPath)
+	);
+	const directoryEditProfileWebsiteHref = $derived(
+		pagePresenter.getDirectoryEditProfileWebsiteHref(accountPath)
+	);
 
 	// --- Workspace + integration list (home presenter is source of truth) ---
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
@@ -70,13 +65,13 @@
 	const channelsLoadPending = $derived(listStatus === 'idle' || listStatus === 'loading');
 
 	// --- Analytics screen VM (filters + merged series live on analytics presenter) ---
-	const supportedIntegrations = $derived(analyticsPresenter.supportedIntegrations);
-	const filteredIntegrationsVm = $derived(analyticsPresenter.filteredIntegrationsVm);
+	const supportedIntegrations = $derived(pagePresenter.supportedIntegrations);
+	const filteredIntegrationsVm = $derived(pagePresenter.filteredIntegrationsVm);
 
 	/** Triggers reload when targeted integration set changes (platform filter / disconnect). */
 	const analyticsIntegrationIdsKey = $derived.by(() => filteredIntegrationsVm.map((i) => i.id).join(','));
-	const analyticsScopeTab = $derived(analyticsPresenter.analyticsScopeTab);
-	const directorySeoEnabled = $derived(analyticsPresenter.directorySeoEnabled);
+	const analyticsScopeTab = $derived(pagePresenter.analyticsScopeTab);
+	const directorySeoEnabled = $derived(pagePresenter.directorySeoEnabled);
 
 	const allowedDateWindowDays = $derived(
 		intersectAnalyticsDateWindows(filteredIntegrationsVm.map((i) => String(i.identifier ?? '')))
@@ -128,14 +123,15 @@
 
 	function handleRefreshIntegration(integration: CreateSocialPostChannelViewModel) {
 		// Authorize-url fetch, error toast, and redirect are handled by the presenter.
-		void analyticsPresenter.refreshIntegrationForAnalytics(integration);
+		void pagePresenter.refreshIntegrationForAnalytics(integration);
 	}
 
 	// --- Effects: keep lists warm, then load merged analytics when inputs change ---
 	$effect(() => {
+		if (analyticsScopeTab !== 'social') return;
 		const orgId = workspaceId;
 		if (!orgId) return;
-		analyticsPresenter.syncWorkspaceHomeLists();
+		pagePresenter.syncWorkspaceHomeLists();
 	});
 
 	$effect(() => {
@@ -143,7 +139,7 @@
 		void analyticsIntegrationIdsKey;
 		void dateWindowDays;
 		void workspaceId;
-		void analyticsPresenter.loadMergedAnalytics({
+		void pagePresenter.loadMergedAnalytics({
 			organizationId: workspaceId,
 			integrations: filteredIntegrationsVm,
 			dateWindowDays
@@ -152,21 +148,21 @@
 
 	$effect(() => {
 		void workspaceId;
-		void analyticsPresenter.loadDirectoryEntitlement(workspaceId);
+		void pagePresenter.loadDirectoryEntitlement(workspaceId);
 	});
 
 	$effect(() => {
 		if (!directorySeoEnabled || analyticsScopeTab !== 'directory') return;
 		void workspaceId;
-		void analyticsPresenter.loadDirectoryMainProfiles(workspaceId);
+		void pagePresenter.loadDirectoryMainProfiles(workspaceId);
 	});
 
 	$effect(() => {
 		if (analyticsScopeTab !== 'directory' || !directorySeoEnabled) return;
 		void workspaceId;
-		void analyticsPresenter.selectedDirectoryProfileId;
-		void analyticsPresenter.directoryHistoryWindowDays;
-		void analyticsPresenter.loadDirectoryAnalytics(workspaceId);
+		void pagePresenter.selectedDirectoryProfileId;
+		void pagePresenter.directoryHistoryWindowDays;
+		void pagePresenter.loadDirectoryAnalytics(workspaceId);
 	});
 </script>
 
@@ -185,7 +181,7 @@
 				variant={analyticsScopeTab === 'social' ? 'primary' : 'ghost'}
 				size="sm"
 				class="rounded-md"
-				onclick={() => (analyticsPresenter.analyticsScopeTab = 'social')}
+				onclick={() => (pagePresenter.analyticsScopeTab = 'social')}
 			>
 				Social
 			</Button>
@@ -196,7 +192,7 @@
 				class="rounded-md"
 				disabled={!directorySeoEnabled}
 				title={directorySeoEnabled ? undefined : 'Upgrade to a paid plan for directory analytics'}
-				onclick={() => (analyticsPresenter.analyticsScopeTab = 'directory')}
+				onclick={() => (pagePresenter.analyticsScopeTab = 'directory')}
 			>
 				Directory
 			</Button>
@@ -219,30 +215,42 @@
 			</p>
 		{:else}
 			<DirectoryAnalyticsWorkspacePanel
-				loading={analyticsPresenter.directorySeoLoading}
-				error={analyticsPresenter.directorySeoError}
-				mainProfiles={analyticsPresenter.directoryMainProfilesVm}
-				selectedProfileId={analyticsPresenter.selectedDirectoryProfileId}
-				overview={analyticsPresenter.directoryOverviewVm}
-				history={analyticsPresenter.directoryHistoryVm}
-				historyWindowDays={analyticsPresenter.directoryHistoryWindowDays}
+				loading={pagePresenter.directorySeoLoading}
+				error={pagePresenter.directorySeoError}
+				mainProfiles={pagePresenter.directoryMainProfilesVm}
+				selectedProfileId={pagePresenter.selectedDirectoryProfileId}
+				selectedProfileName={pagePresenter.directorySelectedMainProfileVm?.name ?? null}
+				missingWebsiteUrl={pagePresenter.directoryMissingWebsiteUrlVm}
+				overview={pagePresenter.directoryOverviewVm}
+				historyChartSeries={pagePresenter.directoryHistoryChartSeriesVm}
+				historyCompareOptions={pagePresenter.directoryHistoryCompareOptionsVm}
+				historyWindowDays={pagePresenter.directoryHistoryWindowDays}
+				canRefreshRatings={pagePresenter.directoryCanRefreshRatingsVm}
+				refreshButtonHint={pagePresenter.directoryRefreshButtonHintVm}
+				manualRefreshBlocked={pagePresenter.directoryManualRefreshBlockedVm}
 				onHistoryWindowDaysChange={(days) => {
-					analyticsPresenter.directoryHistoryWindowDays = days;
+					pagePresenter.directoryHistoryWindowDays = days;
 				}}
-				competitorCap={analyticsPresenter.directoryCompetitorCap}
-				refreshing={analyticsPresenter.directorySeoRefreshing}
-				competitorDomain={analyticsPresenter.competitorDomainDraft}
-				competitorLabel={analyticsPresenter.competitorLabelDraft}
-				addingCompetitor={analyticsPresenter.directoryCompetitorAdding}
-				onSelectProfile={(profileId) => analyticsPresenter.selectDirectoryProfile(profileId)}
-				onRefresh={() => void analyticsPresenter.refreshDirectoryAnalytics(workspaceId)}
-				onCompetitorDomainChange={(value) => (analyticsPresenter.competitorDomainDraft = value)}
-				onCompetitorLabelChange={(value) => (analyticsPresenter.competitorLabelDraft = value)}
-				onAddCompetitor={() => void analyticsPresenter.addDirectoryCompetitor(workspaceId)}
+				onToggleHistoryCompareCompetitor={(domain) =>
+					pagePresenter.toggleDirectoryHistoryChartCompetitor(domain)}
+				competitorCap={pagePresenter.directoryCompetitorCap}
+				refreshing={pagePresenter.directorySeoRefreshing}
+				competitorDomain={pagePresenter.competitorDomainDraft}
+				competitorLabel={pagePresenter.competitorLabelDraft}
+				addingCompetitor={pagePresenter.directoryCompetitorAdding}
+				onSelectProfile={(profileId) => pagePresenter.selectDirectoryProfile(profileId)}
+				onRefresh={() => void pagePresenter.refreshDirectoryAnalytics(workspaceId)}
+				onCompetitorDomainChange={(value) => (pagePresenter.competitorDomainDraft = value)}
+				onCompetitorLabelChange={(value) => (pagePresenter.competitorLabelDraft = value)}
+				onAddCompetitor={() => void pagePresenter.addDirectoryCompetitor(workspaceId)}
 				onRemoveCompetitor={(domain) =>
-					void analyticsPresenter.removeDirectoryCompetitor(workspaceId, domain)}
-				createProfileHref={createBusinessProfileHref}
-				editProfileWebsiteHref={editProfileWebsiteHref}
+					void pagePresenter.removeDirectoryCompetitor(workspaceId, domain)}
+				competitorLabelSavingDomain={pagePresenter.directoryCompetitorLabelSavingDomain}
+				onUpdateCompetitorLabel={(domain, label) =>
+					void pagePresenter.updateDirectoryCompetitorLabel(workspaceId, domain, label)}
+				billingHref={accountBillingHref}
+				createProfileHref={directoryCreateProfileHref}
+				editProfileWebsiteHref={directoryEditProfileWebsiteHref}
 			/>
 		{/if}
 	{:else if channelsLoadPending}
@@ -279,11 +287,11 @@
 				<div class="flex flex-wrap items-center justify-end gap-2">
 					<ChannelKindFilter
 						channels={connectedChannelsVm}
-						allSocialPlatforms={analyticsPresenter.platformFilterVm.allSocialPlatforms}
+						allSocialPlatforms={pagePresenter.platformFilterVm.allSocialPlatforms}
 						selectedSocialPlatformIdentifiers={
-							analyticsPresenter.platformFilterVm.selectedSocialPlatformIdentifiers
+							pagePresenter.platformFilterVm.selectedSocialPlatformIdentifiers
 						}
-						onChange={(next) => (analyticsPresenter.platformFilterVm = next)}
+						onChange={(next) => (pagePresenter.platformFilterVm = next)}
 					/>
 
 					<div class="w-[200px]">
@@ -314,7 +322,7 @@
 								{integration}
 								workspaceId={workspaceId}
 								providerIcon={socialProviderIcon}
-								continueSetupHref={(i) => analyticsPresenter.continueSetupHref(i)}
+								continueSetupHref={(i) => pagePresenter.continueSetupHref(i)}
 								onMoveToGroup={() => {}}
 								onEditTimeSlots={() => {}}
 								onSetDisabled={handleSetChannelDisabled}
@@ -330,17 +338,17 @@
 			<h3 class="text-lg font-semibold text-base-content">
 				Overview
 			</h3>
-			{#if !analyticsPresenter.loading && !analyticsPresenter.error && analyticsPresenter.mergedSeriesVm.length > 0}
+			{#if !pagePresenter.loading && !pagePresenter.error && pagePresenter.mergedSeriesVm.length > 0}
 				<AnalyticsOverviewPanel
-					seriesVm={analyticsPresenter.mergedSeriesVm}
+					seriesVm={pagePresenter.mergedSeriesVm}
 				/>
 			{/if}
 			<RenderAnalyticsGrid
 				integrationVm={filteredIntegrationsVm}
-				loading={analyticsPresenter.loading}
-				error={analyticsPresenter.error}
-				seriesVm={analyticsPresenter.mergedSeriesVm}
-				totals={analyticsPresenter.mergedTotalsVm}
+				loading={pagePresenter.loading}
+				error={pagePresenter.error}
+				seriesVm={pagePresenter.mergedSeriesVm}
+				totals={pagePresenter.mergedTotalsVm}
 				onRefreshIntegration={handleRefreshIntegration}
 			/>
 		</section>

@@ -26,3 +26,19 @@ export type DirectorySeoHistoryPointDto = {
 	capturedAt: string;
 	domainRating: number | null;
 };
+
+export type DirectorySeoCompetitorHistoryDto = {
+	domain: string;
+	label: string | null;
+	points: DirectorySeoHistoryPointDto[];
+};
+
+export type DirectorySeoWorkspaceHistoryDto = {
+	product: DirectorySeoHistoryPointDto[];
+	competitors: DirectorySeoCompetitorHistoryDto[];
+};
+
+export const emptyDirectorySeoWorkspaceHistory = (): DirectorySeoWorkspaceHistoryDto => ({
+	product: [],
+	competitors: []
+});

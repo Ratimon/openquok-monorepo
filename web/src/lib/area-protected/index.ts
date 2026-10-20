@@ -66,7 +66,7 @@ import {
 	getChannelPresenter
 } from '$lib/channels';
 import { AutoLaunchProductsPresenter, autoLaunchRepository } from '$lib/auto-launch';
-import { directorySeoRepository } from '$lib/directory-seo';
+import { directorySeoRepository, getDirectorySeoPresenter } from '$lib/directory-seo';
 
 const developersSettingsPresenter = new DevelopersSettingsPresenter(settingsRepository, workspaceSettingsPresenter);
 
@@ -169,6 +169,7 @@ const protectedAnalyticsPagePresenter = new ProtectedAnalyticsPagePresenter(
 	integrationsRepository,
 	autoLaunchRepository,
 	directorySeoRepository,
+	getDirectorySeoPresenter,
 	getBillingPresenter
 );
 

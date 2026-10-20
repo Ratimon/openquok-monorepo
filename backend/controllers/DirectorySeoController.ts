@@ -5,6 +5,7 @@ import { UserAuthorizationError } from "../errors/UserError";
 import type {
     DirectorySeoAddCompetitorBody,
     DirectorySeoDeleteCompetitorBody,
+    DirectorySeoUpdateCompetitorBody,
     DirectorySeoRefreshBody,
     DirectorySeoWorkspaceHistoryQuery,
     DirectorySeoWorkspaceQuery,
@@ -73,6 +74,20 @@ export class DirectorySeoController {
             const body = req.body as DirectorySeoDeleteCompetitorBody;
             await this.directorySeoWorkspaceService.deleteCompetitor(authUserId, body);
             res.status(200).json({ success: true, message: "Competitor removed" });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    updateCompetitor = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+
+            const body = req.body as DirectorySeoUpdateCompetitorBody;
+            const data = await this.directorySeoWorkspaceService.updateCompetitor(authUserId, body);
+            res.status(200).json({ success: true, data, message: "Competitor updated" });
         } catch (error) {
             next(error);
         }

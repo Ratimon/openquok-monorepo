@@ -12,12 +12,14 @@ import {
     toDirectorySeoCompetitorDto,
     toDirectorySeoDomainMetricDto,
     toDirectorySeoHistoryPointDto,
-    type DirectorySeoHistoryPointDto,
+    type DirectorySeoCompetitorHistoryDto,
+    type DirectorySeoWorkspaceHistoryDto,
     type DirectorySeoWorkspaceOverviewDto,
 } from "../utils/dtos/DirectorySeoDTO";
 import type {
     DirectorySeoAddCompetitorBody,
     DirectorySeoDeleteCompetitorBody,
+    DirectorySeoUpdateCompetitorBody,
     DirectorySeoRefreshBody,
 } from "../data/schemas/directorySeoSchemas";
 
@@ -64,6 +66,10 @@ export class DirectorySeoWorkspaceService {
 
         if (productDomain && providerConfigured) {
             await this.directorySeoService.refreshDomain(productDomain, { force: false });
+            await this.directorySeoService.ensureProviderHistoryBackfill(
+                productDomain,
+                DELTA_DAYS[2]
+            );
         }
 
         const productMetric = productDomain
@@ -79,6 +85,12 @@ export class DirectorySeoWorkspaceService {
                 return toDirectorySeoCompetitorDto(row, snapshot);
             })
         );
+
+        if (providerConfigured) {
+            for (const row of competitors) {
+                await this.directorySeoService.ensureProviderHistoryBackfill(row.domain, DELTA_DAYS[2]);
+            }
+        }
 
         const productSnapshot = productDomain
             ? await this.directorySeoRepository.getSnapshot(productDomain)
@@ -100,7 +112,7 @@ export class DirectorySeoWorkspaceService {
         organizationId: string,
         productProfileId: string,
         days: number
-    ): Promise<DirectorySeoHistoryPointDto[]> {
+    ): Promise<DirectorySeoWorkspaceHistoryDto> {
         await this.assertDirectorySeoEnabled(authUserId, organizationId);
         const productDomain = await this.resolveMainProductDomain(
             authUserId,
@@ -108,16 +120,38 @@ export class DirectorySeoWorkspaceService {
             productProfileId
         );
         if (!productDomain) {
-            return [];
+            return { product: [], competitors: [] };
         }
 
+        const productPoints = await this.loadHistoryPointsForDomain(productDomain, days);
+
+        const competitorRows = await this.directorySeoRepository.listCompetitorsForOrganization(
+            organizationId
+        );
+        const competitors: DirectorySeoCompetitorHistoryDto[] = [];
+        for (const row of competitorRows) {
+            const domain = normalizeSeoDomain(row.domain) ?? row.domain.trim().toLowerCase();
+            if (!domain) continue;
+            const points = await this.loadHistoryPointsForDomain(domain, days);
+            competitors.push({
+                domain: row.domain,
+                label: row.label,
+                points,
+            });
+        }
+
+        return { product: productPoints, competitors };
+    }
+
+    private async loadHistoryPointsForDomain(domain: string, days: number) {
         if (this.directorySeoService.isProviderConfigured()) {
-            await this.directorySeoService.refreshDomain(productDomain, { force: false });
+            await this.directorySeoService.refreshDomain(domain, { force: false });
+            await this.directorySeoService.ensureProviderHistoryBackfill(domain, days);
         }
 
         const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
         const rows = await this.directorySeoRepository.listHistoryForDomain({
-            domain: productDomain,
+            domain,
             sinceIso: since,
         });
         return rows.map(toDirectorySeoHistoryPointDto);
@@ -163,6 +197,34 @@ export class DirectorySeoWorkspaceService {
         if (!removed) {
             throw new ValidationError("Competitor not found");
         }
+    }
+
+    async updateCompetitor(authUserId: string, body: DirectorySeoUpdateCompetitorBody) {
+        await this.integrationConnectionService.assertOrganizationMember(
+            authUserId,
+            body.organizationId
+        );
+        await this.assertDirectorySeoEnabled(authUserId, body.organizationId);
+
+        const domain = normalizeSeoDomain(body.domain) ?? body.domain.trim().toLowerCase();
+        const label =
+            body.label === null || body.label === undefined
+                ? null
+                : body.label.trim() === ""
+                  ? null
+                  : body.label.trim();
+
+        const row = await this.directorySeoRepository.updateCompetitorLabel({
+            organizationId: body.organizationId,
+            domain,
+            label,
+        });
+        if (!row) {
+            throw new ValidationError("Competitor not found");
+        }
+
+        const snapshot = await this.directorySeoRepository.getSnapshot(domain);
+        return toDirectorySeoCompetitorDto(row, snapshot);
     }
 
     async refreshWorkspace(

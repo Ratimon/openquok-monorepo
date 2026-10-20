@@ -43,8 +43,13 @@ export {
 export { R2StorageClient, isR2ConnectionReady, type R2ConnectionConfig } from "./R2StorageClient";
 export {
     fetchBacklinksSummaryLive,
+    fetchBacklinksTimeseriesSummaryLive,
     isDataForSeoConfigured,
+    postDataForSeoLiveTask,
     type BacklinksSummaryLiveResult,
+    type BacklinksTimeseriesSummaryLivePoint,
+    type BacklinksTimeseriesSummaryLiveResult,
     type DataForSeoFetchFn,
+    type FetchBacklinksTimeseriesSummaryLiveOptions,
 } from "./dataforseo/dataforseoClient";
 export { normalizeSeoDomain } from "./dataforseo/normalizeSeoDomain";
