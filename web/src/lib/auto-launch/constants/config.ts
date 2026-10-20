@@ -6,6 +6,7 @@ export type AutoLaunchConfig = {
 		businessProfiles: string;
 		profiles: string;
 		profileById: (id: string) => string;
+		profileVariants: (mainId: string) => string;
 		submissions: string;
 		submissionIntent: string;
 		submissionRecordComplete: string;

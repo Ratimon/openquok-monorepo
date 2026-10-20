@@ -5,6 +5,7 @@ import type {
     CompleteSubmissionBody,
     CreateAdminAutoLaunchDestinationBody,
     CreateAutoLaunchProfileBody,
+    CreateDirectoryProfileVariantBody,
     CreateSubmissionIntentBody,
     RecordManualSubmissionCompleteBody,
     ListAutoLaunchProfilesQuery,
@@ -17,8 +18,6 @@ import { listDirectoryLaunchProviderSummaries } from "openquok-common";
 import { UserAuthorizationError } from "../errors/UserError";
 import {
     toAutoLaunchDestinationDtoCollection,
-    toAutoLaunchProductProfileDto,
-    toAutoLaunchProductProfileDtoCollection,
     toAutoLaunchSubmissionDto,
     toBusinessProfileDtoCollection,
 } from "../utils/dtos/AutoLaunchDTO";
@@ -64,7 +63,7 @@ export class AutoLaunchController {
                 query.organizationId,
                 query.integrationCustomerId
             );
-            res.status(200).json({ success: true, data: toAutoLaunchProductProfileDtoCollection(rows) });
+            res.status(200).json({ success: true, data: rows });
         } catch (error) {
             next(error);
         }
@@ -78,7 +77,29 @@ export class AutoLaunchController {
             if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
             const { id } = req.params as { id: string };
             const row = await this.autoLaunchService.getProfileForMember(authUserId, id);
-            res.status(200).json({ success: true, data: row ? toAutoLaunchProductProfileDto(row) : null });
+            res.status(200).json({ success: true, data: row });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** POST /auto-launch/profiles/:mainId/variants */
+    createDirectoryVariant = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+            const { mainId } = req.params as { mainId: string };
+            const body = req.body as CreateDirectoryProfileVariantBody;
+            const row = await this.autoLaunchService.createDirectoryVariant(authUserId, mainId, {
+                directorySiteKey: body.directorySiteKey,
+                name: body.name,
+            });
+            res.status(201).json({
+                success: true,
+                data: row,
+                message: "Directory profile variant created successfully",
+            });
         } catch (error) {
             next(error);
         }
@@ -103,7 +124,7 @@ export class AutoLaunchController {
             });
             res.status(201).json({
                 success: true,
-                data: toAutoLaunchProductProfileDto(row),
+                data: row,
                 message: "Product profile created successfully",
             });
         } catch (error) {
@@ -130,7 +151,7 @@ export class AutoLaunchController {
             });
             res.status(200).json({
                 success: true,
-                data: toAutoLaunchProductProfileDto(row),
+                data: row,
                 message: "Product profile updated successfully",
             });
         } catch (error) {

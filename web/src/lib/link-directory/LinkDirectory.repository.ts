@@ -872,6 +872,54 @@ export class LinkDirectoryRepository {
 		}
 	}
 
+	async refreshCatalogDomainRatings(
+		params: {
+			force?: boolean;
+			publishedOnly?: boolean;
+			siteId?: string;
+			slug?: string;
+			dryRun?: boolean;
+		} = {},
+		fetch?: typeof globalThis.fetch
+	): Promise<{
+		ok: boolean;
+		data?: {
+			attempted: number;
+			updated: number;
+			skipped: number;
+			failed: number;
+			providerConfigured: boolean;
+		};
+		error?: string;
+	}> {
+		try {
+			const { data: refreshDto, ok } = await this.httpGateway.post<{
+				success: boolean;
+				data?: {
+					attempted: number;
+					updated: number;
+					skipped: number;
+					failed: number;
+					providerConfigured: boolean;
+				};
+				message?: string;
+			}>(
+				this.config.endpoints.refreshCatalogDomainRatings,
+				params,
+				this.adminOpts(fetch)
+			);
+			if (ok && refreshDto?.success && refreshDto.data) {
+				return { ok: true, data: refreshDto.data };
+			}
+			return {
+				ok: false,
+				error: refreshDto?.message ?? 'Failed to refresh catalog domain ratings.'
+			};
+		} catch (err) {
+			return { ok: false, error: this.extractErrorMessage(err) };
+		}
+	}
+
 	async createSubmission(
 		payload: LinkDirectorySubmissionFormValues,
 		fetch?: typeof globalThis.fetch

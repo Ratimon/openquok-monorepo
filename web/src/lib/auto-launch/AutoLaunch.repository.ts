@@ -124,6 +124,21 @@ export class AutoLaunchRepository {
 		return { ok: false, error: 'Could not update product profile.' };
 	}
 
+	async createDirectoryVariant(
+		mainProfileId: string,
+		payload: { directorySiteKey: string; name?: string }
+	): Promise<{ ok: true; profile: AutoLaunchProductProfileDto } | { ok: false; error: string }> {
+		const { data: createDto, ok } = await this.httpGateway.post<ProfileMutationResponseDto>(
+			this.config.endpoints.profileVariants(mainProfileId),
+			payload,
+			{ withCredentials: true }
+		);
+		if (ok && createDto?.data) {
+			return { ok: true, profile: createDto.data };
+		}
+		return { ok: false, error: 'Could not create a tailored profile for this directory.' };
+	}
+
 	async deleteProfile(id: string): Promise<{ ok: boolean; error?: string }> {
 		const { ok } = await this.httpGateway.request<{ success: boolean }>({
 			method: HttpMethod.DELETE,

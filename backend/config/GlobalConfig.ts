@@ -501,6 +501,28 @@ export const config: ConfigObject = {
         facebookPixelAccessToken: getEnvTrimmed("FACEBOOK_PIXEL_ACCESS_TOKEN", ""),
     },
 
+    /** DataForSEO credentials (Directory SEO domain rating). */
+    dataforseo: {
+        /** Base64-encoded `login:password` for HTTP Basic auth. */
+        apiKey: getEnvTrimmed("DATAFORSEO_API_KEY", ""),
+    },
+
+    /**
+     * Directory SEO — global domain rating cache (main product site + workspace competitors).
+     * Snapshots in `seo_domain_metric_snapshots` are rebuildable; TTL avoids repeat paid calls.
+     */
+    directorySeo: {
+        enabled: getEnvBoolean("DIRECTORY_SEO_ENABLED", true),
+        /** Default 168h (7 days) global cache per domain. */
+        cacheTtlHours: getEnvNumber("DIRECTORY_SEO_CACHE_TTL_HOURS", 168),
+        weeklyRefreshEnabled: getEnvBoolean("DIRECTORY_SEO_WEEKLY_REFRESH_ENABLED", true),
+        /** How often the housekeeping worker runs `DirectorySeoService.runWeeklyRefresh()` (default 7 days). */
+        weeklyRefreshIntervalMs: getEnvNumber(
+            "DIRECTORY_SEO_WEEKLY_REFRESH_INTERVAL_MS",
+            7 * 24 * 60 * 60 * 1000
+        ),
+    },
+
     /**
      * Post-conversion acquisition survey — subscriptions created before `eligibleFrom` are never prompted.
      * ISO-8601 instant (e.g. `2026-08-28T00:00:00.000Z`).

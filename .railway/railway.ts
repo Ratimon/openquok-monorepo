@@ -18,7 +18,7 @@ const LIGHT_WORKER_DEPLOY: DeployConfig = {
 	limitOverride: {
 		containers: {
 			cpu: 1,
-			memoryBytes: 1_073_741_824, // 1 GiB — integration-refresh, notification-email
+			memoryBytes: 1_073_741_824, // 1 GiB — integration-refresh, housekeeping
 		},
 	},
 };
@@ -52,6 +52,11 @@ const workerEnv = {
 	ORCHESTRATOR_INTEGRATION_REFRESH_TRANSPORT: preserve(),
 	ORCHESTRATOR_NOTIFICATION_EMAIL_TRANSPORT: preserve(),
 	ORCHESTRATOR_SCHEDULED_SOCIAL_POST_TRANSPORT: preserve(),
+	DATAFORSEO_API_KEY: preserve(),
+	DIRECTORY_SEO_ENABLED: preserve(),
+	DIRECTORY_SEO_CACHE_TTL_HOURS: preserve(),
+	DIRECTORY_SEO_WEEKLY_REFRESH_ENABLED: preserve(),
+	DIRECTORY_SEO_WEEKLY_REFRESH_INTERVAL_MS: preserve(),
 	PUBLIC_SUPABASE_PUBLISHABLE_KEY: preserve(),
 	PUBLIC_SUPABASE_URL: preserve(),
 	RAILPACK_CONFIG_FILE: preserve(),
@@ -97,7 +102,7 @@ export default defineRailway(() => {
 		deploy: SCHEDULED_SOCIAL_POST_DEPLOY,
 		env: workerEnv,
 	});
-	const openquokWorkerNotificationEmail = service("openquok-worker-notification-email", {
+	const openquokWorkerHousekeeping = service("openquok-worker-housekeeping", {
 		...WORKER_BASE,
 		deploy: LIGHT_WORKER_DEPLOY,
 		env: workerEnv,
@@ -111,7 +116,7 @@ export default defineRailway(() => {
 	return project("openquok-worker", {
 		resources: [
 			openquokWorkerScheduledSocialPost,
-			openquokWorkerNotificationEmail,
+			openquokWorkerHousekeeping,
 			openquokWorkerIntegrationRefresh,
 		],
 	});

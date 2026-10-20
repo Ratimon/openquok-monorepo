@@ -247,3 +247,14 @@ export const linkDirectorySiteRatingBodySchema = z.object({
     rating: z.number().int().min(1, "Rating must be at least 1").max(5, "Rating must be at most 5"),
 });
 export type LinkDirectorySiteRatingBodySchemaType = z.infer<typeof linkDirectorySiteRatingBodySchema>;
+
+export const linkDirectoryCatalogDrRefreshBodySchema = z.object({
+    force: z.boolean().optional(),
+    publishedOnly: z.boolean().optional(),
+    siteId: z.string().uuid().optional(),
+    slug: z.string().min(1).max(200).optional(),
+    dryRun: z.boolean().optional(),
+});
+export type LinkDirectoryCatalogDrRefreshBodySchemaType = z.infer<
+    typeof linkDirectoryCatalogDrRefreshBodySchema
+>;

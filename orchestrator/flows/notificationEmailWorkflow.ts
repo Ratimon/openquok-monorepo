@@ -44,7 +44,7 @@ export async function runNotificationSendPlainOrchestration(
 /**
  * Enqueues one `notification-digest-flush` Flowcraft run. Does not close `redis` (shared worker connection).
  *
- * **Scheduling:** only `runNotificationEmailBullMqWorker` calls this on `setInterval` (`digestFlushIntervalMs`).
+ * **Scheduling:** only `runHousekeepingBullMqWorker` calls this on `setInterval` (`digestFlushIntervalMs`).
  * The API does not call it: digest lines are appended via `TransactionalNotificationEmailService.appendDigestEntry`
  * (Redis); this function starts the worker job that drains those lists and sends mail.
  */

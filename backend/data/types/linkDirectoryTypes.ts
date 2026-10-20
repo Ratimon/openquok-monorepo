@@ -118,6 +118,38 @@ export interface LinkDirectorySiteRow {
     }>;
 }
 
+export type LinkDirectoryCatalogDrRefreshOptions = {
+    force?: boolean;
+    publishedOnly?: boolean;
+    siteId?: string;
+    slug?: string;
+    dryRun?: boolean;
+};
+
+export type LinkDirectoryCatalogDrRefreshSiteResult = {
+    siteId: string;
+    slug: string;
+    domain: string | null;
+    domainRating: number | null;
+    skipped: boolean;
+    error?: string;
+};
+
+export type LinkDirectoryCatalogDrRefreshResult = {
+    attempted: number;
+    updated: number;
+    skipped: number;
+    failed: number;
+    providerConfigured: boolean;
+    sites: LinkDirectoryCatalogDrRefreshSiteResult[];
+};
+
+export interface LinkDirectorySiteCatalogDrTargetRow {
+    id: string;
+    slug: string;
+    site_url: string;
+}
+
 export interface PublishedLinkDirectorySitesFilterOptions {
     limit?: number;
     skip?: number;

@@ -23,6 +23,7 @@ function dest(
 		pickerGroupKey: partial.pickerGroupKey ?? null,
 		pickerGroupTitle: partial.pickerGroupTitle ?? null,
 		siteDomainRating: 42,
+		siteMetricsUpdatedAt: null,
 		siteTitle: 'Uneed',
 		extensionConfig: partial.extensionConfig ?? { steps: [] }
 	};

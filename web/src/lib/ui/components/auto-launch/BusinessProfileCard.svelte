@@ -1,7 +1,9 @@
 <script lang="ts">
 	import type { AutoLaunchSubmissionDto } from '$lib/auto-launch/auto-launch.types';
 	import type { DirectoryLaunchSiteSummaryRow } from '$lib/auto-launch/groupDirectoryLaunchSiteSummaryRows';
+	import type { DirectoryProfileVariantRowViewModel } from '$lib/auto-launch/AutoLaunchProducts.presenter.svelte';
 	import type { BusinessProfileLaunchCardVm } from '$lib/auto-launch/utils/buildProfileLaunchCardVm';
+	import type { AutoLaunchDestinationDto } from '$lib/auto-launch/auto-launch.types';
 
 	import { cn } from '$lib/ui/helpers/common';
 
@@ -15,6 +17,9 @@
 		vm: BusinessProfileLaunchCardVm;
 		directorySiteRows: DirectoryLaunchSiteSummaryRow[];
 		submissionsByDestinationId: Map<string, AutoLaunchSubmissionDto>;
+		publishedDestinations: AutoLaunchDestinationDto[];
+		directoryVariants: DirectoryProfileVariantRowViewModel[];
+		variantProfileIdsBySiteKey: Map<string, string>;
 		organizationId: string;
 		suggestedAuthEmail: string | null;
 		directoryChannelsDefaultOpen?: boolean;
@@ -23,6 +28,10 @@
 			productProfileId: string;
 			submissionId: string;
 		}) => void | Promise<void>;
+		onCreateDirectoryVariant?: (
+			mainProfileId: string,
+			directorySiteKey: string
+		) => Promise<{ ok: true; profileId: string } | { ok: false; error: string }>;
 		onEdit: (profileId: string, tab?: ComposerTabHint) => void;
 		onDelete: (profileId: string) => void;
 	};
@@ -31,11 +40,15 @@
 		vm,
 		directorySiteRows,
 		submissionsByDestinationId,
+		publishedDestinations,
+		directoryVariants,
+		variantProfileIdsBySiteKey,
 		organizationId,
 		suggestedAuthEmail,
 		directoryChannelsDefaultOpen = true,
 		onDirectoryListingSaved,
 		onDirectoryListingRemoved,
+		onCreateDirectoryVariant,
 		onEdit,
 		onDelete
 	}: Props = $props();
@@ -112,6 +125,36 @@
 
 	<div class="mt-3 space-y-1.5 text-sm">
 		<p class="font-medium text-base-content/85">{vm.directoriesSubmittedLabel}</p>
+		{#if directoryVariants.length > 0}
+			<ul class="mt-2 space-y-1.5 rounded-lg border border-base-300/80 bg-base-200/40 px-3 py-2 text-xs">
+				{#each directoryVariants as variantRow (variantRow.profile.id)}
+					<li class="space-y-1">
+						<div class="flex flex-wrap items-center justify-between gap-2">
+							<span class="font-medium text-base-content/80">
+								{variantRow.profile.directorySiteKey ?? 'Directory'} variant
+								{#if variantRow.profile.similarityToMainPercent != null}
+									<span class="badge badge-sm badge-ghost ml-1">
+										{variantRow.profile.similarityToMainPercent}% match
+									</span>
+								{/if}
+							</span>
+							<Button
+								type="button"
+								variant="ghost"
+								size="sm"
+								class="btn-xs h-7 min-h-0"
+								onclick={() => onEdit(variantRow.profile.id)}
+							>
+								Edit variant
+							</Button>
+						</div>
+						{#if variantRow.driftWarning}
+							<p class="text-warning">{variantRow.driftWarning}</p>
+						{/if}
+					</li>
+				{/each}
+			</ul>
+		{/if}
 		{#if vm.summary.staleCount > 0}
 			<p class="text-xs text-warning">
 				{vm.summary.staleCount}
@@ -137,6 +180,10 @@
 		{suggestedAuthEmail}
 		siteRows={directorySiteRows}
 		{submissionsByDestinationId}
+		{publishedDestinations}
+		{variantProfileIdsBySiteKey}
+		onOpenVariantProfile={(profileId) => onEdit(profileId)}
+		onCreateDirectoryVariant={onCreateDirectoryVariant}
 		defaultOpen={directoryChannelsDefaultOpen}
 		onListingDetailsSaved={onDirectoryListingSaved}
 		onListingDetailsRemoved={onDirectoryListingRemoved}

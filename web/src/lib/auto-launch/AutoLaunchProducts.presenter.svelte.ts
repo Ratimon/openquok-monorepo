@@ -34,11 +34,19 @@ export type AutoLaunchProfileMutationResultViewModel =
 	| { ok: true; created: boolean; shouldRefreshChannelGroups: boolean }
 	| { ok: false; error: string };
 
+export type DirectoryProfileVariantRowViewModel = {
+	profile: AutoLaunchProductProfileDto;
+	driftWarning: string | null;
+};
+
 export type AutoLaunchProductLaunchCardRowViewModel = {
 	profileId: string;
+	mainProfile: AutoLaunchProductProfileDto;
 	cardVm: BusinessProfileLaunchCardVm;
 	directorySiteRows: DirectoryLaunchSiteSummaryRow[];
 	submissionsByDestinationId: Map<string, AutoLaunchSubmissionDto>;
+	directoryVariants: DirectoryProfileVariantRowViewModel[];
+	variantProfileIdsBySiteKey: Map<string, string>;
 };
 
 /** Products tab: workspace profiles, launch progress, and composer state for directory launches. */
@@ -69,8 +77,22 @@ export class AutoLaunchProductsPresenter {
 
 	profileLaunchCardRowsVm = $derived.by((): AutoLaunchProductLaunchCardRowViewModel[] => {
 		const readinessDestinations = destinationsToReadinessInputs(this.publishedDestinationsVm);
-		return this.profilesVm.map((profile) => {
-			const profileSubmissions = this.submissionsByProfileIdVm[profile.id] ?? [];
+		const variantsByParentId = new Map<string, AutoLaunchProductProfileDto[]>();
+		for (const profile of this.profilesVm) {
+			if (profile.profileKind !== 'directory_variant' || !profile.parentProfileId) continue;
+			const bucket = variantsByParentId.get(profile.parentProfileId) ?? [];
+			bucket.push(profile);
+			variantsByParentId.set(profile.parentProfileId, bucket);
+		}
+
+		const mainProfiles = this.profilesVm.filter((profile) => profile.profileKind === 'main');
+
+		return mainProfiles.map((profile) => {
+			const variants = variantsByParentId.get(profile.id) ?? [];
+			const profileSubmissions = [
+				...(this.submissionsByProfileIdVm[profile.id] ?? []),
+				...variants.flatMap((variant) => this.submissionsByProfileIdVm[variant.id] ?? [])
+			];
 			const cardVm = buildProfileLaunchCardVm({
 				profile,
 				destinations: readinessDestinations,
@@ -79,11 +101,32 @@ export class AutoLaunchProductsPresenter {
 			const submissionsByDestinationId = new Map(
 				profileSubmissions.map((submission) => [submission.destinationId, submission])
 			);
+			const variantProfileIdsBySiteKey = new Map<string, string>();
+			const directoryVariants: DirectoryProfileVariantRowViewModel[] = variants
+				.filter((variant) => variant.directorySiteKey)
+				.map((variant) => {
+					variantProfileIdsBySiteKey.set(variant.directorySiteKey!, variant.id);
+					const mainUpdated = Date.parse(profile.updatedAt);
+					const variantUpdated = Date.parse(variant.updatedAt);
+					const similarity = variant.similarityToMainPercent;
+					const driftWarning =
+						Number.isFinite(mainUpdated) &&
+						Number.isFinite(variantUpdated) &&
+						mainUpdated > variantUpdated &&
+						similarity != null &&
+						similarity < 100
+							? 'Main profile changed — review this tailored copy.'
+							: null;
+					return { profile: variant, driftWarning };
+				});
 			return {
 				profileId: profile.id,
+				mainProfile: profile,
 				cardVm,
 				directorySiteRows: groupDirectoryLaunchSiteSummaryRows(cardVm.summary.destinations),
-				submissionsByDestinationId
+				submissionsByDestinationId,
+				directoryVariants,
+				variantProfileIdsBySiteKey
 			};
 		});
 	});
@@ -249,6 +292,29 @@ export class AutoLaunchProductsPresenter {
 			return { ok: true, created: true, shouldRefreshChannelGroups: true };
 		} finally {
 			this.composerSubmitting = false;
+		}
+	}
+
+	async createDirectoryVariantForSite(
+		mainProfileId: string,
+		directorySiteKey: string
+	): Promise<{ ok: true; profileId: string } | { ok: false; error: string }> {
+		const resultPm = await this.autoLaunchRepository.createDirectoryVariant(mainProfileId, {
+			directorySiteKey
+		});
+		if (!resultPm.ok) {
+			return resultPm;
+		}
+		await this.loadProductsTab();
+		return { ok: true, profileId: resultPm.profile.id };
+	}
+
+	upsertProfileInList(profile: AutoLaunchProductProfileDto): void {
+		const index = this.profilesVm.findIndex((row) => row.id === profile.id);
+		if (index >= 0) {
+			this.profilesVm = this.profilesVm.map((row, i) => (i === index ? profile : row));
+		} else {
+			this.profilesVm = [...this.profilesVm, profile];
 		}
 	}
 

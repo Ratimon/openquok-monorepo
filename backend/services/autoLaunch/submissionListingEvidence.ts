@@ -31,6 +31,22 @@ export function buildManualListingEvidence(input: {
     };
 }
 
+export type CatalogOpportunityDofollow = "dofollow" | "nofollow" | "unknown" | null;
+
+/** Trust catalog dofollow/nofollow on completion; preserve user evidence when link type is unknown. */
+export function applyTrustedListingDofollowOnComplete(
+    evidence: Record<string, unknown>,
+    opportunityDofollow: CatalogOpportunityDofollow
+): Record<string, unknown> {
+    if (opportunityDofollow === "dofollow") {
+        return mergeSubmissionListingEvidence(evidence, { listingDofollow: true });
+    }
+    if (opportunityDofollow === "nofollow") {
+        return mergeSubmissionListingEvidence(evidence, { listingDofollow: false });
+    }
+    return mergeSubmissionListingEvidence(evidence, {});
+}
+
 export function mergeSubmissionListingEvidence(
     existing: Record<string, unknown> | null | undefined,
     input: { listingDofollow?: boolean; authEmail?: string | null }

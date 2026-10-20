@@ -4,6 +4,7 @@
 		AutoLaunchProductLaunchCardRowViewModel,
 		AutoLaunchProfileSavePayload
 	} from '$lib/auto-launch/AutoLaunchProducts.presenter.svelte';
+	import type { AutoLaunchDestinationDto } from '$lib/auto-launch/auto-launch.types';
 	import type {
 		AutoLaunchProductProfileDto,
 		AutoLaunchSubmissionDto
@@ -21,12 +22,17 @@
 		suggestedAuthEmail: string | null;
 		loading: boolean;
 		profileLaunchCardRowsVm: AutoLaunchProductLaunchCardRowViewModel[];
+		publishedDestinations: AutoLaunchDestinationDto[];
 		composerOpen: boolean;
 		composerSubmitting: boolean;
 		editingProfile: AutoLaunchProductProfileDto | null;
 		composerInitialTab: AutoLaunchProductsComposerTab | null;
 		onOpenCreate: () => void;
 		onOpenEdit: (profileId: string, tab?: AutoLaunchProductsComposerTab) => void;
+		onCreateDirectoryVariant: (
+			mainProfileId: string,
+			directorySiteKey: string
+		) => Promise<{ ok: true; profileId: string } | { ok: false; error: string }>;
 		onDeleteProfile: (profileId: string) => void;
 		onSaveProfile: (
 			values: AutoLaunchProfileSavePayload,
@@ -48,12 +54,14 @@
 		suggestedAuthEmail,
 		loading,
 		profileLaunchCardRowsVm,
+		publishedDestinations,
 		composerOpen = $bindable(),
 		composerSubmitting,
 		editingProfile,
 		composerInitialTab,
 		onOpenCreate,
 		onOpenEdit,
+		onCreateDirectoryVariant,
 		onDeleteProfile,
 		onSaveProfile,
 		onComposerCancel,
@@ -93,6 +101,10 @@
 					vm={row.cardVm}
 					directorySiteRows={row.directorySiteRows}
 					submissionsByDestinationId={row.submissionsByDestinationId}
+					{publishedDestinations}
+					directoryVariants={row.directoryVariants}
+					variantProfileIdsBySiteKey={row.variantProfileIdsBySiteKey}
+					onCreateDirectoryVariant={onCreateDirectoryVariant}
 					organizationId={workspaceId ?? ''}
 					{suggestedAuthEmail}
 					directoryChannelsDefaultOpen={index === 0}

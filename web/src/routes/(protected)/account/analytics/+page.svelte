@@ -38,6 +38,7 @@
 	import ChannelKindFilter from '$lib/ui/components/filters/ChannelKindFilter.svelte';
 	import AnalyticsOverviewPanel from '$lib/ui/components/platform-analytics/AnalyticsOverviewPanel.svelte';
 	import RenderAnalyticsGrid from '$lib/ui/components/platform-analytics/RenderAnalyticsGrid.svelte';
+	import DirectoryAnalyticsWorkspacePanel from '$lib/ui/components/directory-analytics/DirectoryAnalyticsWorkspacePanel.svelte';
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/ui/select';
 
 	// /account
@@ -50,6 +51,17 @@
 
 	// --- Routes (static, base-aware via `route`) ---
 	const accountRoot = accountPath;
+	const createBusinessProfileHref = $derived(`${accountPath}/products?newProfile=1`);
+	const editProfileWebsiteHref = $derived.by(() => {
+		const profileId = analyticsPresenter.selectedDirectoryProfileId;
+		if (!profileId) return null;
+		const params = new URLSearchParams({
+			tab: 'products',
+			edit: profileId,
+			profileComposerTab: 'general'
+		});
+		return `${accountPath}?${params.toString()}`;
+	});
 
 	// --- Workspace + integration list (home presenter is source of truth) ---
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
@@ -63,6 +75,8 @@
 
 	/** Triggers reload when targeted integration set changes (platform filter / disconnect). */
 	const analyticsIntegrationIdsKey = $derived.by(() => filteredIntegrationsVm.map((i) => i.id).join(','));
+	const analyticsScopeTab = $derived(analyticsPresenter.analyticsScopeTab);
+	const directorySeoEnabled = $derived(analyticsPresenter.directorySeoEnabled);
 
 	const allowedDateWindowDays = $derived(
 		intersectAnalyticsDateWindows(filteredIntegrationsVm.map((i) => String(i.identifier ?? '')))
@@ -125,6 +139,7 @@
 	});
 
 	$effect(() => {
+		if (analyticsScopeTab !== 'social') return;
 		void analyticsIntegrationIdsKey;
 		void dateWindowDays;
 		void workspaceId;
@@ -133,6 +148,25 @@
 			integrations: filteredIntegrationsVm,
 			dateWindowDays
 		});
+	});
+
+	$effect(() => {
+		void workspaceId;
+		void analyticsPresenter.loadDirectoryEntitlement(workspaceId);
+	});
+
+	$effect(() => {
+		if (!directorySeoEnabled || analyticsScopeTab !== 'directory') return;
+		void workspaceId;
+		void analyticsPresenter.loadDirectoryMainProfiles(workspaceId);
+	});
+
+	$effect(() => {
+		if (analyticsScopeTab !== 'directory' || !directorySeoEnabled) return;
+		void workspaceId;
+		void analyticsPresenter.selectedDirectoryProfileId;
+		void analyticsPresenter.directoryHistoryWindowDays;
+		void analyticsPresenter.loadDirectoryAnalytics(workspaceId);
 	});
 </script>
 
@@ -144,7 +178,29 @@
 />
 
 <div class="rounded-lg border border-base-300 bg-base-100 p-6 shadow-sm space-y-6">
-	<div class="flex flex-wrap items-center justify-end gap-3">
+	<div class="flex flex-wrap items-center justify-between gap-3">
+		<div class="inline-flex rounded-lg border border-base-300 p-0.5">
+			<Button
+				type="button"
+				variant={analyticsScopeTab === 'social' ? 'primary' : 'ghost'}
+				size="sm"
+				class="rounded-md"
+				onclick={() => (analyticsPresenter.analyticsScopeTab = 'social')}
+			>
+				Social
+			</Button>
+			<Button
+				type="button"
+				variant={analyticsScopeTab === 'directory' ? 'primary' : 'ghost'}
+				size="sm"
+				class="rounded-md"
+				disabled={!directorySeoEnabled}
+				title={directorySeoEnabled ? undefined : 'Upgrade to a paid plan for directory analytics'}
+				onclick={() => (analyticsPresenter.analyticsScopeTab = 'directory')}
+			>
+				Directory
+			</Button>
+		</div>
 		<div class="flex items-center gap-2">
 			<Button type="button" variant="outline" href={accountPath}>
 				<AbstractIcon name={icons.ArrowLeft.name} class="size-4" width="16" height="16" />
@@ -156,6 +212,39 @@
 	{#if !workspaceId}
 		<p class="text-sm text-base-content/70">
 			Select or create a workspace to load analytics.</p>
+	{:else if analyticsScopeTab === 'directory'}
+		{#if !directorySeoEnabled}
+			<p class="text-sm text-base-content/70">
+				Directory analytics (domain rating trends and competitors) is available on paid plans.
+			</p>
+		{:else}
+			<DirectoryAnalyticsWorkspacePanel
+				loading={analyticsPresenter.directorySeoLoading}
+				error={analyticsPresenter.directorySeoError}
+				mainProfiles={analyticsPresenter.directoryMainProfilesVm}
+				selectedProfileId={analyticsPresenter.selectedDirectoryProfileId}
+				overview={analyticsPresenter.directoryOverviewVm}
+				history={analyticsPresenter.directoryHistoryVm}
+				historyWindowDays={analyticsPresenter.directoryHistoryWindowDays}
+				onHistoryWindowDaysChange={(days) => {
+					analyticsPresenter.directoryHistoryWindowDays = days;
+				}}
+				competitorCap={analyticsPresenter.directoryCompetitorCap}
+				refreshing={analyticsPresenter.directorySeoRefreshing}
+				competitorDomain={analyticsPresenter.competitorDomainDraft}
+				competitorLabel={analyticsPresenter.competitorLabelDraft}
+				addingCompetitor={analyticsPresenter.directoryCompetitorAdding}
+				onSelectProfile={(profileId) => analyticsPresenter.selectDirectoryProfile(profileId)}
+				onRefresh={() => void analyticsPresenter.refreshDirectoryAnalytics(workspaceId)}
+				onCompetitorDomainChange={(value) => (analyticsPresenter.competitorDomainDraft = value)}
+				onCompetitorLabelChange={(value) => (analyticsPresenter.competitorLabelDraft = value)}
+				onAddCompetitor={() => void analyticsPresenter.addDirectoryCompetitor(workspaceId)}
+				onRemoveCompetitor={(domain) =>
+					void analyticsPresenter.removeDirectoryCompetitor(workspaceId, domain)}
+				createProfileHref={createBusinessProfileHref}
+				editProfileWebsiteHref={editProfileWebsiteHref}
+			/>
+		{/if}
 	{:else if channelsLoadPending}
 		<p class="flex items-center gap-2 text-sm text-base-content/70">
 			<AbstractIcon name={icons.LoaderCircle.name} class="h-4 w-4 animate-spin" width="16" height="16" />

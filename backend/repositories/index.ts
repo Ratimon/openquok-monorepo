@@ -28,6 +28,7 @@ import { SubscriptionRepository } from "./SubscriptionRepository";
 import { AcquisitionSurveyRepository } from "./AcquisitionSurveyRepository";
 import { TrialBrowserRepository } from "./TrialBrowserRepository";
 import { AutoLaunchRepository } from "./AutoLaunchRepository";
+import { DirectorySeoRepository } from "./DirectorySeoRepository";
 
 export const refreshTokenRepository = new RefreshTokenRepository(supabaseServiceClientConnection);
 export const userRepository = new UserRepository(supabaseServiceClientConnection);
@@ -77,6 +78,7 @@ export const subscriptionRepository = new SubscriptionRepository(supabaseService
 export const acquisitionSurveyRepository = new AcquisitionSurveyRepository(supabaseServiceClientConnection);
 export const trialBrowserRepository = new TrialBrowserRepository(supabaseServiceClientConnection);
 export const autoLaunchRepository = new AutoLaunchRepository(supabaseServiceClientConnection);
+export const directorySeoRepository = new DirectorySeoRepository(supabaseServiceClientConnection);
 
 export { RefreshTokenRepository } from "./RefreshTokenRepository";
 export { UserRepository } from "./UserRepository";

@@ -85,6 +85,8 @@ The public <a href="/channels#public-directory-channels-hub-heading">Channels hu
 <CardGrid>
 <LinkCard title="Directory submission tool" description="DIY autofill and tracking vs done-for-you bulk packages — marketing overview" href="/directory-submission-tool" />
 <LinkCard title="Track submissions" description="Readiness, listing URL, dofollow notes, and marking a launch complete" href="/docs/directory-submission/track-submissions" />
+<LinkCard title="Tailor profiles per directory" description="Directory variants, similarity %, and launch resolution" href="/docs/directory-submission/profile-variants" />
+<LinkCard title="Directory analytics" description="Domain rating charts and competitor tracking on paid plans" href="/docs/directory-submission/directory-analytics" />
 <LinkCard title="Directory integration" description="How directory destinations differ from OAuth social channels" href="/docs/directory-integration" />
 <LinkCard title="Browser extension" description="Install the OpenQuok Chrome extension for directory handoff" href="/docs/installation/chrome-extension" />
 <LinkCard title="Business profiles" description="Link channels to a profile and use the Products tab" href="/docs/channels/channel-groups" />

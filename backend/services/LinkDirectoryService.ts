@@ -5,6 +5,8 @@ import type {
     AdminLinkDirectorySiteComment,
     AdminLinkDirectorySiteCommentsFilterOptions,
     AdminLinkDirectorySitesFilterOptions,
+    LinkDirectoryCatalogDrRefreshOptions,
+    LinkDirectoryCatalogDrRefreshResult,
     LinkDirectoryCategoryRow,
     LinkDirectoryOpportunityTypeRow,
     LinkDirectorySiteComment,
@@ -37,6 +39,7 @@ import {
 import { ValidationError } from "../errors/InfraError";
 import type { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
 import type { InternalOpsEmailService } from "./InternalOpsEmailService";
+import type { LinkDirectoryCatalogMetricsService } from "./LinkDirectoryCatalogMetricsService";
 import { SubscriptionSection } from "openquok-common";
 
 const CACHE_KEYS = {
@@ -84,7 +87,8 @@ export class LinkDirectoryService {
         private readonly subscriptionGuard: SubscriptionGuardService | undefined,
         private readonly internalOpsEmailService: InternalOpsEmailService,
         private readonly cache?: CacheService,
-        private readonly cacheInvalidator?: CacheInvalidationService
+        private readonly cacheInvalidator?: CacheInvalidationService,
+        private readonly catalogMetricsService?: LinkDirectoryCatalogMetricsService
     ) {}
 
     private async assertPublishedSiteForEngagement(siteId: string): Promise<void> {
@@ -255,6 +259,19 @@ export class LinkDirectoryService {
             userId: userId ?? undefined,
         });
         return submissionId;
+    }
+
+    async refreshCatalogDomainRatings(
+        options: LinkDirectoryCatalogDrRefreshOptions = {}
+    ): Promise<LinkDirectoryCatalogDrRefreshResult> {
+        if (!this.catalogMetricsService) {
+            throw new ValidationError("Catalog domain rating refresh is not configured");
+        }
+        const result = await this.catalogMetricsService.refreshCatalogDomainRatings(options);
+        if (!options.dryRun && result.updated > 0) {
+            await this._invalidatePublishedCatalogCaches();
+        }
+        return result;
     }
 
     async getAdminSites(

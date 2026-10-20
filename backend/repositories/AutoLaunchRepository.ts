@@ -14,7 +14,7 @@ const DESTINATIONS_TABLE = "auto_launch_destinations";
 const SUBMISSIONS_TABLE = "auto_launch_submissions";
 
 const PROFILE_COLS =
-    "id, organization_id, integration_customer_id, name, tagline, description, website_url, logo_url, profile_data, created_at, updated_at, created_by_user_id, deleted_at";
+    "id, organization_id, integration_customer_id, name, tagline, description, website_url, logo_url, profile_data, profile_kind, parent_profile_id, directory_site_key, created_at, updated_at, created_by_user_id, deleted_at";
 
 const DESTINATION_COLS =
     "id, provider_slug, link_directory_opportunity_id, name, short_description, submission_path, start_url, extension_config, is_published, sort_order, picker_group_key, picker_group_title, created_at, updated_at";
@@ -29,12 +29,16 @@ type DestinationJoinRow = AutoLaunchDestinationRow & {
         dofollow?: string | null;
         cost_tier?: string | null;
         cost_note?: string | null;
-        site?: { title?: string | null; domain_rating?: number | null } | null;
+        site?: {
+            title?: string | null;
+            domain_rating?: number | null;
+            metrics_updated_at?: string | null;
+        } | null;
     } | null;
 };
 
 const DESTINATION_OPPORTUNITY_JOIN =
-    "title, description, dofollow, cost_tier, cost_note, site:link_directory_sites(title, domain_rating)";
+    "title, description, dofollow, cost_tier, cost_note, site:link_directory_sites(title, domain_rating, metrics_updated_at)";
 
 function mapDestinationListRow(row: DestinationJoinRow): AutoLaunchDestinationListRow {
     const opp = row.link_directory_opportunity;
@@ -49,6 +53,7 @@ function mapDestinationListRow(row: DestinationJoinRow): AutoLaunchDestinationLi
         opportunity_cost_note: opp?.cost_note ?? null,
         site_title: site?.title ?? null,
         site_domain_rating: site?.domain_rating ?? null,
+        site_metrics_updated_at: site?.metrics_updated_at ?? null,
     };
 }
 
@@ -72,6 +77,26 @@ export class AutoLaunchRepository {
             });
         }
         return ((data ?? []) as DestinationJoinRow[]).map(mapDestinationListRow);
+    }
+
+    async findDestinationListRowById(destinationId: string): Promise<AutoLaunchDestinationListRow | null> {
+        const { data, error } = await this.supabase
+            .from(DESTINATIONS_TABLE)
+            .select(
+                `${DESTINATION_COLS}, link_directory_opportunity:link_directory_opportunities(${DESTINATION_OPPORTUNITY_JOIN})`
+            )
+            .eq("id", destinationId)
+            .maybeSingle();
+
+        if (error) {
+            throw new DatabaseError("Error finding auto-launch destination with opportunity", {
+                cause: error as unknown as Error,
+                operation: "findDestinationListRowById",
+                resource: { type: "table", name: DESTINATIONS_TABLE },
+            });
+        }
+        if (!data) return null;
+        return mapDestinationListRow(data as DestinationJoinRow);
     }
 
     async findDestinationById(destinationId: string): Promise<AutoLaunchDestinationRow | null> {
@@ -252,6 +277,67 @@ export class AutoLaunchRepository {
             throw new DatabaseError("Error inserting auto-launch product profile", {
                 cause: (error ?? new Error("no row")) as Error,
                 operation: "insertProfile",
+                resource: { type: "table", name: PROFILES_TABLE },
+            });
+        }
+        return data as AutoLaunchProductProfileRow;
+    }
+
+    async findDirectoryVariantByParentAndSiteKey(params: {
+        parentProfileId: string;
+        directorySiteKey: string;
+    }): Promise<AutoLaunchProductProfileRow | null> {
+        const { data, error } = await this.supabase
+            .from(PROFILES_TABLE)
+            .select(PROFILE_COLS)
+            .eq("parent_profile_id", params.parentProfileId)
+            .eq("directory_site_key", params.directorySiteKey)
+            .eq("profile_kind", "directory_variant")
+            .is("deleted_at", null)
+            .maybeSingle();
+
+        if (error) {
+            throw new DatabaseError("Error finding directory profile variant", {
+                cause: error as unknown as Error,
+                operation: "findDirectoryVariantByParentAndSiteKey",
+                resource: { type: "table", name: PROFILES_TABLE },
+            });
+        }
+        return (data ?? null) as AutoLaunchProductProfileRow | null;
+    }
+
+    async insertDirectoryVariantFromMain(params: {
+        mainProfile: AutoLaunchProductProfileRow;
+        directorySiteKey: string;
+        name: string;
+        createdByUserId: string;
+    }): Promise<AutoLaunchProductProfileRow> {
+        const now = new Date().toISOString();
+        const { data, error } = await this.supabase
+            .from(PROFILES_TABLE)
+            .insert({
+                organization_id: params.mainProfile.organization_id,
+                integration_customer_id: null,
+                name: params.name,
+                tagline: params.mainProfile.tagline,
+                description: params.mainProfile.description,
+                website_url: params.mainProfile.website_url,
+                logo_url: params.mainProfile.logo_url,
+                profile_data: params.mainProfile.profile_data ?? {},
+                profile_kind: "directory_variant",
+                parent_profile_id: params.mainProfile.id,
+                directory_site_key: params.directorySiteKey,
+                created_by_user_id: params.createdByUserId,
+                created_at: now,
+                updated_at: now,
+            })
+            .select(PROFILE_COLS)
+            .single();
+
+        if (error || !data) {
+            throw new DatabaseError("Error inserting directory profile variant", {
+                cause: (error ?? new Error("no row")) as Error,
+                operation: "insertDirectoryVariantFromMain",
                 resource: { type: "table", name: PROFILES_TABLE },
             });
         }

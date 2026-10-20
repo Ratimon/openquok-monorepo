@@ -1,4 +1,4 @@
-import type { BusinessProfileData } from "openquok-common";
+import { profileSimilarityPercentToMain, type BusinessProfileData } from "openquok-common";
 
 import { parseSubmissionListingEvidence } from "../../services/autoLaunch/submissionListingEvidence";
 import { resolveAutoLaunchProfileImageUrl } from "../images/autoLaunchProfileMediaImages";
@@ -6,6 +6,7 @@ import type {
     AutoLaunchDestinationListRow,
     AutoLaunchDestinationRow,
     AutoLaunchExtensionConfig,
+    AutoLaunchProductProfileKind,
     AutoLaunchProductProfileRow,
     AutoLaunchProfileSnapshot,
     AutoLaunchSubmissionRow,
@@ -31,6 +32,10 @@ export type AutoLaunchProductProfileDto = {
     websiteUrl: string | null;
     logoUrl: string | null;
     profileData: BusinessProfileData;
+    profileKind: AutoLaunchProductProfileKind;
+    parentProfileId: string | null;
+    directorySiteKey: string | null;
+    similarityToMainPercent: number | null;
     createdAt: string;
     updatedAt: string;
 };
@@ -49,6 +54,7 @@ export type AutoLaunchDestinationDto = {
     opportunityCostTier: "free" | "freemium" | "paid" | null;
     opportunityCostNote: string | null;
     siteDomainRating: number | null;
+    siteMetricsUpdatedAt: string | null;
     siteTitle: string | null;
     pickerGroupKey: string | null;
     pickerGroupTitle: string | null;
@@ -142,7 +148,15 @@ export function toBusinessProfileDtoCollection(rows: BusinessProfileListRow[]): 
     return (rows ?? []).map(toBusinessProfileDto);
 }
 
-export function toAutoLaunchProductProfileDto(row: AutoLaunchProductProfileRow): AutoLaunchProductProfileDto {
+function normalizeProfileKind(row: AutoLaunchProductProfileRow): AutoLaunchProductProfileKind {
+    return row.profile_kind === "directory_variant" ? "directory_variant" : "main";
+}
+
+export function toAutoLaunchProductProfileDto(
+    row: AutoLaunchProductProfileRow,
+    options?: { similarityToMainPercent?: number | null }
+): AutoLaunchProductProfileDto {
+    const profileKind = normalizeProfileKind(row);
     return {
         id: row.id,
         organizationId: row.organization_id,
@@ -153,15 +167,37 @@ export function toAutoLaunchProductProfileDto(row: AutoLaunchProductProfileRow):
         websiteUrl: row.website_url,
         logoUrl: row.logo_url,
         profileData: row.profile_data ?? {},
+        profileKind,
+        parentProfileId: row.parent_profile_id ?? null,
+        directorySiteKey: row.directory_site_key ?? null,
+        similarityToMainPercent: options?.similarityToMainPercent ?? null,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
     };
 }
 
+export function computeSimilarityToMainPercent(
+    variant: AutoLaunchProductProfileRow,
+    main: AutoLaunchProductProfileRow | null
+): number | null {
+    if (normalizeProfileKind(variant) !== "directory_variant" || !main) {
+        return null;
+    }
+    return profileSimilarityPercentToMain(buildProfileSnapshot(main), buildProfileSnapshot(variant));
+}
+
 export function toAutoLaunchProductProfileDtoCollection(
-    rows: AutoLaunchProductProfileRow[]
+    rows: AutoLaunchProductProfileRow[],
+    mainById?: Map<string, AutoLaunchProductProfileRow>
 ): AutoLaunchProductProfileDto[] {
-    return (rows ?? []).map(toAutoLaunchProductProfileDto);
+    return (rows ?? []).map((row) => {
+        const main =
+            row.parent_profile_id && mainById
+                ? mainById.get(row.parent_profile_id) ?? null
+                : null;
+        const similarity = computeSimilarityToMainPercent(row, main);
+        return toAutoLaunchProductProfileDto(row, { similarityToMainPercent: similarity });
+    });
 }
 
 function normalizeDofollow(
@@ -193,6 +229,7 @@ export function toAutoLaunchDestinationDto(row: AutoLaunchDestinationListRow): A
         opportunityCostTier: normalizeCostTier(row.opportunity_cost_tier),
         opportunityCostNote: row.opportunity_cost_note ?? null,
         siteDomainRating: row.site_domain_rating ?? null,
+        siteMetricsUpdatedAt: row.site_metrics_updated_at ?? null,
         siteTitle: row.site_title ?? null,
         pickerGroupKey: row.picker_group_key ?? null,
         pickerGroupTitle: row.picker_group_title ?? null,

@@ -75,6 +75,12 @@ pnpm db:aggregate-migrations-single config
 
 Before you squash migrations or move a production project to a new region, back up the database and Storage. See <a href="/docs/configuration-backend/supabase-backup">Supabase backup</a>.
 
+## Scheduled jobs: pg_cron vs housekeeping worker
+
+**Postgres <code>pg&#95;cron</code>** runs **SQL-only** maintenance inside the database (for example deleting expired refresh tokens — see below). It does not call external HTTP APIs.
+
+**Directory SEO domain rating** refresh and **notification email** digest flushing run in the stateless **housekeeping** orchestrator worker (`pnpm orchestrator:dev:worker:housekeeping-bullmq` / `pnpm railway:orchestrator:start:housekeeping`). Each timer reloads work from Postgres or Redis; durable cache rows live in <Badge text="seo_domain_metric_snapshots" variant="path" /> (rebuildable). Configure <Badge text="DIRECTORY_SEO_WEEKLY_REFRESH_ENABLED" variant="envBackend" />, <Badge text="DIRECTORY_SEO_WEEKLY_REFRESH_INTERVAL_MS" variant="envBackend" />, and <Badge text="DATAFORSEO_API_KEY" variant="envBackend" /> on that worker. See <a href="/docs/configuration-worker">Configuration - Worker</a>.
+
 ## Cron: expired refresh tokens (pg_cron)
 
 The `user-auth` module includes a cron job that deletes expired rows in `public.refresh_tokens` (runs every Saturday at **3:30 AM GMT**). It relies on the Postgres <code>pg&#95;cron</code> extension.

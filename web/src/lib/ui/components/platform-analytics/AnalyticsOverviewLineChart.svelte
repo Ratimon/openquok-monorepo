@@ -6,7 +6,12 @@
 
 	import { socialProviderDisplayLabel, socialProviderIcon } from '$data/social-providers';
 
+	import { scaleUtc } from 'd3-scale';
+	import { curveMonotoneX } from 'd3-shape';
+	import { LineChart } from 'layerchart';
+
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import * as Chart from '$lib/ui/chart';
 
 	type Props = {
 		dates: string[];
@@ -15,59 +20,76 @@
 
 	let { dates, lines }: Props = $props();
 
-	const strokeVariants = [
-		'stroke-purple-400',
-		'stroke-emerald-400',
-		'stroke-sky-400',
-		'stroke-amber-400',
-		'stroke-rose-400',
-		'stroke-violet-400'
+	const chartColorVars = [
+		'var(--chart-1)',
+		'var(--chart-2)',
+		'var(--chart-3)',
+		'var(--chart-4)',
+		'var(--chart-5)'
 	] as const;
 
-	const viewBox = '0 0 100 48';
-
-	const paths = $derived.by(() => {
-		if (dates.length === 0 || lines.length === 0) return [];
-
-		const allValues = lines.flatMap((line) => alignChartLineValues(line, dates));
-		const minY = Math.min(...allValues, 0);
-		const maxY = Math.max(...allValues, 0);
-		const spanY = maxY - minY || 1;
-
-		return lines.map((line, lineIndex) => {
-			const values = alignChartLineValues(line, dates);
-			const d =
-				values.length <= 1
-					? values.length === 1
-						? `M 0 ${(44 - ((values[0]! - minY) / spanY) * 40).toFixed(2)} L 100 ${(44 - ((values[0]! - minY) / spanY) * 40).toFixed(2)}`
-						: ''
-					: values
-							.map((yVal, i) => {
-								const x = (i / (values.length - 1)) * 100;
-								const y = 44 - ((yVal - minY) / spanY) * 40;
-								return `${i === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`;
-							})
-							.join(' ');
-
-			return {
-				line,
-				d,
-				strokeClass: strokeVariants[lineIndex % strokeVariants.length]
+	const chartConfig = $derived.by(() => {
+		const config: Chart.ChartConfig = {};
+		for (const line of lines) {
+			config[line.integrationId] = {
+				label: line.channelName || socialProviderDisplayLabel(line.providerIdentifier),
+				color: chartColorVars[line.colorIndex % chartColorVars.length]
 			};
+		}
+		return config;
+	});
+
+	const chartData = $derived.by(() => {
+		if (dates.length === 0 || lines.length === 0) return [];
+		return dates.map((dateStr, index) => {
+			const row: Record<string, Date | number> = {
+				date: parseOverviewChartDate(dateStr)
+			};
+			for (const line of lines) {
+				row[line.integrationId] = alignChartLineValues(line, dates)[index] ?? 0;
+			}
+			return row;
 		});
 	});
 
-	function formatAxisDate(date: string): string {
-		const trimmed = date.trim();
+	const chartSeries = $derived(
+		lines.map((line) => ({
+			key: line.integrationId,
+			label: chartConfig[line.integrationId]?.label ?? line.channelName,
+			color: chartConfig[line.integrationId]?.color ?? chartColorVars[0]
+		}))
+	);
+
+	const yDomain = $derived.by((): [number, number] => {
+		if (dates.length === 0 || lines.length === 0) return [0, 1];
+		const allValues = lines.flatMap((line) => alignChartLineValues(line, dates));
+		const maxY = Math.max(...allValues, 0);
+		const minY = Math.min(...allValues, 0);
+		if (maxY <= minY) return [0, Math.max(1, maxY)];
+		return [minY, maxY];
+	});
+
+	function parseOverviewChartDate(dateStr: string): Date {
+		const trimmed = dateStr.trim();
 		if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
-			const [, month, day] = trimmed.split('-');
-			return `${month}/${day}`;
+			const [year, month, day] = trimmed.split('-').map((part) => Number(part));
+			return new Date(year, month - 1, day);
 		}
-		return trimmed.length > 8 ? `${trimmed.slice(0, 8)}…` : trimmed;
+		const parsed = Date.parse(trimmed);
+		return Number.isFinite(parsed) ? new Date(parsed) : new Date();
 	}
 
-	const startLabel = $derived(dates[0] ? formatAxisDate(dates[0]) : '');
-	const endLabel = $derived(dates.length > 1 ? formatAxisDate(dates[dates.length - 1]!) : '');
+	function formatAxisDate(value: Date): string {
+		return value.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+	}
+
+	function formatAxisValue(value: number): string {
+		return new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(value);
+	}
+
+	function seriesColor(line: AnalyticsOverviewChartLineVm): string {
+		return chartColorVars[line.colorIndex % chartColorVars.length];
+	}
 </script>
 
 {#if lines.length === 0}
@@ -76,53 +98,53 @@
 	</p>
 {:else}
 	<div class="space-y-3">
-		<div class="h-44 w-full">
-			<svg
-				class="h-full w-full"
-				viewBox={viewBox}
-				preserveAspectRatio="none"
-				role="img"
-				aria-label="Multi-channel trend chart"
+		<Chart.Container config={chartConfig} class="aspect-auto h-52 w-full min-h-[12rem]">
+			<LineChart
+				data={chartData}
+				x="date"
+				xScale={scaleUtc()}
+				{yDomain}
+				axis={true}
+				grid
+				series={chartSeries}
+				props={{
+					spline: { curve: curveMonotoneX, motion: 'tween', strokeWidth: 2 },
+					xAxis: {
+						format: (value: Date) => formatAxisDate(value)
+					},
+					yAxis: {
+						format: (value: number) => formatAxisValue(value)
+					},
+					highlight: { points: { r: chartData.length <= 3 ? 5 : 4 } }
+				}}
 			>
-				{#each paths as path (path.line.integrationId)}
-					{#if path.d}
-						<path
-							d={path.d}
-							class="{path.strokeClass} fill-none"
-							stroke-width="2"
-							stroke-linecap="round"
-							vector-effect="non-scaling-stroke"
-						/>
-					{/if}
-				{/each}
-			</svg>
-		</div>
-		{#if startLabel || endLabel}
-			<div class="flex justify-between px-1 text-[10px] text-base-content/50">
-				<span>{startLabel}</span>
-				<span>{endLabel}</span>
-			</div>
-		{/if}
+				{#snippet tooltip()}
+					<Chart.Tooltip labelFormatter={(value) => formatAxisDate(value as Date)} />
+				{/snippet}
+			</LineChart>
+		</Chart.Container>
+
 		<ul class="flex list-none flex-wrap gap-x-4 gap-y-2 p-0 text-xs text-base-content/80">
-			{#each paths as path (path.line.integrationId)}
+			{#each lines as line (line.integrationId)}
 				<li class="flex min-w-0 max-w-full items-center gap-1.5">
 					<span
-						class="h-2 w-2 shrink-0 rounded-full {path.strokeClass.replace('stroke-', 'bg-')}"
+						class="h-2 w-2 shrink-0 rounded-full"
+						style:background-color={seriesColor(line)}
 						aria-hidden="true"
 					></span>
-					{#if path.line.providerIdentifier}
+					{#if line.providerIdentifier}
 						<AbstractIcon
-							name={socialProviderIcon(path.line.providerIdentifier)}
+							name={socialProviderIcon(line.providerIdentifier)}
 							class="size-3 shrink-0"
 							width="12"
 							height="12"
 							aria-hidden="true"
 						/>
 					{/if}
-					<span class="truncate font-medium" title={path.line.channelName}>
-						{path.line.channelName || socialProviderDisplayLabel(path.line.providerIdentifier)}
+					<span class="truncate font-medium" title={line.channelName}>
+						{line.channelName || socialProviderDisplayLabel(line.providerIdentifier)}
 					</span>
-					<span class="shrink-0 text-base-content/50">({path.line.sourceMetricLabel})</span>
+					<span class="shrink-0 text-base-content/50">({line.sourceMetricLabel})</span>
 				</li>
 			{/each}
 		</ul>

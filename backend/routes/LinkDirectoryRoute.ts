@@ -38,6 +38,7 @@ import {
     linkDirectorySiteCommentCreateSchema,
     linkDirectorySiteCommentIdParamSchema,
     linkDirectorySiteRatingBodySchema,
+    linkDirectoryCatalogDrRefreshBodySchema,
 } from "../data/schemas/linkDirectorySchemas";
 import { z } from "zod";
 
@@ -275,6 +276,14 @@ linkDirectoryRouter.get(
     requireEditor,
     parseAdminQuery,
     linkDirectoryController.getAdminSites
+);
+
+linkDirectoryRouter.post(
+    "/admin/sites/refresh-catalog-domain-ratings",
+    authWithRoles,
+    requireEditor,
+    validateRequest({ body: linkDirectoryCatalogDrRefreshBodySchema }),
+    linkDirectoryController.refreshCatalogDomainRatings
 );
 
 linkDirectoryRouter.post(

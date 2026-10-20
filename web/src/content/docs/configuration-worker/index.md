@@ -17,6 +17,16 @@ When <code>backend/config/orchestratorFlows.ts</code> sets <code>transport: "bul
 
 Deploy workers on an **always-on** host (for example <a href="/docs/installation/railway">Railway</a>). Serverless-only platforms are a poor fit because workers loop until <code>SIGTERM</code>. Railway describes persistent containers under <DocsExternalLink href="https://docs.railway.com/services#persistent-services">Services → persistent services</DocsExternalLink>.
 
+API and worker processes stay **stateless**: timers enqueue or refresh work using Postgres and Redis as the source of truth (no in-memory-only schedules required for correctness).
+
+### Directory SEO weekly refresh (housekeeping)
+
+The **housekeeping** worker runs notification email digest flushing and, when configured, <code>DirectorySeoService.runWeeklyRefresh()</code>. Each run <strong>reloads stale domains from Postgres</strong> (main profile website URLs on paid tiers plus workspace competitors) — it does not keep a private list of “domains left this week” in process memory. Per-domain refresh is **idempotent**: respect <Badge text="DIRECTORY_SEO_CACHE_TTL_HOURS" variant="envBackend" />, upsert <Badge text="seo_domain_metric_snapshots" variant="path" />, append history when ratings change or the weekly sample policy applies. Any housekeeping replica can execute the timer; a crash mid-run is safe to retry.
+
+<Callout type="note">
+<p><strong>pg&#95;cron</strong> in Postgres remains SQL-only (for example token cleanup). DataForSEO HTTP never runs inside <code>cron.schedule</code>. See <a href="/docs/configuration-backend/database#scheduled-jobs-pg_cron-vs-housekeeping-worker">Database → Scheduled jobs</a> and <a href="/docs/configuration-backend/directory-seo">Directory SEO & DataForSEO</a>.</p>
+</Callout>
+
 ## Queue dashboard (Bull Board)
 
 Platform admins can inspect and **manage BullMQ jobs** (pause / resume queues, open jobs, retry, clean, and related controls) from the **web** using <DocsExternalLink href="https://github.com/felixmosh/bull-board">Bull Board</DocsExternalLink> embedded on the <strong>Queue dashboard</strong> page.
@@ -33,7 +43,7 @@ Platform admins can inspect and **manage BullMQ jobs** (pause / resume queues, o
 - **Redis** — Same <Badge text="REDIS_*" variant="envBackend" /> (and optional <Badge text="REDIS_BULLMQ_DB" variant="envBackend" />) as the API. See <a href="/docs/configuration-backend/redis">Redis cache</a> and <a href="/docs/configuration-worker/redis">Redis & queues</a>.
 - **Supabase** — <Badge text="PUBLIC_SUPABASE_URL" variant="envBackend" />, <Badge text="PUBLIC_SUPABASE_PUBLISHABLE_KEY" variant="envBackend" />, and <Badge text="SUPABASE_SECRET_KEY" variant="envBackend" /> for server-side tables. Legacy JWT keys are not accepted; see <a href="/docs/configuration-backend/supabase">Supabase</a>.
 - **Storage (scheduled social post publishing)** — If you publish posts with media, workers must be able to build a **public HTTPS URL** for uploaded objects. Set <Badge text="STORAGE_PROVIDER" variant="envBackend" /> (typically <code>r2</code>) and <Badge text="STORAGE_R2_PUBLIC_BASE_URL" variant="envBackend" /> (your public bucket hostname, no trailing slash). See <a href="/docs/configuration-backend/cloudflare-r2">R2 or local storage</a>.
-- **Per worker** — Provider OAuth secrets for **integration refresh**; email provider keys for **notification email**; the same **provider or channel** credentials the API would use to publish for **scheduled social** posts. A short template lives in the repo at <Badge text="orchestrator/.env.production.example" variant="path" />.
+- **Per worker** — Provider OAuth secrets for **integration refresh**; email provider keys plus optional <Badge text="DATAFORSEO_API_KEY" variant="envBackend" /> / <Badge text="DIRECTORY_SEO_*" variant="envBackend" /> for **housekeeping** (notification email + weekly Directory SEO refresh); the same **provider or channel** credentials the API would use to publish for **scheduled social** posts. A short template lives in the repo at <Badge text="orchestrator/.env.production.example" variant="path" />.
 - **Health & errors** — Each worker exposes <code>GET /health</code> and <code>GET /health/status</code> (Redis PING + optional queue depth). Port: host <Badge text="PORT" variant="envBackend" /> on Railway, else <Badge text="ORCHESTRATOR_WORKER_HEALTH_PORT" variant="envBackend" /> (default <code>3091</code>; set <code>0</code> to disable). Optional <Badge text="SENTRY_DSN" variant="envBackend" /> / <Badge text="SENTRY_ENABLED" variant="envBackend" /> match the API so worker crashes reach Sentry (tag <code>openquok.worker</code>).
 - **Maintenance cutover** — When <Badge text="MAINTENANCE_MODE=freeze_writes" variant="envBackend" /> matches the API, workers exit on startup without consuming BullMQ jobs. Set <Badge text="MAINTENANCE_RETRY_AFTER_SECONDS" variant="envBackend" /> and <Badge text="MAINTENANCE_BYPASS_SECRET" variant="envBackend" /> on workers only if you mirror the API (optional). See <a href="/docs/installation/maintenance-mode">Maintenance mode</a>.
 

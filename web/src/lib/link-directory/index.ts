@@ -21,6 +21,7 @@ const linkDirectoryConfig: LinkDirectoryConfig = {
 		putMySavedSites: '/api/v1/link-directory/me/saved-sites',
 		putMySavedSitesOrder: '/api/v1/link-directory/me/saved-sites/order',
 		getAdminSites: '/api/v1/link-directory/all-full',
+		refreshCatalogDomainRatings: '/api/v1/link-directory/admin/sites/refresh-catalog-domain-ratings',
 		getSiteById: (siteId: string) => `/api/v1/link-directory/sites/${siteId}`,
 		createSite: '/api/v1/link-directory/sites',
 		updateSite: (siteId: string) => `/api/v1/link-directory/sites/${siteId}`,

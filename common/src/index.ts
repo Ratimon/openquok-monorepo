@@ -99,6 +99,7 @@ export {
 	computeListingProfileFingerprint,
 	resolveProfilePathValue,
 } from './auto-launch/listingProfileFingerprint.js';
+export { profileSimilarityPercentToMain } from './auto-launch/profileSimilarityToMain.js';
 export { directorySiteKeyFromProviderSlug } from './auto-launch/directorySiteKey.js';
 export {
 	directoryExclusiveOpportunityGroupKey,

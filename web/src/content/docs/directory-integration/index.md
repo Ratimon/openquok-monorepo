@@ -47,6 +47,8 @@ Operators can add catalog rows through internal tools. Shipped exemplars also li
 
 <CardGrid>
 <LinkCard title="Directory submission" description="Launch workflow from My Products" href="/docs/directory-submission" />
+<LinkCard title="Tailor profiles per directory" description="Per-site profile variants before you launch" href="/docs/directory-submission/profile-variants" />
+<LinkCard title="Directory analytics" description="Domain rating for your product site on paid plans" href="/docs/directory-submission/directory-analytics" />
 <LinkCard title="Channels overview" description="Social connect vs directory launch in one workspace" href="/docs/channels" />
 <LinkCard title="Social integrations (self-host)" description="OAuth and env setup for posting channels only" href="/docs/social-integration" />
 <LinkCard title="Browser extension" description="Install the extension for directory handoff" href="/docs/installation/chrome-extension" />

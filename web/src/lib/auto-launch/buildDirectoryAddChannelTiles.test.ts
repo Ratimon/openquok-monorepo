@@ -25,6 +25,7 @@ function destination(partial: Partial<AutoLaunchDestinationDto> & Pick<AutoLaunc
 		pickerGroupKey: null,
 		pickerGroupTitle: null,
 		siteDomainRating: null,
+		siteMetricsUpdatedAt: null,
 		siteTitle: partial.siteTitle ?? null,
 		extensionConfig: partial.extensionConfig ?? { steps: [] }
 	};

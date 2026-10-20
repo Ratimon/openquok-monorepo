@@ -25,8 +25,8 @@ OpenQuok notifications have two layers:
   - <Badge text="orchestrator/blueprints/notificationEmailBlueprint.ts" variant="path" />
   - <Badge text="orchestrator/nodes/notificationEmailNodes.ts" variant="path" />
   - <Badge text="orchestrator/activities/emailActivities.ts" variant="path" /> (organization helpers; similar role to OpenQuok activities)
-- **BullMQ worker** (executes queued email sends + periodic digest flush):
-  - <Badge text="orchestrator/worker/runNotificationEmailBullMqWorker.ts" variant="path" />
+- **Housekeeping BullMQ worker** (queued email sends, periodic digest flush, Directory SEO weekly refresh):
+  - <Badge text="orchestrator/worker/runHousekeepingBullMqWorker.ts" variant="path" />
 
 ## Behavior: <code>sendEmail</code> and <code>digest</code>
 
@@ -37,7 +37,7 @@ The API always writes the in-app row first. Email is only attempted when:
 - the user’s org-member preferences allow that type (success vs failure).
 
 <Callout type="note" title="Digest vs immediate">
-Digest mode (<code>digest: true</code>) stores entries in Redis and relies on the <Badge text="notification-email" variant="path" /> worker to flush them on an interval. Immediate mode (<code>digest: false</code>) sends one email per call.
+Digest mode (<code>digest: true</code>) stores entries in Redis and relies on the <strong>housekeeping</strong> worker to flush them on an interval (BullMQ queue name remains <code>notification-email</code>). Immediate mode (<code>digest: false</code>) sends one email per call.
 </Callout>
 
 ### Current callers (production code)
@@ -84,12 +84,12 @@ Override the transport at runtime with:
 
 - <Badge text="ORCHESTRATOR_NOTIFICATION_EMAIL_TRANSPORT" variant="envBackend" />
 
-### Run the notification-email worker (BullMQ transport)
+### Run the housekeeping worker (BullMQ transport)
 
 When transport is <code>bullmq</code>, you must run the worker:
 
 ```bash
-pnpm orchestrator:dev:worker:notification-email-bullmq
+pnpm orchestrator:dev:worker:housekeeping-bullmq
 ```
 
 </Steps>
@@ -97,7 +97,7 @@ pnpm orchestrator:dev:worker:notification-email-bullmq
 ## Troubleshooting: “I don’t receive notification emails”
 
 - **Check email is enabled**: <Badge text="EMAIL_ENABLED" variant="envBackend" /> must be true.
-- **Check transport**: if <code>bullmq</code>, the notification-email worker must be running.
+- **Check transport**: if <code>bullmq</code>, the housekeeping worker must be running.
 - **Check Redis**: worker and API must point at the same Redis (<Badge text="REDIS_*" variant="envBackend" />).
 - **Check user preferences**: success/fail emails may be opted out per member (digest flush emails are type <code>info</code> and are always eligible).
 - **Check digest timing**: digest entries flush on an interval (default ~5 minutes) from the worker process.

@@ -41,3 +41,10 @@ export {
     resetSharedQueueIoredisClientForTests,
 } from "./bullmq";
 export { R2StorageClient, isR2ConnectionReady, type R2ConnectionConfig } from "./R2StorageClient";
+export {
+    fetchBacklinksSummaryLive,
+    isDataForSeoConfigured,
+    type BacklinksSummaryLiveResult,
+    type DataForSeoFetchFn,
+} from "./dataforseo/dataforseoClient";
+export { normalizeSeoDomain } from "./dataforseo/normalizeSeoDomain";

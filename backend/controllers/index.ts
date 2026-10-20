@@ -28,6 +28,7 @@ import { ThirdPartyController } from "./ThirdPartyController";
 import { SignatureController } from "./SignatureController";
 import { SetsController } from "./SetsController";
 import { AutoLaunchController } from "./AutoLaunchController";
+import { DirectorySeoController } from "./DirectorySeoController";
 import { AnalyticsController } from "./AnalyticsController";
 import {
     authenticationService,
@@ -57,6 +58,7 @@ import {
     signatureService,
     setsService,
     autoLaunchService,
+    directorySeoWorkspaceService,
     analyticsService,
     userSessionService,
     acquisitionSurveyService,
@@ -138,4 +140,5 @@ export const thirdPartyController = new ThirdPartyController();
 export const signatureController = new SignatureController(signatureService);
 export const setsController = new SetsController(setsService);
 export const autoLaunchController = new AutoLaunchController(autoLaunchService);
+export const directorySeoController = new DirectorySeoController(directorySeoWorkspaceService);
 export const analyticsController = new AnalyticsController(analyticsService, integrationConnectionService, postsService);

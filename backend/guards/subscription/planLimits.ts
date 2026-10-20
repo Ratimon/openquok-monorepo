@@ -27,6 +27,10 @@ export function planLimitForSection(
 			return limits.community_features;
 		case SubscriptionSection.PUBLIC_API:
 			return limits.public_api;
+		case SubscriptionSection.DIRECTORY_SEO_ENABLED:
+			return limits.directory_seo_enabled;
+		case SubscriptionSection.DIRECTORY_SEO_COMPETITORS_PER_WORKSPACE:
+			return limits.directory_seo_competitors_per_workspace;
 		case SubscriptionSection.ADMIN:
 			return null;
 		default:

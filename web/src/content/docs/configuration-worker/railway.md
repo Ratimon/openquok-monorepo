@@ -32,12 +32,12 @@ pnpm railway:orchestrator:build
 ```bash
 # Start workers (one always-on service per worker)
 pnpm railway:orchestrator:start:integration-refresh
-pnpm railway:orchestrator:start:notification-email
+pnpm railway:orchestrator:start:housekeeping
 pnpm railway:orchestrator:start:scheduled-social-post
 ```
 
 <Callout type="note">
-Repo-root <Badge text="railway.toml" variant="path" /> sets build, health check, region (<code>us-west2</code>), and limits for integration-refresh / notification-email (<code>1</code> vCPU, <code>1</code> GiB). Scheduled social post uses <Badge text="railway.scheduled-social-post.toml" variant="path" /> (<code>1</code> vCPU, <code>2</code> GiB) — point that service’s Railway Config File at <code>/railway.scheduled-social-post.toml</code>.
+Repo-root <Badge text="railway.toml" variant="path" /> sets build, health check, region (<code>us-west2</code>), and limits for integration-refresh / housekeeping (<code>1</code> vCPU, <code>1</code> GiB). Scheduled social post uses <Badge text="railway.scheduled-social-post.toml" variant="path" /> (<code>1</code> vCPU, <code>2</code> GiB) — point that service’s Railway Config File at <code>/railway.scheduled-social-post.toml</code>.
 </Callout>
 
 ## Stopping a worker service (Railway CLI)
@@ -46,7 +46,7 @@ If you need to stop a worker that is currently consuming BullMQ jobs, you can de
 
 ```bash
 railway down --service "openquok-worker-integration-refresh" --environment production --yes
-railway down --service "openquok-worker-notification-email" --environment production --yes
+railway down --service "openquok-worker-housekeeping" --environment production --yes
 railway down --service "openquok-worker-scheduled-social-post" --environment production --yes
 ```
 
@@ -72,7 +72,7 @@ Each script sets <Badge text="RAILPACK_CONFIG_FILE" variant="envRuntime" /> and 
 
 ```bash
 pnpm railway:deploy:integration-refresh
-pnpm railway:deploy:notification-email
+pnpm railway:deploy:housekeeping
 pnpm railway:deploy:scheduled-social-post
 ```
 

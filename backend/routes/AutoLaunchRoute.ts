@@ -7,6 +7,8 @@ import { validateRequest } from "../middlewares/validateRequest";
 import {
     autoLaunchDestinationIdParamSchema,
     autoLaunchProfileIdParamSchema,
+    autoLaunchMainProfileIdParamSchema,
+    createDirectoryProfileVariantBodySchema,
     autoLaunchProviderSlugParamSchema,
     completeSubmissionBodySchema,
     createAdminAutoLaunchDestinationBodySchema,
@@ -69,6 +71,15 @@ autoLaunchRouter.delete(
     auth,
     validateRequest({ params: autoLaunchProfileIdParamSchema }),
     autoLaunchController.deleteProfile
+);
+autoLaunchRouter.post(
+    "/profiles/:mainId/variants",
+    auth,
+    validateRequest({
+        params: autoLaunchMainProfileIdParamSchema,
+        body: createDirectoryProfileVariantBodySchema,
+    }),
+    autoLaunchController.createDirectoryVariant
 );
 
 autoLaunchRouter.get(

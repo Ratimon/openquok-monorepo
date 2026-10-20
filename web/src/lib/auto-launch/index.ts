@@ -9,6 +9,8 @@ const autoLaunchConfig: AutoLaunchConfig = {
 		businessProfiles: '/api/v1/auto-launch/business-profiles',
 		profiles: '/api/v1/auto-launch/profiles',
 		profileById: (id: string) => `/api/v1/auto-launch/profiles/${encodeURIComponent(id)}`,
+		profileVariants: (mainId: string) =>
+			`/api/v1/auto-launch/profiles/${encodeURIComponent(mainId)}/variants`,
 		submissions: '/api/v1/auto-launch/submissions',
 		submissionIntent: '/api/v1/auto-launch/submissions/intent',
 		submissionRecordComplete: '/api/v1/auto-launch/submissions/record-complete',
@@ -31,6 +33,7 @@ export { AutoLaunchProductsPresenter } from '$lib/auto-launch/AutoLaunchProducts
 export type {
 	BusinessProfileDto,
 	AutoLaunchDestinationDto,
+	AutoLaunchProductProfileKind,
 	AutoLaunchProductProfileDto,
 	AutoLaunchSubmissionDto,
 	AutoLaunchSubmissionIntentDto

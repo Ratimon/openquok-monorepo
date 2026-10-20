@@ -31,6 +31,8 @@ export type BusinessProfileDto = {
 	logoUrl: string | null;
 };
 
+export type AutoLaunchProductProfileKind = 'main' | 'directory_variant';
+
 export type AutoLaunchProductProfileDto = {
 	id: string;
 	organizationId: string;
@@ -41,6 +43,10 @@ export type AutoLaunchProductProfileDto = {
 	websiteUrl: string | null;
 	logoUrl: string | null;
 	profileData: BusinessProfileData;
+	profileKind: AutoLaunchProductProfileKind;
+	parentProfileId: string | null;
+	directorySiteKey: string | null;
+	similarityToMainPercent: number | null;
 	createdAt: string;
 	updatedAt: string;
 };
@@ -59,6 +65,7 @@ export type AutoLaunchDestinationDto = {
 	opportunityCostTier: 'free' | 'freemium' | 'paid' | null;
 	opportunityCostNote: string | null;
 	siteDomainRating: number | null;
+	siteMetricsUpdatedAt: string | null;
 	siteTitle: string | null;
 	pickerGroupKey: string | null;
 	pickerGroupTitle: string | null;

@@ -186,7 +186,7 @@ services:
     networks:
       - openquok
 
-  worker-notification-email:
+  worker-housekeeping:
     <<: [*supabase-host-gateway, *openquok-orchestrator-image]
     restart: unless-stopped
     env_file:
@@ -197,7 +197,7 @@ services:
       REDIS_PORT: "6379"
       UPLOAD_DIRECTORY: /uploads
       ORCHESTRATOR_WORKER_HEALTH_PORT: "0"
-    command: ["node", "dist/worker/runNotificationEmailBullMqWorker.js"]
+    command: ["node", "dist/worker/runHousekeepingBullMqWorker.js"]
     healthcheck:
       disable: true
     volumes:

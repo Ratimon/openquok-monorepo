@@ -42,6 +42,9 @@ function profileRow(overrides: Partial<AutoLaunchProductProfileRow> = {}): AutoL
         updated_at: faker.date.recent().toISOString(),
         created_by_user_id: authUserId,
         deleted_at: null,
+        profile_kind: "main",
+        parent_profile_id: null,
+        directory_site_key: null,
         ...overrides,
     };
 }
@@ -114,6 +117,9 @@ function createMockRepo(): jest.Mocked<AutoLaunchRepository> {
         reopenSubmissionForResync: jest.fn(),
         updateCompletedSubmissionListingSync: jest.fn(),
         updateSubmissionListingDetails: jest.fn(),
+        findDirectoryVariantByParentAndSiteKey: jest.fn(),
+        insertDirectoryVariantFromMain: jest.fn(),
+        findDestinationListRowById: jest.fn(),
     } as unknown as jest.Mocked<AutoLaunchRepository>;
 }
 
@@ -169,6 +175,43 @@ describe("AutoLaunchService", () => {
                     },
                 },
             });
+        });
+    });
+
+    describe("createDirectoryVariant", () => {
+        it("copies main profile into a directory variant for the site key", async () => {
+            const main = profileRow({ profile_kind: "main", parent_profile_id: null });
+            const variant = profileRow({
+                id: faker.string.uuid(),
+                profile_kind: "directory_variant",
+                parent_profile_id: main.id,
+                directory_site_key: "peerpush",
+                name: "Acme (peerpush)",
+            });
+
+            repo.findProfileById.mockResolvedValue(main);
+            repo.findDirectoryVariantByParentAndSiteKey.mockResolvedValue(null);
+            repo.insertDirectoryVariantFromMain.mockResolvedValue(variant);
+            repo.findProfilesByIds.mockResolvedValue([main]);
+
+            const service = new AutoLaunchService(
+                repo,
+                integration as unknown as IntegrationConnectionService
+            );
+
+            const dto = await service.createDirectoryVariant(authUserId, main.id, {
+                directorySiteKey: "peerpush",
+            });
+
+            expect(repo.insertDirectoryVariantFromMain).toHaveBeenCalledWith({
+                mainProfile: main,
+                directorySiteKey: "peerpush",
+                name: "Acme (peerpush)",
+                createdByUserId: authUserId,
+            });
+            expect(dto.id).toBe(variant.id);
+            expect(dto.profileKind).toBe("directory_variant");
+            expect(dto.directorySiteKey).toBe("peerpush");
         });
     });
 
@@ -476,6 +519,10 @@ describe("AutoLaunchService", () => {
 
             repo.findSubmissionById.mockResolvedValueOnce(open);
             repo.findProfileById.mockResolvedValue(profileRow());
+            repo.findDestinationListRowById.mockResolvedValue({
+                ...destinationRow(),
+                opportunity_dofollow: "dofollow",
+            } as never);
             repo.completeSubmission.mockResolvedValue(done);
 
             const token = signLaunchToken(
@@ -514,7 +561,45 @@ describe("AutoLaunchService", () => {
                     organizationId,
                     profileSnapshot,
                     listingProfileFingerprint: expectedFingerprint,
+                    evidence: expect.objectContaining({ listingDofollow: true }),
                 })
+            );
+        });
+    });
+
+    describe("createSubmissionIntent profile resolution", () => {
+        it("uses directory variant when main profile has a matching site variant", async () => {
+            const main = profileRow();
+            const variant = profileRow({
+                id: faker.string.uuid(),
+                profile_kind: "directory_variant",
+                parent_profile_id: main.id,
+                directory_site_key: "uneed",
+                name: "Acme (uneed)",
+            });
+            const dest = destinationRow({ provider_slug: "uneed-join-line" });
+
+            repo.findDestinationById.mockResolvedValue(dest);
+            repo.findProfileById.mockResolvedValue(main);
+            repo.findDirectoryVariantByParentAndSiteKey.mockResolvedValue(variant);
+            repo.findLatestSubmissionForProductDestination.mockResolvedValue(null);
+            repo.insertSubmissionIntent.mockResolvedValue(
+                submissionRow({ product_profile_id: variant.id })
+            );
+
+            const service = new AutoLaunchService(
+                repo,
+                integration as unknown as IntegrationConnectionService
+            );
+
+            await service.createSubmissionIntent(authUserId, {
+                organizationId,
+                productProfileId: main.id,
+                destinationId,
+            });
+
+            expect(repo.insertSubmissionIntent).toHaveBeenCalledWith(
+                expect.objectContaining({ productProfileId: variant.id })
             );
         });
     });

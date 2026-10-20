@@ -23,7 +23,12 @@ function rowValueForField(row: ProductDirectoryChannelTableRowViewModel, field: 
 		case 'listUrlDisplay':
 			return row.listUrlDisplay;
 		case 'listingDofollowDisplay':
-			return row.listingDofollowDisplay;
+		case 'linkTypeDisplay':
+			return row.linkTypeDisplay;
+		case 'catalogDrDisplay':
+			return row.catalogDrDisplay;
+		case 'catalogDrUpdatedDisplay':
+			return row.catalogDrUpdatedDisplay;
 		case 'authEmailDisplay':
 			return row.authEmailDisplay;
 		case 'readinessDisplay':
@@ -103,10 +108,12 @@ type FilterBuilderApi = {
 export const PRODUCT_DIRECTORY_CHANNELS_GRID_FILTER_FIELDS = [
 	{ id: 'siteLabel', label: 'Directory', type: 'text' },
 	{ id: 'listUrlDisplay', label: 'List URL', type: 'text' },
-	{ id: 'listingDofollowDisplay', label: 'Dofollow', type: 'text' },
-	{ id: 'authEmailDisplay', label: 'Auth email', type: 'text' },
+	{ id: 'submissionDisplay', label: 'Status', type: 'text' },
+	{ id: 'catalogDrDisplay', label: 'DR', type: 'text' },
+	{ id: 'catalogDrUpdatedDisplay', label: 'DR updated', type: 'text' },
+	{ id: 'linkTypeDisplay', label: 'Link type', type: 'text' },
 	{ id: 'readinessDisplay', label: 'Readiness', type: 'text' },
-	{ id: 'submissionDisplay', label: 'Submission', type: 'text' }
+	{ id: 'authEmailDisplay', label: 'Auth email', type: 'text' }
 ] as const;
 
 function collectUsedFilterFields(node: FilterNode, out: Set<string>): void {
@@ -129,7 +136,9 @@ function normalizeFilterBuilderValue(v: FilterNode): FilterNode {
 		if (
 			(field === 'siteLabel' ||
 				field === 'listUrlDisplay' ||
-				field === 'listingDofollowDisplay' ||
+				field === 'linkTypeDisplay' ||
+				field === 'catalogDrDisplay' ||
+				field === 'catalogDrUpdatedDisplay' ||
 				field === 'authEmailDisplay' ||
 				field === 'readinessDisplay' ||
 				field === 'submissionDisplay') &&
@@ -217,8 +226,17 @@ export class ProductDirectoryChannelsGridFilterBuilderPresenter {
 		const listUrlDisplay = [
 			...new Set(rows.map((r) => String(r.listUrlDisplay ?? '').trim()).filter(Boolean))
 		].sort((a, b) => a.localeCompare(b));
-		const listingDofollowDisplay = [
-			...new Set(rows.map((r) => String(r.listingDofollowDisplay ?? '').trim()).filter(Boolean))
+		const linkTypeDisplay = [
+			...new Set(rows.map((r) => String(r.linkTypeDisplay ?? '').trim()).filter(Boolean))
+		].sort((a, b) => a.localeCompare(b));
+		const catalogDrDisplay = [
+			...new Set(rows.map((r) => String(r.catalogDrDisplay ?? '').trim()).filter(Boolean))
+		].sort((a, b) => a.localeCompare(b));
+		const catalogDrUpdatedDisplay = [
+			...new Set(rows.map((r) => String(r.catalogDrUpdatedDisplay ?? '').trim()).filter(Boolean))
+		].sort((a, b) => a.localeCompare(b));
+		const submissionDisplay = [
+			...new Set(rows.map((r) => String(r.submissionDisplay ?? '').trim()).filter(Boolean))
 		].sort((a, b) => a.localeCompare(b));
 		const authEmailDisplay = [
 			...new Set(rows.map((r) => String(r.authEmailDisplay ?? '').trim()).filter(Boolean))
@@ -226,17 +244,15 @@ export class ProductDirectoryChannelsGridFilterBuilderPresenter {
 		const readinessDisplay = [
 			...new Set(rows.map((r) => String(r.readinessDisplay ?? '').trim()).filter(Boolean))
 		].sort((a, b) => a.localeCompare(b));
-		const submissionDisplay = [
-			...new Set(rows.map((r) => String(r.submissionDisplay ?? '').trim()).filter(Boolean))
-		].sort((a, b) => a.localeCompare(b));
-
 		return {
 			siteLabel,
 			listUrlDisplay,
-			listingDofollowDisplay,
+			submissionDisplay,
+			catalogDrDisplay,
+			catalogDrUpdatedDisplay,
+			linkTypeDisplay,
 			authEmailDisplay,
-			readinessDisplay,
-			submissionDisplay
+			readinessDisplay
 		};
 	}
 }

@@ -1,4 +1,11 @@
 :root {
+  /* shadcn-svelte / layerchart series colors (DaisyUI-aligned) */
+  --chart-1: var(--color-primary);
+  --chart-2: var(--color-secondary);
+  --chart-3: var(--color-accent);
+  --chart-4: var(--color-info, #38bdf8);
+  --chart-5: var(--color-success, #4ade80);
+
   /* DaisyUI cyberpunk primary stack */
   --sans-serif: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
     monospace;

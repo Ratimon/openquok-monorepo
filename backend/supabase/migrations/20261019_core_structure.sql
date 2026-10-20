@@ -1497,6 +1497,99 @@ COMMENT ON COLUMN public.auto_launch_submissions.listing_synced_at IS
 -- ---------------------------
 
 
+-- Module: auto-launch, File: 102_20261019_tables.sql
+-- ---------------------------
+-- MODULE NAME: Auto Launch
+-- MODULE DATE: 20261019
+-- MODULE SCOPE: Tables (directory SEO metrics, competitors, profile variants)
+-- ---------------------------
+
+BEGIN;
+
+-- Global domain rating cache (shared across workspaces; written by backend / housekeeping).
+CREATE TABLE IF NOT EXISTS public.seo_domain_metric_snapshots (
+    domain TEXT PRIMARY KEY,
+    domain_rating NUMERIC(6, 2),
+    source TEXT NOT NULL DEFAULT 'dataforseo',
+    checked_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+COMMENT ON TABLE public.seo_domain_metric_snapshots IS
+    'Latest domain rating per normalized hostname; refreshed by Directory SEO worker with global TTL.';
+COMMENT ON COLUMN public.seo_domain_metric_snapshots.domain IS
+    'Normalized hostname (lowercase, no scheme or path).';
+COMMENT ON COLUMN public.seo_domain_metric_snapshots.source IS
+    'Provider that produced domain_rating (v1: dataforseo backlinks summary).';
+
+CREATE TABLE IF NOT EXISTS public.seo_domain_metric_history (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    domain TEXT NOT NULL,
+    domain_rating NUMERIC(6, 2),
+    captured_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+COMMENT ON TABLE public.seo_domain_metric_history IS
+    'Append-only domain rating samples for charting product and competitor domains.';
+
+CREATE TABLE IF NOT EXISTS public.directory_seo_competitors (
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    domain TEXT NOT NULL,
+    label TEXT,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT pk_directory_seo_competitors PRIMARY KEY (organization_id, domain),
+    CONSTRAINT chk_directory_seo_competitors_domain_nonempty CHECK (char_length(trim(domain)) > 0)
+);
+
+COMMENT ON TABLE public.directory_seo_competitors IS
+    'Workspace-tracked competitor domains for Directory analytics; count capped by subscription tier in the API.';
+
+ALTER TABLE public.auto_launch_product_profiles
+    ADD COLUMN IF NOT EXISTS parent_profile_id UUID
+        REFERENCES public.auto_launch_product_profiles(id) ON DELETE CASCADE,
+    ADD COLUMN IF NOT EXISTS profile_kind TEXT NOT NULL DEFAULT 'main'
+        CHECK (profile_kind IN ('main', 'directory_variant')),
+    ADD COLUMN IF NOT EXISTS directory_site_key TEXT;
+
+COMMENT ON COLUMN public.auto_launch_product_profiles.parent_profile_id IS
+    'NULL for the main product profile; set for per-directory tailored copies branched from main.';
+COMMENT ON COLUMN public.auto_launch_product_profiles.profile_kind IS
+    'main = default workspace product profile; directory_variant = site-specific tailored copy.';
+COMMENT ON COLUMN public.auto_launch_product_profiles.directory_site_key IS
+    'Link-directory site slug (e.g. peerpush) for directory_variant rows; NULL on main profiles.';
+
+ALTER TABLE public.auto_launch_product_profiles
+    DROP CONSTRAINT IF EXISTS chk_auto_launch_product_profiles_variant_shape;
+
+ALTER TABLE public.auto_launch_product_profiles
+    ADD CONSTRAINT chk_auto_launch_product_profiles_variant_shape CHECK (
+        (
+            profile_kind = 'main'
+            AND parent_profile_id IS NULL
+            AND directory_site_key IS NULL
+        )
+        OR (
+            profile_kind = 'directory_variant'
+            AND parent_profile_id IS NOT NULL
+            AND directory_site_key IS NOT NULL
+            AND char_length(trim(directory_site_key)) > 0
+        )
+    );
+
+ALTER TABLE public.auto_launch_product_profiles
+    DROP CONSTRAINT IF EXISTS chk_auto_launch_product_profiles_variant_no_channel_group;
+
+ALTER TABLE public.auto_launch_product_profiles
+    ADD CONSTRAINT chk_auto_launch_product_profiles_variant_no_channel_group CHECK (
+        profile_kind = 'main' OR integration_customer_id IS NULL
+    );
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
 -- Module: launch-showcase, File: 101_20261013_tables.sql
 -- ---------------------------
 -- MODULE NAME: Launch Showcase
@@ -2136,6 +2229,37 @@ WHERE NOT EXISTS (
     WHERE p.integration_customer_id = c.id
       AND p.deleted_at IS NULL
 );
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: auto-launch, File: 202_20261019_indexes.sql
+-- ---------------------------
+-- MODULE NAME: Auto Launch
+-- MODULE DATE: 20261019
+-- MODULE SCOPE: Indexes (directory SEO + profile variants)
+-- ---------------------------
+
+BEGIN;
+
+CREATE INDEX IF NOT EXISTS idx_seo_domain_metric_history_domain_captured
+    ON public.seo_domain_metric_history (domain, captured_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_directory_seo_competitors_org_sort
+    ON public.directory_seo_competitors (organization_id, sort_order, domain);
+
+CREATE INDEX IF NOT EXISTS idx_auto_launch_product_profiles_parent
+    ON public.auto_launch_product_profiles (parent_profile_id)
+    WHERE parent_profile_id IS NOT NULL AND deleted_at IS NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_auto_launch_product_profiles_directory_variant_site
+    ON public.auto_launch_product_profiles (parent_profile_id, directory_site_key)
+    WHERE parent_profile_id IS NOT NULL AND deleted_at IS NULL;
+
+COMMENT ON INDEX public.uq_auto_launch_product_profiles_directory_variant_site IS
+    'At most one active directory variant per main profile and link-directory site key.';
 
 -- ---------------------------
 -- END OF FILE
@@ -5700,6 +5824,158 @@ CREATE POLICY "Allow service_role to manage auto launch profile media"
     FOR ALL
     TO service_role
     USING (bucket_id = 'auto_launch_profile_media'::text);
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: auto-launch, File: 303_20261019_rlsgrants.sql
+-- ---------------------------
+-- MODULE NAME: Auto Launch
+-- MODULE DATE: 20261019
+-- MODULE SCOPE: Row Level Security and Grants (directory SEO tables)
+-- ---------------------------
+
+BEGIN;
+
+-- ---------------------------
+-- SEO metric cache (read-only for members; backend writes via service_role)
+-- ---------------------------
+
+GRANT SELECT ON public.seo_domain_metric_snapshots TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.seo_domain_metric_snapshots TO service_role;
+
+GRANT SELECT ON public.seo_domain_metric_history TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.seo_domain_metric_history TO service_role;
+
+ALTER TABLE public.seo_domain_metric_snapshots ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.seo_domain_metric_history ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Authenticated can read seo domain metric snapshots" ON public.seo_domain_metric_snapshots;
+CREATE POLICY "Authenticated can read seo domain metric snapshots"
+ON public.seo_domain_metric_snapshots
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING (true);
+
+DROP POLICY IF EXISTS "Service role manages seo domain metric snapshots" ON public.seo_domain_metric_snapshots;
+CREATE POLICY "Service role manages seo domain metric snapshots"
+ON public.seo_domain_metric_snapshots
+AS PERMISSIVE
+FOR ALL
+TO service_role
+USING (true)
+WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Authenticated can read seo domain metric history" ON public.seo_domain_metric_history;
+CREATE POLICY "Authenticated can read seo domain metric history"
+ON public.seo_domain_metric_history
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING (true);
+
+DROP POLICY IF EXISTS "Service role manages seo domain metric history" ON public.seo_domain_metric_history;
+CREATE POLICY "Service role manages seo domain metric history"
+ON public.seo_domain_metric_history
+AS PERMISSIVE
+FOR ALL
+TO service_role
+USING (true)
+WITH CHECK (true);
+
+-- ---------------------------
+-- Directory SEO competitors (workspace members)
+-- ---------------------------
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.directory_seo_competitors TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.directory_seo_competitors TO service_role;
+
+ALTER TABLE public.directory_seo_competitors ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Members can view directory seo competitors" ON public.directory_seo_competitors;
+CREATE POLICY "Members can view directory seo competitors"
+ON public.directory_seo_competitors
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = directory_seo_competitors.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can insert directory seo competitors" ON public.directory_seo_competitors;
+CREATE POLICY "Members can insert directory seo competitors"
+ON public.directory_seo_competitors
+AS PERMISSIVE
+FOR INSERT
+TO authenticated
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = directory_seo_competitors.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can update directory seo competitors" ON public.directory_seo_competitors;
+CREATE POLICY "Members can update directory seo competitors"
+ON public.directory_seo_competitors
+AS PERMISSIVE
+FOR UPDATE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = directory_seo_competitors.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = directory_seo_competitors.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Members can delete directory seo competitors" ON public.directory_seo_competitors;
+CREATE POLICY "Members can delete directory seo competitors"
+ON public.directory_seo_competitors
+AS PERMISSIVE
+FOR DELETE
+TO authenticated
+USING (
+    EXISTS (
+        SELECT 1 FROM public.user_organizations uo
+        JOIN public.users u ON u.id = uo.user_id
+        WHERE uo.organization_id = directory_seo_competitors.organization_id
+          AND u.auth_id = auth.uid()
+          AND uo.disabled = FALSE
+    )
+);
+
+DROP POLICY IF EXISTS "Service role manages directory seo competitors" ON public.directory_seo_competitors;
+CREATE POLICY "Service role manages directory seo competitors"
+ON public.directory_seo_competitors
+AS PERMISSIVE
+FOR ALL
+TO service_role
+USING (true)
+WITH CHECK (true);
 
 -- ---------------------------
 -- END OF FILE
@@ -13124,6 +13400,8 @@ SELECT
                         "key": "logo",
                         "label": "Logo",
                         "profilePath": "logo_url",
+                        "fillMode": "file",
+                        "fileInputIndex": 0,
                         "selectorHint": "input[type='file'][accept*='image']"
                     }
                 ]
@@ -13191,7 +13469,9 @@ SELECT
                         "key": "gallery",
                         "label": "Screenshots",
                         "profilePath": "profile_data.gallery_urls",
-                        "selectorHint": "input[type='file'][accept*='image']:not(:only-of-type), input[type='file'][multiple][accept*='image']"
+                        "fillMode": "files",
+                        "fileInputIndex": 1,
+                        "selectorHint": "input[type='file'][accept*='image']"
                     }
                 ]
             }

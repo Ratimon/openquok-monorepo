@@ -26,6 +26,7 @@ import {
     acquisitionSurveyRepository,
     trialBrowserRepository,
     autoLaunchRepository,
+    directorySeoRepository,
 } from "../repositories/index";
 import { AuthenticationService } from "./AuthenticationService";
 import { UserService } from "./UserService";
@@ -63,6 +64,9 @@ import { TrackService } from "./TrackService";
 import { InternalOpsEmailService } from "./InternalOpsEmailService";
 import { AcquisitionSurveyService } from "./AcquisitionSurveyService";
 import { AutoLaunchService } from "./AutoLaunchService";
+import { DirectorySeoService } from "./DirectorySeoService";
+import { LinkDirectoryCatalogMetricsService } from "./LinkDirectoryCatalogMetricsService";
+import { DirectorySeoWorkspaceService } from "./DirectorySeoWorkspaceService";
 import { config } from "../config/GlobalConfig";
 
 export const integrationManager = new IntegrationManager();
@@ -144,7 +148,8 @@ export const subscriptionGuard = new SubscriptionGuardService(
     integrationService,
     organizationRepository,
     postsRepository,
-    rbacRepository
+    rbacRepository,
+    directorySeoRepository
 );
 subscriptionService.setSubscriptionGuard(subscriptionGuard);
 subscriptionService.setIntegrationService(integrationService);
@@ -168,15 +173,6 @@ export const listingService = new ListingService(
 );
 export const listingTagService = new ListingTagService(
     listingTagRepository,
-    cacheServiceConnection,
-    cacheInvalidationServiceConnection
-);
-export const linkDirectoryService = new LinkDirectoryService(
-    linkDirectoryRepository,
-    linkDirectoryCategoryRepository,
-    linkDirectoryTagRepository,
-    subscriptionGuard,
-    internalOpsEmailService,
     cacheServiceConnection,
     cacheInvalidationServiceConnection
 );
@@ -261,6 +257,35 @@ export const setsService = new SetsService(
 
 export const autoLaunchService = new AutoLaunchService(autoLaunchRepository, integrationConnectionService);
 
+export const directorySeoService = new DirectorySeoService(
+    directorySeoRepository,
+    subscriptionService
+);
+
+export const linkDirectoryCatalogMetricsService = new LinkDirectoryCatalogMetricsService(
+    linkDirectoryRepository,
+    directorySeoService
+);
+
+export const linkDirectoryService = new LinkDirectoryService(
+    linkDirectoryRepository,
+    linkDirectoryCategoryRepository,
+    linkDirectoryTagRepository,
+    subscriptionGuard,
+    internalOpsEmailService,
+    cacheServiceConnection,
+    cacheInvalidationServiceConnection,
+    linkDirectoryCatalogMetricsService
+);
+
+export const directorySeoWorkspaceService = new DirectorySeoWorkspaceService(
+    directorySeoRepository,
+    autoLaunchRepository,
+    directorySeoService,
+    integrationConnectionService,
+    subscriptionGuard
+);
+
 export const analyticsService = new AnalyticsService(
     integrationService,
     integrationManager,
@@ -289,6 +314,8 @@ export { MediaService } from "./MediaService";
 export { SignatureService } from "./SignatureService";
 export { SetsService } from "./SetsService";
 export { AutoLaunchService } from "./AutoLaunchService";
+export { DirectorySeoService } from "./DirectorySeoService";
+export { DirectorySeoWorkspaceService } from "./DirectorySeoWorkspaceService";
 export { AnalyticsService } from "./AnalyticsService";
 export { SubscriptionService } from "./SubscriptionService";
 export { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";

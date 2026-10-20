@@ -2,7 +2,10 @@
 	import { browser } from '$app/environment';
 	import { setContext, untrack } from 'svelte';
 
-	import type { AutoLaunchSubmissionDto } from '$lib/auto-launch/auto-launch.types';
+	import type {
+		AutoLaunchDestinationDto,
+		AutoLaunchSubmissionDto
+	} from '$lib/auto-launch/auto-launch.types';
 	import { autoLaunchRepository } from '$lib/auto-launch';
 	import type { DirectoryLaunchSiteSummaryRow } from '$lib/auto-launch/groupDirectoryLaunchSiteSummaryRows';
 	import { createProductDirectoryChannelsGridTableFilter } from '$lib/auto-launch/ProductDirectoryChannelsGridFilterBuilder.presenter.svelte';
@@ -30,6 +33,13 @@
 		suggestedAuthEmail: string | null;
 		siteRows: DirectoryLaunchSiteSummaryRow[];
 		submissionsByDestinationId: Map<string, AutoLaunchSubmissionDto>;
+		publishedDestinations: AutoLaunchDestinationDto[];
+		variantProfileIdsBySiteKey: Map<string, string>;
+		onOpenVariantProfile?: (profileId: string) => void;
+		onCreateDirectoryVariant?: (
+			mainProfileId: string,
+			directorySiteKey: string
+		) => Promise<{ ok: true; profileId: string } | { ok: false; error: string }>;
 		onListingDetailsSaved?: (submission: AutoLaunchSubmissionDto) => void | Promise<void>;
 		onListingDetailsRemoved?: (payload: {
 			productProfileId: string;
@@ -44,6 +54,10 @@
 		suggestedAuthEmail,
 		siteRows,
 		submissionsByDestinationId,
+		publishedDestinations,
+		variantProfileIdsBySiteKey,
+		onOpenVariantProfile,
+		onCreateDirectoryVariant,
 		onListingDetailsSaved,
 		onListingDetailsRemoved,
 		defaultOpen = true
@@ -67,6 +81,7 @@
 	let expandedSiteKeys = $state<Set<string>>(new Set());
 	let removeCompletionModalOpen = $state(false);
 	let removeCompletionRow = $state<ProductDirectoryChannelTableRowViewModel | null>(null);
+	let tailorBusySiteKey = $state<string | null>(null);
 
 	type RemoveCompletionModalData = {
 		submissionId: string;
@@ -122,22 +137,57 @@
 		};
 	}
 
+	async function tailorForDirectory(row: ProductDirectoryChannelTableRowViewModel): Promise<void> {
+		if (!onCreateDirectoryVariant || row.rowKind !== 'opportunity') return;
+		tailorBusySiteKey = row.siteKey;
+		try {
+			const resultVm = await onCreateDirectoryVariant(productProfileId, row.siteKey);
+			if (!resultVm.ok) {
+				toast.error(resultVm.error);
+				return;
+			}
+			toast.success('Tailored profile created.');
+			onOpenVariantProfile?.(resultVm.profileId);
+		} finally {
+			tailorBusySiteKey = null;
+		}
+	}
+
+	function openDirectoryVariant(siteKey: string): void {
+		const variantId = variantProfileIdsBySiteKey.get(siteKey);
+		if (variantId) onOpenVariantProfile?.(variantId);
+	}
+
 	const gridContext: DirectoryChannelsGridContext = {
 		productProfileId: '',
 		organizationId: '',
+		variantProfileIdBySiteKey: new Map(),
 		openListingDetails,
 		toggleSiteExpanded,
-		requestRemoveCompletion
+		requestRemoveCompletion,
+		tailorBusySiteKey: null,
+		tailorForDirectory,
+		openDirectoryVariant
 	};
 	setContext(directoryChannelsGridContextKey, gridContext);
 
 	$effect(() => {
 		gridContext.productProfileId = productProfileId;
 		gridContext.organizationId = organizationId;
+		gridContext.variantProfileIdBySiteKey = variantProfileIdsBySiteKey;
+		gridContext.tailorBusySiteKey = tailorBusySiteKey;
 	});
 
 	$effect(() => {
 		gridTablePresenter.refreshRowsFromSiteRows(siteRows, submissionsByDestinationId);
+	});
+
+	$effect(() => {
+		gridTablePresenter.refreshCatalogFromDestinations(publishedDestinations);
+	});
+
+	$effect(() => {
+		gridTablePresenter.setVariantProfileIdsBySiteKey(variantProfileIdsBySiteKey);
 	});
 
 	$effect(() => {
@@ -279,8 +329,9 @@
 		</summary>
 		<div class="space-y-2 border-t border-base-300/60 px-3 pb-3 pt-2">
 			<p class="text-xs text-base-content/55">
-				Expand a directory site to see each launch opportunity. List URL, dofollow, and auth email are per
-				opportunity; the site badge shows progress (free vs paid on Uneed counts once).
+				Expand a directory site to see each launch opportunity. Status reflects submission and profile sync;
+				DR and DR updated come from the Build Backlinks catalog; link type uses your listing evidence when
+				complete, otherwise the catalog default.
 			</p>
 
 			<DirectoryChannelsGridLayout

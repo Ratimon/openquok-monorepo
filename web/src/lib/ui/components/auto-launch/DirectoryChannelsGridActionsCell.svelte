@@ -57,6 +57,30 @@
 			</span>
 		{/if}
 	{:else if ctx?.productProfileId}
+		{#if rowVm.hasDirectoryVariant}
+			<Button
+				type="button"
+				variant="outline"
+				size="sm"
+				class="btn-xs h-7 min-h-0 shrink-0 whitespace-nowrap px-2"
+				title="Open tailored profile for this directory"
+				onclick={() => ctx.openDirectoryVariant(rowVm.siteKey)}
+			>
+				Edit variant
+			</Button>
+		{:else}
+			<Button
+				type="button"
+				variant="outline"
+				size="sm"
+				class="btn-xs h-7 min-h-0 shrink-0 whitespace-nowrap px-2"
+				title="Copy your main profile for this directory"
+				disabled={ctx.tailorBusySiteKey === rowVm.siteKey}
+				onclick={() => void ctx.tailorForDirectory(rowVm)}
+			>
+				Tailor
+			</Button>
+		{/if}
 		{#if rowVm.showLaunch}
 			<span class="inline-flex shrink-0">
 				<AddDirectoryLaunch

@@ -87,6 +87,19 @@ export const autoLaunchProfileIdParamSchema = z.object({
     id: z.string().uuid("Invalid product profile id"),
 });
 
+export const autoLaunchMainProfileIdParamSchema = z.object({
+    mainId: z.string().uuid("Invalid main product profile id"),
+});
+
+export const createDirectoryProfileVariantBodySchema = z.object({
+    directorySiteKey: z
+        .string()
+        .min(1)
+        .max(120)
+        .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Invalid directory site key"),
+    name: z.string().min(1).max(200).trim().optional(),
+});
+
 export const listAutoLaunchProfilesQuerySchema = z.object({
     organizationId: z.string().uuid("Invalid organization id"),
     integrationCustomerId: z.string().uuid("Invalid channel group id").optional(),
@@ -223,6 +236,7 @@ export type CreateSubmissionIntentBody = z.infer<typeof createSubmissionIntentBo
 export type CompleteSubmissionBody = z.infer<typeof completeSubmissionBodySchema>;
 export type RecordManualSubmissionCompleteBody = z.infer<typeof recordManualSubmissionCompleteBodySchema>;
 export type UpdateSubmissionListingDetailsBody = z.infer<typeof updateSubmissionListingDetailsBodySchema>;
+export type CreateDirectoryProfileVariantBody = z.infer<typeof createDirectoryProfileVariantBodySchema>;
 export type DeleteAutoLaunchSubmissionQuery = z.infer<typeof deleteAutoLaunchSubmissionQuerySchema>;
 export type CreateAdminAutoLaunchDestinationBody = z.infer<typeof createAdminAutoLaunchDestinationBodySchema>;
 export type UpdateAdminAutoLaunchDestinationBody = z.infer<typeof updateAdminAutoLaunchDestinationBodySchema>;

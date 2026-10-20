@@ -1083,6 +1083,61 @@ export class LinkDirectoryRepository {
         });
     }
 
+    async listSitesForCatalogDrRefresh(filters: {
+        publishedOnly?: boolean;
+        siteId?: string;
+        slug?: string;
+    }): Promise<Array<{ id: string; slug: string; site_url: string }>> {
+        let query = this.supabase
+            .from(TABLE_SITES)
+            .select("id, slug, site_url")
+            .order("slug", { ascending: true });
+
+        if (filters.publishedOnly) {
+            query = query.eq("is_admin_published", true);
+        }
+        if (filters.siteId) {
+            query = query.eq("id", filters.siteId);
+        }
+        if (filters.slug) {
+            query = query.eq("slug", filters.slug);
+        }
+
+        const { data, error } = await query;
+
+        if (error) {
+            throw new DatabaseError(`Error listing sites for catalog DR refresh: ${error.message}`, {
+                cause: error as unknown as Error,
+                operation: "select",
+            });
+        }
+
+        return (data ?? []) as Array<{ id: string; slug: string; site_url: string }>;
+    }
+
+    async updateSiteCatalogDomainMetrics(params: {
+        siteId: string;
+        domainRating: number | null;
+        metricsUpdatedAt: string;
+        metricsSource: string;
+    }): Promise<void> {
+        const { error } = await this.supabase
+            .from(TABLE_SITES)
+            .update({
+                domain_rating: params.domainRating,
+                metrics_updated_at: params.metricsUpdatedAt,
+                metrics_source: params.metricsSource,
+            })
+            .eq("id", params.siteId);
+
+        if (error) {
+            throw new DatabaseError(`Error updating site catalog domain metrics: ${error.message}`, {
+                cause: error as unknown as Error,
+                operation: "update",
+            });
+        }
+    }
+
     private async syncSiteTags(siteId: string, tagIds: string[]): Promise<void> {
         const { error: deleteError } = await this.supabase
             .from(TABLE_TAG_ASSOC)

@@ -212,6 +212,28 @@ export class LinkDirectoryController {
         }
     };
 
+    refreshCatalogDomainRatings = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const body = req.body as {
+                force?: boolean;
+                publishedOnly?: boolean;
+                siteId?: string;
+                slug?: string;
+                dryRun?: boolean;
+            };
+            const result = await this.linkDirectoryService.refreshCatalogDomainRatings({
+                force: body.force,
+                publishedOnly: body.publishedOnly,
+                siteId: body.siteId,
+                slug: body.slug,
+                dryRun: body.dryRun,
+            });
+            res.status(200).json({ success: true, data: result });
+        } catch (err) {
+            next(err);
+        }
+    };
+
     getAdminSites = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const q = (req as Request & { parsedQuery?: ParsedAdminLinkDirectoryQuery }).parsedQuery ?? {};

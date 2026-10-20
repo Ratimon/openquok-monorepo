@@ -11,22 +11,22 @@ export type LinkDirectoryAdminMetricsCopySection = {
 };
 
 export const LINK_DIRECTORY_ADMIN_METRICS_COPY: LinkDirectoryAdminMetricsCopySection = {
-	title: 'Site metrics (manual in v1)',
+	title: 'Site metrics',
 	intro:
-		'Domain rating, domain authority, and monthly visits on each site are editor-maintained estimates. Public cards show a last-updated date. There is no automated refresh job in this release.',
+		'Domain rating on catalog sites can be refreshed from DataForSEO (secret-admin Sites → Refresh catalog DR, or the backend script). Domain authority and monthly visits stay editor-maintained until a traffic provider is wired.',
 	v1Bullets: [
-		'Enter DR, DA, and traffic on the site editor when you have numbers from your metrics subscription or internal research.',
-		'Set metrics source to a short note (for example “Ahrefs export, March 2026”) so the next editor knows where values came from.',
-		'Saving after you change a metric field stamps metrics updated at for the public directory.',
-		'Do not use free bulk checkers or scraped third-party UIs — they are unreliable and often violate terms of service.'
+		'Use Refresh catalog DR on the Sites list to update published sites from each site URL hostname (respects the global snapshot cache unless you pass --force in the script).',
+		'CLI: pnpm --filter ./backend run script:refresh-link-directory-catalog-dr (add --force, --published-only, --slug=…). Requires DATAFORSEO_API_KEY on the API.',
+		'Enter DA and traffic manually on the site editor when you have numbers from your metrics subscription or internal research.',
+		'Saving after you change a manual metric field stamps metrics updated at for the public directory.'
 	],
-	phase2DeferredTitle: 'Deferred: automated refresh (not shipped)',
+	phase2DeferredTitle: 'Deferred: DA, traffic, and scheduled catalog refresh',
 	phase2DeferredBody:
-		'A later phase may add scheduled domain-level refreshes, snapshot history, stale-data badges, and backend configuration for a single paid metrics API. None of that runs today — no cron, no snapshot table, and no GlobalConfig keys for providers.',
+		'Automated monthly visits and domain authority from additional providers, plus a housekeeping cron for catalog DR only, are not shipped yet. Directory analytics for customer domains uses the same DataForSEO cache with its own workspace UI.',
 	phase2OperatorBullets: [
-		'Likely approach: one paid API for domain rating and traffic (for example Ahrefs or Semrush), optional Moz Links API only if you subscribe for domain authority.',
-		'Storage sketch: upsert site columns and append historical rows; flag sites older than ~90 days without a refresh.',
-		'Admin “Refresh metrics” and env wiring would ship with that phase, not before.'
+		'Optional: extend the catalog refresh worker to run on the housekeeping timer (today it is on-demand only).',
+		'Traffic and DA may need separate paid APIs; keep metrics source notes on manual fields.',
+		'Stale-data badges on the public hub remain a future UX improvement.'
 	],
 	publicSiteNote:
 		'Public FAQ and cards describe estimates with a date stamp only — no vendor names on the marketing site.'

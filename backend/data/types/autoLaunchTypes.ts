@@ -23,6 +23,8 @@ export type BusinessProfileListRow = {
     logo_url: string | null;
 };
 
+export type AutoLaunchProductProfileKind = "main" | "directory_variant";
+
 export type AutoLaunchProductProfileRow = {
     id: string;
     organization_id: string;
@@ -33,6 +35,9 @@ export type AutoLaunchProductProfileRow = {
     website_url: string | null;
     logo_url: string | null;
     profile_data: Record<string, unknown>;
+    profile_kind: AutoLaunchProductProfileKind;
+    parent_profile_id: string | null;
+    directory_site_key: string | null;
     created_at: string;
     updated_at: string;
     created_by_user_id: string | null;
@@ -63,6 +68,7 @@ export type AutoLaunchDestinationListRow = AutoLaunchDestinationRow & {
     opportunity_cost_tier?: string | null;
     opportunity_cost_note?: string | null;
     site_domain_rating?: number | null;
+    site_metrics_updated_at?: string | null;
     site_title?: string | null;
 };
 

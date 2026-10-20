@@ -184,6 +184,7 @@
 
 	const productsLoadingVm = $derived(autoLaunchProductsPresenter.loading);
 	const productLaunchCardRowsVm = $derived(autoLaunchProductsPresenter.profileLaunchCardRowsVm);
+	const publishedDirectoryDestinationsVm = $derived(autoLaunchProductsPresenter.publishedDestinationsVm);
 	const productsEditingProfileVm = $derived(autoLaunchProductsPresenter.editingProfileVm);
 
 	$effect(() => {
@@ -315,6 +316,20 @@
 		const orgId = workspaceId;
 		if (!orgId || orgId === homeDashboardTabWorkspaceId) return;
 		homeDashboardTabWorkspaceId = orgId;
+		const tabParam = page.url.searchParams.get('tab');
+		if (
+			tabParam === 'products' ||
+			tabParam === 'channels' ||
+			tabParam === 'posts' ||
+			tabParam === 'feed'
+		) {
+			homeDashboardTab = tabParam;
+			return;
+		}
+		if (page.url.searchParams.get('edit') || page.url.searchParams.get('newProfile') === '1') {
+			homeDashboardTab = 'products';
+			return;
+		}
 		homeDashboardTab = showPostKanbanBoard ? 'posts' : 'channels';
 	});
 
@@ -890,11 +905,51 @@
 	});
 
 	$effect(() => {
+		if (!browser) return;
+		const editId = page.url.searchParams.get('edit');
+		if (!editId) return;
+
+		homeDashboardTab = 'products';
+
 		void autoLaunchProductsPresenter.profilesVm;
-		autoLaunchProductsPresenter.syncComposerFromUrl(
-			page.url.searchParams.get('edit'),
-			page.url.searchParams.get('tab')
-		);
+		if (!autoLaunchProductsPresenter.profilesVm.some((profile) => profile.id === editId)) {
+			return;
+		}
+
+		const composerTabParam = page.url.searchParams.get('profileComposerTab');
+		const composerTab =
+			composerTabParam === 'discovery' || composerTabParam === 'general'
+				? composerTabParam
+				: undefined;
+		autoLaunchProductsPresenter.openEditComposer(editId, composerTab);
+
+		const next = new URL(page.url);
+		next.searchParams.delete('edit');
+		next.searchParams.delete('profileComposerTab');
+		if (!next.searchParams.get('tab')) {
+			next.searchParams.set('tab', 'products');
+		}
+		const query = next.searchParams.toString();
+		void goto(`${next.pathname}${query ? `?${query}` : ''}`, {
+			replaceState: true,
+			keepFocus: true,
+			noScroll: true
+		});
+	});
+
+	$effect(() => {
+		if (!browser) return;
+		if (page.url.searchParams.get('newProfile') !== '1') return;
+		homeDashboardTab = 'products';
+		autoLaunchProductsPresenter.openCreateComposer();
+		const next = new URL(page.url);
+		next.searchParams.delete('newProfile');
+		const query = next.searchParams.toString();
+		void goto(`${next.pathname}${query ? `?${query}` : ''}`, {
+			replaceState: true,
+			keepFocus: true,
+			noScroll: true
+		});
 	});
 
 	$effect(() => {
@@ -1144,6 +1199,12 @@
 						suggestedAuthEmail={currentUser?.email?.trim() ?? null}
 						loading={productsLoadingVm}
 						profileLaunchCardRowsVm={productLaunchCardRowsVm}
+						publishedDestinations={publishedDirectoryDestinationsVm}
+						onCreateDirectoryVariant={(mainProfileId, directorySiteKey) =>
+							autoLaunchProductsPresenter.createDirectoryVariantForSite(
+								mainProfileId,
+								directorySiteKey
+							)}
 						bind:composerOpen={autoLaunchProductsPresenter.composerOpen}
 						composerSubmitting={autoLaunchProductsPresenter.composerSubmitting}
 						editingProfile={productsEditingProfileVm}

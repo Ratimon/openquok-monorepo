@@ -12,6 +12,7 @@ import type { OrganizationRepository } from "../../repositories/OrganizationRepo
 import type { PostsRepository } from "../../repositories/PostsRepository";
 import type { RbacRepository } from "../../repositories/RbacRepository";
 import type { SubscriptionService } from "../../services/SubscriptionService";
+import type { DirectorySeoRepository } from "../../repositories/DirectorySeoRepository";
 import type { OrganizationSubscriptionRow } from "../../repositories/SubscriptionRepository";
 import { computePostsBillingMonthStart } from "./postsBilling";
 import { SubscriptionGuardService } from "./SubscriptionGuardService";
@@ -61,6 +62,7 @@ function createGuardHarness(params: {
     workspaceTier?: SubscriptionTier;
     billingEnabled?: boolean;
     postsCount?: number;
+    competitorCount?: number;
     isPlatformAdmin?: boolean;
 }): SubscriptionGuardService {
     const ownedCount = params.ownedCount ?? 0;
@@ -123,12 +125,19 @@ function createGuardHarness(params: {
         countPostsFromDay: jest.fn().mockResolvedValue(params.postsCount ?? 0),
     } as unknown as PostsRepository;
 
+    const directorySeoRepository = {
+        countCompetitorsForOrganization: jest
+            .fn()
+            .mockResolvedValue(params.competitorCount ?? 0),
+    } as unknown as DirectorySeoRepository;
+
     const guard = new SubscriptionGuardService(
         subscriptionService,
         {} as IntegrationService,
         organizationRepository,
         postsRepository,
-        mockRbacRepository(params.isPlatformAdmin ?? false)
+        mockRbacRepository(params.isPlatformAdmin ?? false),
+        directorySeoRepository
     );
 
     jest.spyOn(guard, "getTierAndLimits").mockImplementation(async (orgId: string) => {
@@ -287,7 +296,10 @@ describe("SubscriptionGuardService WORKSPACES", () => {
             {} as IntegrationService,
             organizationRepository,
             {} as PostsRepository,
-            mockRbacRepository(false)
+            mockRbacRepository(false),
+            {
+                countCompetitorsForOrganization: jest.fn().mockResolvedValue(0),
+            } as unknown as DirectorySeoRepository
         );
 
         await expect(
@@ -553,7 +565,10 @@ function createEnableChannelGuardHarness(params: {
         integrationService,
         organizationRepository,
         {} as PostsRepository,
-        mockRbacRepository(params.isPlatformAdmin ?? false)
+        mockRbacRepository(params.isPlatformAdmin ?? false),
+        {
+            countCompetitorsForOrganization: jest.fn().mockResolvedValue(0),
+        } as unknown as DirectorySeoRepository
     );
 
     jest.spyOn(guard, "getTierAndLimits").mockResolvedValue({
@@ -620,5 +635,33 @@ describe("SubscriptionGuardService assertEnableSocialChannel", () => {
         await expect(
             guard.assertEnableSocialChannel(organizationId, authUserId)
         ).resolves.toBeUndefined();
+    });
+});
+
+describe("directory SEO plan limits", () => {
+    it("blocks another competitor when SOLO workspace is at cap", async () => {
+        const cap = pricing.SOLO.directory_seo_competitors_per_workspace;
+        const guard = createGuardHarness({ workspaceTier: "SOLO", competitorCount: cap });
+        await expect(
+            guard.assert(SubscriptionSection.DIRECTORY_SEO_COMPETITORS_PER_WORKSPACE, {
+                scope: "workspaceWithDelta",
+                organizationId,
+                delta: 1,
+            })
+        ).rejects.toMatchObject({
+            section: SubscriptionSection.DIRECTORY_SEO_COMPETITORS_PER_WORKSPACE,
+        });
+    });
+
+    it("blocks directory SEO on FREE tier", async () => {
+        const guard = createGuardHarness({ workspaceTier: "FREE" });
+        await expect(
+            guard.assert(SubscriptionSection.DIRECTORY_SEO_ENABLED, {
+                scope: "workspace",
+                organizationId,
+            })
+        ).rejects.toMatchObject({
+            section: SubscriptionSection.DIRECTORY_SEO_ENABLED,
+        });
     });
 });

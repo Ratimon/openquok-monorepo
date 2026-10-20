@@ -56,6 +56,8 @@ A site can appear in both places. Use Build Backlinks to compare opportunities. 
 
 <CardGrid>
 <LinkCard title="Directory submission overview" description="End-to-end launch workflow with the extension" href="/docs/directory-submission" />
+<LinkCard title="Tailor profiles per directory" description="Site-specific profile copies and similarity to main" href="/docs/directory-submission/profile-variants" />
+<LinkCard title="Directory analytics" description="Live domain rating for your product site and competitors" href="/docs/directory-submission/directory-analytics" />
 <LinkCard title="PeerPush integration" description="Variants and profile fields for PeerPush" href="/docs/directory-integration/peerpush" />
 <LinkCard title="Uneed integration" description="Join the line, paid launch, and maker profile" href="/docs/directory-integration/uneed" />
 <LinkCard title="Business profiles" description="Products tab and channel grouping" href="/docs/channels/channel-groups" />
