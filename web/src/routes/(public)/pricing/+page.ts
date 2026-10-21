@@ -2,7 +2,10 @@ import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import type { PublicFaqItem } from '$lib/content/constants/faq';
+import type { PublicPricingPageHeroCopy } from '$lib/billing/constants/publicPricingPageSeo';
+import type { PublicPricingProductLine } from '$lib/billing/constants/publicPricingProductLines';
 import type { PublicPricingPageViewModel } from '$lib/billing';
+import type { PublicPricingRouteId } from '$lib/billing/constants/publicPricingPageSeo';
 import type { SubscriptionPeriod } from 'openquok-common';
 
 import type { PageLoad } from './$types';
@@ -26,6 +29,10 @@ export const load: PageLoad = async ({ parent, data }) => {
 			publicFaqConfigPm: Record<string, string>;
 			publicFaqItemsVm: PublicFaqItem[];
 			schemaData: unknown;
+			pricingRouteId: PublicPricingRouteId;
+			productLine: PublicPricingProductLine;
+			pricingHero: PublicPricingPageHeroCopy;
+			pricingBreadcrumbLabel: string;
 		};
 
 		return {
@@ -40,7 +47,11 @@ export const load: PageLoad = async ({ parent, data }) => {
 			defaultPeriod: serverData.defaultPeriod,
 			publicFaqConfigPm: serverData.publicFaqConfigPm,
 			publicFaqItemsVm: serverData.publicFaqItemsVm,
-			schemaData: serverData.schemaData
+			schemaData: serverData.schemaData,
+			pricingRouteId: serverData.pricingRouteId,
+			productLine: serverData.productLine,
+			pricingHero: serverData.pricingHero,
+			pricingBreadcrumbLabel: serverData.pricingBreadcrumbLabel
 		};
 	}
 

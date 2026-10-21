@@ -9,6 +9,7 @@ import {
 	withSchemaOrgAudience
 } from '$lib/content/utils/createPublicAudienceSEOSchema';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
+import { createPublicPricingSectionSEOSchema } from '$lib/content/utils/createPublicPricingSEOSchema';
 import { buildDirectorySubmissionToolLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
@@ -157,6 +158,10 @@ export async function load({ url, cookies, parent }) {
 				sectionDescription: processSection.description,
 				sectionSubtitle: processSection.subtitle,
 				steps: processSection.steps
+			}),
+			createPublicPricingSectionSEOSchema({
+				pageUrl: canonical,
+				origin: url.origin
 			}),
 			createBreadcrumbListSchema(buildDirectorySubmissionToolLandingBreadcrumbItems(), url.origin)
 		])

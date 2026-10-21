@@ -7,12 +7,19 @@
 	import VideoOrImage from '$lib/ui/media-files/VideoOrImage.svelte';
 	import { PUBLIC_LANDING_COMPACT_TRIAL_CTA } from '$lib/content/constants/landing/hero-copy';
 	import PublicLandingSectionHeading from '$lib/ui/templates/titles/PublicLandingSectionHeading.svelte';
+	import type { PublicHeroTitleHeadingLevel } from '$lib/ui/templates/titles/publicHeroTitle.types';
 
 	type Props = {
 		heroTheme: LandingHeroTheme;
 		landingSubtitle: string;
 		landingTitle: string;
 		landingDescription: string;
+		/** `main` = home-page hero title scale. */
+		landingTitleScale?: 'section' | 'main';
+		/** When false, use per-word gradient segments (main marketing heroes). Default: split on commas when present. */
+		landingTitleCommaSeparated?: boolean;
+		landingTitleClass?: string;
+		landingTitleHeadingLevel?: PublicHeroTitleHeadingLevel;
 
 		imageSrc?: string;
 		imageAlt?: string;
@@ -39,6 +46,10 @@
 		landingSubtitle,
 		landingTitle,
 		landingDescription,
+		landingTitleScale = 'section',
+		landingTitleCommaSeparated,
+		landingTitleClass,
+		landingTitleHeadingLevel,
 
 		imageSrc,
 		imageAlt = '',
@@ -58,7 +69,9 @@
 		children
 	}: Props = $props();
 
-	const commaSeparatedTitle = $derived(landingTitle.includes(','));
+	const commaSeparatedTitle = $derived(
+		landingTitleCommaSeparated ?? landingTitle.includes(',')
+	);
 
 	const resolvedMediaContainerClass = $derived(
 		mediaContainerClass ?? (rightMedia ? 'max-w-2xl' : 'max-w-lg')
@@ -93,6 +106,9 @@
 							<PublicLandingSectionHeading
 								title={landingTitle}
 								{heroTheme}
+								titleScale={landingTitleScale}
+								class={landingTitleClass ?? ''}
+								headingLevel={landingTitleHeadingLevel ?? (landingTitleScale === 'main' ? 'h1' : 'h2')}
 								commaSeparated={commaSeparatedTitle}
 								gradientMode={commaSeparatedTitle ? 'part' : 'segment'}
 							/>

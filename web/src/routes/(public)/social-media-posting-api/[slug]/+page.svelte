@@ -18,6 +18,8 @@
 	import PublicApiMarketingSiblingGrid from '$lib/ui/templates/api-marketing/PublicApiMarketingSiblingGrid.svelte';
 	import PublicApiMarketingWhoIsFor from '$lib/ui/templates/api-marketing/PublicApiMarketingWhoIsFor.svelte';
 	import PublicMarketingPricingSection from '$lib/ui/components/pricing/PublicMarketingPricingSection.svelte';
+	import { publicLandingHeroStatBadgesFromFeatureSections } from '$lib/content/constants/marketing/publicLandingHeroStatBadges';
+	import PublicLandingHeroStatBadges from '$lib/ui/templates/landing-page/PublicLandingHeroStatBadges.svelte';
 
 	type Props = { data: PageData };
 
@@ -45,6 +47,7 @@
 			platformVm.formatExamples[0]?.requestJson
 		)
 	);
+	const heroStatBadges = $derived(publicLandingHeroStatBadgesFromFeatureSections(featureSections));
 </script>
 
 <JsonLdHead schemaData={schemaData} />
@@ -57,6 +60,11 @@
 			title={platformVm.heroTitle}
 			description={platformVm.heroDescription}
 			payloadValidatorHref={payloadValidatorHref}
+		/>
+
+		<PublicLandingHeroStatBadges
+			badges={heroStatBadges}
+			ariaLabel="{platformVm.platformLabel} API highlights"
 		/>
 
 		<PublicApiMarketingWhoIsFor

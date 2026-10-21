@@ -1,80 +1,66 @@
 import type { PublicChannelFeatureSection } from '$lib/content/constants/channels/catalog/types';
+import { PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG } from '$lib/content/constants/marketing/directory-submission-landing';
 
-export type DirectoryProductFeatureSectionHeader = {
-	subtitle: string;
-	title: string;
-	description: string;
-};
-
-export type DirectoryProductFeatureSections = {
-	feature1: DirectoryProductFeatureSectionHeader;
-	feature2: DirectoryProductFeatureSectionHeader;
-	feature3: DirectoryProductFeatureSectionHeader;
-};
-
-/** Copy for `/directory-submission-tool` product heroes (shared themes with channel PSEO). */
-export const directorySubmissionToolProductFeatureSections: DirectoryProductFeatureSections =
-	{
-		feature1: {
-			subtitle: 'One business profile',
-			title: 'Fill once, use on every directory',
-			description:
-				'Save name, pitch, logo, and links in My Products. You pick each site. No fixed vendor list. Edit anytime and review on the next form.'
-		},
-		feature2: {
-			subtitle: 'Workspaces and team',
-			title: 'Invite by email, assign Member, manage seats by Admin',
-			description:
-				'Add Members by email. Admins manage seats. Everyone shares profiles and launch status in My Products.'
-		},
-		feature3: {
-			subtitle: 'Per-directory fields',
-			title: 'One main profile, tweak each site',
-			description:
-				'Set global copy once. Change tags, pricing, or limits per directory before autofill. Track submitted state and listing URLs in the same workspace.'
-		}
-	};
+const SEARCH_CONSOLE_HERO_IMAGE_SRC = '/landing/search-console-performance.webp';
 
 export type DirectoryChannelFeatureSectionsParams = {
 	platformLabel: string;
+	/** Host shown in Safari chrome (e.g. peerpush.com). */
+	siteHost: string;
 	/** Platform-specific discovery fields phrase (e.g. "PeerPush categories"). */
 	discoveryFieldsLabel: string;
-	/** One or two short sentences for the autofill step (variants + submit on site). */
+	/** One or two short sentences for the extension autofill bento under feature 1. */
 	autofillDescription: string;
 };
 
 /**
- * Shared three-row feature heroes for `/channels/{directory-slug}` PSEO pages.
- * Copy aligns with `/directory-submission-tool` product themes; bentos match the tool landing.
+ * Five-row feature heroes for `/channels/{directory-slug}` — copy tracks
+ * `/directory-submission-tool` `productFeatureSections`, with platform-first tailoring.
  */
 export function buildDirectoryChannelFeatureSections(
 	params: DirectoryChannelFeatureSectionsParams
 ): PublicChannelFeatureSection[] {
-	const { platformLabel, discoveryFieldsLabel, autofillDescription } = params;
+	const { platformLabel, siteHost, discoveryFieldsLabel, autofillDescription } = params;
+	const product = PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG.productFeatureSections;
 
 	return [
 		{
-			subtitle: 'One business profile',
-			title: 'Fill once, reuse on every launch',
-			description:
-				`Save name, pitch, logo, and links in My Products. Add ${discoveryFieldsLabel} before you open ${platformLabel}. Fix gaps in the composer, not on the site form.`,
-			bentoId: 'directory-profile-cases',
+			subtitle: product.feature1.subtitle,
+			title: product.feature1.title,
+			description: autofillDescription,
+			bentoId: 'directory-extension-autofill',
 			mediaOnRight: true
 		},
 		{
-			subtitle: 'Extension autofill',
-			title: `Open ${platformLabel}, review fields, submit on the site`,
-			description: autofillDescription,
-			bentoId: 'directory-extension-autofill',
+			subtitle: product.feature2.subtitle,
+			title: product.feature2.title,
+			description: product.feature2.description,
+			sectionKind: 'team-hero'
+		},
+		{
+			subtitle: product.feature3.subtitle,
+			title: product.feature3.title,
+			description:
+				`Edit name, description, screenshots, and links in one dashboard. Tailor ${discoveryFieldsLabel} or pricing per site. Changes sync to pending ${platformLabel} launches and other directories. Track real-time progress.`,
+			bentoId: 'directory-profile-cases',
 			mediaOnRight: false
 		},
 		{
-			subtitle: 'Track submissions',
-			title: 'Mark submitted, save the listing URL',
+			subtitle: product.feature4.subtitle,
+			title: product.feature4.title,
 			description:
-				`After you publish on ${platformLabel}, mark complete in OpenQuok. Store the live URL in My Products per variant.`,
-			bentoId: 'directory-track-status',
+				`Monitor domain rating history for your product site, add competitor domains, and see trends next to ${platformLabel} and other listings you submitted in one dashboard — so you know what is working.`,
+			bentoId: 'directory-analytics',
 			mediaOnRight: true
+		},
+		{
+			subtitle: product.feature5.subtitle,
+			title: product.feature5.title,
+			description:
+				`Search Console totals and trends next to your launches on ${siteHost} and beyond. See when steady directory submits turn into more visits — not just backlinks on a spreadsheet.`,
+			imageSrc: SEARCH_CONSOLE_HERO_IMAGE_SRC,
+			imageAlt: 'Search Console performance chart showing growing clicks and impressions',
+			mediaOnRight: false
 		}
 	];
 }

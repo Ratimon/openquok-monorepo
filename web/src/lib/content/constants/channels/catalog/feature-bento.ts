@@ -43,4 +43,5 @@ export type PublicChannelFeatureBentoId =
 	| 'skool-follow-ups'
 	| 'directory-profile-cases'
 	| 'directory-extension-autofill'
-	| 'directory-track-status';
+	| 'directory-track-status'
+	| 'directory-analytics';

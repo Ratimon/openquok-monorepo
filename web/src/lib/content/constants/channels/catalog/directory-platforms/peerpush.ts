@@ -1,6 +1,11 @@
 import { icons } from '$data/icons';
 
 import { buildDirectoryChannelFeatureSections } from '$lib/content/constants/channels/catalog/directory-platforms/directoryChannelFeatureSections';
+import {
+	buildDirectoryChannelHeroDescription,
+	buildDirectoryChannelHeroTitle,
+	buildDirectoryChannelWhoIsFor
+} from '$lib/content/constants/channels/catalog/directory-platforms/directoryChannelLandingShared';
 import { buildDirectoryChannelProcessSection } from '$lib/content/constants/channels/catalog/directory-platforms/directoryChannelProcessSection';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/catalog/types';
 import {
@@ -18,12 +23,11 @@ export const peerpushDirectoryChannel = {
 	icon: icons.PeerPush.name,
 	channelKind: 'directory',
 	buildBacklinksSiteSlug: 'peerpush',
-	heroTitle: 'Launch on PeerPush with your OpenQuok business profile',
-	heroDescription:
-		'Build one product profile in OpenQuok. Launch Standard launch or the free queue from My Products. The browser extension autofills peerpush.com. You review each field and submit on PeerPush.',
-	metaTitle: 'PeerPush Directory Launch — Startup Listing & Product Launch',
+	heroTitle: buildDirectoryChannelHeroTitle('PeerPush'),
+	heroDescription: buildDirectoryChannelHeroDescription('PeerPush', 'peerpush.com'),
+	metaTitle: 'PeerPush Launch — DR Tracking & Directory Backlinks',
 	metaDescription:
-		'Submit your startup to PeerPush with OpenQuok. Reuse your business profile, autofill the PeerPush submit form with the extension, and track listing readiness. You control each publish on peerpush.com.',
+		'Grow domain rating and launch on PeerPush with OpenQuok. Autofill PeerPush forms, track DR and competitors, and approve every listing on peerpush.com.',
 	hubDescription:
 		'Autofill PeerPush Standard launch and free queue from your business profile. You submit on peerpush.com.',
 	keywords: [
@@ -38,9 +42,10 @@ export const peerpushDirectoryChannel = {
 	],
 	featureSections: buildDirectoryChannelFeatureSections({
 		platformLabel: 'PeerPush',
+		siteHost: 'peerpush.com',
 		discoveryFieldsLabel: 'PeerPush categories',
 		autofillDescription:
-			'Pick Standard launch or Free queue in My Products. The extension opens peerpush.com with your profile. Edit fields, then submit on PeerPush.'
+			'Pick Standard launch or Free queue in My Products. The extension opens peerpush.com with your profile. Edit fields, then submit on PeerPush — and reuse the same profile on other directories you choose.'
 	}),
 	processSection: buildDirectoryChannelProcessSection({
 		channelSlug: 'peerpush',
@@ -53,34 +58,7 @@ export const peerpushDirectoryChannel = {
 		launchOpportunityStepContent:
 			'PeerPush offers Standard launch (paid, faster publish) and a free queue. Pick the destination in My Products that fits your budget. Dofollow terms can differ by variant — confirm on PeerPush before you pay.'
 	}),
-	audienceSubtitle: 'Built for indie founders',
-	audienceTitle: 'Who launches on PeerPush with OpenQuok?',
-	audienceCards: [
-		{
-			iconName: icons.CustomizedDrawnLaptop.name,
-			iconClass: 'text-sky-400',
-			title: 'Solo founders',
-			description:
-				'Ship a launch on PeerPush without copying the same pitch into every form field.',
-			containerClass: 'h-full min-h-[18rem]'
-		},
-		{
-			iconName: icons.CustomizedDrawnHouse.name,
-			iconClass: 'text-amber-400',
-			title: 'Small product teams',
-			description:
-				'Keep one canonical profile for PeerPush variants and future directory launches.',
-			containerClass: 'h-full min-h-[18rem]'
-		},
-		{
-			iconName: icons.CustomizedDrawnRobot.name,
-			iconClass: 'text-emerald-400',
-			title: 'Launch marketers',
-			description:
-				'Hand off a filled PeerPush form to a teammate. They still submit from their browser.',
-			containerClass: 'h-full min-h-[18rem]'
-		}
-	],
+	...buildDirectoryChannelWhoIsFor('PeerPush'),
 	faqSubtitle: 'Frequently asked questions',
 	faqTitle: 'PeerPush directory launch and extension autofill',
 	faqDescription:

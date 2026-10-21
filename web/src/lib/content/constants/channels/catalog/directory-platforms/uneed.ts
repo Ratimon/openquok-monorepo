@@ -1,6 +1,11 @@
 import { icons } from '$data/icons';
 
 import { buildDirectoryChannelFeatureSections } from '$lib/content/constants/channels/catalog/directory-platforms/directoryChannelFeatureSections';
+import {
+	buildDirectoryChannelHeroDescription,
+	buildDirectoryChannelHeroTitle,
+	buildDirectoryChannelWhoIsFor
+} from '$lib/content/constants/channels/catalog/directory-platforms/directoryChannelLandingShared';
 import { buildDirectoryChannelProcessSection } from '$lib/content/constants/channels/catalog/directory-platforms/directoryChannelProcessSection';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/catalog/types';
 import {
@@ -18,12 +23,11 @@ export const uneedDirectoryChannel = {
 	icon: icons.Uneed.name,
 	channelKind: 'directory',
 	buildBacklinksSiteSlug: 'uneed',
-	heroTitle: 'Launch on Uneed with your OpenQuok business profile',
-	heroDescription:
-		'Keep one product profile in OpenQuok. Launch Join the line, paid launch, or maker profile flows from My Products. The extension autofills uneed.best. You submit on Uneed when the form looks right.',
-	metaTitle: 'Uneed Directory Launch — Product Launch & Startup Listing',
+	heroTitle: buildDirectoryChannelHeroTitle('Uneed'),
+	heroDescription: buildDirectoryChannelHeroDescription('Uneed', 'uneed.best'),
+	metaTitle: 'Uneed Launch — DR Tracking & Product Directory Listings',
 	metaDescription:
-		'Submit your product to Uneed with OpenQuok. Reuse your business profile, autofill Uneed launch forms with the browser extension, and track readiness. You approve each submit on uneed.best.',
+		'Grow domain rating and launch on Uneed with OpenQuok. Autofill Uneed forms, track DR trends, and approve every listing on uneed.best.',
 	hubDescription:
 		'Autofill Uneed Join the line, paid launch, and maker profile from your business profile. You submit on uneed.best.',
 	keywords: [
@@ -38,9 +42,10 @@ export const uneedDirectoryChannel = {
 	],
 	featureSections: buildDirectoryChannelFeatureSections({
 		platformLabel: 'Uneed',
+		siteHost: 'uneed.best',
 		discoveryFieldsLabel: 'Uneed pricing and maker fields',
 		autofillDescription:
-			'Pick Join the line, paid launch, or maker profile in My Products. The extension opens uneed.best with your profile. Edit fields, then submit on Uneed.'
+			'Pick Join the line, paid launch, or maker profile in one dashboard. The extension opens uneed.best with your profile. Edit fields, then submit on Uneed — and reuse the same profile on other directories you choose.'
 	}),
 	processSection: buildDirectoryChannelProcessSection({
 		channelSlug: 'uneed',
@@ -49,38 +54,11 @@ export const uneedDirectoryChannel = {
 		safariMockContentId: 'directory-site-uneed',
 		buildBacklinksSiteSlug: 'uneed',
 		siteRulesStepContent:
-			'Uneed sets backlink and listing rules per flow on uneed.best. Skim the policy for your variant before you launch from My Products — OpenQuok autofills, you publish on Uneed.',
+			'Uneed sets backlink and listing rules per flow on uneed.best. Skim the policy for your variant before you launch from one dashboard — OpenQuok autofills, you publish on Uneed.',
 		launchOpportunityStepContent:
-			'Choose Join the line (free wait), a paid launch slot, or maker profile in My Products. Each path has different timing and dofollow terms — pick what matches your goals, then confirm details on Uneed.'
+			'Choose Join the line (free wait), a paid launch slot, or maker profile in one dashboard. Each path has different timing and dofollow terms — pick what matches your goals, then confirm details on Uneed.'
 	}),
-	audienceSubtitle: 'Built for product makers',
-	audienceTitle: 'Who launches on Uneed with OpenQuok?',
-	audienceCards: [
-		{
-			iconName: icons.CustomizedDrawnLaptop.name,
-			iconClass: 'text-violet-400',
-			title: 'Indie hackers',
-			description:
-				'Line up Uneed launches without re-entering the same pitch on every pricing page.',
-			containerClass: 'h-full min-h-[18rem]'
-		},
-		{
-			iconName: icons.CustomizedDrawnHouse.name,
-			iconClass: 'text-rose-400',
-			title: 'Micro-SaaS teams',
-			description:
-				'Track Join the line and paid launch separately while sharing one business profile.',
-			containerClass: 'h-full min-h-[18rem]'
-		},
-		{
-			iconName: icons.CustomizedDrawnRobot.name,
-			iconClass: 'text-cyan-400',
-			title: 'Launch coordinators',
-			description:
-				'Prefill Uneed forms for a founder review. They still click publish on uneed.best.',
-			containerClass: 'h-full min-h-[18rem]'
-		}
-	],
+	...buildDirectoryChannelWhoIsFor('Uneed'),
 	faqSubtitle: 'Frequently asked questions',
 	faqTitle: 'Uneed directory launch and extension autofill',
 	faqDescription:
@@ -97,7 +75,7 @@ export const uneedDirectoryChannel = {
 				`OpenQuok ships separate destinations for Join the line, paid launch, and maker profile when they are published in the auto-launch catalog. Each has its own start URL and extension config. Compare variants in ${faqLink(UNEED_DOCS_PATH, 'Uneed directory integration')}.`
 		},
 		{
-			title: 'What should I prepare in My Products first?',
+			title: 'What should I prepare in my dashboard first?',
 			description:
 				`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, install the ${faqLink(faqHrefDocs('installation/chrome-extension'), 'OpenQuok browser extension')}, and complete the product profile fields Uneed expects — name, tagline, description, website, logo, and discovery tags. The readiness panel lists anything still missing.`
 		},

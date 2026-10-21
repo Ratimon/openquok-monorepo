@@ -56,7 +56,7 @@ export function buildDirectoryChannelProcessSection(
 				`Add name, tagline, logo, and links in My Products. Fill ${platformLabel} fields before you open ${siteHost}.`,
 			iconName: icons.CustomizedDrawnHouse.name,
 			marketingPanel: 'directory-profile-readiness',
-			mediaAlt: `My Products profile ready for ${platformLabel}`
+			mediaAlt: `Profile ready for ${platformLabel}`
 		},
 		{
 			id: 2,

@@ -31,9 +31,7 @@ describe('PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG', () => {
 
 	it('emphasizes human review and pace in hero and compare copy', () => {
 		const heroAndCompare = [
-			PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG.hero.eyebrow,
 			PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG.hero.description,
-			PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG.hero.trustLine,
 			...PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG.hero.bullets,
 			...PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG.compareSection.points.flatMap((point) => [
 				point.pain,
@@ -43,8 +41,8 @@ describe('PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG', () => {
 			.join(' ')
 			.toLowerCase();
 
-		expect(heroAndCompare).toContain('review');
 		expect(heroAndCompare).toContain('human');
+		expect(heroAndCompare).toContain('control');
 		expect(heroAndCompare).not.toContain('we submit');
 	});
 

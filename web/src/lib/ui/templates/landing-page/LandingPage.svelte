@@ -30,6 +30,8 @@
 	import PublicMarketingPricingSection from '$lib/ui/components/pricing/PublicMarketingPricingSection.svelte';
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
+	import { PUBLIC_HOME_LANDING_HERO_STAT_BADGES } from '$lib/content/constants/marketing/publicHomeLandingHeroStatBadges';
+	import PublicLandingHeroStatBadges from '$lib/ui/templates/landing-page/PublicLandingHeroStatBadges.svelte';
 
 	type Props = {
 		landingPageConfigVm?: Record<string, string>;
@@ -138,7 +140,12 @@
 
 	const whoIsForCards: AudienceCard[] = [...PUBLIC_LANDING_WHO_IS_FOR_CARDS];
 
-
+	const homeHeroStatBadges = $derived(
+		PUBLIC_HOME_LANDING_HERO_STAT_BADGES.map((badge) => ({
+			...badge,
+			href: badge.href ? hostedMarketingHref(badge.href, page.url.origin) : undefined
+		}))
+	);
 </script>
 
 <HeroMain
@@ -149,6 +156,11 @@
 	githubOwner="Ratimon"
 	githubRepo="openquok-monorepo"
 	breadcrumb={heroBreadcrumb}
+/>
+
+<PublicLandingHeroStatBadges
+	badges={homeHeroStatBadges}
+	ariaLabel="OpenQuok product lines"
 />
 
 <HeroDemo
@@ -171,7 +183,7 @@
 <PublicLandingCmsFeatureSections
 	{landingPageConfigVm}
 	{isLoggedIn}
-	/>
+/>
 
 <PublicOpportunitiesPreviewGrid
 	heroTheme={landingHeroTheme}
@@ -189,6 +201,7 @@
 
 <PublicMarketingPricingSection
 	presetId="home"
+	productLine="all"
 	{isLoggedIn}
 	cmsSection={{ subtitle: pricingSubtitle, title: pricingTitle, description: pricingDescription }}
 />

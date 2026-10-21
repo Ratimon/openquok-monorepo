@@ -607,7 +607,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 	FEATURE_8_SUBTITLE: {
 		description: 'Tag above the eighth secondary hero section',
 		type: 'string',
-		default: 'Analytics',
+		default: 'Built-in analytics',
 		inputType: 'input',
 		maxInputLength: 60
 	},

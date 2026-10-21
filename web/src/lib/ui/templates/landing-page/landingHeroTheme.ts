@@ -178,8 +178,12 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'skool',
 	// Social channels & networks
 	'directory',
+	'directories',
+	'relevant directories',
 	'multiple directories',
+	'launch plan',
 	'submission costs',
+	'not weeks',
 	'PeerPush',
 	'Uneed',
 	// Protected account app heroes

@@ -17,6 +17,8 @@
 	import PublicApiMarketingPayloadValidatorSection from '$lib/ui/templates/api-marketing/PublicApiMarketingPayloadValidatorSection.svelte';
 	import PublicApiMarketingStaticExampleBento from '$lib/ui/templates/api-marketing/PublicApiMarketingStaticExampleBento.svelte';
 	import PublicMarketingPricingSection from '$lib/ui/components/pricing/PublicMarketingPricingSection.svelte';
+	import { getPublicApiHubLandingHeroStatBadges } from '$lib/content/constants/channels/api/_shared/publicApiCapabilityHubStatBadgesConfig';
+	import PublicLandingHeroStatBadges from '$lib/ui/templates/landing-page/PublicLandingHeroStatBadges.svelte';
 
 	type Props = { data: PageData };
 
@@ -40,6 +42,11 @@
 		description={hubVm.heroDescription}
 		bullets={hubVm.heroBullets}
 		{payloadValidatorHref}
+	/>
+
+	<PublicLandingHeroStatBadges
+		badges={getPublicApiHubLandingHeroStatBadges('posting')}
+		ariaLabel="Posting API highlights"
 	/>
 
 	<PublicApiMarketingWhoIsFor capability="posting" />

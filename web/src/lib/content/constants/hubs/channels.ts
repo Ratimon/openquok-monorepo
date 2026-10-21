@@ -74,7 +74,7 @@ export const PUBLIC_CHANNELS_HUB = {
 			},
 			{
 				left: 'Agents and MCP tools draft and schedule social content',
-				right: 'Track readiness, listing URL, and evidence in My Products'
+				right: 'Track readiness, listing URL, and evidence in one dashboard'
 			},
 			{
 				left: 'Docs under social integration and connect channels',

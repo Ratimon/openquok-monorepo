@@ -1,23 +1,24 @@
 import { describe, expect, it } from 'vitest';
 
 import { buildDirectoryChannelFeatureSections } from '$lib/content/constants/channels/catalog/directory-platforms/directoryChannelFeatureSections';
+import { PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG } from '$lib/content/constants/marketing/directory-submission-landing';
 
 describe('buildDirectoryChannelFeatureSections', () => {
-	it('returns three feature rows with directory bentos', () => {
+	it('mirrors directory-submission-tool product feature copy', () => {
 		const sections = buildDirectoryChannelFeatureSections({
 			platformLabel: 'PeerPush',
+			siteHost: 'peerpush.com',
 			discoveryFieldsLabel: 'PeerPush categories',
-			autofillDescription: 'Variant line.'
+			autofillDescription: 'Submit on peerpush.com when the form looks right.'
 		});
 
-		expect(sections).toHaveLength(3);
-		expect(sections.map((s) => s.bentoId)).toEqual([
-			'directory-profile-cases',
-			'directory-extension-autofill',
-			'directory-track-status'
-		]);
-		expect(sections[0]?.subtitle).toBe('One business profile');
-		expect(sections[1]?.title).toContain('PeerPush');
-		expect(sections[2]?.description).toContain('PeerPush');
+		const product = PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG.productFeatureSections;
+
+		expect(sections[0]?.title).toBe(product.feature1.title);
+		expect(sections[1]?.title).toBe(product.feature2.title);
+		expect(sections[2]?.title).toBe(product.feature3.title);
+		expect(sections[3]?.title).toBe(product.feature4.title);
+		expect(sections[4]?.title).toBe(product.feature5.title);
+		expect(sections[1]?.sectionKind).toBe('team-hero');
 	});
 });

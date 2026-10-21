@@ -119,7 +119,7 @@
 	landingSubtitle={sections.feature5.subtitle}
 	landingTitle={sections.feature5.title}
 	landingDescription={sections.feature5.description}
-	imageSrc="/landing/5-calendar-filters-views.mp4"
+	imageSrc="/landing/calendar-filters-views.mp4"
 	imageAlt="Calendar day, week, month, and list views with smart filters"
 	ctaText={featureCtaText}
 	ctaHref={ctaHref}
@@ -130,7 +130,7 @@
 	landingSubtitle={sections.feature6.subtitle}
 	landingTitle={sections.feature6.title}
 	landingDescription={sections.feature6.description}
-	imageSrc="/landing/6-kanban-filters-drag-drop.mp4"
+	imageSrc="/landing/kanban-filters-drag-drop.mp4"
 	imageAlt="Kanban board with drag-and-drop review workflow"
 	ctaText={featureCtaText}
 	ctaHref={ctaHref}
@@ -141,7 +141,7 @@
 	landingSubtitle={sections.feature7.subtitle}
 	landingTitle={sections.feature7.title}
 	landingDescription={sections.feature7.description}
-	imageSrc="/landing/7-file-manager.mp4"
+	imageSrc="/landing/file-manager.mp4"
 	imageAlt="Workspace-scoped file manager for media assets"
 	ctaText={featureCtaText}
 	ctaHref={ctaHref}
@@ -152,7 +152,7 @@
 	landingSubtitle={sections.feature8.subtitle}
 	landingTitle={sections.feature8.title}
 	landingDescription={sections.feature8.description}
-	imageSrc="/landing/8-analytics.mp4"
+	imageSrc="/landing/analytics.mp4"
 	imageAlt="Analytics dashboard across social channels"
 	ctaText={featureCtaText}
 	ctaHref={ctaHref}

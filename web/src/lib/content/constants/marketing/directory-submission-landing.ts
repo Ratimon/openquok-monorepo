@@ -20,7 +20,7 @@ import {
 import type { PublicSetupStepsFooter } from '$lib/content/constants/landing/setup-steps-footer';
 import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 import type { ComparisonPoint } from '$lib/ui/templates/WithWithout.svelte';
-import { directorySubmissionToolProductFeatureSections } from '$lib/content/constants/channels/catalog/directory-platforms/directoryChannelFeatureSections';
+import type { PublicLandingHeroStatBadge } from '$lib/content/constants/marketing/publicLandingHeroStatBadges';
 import { route } from '$lib/utils/path';
 
 const CARD_CONTAINER_CLASS = 'h-full min-h-[18rem]';
@@ -59,23 +59,22 @@ export type PublicDirectorySubmissionLinkCardItem = {
 	iconName: IconName;
 };
 
-export type PublicDirectorySubmissionTrustStat = {
-	id: string;
-	label: string;
-	value: string;
-};
+export type PublicDirectorySubmissionTrustStat = PublicLandingHeroStatBadge;
 
-export type PublicDirectorySubmissionProductFeatureSections =
-	import('$lib/content/constants/channels/catalog/directory-platforms/directoryChannelFeatureSections').DirectoryProductFeatureSections;
+export type PublicDirectorySubmissionProductFeatureSections = {
+	feature1: PublicDirectorySubmissionSectionHeader;
+	feature2: PublicDirectorySubmissionSectionHeader;
+	feature3: PublicDirectorySubmissionSectionHeader;
+	feature4: PublicDirectorySubmissionSectionHeader;
+	feature5: PublicDirectorySubmissionSectionHeader;
+};
 
 export type PublicDirectorySubmissionLandingConfig = {
 	metaTitle: string;
 	metaDescription: string;
 	keywords: readonly string[];
 	hero: PublicDirectorySubmissionSectionHeader & {
-		eyebrow: string;
 		bullets: readonly string[];
-		trustLine: string;
 		primaryCta: PublicDirectorySubmissionCta;
 		secondaryCta: PublicDirectorySubmissionCta;
 	};
@@ -133,7 +132,7 @@ const tailoredFaqItems: readonly PublicFaqItem[] = [
 	},
 	{
 		title: 'How is this different from cheap “24–48 hour” automation?',
-		description: `Fast bulk tools optimize for speed. OpenQuok optimizes for approval safety: one business profile, the ${faqLink(chromeExtensionDocsHref, 'Chrome extension')} for autofill, and steady progress in My Products. You choose which directories to open and when to click submit.`
+		description: `Fast bulk tools optimize for speed. OpenQuok optimizes for approval safety: one business profile, the ${faqLink(chromeExtensionDocsHref, 'Chrome extension')} for autofill, and steady progress in one dashboard. You choose which directories to open and when to click submit.`
 	},
 	{
 		title: 'Which directories does OpenQuok support today?',
@@ -146,9 +145,9 @@ const tailoredFaqItems: readonly PublicFaqItem[] = [
 ];
 
 export const PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG: PublicDirectorySubmissionLandingConfig = {
-	metaTitle: 'Directory Submission Tool — Human Review, Steady Listings',
+	metaTitle: 'Directory Submission Tool — DR Growth & Human-Paced Launch',
 	metaDescription:
-		'Submit your startup to directory launch sites without bulk-bot risk. One profile, extension autofill, you approve every form, and you pace listings like a human — at workspace pricing, not $300 agency fees.',
+		'Grow domain rating and backlinks from directory launches without bulk-bot risk. One profile, extension autofill, DR analytics, and you approve every listing — workspace pricing, not $300 agency fees.',
 	keywords: [
 		'directory submission tool',
 		'directory submission service',
@@ -161,54 +160,52 @@ export const PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG: PublicDirectorySubmissi
 		'OpenQuok directory submission'
 	],
 	hero: {
-		subtitle: 'Directory launch',
-		eyebrow: '100+ directory targets · you review every form · steady pace',
-		title: 'Save hundreds of $\n List your product on launch directories',
+		subtitle: '',
+		title: 'Launch your startup on directories in days not weeks',
 		description:
-			'Cheap automation ships dozens of listings in a day. Premium agencies charge hundreds. OpenQuok gives you one profile, browser autofill, and you approve each submit on your schedule',
+			'Directory listings build backlinks and authority when you pace them like a human. OpenQuok autofills launch forms, tracks domain rating in your workspace, and keeps you in control of every submit.',
 		bullets: [
+			'Move from low DR by +15 AVG DR within 30 days',
 			'Save days of manual copy-paste across launch forms',
-			'Improve SEO with dofollow listings you actually control',
-			'You review every field before submit',
-			'Pace work over days or weeks to avoid suspicious spikes and penalty from SEO algorithms',
-			'Workspace pricing instead of $300+ done-for-you packages'
+			'Keep and own your login credentials',
+			'Reach buyers on Google, directories, and AI suggestions',
+			'You spread submissions like a human — No AI-powered automation, leading to penalty from Searh Engine',
+			'Save $300+ by yourself unlike other agency packages'
 		],
-		trustLine:
-			'You keep logins · approve each listing · spread submissions like a human · workspace pricing',
 		primaryCta: {
 			label: PUBLIC_LANDING_HERO_TRIAL_CTA,
 			href: publicFaqHref.signUp
 		},
 		secondaryCta: {
-			label: 'See how the process works',
+			label: 'How it works',
 			href: `${publicLandingPath}#directory-submission-process`
 		}
 	},
 	trustStats: [
 		{
-			id: 'pace',
-			label: 'Your pace',
-			value: 'One directory at a time'
+			id: 'pick-directories',
+			value: 'Your picks',
+			label: 'Curated catalog'
 		},
 		{
-			id: 'review',
-			label: 'Your review',
-			value: 'Approve every form'
+			id: 'workspace',
+			value: 'Team seats',
+			label: 'Shared workspace'
 		},
 		{
-			id: 'profile',
-			label: 'One profile',
-			value: 'Reuse across launches'
+			id: 'dashboard',
+			value: 'Full control',
+			label: 'One dashboard'
 		},
 		{
-			id: 'cost',
-			label: 'Typical agency',
-			value: '$300+ public pricing'
+			id: 'dr-tracking',
+			value: 'More visibility',
+			label: 'Backlinks and traffic'
 		}
 	],
 	whoIsFor: {
-		audienceSubtitle: 'Built for founders who care about account safety',
-		audienceTitle: 'Who uses human-paced directory launch?',
+		audienceSubtitle: 'For founders in the AI era',
+		audienceTitle: 'Who gets found on Google, directories, and LLMs?',
 		audienceCards: [
 			{
 				iconName: icons.CustomizedDrawnLaptop.name,
@@ -245,10 +242,10 @@ export const PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG: PublicDirectorySubmissi
 				id: 1,
 				title: 'Build one profile',
 				content:
-					'Add name, tagline, logo, and links in My Products. Fix gaps before you open a directory form.',
+					'Add name, description, logo, screenshot, and social links in one place. Fix gaps before you open a directory form.',
 				iconName: icons.CustomizedDrawnHouse.name,
 				marketingPanel: 'directory-profile-readiness',
-				mediaAlt: 'My Products profile with missing field badges'
+				mediaAlt: 'Profile with missing field badges'
 			},
 			{
 				id: 2,
@@ -271,7 +268,7 @@ export const PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG: PublicDirectorySubmissi
 				id: 4,
 				title: 'Plan launch timing',
 				content:
-					'Batch a few launches on one day when a platform’s algo favors momentum (e.g. GitHub). Otherwise spread them across sessions. Each directory sets its own dofollow and eligibility rules — read them before you submit.',
+					'Batch a few launches on one day when a platform’s algo favors momentum (e.g. GitHub). Otherwise spread them across sessions. Each directory sets its own dofollow rules.',
 				iconName: icons.Timer.name,
 				marketingPanel: 'directory-human-pace',
 				mediaAlt: 'Calendar with batched and spaced directory launches'
@@ -279,7 +276,7 @@ export const PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG: PublicDirectorySubmissi
 			{
 				id: 5,
 				title: 'Track status and URLs',
-				content: 'Mark submitted and save each live listing URL in My Products.',
+				content: 'Mark submitted and save each live listing URL in one dashboard.',
 				iconName: icons.ListOrdered.name,
 				marketingPanel: 'directory-track-status',
 				mediaAlt: 'Submitted status and listing URLs per directory'
@@ -291,10 +288,41 @@ export const PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG: PublicDirectorySubmissi
 			footerLinkHref: buildBacklinksHref
 		}
 	},
-	productFeatureSections: directorySubmissionToolProductFeatureSections,
+	productFeatureSections: {
+		feature1: {
+			subtitle: 'Pick directories',
+			title: 'Submit only directories that matter and skip the rest',
+			description:
+				'Research launch sites in our curated catalog. Explore real traffic and domain authority, not spam lists. You open only the directories you want. No forced campaign bundle.'
+		},
+		feature2: {
+			subtitle: 'Workspaces and team',
+			title: 'Invite by email, assign Member, manage seats by Admin',
+			description:
+				'Add Members by email. Admins manage seats. Everyone shares profiles and launch status in one dashboard.'
+		},
+		feature3: {
+			subtitle: 'Full dashboard control',
+			title: 'Manage your listing in one place tweak each listing efficiently',
+			description:
+				'Edit name, description, screenshots, and links in one dashboard. Tailor tags or pricing per site. Changes sync to pending launches. Track real-time progress.'
+		},
+		feature4: {
+			subtitle: 'Built-in DR tracking',
+			title: 'Track DR moves, compare rivals, adapt your launch plan',
+			description:
+				'Monitor domain rating history for your product site, add competitor domains, and see trends next to the listings you submitted in one dashboard — so you know what is working.'
+		},
+		feature5: {
+			subtitle: 'Real traffic growth',
+			title: 'Grow more organic traffic, track clicks and impressions, pivot correctly',
+			description:
+				'Search Console totals and trends next to your launches. See when steady directory submits turn into more visits — not just backlinks on a spreadsheet.'
+		}
+	},
 	compareSection: {
 		subtitle: 'Comparisons',
-		title: 'steady directory listings, not bulk automation',
+		title: 'steady directory submissions, not bulk automation',
 		description:
 			'Done-for-you blast services move fast. OpenQuok keeps you in the loop — one listing at a time, on your calendar.',
 		withoutTitle: 'Bulk directory automation ($150–$300+ campaigns)',
@@ -305,8 +333,8 @@ export const PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG: PublicDirectorySubmissi
 				feature: 'You pick when to open each site'
 			},
 			{
-				pain: 'Forms filled without you checking every field',
-				feature: 'The extension autofills your profile — you edit and submit'
+				pain: 'Forms filled without you checking',
+				feature: 'The extension autofills your listing — you edit and submit'
 			},
 			{
 				pain: 'Sudden volume can trigger rejections or flags',
@@ -314,11 +342,11 @@ export const PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG: PublicDirectorySubmissi
 			},
 			{
 				pain: 'Status hidden until a vendor sends a report',
-				feature: 'Readiness and submitted state live in Dashboard'
+				feature: 'Readiness and status live in Dashboard'
 			},
 			{
 				pain: 'Each new launch means buying another campaign',
-				feature: 'Reuse the same business profile'
+				feature: 'Reuse the same editable business profile'
 			},
 			{
 				pain: 'Vendors ask for directory logins and shared passwords',
@@ -339,21 +367,21 @@ export const PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG: PublicDirectorySubmissi
 			{
 				id: 'fast-automation',
 				model: 'Fast bulk automation',
-				typicalCost: '$150–$300 one-time (public vendor pricing)',
+				typicalCost: '$150–$300 one-time',
 				whoSubmits: 'Vendor scripts / bots',
 				whatYouGet: 'Speed-first blast, report when the queue finishes'
 			},
 			{
 				id: 'dfy-agency',
 				model: 'Done-for-you agency',
-				typicalCost: '$300–$500+ per campaign (public vendor pricing)',
+				typicalCost: '$300–$500+ per campaign',
 				whoSubmits: 'Human team (sometimes spread over weeks)',
 				whatYouGet: 'Hands-off listings, premium price, vendor-owned logins'
 			},
 			{
 				id: 'openquok-reviewed',
 				model: 'OpenQuok workspace + extension',
-				typicalCost: 'Workspace plan (see pricing) + your review time',
+				typicalCost: 'Workspace plan (see pricing)',
 				whoSubmits: 'You — with autofill assist',
 				whatYouGet:
 					'Profile reuse, you approve every form, human pace, per-site tracking, social scheduling in the same product'
@@ -400,7 +428,7 @@ export const PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG: PublicDirectorySubmissi
 	},
 	faqSection: {
 		faqSubtitle: 'Directory submission tool',
-		faqTitle: 'Questions about human-paced directory launch',
+		faqTitle: 'Questions about directory launch',
 		faqDescription:
 			'Why we favor your review and a steady pace over overnight bulk automation — and how OpenQuok supports that workflow.',
 		faqItems: appendPublicGeneralFaqItems(tailoredFaqItems, PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS)
@@ -422,7 +450,7 @@ export const PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG: PublicDirectorySubmissi
 			'Browser extension autofill with founder review on every submit',
 			'Human-paced launch — you choose when each directory goes live',
 			'Readiness checks before opening a directory form',
-			'Per-destination submission tracking in My Products',
+			'Per-destination submission tracking in one dashboard',
 			'Directory launch platforms including PeerPush and Uneed'
 		]
 	}

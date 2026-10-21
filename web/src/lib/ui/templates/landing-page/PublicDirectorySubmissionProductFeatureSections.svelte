@@ -7,11 +7,13 @@
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 
 	import AnimatedBeamDirectoryProfile from '$lib/ui/templates/landing-page/AnimatedBeamDirectoryProfile.svelte';
+	import BentoLandingDirectoryAnalyticsPreview from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingDirectoryAnalyticsPreview.svelte';
 	import BentoLandingDirectoryProfileCases from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingDirectoryProfileCases.svelte';
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
 	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
 	import PublicLandingTeamFeatureHero from '$lib/ui/templates/landing-page/PublicLandingTeamFeatureHero.svelte';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
+	import { LANDING_SEARCH_CONSOLE_PERFORMANCE_URL } from '$lib/ui/templates/bento/minor-templates/landing/landingStaticAssets';
 
 	type Props = {
 		sections: PublicDirectorySubmissionProductFeatureSections;
@@ -64,3 +66,34 @@
 		<BentoLandingDirectoryProfileCases />
 	{/snippet}
 </HeroWithLeftMedia>
+
+<HeroWithRightMedia
+	heroTheme={landingHeroTheme}
+	landingSubtitle={sections.feature4.subtitle}
+	landingTitle={sections.feature4.title}
+	landingDescription={sections.feature4.description}
+	ctaText={featureCtaText}
+	ctaHref={ctaHref}
+	bgColorClass="bg-base-200"
+	mediaContainerClass="max-w-xl"
+>
+	{#snippet rightMedia()}
+		<div
+			class="overflow-hidden rounded-2xl border border-base-content/10 bg-base-100 shadow-lg shadow-base-content/5"
+		>
+			<BentoLandingDirectoryAnalyticsPreview />
+		</div>
+	{/snippet}
+</HeroWithRightMedia>
+
+<HeroWithLeftMedia
+	heroTheme={landingHeroTheme}
+	landingSubtitle={sections.feature5.subtitle}
+	landingTitle={sections.feature5.title}
+	landingDescription={sections.feature5.description}
+	imageSrc={LANDING_SEARCH_CONSOLE_PERFORMANCE_URL}
+	imageAlt="Search Console performance chart showing growing clicks and impressions"
+	ctaText={featureCtaText}
+	ctaHref={ctaHref}
+	bgColorClass="bg-base-100"
+/>

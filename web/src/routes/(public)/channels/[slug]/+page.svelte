@@ -31,6 +31,8 @@
 		accentSplitDocsCtaBannerTitle
 	} from '$lib/config/constants/config';
 	import PublicChannelHero from '$lib/ui/templates/landing-page/PublicChannelHero.svelte';
+	import PublicDirectoryMarketingMainHero from '$lib/ui/templates/landing-page/PublicDirectoryMarketingMainHero.svelte';
+	import PublicChannelsLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicChannelsLandingBreadcrumb.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
@@ -39,6 +41,8 @@
 	import PublicChannelSiblingGrid from '$lib/ui/templates/landing-page/PublicChannelSiblingGrid.svelte';
 	import PublicLandingTeamFeatureHero from '$lib/ui/templates/landing-page/PublicLandingTeamFeatureHero.svelte';
 	import FeaturesOrdered from '$lib/ui/templates/FeaturesOrdered.svelte';
+	import { publicLandingHeroStatBadgesFromFeatureSections } from '$lib/content/constants/marketing/publicLandingHeroStatBadges';
+	import PublicLandingHeroStatBadges from '$lib/ui/templates/landing-page/PublicLandingHeroStatBadges.svelte';
 
 	type Props = { data: PageData };
 
@@ -72,10 +76,20 @@
 			: ''
 	);
 
+	const directoryChannelDocsHref = $derived(
+		hostedMarketingHref(channelVm.docsPath, page.url.origin)
+	);
+
 	const directoryChannelSlug = $derived(
 		isDirectoryChannel && (channelVm.slug === 'peerpush' || channelVm.slug === 'uneed')
 			? (channelVm.slug as PublicDirectoryChannelSlug)
 			: undefined
+	);
+
+	const channelHeroStatBadges = $derived(
+		channelVm?.featureSections?.length
+			? publicLandingHeroStatBadgesFromFeatureSections(channelVm.featureSections)
+			: []
 	);
 
 	const siblingChannels = $derived(
@@ -98,20 +112,44 @@
 
 {#if channelVm}
 	{#if channelVm.available}
-		<PublicChannelHero
-			channelVm={channelVm}
-			heroTheme={landingHeroTheme}
-			ctaText={heroCtaText}
-			ctaHref={secondaryCtaHref}
-			docsCtaText={PUBLIC_LANDING_GETTING_STARTED_GUIDE_CTA}
-			docsCtaHref={channelVm.docsPath}
-		/>
+		{#if isDirectoryChannel}
+			<div class="container mx-auto flex justify-center px-4 pt-8 md:pt-10">
+				<PublicChannelsLandingBreadcrumb
+					platformLabel={channelVm.platformLabel}
+					channelKind={channelVm.channelKind ?? 'directory'}
+				/>
+			</div>
+			<PublicDirectoryMarketingMainHero
+				title={channelVm.heroTitle}
+				description={channelVm.heroDescription}
+				primaryCtaLabel={heroCtaText}
+				primaryCtaHref={secondaryCtaHref}
+				secondaryCtaLabel={PUBLIC_LANDING_GETTING_STARTED_GUIDE_CTA}
+				secondaryCtaHref={directoryChannelDocsHref}
+			/>
+		{:else}
+			<PublicChannelHero
+				channelVm={channelVm}
+				heroTheme={landingHeroTheme}
+				ctaText={heroCtaText}
+				ctaHref={secondaryCtaHref}
+				docsCtaText={PUBLIC_LANDING_GETTING_STARTED_GUIDE_CTA}
+				docsCtaHref={channelVm.docsPath}
+			/>
+		{/if}
 	{:else}
 		<PublicComingSoonIntegrationPage
 			heroOnly
 			platformLabel={channelVm.platformLabel}
 			icon={channelVm.icon}
 			channelKind={channelVm.channelKind ?? 'social'}
+		/>
+	{/if}
+
+	{#if channelVm.available && channelHeroStatBadges.length > 0}
+		<PublicLandingHeroStatBadges
+			badges={channelHeroStatBadges}
+			ariaLabel="{channelVm.platformLabel} integration highlights"
 		/>
 	{/if}
 
@@ -159,7 +197,19 @@
 				<BentoPublicChannelFeature bentoId={section.bentoId} {isLoggedIn} />
 			{/if}
 		{/snippet}
-		{#if section.mediaOnRight !== false}
+		{#if section.sectionKind === 'team-hero'}
+			<PublicLandingTeamFeatureHero
+				heroTheme={landingHeroTheme}
+				landingSubtitle={section.subtitle}
+				landingTitle={section.title}
+				landingDescription={section.description}
+				showCta={false}
+				ctaText={featureCtaText}
+				ctaHref={secondaryCtaHref}
+				bgColorClass={(index + 1) % 2 === 0 ? 'bg-base-100' : 'bg-base-200'}
+				{isLoggedIn}
+			/>
+		{:else if section.mediaOnRight !== false}
 			<HeroWithRightMedia
 				heroTheme={landingHeroTheme}
 				landingSubtitle={section.subtitle}

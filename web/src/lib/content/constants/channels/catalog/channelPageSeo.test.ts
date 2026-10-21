@@ -51,14 +51,23 @@ describe('channelPageSeo', () => {
 	it('resolves directory channel slugs without social ecosystem merges', () => {
 		const peerpush = getPublicChannelBySlug('peerpush');
 		expect(peerpush?.channelKind).toBe('directory');
+		expect(peerpush?.heroTitle).toBe(
+			'Launch on PeerPush and other platforms in days not weeks'
+		);
 		expect(peerpush?.audienceTitle).toBe('Who launches on PeerPush with OpenQuok?');
+		expect(peerpush?.audienceSubtitle).toBe('For founders in the AI era');
 		expect(peerpush?.audienceCards).toHaveLength(3);
 		expect(peerpush?.processSection?.steps).toHaveLength(5);
+		expect(peerpush?.featureSections).toHaveLength(5);
 		expect(peerpush?.featureSections.map((s) => s.bentoId)).toEqual([
-			'directory-profile-cases',
 			'directory-extension-autofill',
-			'directory-track-status'
+			undefined,
+			'directory-profile-cases',
+			'directory-analytics',
+			undefined
 		]);
+		expect(peerpush?.featureSections[1]?.sectionKind).toBe('team-hero');
+		expect(peerpush?.featureSections[4]?.imageSrc).toContain('search-console-performance');
 		expect(peerpush?.faqItems.some((item) => item.title.includes('Grok Bot'))).toBe(false);
 
 		const socialSlugs = new Set(listPublicChannelsForHub().map((c) => c.slug));

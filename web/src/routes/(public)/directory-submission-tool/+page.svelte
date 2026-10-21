@@ -15,6 +15,7 @@
 	import { route } from '$lib/utils/path';
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
+	import PublicMarketingPricingSection from '$lib/ui/components/pricing/PublicMarketingPricingSection.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import WithWithout from '$lib/ui/templates/WithWithout.svelte';
@@ -27,10 +28,10 @@
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import StripedPattern from '$lib/ui/patterns/StripedPattern.svelte';
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
-	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
 	import PublicDirectorySubmissionLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicDirectorySubmissionLandingBreadcrumb.svelte';
+	import PublicDirectoryMarketingMainHero from '$lib/ui/templates/landing-page/PublicDirectoryMarketingMainHero.svelte';
+	import PublicLandingHeroStatBadges from '$lib/ui/templates/landing-page/PublicLandingHeroStatBadges.svelte';
 	import PublicDirectorySubmissionProductFeatureSections from '$lib/ui/templates/landing-page/PublicDirectorySubmissionProductFeatureSections.svelte';
-	import PublicHeroTitle from '$lib/ui/templates/titles/PublicHeroTitle.svelte';
 	import {
 		landingHeroTheme,
 		type LandingHeroTheme
@@ -81,7 +82,6 @@
 	const rootPathSignUp = getRootPathSignup();
 	const signUpPath = route(rootPathSignUp);
 
-	const heroHeadingId = 'directory-submission-tool-hero-heading';
 	const processSectionId = 'directory-submission-process';
 	const pricingTableHeadingId = 'directory-submission-pricing-comparison-heading';
 </script>
@@ -89,75 +89,24 @@
 <JsonLdHead schemaData={schemaData} />
 
 <SectionOuterContainer class="py-0 md:py-0">
-	<header
-		class="container mx-auto max-w-4xl space-y-6 px-4 py-10 text-center md:py-14"
-		aria-labelledby={heroHeadingId}
-	>
-		<div class="flex justify-center">
-			<PublicDirectorySubmissionLandingBreadcrumb />
-		</div>
+	<div class="container mx-auto flex justify-center px-4 pt-8 md:pt-10">
+		<PublicDirectorySubmissionLandingBreadcrumb />
+	</div>
 
-		<PublicHeroTitle title={landing.hero.title} headingId={heroHeadingId} />
+	<PublicDirectoryMarketingMainHero
+		title={landing.hero.title}
+		description={landing.hero.description}
+		primaryCtaLabel={landing.hero.primaryCta.label}
+		primaryCtaHref={heroPrimaryHref}
+		secondaryCtaLabel={landing.hero.secondaryCta.label}
+		secondaryCtaHref={heroSecondaryHref}
+		bullets={landing.hero.bullets}
+	/>
 
-		<p class={landingHeroTheme.descriptionClass}>{landing.hero.description}</p>
-
-		{#if landing.hero.bullets.length > 0}
-			<ul
-				class="mx-auto max-w-xl space-y-2 text-left text-sm font-medium text-base-content/80 sm:text-base"
-				aria-label="Directory launch highlights"
-			>
-				{#each landing.hero.bullets as bullet (bullet)}
-					<li class="flex items-start gap-2.5">
-						<span class="mt-1.5 size-1.5 shrink-0 rounded-full bg-primary" aria-hidden="true"></span>
-						<span>{bullet}</span>
-					</li>
-				{/each}
-			</ul>
-		{/if}
-
-		<div class="flex flex-wrap items-center justify-center gap-3 pt-2">
-			<ButtonGlitchBrightness
-				class="rounded-full"
-				variant="primary"
-				size="default"
-				href={heroPrimaryHref}
-				preload="off"
-			>
-				{landing.hero.primaryCta.label}
-			</ButtonGlitchBrightness>
-			<ButtonGlitchBrightness
-				class={`rounded-full ${landingHeroTheme.docsCtaButtonClass ?? ''}`}
-				variant="outline"
-				size="default"
-				href={heroSecondaryHref}
-				preload="off"
-			>
-				{landing.hero.secondaryCta.label}
-			</ButtonGlitchBrightness>
-		</div>
-
-		<p class="text-xs font-medium tracking-wide text-base-content/55 uppercase sm:text-sm">
-			{landing.hero.trustLine}
-		</p>
-	</header>
-
-	<section
-		class="border-t border-base-content/10 bg-base-200/30 py-12 sm:py-14"
-		aria-label="Why human-paced launch"
-	>
-		<div class="container mx-auto max-w-5xl px-4">
-			<ul class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-				{#each landing.trustStats as stat (stat.id)}
-					<li class="rounded-2xl border border-base-content/10 bg-base-100 px-5 py-6 text-center">
-						<p class="text-2xl font-bold tracking-tight text-base-content sm:text-3xl">
-							{stat.value}
-						</p>
-						<p class="mt-2 text-sm font-medium text-base-content/65">{stat.label}</p>
-					</li>
-				{/each}
-			</ul>
-		</div>
-	</section>
+	<PublicLandingHeroStatBadges
+		badges={landing.trustStats}
+		ariaLabel="Directory launch highlights"
+	/>
 
 	<div class="mt-8 sm:mt-12">
 		<WhoIsFor
@@ -286,6 +235,12 @@
 			/>
 		{/snippet}
 	</SimpleCardGrid>
+
+	<PublicMarketingPricingSection
+		presetId="directory-submission"
+		productLine="directory"
+		{isLoggedIn}
+	/>
 
 	<div class="container mx-auto max-w-5xl px-4">
 		<PublicFaq

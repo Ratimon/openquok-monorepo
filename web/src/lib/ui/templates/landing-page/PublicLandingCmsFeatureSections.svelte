@@ -235,7 +235,7 @@ openquok analytics:post <post-id> -d 30`
 	landingSubtitle={feature5Subtitle}
 	landingTitle={feature5Title}
 	landingDescription={feature5Description}
-	imageSrc="/landing/5-calendar-filters-views.mp4"
+	imageSrc="/landing/calendar-filters-views.mp4"
 	imageAlt="Calendar day, week, month, and list views with smart filters"
 	ctaText={featureCtaText}
 	ctaHref={ctaHref}
@@ -246,7 +246,7 @@ openquok analytics:post <post-id> -d 30`
 	landingSubtitle={feature6Subtitle}
 	landingTitle={feature6Title}
 	landingDescription={feature6Description}
-	imageSrc="/landing/6-kanban-filters-drag-drop.mp4"
+	imageSrc="/landing/kanban-filters-drag-drop.mp4"
 	imageAlt="Kanban board with drag-and-drop review workflow"
 	ctaText={featureCtaText}
 	ctaHref={ctaHref}
@@ -257,7 +257,7 @@ openquok analytics:post <post-id> -d 30`
 	landingSubtitle={feature7Subtitle}
 	landingTitle={feature7Title}
 	landingDescription={feature7Description}
-	imageSrc="/landing/7-file-manager.mp4"
+	imageSrc="/landing/file-manager.mp4"
 	imageAlt="Workspace-scoped file manager for media assets"
 	ctaText={featureCtaText}
 	ctaHref={ctaHref}
@@ -268,7 +268,7 @@ openquok analytics:post <post-id> -d 30`
 	landingSubtitle={feature8Subtitle}
 	landingTitle={feature8Title}
 	landingDescription={feature8Description}
-	imageSrc="/landing/8-analytics.mp4"
+	imageSrc="/landing/analytics.mp4"
 	imageAlt="Analytics dashboard across social channels"
 	ctaText={featureCtaText}
 	ctaHref={ctaHref}

@@ -11,11 +11,12 @@ const DEFAULT_WIDTH = 1024;
 function usage() {
 	console.error(`Usage: node scripts/transcode-landing-hero.mjs --input <path> --name <basename>
 
-  --input   Source video (e.g. ~/Desktop/clip.mp4)
-  --name    Output basename without extension (e.g. 5-calendar-filters-views)
-  --width   Max width in pixels (default: ${DEFAULT_WIDTH})
+  --input      Source video or still image (e.g. ~/Desktop/clip.mp4, chart.png)
+  --name       Output basename without extension (e.g. calendar-filters-views)
+  --width      Max width in pixels (default: ${DEFAULT_WIDTH})
+  --webp-only  Write only static/landing/<name>.webp (no mp4/webm)
 
-Writes:
+Default (no --webp-only):
   static/landing/<name>.mp4  (H.264, faststart, no audio)
   static/landing/<name>.webm (VP9, no audio)
 `);
@@ -25,6 +26,7 @@ function parseArgs(argv) {
 	let input = '';
 	let name = '';
 	let width = DEFAULT_WIDTH;
+	let webpOnly = false;
 
 	for (let i = 0; i < argv.length; i++) {
 		const arg = argv[i];
@@ -34,6 +36,8 @@ function parseArgs(argv) {
 			name = argv[++i] ?? '';
 		} else if (arg === '--width') {
 			width = Number(argv[++i]);
+		} else if (arg === '--webp-only') {
+			webpOnly = true;
 		} else if (arg === '-h' || arg === '--help') {
 			usage();
 			process.exit(0);
@@ -54,12 +58,18 @@ function parseArgs(argv) {
 		process.exit(1);
 	}
 
-	if (name.includes('/') || name.includes('\\') || name.endsWith('.mp4') || name.endsWith('.webm')) {
+	if (
+		name.includes('/') ||
+		name.includes('\\') ||
+		name.endsWith('.mp4') ||
+		name.endsWith('.webm') ||
+		name.endsWith('.webp')
+	) {
 		console.error('--name must be a basename without extension or path separators');
 		process.exit(1);
 	}
 
-	return { input, name, width };
+	return { input, name, width, webpOnly };
 }
 
 function resolveFfmpeg() {
@@ -79,14 +89,68 @@ function runFfmpeg(ffmpeg, args) {
 	}
 }
 
-const { input, name, width } = parseArgs(process.argv.slice(2));
+function ffmpegHasEncoder(ffmpeg, encoder) {
+	const r = spawnSync(ffmpeg, ['-hide_banner', '-encoders'], { encoding: 'utf8' });
+	return r.status === 0 && (r.stdout ?? '').includes(encoder);
+}
+
+function exportLandingWebp(ffmpeg, { input, name, width }) {
+	const webpOut = join(landingDir, `${name}.webp`);
+	const scale = `scale=${width}:-2:flags=lanczos`;
+
+	if (ffmpegHasEncoder(ffmpeg, 'libwebp')) {
+		console.log(`Exporting ${input} -> ${webpOut}`);
+		runFfmpeg(ffmpeg, [
+			'-y',
+			'-i',
+			input,
+			'-vf',
+			scale,
+			'-frames:v',
+			'1',
+			'-update',
+			'1',
+			'-c:v',
+			'libwebp',
+			'-quality',
+			'85',
+			webpOut
+		]);
+		return;
+	}
+
+	const pngOut = join(landingDir, `${name}.png`);
+	console.warn('ffmpeg libwebp encoder not found; writing PNG. Convert to WebP if needed.');
+	console.log(`Exporting ${input} -> ${pngOut}`);
+	runFfmpeg(ffmpeg, [
+		'-y',
+		'-i',
+		input,
+		'-vf',
+		scale,
+		'-frames:v',
+		'1',
+		'-update',
+		'1',
+		pngOut
+	]);
+}
+
+const { input, name, width, webpOnly } = parseArgs(process.argv.slice(2));
 const ffmpeg = resolveFfmpeg();
 
 mkdirSync(landingDir, { recursive: true });
 
+const scale = `scale=${width}:-2:flags=lanczos`;
+
+if (webpOnly) {
+	exportLandingWebp(ffmpeg, { input, name, width });
+	console.log('Done.');
+	process.exit(0);
+}
+
 const mp4Out = join(landingDir, `${name}.mp4`);
 const webmOut = join(landingDir, `${name}.webm`);
-const scale = `scale=${width}:-2:flags=lanczos`;
 
 console.log(`Transcoding ${input} -> ${mp4Out}`);
 runFfmpeg(ffmpeg, [

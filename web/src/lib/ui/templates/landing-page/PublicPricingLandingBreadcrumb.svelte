@@ -9,16 +9,32 @@
 
 	type Props = {
 		class?: string;
+		/** Current pricing segment (hub uses default “Pricing”). */
+		breadcrumbLabel?: string;
 	};
 
-	let { class: className = '' }: Props = $props();
+	let {
+		class: className = '',
+		breadcrumbLabel = PUBLIC_LANDING_BREADCRUMB.pricing
+	}: Props = $props();
 
 	const homeHref = $derived(hostedMarketingHref('/', page.url.origin));
+	const pricingHubHref = $derived(hostedMarketingHref('/pricing', page.url.origin));
+	const isPricingHub = $derived(breadcrumbLabel === PUBLIC_LANDING_BREADCRUMB.pricing);
 
-	const items = $derived.by((): PublicLandingHubBreadcrumbItem[] => [
-		{ label: 'Home', href: homeHref },
-		{ label: PUBLIC_LANDING_BREADCRUMB.pricing }
-	]);
+	const items = $derived.by((): PublicLandingHubBreadcrumbItem[] => {
+		if (isPricingHub) {
+			return [
+				{ label: 'Home', href: homeHref },
+				{ label: PUBLIC_LANDING_BREADCRUMB.pricing }
+			];
+		}
+		return [
+			{ label: 'Home', href: homeHref },
+			{ label: PUBLIC_LANDING_BREADCRUMB.pricing, href: pricingHubHref },
+			{ label: breadcrumbLabel }
+		];
+	});
 </script>
 
 <PublicLandingHubBreadcrumb {items} class={className} />

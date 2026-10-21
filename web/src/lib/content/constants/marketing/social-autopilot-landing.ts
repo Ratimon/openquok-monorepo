@@ -14,6 +14,7 @@ import {
 import { PUBLIC_LANDING_HERO_TRIAL_CTA } from '$lib/content/constants/landing/hero-copy';
 import { faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
+import type { PublicLandingHeroStatBadge } from '$lib/content/constants/marketing/publicLandingHeroStatBadges';
 import { route } from '$lib/utils/path';
 
 const CARD_CONTAINER_CLASS = 'h-full min-h-[18rem]';
@@ -62,6 +63,7 @@ export type PublicSocialAutopilotLandingConfig = {
 		primaryCta: PublicSocialAutopilotCta;
 		secondaryCta: PublicSocialAutopilotCta;
 	};
+	heroStatBadges: readonly PublicLandingHeroStatBadge[];
 	whoIsFor: {
 		audienceSubtitle: string;
 		audienceTitle: string;
@@ -134,6 +136,48 @@ export const PUBLIC_SOCIAL_AUTOPILOT_LANDING_CONFIG: PublicSocialAutopilotLandin
 			href: agentsHubHref
 		}
 	},
+	heroStatBadges: [
+		{
+			id: 'agent-workspaces',
+			value: 'Agent workspaces',
+			label: 'Chat to every channel'
+		},
+		{
+			id: 'workspace',
+			value: 'Team seats',
+			label: 'Roles and invites'
+		},
+		{
+			id: 'per-network',
+			value: 'One draft',
+			label: 'Per-network tweaks'
+		},
+		{
+			id: 'plugs',
+			value: 'Wider reach',
+			label: 'Cross-account plugs'
+		},
+		{
+			id: 'calendar',
+			value: 'Plan ahead',
+			label: 'Calendar and filters'
+		},
+		{
+			id: 'kanban',
+			value: 'You approve',
+			label: 'Kanban review'
+		},
+		{
+			id: 'media',
+			value: 'Media library',
+			label: 'Workspace files'
+		},
+		{
+			id: 'analytics',
+			value: 'See winners',
+			label: 'Built-in analytics'
+		}
+	],
 	whoIsFor: {
 		audienceSubtitle: 'Teams that want speed without losing control',
 		audienceTitle: 'Who runs social on autopilot with OpenQuok?',
@@ -209,7 +253,7 @@ export const PUBLIC_SOCIAL_AUTOPILOT_LANDING_CONFIG: PublicSocialAutopilotLandin
 				'Create, rename, and manage files in each agent workspace cloud storage. Keep client assets, B-roll, and uploads separated so posting stays fast when you run many accounts.'
 		},
 		feature8: {
-			subtitle: 'Analytics',
+			subtitle: 'Built-in analytics',
 			title: 'Track engagement, see winners, and adapt correctly',
 			description:
 				'Track impressions, likes, comments, shares, and engagement in one place. Compare performance by platform and channel, and improve the posts you approved.'

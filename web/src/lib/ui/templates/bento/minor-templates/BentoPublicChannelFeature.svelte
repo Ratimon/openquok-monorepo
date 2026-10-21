@@ -47,6 +47,7 @@
 	import BentoLandingDirectoryAutofillPreview from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingDirectoryAutofillPreview.svelte';
 	import BentoLandingDirectoryProfileCases from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingDirectoryProfileCases.svelte';
 	import BentoLandingDirectoryTrackStatusPreview from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingDirectoryTrackStatusPreview.svelte';
+	import BentoLandingDirectoryAnalyticsPreview from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingDirectoryAnalyticsPreview.svelte';
 
 	type Props = {
 		bentoId: PublicChannelFeatureBentoId;
@@ -148,4 +149,6 @@
 	<BentoLandingDirectoryAutofillPreview />
 {:else if bentoId === 'directory-track-status'}
 	<BentoLandingDirectoryTrackStatusPreview />
+{:else if bentoId === 'directory-analytics'}
+	<BentoLandingDirectoryAnalyticsPreview />
 {/if}
