@@ -1,7 +1,7 @@
 {
   "name": "openquok-monorepo",
   "version": "1.0.0",
-  "description": "",
+  "description": "All-in-one Content OS: social scheduling and directory launch in one workspace. Calendar, kanban, and product profiles. Extension autofill for directory listings; you approve every post and submit. Agents via CLI, MCP, and public API. Cloud or self-host.",
   "type": "module",
   "packageManager": "pnpm@10.30.3",
   "scripts": {
