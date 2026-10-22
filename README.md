@@ -24,11 +24,15 @@
   · <a href="https://www.openquok.com/pricing">Pricing</a>
 </p>
 
-OpenQuok helps individuals and teams run many social accounts at scale — especially as AI multiplies output. Draft, schedule, and publish from one workspace, with review and approval before anything goes live. Use the dashboard, or connect agents through the CLI, MCP, and public API. Self-host when you want an open alternative to closed SaaS schedulers.
+OpenQuok is a Swiss-army **Content OS** platform. Individuals and teams use one workspace for **social scheduling** and **directory launch**.
+
+Draft and schedule social posts. Review each post before publish. Build product profiles, autofill directory forms with the browser extension, and submit each listing on the directory site. Use the dashboard, the CLI, MCP, and the public API. Self-host when you need an open alternative to closed SaaS tools.
 
 ## What you can do
 
-- <img src="./assets/readme/features/accounts.svg" alt="" width="24" height="24" align="top"> **[Connect channels](https://www.openquok.com/docs/channels/connect).** Add Facebook Page, Threads, Instagram, LinkedIn, X, YouTube, TikTok, Dev.to, Bluesky, and Skool to a workspace. Each network keeps its own posting rules and limits — see the [channel catalog](https://www.openquok.com/channels).
+### Social Scheduling
+
+- <img src="./assets/readme/features/accounts.svg" alt="" width="24" height="24" align="top"> **[Connect social channels](https://www.openquok.com/docs/channels/connect).** Add Facebook Page, Threads, Instagram, LinkedIn, X, YouTube, TikTok, Dev.to, Bluesky, and Skool to a workspace. Each network keeps its own posting rules and limits — see the [social channel catalog](https://www.openquok.com/channels).
 - <img src="./assets/readme/features/compose.svg" alt="" width="24" height="24" align="top"> **[Compose for each platform](https://www.openquok.com/docs/creating-posts).** Write once in Global mode or unlock a channel for its own caption, media, and settings. Preview each version before you schedule — see [Global vs per-channel](https://www.openquok.com/docs/creating-posts/global-vs-per-channel).
 - <img src="./assets/readme/features/photo-editor.svg" alt="" width="24" height="24" align="top"> **[Photo editor](https://www.openquok.com/tools/photo-editor).** Design and resize visuals for social channels in your browser. Pick platform aspect ratios, export PNG free, or save to your workspace when signed in.
 - <img src="./assets/readme/features/humanizer.svg" alt="" width="24" height="24" align="top"> **[Humanizer](https://www.openquok.com/tools/humanizer).** Rewrite drafts so they read less machine-written. Human and Roughen modes run on-device in Chrome — no account required to copy results.
@@ -38,9 +42,19 @@ OpenQuok helps individuals and teams run many social accounts at scale — espec
 - <img src="./assets/readme/features/media.svg" alt="" width="24" height="24" align="top"> **[Media library](https://www.openquok.com/docs/media).** Upload from your device, organize folders, and reuse files in the composer — see [Media in posts](https://www.openquok.com/docs/creating-posts/media) for per-channel attachments.
 - <img src="./assets/readme/features/threads.svg" alt="" width="24" height="24" align="top"> **[Threads and follow-up comments](https://www.openquok.com/docs/creating-posts/threads-and-comments).** Schedule multi-part posts and timed replies on supported networks. Delays, thread finisher, and cross-account plugs are covered in [Automations](https://www.openquok.com/docs/automations).
 - <img src="./assets/readme/features/compose.svg" alt="" width="24" height="24" align="top"> **[Templates and tags](https://www.openquok.com/docs/getting-started/glossary#template).** Save composer presets with [Templates](https://www.openquok.com/docs/posts-management/templates) for repeat workflows and label campaigns with [tags](https://www.openquok.com/docs/getting-started/glossary#tag) in the composer footer.
-- <img src="./assets/readme/features/analytics.svg" alt="" width="24" height="24" align="top"> **[Analytics](https://www.openquok.com/docs/posts-management/actions-and-stats).** Compare post results and track audience changes across connected accounts. Per-network availability is listed under [Platforms → Analytics](https://www.openquok.com/docs/platforms/analytics).
-- <img src="./assets/readme/features/ai.svg" alt="" width="24" height="24" align="top"> **[AI drafting](https://www.openquok.com/docs/creating-posts/ai-generation).** Queue posts from agents, the CLI, or the public API. Everything lands in the same review queue — you approve what publishes.
-- <img src="./assets/readme/features/automation.svg" alt="" width="24" height="24" align="top"> **[API, CLI, and MCP](https://www.openquok.com/docs/automations).** Create drafts, schedule posts, and check publishing results from scripts or agent clients. Start with [OpenQuok Core](https://www.openquok.com/creators/openquok/building-blocks/openquok-core), the [CLI](https://www.openquok.com/docs/getting-started-for-cli), [MCP](https://www.openquok.com/docs/getting-started-for-mcp), or the [Public API reference](https://www.openquok.com/docs/getting-started-for-public-api).
+- <img src="./assets/readme/features/analytics.svg" alt="" width="24" height="24" align="top"> **[Social analytics](https://www.openquok.com/docs/posts-management/actions-and-stats).** Compare post results and track audience changes across connected accounts. Per-network availability is listed under [Platforms → Analytics](https://www.openquok.com/docs/platforms/analytics) (Social tab).
+
+### Directory launch
+
+- <img src="./assets/readme/features/compose.svg" alt="" width="24" height="24" align="top"> **[Directory submission](https://www.openquok.com/docs/directory-submission).** Build a product profile on [My Products](https://www.openquok.com/account/products), pick destinations such as PeerPush and Uneed, and launch with the [browser extension](https://www.openquok.com/docs/installation/chrome-extension). You review each form and submit on the directory site.
+- <img src="./assets/readme/features/approvals.svg" alt="" width="24" height="24" align="top"> **[Listing readiness and tracking](https://www.openquok.com/docs/directory-submission/track-submissions).** See required fields, save live listing URLs, and use per-site variants — see [Profile variants](https://www.openquok.com/docs/directory-submission/profile-variants).
+- <img src="./assets/readme/features/analytics.svg" alt="" width="24" height="24" align="top"> **[Directory analytics](https://www.openquok.com/docs/directory-submission/directory-analytics).** Track domain rating for your product site and compare competitors on the **Directory** tab in [Analytics](https://www.openquok.com/account/analytics) (paid plans).
+- <img src="./assets/readme/features/automation.svg" alt="" width="24" height="24" align="top"> **[Directory launch API, CLI, and MCP](https://www.openquok.com/docs/apis-directory-launch).** List profiles, ensure variants, and check listing readiness programmatically — [CLI](https://www.openquok.com/docs/cli-usages/directory-launch), [MCP tools](https://www.openquok.com/docs/mcp-references/tools#directory-launch), and the [openquok-directory-launch](https://www.openquok.com/docs/other-skills/openquok-directory-launch) skill.
+
+### Agents, tools, and workspace
+
+- <img src="./assets/readme/features/ai.svg" alt="" width="24" height="24" align="top"> **[AI drafting](https://www.openquok.com/docs/creating-posts/ai-generation).** Queue social posts from agents, the CLI, or the public API. Everything lands in the same review queue — you approve what publishes.
+- <img src="./assets/readme/features/automation.svg" alt="" width="24" height="24" align="top"> **[API, CLI, and MCP](https://www.openquok.com/docs/automations).** Schedule posts, manage plugs, and automate social workflows from scripts or agent clients. Start with [OpenQuok Core](https://www.openquok.com/creators/openquok/building-blocks/openquok-core), the [CLI](https://www.openquok.com/docs/getting-started-for-cli), [MCP](https://www.openquok.com/docs/getting-started-for-mcp), or the [Public API reference](https://www.openquok.com/docs/getting-started-for-public-api).
 - <img src="./assets/readme/features/automation.svg" alt="" width="24" height="24" align="top"> **[Building blocks](https://www.openquok.com/building-blocks).** Install skills and MCP servers for Cursor, Claude, OpenClaw, and the CLI — [OpenQuok Core](https://www.openquok.com/creators/openquok/building-blocks/openquok-core) schedules posts; combine blocks in [Skill Builder](https://www.openquok.com/tools/skill-builder) for custom agent setups.
 - <img src="./assets/readme/features/compose.svg" alt="" width="24" height="24" align="top"> **[Playbooks](https://www.openquok.com/playbooks).** Run step-by-step marketing workflows that chain building blocks — viral carousels, video publish flows, and content-calendar batches — then approve every draft before anything goes live.
 - <img src="./assets/readme/features/workspaces.svg" alt="" width="24" height="24" align="top"> **[Saved playbooks & backlinks](https://www.openquok.com/docs/saved).** **Libs** browses [Playbooks](https://www.openquok.com/playbooks) and [Building blocks](https://www.openquok.com/building-blocks) with hub-style filters, bookmarks listings (free; sync when you sign in), and **Your library** holds drafts and published stacks. Bookmark sites on [Build Backlinks](https://www.openquok.com/build-backlinks), then reorder and track outreach under **Saved → Backlinks**.
@@ -49,6 +63,10 @@ OpenQuok helps individuals and teams run many social accounts at scale — espec
 - <img src="./assets/readme/features/workspaces.svg" alt="" width="24" height="24" align="top"> **[Teams and workspaces](https://www.openquok.com/docs/settings/team).** Keep brands and clients in separate workspaces, invite teammates, and manage timezone, profile, and [developer tokens](https://www.openquok.com/docs/settings/developers).
 
 ## Supported platforms
+
+OpenQuok documents **social posting channels** and **directory launch destinations** separately. They share marketing language on the [Channels hub](https://www.openquok.com/channels), but connect and automate differently — see [Platforms overview](https://www.openquok.com/docs/platforms).
+
+### Social posting channels
 
 <p>
   <a href="https://www.openquok.com/channels/facebook"><img src="./assets/readme/socials/facebook.svg" alt="Facebook" width="32" height="32"></a>
@@ -63,13 +81,26 @@ OpenQuok helps individuals and teams run many social accounts at scale — espec
   <a href="https://www.openquok.com/channels/skool"><img src="./assets/readme/socials/skool.svg" alt="Skool" width="32" height="32"></a>
 </p>
 
-OpenQuok ships integrations for **Facebook Page**, **Threads**, **Instagram** (Business and Standalone), **LinkedIn** profile and Page, **X**, **YouTube**, **TikTok**, **Dev.to**, **Bluesky**, and **Skool**.
+OpenQuok ships OAuth or API integrations for **Facebook Page**, **Threads**, **Instagram** (Business and Standalone), **LinkedIn** profile and Page, **X**, **YouTube**, **TikTok**, **Dev.to**, **Bluesky**, and **Skool**.
 
 Dev.to and Bluesky connect with credentials you paste in Add Channel — no OAuth redirect. Skool connects with the OpenQuok browser extension while you are signed in on skool.com.
 
-Posting formats, follow-up comments, and analytics vary by platform. Some integrations require provider app approval or publicly reachable media URLs on self-hosted deployments.
+Posting formats, follow-up comments, and social analytics vary by network. Some integrations require provider app approval or publicly reachable media URLs on self-hosted deployments.
 
-[Connect channels](https://www.openquok.com/docs/channels/connect) · [Posting rules by platform](https://www.openquok.com/docs/platforms) · [Channel catalog](https://www.openquok.com/channels) · [Social integrations (self-host)](https://www.openquok.com/docs/social-integration)
+[Connect social channels](https://www.openquok.com/docs/channels/connect) · [Posting rules](https://www.openquok.com/docs/platforms) · [Social integrations (self-host)](https://www.openquok.com/docs/social-integration)
+
+### Directory launch destinations
+
+<p>
+  <a href="https://www.openquok.com/channels/peerpush"><img src="./web/static/icons/link-directory/peerpush.svg" alt="PeerPush" width="32" height="32"></a>
+  <a href="https://www.openquok.com/channels/uneed"><img src="./web/static/icons/link-directory/uneed.svg" alt="Uneed" width="32" height="32"></a>
+</p>
+
+**PeerPush** and **Uneed** use a product profile on [My Products](https://www.openquok.com/account/products) and the same [browser extension](https://www.openquok.com/docs/installation/chrome-extension) as Skool — for directory autofill, not OAuth to the directory site. You submit on peerpush.com and uneed.best yourself.
+
+Directory site keys, variants, and extension handoff are in [Directory integration](https://www.openquok.com/docs/directory-integration) and [Connect rules → Directory launch](https://www.openquok.com/docs/platforms/connect-rules#directory-launch-platforms).
+
+[Directory submission](https://www.openquok.com/docs/directory-submission) · [Directory submission tool](https://www.openquok.com/directory-submission-tool) · [Directory channel catalog](https://www.openquok.com/channels#public-directory-channels-hub-heading)
 
 ## Supported Agents & MCP
 

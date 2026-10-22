@@ -18,7 +18,7 @@
 		heroTheme: LandingHeroTheme;
 		landingSubtitle: string;
 		landingTitle: string;
-		cards: AudienceCard[];
+		cards: readonly AudienceCard[];
 	};
 
 	let { heroTheme, landingSubtitle, landingTitle, cards }: Props = $props();
