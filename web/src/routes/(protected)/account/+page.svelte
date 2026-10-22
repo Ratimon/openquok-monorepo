@@ -3,6 +3,11 @@
 	import type { CreateSocialPostChannelViewModel } from '$lib/channels';
 	import type { SetRowViewModel, SetSnapshotViewModel } from '$lib/sets';
 	import type { PostsLimitContext } from '$lib/ui/components/posts/postsLimitContext';
+	import type { AccountHomeDashboardTab } from '$lib/ui/components/home/AccountHomeDashboardTabs.svelte';
+	import type {
+		AutoLaunchProfileMediaPatch,
+		AutoLaunchProfileSavePayload
+	} from '$lib/auto-launch/AutoLaunchProducts.presenter.svelte';
 
 	// --- App / routing ---
 	import { browser } from '$app/environment';
@@ -26,9 +31,7 @@
 		protectedSettingsPagePresenter,
 		WorkspaceSettingsStatus
 	} from '$lib/area-protected';
-	import { STACK_HOME_WORKSPACE_CHANNEL_PREVIEW_LIMIT } from '$lib/area-protected/GetHomeWorkspaces.presenter.svelte';
 	import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
-	import { getRootPathPublicAgents } from '$lib/area-public/constants/getRootPathPublicAgents';
 	import { getRootPathPublicBlogPost } from '$lib/area-public/constants/getRootPathPublicBlog';
 	import { getSetPresenter } from '$lib/sets';
 	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
@@ -77,6 +80,7 @@
 	import AccountHomeNotificationsFeed from '$lib/ui/components/home/AccountHomeNotificationsFeed.svelte';
 	import AccountPlanOverviewSection from '$lib/ui/components/home/AccountPlanOverviewSection.svelte';
 	import MyChannelsSection from '$lib/ui/components/channels/MyChannelsSection.svelte';
+	import MyProductsTab from '$lib/ui/components/account/MyProductsTab.svelte';
 	import MyWorkspacesSection from '$lib/ui/components/workspaces/MyWorkspacesSection.svelte';
 	import { postsLimitKey } from '$lib/ui/components/posts/postsLimitContext';
 	import {
@@ -105,12 +109,6 @@
 	const cliDocsHref = $derived(
 		hostedMarketingHref(`${publicDocsPath}/getting-started-for-cli`, page.url.origin)
 	);
-	const cliAuthDocsHref = $derived(
-		hostedMarketingHref(`${publicDocsPath}/getting-started-for-cli/authentication`, page.url.origin)
-	);
-	const thinkrailGuideHref = $derived(
-		hostedMarketingHref(`${publicDocsPath}/agent-setup-guides/thinkrail`, page.url.origin)
-	);
 	const mcpSetupGuidesHref = $derived(
 		hostedMarketingHref(`${publicDocsPath}/mcp-setup-guides`, page.url.origin)
 	);
@@ -123,13 +121,8 @@
 		)
 	);
 
-	const rootPathPublicAgents = getRootPathPublicAgents();
-	const publicAgentsPath = route(rootPathPublicAgents);
-
 	const pagePresenter = protectedHomePagePresenter;
-	const homeWorkspacesOverviewOptions = {
-		channelPreviewLimit: STACK_HOME_WORKSPACE_CHANNEL_PREVIEW_LIMIT
-	};
+	const autoLaunchProductsPresenter = pagePresenter.autoLaunchProductsPresenter;
 	const postKanbanBoard = pagePresenter.postKanbanBoardPresenter;
 	const channelsGridPresenter = pagePresenter.channelsGridTable;
 	const channelsFilterPresenter = pagePresenter.channelsGridFilterBuilder;
@@ -183,10 +176,16 @@
 
 	const listStatus = $derived(protectedHomePagePresenter.listStatus);
 	const channelGroupSectionsVm = $derived(protectedHomePagePresenter.channelGroupSectionsVm);
+	const channelGroupsVm = $derived(protectedHomePagePresenter.channelGroupsVm);
 	const channelRowsUngroupedVm = $derived(
 		protectedHomePagePresenter.channelRowsUngroupedVm
 	);
 	const connectedChannelsVm = $derived(protectedHomePagePresenter.connectedChannelsVm);
+
+	const productsLoadingVm = $derived(autoLaunchProductsPresenter.loading);
+	const productLaunchCardRowsVm = $derived(autoLaunchProductsPresenter.profileLaunchCardRowsVm);
+	const publishedDirectoryDestinationsVm = $derived(autoLaunchProductsPresenter.publishedDestinationsVm);
+	const productsEditingProfileVm = $derived(autoLaunchProductsPresenter.editingProfileVm);
 
 	$effect(() => {
 		const orgId = workspaceId;
@@ -303,13 +302,34 @@
 	const notificationsDockPreview = $derived(protectedLayoutPagePresenter.getNotificationsDockPreview());
 	const feedUnreadCount = $derived(protectedLayoutPagePresenter.editorDockNotificationUnreadCount);
 
-	let homeDashboardTab = $state<'channels' | 'posts' | 'feed'>('channels');
+	let homeDashboardTab = $state<AccountHomeDashboardTab>('channels');
 	let homeDashboardTabWorkspaceId = $state<string | null>(null);
+
+	$effect(() => {
+		const tabParam = page.url.searchParams.get('tab');
+		if (tabParam === 'products' || tabParam === 'channels' || tabParam === 'posts' || tabParam === 'feed') {
+			homeDashboardTab = tabParam;
+		}
+	});
 
 	$effect(() => {
 		const orgId = workspaceId;
 		if (!orgId || orgId === homeDashboardTabWorkspaceId) return;
 		homeDashboardTabWorkspaceId = orgId;
+		const tabParam = page.url.searchParams.get('tab');
+		if (
+			tabParam === 'products' ||
+			tabParam === 'channels' ||
+			tabParam === 'posts' ||
+			tabParam === 'feed'
+		) {
+			homeDashboardTab = tabParam;
+			return;
+		}
+		if (page.url.searchParams.get('edit') || page.url.searchParams.get('newProfile') === '1') {
+			homeDashboardTab = 'products';
+			return;
+		}
 		homeDashboardTab = showPostKanbanBoard ? 'posts' : 'channels';
 	});
 
@@ -877,10 +897,66 @@
 	});
 
 	$effect(() => {
+		const orgId = workspaceId;
+		if (!orgId || !browser) return;
+		scheduleDeferredWork(() => {
+			void autoLaunchProductsPresenter.loadProductsTab();
+		}, 'soon');
+	});
+
+	$effect(() => {
+		if (!browser) return;
+		const editId = page.url.searchParams.get('edit');
+		if (!editId) return;
+
+		homeDashboardTab = 'products';
+
+		void autoLaunchProductsPresenter.profilesVm;
+		if (!autoLaunchProductsPresenter.profilesVm.some((profile) => profile.id === editId)) {
+			return;
+		}
+
+		const composerTabParam = page.url.searchParams.get('profileComposerTab');
+		const composerTab =
+			composerTabParam === 'discovery' || composerTabParam === 'general'
+				? composerTabParam
+				: undefined;
+		autoLaunchProductsPresenter.openEditComposer(editId, composerTab);
+
+		const next = new URL(page.url);
+		next.searchParams.delete('edit');
+		next.searchParams.delete('profileComposerTab');
+		if (!next.searchParams.get('tab')) {
+			next.searchParams.set('tab', 'products');
+		}
+		const query = next.searchParams.toString();
+		void goto(`${next.pathname}${query ? `?${query}` : ''}`, {
+			replaceState: true,
+			keepFocus: true,
+			noScroll: true
+		});
+	});
+
+	$effect(() => {
+		if (!browser) return;
+		if (page.url.searchParams.get('newProfile') !== '1') return;
+		homeDashboardTab = 'products';
+		autoLaunchProductsPresenter.openCreateComposer();
+		const next = new URL(page.url);
+		next.searchParams.delete('newProfile');
+		const query = next.searchParams.toString();
+		void goto(`${next.pathname}${query ? `?${query}` : ''}`, {
+			replaceState: true,
+			keepFocus: true,
+			noScroll: true
+		});
+	});
+
+	$effect(() => {
 		const workspaceIdsKey = workspacesVm.map((w) => w.id).join(',');
 		if (!workspaceIdsKey || !browser) return;
 		scheduleDeferredWork(() => {
-			void pagePresenter.loadMyWorkspacesOverview(currentUser, homeWorkspacesOverviewOptions);
+			void pagePresenter.loadMyWorkspacesOverview(currentUser);
 		}, 'soon');
 	});
 
@@ -905,6 +981,32 @@
 		if (changed) pagePresenter.myWorkspacesCardsVm = next;
 	});
 
+	async function handleProductsSaveProfile(
+		values: AutoLaunchProfileSavePayload,
+		uploadMediaForProfile: (profileId: string) => Promise<AutoLaunchProfileMediaPatch | undefined>
+	): Promise<void> {
+		const resultVm = await autoLaunchProductsPresenter.saveProfile(values, uploadMediaForProfile);
+		if (!resultVm.ok) {
+			toast.error(resultVm.error);
+			return;
+		}
+		toast.success(
+			resultVm.created ? 'Business profile created.' : 'Business profile updated.'
+		);
+		if (resultVm.shouldRefreshChannelGroups) {
+			void pagePresenter.loadChannelGroups();
+		}
+	}
+
+	async function handleProductsDeleteProfile(profileId: string): Promise<void> {
+		const resultVm = await autoLaunchProductsPresenter.deleteProfile(profileId);
+		if (!resultVm.ok) {
+			toast.error(resultVm.error);
+			return;
+		}
+		toast.success('Business profile removed.');
+	}
+
 	function handleSwitchWorkspace(nextWorkspaceId: string) {
 		workspaceSettingsPresenter.switchWorkspace(nextWorkspaceId);
 	}
@@ -924,7 +1026,7 @@
 	async function handleAcceptPendingInvite(inviteId: string) {
 		const result = await workspaceSettingsPresenter.acceptPendingInvite(inviteId);
 		if (result.success) {
-			void pagePresenter.loadMyWorkspacesOverview(currentUser, homeWorkspacesOverviewOptions);
+			void pagePresenter.loadMyWorkspacesOverview(currentUser);
 		}
 		return result;
 	}
@@ -932,7 +1034,7 @@
 	async function handleCreateWorkspace(name: string) {
 		const result = await protectedSettingsPagePresenter.createWorkspace(name);
 		if (result.success) {
-			void pagePresenter.loadMyWorkspacesOverview(currentUser, homeWorkspacesOverviewOptions);
+			void pagePresenter.loadMyWorkspacesOverview(currentUser);
 		}
 		return result;
 	}
@@ -940,7 +1042,7 @@
 	$effect(() => {
 		if (listStatus !== 'ready' || !workspaceId || !browser) return;
 		scheduleDeferredWork(() => {
-			void pagePresenter.loadMyWorkspacesOverview(currentUser, homeWorkspacesOverviewOptions);
+			void pagePresenter.loadMyWorkspacesOverview(currentUser);
 		}, 'soon');
 	});
 </script>
@@ -1091,6 +1193,35 @@
 				showPostsTab={showPostKanbanBoard}
 				feedUnreadCount={feedUnreadCount}
 			>
+				{#snippet products()}
+					<MyProductsTab
+						workspaceId={workspaceId}
+						suggestedAuthEmail={currentUser?.email?.trim() ?? null}
+						loading={productsLoadingVm}
+						profileLaunchCardRowsVm={productLaunchCardRowsVm}
+						publishedDestinations={publishedDirectoryDestinationsVm}
+						onCreateDirectoryVariant={(mainProfileId, directorySiteKey) =>
+							autoLaunchProductsPresenter.createDirectoryVariantForSite(
+								mainProfileId,
+								directorySiteKey
+							)}
+						bind:composerOpen={autoLaunchProductsPresenter.composerOpen}
+						composerSubmitting={autoLaunchProductsPresenter.composerSubmitting}
+						editingProfile={productsEditingProfileVm}
+						composerInitialTab={autoLaunchProductsPresenter.composerInitialTab}
+						onOpenCreate={() => autoLaunchProductsPresenter.openCreateComposer()}
+						onOpenEdit={(profileId, tab) => autoLaunchProductsPresenter.openEditComposer(profileId, tab)}
+						onDeleteProfile={(id) => void handleProductsDeleteProfile(id)}
+						onSaveProfile={handleProductsSaveProfile}
+						onComposerCancel={() => autoLaunchProductsPresenter.closeComposer()}
+						onDirectoryListingSaved={(submission) => {
+							autoLaunchProductsPresenter.applySubmission(submission);
+						}}
+						onDirectoryListingRemoved={({ productProfileId, submissionId }) => {
+							autoLaunchProductsPresenter.removeSubmission(productProfileId, submissionId);
+						}}
+					/>
+				{/snippet}
 				{#snippet channels()}
 					<MyChannelsSection
 						workspaceId={workspaceId}
@@ -1100,6 +1231,7 @@
 						allowedChannelCount={allowedChannelCountVm}
 						billingHref={accountBillingHref}
 						{channelGroupSectionsVm}
+						channelGroups={channelGroupsVm}
 						{channelRowsUngroupedVm}
 						channelsGridPresenter={channelsGridPresenter}
 						channelsFilterPresenter={channelsFilterPresenter}

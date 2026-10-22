@@ -47,7 +47,7 @@ From the **repository root** (after install):
 
 ```bash
 pnpm orchestrator:dev:worker:integration-refresh-bullmq
-pnpm orchestrator:dev:worker:notification-email-bullmq
+pnpm orchestrator:dev:worker:housekeeping-bullmq
 pnpm orchestrator:dev:worker:scheduled-social-post-bullmq
 ```
 

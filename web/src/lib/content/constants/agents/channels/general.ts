@@ -1,105 +1,23 @@
 import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 
-import type { PublicChannelFeatureBentoId } from '$lib/content/constants/channels/catalog/feature-bento';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/catalog/types';
-import {
-	buildChannelMcpSeoKeywords,
-	SHARED_CHANNEL_SEO_KEYWORDS
-} from '$lib/content/constants/channels/catalog/shared';
-import { getPublicChannelSeedAudienceCards } from '$lib/content/constants/channels';
-import { channelProviderIdentifiersSupportAnalytics } from '$data/social-providers';
-import {
-	buildAgentChannelAnalyticsCliCommands,
-	buildAgentChannelCliCommandReference,
-	buildAgentChannelFollowUpCliCommands,
-	buildAgentChannelKanbanCliCommands
-} from '$lib/content/utils/buildAgentChannelCliCommandReference';
+import { getPublicChannelSeedAudienceCards, isPublicDirectoryChannel } from '$lib/content/constants/channels';
 
 import type {
 	PublicAgentChannelHostConfig,
 	PublicAgentChannelPageConfig
 } from '$lib/content/constants/agents/channels/types';
-import { buildAgentChannelSeoExtras } from '$lib/content/constants/agents/channels/seo-extras';
-
-const SHARED_CHANNEL_KEYWORD_SET = new Set<string>(SHARED_CHANNEL_SEO_KEYWORDS);
-
-const CHANNEL_PROVIDER_IDENTIFIERS: Record<string, readonly string[]> = {
-	facebook: ['facebook'],
-	threads: ['threads'],
-	instagram: ['instagram-business', 'instagram-standalone', 'instagram'],
-	youtube: ['youtube'],
-	tiktok: ['tiktok'],
-	linkedin: ['linkedin', 'linkedin-page'],
-	x: ['x'],
-	devto: ['devto'],
-	bluesky: ['bluesky'],
-	skool: ['skool']
-};
-
-const KANBAN_BENTO_BY_CHANNEL: Record<string, PublicChannelFeatureBentoId> = {
-	facebook: 'facebook-bulk-scheduling',
-	threads: 'threads-bulk-scheduling',
-	instagram: 'instagram-bulk-scheduling',
-	youtube: 'youtube-bulk-scheduling',
-	tiktok: 'tiktok-bulk-scheduling',
-	linkedin: 'linkedin-bulk-scheduling',
-	x: 'x-bulk-scheduling',
-	devto: 'devto-bulk-scheduling',
-	bluesky: 'bluesky-bulk-scheduling',
-	skool: 'skool-bulk-scheduling'
-};
-
-const ANALYTICS_BENTO_BY_CHANNEL: Record<string, PublicChannelFeatureBentoId> = {
-	facebook: 'facebook-insights',
-	threads: 'threads-insights',
-	instagram: 'instagram-insights',
-	youtube: 'youtube-insights',
-	tiktok: 'tiktok-insights',
-	linkedin: 'linkedin-insights',
-	x: 'x-insights',
-	devto: 'devto-insights',
-	bluesky: 'bluesky-insights'
-};
+import { buildDirectoryAgentChannelPageConfig } from '$lib/content/constants/agents/channels/kinds/directory';
+import { buildSocialAgentChannelPageConfig } from '$lib/content/constants/agents/channels/kinds/social';
 
 export function buildAgentChannelPageConfig(
 	host: PublicAgentChannelHostConfig,
 	channel: PublicChannelLandingPageViewModel
 ): PublicAgentChannelPageConfig {
-	const providerIdentifiers =
-		CHANNEL_PROVIDER_IDENTIFIERS[channel.slug] ?? [channel.platformId || channel.slug];
-	const supportsAnalytics = channelProviderIdentifiersSupportAnalytics(providerIdentifiers);
-
-	return {
-		channelSlug: channel.slug,
-		platformLabel: channel.platformLabel,
-		icon: channel.icon,
-		listingTagSlug: channel.slug,
-		providerIdentifiers,
-		kanbanBentoId: KANBAN_BENTO_BY_CHANNEL[channel.slug] ?? 'facebook-bulk-scheduling',
-		analyticsBentoId: ANALYTICS_BENTO_BY_CHANNEL[channel.slug] ?? 'facebook-insights',
-		metaTitle: host.metaTitle(channel.platformLabel),
-		metaDescription: host.metaDescription(channel.platformLabel),
-		keywords: [
-			...host.extraKeywords(channel.platformLabel),
-			...buildAgentChannelSeoExtras(host.slug, channel.platformLabel),
-			'openquok-core skill',
-			'agent social media',
-			...buildChannelMcpSeoKeywords(channel.platformLabel),
-			// Prefer channel-specific SEO nouns (posts / series / analytics) over shared generics.
-			...channel.keywords.filter((keyword) => !SHARED_CHANNEL_KEYWORD_SET.has(keyword)).slice(0, 4)
-		],
-		cliExamplesPath: `/docs/cli-examples/${channel.slug}`,
-		commands: buildAgentChannelCliCommandReference(channel.slug),
-		kanbanCliCommands: buildAgentChannelKanbanCliCommands(channel.slug, channel.platformLabel),
-		analyticsCliCommands: supportsAnalytics
-			? buildAgentChannelAnalyticsCliCommands(channel.platformLabel, providerIdentifiers)
-			: buildAgentChannelFollowUpCliCommands(channel.slug, channel.platformLabel),
-		kanbanMcpPrompts: `Schedule a ${channel.platformLabel} post for tomorrow at 9am — move to review with a note to check the CTA before it goes live`,
-		analyticsMcpPrompts: supportsAnalytics
-			? `What performed best on my ${channel.platformLabel} account over the last 30 days?
-Break down likes, comments, and shares for post <id>`
-			: `Schedule a ${channel.platformLabel} post with a follow-up reply five minutes after the main post goes live`
-	};
+	if (isPublicDirectoryChannel(channel)) {
+		return buildDirectoryAgentChannelPageConfig(host, channel);
+	}
+	return buildSocialAgentChannelPageConfig(host, channel);
 }
 
 export function buildAgentChannelConfigsForHost(
@@ -117,11 +35,41 @@ export type AgentsChannelAudienceSection = {
 	audienceCards: AudienceCard[];
 };
 
+function buildDirectoryAgentAudienceCardDescription(
+	cardIndex: number,
+	platformLabel: string,
+	agentLabel: string,
+	mode: AgentsChannelAudienceMode,
+	siteKey: string
+): string {
+	if (mode === 'mcp-client') {
+		switch (cardIndex) {
+			case 0:
+				return `Spread ${platformLabel} submits across the week. Ask ${agentLabel} for listing readiness before you open the site.`;
+			case 1:
+				return `One workspace for launch copy. ${agentLabel} checks ${siteKey} variants and DR before your team approves.`;
+			default:
+				return `Clients submit on the site. ${agentLabel} refreshes DR from one profile.`;
+		}
+	}
+
+	switch (cardIndex) {
+		case 0:
+			return `Spread ${platformLabel} submits. Message ${agentLabel} for profiles and readiness before you submit.`;
+		case 1:
+			return `One workspace for copy. ${agentLabel} prepares ${siteKey} variants for team review.`;
+		default:
+			return `One workspace per client. ${agentLabel} keeps ${platformLabel} profiles separate.`;
+	}
+}
+
 function buildAgentAudienceCardHook(
 	cardIndex: number,
 	platformLabel: string,
 	agentLabel: string,
-	mode: AgentsChannelAudienceMode
+	mode: AgentsChannelAudienceMode,
+	_isDirectory: boolean,
+	_siteKey: string
 ): string {
 	if (mode === 'mcp-client') {
 		switch (cardIndex) {
@@ -149,10 +97,29 @@ function tailorAudienceCardDescription(
 	cardIndex: number,
 	platformLabel: string,
 	agentLabel: string,
-	mode: AgentsChannelAudienceMode
+	mode: AgentsChannelAudienceMode,
+	isDirectory: boolean,
+	siteKey: string
 ): string {
+	if (isDirectory) {
+		return buildDirectoryAgentAudienceCardDescription(
+			cardIndex,
+			platformLabel,
+			agentLabel,
+			mode,
+			siteKey
+		);
+	}
+
 	const base = description.trim().replace(/\.$/, '');
-	const hook = buildAgentAudienceCardHook(cardIndex, platformLabel, agentLabel, mode);
+	const hook = buildAgentAudienceCardHook(
+		cardIndex,
+		platformLabel,
+		agentLabel,
+		mode,
+		isDirectory,
+		siteKey
+	);
 	return `${base}. ${hook}`;
 }
 
@@ -168,13 +135,19 @@ export function buildAgentsChannelAudienceSection(params: {
 }): AgentsChannelAudienceSection {
 	const { channel, agentLabel, mode } = params;
 	const platformLabel = channel.platformLabel;
+	const isDirectory = isPublicDirectoryChannel(channel);
+	const siteKey = channel.slug;
 
 	const seedCards = getPublicChannelSeedAudienceCards(channel.slug);
 	const audienceCards = seedCards.length > 0 ? seedCards : [...channel.audienceCards];
 
 	return {
-		audienceSubtitle: `${channel.audienceSubtitle} with ${agentLabel}`,
-		audienceTitle: channel.audienceTitle.replace(/OpenQuok/g, agentLabel),
+		audienceSubtitle: isDirectory
+			? channel.audienceSubtitle
+			: `${channel.audienceSubtitle} with ${agentLabel}`,
+		audienceTitle: isDirectory
+			? channel.audienceTitle
+			: channel.audienceTitle.replace(/OpenQuok/g, agentLabel),
 		audienceCards: audienceCards.map((card, index) => ({
 			...card,
 			description: tailorAudienceCardDescription(
@@ -182,7 +155,9 @@ export function buildAgentsChannelAudienceSection(params: {
 				index,
 				platformLabel,
 				agentLabel,
-				mode
+				mode,
+				isDirectory,
+				siteKey
 			)
 		}))
 	};

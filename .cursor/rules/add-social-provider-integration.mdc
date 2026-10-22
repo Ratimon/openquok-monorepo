@@ -148,7 +148,7 @@ Update: `providerSettings.ts` bucket; `crossAccountPlugPreview.ts`; `AddEditModa
 | Photo Editor | `aspectRatioPresets.ts` + groups; live only (`available: true`) |
 | Best Time | `benchmarkSlots.ts` `PLATFORM_WINDOWS['{slug}']`; live only; no fake analytics copy |
 | Tool Tier-3 copy | `channels/tool-surfaces/{slug}.ts` + `channelToolSurfaceMetaBySlug.ts` |
-| Agent `/agents/{host}/{slug}` | `agents/channels/general.ts`, bentos, CLI/MCP strings; no analytics bento if not on allow-list — `buildAgentsChannelFeatureSections.ts` |
+| Agent `/agents/{host}/{slug}` | `agents/channels/kinds/social.ts` (default), `agents/channels/kinds/directory.ts` when `channelKind: 'directory'`, router `agents/channels/general.ts`, CLI in `buildAgentChannelCliCommandReference.ts`; feature overlay — `buildAgentsChannelFeatureSections.ts` |
 | `agentMultiPlatformKanbanMock.ts` | Optional card on generic agent/MCP pages |
 
 ## Programmatic tools (summary)

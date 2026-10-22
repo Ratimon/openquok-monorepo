@@ -11,10 +11,11 @@
 		PUBLIC_BANNER_CTA_TEXT,
 		PUBLIC_HUB_DOCS_BANNERS
 	} from '$lib/config/constants/config';
-	import { PUBLIC_CHANNELS_HUB_FAQ } from '$lib/content/constants/hubs/channels';
+	import { PUBLIC_CHANNELS_HUB, PUBLIC_CHANNELS_HUB_FAQ } from '$lib/content/constants/hubs/channels';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
+	import Compare from '$lib/ui/templates/Compare.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import PublicChannelsHubGrid from '$lib/ui/templates/landing-page/PublicChannelsHubGrid.svelte';
@@ -27,6 +28,7 @@
 
 	let schemaData = $derived(data.schemaData);
 	let channelsVm: PublicChannelViewModel[] = $derived(data.channelsVm ?? []);
+	let directoryChannelsVm: PublicChannelViewModel[] = $derived(data.directoryChannelsVm ?? []);
 
 	// /sign-up
 	const rootPathSignUp = getRootPathSignup();
@@ -40,9 +42,19 @@
 <SectionOuterContainer class="py-10 md:py-16">
 	<PublicChannelsHubGrid
 		channelsVm={channelsVm}
+		directoryChannelsVm={directoryChannelsVm}
 	/>
 
 	<div class="container mx-auto px-4">
+		<Compare
+			heroTheme={landingHeroTheme}
+			landingSubtitle={PUBLIC_CHANNELS_HUB.compareSection.subtitle}
+			landingTitle={PUBLIC_CHANNELS_HUB.compareSection.title}
+			landingDescription={PUBLIC_CHANNELS_HUB.compareSection.description}
+			leftTitle={PUBLIC_CHANNELS_HUB.compareSection.leftTitle}
+			rightTitle={PUBLIC_CHANNELS_HUB.compareSection.rightTitle}
+			points={PUBLIC_CHANNELS_HUB.compareSection.points}
+		/>
 		<PublicFaq
 			heroTheme={landingHeroTheme}
 			faqSubtitle={PUBLIC_CHANNELS_HUB_FAQ.faqSubtitle}

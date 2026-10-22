@@ -2,7 +2,7 @@
 title: Overview - Admin Setup
 description: Set up platform admin access after your first OpenQuok's deployment.
 order: 0
-lastUpdated: 2026-05-08
+lastUpdated: 2026-10-20
 sidebar:
   label: Overview
 ---
@@ -20,6 +20,7 @@ Guides for using tools for different **admin** roles and how to grant the roles 
 <LinkCard title="OAuth apps (client ID & secret)" description="Create and rotate OAuth apps; set redirect URL for hosted vs self-hosted auth servers" href="/docs/admin/oauth-server" />
 <LinkCard title="Security secrets" description="Set SECURITY_SECRET for invite links and OAuth2 hashing" href="/docs/admin/security-secrets" />
 <LinkCard title="Product analytics & UTM" description="PostHog, Meta Pixel, campaign links, and checkout attribution" href="/docs/admin/product-analytics" />
+<LinkCard title="Catalog DR refresh" description="CLI and secret-admin refresh for Build Backlinks site domain rating" href="/docs/admin/link-directory-catalog-dr-refresh" />
 </CardGrid>
 
 ## Related Section(s)

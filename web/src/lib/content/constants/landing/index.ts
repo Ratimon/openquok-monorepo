@@ -2,7 +2,7 @@
  * Shared **marketing chrome** for `/` and public hub templates — not per-channel pSEO.
  *
  * Channel identity (`/channels/{slug}`) lives in `channels/catalog/platforms/`.
- * The `/self-hosting` page uses `self-hosting/landing.ts` (single-route config, not this folder).
+ * The `/self-hosting` page uses `marketing/self-hosting-landing.ts` (single-route config, not this folder).
  */
 export * from '$lib/content/constants/landing/breadcrumbs';
 export * from '$lib/content/constants/landing/hero-copy';

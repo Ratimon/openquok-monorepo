@@ -32,7 +32,9 @@ export function createJsonLdWithContext<T extends Thing>(node: T): WithContext<T
 export function filterNonEmptyJsonLdNodes(
 	nodes: readonly (JsonLdGraphNode | Record<string, never>)[]
 ): JsonLdGraphNode[] {
-	return nodes.filter((node) => Object.keys(node).length > 0) as JsonLdGraphNode[];
+	return nodes.filter(
+		(node) => node != null && typeof node === 'object' && Object.keys(node).length > 0
+	) as JsonLdGraphNode[];
 }
 
 type JsonLdTypeField = string | string[] | undefined;

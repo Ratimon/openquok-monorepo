@@ -7,7 +7,7 @@
  * our setup, so a **distributed throttle** (Redis `SET NX` + spin) fits better than embedding sleep nodes in
  * the send-plain blueprint.
  *
- * Worker wiring: `runNotificationEmailBullMqWorker` passes `acquireSendPlainSlot` into Flowcraft dependencies;
+ * Worker wiring: `runHousekeepingBullMqWorker` passes `acquireSendPlainSlot` into Flowcraft dependencies;
  * `notificationSendPlainDispatchNode` calls it before `sendPlain`. See also
  * `notificationEmailWorkflow.unit.test.ts` for dispatch ordering.
  */

@@ -114,7 +114,7 @@ See it in action:
 
 Invite links work only for **OAuth redirect** networks. Platforms that need credentials pasted in a form or the **browser extension** are excluded — connect those yourself or ask the client to sign in to OpenQuok and use <Badge text="Add Channel" variant="new" />.
 
-See <a href="/docs/channels/channel-groups">Channel groups</a> when you want client channels bundled and filtered together.
+See <a href="/docs/channels/channel-groups">Business profiles</a> when you want client channels bundled and filtered together.
 
 ## After you connect
 
@@ -147,7 +147,7 @@ See <a href="/docs/troubleshooting/oauth-connect">Troubleshooting → OAuth and 
 <CardGrid>
 <LinkCard title="Manage a channel" description="Reconnect, disable, or disconnect a connected account" href="/docs/channels/manage" />
 <LinkCard title="Posting time slots" description="Set usual posting hours after you connect" href="/docs/channels/time-slots" />
-<LinkCard title="Channel groups" description="Group channels by client or brand" href="/docs/channels/channel-groups" />
+<LinkCard title="Business profiles" description="Link channels by client or brand" href="/docs/channels/channel-groups" />
 <LinkCard title="Dev.to" description="Create an API key and connect Dev.to" href="/docs/social-integration/devto" />
 <LinkCard title="Bluesky" description="Create an app password and connect Bluesky" href="/docs/social-integration/bluesky" />
 <LinkCard title="Skool" description="Connect with the OpenQuok browser extension" href="/docs/social-integration/skool" />

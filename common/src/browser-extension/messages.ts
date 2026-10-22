@@ -1,3 +1,9 @@
+import {
+	AUTO_LAUNCH_MESSAGE_TYPE,
+	isAutoLaunchHandoffRequestFields,
+	type AutoLaunchHandoffRequestFields,
+} from './autoLaunchMessages.js';
+
 /** Discriminant for messages sent from the OpenQuok web app to the browser extension. */
 export const BROWSER_EXTENSION_MESSAGE_TYPE = {
 	PING: 'PING',
@@ -5,7 +11,10 @@ export const BROWSER_EXTENSION_MESSAGE_TYPE = {
 	GET_COOKIES: 'GET_COOKIES',
 	STORE_REFRESH_TOKEN: 'STORE_REFRESH_TOKEN',
 	REMOVE_REFRESH_TOKEN: 'REMOVE_REFRESH_TOKEN',
+	AUTO_LAUNCH_HANDOFF: AUTO_LAUNCH_MESSAGE_TYPE.HANDOFF,
 } as const;
+
+export { AUTO_LAUNCH_MESSAGE_TYPE } from './autoLaunchMessages.js';
 
 export type BrowserExtensionMessageType =
 	(typeof BROWSER_EXTENSION_MESSAGE_TYPE)[keyof typeof BROWSER_EXTENSION_MESSAGE_TYPE];
@@ -43,7 +52,10 @@ export type BrowserExtensionRequest =
 			type: typeof BROWSER_EXTENSION_MESSAGE_TYPE.REMOVE_REFRESH_TOKEN;
 			providerId: string;
 			integrationId: string;
-	  };
+	  }
+	| ({
+			type: typeof BROWSER_EXTENSION_MESSAGE_TYPE.AUTO_LAUNCH_HANDOFF;
+	  } & AutoLaunchHandoffRequestFields);
 
 export type BrowserExtensionProviderSummary = {
 	identifier: string;
@@ -64,7 +76,12 @@ export type BrowserExtensionSuccessResponse =
 			cookies: BrowserExtensionSessionCookie[];
 	  }
 	| { ok: true; type: typeof BROWSER_EXTENSION_MESSAGE_TYPE.STORE_REFRESH_TOKEN }
-	| { ok: true; type: typeof BROWSER_EXTENSION_MESSAGE_TYPE.REMOVE_REFRESH_TOKEN };
+	| { ok: true; type: typeof BROWSER_EXTENSION_MESSAGE_TYPE.REMOVE_REFRESH_TOKEN }
+	| {
+			ok: true;
+			type: typeof BROWSER_EXTENSION_MESSAGE_TYPE.AUTO_LAUNCH_HANDOFF;
+			submissionId: string;
+	  };
 
 export type BrowserExtensionErrorResponse = {
 	ok: false;
@@ -105,6 +122,8 @@ export function isBrowserExtensionRequest(value: unknown): value is BrowserExten
 			);
 		case BROWSER_EXTENSION_MESSAGE_TYPE.REMOVE_REFRESH_TOKEN:
 			return isNonEmptyString(record.providerId) && isNonEmptyString(record.integrationId);
+		case BROWSER_EXTENSION_MESSAGE_TYPE.AUTO_LAUNCH_HANDOFF:
+			return isAutoLaunchHandoffRequestFields(record);
 		default:
 			return false;
 	}

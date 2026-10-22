@@ -73,6 +73,11 @@ CREATE TABLE IF NOT EXISTS public.link_directory_sites (
     is_admin_published BOOLEAN NOT NULL DEFAULT false,
     sort_order INTEGER NOT NULL DEFAULT 0,
     tag_slugs TEXT[],
+    likes INTEGER NOT NULL DEFAULT 0,
+    views INTEGER NOT NULL DEFAULT 0,
+    bookmark_count INTEGER NOT NULL DEFAULT 0,
+    average_rating DOUBLE PRECISION NOT NULL DEFAULT 0,
+    ratings_count INTEGER NOT NULL DEFAULT 0,
     fts TSVECTOR GENERATED ALWAYS AS (
         to_tsvector(
             'english'::regconfig,
@@ -122,6 +127,8 @@ CREATE TABLE IF NOT EXISTS public.link_directory_opportunities (
     -- Lower runs first on site guide pages (step 1, step 2, …).
     sort_order INTEGER NOT NULL DEFAULT 0,
     is_admin_published BOOLEAN NOT NULL DEFAULT false,
+    auto_launch_enabled BOOLEAN NOT NULL DEFAULT false,
+    auto_launch_provider_slug TEXT,
     UNIQUE (site_id, slug)
 );
 
@@ -129,11 +136,36 @@ COMMENT ON COLUMN public.link_directory_opportunities.sort_order IS
     'Display order on the site guide: ascending playbook sequence (opportunity 1, then 2, …).';
 COMMENT ON COLUMN public.link_directory_opportunities.steps IS
     'JSON array of {order, title, body} sub-steps for this opportunity (schema.org HowToStep).';
+COMMENT ON COLUMN public.link_directory_opportunities.auto_launch_enabled IS
+    'When true, build-backlinks and account surfaces may open the directory launch modal for this opportunity.';
+COMMENT ON COLUMN public.link_directory_opportunities.auto_launch_provider_slug IS
+    'Matches auto_launch_destinations.provider_slug when auto_launch_enabled is true.';
 
 CREATE TABLE IF NOT EXISTS public.link_directory_site_tags_association (
     site_id UUID NOT NULL REFERENCES public.link_directory_sites(id) ON DELETE CASCADE,
     link_directory_tag_id UUID NOT NULL REFERENCES public.link_directory_tags(id) ON DELETE CASCADE,
     PRIMARY KEY (site_id, link_directory_tag_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.link_directory_site_ratings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    site_id UUID NOT NULL REFERENCES public.link_directory_sites(id) ON DELETE CASCADE,
+    rating SMALLINT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (user_id, site_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.link_directory_site_comments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    site_id UUID NOT NULL REFERENCES public.link_directory_sites(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
+    parent_id UUID REFERENCES public.link_directory_site_comments(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    is_approved BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ
 );
 
 CREATE TABLE IF NOT EXISTS public.link_directory_submissions (
@@ -157,15 +189,12 @@ CREATE TABLE IF NOT EXISTS public.link_directory_saved_sites (
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     site_id UUID NOT NULL REFERENCES public.link_directory_sites(id) ON DELETE CASCADE,
     sort_order INTEGER NOT NULL DEFAULT 0,
-    outreach_completed_at TIMESTAMPTZ NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (user_id, site_id)
 );
 
 COMMENT ON TABLE public.link_directory_saved_sites IS
-    'Per-user shortlist of link directory sites (Saved → Backlinks): private order and outreach progress.';
-COMMENT ON COLUMN public.link_directory_saved_sites.outreach_completed_at IS
-    'When the signed-in user marked personal outreach on this site as done; null means not completed.';
+    'Per-user shortlist of link directory sites (Saved → Backlinks): private order only.';
 
 -- ---------------------------
 -- END OF FILE

@@ -2,7 +2,7 @@
 	import type {
 		PublicSelfHostingCta,
 		PublicSelfHostingTrustBadge
-	} from '$lib/content/constants/self-hosting/landing';
+	} from '$lib/content/constants/marketing/self-hosting-landing';
 
 	import LandingHeroHighlightedText from '$lib/ui/texts/LandingHeroHighlightedText.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';

@@ -1,10 +1,12 @@
 import type { IntegrationsRepository } from '$lib/integrations/Integrations.repository.svelte';
 import type { SettingsRepository } from '$lib/settings/Settings.repository.svelte';
+import type { AutoLaunchProductsPresenter } from '$lib/auto-launch/AutoLaunchProducts.presenter.svelte';
 import type { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPost.presenter.svelte';
 import type { PostKanbanBoardPresenter } from '$lib/posts/PostKanbanBoard.presenter.svelte';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 import {
 	GetHomeWorkspacesPresenter,
+	STACK_HOME_WORKSPACE_CHANNEL_PREVIEW_LIMIT,
 	type HomeWorkspaceCardViewModel
 } from '$lib/area-protected/GetHomeWorkspaces.presenter.svelte';
 import type { HomeChannelsGridFilterBuilderPresenter } from '$lib/channels/HomeChannelsGridFilterBuilder.presenter.svelte';
@@ -98,6 +100,7 @@ export class ProtectedHomePagePresenter {
 		private readonly integrationsRepository: IntegrationsRepository,
 		private readonly settingsRepository: SettingsRepository,
 		private readonly workspaceSettingsPresenter: WorkspaceSettingsPresenter,
+		readonly autoLaunchProductsPresenter: AutoLaunchProductsPresenter,
 		readonly createSocialPostPresenter: CreateSocialPostPresenter,
 		readonly postKanbanBoardPresenter: PostKanbanBoardPresenter,
 		readonly channelsGridTable: HomeChannelsGridTablePresenter,
@@ -175,7 +178,8 @@ export class ProtectedHomePagePresenter {
 							currentUser,
 							isCurrent: workspace.id === currentWorkspaceId,
 							getChannelPresenter: this.getChannelPresenter,
-							channelPreviewLimit: options?.channelPreviewLimit
+							channelPreviewLimit:
+								options?.channelPreviewLimit ?? STACK_HOME_WORKSPACE_CHANNEL_PREVIEW_LIMIT
 						});
 					})
 				);

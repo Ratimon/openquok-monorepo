@@ -103,17 +103,44 @@ const opportunityFields = {
     cta_label: z.string().optional().nullable(),
     sort_order: z.number().int().optional(),
     is_admin_published: z.boolean().optional(),
+    auto_launch_enabled: z.boolean().optional(),
+    auto_launch_provider_slug: z
+        .string()
+        .max(120)
+        .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Invalid provider slug")
+        .nullable()
+        .optional(),
 };
 
-export const linkDirectoryOpportunityCreateSchema = z.object(opportunityFields);
+const opportunityAutoLaunchRefine = (
+    data: {
+        auto_launch_enabled?: boolean;
+        auto_launch_provider_slug?: string | null;
+    },
+    ctx: z.RefinementCtx
+) => {
+    if (data.auto_launch_enabled && !data.auto_launch_provider_slug?.trim()) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Provider slug is required when browser extension auto-launch is enabled.",
+            path: ["auto_launch_provider_slug"],
+        });
+    }
+};
+
+export const linkDirectoryOpportunityCreateSchema = z
+    .object(opportunityFields)
+    .superRefine(opportunityAutoLaunchRefine);
 export type LinkDirectoryOpportunityCreateSchemaType = z.infer<
     typeof linkDirectoryOpportunityCreateSchema
 >;
 
-export const linkDirectoryOpportunityUpdateSchema = z.object({
-    ...opportunityFields,
-    id: z.string().uuid(),
-});
+export const linkDirectoryOpportunityUpdateSchema = z
+    .object({
+        ...opportunityFields,
+        id: z.string().uuid(),
+    })
+    .superRefine(opportunityAutoLaunchRefine);
 export type LinkDirectoryOpportunityUpdateSchemaType = z.infer<
     typeof linkDirectoryOpportunityUpdateSchema
 >;
@@ -199,13 +226,6 @@ export type LinkDirectorySavedSitesOrderSchemaType = z.infer<
     typeof linkDirectorySavedSitesOrderSchema
 >;
 
-export const linkDirectorySavedSiteOutreachCompletionSchema = z.object({
-    completed: z.boolean(),
-});
-export type LinkDirectorySavedSiteOutreachCompletionSchemaType = z.infer<
-    typeof linkDirectorySavedSiteOutreachCompletionSchema
->;
-
 const linkDirectorySiteCommentContent = z
     .string()
     .min(1, "Comment is required")
@@ -227,3 +247,14 @@ export const linkDirectorySiteRatingBodySchema = z.object({
     rating: z.number().int().min(1, "Rating must be at least 1").max(5, "Rating must be at most 5"),
 });
 export type LinkDirectorySiteRatingBodySchemaType = z.infer<typeof linkDirectorySiteRatingBodySchema>;
+
+export const linkDirectoryCatalogDrRefreshBodySchema = z.object({
+    force: z.boolean().optional(),
+    publishedOnly: z.boolean().optional(),
+    siteId: z.string().uuid().optional(),
+    slug: z.string().min(1).max(200).optional(),
+    dryRun: z.boolean().optional(),
+});
+export type LinkDirectoryCatalogDrRefreshBodySchemaType = z.infer<
+    typeof linkDirectoryCatalogDrRefreshBodySchema
+>;

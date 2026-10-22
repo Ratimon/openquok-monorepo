@@ -79,7 +79,10 @@
 				{/each}
 			</div>
 
-			<AnalyticsOverviewLineChart dates={chartVm.dates} lines={chartVm.lines} />
+			<AnalyticsOverviewLineChart
+				dates={chartVm.dates}
+				lines={chartVm.lines}
+			/>
 		</div>
 	</section>
 {/if}

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+	import type { PublicDirectoryChannelSlug } from '$lib/content/constants/channels/catalog/directory-platforms/directoryChannelProcessSection';
 	import type { PublicChannelViewModel } from '$lib/area-public/PublicChannelByPage.presenter.svelte';
 
 	import { page } from '$app/state';
@@ -8,13 +9,17 @@
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 	import { route, url } from '$lib/utils/path';
 	import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
-	import { listPublicChannelsForHub } from '$lib/content/constants/channels/index';
+	import {
+		listPublicChannelsForHub,
+		listPublicDirectoryChannelsForHub
+	} from '$lib/content/constants/channels/index';
 	import { enrichPublicChannelSiblingGridItems } from '$lib/content/constants/channels/catalog/channelPageSeo';
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
 	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import BentoPublicChannelFeature from '$lib/ui/templates/bento/minor-templates/BentoPublicChannelFeature.svelte';
+	import { PUBLIC_LANDING_GETTING_STARTED_GUIDE_CTA } from '$lib/content/constants/landing/hero-copy';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import {
 		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
@@ -26,6 +31,8 @@
 		accentSplitDocsCtaBannerTitle
 	} from '$lib/config/constants/config';
 	import PublicChannelHero from '$lib/ui/templates/landing-page/PublicChannelHero.svelte';
+	import PublicDirectoryMarketingMainHero from '$lib/ui/templates/landing-page/PublicDirectoryMarketingMainHero.svelte';
+	import PublicChannelsLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicChannelsLandingBreadcrumb.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
@@ -33,6 +40,10 @@
 	import PublicChannelAgentIntegrationsGrid from '$lib/ui/templates/landing-page/PublicChannelAgentIntegrationsGrid.svelte';
 	import PublicChannelSiblingGrid from '$lib/ui/templates/landing-page/PublicChannelSiblingGrid.svelte';
 	import PublicLandingTeamFeatureHero from '$lib/ui/templates/landing-page/PublicLandingTeamFeatureHero.svelte';
+	import FeaturesOrdered from '$lib/ui/templates/FeaturesOrdered.svelte';
+	import { publicDirectoryChannelHeroStatBadges } from '$lib/content/constants/channels/catalog/directory-platforms/directoryChannelLandingShared';
+	import { publicLandingHeroStatBadgesFromFeatureSections } from '$lib/content/constants/marketing/publicLandingHeroStatBadges';
+	import PublicLandingHeroStatBadges from '$lib/ui/templates/landing-page/PublicLandingHeroStatBadges.svelte';
 
 	type Props = { data: PageData };
 
@@ -43,6 +54,7 @@
 	let schemaData = $derived(data.schemaData);
 	let channelVm: PublicChannelViewModel = $derived(data.channelVm);
 	let isLoggedIn = $derived(data.isLoggedIn === true);
+	let isDirectoryChannel = $derived(channelVm.channelKind === 'directory');
 
 	const heroCtaText = pagePresenter.heroCtaText;
 	const featureCtaText = pagePresenter.featureCtaText;
@@ -57,15 +69,47 @@
 	let accentBannerTitle = $derived(accentSplitDocsCtaBannerTitle(channelVm.platformLabel));
 	let accentBannerDescription = $derived(accentSplitDocsCtaBannerDescription(channelVm.platformLabel));
 
+	const directoryProcessSectionId = 'directory-channel-process';
+
+	const directoryProcessFooterHref = $derived(
+		channelVm.processSection
+			? hostedMarketingHref(channelVm.processSection.stepsFooter.footerLinkHref, page.url.origin)
+			: ''
+	);
+
+	const directoryChannelDocsHref = $derived(
+		hostedMarketingHref(channelVm.docsPath, page.url.origin)
+	);
+
+	const directoryChannelSlug = $derived(
+		isDirectoryChannel && (channelVm.slug === 'peerpush' || channelVm.slug === 'uneed')
+			? (channelVm.slug as PublicDirectoryChannelSlug)
+			: undefined
+	);
+
+	const channelHeroStatBadges = $derived(
+		isDirectoryChannel
+			? [...publicDirectoryChannelHeroStatBadges()]
+			: channelVm?.featureSections?.length
+				? publicLandingHeroStatBadgesFromFeatureSections(channelVm.featureSections)
+				: []
+	);
+
+	const channelHeroStatBadgesAriaLabel = $derived(
+		isDirectoryChannel ? 'Directory launch highlights' : `${channelVm.platformLabel} integration highlights`
+	);
+
 	const siblingChannels = $derived(
 		enrichPublicChannelSiblingGridItems(
-			listPublicChannelsForHub().map((channel) => ({
-				slug: channel.slug,
-				platformLabel: channel.platformLabel,
-				icon: channel.icon,
-				href: route(getRootPathPublicChannel(channel.slug)),
-				available: channel.available
-			})),
+			(isDirectoryChannel ? listPublicDirectoryChannelsForHub() : listPublicChannelsForHub()).map(
+				(channel) => ({
+					slug: channel.slug,
+					platformLabel: channel.platformLabel,
+					icon: channel.icon,
+					href: route(getRootPathPublicChannel(channel.slug)),
+					available: channel.available
+				})
+			),
 			channelVm.slug
 		)
 	);
@@ -75,18 +119,42 @@
 
 {#if channelVm}
 	{#if channelVm.available}
-		<PublicChannelHero
-			channelVm={channelVm}
-			heroTheme={landingHeroTheme}
-			ctaText={heroCtaText}
-			ctaHref={secondaryCtaHref}
-		/>
+		{#if isDirectoryChannel}
+			<div class="container mx-auto flex justify-center px-4 pt-8 md:pt-10">
+				<PublicChannelsLandingBreadcrumb
+					platformLabel={channelVm.platformLabel}
+					channelKind={channelVm.channelKind ?? 'directory'}
+				/>
+			</div>
+			<PublicDirectoryMarketingMainHero
+				title={channelVm.heroTitle}
+				description={channelVm.heroDescription}
+				primaryCtaLabel={heroCtaText}
+				primaryCtaHref={secondaryCtaHref}
+				secondaryCtaLabel={PUBLIC_LANDING_GETTING_STARTED_GUIDE_CTA}
+				secondaryCtaHref={directoryChannelDocsHref}
+			/>
+		{:else}
+			<PublicChannelHero
+				channelVm={channelVm}
+				heroTheme={landingHeroTheme}
+				ctaText={heroCtaText}
+				ctaHref={secondaryCtaHref}
+				docsCtaText={PUBLIC_LANDING_GETTING_STARTED_GUIDE_CTA}
+				docsCtaHref={channelVm.docsPath}
+			/>
+		{/if}
 	{:else}
 		<PublicComingSoonIntegrationPage
 			heroOnly
 			platformLabel={channelVm.platformLabel}
 			icon={channelVm.icon}
+			channelKind={channelVm.channelKind ?? 'social'}
 		/>
+	{/if}
+
+	{#if channelVm.available && channelHeroStatBadges.length > 0}
+		<PublicLandingHeroStatBadges badges={channelHeroStatBadges} ariaLabel={channelHeroStatBadgesAriaLabel} />
 	{/if}
 
 	<WhoIsFor
@@ -96,17 +164,36 @@
 		cards={channelVm.audienceCards}
 	/>
 
-	<PublicLandingTeamFeatureHero
-		heroTheme={landingHeroTheme}
-		landingSubtitle={String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_2_SUBTITLE.default)}
-		landingTitle={String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_2_TITLE.default)}
-		landingDescription={String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_2_DESCRIPTION.default)}
-		showCta={false}
-		ctaText={featureCtaText}
-		ctaHref={secondaryCtaHref}
-		bgColorClass="bg-base-100"
-		{isLoggedIn}
-	/>
+	{#if channelVm.processSection}
+		<FeaturesOrdered
+			steps={[...channelVm.processSection.steps]}
+			sectionId={directoryProcessSectionId}
+			heroTheme={landingHeroTheme}
+			sectionSubtitle={channelVm.processSection.subtitle}
+			sectionTitle={channelVm.processSection.title}
+			sectionDescription={channelVm.processSection.description}
+			footerPrompt={channelVm.processSection.stepsFooter.footerPrompt}
+			footerLinkLabel={channelVm.processSection.stepsFooter.footerLinkLabel}
+			footerLinkHref={directoryProcessFooterHref}
+			directoryChannelSlug={directoryChannelSlug}
+			sectionClass="scroll-mt-24 border-t border-base-content/10 bg-base-100 py-16 sm:py-20"
+			collapseDelay={8000}
+		/>
+	{/if}
+
+	{#if !isDirectoryChannel}
+		<PublicLandingTeamFeatureHero
+			heroTheme={landingHeroTheme}
+			landingSubtitle={String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_2_SUBTITLE.default)}
+			landingTitle={String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_2_TITLE.default)}
+			landingDescription={String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_2_DESCRIPTION.default)}
+			showCta={false}
+			ctaText={featureCtaText}
+			ctaHref={secondaryCtaHref}
+			bgColorClass="bg-base-100"
+			{isLoggedIn}
+		/>
+	{/if}
 
 	{#each channelVm.featureSections as section, index (index)}
 		{#snippet sectionBento()}
@@ -145,10 +232,12 @@
 		{/if}
 	{/each}
 
-	<PublicChannelAgentIntegrationsGrid
-		channelSlug={channelVm.slug}
-		platformLabel={channelVm.platformLabel}
-	/>
+	{#if !isDirectoryChannel}
+		<PublicChannelAgentIntegrationsGrid
+			channelSlug={channelVm.slug}
+			platformLabel={channelVm.platformLabel}
+		/>
+	{/if}
 
 	<PublicChannelSiblingGrid
 		channelsVm={siblingChannels}

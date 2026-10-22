@@ -1,7 +1,7 @@
 ---
 title: Posting time slots
 description: Set usual posting times for scheduling suggestions.
-order: 3
+order: 4
 lastUpdated: 2026-09-16
 ---
 
@@ -49,7 +49,7 @@ Slot labels follow <Badge text="Timezone" variant="default" /> under <Badge text
 
 <CardGrid>
 <LinkCard title="Manage a channel" description="Reconnect, disable, or remove a connected account" href="/docs/channels/manage" />
-<LinkCard title="Channel groups" description="Bundle channels by client or brand and filter My Dashboard and the calendar" href="/docs/channels/channel-groups" />
+<LinkCard title="Business profiles" description="Bundle channels by client or brand and filter My Dashboard and the calendar" href="/docs/channels/channel-groups" />
 <LinkCard title="Connect a channel" description="Add Channel, sign-in flows, API keys, and invite links" href="/docs/channels/connect" />
 <LinkCard title="Find slot" description="Public API endpoint for the next free posting time" href="/docs/apis-posts/find-slot" />
 <LinkCard title="Glossary" description="Time slots, channels, and calendar vs kanban" href="/docs/getting-started/glossary" />

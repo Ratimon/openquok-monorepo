@@ -3,20 +3,27 @@
  *
  * | Path | Role |
  * | --- | --- |
- * | `platforms/{slug}.ts` | Full `PublicChannelLandingPageViewModel` (`{slug}Channel` export) |
- * | `seeds.ts` | `PUBLIC_CHANNEL_LANDING_PAGES` registry (hub, footer, tool derivations) |
+ * | `platforms/{slug}.ts` | Full `PublicChannelLandingPageViewModel` (`{slug}Channel` export) — social |
+ * | `directory-platforms/{slug}.ts` | Directory launch VMs (`channelKind: 'directory'`) |
+ * | `seeds.ts` | `PUBLIC_CHANNEL_LANDING_PAGES` registry (social hub, footer, tool derivations) |
+ * | `directory-seeds.ts` | `PUBLIC_DIRECTORY_CHANNEL_LANDING_PAGES` (directory hub section only) |
  * | `types.ts`, `shared.ts`, `feature-bento.ts` | Shared VM types, SEO keywords, bento id union |
  *
  * Runtime getters and FAQ append live in `../index.ts` (`getPublicChannelBySlug`, …).
  *
- * Not here: shared marketing chrome (`../../landing/`), `/self-hosting` copy (`../../self-hosting/landing.ts`),
+ * Not here: shared marketing chrome (`../../landing/`), `/self-hosting` copy (`../../marketing/self-hosting-landing.ts`),
  * API marketing (`../api/posting/platforms/`), or tool-only patches (`../tool-surfaces/`).
  */
 
-export type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/catalog/types';
+export type {
+	PublicChannelKind,
+	PublicChannelLandingPageViewModel
+} from '$lib/content/constants/channels/catalog/types';
 export { SHARED_CHANNEL_SEO_KEYWORDS } from '$lib/content/constants/channels/catalog/shared';
 export {
 	PUBLIC_CHANNEL_LANDING_PAGES,
 	listPublicChannelLandingSeedsForFooter
 } from '$lib/content/constants/channels/catalog/seeds';
+export { PUBLIC_DIRECTORY_CHANNEL_LANDING_PAGES } from '$lib/content/constants/channels/catalog/directory-seeds';
 export * from '$lib/content/constants/channels/catalog/platforms/index';
+export * from '$lib/content/constants/channels/catalog/directory-platforms/index';

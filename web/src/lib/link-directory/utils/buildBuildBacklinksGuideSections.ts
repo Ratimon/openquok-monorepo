@@ -68,6 +68,8 @@ export type BuildBacklinksGuideSectionVm = {
 		footerPrompt: string;
 		footerLinkLabel: string;
 		footerLinkHref: string;
+		/** When set, the guide CTA opens the directory launch modal instead of navigating to `footerLinkHref`. */
+		autoLaunchProviderSlug?: string | null;
 	};
 	/** Per-opportunity sections only — drives facet badges in the template. */
 	badgesOpportunity?: LinkDirectoryOpportunityDto;
@@ -150,6 +152,14 @@ function mapDisplaySteps(
 function resolveSectionFooter(
 	opportunity: LinkDirectoryOpportunityDto
 ): BuildBacklinksGuideSectionVm['footer'] | undefined {
+	if (opportunity.autoLaunchEnabled === true && opportunity.autoLaunchProviderSlug?.trim()) {
+		return {
+			footerPrompt: PUBLIC_SETUP_STEPS_FOOTER_PROMPT,
+			footerLinkLabel: opportunity.ctaLabel?.trim() || 'Launch to directory',
+			footerLinkHref: '#',
+			autoLaunchProviderSlug: opportunity.autoLaunchProviderSlug.trim()
+		};
+	}
 	switch (opportunity.openquokCtaKind) {
 		case 'schedule_post':
 			return getPublicCreatingPostsSetupStepsFooter();

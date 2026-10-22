@@ -21,12 +21,16 @@ import { PublicNotificationController } from "./PublicNotificationController";
 import { PostsController } from "./PostsController";
 import { PublicPostsController } from "./PublicPostsController";
 import { PublicAnalyticsController } from "./PublicAnalyticsController";
+import { PublicDirectoryLaunchController } from "./PublicDirectoryLaunchController";
+import { PublicDirectorySeoController } from "./PublicDirectorySeoController";
 import { OauthAppController } from "./OauthAppController";
 import { OauthController } from "./OauthController";
 import { ApprovedAppsController } from "./ApprovedAppsController";
 import { ThirdPartyController } from "./ThirdPartyController";
 import { SignatureController } from "./SignatureController";
 import { SetsController } from "./SetsController";
+import { AutoLaunchController } from "./AutoLaunchController";
+import { DirectorySeoController } from "./DirectorySeoController";
 import { AnalyticsController } from "./AnalyticsController";
 import {
     authenticationService,
@@ -55,6 +59,8 @@ import {
     trackService,
     signatureService,
     setsService,
+    autoLaunchService,
+    directorySeoWorkspaceService,
     analyticsService,
     userSessionService,
     acquisitionSurveyService,
@@ -62,7 +68,13 @@ import {
 } from "../services/index";
 import { TrackController } from "./TrackController";
 import { subscriptionRepository } from "../repositories/index";
-import { userRepository, storageR2Repository, storageSupabaseRepository } from "../repositories/index";
+import {
+    autoLaunchRepository,
+    organizationRepository,
+    userRepository,
+    storageR2Repository,
+    storageSupabaseRepository,
+} from "../repositories/index";
 import { UploadFactory } from "../connections/upload/upload.factory";
 
 export const authController = new AuthController(
@@ -93,7 +105,12 @@ export const blogController = new BlogController(blogService);
 export const listingController = new ListingController(listingService);
 export const listingTagController = new ListingTagController(listingTagService);
 export const linkDirectoryController = new LinkDirectoryController(linkDirectoryService);
-export const imageController = new ImageController(storageSupabaseRepository, integrationConnectionService);
+export const imageController = new ImageController(
+    storageSupabaseRepository,
+    integrationConnectionService,
+    organizationRepository,
+    autoLaunchRepository
+);
 export const mediaController = new MediaController(
     mediaService,
     subscriptionService,
@@ -118,10 +135,14 @@ export const publicNotificationController = new PublicNotificationController(not
 export const postsController = new PostsController(postsService);
 export const publicPostsController = new PublicPostsController(postsService);
 export const publicAnalyticsController = new PublicAnalyticsController(analyticsService, postsService);
+export const publicDirectoryLaunchController = new PublicDirectoryLaunchController(autoLaunchService);
+export const publicDirectorySeoController = new PublicDirectorySeoController(directorySeoWorkspaceService);
 export const oauthAppController = new OauthAppController(oauthAppService);
 export const oauthController = new OauthController(oauthService);
 export const approvedAppsController = new ApprovedAppsController(oauthService);
 export const thirdPartyController = new ThirdPartyController();
 export const signatureController = new SignatureController(signatureService);
 export const setsController = new SetsController(setsService);
+export const autoLaunchController = new AutoLaunchController(autoLaunchService);
+export const directorySeoController = new DirectorySeoController(directorySeoWorkspaceService);
 export const analyticsController = new AnalyticsController(analyticsService, integrationConnectionService, postsService);

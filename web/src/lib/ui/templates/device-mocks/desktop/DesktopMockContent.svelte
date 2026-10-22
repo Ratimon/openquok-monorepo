@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { DesktopMockContentId } from '$lib/ui/templates/device-mocks/desktop/desktopMock.types';
 	import type { McpVerifySafariMockContentId } from '$lib/ui/templates/device-mocks/safari/mcpClientVerifyMockConfig';
+	import type { McpWorkflowDirectoryLaunchMockContentId } from '$lib/ui/templates/device-mocks/safari/mcpWorkflowDirectoryLaunchMockConfig';
+	import { isMcpWorkflowDirectoryLaunchContent } from '$lib/ui/templates/device-mocks/safari/mcpWorkflowDirectoryLaunchMockConfig';
 	import type { McpWorkflowScheduleMockContentId } from '$lib/ui/templates/device-mocks/safari/mcpWorkflowScheduleMockConfig';
 	import { isMcpWorkflowScheduleContent } from '$lib/ui/templates/device-mocks/safari/mcpWorkflowScheduleMockConfig';
 	import type { McpWorkflowAnalyticsMockContentId } from '$lib/ui/templates/device-mocks/safari/mcpWorkflowAnalyticsMockConfig';
@@ -9,6 +11,7 @@
 	import { DEFAULT_TELEGRAM_MOCK_AGENT_BRANDING } from '$lib/ui/templates/device-mocks/iphone-15-pro/telegramMockBranding';
 
 	import McpClientVerifyMock from '$lib/ui/templates/device-mocks/safari/content/McpClientVerifyMock.svelte';
+	import McpWorkflowDirectoryLaunchMock from '$lib/ui/templates/device-mocks/safari/content/McpWorkflowDirectoryLaunchMock.svelte';
 	import McpWorkflowScheduleMock from '$lib/ui/templates/device-mocks/safari/content/McpWorkflowScheduleMock.svelte';
 	import McpWorkflowAnalyticsMock from '$lib/ui/templates/device-mocks/safari/content/McpWorkflowAnalyticsMock.svelte';
 	import AgentDesktopChatAnalyticsMock from '$lib/ui/templates/device-mocks/desktop/content/AgentDesktopChatAnalyticsMock.svelte';
@@ -42,6 +45,8 @@
 	<McpClientVerifyMock {content} />
 {:else if content && isMcpWorkflowAnalyticsContent(content)}
 	<McpWorkflowAnalyticsMock content={content as McpWorkflowAnalyticsMockContentId} />
+{:else if content && isMcpWorkflowDirectoryLaunchContent(content)}
+	<McpWorkflowDirectoryLaunchMock content={content as McpWorkflowDirectoryLaunchMockContentId} />
 {:else if content && isMcpWorkflowScheduleContent(content)}
 	<McpWorkflowScheduleMock content={content as McpWorkflowScheduleMockContentId} />
 {/if}

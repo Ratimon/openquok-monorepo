@@ -32,6 +32,8 @@ import {
     activateWorkspace,
     preparePlanEnforcement,
     restorePlanEnforcementSpies,
+    seedDirectorySeoCompetitors,
+    deleteDirectorySeoCompetitorsForOrg,
     type PlanEnforcementSpies,
 } from "../helpers/workspaceTestHelper";
 import { generateRandomVerificationToken } from "../utils/getVerificationTokenStub";
@@ -443,6 +445,40 @@ describeIfSupabase("TEAM plan subscription limits (integration)", () => {
             restorePlanEnforcementSpies(planSpies);
             driveUsageSpy.mockRestore();
             completeMultipartSpy.mockRestore();
+        }
+    });
+
+    it("blocks adding another directory SEO competitor when TEAM competitor cap is reached", async () => {
+        const teamLimits = planLimitsForTier("TEAM");
+        expect(teamLimits.directory_launch_enabled).toBe(true);
+        expect(teamLimits.directory_seo_enabled).toBe(true);
+        expect(teamLimits.directory_seo_competitors_per_workspace).toBe(3);
+
+        const payload = userHelper.setupTestUser1();
+        const { accessToken } = await signupVerifyAndSignIn(payload);
+        const orgId = await firstOrganizationId(accessToken);
+        let planSpies: PlanEnforcementSpies | undefined;
+
+        try {
+            planSpies = preparePlanEnforcement("TEAM");
+            await seedDirectorySeoCompetitors(
+                adminSupabase,
+                orgId,
+                teamLimits.directory_seo_competitors_per_workspace
+            );
+
+            await expect(
+                subscriptionGuard.assert(SubscriptionSection.DIRECTORY_SEO_COMPETITORS_PER_WORKSPACE, {
+                    scope: "workspaceWithDelta",
+                    organizationId: orgId,
+                    delta: 1,
+                })
+            ).rejects.toMatchObject({
+                section: SubscriptionSection.DIRECTORY_SEO_COMPETITORS_PER_WORKSPACE,
+            });
+        } finally {
+            restorePlanEnforcementSpies(planSpies);
+            await deleteDirectorySeoCompetitorsForOrg(adminSupabase, orgId);
         }
     });
 

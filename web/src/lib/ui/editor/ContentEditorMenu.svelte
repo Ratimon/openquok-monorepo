@@ -4,10 +4,16 @@
 
 	import { icons } from '$data/icons';
 
-	import { normalizeContentEditorLinkHref } from '$lib/ui/editor/normalizeContentEditorLinkHref';
+	import {
+		formatContentEditorLinkHrefForDisplay,
+		getContentEditorLinkSiteOrigin,
+		resolveContentEditorLinkHrefForStorage
+	} from '$lib/ui/editor/normalizeContentEditorLinkHref';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import ContentEditorImageAltDialog from '$lib/ui/editor/ContentEditorImageAltDialog.svelte';
+	import ContentEditorLinkDialog from '$lib/ui/editor/ContentEditorLinkDialog.svelte';
+	import { toast } from '$lib/ui/sonner';
 	import ContentEditorMenuButton from '$lib/ui/editor/ContentEditorMenuButton.svelte';
 	import ContentEditorMenuButtonBlogLibrary from '$lib/ui/editor/ContentEditorMenuButtonBlogLibrary.svelte';
 	import ContentEditorMenuButtonImage from '$lib/ui/editor/ContentEditorMenuButtonImage.svelte';
@@ -23,6 +29,9 @@
 		onInsertLocalImagePreview: (file: File, alt?: string) => void;
 		onInsertImageFromLibrary: (storagePath: string, alt?: string) => void;
 		beforeInlineImageAction?: () => boolean;
+		enableInlineImages?: boolean;
+		/** Prefill / placeholder when inserting a new link (blog vs directory copy). */
+		linkPlaceholder?: string;
 	};
 
 	let {
@@ -30,10 +39,15 @@
 		toolbarRevision = 0,
 		onInsertLocalImagePreview,
 		onInsertImageFromLibrary,
-		beforeInlineImageAction
+		beforeInlineImageAction,
+		enableInlineImages = true,
+		linkPlaceholder = '/tools/skill-builder'
 	}: Props = $props();
 
 	let altDialogOpen = $state(false);
+	let linkDialogOpen = $state(false);
+	let linkDialogMode = $state<'insert' | 'edit'>('insert');
+	let linkDialogInitialHref = $state('');
 	let imageAlt = $derived.by(() => {
 		void toolbarRevision;
 		return editor.getAttributes('image').alt ?? '';
@@ -57,24 +71,57 @@
 	});
 
 	function handleLinkClick() {
+		const siteOrigin = getContentEditorLinkSiteOrigin();
 		const { href } = editor.getAttributes('link');
-		if (href) {
-			const url = window.prompt('Edit link URL:', href);
-			if (url === null) return;
-			if (url === '') {
+		if (href && editor.isActive('link')) {
+			linkDialogMode = 'edit';
+			linkDialogInitialHref = formatContentEditorLinkHrefForDisplay(String(href), siteOrigin);
+		} else {
+			linkDialogMode = 'insert';
+			linkDialogInitialHref = formatContentEditorLinkHrefForDisplay(linkPlaceholder, siteOrigin);
+		}
+		linkDialogOpen = true;
+	}
+
+	function handleLinkConfirm(raw: string) {
+		const trimmed = raw.trim();
+		const editingExisting = linkDialogMode === 'edit';
+		const siteOrigin = getContentEditorLinkSiteOrigin();
+
+		if (editingExisting) {
+			linkDialogOpen = false;
+			if (!trimmed) {
 				editor.chain().focus().extendMarkRange('link').unsetLink().run();
 				return;
 			}
-			const nextHref = normalizeContentEditorLinkHref(url);
-			if (!nextHref) return;
+			const nextHref = resolveContentEditorLinkHrefForStorage(trimmed, siteOrigin);
+			if (!nextHref) {
+				toast.error('Enter a valid URL.');
+				return;
+			}
 			editor.chain().focus().extendMarkRange('link').setLink({ href: nextHref }).run();
 			return;
 		}
-		const url = window.prompt('Enter link URL:', '/tools/skill-builder');
-		if (url === null) return;
-		const nextHref = normalizeContentEditorLinkHref(url);
-		if (!nextHref) return;
+
+		if (!trimmed) {
+			linkDialogOpen = false;
+			return;
+		}
+		const nextHref = resolveContentEditorLinkHrefForStorage(trimmed, siteOrigin);
+		if (!nextHref) {
+			toast.error('Enter a valid URL.');
+			return;
+		}
+		if (editor.state.selection.empty) {
+			toast.error('Select the text you want to link first.');
+			return;
+		}
+		linkDialogOpen = false;
 		editor.chain().focus().setLink({ href: nextHref }).run();
+	}
+
+	function handleLinkCancel() {
+		linkDialogOpen = false;
 	}
 
 	function handleAltEditConfirm(alt: string) {
@@ -179,42 +226,44 @@
 		<AbstractIcon name={icons.Link.name} width="18" height="18" />
 	</ContentEditorMenuButton>
 
-	<ContentEditorMenuButtonImage
-		editor={editor}
-		{onInsertLocalImagePreview}
-		{beforeInlineImageAction}
-	>
-		<AbstractIcon name={icons.Image.name} width="18" height="18" />
-	</ContentEditorMenuButtonImage>
+	{#if enableInlineImages}
+		<ContentEditorMenuButtonImage
+			editor={editor}
+			{onInsertLocalImagePreview}
+			{beforeInlineImageAction}
+		>
+			<AbstractIcon name={icons.Image.name} width="18" height="18" />
+		</ContentEditorMenuButtonImage>
 
-	<ContentEditorMenuButtonBlogLibrary
-		editor={editor}
-		{onInsertImageFromLibrary}
-		{beforeInlineImageAction}
-	>
-		<AbstractIcon name={icons.Images.name} width="18" height="18" />
-	</ContentEditorMenuButtonBlogLibrary>
+		<ContentEditorMenuButtonBlogLibrary
+			editor={editor}
+			{onInsertImageFromLibrary}
+			{beforeInlineImageAction}
+		>
+			<AbstractIcon name={icons.Images.name} width="18" height="18" />
+		</ContentEditorMenuButtonBlogLibrary>
 
-	<ContentEditorMenuButton
-		editor={editor}
-		toolbarRevision={toolbarRevision}
-		disabled={!imageSelected}
-		onClick={() => (altDialogOpen = true)}
-		name="image"
-		title="Edit alt text"
-	>
-		<AbstractIcon name={icons.TextSearch.name} width="18" height="18" />
-	</ContentEditorMenuButton>
+		<ContentEditorMenuButton
+			editor={editor}
+			toolbarRevision={toolbarRevision}
+			disabled={!imageSelected}
+			onClick={() => (altDialogOpen = true)}
+			name="image"
+			title="Edit alt text"
+		>
+			<AbstractIcon name={icons.TextSearch.name} width="18" height="18" />
+		</ContentEditorMenuButton>
 
-	<ContentEditorMenuButton
-		editor={editor}
-		toolbarRevision={toolbarRevision}
-		disabled={!imageSelected}
-		onClick={() => editor.chain().focus().deleteSelection().run()}
-		name="image"
-	>
-		<AbstractIcon name={icons.Trash.name} width="18" height="18" />
-	</ContentEditorMenuButton>
+		<ContentEditorMenuButton
+			editor={editor}
+			toolbarRevision={toolbarRevision}
+			disabled={!imageSelected}
+			onClick={() => editor.chain().focus().deleteSelection().run()}
+			name="image"
+		>
+			<AbstractIcon name={icons.Trash.name} width="18" height="18" />
+		</ContentEditorMenuButton>
+	{/if}
 
 	<ContentEditorMenuButton
 		editor={editor}
@@ -314,5 +363,14 @@
 	initialAlt={imageAlt}
 	onConfirm={handleAltEditConfirm}
 	onCancel={handleAltEditCancel}
+/>
+
+<ContentEditorLinkDialog
+	bind:open={linkDialogOpen}
+	mode={linkDialogMode}
+	initialHref={linkDialogInitialHref}
+	placeholder={linkPlaceholder}
+	onConfirm={handleLinkConfirm}
+	onCancel={handleLinkCancel}
 />
 

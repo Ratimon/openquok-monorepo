@@ -65,7 +65,10 @@ export async function loadAgentOpportunitiesPreviewStateless(params: {
 	featuredBacklinkSiteSlug?: string | null;
 	/** Published HowTo opportunities from the featured site (after the site card). Default 2 when featured slug is set. */
 	featuredBacklinkOpportunityLimit?: number;
+	/** When false, skips backlink directory fetch and the backlinks grid (playbooks + building blocks only). */
+	includeBacklinksBlock?: boolean;
 }): Promise<PublicOpportunitiesPreviewVm> {
+	const includeBacklinksBlock = params.includeBacklinksBlock ?? true;
 	const limit =
 		params.limit ??
 		params.previewSection.itemsPerBlockLimit ??
@@ -73,7 +76,9 @@ export async function loadAgentOpportunitiesPreviewStateless(params: {
 	const tagSlug = params.listingTagSlug?.trim() || null;
 	const tagSlugs = tagSlug ? [tagSlug] : null;
 
-	const featuredBacklinkSiteSlug = params.featuredBacklinkSiteSlug?.trim() || null;
+	const featuredBacklinkSiteSlug = includeBacklinksBlock
+		? params.featuredBacklinkSiteSlug?.trim() || null
+		: null;
 
 	const [playbooksResult, buildingBlocksResult, backlinksResult, featuredBacklinkSite] =
 		await Promise.all([
@@ -88,12 +93,14 @@ export async function loadAgentOpportunitiesPreviewStateless(params: {
 				skip: 0,
 				tagSlugs
 			}),
-			linkDirectoryRepository.getPublishedSites({
-				fetch: params.fetch,
-				limit,
-				skip: 0,
-				tagSlugs
-			}),
+			includeBacklinksBlock
+				? linkDirectoryRepository.getPublishedSites({
+						fetch: params.fetch,
+						limit,
+						skip: 0,
+						tagSlugs
+					})
+				: Promise.resolve({ sites: [] }),
 			featuredBacklinkSiteSlug
 				? withOptionalCmsFallback(
 						() =>
@@ -106,16 +113,19 @@ export async function loadAgentOpportunitiesPreviewStateless(params: {
 				: Promise.resolve(null)
 		]);
 
-	const featuredOpportunityLimit = featuredBacklinkSiteSlug
-		? (params.featuredBacklinkOpportunityLimit ?? DEFAULT_FEATURED_BACKLINK_OPPORTUNITIES_PREVIEW)
-		: 0;
+	const featuredOpportunityLimit =
+		includeBacklinksBlock && featuredBacklinkSiteSlug
+			? (params.featuredBacklinkOpportunityLimit ?? DEFAULT_FEATURED_BACKLINK_OPPORTUNITIES_PREVIEW)
+			: 0;
 
-	const backlinkPreviewItems = buildBacklinksPreviewCardItems({
-		featuredSite: featuredBacklinkSite,
-		taggedSites: backlinksResult.sites,
-		limit,
-		featuredOpportunityLimit
-	});
+	const backlinkPreviewItems = includeBacklinksBlock
+		? buildBacklinksPreviewCardItems({
+				featuredSite: featuredBacklinkSite,
+				taggedSites: backlinksResult.sites,
+				limit,
+				featuredOpportunityLimit
+			})
+		: [];
 
 	const playbooksPath = tagSlug
 		? route(getRootPathPublicPlaybooksTag(tagSlug))

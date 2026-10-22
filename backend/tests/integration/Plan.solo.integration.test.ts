@@ -38,6 +38,8 @@ import {
     stubSoloPlanLimits,
     stubSoloSubscriptionLookup,
     stubTeamSeatCapacityChecks,
+    seedDirectorySeoCompetitors,
+    deleteDirectorySeoCompetitorsForOrg,
     type SoloWorkspaceSpies,
 } from "../helpers/workspaceTestHelper";
 import { generateRandomVerificationToken } from "../utils/getVerificationTokenStub";
@@ -950,6 +952,39 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
                 }
             }
         );
+    });
+
+    it("blocks adding another directory SEO competitor when SOLO competitor cap is reached", async () => {
+        const soloLimits = planLimitsForTier("SOLO");
+        expect(soloLimits.directory_launch_enabled).toBe(true);
+        expect(soloLimits.directory_seo_enabled).toBe(true);
+        expect(soloLimits.directory_seo_competitors_per_workspace).toBe(2);
+
+        const payload = userHelper.setupTestUser1();
+        const { accessToken } = await signupVerifyAndSignIn(payload);
+        const orgId = await firstOrganizationId(accessToken);
+        const tierLimitsSpy = stubSoloPlanLimits();
+
+        try {
+            await seedDirectorySeoCompetitors(
+                adminSupabase,
+                orgId,
+                soloLimits.directory_seo_competitors_per_workspace
+            );
+
+            await expect(
+                subscriptionGuard.assert(SubscriptionSection.DIRECTORY_SEO_COMPETITORS_PER_WORKSPACE, {
+                    scope: "workspaceWithDelta",
+                    organizationId: orgId,
+                    delta: 1,
+                })
+            ).rejects.toMatchObject({
+                section: SubscriptionSection.DIRECTORY_SEO_COMPETITORS_PER_WORKSPACE,
+            });
+        } finally {
+            tierLimitsSpy.mockRestore();
+            await deleteDirectorySeoCompetitorsForOrg(adminSupabase, orgId);
+        }
     });
 
     it("rejects additional bytes via assertMediaStorageAvailable when SOLO storage is full", async () => {

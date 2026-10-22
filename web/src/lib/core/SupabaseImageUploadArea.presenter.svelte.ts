@@ -23,6 +23,8 @@ export class SupabaseImageUploadAreaPresenter {
 		filePath: null
 	});
 
+	private lastLoadedStorageKey: string | null = null;
+
 	constructor(
 		private readonly downloadImagePresenter: DownloadImagePresenter,
 		private readonly uploadImagePresenter: UploadImagePresenter,
@@ -34,8 +36,20 @@ export class SupabaseImageUploadAreaPresenter {
 	}
 
 	public async loadImage(databaseName: DatabaseName, imageUrl: string) {
-		await this.downloadImagePresenter.loadImage(databaseName, imageUrl);
+		const storageKey = imageUrl.trim();
+		if (!storageKey) {
+			this.uploadAreaVm.imageURL = null;
+			return;
+		}
+		if (
+			this.lastLoadedStorageKey === storageKey &&
+			this.uploadAreaVm.imageURL?.startsWith('blob:')
+		) {
+			return;
+		}
+		await this.downloadImagePresenter.loadImage(databaseName, storageKey);
 		this.uploadAreaVm.imageURL = this.downloadImagePresenter.imageVm.imageUrl;
+		this.lastLoadedStorageKey = storageKey;
 	}
 
 	public async uploadImage(databaseName: DatabaseName, imageFile: File, uid: string) {
@@ -54,7 +68,7 @@ export class SupabaseImageUploadAreaPresenter {
 				try {
 					await this.loadImage(databaseName, this.uploadAreaVm.filePath);
 				} catch {
-					this.uploadAreaVm.imageURL = this.uploadAreaVm.filePath;
+					this.uploadAreaVm.imageURL = null;
 				}
 			}
 		} catch (error) {
@@ -75,6 +89,7 @@ export class SupabaseImageUploadAreaPresenter {
 	}
 
 	public reset() {
+		this.lastLoadedStorageKey = null;
 		this.uploadAreaVm.imageURL = null;
 		this.uploadAreaVm.filePath = null;
 		this.uploadAreaVm.uploadStatus = FileUploadStatus.UNKNOWN;

@@ -66,6 +66,52 @@ export class IntegrationRepository {
         return (data ?? []) as Pick<IntegrationCustomerLike, "id" | "name">[];
     }
 
+    async updateIntegrationCustomerName(
+        organizationId: string,
+        customerId: string,
+        name: string
+    ): Promise<void> {
+        const trimmed = name.trim();
+        const { error } = await this.supabase
+            .from("integration_customers")
+            .update({
+                name: trimmed,
+                updated_at: new Date().toISOString(),
+            })
+            .eq("id", customerId)
+            .eq("organization_id", organizationId);
+
+        if (error) {
+            throw new DatabaseError("Failed to update channel group name", {
+                cause: error as Error,
+                operation: "update",
+                resource: { type: "table", name: "integration_customers" },
+            });
+        }
+    }
+
+    async findIntegrationCustomerByOrgAndName(
+        organizationId: string,
+        name: string
+    ): Promise<Pick<IntegrationCustomerLike, "id" | "name"> | null> {
+        const trimmed = name.trim();
+        const { data, error } = await this.supabase
+            .from("integration_customers")
+            .select("id, name")
+            .eq("organization_id", organizationId)
+            .eq("name", trimmed)
+            .maybeSingle();
+
+        if (error) {
+            throw new DatabaseError("Failed to resolve channel group by name", {
+                cause: error as Error,
+                operation: "select",
+                resource: { type: "table", name: "integration_customers" },
+            });
+        }
+        return (data ?? null) as Pick<IntegrationCustomerLike, "id" | "name"> | null;
+    }
+
     async createIntegrationCustomer(organizationId: string, name: string): Promise<Pick<IntegrationCustomerLike, "id" | "name">> {
         const trimmed = name.trim();
         const { data, error } = await this.supabase

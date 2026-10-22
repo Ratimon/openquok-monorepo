@@ -288,7 +288,7 @@
 					}}
 				>
 					<AbstractIcon name={icons.UserPlus.name} class="size-4 shrink-0" width="16" height="16" />
-					Move / add to group
+					Move / add to business profile
 				</button>
 
 				<button

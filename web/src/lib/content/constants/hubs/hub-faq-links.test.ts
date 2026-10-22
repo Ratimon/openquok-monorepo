@@ -30,7 +30,7 @@ import {
 	assertNoNofollowOnFirstPartyFaqLinks,
 	assertSelfHostLabelsOnSocialIntegrationLinks
 } from '$lib/content/utils/publicFaqFunnel.test-utils';
-import { publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+import { faqHrefDocs, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 
 const HUB_FAQ_SECTIONS = [
 	{ name: '/agents hub', section: PUBLIC_AGENTS_HUB.faqSection, ids: PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS },
@@ -96,6 +96,12 @@ describe('pSEO hub FAQ funnel links', () => {
 		const html = PUBLIC_CHANNELS_HUB_FAQ.faqItems.map((item) => item.description).join('\n');
 		expect(html).toContain(`href="${publicFaqHref.connectChannelsGuide}"`);
 		expect(html).toContain(`href="${publicFaqHref.pricing}"`);
+	});
+
+	it('channels hub links directory submission from tailored copy', () => {
+		const html = PUBLIC_CHANNELS_HUB_FAQ.faqItems.map((item) => item.description).join('\n');
+		expect(html).toContain(`href="${faqHrefDocs('directory-submission')}"`);
+		expect(html).toContain(`href="${publicFaqHref.channels}"`);
 	});
 
 	it('API marketing hubs link pricing from git-default trial and OAuth copy', () => {

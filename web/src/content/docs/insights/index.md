@@ -2,7 +2,7 @@
 title: Overview - Insights
 description: See workspace analytics and stats for each post in OpenQuok.
 order: 0
-lastUpdated: 2026-09-22
+lastUpdated: 2026-10-20
 sidebar:
   label: Overview
 ---
@@ -29,7 +29,8 @@ Per-post figures are not on that page. Open a published post from <a href="/acco
 
 | Question | Use this |
 | --- | --- |
-| How did my Facebook Page or X account do this month? | <a href="/docs/insights/workspace-analytics">Workspace analytics</a> — <Badge text="Analytics" variant="default" /> in the account sidebar |
+| How did my Facebook Page or X account do this month? | <a href="/docs/insights/workspace-analytics">Workspace analytics</a> — <Badge text="Analytics" variant="default" /> in the account sidebar, <strong>Social</strong> tab |
+| How is my product website’s domain rating trending? | <a href="/docs/insights/domain-analytics">Domain analytics</a> — same <Badge text="Analytics" variant="default" /> page, <strong>Directory</strong> tab (paid plans) |
 | How did one published post do? | <a href="/docs/insights/per-post-metrics">Per-post metrics</a> — **Statistics** on the post |
 
 <Callout type="note">
@@ -47,6 +48,7 @@ Not every channel supports every window. When you target several channels at onc
 <CardGrid>
 <LinkCard title="Workspace analytics" description="Targeted channels, Overview (Trends and metric cards), and empty states" href="/docs/insights/workspace-analytics" />
 <LinkCard title="Per-post metrics" description="Statistics from My Dashboard and the calendar, and connecting missing releases" href="/docs/insights/per-post-metrics" />
+<LinkCard title="Domain analytics" description="Domain rating, history, and competitors on the Directory tab" href="/docs/insights/domain-analytics" />
 </CardGrid>
 
 ## Related Section(s)

@@ -11,6 +11,7 @@ export type PublicChannelSiblingGridItem = {
 };
 
 import { getChannelPageEcosystemId } from '$lib/content/constants/agents/ecosystems';
+import { isPublicDirectoryChannelSlug } from '$lib/content/constants/channels';
 
 /** Section copy for the cross-link grid on `/channels/{slug}` and agent channel detail pages. */
 export function buildPublicChannelSiblingGridTitle(platformLabel: string): string {
@@ -27,7 +28,7 @@ export function buildPublicAgentChannelSiblingGridTitle(
 	const platform = platformLabel.trim();
 	const agent = agentLabel.trim();
 	if (platform.length > 0 && agent.length > 0) {
-		return `Beyond ${platform}: Every Supported Platform for ${agent}`;
+		return `Beyond ${platform}: Every Supported Channel for ${agent}`;
 	}
 	if (platform.length > 0) {
 		return buildPublicChannelSiblingGridTitle(platform);
@@ -85,15 +86,22 @@ export function buildPublicChannelSiblingGridCardDescription(
 
 export function buildPublicAgentChannelSiblingGridDescription(
 	platformLabel: string,
-	agentLabel: string
+	agentLabel: string,
+	activeChannelSlug?: string
 ): string {
 	const platform = platformLabel.trim();
 	const agent = agentLabel.trim();
+	const activeSlug = activeChannelSlug?.trim().toLowerCase() ?? '';
+	const activeIsDirectory = activeSlug.length > 0 && isPublicDirectoryChannelSlug(activeSlug);
+
 	if (platform.length > 0 && agent.length > 0) {
-		return `Start with ${platform}, then schedule every other network from ${agent}.`;
+		if (activeIsDirectory) {
+			return `Start with ${platform}, then schedule social posts and launch on other directories from ${agent}.`;
+		}
+		return `Start with ${platform}, then schedule other networks and launch on directories from ${agent}.`;
 	}
 	if (platform.length > 0) {
-		return `Start with ${platform}, then schedule every other network from the same agent.`;
+		return `Start with ${platform}, then schedule and launch on other channels from the same agent.`;
 	}
 	return buildPublicChannelSiblingGridDescription('');
 }
@@ -101,15 +109,25 @@ export function buildPublicAgentChannelSiblingGridDescription(
 export function buildPublicAgentChannelSiblingGridCardDescription(
 	platformLabel: string,
 	agentLabel: string,
-	available: boolean
+	available: boolean,
+	channelSlug?: string
 ): string {
 	const platform = platformLabel.trim();
 	const agent = agentLabel.trim();
+	const slug = channelSlug?.trim().toLowerCase() ?? '';
+	const isDirectory = slug.length > 0 && isPublicDirectoryChannelSlug(slug);
+
 	if (platform.length === 0) {
-		return available ? 'Schedule posts from your agent.' : 'Agent workflows — coming soon.';
+		return available
+			? 'Schedule posts and directory launches from your agent.'
+			: 'Agent workflows — coming soon.';
 	}
 
-	return available
-		? `Schedule ${platform} from ${agent || 'your agent'}.`
-		: `Preview ${platform} workflows for ${agent || 'your agent'} — coming soon.`;
+	if (!available) {
+		return `Preview ${platform} workflows for ${agent || 'your agent'} — coming soon.`;
+	}
+
+	return isDirectory
+		? `Launch on ${platform} from ${agent || 'your agent'}.`
+		: `Schedule ${platform} from ${agent || 'your agent'}.`;
 }

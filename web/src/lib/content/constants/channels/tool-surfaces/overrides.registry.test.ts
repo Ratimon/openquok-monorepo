@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { listAvailablePublicChannels, listPublicChannelsForHub } from '$lib/content/constants/channels';
+import {
+	listAvailablePublicChannels,
+	listPublicChannelsForHub,
+	listPublicDirectoryChannelsForHub
+} from '$lib/content/constants/channels';
 import {
 	bestTimeToolContentOverridesBySlug,
 	photoEditorToolContentOverridesBySlug,
@@ -12,6 +16,15 @@ import { getCanvasChannelBySlug } from '$lib/content/constants/channels/tools/ph
 import { getSkillBuilderChannelContentOverride } from '$lib/content/constants/channels/tools/skill-builder/general';
 
 describe('tool-surfaces registry', () => {
+	it('keeps directory launch slugs off the social channels hub list', () => {
+		const socialHubSlugs = new Set(listPublicChannelsForHub().map((c) => c.slug));
+		const directorySlugs = listPublicDirectoryChannelsForHub().map((c) => c.slug);
+		expect(directorySlugs).toEqual(['peerpush', 'uneed']);
+		for (const slug of directorySlugs) {
+			expect(socialHubSlugs.has(slug)).toBe(false);
+		}
+	});
+
 	it('includes tool-surface meta for every live channel and prepared coming-soon channels', () => {
 		const hubSlugs = new Set(listPublicChannelsForHub().map((c) => c.slug));
 		for (const slug of TOOL_SURFACE_CHANNEL_SLUGS) {

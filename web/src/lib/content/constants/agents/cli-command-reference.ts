@@ -20,6 +20,9 @@ const OPENQUOK_CORE_SKILL_RAW_URL =
 /** ClawHub slug after `clawhub skill publish` (matches SKILL.md frontmatter `name`). */
 export const OPENQUOK_CORE_SKILL_CLAWHUB_SLUG = 'openquok-core';
 
+/** Sibling skill for directory launch + directory SEO CLI/MCP workflows. */
+export const OPENQUOK_DIRECTORY_LAUNCH_SKILL_CLAWHUB_SLUG = 'openquok-directory-launch';
+
 /** OpenClaw: npx skills add on the agent package root (headless -y). */
 export const OPENQUOK_CORE_SKILL_INSTALL_NPX = `npx skills add ${OPENQUOK_CORE_SKILL_GITHUB_TREE_URL} --skill openquok-core -y`;
 
@@ -139,6 +142,20 @@ export const OPENQUOK_GEMINI_SKILL_TASK_HINT = `# Save openquok-core instruction
 /** MCP-capable clients (Codex, Cursor, etc.): install openquok-core via npx skills add. */
 export const MCP_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
 	{ id: 'npx', label: 'npx', command: OPENQUOK_CORE_SKILL_INSTALL_NPX }
+];
+
+/** OpenClaw / npx: sibling directory-launch skill (install after openquok-core). */
+export const OPENQUOK_DIRECTORY_LAUNCH_SKILL_INSTALL_NPX = `npx skills add ${OPENQUOK_CORE_SKILL_GITHUB_TREE_URL} --skill openquok-directory-launch -y`;
+
+export const OPENQUOK_DIRECTORY_LAUNCH_SKILL_INSTALL_CLAWHUB = `clawhub install ${OPENQUOK_DIRECTORY_LAUNCH_SKILL_CLAWHUB_SLUG}`;
+
+export const DIRECTORY_LAUNCH_MCP_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
+	{ id: 'npx', label: 'npx', command: OPENQUOK_DIRECTORY_LAUNCH_SKILL_INSTALL_NPX },
+	{
+		id: 'clawhub',
+		label: 'ClawHub',
+		command: OPENQUOK_DIRECTORY_LAUNCH_SKILL_INSTALL_CLAWHUB
+	}
 ];
 
 export const OPENQUOK_CORE_SKILL_AUTH_SNIPPET = `# Install global CLI

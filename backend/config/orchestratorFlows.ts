@@ -26,8 +26,8 @@
  * ## Notification email (`notificationEmail`)
  *
  * - **Transport**: `notificationEmail.transport` is `in_process` (send from the API process) or `bullmq`.
- *   For `bullmq`, run `pnpm worker:notification-email-bullmq` and set `transport` to `bullmq` here or via
- *   `ORCHESTRATOR_NOTIFICATION_EMAIL_TRANSPORT`.
+ *   For `bullmq`, run `pnpm worker:housekeeping-bullmq` (alias `worker:notification-email-bullmq`) and set
+ *   `transport` to `bullmq` here or via `ORCHESTRATOR_NOTIFICATION_EMAIL_TRANSPORT`.
  * - **Digest**: when `NotificationService.inAppNotification` is called with `digest: true`, entries are
  *   stored in Redis and the worker flushes them on `notificationEmail.digestFlushIntervalMs`.
  *
@@ -77,14 +77,16 @@ export const orchestratorFlows = {
     },
     /**
      * Org notification emails: immediate sends enqueue `sendPlain` jobs; digest appends to Redis and the
-     * notification-email worker flushes on a fixed interval (acknowledges Redis entries only after send succeeds).
+     * housekeeping worker flushes on a fixed interval (acknowledges Redis entries only after send succeeds).
+     * Directory SEO weekly domain refresh runs in the same process (stateless; stale domains from Postgres).
      */
     notificationEmail: {
         /**
          * Suggested long-running worker service name (e.g. on Railway) for this flow.
          * Keep distinct per worker type so logs/metrics and deployments are unambiguous.
+         * Legacy Railway service: `openquok-worker-notification-email` (one-release alias).
          */
-        workerServiceName: "openquok-worker-notification-email",
+        workerServiceName: "openquok-worker-housekeeping",
         queueName: "notification-email",
         transport: "bullmq" as OrchestrationTransport,
         /** How often the worker drains digest Redis lists (ms). */

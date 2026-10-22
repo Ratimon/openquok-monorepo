@@ -116,12 +116,13 @@ Details: [resources/command-reference.md](./resources/command-reference.md#authe
 | Step | Action |
 |------|--------|
 | 1 | Session opening (Rule 0): shell version/auth check, then one OpenQuok-bot greeting |
-| 2 | `openquok integrations:groups` when the workspace uses channel groups; then `integrations:list` (optionally `--group <id>`) → `integrations:settings <uuid>` per channel |
+| 2 | `openquok integrations:groups` when the workspace uses business profiles; then `integrations:list` (optionally `--group <id>`) → `integrations:settings <uuid>` per channel |
 | 3 | `integrations:trigger <uuid> <method> -d '{}'` when `output.tools` requires it |
 | 4 | `upload` / `upload-from-url` for media; ask user for file or direct image URL if missing in chat |
 | 5 | `posts:create` / `posts:status` / `posts:reschedule`; use `posts:status` to flip draft ↔ scheduled at the same time; use `posts:reschedule` to move the publish slot; agent drafts: `-t draft` + `--note`; TikTok inbox/private drafts: `--note` with finish-in-app checklist; update with `posts:review-todo` |
 | 6 | `analytics:platform` / `analytics:post` with `-d 7` \| `30` \| `90` |
 | 7 | Missing release id: `posts:missing` → `posts:connect --release-id` |
+| 8 | Directory launch (product profiles, PeerPush/Uneed variants, listing readiness, cached directory SEO): install sibling **openquok-directory-launch** — `directory:*` CLI or hosted MCP `directory*` / `directorySeo*` tools |
 
 Connect new channels in the web app; the CLI only uses UUIDs from `integrations:list`. **Browser extension channels** (Skool): connect in the dashboard with the extension while signed in on the platform site — the CLI cannot complete connect.
 
@@ -135,7 +136,7 @@ openquok integrations:settings <integration-uuid>
 openquok integrations:trigger <integration-uuid> <method-name> -d '{}'
 ```
 
-Use `integrations:groups` to list channel groups (`{id, name}`), then filter channels with `integrations:list --group`. Full flag reference: [resources/command-reference.md](./resources/command-reference.md#integrations).
+Use `integrations:groups` to list business profiles (`{id, name}`), then filter channels with `integrations:list --group`. Full flag reference: [resources/command-reference.md](./resources/command-reference.md#integrations).
 
 ---
 

@@ -11,6 +11,8 @@ import { feedbackRouter } from "./FeedbackRoute.js";
 import { blogRouter } from "./BlogRoute.js";
 import { listingRouter } from "./ListingRoute.js";
 import { linkDirectoryRouter } from "./LinkDirectoryRoute.js";
+import { autoLaunchRouter } from "./AutoLaunchRoute.js";
+import { directorySeoRouter } from "./DirectorySeoRoute.js";
 import { imageRouter } from "./ImageRoute.js";
 import { mediaRouter } from "./MediaRoute.js";
 import { integrationsRouter } from "./integrationApi/index.js";
@@ -71,6 +73,8 @@ export async function mountAllRoutes(app: Express, config: ConfigObject): Promis
     apiRouter.use("/blog-system", blogRouter);
     apiRouter.use("/listings", listingRouter);
     apiRouter.use("/link-directory", linkDirectoryRouter);
+    apiRouter.use("/auto-launch", autoLaunchRouter);
+    apiRouter.use("/directory-seo", directorySeoRouter);
     apiRouter.use("/image", imageRouter);
     apiRouter.use("/media", mediaRouter);
     apiRouter.use("/integrations", integrationsRouter);
@@ -99,6 +103,7 @@ export async function mountAllRoutes(app: Express, config: ConfigObject): Promis
         blog: `${prefix}/blog-system`,
         listings: `${prefix}/listings`,
         linkDirectory: `${prefix}/link-directory`,
+        autoLaunch: `${prefix}/auto-launch`,
         image: `${prefix}/image`,
         media: `${prefix}/media`,
         integrationsSession: `${prefix}/integrations`,

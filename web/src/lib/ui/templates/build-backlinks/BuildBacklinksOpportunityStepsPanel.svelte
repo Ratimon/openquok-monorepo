@@ -13,6 +13,9 @@
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
+	import AddDirectoryLaunch from '$lib/ui/components/auto-launch/AddDirectoryLaunch.svelte';
+	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
+	import { absoluteUrl, route } from '$lib/utils/path';
 	import FeaturesSectionHeader from '$lib/ui/templates/feature-grid/FeaturesSectionHeader.svelte';
 	import BentoPublicChannelFeature from '$lib/ui/templates/bento/minor-templates/BentoPublicChannelFeature.svelte';
 	import SafariMock from '$lib/ui/templates/device-mocks/safari/SafariMock.svelte';
@@ -80,6 +83,18 @@
 	const isLoggedIn = $derived(
 		Boolean((page.data as { isLoggedIn?: boolean } | undefined)?.isLoggedIn)
 	);
+
+	const signUpHref = $derived(absoluteUrl(route(getRootPathSignup())));
+
+	const directoryLaunchCta = $derived.by(() => {
+		const footer = section.footer;
+		if (!footer?.autoLaunchProviderSlug?.trim()) return null;
+		return {
+			prompt: footer.footerPrompt,
+			label: footer.footerLinkLabel,
+			providerSlug: footer.autoLaunchProviderSlug.trim()
+		};
+	});
 
 	const ltr = $derived(section.ltr ?? false);
 
@@ -211,7 +226,23 @@
 				</div>
 			</div>
 
-			{#if setupStepsAccentBanner}
+			{#if directoryLaunchCta}
+				<div
+					class="container mx-auto mt-12 max-w-5xl rounded-2xl border border-base-300 bg-base-100 px-6 py-8"
+				>
+					<h3 class="text-xl font-semibold text-base-content">{directoryLaunchCta.label}</h3>
+					<p class="mt-2 text-sm text-base-content/70">{directoryLaunchCta.prompt}</p>
+					<div class="mt-4">
+						<AddDirectoryLaunch
+							buttonLabel={directoryLaunchCta.label}
+							destinationProviderSlug={directoryLaunchCta.providerSlug}
+							{isLoggedIn}
+							{signUpHref}
+							buttonVariant="primary"
+						/>
+					</div>
+				</div>
+			{:else if setupStepsAccentBanner}
 				<div class="container mx-auto mt-12 max-w-5xl px-0">
 					<AccentSplitCtaBanner
 						title={setupStepsAccentBanner.title}

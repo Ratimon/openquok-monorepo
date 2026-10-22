@@ -1,9 +1,11 @@
 <script lang="ts">
 	import type { PublicPricingPlanCardViewModel } from '$lib/billing/GetPublicPricing.presenter.svelte';
+	import type { PublicPricingProductLine } from '$lib/billing/constants/publicPricingProductLines';
 	import type { PaidSubscriptionTier, SubscriptionPeriod } from 'openquok-common';
 
 	import { icons } from '$data/icons';
 	import { getPublicPricingPresenter } from '$lib/billing';
+	import { PUBLIC_PRICING_FILTERED_PRODUCT_LINE_FOOTNOTE } from '$lib/billing/constants/publicPricingProductLines';
 	import {
 		PUBLIC_PRICING_LANDING_TAB_FEATURE_LIMIT,
 		PUBLIC_PRICING_LANDING_TAB_ICONS,
@@ -53,6 +55,8 @@
 		onPeriodChange?: (period: SubscriptionPeriod) => void;
 		showSectionHeader?: boolean;
 		showPeriodToggle?: boolean;
+		productLine?: PublicPricingProductLine;
+		showProductLineSwitcher?: boolean;
 		/** Matches JSON-LD `@id` fragment (`#pricing` by default). */
 		sectionId?: string;
 	};
@@ -71,6 +75,8 @@
 		onPeriodChange,
 		showSectionHeader = true,
 		showPeriodToggle = true,
+		productLine = 'all',
+		showProductLineSwitcher = false,
 		sectionId = 'pricing'
 	}: Props = $props();
 
@@ -94,8 +100,12 @@
 		}
 	}
 
-	const pageVm = $derived(getPublicPricingPresenter.buildPageVm(period));
+	const pageVm = $derived(getPublicPricingPresenter.buildPageVm(period, productLine));
 	const plans = $derived(plansProp ?? pageVm.plans);
+
+	const showProductLineFootnote = $derived(
+		!showProductLineSwitcher && productLine !== 'all'
+	);
 
 	const selectedPlan = $derived(
 		plans.find((plan) => plan.tier === selectedTier) ?? plans[0]
@@ -338,6 +348,12 @@
 										{/each}
 									</ul>
 								</div>
+
+								{#if showProductLineFootnote}
+									<p class="text-center text-xs leading-relaxed text-neutral-400 sm:text-sm">
+										{PUBLIC_PRICING_FILTERED_PRODUCT_LINE_FOOTNOTE}
+									</p>
+								{/if}
 
 								<div
 									class="flex items-center justify-center gap-2 rounded-full border border-neutral-600/80 bg-neutral-900/50 px-4 py-2.5 text-center text-xs text-neutral-300 sm:text-sm"

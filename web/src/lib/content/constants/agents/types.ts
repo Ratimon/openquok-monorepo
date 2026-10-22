@@ -36,12 +36,23 @@ export type FeaturesOrderedDeviceMock =
 	| 'settings-panel'
 	| 'desktop';
 
+/** Marketing bento panel in `FeaturesOrdered` (directory submission landing). */
+export type FeaturesOrderedMarketingPanelId =
+	| 'directory-profile-readiness'
+	| 'directory-pick-destinations'
+	| 'directory-extension-autofill'
+	| 'directory-human-pace'
+	| 'directory-launch-opportunities'
+	| 'directory-track-status';
+
 export type FeaturesOrderedStep = {
 	id: number;
 	title: string;
 	content: string;
 	mediaSrc?: string;
 	mediaAlt?: string;
+	/** Static marketing bento in the media column (when no video/mock is set). */
+	marketingPanel?: FeaturesOrderedMarketingPanelId;
 	animatedContent?: FeaturesAnimatedContentId;
 	/** Overrides default carousel models when `animatedContent` is set. */
 	animatedModels?: FeaturesAnimatedModel[];

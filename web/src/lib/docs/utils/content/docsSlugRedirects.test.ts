@@ -9,6 +9,7 @@ describe('resolveLegacyDocsSlug', () => {
 			'saved/explore-and-bookmarks'
 		);
 		expect(resolveLegacyDocsSlug('channels/connect')).toBeNull();
+		expect(resolveLegacyDocsSlug('channels/business-profiles')).toBe('channels/channel-groups');
 	});
 });
 

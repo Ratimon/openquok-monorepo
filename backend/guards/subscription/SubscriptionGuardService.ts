@@ -14,6 +14,7 @@ import type { IntegrationService } from "../../services/IntegrationService";
 import type { OrganizationRepository } from "../../repositories/OrganizationRepository";
 import type { PostsRepository } from "../../repositories/PostsRepository";
 import type { RbacRepository } from "../../repositories/RbacRepository";
+import type { DirectorySeoRepository } from "../../repositories/DirectorySeoRepository";
 import { resolveSessionChannelsPerWorkspace } from "../../utils/dtos/UserMeDTO";
 import {
     GUARD_REGISTRY,
@@ -38,7 +39,8 @@ export class SubscriptionGuardService {
         private readonly integrationService: IntegrationService,
         private readonly organizationRepository: OrganizationRepository,
         private readonly postsRepository: PostsRepository,
-        private readonly rbacRepository: RbacRepository
+        private readonly rbacRepository: RbacRepository,
+        private readonly directorySeoRepository: DirectorySeoRepository
     ) {}
 
     private billingUrl(): string {
@@ -284,6 +286,54 @@ export class SubscriptionGuardService {
         }
         if (section === SubscriptionSection.CHANNEL_PER_WORKSPACE) {
             return this.assertConnectSocialChannel(ctx);
+        }
+        if (section === SubscriptionSection.DIRECTORY_SEO_COMPETITORS_PER_WORKSPACE) {
+            return this.assertDirectorySeoCompetitors(ctx);
+        }
+    }
+
+    private async assertDirectorySeoCompetitors(ctx: SubscriptionGuardContext): Promise<void> {
+        const workspaceCtx = this.requireWorkspaceContext(ctx);
+        const rowsToAdd =
+            workspaceCtx.scope === "workspaceWithDelta"
+                ? workspaceCtx.delta
+                : workspaceCtx.scope === "workspace"
+                  ? (workspaceCtx.delta ?? 1)
+                  : 1;
+        if (rowsToAdd < 1) return;
+
+        const { limits } = await this.getTierAndLimits(
+            workspaceCtx.organizationId,
+            workspaceCtx.authUserId
+        );
+
+        if (!limits.directory_seo_enabled) {
+            throw new SubscriptionError(
+                GUARD_REGISTRY[SubscriptionSection.DIRECTORY_SEO_ENABLED].deniedMessage,
+                SubscriptionSection.DIRECTORY_SEO_ENABLED,
+                this.billingUrl()
+            );
+        }
+
+        const cap = limits.directory_seo_competitors_per_workspace;
+        if (cap < 1) {
+            throw new SubscriptionError(
+                GUARD_REGISTRY[SubscriptionSection.DIRECTORY_SEO_COMPETITORS_PER_WORKSPACE].deniedMessage,
+                SubscriptionSection.DIRECTORY_SEO_COMPETITORS_PER_WORKSPACE,
+                this.billingUrl()
+            );
+        }
+
+        const count = await this.directorySeoRepository.countCompetitorsForOrganization(
+            workspaceCtx.organizationId
+        );
+
+        if (count + rowsToAdd > cap) {
+            throw new SubscriptionError(
+                `Your plan allows up to ${cap} directory competitors per workspace. Remove a competitor or upgrade to add more.`,
+                SubscriptionSection.DIRECTORY_SEO_COMPETITORS_PER_WORKSPACE,
+                this.billingUrl()
+            );
         }
     }
 

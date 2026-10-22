@@ -179,6 +179,10 @@ pnpm publish:clawhub:manual
 # openquok-tiktok-slideshow (sibling; requires openquok-core at runtime)
 pnpm publish:clawhub:tiktok-slideshow:dry-run
 pnpm publish:clawhub:tiktok-slideshow:manual
+
+# openquok-directory-launch (sibling; directory:* CLI + MCP workflows)
+pnpm publish:clawhub:directory-launch:dry-run
+pnpm publish:clawhub:directory-launch:manual
 ```
 
 Consumer install after publish:
@@ -186,6 +190,7 @@ Consumer install after publish:
 ```bash
 clawhub install openquok-core
 clawhub install openquok-tiktok-slideshow
+clawhub install openquok-directory-launch
 ```
 
 Skills that ship `scripts/` should be installed with Copy / `--copy` so script files are real on disk.

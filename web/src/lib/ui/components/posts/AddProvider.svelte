@@ -31,6 +31,14 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Tooltip from '$lib/ui/tooltip';
 	import ChannelConnectLegalFooter from '$lib/ui/components/legal/ChannelConnectLegalFooter.svelte';
+	import AddDirectoryLaunch from '$lib/ui/components/auto-launch/AddDirectoryLaunch.svelte';
+	import DirectoryAddChannelTileIcon from '$lib/ui/components/auto-launch/DirectoryAddChannelTileIcon.svelte';
+	import { autoLaunchRepository } from '$lib/auto-launch';
+	import {
+		buildDirectoryAddChannelTiles,
+		type DirectoryAddChannelTileVm
+	} from '$lib/auto-launch/buildDirectoryAddChannelTiles';
+	import { linkDirectoryRepository } from '$lib/link-directory';
 
 	// /account
 	const rootPathAccount = getRootPathAccount();
@@ -38,6 +46,8 @@
 
 	import { cn } from '$lib/ui/helpers/common';
 	import { socialProviderIcon } from '$data/social-providers';
+
+	type AddChannelCategoryFilter = 'all' | 'directory' | 'social';
 
 	type Props = {
 		/** Path to return to after OAuth (path only, e.g. `/account`). Passed to the integration backend as `externalUrl`. */
@@ -112,6 +122,19 @@
 	let extensionProviderName = $state('channel');
 	let extensionProviderIdentifier = $state('');
 	let extensionFinished = $state(false);
+	let directoryTiles = $state<DirectoryAddChannelTileVm[]>([]);
+	let directoryLaunchOpen = $state(false);
+	let activeDirectoryTile = $state<DirectoryAddChannelTileVm | null>(null);
+	let directoryLogoFailedBySiteKey = $state<Record<string, boolean>>({});
+	let channelCategoryFilter = $state<AddChannelCategoryFilter>('all');
+
+	function categoryFilterButtonClass(active: boolean): string {
+		return `inline-flex flex-1 items-center justify-center rounded-md px-3 py-2 text-sm font-medium transition-colors sm:flex-none ${
+			active
+				? 'bg-base-100 font-semibold text-base-content shadow-sm'
+				: 'text-base-content/65 hover:bg-base-content/10 hover:text-base-content'
+		}`;
+	}
 
 	function openAddChannelFlow() {
 		if (channelLimitFull) {
@@ -140,7 +163,29 @@
 	}
 
 	$effect(() => {
-		if (!open) return;
+	async function loadDirectoryAddChannelTiles() {
+		try {
+			const [destinations, publishedSites] = await Promise.all([
+				autoLaunchRepository.listDestinations(),
+				linkDirectoryRepository.getPublishedSites({ limit: 500, skip: 0 })
+			]);
+			const sitesBySlug = new Map(
+				publishedSites.sites.map((site) => [
+					site.slug,
+					{ title: site.title, logoUrl: site.logoUrl }
+				])
+			);
+			directoryTiles = buildDirectoryAddChannelTiles(destinations, sitesBySlug);
+		} catch {
+			directoryTiles = [];
+		}
+		directoryLogoFailedBySiteKey = {};
+	}
+
+		if (!open) {
+			channelCategoryFilter = 'all';
+			return;
+		}
 		void ensureWorkspaceLoaded().then(() => {
 			if (!workspaceSettingsPresenter.currentWorkspaceId) {
 				toast.error('Create or select a workspace in Account settings before adding channels.');
@@ -149,6 +194,7 @@
 			}
 			void loadProviders();
 		});
+			void loadDirectoryAddChannelTiles();
 	});
 
 	function onPickProvider(identifier: string) {
@@ -307,6 +353,16 @@
 		extensionProviderIdentifier = '';
 		if (!open) open = true;
 	}
+
+	function openDirectoryLaunchPicker(tile: DirectoryAddChannelTileVm) {
+		open = false;
+		activeDirectoryTile = tile;
+		directoryLaunchOpen = true;
+	}
+
+	function directoryTileShowsLogo(tile: DirectoryAddChannelTileVm): boolean {
+		return Boolean(tile.logoUrl) && !directoryLogoFailedBySiteKey[tile.siteKey];
+	}
 </script>
 
 <Dialog.Root bind:open>
@@ -430,10 +486,6 @@
 				/>
 				Loading providers…
 			</div>
-		{:else if providers.length === 0}
-			<div class="px-6 py-8 text-sm text-base-content/70">
-				No providers available right now.
-			</div>
 		{:else}
 			{@const visibleProviders = invite
 				? providers.filter(
@@ -444,7 +496,62 @@
 							!catalogItemHasCustomFields(p)
 					)
 				: providers}
+			{@const showDirectoryTiles =
+				!invite &&
+				directoryTiles.length > 0 &&
+				(channelCategoryFilter === 'all' || channelCategoryFilter === 'directory')}
+			{@const showSocialProviders =
+				visibleProviders.length > 0 &&
+				(invite || channelCategoryFilter === 'all' || channelCategoryFilter === 'social')}
+			{@const hasAnyChannelOption =
+				(!invite && directoryTiles.length > 0) || visibleProviders.length > 0}
+			{#if !hasAnyChannelOption}
+				<div class="px-6 py-8 text-sm text-base-content/70">
+					No providers available right now.
+				</div>
+			{:else}
+			{#if !invite && directoryTiles.length > 0 && visibleProviders.length > 0}
+				<div class="px-6 pb-3 pt-1">
+					<div
+						class="grid w-full max-w-2xl grid-cols-3 gap-1 rounded-lg bg-base-200 p-1 sm:inline-flex sm:w-auto sm:max-w-none sm:grid-cols-none"
+						role="group"
+						aria-label="Channel category"
+					>
+						<button
+							type="button"
+							class={categoryFilterButtonClass(channelCategoryFilter === 'all')}
+							aria-pressed={channelCategoryFilter === 'all'}
+							onclick={() => (channelCategoryFilter = 'all')}
+						>
+							All
+						</button>
+						<button
+							type="button"
+							class={categoryFilterButtonClass(channelCategoryFilter === 'social')}
+							aria-pressed={channelCategoryFilter === 'social'}
+							onclick={() => (channelCategoryFilter = 'social')}
+						>
+							Social platforms
+						</button>
+						<button
+							type="button"
+							class={categoryFilterButtonClass(channelCategoryFilter === 'directory')}
+							aria-pressed={channelCategoryFilter === 'directory'}
+							onclick={() => (channelCategoryFilter = 'directory')}
+						>
+							Directory launches
+						</button>
+					</div>
+				</div>
+			{/if}
 			<div class="px-6 pb-4 pt-1">
+				{#if !showDirectoryTiles && !showSocialProviders}
+					<p class="py-6 text-center text-sm text-base-content/70">
+						{channelCategoryFilter === 'directory'
+							? 'No directory launches to show.'
+							: 'No social platforms to show.'}
+					</p>
+				{:else}
 				<div
 					class={cn(
 						'grid gap-2 justify-items-stretch justify-center sm:gap-[10px]',
@@ -453,7 +560,8 @@
 							: 'grid-cols-2 sm:grid-cols-3 md:grid-cols-5'
 					)}
 				>
-				{#each visibleProviders as p (p.identifier)}
+					{#if showSocialProviders}
+					{#each visibleProviders as p (p.identifier)}
 					<button
 						type="button"
 						class="group relative flex min-h-[5.5rem] w-full min-w-0 max-w-none flex-col items-stretch justify-start gap-1.5 overflow-visible rounded-xl border border-base-300 bg-base-100 px-2 py-2 text-center whitespace-normal hover:bg-base-200"
@@ -493,10 +601,40 @@
 						{/if}
 					</button>
 				{/each}
+					{/if}
+					{#if showDirectoryTiles}
+						{#each directoryTiles as tile (tile.siteKey)}
+							<button
+								type="button"
+								class="group relative flex min-h-[5.5rem] w-full min-w-0 max-w-none flex-col items-stretch justify-start gap-1.5 overflow-visible rounded-xl border border-base-300 bg-base-100 px-2 py-2 text-center whitespace-normal hover:bg-base-200"
+								onclick={() => openDirectoryLaunchPicker(tile)}
+							>
+								<div class="mx-auto grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-base-200">
+									<DirectoryAddChannelTileIcon
+										{tile}
+										showLogo={directoryTileShowsLogo(tile)}
+										onLogoError={() => {
+											directoryLogoFailedBySiteKey = {
+												...directoryLogoFailedBySiteKey,
+												[tile.siteKey]: true
+											};
+										}}
+									/>
+								</div>
+								<div
+									class="min-w-0 w-full shrink text-balance break-words text-sm font-medium leading-snug text-base-content"
+								>
+									{tile.label}
+								</div>
+							</button>
+						{/each}
+					{/if}
 				</div>
+				{/if}
 			</div>
+			{/if}
 		{/if}
-		{#if !loading && providers.length > 0}
+		{#if !loading && ((directoryTiles.length > 0 && !invite) || providers.length > 0)}
 			<div class="border-t border-base-300 px-6 py-4">
 				<ChannelConnectLegalFooter />
 			</div>
@@ -525,4 +663,12 @@
 />
 
 <ChannelLimitUpgradeModal bind:open={upgradeDialogOpen} {upgradeHref} />
+
+<AddDirectoryLaunch
+	showTrigger={false}
+	bind:launcherOpen={directoryLaunchOpen}
+	{returnToPath}
+	providerSlugPrefix={activeDirectoryTile?.providerSlugPrefix}
+	destinationsDialogTitle={activeDirectoryTile?.dialogTitle ?? 'Launch to directory'}
+/>
 

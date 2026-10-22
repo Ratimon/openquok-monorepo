@@ -60,6 +60,7 @@
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import PublicAgentFeatureSection from '$lib/ui/templates/landing-page/PublicAgentFeatureSection.svelte';
+	import { isPublicDirectoryChannelSlug } from '$lib/content/constants/channels';
 	import PublicAgentHero from '$lib/ui/templates/landing-page/PublicAgentHero.svelte';
 	import PublicComingSoonIntegrationPage from '$lib/ui/templates/landing-page/PublicComingSoonIntegrationPage.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
@@ -105,6 +106,10 @@
 
 	let accentBannerTitle = $derived(accentSplitDocsCtaBannerTitle(agentVm.agentLabel));
 	let accentBannerDescription = $derived(accentSplitDocsCtaBannerDescription(agentVm.agentLabel));
+
+	const showDirectoryLaunchSkill = $derived(
+		Boolean(activeChannelSlug && isPublicDirectoryChannelSlug(activeChannelSlug))
+	);
 
 	const messagingChannelsByHostSlug = {
 		openclaw: {
@@ -179,6 +184,7 @@
 		docsCtaText={PUBLIC_LANDING_GETTING_STARTED_GUIDE_CTA}
 		docsCtaHref={agentVm.docsPath}
 		channelLabel={activeChannelLabel}
+		{showDirectoryLaunchSkill}
 	/>
 {/if}
 

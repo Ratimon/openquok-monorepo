@@ -1,4 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
+import type { AutoLaunchRepository } from "../repositories/AutoLaunchRepository";
+import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import type { StorageSupabaseRepository } from "../repositories/StorageSupabaseRepository";
 import type { IntegrationConnectionService } from "../services/IntegrationConnectionService";
 
@@ -8,7 +10,13 @@ import https from "https";
 import type { AuthenticatedRequest } from "../guards";
 import { AppError } from "../errors/AppError";
 import { UserAuthorizationError, UserValidationError } from "../errors/UserError";
-import { isSupabaseImageBucketName } from "../repositories/StorageSupabaseRepository";
+import {
+    DATABASE_NAMES,
+    isSupabaseImageBucketName,
+} from "../repositories/StorageSupabaseRepository";
+import {
+    parseAutoLaunchProfileMediaUploadPrefix,
+} from "../utils/images/autoLaunchProfileMediaImages";
 import { isAllowedExternalImageHost } from "../utils/images/allowedExternalImageHosts";
 import {
     ExternalImageFetchError,
@@ -18,7 +26,9 @@ import {
 export class ImageController {
     constructor(
         private readonly storageRepository: StorageSupabaseRepository,
-        private readonly integrationConnectionService: IntegrationConnectionService
+        private readonly integrationConnectionService: IntegrationConnectionService,
+        private readonly organizationRepository: OrganizationRepository,
+        private readonly autoLaunchRepository: AutoLaunchRepository
     ) {}
 
     getByUrl = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -66,11 +76,48 @@ export class ImageController {
                 throw new UserValidationError("Invalid databaseName");
             }
 
-            const filePath = await this.storageRepository.uploadImage(
-                databaseName,
-                req.file as { buffer: Buffer; originalname: string; mimetype: string },
-                authUid
-            );
+            const file = req.file as { buffer: Buffer; originalname: string; mimetype: string };
+            let filePath: string;
+
+            if (databaseName === DATABASE_NAMES.AUTO_LAUNCH_PROFILE_MEDIA) {
+                const rawUid = typeof req.body?.uid === "string" ? req.body.uid.trim() : "";
+                const prefixParts = parseAutoLaunchProfileMediaUploadPrefix(rawUid);
+                if (!prefixParts) {
+                    throw new UserValidationError(
+                        "uid must be {organizationId}/{profileId} for auto launch profile media"
+                    );
+                }
+
+                const { userId } = await this.organizationRepository.findUserIdByAuthId(authUid);
+                if (!userId) {
+                    throw new UserAuthorizationError("Not authenticated");
+                }
+
+                const { membership } = await this.organizationRepository.findMembership(
+                    userId,
+                    prefixParts.organizationId
+                );
+                if (!membership || membership.disabled) {
+                    throw new UserAuthorizationError("Not a member of this organization");
+                }
+
+                const profile = await this.autoLaunchRepository.findProfileById(prefixParts.profileId);
+                if (
+                    !profile ||
+                    profile.deleted_at ||
+                    profile.organization_id !== prefixParts.organizationId
+                ) {
+                    throw new UserAuthorizationError("Product profile not found");
+                }
+
+                filePath = await this.storageRepository.uploadImageUnderPrefix(
+                    databaseName,
+                    file,
+                    `${prefixParts.organizationId}/${prefixParts.profileId}`
+                );
+            } else {
+                filePath = await this.storageRepository.uploadImage(databaseName, file, authUid);
+            }
 
             res.status(200).json({
                 success: true,

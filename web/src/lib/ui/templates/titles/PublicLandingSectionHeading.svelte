@@ -3,17 +3,24 @@
 	import { cn } from '$lib/ui/helpers/common';
 	import {
 		landingHeroTheme,
+		PUBLIC_LANDING_MAIN_HERO_TITLE_CLASS,
 		type LandingHeroTheme
 	} from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	type HeadingLevel = 'h1' | 'h2' | 'h3';
 	type GradientMode = 'segment' | 'part';
+	type TitleScale = 'section' | 'main';
+
+	const SECTION_TITLE_CLASS =
+		'text-2xl font-black tracking-tight text-balance sm:text-3xl lg:text-4xl';
 
 	type Props = {
 		title: string;
 		headingId?: string;
 		heroTheme?: LandingHeroTheme;
 		class?: string;
+		/** `main` matches home `HeroMain` (`text-4xl`–`lg:text-6xl`). */
+		titleScale?: TitleScale;
 		headingLevel?: HeadingLevel;
 		/** Split on commas for multi-clause titles. Defaults to true when the title contains a comma. */
 		commaSeparated?: boolean;
@@ -26,10 +33,18 @@
 		headingId,
 		heroTheme = landingHeroTheme,
 		class: className = '',
+		titleScale = 'section',
 		headingLevel = 'h2',
 		commaSeparated,
 		gradientMode = 'segment'
 	}: Props = $props();
+
+	const headingClass = $derived(
+		cn(
+			titleScale === 'main' ? PUBLIC_LANDING_MAIN_HERO_TITLE_CLASS : SECTION_TITLE_CLASS,
+			className
+		)
+	);
 
 	const splitOnCommas = $derived(commaSeparated ?? title.includes(','));
 
@@ -46,15 +61,16 @@
 <svelte:element
 	this={headingLevel}
 	id={headingId}
-	class={cn(
-		'text-2xl font-black tracking-tight text-balance sm:text-3xl lg:text-4xl',
-		className
-	)}
+	class={headingClass}
 >
 	{#each titleParts as part, partIndex (partIndex)}
 		{@const segments = heroTheme.parseLandingHeroTitlePartSegments(part)}
 		{@const layoutClass =
-			titleParts.length >= 3 ? 'block' : partIndex > 0 ? 'block sm:inline' : ''}
+			titleScale === 'main' || titleParts.length >= 3
+				? 'block'
+				: partIndex > 0
+					? 'block sm:inline'
+					: ''}
 		{#if gradientMode === 'part'}
 			{@const partClass = heroTheme.titlePartClass(partIndex, titleParts.length)}
 			{#if heroTheme.landingHeroTitlePartHasHighlight(segments)}

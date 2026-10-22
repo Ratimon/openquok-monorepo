@@ -11,31 +11,30 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import InternalLink from '$lib/ui/links/InternalLink.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import { Checkbox } from '$lib/ui/checkbox';
+	import AddDirectoryLaunch from '$lib/ui/components/auto-launch/AddDirectoryLaunch.svelte';
 
 	type Props = {
 		orderedSlugs: string[];
 		sitesBySlug: Map<string, Pick<LinkDirectorySiteDto, 'title' | 'slug'>>;
 		canReorder?: boolean;
-		canMarkComplete?: boolean;
-		isCompleted?: (siteSlug: string) => boolean;
+		/** Site slugs that have extension directory launch destinations configured. */
+		launchableSiteSlugs?: ReadonlySet<string>;
+		showDirectoryLaunchActions?: boolean;
 		class?: string;
 		onMove: (siteSlug: string, direction: 'up' | 'down') => void | Promise<void>;
-		onToggleComplete?: (siteSlug: string) => void | Promise<void>;
 	};
 
 	let {
 		orderedSlugs,
 		sitesBySlug,
 		canReorder = false,
-		canMarkComplete = false,
-		isCompleted = () => false,
+		launchableSiteSlugs = new Set<string>(),
+		showDirectoryLaunchActions = false,
 		class: className = '',
-		onMove,
-		onToggleComplete
+		onMove
 	}: Props = $props();
 
-	const showSignedOutHint = $derived(!canReorder && !canMarkComplete && orderedSlugs.length > 0);
+	const showSignedOutHint = $derived(!canReorder && orderedSlugs.length > 0);
 
 	const reorderButtonClass =
 		'h-7 w-7 shrink-0 border-base-content/25 bg-base-100 p-0 text-base-content shadow-sm hover:bg-base-200';
@@ -48,7 +47,6 @@
 			{#each orderedSlugs as siteSlug, index (siteSlug)}
 				{@const siteMeta = sitesBySlug.get(siteSlug)}
 				{@const detailHref = url(route(getRootPathPublicBuildBacklinksSite(siteSlug)))}
-				{@const done = isCompleted(siteSlug)}
 				<li class="flex items-center gap-2 rounded-md bg-primary/10 px-2 py-1.5">
 					{#if canReorder}
 						<div class="flex shrink-0 flex-col gap-0.5" role="group" aria-label="Reorder">
@@ -81,31 +79,26 @@
 							</Button>
 						</div>
 					{/if}
-					{#if onToggleComplete}
-						<label class="flex shrink-0 items-center gap-1.5 text-xs text-base-content/70">
-							<Checkbox
-								checked={done}
-								disabled={!canMarkComplete}
-								aria-label={done ? 'Mark outreach not done' : 'Mark outreach done'}
-								onCheckedChange={() => onToggleComplete(siteSlug)}
-							/>
-							Done
-						</label>
-					{/if}
 					<InternalLink
 						href={detailHref}
-						class={cn(
-							'min-w-0 flex-1 truncate text-sm font-medium link-hover',
-							done && 'text-base-content/55 line-through'
-						)}
+						class="min-w-0 flex-1 truncate text-sm font-medium link-hover"
 					>
 						{siteMeta?.title ?? siteSlug}
 					</InternalLink>
+					{#if showDirectoryLaunchActions && launchableSiteSlugs.has(siteSlug)}
+						<AddDirectoryLaunch
+							buttonLabel="Launch"
+							buttonVariant="outline"
+							buttonClass="btn-xs shrink-0"
+							providerSlugPrefix={`${siteSlug}-`}
+							destinationsDialogTitle={`${siteMeta?.title ?? siteSlug} launches`}
+						/>
+					{/if}
 				</li>
 			{/each}
 		</ul>
 		{#if showSignedOutHint}
-			<p class="text-xs text-base-content/50">Sign in to reorder and mark done.</p>
+			<p class="text-xs text-base-content/50">Sign in to reorder your shortlist.</p>
 		{/if}
 	</div>
 {/if}

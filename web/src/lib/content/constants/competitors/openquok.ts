@@ -10,7 +10,7 @@ import {
 	type PublicPricingCompareRowId
 } from '$lib/billing/constants/publicPricingCatalog';
 import { listAvailablePublicChannelCompareLabels } from '$lib/content/constants/channels';
-import { PUBLIC_SELF_HOST_PRICING_FOOTNOTE_CONFIG } from '$lib/content/constants/self-hosting/landing';
+import { PUBLIC_SELF_HOST_PRICING_FOOTNOTE_CONFIG } from '$lib/content/constants/marketing/self-hosting-landing';
 import { formatBytes } from '$lib/medias';
 import { icons } from '$data/icons';
 
@@ -120,10 +120,46 @@ function buildOpenQuokFeatureSupport(): Partial<Record<PublicPricingCompareRowId
 		global_plugs: { kind: 'included' },
 		group_management: { kind: 'included' },
 		dark_light_mode: { kind: 'included' },
+		directory_business_profiles: { kind: 'included' },
+		directory_profile_variants: { kind: 'included' },
+		directory_analytics: { kind: 'included' },
+		directory_catalog_dr: { kind: 'included' },
+		directory_competitor_domains: {
+			kind: 'text',
+			text: buildOpenQuokDirectoryCompetitorDomainsCell()
+		},
 		community: { kind: 'included' }
 	};
 
 	return support;
+}
+
+function buildOpenQuokDirectoryCompetitorDomainsCell(): string {
+	const entries = PUBLIC_PRICING_TIER_ORDER.map((tier) => {
+		const limits = planLimitsForTier(tier);
+		return {
+			name: tierDisplayNameForCompare(tier),
+			perWorkspace: limits.directory_seo_competitors_per_workspace
+		};
+	});
+
+	const segments: string[] = [];
+	let i = 0;
+	while (i < entries.length) {
+		let j = i + 1;
+		while (j < entries.length && entries[j]!.perWorkspace === entries[i]!.perWorkspace) j++;
+		const run = entries.slice(i, j);
+		const first = run[0]!;
+		if (run.length === 1) {
+			segments.push(`${first.perWorkspace} for ${first.name}`);
+		} else {
+			const last = run[run.length - 1]!;
+			segments.push(`${first.perWorkspace} for ${first.name}–${last.name}`);
+		}
+		i = j;
+	}
+
+	return `${segments.join(' · ')} per workspace`;
 }
 
 /** Per-workspace seat caps across public tiers (e.g. `1 for Solo · 3 for Team · Unlimited on Ultimate+`). */

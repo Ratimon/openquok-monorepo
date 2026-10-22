@@ -4,6 +4,7 @@
 		PublicPricingLandingPresetId,
 		PublicPricingLandingSection
 	} from '$lib/billing';
+	import type { PublicPricingProductLine } from '$lib/billing/constants/publicPricingProductLines';
 
 	import { page } from '$app/state';
 	import {
@@ -23,6 +24,7 @@
 
 	type Props = {
 		presetId: PublicPricingLandingPresetId;
+		productLine?: PublicPricingProductLine;
 		platformLabel?: string;
 		isLoggedIn?: boolean;
 		sectionOverrides?: SectionCopyOverride;
@@ -32,6 +34,7 @@
 
 	let {
 		presetId,
+		productLine = 'all',
 		platformLabel,
 		isLoggedIn = false,
 		sectionOverrides,
@@ -82,7 +85,10 @@
 	let period = $state<SubscriptionPeriod>('MONTHLY');
 
 	const plans = $derived(
-		getPublicPricingPresenter.buildLandingTabPlans(period, { planMetaOverrides })
+		getPublicPricingPresenter.buildLandingTabPlans(period, {
+			planMetaOverrides,
+			productLine
+		})
 	);
 
 	function onPeriodChange(next: SubscriptionPeriod) {
@@ -102,6 +108,8 @@
 	{plans}
 	{period}
 	{onPeriodChange}
+	{productLine}
+	showProductLineSwitcher={false}
 	sectionId="pricing"
 />
 

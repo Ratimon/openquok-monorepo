@@ -13,7 +13,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 <CardGrid>
 <LinkCard title="List Integrations" description="Return every connected social channel for the token's workspace" href="/docs/apis-integrations/list" />
-<LinkCard title="List Channel Groups" description="Return workspace channel groups — filter List Integrations with ?group=" href="/docs/apis-integrations/groups" />
+<LinkCard title="List Business Profiles" description="Return workspace business profiles (customers) — filter List Integrations with ?group=" href="/docs/apis-integrations/groups" />
 <LinkCard title="Connect Channel (OAuth)" description="Generate an OAuth authorization URL for a provider — the first step in connecting a new channel" href="/docs/apis-integrations/connect" />
 <LinkCard title="Delete Channel" description="Soft-delete a connected channel and every post group that includes it" href="/docs/apis-integrations/delete" />
 <LinkCard title="Check Connection" description="Lightweight healthcheck — confirm the supplied programmatic or OAuth app token is accepted" href="/docs/apis-integrations/is-connected" />
@@ -36,9 +36,9 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 2. <strong>Inspect</strong> — call <Badge text={"GET /public/integration-settings/{id}"} variant="default" /> to discover the channel's <code>rules</code>, <code>maxLength</code>, <code>settings</code> schema, and the list of allow-listed <code>tools</code>.
 3. <strong>Invoke</strong> — for any tool advertised in step&nbsp;2, call <Badge text={"POST /public/integration-trigger/{id}"} variant="default" /> with the <code>methodName</code> and (optionally) a <code>data</code> payload matching that tool's <code>dataSchema</code>.
 
-### Channel groups
+### Business profiles
 
-When a workspace assigns channels to logical customers, call <Badge text="GET /public/groups" variant="path" /> and pass a group <code>id</code> as <Badge text="group" variant="param" /> on <Badge text="GET /public/integrations" variant="path" /> (and as <Badge text="customerGroupId" variant="param" /> on <Badge text="GET /public/posts/list" variant="path" />).
+When a workspace links channels to business profiles (stored as API **customers**), call <Badge text="GET /public/groups" variant="path" /> and pass a profile <code>id</code> as <Badge text="group" variant="param" /> on <Badge text="GET /public/integrations" variant="path" /> (and as <Badge text="customerGroupId" variant="param" /> on <Badge text="GET /public/posts/list" variant="path" />).
 
 ### Global plugs
 

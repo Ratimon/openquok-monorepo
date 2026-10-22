@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
+
 	import { icons } from '$data/icons';
 	import { HERO_SOCIAL_PLATFORMS } from '$data/landing-social-platforms';
 
@@ -15,9 +17,16 @@
 	import * as Tooltip from '$lib/ui/tooltip';
 	import LandingHeroHighlightedText from '$lib/ui/texts/LandingHeroHighlightedText.svelte';
 	import TextRotate from '$lib/ui/texts/TextRotate.svelte';
+	import LandingHeroSocialAgentRotate from '$lib/ui/templates/landing-page/LandingHeroSocialAgentRotate.svelte';
 	import {
 		LANDING_HERO_HOURS_ROTATE_TEXTS,
-		LANDING_HERO_SLOGAN_NOT_ROTATE_TEXTS
+		LANDING_HERO_SOCIAL_AGENT_ROTATE_TEXTS,
+		LANDING_HERO_SOCIAL_AGENT_ROTATE_TITLE_LINE,
+		LANDING_HERO_SLOGAN_NOT_ROTATE_TEXTS,
+		landingHeroTheme,
+		PUBLIC_LANDING_MAIN_HERO_TITLE_CLASS,
+		PUBLIC_SOCIAL_AUTOPILOT_HERO_TITLE_CLASS,
+		PUBLIC_SOCIAL_AUTOPILOT_HERO_TITLE_LINE_CLASS
 	} from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import { PUBLIC_LANDING_HERO_TRIAL_CTA } from '$lib/content/constants/landing/hero-copy';
 	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
@@ -30,6 +39,13 @@
 		ctaHrefPrimary?: string;
 		githubOwner?: string;
 		githubRepo?: string;
+		breadcrumb?: Snippet;
+		/**
+		 * `home-hours` = Save hours chip on `/`;
+		 * `social-agent-rotate` = agent-host chip (`LANDING_HERO_SOCIAL_AGENT_ROTATE_TEXTS`);
+		 * `dictionary` = sticker highlights from `landingHeroTheme`.
+		 */
+		heroTitleParseMode?: 'home-hours' | 'social-agent-rotate' | 'dictionary';
 	};
 
 	let {
@@ -39,7 +55,9 @@
 		ctaTextPrimary = PUBLIC_LANDING_HERO_TRIAL_CTA,
 		ctaHrefPrimary = '#',
 		githubOwner = '',
-		githubRepo = ''
+		githubRepo = '',
+		breadcrumb,
+		heroTitleParseMode = 'home-hours'
 	}: Props = $props();
 
 	const HERO_SOCIAL_ICON_BOX_CLASS = 'rounded-md';
@@ -47,7 +65,14 @@
 	const HERO_SOCIAL_TOOLTIP_CLASS =
 		'border-neutral-800 bg-neutral-900 px-2.5 py-1 text-xs font-medium text-white shadow-lg';
 
-	type TextSegment = { text: string; highlight: boolean; rotate?: boolean };
+	type TextSegment = {
+		text: string;
+		highlight: boolean;
+		rotate?: boolean;
+		/** Icon + label chip (`LandingHeroSocialAgentRotate`) for `/social-media-management`. */
+		rotateWithIcon?: boolean;
+		rotateTexts?: readonly string[];
+	};
 
 	const TITLE_ROTATE_HIGHLIGHT_WORD = /^hours$/i;
 
@@ -60,10 +85,54 @@
 			out.push({
 				text: p,
 				highlight: /^(?:control|hours)$/i.test(p),
-				rotate: TITLE_ROTATE_HIGHLIGHT_WORD.test(p)
+				rotate: TITLE_ROTATE_HIGHLIGHT_WORD.test(p),
+				rotateTexts: TITLE_ROTATE_HIGHLIGHT_WORD.test(p)
+					? LANDING_HERO_HOURS_ROTATE_TEXTS
+					: undefined
 			});
 		}
 		return out;
+	}
+
+	function parseSocialAgentRotateTitleLine(text: string): TextSegment[] {
+		if (!text) return [];
+
+		const markerPattern = new RegExp(
+			`\\b${LANDING_HERO_SOCIAL_AGENT_ROTATE_TITLE_LINE}\\b`,
+			'i'
+		);
+
+		if (markerPattern.test(text)) {
+			const beforeMarker = text.replace(markerPattern, '').trimEnd();
+			const prefixSegments = beforeMarker
+				? landingHeroTheme
+						.parseLandingHeroTitlePartSegments(
+							beforeMarker.endsWith(' ') ? beforeMarker : `${beforeMarker} `
+						)
+						.map((seg) => ({
+							text: seg.text,
+							highlight: seg.highlight,
+							rotate: false
+						}))
+				: [];
+
+			return [
+				...prefixSegments,
+				{
+					text: '',
+					highlight: true,
+					rotate: true,
+					rotateWithIcon: true,
+					rotateTexts: LANDING_HERO_SOCIAL_AGENT_ROTATE_TEXTS
+				}
+			];
+		}
+
+		return landingHeroTheme.parseLandingHeroTitlePartSegments(text).map((seg) => ({
+			text: seg.text,
+			highlight: seg.highlight,
+			rotate: false
+		}));
 	}
 
 	function parseHeroTitleLines(text: string): string[] {
@@ -93,7 +162,18 @@
 	const sloganSegments = $derived(parseSloganForNotHoursHighlight(heroSlogan));
 
 	const titleLineModels = $derived(
-		titleLines.map((line) => ({ segments: parseTitleLineSegments(line) }))
+		titleLines.map((line) => ({
+			segments:
+				heroTitleParseMode === 'social-agent-rotate'
+					? parseSocialAgentRotateTitleLine(line)
+					: parseTitleLineSegments(line)
+		}))
+	);
+
+	const dictionaryTitleLineModels = $derived(
+		titleLines.map((line) => ({
+			segments: landingHeroTheme.parseLandingHeroTitlePartSegments(line)
+		}))
 	);
 
 	const TITLE_GRADIENT_PRIMARY =
@@ -218,8 +298,68 @@
 					</ExternalLink>
 				</div>
 
-				<h1 class="text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
-					{#if titleLineModels.length > 0}
+				{#if breadcrumb}
+					<div class="mb-6 flex justify-center">
+						{@render breadcrumb()}
+					</div>
+				{/if}
+
+				<h1
+					class={heroTitleParseMode === 'social-agent-rotate'
+						? PUBLIC_SOCIAL_AUTOPILOT_HERO_TITLE_CLASS
+						: PUBLIC_LANDING_MAIN_HERO_TITLE_CLASS}
+				>
+					{#if heroTitleParseMode === 'dictionary' && dictionaryTitleLineModels.length > 0}
+						{#each dictionaryTitleLineModels as lineModel, lineIndex (lineIndex)}
+							<span class="block">
+								{#each lineModel.segments as seg, segmentIndex (segmentIndex)}
+									{#if seg.highlight}
+										<LandingHeroHighlightedText class="mr-3">{seg.text}</LandingHeroHighlightedText>
+									{:else}
+										<span
+											class="{landingHeroTheme.titleSegmentClass(
+												segmentIndex,
+												lineModel.segments
+											)} mr-3"
+										>
+											{seg.text}
+										</span>
+									{/if}
+								{/each}
+							</span>
+						{/each}
+					{:else if heroTitleParseMode === 'social-agent-rotate' && titleLineModels.length > 0}
+						{#each titleLineModels as lineModel, lineIndex (lineIndex)}
+							<span class={PUBLIC_SOCIAL_AUTOPILOT_HERO_TITLE_LINE_CLASS}>
+								{#each lineModel.segments as seg, segmentIndex (segmentIndex)}
+									{#if seg.highlight && seg.rotate && seg.rotateWithIcon}
+										<LandingHeroSocialAgentRotate class="shrink-0" />
+									{:else if seg.highlight && seg.rotate}
+										<LandingHeroHighlightedText class="shrink-0" triggerOnView={false}>
+											<TextRotate
+												texts={[...(seg.rotateTexts ?? LANDING_HERO_SOCIAL_AGENT_ROTATE_TEXTS)]}
+												splitBy="lines"
+												rotationInterval={2800}
+												staggerDuration={0.02}
+												elementLevelClassName="inline-block"
+											/>
+										</LandingHeroHighlightedText>
+									{:else if seg.highlight}
+										<LandingHeroHighlightedText class="shrink-0">{seg.text}</LandingHeroHighlightedText>
+									{:else}
+										<span
+											class="shrink-0 {landingHeroTheme.titleSegmentClass(
+												segmentIndex,
+												lineModel.segments
+											)}"
+										>
+											{seg.text}
+										</span>
+									{/if}
+								{/each}
+							</span>
+						{/each}
+					{:else if titleLineModels.length > 0}
 						{#each titleLineModels as lineModel, lineIndex (lineIndex)}
 							<span class="block">
 								{#each lineModel.segments as seg, segmentIndex (segmentIndex)}
@@ -227,7 +367,7 @@
 										{#if seg.rotate}
 											<LandingHeroHighlightedText class="mr-3" triggerOnView={false}>
 												<TextRotate
-													texts={[...LANDING_HERO_HOURS_ROTATE_TEXTS]}
+													texts={[...(seg.rotateTexts ?? LANDING_HERO_HOURS_ROTATE_TEXTS)]}
 													splitBy="words"
 													rotationInterval={2800}
 													staggerDuration={0.02}

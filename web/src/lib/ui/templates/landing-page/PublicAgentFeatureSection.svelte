@@ -11,7 +11,6 @@
 	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
 	import PublicAgentFeatureMedia from '$lib/ui/templates/landing-page/PublicAgentFeatureMedia.svelte';
 	import PublicAgentParallelMocks from '$lib/ui/templates/landing-page/PublicAgentParallelMocks.svelte';
-
 	type Props = {
 		section: PublicAgentFeatureSection;
 		index: number;

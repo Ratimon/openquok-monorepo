@@ -32,7 +32,7 @@ import { Badge, Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/do
 
 | Saved piece | What it restores in the composer |
 | --- | --- |
-| **Channels** | Which networks are selected (and the channel group, when one was active) |
+| **Channels** | Which networks are selected (and the business profile, when one was active) |
 | **Caption** | Global text, or per-channel bodies when the snapshot was saved that way |
 | **Media** | Attachments on the main post |
 | **Tags** | Footer tag chips |

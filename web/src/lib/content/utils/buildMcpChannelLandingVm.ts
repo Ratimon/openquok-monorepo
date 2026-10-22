@@ -1,5 +1,6 @@
 import type { PublicAgentChannelPageConfig } from '$lib/content/constants/agents/channels';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels';
+import { isPublicDirectoryChannel } from '$lib/content/constants/channels';
 import type { PublicMcpLandingPageViewModel } from '$lib/content/constants/mcps';
 import {
 	buildChannelMcpSeoKeywords,
@@ -8,6 +9,20 @@ import {
 
 import { resolveMcpChannelAudienceCards } from '$lib/content/constants/agents/ecosystems';
 import { appendChannelLandingFaqItems } from '$lib/content/utils/buildAgentChannelLandingVm';
+import {
+	buildDirectoryAgentChannelHeroTitle,
+	buildDirectoryChannelLandingFaqSubtitle,
+	buildDirectoryMcpChannelHeroDescription,
+	buildDirectoryMcpChannelMetaDescription,
+	buildDirectoryMcpChannelMetaTitle,
+	buildDirectoryOpportunitiesPreviewCopy,
+	buildDirectoryWorkflowSectionDescription,
+	buildDirectoryWorkflowSectionDeviceMock,
+	buildDirectoryWorkflowSectionImageAlt,
+	buildDirectoryWorkflowSectionTitle,
+	mapDirectoryChannelLandingFaqItems,
+	mapSetupStepsForDirectoryIntegrations
+} from '$lib/content/utils/buildDirectoryChannelLandingVmCopy';
 import { customizeAgentsChannelFeatureSections } from '$lib/content/utils/buildAgentsChannelFeatureSections';
 import { buildAgentsChannelAudienceSection } from '$lib/content/utils/buildAgentsChannelAudienceSection';
 import { buildMcpChannelMetaTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
@@ -45,6 +60,88 @@ export function buildMcpChannelLandingVm(params: {
 		.slice(0, 4);
 	const channelLinks = buildChannelFaqLinks(channel.slug, channel.docsPath);
 	const mcpClientGuide = faqHrefDocs(`mcp-setup-guides/${baseMcp.slug}`);
+	const featureSections = customizeAgentsChannelFeatureSections(
+		baseMcp.featureSections,
+		channel,
+		channelConfig,
+		'mcp-client',
+		clientLabel,
+		baseMcp.mcpClient
+	);
+
+	if (isPublicDirectoryChannel(channel)) {
+		const opportunitiesCopy = buildDirectoryOpportunitiesPreviewCopy(platformLabel, clientLabel);
+		return {
+			...baseMcp,
+			heroSecondaryIcon: channel.icon,
+			...audienceSection,
+			audienceCards,
+			setupSteps: mapSetupStepsForDirectoryIntegrations(baseMcp.setupSteps, {
+				platformLabel,
+				workflowLabel: clientLabel
+			}),
+			skillSetupSteps: mapSetupStepsForDirectoryIntegrations(baseMcp.skillSetupSteps, {
+				platformLabel,
+				workflowLabel: clientLabel
+			}),
+			metaTitle: buildDirectoryMcpChannelMetaTitle(platformLabel, clientLabel),
+			metaDescription: buildDirectoryMcpChannelMetaDescription(clientLabel, platformLabel),
+			keywords: [
+				`${clientLabel} ${platformLabel} MCP`,
+				`${clientLabel} MCP`,
+				`${clientLabel} ${platformLabel} directory launch`,
+				'OpenQuok MCP',
+				'directory launch MCP',
+				'directoryProfilesList',
+				...buildChannelMcpSeoKeywords(platformLabel),
+				...channelKeywords
+			],
+			heroTitle: buildDirectoryAgentChannelHeroTitle(platformLabel, clientLabel),
+			heroDescription: buildDirectoryMcpChannelHeroDescription(
+				clientLabel,
+				platformLabel,
+				channel.slug
+			),
+			workflowSection: {
+				...baseMcp.workflowSection,
+				...buildDirectoryWorkflowSectionDeviceMock(baseMcp.mcpClient),
+				title: buildDirectoryWorkflowSectionTitle(platformLabel),
+				description: buildDirectoryWorkflowSectionDescription(
+					clientLabel,
+					platformLabel,
+					channel.slug
+				),
+				imageAlt: buildDirectoryWorkflowSectionImageAlt(clientLabel, platformLabel)
+			},
+			featureSections,
+			opportunitiesPreviewSection: {
+				...baseMcp.opportunitiesPreviewSection,
+				...opportunitiesCopy
+			},
+			comparisonSection: baseMcp.comparisonSection
+				? {
+						...baseMcp.comparisonSection,
+						title: 'MCP-native directory launch, not another dashboard',
+						description: `Most teams paste into directory forms by hand. OpenQuok fits ${clientLabel} in your editor and terminal — list profiles, check listing readiness, then submit on ${platformLabel}.`
+					}
+				: undefined,
+			faqSubtitle: baseMcp.faqSubtitle,
+			faqTitle: `${clientLabel} + ${platformLabel}, answered`,
+			faqDescription: buildDirectoryChannelLandingFaqSubtitle(clientLabel, platformLabel),
+			faqItems: appendChannelLandingFaqItems(
+				mapDirectoryChannelLandingFaqItems(baseMcp.faqItems, {
+					assistantLabel: clientLabel,
+					platformLabel,
+					channelConfig,
+					mode: 'mcp-client',
+					docsHref: channelLinks.docs,
+					mcpClientGuideHref: mcpClientGuide
+				}),
+				channel.faqItems
+			)
+		};
+	}
+
 	const humanizerChannelLinks = buildToolChannelFaqLinks('humanizer', channel.slug);
 
 	return {
@@ -74,12 +171,7 @@ export function buildMcpChannelLandingVm(params: {
 			),
 			imageAlt: `Schedule ${platformLabel} posts from ${clientLabel} via OpenQuok MCP`
 		},
-		featureSections: customizeAgentsChannelFeatureSections(
-			baseMcp.featureSections,
-			channel,
-			channelConfig,
-			'mcp-client'
-		),
+		featureSections,
 		opportunitiesPreviewSection: {
 			...baseMcp.opportunitiesPreviewSection,
 			title: `${platformLabel} viral formats`,
@@ -102,24 +194,24 @@ export function buildMcpChannelLandingVm(params: {
 		faqDescription: `What ${clientLabel} MCP is, how to connect OpenQuok, scheduling ${platformLabel} posts, human approval, and ${platformLabel} setup questions.`,
 		faqItems: appendChannelLandingFaqItems(
 			baseMcp.faqItems.map((item) => {
-			if (item.title === 'Which social platforms are supported?') {
-				return {
-					...item,
-					title: `How does ${clientLabel} schedule ${platformLabel} posts?`,
-					description: `Connect ${platformLabel} via the ${faqLink(channelLinks.docs, `${platformLabel} setup guide`)}. Add OpenQuok MCP to ${clientLabel} — see the ${faqLink(mcpClientGuide, `${clientLabel} MCP setup guide`)}. Draft and schedule in natural language; you approve on the calendar or kanban.`
-				};
-			}
-			if (
-				item.title === `What is OpenQuok MCP for ${clientLabel}?` ||
-				item.title.startsWith('What is OpenQuok MCP')
-			) {
-				return {
-					...item,
-					title: `What is OpenQuok MCP for ${platformLabel} on ${clientLabel}?`,
-					description: `${clientLabel} lists your ${platformLabel} account, reads platform limits, and drafts or schedules posts over MCP — you approve in your workspace. See ${faqLink(mcpClientGuide, `${clientLabel} MCP setup`)} and the ${faqLink(humanizerChannelLinks.toolChannel, `${platformLabel} humanizer tool`)}.`
-				};
-			}
-			return item;
+				if (item.title === 'Which social platforms are supported?') {
+					return {
+						...item,
+						title: `How does ${clientLabel} schedule ${platformLabel} posts?`,
+						description: `Connect ${platformLabel} via the ${faqLink(channelLinks.docs, `${platformLabel} setup guide`)}. Add OpenQuok MCP to ${clientLabel} — see the ${faqLink(mcpClientGuide, `${clientLabel} MCP setup guide`)}. Draft and schedule in natural language; you approve on the calendar or kanban.`
+					};
+				}
+				if (
+					item.title === `What is OpenQuok MCP for ${clientLabel}?` ||
+					item.title.startsWith('What is OpenQuok MCP')
+				) {
+					return {
+						...item,
+						title: `What is OpenQuok MCP for ${platformLabel} on ${clientLabel}?`,
+						description: `${clientLabel} lists your ${platformLabel} account, reads platform limits, and drafts or schedules posts over MCP — you approve in your workspace. See ${faqLink(mcpClientGuide, `${clientLabel} MCP setup`)} and the ${faqLink(humanizerChannelLinks.toolChannel, `${platformLabel} humanizer tool`)}.`
+					};
+				}
+				return item;
 			}),
 			channel.faqItems
 		)

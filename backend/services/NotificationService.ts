@@ -119,7 +119,7 @@ export class NotificationService {
             "in_process";
 
         // Digest mail: append only; the notification-email worker periodically enqueues digest-flush (see
-        // `runNotificationDigestFlushOrchestration` / `runNotificationEmailBullMqWorker`).
+        // `runNotificationDigestFlushOrchestration` / `runHousekeepingBullMqWorker`).
         if (digest) {
             await this.transactionalNotificationEmail.appendDigestEntry(organizationId, {
                 subject,

@@ -1,8 +1,8 @@
 ---
 title: Analytics
-description: Which OpenQuok channels report account-level and per-post insights in the workspace Analytics area and Statistics modal.
+description: Social channel insights in workspace Analytics and per-post Statistics — plus where directory launch uses Directory analytics.
 order: 4
-lastUpdated: 2026-09-27
+lastUpdated: 2026-10-22
 ---
 
 <script>
@@ -11,17 +11,18 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## Analytics by network
 
-> Which connected channels return account-level and per-post metrics — and how to open each view in the app.
+> Social posting metrics in the workspace.
 
-OpenQuok pulls **account-level insights** for connected channels in the workspace **Analytics** area. See <a href="/docs/insights/workspace-analytics">Insights → Workspace analytics</a>.
+OpenQuok has **two analytics surfaces**:
 
-Some networks also expose **per-post metrics** on individual post cards and in the **Statistics** dialog. See <a href="/docs/insights/per-post-metrics">Insights → Per-post metrics</a>.
+| Product line | Where you work | What you measure |
+| --- | --- | --- |
+| **Social posting** | <a href="/account/analytics">Account → Analytics</a> (**Social** tab), post **Statistics** | Followers, impressions, engagement, per-post likes and shares |
+| **Directory launch** | Same page (**Directory** tab) and <a href="/account/products">My Products</a> | Domain rating (DR) for your product site, competitors, submission status |
 
-<Callout type="warning">
-<p>Availability depends on what each platform's API returns for the connected account type. OpenQuok cannot show insights when the network does not expose them for that channel.</p>
-</Callout>
+The tables below are **social channel keys** only. PeerPush, Uneed, and other directory destinations do not appear in **Targeted channels** or post **Statistics**.
 
-## Account insights
+## Social posting — account insights
 
 OpenQuok supports <strong>eleven</strong> channel keys for posting (<a href="/docs/platforms/connect-rules">Connect rules</a>). <strong>Ten</strong> return account-level data in workspace <strong>Analytics</strong>. How the dashboard uses these connections is in <a href="/docs/insights/workspace-analytics">Insights → Workspace analytics</a>.
 
@@ -44,9 +45,13 @@ OpenQuok supports <strong>eleven</strong> channel keys for posting (<a href="/do
 </Callout>
 
 
-## Date range windows
+<Callout type="warning">
+<p>Availability depends on what each platform's API returns for the connected account type. OpenQuok cannot show insights when the network does not expose them for that channel.</p>
+</Callout>
 
-The workspace **Analytics** page and per-post **Statistics** dialog use a lookback picker whose options are <Badge text="7" variant="param" />, <Badge text="30" variant="param" />, or <Badge text="90" variant="param" /> days.
+<h2 id="date-range-windows">Social posting — date range windows</h2>
+
+The workspace **Analytics** page (**Social** tab) and per-post **Statistics** dialog use a lookback picker whose options are <Badge text="7" variant="param" />, <Badge text="30" variant="param" />, or <Badge text="90" variant="param" /> days.
 
 | Network | Channel key | 7 days | 30 days | 90 days |
 | --- | --- | --- | --- | --- |
@@ -69,7 +74,7 @@ The workspace **Analytics** page and per-post **Statistics** dialog use a lookba
 <p>CLI and public API calls still accept <Badge text="7" variant="param" />, <Badge text="30" variant="param" />, or <Badge text="90" variant="param" /> for any integration; provider APIs may return shorter series when a window is not supported.</p>
 </Callout>
 
-## Per-post metrics
+## Social posting — per-post metrics
 
 OpenQuok supports <strong>eleven</strong> channel keys for posting (<a href="/docs/platforms/connect-rules">Connect rules</a>). <strong>Ten</strong> return per-post data in the <strong>Statistics</strong> dialog. How to open it from <strong>My Dashboard</strong> and the calendar is in <a href="/docs/insights/per-post-metrics">Insights → Per-post metrics</a>.
 
@@ -87,12 +92,29 @@ OpenQuok supports <strong>eleven</strong> channel keys for posting (<a href="/do
 | **Dev.to** | <Badge text="devto" variant="param" /> | Yes |
 | **Bluesky** | <Badge text="bluesky" variant="param" /> | Yes |
 
+## Directory launch — analytics
+
+Directory destinations use **Directory analytics**, not social channel keys or post **Statistics**.
+
+| Topic | Where |
+| --- | --- |
+| **DR and competitors** | <a href="/account/analytics">Account → Analytics</a> → **Directory** tab — see <a href="/docs/directory-submission/directory-analytics">Directory analytics</a> |
+| **Listing readiness and submitted URLs** | <a href="/account/products">My Products</a> — see <a href="/docs/directory-submission/track-submissions">Track submissions</a> |
+| **API / MCP** | <Badge text="/public/directory-seo/*" variant="path" /> and MCP <Badge text="directorySeo*" variant="default" /> tools (plan-gated) — see <a href="/docs/configuration-backend/directory-seo">Backend → Directory SEO</a> and <a href="/docs/mcp-references/tools#directory-launch">MCP tools reference</a> |
+
+<Callout type="note">
+<p>User-facing docs call this tab <strong>Directory analytics</strong>. API paths and MCP tools still use the <Badge text="directorySeo" variant="param" /> name. See <a href="/docs/getting-started/glossary#directory-analytics">Glossary → Directory analytics</a>.</p>
+</Callout>
+
 ## Related
 
 <CardGrid>
 <LinkCard title="Workspace analytics" description="Targeted channels, Overview, Trends, and metric cards" href="/docs/insights/workspace-analytics" />
 <LinkCard title="Per-post metrics" description="Statistics from My Dashboard and the calendar" href="/docs/insights/per-post-metrics" />
 <LinkCard title="Actions and stats" description="Post card actions, failures, and the Statistics entry point" href="/docs/posts-management/actions-and-stats" />
-<LinkCard title="Connect rules" description="Full channel catalog and connect methods" href="/docs/platforms/connect-rules" />
+<LinkCard title="Connect rules" description="Social channel keys and directory launch platforms" href="/docs/platforms/connect-rules" />
+<LinkCard title="Directory analytics" description="DR history and competitors on the Directory tab" href="/docs/directory-submission/directory-analytics" />
+<LinkCard title="Track submissions" description="Listing readiness and live URLs on My Products" href="/docs/directory-submission/track-submissions" />
+<LinkCard title="Platforms overview" description="Social vs directory rules and identifiers" href="/docs/platforms" />
 <LinkCard title="CLI Examples" description="CLI commands for analytics" href="/docs/cli-examples" />
 </CardGrid>

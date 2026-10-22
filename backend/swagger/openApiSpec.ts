@@ -45,6 +45,8 @@ const swaggerDefinition = {
         { name: "Analytics", description: "Platform and per-post provider insights" },
         { name: "Notifications", description: "Paginated in-app notification history" },
         { name: "Uploads", description: "Media uploads consumed by the Posts API" },
+        { name: "DirectoryLaunch", description: "Directory launch profiles, destinations, and listing readiness" },
+        { name: "DirectorySeo", description: "Directory SEO domain rating, history, refresh, and competitors" },
     ],
     servers: [{ url: "/api/v1", description: "API v1 (same origin as this spec when using the Vite dev proxy)" }],
     components: {

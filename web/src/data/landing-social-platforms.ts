@@ -1,11 +1,15 @@
 import type { IconName } from '$data/icons';
 import { icons } from '$data/icons';
 
+import type { FeaturesGridRowConfig } from '$data/landing-features-grid-types';
+
 /** Tile config for landing-page social brand marks (hero strip + features grid). */
 export type LandingSocialPlatform = {
 	id: string;
 	icon: IconName;
 	label?: string;
+	/** `/channels/{slug}` when tiles are linked (defaults from {@link resolveLandingSocialPlatformChannelSlug}). */
+	channelSlug?: string;
 	containerClass?: string;
 	iconClass?: string;
 	iconWidth?: string;
@@ -156,21 +160,29 @@ export const FEATURES_GRID_SOCIAL_PLATFORMS: LandingSocialPlatform[] = [
 	}
 ];
 
-/** Staggered row layout — each `platformIds` entry appears at most once across all rows. */
-export const FEATURES_GRID_SOCIAL_ROWS: { offsetClass: string; platformIds: string[] }[] = [
+/** Staggered row layout — each `platformIds` entry appears at most once across all rows (4 + 4 + 3). */
+export const FEATURES_GRID_SOCIAL_ROWS: FeaturesGridRowConfig[] = [
 	{
-		offsetClass: 'translate-x-6 sm:translate-x-10 md:translate-x-14',
-		platformIds: ['threads', 'instagram-business', 'facebook']
+		offsetClass: 'translate-x-4 sm:translate-x-6 md:translate-x-8',
+		platformIds: ['threads', 'instagram-business', 'facebook', 'youtube']
 	},
 	{
 		offsetClass: 'translate-x-0',
-		platformIds: ['youtube', 'tiktok', 'linkedin']
+		platformIds: ['tiktok', 'linkedin', 'x', 'devto']
 	},
 	{
-		offsetClass: '-translate-x-4 sm:-translate-x-8 md:-translate-x-12',
-		platformIds: ['x', 'instagram-standalone', 'devto', 'bluesky', 'skool']
+		offsetClass: '-translate-x-4 sm:-translate-x-6 md:-translate-x-8',
+		platformIds: ['bluesky', 'skool', 'instagram-standalone']
 	}
 ];
+
+export function resolveLandingSocialPlatformChannelSlug(platform: LandingSocialPlatform): string {
+	if (platform.channelSlug) return platform.channelSlug;
+	if (platform.id === 'instagram-business' || platform.id === 'instagram-standalone') {
+		return 'instagram';
+	}
+	return platform.id;
+}
 
 const platformById = new Map(
 	FEATURES_GRID_SOCIAL_PLATFORMS.map((platform) => [platform.id, platform])

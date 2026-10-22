@@ -241,7 +241,7 @@ openquok posts:list \
 Same window with the long names: <Badge text="--start" variant="param" /> / <Badge text="--end" variant="param" />.
 
 <Callout type="note" title="Defaults in CLI">
-<p><Badge text="GET /public/posts/list" variant="path" /> requires <code>start</code> and <code>end</code>. The CLI fills omitted flags with ±30 local calendar days from today (ISO UTC on the wire). Optional <code>customerGroupId</code> narrows by channel group. SDK and raw HTTP clients must send both dates; see <a href="/docs/apis-posts/list">List Posts</a>.</p>
+<p><Badge text="GET /public/posts/list" variant="path" /> requires <code>start</code> and <code>end</code>. The CLI fills omitted flags with ±30 local calendar days from today (ISO UTC on the wire). Optional <code>customerGroupId</code> narrows by business profile. SDK and raw HTTP clients must send both dates; see <a href="/docs/apis-posts/list">List Posts</a>.</p>
 </Callout>
 
 
@@ -254,17 +254,17 @@ openquok posts:list \
   -i "<integration-id-1>,<integration-id-2>"
 ```
 
-### List posts (Filter by customer group)
+### List posts (Filter by business profile)
 
-Use the channel-group id from your workspace (row id in <code>integration_customers</code>; assign integrations to groups in the dashboard). The CLI sends it as the <code>customerGroupId</code> query parameter on <Badge text="GET /public/posts/list" variant="path" />.
+Use the business profile id from your workspace (row id in <code>integration_customers</code>; link integrations to profiles on the **Channels** tab). The CLI sends it as the <code>customerGroupId</code> query parameter on <Badge text="GET /public/posts/list" variant="path" />.
 
 ```bash
 openquok posts:list --customer <customer-group-id>
 ```
 
-<p>Alias for <Badge text="--customerGroupId" variant="param" /> (channel-group id).</p>
+<p>Alias for <Badge text="--customerGroupId" variant="param" /> (business profile id).</p>
 
-You can combine <code>--customerGroupId</code> with <code>-i</code> / <code>--integrationIds</code>: only integrations that belong to **both** the group and the CSV are queried.
+You can combine <code>--customerGroupId</code> with <code>-i</code> / <code>--integrationIds</code>: only integrations that belong to **both** the profile and the CSV are queried.
 
 To find post rows whose provider id could not be mapped yet (database column <code>release_id</code> is the string <code>missing</code>; JSON responses use <code>releaseId</code>), see <a href="#connecting-missing-posts">Connecting missing posts</a>.
 

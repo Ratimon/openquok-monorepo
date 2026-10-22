@@ -3,8 +3,8 @@
 
 	import { page } from '$app/state';
 	import { PUBLIC_HUB_DOCS_BANNERS } from '$lib/config/constants/config';
-	import { PUBLIC_SELF_HOSTING_LANDING_CONFIG } from '$lib/content/constants/self-hosting/landing';
-	import { PUBLIC_SELF_HOSTING_WHO_IS_FOR_SECTION } from '$lib/content/constants/self-hosting/whoIsFor';
+import { PUBLIC_SELF_HOSTING_LANDING_CONFIG } from '$lib/content/constants/marketing/self-hosting-landing';
+import { PUBLIC_SELF_HOSTING_WHO_IS_FOR_SECTION } from '$lib/content/constants/marketing/self-hosting-who-is-for';
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';

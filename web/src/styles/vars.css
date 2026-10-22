@@ -1,4 +1,18 @@
 :root {
+  /* shadcn-svelte / layerchart series colors (DaisyUI-aligned) */
+  --chart-1: var(--color-primary);
+  --chart-2: var(--color-secondary);
+  --chart-3: var(--color-accent);
+  --chart-4: var(--color-info, #38bdf8);
+  --chart-5: var(--color-success, #4ade80);
+
+  /* Directory analytics — five hues (line chart + legends; not all theme primaries) */
+  --directory-seo-chart-1: var(--color-primary);
+  --directory-seo-chart-2: #22d3ee;
+  --directory-seo-chart-3: #f472b6;
+  --directory-seo-chart-4: #fbbf24;
+  --directory-seo-chart-5: #c084fc;
+
   /* DaisyUI cyberpunk primary stack */
   --sans-serif: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
     monospace;

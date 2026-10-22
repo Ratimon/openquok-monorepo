@@ -231,7 +231,7 @@
 		>
 			<AbstractIcon name={icons.UserPlus.name} class="size-4 shrink-0" width="16" height="16" />
 			<span class="min-w-0 text-start text-xs leading-tight">
-				Move / add to group
+				Move / add to business profile
 			</span>
 		</Button>
 		<Button

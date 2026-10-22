@@ -7,7 +7,7 @@ This folder holds Flowcraft blueprints, BullMQ adapters, and **long-running work
 | Script (local) | Role |
 |----------------|------|
 | `pnpm worker:integration-refresh-bullmq` (from repo root: `pnpm --filter openquok-orchestrator worker:integration-refresh-bullmq`, or `pnpm worker:integration-refresh-bullmq` via the `backend` package script) | Flowcraft + `@flowcraft/bullmq-adapter` on `config.bullmq.integrationRefresh.queueName` (default `integration-refresh`). |
-| `pnpm worker:notification-email-bullmq` | `BullMQAdapter` + Flowcraft (`blueprints/notificationEmailBlueprint.ts`, `nodes/notificationEmailNodes.ts`) on `config.bullmq.notificationEmail.queueName`. Blueprints: `notification-send-plain` (one mail per run) and `notification-digest-flush` (drain digest Redis lists). HTML under `backend/emails/`; digest list keys and org delivery in `TransactionalNotificationEmailService`. Digest flush is re-enqueued on an interval from the worker process (new `runId` each tick). |
+| `pnpm worker:housekeeping-bullmq` (alias `worker:notification-email-bullmq`) | `BullMQAdapter` + Flowcraft (`blueprints/notificationEmailBlueprint.ts`, `nodes/notificationEmailNodes.ts`) on `config.bullmq.notificationEmail.queueName`. Blueprints: `notification-send-plain` (one mail per run) and `notification-digest-flush` (drain digest Redis lists). HTML under `backend/emails/`; digest list keys and org delivery in `TransactionalNotificationEmailService`. Digest flush is re-enqueued on an interval from the worker process (new `runId` each tick). Also runs `DirectorySeoService.runWeeklyRefresh()` on `config.directorySeo.weeklyRefreshIntervalMs` when enabled. |
 | `pnpm worker:scheduled-social-post-bullmq` | Flowcraft + BullMQ on `config.bullmq.scheduledSocialPost.queueName` (default `scheduled-social-post`). Runs the `scheduled-social-post` blueprint at `publish_date` and publishes to each social channel. Starts the [Flowcraft BullMQ reconciler](https://flowcraft.js.org/guide/adapters/bullmq#reconciliation) (shared config under `config.bullmq.flowcraft`) and, when `missingPostRescanIntervalMs` is a positive number, a timer that rescans the DB for queue rows that should have published but did not (re-enqueue with delay 0). |
 
 All expect **Redis** at `REDIS_*` (and optional `REDIS_BULLMQ_DB`), matching the API and `GlobalConfig`.
@@ -35,7 +35,7 @@ All expect **Redis** at `REDIS_*` (and optional `REDIS_BULLMQ_DB`), matching the
 |----------|--------|
 | Provider OAuth / app secrets (e.g. `THREADS_APP_ID`, `THREADS_APP_SECRET`, …) | Only for integrations you actually refresh; refresh fails for a provider if its secrets are missing when that job runs. |
 
-**Notification email worker only**
+**Housekeeping worker only** (notification email + Directory SEO weekly refresh)
 
 | Variable | Notes |
 |----------|--------|
@@ -43,6 +43,8 @@ All expect **Redis** at `REDIS_*` (and optional `REDIS_BULLMQ_DB`), matching the
 | `RESEND_SECRET_KEY` | Production SMTP via Resend when set. |
 | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | Dev / SES paths when not using Resend. |
 | `SITE_NAME`, `SENDER_EMAIL_ADDRESS` | Identity in mail (defaults exist). |
+| `DATAFORSEO_API_KEY` | Base64 `login:password` for Directory SEO domain rating refresh. |
+| `DIRECTORY_SEO_ENABLED`, `DIRECTORY_SEO_CACHE_TTL_HOURS`, `DIRECTORY_SEO_WEEKLY_REFRESH_ENABLED`, `DIRECTORY_SEO_WEEKLY_REFRESH_INTERVAL_MS` | Weekly stale-domain sweep (default interval 7 days). |
 
 **Scheduled social post worker only**
 
@@ -91,14 +93,14 @@ pnpm install && pnpm railway:orchestrator:build
 | Worker | Start |
 |--------|--------|
 | Integration refresh | `pnpm railway:orchestrator:start:integration-refresh` |
-| Notification email | `pnpm railway:orchestrator:start:notification-email` |
+| Housekeeping | `pnpm railway:orchestrator:start:housekeeping` |
 | Scheduled social post | `pnpm railway:orchestrator:start:scheduled-social-post` (alias of `pnpm orchestrator:start:worker:scheduled-social-post-bullmq`) |
 
 Equivalent from **`orchestrator/`** after deps are built:
 
 ```bash
 pnpm start:worker:integration-refresh-bullmq
-pnpm start:worker:notification-email-bullmq
+pnpm start:worker:housekeeping-bullmq
 pnpm start:worker:scheduled-social-post-bullmq
 ```
 
@@ -116,13 +118,13 @@ This matches the **separate worker service** pattern in Railway’s guide [Deplo
    - **Build** is also defined in repo-root [`railway.toml`](../railway.toml) (`pnpm install && pnpm railway:orchestrator:build`); it overrides the dashboard when present ([config as code](https://docs.railway.com/reference/config-as-code)).
 6. In the Railway UI for **that service**, set **Start Command** to one of:
    - `pnpm railway:orchestrator:start:integration-refresh`
-   - `pnpm railway:orchestrator:start:notification-email`
+   - `pnpm railway:orchestrator:start:housekeeping`
    - `pnpm railway:orchestrator:start:scheduled-social-post`  
    (`railway.toml` intentionally omits a single `startCommand` so each worker can differ.)
 7. Stream logs: `railway logs`.
 
 **Run a worker locally with Railway-injected env** (after `railway link`, from monorepo root after `pnpm install`):  
-`railway run pnpm railway:orchestrator:start:integration-refresh`, `railway run pnpm railway:orchestrator:start:notification-email`, or `railway run pnpm railway:orchestrator:start:scheduled-social-post`.
+`railway run pnpm railway:orchestrator:start:integration-refresh`, `railway run pnpm railway:orchestrator:start:housekeeping`, or `railway run pnpm railway:orchestrator:start:scheduled-social-post`.
 
 ### Other hosts
 

@@ -65,6 +65,22 @@ describe('publicPricingLandingSectionConfig', () => {
 				'Transparent pricing for our social media scheduling tool. No hidden fees — cancel anytime. Start with a 7-day free trial.'
 		});
 	});
+
+	it('social-scheduler preset mentions scheduling', () => {
+		const section = getPublicPricingLandingSection('social-scheduler');
+		const overrides = getPublicPricingLandingPlanOverrides('social-scheduler');
+
+		expect(section.description).toMatch(/schedul/i);
+		expect(overrides.SOLO?.tabHeadline).toBeTruthy();
+	});
+
+	it('directory-submission preset mentions directory launch', () => {
+		const section = getPublicPricingLandingSection('directory-submission');
+		const overrides = getPublicPricingLandingPlanOverrides('directory-submission');
+
+		expect(section.description).toMatch(/directory/i);
+		expect(overrides.TEAM?.tabHeadline).toBeTruthy();
+	});
 });
 
 describe('GetPublicPricingPresenter.buildLandingTabPlans', () => {
@@ -94,5 +110,22 @@ describe('GetPublicPricingPresenter.buildLandingTabPlans', () => {
 		const landingPlans = presenter.buildLandingTabPlans('YEARLY');
 
 		expect(landingPlans).toEqual(baselinePlans);
+	});
+
+	it('filters plan features by productLine', () => {
+		const presenter = new GetPublicPricingPresenter();
+		const allFeatures = presenter.buildLandingTabPlans('MONTHLY', { productLine: 'all' })[0]
+			.features;
+		const socialFeatures = presenter.buildLandingTabPlans('MONTHLY', { productLine: 'social' })[0]
+			.features;
+		const directoryFeatures = presenter.buildLandingTabPlans('MONTHLY', {
+			productLine: 'directory'
+		})[0].features;
+
+		expect(socialFeatures.length).toBeLessThan(allFeatures.length);
+		expect(directoryFeatures.length).toBeLessThan(allFeatures.length);
+		expect(socialFeatures.some((line) => /posts per month/i.test(line))).toBe(true);
+		expect(directoryFeatures.some((line) => /competitor domains/i.test(line))).toBe(true);
+		expect(directoryFeatures.some((line) => /posts per month/i.test(line))).toBe(false);
 	});
 });

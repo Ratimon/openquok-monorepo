@@ -67,6 +67,19 @@ export class IntegrationService {
         return row;
     }
 
+    async updateIntegrationCustomerName(
+        organizationId: string,
+        customerId: string,
+        name: string
+    ): Promise<void> {
+        await this.integrationRepository.updateIntegrationCustomerName(organizationId, customerId, name);
+        await this.invalidateIntegrationCustomersListCache(organizationId);
+    }
+
+    findIntegrationCustomerByOrgAndName(organizationId: string, name: string) {
+        return this.integrationRepository.findIntegrationCustomerByOrgAndName(organizationId, name);
+    }
+
     async updateIntegrationGroup(organizationId: string, integrationId: string, group: string | null) {
         await this.integrationRepository.updateIntegrationGroup(organizationId, integrationId, group);
         await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);

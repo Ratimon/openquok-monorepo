@@ -29,8 +29,10 @@ import {
 } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 import { getRootPathPublicTools } from '$lib/area-public/constants/getRootPathPublicTools';
 import type { PublicApiCapability } from '$lib/content/constants/channels/api/_shared/types';
+import type { PublicChannelKind } from '$lib/content/constants/channels/catalog/types';
 import {
 	PUBLIC_AGENTS_HUB_SECTION_IDS,
+	PUBLIC_CHANNELS_HUB_SECTION_IDS,
 	PUBLIC_LANDING_BREADCRUMB
 } from '$lib/content/constants/landing/breadcrumbs';
 import type { BreadcrumbCrumb } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
@@ -146,9 +148,18 @@ export function buildAlternativesLandingBreadcrumbItems(params: {
 
 export function buildChannelsLandingBreadcrumbItems(params: {
 	platformLabel?: string | null;
+	channelKind?: PublicChannelKind | null;
 }): BreadcrumbCrumb[] {
-	const channelsHubHref = route(getRootPathPublicChannels());
+	const channelsHubPath = route(getRootPathPublicChannels());
 	const trimmedPlatformLabel = params.platformLabel?.trim() ?? '';
+	const hubSectionId =
+		params.channelKind === 'directory'
+			? PUBLIC_CHANNELS_HUB_SECTION_IDS.directoryLaunchPlatforms
+			: PUBLIC_CHANNELS_HUB_SECTION_IDS.socialMediaPlatforms;
+	const channelsHubHref =
+		trimmedPlatformLabel.length > 0
+			? `${channelsHubPath}#${hubSectionId}`
+			: channelsHubPath;
 
 	if (trimmedPlatformLabel) {
 		return [
@@ -336,6 +347,20 @@ export function buildSelfHostingLandingBreadcrumbItems(): BreadcrumbCrumb[] {
 	return [
 		{ label: 'Home', href: '/' },
 		{ label: PUBLIC_LANDING_BREADCRUMB.selfHosting }
+	];
+}
+
+export function buildDirectorySubmissionToolLandingBreadcrumbItems(): BreadcrumbCrumb[] {
+	return [
+		{ label: 'Home', href: '/' },
+		{ label: PUBLIC_LANDING_BREADCRUMB.directorySubmissionTool }
+	];
+}
+
+export function buildSocialAutopilotLandingBreadcrumbItems(): BreadcrumbCrumb[] {
+	return [
+		{ label: 'Home', href: '/' },
+		{ label: PUBLIC_LANDING_BREADCRUMB.socialAutopilotLanding }
 	];
 }
 

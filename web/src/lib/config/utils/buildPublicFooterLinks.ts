@@ -14,7 +14,6 @@ import { listPublicChannelLandingSeedsForFooter } from '$lib/content/constants/c
 import { listPublicMcpLandingSeedsForFooter } from '$lib/content/constants/mcps/seeds';
 import {
 	getPublicApiPostingPlatformBySlug,
-	getPublicApiSchedulingPlatformBySlug,
 	PUBLIC_API_POSTING_PLATFORM_SLUGS,
 	listPublicApiPostingPlatformsForHub,
 	listPublicApiSchedulingPlatformsForHub
@@ -152,13 +151,10 @@ export function buildPublicFooterSchedulingApiPlatformLinks(
 	return buildPublicFooterHubLinks(
 		'All Scheduling APIs',
 		schedulingApiHubHref,
-		listPublicApiSchedulingPlatformsForHub().map((platform) => {
-			const page = getPublicApiSchedulingPlatformBySlug(platform.slug);
-			return {
-				platformLabel: page?.metaTitle ?? `${platform.platformLabel} Scheduling API`,
-				href: route(getRootPathSocialMediaSchedulingApiPlatform(platform.slug))
-			};
-		})
+		listPublicApiSchedulingPlatformsForHub().map((platform) => ({
+			platformLabel: `${platform.platformLabel} Scheduling API`,
+			href: route(getRootPathSocialMediaSchedulingApiPlatform(platform.slug))
+		}))
 	);
 }
 

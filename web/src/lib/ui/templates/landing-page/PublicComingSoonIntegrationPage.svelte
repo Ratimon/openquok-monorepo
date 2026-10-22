@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { IconName } from '$data/icons';
 
+	import type { PublicChannelKind } from '$lib/content/constants/channels/catalog/types';
 	import { getRootPathPublicChannels } from '$lib/area-public/constants/getRootPathPublicChannels';
 	import { route } from '$lib/utils/path';
 
@@ -20,6 +21,7 @@
 		agentsBreadcrumbVariant?: 'agent-host' | 'mcp-client' | null;
 		/** Hero band only — omit standalone navigation (channel pages render sections below). */
 		heroOnly?: boolean;
+		channelKind?: PublicChannelKind | null;
 		backHref?: string;
 		backLabel?: string;
 	};
@@ -33,6 +35,7 @@
 		agentSlug = '',
 		agentsBreadcrumbVariant = null,
 		heroOnly = false,
+		channelKind = null,
 		backHref = channelsHubPath,
 		backLabel = 'Browse available channels'
 	}: Props = $props();
@@ -42,13 +45,17 @@
 	let title = $derived(
 		agentLabel
 			? `${platformLabel} with ${agentLabel} is coming soon`
-			: `${platformLabel} scheduling is coming soon`
+			: channelKind === 'directory'
+				? `${platformLabel} directory launch is coming soon`
+				: `${platformLabel} scheduling is coming soon`
 	);
 
 	let description = $derived(
 		agentLabel
 			? `We are finishing the ${platformLabel} integration for ${agentLabel}. Check back soon for platform-specific workflows, examples, and setup guides.`
-			: `We are putting the finishing touches on ${platformLabel} in OpenQuok — connect, compose, schedule, and approve from one workspace. This channel will be available shortly.`
+			: channelKind === 'directory'
+				? `We are finishing ${platformLabel} directory launch in OpenQuok — business profile, extension autofill, and submission tracking from My Products. This destination will be available shortly.`
+				: `We are putting the finishing touches on ${platformLabel} in OpenQuok — connect, compose, schedule, and approve from one workspace. This channel will be available shortly.`
 	);
 </script>
 
@@ -80,7 +87,10 @@
 						channelLabel={platformLabel}
 					/>
 				{:else}
-					<PublicChannelsLandingBreadcrumb platformLabel={platformLabel} />
+					<PublicChannelsLandingBreadcrumb
+						platformLabel={platformLabel}
+						{channelKind}
+					/>
 				{/if}
 			</div>
 

@@ -64,7 +64,8 @@
 			? activePlatformLabel.trim()
 				? buildPublicAgentChannelSiblingGridDescription(
 						activePlatformLabel,
-						resolvedAgentLabel
+						resolvedAgentLabel,
+						activeChannelSlug ?? undefined
 					)
 				: resolvedHostSlug
 					? buildAgentHostEcosystemChannelSiblingGridHubDescription(
@@ -75,12 +76,13 @@
 			: buildPublicChannelSiblingGridDescription(activePlatformLabel, activeChannelSlug ?? undefined)
 	);
 
-	function cardDescription(platformLabel: string, available: boolean): string {
+	function cardDescription(platformLabel: string, available: boolean, channelSlug: string): string {
 		if (agentLabel?.trim()) {
 			return buildPublicAgentChannelSiblingGridCardDescription(
 				platformLabel,
 				agentLabel,
-				available
+				available,
+				channelSlug
 			);
 		}
 		return buildPublicChannelSiblingGridCardDescription(platformLabel, available);
@@ -114,7 +116,7 @@
 
 			<ul
 				class="relative grid grid-cols-1 divide-y divide-base-content/10 sm:grid-cols-2 sm:divide-x lg:grid-cols-3"
-				aria-label="Supported social channels"
+				aria-label="Supported social and directory channels"
 			>
 				{#each channelsVm as channelVm (channelVm.slug)}
 					{@const isActive = activeChannelSlug === channelVm.slug}
@@ -170,7 +172,7 @@
 									{channelVm.platformLabel}
 								</span>
 								<span class="block text-sm leading-relaxed text-base-content/65">
-									{cardDescription(channelVm.platformLabel, channelVm.available)}
+									{cardDescription(channelVm.platformLabel, channelVm.available, channelVm.slug)}
 								</span>
 							</span>
 						</a>

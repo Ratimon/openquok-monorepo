@@ -15,7 +15,7 @@
 	import * as Dialog from '$lib/ui/dialog';
 
 	const ACCOUNT_SIDEBAR_TOUR_DIALOG_CLASS =
-		'flex max-h-[min(90vh,720px)] w-full max-w-[min(96vw,42rem)] flex-col gap-0 overflow-hidden rounded-xl p-0 sm:max-w-lg';
+		'flex max-h-[min(90vh,720px)] min-h-0 w-full max-w-[min(96vw,42rem)] flex-col gap-0 overflow-hidden rounded-xl p-0 sm:max-w-lg';
 
 	type Props = {
 		open: boolean;
@@ -72,30 +72,34 @@
 <Dialog.Root {open} onOpenChange={handleOpenChange}>
 	<Dialog.Content class={ACCOUNT_SIDEBAR_TOUR_DIALOG_CLASS} showCloseButton={false}>
 		{#if step && tourId}
-			<div class="relative overflow-hidden rounded-t-xl bg-primary px-6 pb-6 pt-6 text-primary-content">
+			<div class="relative shrink-0 rounded-t-xl bg-primary px-6 pb-6 pt-6 text-primary-content">
 				<Dialog.Close
 					class="absolute end-3 top-3 z-30 inline-flex size-9 items-center justify-center rounded-md text-primary-content opacity-90 transition hover:bg-primary-content/15 hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-content"
 				>
 					<AbstractIcon name={icons.X2.name} width="20" height="20" aria-hidden="true" />
 					<span class="sr-only">Close</span>
 				</Dialog.Close>
-				<div
-					class="pointer-events-none absolute end-12 top-2 flex size-16 items-center justify-center rounded-2xl bg-primary-content/10"
-					aria-hidden="true"
-				>
-					<AbstractIcon
-						name={step.iconName}
-						width="36"
-						height="36"
-						class="text-primary-content/90"
-					/>
+				<div class="flex items-start gap-4 pe-11">
+					<div
+						class="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-primary-content/10"
+						aria-hidden="true"
+					>
+						<AbstractIcon
+							name={step.iconName}
+							width="36"
+							height="36"
+							class="text-primary-content/90"
+						/>
+					</div>
+					<div class="min-w-0 flex-1">
+						<Dialog.Title class={ONBOARDING_MODAL_TITLE_CLASS}>
+							{step.title}
+						</Dialog.Title>
+						<Dialog.Description class={cn(ONBOARDING_MODAL_DESCRIPTION_CLASS, 'max-w-md')}>
+							{step.subtitle}
+						</Dialog.Description>
+					</div>
 				</div>
-				<Dialog.Title class={cn(ONBOARDING_MODAL_TITLE_CLASS, 'pe-14')}>
-					{step.title}
-				</Dialog.Title>
-				<Dialog.Description class={cn(ONBOARDING_MODAL_DESCRIPTION_CLASS, 'max-w-md')}>
-					{step.subtitle}
-				</Dialog.Description>
 			</div>
 
 			<div class="flex min-h-0 flex-1 flex-col overflow-y-auto px-6 py-5">

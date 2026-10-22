@@ -1,5 +1,6 @@
 /** Maps legacy docs slugs to current slugs (permanent redirects). */
 export function resolveLegacyDocsSlug(slug: string): string | null {
+	if (slug === 'channels/business-profiles') return 'channels/channel-groups';
 	if (slug === 'playbooks') return 'saved';
 	if (slug.startsWith('playbooks/')) {
 		return `saved/${slug.slice('playbooks/'.length)}`;

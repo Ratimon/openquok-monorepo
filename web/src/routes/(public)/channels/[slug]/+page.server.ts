@@ -19,6 +19,7 @@ import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
 import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
+import { createPublicSetupStepsSEOSchema } from '$lib/seo/featuresOrderedHowToSchema';
 import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
 
 export const ssr = true;
@@ -95,12 +96,20 @@ export async function load({ url, params, cookies, parent }) {
 
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 
+	const isDirectoryChannel = channelVm.channelKind === 'directory';
 	const customTitle = channelVm.available
 		? `${channelVm.metaTitle} | ${companyName}`
-		: `${channelVm.platformLabel} scheduling — Coming soon | ${companyName}`;
+		: isDirectoryChannel
+			? `${channelVm.platformLabel} directory launch — Coming soon | ${companyName}`
+			: `${channelVm.platformLabel} scheduling — Coming soon | ${companyName}`;
 	const customDescription = channelVm.available
 		? channelVm.metaDescription
-		: `${channelVm.platformLabel} scheduling in OpenQuok is coming soon. ${channelVm.metaDescription}`;
+		: isDirectoryChannel
+			? `${channelVm.platformLabel} directory launch in OpenQuok is coming soon. ${channelVm.metaDescription}`
+			: `${channelVm.platformLabel} scheduling in OpenQuok is coming soon. ${channelVm.metaDescription}`;
+	const softwareApplicationName = isDirectoryChannel
+		? `${channelVm.platformLabel} directory launch in OpenQuok`
+		: `${channelVm.platformLabel} scheduling in OpenQuok`;
 	const featureList = [
 		channelVm.heroTitle,
 		...channelVm.featureSections.flatMap((section) => [section.subtitle, section.title]),
@@ -157,7 +166,7 @@ export async function load({ url, params, cookies, parent }) {
 			buildChannelSoftwareApplicationSchema({
 				canonical,
 				origin: url.origin,
-				name: `${channelVm.platformLabel} scheduling in OpenQuok`,
+				name: softwareApplicationName,
 				description: customDescription,
 				docsPath: channelVm.docsPath,
 				keywords: channelVm.keywords,
@@ -178,9 +187,20 @@ export async function load({ url, params, cookies, parent }) {
 				description: channelVm.faqDescription,
 				items: channelVm.faqItems
 			}),
+			channelVm.processSection
+				? createPublicSetupStepsSEOSchema({
+						pageUrl: canonical,
+						fragmentId: 'directory-channel-process',
+						sectionTitle: channelVm.processSection.title,
+						sectionDescription: channelVm.processSection.description,
+						sectionSubtitle: channelVm.processSection.subtitle,
+						steps: channelVm.processSection.steps
+					})
+				: {},
 			createBreadcrumbListSchema(
 				buildChannelsLandingBreadcrumbItems({
-					platformLabel: channelVm.platformLabel
+					platformLabel: channelVm.platformLabel,
+					channelKind: channelVm.channelKind ?? 'social'
 				}),
 				url.origin
 			)

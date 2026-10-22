@@ -313,32 +313,6 @@ export class LinkDirectoryRepository {
 		}
 	}
 
-	async setSavedSiteOutreachCompletion(
-		siteId: string,
-		completed: boolean,
-		fetch?: typeof globalThis.fetch
-	): Promise<{ ok: boolean; savedSites: LinkDirectorySavedSiteDto[]; error?: string }> {
-		try {
-			const { data: savedSitesDto, ok } = await this.httpGateway.request<SavedSitesResponseDto>({
-				method: HttpMethod.PATCH,
-				url: this.config.endpoints.patchSavedSiteOutreachCompletion(siteId),
-				data: { completed },
-				withCredentials: true,
-				fetch
-			});
-			if (ok && savedSitesDto?.success && Array.isArray(savedSitesDto.data)) {
-				return { ok: true, savedSites: savedSitesDto.data };
-			}
-			return {
-				ok: false,
-				savedSites: [],
-				error: savedSitesDto?.message ?? 'Failed to update outreach completion.'
-			};
-		} catch {
-			return { ok: false, savedSites: [], error: 'Failed to update outreach completion.' };
-		}
-	}
-
 	private adminOpts(fetch?: typeof globalThis.fetch) {
 		return { withCredentials: true, fetch };
 	}
@@ -898,6 +872,54 @@ export class LinkDirectoryRepository {
 			);
 			if (ok && incrementLikesDto?.success) return { ok: true };
 			return { ok: false, error: incrementLikesDto?.message ?? 'Failed to record like.' };
+		} catch (err) {
+			return { ok: false, error: this.extractErrorMessage(err) };
+		}
+	}
+
+	async refreshCatalogDomainRatings(
+		params: {
+			force?: boolean;
+			publishedOnly?: boolean;
+			siteId?: string;
+			slug?: string;
+			dryRun?: boolean;
+		} = {},
+		fetch?: typeof globalThis.fetch
+	): Promise<{
+		ok: boolean;
+		data?: {
+			attempted: number;
+			updated: number;
+			skipped: number;
+			failed: number;
+			providerConfigured: boolean;
+		};
+		error?: string;
+	}> {
+		try {
+			const { data: refreshDto, ok } = await this.httpGateway.post<{
+				success: boolean;
+				data?: {
+					attempted: number;
+					updated: number;
+					skipped: number;
+					failed: number;
+					providerConfigured: boolean;
+				};
+				message?: string;
+			}>(
+				this.config.endpoints.refreshCatalogDomainRatings,
+				params,
+				this.adminOpts(fetch)
+			);
+			if (ok && refreshDto?.success && refreshDto.data) {
+				return { ok: true, data: refreshDto.data };
+			}
+			return {
+				ok: false,
+				error: refreshDto?.message ?? 'Failed to refresh catalog domain ratings.'
+			};
 		} catch (err) {
 			return { ok: false, error: this.extractErrorMessage(err) };
 		}

@@ -38,7 +38,7 @@ The editor is one window with three main areas and a footer bar.
 
 | Area | What you do there |
 | --- | --- |
-| **Top** | Pick which channels receive this post. You can select a <a href="/docs/channels/channel-groups">channel group</a> to turn on every channel in that brand at once. |
+| **Top** | Pick which channels receive this post. You can select a <a href="/docs/channels/channel-groups">business profile</a> to turn on every channel in that brand at once. |
 | **Left** | <a href="/docs/creating-posts/writing-the-post">Write the caption</a>, use the toolbar, add <a href="/docs/creating-posts/media">media</a>, open per-network **Settings** (<a href="/docs/creating-posts/global-vs-per-channel">Global vs per-channel</a>), and build <a href="/docs/creating-posts/threads-and-comments">thread replies or follow-up comments</a>. |
 | **Right** | <a href="/docs/creating-posts/writing-the-post#post-preview">Post Preview</a> — a live look at how each selected channel will render the post. |
 | **Footer** | <a href="/docs/getting-started/glossary#tag">Tags</a>, repeat schedule, date and time, and save buttons — see <a href="/docs/creating-posts/scheduling">Scheduling</a> for <Badge text="Save as draft" variant="default" />, <Badge text="Add to calendar" variant="new" />, and <Badge text="Publish now" variant="new" />. |
@@ -58,7 +58,7 @@ The preview column is worth a glance. Line breaks, image crops, and titles that 
 
 ### Choose channels
 
-Click the avatars at the top. Picking a <a href="/docs/channels/channel-groups">channel group</a> selects all of that group’s channels in one go.
+Click the avatars at the top. Picking a <a href="/docs/channels/channel-groups">business profile</a> selects all of that profile’s channels in one go.
 
 ### Write the post
 

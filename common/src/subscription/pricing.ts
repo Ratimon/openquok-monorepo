@@ -51,6 +51,9 @@ export const pricing: PricingMap = {
 		share_post_preview: false,
 		community_features: true,
 		public_api: false,
+		directory_launch_enabled: false,
+		directory_seo_enabled: false,
+		directory_seo_competitors_per_workspace: 0,
 	},
 	SOLO: {
 		current: 'SOLO',
@@ -64,6 +67,9 @@ export const pricing: PricingMap = {
 		share_post_preview: false,
 		community_features: true,
 		public_api: true,
+		directory_launch_enabled: true,
+		directory_seo_enabled: true,
+		directory_seo_competitors_per_workspace: 2,
 	},
 	/** Legacy tier — no longer sold; limits preserved for grandfathered subscriptions. */
 	// CREATOR: {
@@ -91,6 +97,9 @@ export const pricing: PricingMap = {
 		share_post_preview: true,
 		community_features: true,
 		public_api: true,
+		directory_launch_enabled: true,
+		directory_seo_enabled: true,
+		directory_seo_competitors_per_workspace: 3,
 	},
 	ULTIMATE: {
 		current: 'ULTIMATE',
@@ -104,6 +113,9 @@ export const pricing: PricingMap = {
 		share_post_preview: true,
 		community_features: true,
 		public_api: true,
+		directory_launch_enabled: true,
+		directory_seo_enabled: true,
+		directory_seo_competitors_per_workspace: 5,
 	},
 	MAX: {
 		current: 'MAX',
@@ -117,6 +129,9 @@ export const pricing: PricingMap = {
 		share_post_preview: true,
 		community_features: true,
 		public_api: true,
+		directory_launch_enabled: true,
+		directory_seo_enabled: true,
+		directory_seo_competitors_per_workspace: 10,
 	},
 };
 

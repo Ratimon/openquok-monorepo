@@ -660,7 +660,7 @@ export class LinkDirectoryRepository {
         const { data, error } = await this.supabase
             .from(TABLE_SAVED_SITES)
             .select(
-                `id, user_id, site_id, sort_order, created_at, outreach_completed_at, site:link_directory_sites(${SELECT_SITE_FOR_SAVED_SITE})`
+                `id, user_id, site_id, sort_order, created_at, site:link_directory_sites(${SELECT_SITE_FOR_SAVED_SITE})`
             )
             .eq("user_id", userId)
             .order("sort_order", { ascending: true });
@@ -753,34 +753,6 @@ export class LinkDirectoryRepository {
                     siteId,
                 });
             }
-        }
-    }
-
-    async setUserSavedSiteOutreachCompleted(
-        userId: string,
-        siteId: string,
-        outreachCompletedAt: string | null
-    ): Promise<void> {
-        const { data, error } = await this.supabase
-            .from(TABLE_SAVED_SITES)
-            .update({ outreach_completed_at: outreachCompletedAt })
-            .eq("user_id", userId)
-            .eq("site_id", siteId)
-            .select("id")
-            .maybeSingle();
-
-        if (error) {
-            throw new DatabaseError(`Error updating saved site outreach completion: ${error.message}`, {
-                cause: error as unknown as Error,
-                operation: "update",
-            });
-        }
-
-        if (!data) {
-            throw new DatabaseEntityNotFoundError("Saved site not found for outreach completion update", {
-                userId,
-                siteId,
-            });
         }
     }
 
@@ -1109,6 +1081,61 @@ export class LinkDirectoryRepository {
                     : null,
             };
         });
+    }
+
+    async listSitesForCatalogDrRefresh(filters: {
+        publishedOnly?: boolean;
+        siteId?: string;
+        slug?: string;
+    }): Promise<Array<{ id: string; slug: string; site_url: string }>> {
+        let query = this.supabase
+            .from(TABLE_SITES)
+            .select("id, slug, site_url")
+            .order("slug", { ascending: true });
+
+        if (filters.publishedOnly) {
+            query = query.eq("is_admin_published", true);
+        }
+        if (filters.siteId) {
+            query = query.eq("id", filters.siteId);
+        }
+        if (filters.slug) {
+            query = query.eq("slug", filters.slug);
+        }
+
+        const { data, error } = await query;
+
+        if (error) {
+            throw new DatabaseError(`Error listing sites for catalog DR refresh: ${error.message}`, {
+                cause: error as unknown as Error,
+                operation: "select",
+            });
+        }
+
+        return (data ?? []) as Array<{ id: string; slug: string; site_url: string }>;
+    }
+
+    async updateSiteCatalogDomainMetrics(params: {
+        siteId: string;
+        domainRating: number | null;
+        metricsUpdatedAt: string;
+        metricsSource: string;
+    }): Promise<void> {
+        const { error } = await this.supabase
+            .from(TABLE_SITES)
+            .update({
+                domain_rating: params.domainRating,
+                metrics_updated_at: params.metricsUpdatedAt,
+                metrics_source: params.metricsSource,
+            })
+            .eq("id", params.siteId);
+
+        if (error) {
+            throw new DatabaseError(`Error updating site catalog domain metrics: ${error.message}`, {
+                cause: error as unknown as Error,
+                operation: "update",
+            });
+        }
     }
 
     private async syncSiteTags(siteId: string, tagIds: string[]): Promise<void> {

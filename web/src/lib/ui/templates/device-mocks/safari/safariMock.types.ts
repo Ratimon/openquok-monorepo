@@ -1,4 +1,6 @@
 export type SafariMockContentId =
+	| 'directory-site-peerpush'
+	| 'directory-site-uneed'
 	| 'external-site-placeholder'
 	| 'openclaw-docs-overview'
 	| 'hermes-docs-overview'

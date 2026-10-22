@@ -36,7 +36,7 @@ Two product surfaces share the `/agents` hub but use **different** content trees
 | **Agent host** | OpenClaw, Hermes, Grok Bot, ThinkRail, Manus | `web/src/lib/content/constants/agents/hosts/{slug}.ts` | `web/src/content/docs/agent-setup-guides/` | openquok-core / CLI skill (not `MCP_CLIENTS`) |
 | **MCP client** | Cursor, ChatGPT, Warp, Grok Build | `web/src/lib/content/constants/mcps/{slug}.ts` | `web/src/content/docs/mcp-setup-guides/` | `getMcpClientConfig` + `MCP_CLIENTS` |
 
-Follow **source-project-neutrality** and **company-brand-icons**. Reference MCP client: **`chatgpt.ts`**, **`claude-cowork.ts`**, **`warp.ts`**. Reference agent host: **`hosts/openclaw.ts`**, **`hosts/hermes.ts`**, **`hosts/grok-bot.ts`**, **`hosts/thinkrail.ts`**, **`hosts/manus.ts`**. Reference agent × channel SEO: **`channels/grok-bot.ts`** + **`agents/channels/index.ts`**.
+Follow **source-project-neutrality** and **company-brand-icons**. Reference MCP client: **`chatgpt.ts`**, **`claude-cowork.ts`**, **`warp.ts`**. Reference agent host: **`hosts/openclaw.ts`**, **`hosts/hermes.ts`**, **`hosts/grok-bot.ts`**, **`hosts/thinkrail.ts`**, **`hosts/manus.ts`**. Reference agent × channel SEO: **`agents/channels/hosts/grok-bot.ts`** + **`agents/channels/index.ts`** (page config kinds: **`agents/channels/kinds/social.ts`**, **`agents/channels/kinds/directory.ts`**; router **`agents/channels/general.ts`**).
 
 **User-facing landing copy** on agent/MCP seeds and hubs: **ASD-STE100** per **web-seo-pseo** (short sentences, active voice, `you`).
 
@@ -177,7 +177,7 @@ Registering in **`agents/seeds.ts`** also auto-wires the sitewide footer **Auton
 
 Add host-specific **`skillInstallOptions`** in **`agents/cli-command-reference.ts`** when install differs from OpenClaw (Hermes CLI, Grok Bot workspace + Plugins, etc.).
 
-**Same PR — agent × channel catalog (required):** add **`web/src/lib/content/constants/agents/channels/{slug}.ts`** and wire it in **`agents/channels/index.ts`** (see **§5 Channel SEO**). Without this, `/agents/{slug}` omits the **“{Agent}: Every Supported Channels”** grid (`PublicChannelSiblingGrid` via `listPublicAgentChannelsForHub`).
+**Same PR — agent × channel catalog (required):** add **`web/src/lib/content/constants/agents/channels/hosts/{slug}.ts`** and wire it in **`agents/channels/index.ts`** (see **§5 Channel SEO**). Without this, `/agents/{slug}` omits the **“{Agent}: Every Supported Channels”** grid (`PublicChannelSiblingGrid` via `listPublicAgentChannelsForHub`).
 
 ### 3. Messaging / workflow mocks (agent hosts)
 
@@ -204,16 +204,16 @@ Ship **`/agents/{slug}/{channelSlug}`** pages and the hub **“Every Supported C
 
 | Step | File / symbol |
 | --- | --- |
-| 1. Host config + configs | **`web/src/lib/content/constants/agents/channels/{slug}.ts`** — export `{slug}AgentChannelHost` + `{slug}AgentChannelConfigs` via **`buildAgentChannelConfigsForHost(host, listPublicChannelsForHub())`** (copy **`channels/grok-bot.ts`**). |
+| 1. Host config + configs | **`web/src/lib/content/constants/agents/channels/hosts/{slug}.ts`** — export `{slug}AgentChannelHost` + `{slug}AgentChannelConfigs` via **`buildAgentChannelConfigsForHost(host, listPublicChannelsForHub())`** (copy **`hosts/grok-bot.ts`**). Social vs directory page config is built in **`kinds/social.ts`** / **`kinds/directory.ts`** (`channelKind === 'directory'` → directory; CLI snippets in **`buildAgentChannelCliCommandReference.ts`**). |
 | 2. Register slug | Append **`'{slug}'`** to **`PUBLIC_AGENT_CHANNEL_HOST_SLUGS`** in **`agents/channels/index.ts`**. |
 | 3. Wire maps | Import configs; add **`'{slug}': {slug}AgentChannelConfigs`** to **`channelConfigsByHostSlug`**; append host to **`AGENT_CHANNEL_HOSTS`**. |
 | 4. Re-export (optional) | **`export { … } from './{slug}'`** from **`agents/channels/index.ts`** if other modules need the host config. |
 
 **Smoke:** `/agents/{slug}` shows **`PublicChannelSiblingGrid`** (title like **`{AgentLabel}: Every Supported Channels`**); `/agents/{slug}/facebook` (or any catalog channel) resolves via **`getPublicAgentChannelBySlug`**.
 
-**MCP × channel:** no **`agents/channels/{slug}.ts`** — composed per **web-seo-pseo** / **`mcps/channels/index.ts`**. Bento/CLI depth: **add-social-provider-integration** § Programmatic Agent channel SEO.
+**MCP × channel:** no **`agents/channels/hosts/{slug}.ts`** — composed per **web-seo-pseo** / **`mcps/channels/index.ts`**. Bento/CLI depth: **add-social-provider-integration** § Programmatic Agent channel SEO.
 
-**Do not** ship a new **`agents/hosts/{slug}.ts`** without **`agents/channels/{slug}.ts`** + **`PUBLIC_AGENT_CHANNEL_HOST_SLUGS`** unless product explicitly defers all channel pages (rare — document why in the PR).
+**Do not** ship a new **`agents/hosts/{slug}.ts`** without **`agents/channels/hosts/{slug}.ts`** + **`PUBLIC_AGENT_CHANNEL_HOST_SLUGS`** unless product explicitly defers all channel pages (rare — document why in the PR).
 
 ### 6. Root README (required)
 
@@ -233,7 +233,7 @@ Update `agent/skills/openquok-core/` (`SKILL.md` metadata JSON for the host when
 
 - **Not** an MCP client — no `mcps/grok-bot.ts`, no `MCP_CLIENTS`, no `mcp-setup-guides/grok-bot.md`.
 - Cloud computer + desktop/iOS chat; skill via **`/workspace/openquok-core/SKILL.md`** and **Settings → Plugins** (or `/` in chat).
-- Reference implementation: **`hosts/grok-bot.ts`**, **`grok-bot-messaging-channels.ts`**, **`GROK_BOT_SKILL_INSTALL_OPTIONS`**, **`channels/grok-bot.ts`**.
+- Reference implementation: **`hosts/grok-bot.ts`**, **`grok-bot-messaging-channels.ts`**, **`GROK_BOT_SKILL_INSTALL_OPTIONS`**, **`agents/channels/hosts/grok-bot.ts`**.
 
 ### Grok Build specifics (`grok-build`)
 
@@ -298,7 +298,7 @@ Update `agent/skills/openquok-core/` (`SKILL.md` metadata JSON for the host when
 - [ ] `skillInstallOptions` + messaging channels (no OpenClaw fallback on landing)
 - [ ] Safari/terminal mock ids + onboarding + account shortcuts
 - [ ] `agent-setup-guides/{slug}.md` + index card + cross-mentions in hub/CLI/FAQ copy
-- [ ] **`agents/channels/{slug}.ts`** + **`PUBLIC_AGENT_CHANNEL_HOST_SLUGS`** / **`channelConfigsByHostSlug`** / **`AGENT_CHANNEL_HOSTS`** in **`agents/channels/index.ts`**
+- [ ] **`agents/channels/hosts/{slug}.ts`** + **`PUBLIC_AGENT_CHANNEL_HOST_SLUGS`** / **`channelConfigsByHostSlug`** / **`AGENT_CHANNEL_HOSTS`** in **`agents/channels/index.ts`**
 - [ ] Smoke **`/agents/{slug}`** — **Every Supported Channels** grid + at least one **`/agents/{slug}/{channelSlug}`** link
 - [ ] **`README.md`** — `assets/readme/agents-mcp/{slug}.svg` + icon row link + **Agent hosts** prose name
 - [ ] **CMS:** listing tag + launch blog via secret-admin (see **C**); no `backend/supabase/db` edits
@@ -346,5 +346,5 @@ Deliver paste-ready HTML/FAQ/How-to in the PR description or operator handoff �
 - Create or edit **`backend/supabase/db/**`** listing-tag or blog seeds for agent launches — use secret-admin (**C**).
 - Classify a desktop/cloud teammate or skill-based IDE host as an MCP client when it uses CLI + skills (Grok Bot, ThinkRail, Manus → agent host).
 - Hand-edit MCP or agent-host rows in **`buildPublicFooterLinks.ts`** or **`PUBLIC_FOOTER_LINKS`** for catalog slugs — append to **`mcps/seeds.ts`** or **`agents/seeds.ts`** instead.
-- Ship an agent host landing (**`agents/hosts/{slug}.ts`**) without **`agents/channels/{slug}.ts`** and **`PUBLIC_AGENT_CHANNEL_HOST_SLUGS`** — the hub page will miss **Every Supported Channels** and channel detail routes will 404.
+- Ship an agent host landing (**`agents/hosts/{slug}.ts`**) without **`agents/channels/hosts/{slug}.ts`** and **`PUBLIC_AGENT_CHANNEL_HOST_SLUGS`** — the hub page will miss **Every Supported Channels** and channel detail routes will 404.
 - Ship a new agent host or MCP client without updating **`README.md`** **Supported Agents & MCP** (icon SVG under `assets/readme/agents-mcp/`, icon row `<a>`, and the matching **Agent hosts** / **MCP clients** prose list).

@@ -13,7 +13,7 @@ describe('openquokCoreMcpListingCms', () => {
 	});
 
 	it('ships the full hosted MCP tool catalog for the hub card', () => {
-		expect(OPENQUOK_CORE_MCP_LISTING_TOOLS).toHaveLength(21);
+		expect(OPENQUOK_CORE_MCP_LISTING_TOOLS).toHaveLength(35);
 		expect(OPENQUOK_CORE_MCP_LISTING_TOOLS.map((tool) => tool.name)).toEqual([
 			'groupList',
 			'integrationList',
@@ -35,7 +35,21 @@ describe('openquokCoreMcpListingCms', () => {
 			'plugsList',
 			'plugsUpsert',
 			'plugsActivate',
-			'plugsDelete'
+			'plugsDelete',
+			'directoryDestinationsList',
+			'directoryProfilesList',
+			'directoryProfilesGet',
+			'directoryProfilesCreate',
+			'directoryProfilesUpdate',
+			'directoryVariantsEnsure',
+			'directoryListingSummary',
+			'directorySubmissionsList',
+			'directorySeoOverview',
+			'directorySeoHistory',
+			'directorySeoRefresh',
+			'directorySeoCompetitorsAdd',
+			'directorySeoCompetitorsRemove',
+			'directorySeoCompetitorsUpdate'
 		]);
 	});
 
@@ -43,5 +57,6 @@ describe('openquokCoreMcpListingCms', () => {
 		expect(OPENQUOK_CORE_MCP_LISTING_DESCRIPTION.length).toBeGreaterThan(40);
 		expect(OPENQUOK_CORE_MCP_LISTING_CONTENT).toContain('## Overview');
 		expect(OPENQUOK_CORE_MCP_LISTING_CONTENT).toContain('Typical chat flows');
+		expect(OPENQUOK_CORE_MCP_LISTING_CONTENT).toContain('Directory launch');
 	});
 });

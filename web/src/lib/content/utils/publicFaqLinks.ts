@@ -111,7 +111,9 @@ export const publicFaqHref = {
 	docsSavedBacklinks: faqHrefDocs('saved/backlinks'),
 	docsThreadsComments: faqHrefDocs('creating-posts/threads-and-comments'),
 	docsAiGeneration: faqHrefDocs('creating-posts/ai-generation'),
-	docsChannelGroups: faqHrefDocs('channels/channel-groups'),
+	docsBusinessProfiles: faqHrefDocs('channels/business-profiles'),
+	/** @deprecated Use docsBusinessProfiles */
+	docsChannelGroups: faqHrefDocs('channels/business-profiles'),
 	docsManageChannels: faqHrefDocs('channels/manage'),
 	docsConnectRules: faqHrefDocs('platforms/connect-rules'),
 	docsHelp: faqHrefDocs('help'),
@@ -120,6 +122,7 @@ export const publicFaqHref = {
 	tools: route(getRootPathPublicTools()),
 	compare: route(getRootPathPublicCompare()),
 	compareOpenquokBuffer: faqHrefComparePair('openquok', 'buffer'),
+	compareOpenquokHootsuite: faqHrefComparePair('openquok', 'hootsuite'),
 	compareOpenquokLater: faqHrefComparePair('openquok', 'later'),
 	alternatives: route(getRootPathPublicAlternatives()),
 	alternativesLater: route(getRootPathPublicAlternativesTarget('later')),
@@ -166,6 +169,9 @@ export const publicFaqHref = {
 	cliYoutube: faqHrefDocs('cli-examples/youtube'),
 	cliDevto: faqHrefDocs('cli-examples/devto'),
 	cliSkool: faqHrefDocs('cli-examples/skool'),
+	cliPeerpush: faqHrefDocs('cli-examples/peerpush'),
+	cliUneed: faqHrefDocs('cli-examples/uneed'),
+	cliDirectoryLaunch: faqHrefDocs('cli-usages/directory-launch'),
 	humanizerTool: route(getRootPathPublicHumanizer()),
 	skillBuilderTool: route(getRootPathPublicSkillBuilder()),
 	photoEditorTool: route(getRootPathPublicPhotoEditor()),
@@ -208,6 +214,23 @@ export const publicFaqHref = {
 /** FAQ title for programmatic scheduling (MCP, API, CLI) on channel landing pages. */
 export function buildChannelProgrammaticSchedulingFaqTitle(schedulingTarget: string): string {
 	return `Can I schedule ${schedulingTarget} from MCP, the API, or CLI?`;
+}
+
+/** FAQ title for programmatic directory launch (MCP, API, CLI) on directory channel landings. */
+export function buildChannelProgrammaticDirectoryLaunchFaqTitle(launchTarget: string): string {
+	return `Can I manage ${launchTarget} from MCP, the API, or CLI?`;
+}
+
+/** FAQ answer with MCP, directory launch CLI/API, and per-platform directory CLI example links. */
+export function buildChannelProgrammaticDirectoryLaunchFaqDescription(params: {
+	preparePhrase: string;
+	cliExamplesHref: string;
+	cliExamplesLabel: string;
+	suffix?: string;
+}): string {
+	const { preparePhrase, cliExamplesHref, cliExamplesLabel, suffix } = params;
+	const base = `${preparePhrase}, then follow ${faqLink(publicFaqHref.mcpSetupGuides, 'MCP setup guides')} (directory tools list destinations and profiles), ${faqLink(publicFaqHref.cliDirectoryLaunch, 'directory launch CLI')}, the ${faqLink(publicFaqHref.publicApi, 'directory launch API')}, or ${faqLink(cliExamplesHref, cliExamplesLabel)}.`;
+	return suffix ? `Yes. ${base} ${suffix}` : `Yes. ${base}`;
 }
 
 /** FAQ answer with MCP, CLI setup, public API, and per-platform CLI example links. */

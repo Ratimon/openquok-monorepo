@@ -9,8 +9,10 @@ import {
 	getPublicApiPlatformFaqItems,
 	getPublicChannelsHubFaqItems,
 	getPublicPricingFaqItems,
+	getPublicSocialAutopilotFaqItems,
 	PUBLIC_AGENT_HOST_FAQ_ITEM_IDS,
 	PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS,
+	PUBLIC_SOCIAL_AUTOPILOT_FAQ_ITEM_IDS,
 	PUBLIC_API_PLATFORM_FAQ_ITEM_IDS,
 	PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS,
 	PUBLIC_FAQ_ITEMS,
@@ -88,6 +90,14 @@ describe('public landing hub FAQ getters', () => {
 		const items = getPublicAgentsHubFaqItems();
 		expect(items).toHaveLength(3);
 		expect(items.map((item) => item.id)).toEqual([...PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS]);
+	});
+
+	it('resolves social autopilot catalog ids from PUBLIC_FAQ_ITEMS', () => {
+		const items = getPublicSocialAutopilotFaqItems();
+		expect(items.map((item) => item.id)).toEqual([...PUBLIC_SOCIAL_AUTOPILOT_FAQ_ITEM_IDS]);
+		const switchItem = items.find((item) => item.id === 'switch-from-buffer-hootsuite');
+		expect(switchItem?.description).toContain(`href="${publicFaqHref.compareOpenquokBuffer}"`);
+		expect(switchItem?.description).toContain(`href="${publicFaqHref.compareOpenquokHootsuite}"`);
 	});
 
 	it('resolves agent host landing items without the generic MCP primer', () => {

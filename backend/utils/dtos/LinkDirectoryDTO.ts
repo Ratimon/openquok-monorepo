@@ -62,6 +62,8 @@ export type LinkDirectoryOpportunityDto = {
     sortOrder: number;
     isAdminPublished: boolean;
     publishedAt: string | null;
+    autoLaunchEnabled: boolean;
+    autoLaunchProviderSlug: string | null;
 };
 
 export type LinkDirectorySiteDto = {
@@ -133,7 +135,6 @@ export type LinkDirectorySavedSiteDto = {
     siteId: string;
     sortOrder: number;
     createdAt: string;
-    outreachCompletedAt: string | null;
     site: LinkDirectorySiteDto | null;
 };
 
@@ -188,6 +189,8 @@ function mapOpportunity(row: LinkDirectoryOpportunityRow): LinkDirectoryOpportun
         sortOrder: row.sort_order,
         isAdminPublished: row.is_admin_published,
         publishedAt: row.published_at,
+        autoLaunchEnabled: row.auto_launch_enabled ?? false,
+        autoLaunchProviderSlug: row.auto_launch_provider_slug ?? null,
     };
 }
 
@@ -336,7 +339,6 @@ export function toLinkDirectorySavedSiteDto(row: LinkDirectorySavedSiteRow): Lin
         siteId: row.site_id,
         sortOrder: row.sort_order,
         createdAt: row.created_at,
-        outreachCompletedAt: row.outreach_completed_at ?? null,
         site: row.site ? toLinkDirectorySiteDto(row.site) : null,
     };
 }

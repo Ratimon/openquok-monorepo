@@ -22,6 +22,8 @@
 	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
 	import TerminalCommandMockContent from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMockContent.svelte';
 	import LandingHeroHighlightedText from '$lib/ui/texts/LandingHeroHighlightedText.svelte';
+	import DirectoryProcessMarketingPanel from '$lib/ui/templates/landing-page/directory-process/DirectoryProcessMarketingPanel.svelte';
+	import type { PublicDirectoryChannelSlug } from '$lib/content/constants/channels/catalog/directory-platforms/directoryChannelProcessSection';
 	import type { TelegramMockAgentBranding } from '$lib/ui/templates/device-mocks/iphone-15-pro/telegramMockBranding';
 
 	export type { FeaturesOrderedDeviceMock, FeaturesOrderedStep } from '$lib/content/constants/agents';
@@ -51,6 +53,8 @@
 		/** Matches JSON-LD `@id` fragment (`#setup-steps` by default). */
 		sectionId?: string;
 		telegramAgentBranding?: TelegramMockAgentBranding;
+		/** When set, directory PSEO launch-option panels resolve per slug. */
+		directoryChannelSlug?: PublicDirectoryChannelSlug;
 	};
 
 	let {
@@ -67,7 +71,8 @@
 		footerLinkLabel = '',
 		footerLinkHref = '',
 		sectionId = 'setup-steps',
-		telegramAgentBranding
+		telegramAgentBranding,
+		directoryChannelSlug
 	}: Props = $props();
 
 	let currentIndex = $state(-1);
@@ -102,14 +107,18 @@
 	const isTerminalMock = $derived(activeStep?.deviceMock === 'terminal');
 	const isSettingsPanelMock = $derived(activeStep?.deviceMock === 'settings-panel');
 
+	const hasMarketingPanel = $derived(Boolean(activeStep?.marketingPanel));
+
 	const mediaPanelClass = $derived(
-		isIphoneMock
-			? 'h-[400px] min-h-[320px] w-auto lg:h-[480px]'
-			: isTerminalMock || isSettingsPanelMock
-				? 'h-auto w-full'
-				: isDesktopMock
-					? 'h-[350px] min-h-[240px] w-full'
-					: 'h-[350px] min-h-[200px] w-auto'
+		hasMarketingPanel
+			? 'h-auto min-h-[340px] w-full lg:min-h-[400px]'
+			: isIphoneMock
+				? 'h-[400px] min-h-[320px] w-auto lg:h-[480px]'
+				: isTerminalMock || isSettingsPanelMock
+					? 'h-auto w-full'
+					: isDesktopMock
+						? 'h-[350px] min-h-[240px] w-full'
+						: 'h-[350px] min-h-[200px] w-auto'
 	);
 
 	function scrollToIndex(index: number) {
@@ -368,6 +377,12 @@
 									videoClass="rounded-lg object-left-top"
 								/>
 							</div>
+						{:else if activeStep?.marketingPanel}
+							<DirectoryProcessMarketingPanel
+								panel={activeStep.marketingPanel}
+								ariaLabel={activeStep.mediaAlt ?? activeStep.title}
+								{directoryChannelSlug}
+							/>
 						{:else}
 							<div
 								class="aspect-auto size-full rounded-xl border border-base-content/10 bg-base-300/40"

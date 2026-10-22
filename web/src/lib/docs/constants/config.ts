@@ -49,6 +49,11 @@ export const docsSidebarGeneral: DocsSidebarSection[] = [
 		autogenerate: { directory: 'channels' }
 	},
 	{
+		label: 'Directory submission',
+		icon: icons.Rocket.name,
+		autogenerate: { directory: 'directory-submission' }
+	},
+	{
 		label: 'Creating posts',
 		icon: icons.NotebookPen.name,
 		autogenerate: { directory: 'creating-posts' }
@@ -84,7 +89,7 @@ export const docsSidebarGeneral: DocsSidebarSection[] = [
 		autogenerate: { directory: 'settings' }
 	},
 	{
-		label: 'Social Platform rules',
+		label: 'Channel Platform rules',
 		icon: icons.Globe.name,
 		autogenerate: { directory: 'platforms' }
 	},
@@ -200,6 +205,16 @@ export const docsSidebarPublicApi: DocsSidebarSection[] = [
 		autogenerate: { directory: 'apis-uploads' }
 	},
 	{
+		label: 'Directory launch APIs',
+		icon: icons.Globe.name,
+		autogenerate: { directory: 'apis-directory-launch' }
+	},
+	{
+		label: 'Directory SEO APIs',
+		icon: icons.ChartBar.name,
+		autogenerate: { directory: 'apis-directory-seo' }
+	},
+	{
 		label: 'Provider settings',
 		icon: icons.Share2.name,
 		autogenerate: { directory: 'public-api-providers' }
@@ -256,6 +271,11 @@ export const docsSidebarSelfHosting: DocsSidebarSection[] = [
 		label: 'Social integrations',
 		icon: icons.Share2.name,
 		autogenerate: { directory: 'social-integration' }
+	},
+	{
+		label: 'Directory integration',
+		icon: icons.Share2.name,
+		autogenerate: { directory: 'directory-integration' }
 	}
 ];
 

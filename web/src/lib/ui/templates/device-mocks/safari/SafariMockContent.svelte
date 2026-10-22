@@ -12,6 +12,8 @@
 	import HermesDocsOverviewMock from '$lib/ui/templates/device-mocks/safari/content/HermesDocsOverviewMock.svelte';
 	import McpClientInstallMock from '$lib/ui/templates/device-mocks/safari/content/McpClientInstallMock.svelte';
 	import McpClientVerifyMock from '$lib/ui/templates/device-mocks/safari/content/McpClientVerifyMock.svelte';
+	import DirectoryPeerPushSiteSafariMock from '$lib/ui/templates/device-mocks/safari/content/DirectoryPeerPushSiteSafariMock.svelte';
+	import DirectoryUneedSiteSafariMock from '$lib/ui/templates/device-mocks/safari/content/DirectoryUneedSiteSafariMock.svelte';
 	import ExternalSitePlaceholderSafariMock from '$lib/ui/templates/device-mocks/safari/content/ExternalSitePlaceholderSafariMock.svelte';
 	import OpenclawDocsOverviewMock from '$lib/ui/templates/device-mocks/safari/content/OpenclawDocsOverviewMock.svelte';
 
@@ -34,7 +36,11 @@
 	}
 </script>
 
-{#if content === 'external-site-placeholder'}
+{#if content === 'directory-site-peerpush'}
+	<DirectoryPeerPushSiteSafariMock />
+{:else if content === 'directory-site-uneed'}
+	<DirectoryUneedSiteSafariMock />
+{:else if content === 'external-site-placeholder'}
 	<ExternalSitePlaceholderSafariMock />
 {:else if content === 'openclaw-docs-overview'}
 	<OpenclawDocsOverviewMock />

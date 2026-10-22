@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import supertest from "supertest";
 import { v4 as uuidv4 } from "uuid";
 import type { PaidSubscriptionTier } from "openquok-common";
@@ -212,4 +213,27 @@ export async function getFirstOrganizationId(accessToken: string): Promise<strin
     const first = res.body.data[0];
     expect(first.id).toBeDefined();
     return first.id as string;
+}
+
+/** Seed `directory_seo_competitors` rows for plan-cap integration tests. */
+export async function seedDirectorySeoCompetitors(
+    adminSupabase: SupabaseClient,
+    organizationId: string,
+    count: number
+): Promise<void> {
+    const rows = Array.from({ length: count }, (_, index) => ({
+        organization_id: organizationId,
+        domain: `plan-test-competitor-${index}-${uuidv4()}.example`,
+        label: `Competitor ${index + 1}`,
+        sort_order: index,
+    }));
+    const { error } = await adminSupabase.from("directory_seo_competitors").insert(rows);
+    expect(error).toBeNull();
+}
+
+export async function deleteDirectorySeoCompetitorsForOrg(
+    adminSupabase: SupabaseClient,
+    organizationId: string
+): Promise<void> {
+    await adminSupabase.from("directory_seo_competitors").delete().eq("organization_id", organizationId);
 }

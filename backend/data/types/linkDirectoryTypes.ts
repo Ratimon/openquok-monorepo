@@ -77,6 +77,8 @@ export interface LinkDirectoryOpportunityRow {
     sort_order: number;
     is_admin_published: boolean;
     published_at: string | null;
+    auto_launch_enabled: boolean;
+    auto_launch_provider_slug: string | null;
     created_at?: string;
     updated_at?: string;
     opportunity_type?: LinkDirectoryOpportunityTypeRow | null;
@@ -114,6 +116,38 @@ export interface LinkDirectorySiteRow {
     link_directory_site_tags_association?: Array<{
         link_directory_tags: { id: string; slug: string; name: string } | null;
     }>;
+}
+
+export type LinkDirectoryCatalogDrRefreshOptions = {
+    force?: boolean;
+    publishedOnly?: boolean;
+    siteId?: string;
+    slug?: string;
+    dryRun?: boolean;
+};
+
+export type LinkDirectoryCatalogDrRefreshSiteResult = {
+    siteId: string;
+    slug: string;
+    domain: string | null;
+    domainRating: number | null;
+    skipped: boolean;
+    error?: string;
+};
+
+export type LinkDirectoryCatalogDrRefreshResult = {
+    attempted: number;
+    updated: number;
+    skipped: number;
+    failed: number;
+    providerConfigured: boolean;
+    sites: LinkDirectoryCatalogDrRefreshSiteResult[];
+};
+
+export interface LinkDirectorySiteCatalogDrTargetRow {
+    id: string;
+    slug: string;
+    site_url: string;
 }
 
 export interface PublishedLinkDirectorySitesFilterOptions {
@@ -191,6 +225,5 @@ export interface LinkDirectorySavedSiteRow {
     site_id: string;
     sort_order: number;
     created_at: string;
-    outreach_completed_at: string | null;
     site?: LinkDirectorySiteRow | null;
 }

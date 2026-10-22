@@ -28,7 +28,7 @@ Railway treats these as <DocsExternalLink href="https://docs.railway.com/service
 |-------|-------------------|
 | **Build** (repo root) | <Badge text="pnpm install && pnpm railway:orchestrator:build" variant="default" /> |
 | **Start** — integration refresh | <Badge text="pnpm railway:orchestrator:start:integration-refresh" variant="default" /> |
-| **Start** — notification email | <Badge text="pnpm railway:orchestrator:start:notification-email" variant="default" /> |
+| **Start** — housekeeping | <Badge text="pnpm railway:orchestrator:start:housekeeping" variant="default" /> |
 | **Start** — scheduled social post | <Badge text="pnpm railway:orchestrator:start:scheduled-social-post" variant="default" /> |
 
 The repo includes <Badge text="railway.toml" variant="path" /> at the monorepo root with <code>buildCommand</code>, a restart policy, region <code>us-west2</code> (US West / Oregon), and replica limits for the lighter workers (<code>numReplicas = 1</code>, <code>1</code> vCPU, <code>1</code> GiB). <Badge text="scheduled-social-post" variant="default" /> uses <Badge text="railway.scheduled-social-post.toml" variant="path" /> (<code>1</code> vCPU, <code>2</code> GiB) — set that service’s Railway Config File to <code>/railway.scheduled-social-post.toml</code>. **Start command is not** fixed in those files so **each** worker can differ (<DocsExternalLink href="https://docs.railway.com/reference/config-as-code">config as code</DocsExternalLink>).
@@ -42,7 +42,7 @@ The repo includes <Badge text="railway.toml" variant="path" /> at the monorepo r
 
 ### Create project resources
 
-Add **Redis** (and reference its connection into worker variables as <Badge text="REDIS_*" variant="envBackend" />). Add **one Railway service per worker** you need (integration refresh, notification email, and/or scheduled social posts), or split later—each needs its own **Start Command**; set <Badge text="RAILPACK_CONFIG_FILE" variant="envRuntime" /> to the <code>railpack</code> file for that worker at the repo root (see the callout below).
+Add **Redis** (and reference its connection into worker variables as <Badge text="REDIS_*" variant="envBackend" />). Add **one Railway service per worker** you need (integration refresh, housekeeping, and/or scheduled social posts), or split later—each needs its own **Start Command**; set <Badge text="RAILPACK_CONFIG_FILE" variant="envRuntime" /> to the <code>railpack</code> file for that worker at the repo root (see the callout below).
 
 Name the services after the worker they run (recommended), but the exact service names are up to you. The CLI bootstrap uses the **linked** service (see “Railway CLI” below).
 
@@ -55,7 +55,7 @@ Use the same repository as the monorepo. Configure <DocsExternalLink href="https
 Set <Badge text="NODE_ENV=production" variant="envRuntime" />, Redis, Supabase, and any provider/email keys from <a href="/docs/configuration-worker">Configuration - Worker</a>.
 
 <Callout type="tip" title="Railpack config">
-Set <Badge text="RAILPACK_CONFIG_FILE" variant="envRuntime" /> (per service) to one of: <Badge text="railpack.integration-refresh.json" variant="param" />, <Badge text="railpack.notification-email.json" variant="param" />, or <Badge text="railpack.scheduled-social-post.json" variant="param" /> (dashboard or <Badge text="railway variables set" variant="default" /> after <Badge text="railway service" variant="default" />).
+Set <Badge text="RAILPACK_CONFIG_FILE" variant="envRuntime" /> (per service) to one of: <Badge text="railpack.integration-refresh.json" variant="param" />, <Badge text="railpack.housekeeping.json" variant="param" />, or <Badge text="railpack.scheduled-social-post.json" variant="param" /> (dashboard or <Badge text="railway variables set" variant="default" /> after <Badge text="railway service" variant="default" />). <Badge text="railpack.notification-email.json" variant="param" /> remains a one-release alias.
 </Callout>
 
 ### Set Start Command
@@ -68,10 +68,10 @@ In the service **Settings → Deploy → Start Command**, set exactly one of the
 pnpm railway:orchestrator:start:integration-refresh
 ```
 
-**Notification email worker** —
+**Housekeeping worker** (notification email digest + Directory SEO weekly refresh) —
 
 ```bash
-pnpm railway:orchestrator:start:notification-email
+pnpm railway:orchestrator:start:housekeeping
 ```
 
 **Scheduled social post worker** (calendar publishes at <code>publish_date</code>) —
@@ -97,10 +97,10 @@ npm i -g @railway/cli
 **You can also deploy each worker with the Railway CLI** instead of (or in addition to) GitHub-triggered deploys from the dashboard. To avoid deploying the wrong worker, prefer the repo scripts that set the correct Railpack config for you:
 
 - <Badge text="pnpm railway:setup:integration-refresh" variant="default" /> (one-time: create service + set variables via CLI)
-- <Badge text="pnpm railway:setup:notification-email" variant="default" /> (one-time: create service + set variables via CLI)
+- <Badge text="pnpm railway:setup:housekeeping" variant="default" /> (one-time: create service + set variables via CLI)
 - <Badge text="pnpm railway:setup:scheduled-social-post" variant="default" /> (one-time: create service + set variables via CLI)
 - <Badge text="pnpm railway:deploy:integration-refresh" variant="default" />
-- <Badge text="pnpm railway:deploy:notification-email" variant="default" />
+- <Badge text="pnpm railway:deploy:housekeeping" variant="default" />
 - <Badge text="pnpm railway:deploy:scheduled-social-post" variant="default" />
 
 ### Deploy a worker from your machine
@@ -139,7 +139,7 @@ If this is the first time setting up a worker service, create the services and s
 
 ```bash
 pnpm railway:setup:integration-refresh
-pnpm railway:setup:notification-email
+pnpm railway:setup:housekeeping
 pnpm railway:setup:scheduled-social-post
 ```
 
@@ -155,10 +155,10 @@ For each deploy, the **linked** service must have <Badge text="RAILPACK_CONFIG_F
 pnpm railway:deploy:integration-refresh
 ```
 
-**Notification email** —
+**Housekeeping** —
 
 ```bash
-pnpm railway:deploy:notification-email
+pnpm railway:deploy:housekeeping
 ```
 
 **Scheduled social post** —

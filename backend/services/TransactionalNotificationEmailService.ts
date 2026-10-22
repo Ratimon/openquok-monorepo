@@ -61,7 +61,7 @@ export class TransactionalNotificationEmailService {
     /**
      * Append one digest line item to Redis (`orchestrator/stores/notificationDigestRedisStore`).
      * Flush scheduling is **not** here: `runNotificationDigestFlushOrchestration` runs on a timer in
-     * `orchestrator/worker/runNotificationEmailBullMqWorker.ts`, which enqueues the digest-flush Flowcraft run.
+     * `orchestrator/worker/runHousekeepingBullMqWorker.ts`, which enqueues the digest-flush Flowcraft run.
      */
     async appendDigestEntry(organizationId: string, entry: DigestQueueEntry): Promise<void> {
         const { appendNotificationDigestEntry } = await import("openquok-orchestrator");

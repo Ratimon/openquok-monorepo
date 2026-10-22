@@ -363,6 +363,14 @@ export class HttpGateway {
 		return this.request<T>({ method: HttpMethod.PUT, url, data, ...options });
 	}
 
+	public async patch<T = unknown>(
+		url: string,
+		data?: unknown,
+		options?: Partial<ApiRequestOptions>
+	): Promise<ApiResponse<T>> {
+		return this.request<T>({ method: HttpMethod.PATCH, url, data, ...options });
+	}
+
 	public async delete<T = unknown>(
 		url: string,
 		options?: Partial<ApiRequestOptions>

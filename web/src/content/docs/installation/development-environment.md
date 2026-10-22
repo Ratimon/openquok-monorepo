@@ -229,7 +229,7 @@ docker compose -f infra/docker-compose.yml up -d redis
 ```bash
 # From repo root
 pnpm orchestrator:dev:worker:integration-refresh-bullmq
-pnpm orchestrator:dev:worker:notification-email-bullmq
+pnpm orchestrator:dev:worker:housekeeping-bullmq
 pnpm orchestrator:dev:worker:scheduled-social-post-bullmq
 ```
 

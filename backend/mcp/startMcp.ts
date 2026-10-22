@@ -4,6 +4,8 @@ import { config } from "../config/GlobalConfig";
 import { organizationRepository } from "../repositories/index";
 import {
     analyticsService,
+    autoLaunchService,
+    directorySeoWorkspaceService,
     integrationConnectionService,
     integrationManager,
     oauthAppService,
@@ -30,6 +32,9 @@ const mcpServerDeps = {
     integrationManager,
     postsService,
     analyticsService,
+    autoLaunchService,
+    directorySeoWorkspaceService,
+    subscriptionGuard,
     mediaUploadDeps: {
         mediaService,
         subscriptionService,

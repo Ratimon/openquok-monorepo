@@ -2,6 +2,8 @@ import type { PaidSubscriptionTier } from 'openquok-common';
 
 export type PublicPricingLandingPresetId =
 	| 'home'
+	| 'social-scheduler'
+	| 'directory-submission'
 	| 'api-posting-hub'
 	| 'api-scheduling-hub'
 	| 'api-posting-platform'
@@ -34,6 +36,58 @@ const HOME_SECTION: PublicPricingLandingSection = {
 	title: 'Find your perfect plan',
 	description:
 		'Transparent pricing for our social media scheduling tool. No hidden fees — cancel anytime. Start with a 7-day free trial.'
+};
+
+const SOCIAL_SCHEDULER_SECTION: PublicPricingLandingSection = {
+	subtitle: 'Pricing',
+	title: 'Plans that scale,your social scheduler',
+	description:
+		'Every paid tier includes multi-channel scheduling, calendar views, and post analytics in one workspace. Start with a 7-day free trial — no credit card required.'
+};
+
+const DIRECTORY_SUBMISSION_SECTION: PublicPricingLandingSection = {
+	subtitle: 'Pricing',
+	title: 'Directory launch,on every paid plan',
+	description:
+		'Business profiles, Chrome extension autofill, submission tracking, and directory analytics ship on the same workspace tiers as social scheduling. Start with a 7-day free trial.'
+};
+
+const SOCIAL_SCHEDULER_PLAN_OVERRIDES: PublicPricingLandingPlanOverrides = {
+	SOLO: {
+		tabHeadline:
+			'One workspace to draft, schedule, and preview posts across your first channels.'
+	},
+	TEAM: {
+		tabHeadline:
+			'Invite teammates per workspace while queues and calendars stay in sync.'
+	},
+	ULTIMATE: {
+		tabHeadline:
+			'Run several brands — isolated workspaces, shared billing, one scheduler.'
+	},
+	MAX: {
+		tabHeadline:
+			'High-volume publishing across many workspaces when every channel runs on a schedule.'
+	}
+};
+
+const DIRECTORY_SUBMISSION_PLAN_OVERRIDES: PublicPricingLandingPlanOverrides = {
+	SOLO: {
+		tabHeadline:
+			'Launch from My Products — autofill directory forms and track each listing you submit.'
+	},
+	TEAM: {
+		tabHeadline:
+			'Collaborate on profiles and launches while each workspace keeps its own catalog.'
+	},
+	ULTIMATE: {
+		tabHeadline:
+			'Multiple products and brands — directory variants and DR tracking per workspace.'
+	},
+	MAX: {
+		tabHeadline:
+			'Large launch programs with more competitor domains and workspaces to segment launches.'
+	}
 };
 
 const API_POSTING_HUB_SECTION: PublicPricingLandingSection = {
@@ -143,6 +197,14 @@ const PRESET_DEFINITIONS: Record<PublicPricingLandingPresetId, PublicPricingLand
 	{
 		home: {
 			section: HOME_SECTION
+		},
+		'social-scheduler': {
+			section: SOCIAL_SCHEDULER_SECTION,
+			planTabHeadlineOverrides: SOCIAL_SCHEDULER_PLAN_OVERRIDES
+		},
+		'directory-submission': {
+			section: DIRECTORY_SUBMISSION_SECTION,
+			planTabHeadlineOverrides: DIRECTORY_SUBMISSION_PLAN_OVERRIDES
 		},
 		'api-posting-hub': {
 			section: API_POSTING_HUB_SECTION,

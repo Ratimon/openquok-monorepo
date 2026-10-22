@@ -11,8 +11,16 @@
 		LinkDirectoryTagDto
 	} from '$lib/link-directory/link-directory.types';
 
-	import { publicBuildBacklinksBookmarksPresenter } from '$lib/link-directory/index';
+	import { getRootPathAccount } from '$lib/area-protected';
+	import { autoLaunchRepository } from '$lib/auto-launch';
+	import { directorySiteKeyFromProviderSlug } from '$lib/auto-launch/buildDirectoryAddChannelTiles';
+	import { publicBuildBacklinksBookmarksPresenter, linkDirectoryRepository } from '$lib/link-directory/index';
 	import { resolveBuildBacklinksHubCatalog } from '$lib/link-directory/utils/resolveBuildBacklinksHubCatalog';
+	import { route, url } from '$lib/utils/path';
+	import { icons } from '$data/icons';
+
+	import AddDirectoryLaunch from '$lib/ui/components/auto-launch/AddDirectoryLaunch.svelte';
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import {
 		buildAccountSavedBacklinksNavigationUrl,
 		parseAccountSavedBacklinksFiltersFromUrl
@@ -37,8 +45,6 @@
 	const bookmarkedSlugs = $derived(orderedSlugs);
 	const bookmarksHydrating = $derived(bookmarksPresenter.hydrating);
 	const canReorder = $derived(bookmarksPresenter.canReorder);
-	const canMarkComplete = $derived(bookmarksPresenter.canMarkComplete);
-	const isCompleted = (siteSlug: string) => bookmarksPresenter.isCompleted(siteSlug);
 
 	const hasUnsavedShortlist = $derived(bookmarksPresenter.hasUnsavedShortlistChanges());
 	const savingShortlist = $derived(bookmarksPresenter.savingShortlist);
@@ -54,6 +60,11 @@
 	let filteredCount = $state(0);
 	let totalPages = $state(1);
 	let tagNotFound = $state(false);
+	let launchableSiteSlugs = $state<Set<string>>(new Set());
+
+	const accountProductsHref = $derived(
+		url(`${route(getRootPathAccount())}?tab=products`)
+	);
 
 	const catalogSitesForLookup = $derived(
 		sitesVm.map((site) => ({ slug: site.slug, title: site.title }))
@@ -105,9 +116,32 @@
 		void loadCatalogFromUrl();
 	});
 
+	async function loadLaunchableSiteSlugs() {
+		if (!isLoggedIn) {
+			launchableSiteSlugs = new Set();
+			return;
+		}
+		try {
+			const [destinations, publishedSites] = await Promise.all([
+				autoLaunchRepository.listDestinations(),
+				linkDirectoryRepository.getPublishedSites({ limit: 500, skip: 0 })
+			]);
+			const publishedSlugs = publishedSites.sites.map((s) => s.slug);
+			const slugs = new Set<string>();
+			for (const destination of destinations) {
+				if (destination.submissionPath !== 'extension') continue;
+				slugs.add(directorySiteKeyFromProviderSlug(destination.providerSlug, publishedSlugs));
+			}
+			launchableSiteSlugs = slugs;
+		} catch {
+			launchableSiteSlugs = new Set();
+		}
+	}
+
 	onMount(() => {
 		if (!browser) return;
 		void bookmarksPresenter.hydrate(isLoggedIn);
+		void loadLaunchableSiteSlugs();
 	});
 
 	function buildFilterUrl(
@@ -133,13 +167,6 @@
 		}
 	}
 
-	async function handleToggleComplete(siteSlug: string) {
-		const result = bookmarksPresenter.toggleCompleted(siteSlug);
-		if (!result.ok && result.error) {
-			toast.error(result.error);
-		}
-	}
-
 	async function handleToggleBookmark(params: {
 		siteId: string;
 		siteSlug: string;
@@ -157,13 +184,29 @@
 	<HubAccountSignInCtaInlineHint variant="backlinks" {isLoggedIn} />
 
 	<section class="space-y-4" aria-labelledby="saved-backlinks-shortlist-heading">
-		<div>
-			<h2 id="saved-backlinks-shortlist-heading" class="text-lg font-semibold text-base-content">
-				Your shortlist
-			</h2>
-			<p class="mt-1 text-sm text-base-content/65">
-				Reorder saved sites and track outreach. Bookmark more from the catalog below.
-			</p>
+		<div class="flex flex-wrap items-start justify-between gap-3">
+			<div>
+				<h2 id="saved-backlinks-shortlist-heading" class="text-lg font-semibold text-base-content">
+					Your shortlist
+				</h2>
+				<p class="mt-1 text-sm text-base-content/65">
+					Reorder saved sites, then launch with the extension and mark progress per product.
+				</p>
+			</div>
+			{#if isLoggedIn}
+				<div class="flex flex-wrap items-center gap-2">
+					<AddDirectoryLaunch
+						buttonLabel="Add Channel"
+						buttonVariant="secondary"
+						buttonClass="btn-sm"
+						sitePickerFirst={true}
+					/>
+					<Button href={accountProductsHref} variant="outline" size="sm" class="gap-1.5">
+						<AbstractIcon name={icons.Rocket.name} class="h-4 w-4" width="16" height="16" />
+						Launch checklist
+					</Button>
+				</div>
+			{/if}
 		</div>
 
 		{#if bookmarksHydrating}
@@ -172,26 +215,39 @@
 			<div class="rounded-xl border border-base-300/60 bg-base-200/40 p-6 text-center">
 				<p class="text-base font-medium">No backlink sites saved yet</p>
 				<p class="mt-1 text-sm text-base-content/65">
-					Bookmark sites in the catalog below to build a shortlist for outreach.
+					Bookmark sites in the catalog below, or start a directory launch from a product profile.
 				</p>
+				{#if isLoggedIn}
+					<div class="mt-4 flex flex-wrap items-center justify-center gap-2">
+						<AddDirectoryLaunch
+							buttonLabel="Add Channel"
+							buttonVariant="secondary"
+							buttonClass="btn-sm"
+							sitePickerFirst={true}
+						/>
+						<Button href={accountProductsHref} variant="outline" size="sm" class="gap-1.5">
+							<AbstractIcon name={icons.Rocket.name} class="h-4 w-4" width="16" height="16" />
+							Launch checklist
+						</Button>
+					</div>
+				{/if}
 			</div>
 		{:else}
 			<BuildBacklinksSavedSitesPanel
 				{orderedSlugs}
 				sitesBySlug={savedSitesBySlug}
 				{canReorder}
-				{canMarkComplete}
-				{isCompleted}
+				launchableSiteSlugs={launchableSiteSlugs}
+				showDirectoryLaunchActions={isLoggedIn}
 				onMove={handleMove}
-				onToggleComplete={handleToggleComplete}
 			/>
-			{#if canReorder || canMarkComplete}
+			{#if canReorder}
 				<div class="flex flex-wrap items-center justify-between gap-3">
 					<p class="text-xs text-base-content/50">
 						{#if hasUnsavedShortlist}
 							You have unsaved shortlist changes.
 						{:else}
-							Reorder or mark Done, then save when you are finished.
+							Reorder, then save when you are finished.
 						{/if}
 					</p>
 					<Button

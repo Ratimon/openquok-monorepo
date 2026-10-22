@@ -1,6 +1,6 @@
 ---
 title: Overview - CLI Examples
-description: Copy-paste CLI examples by social network.
+description: OpenQuok CLI workflows — copy-paste examples for scheduling, posts management, analytics, plugs, directory launch, and per-platform recipes.
 order: 0
 lastUpdated: 2026-08-20
 sidebar:
@@ -13,11 +13,13 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## What is in this section
 
-Copy-pasteable recipes for the `openquok` CLI grouped by social network. Each page chains <a href="/docs/cli-usages/integrations"><Badge text="integrations:list" variant="default" /></a>, <a href="/docs/cli-usages/media-upload"><Badge text="upload" variant="default" /></a>, and <a href="/docs/cli-usages/managing-posts"><Badge text="posts:create" variant="default" /></a> into the kind of scripts AI agents and CI jobs actually run.
+Copy-pasteable recipes for the `openquok` CLI grouped by social network or directory launch platform. Social pages chain <a href="/docs/cli-usages/integrations"><Badge text="integrations:list" variant="default" /></a>, <a href="/docs/cli-usages/media-upload"><Badge text="upload" variant="default" /></a>, and <a href="/docs/cli-usages/managing-posts"><Badge text="posts:create" variant="default" /></a> into the kind of scripts AI agents and CI jobs actually run. Directory pages use <a href="/docs/cli-usages/directory-launch"><Badge text="directory:*" variant="default" /></a> for product profiles, variants, and listing readiness before you submit on the launch site.
 
 <Callout type="note">
-<p>OpenQuok ships first-party providers for <strong>Meta Threads</strong>, <strong>Facebook Page</strong>, <strong>Instagram</strong> (Business and Standalone), <strong>YouTube</strong>, <strong>TikTok</strong>, <strong>X</strong>, <strong>Dev.to</strong>, and <strong>Bluesky</strong>. Additional pages appear here when new providers land in <Badge text="backend/integrations/providers/" variant="path" />.</p>
+<p>OpenQuok ships first-party <strong>social</strong> providers for <strong>Meta Threads</strong>, <strong>Facebook Page</strong>, <strong>Instagram</strong> (Business and Standalone), <strong>YouTube</strong>, <strong>TikTok</strong>, <strong>X</strong>, <strong>Dev.to</strong>, and <strong>Bluesky</strong>. Additional social pages appear when new providers land in <Badge text="backend/integrations/providers/" variant="path" />.</p>
 </Callout>
+
+### Social channels
 
 <CardGrid>
 <LinkCard title="Facebook Page" description="Text, photos, links, and follow-up comments for Facebook Pages" href="/docs/cli-examples/facebook" />
@@ -29,6 +31,22 @@ Copy-pasteable recipes for the `openquok` CLI grouped by social network. Each pa
 <LinkCard title="Dev.to" description="Markdown articles with title, tags, canonical URL, and organization" href="/docs/cli-examples/devto" />
 <LinkCard title="Bluesky" description="Text, images, video, and bluesky.replies follow-ups" href="/docs/cli-examples/bluesky" />
 <LinkCard title="Skool" description="Title, group, label, images, and skool.replies follow-ups (extension connect)" href="/docs/cli-examples/skool" />
+</CardGrid>
+
+<Callout type="note" title="Directory launch is not posts:create">
+<p><strong>Directory launch</strong> recipes prepare your product on <a href="/account/products">My Products</a> for <strong>PeerPush</strong> and <strong>Uneed</strong>. They use <Badge text="directory:*" variant="default" /> commands, not <Badge text="posts:create" variant="default" />. You submit on the directory site with the browser extension.</p>
+</Callout>
+
+<Callout type="tip" title="Main profile and site copy">
+<p>Your <strong>main product profile</strong> is the default product record. A <strong>directory variant</strong> is an optional per-site copy (for example PeerPush or Uneed). Use <Badge text="directory:profiles:list --main-only" variant="default" /> when you need the main id before <Badge text="directory:variants:ensure" variant="default" />.</p>
+<p>See <a href="/docs/getting-started/glossary#directory-launch">Glossary — Directory launch</a>.</p>
+</Callout>
+
+### Directory launch
+
+<CardGrid>
+<LinkCard title="PeerPush" description="Product profiles, peerpush variants, listing summary, and cached directory SEO" href="/docs/cli-examples/peerpush" />
+<LinkCard title="Uneed" description="Product profiles, uneed variants, listing summary, and cached directory SEO" href="/docs/cli-examples/uneed" />
 </CardGrid>
 
 ## Conventions used in these pages

@@ -37,7 +37,7 @@ describe('buildPublicChannelSiblingGridCopy', () => {
 
 	it('builds agent channel section and card copy', () => {
 		expect(buildPublicAgentChannelSiblingGridTitle('Facebook', 'Grok Bot')).toBe(
-			'Beyond Facebook: Every Supported Platform for Grok Bot'
+			'Beyond Facebook: Every Supported Channel for Grok Bot'
 		);
 		expect(buildPublicAgentChannelSiblingGridHubTitle('Grok Bot')).toBe(
 			'Grok Bot: Every Supported Channels'
@@ -46,11 +46,17 @@ describe('buildPublicChannelSiblingGridCopy', () => {
 			'Pick a channel for Grok Bot workflows, CLI or MCP examples, and platform FAQs.'
 		);
 		expect(buildPublicAgentChannelSiblingGridDescription('Facebook', 'Grok Bot')).toBe(
-			'Start with Facebook, then schedule every other network from Grok Bot.'
+			'Start with Facebook, then schedule other networks and launch on directories from Grok Bot.'
+		);
+		expect(buildPublicAgentChannelSiblingGridDescription('PeerPush', 'Claude Code', 'peerpush')).toBe(
+			'Start with PeerPush, then schedule social posts and launch on other directories from Claude Code.'
 		);
 		expect(buildPublicAgentChannelSiblingGridCardDescription('Facebook', 'Grok Bot', true)).toBe(
 			'Schedule Facebook from Grok Bot.'
 		);
+		expect(
+			buildPublicAgentChannelSiblingGridCardDescription('PeerPush', 'Claude Code', true, 'peerpush')
+		).toBe('Launch on PeerPush from Claude Code.');
 	});
 
 	describe('ecosystem-aware agent hub grid copy', () => {

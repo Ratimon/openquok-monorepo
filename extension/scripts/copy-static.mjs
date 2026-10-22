@@ -8,6 +8,7 @@ const distDir = join(extensionRoot, 'dist');
 mkdirSync(distDir, { recursive: true });
 
 copyFileSync(join(extensionRoot, 'manifest.json'), join(distDir, 'manifest.json'));
+copyFileSync(join(extensionRoot, 'popup.html'), join(distDir, 'popup.html'));
 
 const iconsSrc = join(extensionRoot, 'icons');
 const iconsDest = join(distDir, 'icons');

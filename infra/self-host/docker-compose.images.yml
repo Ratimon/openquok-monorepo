@@ -16,7 +16,7 @@ services:
   worker-integration-refresh:
     pull_policy: always
 
-  worker-notification-email:
+  worker-housekeeping:
     pull_policy: always
 
   worker-scheduled-social-post:

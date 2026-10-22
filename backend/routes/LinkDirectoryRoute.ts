@@ -35,10 +35,10 @@ import {
     linkDirectorySubmissionReviewSchema,
     linkDirectorySavedSitesPutSchema,
     linkDirectorySavedSitesOrderSchema,
-    linkDirectorySavedSiteOutreachCompletionSchema,
     linkDirectorySiteCommentCreateSchema,
     linkDirectorySiteCommentIdParamSchema,
     linkDirectorySiteRatingBodySchema,
+    linkDirectoryCatalogDrRefreshBodySchema,
 } from "../data/schemas/linkDirectorySchemas";
 import { z } from "zod";
 
@@ -150,16 +150,6 @@ linkDirectoryRouter.put(
     validateRequest({ body: linkDirectorySavedSitesOrderSchema }),
     linkDirectoryController.putUserSavedSitesOrder
 );
-linkDirectoryRouter.patch(
-    "/me/saved-sites/:siteId/outreach-completion",
-    authWithRoles,
-    validateRequest({
-        params: linkDirectorySiteIdParamSchema,
-        body: linkDirectorySavedSiteOutreachCompletionSchema,
-    }),
-    linkDirectoryController.patchUserSavedSiteOutreachCompletion
-);
-
 // --- Editor: taxonomy ---
 linkDirectoryRouter.get(
     "/categories/all-full",
@@ -286,6 +276,14 @@ linkDirectoryRouter.get(
     requireEditor,
     parseAdminQuery,
     linkDirectoryController.getAdminSites
+);
+
+linkDirectoryRouter.post(
+    "/admin/sites/refresh-catalog-domain-ratings",
+    authWithRoles,
+    requireEditor,
+    validateRequest({ body: linkDirectoryCatalogDrRefreshBodySchema }),
+    linkDirectoryController.refreshCatalogDomainRatings
 );
 
 linkDirectoryRouter.post(

@@ -4,6 +4,7 @@ import type { CommandContext } from "./types";
 import { registerAnalyticsCommands } from "./analytics";
 import { registerAuthCommands } from "./auth";
 import { registerConfigCommands } from "./config";
+import { registerDirectoryCommands } from "./directory";
 import { registerIntegrationCommands } from "./integrations";
 import { registerPlugCommands } from "./plugs";
 import { registerPostCommands } from "./posts";
@@ -17,6 +18,7 @@ export function registerAllCommands(y: Argv, ctx: CommandContext): Argv {
   out = registerPlugCommands(out, ctx);
   out = registerPostCommands(out, ctx);
   out = registerAnalyticsCommands(out, ctx);
+  out = registerDirectoryCommands(out, ctx);
   out = registerUploadCommands(out, ctx);
   return out;
 }

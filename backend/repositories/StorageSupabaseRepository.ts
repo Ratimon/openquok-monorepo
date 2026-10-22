@@ -7,6 +7,7 @@ export const DATABASE_NAMES = {
     AVATARS: "avatars",
     BLOG_IMAGES: "blog_images",
     LINK_DIRECTORY_LOGOS: "link_directory_logos",
+    AUTO_LAUNCH_PROFILE_MEDIA: "auto_launch_profile_media",
 } as const;
 
 export type DatabaseName = (typeof DATABASE_NAMES)[keyof typeof DATABASE_NAMES];
@@ -19,13 +20,15 @@ export function isAllowedDatabaseName(name: unknown): name is DatabaseName {
 export type SupabaseImageBucketName =
     | typeof DATABASE_NAMES.AVATARS
     | typeof DATABASE_NAMES.BLOG_IMAGES
-    | typeof DATABASE_NAMES.LINK_DIRECTORY_LOGOS;
+    | typeof DATABASE_NAMES.LINK_DIRECTORY_LOGOS
+    | typeof DATABASE_NAMES.AUTO_LAUNCH_PROFILE_MEDIA;
 
 export function isSupabaseImageBucketName(name: unknown): name is SupabaseImageBucketName {
     return (
         name === DATABASE_NAMES.AVATARS ||
         name === DATABASE_NAMES.BLOG_IMAGES ||
-        name === DATABASE_NAMES.LINK_DIRECTORY_LOGOS
+        name === DATABASE_NAMES.LINK_DIRECTORY_LOGOS ||
+        name === DATABASE_NAMES.AUTO_LAUNCH_PROFILE_MEDIA
     );
 }
 
@@ -89,6 +92,46 @@ export class StorageSupabaseRepository {
                 operation: "upload",
                 resource: { type: "storage", name: databaseName },
             });
+        }
+
+        return filePath;
+    }
+
+    /**
+     * Upload under `{prefix}/{random}.{ext}` (e.g. `{organizationId}/{profileId}/…` in `auto_launch_profile_media`).
+     */
+    async uploadImageUnderPrefix(
+        databaseName: DatabaseName,
+        file: { buffer: Buffer; originalname: string; mimetype: string },
+        prefix: string
+    ): Promise<string> {
+        const normalizedPrefix = prefix.replace(/^\/+|\/+$/g, "");
+        if (!normalizedPrefix) {
+            throw new DatabaseError(`Error in uploadImageUnderPrefix: ${databaseName} with empty prefix`, {
+                operation: "upload",
+                resource: { type: "storage", name: databaseName },
+            });
+        }
+
+        const fileExt = file.originalname.split(".").pop() || "bin";
+        const filePath = `${normalizedPrefix}/${Math.random()}.${fileExt}`;
+
+        const { error: uploadError } = await this.supabaseServiceClient.storage
+            .from(databaseName)
+            .upload(filePath, file.buffer, {
+                contentType: file.mimetype,
+                upsert: false,
+            });
+
+        if (uploadError) {
+            throw new DatabaseError(
+                `Error in uploadImageUnderPrefix: ${databaseName} with message ${uploadError.message}`,
+                {
+                    cause: uploadError,
+                    operation: "upload",
+                    resource: { type: "storage", name: databaseName },
+                }
+            );
         }
 
         return filePath;

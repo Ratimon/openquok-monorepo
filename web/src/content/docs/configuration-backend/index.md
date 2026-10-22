@@ -68,6 +68,7 @@ Configure Redis, Sentry (optional), Google OAuth (optional), email (Resend in pr
 <LinkCard title="Email (Resend / local)" description="Supabase email confirmations, local inbox, and Resend production setup" href="/docs/configuration-backend/resend" />
 <LinkCard title="Cloudflare R2" description="S3-compatible storage for social composer and canvas exports" href="/docs/configuration-backend/cloudflare-r2" />
 <LinkCard title="Stripe billing" description="Workspace subscriptions, webhooks, and media storage quotas" href="/docs/configuration-backend/stripe" />
+<LinkCard title="Directory SEO & DataForSEO" description="DATAFORSEO_API_KEY, cache TTL, and metric tables" href="/docs/configuration-backend/directory-seo" />
 </CardGrid>
 
 ## Related Section(s)

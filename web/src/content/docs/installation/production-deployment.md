@@ -156,21 +156,21 @@ From the repository root, set up / deploy one persistent service per worker:
 ```bash
 # One-time: create services + set production env vars
 pnpm railway:setup:integration-refresh
-pnpm railway:setup:notification-email
+pnpm railway:setup:housekeeping
 pnpm railway:setup:scheduled-social-post
 ```
 
 ```bash
 # Update env (safe to re-run)
 pnpm railway:env:sync:integration-refresh:prod
-pnpm railway:env:sync:notification-email:prod
+pnpm railway:env:sync:housekeeping:prod
 pnpm railway:env:sync:scheduled-social-post:prod
 ```
 
 ```bash
 # Deploy each worker (Railway CLI must be linked to the target service)
 pnpm railway:deploy:integration-refresh
-pnpm railway:deploy:notification-email
+pnpm railway:deploy:housekeeping
 pnpm railway:deploy:scheduled-social-post
 ```
 

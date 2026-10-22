@@ -3,6 +3,8 @@ description: Public marketing landing pages — hero breadcrumbs, hub labels, pl
 globs:
   - web/src/routes/(public)/agents/**/*
   - web/src/routes/(public)/channels/**/*
+  - web/src/routes/(public)/social-media-management/**/*
+  - web/src/routes/(public)/directory-submission-tool/**/*
   - web/src/routes/(public)/social-media-posting-api/**/*
   - web/src/routes/(public)/social-media-scheduling-api/**/*
   - web/src/routes/(public)/tools/**/*
@@ -17,7 +19,8 @@ globs:
   - web/src/lib/ui/templates/api-marketing/**/*
   - web/src/lib/ui/components/pricing/PublicMarketingPricingSection.svelte
   - web/src/lib/billing/constants/publicPricingLandingSectionConfig.ts
-  - web/src/lib/content/constants/publicLandingBreadcrumbConfig.ts
+  - web/src/lib/content/constants/landing/breadcrumbs.ts
+  - web/src/lib/content/utils/buildPublicLandingBreadcrumbItems.ts
 alwaysApply: false
 ---
 
@@ -98,6 +101,9 @@ Each wrapper builds an `items` array and delegates to `PublicLandingHubBreadcrum
 | `/agents/{slug}/{channelSlug}` | Same as slug row, plus → `{channelLabel}` (agent/MCP segment links back to `/agents/{slug}`) |
 | `/channels` | **Home** → Supported Channels |
 | `/channels/{slug}` | **Home** → Supported Channels → `{platformLabel}` |
+| `/social-media-management` | **Home** → Social media management |
+| `/run-social-media-on-autopilot` | 308 → `/social-media-management` (`hooks.server.ts`) |
+| `/directory-submission-tool` | **Home** → Directory submission tool |
 | `/playbooks` | **Home** → Playbooks |
 | `/playbooks/categories` | **Home** → Playbooks → Categories |
 | `/playbooks/tags` | **Home** → Playbooks → Tags |

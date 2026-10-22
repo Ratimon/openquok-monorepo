@@ -1,3 +1,16 @@
+import type { IconName } from '$data/icons';
+import { icons } from '$data/icons';
+
+/** Primary marketing `<h1>` — home `HeroMain` and hub pages that share the same hero scale (`/channels`, `/agents`). */
+export const PUBLIC_LANDING_MAIN_HERO_TITLE_CLASS =
+	'text-4xl font-black tracking-tight text-balance sm:text-5xl lg:text-6xl';
+
+/** Exactly two visual rows for `/social-media-management` (Postiz-style); children must not wrap. */
+export const PUBLIC_SOCIAL_AUTOPILOT_HERO_TITLE_CLASS = `${PUBLIC_LANDING_MAIN_HERO_TITLE_CLASS} flex flex-col items-center gap-y-2 sm:gap-y-3`;
+
+export const PUBLIC_SOCIAL_AUTOPILOT_HERO_TITLE_LINE_CLASS =
+	'flex w-full max-w-[min(100%,42rem)] flex-nowrap items-baseline justify-center gap-x-1.5 sm:gap-x-2';
+
 /** Rotating accent words for the main landing hero title ("Save ___"). */
 export const LANDING_HERO_HOURS_ROTATE_TEXTS = [
 	'hours',
@@ -6,6 +19,40 @@ export const LANDING_HERO_HOURS_ROTATE_TEXTS = [
 	'busywork',
 	'headaches'
 ] as const;
+
+export type LandingHeroSocialAgentRotateOption = {
+	label: string;
+	iconName: IconName;
+};
+
+/**
+ * Rotating agent row for `/social-media-management` hero (`agenthost` token in line 2).
+ * Labels mirror `agentLabel` in `content/constants/agents/hosts/*.ts`; MCP rows use branded icons.
+ */
+export const LANDING_HERO_SOCIAL_AGENT_ROTATE_OPTIONS: readonly LandingHeroSocialAgentRotateOption[] =
+	[
+		{ label: 'ChatGPT', iconName: icons.ChatGPT.name },
+		{ label: 'Claude', iconName: icons.Claude.name },
+		{ label: 'Claude Code', iconName: icons.ClaudeGlyph.name },
+		{ label: 'Cursor', iconName: icons.Cursor.name },
+		{ label: 'Grok Bot', iconName: icons.GrokBot.name },
+		{ label: 'OpenClaw', iconName: icons.OpenClaw.name },
+		{ label: 'Hermes Agent', iconName: icons.HermesAgent.name },
+		{ label: 'Dots', iconName: icons.Dots.name },
+		{ label: 'Meta Muse', iconName: icons.MetaMuse.name },
+		{ label: 'ThinkRail', iconName: icons.ThinkRail.name },
+		{ label: 'Manus', iconName: icons.Manus.name }
+	];
+
+/** @deprecated Use `LANDING_HERO_SOCIAL_AGENT_ROTATE_OPTIONS` — labels only for `TextRotate` fallbacks. */
+export const LANDING_HERO_SOCIAL_AGENT_ROTATE_TEXTS = LANDING_HERO_SOCIAL_AGENT_ROTATE_OPTIONS.map(
+	(option) => option.label
+);
+
+/**
+ * Token in `hero.title` (e.g. `autopilot with agenthost`) — renders icon + rotating agent label (Postiz-style).
+ */
+export const LANDING_HERO_SOCIAL_AGENT_ROTATE_TITLE_LINE = 'agenthost';
 
 /** Rotating phrases for the main landing hero slogan ("___" highlight). */
 export const LANDING_HERO_SLOGAN_NOT_ROTATE_TEXTS = [
@@ -39,6 +86,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'scheduling playbooks',
 	'document carousels',
 	'photo carousels',
+	'social media',
 	'social media tools',
 	'content calendar',
 	'building blocks',
@@ -71,6 +119,8 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'viral format',
 	'in action',
 	'one place',
+	'AI agents',
+	'autopilot',
 	'AI draft',
 	'best fit',
 	'humanize',
@@ -127,6 +177,16 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'graphemes',
 	'@mentions',
 	'skool',
+	// Social channels & networks
+	'directory',
+	'directories',
+	'relevant directories',
+	'multiple directories',
+	'launch plan',
+	'submission costs',
+	'not weeks',
+	'PeerPush',
+	'Uneed',
 	// Protected account app heroes
 	'Reusable Templates',
 	'Media Library',

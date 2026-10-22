@@ -30,8 +30,10 @@ import {
 	getRootPathPublicPlaybooksCategories,
 	getRootPathPublicPlaybooksTags
 } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
+import { getRootPathPublicDirectorySubmissionTool } from '$lib/area-public/constants/getRootPathPublicDirectorySubmissionTool';
 import { getRootPathPublicRoadmap } from '$lib/area-public/constants/getRootPathPublicRoadmap';
 import { getRootPathPublicSelfHosting } from '$lib/area-public/constants/getRootPathPublicSelfHosting';
+import { getRootPathPublicSocialAutopilotLanding } from '$lib/area-public/constants/getRootPathPublicSocialAutopilotLanding';
 import {
 	getRootPathSocialMediaPostingApi,
 	getRootPathSocialMediaSchedulingApi
@@ -107,6 +109,8 @@ const publicBestTimeToPostPath = route(getRootPathPublicBestTimeToPost());
 const publicPayloadWizardPath = route(getRootPathPublicPayloadWizard());
 const publicRoadmapPath = route(getRootPathPublicRoadmap());
 const publicSelfHostingPath = route(getRootPathPublicSelfHosting());
+const publicDirectorySubmissionToolPath = route(getRootPathPublicDirectorySubmissionTool());
+const publicSocialAutopilotLandingPath = route(getRootPathPublicSocialAutopilotLanding());
 const publicSocialMediaPostingApiPath = route(getRootPathSocialMediaPostingApi());
 const publicSocialMediaSchedulingApiPath = route(getRootPathSocialMediaSchedulingApi());
 
@@ -131,11 +135,11 @@ const publicFooterSchedulingApiPlatformLinks = buildPublicFooterSchedulingApiPla
 const publicFooterPayloadWizardLinks = buildPublicFooterPayloadWizardLinks(publicPayloadWizardPath);
 
 const appName = 'OpenQuok';
-const appTitle = 'OpenQuok | Agentic Social Media Scheduler';
+const appTitle = 'OpenQuok | Agentic Social Media Scheduler & Directory Launches';
 const appDescription =
-	'Save hours on social scheduling. OpenQuok is an open-source, agentic scheduler—post, schedule, and track everywhere. You approve on kanban. CLI, MCP, and API.';
+	'Save hours on social scheduling and product directory launches. OpenQuok is an open-source, agentic scheduler—post, schedule, and share across channels. You approve on kanban. CLI, MCP, and API. Extension autofill for directory listings.';
 const appKeywords =
-	'social media scheduler, agentic social media scheduler, open source social media scheduler, social media scheduling tool, schedule social media posts, multi-platform posting, content calendar, kanban review, content approval, MCP social media, self-hosted social media scheduler, OpenQuok';
+	'social media management, social media scheduler, agentic social media scheduler, open source social media scheduler, social media scheduling tool, schedule social media posts, multi-platform posting, content calendar, kanban review, content approval, MCP social media, self-hosted social media scheduler, OpenQuok';
 
 export const CONFIG_SCHEMA_BACKEND: ModuleConfigSchema = {
 	API_BASE_URL: {
@@ -369,7 +373,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		type: 'string',
 		default: 'Save hours\nSchedule social media\nat scale',
 		inputType: 'textarea',
-		maxInputLength: 80
+		maxInputLength: 90
 	},
 	HERO_SLOGAN: {
 		description: 'The secondary text or tagline shown below the hero title',
@@ -377,7 +381,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		default:
 			'Social scheduling and backlink lists at scale. AI agents handle volume. You handle quality — review your posts before anything goes live. Grok Bot, OpenClaw, Hermes, Cursor, Claude. CLI, MCP, API.',
 		inputType: 'textarea',
-		maxInputLength: 200
+		maxInputLength: 220
 	},
 	ACTIVE_TOP_BANNER: {
 		description: 'Enable or disable the top banner display on the landing page',
@@ -603,7 +607,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 	FEATURE_8_SUBTITLE: {
 		description: 'Tag above the eighth secondary hero section',
 		type: 'string',
-		default: 'Analytics',
+		default: 'Built-in analytics',
 		inputType: 'input',
 		maxInputLength: 60
 	},
@@ -653,19 +657,26 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		inputType: 'input',
 		maxInputLength: 40
 	},
+	FEATURES_GRID_SUBTITLE: {
+		description: 'Tag above the home landing icon grid headline',
+		type: 'string',
+		default: 'Supported Channels',
+		inputType: 'input',
+		maxInputLength: 60
+	},
 	FEATURES_GRID_TITLE: {
 		description:
-			'Headline for the supported social channels grid (the word "channels" is highlighted like other landing accent words)',
+			'Headline for the home landing icon grid (social + directory; accent words like "channels" and "directory" highlight)',
 		type: 'string',
-		default: 'Supported social media channels',
+		default: 'Social and directory channels',
 		inputType: 'input',
 		maxInputLength: 120
 	},
 	FEATURES_GRID_DESCRIPTION: {
-		description: 'Support copy below the supported social channels grid headline',
+		description: 'Support copy below the home landing icon grid headline',
 		type: 'string',
 		default:
-			'Connect the networks you publish to and manage them from one workspace — no switching tools per platform.',
+			'Connect social networks for scheduling and reuse one business profile when you launch on startup directories — one workspace, you approve every publish and submit.',
 		inputType: 'textarea',
 		maxInputLength: 300
 	},
@@ -983,16 +994,21 @@ export const PUBLIC_FOOTER_LINKS_STATIC: PublicFooterLinksMap = {
 		{ label: 'Sitemap', href: '/sitemap.xml' }
 	],
 
-	Resources: [
+	Features: [
+		{ label: 'Directory submission tool', href: publicDirectorySubmissionToolPath },
+		{ label: 'Social media management', href: publicSocialAutopilotLandingPath },
+		{ label: 'Self-hosted', href: publicSelfHostingPath },
 		{ label: 'All Supported Channels', href: publicChannelsPath },
 		{ label: 'All Agent Integrations', href: publicAgentsPath },
+	],
+	Resources: [
+
 		{ label: 'General Docs', href: publicDocsPath },
 		{ label: 'Developer Docs', href: publicDocsGettingStartedForDevPath },
 		{ label: 'Contribute', href: publicDocsContributingPath },
 		{ label: 'MCP Getting Started', href: publicDocsGettingStartedForMcpPath },
 		{ label: 'CLI Getting Started', href: publicDocsGettingStartedForCliPath },
 		{ label: 'Public API', href: publicGettingStartedForPublicApiDocsPath },
-		{ label: 'Self-hosted', href: publicSelfHostingPath }
 	],
 	Legal: [
 		{ label: 'Terms', href: '/terms' },

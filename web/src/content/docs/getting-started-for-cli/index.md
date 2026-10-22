@@ -163,6 +163,17 @@ openquok upload ./clip.mp4
 openquok posts:list
 ```
 
+**Directory launch** (product profiles, per-directory variants, listing readiness, cached SEO metrics — requires directory launch / SEO plan flags):
+
+```bash
+openquok directory:destinations:list
+openquok directory:profiles:list --main-only
+openquok directory:variants:ensure <main-profile-id> --site-key peerpush
+openquok directory:listings <main-profile-id>
+```
+
+See <a href="/docs/cli-usages/directory-launch">Directory launch CLI usage</a> for the full command matrix (including <a href="/docs/cli-usages/directory-launch#logo-and-screenshots">logo and screenshots</a>).
+
 ## Commands (overview)
 
 **Auth**

@@ -1,8 +1,8 @@
 ---
 title: Listing types explained
-description: Building blocks vs playbooks and Skills vs MCP.
+description: Building blocks vs playbooks, Skills vs MCP, and how Build Backlinks differs from Extensions Hub listings.
 order: 1
-lastUpdated: 2026-07-05
+lastUpdated: 2026-10-17
 ---
 
 <script>
@@ -89,9 +89,25 @@ Choose **Both** when:
 
 Community building blocks and playbooks go through **review** before they appear on the public catalog (see <a href="/docs/publish-listings/publish-your-listing">Publish via the UI</a>).
 
+## Other public catalogs
+
+Not every public catalog in OpenQuok uses **Publish listing** on Building Blocks or Playbooks.
+
+| Catalog | What it is | How it is published |
+| --- | --- | --- |
+| **Building blocks / playbooks** | Installable skills, MCP servers, and curated stacks on <a href="/building-blocks">Building Blocks</a> and <a href="/playbooks">Playbooks</a> | Workspace **Publish listing** UI after review |
+| **Build backlinks** | Editorial directory and outreach notes on <a href="/build-backlinks">Build Backlinks</a> | Engineering seeds and internal link-directory tools — not the same publish flow as building blocks |
+| **Auto-launch destinations** | Executable directory submits (PeerPush, Uneed, …) wired to <a href="/account/products">My Products</a> and the browser extension | Contribution / seed path for operators — end users launch from the dashboard, not **Publish listing** |
+
+<Callout type="note">
+<p>You do not publish PeerPush or Uneed as a building block. Use <a href="/docs/directory-submission">Directory submission</a> to launch from your business profile. Contributors who add new directory sites should follow auto-launch and link-directory contribution guidance rather than the Extensions Hub publish wizard.</p>
+</Callout>
+
 ## Related
 
 <CardGrid>
 <LinkCard title="Publish via the UI" description="Create a building block or playbook from your account" href="/docs/publish-listings/publish-your-listing" />
 <LinkCard title="Skill Builder" description="Compose a playbook draft without writing code first" href="/tools/skill-builder" />
+<LinkCard title="Directory submission" description="Product profile and extension workflow for directory sites" href="/docs/directory-submission" />
+<LinkCard title="Adding a provider" description="Contributor checklist for new social integrations" href="/docs/contribution-opportunities/add-provider" />
 </CardGrid>

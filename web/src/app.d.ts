@@ -1,6 +1,8 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
 /// <reference types="dom-chromium-ai" />
+/// <reference types="d3-scale" />
+/// <reference types="d3-shape" />
 
 import type { AuthStatus } from '$lib/user-auth/AuthStatus.model.svelte';
 import type { Link } from '$lib/ui/nav-bars/Link';

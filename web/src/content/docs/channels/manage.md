@@ -15,7 +15,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 **Where:** <a href="/account">My Dashboard</a> → <Badge text="Channels" variant="default" /> tab — click the channel and the actions modal appears. In table layout, click <Badge text="Actions" variant="default" />. You can also open a channel chip on the <a href="/account/calendar">calendar</a>.
 
-![Add channel to a channel group](/docs/_assets/glossary/add-to-group.webp)
+![Link a channel to a business profile](/docs/_assets/glossary/add-to-group.webp)
 
 <p>Switch to table view (the table icon next to <strong>Connected channels</strong>), then click <Badge text="Add filters" variant="default" /> to open the smart filter. Narrow the list by social platform, connected account, group, or status, then click <Badge text="Actions" variant="default" /> on the row you want.</p>
 
@@ -29,7 +29,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 | <Badge text="Complete setup" variant="default" /> | Finish picking a Page, channel, or account — see <a href="/docs/channels/connect">Connect a channel</a> |
 | <Badge text="Refresh connection" variant="default" /> | Sign in again, or paste a new API key. Shown when the login is stale |
 | <Badge text="Copy channel ID" variant="default" /> | Copies this channel’s id. You only need it for the API, CLI, or an assistant |
-| <Badge text="Move / add to group" variant="default" /> | Puts the channel in a <a href="/docs/channels/channel-groups">channel group</a> |
+| <Badge text="Move / add to business profile" variant="default" /> | Links the channel to a <a href="/docs/channels/channel-groups">business profile</a> |
 | <Badge text="Edit time slots" variant="default" /> | The times of day you usually post — see <a href="/docs/channels/time-slots">Posting time slots</a> |
 | <Badge text="Disable channel" variant="default" /> | Stops posting without removing the connection. Use <Badge text="Enable channel" variant="default" /> to resume |
 | <Badge text="Delete channel" variant="default" /> | Removes the connection from this workspace and deletes posts for this channel |
@@ -75,7 +75,7 @@ On self-hosted OpenQuok with billing unset, there is no channel cap. Disable and
 <CardGrid>
 <LinkCard title="Connect a channel" description="Add Channel, sign-in flows, API keys, and invite links" href="/docs/channels/connect" />
 <LinkCard title="Posting time slots" description="Usual posting hours per channel and how suggestions use them" href="/docs/channels/time-slots" />
-<LinkCard title="Channel groups" description="Bundle channels by client or brand" href="/docs/channels/channel-groups" />
+<LinkCard title="Business profiles" description="Bundle channels by client or brand" href="/docs/channels/channel-groups" />
 <LinkCard title="Cloud limits" description="What happens when a workspace hits the channel cap" href="/docs/billing/limits" />
 <LinkCard title="Glossary" description="Channel vs integration, time slots, and calendar vs kanban" href="/docs/getting-started/glossary" />
 </CardGrid>

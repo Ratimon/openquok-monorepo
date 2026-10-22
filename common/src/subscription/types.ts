@@ -39,6 +39,12 @@ export interface PlanLimits {
 	/** Blog comments, skill listing, and similar community surfaces. */
 	community_features: boolean;
 	public_api: boolean;
+	/** My Products business profiles, directory variants, extension launch, and submission tracking. */
+	directory_launch_enabled: boolean;
+	/** Directory analytics (domain rating) and competitor tracking in Account → Analytics. */
+	directory_seo_enabled: boolean;
+	/** Tracked competitor domains per workspace (Directory analytics). */
+	directory_seo_competitors_per_workspace: number;
 }
 
 export type PricingMap = Record<SubscriptionTier, PlanLimits>;
@@ -59,6 +65,9 @@ export enum SubscriptionSection {
 	SHARE_POST_PREVIEW = 'share_post_preview',
 	COMMUNITY_FEATURES = 'community_features',
 	PUBLIC_API = 'public_api',
+	DIRECTORY_LAUNCH_ENABLED = 'directory_launch_enabled',
+	DIRECTORY_SEO_ENABLED = 'directory_seo_enabled',
+	DIRECTORY_SEO_COMPETITORS_PER_WORKSPACE = 'directory_seo_competitors_per_workspace',
 	/** Workspace admin/owner role — not a numeric plan field. */
 	ADMIN = 'admin',
 }

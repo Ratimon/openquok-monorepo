@@ -1,5 +1,6 @@
 import {
 	listPublicChannelsForHub,
+	listPublicDirectoryChannelsForHub,
 	type PublicChannelLandingPageViewModel
 } from '$lib/content/constants/channels';
 
@@ -13,6 +14,11 @@ export class PublicChannelsPagePresenter {
 	/** Stateless — safe for `+page.server.ts` (SSR): hub catalog → VM without mutating `$state`. */
 	loadChannelsHubStateless(): PublicChannelViewModel[] {
 		return listPublicChannelsForHub().map(toPublicChannelVm);
+	}
+
+	/** Directory launch cards for `/channels` and nav — social-only lists stay on {@link loadChannelsHubStateless}. */
+	loadDirectoryChannelsHubStateless(): PublicChannelViewModel[] {
+		return listPublicDirectoryChannelsForHub().map(toPublicChannelVm);
 	}
 
 	/** Stateful wrapper — calls {@link loadChannelsHubStateless} and assigns {@link channelsVm}. */

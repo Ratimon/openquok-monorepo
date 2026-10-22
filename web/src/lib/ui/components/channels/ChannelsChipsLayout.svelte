@@ -14,6 +14,7 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import { cn } from '$lib/ui/helpers/common';
 	import { postsLimitKey, type PostsLimitContext } from '$lib/ui/components/posts/postsLimitContext';
+
 	import ChannelRows from '$lib/ui/components/channels/ChannelRows.svelte';
 
 	type Props = {
@@ -68,9 +69,12 @@
 
 {#if channelGroupSectionsVm.length > 0}
 	<div class="mt-4 space-y-2">
-		<h4 class="text-sm font-semibold text-base-content/80">
-			Grouped channels
-		</h4>
+		<div>
+			<h4 class="text-sm font-semibold text-base-content/80">Business profiles</h4>
+			<p class="mt-0.5 text-xs text-base-content/60">
+				Directory launches and listing progress are on the <span class="font-medium text-base-content/80">Products</span> tab.
+			</p>
+		</div>
 		{#each channelGroupSectionsVm as group (group.id)}
 			<details class="rounded-lg border border-base-300 bg-base-200/40"
 				bind:open={groupDetailsOpen[group.id]}
@@ -146,7 +150,7 @@
 	<div class="mt-4 space-y-2">
 		<div class="flex flex-wrap items-center justify-between gap-2">
 			<h4 class="text-sm font-semibold text-base-content/80">
-				Ungrouped channels
+				Not linked to a business profile
 			</h4>
 			<div class="flex flex-wrap items-center justify-end gap-2">
 				<Button
@@ -190,7 +194,10 @@
 			</div>
 		</div>
 		<p class="text-sm text-base-content/70">
-			To add a channel to a group, open its menu and select <span class="font-medium text-base-content">Move / add to group</span>.
+			Open a channel menu and choose
+			<span class="font-medium text-base-content">Move / add to business profile</span> to link channels here.
+			Create profiles and directory launches on the
+			<span class="font-medium text-base-content">Products</span> tab.
 		</p>
 		{#if channelGroupSectionsVm.length === 0}
 			<details class="rounded-lg border border-base-300 bg-base-200/40" bind:open={ungroupedDetailsOpen}>

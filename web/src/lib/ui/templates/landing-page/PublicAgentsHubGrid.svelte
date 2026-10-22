@@ -11,7 +11,10 @@
 		INSTALL_AGENT_SKILL_COMMAND,
 		INSTALL_CLI_COMMAND
 	} from '$lib/ui/components/onboarding/onboardingConstants';
-	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
+	import {
+		landingHeroTheme,
+		PUBLIC_LANDING_MAIN_HERO_TITLE_CLASS
+	} from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import FeaturesSectionHeader from '$lib/ui/templates/feature-grid/FeaturesSectionHeader.svelte';
@@ -35,7 +38,7 @@
 		heroTheme={landingHeroTheme}
 		headingId={headingId}
 		headingLevel="h1"
-		titleClass="text-3xl font-black tracking-tight text-balance sm:text-4xl"
+		titleClass={PUBLIC_LANDING_MAIN_HERO_TITLE_CLASS}
 		title={PUBLIC_AGENTS_HUB.title}
 		description={PUBLIC_AGENTS_HUB.description}
 	>

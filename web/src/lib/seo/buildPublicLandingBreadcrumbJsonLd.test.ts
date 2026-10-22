@@ -6,10 +6,12 @@ import {
 	buildApiMarketingLandingBreadcrumbItems,
 	buildChannelsLandingBreadcrumbItems,
 	buildCompareLandingBreadcrumbItems,
+	buildDirectorySubmissionToolLandingBreadcrumbItems,
 	buildListingsHubBreadcrumbItems,
 	buildPricingLandingBreadcrumbItems,
 	buildRoadmapLandingBreadcrumbItems,
 	buildSelfHostingLandingBreadcrumbItems,
+	buildSocialAutopilotLandingBreadcrumbItems,
 	buildToolsLandingBreadcrumbItems
 } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import {
@@ -79,8 +81,19 @@ describe('buildChannelsLandingBreadcrumbItems', () => {
 
 		expect(buildChannelsLandingBreadcrumbItems({ platformLabel: 'Facebook' })).toEqual([
 			{ label: 'Home', href: '/' },
-			{ label: 'Supported Channels', href: '/channels' },
+			{ label: 'Supported Channels', href: '/channels#public-social-channels-hub-heading' },
 			{ label: 'Facebook' }
+		]);
+
+		expect(
+			buildChannelsLandingBreadcrumbItems({
+				platformLabel: 'PeerPush',
+				channelKind: 'directory'
+			})
+		).toEqual([
+			{ label: 'Home', href: '/' },
+			{ label: 'Supported Channels', href: '/channels#public-directory-channels-hub-heading' },
+			{ label: 'PeerPush' }
 		]);
 	});
 });
@@ -179,6 +192,24 @@ describe('buildSelfHostingLandingBreadcrumbItems', () => {
 		expect(buildSelfHostingLandingBreadcrumbItems()).toEqual([
 			{ label: 'Home', href: '/' },
 			{ label: 'Self-Hosting' }
+		]);
+	});
+});
+
+describe('buildDirectorySubmissionToolLandingBreadcrumbItems', () => {
+	it('builds a two-level directory submission tool trail', () => {
+		expect(buildDirectorySubmissionToolLandingBreadcrumbItems()).toEqual([
+			{ label: 'Home', href: '/' },
+			{ label: 'Directory submission tool' }
+		]);
+	});
+});
+
+describe('buildSocialAutopilotLandingBreadcrumbItems', () => {
+	it('builds a two-level social autopilot trail', () => {
+		expect(buildSocialAutopilotLandingBreadcrumbItems()).toEqual([
+			{ label: 'Home', href: '/' },
+			{ label: 'Social media management' }
 		]);
 	});
 });

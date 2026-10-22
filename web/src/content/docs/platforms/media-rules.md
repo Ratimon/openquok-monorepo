@@ -1,8 +1,8 @@
 ---
 title: Media rules
-description: Per-network media, character caps, follow-up attachments, and caption editors for the OpenQuok composer.
+description: Composer media and caption rules for social channels — and how directory launch limits differ on My Products.
 order: 2
-lastUpdated: 2026-10-10
+lastUpdated: 2026-10-22
 sidebar:
   label: Media rules
 ---
@@ -13,11 +13,11 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## Media rules
 
-> What each network accepts for attachments, caption length, and follow-up media before OpenQuok publishes.
+> Social posting caps in the composer — not directory form fields on My Products.
 
 The composer blocks a post that breaks these rules before it reaches the platform. File size and MIME limits are separate. See <a href="/docs/creating-posts/media#limits-and-formats">Media → Limits and formats</a>.
 
-## Media and character caps
+## Social posting — media and character caps
 
 The **Characters** column is the main caption or body. The same cap applies to each follow-up row and to thread finisher text where that feature is supported.
 
@@ -74,7 +74,7 @@ Terminology for thread replies vs comments is in <a href="/docs/platforms">Platf
 | <Badge text="youtube" variant="param" /> | Custom thumbnail | Optional still image for the video |
 | <Badge text="devto" variant="param" /> | Cover image | Optional hero image for the article |
 
-## Caption editors
+## Social posting — caption editors
 
 Each channel uses one caption editor mode when you unlock it in per-channel mode. **Global** mode always uses the **Standard** plain textarea.
 
@@ -85,14 +85,29 @@ Each channel uses one caption editor mode when you unlock it in per-channel mode
 | **HTML** | <Badge text="x" variant="param" /> (published as plain text after strip) |
 
 <Callout type="note">
-Toolbar details are in <a href="/docs/creating-posts/writing-the-post#editor-by-platform">Writing the post → Editor by platform</a>.
+<p>Toolbar details are in <a href="/docs/creating-posts/writing-the-post#editor-by-platform">Writing the post → Editor by platform</a>.</p>
 </Callout>
+
+## Directory launch — profile and form limits
+
+Directory destinations (**PeerPush**, **Uneed**, …) do not use the post composer, caption editors, or follow-up rows in this doc.
+
+| Topic | Social posting (tables above) | Directory launch |
+| --- | --- | --- |
+| **Where limits apply** | Composer before <Badge text="POST /public/posts" variant="path" /> | Product profile on <a href="/account/products">My Products</a> and each directory’s submit form |
+| **What OpenQuok enforces** | Character counts, attachment count, MIME types | Required profile fields, **listing readiness**, variant copy per <Badge text="directorySiteKey" variant="param" /> |
+| **Who sets hard caps** | Network APIs (X, Instagram, …) | Each directory site (PeerPush categories, Uneed fields, …) |
+
+OpenQuok maps your profile to directory forms with the browser extension. You still respect each site’s own max lengths and required fields when you submit.
+
+<p>Workflow: <a href="/docs/directory-submission">Directory submission</a>. Per-site notes: <a href="/docs/directory-integration">Directory integration</a> (<a href="/docs/directory-integration/peerpush">PeerPush</a>, <a href="/docs/directory-integration/uneed">Uneed</a>). Variants: <a href="/docs/directory-submission/profile-variants">Profile variants</a>.</p>
 
 ## Related
 
 <CardGrid>
-<LinkCard title="Platforms overview" description="Naming, follow-ups, and how rules apply" href="/docs/platforms" />
-<LinkCard title="Per-channel settings" description="Composer Settings fields per network" href="/docs/platforms/per-channel-settings" />
+<LinkCard title="Platforms overview" description="Social vs directory rules and identifiers" href="/docs/platforms" />
+<LinkCard title="Per-channel settings" description="Composer Settings for social networks only" href="/docs/platforms/per-channel-settings" />
+<LinkCard title="Directory submission" description="My Products workflow and extension handoff" href="/docs/directory-submission" />
 <LinkCard title="Media" description="Upload, library, and the media strip" href="/docs/creating-posts/media" />
 <LinkCard title="Links and validation" description="Save-time errors in the composer" href="/docs/creating-posts/links-and-validation" />
 </CardGrid>
