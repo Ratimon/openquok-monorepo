@@ -264,6 +264,9 @@ var init_types = __esm({
       SubscriptionSection2["SHARE_POST_PREVIEW"] = "share_post_preview";
       SubscriptionSection2["COMMUNITY_FEATURES"] = "community_features";
       SubscriptionSection2["PUBLIC_API"] = "public_api";
+      SubscriptionSection2["DIRECTORY_LAUNCH_ENABLED"] = "directory_launch_enabled";
+      SubscriptionSection2["DIRECTORY_SEO_ENABLED"] = "directory_seo_enabled";
+      SubscriptionSection2["DIRECTORY_SEO_COMPETITORS_PER_WORKSPACE"] = "directory_seo_competitors_per_workspace";
       SubscriptionSection2["ADMIN"] = "admin";
     })(SubscriptionSection || (SubscriptionSection = {}));
   }
@@ -297,7 +300,10 @@ var init_pricing = __esm({
         media_storage_bytes_per_workspace: 0,
         share_post_preview: false,
         community_features: true,
-        public_api: false
+        public_api: false,
+        directory_launch_enabled: false,
+        directory_seo_enabled: false,
+        directory_seo_competitors_per_workspace: 0
       },
       SOLO: {
         current: "SOLO",
@@ -310,7 +316,10 @@ var init_pricing = __esm({
         media_storage_bytes_per_workspace: gbToBytes(5),
         share_post_preview: false,
         community_features: true,
-        public_api: true
+        public_api: true,
+        directory_launch_enabled: true,
+        directory_seo_enabled: true,
+        directory_seo_competitors_per_workspace: 2
       },
       /** Legacy tier — no longer sold; limits preserved for grandfathered subscriptions. */
       // CREATOR: {
@@ -338,7 +347,10 @@ var init_pricing = __esm({
         media_storage_bytes_per_workspace: gbToBytes(5),
         share_post_preview: true,
         community_features: true,
-        public_api: true
+        public_api: true,
+        directory_launch_enabled: true,
+        directory_seo_enabled: true,
+        directory_seo_competitors_per_workspace: 3
       },
       ULTIMATE: {
         current: "ULTIMATE",
@@ -352,7 +364,10 @@ var init_pricing = __esm({
         media_storage_bytes_per_workspace: gbToBytes(5),
         share_post_preview: true,
         community_features: true,
-        public_api: true
+        public_api: true,
+        directory_launch_enabled: true,
+        directory_seo_enabled: true,
+        directory_seo_competitors_per_workspace: 5
       },
       MAX: {
         current: "MAX",
@@ -366,9 +381,28 @@ var init_pricing = __esm({
         media_storage_bytes_per_workspace: gbToBytes(6),
         share_post_preview: true,
         community_features: true,
-        public_api: true
+        public_api: true,
+        directory_launch_enabled: true,
+        directory_seo_enabled: true,
+        directory_seo_competitors_per_workspace: 10
       }
     };
+  }
+});
+
+// ../common/dist/browser-extension/autoLaunchMessages.js
+var AUTO_LAUNCH_MESSAGE_TYPE;
+var init_autoLaunchMessages = __esm({
+  "../common/dist/browser-extension/autoLaunchMessages.js"() {
+    AUTO_LAUNCH_MESSAGE_TYPE = {
+      HANDOFF: "AUTO_LAUNCH_HANDOFF",
+      START: "AUTO_LAUNCH_START",
+      FILL_STEP: "AUTO_LAUNCH_FILL_STEP",
+      FILL_ALL: "AUTO_LAUNCH_FILL_ALL",
+      PROGRESS: "AUTO_LAUNCH_PROGRESS",
+      COMPLETE: "AUTO_LAUNCH_COMPLETE"
+    };
+    new Set(Object.values(AUTO_LAUNCH_MESSAGE_TYPE));
   }
 });
 
@@ -376,12 +410,15 @@ var init_pricing = __esm({
 var BROWSER_EXTENSION_MESSAGE_TYPE;
 var init_messages = __esm({
   "../common/dist/browser-extension/messages.js"() {
+    init_autoLaunchMessages();
+    init_autoLaunchMessages();
     BROWSER_EXTENSION_MESSAGE_TYPE = {
       PING: "PING",
       GET_PROVIDERS: "GET_PROVIDERS",
       GET_COOKIES: "GET_COOKIES",
       STORE_REFRESH_TOKEN: "STORE_REFRESH_TOKEN",
-      REMOVE_REFRESH_TOKEN: "REMOVE_REFRESH_TOKEN"
+      REMOVE_REFRESH_TOKEN: "REMOVE_REFRESH_TOKEN",
+      AUTO_LAUNCH_HANDOFF: AUTO_LAUNCH_MESSAGE_TYPE.HANDOFF
     };
     new Set(Object.values(BROWSER_EXTENSION_MESSAGE_TYPE));
   }
@@ -407,17 +444,660 @@ var init_cookieSessionProviders = __esm({
 });
 
 // ../common/dist/browser-extension/pageAssist.js
+function listDirectoryLaunchProviderSummaries() {
+  return directoryLaunchProviders.map(({ identifier, name }) => ({ identifier, name }));
+}
+var LAUNCH_STEP_FIELD_FILL_MODES, UNEED_HOST_PATTERNS, UNEED_HOST_PERMISSION, UNEED_JOIN_LINE, UNEED_PAID_LAUNCH, UNEED_MAKER_PROFILE, PEERPUSH_HOST_PATTERNS, PEERPUSH_HOST_PERMISSION, PEERPUSH_STANDARD_LAUNCH, PEERPUSH_FREE_QUEUE, directoryLaunchProviders;
 var init_pageAssist = __esm({
   "../common/dist/browser-extension/pageAssist.js"() {
+    LAUNCH_STEP_FIELD_FILL_MODES = [
+      "text",
+      "select",
+      "boolean",
+      "rich_html",
+      "tags",
+      "file",
+      "files"
+    ];
+    UNEED_HOST_PATTERNS = [
+      "https://uneed.best/*",
+      "https://www.uneed.best/*"
+    ];
+    UNEED_HOST_PERMISSION = "*://*.uneed.best/*";
+    UNEED_JOIN_LINE = {
+      identifier: "uneed-join-line",
+      name: "Uneed \u2014 Join the line",
+      defaultStartUrl: "https://uneed.best/pricing",
+      contentScriptEntry: "content/directory-launch/uneed-join-line.js",
+      hostPatterns: UNEED_HOST_PATTERNS,
+      hostPermission: UNEED_HOST_PERMISSION
+    };
+    UNEED_PAID_LAUNCH = {
+      identifier: "uneed-paid-launch",
+      name: "Uneed \u2014 Paid launch",
+      defaultStartUrl: "https://uneed.best/pricing",
+      contentScriptEntry: "content/directory-launch/uneed-paid-launch.js",
+      hostPatterns: UNEED_HOST_PATTERNS,
+      hostPermission: UNEED_HOST_PERMISSION
+    };
+    UNEED_MAKER_PROFILE = {
+      identifier: "uneed-maker-profile",
+      name: "Uneed \u2014 Maker profile",
+      defaultStartUrl: "https://uneed.best/profile",
+      contentScriptEntry: "content/directory-launch/uneed-maker-profile.js",
+      hostPatterns: UNEED_HOST_PATTERNS,
+      hostPermission: UNEED_HOST_PERMISSION
+    };
+    PEERPUSH_HOST_PATTERNS = [
+      "https://peerpush.com/*",
+      "https://www.peerpush.com/*"
+    ];
+    PEERPUSH_HOST_PERMISSION = "*://*.peerpush.com/*";
+    PEERPUSH_STANDARD_LAUNCH = {
+      identifier: "peerpush-standard-launch",
+      name: "PeerPush \u2014 Standard launch",
+      defaultStartUrl: "https://peerpush.com/submit",
+      contentScriptEntry: "content/directory-launch/peerpush-standard-launch.js",
+      hostPatterns: PEERPUSH_HOST_PATTERNS,
+      hostPermission: PEERPUSH_HOST_PERMISSION
+    };
+    PEERPUSH_FREE_QUEUE = {
+      identifier: "peerpush-free-queue",
+      name: "PeerPush \u2014 Free queue",
+      defaultStartUrl: "https://peerpush.com/pricing",
+      contentScriptEntry: "content/directory-launch/peerpush-free-queue.js",
+      hostPatterns: PEERPUSH_HOST_PATTERNS,
+      hostPermission: PEERPUSH_HOST_PERMISSION
+    };
+    directoryLaunchProviders = [
+      UNEED_JOIN_LINE,
+      UNEED_PAID_LAUNCH,
+      UNEED_MAKER_PROFILE,
+      PEERPUSH_FREE_QUEUE,
+      PEERPUSH_STANDARD_LAUNCH
+    ];
+    new Map(directoryLaunchProviders.map((provider) => [provider.identifier, provider]));
   }
 });
 
 // ../common/dist/browser-extension/index.js
 var init_browser_extension = __esm({
   "../common/dist/browser-extension/index.js"() {
+    init_autoLaunchMessages();
     init_messages();
     init_cookieSessionProviders();
     init_pageAssist();
+  }
+});
+
+// ../common/dist/crypto/sha256Utf8Hex.js
+function rotr(n, x) {
+  return x >>> n | x << 32 - n;
+}
+function sha256Bytes(data) {
+  const K = new Uint32Array([
+    1116352408,
+    1899447441,
+    3049323471,
+    3921009573,
+    961987163,
+    1508970993,
+    2453635748,
+    2870763221,
+    3624381080,
+    310598401,
+    607225278,
+    1426881987,
+    1925078388,
+    2162078206,
+    2614888103,
+    3248222580,
+    3835390401,
+    4022224774,
+    264347078,
+    604807628,
+    770255983,
+    1249150122,
+    1555081692,
+    1996064986,
+    2554220882,
+    2821834349,
+    2952996808,
+    3210313671,
+    3336571891,
+    3584528711,
+    113926993,
+    338241895,
+    666307205,
+    773529912,
+    1294757372,
+    1396182291,
+    1695183700,
+    1986661051,
+    2177026350,
+    2456956037,
+    2730485921,
+    2820302411,
+    3259730800,
+    3345764771,
+    3516065817,
+    3600352804,
+    4094571909,
+    275423344,
+    430227734,
+    506948616,
+    659060556,
+    883997877,
+    958139571,
+    1322822218,
+    1537002063,
+    1747873779,
+    1955562222,
+    2024104815,
+    2227730452,
+    2361852424,
+    2428436474,
+    2756734187,
+    3204031479,
+    3329325298
+  ]);
+  const length = data.length;
+  const padZeroes = (64 - (length + 9) % 64) % 64;
+  const totalLen = length + 1 + padZeroes + 8;
+  const padded = new Uint8Array(totalLen);
+  padded.set(data);
+  padded[length] = 128;
+  const bitLen = length * 8;
+  const view = new DataView(padded.buffer);
+  view.setUint32(totalLen - 4, bitLen, false);
+  const w = new Uint32Array(64);
+  let h0 = 1779033703;
+  let h1 = 3144134277;
+  let h2 = 1013904242;
+  let h3 = 2773480762;
+  let h4 = 1359893119;
+  let h5 = 2600822924;
+  let h6 = 528734635;
+  let h7 = 1541459225;
+  for (let offset = 0; offset < padded.length; offset += 64) {
+    for (let i = 0; i < 16; i++) {
+      w[i] = view.getUint32(offset + i * 4, false);
+    }
+    for (let i = 16; i < 64; i++) {
+      const s0 = rotr(7, w[i - 15]) ^ rotr(18, w[i - 15]) ^ w[i - 15] >>> 3;
+      const s1 = rotr(17, w[i - 2]) ^ rotr(19, w[i - 2]) ^ w[i - 2] >>> 10;
+      w[i] = w[i - 16] + s0 + w[i - 7] + s1 >>> 0;
+    }
+    let a = h0;
+    let b = h1;
+    let c = h2;
+    let d = h3;
+    let e = h4;
+    let f = h5;
+    let g = h6;
+    let h = h7;
+    for (let i = 0; i < 64; i++) {
+      const S1 = rotr(6, e) ^ rotr(11, e) ^ rotr(25, e);
+      const ch = e & f ^ ~e & g;
+      const temp1 = h + S1 + ch + K[i] + w[i] >>> 0;
+      const S0 = rotr(2, a) ^ rotr(13, a) ^ rotr(22, a);
+      const maj = a & b ^ a & c ^ b & c;
+      const temp2 = S0 + maj >>> 0;
+      h = g;
+      g = f;
+      f = e;
+      e = d + temp1 >>> 0;
+      d = c;
+      c = b;
+      b = a;
+      a = temp1 + temp2 >>> 0;
+    }
+    h0 = h0 + a >>> 0;
+    h1 = h1 + b >>> 0;
+    h2 = h2 + c >>> 0;
+    h3 = h3 + d >>> 0;
+    h4 = h4 + e >>> 0;
+    h5 = h5 + f >>> 0;
+    h6 = h6 + g >>> 0;
+    h7 = h7 + h >>> 0;
+  }
+  const out = new Uint8Array(32);
+  const outView = new DataView(out.buffer);
+  outView.setUint32(0, h0, false);
+  outView.setUint32(4, h1, false);
+  outView.setUint32(8, h2, false);
+  outView.setUint32(12, h3, false);
+  outView.setUint32(16, h4, false);
+  outView.setUint32(20, h5, false);
+  outView.setUint32(24, h6, false);
+  outView.setUint32(28, h7, false);
+  return out;
+}
+function sha256Utf8Hex(message) {
+  const bytes = new TextEncoder().encode(message);
+  const digest = sha256Bytes(bytes);
+  let hex = "";
+  for (let i = 0; i < digest.length; i++) {
+    hex += digest[i].toString(16).padStart(2, "0");
+  }
+  return hex;
+}
+var init_sha256Utf8Hex = __esm({
+  "../common/dist/crypto/sha256Utf8Hex.js"() {
+  }
+});
+
+// ../common/dist/auto-launch/listingProfileFingerprint.js
+function readPath(root, path7) {
+  const segments = path7.split(".").filter(Boolean);
+  let current = root;
+  for (const segment of segments) {
+    if (!current || typeof current !== "object")
+      return void 0;
+    current = current[segment];
+  }
+  return current;
+}
+function collectProfilePathsFromExtensionConfig(config2) {
+  const seen = /* @__PURE__ */ new Set();
+  const paths = [];
+  for (const step of config2?.steps ?? []) {
+    for (const field of step.fields ?? []) {
+      const profilePath = typeof field.profilePath === "string" ? field.profilePath.trim() : "";
+      if (!profilePath || seen.has(profilePath))
+        continue;
+      seen.add(profilePath);
+      paths.push(profilePath);
+    }
+  }
+  return paths.sort();
+}
+function resolveProfilePathValue(snapshot, profilePath) {
+  const root = {
+    name: snapshot.name,
+    tagline: snapshot.tagline,
+    description: snapshot.description,
+    website_url: snapshot.website_url,
+    logo_url: snapshot.logo_url,
+    profile_data: snapshot.profile_data ?? {},
+    integration_customer_id: snapshot.integration_customer_id
+  };
+  const value = readPath(root, profilePath);
+  if (value === null || value === void 0)
+    return null;
+  if (typeof value === "string")
+    return value.trim() ? value.trim() : null;
+  if (typeof value === "number" || typeof value === "boolean")
+    return String(value);
+  if (Array.isArray(value)) {
+    return value.length > 0 ? value.map(String).join(", ") : null;
+  }
+  return null;
+}
+function buildListingProfileFingerprintPayload(snapshot, profilePaths) {
+  const parts = [...profilePaths].sort().map((profilePath) => {
+    const normalized = resolveProfilePathValue(snapshot, profilePath);
+    const keyJson = JSON.stringify(profilePath);
+    const valueJson = normalized === null ? "null" : JSON.stringify(normalized);
+    return `${keyJson}:${valueJson}`;
+  });
+  return `{${parts.join(",")}}`;
+}
+function computeListingProfileFingerprint(snapshot, extensionConfig) {
+  const profilePaths = collectProfilePathsFromExtensionConfig(extensionConfig);
+  const payload = buildListingProfileFingerprintPayload(snapshot, profilePaths);
+  return sha256Utf8Hex(payload);
+}
+var init_listingProfileFingerprint = __esm({
+  "../common/dist/auto-launch/listingProfileFingerprint.js"() {
+    init_sha256Utf8Hex();
+  }
+});
+
+// ../common/dist/auto-launch/profileSimilarityToMain.js
+function collectProfileDataPaths(mainData, variantData) {
+  const keys = /* @__PURE__ */ new Set([
+    ...Object.keys(mainData ?? {}),
+    ...Object.keys(variantData ?? {})
+  ]);
+  return [...keys].sort((a, b) => a.localeCompare(b)).map((key) => `profile_data.${key}`);
+}
+function profileSimilarityPercentToMain(main, variant) {
+  const paths = [
+    ...BASE_PROFILE_PATHS,
+    ...collectProfileDataPaths(main.profile_data ?? {}, variant.profile_data ?? {})
+  ];
+  if (paths.length === 0)
+    return 100;
+  let matching = 0;
+  for (const profilePath of paths) {
+    const mainValue = resolveProfilePathValue(main, profilePath);
+    const variantValue = resolveProfilePathValue(variant, profilePath);
+    if (mainValue === variantValue)
+      matching += 1;
+  }
+  return Math.round(100 * matching / paths.length);
+}
+var BASE_PROFILE_PATHS;
+var init_profileSimilarityToMain = __esm({
+  "../common/dist/auto-launch/profileSimilarityToMain.js"() {
+    init_listingProfileFingerprint();
+    BASE_PROFILE_PATHS = ["name", "tagline", "description", "website_url", "logo_url"];
+  }
+});
+
+// ../common/dist/auto-launch/directorySiteKey.js
+function directorySiteKeyFromProviderSlug(providerSlug, publishedSiteSlugs = []) {
+  const trimmed = providerSlug.trim();
+  const slugs = [...publishedSiteSlugs].sort((a, b) => b.length - a.length);
+  for (const slug of slugs) {
+    if (trimmed === slug || trimmed.startsWith(`${slug}-`)) {
+      return slug;
+    }
+  }
+  const dash = trimmed.indexOf("-");
+  return dash === -1 ? trimmed : trimmed.slice(0, dash);
+}
+var init_directorySiteKey = __esm({
+  "../common/dist/auto-launch/directorySiteKey.js"() {
+  }
+});
+
+// ../common/dist/auto-launch/directoryOpportunityProgress.js
+var init_directoryOpportunityProgress = __esm({
+  "../common/dist/auto-launch/directoryOpportunityProgress.js"() {
+  }
+});
+
+// ../common/dist/auto-launch/profileLaunchReadiness.js
+function collectProfileFieldsFromExtensionConfig(config2) {
+  const seen = /* @__PURE__ */ new Set();
+  const fields = [];
+  for (const step of config2?.steps ?? []) {
+    for (const field of step.fields ?? []) {
+      const profilePath = typeof field.profilePath === "string" ? field.profilePath.trim() : "";
+      if (!profilePath || seen.has(profilePath))
+        continue;
+      seen.add(profilePath);
+      const label = typeof field.label === "string" && field.label.trim() ? field.label.trim() : profilePath;
+      fields.push({ path: profilePath, label });
+    }
+  }
+  return fields.sort((a, b) => a.path.localeCompare(b.path));
+}
+function getDestinationReadiness(snapshot, extensionConfig) {
+  const fieldDefs = collectProfileFieldsFromExtensionConfig(extensionConfig);
+  const missingFields = [];
+  for (const { path: path7, label } of fieldDefs) {
+    if (resolveProfilePathValue(snapshot, path7) === null) {
+      missingFields.push({ path: path7, label });
+    }
+  }
+  const totalFields = fieldDefs.length;
+  const filledFields = totalFields - missingFields.length;
+  return {
+    totalFields,
+    filledFields,
+    missingFields,
+    isReady: missingFields.length === 0
+  };
+}
+function submissionTimestamp(submission) {
+  const raw = submission.completedAt ?? submission.updatedAt;
+  if (!raw)
+    return 0;
+  const t = Date.parse(raw);
+  return Number.isFinite(t) ? t : 0;
+}
+function pickRepresentativeSubmission(submissions) {
+  if (submissions.length === 0)
+    return null;
+  const completed = submissions.filter((s) => s.status === "completed");
+  const pool = completed.length > 0 ? completed : submissions;
+  return pool.reduce((best, current) => {
+    if (!best)
+      return current;
+    return submissionTimestamp(current) >= submissionTimestamp(best) ? current : best;
+  }, null);
+}
+function compareDestinationsForNextGap(a, b) {
+  const sortA = a.sortOrder ?? 0;
+  const sortB = b.sortOrder ?? 0;
+  if (sortA !== sortB)
+    return sortA - sortB;
+  return a.name.localeCompare(b.name);
+}
+function getProfileLaunchSummary(snapshot, destinations, submissions) {
+  const submissionsByDestination = /* @__PURE__ */ new Map();
+  for (const submission of submissions) {
+    const list = submissionsByDestination.get(submission.destinationId) ?? [];
+    list.push(submission);
+    submissionsByDestination.set(submission.destinationId, list);
+  }
+  const destinationRows = destinations.map((destination) => {
+    const readiness = getDestinationReadiness(snapshot, destination.extensionConfig);
+    const representative = pickRepresentativeSubmission(submissionsByDestination.get(destination.id) ?? []);
+    const submissionStatus = representative?.status === "completed" ? "completed" : representative ? "other" : "none";
+    return {
+      destinationId: destination.id,
+      providerSlug: destination.providerSlug,
+      destinationName: destination.name,
+      readiness,
+      submissionStatus,
+      syncStatus: representative?.status === "completed" ? representative.syncStatus : null
+    };
+  });
+  const submittedDestinationIds = new Set(destinationRows.filter((row) => row.submissionStatus === "completed").map((row) => row.destinationId));
+  const siteKeyByDestinationId = new Map(destinations.map((destination) => [
+    destination.id,
+    directorySiteKeyFromProviderSlug(destination.providerSlug)
+  ]));
+  const publishedDirectorySiteKeys = new Set(siteKeyByDestinationId.values());
+  const submittedDirectorySiteKeys = /* @__PURE__ */ new Set();
+  for (const row of destinationRows) {
+    if (row.submissionStatus !== "completed")
+      continue;
+    const siteKey = siteKeyByDestinationId.get(row.destinationId);
+    if (siteKey)
+      submittedDirectorySiteKeys.add(siteKey);
+  }
+  const staleCount = submissions.filter((s) => s.syncStatus === "stale").length;
+  const gapCandidates = destinations.map((destination) => {
+    const readiness = getDestinationReadiness(snapshot, destination.extensionConfig);
+    if (readiness.missingFields.length === 0)
+      return null;
+    const fillRatio = readiness.totalFields === 0 ? 1 : readiness.filledFields / readiness.totalFields;
+    return { destination, readiness, fillRatio };
+  }).filter((entry) => entry !== null).sort((a, b) => {
+    if (a.fillRatio !== b.fillRatio)
+      return a.fillRatio - b.fillRatio;
+    return compareDestinationsForNextGap(a.destination, b.destination);
+  });
+  const firstGap = gapCandidates[0];
+  const nextGap = firstGap ? {
+    destinationId: firstGap.destination.id,
+    destinationName: firstGap.destination.name,
+    providerSlug: firstGap.destination.providerSlug,
+    missingFieldCount: firstGap.readiness.missingFields.length,
+    totalFields: firstGap.readiness.totalFields,
+    filledFields: firstGap.readiness.filledFields,
+    missingFields: firstGap.readiness.missingFields
+  } : null;
+  return {
+    publishedDestinationCount: destinations.length,
+    submittedCount: submittedDestinationIds.size,
+    publishedDirectorySiteCount: publishedDirectorySiteKeys.size,
+    submittedDirectorySiteCount: submittedDirectorySiteKeys.size,
+    staleCount,
+    nextGap,
+    destinations: destinationRows
+  };
+}
+var init_profileLaunchReadiness = __esm({
+  "../common/dist/auto-launch/profileLaunchReadiness.js"() {
+    init_directorySiteKey();
+    init_listingProfileFingerprint();
+  }
+});
+
+// ../common/dist/auto-launch/businessProfileData.js
+function isPlainObject(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function mergeBusinessProfileData(existing, patch) {
+  const base = isPlainObject(existing) ? { ...existing } : {};
+  const next = { ...base, ...patch };
+  return normalizeBusinessProfileData(next);
+}
+function normalizeBusinessProfileData(value) {
+  const out = {};
+  const slug = trimToNull(value.slug);
+  if (slug !== void 0)
+    out.slug = slug;
+  const category = trimToNull(value.category);
+  if (category !== void 0)
+    out.category = category;
+  if (value.categories !== void 0) {
+    out.categories = normalizeStringArray(value.categories);
+  }
+  if (value.use_cases !== void 0) {
+    out.use_cases = normalizeStringArray(value.use_cases);
+  }
+  if (value.target_audiences !== void 0) {
+    out.target_audiences = normalizeStringArray(value.target_audiences);
+  }
+  if (value.platforms !== void 0) {
+    out.platforms = normalizeStringArray(value.platforms);
+  }
+  if (value.alternatives !== void 0) {
+    out.alternatives = normalizeStringArray(value.alternatives);
+  }
+  if (value.pricing_type !== void 0) {
+    const pt = value.pricing_type;
+    if (pt === null)
+      out.pricing_type = null;
+    else if (typeof pt === "string" && BUSINESS_PROFILE_PRICING_TYPES.includes(pt)) {
+      out.pricing_type = pt;
+    }
+  }
+  if (value.tags !== void 0) {
+    out.tags = normalizeStringArray(value.tags);
+  }
+  if (value.is_open_source !== void 0) {
+    out.is_open_source = value.is_open_source === null ? null : Boolean(value.is_open_source);
+  }
+  const repositoryUrl = trimToNull(value.repository_url);
+  if (repositoryUrl !== void 0)
+    out.repository_url = repositoryUrl;
+  const launchVideoUrl = trimToNull(value.launch_video_url);
+  if (launchVideoUrl !== void 0)
+    out.launch_video_url = launchVideoUrl;
+  if (value.gallery_urls !== void 0) {
+    out.gallery_urls = normalizeStringArray(value.gallery_urls);
+  }
+  for (const key of [
+    "social_x",
+    "social_github",
+    "social_instagram",
+    "social_linkedin",
+    "social_tiktok",
+    "social_facebook",
+    "social_youtube",
+    "social_bluesky"
+  ]) {
+    if (value[key] !== void 0) {
+      out[key] = trimToNull(value[key]) ?? null;
+    }
+  }
+  if (value.acquisition_listed !== void 0) {
+    out.acquisition_listed = value.acquisition_listed === null ? null : Boolean(value.acquisition_listed);
+  }
+  for (const key of [
+    "asking_price_usd",
+    "ttm_revenue_usd",
+    "monthly_revenue_usd",
+    "ttm_profit_usd",
+    "monthly_profit_usd"
+  ]) {
+    if (value[key] !== void 0) {
+      out[key] = normalizeUsdAmount(value[key]);
+    }
+  }
+  const sellingReason = trimToNull(value.selling_reason);
+  if (sellingReason !== void 0)
+    out.selling_reason = sellingReason;
+  if (value.included_assets !== void 0) {
+    out.included_assets = normalizeIncludedAssets(value.included_assets);
+  }
+  return out;
+}
+function trimToNull(value) {
+  if (value === void 0)
+    return void 0;
+  if (value === null)
+    return null;
+  if (typeof value !== "string")
+    return void 0;
+  const trimmed = value.trim();
+  return trimmed.length === 0 ? null : trimmed;
+}
+function normalizeStringArray(value) {
+  if (value === null)
+    return null;
+  if (!Array.isArray(value))
+    return [];
+  return value.filter((item) => typeof item === "string").map((item) => item.trim()).filter((item) => item.length > 0);
+}
+function normalizeUsdAmount(value) {
+  if (value === null)
+    return null;
+  if (typeof value !== "number" || !Number.isFinite(value))
+    return null;
+  if (value < 0)
+    return null;
+  return value;
+}
+function normalizeIncludedAssets(value) {
+  if (value === null)
+    return null;
+  if (!Array.isArray(value))
+    return [];
+  const slugs = [];
+  for (const item of value) {
+    if (typeof item !== "string")
+      continue;
+    const slug = item.trim();
+    if (!INCLUDED_ASSET_SET.has(slug))
+      continue;
+    if (!slugs.includes(slug)) {
+      slugs.push(slug);
+    }
+  }
+  return slugs;
+}
+var BUSINESS_PROFILE_MAX_TAGS, BUSINESS_PROFILE_MAX_CATEGORIES, BUSINESS_PROFILE_MAX_USE_CASES, BUSINESS_PROFILE_MAX_TARGET_AUDIENCES, BUSINESS_PROFILE_MAX_PLATFORMS, BUSINESS_PROFILE_MAX_ALTERNATIVES, BUSINESS_PROFILE_MAX_GALLERY_URLS, BUSINESS_PROFILE_SELLING_REASON_MIN_LENGTH, BUSINESS_PROFILE_PRICING_TYPES, BUSINESS_PROFILE_INCLUDED_ASSET_SLUGS, INCLUDED_ASSET_SET;
+var init_businessProfileData = __esm({
+  "../common/dist/auto-launch/businessProfileData.js"() {
+    BUSINESS_PROFILE_MAX_TAGS = 3;
+    BUSINESS_PROFILE_MAX_CATEGORIES = 3;
+    BUSINESS_PROFILE_MAX_USE_CASES = 3;
+    BUSINESS_PROFILE_MAX_TARGET_AUDIENCES = 3;
+    BUSINESS_PROFILE_MAX_PLATFORMS = 5;
+    BUSINESS_PROFILE_MAX_ALTERNATIVES = 5;
+    BUSINESS_PROFILE_MAX_GALLERY_URLS = 3;
+    BUSINESS_PROFILE_SELLING_REASON_MIN_LENGTH = 20;
+    BUSINESS_PROFILE_PRICING_TYPES = ["free", "freemium", "paid"];
+    BUSINESS_PROFILE_INCLUDED_ASSET_SLUGS = [
+      "domain",
+      "source_code",
+      "social_accounts",
+      "customer_list",
+      "brand_assets",
+      "intellectual_property",
+      "contracts",
+      "inventory"
+    ];
+    INCLUDED_ASSET_SET = new Set(BUSINESS_PROFILE_INCLUDED_ASSET_SLUGS);
   }
 });
 
@@ -488,6 +1168,12 @@ var init_dist = __esm({
     init_types();
     init_pricing();
     init_browser_extension();
+    init_listingProfileFingerprint();
+    init_profileSimilarityToMain();
+    init_directorySiteKey();
+    init_directoryOpportunityProgress();
+    init_profileLaunchReadiness();
+    init_businessProfileData();
     init_virtualPaths();
   }
 });
@@ -650,14 +1336,16 @@ var init_orchestratorFlows = __esm({
       },
       /**
        * Org notification emails: immediate sends enqueue `sendPlain` jobs; digest appends to Redis and the
-       * notification-email worker flushes on a fixed interval (acknowledges Redis entries only after send succeeds).
+       * housekeeping worker flushes on a fixed interval (acknowledges Redis entries only after send succeeds).
+       * Directory SEO weekly domain refresh runs in the same process (stateless; stale domains from Postgres).
        */
       notificationEmail: {
         /**
          * Suggested long-running worker service name (e.g. on Railway) for this flow.
          * Keep distinct per worker type so logs/metrics and deployments are unambiguous.
+         * Legacy Railway service: `openquok-worker-notification-email` (one-release alias).
          */
-        workerServiceName: "openquok-worker-notification-email",
+        workerServiceName: "openquok-worker-housekeeping",
         queueName: "notification-email",
         transport: "bullmq",
         /** How often the worker drains digest Redis lists (ms). */
@@ -1169,6 +1857,30 @@ var init_GlobalConfig = __esm({
       marketing: {
         facebookPixelId: getEnvTrimmed("FACEBOOK_PIXEL_ID", ""),
         facebookPixelAccessToken: getEnvTrimmed("FACEBOOK_PIXEL_ACCESS_TOKEN", "")
+      },
+      /** DataForSEO credentials (Directory SEO domain rating). */
+      dataforseo: {
+        /** Base64-encoded `login:password` for HTTP Basic auth. */
+        apiKey: getEnvTrimmed("DATAFORSEO_API_KEY", "")
+      },
+      /**
+       * Directory SEO — global domain rating cache (main product site + workspace competitors).
+       * Snapshots in `seo_domain_metric_snapshots` are rebuildable; TTL avoids repeat paid calls.
+       */
+      directorySeo: {
+        enabled: getEnvBoolean("DIRECTORY_SEO_ENABLED", true),
+        /** Default 168h (7 days) global cache per domain. */
+        cacheTtlHours: getEnvNumber("DIRECTORY_SEO_CACHE_TTL_HOURS", 168),
+        weeklyRefreshEnabled: getEnvBoolean("DIRECTORY_SEO_WEEKLY_REFRESH_ENABLED", true),
+        /** How often the housekeeping worker runs `DirectorySeoService.runWeeklyRefresh()` (default 7 days). */
+        weeklyRefreshIntervalMs: getEnvNumber(
+          "DIRECTORY_SEO_WEEKLY_REFRESH_INTERVAL_MS",
+          7 * 24 * 60 * 60 * 1e3
+        ),
+        /** Max daily history window imported from DataForSEO timeseries (default 90 days). */
+        historyBackfillMaxDays: getEnvNumber("DIRECTORY_SEO_HISTORY_BACKFILL_MAX_DAYS", 90),
+        /** Skip repeat timeseries imports per domain until this TTL elapses (default 7 days). */
+        historyBackfillTtlDays: getEnvNumber("DIRECTORY_SEO_HISTORY_BACKFILL_TTL_DAYS", 7)
       },
       /**
        * Post-conversion acquisition survey — subscriptions created before `eligibleFrom` are never prompted.
@@ -2335,6 +3047,222 @@ var init_R2StorageClient = __esm({
   }
 });
 
+// errors/InfraError.ts
+var ValidationError, InfraError, DatabaseError, DatabaseEntityNotFoundError;
+var init_InfraError = __esm({
+  "errors/InfraError.ts"() {
+    ValidationError = class extends Error {
+      statusCode = 400;
+      constructor(message, options2) {
+        super(message);
+        this.name = "ValidationError";
+        if (options2?.cause) this.cause = options2.cause;
+      }
+    };
+    InfraError = class extends Error {
+      statusCode;
+      component;
+      operation;
+      cause;
+      constructor(message, options2 = {}) {
+        super(message);
+        this.name = "InfraError";
+        this.statusCode = options2.statusCode ?? 500;
+        this.component = options2.component ?? "infrastructure";
+        this.operation = options2.operation;
+        this.cause = options2.cause;
+      }
+    };
+    DatabaseError = class extends Error {
+      statusCode;
+      metadata;
+      constructor(message, options2 = {}) {
+        super(message);
+        this.name = "DatabaseError";
+        this.statusCode = options2.statusCode ?? 500;
+        this.metadata = {
+          cause: options2.cause,
+          operation: options2.operation,
+          resource: options2.resource,
+          entityType: options2.entityType,
+          ...options2.metadata
+        };
+      }
+    };
+    DatabaseEntityNotFoundError = class extends DatabaseError {
+      constructor(entityType, identifier, options2) {
+        super(`Entity not found: ${entityType}`, {
+          statusCode: 404,
+          entityType: options2?.entityType ?? entityType,
+          metadata: { identifier }
+        });
+        this.name = "DatabaseEntityNotFoundError";
+      }
+    };
+  }
+});
+
+// connections/dataforseo/dataforseoClient.ts
+function dataforseoConfig() {
+  const dfs = config.dataforseo;
+  const directorySeo = config.directorySeo;
+  return {
+    apiKey: dfs?.apiKey?.trim() ?? "",
+    enabled: directorySeo?.enabled ?? false
+  };
+}
+function isDataForSeoConfigured() {
+  const { apiKey, enabled } = dataforseoConfig();
+  return enabled && apiKey.length > 0;
+}
+function isNoResultsTask(task) {
+  return task?.status_message?.toLowerCase().includes("no search results") ?? false;
+}
+function parseDomainRating(raw) {
+  if (typeof raw !== "number" || !Number.isFinite(raw)) return null;
+  return raw;
+}
+function assertDataForSeoConfigured(operation) {
+  const { apiKey, enabled } = dataforseoConfig();
+  if (!enabled || !apiKey) {
+    throw new InfraError("DataForSEO is not configured", {
+      component: "dataforseo",
+      operation,
+      statusCode: 503
+    });
+  }
+  return apiKey;
+}
+function parseTaskResultRows(envelope, path7, operation) {
+  const task = envelope.tasks?.[0];
+  if (!task || task.status_code !== 2e4 && !isNoResultsTask(task)) {
+    throw new InfraError(
+      `DataForSEO task ${task?.status_code ?? "missing"} on ${path7}: ${task?.status_message ?? "no task"}`,
+      {
+        component: "dataforseo",
+        operation,
+        statusCode: 502
+      }
+    );
+  }
+  return task.result ?? null;
+}
+async function postDataForSeoLiveTask(path7, payload, operation, fetchImpl = fetch) {
+  const apiKey = assertDataForSeoConfigured(operation);
+  const response = await fetchImpl(`${DATAFORSEO_BASE}${path7}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Basic ${apiKey}`
+    },
+    body: JSON.stringify([payload]),
+    signal: AbortSignal.timeout(3e4)
+  });
+  if (!response.ok) {
+    throw new InfraError(`DataForSEO HTTP ${response.status} on ${path7}`, {
+      component: "dataforseo",
+      operation,
+      statusCode: 502
+    });
+  }
+  const envelope = await response.json();
+  return parseTaskResultRows(envelope, path7, operation);
+}
+function itemDateToCapturedAtIso(raw) {
+  if (typeof raw !== "string" || !raw.trim()) return null;
+  const trimmed = raw.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    return `${trimmed}T00:00:00.000Z`;
+  }
+  const parsed = Date.parse(trimmed);
+  if (!Number.isFinite(parsed)) return null;
+  return new Date(parsed).toISOString();
+}
+function parseTimeseriesItems(resultRows) {
+  if (!resultRows?.length) return [];
+  const resultRow = resultRows[0];
+  const items = resultRow.items;
+  if (!Array.isArray(items)) return [];
+  const points = [];
+  for (const item of items) {
+    if (!item || typeof item !== "object") continue;
+    const record = item;
+    const rating = parseDomainRating(record.rank);
+    if (rating === null || rating === 0) continue;
+    const capturedAt = itemDateToCapturedAtIso(record.date);
+    if (!capturedAt) continue;
+    points.push({ capturedAt, domainRating: rating });
+  }
+  return points;
+}
+async function fetchBacklinksSummaryLive(domain, fetchImpl = fetch) {
+  const payload = {
+    target: domain,
+    include_subdomains: true,
+    include_indirect_links: true,
+    exclude_internal_backlinks: true,
+    backlinks_status_type: "live",
+    rank_scale: "one_hundred"
+  };
+  const resultRows = await postDataForSeoLiveTask(
+    SUMMARY_PATH,
+    payload,
+    "fetchBacklinksSummaryLive",
+    fetchImpl
+  );
+  const resultRow = resultRows?.[0];
+  const rank = resultRow?.rank;
+  return { domainRating: parseDomainRating(rank) };
+}
+async function fetchBacklinksTimeseriesSummaryLive(domain, options2, fetchImpl = fetch) {
+  const payload = {
+    target: domain,
+    date_from: options2.dateFrom,
+    date_to: options2.dateTo,
+    group_range: options2.groupRange,
+    include_subdomains: true,
+    rank_scale: "one_hundred"
+  };
+  const resultRows = await postDataForSeoLiveTask(
+    TIMESERIES_SUMMARY_PATH,
+    payload,
+    "fetchBacklinksTimeseriesSummaryLive",
+    fetchImpl
+  );
+  return { points: parseTimeseriesItems(resultRows) };
+}
+var DATAFORSEO_BASE, SUMMARY_PATH, TIMESERIES_SUMMARY_PATH;
+var init_dataforseoClient = __esm({
+  "connections/dataforseo/dataforseoClient.ts"() {
+    init_GlobalConfig();
+    init_InfraError();
+    DATAFORSEO_BASE = "https://api.dataforseo.com";
+    SUMMARY_PATH = "/v3/backlinks/summary/live";
+    TIMESERIES_SUMMARY_PATH = "/v3/backlinks/timeseries_summary/live";
+  }
+});
+
+// connections/dataforseo/normalizeSeoDomain.ts
+function normalizeSeoDomain(input) {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+  let hostname;
+  try {
+    hostname = new URL(trimmed.includes("://") ? trimmed : `https://${trimmed}`).hostname;
+  } catch {
+    return null;
+  }
+  const domain = hostname.replace(/^www\./i, "").toLowerCase();
+  const isValid = /^(?=.{1,253}$)[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/.test(
+    domain
+  );
+  return isValid ? domain : null;
+}
+var init_normalizeSeoDomain = __esm({
+  "connections/dataforseo/normalizeSeoDomain.ts"() {
+  }
+});
+
 // connections/index.ts
 function getSupabaseServiceClient() {
   if (!supabaseServiceClientSingleton) {
@@ -2352,6 +3280,8 @@ var init_connections = __esm({
     init_cache();
     init_bullmq();
     init_R2StorageClient();
+    init_dataforseoClient();
+    init_normalizeSeoDomain();
     supabaseServiceClientConnection = new Proxy({}, {
       get(_target, prop, receiver) {
         const client = getSupabaseServiceClient();
@@ -2458,61 +3388,6 @@ var init_AuthError = __esm({
         super(`Permission denied. Required: ${requiredRoleOrPermission}`, 403);
         this.name = "PermissionError";
         this.metadata.errorType = "PERMISSION_ERROR";
-      }
-    };
-  }
-});
-
-// errors/InfraError.ts
-var ValidationError, InfraError, DatabaseError, DatabaseEntityNotFoundError;
-var init_InfraError = __esm({
-  "errors/InfraError.ts"() {
-    ValidationError = class extends Error {
-      statusCode = 400;
-      constructor(message, options2) {
-        super(message);
-        this.name = "ValidationError";
-        if (options2?.cause) this.cause = options2.cause;
-      }
-    };
-    InfraError = class extends Error {
-      statusCode;
-      component;
-      operation;
-      cause;
-      constructor(message, options2 = {}) {
-        super(message);
-        this.name = "InfraError";
-        this.statusCode = options2.statusCode ?? 500;
-        this.component = options2.component ?? "infrastructure";
-        this.operation = options2.operation;
-        this.cause = options2.cause;
-      }
-    };
-    DatabaseError = class extends Error {
-      statusCode;
-      metadata;
-      constructor(message, options2 = {}) {
-        super(message);
-        this.name = "DatabaseError";
-        this.statusCode = options2.statusCode ?? 500;
-        this.metadata = {
-          cause: options2.cause,
-          operation: options2.operation,
-          resource: options2.resource,
-          entityType: options2.entityType,
-          ...options2.metadata
-        };
-      }
-    };
-    DatabaseEntityNotFoundError = class extends DatabaseError {
-      constructor(entityType, identifier, options2) {
-        super(`Entity not found: ${entityType}`, {
-          statusCode: 404,
-          entityType: options2?.entityType ?? entityType,
-          metadata: { identifier }
-        });
-        this.name = "DatabaseEntityNotFoundError";
       }
     };
   }
@@ -5183,15 +6058,15 @@ var init_FeedbackController = __esm({
       createFeedback = async (req, res, next) => {
         try {
           const body = req.body;
-          const auth10 = req;
+          const auth12 = req;
           const fromBody = body.email?.trim();
-          const emailFromAuth = auth10.user?.email?.trim();
+          const emailFromAuth = auth12.user?.email?.trim();
           const payload = {
             ...body,
             email: fromBody && fromBody.length > 0 ? fromBody : emailFromAuth && emailFromAuth.length > 0 ? emailFromAuth : void 0
           };
           const id = await this.feedbackService.createFeedback(payload, {
-            userId: auth10.user?.id
+            userId: auth12.user?.id
           });
           res.status(201).json({
             success: true,
@@ -9165,7 +10040,7 @@ var init_LinkDirectoryRepository = __esm({
       }
       async findUserSavedSites(userId) {
         const { data, error } = await this.supabase.from(TABLE_SAVED_SITES).select(
-          `id, user_id, site_id, sort_order, created_at, outreach_completed_at, site:link_directory_sites(${SELECT_SITE_FOR_SAVED_SITE})`
+          `id, user_id, site_id, sort_order, created_at, site:link_directory_sites(${SELECT_SITE_FOR_SAVED_SITE})`
         ).eq("user_id", userId).order("sort_order", { ascending: true });
         if (error) {
           throw new DatabaseError(`Error fetching saved sites: ${error.message}`, {
@@ -9234,21 +10109,6 @@ var init_LinkDirectoryRepository = __esm({
               siteId
             });
           }
-        }
-      }
-      async setUserSavedSiteOutreachCompleted(userId, siteId, outreachCompletedAt) {
-        const { data, error } = await this.supabase.from(TABLE_SAVED_SITES).update({ outreach_completed_at: outreachCompletedAt }).eq("user_id", userId).eq("site_id", siteId).select("id").maybeSingle();
-        if (error) {
-          throw new DatabaseError(`Error updating saved site outreach completion: ${error.message}`, {
-            cause: error,
-            operation: "update"
-          });
-        }
-        if (!data) {
-          throw new DatabaseEntityNotFoundError("Saved site not found for outreach completion update", {
-            userId,
-            siteId
-          });
         }
       }
       filterPublishedOpportunities(site) {
@@ -9446,6 +10306,39 @@ var init_LinkDirectoryRepository = __esm({
             author: rawAuthor ? { id: rawAuthor.id, full_name: rawAuthor.full_name ?? null, avatar_url: avatar_url ?? null } : null
           };
         });
+      }
+      async listSitesForCatalogDrRefresh(filters) {
+        let query = this.supabase.from(TABLE_SITES).select("id, slug, site_url").order("slug", { ascending: true });
+        if (filters.publishedOnly) {
+          query = query.eq("is_admin_published", true);
+        }
+        if (filters.siteId) {
+          query = query.eq("id", filters.siteId);
+        }
+        if (filters.slug) {
+          query = query.eq("slug", filters.slug);
+        }
+        const { data, error } = await query;
+        if (error) {
+          throw new DatabaseError(`Error listing sites for catalog DR refresh: ${error.message}`, {
+            cause: error,
+            operation: "select"
+          });
+        }
+        return data ?? [];
+      }
+      async updateSiteCatalogDomainMetrics(params) {
+        const { error } = await this.supabase.from(TABLE_SITES).update({
+          domain_rating: params.domainRating,
+          metrics_updated_at: params.metricsUpdatedAt,
+          metrics_source: params.metricsSource
+        }).eq("id", params.siteId);
+        if (error) {
+          throw new DatabaseError(`Error updating site catalog domain metrics: ${error.message}`, {
+            cause: error,
+            operation: "update"
+          });
+        }
       }
       async syncSiteTags(siteId, tagIds) {
         const { error: deleteError } = await this.supabase.from(TABLE_TAG_ASSOC2).delete().eq("site_id", siteId);
@@ -10094,7 +10987,7 @@ var init_MediaRepository = __esm({
 
 // repositories/StorageSupabaseRepository.ts
 function isSupabaseImageBucketName(name) {
-  return name === DATABASE_NAMES.AVATARS || name === DATABASE_NAMES.BLOG_IMAGES || name === DATABASE_NAMES.LINK_DIRECTORY_LOGOS;
+  return name === DATABASE_NAMES.AVATARS || name === DATABASE_NAMES.BLOG_IMAGES || name === DATABASE_NAMES.LINK_DIRECTORY_LOGOS || name === DATABASE_NAMES.AUTO_LAUNCH_PROFILE_MEDIA;
 }
 var DATABASE_NAMES, StorageSupabaseRepository;
 var init_StorageSupabaseRepository = __esm({
@@ -10103,7 +10996,8 @@ var init_StorageSupabaseRepository = __esm({
     DATABASE_NAMES = {
       AVATARS: "avatars",
       BLOG_IMAGES: "blog_images",
-      LINK_DIRECTORY_LOGOS: "link_directory_logos"
+      LINK_DIRECTORY_LOGOS: "link_directory_logos",
+      AUTO_LAUNCH_PROFILE_MEDIA: "auto_launch_profile_media"
     };
     StorageSupabaseRepository = class {
       constructor(supabaseServiceClient) {
@@ -10142,6 +11036,35 @@ var init_StorageSupabaseRepository = __esm({
             operation: "upload",
             resource: { type: "storage", name: databaseName }
           });
+        }
+        return filePath;
+      }
+      /**
+       * Upload under `{prefix}/{random}.{ext}` (e.g. `{organizationId}/{profileId}/…` in `auto_launch_profile_media`).
+       */
+      async uploadImageUnderPrefix(databaseName, file, prefix) {
+        const normalizedPrefix = prefix.replace(/^\/+|\/+$/g, "");
+        if (!normalizedPrefix) {
+          throw new DatabaseError(`Error in uploadImageUnderPrefix: ${databaseName} with empty prefix`, {
+            operation: "upload",
+            resource: { type: "storage", name: databaseName }
+          });
+        }
+        const fileExt = file.originalname.split(".").pop() || "bin";
+        const filePath = `${normalizedPrefix}/${Math.random()}.${fileExt}`;
+        const { error: uploadError } = await this.supabaseServiceClient.storage.from(databaseName).upload(filePath, file.buffer, {
+          contentType: file.mimetype,
+          upsert: false
+        });
+        if (uploadError) {
+          throw new DatabaseError(
+            `Error in uploadImageUnderPrefix: ${databaseName} with message ${uploadError.message}`,
+            {
+              cause: uploadError,
+              operation: "upload",
+              resource: { type: "storage", name: databaseName }
+            }
+          );
         }
         return filePath;
       }
@@ -10349,6 +11272,32 @@ var init_IntegrationRepository = __esm({
           });
         }
         return data ?? [];
+      }
+      async updateIntegrationCustomerName(organizationId, customerId, name) {
+        const trimmed = name.trim();
+        const { error } = await this.supabase.from("integration_customers").update({
+          name: trimmed,
+          updated_at: (/* @__PURE__ */ new Date()).toISOString()
+        }).eq("id", customerId).eq("organization_id", organizationId);
+        if (error) {
+          throw new DatabaseError("Failed to update channel group name", {
+            cause: error,
+            operation: "update",
+            resource: { type: "table", name: "integration_customers" }
+          });
+        }
+      }
+      async findIntegrationCustomerByOrgAndName(organizationId, name) {
+        const trimmed = name.trim();
+        const { data, error } = await this.supabase.from("integration_customers").select("id, name").eq("organization_id", organizationId).eq("name", trimmed).maybeSingle();
+        if (error) {
+          throw new DatabaseError("Failed to resolve channel group by name", {
+            cause: error,
+            operation: "select",
+            resource: { type: "table", name: "integration_customers" }
+          });
+        }
+        return data ?? null;
       }
       async createIntegrationCustomer(organizationId, name) {
         const trimmed = name.trim();
@@ -12128,9 +13077,9 @@ var init_OauthAppRepository = __esm({
           });
         }
         const byId = new Map((apps ?? []).map((a) => [a.id, a]));
-        return rows.map((auth10) => ({
-          ...auth10,
-          oauth_app: byId.get(auth10.oauth_app_id) ?? null
+        return rows.map((auth12) => ({
+          ...auth12,
+          oauth_app: byId.get(auth12.oauth_app_id) ?? null
         }));
       }
       async revokeAuthorizationByIdAndUserId(params) {
@@ -12603,8 +13552,723 @@ var init_TrialBrowserRepository = __esm({
   }
 });
 
+// repositories/AutoLaunchRepository.ts
+function mapDestinationListRow(row) {
+  const opp = row.link_directory_opportunity;
+  const site = opp?.site;
+  return {
+    ...row,
+    extension_config: row.extension_config ?? {},
+    opportunity_title: opp?.title ?? null,
+    opportunity_description: opp?.description ?? null,
+    opportunity_dofollow: opp?.dofollow ?? null,
+    opportunity_cost_tier: opp?.cost_tier ?? null,
+    opportunity_cost_note: opp?.cost_note ?? null,
+    site_title: site?.title ?? null,
+    site_domain_rating: site?.domain_rating ?? null,
+    site_metrics_updated_at: site?.metrics_updated_at ?? null
+  };
+}
+var PROFILES_TABLE, DESTINATIONS_TABLE, SUBMISSIONS_TABLE, PROFILE_COLS, DESTINATION_COLS, SUBMISSION_COLS, DESTINATION_OPPORTUNITY_JOIN, AutoLaunchRepository;
+var init_AutoLaunchRepository = __esm({
+  "repositories/AutoLaunchRepository.ts"() {
+    init_InfraError();
+    PROFILES_TABLE = "auto_launch_product_profiles";
+    DESTINATIONS_TABLE = "auto_launch_destinations";
+    SUBMISSIONS_TABLE = "auto_launch_submissions";
+    PROFILE_COLS = "id, organization_id, integration_customer_id, name, tagline, description, website_url, logo_url, profile_data, profile_kind, parent_profile_id, directory_site_key, created_at, updated_at, created_by_user_id, deleted_at";
+    DESTINATION_COLS = "id, provider_slug, link_directory_opportunity_id, name, short_description, submission_path, start_url, extension_config, is_published, sort_order, picker_group_key, picker_group_title, created_at, updated_at";
+    SUBMISSION_COLS = "id, organization_id, product_profile_id, destination_id, status, profile_snapshot, extension_config_snapshot, evidence, listing_url, intent_created_at, completed_at, created_by_user_id, completed_by_user_id, listing_profile_fingerprint, listing_synced_at, created_at, updated_at";
+    DESTINATION_OPPORTUNITY_JOIN = "title, description, dofollow, cost_tier, cost_note, site:link_directory_sites(title, domain_rating, metrics_updated_at)";
+    AutoLaunchRepository = class {
+      constructor(supabase2) {
+        this.supabase = supabase2;
+      }
+      async listPublishedDestinations() {
+        const { data, error } = await this.supabase.from(DESTINATIONS_TABLE).select(
+          `${DESTINATION_COLS}, link_directory_opportunity:link_directory_opportunities(${DESTINATION_OPPORTUNITY_JOIN})`
+        ).eq("is_published", true).order("sort_order", { ascending: true });
+        if (error) {
+          throw new DatabaseError("Error listing auto-launch destinations", {
+            cause: error,
+            operation: "listPublishedDestinations",
+            resource: { type: "table", name: DESTINATIONS_TABLE }
+          });
+        }
+        return (data ?? []).map(mapDestinationListRow);
+      }
+      async findDestinationListRowById(destinationId) {
+        const { data, error } = await this.supabase.from(DESTINATIONS_TABLE).select(
+          `${DESTINATION_COLS}, link_directory_opportunity:link_directory_opportunities(${DESTINATION_OPPORTUNITY_JOIN})`
+        ).eq("id", destinationId).maybeSingle();
+        if (error) {
+          throw new DatabaseError("Error finding auto-launch destination with opportunity", {
+            cause: error,
+            operation: "findDestinationListRowById",
+            resource: { type: "table", name: DESTINATIONS_TABLE }
+          });
+        }
+        if (!data) return null;
+        return mapDestinationListRow(data);
+      }
+      async findDestinationById(destinationId) {
+        const { data, error } = await this.supabase.from(DESTINATIONS_TABLE).select(DESTINATION_COLS).eq("id", destinationId).maybeSingle();
+        if (error) {
+          throw new DatabaseError("Error finding auto-launch destination", {
+            cause: error,
+            operation: "findDestinationById",
+            resource: { type: "table", name: DESTINATIONS_TABLE }
+          });
+        }
+        if (!data) return null;
+        return {
+          ...data,
+          extension_config: data.extension_config ?? {}
+        };
+      }
+      async findPublishedDestinationByProviderSlug(providerSlug) {
+        const { data, error } = await this.supabase.from(DESTINATIONS_TABLE).select(DESTINATION_COLS).eq("provider_slug", providerSlug).eq("is_published", true).maybeSingle();
+        if (error) {
+          throw new DatabaseError("Error finding auto-launch destination by slug", {
+            cause: error,
+            operation: "findPublishedDestinationByProviderSlug",
+            resource: { type: "table", name: DESTINATIONS_TABLE }
+          });
+        }
+        if (!data) return null;
+        return {
+          ...data,
+          extension_config: data.extension_config ?? {}
+        };
+      }
+      async listProfilesByOrganization(organizationId, integrationCustomerId) {
+        let query = this.supabase.from(PROFILES_TABLE).select(PROFILE_COLS).eq("organization_id", organizationId).is("deleted_at", null).order("updated_at", { ascending: false });
+        if (integrationCustomerId) {
+          query = query.eq("integration_customer_id", integrationCustomerId);
+        }
+        const { data, error } = await query;
+        if (error) {
+          throw new DatabaseError("Error listing auto-launch product profiles", {
+            cause: error,
+            operation: "listProfilesByOrganization",
+            resource: { type: "table", name: PROFILES_TABLE }
+          });
+        }
+        return data ?? [];
+      }
+      async findActiveProfileByIntegrationCustomerId(organizationId, integrationCustomerId, exceptProfileId) {
+        let query = this.supabase.from(PROFILES_TABLE).select(PROFILE_COLS).eq("organization_id", organizationId).eq("integration_customer_id", integrationCustomerId).is("deleted_at", null);
+        if (exceptProfileId) {
+          query = query.neq("id", exceptProfileId);
+        }
+        const { data, error } = await query.maybeSingle();
+        if (error) {
+          throw new DatabaseError("Error resolving product profile for channel group", {
+            cause: error,
+            operation: "findActiveProfileByIntegrationCustomerId",
+            resource: { type: "table", name: PROFILES_TABLE }
+          });
+        }
+        return data ?? null;
+      }
+      async findProfileById(profileId) {
+        const { data, error } = await this.supabase.from(PROFILES_TABLE).select(PROFILE_COLS).eq("id", profileId).is("deleted_at", null).maybeSingle();
+        if (error) {
+          throw new DatabaseError("Error finding auto-launch product profile", {
+            cause: error,
+            operation: "findProfileById",
+            resource: { type: "table", name: PROFILES_TABLE }
+          });
+        }
+        return data ?? null;
+      }
+      async findProfilesByIds(params) {
+        const uniqueIds = [...new Set(params.profileIds)].filter(Boolean);
+        if (uniqueIds.length === 0) {
+          return [];
+        }
+        const { data, error } = await this.supabase.from(PROFILES_TABLE).select(PROFILE_COLS).eq("organization_id", params.organizationId).in("id", uniqueIds).is("deleted_at", null);
+        if (error) {
+          throw new DatabaseError("Error finding auto-launch product profiles by id", {
+            cause: error,
+            operation: "findProfilesByIds",
+            resource: { type: "table", name: PROFILES_TABLE }
+          });
+        }
+        return data ?? [];
+      }
+      async insertProfile(params) {
+        const now = (/* @__PURE__ */ new Date()).toISOString();
+        const { data, error } = await this.supabase.from(PROFILES_TABLE).insert({
+          organization_id: params.organizationId,
+          integration_customer_id: params.integrationCustomerId,
+          name: params.name,
+          tagline: params.tagline,
+          description: params.description,
+          website_url: params.websiteUrl,
+          logo_url: params.logoUrl,
+          profile_data: params.profileData,
+          created_by_user_id: params.createdByUserId,
+          created_at: now,
+          updated_at: now
+        }).select(PROFILE_COLS).single();
+        if (error || !data) {
+          throw new DatabaseError("Error inserting auto-launch product profile", {
+            cause: error ?? new Error("no row"),
+            operation: "insertProfile",
+            resource: { type: "table", name: PROFILES_TABLE }
+          });
+        }
+        return data;
+      }
+      async findDirectoryVariantByParentAndSiteKey(params) {
+        const { data, error } = await this.supabase.from(PROFILES_TABLE).select(PROFILE_COLS).eq("parent_profile_id", params.parentProfileId).eq("directory_site_key", params.directorySiteKey).eq("profile_kind", "directory_variant").is("deleted_at", null).maybeSingle();
+        if (error) {
+          throw new DatabaseError("Error finding directory profile variant", {
+            cause: error,
+            operation: "findDirectoryVariantByParentAndSiteKey",
+            resource: { type: "table", name: PROFILES_TABLE }
+          });
+        }
+        return data ?? null;
+      }
+      async insertDirectoryVariantFromMain(params) {
+        const now = (/* @__PURE__ */ new Date()).toISOString();
+        const { data, error } = await this.supabase.from(PROFILES_TABLE).insert({
+          organization_id: params.mainProfile.organization_id,
+          integration_customer_id: null,
+          name: params.name,
+          tagline: params.mainProfile.tagline,
+          description: params.mainProfile.description,
+          website_url: params.mainProfile.website_url,
+          logo_url: params.mainProfile.logo_url,
+          profile_data: params.mainProfile.profile_data ?? {},
+          profile_kind: "directory_variant",
+          parent_profile_id: params.mainProfile.id,
+          directory_site_key: params.directorySiteKey,
+          created_by_user_id: params.createdByUserId,
+          created_at: now,
+          updated_at: now
+        }).select(PROFILE_COLS).single();
+        if (error || !data) {
+          throw new DatabaseError("Error inserting directory profile variant", {
+            cause: error ?? new Error("no row"),
+            operation: "insertDirectoryVariantFromMain",
+            resource: { type: "table", name: PROFILES_TABLE }
+          });
+        }
+        return data;
+      }
+      async updateProfile(params) {
+        const now = (/* @__PURE__ */ new Date()).toISOString();
+        const update = { updated_at: now };
+        if (params.patch.name !== void 0) update.name = params.patch.name;
+        if (params.patch.tagline !== void 0) update.tagline = params.patch.tagline;
+        if (params.patch.description !== void 0) update.description = params.patch.description;
+        if (params.patch.websiteUrl !== void 0) update.website_url = params.patch.websiteUrl;
+        if (params.patch.logoUrl !== void 0) update.logo_url = params.patch.logoUrl;
+        if (params.patch.integrationCustomerId !== void 0) {
+          update.integration_customer_id = params.patch.integrationCustomerId;
+        }
+        if (params.patch.profileData !== void 0) update.profile_data = params.patch.profileData;
+        const { data, error } = await this.supabase.from(PROFILES_TABLE).update(update).eq("id", params.profileId).eq("organization_id", params.organizationId).is("deleted_at", null).select(PROFILE_COLS).maybeSingle();
+        if (error) {
+          throw new DatabaseError("Error updating auto-launch product profile", {
+            cause: error,
+            operation: "updateProfile",
+            resource: { type: "table", name: PROFILES_TABLE }
+          });
+        }
+        return data ?? null;
+      }
+      async softDeleteProfile(profileId, organizationId) {
+        const now = (/* @__PURE__ */ new Date()).toISOString();
+        const { error, count } = await this.supabase.from(PROFILES_TABLE).update({ deleted_at: now, updated_at: now }, { count: "exact" }).eq("id", profileId).eq("organization_id", organizationId).is("deleted_at", null);
+        if (error) {
+          throw new DatabaseError("Error deleting auto-launch product profile", {
+            cause: error,
+            operation: "softDeleteProfile",
+            resource: { type: "table", name: PROFILES_TABLE }
+          });
+        }
+        return (count ?? 0) > 0;
+      }
+      async integrationCustomerBelongsToOrg(customerId, organizationId) {
+        const { data, error } = await this.supabase.from("integration_customers").select("id").eq("id", customerId).eq("organization_id", organizationId).maybeSingle();
+        if (error) {
+          throw new DatabaseError("Error resolving channel group", {
+            cause: error,
+            operation: "integrationCustomerBelongsToOrg",
+            resource: { type: "table", name: "integration_customers" }
+          });
+        }
+        return Boolean(data?.id);
+      }
+      async insertSubmissionIntent(params) {
+        const now = (/* @__PURE__ */ new Date()).toISOString();
+        const { data, error } = await this.supabase.from(SUBMISSIONS_TABLE).insert({
+          organization_id: params.organizationId,
+          product_profile_id: params.productProfileId,
+          destination_id: params.destinationId,
+          status: "intent",
+          profile_snapshot: params.profileSnapshot,
+          extension_config_snapshot: params.extensionConfigSnapshot,
+          intent_created_at: now,
+          created_by_user_id: params.createdByUserId,
+          created_at: now,
+          updated_at: now
+        }).select(SUBMISSION_COLS).single();
+        if (error || !data) {
+          throw new DatabaseError("Error creating auto-launch submission intent", {
+            cause: error ?? new Error("no row"),
+            operation: "insertSubmissionIntent",
+            resource: { type: "table", name: SUBMISSIONS_TABLE }
+          });
+        }
+        return data;
+      }
+      async findLatestSubmissionForProductDestination(params) {
+        let query = this.supabase.from(SUBMISSIONS_TABLE).select(SUBMISSION_COLS).eq("organization_id", params.organizationId).eq("product_profile_id", params.productProfileId).eq("destination_id", params.destinationId).order("created_at", { ascending: false }).limit(1);
+        if (params.statuses?.length) {
+          query = query.in("status", params.statuses);
+        }
+        const { data, error } = await query.maybeSingle();
+        if (error) {
+          throw new DatabaseError("Error finding auto-launch submission for product destination", {
+            cause: error,
+            operation: "findLatestSubmissionForProductDestination",
+            resource: { type: "table", name: SUBMISSIONS_TABLE }
+          });
+        }
+        return data ?? null;
+      }
+      async refreshSubmissionIntent(params) {
+        const now = (/* @__PURE__ */ new Date()).toISOString();
+        const { data, error } = await this.supabase.from(SUBMISSIONS_TABLE).update({
+          profile_snapshot: params.profileSnapshot,
+          extension_config_snapshot: params.extensionConfigSnapshot,
+          intent_created_at: now,
+          updated_at: now
+        }).eq("id", params.submissionId).eq("organization_id", params.organizationId).in("status", ["draft", "intent", "in_progress"]).select(SUBMISSION_COLS).single();
+        if (error || !data) {
+          throw new DatabaseError("Error refreshing auto-launch submission intent", {
+            cause: error ?? new Error("no row"),
+            operation: "refreshSubmissionIntent",
+            resource: { type: "table", name: SUBMISSIONS_TABLE }
+          });
+        }
+        return data;
+      }
+      async findSubmissionById(submissionId) {
+        const { data, error } = await this.supabase.from(SUBMISSIONS_TABLE).select(SUBMISSION_COLS).eq("id", submissionId).maybeSingle();
+        if (error) {
+          throw new DatabaseError("Error finding auto-launch submission", {
+            cause: error,
+            operation: "findSubmissionById",
+            resource: { type: "table", name: SUBMISSIONS_TABLE }
+          });
+        }
+        return data ?? null;
+      }
+      async listSubmissions(params) {
+        let query = this.supabase.from(SUBMISSIONS_TABLE).select(SUBMISSION_COLS).eq("organization_id", params.organizationId).order("created_at", { ascending: false });
+        if (params.productProfileId) {
+          query = query.eq("product_profile_id", params.productProfileId);
+        }
+        if (params.destinationId) {
+          query = query.eq("destination_id", params.destinationId);
+        }
+        const { data, error } = await query;
+        if (error) {
+          throw new DatabaseError("Error listing auto-launch submissions", {
+            cause: error,
+            operation: "listSubmissions",
+            resource: { type: "table", name: SUBMISSIONS_TABLE }
+          });
+        }
+        return data ?? [];
+      }
+      async insertManualCompletedSubmission(params) {
+        const now = (/* @__PURE__ */ new Date()).toISOString();
+        const { data, error } = await this.supabase.from(SUBMISSIONS_TABLE).insert({
+          organization_id: params.organizationId,
+          product_profile_id: params.productProfileId,
+          destination_id: params.destinationId,
+          status: "completed",
+          profile_snapshot: params.profileSnapshot,
+          extension_config_snapshot: params.extensionConfigSnapshot,
+          listing_profile_fingerprint: params.listingProfileFingerprint,
+          listing_synced_at: now,
+          evidence: params.evidence,
+          listing_url: params.listingUrl,
+          intent_created_at: now,
+          completed_at: now,
+          created_by_user_id: params.createdByUserId,
+          completed_by_user_id: params.createdByUserId,
+          created_at: now,
+          updated_at: now
+        }).select(SUBMISSION_COLS).single();
+        if (error || !data) {
+          throw new DatabaseError("Error recording manual auto-launch completion", {
+            cause: error ?? new Error("no row"),
+            operation: "insertManualCompletedSubmission",
+            resource: { type: "table", name: SUBMISSIONS_TABLE }
+          });
+        }
+        return data;
+      }
+      async completeSubmission(params) {
+        const now = (/* @__PURE__ */ new Date()).toISOString();
+        const { data, error } = await this.supabase.from(SUBMISSIONS_TABLE).update({
+          status: "completed",
+          profile_snapshot: params.profileSnapshot,
+          listing_profile_fingerprint: params.listingProfileFingerprint,
+          listing_synced_at: now,
+          evidence: params.evidence,
+          listing_url: params.listingUrl,
+          completed_at: now,
+          completed_by_user_id: params.completedByUserId,
+          updated_at: now
+        }).eq("id", params.submissionId).eq("organization_id", params.organizationId).neq("status", "completed").select(SUBMISSION_COLS).maybeSingle();
+        if (error) {
+          throw new DatabaseError("Error completing auto-launch submission", {
+            cause: error,
+            operation: "completeSubmission",
+            resource: { type: "table", name: SUBMISSIONS_TABLE }
+          });
+        }
+        return data ?? null;
+      }
+      async reopenSubmissionForResync(params) {
+        const now = (/* @__PURE__ */ new Date()).toISOString();
+        const { data, error } = await this.supabase.from(SUBMISSIONS_TABLE).update({
+          status: "in_progress",
+          profile_snapshot: params.profileSnapshot,
+          extension_config_snapshot: params.extensionConfigSnapshot,
+          intent_created_at: now,
+          completed_at: null,
+          completed_by_user_id: null,
+          updated_at: now
+        }).eq("id", params.submissionId).eq("organization_id", params.organizationId).eq("status", "completed").select(SUBMISSION_COLS).single();
+        if (error || !data) {
+          throw new DatabaseError("Error reopening auto-launch submission for resync", {
+            cause: error ?? new Error("no row"),
+            operation: "reopenSubmissionForResync",
+            resource: { type: "table", name: SUBMISSIONS_TABLE }
+          });
+        }
+        return data;
+      }
+      async updateCompletedSubmissionListingSync(params) {
+        const now = (/* @__PURE__ */ new Date()).toISOString();
+        const update = {
+          profile_snapshot: params.profileSnapshot,
+          extension_config_snapshot: params.extensionConfigSnapshot,
+          listing_profile_fingerprint: params.listingProfileFingerprint,
+          listing_synced_at: now,
+          completed_by_user_id: params.completedByUserId,
+          updated_at: now
+        };
+        if (params.listingUrl !== void 0) {
+          update.listing_url = params.listingUrl;
+        }
+        const { data, error } = await this.supabase.from(SUBMISSIONS_TABLE).update(update).eq("id", params.submissionId).eq("organization_id", params.organizationId).eq("status", "completed").select(SUBMISSION_COLS).single();
+        if (error || !data) {
+          throw new DatabaseError("Error updating completed auto-launch submission listing sync", {
+            cause: error ?? new Error("no row"),
+            operation: "updateCompletedSubmissionListingSync",
+            resource: { type: "table", name: SUBMISSIONS_TABLE }
+          });
+        }
+        return data;
+      }
+      async updateSubmissionListingDetails(params) {
+        const now = (/* @__PURE__ */ new Date()).toISOString();
+        const update = {
+          evidence: params.evidence,
+          updated_at: now
+        };
+        if (params.listingUrl !== void 0) {
+          update.listing_url = params.listingUrl;
+        }
+        if (params.completedByUserId) {
+          update.completed_by_user_id = params.completedByUserId;
+        }
+        const { data, error } = await this.supabase.from(SUBMISSIONS_TABLE).update(update).eq("id", params.submissionId).eq("organization_id", params.organizationId).select(SUBMISSION_COLS).single();
+        if (error || !data) {
+          throw new DatabaseError("Error updating auto-launch submission listing details", {
+            cause: error ?? new Error("no row"),
+            operation: "updateSubmissionListingDetails",
+            resource: { type: "table", name: SUBMISSIONS_TABLE }
+          });
+        }
+        return data;
+      }
+      async deleteSubmission(submissionId, organizationId) {
+        const { error, count } = await this.supabase.from(SUBMISSIONS_TABLE).delete({ count: "exact" }).eq("id", submissionId).eq("organization_id", organizationId);
+        if (error) {
+          throw new DatabaseError("Error deleting auto-launch submission", {
+            cause: error,
+            operation: "deleteSubmission",
+            resource: { type: "table", name: SUBMISSIONS_TABLE }
+          });
+        }
+        if (!count) {
+          throw new DatabaseError("Auto-launch submission not found for delete", {
+            cause: new Error("no row"),
+            operation: "deleteSubmission",
+            resource: { type: "table", name: SUBMISSIONS_TABLE }
+          });
+        }
+      }
+      async listAllDestinations() {
+        const { data, error } = await this.supabase.from(DESTINATIONS_TABLE).select(
+          `${DESTINATION_COLS}, link_directory_opportunity:link_directory_opportunities(${DESTINATION_OPPORTUNITY_JOIN})`
+        ).order("sort_order", { ascending: true });
+        if (error) {
+          throw new DatabaseError("Error listing auto-launch destinations (admin)", {
+            cause: error,
+            operation: "listAllDestinations",
+            resource: { type: "table", name: DESTINATIONS_TABLE }
+          });
+        }
+        return (data ?? []).map(mapDestinationListRow);
+      }
+      async findDestinationByProviderSlug(providerSlug) {
+        const { data, error } = await this.supabase.from(DESTINATIONS_TABLE).select(DESTINATION_COLS).eq("provider_slug", providerSlug).maybeSingle();
+        if (error) {
+          throw new DatabaseError("Error finding auto-launch destination by provider slug", {
+            cause: error,
+            operation: "findDestinationByProviderSlug",
+            resource: { type: "table", name: DESTINATIONS_TABLE }
+          });
+        }
+        if (!data) return null;
+        return {
+          ...data,
+          extension_config: data.extension_config ?? {}
+        };
+      }
+      async createDestination(row) {
+        const { data, error } = await this.supabase.from(DESTINATIONS_TABLE).insert({
+          ...row,
+          updated_at: (/* @__PURE__ */ new Date()).toISOString()
+        }).select(DESTINATION_COLS).single();
+        if (error) {
+          throw new DatabaseError("Error creating auto-launch destination", {
+            cause: error,
+            operation: "createDestination",
+            resource: { type: "table", name: DESTINATIONS_TABLE }
+          });
+        }
+        return {
+          ...data,
+          extension_config: data.extension_config ?? {}
+        };
+      }
+      async updateDestination(destinationId, fields) {
+        const { data, error } = await this.supabase.from(DESTINATIONS_TABLE).update({
+          ...fields,
+          updated_at: (/* @__PURE__ */ new Date()).toISOString()
+        }).eq("id", destinationId).select(DESTINATION_COLS).maybeSingle();
+        if (error) {
+          throw new DatabaseError("Error updating auto-launch destination", {
+            cause: error,
+            operation: "updateDestination",
+            resource: { type: "table", name: DESTINATIONS_TABLE }
+          });
+        }
+        if (!data) return null;
+        return {
+          ...data,
+          extension_config: data.extension_config ?? {}
+        };
+      }
+      async deleteDestination(destinationId) {
+        const { error } = await this.supabase.from(DESTINATIONS_TABLE).delete().eq("id", destinationId);
+        if (error) {
+          throw new DatabaseError("Error deleting auto-launch destination", {
+            cause: error,
+            operation: "deleteDestination",
+            resource: { type: "table", name: DESTINATIONS_TABLE }
+          });
+        }
+      }
+    };
+  }
+});
+
+// repositories/DirectorySeoRepository.ts
+var COMPETITORS_TABLE, SNAPSHOTS_TABLE, HISTORY_TABLE, PROFILES_TABLE2, HISTORY_ORIGIN_LIVE_REFRESH, HISTORY_ORIGIN_PROVIDER_TIMESERIES, SNAPSHOT_COLUMNS, HISTORY_COLUMNS, DirectorySeoRepository;
+var init_DirectorySeoRepository = __esm({
+  "repositories/DirectorySeoRepository.ts"() {
+    init_InfraError();
+    COMPETITORS_TABLE = "directory_seo_competitors";
+    SNAPSHOTS_TABLE = "seo_domain_metric_snapshots";
+    HISTORY_TABLE = "seo_domain_metric_history";
+    PROFILES_TABLE2 = "auto_launch_product_profiles";
+    HISTORY_ORIGIN_LIVE_REFRESH = "live_refresh";
+    HISTORY_ORIGIN_PROVIDER_TIMESERIES = "provider_timeseries";
+    SNAPSHOT_COLUMNS = "domain, domain_rating, source, checked_at, provider_history_backfilled_at";
+    HISTORY_COLUMNS = "id, domain, domain_rating, captured_at, origin";
+    DirectorySeoRepository = class {
+      constructor(supabase2) {
+        this.supabase = supabase2;
+      }
+      async countCompetitorsForOrganization(organizationId) {
+        const { count, error } = await this.supabase.from(COMPETITORS_TABLE).select("*", { count: "exact", head: true }).eq("organization_id", organizationId);
+        if (error) {
+          throw new DatabaseError(`Failed to count directory SEO competitors: ${error.message}`);
+        }
+        return count ?? 0;
+      }
+      async listCompetitorDomainsByOrganization() {
+        const { data, error } = await this.supabase.from(COMPETITORS_TABLE).select("organization_id, domain");
+        if (error) {
+          throw new DatabaseError(`Failed to list directory SEO competitors: ${error.message}`);
+        }
+        return data ?? [];
+      }
+      async listMainProfileWebsiteUrls() {
+        const { data, error } = await this.supabase.from(PROFILES_TABLE2).select("organization_id, website_url").eq("profile_kind", "main").is("deleted_at", null).not("website_url", "is", null);
+        if (error) {
+          throw new DatabaseError(`Failed to list main profile website URLs: ${error.message}`);
+        }
+        return data ?? [];
+      }
+      async getSnapshot(domain) {
+        const { data, error } = await this.supabase.from(SNAPSHOTS_TABLE).select(SNAPSHOT_COLUMNS).eq("domain", domain).maybeSingle();
+        if (error) {
+          throw new DatabaseError(`Failed to read SEO domain metric snapshot: ${error.message}`);
+        }
+        return data ?? null;
+      }
+      async upsertSnapshot(params) {
+        const { data, error } = await this.supabase.from(SNAPSHOTS_TABLE).upsert(
+          {
+            domain: params.domain,
+            domain_rating: params.domainRating,
+            source: params.source,
+            checked_at: params.checkedAt
+          },
+          { onConflict: "domain" }
+        ).select(SNAPSHOT_COLUMNS).single();
+        if (error) {
+          throw new DatabaseError(`Failed to upsert SEO domain metric snapshot: ${error.message}`);
+        }
+        return data;
+      }
+      async updateProviderHistoryBackfilledAt(domain, backfilledAtIso) {
+        const { error } = await this.supabase.from(SNAPSHOTS_TABLE).update({ provider_history_backfilled_at: backfilledAtIso }).eq("domain", domain);
+        if (error) {
+          throw new DatabaseError(
+            `Failed to update SEO domain metric provider history backfill timestamp: ${error.message}`
+          );
+        }
+      }
+      async getLatestHistory(domain) {
+        const { data, error } = await this.supabase.from(HISTORY_TABLE).select(HISTORY_COLUMNS).eq("domain", domain).order("captured_at", { ascending: false }).limit(1).maybeSingle();
+        if (error) {
+          throw new DatabaseError(`Failed to read SEO domain metric history: ${error.message}`);
+        }
+        return data ?? null;
+      }
+      async insertHistory(params) {
+        const { error } = await this.supabase.from(HISTORY_TABLE).insert({
+          domain: params.domain,
+          domain_rating: params.domainRating,
+          captured_at: params.capturedAt,
+          origin: params.origin ?? HISTORY_ORIGIN_LIVE_REFRESH
+        });
+        if (error) {
+          throw new DatabaseError(`Failed to insert SEO domain metric history: ${error.message}`);
+        }
+      }
+      async replaceProviderHistoryForDomain(params) {
+        const { error: deleteError } = await this.supabase.from(HISTORY_TABLE).delete().eq("domain", params.domain).eq("origin", HISTORY_ORIGIN_PROVIDER_TIMESERIES).gte("captured_at", params.sinceIso);
+        if (deleteError) {
+          throw new DatabaseError(
+            `Failed to replace SEO provider history rows: ${deleteError.message}`
+          );
+        }
+        if (params.points.length === 0) {
+          return;
+        }
+        const { error: insertError } = await this.supabase.from(HISTORY_TABLE).insert(
+          params.points.map((point) => ({
+            domain: params.domain,
+            domain_rating: point.domainRating,
+            captured_at: point.capturedAt,
+            origin: HISTORY_ORIGIN_PROVIDER_TIMESERIES
+          }))
+        );
+        if (insertError) {
+          throw new DatabaseError(
+            `Failed to insert SEO provider history rows: ${insertError.message}`
+          );
+        }
+      }
+      async listCompetitorsForOrganization(organizationId) {
+        const { data, error } = await this.supabase.from(COMPETITORS_TABLE).select("organization_id, domain, label, sort_order, created_at, updated_at").eq("organization_id", organizationId).order("sort_order", { ascending: true }).order("domain", { ascending: true });
+        if (error) {
+          throw new DatabaseError(`Failed to list directory SEO competitors: ${error.message}`);
+        }
+        return data ?? [];
+      }
+      async insertCompetitor(params) {
+        const now = (/* @__PURE__ */ new Date()).toISOString();
+        const { data, error } = await this.supabase.from(COMPETITORS_TABLE).insert({
+          organization_id: params.organizationId,
+          domain: params.domain,
+          label: params.label,
+          sort_order: params.sortOrder,
+          created_at: now,
+          updated_at: now
+        }).select("organization_id, domain, label, sort_order, created_at, updated_at").single();
+        if (error || !data) {
+          throw new DatabaseError(`Failed to add directory SEO competitor: ${error?.message ?? "no row"}`);
+        }
+        return data;
+      }
+      async updateCompetitorLabel(params) {
+        const now = (/* @__PURE__ */ new Date()).toISOString();
+        const { data, error } = await this.supabase.from(COMPETITORS_TABLE).update({ label: params.label, updated_at: now }).eq("organization_id", params.organizationId).eq("domain", params.domain).select("organization_id, domain, label, sort_order, created_at, updated_at").maybeSingle();
+        if (error) {
+          throw new DatabaseError(`Failed to update directory SEO competitor: ${error.message}`);
+        }
+        return data ?? null;
+      }
+      async deleteCompetitor(organizationId, domain) {
+        const { error, count } = await this.supabase.from(COMPETITORS_TABLE).delete({ count: "exact" }).eq("organization_id", organizationId).eq("domain", domain);
+        if (error) {
+          throw new DatabaseError(`Failed to remove directory SEO competitor: ${error.message}`);
+        }
+        return (count ?? 0) > 0;
+      }
+      async listHistoryForDomain(params) {
+        const { data, error } = await this.supabase.from(HISTORY_TABLE).select(HISTORY_COLUMNS).eq("domain", params.domain).gte("captured_at", params.sinceIso).order("captured_at", { ascending: true });
+        if (error) {
+          throw new DatabaseError(`Failed to list SEO domain metric history: ${error.message}`);
+        }
+        return data ?? [];
+      }
+      async findHistoryRatingAtOrBefore(domain, targetIso) {
+        const { data, error } = await this.supabase.from(HISTORY_TABLE).select("domain_rating, captured_at").eq("domain", domain).lte("captured_at", targetIso).order("captured_at", { ascending: false }).limit(1).maybeSingle();
+        if (error) {
+          throw new DatabaseError(`Failed to read SEO domain metric history: ${error.message}`);
+        }
+        if (!data) return null;
+        const rating = data.domain_rating;
+        if (rating == null) return null;
+        const n = Number(rating);
+        return Number.isFinite(n) ? n : null;
+      }
+    };
+  }
+});
+
 // repositories/index.ts
-var refreshTokenRepository, userRepository, configRepository, organizationRepository, rbacRepository, feedbackRepository, blogRepository, listingRepository, listingCategoryRepository, listingTagRepository, linkDirectoryRepository, linkDirectoryCategoryRepository, linkDirectoryTagRepository, r2Slice, r2Connection, storageR2Repository, mediaRepository, storageSupabaseRepository, integrationRepository, plugRepository, notificationRepository, postsRepository, signatureRepository, setsRepository, oauthAppRepository, subscriptionRepository, acquisitionSurveyRepository, trialBrowserRepository;
+var refreshTokenRepository, userRepository, configRepository, organizationRepository, rbacRepository, feedbackRepository, blogRepository, listingRepository, listingCategoryRepository, listingTagRepository, linkDirectoryRepository, linkDirectoryCategoryRepository, linkDirectoryTagRepository, r2Slice, r2Connection, storageR2Repository, mediaRepository, storageSupabaseRepository, integrationRepository, plugRepository, notificationRepository, postsRepository, signatureRepository, setsRepository, oauthAppRepository, subscriptionRepository, acquisitionSurveyRepository, trialBrowserRepository, autoLaunchRepository, directorySeoRepository;
 var init_repositories = __esm({
   "repositories/index.ts"() {
     init_GlobalConfig();
@@ -12636,6 +14300,8 @@ var init_repositories = __esm({
     init_SubscriptionRepository();
     init_AcquisitionSurveyRepository();
     init_TrialBrowserRepository();
+    init_AutoLaunchRepository();
+    init_DirectorySeoRepository();
     init_RefreshTokenRepository();
     init_UserRepository();
     init_ConfigRepository();
@@ -12663,6 +14329,7 @@ var init_repositories = __esm({
     init_SubscriptionRepository();
     init_AcquisitionSurveyRepository();
     init_TrialBrowserRepository();
+    init_AutoLaunchRepository();
     refreshTokenRepository = new RefreshTokenRepository(supabaseServiceClientConnection);
     userRepository = new UserRepository(supabaseServiceClientConnection);
     configRepository = new ConfigRepository(supabaseServiceClientConnection);
@@ -12699,6 +14366,8 @@ var init_repositories = __esm({
     subscriptionRepository = new SubscriptionRepository(supabaseServiceClientConnection);
     acquisitionSurveyRepository = new AcquisitionSurveyRepository(supabaseServiceClientConnection);
     trialBrowserRepository = new TrialBrowserRepository(supabaseServiceClientConnection);
+    autoLaunchRepository = new AutoLaunchRepository(supabaseServiceClientConnection);
+    directorySeoRepository = new DirectorySeoRepository(supabaseServiceClientConnection);
   }
 });
 
@@ -15959,7 +17628,9 @@ function mapOpportunity(row) {
     ctaLabel: row.cta_label,
     sortOrder: row.sort_order,
     isAdminPublished: row.is_admin_published,
-    publishedAt: row.published_at
+    publishedAt: row.published_at,
+    autoLaunchEnabled: row.auto_launch_enabled ?? false,
+    autoLaunchProviderSlug: row.auto_launch_provider_slug ?? null
   };
 }
 function toLinkDirectorySiteDto(row) {
@@ -16076,7 +17747,6 @@ function toLinkDirectorySavedSiteDto(row) {
     siteId: row.site_id,
     sortOrder: row.sort_order,
     createdAt: row.created_at,
-    outreachCompletedAt: row.outreach_completed_at ?? null,
     site: row.site ? toLinkDirectorySiteDto(row.site) : null
   };
 }
@@ -16162,7 +17832,7 @@ var init_LinkDirectoryService = __esm({
     };
     LINK_DIRECTORY_CACHE_TTL_SEC = 300;
     LinkDirectoryService = class {
-      constructor(linkDirectoryRepository2, categoryRepository, tagRepository, subscriptionGuard2, internalOpsEmailService2, cache, cacheInvalidator) {
+      constructor(linkDirectoryRepository2, categoryRepository, tagRepository, subscriptionGuard2, internalOpsEmailService2, cache, cacheInvalidator, catalogMetricsService) {
         this.linkDirectoryRepository = linkDirectoryRepository2;
         this.categoryRepository = categoryRepository;
         this.tagRepository = tagRepository;
@@ -16170,6 +17840,7 @@ var init_LinkDirectoryService = __esm({
         this.internalOpsEmailService = internalOpsEmailService2;
         this.cache = cache;
         this.cacheInvalidator = cacheInvalidator;
+        this.catalogMetricsService = catalogMetricsService;
       }
       async assertPublishedSiteForEngagement(siteId) {
         await this.linkDirectoryRepository.assertPublishedSiteIds([siteId]);
@@ -16308,6 +17979,16 @@ var init_LinkDirectoryService = __esm({
           userId: userId ?? void 0
         });
         return submissionId;
+      }
+      async refreshCatalogDomainRatings(options2 = {}) {
+        if (!this.catalogMetricsService) {
+          throw new ValidationError("Catalog domain rating refresh is not configured");
+        }
+        const result = await this.catalogMetricsService.refreshCatalogDomainRatings(options2);
+        if (!options2.dryRun && result.updated > 0) {
+          await this._invalidatePublishedCatalogCaches();
+        }
+        return result;
       }
       async getAdminSites(options2) {
         const normalized = {
@@ -16461,14 +18142,6 @@ var init_LinkDirectoryService = __esm({
         }
         await this.linkDirectoryRepository.assertPublishedSiteIds(dedupedSiteIds);
         await this.linkDirectoryRepository.reorderUserSavedSites(userId, dedupedSiteIds);
-      }
-      async setUserSavedSiteOutreachCompleted(userId, siteId, completed) {
-        const outreachCompletedAt = completed ? (/* @__PURE__ */ new Date()).toISOString() : null;
-        await this.linkDirectoryRepository.setUserSavedSiteOutreachCompleted(
-          userId,
-          siteId,
-          outreachCompletedAt
-        );
       }
       async incrementSiteViews(siteId) {
         await this.assertPublishedSiteForEngagement(siteId);
@@ -16650,11 +18323,11 @@ ${hashes} ${inner.trim()}
   s = decodeBasicHtmlEntities(s);
   return collapseComposerWhitespace(s);
 }
-function stripComposerBodyForEditor(editor, html, options2) {
+function stripComposerBodyForEditor(editor2, html, options2) {
   const raw = typeof html === "string" ? html : "";
   if (!raw.trim()) return "";
   let out;
-  switch (editor) {
+  switch (editor2) {
     case "none":
     case "normal":
       out = htmlToPlainText(raw);
@@ -16769,27 +18442,27 @@ async function graphPostJson(url, body, label) {
   }
   return json;
 }
-function isPlainObject(value) {
+function isPlainObject2(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function resolveFacebookLinkFromSettings(settings) {
-  if (!isPlainObject(settings)) return void 0;
+  if (!isPlainObject2(settings)) return void 0;
   const readUrl = (source) => {
     const url = source.url;
     if (typeof url === "string" && url.trim()) return url.trim();
     return void 0;
   };
   const providerSettings = settings.providerSettings;
-  if (isPlainObject(providerSettings)) {
+  if (isPlainObject2(providerSettings)) {
     const flat = readUrl(providerSettings);
     if (flat) return flat;
     const facebook = providerSettings.facebook;
-    if (isPlainObject(facebook)) {
+    if (isPlainObject2(facebook)) {
       const nested = readUrl(facebook);
       if (nested) return nested;
     }
   }
-  if (isPlainObject(settings.facebook)) {
+  if (isPlainObject2(settings.facebook)) {
     return readUrl(settings.facebook);
   }
   return readUrl(settings);
@@ -16883,7 +18556,7 @@ var init_facebookGraphPublish = __esm({
 });
 
 // integrations/providers/facebook/facebookGraphStoryPublish.ts
-function isPlainObject2(value) {
+function isPlainObject3(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function extractMedia2(settings) {
@@ -16942,16 +18615,16 @@ function storyReleaseUrl(storyId) {
   return `https://www.facebook.com/stories/${storyId}`;
 }
 function readFacebookPostType(settings) {
-  if (!isPlainObject2(settings)) return "post";
+  if (!isPlainObject3(settings)) return "post";
   let source = { ...settings };
   const providerSettings = settings.providerSettings;
-  if (isPlainObject2(providerSettings)) {
+  if (isPlainObject3(providerSettings)) {
     const { facebook: facebookBucket, ...flatProviderSettings } = providerSettings;
     source = { ...source, ...flatProviderSettings };
-    if (isPlainObject2(facebookBucket)) {
+    if (isPlainObject3(facebookBucket)) {
       source = { ...source, ...facebookBucket };
     }
-  } else if (isPlainObject2(settings.facebook)) {
+  } else if (isPlainObject3(settings.facebook)) {
     source = { ...source, ...settings.facebook };
   }
   if (source.postType === "story" || source.post_type === "story") return "story";
@@ -17780,7 +19453,7 @@ var init_instagramGraphComment = __esm({
 });
 
 // integrations/providers/instagram/instagramGraphContentPublish.ts
-function isPlainObject3(value) {
+function isPlainObject4(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function normalizeInstagramCollaborators(raw) {
@@ -17795,7 +19468,7 @@ function normalizeInstagramCollaborators(raw) {
       if (label) out.push({ label });
       continue;
     }
-    if (isPlainObject3(item) && typeof item.label === "string") {
+    if (isPlainObject4(item) && typeof item.label === "string") {
       const label = item.label.replace(/^@/, "").trim();
       if (label) out.push({ label });
     }
@@ -17815,18 +19488,18 @@ function readGraduationStrategy(source) {
   return g === "SS_PERFORMANCE" ? "SS_PERFORMANCE" : "MANUAL";
 }
 function resolveInstagramPublishSettings(postDetailsSettings) {
-  if (!isPlainObject3(postDetailsSettings)) {
+  if (!isPlainObject4(postDetailsSettings)) {
     return { ...DEFAULT_PUBLISH_SETTINGS };
   }
   let source = { ...postDetailsSettings };
   const providerSettings = postDetailsSettings.providerSettings;
-  if (isPlainObject3(providerSettings)) {
+  if (isPlainObject4(providerSettings)) {
     const { instagram: instagramBucket, ...flatProviderSettings } = providerSettings;
     source = { ...source, ...flatProviderSettings };
-    if (isPlainObject3(instagramBucket)) {
+    if (isPlainObject4(instagramBucket)) {
       source = { ...source, ...instagramBucket };
     }
-  } else if (isPlainObject3(postDetailsSettings.instagram)) {
+  } else if (isPlainObject4(postDetailsSettings.instagram)) {
     source = { ...source, ...postDetailsSettings.instagram };
   }
   return {
@@ -19448,7 +21121,7 @@ var init_upload_factory = __esm({
 });
 
 // integrations/providers/tiktok/tiktokPublishValidation.ts
-function isPlainObject4(value) {
+function isPlainObject5(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function mediaExtFromUrlOrKey3(path7) {
@@ -19462,7 +21135,7 @@ function mediaExtFromUrlOrKey3(path7) {
   }
 }
 function extractTiktokMediaFromSettings(settings) {
-  if (!isPlainObject4(settings)) return [];
+  if (!isPlainObject5(settings)) return [];
   const media = settings.media;
   if (Array.isArray(media)) {
     return media.filter((m) => !!m && typeof m.path === "string" && m.path.length > 0);
@@ -19545,7 +21218,7 @@ var init_tiktokPublishValidation = __esm({
 });
 
 // integrations/providers/linkedin/linkedinSettings.ts
-function isPlainObject5(value) {
+function isPlainObject6(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function readBoolean(source, key) {
@@ -19560,7 +21233,7 @@ function readString(source, key) {
   return void 0;
 }
 function resolveLinkedInSettings(settings) {
-  if (!isPlainObject5(settings)) return {};
+  if (!isPlainObject6(settings)) return {};
   const out = {};
   const readFrom = (source) => {
     const carousel = readBoolean(source, "post_as_images_carousel") ?? readBoolean(source, "postAsImagesCarousel");
@@ -19570,15 +21243,15 @@ function resolveLinkedInSettings(settings) {
   };
   readFrom(settings);
   const providerSettings = settings.providerSettings;
-  if (isPlainObject5(providerSettings)) {
+  if (isPlainObject6(providerSettings)) {
     readFrom(providerSettings);
     const linkedin = providerSettings.linkedin;
-    if (isPlainObject5(linkedin)) {
+    if (isPlainObject6(linkedin)) {
       readFrom(linkedin);
     }
   }
   const linkedinRoot = settings.linkedin;
-  if (isPlainObject5(linkedinRoot)) {
+  if (isPlainObject6(linkedinRoot)) {
     readFrom(linkedinRoot);
   }
   return out;
@@ -20558,7 +22231,7 @@ var init_tiktokApiClient = __esm({
 });
 
 // integrations/providers/tiktok/resolveTiktokSettings.ts
-function isPlainObject6(value) {
+function isPlainObject7(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function readPrivacyLevel(source) {
@@ -20593,7 +22266,7 @@ function readTitle(source) {
 }
 function resolveTiktokSettings(postDetailsSettings, message = "") {
   const caption = typeof message === "string" ? message.trim() : "";
-  if (!isPlainObject6(postDetailsSettings)) {
+  if (!isPlainObject7(postDetailsSettings)) {
     return {
       privacy_level: DEFAULT_PRIVACY,
       content_posting_method: DEFAULT_POSTING_METHOD,
@@ -20609,13 +22282,13 @@ function resolveTiktokSettings(postDetailsSettings, message = "") {
   }
   let source = { ...postDetailsSettings };
   const providerSettings = postDetailsSettings.providerSettings;
-  if (isPlainObject6(providerSettings)) {
+  if (isPlainObject7(providerSettings)) {
     const { tiktok: tiktokBucket, ...flatProviderSettings } = providerSettings;
     source = { ...source, ...flatProviderSettings };
-    if (isPlainObject6(tiktokBucket)) {
+    if (isPlainObject7(tiktokBucket)) {
       source = { ...source, ...tiktokBucket };
     }
-  } else if (isPlainObject6(postDetailsSettings.tiktok)) {
+  } else if (isPlainObject7(postDetailsSettings.tiktok)) {
     source = { ...source, ...postDetailsSettings.tiktok };
   }
   const explicitTitle = readTitle(source);
@@ -21171,7 +22844,7 @@ var init_tiktokProvider = __esm({
 });
 
 // integrations/providers/youtube/resolveYoutubeSettings.ts
-function isPlainObject7(value) {
+function isPlainObject8(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function readPrivacyStatus(source) {
@@ -21197,7 +22870,7 @@ function normalizeTags(raw) {
       if (label) out.push(label);
       continue;
     }
-    if (isPlainObject7(item)) {
+    if (isPlainObject8(item)) {
       const label = (typeof item.label === "string" ? item.label : typeof item.value === "string" ? item.value : "").trim();
       if (label) out.push(label);
     }
@@ -21206,7 +22879,7 @@ function normalizeTags(raw) {
 }
 function readThumbnailPath(source) {
   const thumb = source.thumbnail;
-  if (isPlainObject7(thumb) && typeof thumb.path === "string" && thumb.path.trim()) {
+  if (isPlainObject8(thumb) && typeof thumb.path === "string" && thumb.path.trim()) {
     return thumb.path.trim();
   }
   if (typeof source.thumbnailPath === "string" && source.thumbnailPath.trim()) {
@@ -21216,7 +22889,7 @@ function readThumbnailPath(source) {
 }
 function resolveYoutubeSettings(postDetailsSettings, message = "") {
   const description = typeof message === "string" ? message : "";
-  if (!isPlainObject7(postDetailsSettings)) {
+  if (!isPlainObject8(postDetailsSettings)) {
     return {
       title: "",
       description,
@@ -21227,13 +22900,13 @@ function resolveYoutubeSettings(postDetailsSettings, message = "") {
   }
   let source = { ...postDetailsSettings };
   const providerSettings = postDetailsSettings.providerSettings;
-  if (isPlainObject7(providerSettings)) {
+  if (isPlainObject8(providerSettings)) {
     const { youtube: youtubeBucket, ...flatProviderSettings } = providerSettings;
     source = { ...source, ...flatProviderSettings };
-    if (isPlainObject7(youtubeBucket)) {
+    if (isPlainObject8(youtubeBucket)) {
       source = { ...source, ...youtubeBucket };
     }
-  } else if (isPlainObject7(postDetailsSettings.youtube)) {
+  } else if (isPlainObject8(postDetailsSettings.youtube)) {
     source = { ...source, ...postDetailsSettings.youtube };
   }
   return {
@@ -21257,7 +22930,7 @@ function shouldSkipYoutubeThumbnail(byteLength) {
   if (byteLength == null || !Number.isFinite(byteLength)) return false;
   return byteLength > YOUTUBE_THUMBNAIL_MAX_BYTES;
 }
-function isPlainObject8(value) {
+function isPlainObject9(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function mediaExtFromUrlOrKey4(path7) {
@@ -21271,7 +22944,7 @@ function mediaExtFromUrlOrKey4(path7) {
   }
 }
 function extractYoutubeMediaFromSettings(settings) {
-  if (!isPlainObject8(settings)) return [];
+  if (!isPlainObject9(settings)) return [];
   const media = settings.media;
   if (Array.isArray(media)) {
     return media.filter((m) => !!m && typeof m.path === "string" && m.path.length > 0);
@@ -21890,7 +23563,7 @@ var init_xErrors = __esm({
 });
 
 // integrations/providers/x/xMediaUpload.ts
-function isPlainObject9(value) {
+function isPlainObject10(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function mediaExtFromPath(path7) {
@@ -21941,12 +23614,12 @@ async function prepareImageBuffer(raw, path7) {
   return { buffer: jpeg, mimeType: "image/jpeg" };
 }
 function extractXMedia(settings) {
-  if (!isPlainObject9(settings)) return [];
+  if (!isPlainObject10(settings)) return [];
   const media = settings.media;
   if (Array.isArray(media)) {
     return media.filter((m) => !!m && typeof m.path === "string" && m.path.length > 0);
   }
-  if (isPlainObject9(media) && Array.isArray(media.items)) {
+  if (isPlainObject10(media) && Array.isArray(media.items)) {
     return media.items.filter(
       (m) => !!m && typeof m.path === "string" && m.path.length > 0
     );
@@ -21985,7 +23658,7 @@ var init_xMediaUpload = __esm({
     init_MediaRepository();
   }
 });
-function isPlainObject10(value) {
+function isPlainObject11(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function readString2(source, key) {
@@ -22036,19 +23709,19 @@ function mergeResolvedSettings(target, source) {
   return target;
 }
 function resolveXSettings(settings) {
-  if (!isPlainObject10(settings)) return {};
+  if (!isPlainObject11(settings)) return {};
   const out = {};
   mergeResolvedSettings(out, settings);
   const providerSettings = settings.providerSettings;
-  if (isPlainObject10(providerSettings)) {
+  if (isPlainObject11(providerSettings)) {
     mergeResolvedSettings(out, providerSettings);
     const xBucket = providerSettings.x;
-    if (isPlainObject10(xBucket)) {
+    if (isPlainObject11(xBucket)) {
       mergeResolvedSettings(out, xBucket);
     }
   }
   const xRoot = settings.x;
-  if (isPlainObject10(xRoot)) {
+  if (isPlainObject11(xRoot)) {
     mergeResolvedSettings(out, xRoot);
   }
   return out;
@@ -22467,7 +24140,7 @@ var init_xProvider = __esm({
 });
 
 // integrations/providers/devto/resolveDevtoSettings.ts
-function isPlainObject11(value) {
+function isPlainObject12(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function readTitle3(source) {
@@ -22498,14 +24171,14 @@ function readOrganizationId(source) {
   const raw = source.organization ?? source.organization_id ?? source.organizationId;
   const direct = parsePositiveInt(raw);
   if (direct !== void 0) return direct;
-  if (isPlainObject11(raw)) {
+  if (isPlainObject12(raw)) {
     return parsePositiveInt(raw.id ?? raw.value);
   }
   return void 0;
 }
 function tagNameFromItem(item) {
   if (typeof item === "string") return item.trim();
-  if (!isPlainObject11(item)) return "";
+  if (!isPlainObject12(item)) return "";
   const label = typeof item.label === "string" ? item.label.trim() : "";
   if (label) return label;
   if (typeof item.value === "string") return item.value.trim();
@@ -22529,24 +24202,24 @@ function normalizeTags2(raw) {
 function readMainImagePath(source) {
   const main = source.main_image ?? source.mainImage;
   if (typeof main === "string" && main.trim()) return main.trim();
-  if (isPlainObject11(main) && typeof main.path === "string" && main.path.trim()) {
+  if (isPlainObject12(main) && typeof main.path === "string" && main.path.trim()) {
     return main.path.trim();
   }
   return void 0;
 }
 function resolveDevtoSettings(postDetailsSettings) {
-  if (!isPlainObject11(postDetailsSettings)) {
+  if (!isPlainObject12(postDetailsSettings)) {
     return { title: "", tags: [] };
   }
   let source = { ...postDetailsSettings };
   const providerSettings = postDetailsSettings.providerSettings;
-  if (isPlainObject11(providerSettings)) {
+  if (isPlainObject12(providerSettings)) {
     const { devto: devtoBucket, ...flatProviderSettings } = providerSettings;
     source = { ...source, ...flatProviderSettings };
-    if (isPlainObject11(devtoBucket)) {
+    if (isPlainObject12(devtoBucket)) {
       source = { ...source, ...devtoBucket };
     }
-  } else if (isPlainObject11(postDetailsSettings.devto)) {
+  } else if (isPlainObject12(postDetailsSettings.devto)) {
     source = { ...source, ...postDetailsSettings.devto };
   }
   return {
@@ -22595,7 +24268,7 @@ var init_resolveDevtoSettings = __esm({
 });
 
 // integrations/providers/devto/devtoPublish.ts
-function isPlainObject12(value) {
+function isPlainObject13(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function devtoHeaders(apiKey) {
@@ -22613,15 +24286,15 @@ async function readJson(res) {
   }
 }
 function firstErrorString(json) {
-  if (!isPlainObject12(json)) return void 0;
+  if (!isPlainObject13(json)) return void 0;
   const body = json;
   if (typeof body.error === "string" && body.error.trim()) return body.error.trim();
-  if (isPlainObject12(body.error) && typeof body.error.message === "string" && body.error.message.trim()) {
+  if (isPlainObject13(body.error) && typeof body.error.message === "string" && body.error.message.trim()) {
     return body.error.message.trim();
   }
   const first = body.errors?.[0];
   if (typeof first === "string" && first.trim()) return first.trim();
-  if (isPlainObject12(first) && typeof first.message === "string" && first.message.trim()) {
+  if (isPlainObject13(first) && typeof first.message === "string" && first.message.trim()) {
     return first.message.trim();
   }
   if (typeof body.message === "string" && body.message.trim()) return body.message.trim();
@@ -22682,7 +24355,7 @@ async function fetchDevtoCurrentUser(apiKey) {
   if (res.status === 401 || res.status === 403 || !res.ok) {
     throw new Error(res.status === 401 || res.status === 403 ? "Invalid API key" : mapDevtoApiError(json, res.status));
   }
-  if (!isPlainObject12(json) || json.id == null || json.id === "") {
+  if (!isPlainObject13(json) || json.id == null || json.id === "") {
     throw new Error("Invalid API key");
   }
   return {
@@ -22696,7 +24369,7 @@ function mapDevtoTagOptions(rows) {
   if (!Array.isArray(rows)) return [];
   const out = [];
   for (const row of rows) {
-    if (!isPlainObject12(row)) continue;
+    if (!isPlainObject13(row)) continue;
     const name = typeof row.name === "string" ? row.name.trim() : "";
     const id = typeof row.id === "number" && Number.isFinite(row.id) ? row.id : Number.parseInt(String(row.id ?? ""), 10);
     if (!name || !Number.isFinite(id)) continue;
@@ -22718,9 +24391,9 @@ function uniqueOrganizationUsernamesFromArticles(articles) {
   const seen = /* @__PURE__ */ new Set();
   const out = [];
   for (const article of articles) {
-    if (!isPlainObject12(article)) continue;
+    if (!isPlainObject13(article)) continue;
     const org = article.organization;
-    if (!isPlainObject12(org)) continue;
+    if (!isPlainObject13(org)) continue;
     const username = typeof org.username === "string" && org.username.trim() || typeof org.slug === "string" && org.slug.trim() || "";
     if (!username) continue;
     const key = username.toLowerCase();
@@ -22731,7 +24404,7 @@ function uniqueOrganizationUsernamesFromArticles(articles) {
   return out;
 }
 function mapDevtoOrganization(json) {
-  if (!isPlainObject12(json)) return void 0;
+  if (!isPlainObject13(json)) return void 0;
   const id = typeof json.id === "number" && Number.isFinite(json.id) ? json.id : Number.parseInt(String(json.id ?? ""), 10);
   const name = typeof json.name === "string" ? json.name.trim() : "";
   const username = typeof json.username === "string" ? json.username.trim() : "";
@@ -22792,7 +24465,7 @@ async function publishDevtoArticle(accessToken2, postDetails) {
   if (!res.ok) {
     throw new Error(mapDevtoApiError(json, res.status));
   }
-  if (!isPlainObject12(json)) {
+  if (!isPlainObject13(json)) {
     throw new Error("Dev.to publish succeeded but no article was returned");
   }
   const postId = json.id == null ? "" : String(json.id).trim();
@@ -22817,7 +24490,7 @@ var init_devtoPublish = __esm({
     DEVTO_API_BASE = "https://dev.to/api";
   }
 });
-function isPlainObject13(value) {
+function isPlainObject14(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 async function readJson2(res) {
@@ -22833,14 +24506,14 @@ function throwIfUnauthorized2(status, json) {
   }
 }
 function metricTotal(bucket) {
-  if (!isPlainObject13(bucket)) return 0;
+  if (!isPlainObject14(bucket)) return 0;
   const raw = bucket.total;
   if (typeof raw === "number" && Number.isFinite(raw)) return raw;
   const parsed = Number.parseInt(String(raw ?? ""), 10);
   return Number.isFinite(parsed) ? parsed : 0;
 }
 function dayMetricTotal(day, key) {
-  if (!isPlainObject13(day)) return 0;
+  if (!isPlainObject14(day)) return 0;
   return metricTotal(day[key]);
 }
 function startDateForWindow(dateWindowDays) {
@@ -22848,7 +24521,7 @@ function startDateForWindow(dateWindowDays) {
   return dayjs6__default.default().subtract(days, "day").format("YYYY-MM-DD");
 }
 function mapDevtoHistoricalToAnalytics(json) {
-  if (!isPlainObject13(json)) return [];
+  if (!isPlainObject14(json)) return [];
   const dates = Object.keys(json).filter((key) => /^\d{4}-\d{1,2}-\d{1,2}$/.test(key)).sort((a, b) => dayjs6__default.default(a).valueOf() - dayjs6__default.default(b).valueOf());
   if (dates.length === 0) return [];
   const series = {
@@ -22873,7 +24546,7 @@ function mapDevtoHistoricalToAnalytics(json) {
   }));
 }
 function mapDevtoTotalsToAnalytics(json, date = dayjs6__default.default().format("YYYY-MM-DD")) {
-  if (!isPlainObject13(json)) return [];
+  if (!isPlainObject14(json)) return [];
   const hasAnyMetric = Object.keys(METRIC_LABELS2).some((key) => key in json);
   if (!hasAnyMetric) return [];
   return Object.keys(METRIC_LABELS2).map((key) => ({
@@ -23629,7 +25302,7 @@ var init_blueskyAnalytics = __esm({
 });
 
 // integrations/providers/bluesky/resolveBlueskySettings.ts
-function isPlainObject14(value) {
+function isPlainObject15(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function readTrimmedString(source, key) {
@@ -23649,18 +25322,18 @@ function readThreadGate(source) {
   return "everyone";
 }
 function resolveBlueskySettings(postDetailsSettings) {
-  if (!isPlainObject14(postDetailsSettings)) {
+  if (!isPlainObject15(postDetailsSettings)) {
     return { threadGate: "everyone" };
   }
   let source = { ...postDetailsSettings };
   const providerSettings = postDetailsSettings.providerSettings;
-  if (isPlainObject14(providerSettings)) {
+  if (isPlainObject15(providerSettings)) {
     const { bluesky: blueskyBucket, ...flatProviderSettings } = providerSettings;
     source = { ...source, ...flatProviderSettings };
-    if (isPlainObject14(blueskyBucket)) {
+    if (isPlainObject15(blueskyBucket)) {
       source = { ...source, ...blueskyBucket };
     }
-  } else if (isPlainObject14(postDetailsSettings.bluesky)) {
+  } else if (isPlainObject15(postDetailsSettings.bluesky)) {
     source = { ...source, ...postDetailsSettings.bluesky };
   }
   const linkUrl = readTrimmedString(source, "linkUrl") ?? readTrimmedString(source, "link_url");
@@ -24367,7 +26040,7 @@ var init_blueskyProvider = __esm({
 });
 
 // integrations/providers/skool/resolveSkoolSettings.ts
-function isPlainObject15(value) {
+function isPlainObject16(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function readString3(source, ...keys) {
@@ -24383,7 +26056,7 @@ function readGroupId(source) {
   const direct = readString3(source, "group", "group_id", "groupId");
   if (direct) return direct;
   const group = source.group;
-  if (isPlainObject15(group)) {
+  if (isPlainObject16(group)) {
     const nested = group.id ?? group.value;
     if (typeof nested === "string" && nested.trim()) return nested.trim();
     if (typeof nested === "number" && Number.isFinite(nested)) {
@@ -24396,7 +26069,7 @@ function readLabelId(source) {
   const direct = readString3(source, "label", "label_id", "labelId");
   if (direct) return direct === "none" ? void 0 : direct;
   const label = source.label;
-  if (isPlainObject15(label)) {
+  if (isPlainObject16(label)) {
     const nested = label.id ?? label.value;
     if (typeof nested === "string" && nested.trim()) {
       const id = nested.trim();
@@ -24406,18 +26079,18 @@ function readLabelId(source) {
   return void 0;
 }
 function resolveSkoolSettings(postDetailsSettings) {
-  if (!isPlainObject15(postDetailsSettings)) {
+  if (!isPlainObject16(postDetailsSettings)) {
     return { title: "", groupId: "" };
   }
   let source = { ...postDetailsSettings };
   const providerSettings = postDetailsSettings.providerSettings;
-  if (isPlainObject15(providerSettings)) {
+  if (isPlainObject16(providerSettings)) {
     const { skool: skoolBucket, ...flatProviderSettings } = providerSettings;
     source = { ...source, ...flatProviderSettings };
-    if (isPlainObject15(skoolBucket)) {
+    if (isPlainObject16(skoolBucket)) {
       source = { ...source, ...skoolBucket };
     }
-  } else if (isPlainObject15(postDetailsSettings.skool)) {
+  } else if (isPlainObject16(postDetailsSettings.skool)) {
     source = { ...source, ...postDetailsSettings.skool };
   }
   const title = readString3(source, "title");
@@ -25648,6 +27321,13 @@ var init_IntegrationService = __esm({
         await this.invalidateIntegrationCustomersListCache(organizationId);
         return row;
       }
+      async updateIntegrationCustomerName(organizationId, customerId, name) {
+        await this.integrationRepository.updateIntegrationCustomerName(organizationId, customerId, name);
+        await this.invalidateIntegrationCustomersListCache(organizationId);
+      }
+      findIntegrationCustomerByOrgAndName(organizationId, name) {
+        return this.integrationRepository.findIntegrationCustomerByOrgAndName(organizationId, name);
+      }
       async updateIntegrationGroup(organizationId, integrationId, group) {
         await this.integrationRepository.updateIntegrationGroup(organizationId, integrationId, group);
         await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);
@@ -26195,9 +27875,28 @@ var init_IntegrationConnectionService = __esm({
         await this.assertOrganizationMember(authUserId, organizationId);
         return this.integrations.customers(organizationId);
       }
+      /** Programmatic API — channel groups for the workspace (org from API key). */
+      async publicGetIntegrationCustomers(organizationId) {
+        return this.integrations.customers(organizationId);
+      }
       async createIntegrationCustomer(authUserId, organizationId, name) {
         await this.assertOrganizationMember(authUserId, organizationId);
         return this.integrations.createIntegrationCustomer(organizationId, name);
+      }
+      /** Programmatic API — create a channel group without session membership checks. */
+      async publicCreateIntegrationCustomer(organizationId, name) {
+        return this.integrations.createIntegrationCustomer(organizationId, name);
+      }
+      async updateIntegrationCustomerName(authUserId, organizationId, customerId, name) {
+        await this.assertOrganizationMember(authUserId, organizationId);
+        await this.integrations.updateIntegrationCustomerName(organizationId, customerId, name);
+      }
+      /** Programmatic API — rename a channel group without session membership checks. */
+      async publicUpdateIntegrationCustomerName(organizationId, customerId, name) {
+        await this.integrations.updateIntegrationCustomerName(organizationId, customerId, name);
+      }
+      async findIntegrationCustomerByOrgAndName(organizationId, name) {
+        return this.integrations.findIntegrationCustomerByOrgAndName(organizationId, name);
       }
       async assignIntegrationCustomer(authUserId, organizationId, integrationId, customerId) {
         await this.assertOrganizationMember(authUserId, organizationId);
@@ -26234,7 +27933,7 @@ var init_IntegrationConnectionService = __esm({
       }
       async mapListRow(p) {
         const findIntegration = this.manager.getSocialIntegration(p.provider_identifier);
-        const editor = findIntegration?.editor ?? "normal";
+        const editor2 = findIntegration?.editor ?? "normal";
         let customFields;
         if (findIntegration?.customFields && typeof findIntegration.customFields === "function") {
           customFields = await findIntegration.customFields();
@@ -26244,7 +27943,7 @@ var init_IntegrationConnectionService = __esm({
           id: p.id,
           internalId: p.internal_id,
           disabled: p.disabled,
-          editor,
+          editor: editor2,
           // Do not inject a placeholder path: the web uses provider icon fallbacks and a hardcoded
           // "/no-picture.jpg" path breaks avatar rendering (it is not guaranteed to exist on the web origin).
           picture: this.listDisplayPicture(p),
@@ -26718,7 +28417,7 @@ var init_IntegrationConnectionService = __esm({
       }
       async safeAuthenticate(integrationProvider, body, codeVerifier, clientInformation) {
         try {
-          const auth10 = await integrationProvider.authenticate(
+          const auth12 = await integrationProvider.authenticate(
             {
               code: body.code,
               codeVerifier,
@@ -26726,13 +28425,13 @@ var init_IntegrationConnectionService = __esm({
             },
             clientInformation
           );
-          if (typeof auth10 === "string") {
-            return { error: auth10 };
+          if (typeof auth12 === "string") {
+            return { error: auth12 };
           }
-          if (auth10.error) {
-            return { error: auth10.error };
+          if (auth12.error) {
+            return { error: auth12.error };
           }
-          return auth10;
+          return auth12;
         } catch {
           return { error: "Authentication failed" };
         }
@@ -27187,7 +28886,7 @@ var init_TransactionalNotificationEmailService = __esm({
       /**
        * Append one digest line item to Redis (`orchestrator/stores/notificationDigestRedisStore`).
        * Flush scheduling is **not** here: `runNotificationDigestFlushOrchestration` runs on a timer in
-       * `orchestrator/worker/runNotificationEmailBullMqWorker.ts`, which enqueues the digest-flush Flowcraft run.
+       * `orchestrator/worker/runHousekeepingBullMqWorker.ts`, which enqueues the digest-flush Flowcraft run.
        */
       async appendDigestEntry(organizationId, entry) {
         const { appendNotificationDigestEntry } = await import('openquok-orchestrator');
@@ -27231,7 +28930,7 @@ var init_TransactionalNotificationEmailService = __esm({
     };
   }
 });
-function isPlainObject16(value) {
+function isPlainObject17(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function providerCaptionDisplayName(providerIdentifier) {
@@ -27310,12 +29009,12 @@ function collectCaptionTextsFromProviderSettings(providerIdentifier, providerSet
   }
   const id = providerIdentifier.trim().toLowerCase();
   if (id === "threads") {
-    const threads = isPlainObject16(providerSettings.threads) ? providerSettings.threads : null;
+    const threads = isPlainObject17(providerSettings.threads) ? providerSettings.threads : null;
     if (threads) {
       if (threads.enabled === true) {
         pushCaptionText(out, threads.message, `${displayName} thread finisher`);
       }
-      const engagement = isPlainObject16(threads.internalEngagementPlug) ? threads.internalEngagementPlug : null;
+      const engagement = isPlainObject17(threads.internalEngagementPlug) ? threads.internalEngagementPlug : null;
       if (engagement?.enabled === true) {
         pushCaptionText(out, engagement.message, `${displayName} delayed engagement`);
       }
@@ -27323,12 +29022,12 @@ function collectCaptionTextsFromProviderSettings(providerIdentifier, providerSet
   }
   for (const bucket of CROSS_ACCOUNT_PLUG_BUCKETS) {
     const bucketSettings = providerSettings[bucket];
-    if (!isPlainObject16(bucketSettings)) continue;
+    if (!isPlainObject17(bucketSettings)) continue;
     const plugs = bucketSettings.crossAccountPlugs;
     if (!Array.isArray(plugs)) continue;
     for (const plug of plugs) {
-      if (!isPlainObject16(plug)) continue;
-      const fields = isPlainObject16(plug.fields) ? plug.fields : null;
+      if (!isPlainObject17(plug)) continue;
+      const fields = isPlainObject17(plug.fields) ? plug.fields : null;
       pushCaptionText(out, fields?.comment, `${displayName} cross-account plug comment`);
     }
   }
@@ -30405,6 +32104,12 @@ function planLimitForSection(limits, section) {
       return limits.community_features;
     case SubscriptionSection.PUBLIC_API:
       return limits.public_api;
+    case SubscriptionSection.DIRECTORY_LAUNCH_ENABLED:
+      return limits.directory_launch_enabled;
+    case SubscriptionSection.DIRECTORY_SEO_ENABLED:
+      return limits.directory_seo_enabled;
+    case SubscriptionSection.DIRECTORY_SEO_COMPETITORS_PER_WORKSPACE:
+      return limits.directory_seo_competitors_per_workspace;
     case SubscriptionSection.ADMIN:
       return null;
     default:
@@ -30486,6 +32191,18 @@ var init_guardRegistry = __esm({
       [SubscriptionSection.WORKSPACES]: {
         kind: "account_quota",
         deniedMessage: "Your plan does not allow more workspaces. Upgrade to add more."
+      },
+      [SubscriptionSection.DIRECTORY_LAUNCH_ENABLED]: {
+        kind: "boolean",
+        deniedMessage: "Directory launch is not included on your current plan."
+      },
+      [SubscriptionSection.DIRECTORY_SEO_ENABLED]: {
+        kind: "boolean",
+        deniedMessage: "Directory analytics is not included on your current plan."
+      },
+      [SubscriptionSection.DIRECTORY_SEO_COMPETITORS_PER_WORKSPACE]: {
+        kind: "quota",
+        deniedMessage: "Directory competitor tracking is not included on your current plan."
       }
     };
     TEAM_INVITE_DENIED_MESSAGE = "Your plan does not include additional workspace seats. Upgrade to invite team members.";
@@ -30523,12 +32240,13 @@ var init_SubscriptionGuardService = __esm({
     init_postsBilling();
     PLATFORM_ADMIN_EFFECTIVE_TIER = "TEAM";
     SubscriptionGuardService = class {
-      constructor(subscriptionService2, integrationService2, organizationRepository2, postsRepository2, rbacRepository2) {
+      constructor(subscriptionService2, integrationService2, organizationRepository2, postsRepository2, rbacRepository2, directorySeoRepository2) {
         this.subscriptionService = subscriptionService2;
         this.integrationService = integrationService2;
         this.organizationRepository = organizationRepository2;
         this.postsRepository = postsRepository2;
         this.rbacRepository = rbacRepository2;
+        this.directorySeoRepository = directorySeoRepository2;
       }
       billingUrl() {
         const frontend = config.server.frontendDomainUrl ?? "";
@@ -30714,6 +32432,43 @@ var init_SubscriptionGuardService = __esm({
         }
         if (section === SubscriptionSection.CHANNEL_PER_WORKSPACE) {
           return this.assertConnectSocialChannel(ctx);
+        }
+        if (section === SubscriptionSection.DIRECTORY_SEO_COMPETITORS_PER_WORKSPACE) {
+          return this.assertDirectorySeoCompetitors(ctx);
+        }
+      }
+      async assertDirectorySeoCompetitors(ctx) {
+        const workspaceCtx = this.requireWorkspaceContext(ctx);
+        const rowsToAdd = workspaceCtx.scope === "workspaceWithDelta" ? workspaceCtx.delta : workspaceCtx.scope === "workspace" ? workspaceCtx.delta ?? 1 : 1;
+        if (rowsToAdd < 1) return;
+        const { limits } = await this.getTierAndLimits(
+          workspaceCtx.organizationId,
+          workspaceCtx.authUserId
+        );
+        if (!limits.directory_seo_enabled) {
+          throw new SubscriptionError(
+            GUARD_REGISTRY[SubscriptionSection.DIRECTORY_SEO_ENABLED].deniedMessage,
+            SubscriptionSection.DIRECTORY_SEO_ENABLED,
+            this.billingUrl()
+          );
+        }
+        const cap = limits.directory_seo_competitors_per_workspace;
+        if (cap < 1) {
+          throw new SubscriptionError(
+            GUARD_REGISTRY[SubscriptionSection.DIRECTORY_SEO_COMPETITORS_PER_WORKSPACE].deniedMessage,
+            SubscriptionSection.DIRECTORY_SEO_COMPETITORS_PER_WORKSPACE,
+            this.billingUrl()
+          );
+        }
+        const count = await this.directorySeoRepository.countCompetitorsForOrganization(
+          workspaceCtx.organizationId
+        );
+        if (count + rowsToAdd > cap) {
+          throw new SubscriptionError(
+            `Your plan allows up to ${cap} directory competitors per workspace. Remove a competitor or upgrade to add more.`,
+            SubscriptionSection.DIRECTORY_SEO_COMPETITORS_PER_WORKSPACE,
+            this.billingUrl()
+          );
         }
       }
       postsBillingPeriodStart(subscription, organizationCreatedAt) {
@@ -32401,8 +34156,2195 @@ var init_AcquisitionSurveyService = __esm({
   }
 });
 
+// errors/AutoLaunchError.ts
+var AutoLaunchProfileNotFoundError, AutoLaunchDestinationNotFoundError, AutoLaunchSubmissionNotFoundError, AutoLaunchIntentNotAvailableError, AutoLaunchTokenInvalidError;
+var init_AutoLaunchError = __esm({
+  "errors/AutoLaunchError.ts"() {
+    init_AppError();
+    AutoLaunchProfileNotFoundError = class extends AppError {
+      constructor(profileId) {
+        super(`Auto-launch product profile not found: ${profileId}`, 404);
+        this.name = "AutoLaunchProfileNotFoundError";
+      }
+    };
+    AutoLaunchDestinationNotFoundError = class extends AppError {
+      constructor(identifier) {
+        super(`Auto-launch destination not found: ${identifier}`, 404);
+        this.name = "AutoLaunchDestinationNotFoundError";
+      }
+    };
+    AutoLaunchSubmissionNotFoundError = class extends AppError {
+      constructor(submissionId) {
+        super(`Auto-launch submission not found: ${submissionId}`, 404);
+        this.name = "AutoLaunchSubmissionNotFoundError";
+      }
+    };
+    AutoLaunchIntentNotAvailableError = class extends AppError {
+      constructor(message) {
+        super(message, 400);
+        this.name = "AutoLaunchIntentNotAvailableError";
+      }
+    };
+    AutoLaunchTokenInvalidError = class extends AppError {
+      constructor() {
+        super("Launch token is invalid or expired", 401);
+        this.name = "AutoLaunchTokenInvalidError";
+      }
+    };
+  }
+});
+
+// services/autoLaunch/submissionListingEvidence.ts
+function parseSubmissionListingEvidence(evidence) {
+  const raw = evidence ?? {};
+  const listingDofollow = raw.listingDofollow === true;
+  const authEmail = typeof raw.authEmail === "string" && raw.authEmail.trim() ? raw.authEmail.trim() : null;
+  return { listingDofollow, authEmail };
+}
+function buildManualListingEvidence(input) {
+  const authEmail = typeof input.authEmail === "string" && input.authEmail.trim() ? input.authEmail.trim() : null;
+  return {
+    source: input.source ?? "manual_web",
+    listingDofollow: input.listingDofollow === true,
+    ...authEmail ? { authEmail } : {}
+  };
+}
+function applyTrustedListingDofollowOnComplete(evidence, opportunityDofollow) {
+  if (opportunityDofollow === "dofollow") {
+    return mergeSubmissionListingEvidence(evidence, { listingDofollow: true });
+  }
+  if (opportunityDofollow === "nofollow") {
+    return mergeSubmissionListingEvidence(evidence, { listingDofollow: false });
+  }
+  return mergeSubmissionListingEvidence(evidence, {});
+}
+function mergeSubmissionListingEvidence(existing, input) {
+  const base = { ...existing ?? {} };
+  if (input.listingDofollow !== void 0) {
+    base.listingDofollow = input.listingDofollow === true;
+  } else if (base.listingDofollow === void 0) {
+    base.listingDofollow = false;
+  }
+  if (input.authEmail !== void 0) {
+    const trimmed = typeof input.authEmail === "string" && input.authEmail.trim() ? input.authEmail.trim() : null;
+    if (trimmed) {
+      base.authEmail = trimmed;
+    } else {
+      delete base.authEmail;
+    }
+  }
+  return base;
+}
+var init_submissionListingEvidence = __esm({
+  "services/autoLaunch/submissionListingEvidence.ts"() {
+  }
+});
+
+// services/autoLaunch/dedupeAutoLaunchSubmissions.ts
+function dedupeAutoLaunchSubmissionsByDestination(rows) {
+  const byDestination = /* @__PURE__ */ new Map();
+  for (const row of rows) {
+    const group = byDestination.get(row.destination_id) ?? [];
+    group.push(row);
+    byDestination.set(row.destination_id, group);
+  }
+  const picked = [];
+  for (const group of byDestination.values()) {
+    const sorted = [...group].sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+    const completed = sorted.find((r) => r.status === "completed");
+    if (completed) {
+      picked.push(completed);
+      continue;
+    }
+    const open = sorted.find((r) => OPEN_STATUSES.has(r.status));
+    picked.push(open ?? sorted[0]);
+  }
+  return picked.sort(
+    (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+  );
+}
+var OPEN_STATUSES, AUTO_LAUNCH_OPEN_SUBMISSION_STATUSES;
+var init_dedupeAutoLaunchSubmissions = __esm({
+  "services/autoLaunch/dedupeAutoLaunchSubmissions.ts"() {
+    OPEN_STATUSES = /* @__PURE__ */ new Set([
+      "draft",
+      "intent",
+      "in_progress"
+    ]);
+    AUTO_LAUNCH_OPEN_SUBMISSION_STATUSES = [
+      "draft",
+      "intent",
+      "in_progress"
+    ];
+  }
+});
+
+// services/autoLaunch/submissionListingSync.ts
+function computeListingFingerprintForSubmission(profileSnapshot, extensionConfig) {
+  return computeListingProfileFingerprint(profileSnapshot, extensionConfig);
+}
+function isCompletedSubmissionListingStale(submission, liveProfileSnapshot) {
+  if (submission.status !== "completed") {
+    return false;
+  }
+  const liveFingerprint = computeListingFingerprintForSubmission(
+    liveProfileSnapshot,
+    submission.extension_config_snapshot
+  );
+  if (!submission.listing_profile_fingerprint) {
+    return true;
+  }
+  return liveFingerprint !== submission.listing_profile_fingerprint;
+}
+function resolveSubmissionSyncStatus(submission, liveProfileSnapshot) {
+  if (submission.status !== "completed") {
+    return "pending";
+  }
+  if (!liveProfileSnapshot) {
+    return "stale";
+  }
+  return isCompletedSubmissionListingStale(submission, liveProfileSnapshot) ? "stale" : "synced";
+}
+var init_submissionListingSync = __esm({
+  "services/autoLaunch/submissionListingSync.ts"() {
+    init_dist();
+  }
+});
+
+// utils/images/autoLaunchProfileMediaImages.ts
+function encodeStoragePathSegments(storagePath) {
+  return storagePath.split("/").map((s) => encodeURIComponent(s)).join("/");
+}
+function trimBackendApiBase() {
+  const backend = String(
+    config.server?.backendDomainUrl ?? ""
+  ).replace(/\/$/, "");
+  const apiPrefix = String(config.api?.prefix ?? "/api/v1").replace(/\/$/, "");
+  return `${backend}${apiPrefix}`;
+}
+function extractAutoLaunchProfileMediaStoragePathFromImageSrc(src) {
+  const trimmed = src.trim();
+  if (!trimmed || trimmed.startsWith("blob:")) return null;
+  let i = trimmed.indexOf(PUBLIC_OBJECT_MARKER);
+  if (i !== -1) {
+    const rest = trimmed.slice(i + PUBLIC_OBJECT_MARKER.length).split(/[?#]/)[0];
+    return rest ? decodeURIComponent(rest) : null;
+  }
+  try {
+    const u = new URL(trimmed, "https://example.com");
+    if (u.searchParams.get("databaseName") === AUTO_LAUNCH_PROFILE_MEDIA_BUCKET) {
+      const imageUrl = u.searchParams.get("imageUrl");
+      if (imageUrl) return decodeURIComponent(imageUrl);
+    }
+    const path7 = u.pathname;
+    i = path7.indexOf(PUBLIC_OBJECT_MARKER);
+    if (i !== -1) {
+      const rest = path7.slice(i + PUBLIC_OBJECT_MARKER.length).split(/[?#]/)[0];
+      return rest ? decodeURIComponent(rest) : null;
+    }
+  } catch {
+  }
+  if (trimmed.includes(`databaseName=${AUTO_LAUNCH_PROFILE_MEDIA_BUCKET}`)) {
+    try {
+      const q = trimmed.includes("?") ? trimmed.split("?")[1] ?? "" : "";
+      const params = new URLSearchParams(q);
+      if (params.get("databaseName") === AUTO_LAUNCH_PROFILE_MEDIA_BUCKET) {
+        const imageUrl = params.get("imageUrl");
+        if (imageUrl) return decodeURIComponent(imageUrl);
+      }
+    } catch {
+    }
+  }
+  return null;
+}
+function resolveAutoLaunchProfileMediaStorageKey(raw) {
+  const trimmed = raw.trim();
+  if (!trimmed || trimmed === "null" || trimmed === "undefined") return null;
+  const fromUrl = extractAutoLaunchProfileMediaStoragePathFromImageSrc(trimmed);
+  if (fromUrl) return fromUrl.replace(/^\/+/, "");
+  let key = trimmed.replace(/^\/+/, "");
+  if (key.startsWith(`${AUTO_LAUNCH_PROFILE_MEDIA_BUCKET}/`)) {
+    key = key.slice(AUTO_LAUNCH_PROFILE_MEDIA_BUCKET.length + 1);
+  }
+  if (key.includes("://")) return null;
+  if (!key) return null;
+  return key;
+}
+function buildAutoLaunchProfileMediaPublicUrl(storagePath) {
+  const key = resolveAutoLaunchProfileMediaStorageKey(storagePath);
+  if (!key) return "";
+  const supabasePublic = String(
+    config.supabase?.supabaseUrl ?? ""
+  ).replace(/\/$/, "");
+  if (supabasePublic) {
+    return `${supabasePublic}/storage/v1/object/public/${AUTO_LAUNCH_PROFILE_MEDIA_BUCKET}/${encodeStoragePathSegments(key)}`;
+  }
+  const apiBase = trimBackendApiBase();
+  return `${apiBase}/image/download?databaseName=${AUTO_LAUNCH_PROFILE_MEDIA_BUCKET}&imageUrl=${encodeURIComponent(key)}`;
+}
+function resolveAutoLaunchProfileImageUrl(raw) {
+  const trimmed = raw?.trim();
+  if (!trimmed) return null;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  const built = buildAutoLaunchProfileMediaPublicUrl(trimmed);
+  return built.trim() ? built : null;
+}
+function parseAutoLaunchProfileMediaUploadPrefix(raw) {
+  const trimmed = raw.trim().replace(/^\/+|\/+$/g, "");
+  const match = /^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i.exec(
+    trimmed
+  );
+  if (!match) return null;
+  return { organizationId: match[1], profileId: match[2] };
+}
+var AUTO_LAUNCH_PROFILE_MEDIA_BUCKET, PUBLIC_OBJECT_MARKER;
+var init_autoLaunchProfileMediaImages = __esm({
+  "utils/images/autoLaunchProfileMediaImages.ts"() {
+    init_GlobalConfig();
+    init_StorageSupabaseRepository();
+    AUTO_LAUNCH_PROFILE_MEDIA_BUCKET = DATABASE_NAMES.AUTO_LAUNCH_PROFILE_MEDIA;
+    PUBLIC_OBJECT_MARKER = `/object/public/${AUTO_LAUNCH_PROFILE_MEDIA_BUCKET}/`;
+  }
+});
+
+// utils/dtos/AutoLaunchDTO.ts
+function resolveSnapshotProfileData(profileData) {
+  const gallery = profileData.gallery_urls;
+  if (!Array.isArray(gallery) || gallery.length === 0) {
+    return profileData;
+  }
+  const gallery_urls = gallery.map((entry) => {
+    if (typeof entry !== "string") return entry;
+    return resolveAutoLaunchProfileImageUrl(entry) ?? entry;
+  });
+  return { ...profileData, gallery_urls };
+}
+function buildProfileSnapshot(row) {
+  const profileData = row.profile_data ?? {};
+  return {
+    name: row.name,
+    tagline: row.tagline,
+    description: row.description,
+    website_url: row.website_url,
+    logo_url: resolveAutoLaunchProfileImageUrl(row.logo_url) ?? row.logo_url,
+    profile_data: resolveSnapshotProfileData(profileData),
+    integration_customer_id: row.integration_customer_id
+  };
+}
+function toBusinessProfileDto(row) {
+  return {
+    integrationCustomerId: row.integration_customer_id,
+    productProfileId: row.product_profile_id,
+    name: row.name,
+    tagline: row.tagline,
+    websiteUrl: row.website_url,
+    logoUrl: row.logo_url
+  };
+}
+function toBusinessProfileDtoCollection(rows) {
+  return (rows ?? []).map(toBusinessProfileDto);
+}
+function normalizeProfileKind(row) {
+  return row.profile_kind === "directory_variant" ? "directory_variant" : "main";
+}
+function toAutoLaunchProductProfileDto(row, options2) {
+  const profileKind = normalizeProfileKind(row);
+  return {
+    id: row.id,
+    organizationId: row.organization_id,
+    integrationCustomerId: row.integration_customer_id,
+    name: row.name,
+    tagline: row.tagline,
+    description: row.description,
+    websiteUrl: row.website_url,
+    logoUrl: row.logo_url,
+    profileData: row.profile_data ?? {},
+    profileKind,
+    parentProfileId: row.parent_profile_id ?? null,
+    directorySiteKey: row.directory_site_key ?? null,
+    similarityToMainPercent: options2?.similarityToMainPercent ?? null,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+function computeSimilarityToMainPercent(variant, main) {
+  if (normalizeProfileKind(variant) !== "directory_variant" || !main) {
+    return null;
+  }
+  return profileSimilarityPercentToMain(buildProfileSnapshot(main), buildProfileSnapshot(variant));
+}
+function toAutoLaunchProductProfileDtoCollection(rows, mainById) {
+  return (rows ?? []).map((row) => {
+    const main = row.parent_profile_id && mainById ? mainById.get(row.parent_profile_id) ?? null : null;
+    const similarity = computeSimilarityToMainPercent(row, main);
+    return toAutoLaunchProductProfileDto(row, { similarityToMainPercent: similarity });
+  });
+}
+function normalizeDofollow(value) {
+  if (value === "dofollow" || value === "nofollow" || value === "unknown") return value;
+  return null;
+}
+function normalizeCostTier(value) {
+  if (value === "free" || value === "freemium" || value === "paid") return value;
+  return null;
+}
+function toAutoLaunchDestinationDto(row) {
+  return {
+    id: row.id,
+    providerSlug: row.provider_slug,
+    name: row.name,
+    shortDescription: row.short_description,
+    submissionPath: row.submission_path,
+    startUrl: row.start_url,
+    sortOrder: row.sort_order,
+    opportunityDescription: row.opportunity_description ?? null,
+    opportunityTitle: row.opportunity_title ?? null,
+    opportunityDofollow: normalizeDofollow(row.opportunity_dofollow),
+    opportunityCostTier: normalizeCostTier(row.opportunity_cost_tier),
+    opportunityCostNote: row.opportunity_cost_note ?? null,
+    siteDomainRating: row.site_domain_rating ?? null,
+    siteMetricsUpdatedAt: row.site_metrics_updated_at ?? null,
+    siteTitle: row.site_title ?? null,
+    pickerGroupKey: row.picker_group_key ?? null,
+    pickerGroupTitle: row.picker_group_title ?? null,
+    extensionConfig: row.extension_config ?? {}
+  };
+}
+function toAutoLaunchDestinationDtoCollection(rows) {
+  return (rows ?? []).map(toAutoLaunchDestinationDto);
+}
+function toAutoLaunchAdminDestinationDto(row) {
+  const list = toAutoLaunchDestinationDto(row);
+  return {
+    ...list,
+    linkDirectoryOpportunityId: row.link_directory_opportunity_id,
+    extensionConfig: row.extension_config ?? {},
+    isPublished: row.is_published,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+function toAutoLaunchSubmissionDto(row, options2) {
+  const syncStatus = options2?.syncStatus ?? (row.status === "completed" ? row.listing_profile_fingerprint ? "synced" : "stale" : "pending");
+  const listingEvidence = parseSubmissionListingEvidence(row.evidence);
+  return {
+    id: row.id,
+    organizationId: row.organization_id,
+    productProfileId: row.product_profile_id,
+    destinationId: row.destination_id,
+    status: row.status,
+    listingUrl: row.listing_url,
+    listingDofollow: listingEvidence.listingDofollow,
+    authEmail: listingEvidence.authEmail,
+    intentCreatedAt: row.intent_created_at,
+    completedAt: row.completed_at,
+    listingSyncedAt: row.listing_synced_at,
+    syncStatus,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+function toAutoLaunchSubmissionDtoCollection(rows, options2) {
+  const syncById = options2?.syncStatusBySubmissionId;
+  return (rows ?? []).map(
+    (row) => toAutoLaunchSubmissionDto(row, syncById ? { syncStatus: syncById.get(row.id) } : void 0)
+  );
+}
+function toSubmissionIntentDto(params) {
+  const extensionConfig = params.destination.extension_config ?? {};
+  const steps = extensionConfig.steps ?? [];
+  return {
+    submissionId: params.submissionId,
+    launchToken: params.launchToken,
+    startUrl: params.destination.start_url,
+    providerSlug: params.destination.provider_slug,
+    profileSnapshot: params.profileSnapshot,
+    extensionConfig,
+    steps
+  };
+}
+var init_AutoLaunchDTO = __esm({
+  "utils/dtos/AutoLaunchDTO.ts"() {
+    init_dist();
+    init_submissionListingEvidence();
+    init_autoLaunchProfileMediaImages();
+  }
+});
+function base64UrlEncode3(buf) {
+  return buf.toString("base64url");
+}
+function base64UrlDecode3(str) {
+  return Buffer.from(str, "base64url");
+}
+function signLaunchToken(payload, secret) {
+  if (!secret) {
+    throw new Error("Launch token secret is not configured (set SECURITY_SECRET)");
+  }
+  const expiresAt = new Date(Date.now() + LAUNCH_TOKEN_TTL_MS).toISOString();
+  const id = crypto.randomBytes(6).toString("hex");
+  const full = { ...payload, expiresAt, id };
+  const raw = JSON.stringify(full);
+  const payloadB64 = base64UrlEncode3(Buffer.from(raw, "utf8"));
+  const sig = crypto.createHmac(ALG3, secret).update(payloadB64).digest();
+  return `${payloadB64}${SEP3}${base64UrlEncode3(sig)}`;
+}
+function decodeLaunchToken(token, secret) {
+  if (!secret) return { ok: false, reason: "missing_secret" };
+  if (!token?.trim()) return { ok: false, reason: "malformed" };
+  const idx = token.lastIndexOf(SEP3);
+  if (idx === -1) return { ok: false, reason: "malformed" };
+  const payloadB64 = token.slice(0, idx);
+  const sigB64 = token.slice(idx + 1);
+  try {
+    const expectedSig = crypto.createHmac(ALG3, secret).update(payloadB64).digest();
+    const actualSig = base64UrlDecode3(sigB64);
+    if (actualSig.length !== expectedSig.length || !crypto.timingSafeEqual(actualSig, expectedSig)) {
+      return { ok: false, reason: "invalid_signature" };
+    }
+    const raw = base64UrlDecode3(payloadB64).toString("utf8");
+    const payload = JSON.parse(raw);
+    if (new Date(payload.expiresAt).getTime() < Date.now()) {
+      return { ok: false, reason: "expired" };
+    }
+    return { ok: true, payload };
+  } catch {
+    return { ok: false, reason: "malformed" };
+  }
+}
+function verifyLaunchToken(token, secret) {
+  const decoded = decodeLaunchToken(token, secret);
+  return decoded.ok ? decoded.payload : null;
+}
+var ALG3, SEP3, LAUNCH_TOKEN_TTL_MS;
+var init_launchToken = __esm({
+  "utils/auth/launchToken.ts"() {
+    ALG3 = "sha256";
+    SEP3 = ".";
+    LAUNCH_TOKEN_TTL_MS = 48 * 60 * 60 * 1e3;
+  }
+});
+function parseBusinessProfileDataInput(value) {
+  const parsed = businessProfileDataSchema.parse(value ?? {});
+  return parsed;
+}
+function parseBusinessProfileDataPatch(value) {
+  const parsed = businessProfileDataSchema.parse(value);
+  return parsed;
+}
+var nullableTrimmedString, optionalHttpUrl, optionalUsdAmount, slugField, businessProfileDataSchema;
+var init_businessProfileDataSchemas = __esm({
+  "data/schemas/businessProfileDataSchemas.ts"() {
+    init_dist();
+    nullableTrimmedString = (max) => zod.z.union([zod.z.string().max(max).trim(), zod.z.null()]).optional().transform((value) => {
+      if (value === void 0) return void 0;
+      if (value === null) return null;
+      const trimmed = value.trim();
+      return trimmed.length === 0 ? null : trimmed;
+    });
+    optionalHttpUrl = zod.z.union([zod.z.string().max(2e3).trim(), zod.z.null()]).optional().transform((value) => {
+      if (value === void 0) return void 0;
+      if (value === null) return null;
+      const trimmed = value.trim();
+      if (trimmed.length === 0) return null;
+      return trimmed;
+    }).pipe(
+      zod.z.union([
+        zod.z.undefined(),
+        zod.z.null(),
+        zod.z.string().url("Must be a valid URL")
+      ])
+    );
+    optionalUsdAmount = zod.z.union([zod.z.number().nonnegative().finite(), zod.z.null()]).optional();
+    slugField = nullableTrimmedString(120).pipe(
+      zod.z.union([
+        zod.z.undefined(),
+        zod.z.null(),
+        zod.z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Invalid slug")
+      ])
+    );
+    businessProfileDataSchema = zod.z.object({
+      slug: slugField,
+      category: nullableTrimmedString(200),
+      categories: zod.z.array(zod.z.string().trim().min(1).max(80)).max(BUSINESS_PROFILE_MAX_CATEGORIES).nullable().optional(),
+      use_cases: zod.z.array(zod.z.string().trim().min(1).max(80)).max(BUSINESS_PROFILE_MAX_USE_CASES).nullable().optional(),
+      target_audiences: zod.z.array(zod.z.string().trim().min(1).max(80)).max(BUSINESS_PROFILE_MAX_TARGET_AUDIENCES).nullable().optional(),
+      platforms: zod.z.array(zod.z.string().trim().min(1).max(80)).max(BUSINESS_PROFILE_MAX_PLATFORMS).nullable().optional(),
+      alternatives: zod.z.array(zod.z.string().trim().min(1).max(200)).max(BUSINESS_PROFILE_MAX_ALTERNATIVES).nullable().optional(),
+      pricing_type: zod.z.enum(BUSINESS_PROFILE_PRICING_TYPES).nullable().optional(),
+      tags: zod.z.array(zod.z.string().trim().min(1).max(80)).max(BUSINESS_PROFILE_MAX_TAGS).nullable().optional(),
+      is_open_source: zod.z.boolean().nullable().optional(),
+      repository_url: optionalHttpUrl,
+      launch_video_url: optionalHttpUrl,
+      gallery_urls: zod.z.array(zod.z.string().max(2e3).trim().min(1)).max(BUSINESS_PROFILE_MAX_GALLERY_URLS).nullable().optional(),
+      social_x: optionalHttpUrl,
+      social_github: optionalHttpUrl,
+      social_instagram: optionalHttpUrl,
+      social_linkedin: optionalHttpUrl,
+      social_tiktok: optionalHttpUrl,
+      social_facebook: optionalHttpUrl,
+      social_youtube: optionalHttpUrl,
+      social_bluesky: optionalHttpUrl,
+      acquisition_listed: zod.z.boolean().nullable().optional(),
+      asking_price_usd: optionalUsdAmount,
+      ttm_revenue_usd: optionalUsdAmount,
+      monthly_revenue_usd: optionalUsdAmount,
+      ttm_profit_usd: optionalUsdAmount,
+      monthly_profit_usd: optionalUsdAmount,
+      selling_reason: nullableTrimmedString(1e4),
+      included_assets: zod.z.array(zod.z.enum(BUSINESS_PROFILE_INCLUDED_ASSET_SLUGS)).nullable().optional()
+    }).strict().superRefine((data, ctx) => {
+      const reason = data.selling_reason?.trim() ?? "";
+      const listed = Boolean(data.acquisition_listed);
+      if (reason.length > 0 && reason.length < BUSINESS_PROFILE_SELLING_REASON_MIN_LENGTH) {
+        ctx.addIssue({
+          code: zod.z.ZodIssueCode.custom,
+          message: `Selling reason must be at least ${BUSINESS_PROFILE_SELLING_REASON_MIN_LENGTH} characters`,
+          path: ["selling_reason"]
+        });
+      }
+      if (listed && reason.length < BUSINESS_PROFILE_SELLING_REASON_MIN_LENGTH) {
+        ctx.addIssue({
+          code: zod.z.ZodIssueCode.custom,
+          message: `Selling reason is required (${BUSINESS_PROFILE_SELLING_REASON_MIN_LENGTH}+ characters) when listed for acquisition`,
+          path: ["selling_reason"]
+        });
+      }
+    });
+  }
+});
+
+// services/AutoLaunchService.ts
+function launchTokenSecret() {
+  return config.auth?.securitySecret?.trim() ?? "";
+}
+function normalizeOpportunityDofollow(value) {
+  if (value === "dofollow" || value === "nofollow" || value === "unknown") return value;
+  return null;
+}
+var AutoLaunchService;
+var init_AutoLaunchService = __esm({
+  "services/AutoLaunchService.ts"() {
+    init_dist();
+    init_GlobalConfig();
+    init_AutoLaunchError();
+    init_UserError();
+    init_submissionListingEvidence();
+    init_dedupeAutoLaunchSubmissions();
+    init_submissionListingSync();
+    init_AutoLaunchDTO();
+    init_launchToken();
+    init_businessProfileDataSchemas();
+    AutoLaunchService = class {
+      constructor(autoLaunchRepository2, integrationConnectionService2, subscriptionGuard2) {
+        this.autoLaunchRepository = autoLaunchRepository2;
+        this.integrationConnectionService = integrationConnectionService2;
+        this.subscriptionGuard = subscriptionGuard2;
+      }
+      async assertDirectoryLaunchEnabled(organizationId, authUserId) {
+        await this.subscriptionGuard.assert(SubscriptionSection.DIRECTORY_LAUNCH_ENABLED, {
+          scope: "workspace",
+          organizationId,
+          authUserId
+        });
+      }
+      /** Programmatic API / MCP — membership is enforced by the caller. */
+      async assertDirectoryLaunchEnabledForProgrammatic(organizationId, publicUserId) {
+        await this.subscriptionGuard.assert(SubscriptionSection.DIRECTORY_LAUNCH_ENABLED, {
+          scope: "workspace",
+          organizationId,
+          publicUserId
+        });
+      }
+      async listPublishedDestinations() {
+        return this.autoLaunchRepository.listPublishedDestinations();
+      }
+      async listAdminDestinations() {
+        const rows = await this.autoLaunchRepository.listAllDestinations();
+        return rows.map((row) => toAutoLaunchAdminDestinationDto(row));
+      }
+      async getAdminDestinationById(destinationId) {
+        const row = await this.autoLaunchRepository.findDestinationById(destinationId);
+        if (!row) {
+          throw new AutoLaunchDestinationNotFoundError(destinationId);
+        }
+        return toAutoLaunchAdminDestinationDto(row);
+      }
+      async getAdminDestinationByProviderSlug(providerSlug) {
+        const row = await this.autoLaunchRepository.findDestinationByProviderSlug(providerSlug);
+        return row ? toAutoLaunchAdminDestinationDto(row) : null;
+      }
+      async createAdminDestination(body) {
+        const existing = await this.autoLaunchRepository.findDestinationByProviderSlug(body.providerSlug);
+        if (existing) {
+          throw new UserValidationError(`A destination with provider slug "${body.providerSlug}" already exists.`);
+        }
+        const row = await this.autoLaunchRepository.createDestination({
+          provider_slug: body.providerSlug,
+          link_directory_opportunity_id: body.linkDirectoryOpportunityId ?? null,
+          name: body.name,
+          short_description: body.shortDescription ?? null,
+          submission_path: body.submissionPath ?? "extension",
+          start_url: body.startUrl,
+          extension_config: body.extensionConfig ?? {},
+          is_published: body.isPublished ?? false,
+          sort_order: body.sortOrder ?? 0,
+          picker_group_key: body.pickerGroupKey ?? null,
+          picker_group_title: body.pickerGroupTitle ?? null
+        });
+        return toAutoLaunchAdminDestinationDto(row);
+      }
+      async updateAdminDestination(destinationId, body) {
+        const existing = await this.autoLaunchRepository.findDestinationById(destinationId);
+        if (!existing) {
+          throw new AutoLaunchDestinationNotFoundError(destinationId);
+        }
+        if (body.providerSlug && body.providerSlug !== existing.provider_slug) {
+          const slugTaken = await this.autoLaunchRepository.findDestinationByProviderSlug(body.providerSlug);
+          if (slugTaken && slugTaken.id !== destinationId) {
+            throw new UserValidationError(`Provider slug "${body.providerSlug}" is already in use.`);
+          }
+        }
+        const patch = {};
+        if (body.providerSlug !== void 0) patch.provider_slug = body.providerSlug;
+        if (body.linkDirectoryOpportunityId !== void 0) {
+          patch.link_directory_opportunity_id = body.linkDirectoryOpportunityId;
+        }
+        if (body.name !== void 0) patch.name = body.name;
+        if (body.shortDescription !== void 0) patch.short_description = body.shortDescription;
+        if (body.submissionPath !== void 0) patch.submission_path = body.submissionPath;
+        if (body.startUrl !== void 0) patch.start_url = body.startUrl;
+        if (body.extensionConfig !== void 0) patch.extension_config = body.extensionConfig;
+        if (body.isPublished !== void 0) patch.is_published = body.isPublished;
+        if (body.sortOrder !== void 0) patch.sort_order = body.sortOrder;
+        if (body.pickerGroupKey !== void 0) patch.picker_group_key = body.pickerGroupKey;
+        if (body.pickerGroupTitle !== void 0) patch.picker_group_title = body.pickerGroupTitle;
+        const updated = await this.autoLaunchRepository.updateDestination(destinationId, patch);
+        if (!updated) {
+          throw new AutoLaunchDestinationNotFoundError(destinationId);
+        }
+        return toAutoLaunchAdminDestinationDto(updated);
+      }
+      async deleteAdminDestination(destinationId) {
+        const existing = await this.autoLaunchRepository.findDestinationById(destinationId);
+        if (!existing) {
+          throw new AutoLaunchDestinationNotFoundError(destinationId);
+        }
+        await this.autoLaunchRepository.deleteDestination(destinationId);
+      }
+      async listProfiles(authUserId, organizationId, integrationCustomerId) {
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+        await this.assertDirectoryLaunchEnabled(organizationId, authUserId);
+        const rows = await this.autoLaunchRepository.listProfilesByOrganization(
+          organizationId,
+          integrationCustomerId
+        );
+        return this.enrichProfileDtos(organizationId, rows);
+      }
+      async getProfileForMember(authUserId, profileId) {
+        const row = await this.autoLaunchRepository.findProfileById(profileId);
+        if (!row) return null;
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, row.organization_id);
+        await this.assertDirectoryLaunchEnabled(row.organization_id, authUserId);
+        const [dto] = await this.enrichProfileDtos(row.organization_id, [row]);
+        return dto ?? null;
+      }
+      async createDirectoryVariant(authUserId, mainProfileId, input) {
+        const main = await this.autoLaunchRepository.findProfileById(mainProfileId);
+        if (!main) {
+          throw new AutoLaunchProfileNotFoundError(mainProfileId);
+        }
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, main.organization_id);
+        await this.assertDirectoryLaunchEnabled(main.organization_id, authUserId);
+        if (main.profile_kind === "directory_variant" || main.parent_profile_id) {
+          throw new UserValidationError("Directory variants must be created from a main product profile.");
+        }
+        const directorySiteKey = input.directorySiteKey.trim();
+        const existing = await this.autoLaunchRepository.findDirectoryVariantByParentAndSiteKey({
+          parentProfileId: main.id,
+          directorySiteKey
+        });
+        if (existing) {
+          throw new UserValidationError(
+            `A tailored profile for "${directorySiteKey}" already exists for this product.`
+          );
+        }
+        const variantName = input.name?.trim() || `${main.name} (${directorySiteKey})`;
+        const variant = await this.autoLaunchRepository.insertDirectoryVariantFromMain({
+          mainProfile: main,
+          directorySiteKey,
+          name: variantName,
+          createdByUserId: authUserId
+        });
+        const [dto] = await this.enrichProfileDtos(main.organization_id, [variant]);
+        return dto;
+      }
+      async createProfile(authUserId, input) {
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, input.organizationId);
+        await this.assertDirectoryLaunchEnabled(input.organizationId, authUserId);
+        const integrationCustomerId = await this.resolveIntegrationCustomerIdForNewProfile(
+          authUserId,
+          input.organizationId,
+          input.name,
+          input.integrationCustomerId ?? null
+        );
+        const row = await this.autoLaunchRepository.insertProfile({
+          organizationId: input.organizationId,
+          integrationCustomerId,
+          name: input.name.trim(),
+          tagline: input.tagline ?? null,
+          description: input.description ?? null,
+          websiteUrl: input.websiteUrl ?? null,
+          logoUrl: input.logoUrl ?? null,
+          profileData: parseBusinessProfileDataInput(
+            input.profileData
+          ),
+          createdByUserId: authUserId
+        });
+        const [dto] = await this.enrichProfileDtos(input.organizationId, [row]);
+        return dto;
+      }
+      async listBusinessProfiles(authUserId, organizationId) {
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+        await this.assertDirectoryLaunchEnabled(organizationId, authUserId);
+        const customers = await this.integrationConnectionService.getIntegrationCustomers(
+          authUserId,
+          organizationId
+        );
+        const profiles = await this.autoLaunchRepository.listProfilesByOrganization(organizationId);
+        const profileByCustomerId = new Map(
+          profiles.filter((p) => p.integration_customer_id).map((p) => [p.integration_customer_id, p])
+        );
+        const rows = customers.map((customer) => {
+          const profile = profileByCustomerId.get(customer.id);
+          return {
+            integration_customer_id: customer.id,
+            product_profile_id: profile?.id ?? null,
+            name: profile?.name ?? customer.name,
+            tagline: profile?.tagline ?? null,
+            website_url: profile?.website_url ?? null,
+            logo_url: profile?.logo_url ?? null
+          };
+        });
+        for (const profile of profiles) {
+          if (profile.integration_customer_id && customers.some((c) => c.id === profile.integration_customer_id)) {
+            continue;
+          }
+          rows.push({
+            integration_customer_id: profile.integration_customer_id,
+            product_profile_id: profile.id,
+            name: profile.name,
+            tagline: profile.tagline,
+            website_url: profile.website_url,
+            logo_url: profile.logo_url
+          });
+        }
+        rows.sort((a, b) => a.name.localeCompare(b.name, void 0, { sensitivity: "base" }));
+        return rows;
+      }
+      async updateProfile(authUserId, profileId, patch) {
+        const existing = await this.autoLaunchRepository.findProfileById(profileId);
+        if (!existing) {
+          throw new AutoLaunchProfileNotFoundError(profileId);
+        }
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, existing.organization_id);
+        await this.assertDirectoryLaunchEnabled(existing.organization_id, authUserId);
+        if (patch.integrationCustomerId === null) {
+          throw new UserValidationError("Business profile must stay linked to a channel group");
+        }
+        const nextCustomerId = patch.integrationCustomerId ?? existing.integration_customer_id;
+        if (nextCustomerId) {
+          const ok = await this.autoLaunchRepository.integrationCustomerBelongsToOrg(
+            nextCustomerId,
+            existing.organization_id
+          );
+          if (!ok) {
+            throw new UserValidationError("Channel group does not belong to this workspace");
+          }
+          const conflict = await this.autoLaunchRepository.findActiveProfileByIntegrationCustomerId(
+            existing.organization_id,
+            nextCustomerId,
+            profileId
+          );
+          if (conflict) {
+            throw new UserValidationError("Another business profile is already linked to this channel group");
+          }
+        }
+        const nextProfileData = patch.profileData !== void 0 ? mergeBusinessProfileData(
+          existing.profile_data,
+          parseBusinessProfileDataPatch(patch.profileData)
+        ) : void 0;
+        const updated = await this.autoLaunchRepository.updateProfile({
+          profileId,
+          organizationId: existing.organization_id,
+          patch: {
+            name: patch.name,
+            tagline: patch.tagline,
+            description: patch.description,
+            websiteUrl: patch.websiteUrl,
+            logoUrl: patch.logoUrl,
+            integrationCustomerId: patch.integrationCustomerId,
+            profileData: nextProfileData
+          }
+        });
+        if (!updated) {
+          throw new AutoLaunchProfileNotFoundError(profileId);
+        }
+        const customerIdToSync = updated.integration_customer_id;
+        if (patch.name?.trim() && customerIdToSync) {
+          await this.integrationConnectionService.updateIntegrationCustomerName(
+            authUserId,
+            existing.organization_id,
+            customerIdToSync,
+            patch.name.trim()
+          );
+        }
+        const [dto] = await this.enrichProfileDtos(existing.organization_id, [updated]);
+        return dto;
+      }
+      async deleteProfile(authUserId, profileId) {
+        const existing = await this.autoLaunchRepository.findProfileById(profileId);
+        if (!existing) {
+          throw new AutoLaunchProfileNotFoundError(profileId);
+        }
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, existing.organization_id);
+        await this.assertDirectoryLaunchEnabled(existing.organization_id, authUserId);
+        const ok = await this.autoLaunchRepository.softDeleteProfile(profileId, existing.organization_id);
+        if (!ok) {
+          throw new AutoLaunchProfileNotFoundError(profileId);
+        }
+      }
+      async resolveIntegrationCustomerIdForNewProfile(authUserId, organizationId, name, explicitCustomerId) {
+        const trimmedName = name.trim();
+        if (!trimmedName) {
+          throw new UserValidationError("Business profile name is required");
+        }
+        if (explicitCustomerId) {
+          const ok = await this.autoLaunchRepository.integrationCustomerBelongsToOrg(
+            explicitCustomerId,
+            organizationId
+          );
+          if (!ok) {
+            throw new UserValidationError("Channel group does not belong to this workspace");
+          }
+          const existing = await this.autoLaunchRepository.findActiveProfileByIntegrationCustomerId(
+            organizationId,
+            explicitCustomerId
+          );
+          if (existing) {
+            throw new UserValidationError("A business profile already exists for this channel group");
+          }
+          return explicitCustomerId;
+        }
+        const byName = await this.integrationConnectionService.findIntegrationCustomerByOrgAndName(
+          organizationId,
+          trimmedName
+        );
+        if (byName) {
+          const existing = await this.autoLaunchRepository.findActiveProfileByIntegrationCustomerId(
+            organizationId,
+            byName.id
+          );
+          if (existing) {
+            throw new UserValidationError("A business profile with this name already exists");
+          }
+          return byName.id;
+        }
+        const created = await this.integrationConnectionService.createIntegrationCustomer(
+          authUserId,
+          organizationId,
+          trimmedName
+        );
+        return created.id;
+      }
+      async listSubmissions(authUserId, organizationId, filters) {
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+        await this.assertDirectoryLaunchEnabled(organizationId, authUserId);
+        const rows = await this.autoLaunchRepository.listSubmissions({
+          organizationId,
+          productProfileId: filters.productProfileId,
+          destinationId: filters.destinationId
+        });
+        const deduped = dedupeAutoLaunchSubmissionsByDestination(rows);
+        const profileIds = deduped.map((row) => row.product_profile_id);
+        const profiles = await this.autoLaunchRepository.findProfilesByIds({
+          organizationId,
+          profileIds
+        });
+        const liveSnapshotByProfileId = new Map(
+          profiles.map((profile) => [profile.id, buildProfileSnapshot(profile)])
+        );
+        const syncStatusBySubmissionId = new Map(
+          deduped.map((row) => [
+            row.id,
+            resolveSubmissionSyncStatus(
+              row,
+              liveSnapshotByProfileId.get(row.product_profile_id) ?? null
+            )
+          ])
+        );
+        return toAutoLaunchSubmissionDtoCollection(deduped, { syncStatusBySubmissionId });
+      }
+      async recordManualSubmissionComplete(authUserId, input) {
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, input.organizationId);
+        await this.assertDirectoryLaunchEnabled(input.organizationId, authUserId);
+        const destination = await this.autoLaunchRepository.findDestinationById(input.destinationId);
+        if (!destination?.is_published) {
+          throw new AutoLaunchDestinationNotFoundError(input.destinationId);
+        }
+        const profile = await this.resolveProductProfileForLaunch(
+          input.organizationId,
+          input.productProfileId,
+          destination
+        );
+        const destinationListRow = await this.autoLaunchRepository.findDestinationListRowById(destination.id);
+        const opportunityDofollow = normalizeOpportunityDofollow(
+          destinationListRow?.opportunity_dofollow
+        );
+        const listingEvidence = applyTrustedListingDofollowOnComplete(
+          buildManualListingEvidence({
+            listingDofollow: input.listingDofollow,
+            authEmail: input.authEmail ?? null
+          }),
+          opportunityDofollow
+        );
+        const profileSnapshot = buildProfileSnapshot(profile);
+        const extensionConfig = destination.extension_config ?? {};
+        const listingProfileFingerprint = computeListingFingerprintForSubmission(
+          profileSnapshot,
+          extensionConfig
+        );
+        const listingUrl = input.listingUrl ?? null;
+        const existingCompleted = await this.autoLaunchRepository.findLatestSubmissionForProductDestination({
+          organizationId: input.organizationId,
+          productProfileId: profile.id,
+          destinationId: destination.id,
+          statuses: ["completed"]
+        });
+        if (existingCompleted) {
+          if (isCompletedSubmissionListingStale(existingCompleted, profileSnapshot)) {
+            const synced = await this.autoLaunchRepository.updateCompletedSubmissionListingSync({
+              submissionId: existingCompleted.id,
+              organizationId: input.organizationId,
+              profileSnapshot,
+              extensionConfigSnapshot: extensionConfig,
+              listingProfileFingerprint,
+              listingUrl: input.listingUrl ?? void 0,
+              completedByUserId: authUserId
+            });
+            return this.autoLaunchRepository.updateSubmissionListingDetails({
+              submissionId: synced.id,
+              organizationId: input.organizationId,
+              listingUrl,
+              evidence: mergeSubmissionListingEvidence(synced.evidence, listingEvidence),
+              completedByUserId: authUserId
+            });
+          }
+          return this.autoLaunchRepository.updateSubmissionListingDetails({
+            submissionId: existingCompleted.id,
+            organizationId: input.organizationId,
+            listingUrl,
+            evidence: mergeSubmissionListingEvidence(existingCompleted.evidence, listingEvidence),
+            completedByUserId: authUserId
+          });
+        }
+        const openSubmission = await this.autoLaunchRepository.findLatestSubmissionForProductDestination({
+          organizationId: input.organizationId,
+          productProfileId: profile.id,
+          destinationId: destination.id,
+          statuses: AUTO_LAUNCH_OPEN_SUBMISSION_STATUSES
+        });
+        if (openSubmission) {
+          const completed = await this.autoLaunchRepository.completeSubmission({
+            submissionId: openSubmission.id,
+            organizationId: input.organizationId,
+            profileSnapshot,
+            listingProfileFingerprint,
+            evidence: listingEvidence,
+            listingUrl,
+            completedByUserId: authUserId
+          });
+          if (completed) {
+            return completed;
+          }
+          const after = await this.autoLaunchRepository.findSubmissionById(openSubmission.id);
+          if (after) {
+            return after;
+          }
+        }
+        return this.autoLaunchRepository.insertManualCompletedSubmission({
+          organizationId: input.organizationId,
+          productProfileId: profile.id,
+          destinationId: destination.id,
+          profileSnapshot,
+          extensionConfigSnapshot: extensionConfig,
+          listingProfileFingerprint,
+          listingUrl,
+          evidence: listingEvidence,
+          createdByUserId: authUserId
+        });
+      }
+      async deleteCompletedSubmission(authUserId, submissionId, organizationId) {
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+        await this.assertDirectoryLaunchEnabled(organizationId, authUserId);
+        const submission = await this.autoLaunchRepository.findSubmissionById(submissionId);
+        if (!submission || submission.organization_id !== organizationId) {
+          throw new AutoLaunchSubmissionNotFoundError(submissionId);
+        }
+        if (submission.status !== "completed") {
+          throw new AutoLaunchIntentNotAvailableError(
+            "Only completed directory launches can be removed."
+          );
+        }
+        await this.autoLaunchRepository.deleteSubmission(submissionId, organizationId);
+      }
+      async updateSubmissionListingDetails(authUserId, submissionId, input) {
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, input.organizationId);
+        await this.assertDirectoryLaunchEnabled(input.organizationId, authUserId);
+        const submission = await this.autoLaunchRepository.findSubmissionById(submissionId);
+        if (!submission || submission.organization_id !== input.organizationId) {
+          throw new AutoLaunchSubmissionNotFoundError(submissionId);
+        }
+        const listingUrl = input.listingUrl !== void 0 ? input.listingUrl ?? null : submission.listing_url;
+        return this.autoLaunchRepository.updateSubmissionListingDetails({
+          submissionId,
+          organizationId: input.organizationId,
+          listingUrl,
+          evidence: mergeSubmissionListingEvidence(submission.evidence, {
+            listingDofollow: input.listingDofollow,
+            authEmail: input.authEmail ?? null
+          }),
+          completedByUserId: authUserId
+        });
+      }
+      async createSubmissionIntent(authUserId, input) {
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, input.organizationId);
+        await this.assertDirectoryLaunchEnabled(input.organizationId, authUserId);
+        const destination = await this.resolveDestination(input.destinationId, input.providerSlug);
+        const profile = await this.resolveProductProfileForLaunch(
+          input.organizationId,
+          input.productProfileId,
+          destination
+        );
+        if (!destination.is_published) {
+          throw new AutoLaunchDestinationNotFoundError(destination.id);
+        }
+        if (destination.submission_path !== "extension") {
+          throw new AutoLaunchIntentNotAvailableError(
+            "This destination does not support extension launch yet"
+          );
+        }
+        const profileSnapshot = buildProfileSnapshot(profile);
+        const extensionConfig = destination.extension_config ?? {};
+        const openSubmission = await this.autoLaunchRepository.findLatestSubmissionForProductDestination({
+          organizationId: input.organizationId,
+          productProfileId: profile.id,
+          destinationId: destination.id,
+          statuses: AUTO_LAUNCH_OPEN_SUBMISSION_STATUSES
+        });
+        let submission;
+        if (openSubmission) {
+          submission = await this.autoLaunchRepository.refreshSubmissionIntent({
+            submissionId: openSubmission.id,
+            organizationId: input.organizationId,
+            profileSnapshot,
+            extensionConfigSnapshot: extensionConfig
+          });
+        } else {
+          const latestCompleted = await this.autoLaunchRepository.findLatestSubmissionForProductDestination({
+            organizationId: input.organizationId,
+            productProfileId: profile.id,
+            destinationId: destination.id,
+            statuses: ["completed"]
+          });
+          if (latestCompleted && isCompletedSubmissionListingStale(latestCompleted, profileSnapshot)) {
+            submission = await this.autoLaunchRepository.reopenSubmissionForResync({
+              submissionId: latestCompleted.id,
+              organizationId: input.organizationId,
+              profileSnapshot,
+              extensionConfigSnapshot: extensionConfig
+            });
+          } else {
+            submission = await this.autoLaunchRepository.insertSubmissionIntent({
+              organizationId: input.organizationId,
+              productProfileId: profile.id,
+              destinationId: destination.id,
+              profileSnapshot,
+              extensionConfigSnapshot: extensionConfig,
+              createdByUserId: authUserId
+            });
+          }
+        }
+        const secret = launchTokenSecret();
+        const launchToken = signLaunchToken(
+          {
+            submissionId: submission.id,
+            organizationId: input.organizationId,
+            destinationId: destination.id,
+            providerSlug: destination.provider_slug
+          },
+          secret
+        );
+        return toSubmissionIntentDto({
+          submissionId: submission.id,
+          launchToken,
+          destination,
+          profileSnapshot
+        });
+      }
+      async completeSubmission(authUserId, input) {
+        const secret = launchTokenSecret();
+        const payload = verifyLaunchToken(input.launchToken, secret);
+        if (!payload) {
+          throw new AutoLaunchTokenInvalidError();
+        }
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, payload.organizationId);
+        await this.assertDirectoryLaunchEnabled(payload.organizationId, authUserId);
+        const existing = await this.autoLaunchRepository.findSubmissionById(payload.submissionId);
+        if (!existing || existing.organization_id !== payload.organizationId) {
+          throw new AutoLaunchSubmissionNotFoundError(payload.submissionId);
+        }
+        if (existing.status === "completed") {
+          return {
+            submissionId: existing.id,
+            status: existing.status,
+            listingUrl: existing.listing_url,
+            alreadyCompleted: true
+          };
+        }
+        const profile = await this.autoLaunchRepository.findProfileById(existing.product_profile_id);
+        if (!profile || profile.organization_id !== payload.organizationId) {
+          throw new AutoLaunchProfileNotFoundError(existing.product_profile_id);
+        }
+        const profileSnapshot = buildProfileSnapshot(profile);
+        const listingProfileFingerprint = computeListingFingerprintForSubmission(
+          profileSnapshot,
+          existing.extension_config_snapshot
+        );
+        const listingUrl = input.listingUrl ?? existing.listing_url;
+        const destinationListRow = await this.autoLaunchRepository.findDestinationListRowById(
+          existing.destination_id
+        );
+        const opportunityDofollow = normalizeOpportunityDofollow(
+          destinationListRow?.opportunity_dofollow
+        );
+        const evidence = applyTrustedListingDofollowOnComplete(
+          input.evidence ?? {},
+          opportunityDofollow
+        );
+        const updated = await this.autoLaunchRepository.completeSubmission({
+          submissionId: existing.id,
+          organizationId: payload.organizationId,
+          profileSnapshot,
+          listingProfileFingerprint,
+          evidence,
+          listingUrl: listingUrl ?? null,
+          completedByUserId: authUserId
+        });
+        if (updated) {
+          return {
+            submissionId: updated.id,
+            status: updated.status,
+            listingUrl: updated.listing_url,
+            alreadyCompleted: false
+          };
+        }
+        const after = await this.autoLaunchRepository.findSubmissionById(existing.id);
+        if (after?.status === "completed") {
+          return {
+            submissionId: after.id,
+            status: after.status,
+            listingUrl: after.listing_url,
+            alreadyCompleted: true
+          };
+        }
+        throw new AutoLaunchSubmissionNotFoundError(existing.id);
+      }
+      async enrichProfileDtos(organizationId, rows) {
+        const parentIds = [
+          ...new Set(
+            rows.map((row) => row.parent_profile_id).filter((id) => Boolean(id))
+          )
+        ];
+        const mains = parentIds.length > 0 ? await this.autoLaunchRepository.findProfilesByIds({
+          organizationId,
+          profileIds: parentIds
+        }) : [];
+        const mainById = new Map(mains.map((main) => [main.id, main]));
+        return toAutoLaunchProductProfileDtoCollection(rows, mainById);
+      }
+      async resolveProductProfileForLaunch(organizationId, productProfileId, destination) {
+        const profile = await this.autoLaunchRepository.findProfileById(productProfileId);
+        if (!profile || profile.organization_id !== organizationId) {
+          throw new AutoLaunchProfileNotFoundError(productProfileId);
+        }
+        if (profile.profile_kind === "directory_variant") {
+          return profile;
+        }
+        const siteKey = directorySiteKeyFromProviderSlug(destination.provider_slug);
+        const variant = await this.autoLaunchRepository.findDirectoryVariantByParentAndSiteKey({
+          parentProfileId: profile.id,
+          directorySiteKey: siteKey
+        });
+        return variant ?? profile;
+      }
+      async resolveDestination(destinationId, providerSlug) {
+        if (destinationId) {
+          const row = await this.autoLaunchRepository.findDestinationById(destinationId);
+          if (!row) {
+            throw new AutoLaunchDestinationNotFoundError(destinationId);
+          }
+          return row;
+        }
+        if (providerSlug) {
+          const row = await this.autoLaunchRepository.findPublishedDestinationByProviderSlug(providerSlug);
+          if (!row) {
+            throw new AutoLaunchDestinationNotFoundError(providerSlug);
+          }
+          return row;
+        }
+        throw new UserValidationError("destinationId or providerSlug is required");
+      }
+      async listProfilesProgrammatic(organizationId, integrationCustomerId) {
+        const rows = await this.autoLaunchRepository.listProfilesByOrganization(
+          organizationId,
+          integrationCustomerId
+        );
+        return this.enrichProfileDtos(organizationId, rows);
+      }
+      async getProfileProgrammatic(organizationId, profileId) {
+        const row = await this.autoLaunchRepository.findProfileById(profileId);
+        if (!row || row.organization_id !== organizationId) {
+          return null;
+        }
+        const [dto] = await this.enrichProfileDtos(organizationId, [row]);
+        return dto ?? null;
+      }
+      async createProfileProgrammatic(publicUserId, input) {
+        const integrationCustomerId = await this.resolveIntegrationCustomerIdForProgrammaticProfile(
+          input.organizationId,
+          input.name,
+          input.integrationCustomerId ?? null
+        );
+        const row = await this.autoLaunchRepository.insertProfile({
+          organizationId: input.organizationId,
+          integrationCustomerId,
+          name: input.name.trim(),
+          tagline: input.tagline ?? null,
+          description: input.description ?? null,
+          websiteUrl: input.websiteUrl ?? null,
+          logoUrl: input.logoUrl ?? null,
+          profileData: parseBusinessProfileDataInput(
+            input.profileData
+          ),
+          createdByUserId: publicUserId
+        });
+        const [dto] = await this.enrichProfileDtos(input.organizationId, [row]);
+        return dto;
+      }
+      async updateProfileProgrammatic(organizationId, profileId, patch) {
+        const existing = await this.autoLaunchRepository.findProfileById(profileId);
+        if (!existing || existing.organization_id !== organizationId) {
+          throw new AutoLaunchProfileNotFoundError(profileId);
+        }
+        if (patch.integrationCustomerId === null) {
+          throw new UserValidationError("Business profile must stay linked to a channel group");
+        }
+        const nextCustomerId = patch.integrationCustomerId ?? existing.integration_customer_id;
+        if (nextCustomerId) {
+          const ok = await this.autoLaunchRepository.integrationCustomerBelongsToOrg(
+            nextCustomerId,
+            organizationId
+          );
+          if (!ok) {
+            throw new UserValidationError("Channel group does not belong to this workspace");
+          }
+          const conflict = await this.autoLaunchRepository.findActiveProfileByIntegrationCustomerId(
+            organizationId,
+            nextCustomerId,
+            profileId
+          );
+          if (conflict) {
+            throw new UserValidationError("Another business profile is already linked to this channel group");
+          }
+        }
+        const nextProfileData = patch.profileData !== void 0 ? mergeBusinessProfileData(
+          existing.profile_data,
+          parseBusinessProfileDataPatch(patch.profileData)
+        ) : void 0;
+        const updated = await this.autoLaunchRepository.updateProfile({
+          profileId,
+          organizationId,
+          patch: {
+            name: patch.name,
+            tagline: patch.tagline,
+            description: patch.description,
+            websiteUrl: patch.websiteUrl,
+            logoUrl: patch.logoUrl,
+            integrationCustomerId: patch.integrationCustomerId,
+            profileData: nextProfileData
+          }
+        });
+        if (!updated) {
+          throw new AutoLaunchProfileNotFoundError(profileId);
+        }
+        const customerIdToSync = updated.integration_customer_id;
+        if (patch.name?.trim() && customerIdToSync) {
+          await this.integrationConnectionService.publicUpdateIntegrationCustomerName(
+            organizationId,
+            customerIdToSync,
+            patch.name.trim()
+          );
+        }
+        const [dto] = await this.enrichProfileDtos(organizationId, [updated]);
+        return dto;
+      }
+      async ensureDirectoryVariantProgrammatic(organizationId, publicUserId, mainProfileId, input) {
+        const main = await this.autoLaunchRepository.findProfileById(mainProfileId);
+        if (!main || main.organization_id !== organizationId) {
+          throw new AutoLaunchProfileNotFoundError(mainProfileId);
+        }
+        if (main.profile_kind === "directory_variant" || main.parent_profile_id) {
+          throw new UserValidationError("Directory variants must be created from a main product profile.");
+        }
+        const directorySiteKey = input.directorySiteKey.trim();
+        const existing = await this.autoLaunchRepository.findDirectoryVariantByParentAndSiteKey({
+          parentProfileId: main.id,
+          directorySiteKey
+        });
+        if (existing) {
+          const [dto2] = await this.enrichProfileDtos(organizationId, [existing]);
+          return { profile: dto2, created: false };
+        }
+        const variantName = input.name?.trim() || `${main.name} (${directorySiteKey})`;
+        const variant = await this.autoLaunchRepository.insertDirectoryVariantFromMain({
+          mainProfile: main,
+          directorySiteKey,
+          name: variantName,
+          createdByUserId: publicUserId
+        });
+        const [dto] = await this.enrichProfileDtos(organizationId, [variant]);
+        return { profile: dto, created: true };
+      }
+      async listBusinessProfilesProgrammatic(organizationId) {
+        const customers = await this.integrationConnectionService.publicGetIntegrationCustomers(
+          organizationId
+        );
+        const profiles = await this.autoLaunchRepository.listProfilesByOrganization(organizationId);
+        const profileByCustomerId = new Map(
+          profiles.filter((p) => p.integration_customer_id).map((p) => [p.integration_customer_id, p])
+        );
+        const rows = customers.map((customer) => {
+          const profile = profileByCustomerId.get(customer.id);
+          return {
+            integration_customer_id: customer.id,
+            product_profile_id: profile?.id ?? null,
+            name: profile?.name ?? customer.name,
+            tagline: profile?.tagline ?? null,
+            website_url: profile?.website_url ?? null,
+            logo_url: profile?.logo_url ?? null
+          };
+        });
+        for (const profile of profiles) {
+          if (profile.integration_customer_id && customers.some((c) => c.id === profile.integration_customer_id)) {
+            continue;
+          }
+          rows.push({
+            integration_customer_id: profile.integration_customer_id,
+            product_profile_id: profile.id,
+            name: profile.name,
+            tagline: profile.tagline,
+            website_url: profile.website_url,
+            logo_url: profile.logo_url
+          });
+        }
+        rows.sort((a, b) => a.name.localeCompare(b.name, void 0, { sensitivity: "base" }));
+        return rows;
+      }
+      async listSubmissionsProgrammatic(organizationId, filters) {
+        const rows = await this.autoLaunchRepository.listSubmissions({
+          organizationId,
+          productProfileId: filters.productProfileId,
+          destinationId: filters.destinationId
+        });
+        const deduped = dedupeAutoLaunchSubmissionsByDestination(rows);
+        const profileIds = deduped.map((row) => row.product_profile_id);
+        const profiles = await this.autoLaunchRepository.findProfilesByIds({
+          organizationId,
+          profileIds
+        });
+        const liveSnapshotByProfileId = new Map(
+          profiles.map((profile) => [profile.id, buildProfileSnapshot(profile)])
+        );
+        const syncStatusBySubmissionId = new Map(
+          deduped.map((row) => [
+            row.id,
+            resolveSubmissionSyncStatus(
+              row,
+              liveSnapshotByProfileId.get(row.product_profile_id) ?? null
+            )
+          ])
+        );
+        return toAutoLaunchSubmissionDtoCollection(deduped, { syncStatusBySubmissionId });
+      }
+      async getProfileListingSummaryForOrganization(organizationId, profileId) {
+        const profile = await this.autoLaunchRepository.findProfileById(profileId);
+        if (!profile || profile.organization_id !== organizationId) {
+          throw new AutoLaunchProfileNotFoundError(profileId);
+        }
+        const destinationRows = await this.autoLaunchRepository.listPublishedDestinations();
+        const destinations = destinationRows.map((row) => ({
+          id: row.id,
+          providerSlug: row.provider_slug,
+          name: row.name,
+          sortOrder: row.sort_order,
+          extensionConfig: row.extension_config ?? {}
+        }));
+        const submissionRows = await this.autoLaunchRepository.listSubmissions({
+          organizationId,
+          productProfileId: profileId
+        });
+        const deduped = dedupeAutoLaunchSubmissionsByDestination(submissionRows);
+        const profiles = await this.autoLaunchRepository.findProfilesByIds({
+          organizationId,
+          profileIds: [profileId]
+        });
+        const liveSnapshot = profiles[0] ? buildProfileSnapshot(profiles[0]) : buildProfileSnapshot(profile);
+        const syncStatusBySubmissionId = new Map(
+          deduped.map((row) => [
+            row.id,
+            resolveSubmissionSyncStatus(row, liveSnapshot)
+          ])
+        );
+        const submissionDtos = toAutoLaunchSubmissionDtoCollection(deduped, {
+          syncStatusBySubmissionId
+        });
+        const submissionInputs = submissionDtos.map((submission) => ({
+          destinationId: submission.destinationId,
+          status: submission.status,
+          syncStatus: submission.syncStatus,
+          completedAt: submission.completedAt,
+          updatedAt: submission.updatedAt
+        }));
+        const summary = getProfileLaunchSummary(
+          buildProfileSnapshot(profile),
+          destinations,
+          submissionInputs
+        );
+        const unsubmittedDirectorySiteCount = Math.max(
+          0,
+          summary.publishedDirectorySiteCount - summary.submittedDirectorySiteCount
+        );
+        return {
+          profileId,
+          publishedDirectorySiteCount: summary.publishedDirectorySiteCount,
+          submittedDirectorySiteCount: summary.submittedDirectorySiteCount,
+          unsubmittedDirectorySiteCount,
+          destinations: summary.destinations.map((row) => ({
+            destinationId: row.destinationId,
+            providerSlug: row.providerSlug,
+            destinationName: row.destinationName,
+            submissionStatus: row.submissionStatus,
+            syncStatus: row.syncStatus,
+            readiness: {
+              isReady: row.readiness.isReady,
+              missingFields: row.readiness.missingFields
+            }
+          }))
+        };
+      }
+      async resolveIntegrationCustomerIdForProgrammaticProfile(organizationId, name, explicitCustomerId) {
+        const trimmedName = name.trim();
+        if (!trimmedName) {
+          throw new UserValidationError("Business profile name is required");
+        }
+        if (explicitCustomerId) {
+          const ok = await this.autoLaunchRepository.integrationCustomerBelongsToOrg(
+            explicitCustomerId,
+            organizationId
+          );
+          if (!ok) {
+            throw new UserValidationError("Channel group does not belong to this workspace");
+          }
+          const existing = await this.autoLaunchRepository.findActiveProfileByIntegrationCustomerId(
+            organizationId,
+            explicitCustomerId
+          );
+          if (existing) {
+            throw new UserValidationError("A business profile already exists for this channel group");
+          }
+          return explicitCustomerId;
+        }
+        const byName = await this.integrationConnectionService.findIntegrationCustomerByOrgAndName(
+          organizationId,
+          trimmedName
+        );
+        if (byName) {
+          const existing = await this.autoLaunchRepository.findActiveProfileByIntegrationCustomerId(
+            organizationId,
+            byName.id
+          );
+          if (existing) {
+            throw new UserValidationError("A business profile with this name already exists");
+          }
+          return byName.id;
+        }
+        const created = await this.integrationConnectionService.publicCreateIntegrationCustomer(
+          organizationId,
+          trimmedName
+        );
+        return created.id;
+      }
+    };
+  }
+});
+
+// services/DirectorySeoService.ts
+function directorySeoConfig() {
+  const directorySeo = config.directorySeo;
+  const hours = directorySeo?.cacheTtlHours ?? 168;
+  const historyBackfillMaxDays = Math.max(1, directorySeo?.historyBackfillMaxDays ?? 90);
+  const historyBackfillTtlDays = Math.max(1, directorySeo?.historyBackfillTtlDays ?? 7);
+  return {
+    cacheTtlMs: Math.max(1, hours) * 60 * 60 * 1e3,
+    weeklyRefreshEnabled: directorySeo?.weeklyRefreshEnabled ?? true,
+    historyBackfillMaxDays,
+    historyBackfillTtlMs: historyBackfillTtlDays * 24 * 60 * 60 * 1e3
+  };
+}
+function formatUtcDateOnly(date) {
+  return date.toISOString().slice(0, 10);
+}
+function addUtcDays2(date, days) {
+  const copy = new Date(date.getTime());
+  copy.setUTCDate(copy.getUTCDate() + days);
+  return copy;
+}
+function ratingsEqual(a, b) {
+  if (a == null && b == null) return true;
+  if (a == null || b == null) return false;
+  return Number(a) === Number(b);
+}
+var METRIC_SOURCE, HISTORY_SAMPLE_MS, HISTORY_BACKFILL_DAYS_CAP, DirectorySeoService;
+var init_DirectorySeoService = __esm({
+  "services/DirectorySeoService.ts"() {
+    init_dist();
+    init_GlobalConfig();
+    init_InfraError();
+    init_dataforseoClient();
+    init_normalizeSeoDomain();
+    init_Logger();
+    METRIC_SOURCE = "dataforseo";
+    HISTORY_SAMPLE_MS = 7 * 24 * 60 * 60 * 1e3;
+    HISTORY_BACKFILL_DAYS_CAP = 366;
+    DirectorySeoService = class {
+      constructor(directorySeoRepository2, subscriptionService2, backlinksClient = {
+        fetchBacklinksSummaryLive,
+        fetchBacklinksTimeseriesSummaryLive
+      }) {
+        this.directorySeoRepository = directorySeoRepository2;
+        this.subscriptionService = subscriptionService2;
+        this.backlinksClient = backlinksClient;
+      }
+      cacheTtlMs() {
+        return directorySeoConfig().cacheTtlMs;
+      }
+      isProviderConfigured() {
+        return isDataForSeoConfigured();
+      }
+      isSnapshotStale(checkedAtIso, nowMs = Date.now()) {
+        const checkedAt = Date.parse(checkedAtIso);
+        if (!Number.isFinite(checkedAt)) return true;
+        return nowMs - checkedAt >= this.cacheTtlMs();
+      }
+      /**
+       * Distinct normalized domains tracked for paid Directory SEO workspaces:
+       * main profile `website_url` + workspace competitors.
+       */
+      async listEntitledDomains() {
+        const domains = /* @__PURE__ */ new Set();
+        const tierByOrg = /* @__PURE__ */ new Map();
+        const resolveEntitled = async (organizationId) => {
+          let tier = tierByOrg.get(organizationId);
+          if (!tier) {
+            tier = await this.subscriptionService.resolveOrganizationPlanTier(organizationId);
+            tierByOrg.set(organizationId, tier);
+          }
+          return planLimitsForTier(tier).directory_seo_enabled;
+        };
+        const competitors = await this.directorySeoRepository.listCompetitorDomainsByOrganization();
+        for (const row of competitors) {
+          if (!await resolveEntitled(row.organization_id)) continue;
+          const normalized = normalizeSeoDomain(row.domain) ?? row.domain.trim().toLowerCase();
+          if (normalized) domains.add(normalized);
+        }
+        const profiles = await this.directorySeoRepository.listMainProfileWebsiteUrls();
+        for (const row of profiles) {
+          if (!await resolveEntitled(row.organization_id)) continue;
+          const normalized = normalizeSeoDomain(row.website_url);
+          if (normalized) domains.add(normalized);
+        }
+        return [...domains].sort((a, b) => a.localeCompare(b));
+      }
+      /** Domains entitled for refresh whose snapshot is missing or older than the global TTL. */
+      async listStaleDomainsForRefresh() {
+        const entitled = await this.listEntitledDomains();
+        const stale = [];
+        for (const domain of entitled) {
+          const snapshot = await this.directorySeoRepository.getSnapshot(domain);
+          if (!snapshot || this.isSnapshotStale(snapshot.checked_at)) {
+            stale.push(domain);
+          }
+        }
+        return stale;
+      }
+      /**
+       * Idempotent read-through refresh: respects cache TTL unless `force` is set.
+       * When DataForSEO is disabled, returns the existing snapshot (if any) without calling out.
+       */
+      async refreshDomain(rawDomain, options2 = {}) {
+        const domain = normalizeSeoDomain(rawDomain);
+        if (!domain) {
+          throw new ValidationError("Enter a valid domain hostname");
+        }
+        const existing = await this.directorySeoRepository.getSnapshot(domain);
+        if (!options2.force && existing && !this.isSnapshotStale(existing.checked_at)) {
+          return existing;
+        }
+        if (!this.isProviderConfigured()) {
+          return existing ?? null;
+        }
+        const summary = await this.backlinksClient.fetchBacklinksSummaryLive(domain);
+        const checkedAt = (/* @__PURE__ */ new Date()).toISOString();
+        const updated = await this.directorySeoRepository.upsertSnapshot({
+          domain,
+          domainRating: summary.domainRating,
+          source: METRIC_SOURCE,
+          checkedAt
+        });
+        const lastHistory = await this.directorySeoRepository.getLatestHistory(domain);
+        if (this.shouldRecordHistory(
+          existing?.domain_rating ?? null,
+          summary.domainRating,
+          lastHistory?.captured_at ?? null
+        )) {
+          await this.directorySeoRepository.insertHistory({
+            domain,
+            domainRating: summary.domainRating,
+            capturedAt: checkedAt
+          });
+        }
+        return updated;
+      }
+      /** Stateless weekly sweep: reload stale domains from Postgres each run. */
+      async runWeeklyRefresh() {
+        const { weeklyRefreshEnabled } = directorySeoConfig();
+        if (!weeklyRefreshEnabled || !this.isProviderConfigured()) {
+          return { attempted: 0, refreshed: 0 };
+        }
+        const stale = await this.listStaleDomainsForRefresh();
+        let refreshed = 0;
+        for (const domain of stale) {
+          try {
+            const row = await this.refreshDomain(domain, { force: false });
+            if (row) refreshed += 1;
+          } catch (err) {
+            logger.warn({
+              msg: "[DirectorySeo] Weekly refresh failed for domain",
+              domain,
+              err
+            });
+          }
+        }
+        return { attempted: stale.length, refreshed };
+      }
+      /**
+       * Import daily domain-rating history from DataForSEO when cache is missing or past backfill TTL.
+       * Failures are logged and do not throw — callers can still read existing history rows.
+       */
+      async ensureProviderHistoryBackfill(rawDomain, requestedDays) {
+        const domain = normalizeSeoDomain(rawDomain);
+        if (!domain) {
+          return;
+        }
+        if (!this.isProviderConfigured()) {
+          return;
+        }
+        const { historyBackfillMaxDays } = directorySeoConfig();
+        const backfillDays = Math.min(
+          HISTORY_BACKFILL_DAYS_CAP,
+          Math.max(Math.max(1, requestedDays), historyBackfillMaxDays)
+        );
+        const snapshot = await this.directorySeoRepository.getSnapshot(domain);
+        if (this.isProviderHistoryBackfillFresh(snapshot?.provider_history_backfilled_at)) {
+          return;
+        }
+        const now = /* @__PURE__ */ new Date();
+        const dateTo = formatUtcDateOnly(now);
+        const dateFrom = formatUtcDateOnly(addUtcDays2(now, -backfillDays));
+        const sinceIso = `${dateFrom}T00:00:00.000Z`;
+        try {
+          const timeseries = await this.backlinksClient.fetchBacklinksTimeseriesSummaryLive(
+            domain,
+            { dateFrom, dateTo, groupRange: "day" }
+          );
+          const points = timeseries.points.map((point) => ({
+            domainRating: point.domainRating,
+            capturedAt: point.capturedAt
+          }));
+          await this.directorySeoRepository.replaceProviderHistoryForDomain({
+            domain,
+            sinceIso,
+            points
+          });
+          const backfilledAt = (/* @__PURE__ */ new Date()).toISOString();
+          await this.directorySeoRepository.updateProviderHistoryBackfilledAt(domain, backfilledAt);
+          logger.info({
+            msg: "[DirectorySeo] Provider history backfill completed",
+            domain,
+            backfillDays,
+            pointCount: points.length
+          });
+        } catch (err) {
+          logger.warn({
+            msg: "[DirectorySeo] Provider history backfill failed",
+            domain,
+            backfillDays,
+            err
+          });
+        }
+      }
+      isProviderHistoryBackfillFresh(backfilledAtIso, nowMs = Date.now()) {
+        if (!backfilledAtIso) {
+          return false;
+        }
+        const backfilledAt = Date.parse(backfilledAtIso);
+        if (!Number.isFinite(backfilledAt)) {
+          return false;
+        }
+        const { historyBackfillTtlMs } = directorySeoConfig();
+        return nowMs - backfilledAt < historyBackfillTtlMs;
+      }
+      shouldRecordHistory(previousRating, newRating, lastCapturedAtIso) {
+        if (!ratingsEqual(previousRating, newRating)) return true;
+        if (!lastCapturedAtIso) return true;
+        const lastMs = Date.parse(lastCapturedAtIso);
+        if (!Number.isFinite(lastMs)) return true;
+        return Date.now() - lastMs >= HISTORY_SAMPLE_MS;
+      }
+    };
+  }
+});
+
+// services/LinkDirectoryCatalogMetricsService.ts
+function toCatalogDomainRating(value) {
+  if (value == null || !Number.isFinite(value)) return null;
+  return Math.round(value);
+}
+var CATALOG_METRICS_SOURCE, LinkDirectoryCatalogMetricsService;
+var init_LinkDirectoryCatalogMetricsService = __esm({
+  "services/LinkDirectoryCatalogMetricsService.ts"() {
+    init_normalizeSeoDomain();
+    init_Logger();
+    CATALOG_METRICS_SOURCE = "dataforseo";
+    LinkDirectoryCatalogMetricsService = class {
+      constructor(linkDirectoryRepository2, directorySeoService2) {
+        this.linkDirectoryRepository = linkDirectoryRepository2;
+        this.directorySeoService = directorySeoService2;
+      }
+      async refreshCatalogDomainRatings(options2 = {}) {
+        const providerConfigured = this.directorySeoService.isProviderConfigured();
+        const sites = await this.linkDirectoryRepository.listSitesForCatalogDrRefresh({
+          publishedOnly: options2.publishedOnly ?? false,
+          siteId: options2.siteId,
+          slug: options2.slug
+        });
+        const siteResults = [];
+        let updated = 0;
+        let skipped = 0;
+        let failed = 0;
+        for (const site of sites) {
+          const domain = normalizeSeoDomain(site.site_url);
+          if (!domain) {
+            failed += 1;
+            siteResults.push({
+              siteId: site.id,
+              slug: site.slug,
+              domain: null,
+              domainRating: null,
+              skipped: false,
+              error: "Invalid or missing site_url hostname"
+            });
+            continue;
+          }
+          try {
+            const snapshot = await this.directorySeoService.refreshDomain(domain, {
+              force: options2.force ?? false
+            });
+            const domainRating = toCatalogDomainRating(snapshot?.domain_rating ?? null);
+            if (!snapshot) {
+              skipped += 1;
+              siteResults.push({
+                siteId: site.id,
+                slug: site.slug,
+                domain,
+                domainRating: null,
+                skipped: true,
+                error: providerConfigured ? "No domain rating returned" : "DataForSEO is not configured and no cached snapshot exists"
+              });
+              continue;
+            }
+            if (options2.dryRun) {
+              siteResults.push({
+                siteId: site.id,
+                slug: site.slug,
+                domain,
+                domainRating,
+                skipped: false
+              });
+              updated += 1;
+              continue;
+            }
+            await this.linkDirectoryRepository.updateSiteCatalogDomainMetrics({
+              siteId: site.id,
+              domainRating,
+              metricsUpdatedAt: snapshot.checked_at,
+              metricsSource: CATALOG_METRICS_SOURCE
+            });
+            updated += 1;
+            siteResults.push({
+              siteId: site.id,
+              slug: site.slug,
+              domain,
+              domainRating,
+              skipped: false
+            });
+          } catch (err) {
+            failed += 1;
+            const message = err instanceof Error ? err.message : String(err);
+            logger.warn({
+              msg: "[LinkDirectory] Catalog DR refresh failed for site",
+              siteId: site.id,
+              slug: site.slug,
+              domain,
+              err
+            });
+            siteResults.push({
+              siteId: site.id,
+              slug: site.slug,
+              domain,
+              domainRating: null,
+              skipped: false,
+              error: message
+            });
+          }
+        }
+        return {
+          attempted: sites.length,
+          updated,
+          skipped,
+          failed,
+          providerConfigured,
+          sites: siteResults
+        };
+      }
+    };
+  }
+});
+
+// utils/dtos/DirectorySeoDTO.ts
+function toNumber(value) {
+  if (value == null) return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+function computeDelta(current, historical) {
+  if (current == null || historical == null) return null;
+  return Math.round((current - historical) * 100) / 100;
+}
+function toDirectorySeoDomainMetricDto(params) {
+  const current = params.snapshot ? toNumber(params.snapshot.domain_rating) : null;
+  return {
+    domain: params.domain,
+    domainRating: current,
+    checkedAt: params.snapshot?.checked_at ?? null,
+    delta7Days: computeDelta(current, params.rating7DaysAgo),
+    delta30Days: computeDelta(current, params.rating30DaysAgo),
+    delta90Days: computeDelta(current, params.rating90DaysAgo)
+  };
+}
+function toDirectorySeoCompetitorDto(row, snapshot) {
+  return {
+    domain: row.domain,
+    label: row.label,
+    sortOrder: row.sort_order,
+    domainRating: snapshot ? toNumber(snapshot.domain_rating) : null,
+    checkedAt: snapshot?.checked_at ?? null
+  };
+}
+function toDirectorySeoHistoryPointDto(row) {
+  return {
+    capturedAt: row.captured_at,
+    domainRating: toNumber(row.domain_rating)
+  };
+}
+var init_DirectorySeoDTO = __esm({
+  "utils/dtos/DirectorySeoDTO.ts"() {
+  }
+});
+
+// services/DirectorySeoWorkspaceService.ts
+function manualRefreshAvailableAtIso(checkedAtIso, cacheTtlMs, nowMs = Date.now()) {
+  if (!checkedAtIso?.trim()) return null;
+  const checkedAt = Date.parse(checkedAtIso);
+  if (!Number.isFinite(checkedAt)) return null;
+  const availableAt = checkedAt + cacheTtlMs;
+  if (nowMs >= availableAt) return null;
+  return new Date(availableAt).toISOString();
+}
+var DELTA_DAYS, DirectorySeoWorkspaceService;
+var init_DirectorySeoWorkspaceService = __esm({
+  "services/DirectorySeoWorkspaceService.ts"() {
+    init_dist();
+    init_normalizeSeoDomain();
+    init_InfraError();
+    init_AutoLaunchError();
+    init_DirectorySeoDTO();
+    DELTA_DAYS = [7, 30, 90];
+    DirectorySeoWorkspaceService = class {
+      constructor(directorySeoRepository2, autoLaunchRepository2, directorySeoService2, integrationConnectionService2, subscriptionGuard2) {
+        this.directorySeoRepository = directorySeoRepository2;
+        this.autoLaunchRepository = autoLaunchRepository2;
+        this.directorySeoService = directorySeoService2;
+        this.integrationConnectionService = integrationConnectionService2;
+        this.subscriptionGuard = subscriptionGuard2;
+      }
+      async getWorkspaceOverview(authUserId, organizationId, productProfileId) {
+        await this.assertDirectorySeoEnabled(authUserId, organizationId);
+        const productDomain = await this.resolveMainProductDomain(
+          authUserId,
+          organizationId,
+          productProfileId
+        );
+        const providerConfigured = this.directorySeoService.isProviderConfigured();
+        const competitors = await this.directorySeoRepository.listCompetitorsForOrganization(
+          organizationId
+        );
+        if (productDomain && providerConfigured) {
+          await this.directorySeoService.refreshDomain(productDomain, { force: false });
+          await this.directorySeoService.ensureProviderHistoryBackfill(
+            productDomain,
+            DELTA_DAYS[2]
+          );
+        }
+        const productMetric = productDomain ? await this.buildDomainMetricDto(productDomain) : null;
+        const competitorDtos = await Promise.all(
+          competitors.map(async (row) => {
+            if (providerConfigured) {
+              await this.directorySeoService.refreshDomain(row.domain, { force: false });
+            }
+            const snapshot = await this.directorySeoRepository.getSnapshot(row.domain);
+            return toDirectorySeoCompetitorDto(row, snapshot);
+          })
+        );
+        if (providerConfigured) {
+          for (const row of competitors) {
+            await this.directorySeoService.ensureProviderHistoryBackfill(row.domain, DELTA_DAYS[2]);
+          }
+        }
+        const productSnapshot = productDomain ? await this.directorySeoRepository.getSnapshot(productDomain) : null;
+        return {
+          productDomain: productMetric,
+          competitors: competitorDtos,
+          providerConfigured,
+          manualRefreshAvailableAt: manualRefreshAvailableAtIso(
+            productSnapshot?.checked_at ?? null,
+            this.directorySeoService.cacheTtlMs()
+          )
+        };
+      }
+      async getWorkspaceHistory(authUserId, organizationId, productProfileId, days) {
+        await this.assertDirectorySeoEnabled(authUserId, organizationId);
+        const productDomain = await this.resolveMainProductDomain(
+          authUserId,
+          organizationId,
+          productProfileId
+        );
+        if (!productDomain) {
+          return { product: [], competitors: [] };
+        }
+        const productPoints = await this.loadHistoryPointsForDomain(productDomain, days);
+        const competitorRows = await this.directorySeoRepository.listCompetitorsForOrganization(
+          organizationId
+        );
+        const competitors = [];
+        for (const row of competitorRows) {
+          const domain = normalizeSeoDomain(row.domain) ?? row.domain.trim().toLowerCase();
+          if (!domain) continue;
+          const points = await this.loadHistoryPointsForDomain(domain, days);
+          competitors.push({
+            domain: row.domain,
+            label: row.label,
+            points
+          });
+        }
+        return { product: productPoints, competitors };
+      }
+      async loadHistoryPointsForDomain(domain, days) {
+        if (this.directorySeoService.isProviderConfigured()) {
+          await this.directorySeoService.refreshDomain(domain, { force: false });
+          await this.directorySeoService.ensureProviderHistoryBackfill(domain, days);
+        }
+        const since = new Date(Date.now() - days * 24 * 60 * 60 * 1e3).toISOString();
+        const rows = await this.directorySeoRepository.listHistoryForDomain({
+          domain,
+          sinceIso: since
+        });
+        return rows.map(toDirectorySeoHistoryPointDto);
+      }
+      async addCompetitor(authUserId, body) {
+        await this.integrationConnectionService.assertOrganizationMember(
+          authUserId,
+          body.organizationId
+        );
+        await this.subscriptionGuard.assert(SubscriptionSection.DIRECTORY_SEO_COMPETITORS_PER_WORKSPACE, {
+          scope: "workspaceWithDelta",
+          organizationId: body.organizationId,
+          authUserId,
+          delta: 1
+        });
+        const domain = normalizeSeoDomain(body.domain);
+        if (!domain) {
+          throw new ValidationError("Enter a valid competitor domain");
+        }
+        const row = await this.directorySeoRepository.insertCompetitor({
+          organizationId: body.organizationId,
+          domain,
+          label: body.label ?? null,
+          sortOrder: body.sortOrder ?? 0
+        });
+        const snapshot = await this.directorySeoRepository.getSnapshot(domain);
+        return toDirectorySeoCompetitorDto(row, snapshot);
+      }
+      async deleteCompetitor(authUserId, body) {
+        await this.integrationConnectionService.assertOrganizationMember(
+          authUserId,
+          body.organizationId
+        );
+        await this.assertDirectorySeoEnabled(authUserId, body.organizationId);
+        const domain = normalizeSeoDomain(body.domain) ?? body.domain.trim().toLowerCase();
+        const removed = await this.directorySeoRepository.deleteCompetitor(body.organizationId, domain);
+        if (!removed) {
+          throw new ValidationError("Competitor not found");
+        }
+      }
+      async updateCompetitor(authUserId, body) {
+        await this.integrationConnectionService.assertOrganizationMember(
+          authUserId,
+          body.organizationId
+        );
+        await this.assertDirectorySeoEnabled(authUserId, body.organizationId);
+        const domain = normalizeSeoDomain(body.domain) ?? body.domain.trim().toLowerCase();
+        const label = body.label === null || body.label === void 0 ? null : body.label.trim() === "" ? null : body.label.trim();
+        const row = await this.directorySeoRepository.updateCompetitorLabel({
+          organizationId: body.organizationId,
+          domain,
+          label
+        });
+        if (!row) {
+          throw new ValidationError("Competitor not found");
+        }
+        const snapshot = await this.directorySeoRepository.getSnapshot(domain);
+        return toDirectorySeoCompetitorDto(row, snapshot);
+      }
+      async refreshWorkspace(authUserId, body) {
+        await this.assertDirectorySeoEnabled(authUserId, body.organizationId);
+        const productDomain = await this.resolveMainProductDomain(
+          authUserId,
+          body.organizationId,
+          body.productProfileId
+        );
+        if (!productDomain) {
+          throw new ValidationError(
+            "Add a website URL to your main product profile before refreshing ratings."
+          );
+        }
+        if (!this.directorySeoService.isProviderConfigured()) {
+          throw new ValidationError(
+            "Domain rating lookup is not configured on this server. Contact your workspace admin."
+          );
+        }
+        const existingSnapshot = await this.directorySeoRepository.getSnapshot(productDomain);
+        if (existingSnapshot && !this.directorySeoService.isSnapshotStale(existingSnapshot.checked_at)) {
+          const nextAt = manualRefreshAvailableAtIso(
+            existingSnapshot.checked_at,
+            this.directorySeoService.cacheTtlMs()
+          );
+          throw new ValidationError(
+            nextAt ? `You can refresh ratings again after ${new Date(nextAt).toLocaleString()}.` : "You can refresh ratings again in about a week."
+          );
+        }
+        await this.directorySeoService.refreshDomain(productDomain, { force: true });
+        const competitors = await this.directorySeoRepository.listCompetitorsForOrganization(
+          body.organizationId
+        );
+        for (const competitor of competitors) {
+          await this.directorySeoService.refreshDomain(competitor.domain, { force: true });
+        }
+        return this.getWorkspaceOverview(authUserId, body.organizationId, body.productProfileId);
+      }
+      async assertDirectorySeoEnabled(authUserId, organizationId) {
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+        await this.subscriptionGuard.assert(SubscriptionSection.DIRECTORY_SEO_ENABLED, {
+          scope: "workspace",
+          organizationId,
+          authUserId
+        });
+      }
+      async resolveMainProductDomain(authUserId, organizationId, productProfileId) {
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+        const profile = await this.autoLaunchRepository.findProfileById(productProfileId);
+        if (!profile || profile.organization_id !== organizationId) {
+          throw new AutoLaunchProfileNotFoundError(productProfileId);
+        }
+        const mainProfile = profile.profile_kind === "directory_variant" && profile.parent_profile_id ? await this.autoLaunchRepository.findProfileById(profile.parent_profile_id) : profile;
+        if (!mainProfile || mainProfile.organization_id !== organizationId) {
+          throw new AutoLaunchProfileNotFoundError(productProfileId);
+        }
+        const website = mainProfile.website_url;
+        if (!website?.trim()) return null;
+        return normalizeSeoDomain(website);
+      }
+      async buildDomainMetricDto(domain) {
+        const snapshot = await this.directorySeoRepository.getSnapshot(domain);
+        const now = Date.now();
+        const rating7DaysAgo = await this.directorySeoRepository.findHistoryRatingAtOrBefore(
+          domain,
+          new Date(now - DELTA_DAYS[0] * 24 * 60 * 60 * 1e3).toISOString()
+        );
+        const rating30DaysAgo = await this.directorySeoRepository.findHistoryRatingAtOrBefore(
+          domain,
+          new Date(now - DELTA_DAYS[1] * 24 * 60 * 60 * 1e3).toISOString()
+        );
+        const rating90DaysAgo = await this.directorySeoRepository.findHistoryRatingAtOrBefore(
+          domain,
+          new Date(now - DELTA_DAYS[2] * 24 * 60 * 60 * 1e3).toISOString()
+        );
+        return toDirectorySeoDomainMetricDto({
+          domain,
+          snapshot,
+          rating7DaysAgo,
+          rating30DaysAgo,
+          rating90DaysAgo
+        });
+      }
+    };
+  }
+});
+
 // services/index.ts
-var integrationManager, userService, emailService, transactionalNotificationEmailService, companyService, marketingService, internalOpsEmailService, notificationService, refreshIntegrationService, authenticationService, rbacService, feedbackService, configService, integrationService, plugService, subscriptionService, subscriptionGuard, blogService, listingService, listingTagService, linkDirectoryService, userSessionService, integrationConnectionService, oauthAppService, trialBrowserService, organizationService, oauthService, postsService, stripeService, trackService, acquisitionSurveyService, mediaService, signatureService, setsService, analyticsService;
+var integrationManager, userService, emailService, transactionalNotificationEmailService, companyService, marketingService, internalOpsEmailService, notificationService, refreshIntegrationService, authenticationService, rbacService, feedbackService, configService, integrationService, plugService, subscriptionService, subscriptionGuard, blogService, listingService, listingTagService, userSessionService, integrationConnectionService, oauthAppService, trialBrowserService, organizationService, oauthService, postsService, stripeService, trackService, acquisitionSurveyService, mediaService, signatureService, setsService, autoLaunchService, directorySeoService, linkDirectoryCatalogMetricsService, linkDirectoryService, directorySeoWorkspaceService, analyticsService;
 var init_services = __esm({
   "services/index.ts"() {
     init_connections();
@@ -32442,6 +36384,10 @@ var init_services = __esm({
     init_TrackService();
     init_InternalOpsEmailService();
     init_AcquisitionSurveyService();
+    init_AutoLaunchService();
+    init_DirectorySeoService();
+    init_LinkDirectoryCatalogMetricsService();
+    init_DirectorySeoWorkspaceService();
     init_GlobalConfig();
     init_AuthenticationService();
     init_UserService();
@@ -32465,6 +36411,9 @@ var init_services = __esm({
     init_MediaService();
     init_SignatureService();
     init_SetsService();
+    init_AutoLaunchService();
+    init_DirectorySeoService();
+    init_DirectorySeoWorkspaceService();
     init_AnalyticsService();
     init_SubscriptionService();
     init_SubscriptionGuardService();
@@ -32550,7 +36499,8 @@ var init_services = __esm({
       integrationService,
       organizationRepository,
       postsRepository,
-      rbacRepository
+      rbacRepository,
+      directorySeoRepository
     );
     subscriptionService.setSubscriptionGuard(subscriptionGuard);
     subscriptionService.setIntegrationService(integrationService);
@@ -32574,15 +36524,6 @@ var init_services = __esm({
     );
     listingTagService = new ListingTagService(
       listingTagRepository,
-      cacheServiceConnection,
-      cacheInvalidationServiceConnection
-    );
-    linkDirectoryService = new LinkDirectoryService(
-      linkDirectoryRepository,
-      linkDirectoryCategoryRepository,
-      linkDirectoryTagRepository,
-      subscriptionGuard,
-      internalOpsEmailService,
       cacheServiceConnection,
       cacheInvalidationServiceConnection
     );
@@ -32660,6 +36601,36 @@ var init_services = __esm({
       cacheServiceConnection,
       cacheInvalidationServiceConnection
     );
+    autoLaunchService = new AutoLaunchService(
+      autoLaunchRepository,
+      integrationConnectionService,
+      subscriptionGuard
+    );
+    directorySeoService = new DirectorySeoService(
+      directorySeoRepository,
+      subscriptionService
+    );
+    linkDirectoryCatalogMetricsService = new LinkDirectoryCatalogMetricsService(
+      linkDirectoryRepository,
+      directorySeoService
+    );
+    linkDirectoryService = new LinkDirectoryService(
+      linkDirectoryRepository,
+      linkDirectoryCategoryRepository,
+      linkDirectoryTagRepository,
+      subscriptionGuard,
+      internalOpsEmailService,
+      cacheServiceConnection,
+      cacheInvalidationServiceConnection,
+      linkDirectoryCatalogMetricsService
+    );
+    directorySeoWorkspaceService = new DirectorySeoWorkspaceService(
+      directorySeoRepository,
+      autoLaunchRepository,
+      directorySeoService,
+      integrationConnectionService,
+      subscriptionGuard
+    );
     analyticsService = new AnalyticsService(
       integrationService,
       integrationManager,
@@ -32727,7 +36698,7 @@ var init_generateBlogRSSFeed = __esm({
 });
 
 // middlewares/publicRouteRegistry.ts
-var BLOG_POSTS_PREFIX, BLOG_POST_ACTIVITY_PATH, LISTINGS_PUBLISHED_PREFIX, LISTINGS_STACKS_PUBLISHED_PREFIX, LINK_DIRECTORY_PUBLISHED_PREFIX, LISTING_STAT_PATH, LISTING_COMMENTS_PATH, LINK_DIRECTORY_SITE_STAT_PATH, LINK_DIRECTORY_SITE_COMMENTS_PATH, EDITOR_MANAGED_PUBLIC_DETAIL_CACHE_CONTROL, PUBLIC_PATH_PREFIXES, PUBLIC_PATH_EXACT, BYPASS_PATHS, matchesPublicPathPrefix, matchesPublicPathExact, isPublicImageDownloadGet, isAuthExemptRoute, isPublicReadGet, isEditorManagedPublicDetailRoute, isPublicWriteRoute, isPublicApiPath, isUploadPath, isIntegrationConnectPath, LISTING_BOOKMARK_MUTATION_PATH, LINK_DIRECTORY_SAVED_SITE_OUTREACH_PATH, isBookmarkSavedMutationRoute, isWebhookPath, hasDedicatedRateLimiter, normalizeApiRoutePath;
+var BLOG_POSTS_PREFIX, BLOG_POST_ACTIVITY_PATH, LISTINGS_PUBLISHED_PREFIX, LISTINGS_STACKS_PUBLISHED_PREFIX, LINK_DIRECTORY_PUBLISHED_PREFIX, LISTING_STAT_PATH, LISTING_COMMENTS_PATH, LINK_DIRECTORY_SITE_STAT_PATH, LINK_DIRECTORY_SITE_COMMENTS_PATH, EDITOR_MANAGED_PUBLIC_DETAIL_CACHE_CONTROL, PUBLIC_PATH_PREFIXES, PUBLIC_PATH_EXACT, BYPASS_PATHS, matchesPublicPathPrefix, matchesPublicPathExact, isPublicImageDownloadGet, isAuthExemptRoute, isPublicReadGet, isEditorManagedPublicDetailRoute, isPublicWriteRoute, isPublicApiPath, isUploadPath, isIntegrationConnectPath, LISTING_BOOKMARK_MUTATION_PATH, isBookmarkSavedMutationRoute, isWebhookPath, hasDedicatedRateLimiter, normalizeApiRoutePath;
 var init_publicRouteRegistry = __esm({
   "middlewares/publicRouteRegistry.ts"() {
     BLOG_POSTS_PREFIX = "/blog-system/posts/";
@@ -32785,7 +36756,7 @@ var init_publicRouteRegistry = __esm({
       const query = req.query ?? {};
       const dbName = typeof query.databaseName === "string" ? query.databaseName : "";
       const imageUrlParam = typeof query.imageUrl === "string" ? query.imageUrl : "";
-      return (dbName === "blog_images" || dbName === "listing_images" || dbName === "link_directory_logos") && imageUrlParam.length > 0;
+      return (dbName === "blog_images" || dbName === "listing_images" || dbName === "link_directory_logos" || dbName === "auto_launch_profile_media") && imageUrlParam.length > 0;
     };
     isAuthExemptRoute = (req, routePath) => {
       if (matchesPublicPathExact(routePath)) {
@@ -32883,16 +36854,12 @@ var init_publicRouteRegistry = __esm({
     isUploadPath = (path7) => path7 === "/public/upload" || path7.startsWith("/public/upload/") || path7 === "/public/upload-from-url" || path7 === "/media/upload" || path7 === "/media/upload-server" || path7 === "/media/upload-simple";
     isIntegrationConnectPath = (path7) => /^\/integrations\/social-connect\/[^/]+$/.test(path7) || /^\/integrations\/public\/provider\/[^/]+\/connect$/.test(path7) || path7 === "/integrations/extension-refresh";
     LISTING_BOOKMARK_MUTATION_PATH = /^\/listings\/[0-9a-f-]{36}\/bookmark$/i;
-    LINK_DIRECTORY_SAVED_SITE_OUTREACH_PATH = /^\/link-directory\/me\/saved-sites\/[0-9a-f-]{36}\/outreach-completion$/i;
     isBookmarkSavedMutationRoute = (req, routePath) => {
       if (req.method === "POST" || req.method === "DELETE") {
         return LISTING_BOOKMARK_MUTATION_PATH.test(routePath);
       }
       if (req.method === "PUT") {
         return routePath === "/link-directory/me/saved-sites" || routePath === "/link-directory/me/saved-sites/order";
-      }
-      if (req.method === "PATCH") {
-        return LINK_DIRECTORY_SAVED_SITE_OUTREACH_PATH.test(routePath);
       }
       return false;
     };
@@ -32932,7 +36899,7 @@ var init_publicCmsCache = __esm({
       if (routePath !== "/image/download") return false;
       const query = req.query ?? {};
       const dbName = typeof query.databaseName === "string" ? query.databaseName : "";
-      return dbName === "blog_images" || dbName === "listing_images" || dbName === "link_directory_logos";
+      return dbName === "blog_images" || dbName === "listing_images" || dbName === "link_directory_logos" || dbName === "auto_launch_profile_media";
     };
     resolvePublicCmsCacheControl = (req, routePath) => {
       const cmsCache = getPublicCmsCacheConfig();
@@ -34373,8 +38340,8 @@ var init_LinkDirectoryController = __esm({
       createSubmission = async (req, res, next) => {
         try {
           const body = req.body;
-          const auth10 = req;
-          const id = await this.linkDirectoryService.createSubmission(body, auth10.user?.publicId);
+          const auth12 = req;
+          const id = await this.linkDirectoryService.createSubmission(body, auth12.user?.publicId);
           res.status(201).json({
             success: true,
             data: { id },
@@ -34386,8 +38353,8 @@ var init_LinkDirectoryController = __esm({
       };
       getUserSavedSites = async (req, res, next) => {
         try {
-          const auth10 = req;
-          const userId = auth10.user?.publicId;
+          const auth12 = req;
+          const userId = auth12.user?.publicId;
           if (!userId) {
             res.status(401).json({ success: false, message: "Unauthorized" });
             return;
@@ -34403,8 +38370,8 @@ var init_LinkDirectoryController = __esm({
       };
       putUserSavedSites = async (req, res, next) => {
         try {
-          const auth10 = req;
-          const userId = auth10.user?.publicId;
+          const auth12 = req;
+          const userId = auth12.user?.publicId;
           if (!userId) {
             res.status(401).json({ success: false, message: "Unauthorized" });
             return;
@@ -34423,8 +38390,8 @@ var init_LinkDirectoryController = __esm({
       };
       putUserSavedSitesOrder = async (req, res, next) => {
         try {
-          const auth10 = req;
-          const userId = auth10.user?.publicId;
+          const auth12 = req;
+          const userId = auth12.user?.publicId;
           if (!userId) {
             res.status(401).json({ success: false, message: "Unauthorized" });
             return;
@@ -34441,23 +38408,17 @@ var init_LinkDirectoryController = __esm({
           next(err);
         }
       };
-      patchUserSavedSiteOutreachCompletion = async (req, res, next) => {
+      refreshCatalogDomainRatings = async (req, res, next) => {
         try {
-          const auth10 = req;
-          const userId = auth10.user?.publicId;
-          if (!userId) {
-            res.status(401).json({ success: false, message: "Unauthorized" });
-            return;
-          }
-          const siteId = req.params.siteId;
-          const { completed } = req.body;
-          await this.linkDirectoryService.setUserSavedSiteOutreachCompleted(userId, siteId, completed);
-          const savedSites = await this.linkDirectoryService.getUserSavedSites(userId);
-          res.status(200).json({
-            success: true,
-            data: toLinkDirectorySavedSiteDtoCollection(savedSites),
-            message: completed ? "Outreach marked done." : "Outreach marked not done."
+          const body = req.body;
+          const result = await this.linkDirectoryService.refreshCatalogDomainRatings({
+            force: body.force,
+            publishedOnly: body.publishedOnly,
+            siteId: body.siteId,
+            slug: body.slug,
+            dryRun: body.dryRun
           });
+          res.status(200).json({ success: true, data: result });
         } catch (err) {
           next(err);
         }
@@ -34681,8 +38642,8 @@ var init_LinkDirectoryController = __esm({
       };
       reviewSubmission = async (req, res, next) => {
         try {
-          const auth10 = req;
-          const reviewerId = auth10.user?.publicId;
+          const auth12 = req;
+          const reviewerId = auth12.user?.publicId;
           if (!reviewerId) {
             res.status(401).json({ success: false, message: "Unauthorized" });
             return;
@@ -34727,8 +38688,8 @@ var init_LinkDirectoryController = __esm({
       };
       createSiteComment = async (req, res, next) => {
         try {
-          const auth10 = req;
-          const userId = auth10.user?.publicId;
+          const auth12 = req;
+          const userId = auth12.user?.publicId;
           if (!userId) {
             res.status(401).json({ error: "Authentication required" });
             return;
@@ -34739,8 +38700,8 @@ var init_LinkDirectoryController = __esm({
             siteId,
             body,
             userId,
-            auth10.user?.id,
-            auth10.user?.email
+            auth12.user?.id,
+            auth12.user?.email
           );
           res.status(201).json({
             success: true,
@@ -34753,8 +38714,8 @@ var init_LinkDirectoryController = __esm({
       };
       upsertSiteRating = async (req, res, next) => {
         try {
-          const auth10 = req;
-          const userId = auth10.user?.publicId;
+          const auth12 = req;
+          const userId = auth12.user?.publicId;
           if (!userId) {
             res.status(401).json({ error: "Authentication required" });
             return;
@@ -34765,7 +38726,7 @@ var init_LinkDirectoryController = __esm({
             siteId,
             rating,
             userId,
-            auth10.user?.id
+            auth12.user?.id
           );
           res.status(200).json({ success: true, data: result, message: "Rating saved." });
         } catch (err) {
@@ -34820,12 +38781,15 @@ var init_ImageController = __esm({
     init_AppError();
     init_UserError();
     init_StorageSupabaseRepository();
+    init_autoLaunchProfileMediaImages();
     init_allowedExternalImageHosts();
     init_externalImageFetch();
     ImageController = class {
-      constructor(storageRepository, integrationConnectionService2) {
+      constructor(storageRepository, integrationConnectionService2, organizationRepository2, autoLaunchRepository2) {
         this.storageRepository = storageRepository;
         this.integrationConnectionService = integrationConnectionService2;
+        this.organizationRepository = organizationRepository2;
+        this.autoLaunchRepository = autoLaunchRepository2;
       }
       getByUrl = async (req, res, next) => {
         try {
@@ -34866,11 +38830,39 @@ var init_ImageController = __esm({
           if (!isSupabaseImageBucketName(databaseName)) {
             throw new UserValidationError("Invalid databaseName");
           }
-          const filePath = await this.storageRepository.uploadImage(
-            databaseName,
-            req.file,
-            authUid
-          );
+          const file = req.file;
+          let filePath;
+          if (databaseName === DATABASE_NAMES.AUTO_LAUNCH_PROFILE_MEDIA) {
+            const rawUid = typeof req.body?.uid === "string" ? req.body.uid.trim() : "";
+            const prefixParts = parseAutoLaunchProfileMediaUploadPrefix(rawUid);
+            if (!prefixParts) {
+              throw new UserValidationError(
+                "uid must be {organizationId}/{profileId} for auto launch profile media"
+              );
+            }
+            const { userId } = await this.organizationRepository.findUserIdByAuthId(authUid);
+            if (!userId) {
+              throw new UserAuthorizationError("Not authenticated");
+            }
+            const { membership } = await this.organizationRepository.findMembership(
+              userId,
+              prefixParts.organizationId
+            );
+            if (!membership || membership.disabled) {
+              throw new UserAuthorizationError("Not a member of this organization");
+            }
+            const profile = await this.autoLaunchRepository.findProfileById(prefixParts.profileId);
+            if (!profile || profile.deleted_at || profile.organization_id !== prefixParts.organizationId) {
+              throw new UserAuthorizationError("Product profile not found");
+            }
+            filePath = await this.storageRepository.uploadImageUnderPrefix(
+              databaseName,
+              file,
+              `${prefixParts.organizationId}/${prefixParts.profileId}`
+            );
+          } else {
+            filePath = await this.storageRepository.uploadImage(databaseName, file, authUid);
+          }
           res.status(200).json({
             success: true,
             data: { filePath },
@@ -38147,6 +42139,288 @@ var init_PublicAnalyticsController = __esm({
   }
 });
 
+// controllers/PublicDirectoryLaunchController.ts
+var PublicDirectoryLaunchController;
+var init_PublicDirectoryLaunchController = __esm({
+  "controllers/PublicDirectoryLaunchController.ts"() {
+    init_connections();
+    init_AutoLaunchDTO();
+    PublicDirectoryLaunchController = class {
+      constructor(autoLaunchService2) {
+        this.autoLaunchService = autoLaunchService2;
+      }
+      /** GET /public/directory-launch/destinations */
+      listDestinations = async (_req, res, next) => {
+        try {
+          countPublicApiRequest("directory-launch-destinations");
+          const rows = await this.autoLaunchService.listPublishedDestinations();
+          res.status(200).json({ success: true, data: toAutoLaunchDestinationDtoCollection(rows) });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** GET /public/directory-launch/business-profiles */
+      listBusinessProfiles = async (req, res, next) => {
+        try {
+          countPublicApiRequest("directory-launch-business-profiles");
+          const organizationId = req.organization.id;
+          const rows = await this.autoLaunchService.listBusinessProfilesProgrammatic(organizationId);
+          res.status(200).json({ success: true, data: toBusinessProfileDtoCollection(rows) });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** GET /public/directory-launch/profiles */
+      listProfiles = async (req, res, next) => {
+        try {
+          countPublicApiRequest("directory-launch-profiles-list");
+          const organizationId = req.organization.id;
+          const query = req.query;
+          const data = await this.autoLaunchService.listProfilesProgrammatic(
+            organizationId,
+            query.integrationCustomerId
+          );
+          res.status(200).json({ success: true, data });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** GET /public/directory-launch/profiles/:id */
+      getProfileById = async (req, res, next) => {
+        try {
+          countPublicApiRequest("directory-launch-profiles-get");
+          const organizationId = req.organization.id;
+          const { id } = req.params;
+          const data = await this.autoLaunchService.getProfileProgrammatic(organizationId, id);
+          res.status(200).json({ success: true, data });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** POST /public/directory-launch/profiles */
+      createProfile = async (req, res, next) => {
+        try {
+          countPublicApiRequest("directory-launch-profiles-create");
+          const programmaticReq = req;
+          const organizationId = programmaticReq.organization.id;
+          const body = req.body;
+          const data = await this.autoLaunchService.createProfileProgrammatic(
+            programmaticReq.publicUserId,
+            {
+              organizationId,
+              integrationCustomerId: body.integrationCustomerId ?? null,
+              name: body.name,
+              tagline: body.tagline,
+              description: body.description,
+              websiteUrl: body.websiteUrl,
+              logoUrl: body.logoUrl,
+              profileData: body.profileData ?? {}
+            }
+          );
+          res.status(201).json({ success: true, data });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** PATCH /public/directory-launch/profiles/:id */
+      updateProfile = async (req, res, next) => {
+        try {
+          countPublicApiRequest("directory-launch-profiles-update");
+          const organizationId = req.organization.id;
+          const { id } = req.params;
+          const body = req.body;
+          const data = await this.autoLaunchService.updateProfileProgrammatic(organizationId, id, {
+            name: body.name,
+            tagline: body.tagline,
+            description: body.description,
+            websiteUrl: body.websiteUrl,
+            logoUrl: body.logoUrl,
+            integrationCustomerId: body.integrationCustomerId,
+            profileData: body.profileData
+          });
+          res.status(200).json({ success: true, data });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** POST /public/directory-launch/profiles/:mainId/variants — idempotent when variant exists */
+      ensureDirectoryVariant = async (req, res, next) => {
+        try {
+          countPublicApiRequest("directory-launch-variants-ensure");
+          const programmaticReq = req;
+          const organizationId = programmaticReq.organization.id;
+          const { mainId } = req.params;
+          const body = req.body;
+          const result = await this.autoLaunchService.ensureDirectoryVariantProgrammatic(
+            organizationId,
+            programmaticReq.publicUserId,
+            mainId,
+            {
+              directorySiteKey: body.directorySiteKey,
+              name: body.name
+            }
+          );
+          res.status(result.created ? 201 : 200).json({ success: true, data: result.profile });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** GET /public/directory-launch/profiles/:id/listing-summary */
+      getProfileListingSummary = async (req, res, next) => {
+        try {
+          countPublicApiRequest("directory-launch-listing-summary");
+          const organizationId = req.organization.id;
+          const { id } = req.params;
+          const data = await this.autoLaunchService.getProfileListingSummaryForOrganization(
+            organizationId,
+            id
+          );
+          res.status(200).json({ success: true, data });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** GET /public/directory-launch/submissions */
+      listSubmissions = async (req, res, next) => {
+        try {
+          countPublicApiRequest("directory-launch-submissions-list");
+          const organizationId = req.organization.id;
+          const query = req.query;
+          const data = await this.autoLaunchService.listSubmissionsProgrammatic(organizationId, {
+            productProfileId: query.productProfileId,
+            destinationId: query.destinationId
+          });
+          res.status(200).json({ success: true, data });
+        } catch (error) {
+          next(error);
+        }
+      };
+    };
+  }
+});
+
+// controllers/PublicDirectorySeoController.ts
+var PublicDirectorySeoController;
+var init_PublicDirectorySeoController = __esm({
+  "controllers/PublicDirectorySeoController.ts"() {
+    init_connections();
+    PublicDirectorySeoController = class {
+      constructor(directorySeoWorkspaceService2) {
+        this.directorySeoWorkspaceService = directorySeoWorkspaceService2;
+      }
+      /** GET /public/directory-seo/workspace/overview */
+      getWorkspaceOverview = async (req, res, next) => {
+        try {
+          countPublicApiRequest("directory-seo-overview");
+          const programmaticReq = req;
+          const organizationId = programmaticReq.organization.id;
+          const authUserId = programmaticReq.publicUserId;
+          const query = req.query;
+          const data = await this.directorySeoWorkspaceService.getWorkspaceOverview(
+            authUserId,
+            organizationId,
+            query.productProfileId
+          );
+          res.status(200).json({ success: true, data });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** GET /public/directory-seo/workspace/history */
+      getWorkspaceHistory = async (req, res, next) => {
+        try {
+          countPublicApiRequest("directory-seo-history");
+          const programmaticReq = req;
+          const organizationId = programmaticReq.organization.id;
+          const authUserId = programmaticReq.publicUserId;
+          const query = req.query;
+          const data = await this.directorySeoWorkspaceService.getWorkspaceHistory(
+            authUserId,
+            organizationId,
+            query.productProfileId,
+            query.days
+          );
+          res.status(200).json({ success: true, data });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** POST /public/directory-seo/workspace/competitors */
+      addCompetitor = async (req, res, next) => {
+        try {
+          countPublicApiRequest("directory-seo-competitors-add");
+          const programmaticReq = req;
+          const organizationId = programmaticReq.organization.id;
+          const authUserId = programmaticReq.publicUserId;
+          const body = req.body;
+          const data = await this.directorySeoWorkspaceService.addCompetitor(authUserId, {
+            organizationId,
+            domain: body.domain,
+            label: body.label,
+            sortOrder: body.sortOrder
+          });
+          res.status(201).json({ success: true, data, message: "Competitor added" });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** DELETE /public/directory-seo/workspace/competitors */
+      deleteCompetitor = async (req, res, next) => {
+        try {
+          countPublicApiRequest("directory-seo-competitors-delete");
+          const programmaticReq = req;
+          const organizationId = programmaticReq.organization.id;
+          const authUserId = programmaticReq.publicUserId;
+          const body = req.body;
+          await this.directorySeoWorkspaceService.deleteCompetitor(authUserId, {
+            organizationId,
+            domain: body.domain
+          });
+          res.status(200).json({ success: true, message: "Competitor removed" });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** PATCH /public/directory-seo/workspace/competitors */
+      updateCompetitor = async (req, res, next) => {
+        try {
+          countPublicApiRequest("directory-seo-competitors-update");
+          const programmaticReq = req;
+          const organizationId = programmaticReq.organization.id;
+          const authUserId = programmaticReq.publicUserId;
+          const body = req.body;
+          const data = await this.directorySeoWorkspaceService.updateCompetitor(authUserId, {
+            organizationId,
+            domain: body.domain,
+            label: body.label
+          });
+          res.status(200).json({ success: true, data, message: "Competitor updated" });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** POST /public/directory-seo/workspace/refresh */
+      refreshWorkspace = async (req, res, next) => {
+        try {
+          countPublicApiRequest("directory-seo-refresh");
+          const programmaticReq = req;
+          const organizationId = programmaticReq.organization.id;
+          const authUserId = programmaticReq.publicUserId;
+          const body = req.body;
+          const data = await this.directorySeoWorkspaceService.refreshWorkspace(authUserId, {
+            organizationId,
+            productProfileId: body.productProfileId,
+            force: body.force
+          });
+          res.status(200).json({ success: true, data });
+        } catch (error) {
+          next(error);
+        }
+      };
+    };
+  }
+});
+
 // controllers/OauthAppController.ts
 var OauthAppController;
 var init_OauthAppController = __esm({
@@ -38599,6 +42873,437 @@ var init_SetsController = __esm({
   }
 });
 
+// controllers/AutoLaunchController.ts
+var AutoLaunchController;
+var init_AutoLaunchController = __esm({
+  "controllers/AutoLaunchController.ts"() {
+    init_dist();
+    init_UserError();
+    init_AutoLaunchDTO();
+    AutoLaunchController = class {
+      constructor(autoLaunchService2) {
+        this.autoLaunchService = autoLaunchService2;
+      }
+      /** GET /auto-launch/destinations */
+      listDestinations = async (req, res, next) => {
+        try {
+          const authReq = req;
+          if (!authReq.user?.id) return next(new UserAuthorizationError("Not authenticated"));
+          const rows = await this.autoLaunchService.listPublishedDestinations();
+          res.status(200).json({ success: true, data: toAutoLaunchDestinationDtoCollection(rows) });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** GET /auto-launch/business-profiles?organizationId= */
+      listBusinessProfiles = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+          const query = req.query;
+          const rows = await this.autoLaunchService.listBusinessProfiles(authUserId, query.organizationId);
+          res.status(200).json({ success: true, data: toBusinessProfileDtoCollection(rows) });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** GET /auto-launch/profiles?organizationId= */
+      listProfiles = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+          const query = req.query;
+          const rows = await this.autoLaunchService.listProfiles(
+            authUserId,
+            query.organizationId,
+            query.integrationCustomerId
+          );
+          res.status(200).json({ success: true, data: rows });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** GET /auto-launch/profiles/:id */
+      getProfileById = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+          const { id } = req.params;
+          const row = await this.autoLaunchService.getProfileForMember(authUserId, id);
+          res.status(200).json({ success: true, data: row });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** POST /auto-launch/profiles/:mainId/variants */
+      createDirectoryVariant = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+          const { mainId } = req.params;
+          const body = req.body;
+          const row = await this.autoLaunchService.createDirectoryVariant(authUserId, mainId, {
+            directorySiteKey: body.directorySiteKey,
+            name: body.name
+          });
+          res.status(201).json({
+            success: true,
+            data: row,
+            message: "Directory profile variant created successfully"
+          });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** POST /auto-launch/profiles */
+      createProfile = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+          const body = req.body;
+          const row = await this.autoLaunchService.createProfile(authUserId, {
+            organizationId: body.organizationId,
+            integrationCustomerId: body.integrationCustomerId ?? null,
+            name: body.name,
+            tagline: body.tagline,
+            description: body.description,
+            websiteUrl: body.websiteUrl,
+            logoUrl: body.logoUrl,
+            profileData: body.profileData ?? {}
+          });
+          res.status(201).json({
+            success: true,
+            data: row,
+            message: "Product profile created successfully"
+          });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** PATCH /auto-launch/profiles/:id */
+      updateProfile = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+          const { id } = req.params;
+          const body = req.body;
+          const row = await this.autoLaunchService.updateProfile(authUserId, id, {
+            name: body.name,
+            tagline: body.tagline,
+            description: body.description,
+            websiteUrl: body.websiteUrl,
+            logoUrl: body.logoUrl,
+            integrationCustomerId: body.integrationCustomerId,
+            profileData: body.profileData
+          });
+          res.status(200).json({
+            success: true,
+            data: row,
+            message: "Product profile updated successfully"
+          });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** DELETE /auto-launch/profiles/:id */
+      deleteProfile = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+          const { id } = req.params;
+          await this.autoLaunchService.deleteProfile(authUserId, id);
+          res.status(200).json({ success: true, message: "Product profile deleted successfully" });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** GET /auto-launch/submissions?organizationId= */
+      listSubmissions = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+          const query = req.query;
+          const submissions = await this.autoLaunchService.listSubmissions(authUserId, query.organizationId, {
+            productProfileId: query.productProfileId,
+            destinationId: query.destinationId
+          });
+          res.status(200).json({ success: true, data: submissions });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** POST /auto-launch/submissions/record-complete */
+      recordManualSubmissionComplete = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+          const body = req.body;
+          const row = await this.autoLaunchService.recordManualSubmissionComplete(authUserId, body);
+          res.status(201).json({ success: true, data: toAutoLaunchSubmissionDto(row) });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** DELETE /auto-launch/submissions/:id?organizationId= */
+      deleteSubmission = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+          const submissionId = String(req.params.id ?? "");
+          const query = req.query;
+          await this.autoLaunchService.deleteCompletedSubmission(
+            authUserId,
+            submissionId,
+            query.organizationId
+          );
+          res.status(200).json({ success: true, data: null });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** PATCH /auto-launch/submissions/:id/listing-details */
+      updateSubmissionListingDetails = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+          const submissionId = String(req.params.id ?? "");
+          const body = req.body;
+          const row = await this.autoLaunchService.updateSubmissionListingDetails(
+            authUserId,
+            submissionId,
+            body
+          );
+          res.status(200).json({ success: true, data: toAutoLaunchSubmissionDto(row) });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** POST /auto-launch/submissions/intent */
+      createSubmissionIntent = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+          const body = req.body;
+          const data = await this.autoLaunchService.createSubmissionIntent(authUserId, {
+            organizationId: body.organizationId,
+            productProfileId: body.productProfileId,
+            destinationId: body.destinationId,
+            providerSlug: body.providerSlug
+          });
+          res.status(201).json({ success: true, data });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** GET /auto-launch/admin/destinations */
+      listAdminDestinations = async (req, res, next) => {
+        try {
+          const authReq = req;
+          if (!authReq.user?.id) return next(new UserAuthorizationError("Not authenticated"));
+          const rows = await this.autoLaunchService.listAdminDestinations();
+          res.status(200).json({ success: true, data: rows });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** GET /auto-launch/admin/destinations/by-provider/:providerSlug */
+      getAdminDestinationByProviderSlug = async (req, res, next) => {
+        try {
+          const authReq = req;
+          if (!authReq.user?.id) return next(new UserAuthorizationError("Not authenticated"));
+          const { providerSlug } = req.params;
+          const row = await this.autoLaunchService.getAdminDestinationByProviderSlug(providerSlug);
+          res.status(200).json({ success: true, data: row });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** GET /auto-launch/admin/destinations/:id */
+      getAdminDestinationById = async (req, res, next) => {
+        try {
+          const authReq = req;
+          if (!authReq.user?.id) return next(new UserAuthorizationError("Not authenticated"));
+          const { id } = req.params;
+          const row = await this.autoLaunchService.getAdminDestinationById(id);
+          res.status(200).json({ success: true, data: row });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** GET /auto-launch/admin/provider-catalog */
+      listProviderCatalog = async (req, res, next) => {
+        try {
+          const authReq = req;
+          if (!authReq.user?.id) return next(new UserAuthorizationError("Not authenticated"));
+          res.status(200).json({ success: true, data: listDirectoryLaunchProviderSummaries() });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** POST /auto-launch/admin/destinations */
+      createAdminDestination = async (req, res, next) => {
+        try {
+          const authReq = req;
+          if (!authReq.user?.id) return next(new UserAuthorizationError("Not authenticated"));
+          const body = req.body;
+          const row = await this.autoLaunchService.createAdminDestination(body);
+          res.status(201).json({ success: true, data: row });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** PATCH /auto-launch/admin/destinations/:id */
+      updateAdminDestination = async (req, res, next) => {
+        try {
+          const authReq = req;
+          if (!authReq.user?.id) return next(new UserAuthorizationError("Not authenticated"));
+          const { id } = req.params;
+          const body = req.body;
+          const row = await this.autoLaunchService.updateAdminDestination(id, body);
+          res.status(200).json({ success: true, data: row });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** DELETE /auto-launch/admin/destinations/:id */
+      deleteAdminDestination = async (req, res, next) => {
+        try {
+          const authReq = req;
+          if (!authReq.user?.id) return next(new UserAuthorizationError("Not authenticated"));
+          const { id } = req.params;
+          await this.autoLaunchService.deleteAdminDestination(id);
+          res.status(200).json({ success: true });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** POST /auto-launch/submissions/complete */
+      completeSubmission = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+          const body = req.body;
+          const data = await this.autoLaunchService.completeSubmission(authUserId, {
+            launchToken: body.launchToken,
+            evidence: body.evidence ?? {},
+            listingUrl: body.listingUrl
+          });
+          res.status(200).json({ success: true, data });
+        } catch (error) {
+          next(error);
+        }
+      };
+    };
+  }
+});
+
+// controllers/DirectorySeoController.ts
+var DirectorySeoController;
+var init_DirectorySeoController = __esm({
+  "controllers/DirectorySeoController.ts"() {
+    init_UserError();
+    DirectorySeoController = class {
+      constructor(directorySeoWorkspaceService2) {
+        this.directorySeoWorkspaceService = directorySeoWorkspaceService2;
+      }
+      getWorkspaceOverview = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+          const query = req.query;
+          const data = await this.directorySeoWorkspaceService.getWorkspaceOverview(
+            authUserId,
+            query.organizationId,
+            query.productProfileId
+          );
+          res.status(200).json({ success: true, data });
+        } catch (error) {
+          next(error);
+        }
+      };
+      getWorkspaceHistory = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+          const query = req.query;
+          const data = await this.directorySeoWorkspaceService.getWorkspaceHistory(
+            authUserId,
+            query.organizationId,
+            query.productProfileId,
+            query.days
+          );
+          res.status(200).json({ success: true, data });
+        } catch (error) {
+          next(error);
+        }
+      };
+      addCompetitor = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+          const body = req.body;
+          const data = await this.directorySeoWorkspaceService.addCompetitor(authUserId, body);
+          res.status(201).json({ success: true, data, message: "Competitor added" });
+        } catch (error) {
+          next(error);
+        }
+      };
+      deleteCompetitor = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+          const body = req.body;
+          await this.directorySeoWorkspaceService.deleteCompetitor(authUserId, body);
+          res.status(200).json({ success: true, message: "Competitor removed" });
+        } catch (error) {
+          next(error);
+        }
+      };
+      updateCompetitor = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+          const body = req.body;
+          const data = await this.directorySeoWorkspaceService.updateCompetitor(authUserId, body);
+          res.status(200).json({ success: true, data, message: "Competitor updated" });
+        } catch (error) {
+          next(error);
+        }
+      };
+      refreshWorkspace = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+          const body = req.body;
+          const data = await this.directorySeoWorkspaceService.refreshWorkspace(authUserId, body);
+          res.status(200).json({ success: true, data });
+        } catch (error) {
+          next(error);
+        }
+      };
+    };
+  }
+});
+
 // controllers/AnalyticsController.ts
 var AnalyticsController;
 var init_AnalyticsController = __esm({
@@ -38738,10 +43443,12 @@ __export(controllers_exports, {
   analyticsController: () => analyticsController,
   approvedAppsController: () => approvedAppsController,
   authController: () => authController,
+  autoLaunchController: () => autoLaunchController,
   billingController: () => billingController,
   blogController: () => blogController,
   companyController: () => companyController,
   configController: () => configController,
+  directorySeoController: () => directorySeoController,
   emailController: () => emailController,
   feedbackController: () => feedbackController,
   imageController: () => imageController,
@@ -38755,6 +43462,8 @@ __export(controllers_exports, {
   oauthController: () => oauthController,
   postsController: () => postsController,
   publicAnalyticsController: () => publicAnalyticsController,
+  publicDirectoryLaunchController: () => publicDirectoryLaunchController,
+  publicDirectorySeoController: () => publicDirectorySeoController,
   publicIntegrationController: () => publicIntegrationController,
   publicNotificationController: () => publicNotificationController,
   publicPostsController: () => publicPostsController,
@@ -38767,7 +43476,7 @@ __export(controllers_exports, {
   trackController: () => trackController,
   userController: () => userController
 });
-var authController, userController, companyController, trackController, settingsController, rbacController, feedbackController, blogController, listingController, listingTagController, linkDirectoryController, imageController, mediaController, billingController, stripeWebhookController, configController, emailController, integrationController, publicIntegrationController, notificationController, publicNotificationController, postsController, publicPostsController, publicAnalyticsController, oauthAppController, oauthController, approvedAppsController, thirdPartyController, signatureController, setsController, analyticsController;
+var authController, userController, companyController, trackController, settingsController, rbacController, feedbackController, blogController, listingController, listingTagController, linkDirectoryController, imageController, mediaController, billingController, stripeWebhookController, configController, emailController, integrationController, publicIntegrationController, notificationController, publicNotificationController, postsController, publicPostsController, publicAnalyticsController, publicDirectoryLaunchController, publicDirectorySeoController, oauthAppController, oauthController, approvedAppsController, thirdPartyController, signatureController, setsController, autoLaunchController, directorySeoController, analyticsController;
 var init_controllers = __esm({
   "controllers/index.ts"() {
     init_AuthController();
@@ -38793,12 +43502,16 @@ var init_controllers = __esm({
     init_PostsController();
     init_PublicPostsController();
     init_PublicAnalyticsController();
+    init_PublicDirectoryLaunchController();
+    init_PublicDirectorySeoController();
     init_OauthAppController();
     init_OauthController();
     init_ApprovedAppsController();
     init_ThirdPartyController();
     init_SignatureController();
     init_SetsController();
+    init_AutoLaunchController();
+    init_DirectorySeoController();
     init_AnalyticsController();
     init_services();
     init_TrackController();
@@ -38833,7 +43546,12 @@ var init_controllers = __esm({
     listingController = new ListingController(listingService);
     listingTagController = new ListingTagController(listingTagService);
     linkDirectoryController = new LinkDirectoryController(linkDirectoryService);
-    imageController = new ImageController(storageSupabaseRepository, integrationConnectionService);
+    imageController = new ImageController(
+      storageSupabaseRepository,
+      integrationConnectionService,
+      organizationRepository,
+      autoLaunchRepository
+    );
     mediaController = new MediaController(
       mediaService,
       subscriptionService,
@@ -38858,12 +43576,16 @@ var init_controllers = __esm({
     postsController = new PostsController(postsService);
     publicPostsController = new PublicPostsController(postsService);
     publicAnalyticsController = new PublicAnalyticsController(analyticsService, postsService);
+    publicDirectoryLaunchController = new PublicDirectoryLaunchController(autoLaunchService);
+    publicDirectorySeoController = new PublicDirectorySeoController(directorySeoWorkspaceService);
     oauthAppController = new OauthAppController(oauthAppService);
     oauthController = new OauthController(oauthService);
     approvedAppsController = new ApprovedAppsController(oauthService);
     thirdPartyController = new ThirdPartyController();
     signatureController = new SignatureController(signatureService);
     setsController = new SetsController(setsService);
+    autoLaunchController = new AutoLaunchController(autoLaunchService);
+    directorySeoController = new DirectorySeoController(directorySeoWorkspaceService);
     analyticsController = new AnalyticsController(analyticsService, integrationConnectionService, postsService);
   }
 });
@@ -39075,6 +43797,28 @@ var init_context = __esm({
   }
 });
 
+// mcp/assertMcpPlanCapability.ts
+async function assertMcpPlanCapability(subscriptionGuard2, section) {
+  const { organizationId, publicUserId } = getMcpContext();
+  await subscriptionGuard2.assert(section, {
+    scope: "workspace",
+    organizationId,
+    publicUserId
+  });
+}
+async function assertMcpDirectoryLaunchEnabled(subscriptionGuard2) {
+  await assertMcpPlanCapability(subscriptionGuard2, SubscriptionSection.DIRECTORY_LAUNCH_ENABLED);
+}
+async function assertMcpDirectorySeoEnabled(subscriptionGuard2) {
+  await assertMcpPlanCapability(subscriptionGuard2, SubscriptionSection.DIRECTORY_SEO_ENABLED);
+}
+var init_assertMcpPlanCapability = __esm({
+  "mcp/assertMcpPlanCapability.ts"() {
+    init_dist();
+    init_context();
+  }
+});
+
 // mcp/tools/mcpJsonResult.ts
 function mcpJsonResult(data) {
   return {
@@ -39084,6 +43828,477 @@ function mcpJsonResult(data) {
 }
 var init_mcpJsonResult = __esm({
   "mcp/tools/mcpJsonResult.ts"() {
+  }
+});
+
+// mcp/tools/directoryDestinationsList.ts
+function registerDirectoryDestinationsListTool(server2, deps) {
+  server2.registerTool(
+    "directoryDestinationsList",
+    {
+      description: "List published directory launch destinations (read-only catalog). Returns provider slugs, directory site keys (e.g. peerpush, uneed), and start URLs. Does not post or submit on directory sites.",
+      inputSchema: {}
+    },
+    async () => {
+      await assertMcpDirectoryLaunchEnabled(deps.subscriptionGuard);
+      const rows = await deps.autoLaunchService.listPublishedDestinations();
+      return mcpJsonResult({
+        success: true,
+        data: toAutoLaunchDestinationDtoCollection(rows)
+      });
+    }
+  );
+}
+var init_directoryDestinationsList = __esm({
+  "mcp/tools/directoryDestinationsList.ts"() {
+    init_assertMcpPlanCapability();
+    init_AutoLaunchDTO();
+    init_mcpJsonResult();
+  }
+});
+function registerDirectoryListingSummaryTool(server2, deps) {
+  server2.registerTool(
+    "directoryListingSummary",
+    {
+      description: "Read-only launch readiness per destination (PeerPush, Uneed, \u2026): submission status and missing profile fields before extension autofill. Pass main or variant profile id; not social posting.",
+      inputSchema: {
+        productProfileId: zod.z.string().describe("Main or variant product profile id (often main after directoryVariantsEnsure)")
+      }
+    },
+    async ({ productProfileId }) => {
+      await assertMcpDirectoryLaunchEnabled(deps.subscriptionGuard);
+      const profileId = productProfileId?.trim();
+      if (!profileId) {
+        throw new Error("productProfileId is required");
+      }
+      const { organizationId } = getMcpContext();
+      const data = await deps.autoLaunchService.getProfileListingSummaryForOrganization(
+        organizationId,
+        profileId
+      );
+      return mcpJsonResult({ success: true, data });
+    }
+  );
+}
+var init_directoryListingSummary = __esm({
+  "mcp/tools/directoryListingSummary.ts"() {
+    init_assertMcpPlanCapability();
+    init_context();
+    init_mcpJsonResult();
+  }
+});
+function registerDirectoryProfilesCreateTool(server2, deps) {
+  server2.registerTool(
+    "directoryProfilesCreate",
+    {
+      description: "Create a new main business profile for directory launch (organization from the token). Does not create per-site variants \u2014 call directoryVariantsEnsure with directorySiteKey peerpush or uneed afterward.",
+      inputSchema: {
+        name: zod.z.string().describe("Product display name"),
+        integrationCustomerId: zod.z.string().optional().describe("Optional channel group id to link"),
+        tagline: zod.z.string().nullable().optional(),
+        description: zod.z.string().nullable().optional(),
+        websiteUrl: zod.z.string().nullable().optional(),
+        logoUrl: zod.z.string().nullable().optional(),
+        profileData: zod.z.record(zod.z.unknown()).optional().describe("Structured business profile fields")
+      }
+    },
+    async (input) => {
+      await assertMcpDirectoryLaunchEnabled(deps.subscriptionGuard);
+      const name = input.name?.trim();
+      if (!name) {
+        throw new Error("name is required");
+      }
+      const { organizationId, publicUserId } = getMcpContext();
+      const data = await deps.autoLaunchService.createProfileProgrammatic(publicUserId, {
+        organizationId,
+        integrationCustomerId: input.integrationCustomerId ?? null,
+        name,
+        tagline: input.tagline,
+        description: input.description,
+        websiteUrl: input.websiteUrl,
+        logoUrl: input.logoUrl,
+        profileData: input.profileData ?? {}
+      });
+      return mcpJsonResult({ success: true, data });
+    }
+  );
+}
+var init_directoryProfilesCreate = __esm({
+  "mcp/tools/directoryProfilesCreate.ts"() {
+    init_assertMcpPlanCapability();
+    init_context();
+    init_mcpJsonResult();
+  }
+});
+function registerDirectoryProfilesGetTool(server2, deps) {
+  server2.registerTool(
+    "directoryProfilesGet",
+    {
+      description: "Load one business profile by id: tagline, description, profileData, directorySiteKey, and similarityToMainPercent on variants. Use after directoryVariantsEnsure to inspect tailored copy.",
+      inputSchema: {
+        productProfileId: zod.z.string().describe("Main or directory-variant product profile id")
+      }
+    },
+    async ({ productProfileId }) => {
+      await assertMcpDirectoryLaunchEnabled(deps.subscriptionGuard);
+      const profileId = productProfileId?.trim();
+      if (!profileId) {
+        throw new Error("productProfileId is required");
+      }
+      const { organizationId } = getMcpContext();
+      const data = await deps.autoLaunchService.getProfileProgrammatic(organizationId, profileId);
+      if (!data) {
+        throw new Error("Product profile not found");
+      }
+      return mcpJsonResult({ success: true, data });
+    }
+  );
+}
+var init_directoryProfilesGet = __esm({
+  "mcp/tools/directoryProfilesGet.ts"() {
+    init_assertMcpPlanCapability();
+    init_context();
+    init_mcpJsonResult();
+  }
+});
+function registerDirectoryProfilesListTool(server2, deps) {
+  server2.registerTool(
+    "directoryProfilesList",
+    {
+      description: "List My Products business profiles for directory launch (not social integrations). Use mainOnly before directoryVariantsEnsure to resolve the main profile id. Optional filter by channel group id from groupList.",
+      inputSchema: {
+        integrationCustomerId: zod.z.string().optional().describe("Optional channel group id from groupList"),
+        mainOnly: zod.z.boolean().optional().describe(
+          "When true, return only main profiles (exclude per-directory variants such as peerpush or uneed)"
+        )
+      }
+    },
+    async ({ integrationCustomerId, mainOnly }) => {
+      await assertMcpDirectoryLaunchEnabled(deps.subscriptionGuard);
+      const { organizationId } = getMcpContext();
+      const customerId = typeof integrationCustomerId === "string" && integrationCustomerId.trim() ? integrationCustomerId.trim() : void 0;
+      let data = await deps.autoLaunchService.listProfilesProgrammatic(organizationId, customerId);
+      if (mainOnly) {
+        data = data.filter((row) => !row.parentProfileId);
+      }
+      return mcpJsonResult({ success: true, data });
+    }
+  );
+}
+var init_directoryProfilesList = __esm({
+  "mcp/tools/directoryProfilesList.ts"() {
+    init_assertMcpPlanCapability();
+    init_context();
+    init_mcpJsonResult();
+  }
+});
+function registerDirectoryProfilesUpdateTool(server2, deps) {
+  server2.registerTool(
+    "directoryProfilesUpdate",
+    {
+      description: "Patch copy on a main or directory-variant profile (tagline, description, websiteUrl, logoUrl, profileData). Use when the user asks to fill or update tailored fields for PeerPush, Uneed, etc. Not schedulePostTool.",
+      inputSchema: {
+        productProfileId: zod.z.string().describe("Main or variant profile id (variant id from directoryVariantsEnsure)"),
+        name: zod.z.string().optional(),
+        tagline: zod.z.string().nullable().optional(),
+        description: zod.z.string().nullable().optional(),
+        websiteUrl: zod.z.string().nullable().optional(),
+        logoUrl: zod.z.string().nullable().optional(),
+        integrationCustomerId: zod.z.string().nullable().optional(),
+        profileData: zod.z.record(zod.z.unknown()).optional()
+      }
+    },
+    async (input) => {
+      await assertMcpDirectoryLaunchEnabled(deps.subscriptionGuard);
+      const profileId = input.productProfileId?.trim();
+      if (!profileId) {
+        throw new Error("productProfileId is required");
+      }
+      const { organizationId } = getMcpContext();
+      const data = await deps.autoLaunchService.updateProfileProgrammatic(organizationId, profileId, {
+        name: input.name,
+        tagline: input.tagline,
+        description: input.description,
+        websiteUrl: input.websiteUrl,
+        logoUrl: input.logoUrl,
+        integrationCustomerId: input.integrationCustomerId,
+        profileData: input.profileData
+      });
+      return mcpJsonResult({ success: true, data });
+    }
+  );
+}
+var init_directoryProfilesUpdate = __esm({
+  "mcp/tools/directoryProfilesUpdate.ts"() {
+    init_assertMcpPlanCapability();
+    init_context();
+    init_mcpJsonResult();
+  }
+});
+function registerDirectorySeoCompetitorsAddTool(server2, deps) {
+  server2.registerTool(
+    "directorySeoCompetitorsAdd",
+    {
+      description: "Add a competitor domain to directory SEO tracking for the workspace (plan competitor quota applies). Pair with directorySeoOverview and directorySeoHistory.",
+      inputSchema: {
+        domain: zod.z.string().describe("Competitor domain, e.g. example.com"),
+        label: zod.z.string().nullable().optional().describe("Optional display label"),
+        sortOrder: zod.z.number().int().optional().describe("Optional sort order")
+      }
+    },
+    async ({ domain, label, sortOrder }) => {
+      await assertMcpDirectorySeoEnabled(deps.subscriptionGuard);
+      const normalizedDomain = domain?.trim();
+      if (!normalizedDomain) {
+        throw new Error("domain is required");
+      }
+      const { organizationId, publicUserId } = getMcpContext();
+      const data = await deps.directorySeoWorkspaceService.addCompetitor(publicUserId, {
+        organizationId,
+        domain: normalizedDomain,
+        label,
+        sortOrder
+      });
+      return mcpJsonResult({ success: true, data, message: "Competitor added" });
+    }
+  );
+}
+var init_directorySeoCompetitorsAdd = __esm({
+  "mcp/tools/directorySeoCompetitorsAdd.ts"() {
+    init_assertMcpPlanCapability();
+    init_context();
+    init_mcpJsonResult();
+  }
+});
+function registerDirectorySeoCompetitorsRemoveTool(server2, deps) {
+  server2.registerTool(
+    "directorySeoCompetitorsRemove",
+    {
+      description: "Stop tracking a competitor domain in directory SEO for the workspace. Does not delete product profiles.",
+      inputSchema: {
+        domain: zod.z.string().describe("Competitor domain to remove")
+      }
+    },
+    async ({ domain }) => {
+      await assertMcpDirectorySeoEnabled(deps.subscriptionGuard);
+      const normalizedDomain = domain?.trim();
+      if (!normalizedDomain) {
+        throw new Error("domain is required");
+      }
+      const { organizationId, publicUserId } = getMcpContext();
+      await deps.directorySeoWorkspaceService.deleteCompetitor(publicUserId, {
+        organizationId,
+        domain: normalizedDomain
+      });
+      return mcpJsonResult({ success: true, message: "Competitor removed" });
+    }
+  );
+}
+var init_directorySeoCompetitorsRemove = __esm({
+  "mcp/tools/directorySeoCompetitorsRemove.ts"() {
+    init_assertMcpPlanCapability();
+    init_context();
+    init_mcpJsonResult();
+  }
+});
+function registerDirectorySeoCompetitorsUpdateTool(server2, deps) {
+  server2.registerTool(
+    "directorySeoCompetitorsUpdate",
+    {
+      description: "Update the display label for a competitor domain already tracked in directory SEO.",
+      inputSchema: {
+        domain: zod.z.string().describe("Competitor domain"),
+        label: zod.z.string().nullable().describe("New label, or null to clear")
+      }
+    },
+    async ({ domain, label }) => {
+      await assertMcpDirectorySeoEnabled(deps.subscriptionGuard);
+      const normalizedDomain = domain?.trim();
+      if (!normalizedDomain) {
+        throw new Error("domain is required");
+      }
+      const { organizationId, publicUserId } = getMcpContext();
+      const data = await deps.directorySeoWorkspaceService.updateCompetitor(publicUserId, {
+        organizationId,
+        domain: normalizedDomain,
+        label
+      });
+      return mcpJsonResult({ success: true, data, message: "Competitor updated" });
+    }
+  );
+}
+var init_directorySeoCompetitorsUpdate = __esm({
+  "mcp/tools/directorySeoCompetitorsUpdate.ts"() {
+    init_assertMcpPlanCapability();
+    init_context();
+    init_mcpJsonResult();
+  }
+});
+function registerDirectorySeoHistoryTool(server2, deps) {
+  server2.registerTool(
+    "directorySeoHistory",
+    {
+      description: "Historical cached directory SEO rating points for the main product domain and tracked competitors. days defaults to 90 (max 366). Use after directorySeoOverview.",
+      inputSchema: {
+        productProfileId: zod.z.string().describe("Main product profile id"),
+        days: zod.z.number().int().min(1).max(366).optional().describe("Lookback window in days (default 90)")
+      }
+    },
+    async ({ productProfileId, days }) => {
+      await assertMcpDirectorySeoEnabled(deps.subscriptionGuard);
+      const profileId = productProfileId?.trim();
+      if (!profileId) {
+        throw new Error("productProfileId is required");
+      }
+      const windowDays = days ?? 90;
+      const { organizationId, publicUserId } = getMcpContext();
+      const data = await deps.directorySeoWorkspaceService.getWorkspaceHistory(
+        publicUserId,
+        organizationId,
+        profileId,
+        windowDays
+      );
+      return mcpJsonResult({ success: true, data });
+    }
+  );
+}
+var init_directorySeoHistory = __esm({
+  "mcp/tools/directorySeoHistory.ts"() {
+    init_assertMcpPlanCapability();
+    init_context();
+    init_mcpJsonResult();
+  }
+});
+function registerDirectorySeoOverviewTool(server2, deps) {
+  server2.registerTool(
+    "directorySeoOverview",
+    {
+      description: "Cached directory SEO overview for a main business profile (domain rating, competitors). Read checkedAt on each metric and manualRefreshAvailableAt before directorySeoRefresh.",
+      inputSchema: {
+        productProfileId: zod.z.string().describe("Main product profile id")
+      }
+    },
+    async ({ productProfileId }) => {
+      await assertMcpDirectorySeoEnabled(deps.subscriptionGuard);
+      const profileId = productProfileId?.trim();
+      if (!profileId) {
+        throw new Error("productProfileId is required");
+      }
+      const { organizationId, publicUserId } = getMcpContext();
+      const data = await deps.directorySeoWorkspaceService.getWorkspaceOverview(
+        publicUserId,
+        organizationId,
+        profileId
+      );
+      return mcpJsonResult({ success: true, data });
+    }
+  );
+}
+var init_directorySeoOverview = __esm({
+  "mcp/tools/directorySeoOverview.ts"() {
+    init_assertMcpPlanCapability();
+    init_context();
+    init_mcpJsonResult();
+  }
+});
+function registerDirectorySeoRefreshTool(server2, deps) {
+  server2.registerTool(
+    "directorySeoRefresh",
+    {
+      description: "Manually refresh cached directory SEO metrics for a main product profile. Check manualRefreshAvailableAt from directorySeoOverview before calling; set force only when the plan allows bypass.",
+      inputSchema: {
+        productProfileId: zod.z.string().describe("Main product profile id"),
+        force: zod.z.boolean().optional().describe("Bypass cooldown when the plan allows (default false)")
+      }
+    },
+    async ({ productProfileId, force }) => {
+      await assertMcpDirectorySeoEnabled(deps.subscriptionGuard);
+      const profileId = productProfileId?.trim();
+      if (!profileId) {
+        throw new Error("productProfileId is required");
+      }
+      const { organizationId, publicUserId } = getMcpContext();
+      const data = await deps.directorySeoWorkspaceService.refreshWorkspace(publicUserId, {
+        organizationId,
+        productProfileId: profileId,
+        force: force ?? false
+      });
+      return mcpJsonResult({ success: true, data });
+    }
+  );
+}
+var init_directorySeoRefresh = __esm({
+  "mcp/tools/directorySeoRefresh.ts"() {
+    init_assertMcpPlanCapability();
+    init_context();
+    init_mcpJsonResult();
+  }
+});
+function registerDirectorySubmissionsListTool(server2, deps) {
+  server2.registerTool(
+    "directorySubmissionsList",
+    {
+      description: "List recorded directory launch submissions for the workspace (read-only): listing URLs and completion state. Optional filters by productProfileId or destinationId.",
+      inputSchema: {
+        productProfileId: zod.z.string().optional().describe("Filter by product profile id"),
+        destinationId: zod.z.string().optional().describe("Filter by destination id")
+      }
+    },
+    async ({ productProfileId, destinationId }) => {
+      await assertMcpDirectoryLaunchEnabled(deps.subscriptionGuard);
+      const { organizationId } = getMcpContext();
+      const data = await deps.autoLaunchService.listSubmissionsProgrammatic(organizationId, {
+        productProfileId: typeof productProfileId === "string" && productProfileId.trim() ? productProfileId.trim() : void 0,
+        destinationId: typeof destinationId === "string" && destinationId.trim() ? destinationId.trim() : void 0
+      });
+      return mcpJsonResult({ success: true, data });
+    }
+  );
+}
+var init_directorySubmissionsList = __esm({
+  "mcp/tools/directorySubmissionsList.ts"() {
+    init_assertMcpPlanCapability();
+    init_context();
+    init_mcpJsonResult();
+  }
+});
+function registerDirectoryVariantsEnsureTool(server2, deps) {
+  server2.registerTool(
+    "directoryVariantsEnsure",
+    {
+      description: "Create or return a per-directory copy of a main business profile (idempotent). Use when the user wants a PeerPush- or Uneed-specific profile: directoryProfilesList with mainOnly, then this tool with directorySiteKey peerpush or uneed. Copies main on first create; does not submit on the directory site.",
+      inputSchema: {
+        mainProductProfileId: zod.z.string().describe("Main profile id from directoryProfilesList (mainOnly true); not a variant id"),
+        directorySiteKey: zod.z.string().describe("Directory site key: peerpush, uneed, or other kebab-case catalog slug"),
+        name: zod.z.string().optional().describe("Optional variant display name override")
+      }
+    },
+    async ({ mainProductProfileId, directorySiteKey, name }) => {
+      await assertMcpDirectoryLaunchEnabled(deps.subscriptionGuard);
+      const mainId = mainProductProfileId?.trim();
+      const siteKey = directorySiteKey?.trim();
+      if (!mainId) {
+        throw new Error("mainProductProfileId is required");
+      }
+      if (!siteKey) {
+        throw new Error("directorySiteKey is required");
+      }
+      const { organizationId, publicUserId } = getMcpContext();
+      const result = await deps.autoLaunchService.ensureDirectoryVariantProgrammatic(
+        organizationId,
+        publicUserId,
+        mainId,
+        { directorySiteKey: siteKey, name }
+      );
+      return mcpJsonResult({ success: true, data: result.profile, created: result.created });
+    }
+  );
+}
+var init_directoryVariantsEnsure = __esm({
+  "mcp/tools/directoryVariantsEnsure.ts"() {
+    init_assertMcpPlanCapability();
+    init_context();
+    init_mcpJsonResult();
   }
 });
 function registerAnalyticsPlatformTool(server2, deps) {
@@ -40037,7 +45252,7 @@ function createMcpServer(deps) {
   const server2 = new mcp_js.McpServer(
     { name: "openquok", version: "1.0.0" },
     {
-      instructions: "OpenQuok MCP tools schedule and manage social posts for the authenticated workspace. Call groupList when channels are grouped, integrationList to discover connected channels, integrationSchema for platform rules, then schedulePostTool to draft or schedule content. Use postsList, postsStatus, and related tools to manage posts; analyticsPlatform and analyticsPost for metrics; plugsCatalog through plugsDelete for global plug rules; uploadFromUrl for remote media."
+      instructions: "OpenQuok MCP tools schedule and manage social posts for the authenticated workspace. Call groupList when channels are grouped, integrationList to discover connected channels, integrationSchema for platform rules, then schedulePostTool to draft or schedule content. Use postsList, postsStatus, and related tools to manage posts; analyticsPlatform and analyticsPost for metrics; plugsCatalog through plugsDelete for global plug rules; uploadFromUrl for remote media. Directory launch: directoryDestinationsList, directoryProfilesList through directoryListingSummary, and directorySubmissionsList (requires directory launch on the plan). Directory SEO: directorySeoOverview, directorySeoHistory, directorySeoRefresh, and directorySeoCompetitors* tools \u2014 metrics are cached (checkedAt, manualRefreshAvailableAt)."
     }
   );
   registerGroupListTool(server2, deps);
@@ -40061,10 +45276,46 @@ function createMcpServer(deps) {
   registerPlugsUpsertTool(server2, deps);
   registerPlugsActivateTool(server2, deps);
   registerPlugsDeleteTool(server2, deps);
+  const directoryLaunchDeps = {
+    autoLaunchService: deps.autoLaunchService,
+    subscriptionGuard: deps.subscriptionGuard
+  };
+  const directorySeoDeps = {
+    directorySeoWorkspaceService: deps.directorySeoWorkspaceService,
+    subscriptionGuard: deps.subscriptionGuard
+  };
+  registerDirectoryDestinationsListTool(server2, directoryLaunchDeps);
+  registerDirectoryProfilesListTool(server2, directoryLaunchDeps);
+  registerDirectoryProfilesGetTool(server2, directoryLaunchDeps);
+  registerDirectoryProfilesCreateTool(server2, directoryLaunchDeps);
+  registerDirectoryProfilesUpdateTool(server2, directoryLaunchDeps);
+  registerDirectoryVariantsEnsureTool(server2, directoryLaunchDeps);
+  registerDirectoryListingSummaryTool(server2, directoryLaunchDeps);
+  registerDirectorySubmissionsListTool(server2, directoryLaunchDeps);
+  registerDirectorySeoOverviewTool(server2, directorySeoDeps);
+  registerDirectorySeoHistoryTool(server2, directorySeoDeps);
+  registerDirectorySeoRefreshTool(server2, directorySeoDeps);
+  registerDirectorySeoCompetitorsAddTool(server2, directorySeoDeps);
+  registerDirectorySeoCompetitorsRemoveTool(server2, directorySeoDeps);
+  registerDirectorySeoCompetitorsUpdateTool(server2, directorySeoDeps);
   return server2;
 }
 var init_createMcpServer = __esm({
   "mcp/createMcpServer.ts"() {
+    init_directoryDestinationsList();
+    init_directoryListingSummary();
+    init_directoryProfilesCreate();
+    init_directoryProfilesGet();
+    init_directoryProfilesList();
+    init_directoryProfilesUpdate();
+    init_directorySeoCompetitorsAdd();
+    init_directorySeoCompetitorsRemove();
+    init_directorySeoCompetitorsUpdate();
+    init_directorySeoHistory();
+    init_directorySeoOverview();
+    init_directorySeoRefresh();
+    init_directorySubmissionsList();
+    init_directoryVariantsEnsure();
     init_analyticsPlatform();
     init_analyticsPost();
     init_groupList();
@@ -40130,8 +45381,8 @@ function mcpAuthFromPath(req, res, next) {
   }).catch(next);
 }
 async function handleMcpRequest(req, res) {
-  const auth10 = req.mcpAuth;
-  if (!auth10) {
+  const auth12 = req.mcpAuth;
+  if (!auth12) {
     res.status(401).json({ msg: "Unauthorized" });
     return;
   }
@@ -40145,7 +45396,7 @@ async function handleMcpRequest(req, res) {
     void server2.close();
   });
   await runWithMcpContext(
-    { organizationId: auth10.organizationId, tokenId: auth10.tokenId, publicUserId: auth10.publicUserId },
+    { organizationId: auth12.organizationId, tokenId: auth12.tokenId, publicUserId: auth12.publicUserId },
     () => transport.handleRequest(req, res, req.body)
   );
 }
@@ -40205,6 +45456,9 @@ var init_startMcp = __esm({
       integrationManager,
       postsService,
       analyticsService,
+      autoLaunchService,
+      directorySeoWorkspaceService,
+      subscriptionGuard,
       mediaUploadDeps: {
         mediaService,
         subscriptionService,
@@ -43364,13 +48618,24 @@ var opportunityFields = {
   cta_href: zod.z.string().optional().nullable(),
   cta_label: zod.z.string().optional().nullable(),
   sort_order: zod.z.number().int().optional(),
-  is_admin_published: zod.z.boolean().optional()
+  is_admin_published: zod.z.boolean().optional(),
+  auto_launch_enabled: zod.z.boolean().optional(),
+  auto_launch_provider_slug: zod.z.string().max(120).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Invalid provider slug").nullable().optional()
 };
-var linkDirectoryOpportunityCreateSchema = zod.z.object(opportunityFields);
+var opportunityAutoLaunchRefine = (data, ctx) => {
+  if (data.auto_launch_enabled && !data.auto_launch_provider_slug?.trim()) {
+    ctx.addIssue({
+      code: zod.z.ZodIssueCode.custom,
+      message: "Provider slug is required when browser extension auto-launch is enabled.",
+      path: ["auto_launch_provider_slug"]
+    });
+  }
+};
+var linkDirectoryOpportunityCreateSchema = zod.z.object(opportunityFields).superRefine(opportunityAutoLaunchRefine);
 var linkDirectoryOpportunityUpdateSchema = zod.z.object({
   ...opportunityFields,
   id: zod.z.string().uuid()
-});
+}).superRefine(opportunityAutoLaunchRefine);
 var linkDirectoryCategoryCreateSchema = zod.z.object({
   name: zod.z.string().min(1),
   slug: zod.z.string().optional(),
@@ -43423,9 +48688,6 @@ var linkDirectorySavedSitesPutSchema = zod.z.object({
 var linkDirectorySavedSitesOrderSchema = zod.z.object({
   siteIds: linkDirectorySavedSiteIdsSchema.min(1)
 });
-var linkDirectorySavedSiteOutreachCompletionSchema = zod.z.object({
-  completed: zod.z.boolean()
-});
 var linkDirectorySiteCommentContent = zod.z.string().min(1, "Comment is required").max(1e3, "Comment must be at most 1000 characters");
 var linkDirectorySiteCommentCreateSchema = zod.z.object({
   content: linkDirectorySiteCommentContent,
@@ -43436,6 +48698,13 @@ var linkDirectorySiteCommentIdParamSchema = zod.z.object({
 });
 var linkDirectorySiteRatingBodySchema = zod.z.object({
   rating: zod.z.number().int().min(1, "Rating must be at least 1").max(5, "Rating must be at most 5")
+});
+var linkDirectoryCatalogDrRefreshBodySchema = zod.z.object({
+  force: zod.z.boolean().optional(),
+  publishedOnly: zod.z.boolean().optional(),
+  siteId: zod.z.string().uuid().optional(),
+  slug: zod.z.string().min(1).max(200).optional(),
+  dryRun: zod.z.boolean().optional()
 });
 var linkDirectoryRouter = express.Router();
 var authWithRoles7 = requireFullAuthWithRoles(
@@ -43530,15 +48799,6 @@ linkDirectoryRouter.put(
   authWithRoles7,
   validateRequest({ body: linkDirectorySavedSitesOrderSchema }),
   linkDirectoryController.putUserSavedSitesOrder
-);
-linkDirectoryRouter.patch(
-  "/me/saved-sites/:siteId/outreach-completion",
-  authWithRoles7,
-  validateRequest({
-    params: linkDirectorySiteIdParamSchema,
-    body: linkDirectorySavedSiteOutreachCompletionSchema
-  }),
-  linkDirectoryController.patchUserSavedSiteOutreachCompletion
 );
 linkDirectoryRouter.get(
   "/categories/all-full",
@@ -43661,6 +48921,13 @@ linkDirectoryRouter.get(
   linkDirectoryController.getAdminSites
 );
 linkDirectoryRouter.post(
+  "/admin/sites/refresh-catalog-domain-ratings",
+  authWithRoles7,
+  requireEditor,
+  validateRequest({ body: linkDirectoryCatalogDrRefreshBodySchema }),
+  linkDirectoryController.refreshCatalogDomainRatings
+);
+linkDirectoryRouter.post(
   "/sites",
   authWithRoles7,
   requireEditor,
@@ -43719,6 +48986,381 @@ linkDirectoryRouter.delete(
   linkDirectoryController.deleteSite
 );
 
+// routes/AutoLaunchRoute.ts
+init_controllers();
+init_connections();
+init_repositories();
+
+// data/schemas/autoLaunchSchemas.ts
+init_dist();
+init_businessProfileDataSchemas();
+var profileDataSchema = businessProfileDataSchema.optional().default({});
+var logoUrlSchema = zod.z.string().max(2e3).nullable().optional();
+var providerSlugSchema = zod.z.string().min(1).max(120).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Invalid provider slug");
+var launchStepFieldSchema = zod.z.object({
+  key: zod.z.string().min(1).max(120),
+  label: zod.z.string().min(1).max(200),
+  profilePath: zod.z.string().min(1).max(200),
+  selectorHint: zod.z.string().max(500).optional(),
+  fillMode: zod.z.enum(LAUNCH_STEP_FIELD_FILL_MODES).optional()
+});
+var launchStepSchema = zod.z.object({
+  id: zod.z.string().min(1).max(120),
+  label: zod.z.string().min(1).max(200),
+  fields: zod.z.array(launchStepFieldSchema).optional()
+});
+var autoLaunchExtensionConfigSchema = zod.z.object({
+  version: zod.z.number().int().min(1).optional(),
+  startUrlPatterns: zod.z.array(zod.z.string().min(1).max(500)).optional(),
+  readyUrlHint: zod.z.string().max(200).optional(),
+  steps: zod.z.array(launchStepSchema).optional(),
+  proof: zod.z.record(zod.z.string(), zod.z.unknown()).optional()
+});
+var autoLaunchDestinationIdParamSchema = zod.z.object({
+  id: zod.z.string().uuid("Invalid destination id")
+});
+var autoLaunchProviderSlugParamSchema = zod.z.object({
+  providerSlug: providerSlugSchema
+});
+var createAdminAutoLaunchDestinationBodySchema = zod.z.object({
+  providerSlug: providerSlugSchema,
+  linkDirectoryOpportunityId: zod.z.string().uuid().nullable().optional(),
+  name: zod.z.string().min(1).max(200).trim(),
+  shortDescription: zod.z.string().max(2e3).trim().nullable().optional(),
+  submissionPath: zod.z.enum(["extension", "auto"]).optional().default("extension"),
+  startUrl: zod.z.string().url().max(2e3),
+  extensionConfig: autoLaunchExtensionConfigSchema.optional().default({}),
+  isPublished: zod.z.boolean().optional().default(false),
+  sortOrder: zod.z.number().int().optional().default(0),
+  pickerGroupKey: zod.z.string().max(120).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Invalid picker group key").nullable().optional(),
+  pickerGroupTitle: zod.z.string().max(200).trim().nullable().optional()
+});
+var updateAdminAutoLaunchDestinationBodySchema = zod.z.object({
+  providerSlug: providerSlugSchema.optional(),
+  linkDirectoryOpportunityId: zod.z.string().uuid().nullable().optional(),
+  name: zod.z.string().min(1).max(200).trim().optional(),
+  shortDescription: zod.z.string().max(2e3).trim().nullable().optional(),
+  submissionPath: zod.z.enum(["extension", "auto"]).optional(),
+  startUrl: zod.z.string().url().max(2e3).optional(),
+  extensionConfig: autoLaunchExtensionConfigSchema.optional(),
+  isPublished: zod.z.boolean().optional(),
+  sortOrder: zod.z.number().int().optional(),
+  pickerGroupKey: zod.z.string().max(120).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Invalid picker group key").nullable().optional(),
+  pickerGroupTitle: zod.z.string().max(200).trim().nullable().optional()
+}).refine((body) => Object.keys(body).length > 0, { message: "At least one field is required" });
+var autoLaunchProfileIdParamSchema = zod.z.object({
+  id: zod.z.string().uuid("Invalid product profile id")
+});
+var autoLaunchMainProfileIdParamSchema = zod.z.object({
+  mainId: zod.z.string().uuid("Invalid main product profile id")
+});
+var createDirectoryProfileVariantBodySchema = zod.z.object({
+  directorySiteKey: zod.z.string().min(1).max(120).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Invalid directory site key"),
+  name: zod.z.string().min(1).max(200).trim().optional()
+});
+var listAutoLaunchProfilesQuerySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  integrationCustomerId: zod.z.string().uuid("Invalid channel group id").optional()
+});
+var listBusinessProfilesQuerySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id")
+});
+var createAutoLaunchProfileBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  integrationCustomerId: zod.z.string().uuid("Invalid channel group id").nullable().optional(),
+  name: zod.z.string().min(1, "Name is required").max(200, "Name is too long").trim(),
+  tagline: zod.z.string().max(500, "Tagline is too long").trim().nullable().optional(),
+  description: zod.z.string().max(5e4, "Description is too large").nullable().optional(),
+  websiteUrl: zod.z.string().url("Invalid website URL").max(2e3).nullable().optional(),
+  logoUrl: logoUrlSchema,
+  profileData: profileDataSchema
+});
+var updateAutoLaunchProfileBodySchema = zod.z.object({
+  name: zod.z.string().min(1).max(200).trim().optional(),
+  tagline: zod.z.string().max(500).trim().nullable().optional(),
+  description: zod.z.string().max(5e4).nullable().optional(),
+  websiteUrl: zod.z.string().url().max(2e3).nullable().optional(),
+  logoUrl: logoUrlSchema,
+  integrationCustomerId: zod.z.string().uuid().nullable().optional(),
+  profileData: businessProfileDataSchema.optional()
+}).refine((body) => Object.keys(body).length > 0, { message: "At least one field is required" });
+var listAutoLaunchSubmissionsQuerySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  productProfileId: zod.z.string().uuid().optional(),
+  destinationId: zod.z.string().uuid().optional()
+});
+var createSubmissionIntentBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  productProfileId: zod.z.string().uuid("Invalid product profile id"),
+  destinationId: zod.z.string().uuid("Invalid destination id").optional(),
+  providerSlug: zod.z.string().min(1).max(120).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Invalid provider slug").optional()
+}).refine((body) => Boolean(body.destinationId ?? body.providerSlug), {
+  message: "destinationId or providerSlug is required"
+});
+var completeSubmissionBodySchema = zod.z.object({
+  launchToken: zod.z.string().min(1, "launchToken is required"),
+  listingUrl: zod.z.string().url().max(2e3).optional(),
+  evidence: zod.z.record(zod.z.string(), zod.z.unknown()).optional().default({})
+});
+var optionalListingUrlSchema = zod.z.string().trim().max(2e3).optional().transform((value) => {
+  if (!value) return void 0;
+  try {
+    return new URL(value).toString();
+  } catch {
+    return void 0;
+  }
+});
+var optionalAuthEmailSchema = zod.z.union([zod.z.string().email().max(320), zod.z.literal(""), zod.z.null(), zod.z.undefined()]).transform((value) => {
+  if (value == null || value === "") return null;
+  return value.trim();
+});
+var requiredListingUrlSchema = zod.z.string().trim().min(1, "listingUrl is required").max(2e3).refine((value) => {
+  try {
+    new URL(value);
+    return true;
+  } catch {
+    return false;
+  }
+}, "Invalid listing URL").transform((value) => new URL(value).toString());
+var requiredAuthEmailSchema = zod.z.string().trim().min(1, "authEmail is required").email("Invalid auth email").max(320);
+var recordManualSubmissionCompleteBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  productProfileId: zod.z.string().uuid("Invalid product profile id"),
+  destinationId: zod.z.string().uuid("Invalid destination id"),
+  listingUrl: requiredListingUrlSchema,
+  listingDofollow: zod.z.boolean(),
+  authEmail: requiredAuthEmailSchema
+});
+var autoLaunchSubmissionIdParamSchema = zod.z.object({
+  id: zod.z.string().uuid("Invalid submission id")
+});
+var deleteAutoLaunchSubmissionQuerySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id")
+});
+var updateSubmissionListingDetailsBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  listingUrl: optionalListingUrlSchema,
+  listingDofollow: zod.z.boolean().optional(),
+  authEmail: optionalAuthEmailSchema.optional()
+});
+
+// routes/AutoLaunchRoute.ts
+var autoLaunchRouter = express.Router();
+var auth2 = requireFullAuth(supabase);
+var authWithRoles8 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
+var editor = requireEditor;
+autoLaunchRouter.get("/destinations", auth2, autoLaunchController.listDestinations);
+autoLaunchRouter.get(
+  "/business-profiles",
+  auth2,
+  validateRequest({ query: listBusinessProfilesQuerySchema }),
+  autoLaunchController.listBusinessProfiles
+);
+autoLaunchRouter.get(
+  "/profiles",
+  auth2,
+  validateRequest({ query: listAutoLaunchProfilesQuerySchema }),
+  autoLaunchController.listProfiles
+);
+autoLaunchRouter.get(
+  "/profiles/:id",
+  auth2,
+  validateRequest({ params: autoLaunchProfileIdParamSchema }),
+  autoLaunchController.getProfileById
+);
+autoLaunchRouter.post(
+  "/profiles",
+  auth2,
+  validateRequest({ body: createAutoLaunchProfileBodySchema }),
+  autoLaunchController.createProfile
+);
+autoLaunchRouter.patch(
+  "/profiles/:id",
+  auth2,
+  validateRequest({ params: autoLaunchProfileIdParamSchema, body: updateAutoLaunchProfileBodySchema }),
+  autoLaunchController.updateProfile
+);
+autoLaunchRouter.delete(
+  "/profiles/:id",
+  auth2,
+  validateRequest({ params: autoLaunchProfileIdParamSchema }),
+  autoLaunchController.deleteProfile
+);
+autoLaunchRouter.post(
+  "/profiles/:mainId/variants",
+  auth2,
+  validateRequest({
+    params: autoLaunchMainProfileIdParamSchema,
+    body: createDirectoryProfileVariantBodySchema
+  }),
+  autoLaunchController.createDirectoryVariant
+);
+autoLaunchRouter.get(
+  "/submissions",
+  auth2,
+  validateRequest({ query: listAutoLaunchSubmissionsQuerySchema }),
+  autoLaunchController.listSubmissions
+);
+autoLaunchRouter.post(
+  "/submissions/record-complete",
+  auth2,
+  validateRequest({ body: recordManualSubmissionCompleteBodySchema }),
+  autoLaunchController.recordManualSubmissionComplete
+);
+autoLaunchRouter.patch(
+  "/submissions/:id/listing-details",
+  auth2,
+  validateRequest({
+    params: autoLaunchSubmissionIdParamSchema,
+    body: updateSubmissionListingDetailsBodySchema
+  }),
+  autoLaunchController.updateSubmissionListingDetails
+);
+autoLaunchRouter.delete(
+  "/submissions/:id",
+  auth2,
+  validateRequest({
+    params: autoLaunchSubmissionIdParamSchema,
+    query: deleteAutoLaunchSubmissionQuerySchema
+  }),
+  autoLaunchController.deleteSubmission
+);
+autoLaunchRouter.post(
+  "/submissions/intent",
+  auth2,
+  validateRequest({ body: createSubmissionIntentBodySchema }),
+  autoLaunchController.createSubmissionIntent
+);
+autoLaunchRouter.post(
+  "/submissions/complete",
+  auth2,
+  validateRequest({ body: completeSubmissionBodySchema }),
+  autoLaunchController.completeSubmission
+);
+autoLaunchRouter.get(
+  "/admin/provider-catalog",
+  authWithRoles8,
+  editor,
+  autoLaunchController.listProviderCatalog
+);
+autoLaunchRouter.get(
+  "/admin/destinations",
+  authWithRoles8,
+  editor,
+  autoLaunchController.listAdminDestinations
+);
+autoLaunchRouter.get(
+  "/admin/destinations/by-provider/:providerSlug",
+  authWithRoles8,
+  editor,
+  validateRequest({ params: autoLaunchProviderSlugParamSchema }),
+  autoLaunchController.getAdminDestinationByProviderSlug
+);
+autoLaunchRouter.get(
+  "/admin/destinations/:id",
+  authWithRoles8,
+  editor,
+  validateRequest({ params: autoLaunchDestinationIdParamSchema }),
+  autoLaunchController.getAdminDestinationById
+);
+autoLaunchRouter.post(
+  "/admin/destinations",
+  authWithRoles8,
+  editor,
+  validateRequest({ body: createAdminAutoLaunchDestinationBodySchema }),
+  autoLaunchController.createAdminDestination
+);
+autoLaunchRouter.patch(
+  "/admin/destinations/:id",
+  authWithRoles8,
+  editor,
+  validateRequest({
+    params: autoLaunchDestinationIdParamSchema,
+    body: updateAdminAutoLaunchDestinationBodySchema
+  }),
+  autoLaunchController.updateAdminDestination
+);
+autoLaunchRouter.delete(
+  "/admin/destinations/:id",
+  authWithRoles8,
+  editor,
+  validateRequest({ params: autoLaunchDestinationIdParamSchema }),
+  autoLaunchController.deleteAdminDestination
+);
+
+// routes/DirectorySeoRoute.ts
+init_controllers();
+init_connections();
+var directorySeoWorkspaceQuerySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  productProfileId: zod.z.string().uuid("Invalid product profile id")
+});
+var directorySeoWorkspaceHistoryQuerySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  productProfileId: zod.z.string().uuid("Invalid product profile id"),
+  days: zod.z.coerce.number().int().min(1).max(366).optional().default(90)
+});
+var directorySeoAddCompetitorBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  domain: zod.z.string().min(1).max(253).trim(),
+  label: zod.z.string().max(200).trim().nullable().optional(),
+  sortOrder: zod.z.number().int().min(0).max(1e4).optional()
+});
+var directorySeoDeleteCompetitorBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  domain: zod.z.string().min(1).max(253).trim()
+});
+var directorySeoUpdateCompetitorBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  domain: zod.z.string().min(1).max(253).trim(),
+  label: zod.z.string().max(200).trim().nullable()
+});
+var directorySeoRefreshBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  productProfileId: zod.z.string().uuid("Invalid product profile id"),
+  force: zod.z.boolean().optional().default(false)
+});
+
+// routes/DirectorySeoRoute.ts
+var directorySeoRouter = express.Router();
+var auth3 = requireFullAuth(supabase);
+directorySeoRouter.get(
+  "/workspace/overview",
+  auth3,
+  validateRequest({ query: directorySeoWorkspaceQuerySchema }),
+  directorySeoController.getWorkspaceOverview
+);
+directorySeoRouter.get(
+  "/workspace/history",
+  auth3,
+  validateRequest({ query: directorySeoWorkspaceHistoryQuerySchema }),
+  directorySeoController.getWorkspaceHistory
+);
+directorySeoRouter.post(
+  "/workspace/competitors",
+  auth3,
+  validateRequest({ body: directorySeoAddCompetitorBodySchema }),
+  directorySeoController.addCompetitor
+);
+directorySeoRouter.delete(
+  "/workspace/competitors",
+  auth3,
+  validateRequest({ body: directorySeoDeleteCompetitorBodySchema }),
+  directorySeoController.deleteCompetitor
+);
+directorySeoRouter.patch(
+  "/workspace/competitors",
+  auth3,
+  validateRequest({ body: directorySeoUpdateCompetitorBodySchema }),
+  directorySeoController.updateCompetitor
+);
+directorySeoRouter.post(
+  "/workspace/refresh",
+  auth3,
+  validateRequest({ body: directorySeoRefreshBodySchema }),
+  directorySeoController.refreshWorkspace
+);
+
 // routes/ImageRoute.ts
 init_controllers();
 init_connections();
@@ -43728,7 +49370,7 @@ var upload = multer__default.default({
   storage: multer__default.default.memoryStorage(),
   limits: { fileSize: MAX_IMAGE_UPLOAD_BYTES }
 });
-var authWithRoles8 = requireFullAuthWithRoles(
+var authWithRoles9 = requireFullAuthWithRoles(
   supabase,
   userRepository,
   rbacRepository
@@ -43738,16 +49380,16 @@ imageRouter.get("/download", imageController.getByUrl);
 imageRouter.get("/integration-avatar", imageController.getIntegrationAvatar);
 imageRouter.get("/external-proxy", imageController.allowlistedExternalImageProxy);
 imageRouter.post("/external-proxy", imageController.allowlistedExternalImageProxy);
-imageRouter.get("/blog-library", authWithRoles8, requireEditor, imageController.listBlogLibrary);
+imageRouter.get("/blog-library", authWithRoles9, requireEditor, imageController.listBlogLibrary);
 imageRouter.post(
   "/upload",
-  authWithRoles8,
+  authWithRoles9,
   requireEditor,
   upload.single("imageFile"),
   imageController.upload
 );
-imageRouter.delete("/delete", authWithRoles8, requireEditor, imageController.delete);
-imageRouter.get("/proxy", authWithRoles8, requireEditor, imageController.proxyImage);
+imageRouter.delete("/delete", authWithRoles9, requireEditor, imageController.delete);
+imageRouter.get("/proxy", authWithRoles9, requireEditor, imageController.proxyImage);
 
 // routes/MediaRoute.ts
 init_dist();
@@ -43874,27 +49516,27 @@ var upload2 = multer__default.default({
   storage: multer__default.default.memoryStorage(),
   limits: { fileSize: MAX_MEDIA_VIDEO_UPLOAD_BYTES }
 });
-var authWithRoles9 = requireFullAuthWithRoles(
+var authWithRoles10 = requireFullAuthWithRoles(
   supabase,
   userRepository,
   rbacRepository
 );
 var mediaRouter = express.Router();
-mediaRouter.get("/", authWithRoles9, validateMediaOrganizationQuery, mediaController.list);
-mediaRouter.get("/tree", authWithRoles9, validateMediaOrganizationQuery, mediaController.tree);
-mediaRouter.post("/move", authWithRoles9, validateMediaMoveBody, mediaController.move);
-mediaRouter.post("/copy", authWithRoles9, validateMediaCopyBody, mediaController.copy);
-mediaRouter.post("/rename", authWithRoles9, validateMediaRenameBody, mediaController.rename);
-mediaRouter.post("/folder", authWithRoles9, validateMediaCreateFolderBody, mediaController.createFolder);
-mediaRouter.delete("/folder", authWithRoles9, validateMediaDeleteFolderBody, mediaController.deleteFolder);
-mediaRouter.post("/upload", authWithRoles9, upload2.single("mediaFile"), mediaController.upload);
-mediaRouter.post("/upload-server", authWithRoles9, upload2.single("file"), mediaController.uploadServer);
-mediaRouter.post("/upload-simple", authWithRoles9, upload2.single("file"), mediaController.uploadSimple);
-mediaRouter.delete("/delete", authWithRoles9, mediaController.delete);
-mediaRouter.post("/save", authWithRoles9, mediaController.saveMedia);
-mediaRouter.post("/save-media", authWithRoles9, mediaController.saveMedia);
-mediaRouter.post("/information", authWithRoles9, validateSaveMediaInformationBody, mediaController.saveMediaInformation);
-mediaRouter.post("/:endpoint", authWithRoles9, validateMultipartEndpoint, mediaController.multipart);
+mediaRouter.get("/", authWithRoles10, validateMediaOrganizationQuery, mediaController.list);
+mediaRouter.get("/tree", authWithRoles10, validateMediaOrganizationQuery, mediaController.tree);
+mediaRouter.post("/move", authWithRoles10, validateMediaMoveBody, mediaController.move);
+mediaRouter.post("/copy", authWithRoles10, validateMediaCopyBody, mediaController.copy);
+mediaRouter.post("/rename", authWithRoles10, validateMediaRenameBody, mediaController.rename);
+mediaRouter.post("/folder", authWithRoles10, validateMediaCreateFolderBody, mediaController.createFolder);
+mediaRouter.delete("/folder", authWithRoles10, validateMediaDeleteFolderBody, mediaController.deleteFolder);
+mediaRouter.post("/upload", authWithRoles10, upload2.single("mediaFile"), mediaController.upload);
+mediaRouter.post("/upload-server", authWithRoles10, upload2.single("file"), mediaController.uploadServer);
+mediaRouter.post("/upload-simple", authWithRoles10, upload2.single("file"), mediaController.uploadSimple);
+mediaRouter.delete("/delete", authWithRoles10, mediaController.delete);
+mediaRouter.post("/save", authWithRoles10, mediaController.saveMedia);
+mediaRouter.post("/save-media", authWithRoles10, mediaController.saveMedia);
+mediaRouter.post("/information", authWithRoles10, validateSaveMediaInformationBody, mediaController.saveMediaInformation);
+mediaRouter.post("/:endpoint", authWithRoles10, validateMultipartEndpoint, mediaController.multipart);
 
 // routes/integrationApi/NoAuthRoutes.ts
 init_controllers();
@@ -44082,8 +49724,8 @@ var validateIntegrationTimeRequest = validateRequest({
 // routes/integrationApi/SessionRoutes.ts
 init_dist();
 var integrationSessionRouter = express.Router();
-var auth2 = requireFullAuth(supabase);
-integrationSessionRouter.use(auth2);
+var auth4 = requireFullAuth(supabase);
+integrationSessionRouter.use(auth4);
 integrationSessionRouter.get(
   "/connect-prefill/:providerIdentifier",
   validateIntegrationConnectPrefillRequest,
@@ -44728,6 +50370,204 @@ publicPostRouter.delete(
   publicPostsController.deletePostById
 );
 
+// routes/publicApi/DirectoryLaunchRoutes.ts
+init_dist();
+init_controllers();
+init_repositories();
+init_services();
+
+// data/schemas/publicDirectoryLaunchSchemas.ts
+var publicListDirectoryProfilesQuerySchema = listAutoLaunchProfilesQuerySchema.omit({
+  organizationId: true
+});
+var validatePublicListDirectoryProfilesQuery = validateRequest({
+  query: publicListDirectoryProfilesQuerySchema
+});
+var publicDirectoryProfileIdParamsSchema = autoLaunchProfileIdParamSchema;
+var validatePublicDirectoryProfileIdParams = validateRequest({
+  params: publicDirectoryProfileIdParamsSchema
+});
+var publicDirectoryMainProfileIdParamsSchema = autoLaunchMainProfileIdParamSchema;
+var publicCreateDirectoryProfileBodySchema = createAutoLaunchProfileBodySchema.omit({
+  organizationId: true
+});
+var validatePublicCreateDirectoryProfileRequest = validateRequest({
+  body: publicCreateDirectoryProfileBodySchema
+});
+var validatePublicUpdateDirectoryProfileRequest = validateRequest({
+  params: publicDirectoryProfileIdParamsSchema,
+  body: updateAutoLaunchProfileBodySchema
+});
+var validatePublicEnsureDirectoryVariantRequest = validateRequest({
+  params: publicDirectoryMainProfileIdParamsSchema,
+  body: createDirectoryProfileVariantBodySchema
+});
+var publicListDirectorySubmissionsQuerySchema = listAutoLaunchSubmissionsQuerySchema.omit({
+  organizationId: true
+});
+var validatePublicListDirectorySubmissionsQuery = validateRequest({
+  query: publicListDirectorySubmissionsQuerySchema
+});
+
+// routes/publicApi/DirectoryLaunchRoutes.ts
+var publicDirectoryLaunchRouter = express.Router();
+var apiKeyAuth6 = requireProgrammaticAuth({ oauthAppService, organizationRepository, subscriptionGuard });
+var directoryLaunchPlan = requireProgrammaticPlanCapability(
+  SubscriptionSection.DIRECTORY_LAUNCH_ENABLED
+);
+publicDirectoryLaunchRouter.get(
+  "/destinations",
+  apiKeyAuth6,
+  directoryLaunchPlan,
+  publicDirectoryLaunchController.listDestinations
+);
+publicDirectoryLaunchRouter.get(
+  "/business-profiles",
+  apiKeyAuth6,
+  directoryLaunchPlan,
+  publicDirectoryLaunchController.listBusinessProfiles
+);
+publicDirectoryLaunchRouter.get(
+  "/profiles",
+  apiKeyAuth6,
+  directoryLaunchPlan,
+  validatePublicListDirectoryProfilesQuery,
+  publicDirectoryLaunchController.listProfiles
+);
+publicDirectoryLaunchRouter.get(
+  "/profiles/:id",
+  apiKeyAuth6,
+  directoryLaunchPlan,
+  validatePublicDirectoryProfileIdParams,
+  publicDirectoryLaunchController.getProfileById
+);
+publicDirectoryLaunchRouter.post(
+  "/profiles",
+  apiKeyAuth6,
+  directoryLaunchPlan,
+  validatePublicCreateDirectoryProfileRequest,
+  publicDirectoryLaunchController.createProfile
+);
+publicDirectoryLaunchRouter.patch(
+  "/profiles/:id",
+  apiKeyAuth6,
+  directoryLaunchPlan,
+  validatePublicUpdateDirectoryProfileRequest,
+  publicDirectoryLaunchController.updateProfile
+);
+publicDirectoryLaunchRouter.post(
+  "/profiles/:mainId/variants",
+  apiKeyAuth6,
+  directoryLaunchPlan,
+  validatePublicEnsureDirectoryVariantRequest,
+  publicDirectoryLaunchController.ensureDirectoryVariant
+);
+publicDirectoryLaunchRouter.get(
+  "/profiles/:id/listing-summary",
+  apiKeyAuth6,
+  directoryLaunchPlan,
+  validatePublicDirectoryProfileIdParams,
+  publicDirectoryLaunchController.getProfileListingSummary
+);
+publicDirectoryLaunchRouter.get(
+  "/submissions",
+  apiKeyAuth6,
+  directoryLaunchPlan,
+  validatePublicListDirectorySubmissionsQuery,
+  publicDirectoryLaunchController.listSubmissions
+);
+
+// routes/publicApi/DirectorySeoRoutes.ts
+init_dist();
+init_controllers();
+init_repositories();
+init_services();
+
+// data/schemas/publicDirectorySeoSchemas.ts
+var publicDirectorySeoWorkspaceQuerySchema = directorySeoWorkspaceQuerySchema.omit({
+  organizationId: true
+});
+var validatePublicDirectorySeoWorkspaceQuery = validateRequest({
+  query: publicDirectorySeoWorkspaceQuerySchema
+});
+var publicDirectorySeoWorkspaceHistoryQuerySchema = directorySeoWorkspaceHistoryQuerySchema.omit({
+  organizationId: true
+});
+var validatePublicDirectorySeoWorkspaceHistoryQuery = validateRequest({
+  query: publicDirectorySeoWorkspaceHistoryQuerySchema
+});
+var publicDirectorySeoAddCompetitorBodySchema = directorySeoAddCompetitorBodySchema.omit({
+  organizationId: true
+});
+var validatePublicDirectorySeoAddCompetitorRequest = validateRequest({
+  body: publicDirectorySeoAddCompetitorBodySchema
+});
+var publicDirectorySeoDeleteCompetitorBodySchema = directorySeoDeleteCompetitorBodySchema.omit({
+  organizationId: true
+});
+var validatePublicDirectorySeoDeleteCompetitorRequest = validateRequest({
+  body: publicDirectorySeoDeleteCompetitorBodySchema
+});
+var publicDirectorySeoUpdateCompetitorBodySchema = directorySeoUpdateCompetitorBodySchema.omit({
+  organizationId: true
+});
+var validatePublicDirectorySeoUpdateCompetitorRequest = validateRequest({
+  body: publicDirectorySeoUpdateCompetitorBodySchema
+});
+var publicDirectorySeoRefreshBodySchema = directorySeoRefreshBodySchema.omit({
+  organizationId: true
+});
+var validatePublicDirectorySeoRefreshRequest = validateRequest({
+  body: publicDirectorySeoRefreshBodySchema
+});
+
+// routes/publicApi/DirectorySeoRoutes.ts
+var publicDirectorySeoRouter = express.Router();
+var apiKeyAuth7 = requireProgrammaticAuth({ oauthAppService, organizationRepository, subscriptionGuard });
+var directorySeoPlan = requireProgrammaticPlanCapability(SubscriptionSection.DIRECTORY_SEO_ENABLED);
+publicDirectorySeoRouter.get(
+  "/workspace/overview",
+  apiKeyAuth7,
+  directorySeoPlan,
+  validatePublicDirectorySeoWorkspaceQuery,
+  publicDirectorySeoController.getWorkspaceOverview
+);
+publicDirectorySeoRouter.get(
+  "/workspace/history",
+  apiKeyAuth7,
+  directorySeoPlan,
+  validatePublicDirectorySeoWorkspaceHistoryQuery,
+  publicDirectorySeoController.getWorkspaceHistory
+);
+publicDirectorySeoRouter.post(
+  "/workspace/competitors",
+  apiKeyAuth7,
+  directorySeoPlan,
+  validatePublicDirectorySeoAddCompetitorRequest,
+  publicDirectorySeoController.addCompetitor
+);
+publicDirectorySeoRouter.delete(
+  "/workspace/competitors",
+  apiKeyAuth7,
+  directorySeoPlan,
+  validatePublicDirectorySeoDeleteCompetitorRequest,
+  publicDirectorySeoController.deleteCompetitor
+);
+publicDirectorySeoRouter.patch(
+  "/workspace/competitors",
+  apiKeyAuth7,
+  directorySeoPlan,
+  validatePublicDirectorySeoUpdateCompetitorRequest,
+  publicDirectorySeoController.updateCompetitor
+);
+publicDirectorySeoRouter.post(
+  "/workspace/refresh",
+  apiKeyAuth7,
+  directorySeoPlan,
+  validatePublicDirectorySeoRefreshRequest,
+  publicDirectorySeoController.refreshWorkspace
+);
+
 // routes/publicApi/index.ts
 var publicApiRouter = express.Router();
 publicApiRouter.use("/", publicIntegrationRouter);
@@ -44735,6 +50575,8 @@ publicApiRouter.use("/", publicMediaUploadRouter);
 publicApiRouter.use("/", publicNotificationRouter);
 publicApiRouter.use("/posts", publicPostRouter);
 publicApiRouter.use("/analytics", publicAnalyticsRouter);
+publicApiRouter.use("/directory-launch", publicDirectoryLaunchRouter);
+publicApiRouter.use("/directory-seo", publicDirectorySeoRouter);
 
 // routes/NotificationRoute.ts
 init_controllers();
@@ -44755,26 +50597,26 @@ var validateNotificationPaginatedQuery = validateRequest({
 // routes/NotificationRoute.ts
 init_connections();
 var notificationRouter = express.Router();
-var auth3 = requireFullAuth(supabase);
+var auth5 = requireFullAuth(supabase);
 var parseNotificationOrganizationQuery = createNotificationOrganizationQueryParser();
 var parseNotificationPaginatedQuery = createNotificationPaginatedQueryParser();
 notificationRouter.get(
   "/",
-  auth3,
+  auth5,
   validateNotificationOrganizationQuery,
   parseNotificationOrganizationQuery,
   notificationController.mainPageCount
 );
 notificationRouter.get(
   "/list",
-  auth3,
+  auth5,
   validateNotificationOrganizationQuery,
   parseNotificationOrganizationQuery,
   notificationController.list
 );
 notificationRouter.get(
   "/paginated",
-  auth3,
+  auth5,
   validateNotificationPaginatedQuery,
   parseNotificationPaginatedQuery,
   notificationController.paginated
@@ -44785,15 +50627,15 @@ init_connections();
 init_repositories();
 init_controllers();
 var postRouter = express.Router();
-var auth4 = requireFullAuth(supabase);
+var auth6 = requireFullAuth(supabase);
 var optionalAuth6 = optionalAuthWithRoles(supabase, userRepository, rbacRepository);
-postRouter.get("/find-slot", auth4, validatePostOrganizationQuery, postsController.findSlot);
-postRouter.get("/tags", auth4, validatePostOrganizationQuery, postsController.listTags);
-postRouter.post("/tags", auth4, validateCreatePostTagBody, postsController.createTag);
-postRouter.delete("/tags/:tagId", auth4, validateDeletePostTag, postsController.deleteTag);
-postRouter.get("/list", auth4, validateListPostsQuery, postsController.listPosts);
-postRouter.post("/", auth4, validateCreatePostBody, postsController.createPost);
-postRouter.post("/:postId/comments", auth4, validateCreateComposerComment, postsController.createComposerComment);
+postRouter.get("/find-slot", auth6, validatePostOrganizationQuery, postsController.findSlot);
+postRouter.get("/tags", auth6, validatePostOrganizationQuery, postsController.listTags);
+postRouter.post("/tags", auth6, validateCreatePostTagBody, postsController.createTag);
+postRouter.delete("/tags/:tagId", auth6, validateDeletePostTag, postsController.deleteTag);
+postRouter.get("/list", auth6, validateListPostsQuery, postsController.listPosts);
+postRouter.post("/", auth6, validateCreatePostBody, postsController.createPost);
+postRouter.post("/:postId/comments", auth6, validateCreateComposerComment, postsController.createComposerComment);
 postRouter.get(
   "/preview/:postId",
   optionalAuth6,
@@ -44802,28 +50644,28 @@ postRouter.get(
 );
 postRouter.get(
   "/group/:postGroup/debug-export",
-  auth4,
+  auth6,
   validatePostGroupParams,
   postsController.debugExportPostGroup
 );
-postRouter.get("/group/:postGroup", auth4, validatePostGroupParams, postsController.getPostGroup);
-postRouter.put("/group/:postGroup", auth4, validateUpdatePostGroupBody, postsController.updatePostGroup);
-postRouter.delete("/group/:postGroup", auth4, validateDeletePostGroup, postsController.deletePostGroup);
-postRouter.get("/:postId/missing", auth4, validatePostMissingQuery, postsController.getMissingPublishCandidates);
-postRouter.put("/:postId/release-id", auth4, validateUpdatePostReleaseId, postsController.updatePostReleaseId);
-postRouter.put("/:postId/publish-now", auth4, validatePublishPostNow, postsController.publishPostNow);
-postRouter.put("/:postId/status", auth4, validateFlipPostStatus, postsController.flipPostStatus);
-postRouter.put("/:postId/reschedule", auth4, validateReschedulePost, postsController.reschedulePost);
-postRouter.put("/:postId/review-todo", auth4, validateUpdatePostReviewTodo, postsController.updatePostReviewTodo);
-postRouter.delete("/:postGroup", auth4, validateDeletePostGroup, postsController.deletePostGroup);
+postRouter.get("/group/:postGroup", auth6, validatePostGroupParams, postsController.getPostGroup);
+postRouter.put("/group/:postGroup", auth6, validateUpdatePostGroupBody, postsController.updatePostGroup);
+postRouter.delete("/group/:postGroup", auth6, validateDeletePostGroup, postsController.deletePostGroup);
+postRouter.get("/:postId/missing", auth6, validatePostMissingQuery, postsController.getMissingPublishCandidates);
+postRouter.put("/:postId/release-id", auth6, validateUpdatePostReleaseId, postsController.updatePostReleaseId);
+postRouter.put("/:postId/publish-now", auth6, validatePublishPostNow, postsController.publishPostNow);
+postRouter.put("/:postId/status", auth6, validateFlipPostStatus, postsController.flipPostStatus);
+postRouter.put("/:postId/reschedule", auth6, validateReschedulePost, postsController.reschedulePost);
+postRouter.put("/:postId/review-todo", auth6, validateUpdatePostReviewTodo, postsController.updatePostReviewTodo);
+postRouter.delete("/:postGroup", auth6, validateDeletePostGroup, postsController.deletePostGroup);
 
 // routes/ThirdPartyRoute.ts
 init_controllers();
 init_connections();
 init_repositories();
-var authWithRoles10 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
+var authWithRoles11 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
 var thirdPartyRouter = express.Router();
-thirdPartyRouter.get("/for-media", authWithRoles10, validateMediaOrganizationQuery, thirdPartyController.listForMedia);
+thirdPartyRouter.get("/for-media", authWithRoles11, validateMediaOrganizationQuery, thirdPartyController.listForMedia);
 
 // routes/SignatureRoute.ts
 init_controllers();
@@ -44848,24 +50690,24 @@ var updateSignatureBodySchema = zod.z.object({
 
 // routes/SignatureRoute.ts
 var signatureRouter = express.Router();
-var auth5 = requireFullAuth(supabase);
+var auth7 = requireFullAuth(supabase);
 signatureRouter.get(
   "/",
-  auth5,
+  auth7,
   validateRequest({ query: listSignaturesQuerySchema }),
   signatureController.listForOrganization
 );
-signatureRouter.get("/:id", auth5, validateRequest({ params: signatureIdParamSchema }), signatureController.getById);
-signatureRouter.post("/", auth5, validateRequest({ body: createSignatureBodySchema }), signatureController.create);
+signatureRouter.get("/:id", auth7, validateRequest({ params: signatureIdParamSchema }), signatureController.getById);
+signatureRouter.post("/", auth7, validateRequest({ body: createSignatureBodySchema }), signatureController.create);
 signatureRouter.patch(
   "/:id",
-  auth5,
+  auth7,
   validateRequest({ params: signatureIdParamSchema, body: updateSignatureBodySchema }),
   signatureController.update
 );
 signatureRouter.delete(
   "/:id",
-  auth5,
+  auth7,
   validateRequest({ params: signatureIdParamSchema }),
   signatureController.deleteById
 );
@@ -44888,11 +50730,11 @@ var upsertSetBodySchema = zod.z.object({
 
 // routes/SetsRoute.ts
 var setsRouter = express.Router();
-var auth6 = requireFullAuth(supabase);
-setsRouter.get("/", auth6, validateRequest({ query: listSetsQuerySchema }), setsController.listForOrganization);
-setsRouter.post("/", auth6, validateRequest({ body: upsertSetBodySchema }), setsController.upsert);
-setsRouter.get("/:id", auth6, validateRequest({ params: setIdParamSchema }), setsController.getById);
-setsRouter.delete("/:id", auth6, validateRequest({ params: setIdParamSchema }), setsController.deleteById);
+var auth8 = requireFullAuth(supabase);
+setsRouter.get("/", auth8, validateRequest({ query: listSetsQuerySchema }), setsController.listForOrganization);
+setsRouter.post("/", auth8, validateRequest({ body: upsertSetBodySchema }), setsController.upsert);
+setsRouter.get("/:id", auth8, validateRequest({ params: setIdParamSchema }), setsController.getById);
+setsRouter.delete("/:id", auth8, validateRequest({ params: setIdParamSchema }), setsController.deleteById);
 
 // routes/AnalyticsRoute.ts
 init_controllers();
@@ -44928,8 +50770,8 @@ var validatePostAnalyticsRequest = validateRequest({
 
 // routes/AnalyticsRoute.ts
 var analyticsRouter = express.Router();
-var auth7 = requireFullAuth(supabase);
-analyticsRouter.use(auth7);
+var auth9 = requireFullAuth(supabase);
+analyticsRouter.use(auth9);
 analyticsRouter.get("/post/:postId", validatePostAnalyticsRequest, analyticsController.getPostAnalytics);
 analyticsRouter.get("/:integrationId", validateIntegrationAnalyticsRequest, analyticsController.getIntegrationAnalytics);
 
@@ -45013,96 +50855,96 @@ var validateBillingAdminAddSubscriptionBody = (req, res, next) => validateBody(b
 var validateBillingRefundChargesBody = (req, res, next) => validateBody(billingRefundChargesBodySchema, req, res, next);
 
 // routes/BillingRoute.ts
-var authWithRoles11 = requireFullAuthWithRoles(
+var authWithRoles12 = requireFullAuthWithRoles(
   supabase,
   userRepository,
   rbacRepository
 );
 var billingRouter = express.Router();
 billingRouter.get("/plans", billingController.getPlans);
-billingRouter.get("/account-owned", authWithRoles11, billingController.getOwnedAccount);
-billingRouter.get("/", authWithRoles11, validateBillingOrganizationQuery, billingController.getCurrent);
-billingRouter.get("/subscription", authWithRoles11, validateBillingOrganizationQuery, billingController.getCurrent);
-billingRouter.get("/current", authWithRoles11, validateBillingOrganizationQuery, billingController.getCurrent);
+billingRouter.get("/account-owned", authWithRoles12, billingController.getOwnedAccount);
+billingRouter.get("/", authWithRoles12, validateBillingOrganizationQuery, billingController.getCurrent);
+billingRouter.get("/subscription", authWithRoles12, validateBillingOrganizationQuery, billingController.getCurrent);
+billingRouter.get("/current", authWithRoles12, validateBillingOrganizationQuery, billingController.getCurrent);
 billingRouter.post(
   "/subscribe",
-  authWithRoles11,
+  authWithRoles12,
   validateBillingSubscribeBody,
   billingController.subscribe
 );
 billingRouter.post(
   "/embedded",
-  authWithRoles11,
+  authWithRoles12,
   validateBillingSubscribeBody,
   billingController.embedded
 );
-billingRouter.get("/portal", authWithRoles11, validateBillingOrganizationQuery, billingController.portal);
+billingRouter.get("/portal", authWithRoles12, validateBillingOrganizationQuery, billingController.portal);
 billingRouter.get(
   "/check/:id",
-  authWithRoles11,
+  authWithRoles12,
   validateBillingOrganizationQuery,
   billingController.checkCheckout
 );
 billingRouter.get(
   "/check-discount",
-  authWithRoles11,
+  authWithRoles12,
   validateBillingOrganizationQuery,
   billingController.checkDiscount
 );
 billingRouter.post(
   "/apply-discount",
-  authWithRoles11,
+  authWithRoles12,
   validateBillingOrganizationQuery,
   billingController.applyDiscount
 );
 billingRouter.post(
   "/finish-trial",
-  authWithRoles11,
+  authWithRoles12,
   validateBillingOrganizationQuery,
   billingController.finishTrial
 );
 billingRouter.get(
   "/is-trial-finished",
-  authWithRoles11,
+  authWithRoles12,
   validateBillingOrganizationQuery,
   billingController.isTrialFinished
 );
 billingRouter.post(
   "/prorate",
-  authWithRoles11,
+  authWithRoles12,
   validateBillingPlanChangeBody,
   billingController.prorate
 );
 billingRouter.post(
   "/cancel",
-  authWithRoles11,
+  authWithRoles12,
   validateBillingCancelBody,
   billingController.cancel
 );
 billingRouter.get(
   "/charges",
-  authWithRoles11,
+  authWithRoles12,
   requirePlatformAdmin,
   validateBillingOrganizationQuery,
   billingController.getCharges
 );
 billingRouter.post(
   "/refund-charges",
-  authWithRoles11,
+  authWithRoles12,
   requirePlatformAdmin,
   validateBillingRefundChargesBody,
   billingController.refundCharges
 );
 billingRouter.post(
   "/cancel-subscription",
-  authWithRoles11,
+  authWithRoles12,
   requirePlatformAdmin,
   validateBillingOrganizationQuery,
   billingController.cancelSubscriptionAdmin
 );
 billingRouter.post(
   "/add-subscription",
-  authWithRoles11,
+  authWithRoles12,
   requirePlatformAdmin,
   validateBillingAdminAddSubscriptionBody,
   billingController.addSubscriptionAdmin
@@ -45159,12 +51001,12 @@ var validateRotateOauthSecret = validateRequest({
 // routes/OauthAppRoute.ts
 init_dist();
 var oauthAppRouter = express.Router();
-var auth8 = requireFullAuth(supabase);
-oauthAppRouter.get("/", auth8, validateOauthAppOrganizationQuery, oauthAppController.listApps);
-oauthAppRouter.get("/app", auth8, validateOauthAppOrganizationQuery, oauthAppController.getApp);
+var auth10 = requireFullAuth(supabase);
+oauthAppRouter.get("/", auth10, validateOauthAppOrganizationQuery, oauthAppController.listApps);
+oauthAppRouter.get("/app", auth10, validateOauthAppOrganizationQuery, oauthAppController.getApp);
 oauthAppRouter.post(
   "/",
-  auth8,
+  auth10,
   validateCreateOauthApp,
   requirePlanCapabilityForOrganization(SubscriptionSection.PUBLIC_API, {
     resolveOrganizationId: (req) => req.body?.organizationId
@@ -45173,7 +51015,7 @@ oauthAppRouter.post(
 );
 oauthAppRouter.put(
   "/",
-  auth8,
+  auth10,
   validateUpdateOauthApp,
   requirePlanCapabilityForOrganization(SubscriptionSection.PUBLIC_API, {
     resolveOrganizationId: (req) => req.body?.organizationId
@@ -45182,7 +51024,7 @@ oauthAppRouter.put(
 );
 oauthAppRouter.delete(
   "/:oauthAppId",
-  auth8,
+  auth10,
   validateDeleteOauthApp,
   requirePlanCapabilityForOrganization(SubscriptionSection.PUBLIC_API, {
     resolveOrganizationId: (req) => req.query?.organizationId
@@ -45191,7 +51033,7 @@ oauthAppRouter.delete(
 );
 oauthAppRouter.post(
   "/rotate-secret",
-  auth8,
+  auth10,
   validateRotateOauthSecret,
   requirePlanCapabilityForOrganization(SubscriptionSection.PUBLIC_API, {
     resolveOrganizationId: (req) => req.body?.organizationId
@@ -45238,9 +51080,9 @@ var validateOauthApproveBody = validateRequest({
 
 // routes/OauthRoute.ts
 var oauthRouter = express.Router();
-var auth9 = requireFullAuth(supabase);
+var auth11 = requireFullAuth(supabase);
 oauthRouter.get("/authorize", validateOauthAuthorizeQuery, oauthController.authorize);
-oauthRouter.post("/authorize", auth9, validateOauthApproveBody, oauthController.approve);
+oauthRouter.post("/authorize", auth11, validateOauthApproveBody, oauthController.approve);
 oauthRouter.post("/token", validateOauthTokenBody, oauthController.token);
 
 // routes/BullBoardRoute.ts
@@ -45325,7 +51167,7 @@ function registerBullBoardSessionRoutes(apiRouter, config2) {
   if (!layout) {
     return;
   }
-  const authWithRoles12 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
+  const authWithRoles13 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
   const maxAge = getBullBoardSessionMaxAgeMs();
   const cookiePath = layout.fullPath;
   const setSession = (req, res) => {
@@ -45344,8 +51186,8 @@ function registerBullBoardSessionRoutes(apiRouter, config2) {
     res.status(200).json({ ok: true });
   };
   const session = express__default.default.Router();
-  session.post("/", authWithRoles12, requirePlatformAdmin, setSession);
-  session.post("/clear", authWithRoles12, requirePlatformAdmin, clearSession);
+  session.post("/", authWithRoles13, requirePlatformAdmin, setSession);
+  session.post("/clear", authWithRoles13, requirePlatformAdmin, clearSession);
   apiRouter.use("/admin/bull-board/session", session);
   logger.info({ msg: "[BullBoard] Session cookie routes mounted", cookiePath, sessionBase: "/admin/bull-board/session" });
 }
@@ -45390,8 +51232,8 @@ async function registerBullBoardRoutes(apiRouter, config2) {
       options: { uiBasePath, uiConfig: {} }
     });
     const boardRouter = express__default.default.Router();
-    const authWithRoles12 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
-    boardRouter.use(authWithRoles12, requirePlatformAdmin, serverAdapter.getRouter());
+    const authWithRoles13 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
+    boardRouter.use(authWithRoles13, requirePlatformAdmin, serverAdapter.getRouter());
     apiRouter.use(mountPath, boardRouter);
     logger.info({
       msg: "[BullBoard] Mounted (super admin only)",
@@ -45428,7 +51270,9 @@ var swaggerDefinition = {
     { name: "Posts", description: "Post groups and per-channel post rows" },
     { name: "Analytics", description: "Platform and per-post provider insights" },
     { name: "Notifications", description: "Paginated in-app notification history" },
-    { name: "Uploads", description: "Media uploads consumed by the Posts API" }
+    { name: "Uploads", description: "Media uploads consumed by the Posts API" },
+    { name: "DirectoryLaunch", description: "Directory launch profiles, destinations, and listing readiness" },
+    { name: "DirectorySeo", description: "Directory SEO domain rating, history, refresh, and competitors" }
   ],
   servers: [{ url: "/api/v1", description: "API v1 (same origin as this spec when using the Vite dev proxy)" }],
   components: {
@@ -45514,6 +51358,8 @@ async function mountAllRoutes(app2, config2) {
   apiRouter.use("/blog-system", blogRouter);
   apiRouter.use("/listings", listingRouter);
   apiRouter.use("/link-directory", linkDirectoryRouter);
+  apiRouter.use("/auto-launch", autoLaunchRouter);
+  apiRouter.use("/directory-seo", directorySeoRouter);
   apiRouter.use("/image", imageRouter);
   apiRouter.use("/media", mediaRouter);
   apiRouter.use("/integrations", integrationsRouter);
@@ -45541,6 +51387,7 @@ async function mountAllRoutes(app2, config2) {
     blog: `${prefix}/blog-system`,
     listings: `${prefix}/listings`,
     linkDirectory: `${prefix}/link-directory`,
+    autoLaunch: `${prefix}/auto-launch`,
     image: `${prefix}/image`,
     media: `${prefix}/media`,
     integrationsSession: `${prefix}/integrations`,

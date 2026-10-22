@@ -536,9 +536,7 @@ INSERT INTO public.link_directory_opportunities (
         30,
         true
     )
-ON CONFLICT (id) DO UPDATE SET
-    site_id = EXCLUDED.site_id,
-    slug = EXCLUDED.slug,
+ON CONFLICT (site_id, slug) DO UPDATE SET
     title = EXCLUDED.title,
     opportunity_type_id = EXCLUDED.opportunity_type_id,
     effort = EXCLUDED.effort,

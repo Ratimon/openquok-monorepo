@@ -1328,10 +1328,6 @@ COMMENT ON COLUMN public.link_directory_opportunities.sort_order IS
     'Display order on the site guide: ascending playbook sequence (opportunity 1, then 2, …).';
 COMMENT ON COLUMN public.link_directory_opportunities.steps IS
     'JSON array of {order, title, body} sub-steps for this opportunity (schema.org HowToStep).';
-COMMENT ON COLUMN public.link_directory_opportunities.auto_launch_enabled IS
-    'When true, build-backlinks and account surfaces may open the directory launch modal for this opportunity.';
-COMMENT ON COLUMN public.link_directory_opportunities.auto_launch_provider_slug IS
-    'Matches auto_launch_destinations.provider_slug when auto_launch_enabled is true.';
 
 CREATE TABLE IF NOT EXISTS public.link_directory_site_tags_association (
     site_id UUID NOT NULL REFERENCES public.link_directory_sites(id) ON DELETE CASCADE,
@@ -1387,6 +1383,35 @@ CREATE TABLE IF NOT EXISTS public.link_directory_saved_sites (
 
 COMMENT ON TABLE public.link_directory_saved_sites IS
     'Per-user shortlist of link directory sites (Saved → Backlinks): private order only.';
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: link-directory, File: 105_20261022_tables.sql
+-- ---------------------------
+-- MODULE NAME: Link Directory
+-- MODULE DATE: 20261022
+-- MODULE SCOPE: Tables
+-- ---------------------------
+
+BEGIN;
+
+-- Existing deployments created link_directory_opportunities before auto-launch columns
+-- were added to 101_20251001_tables.sql (CREATE TABLE IF NOT EXISTS skips alters).
+ALTER TABLE public.link_directory_opportunities
+    ADD COLUMN IF NOT EXISTS auto_launch_enabled BOOLEAN NOT NULL DEFAULT false;
+
+ALTER TABLE public.link_directory_opportunities
+    ADD COLUMN IF NOT EXISTS auto_launch_provider_slug TEXT;
+
+COMMENT ON COLUMN public.link_directory_opportunities.auto_launch_enabled IS
+    'When true, build-backlinks and account surfaces may open the directory launch modal for this opportunity.';
+COMMENT ON COLUMN public.link_directory_opportunities.auto_launch_provider_slug IS
+    'Matches auto_launch_destinations.provider_slug when auto_launch_enabled is true.';
+
+COMMIT;
 
 -- ---------------------------
 -- END OF FILE
@@ -12131,9 +12156,7 @@ INSERT INTO public.link_directory_opportunities (
         30,
         true
     )
-ON CONFLICT (id) DO UPDATE SET
-    site_id = EXCLUDED.site_id,
-    slug = EXCLUDED.slug,
+ON CONFLICT (site_id, slug) DO UPDATE SET
     title = EXCLUDED.title,
     opportunity_type_id = EXCLUDED.opportunity_type_id,
     effort = EXCLUDED.effort,

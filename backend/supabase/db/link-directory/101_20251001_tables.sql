@@ -136,10 +136,6 @@ COMMENT ON COLUMN public.link_directory_opportunities.sort_order IS
     'Display order on the site guide: ascending playbook sequence (opportunity 1, then 2, …).';
 COMMENT ON COLUMN public.link_directory_opportunities.steps IS
     'JSON array of {order, title, body} sub-steps for this opportunity (schema.org HowToStep).';
-COMMENT ON COLUMN public.link_directory_opportunities.auto_launch_enabled IS
-    'When true, build-backlinks and account surfaces may open the directory launch modal for this opportunity.';
-COMMENT ON COLUMN public.link_directory_opportunities.auto_launch_provider_slug IS
-    'Matches auto_launch_destinations.provider_slug when auto_launch_enabled is true.';
 
 CREATE TABLE IF NOT EXISTS public.link_directory_site_tags_association (
     site_id UUID NOT NULL REFERENCES public.link_directory_sites(id) ON DELETE CASCADE,
