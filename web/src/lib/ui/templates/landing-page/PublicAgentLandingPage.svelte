@@ -20,6 +20,10 @@
 		MANUS_EXTENSION_MESSAGING_CHANNELS
 	} from '$data/manus-messaging-channels';
 	import {
+		GEMINI_CORE_MESSAGING_CHANNELS,
+		GEMINI_EXTENSION_MESSAGING_CHANNELS
+	} from '$data/gemini-messaging-channels';
+	import {
 		THINKRAIL_CORE_MESSAGING_CHANNELS,
 		THINKRAIL_EXTENSION_MESSAGING_CHANNELS
 	} from '$data/thinkrail-messaging-channels';
@@ -135,6 +139,10 @@
 		manus: {
 			core: MANUS_CORE_MESSAGING_CHANNELS,
 			extension: MANUS_EXTENSION_MESSAGING_CHANNELS
+		},
+		gemini: {
+			core: GEMINI_CORE_MESSAGING_CHANNELS,
+			extension: GEMINI_EXTENSION_MESSAGING_CHANNELS
 		}
 	} as const;
 

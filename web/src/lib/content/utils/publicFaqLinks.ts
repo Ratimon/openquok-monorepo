@@ -148,6 +148,7 @@ export const publicFaqHref = {
 	metaMuseAgentGuide: faqHrefDocs('agent-setup-guides/meta-muse'),
 	thinkrailAgentGuide: faqHrefDocs('agent-setup-guides/thinkrail'),
 	manusAgentGuide: faqHrefDocs('agent-setup-guides/manus'),
+	geminiAgentGuide: faqHrefDocs('agent-setup-guides/gemini'),
 	mcpSetupGuides: faqHrefDocs('mcp-setup-guides'),
 	cliSetupGuides: faqHrefDocs('getting-started-for-cli'),
 	mcpGettingStarted: faqHrefDocs('getting-started-for-mcp'),
@@ -190,6 +191,7 @@ export const publicFaqHref = {
 	cursorMcpGuide: faqHrefDocs('mcp-setup-guides/cursor'),
 	antigravityCliLanding: faqHrefAgent('antigravity-cli'),
 	androidStudioLanding: faqHrefAgent('android-studio'),
+	geminiLanding: faqHrefAgent('gemini'),
 	blogBufferAlternatives: faqHrefBlogPost(
 		'best-buffer-alternatives-for-teams-that-approve-ai-content-before-posting'
 	),

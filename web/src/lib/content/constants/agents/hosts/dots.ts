@@ -283,7 +283,7 @@ openquok analytics:platform <integration-uuid> -d 7`
 		{
 			title: 'Which plans include Dots?',
 			description:
-				`Dots roll out on eligible ChatGPT Pro, Business Premium, and Enterprise plans (workspace admins enable Enterprise). OpenQuok billing is separate — you still need a workspace and connected channels on ${faqLink(publicFaqHref.pricing, 'Pricing')}.`
+				`Dots roll out on ChatGPT Pro (18+, outside the EEA, Switzerland, and UK) and Business Premium across supported regions; Enterprise, Edu, and Healthcare need a workspace admin to enable the beta. Free, Go, and Plus do not include Dots. Availability is gradual — see ${faqLink('https://help.openai.com/en/articles/20001530-getting-started-with-your-dot', 'OpenAI’s Dots help article')}. OpenQuok billing is separate — you still need a workspace and connected channels on ${faqLink(publicFaqHref.pricing, 'Pricing')}.`
 		},
 		{
 			title: 'How do I install openquok-core on my dot?',

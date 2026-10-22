@@ -12,7 +12,7 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps, TabItem, T
 
 ## Prerequisites
 
-- An eligible ChatGPT plan with Dots (for example Pro, Business Premium, or Enterprise when your workspace admin enables it).
+- An eligible ChatGPT plan with Dots: **Pro** (18+, not in the EEA, Switzerland, or UK) or **Business Premium**; **Enterprise / Edu / Healthcare** only when a workspace admin enables the beta. **Plus, Go, and Free** do not include Dots. See <DocsExternalLink href="https://help.openai.com/en/articles/20001530-getting-started-with-your-dot">Getting started with your dot</DocsExternalLink> and the <DocsExternalLink href="https://chatgpt.com/pricing/">ChatGPT pricing</DocsExternalLink> feature table.
 - ChatGPT on desktop or browser to create your dot and connect apps.
 - For OAuth device login: you can authorize the sign-in link on your phone when your dot runs <Badge text="openquok auth:login" variant="default" /> on its cloud computer.
 
@@ -132,7 +132,7 @@ Posts should land as drafts or scheduled items in your OpenQuok workspace. Revie
 </Callout>
 
 <Callout type="note" title="Plan eligibility">
-<p>Dots roll out on eligible ChatGPT Pro, Business Premium, and Enterprise plans. OpenQuok billing is separate — you still need a workspace and connected channels in the OpenQuok app.</p>
+<p>Dots roll out on ChatGPT Pro and Business Premium with gradual availability; Enterprise/Edu/Healthcare need admin-enabled beta. Plus does not include Dots. See <DocsExternalLink href="https://help.openai.com/en/articles/20001530-getting-started-with-your-dot">OpenAI’s Dots help article</DocsExternalLink>. OpenQuok billing is separate.</p>
 </Callout>
 
 ## Skill source on GitHub

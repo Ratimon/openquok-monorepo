@@ -43,14 +43,25 @@ const shouldTrustCfConnectingIp = (req: Request, cfConnectingIp: string): boolea
  * Resolves the client IP for rate limiting and logging.
  * Honors CF-Connecting-IP only when trust/verification settings allow it.
  */
+const forwardedClientIp = (req: Request): string | null => {
+    const xff = firstHeaderValue(req.headers["x-forwarded-for"]);
+    if (!xff) return null;
+    return normalizeIpAddress(xff);
+};
+
 export const trustedClientIp = (req: Request): string => {
     const proxyIp = proxyIpFromRequest(req) ?? "unknown";
     const { trustCloudflareHeaders } = serverTrustConfig();
     if (!trustCloudflareHeaders) return proxyIp;
 
     const cfConnectingIp = firstHeaderValue(req.headers["cf-connecting-ip"]);
-    if (!cfConnectingIp) return proxyIp;
-    if (!shouldTrustCfConnectingIp(req, cfConnectingIp)) return proxyIp;
+    if (cfConnectingIp) {
+        if (!shouldTrustCfConnectingIp(req, cfConnectingIp)) return proxyIp;
+        return normalizeIpAddress(cfConnectingIp) ?? proxyIp;
+    }
 
-    return normalizeIpAddress(cfConnectingIp) ?? proxyIp;
+    const fromForwarded = forwardedClientIp(req);
+    if (fromForwarded) return fromForwarded;
+
+    return proxyIp;
 };

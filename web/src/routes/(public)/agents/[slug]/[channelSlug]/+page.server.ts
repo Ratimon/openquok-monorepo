@@ -119,7 +119,7 @@ export async function load({ url, params, cookies, parent, fetch }) {
 				previewSection: landingVm.opportunitiesPreviewSection,
 				listingTagSlug: channelConfig.listingTagSlug,
 				skillBuilderChannelSlug: channelSlug,
-				featuredBacklinkSiteSlug: channelSlug
+				featuredBacklinkSiteSlug: channelConfig.featuredBacklinkSiteSlug ?? null
 			});
 
 	const { companyInformationPm, marketingInformationPm } = await parent();

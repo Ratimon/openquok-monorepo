@@ -275,6 +275,14 @@ Update `agent/skills/openquok-core/` (`SKILL.md` metadata JSON for the host when
 - Skill install: **`DOTS_SKILL_INSTALL_OPTIONS`** — CLI on the dot cloud computer + SKILL.md via plugins (see **`hosts/dots.ts`**, **`dots-messaging-channels.ts`**, **`channels/dots.ts`**, **`dots-docs-overview`** / **`openquok-skill-install-dots`** mocks). Desktop workflow mocks (Grok Bot pattern), not OpenClaw Telegram fallback.
 - Cross-link **`/agents/chatgpt`** and **`/agents/grok-bot`** in FAQ and docs so readers pick the right host (see blog scenario guidance for Grok Bot vs OpenClaw; position Dots for ChatGPT-native + workplace chat).
 
+### Gemini specifics (`gemini`)
+
+- **Not** an MCP client — no `MCP_CLIENTS` entry and no `mcp-setup-guides/gemini.md`. Use slug **`gemini`** (not `gemini-spark` or `gemini-task`) so `/agents/gemini` survives Google renames; user-facing copy may say **Gemini Task** (formerly Gemini Spark).
+- **Not** Android Studio or Antigravity CLI — those stay MCP clients (`android-studio`, `antigravity-cli`). Cross-link all three in FAQ and docs.
+- Primary connect: **Connected Apps → custom app (MCP server URL)** from Developers → Access on gemini.google.com; optional **skills** (`@` in Task threads) and public API token. Official: [Manage tasks in Gemini](https://support.google.com/gemini/answer/17094507), [Custom Connected Apps MCP](https://support.google.com/gemini/answer/17209137), [Gemini agent overview](https://gemini.google/overview/agent/spark/).
+- Ecosystem: **`AGENT_HOST_ECOSYSTEM_BY_SLUG['gemini'] = 'google-gemini'`** — fourth WhoIsFor card **Gemini-first in Google’s toolchain** (YouTube first-class). **`relatedAgentSlugs`**: `gemini`; pin before `android-studio` / `antigravity-cli` on `/channels/youtube`.
+- Reference implementation: **`hosts/gemini.ts`**, **`gemini-messaging-channels.ts`**, **`GEMINI_SKILL_INSTALL_OPTIONS`**, **`channels/gemini.ts`**, **`gemini-docs-overview`** mocks. Desktop workflow mocks (Grok Bot pattern). Icon: **`icons.Gemini.name`**.
+
 ### Manus specifics (`manus`)
 
 - **Not** an MCP client — no `mcps/manus.ts`, no `MCP_CLIENTS`, no `mcp-setup-guides/manus.md`.

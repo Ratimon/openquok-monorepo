@@ -15,7 +15,7 @@ vi.mock('$lib/core/index', () => ({
 import {
 	fetchExternalProxiedImageBlobCached,
 	fetchIntegrationProfileStorageBlobCached
-} from '$lib/core/externalProxiedImageCache';
+} from '$lib/images/proxiedImageBlobCache';
 
 describe('integration profile image cache', () => {
 	beforeEach(() => {

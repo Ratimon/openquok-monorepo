@@ -124,12 +124,23 @@ export function isApiError(error: unknown): error is ApiError {
 	return error instanceof ApiError;
 }
 
-/** Map HTTP 404 to `fallback`. Other failures (including 429) still throw. */
+/** HTTP status from `ApiError` or duck-typed fetch errors (SSR bundles may duplicate the class). */
+export function apiErrorHttpStatus(error: unknown): number | undefined {
+	if (error instanceof ApiError) return error.status;
+	if (typeof error === 'object' && error !== null && 'status' in error) {
+		const status = (error as { status: unknown }).status;
+		return typeof status === 'number' ? status : undefined;
+	}
+	return undefined;
+}
+
+/** Map HTTP 404 or 403 to `fallback` (public detail reads). Other failures (including 429) still throw. */
 export async function withNotFoundFallback<T>(run: () => Promise<T>, fallback: T): Promise<T> {
 	try {
 		return await run();
 	} catch (error) {
-		if (error instanceof ApiError && error.status === 404) return fallback;
+		const status = apiErrorHttpStatus(error);
+		if (status === 404 || status === 403) return fallback;
 		throw error;
 	}
 }
@@ -139,7 +150,8 @@ export async function withClientErrorFallback<T>(run: () => Promise<T>, fallback
 	try {
 		return await run();
 	} catch (error) {
-		if (error instanceof ApiError && error.status >= 400 && error.status < 500) return fallback;
+		const status = apiErrorHttpStatus(error);
+		if (status !== undefined && status >= 400 && status < 500) return fallback;
 		throw error;
 	}
 }

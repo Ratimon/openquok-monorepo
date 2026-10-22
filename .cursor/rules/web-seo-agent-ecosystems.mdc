@@ -29,7 +29,7 @@ Host picker scenarios stay in **`agents/decision-scenarios.ts`**. UI archetypes 
 | `meta-consumer` | `meta-muse` | `facebook`, `instagram`, `threads` | `muse-code` |
 | `openai-personal-agents` | `openclaw`, `dots` | — (sibling agents on host landings) | `chatgpt` |
 | `xai-grok` | `grok-bot` | `x` | `grok-build`, `cursor` |
-| `google-gemini` | — (MCP-only) | `youtube` | `android-studio`, `antigravity-cli` |
+| `google-gemini` | `gemini` | `youtube` | `android-studio`, `antigravity-cli` |
 
 Extend **`ECOSYSTEM_PROFILES`**, **`AGENT_HOST_ECOSYSTEM_BY_SLUG`**, and **`audienceTailoredCardByHostSlug`** together when adding a mapped host. Mapped MCP clients go in **`MCP_CLIENT_ECOSYSTEM_BY_SLUG`** + **`audienceTailoredCardByMcpSlug`** (`grok-build` → X home network, `muse-code` → Meta-owned channels first, `android-studio` / `antigravity-cli` → Gemini-first in Google’s toolchain, with YouTube as the video example). **`meta-consumer`** pins **`meta-muse`** in **`relatedAgentSlugs`** for integration grid order.
 

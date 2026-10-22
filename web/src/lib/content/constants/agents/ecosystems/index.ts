@@ -55,7 +55,7 @@ const ECOSYSTEM_PROFILES: Record<AgentHostEcosystemId, AgentHostEcosystem> = {
 	'google-gemini': {
 		id: 'google-gemini',
 		firstClassChannelSlugs: ['youtube'],
-		relatedAgentSlugs: [],
+		relatedAgentSlugs: ['gemini'],
 		relatedMcpSlugs: ['android-studio', 'antigravity-cli']
 	}
 };
@@ -65,7 +65,8 @@ export const AGENT_HOST_ECOSYSTEM_BY_SLUG: Readonly<Record<string, AgentHostEcos
 	openclaw: 'openai-personal-agents',
 	dots: 'openai-personal-agents',
 	'meta-muse': 'meta-consumer',
-	'grok-bot': 'xai-grok'
+	'grok-bot': 'xai-grok',
+	gemini: 'google-gemini'
 };
 
 /** MCP client slug → ecosystem id for WhoIsFor / first-class channel copy. */
@@ -107,6 +108,14 @@ const audienceTailoredCardByHostSlug: Readonly<Record<string, AudienceCard>> = {
 		title: 'X as your home network',
 		description:
 			'Grok Bot fits xAI’s cloud computer and many named Bots. X is first-class; connect other networks in OpenQuok when you need them.',
+		containerClass: CARD_CONTAINER_CLASS
+	},
+	gemini: {
+		iconName: icons.Gemini.name,
+		iconClass: 'text-sky-400',
+		title: 'Gemini-first in Google’s toolchain',
+		description:
+			'Gemini Task connects OpenQuok through Connected Apps (MCP). YouTube is a natural first channel for video and Shorts. You can still schedule every other supported network from the same workspace.',
 		containerClass: CARD_CONTAINER_CLASS
 	}
 };
@@ -212,9 +221,10 @@ function metaOwnedFirstClassChannelFaqDescription(agentSlug: string, docsPath: s
 }
 
 function googleGeminiSurfaceCompareFaqDescription(): string {
+	const geminiTask = faqLink(publicFaqHref.geminiLanding, 'Gemini Task');
 	const androidStudio = faqLink(publicFaqHref.androidStudioLanding, 'Android Studio');
 	const antigravity = faqLink(publicFaqHref.antigravityCliLanding, 'Antigravity CLI');
-	return `${androidStudio} is Gemini in Agent mode inside the Android IDE. You add OpenQuok in MCP server settings and call tools from chat. ${antigravity} is Gemini’s terminal agent. You add OpenQuok in ~/.gemini/config/mcp_config.json and run agy from your shell. Same workspace and approval flow. Pick Android Studio when you ship mobile apps beside Gemini. Pick Antigravity CLI when the terminal is home base.`;
+	return `${geminiTask} is the personal agent in the Gemini app — Task threads, skills, schedules, and Connected Apps (MCP). ${androidStudio} is Gemini in Agent mode inside the Android IDE. ${antigravity} is Gemini’s terminal agent with ~/.gemini/config/mcp_config.json. Same OpenQuok workspace and approval flow. Pick Gemini Task for Workspace-native agent work. Pick Android Studio for mobile IDE sessions. Pick Antigravity CLI when the terminal is home base.`;
 }
 
 function googleGeminiFirstClassChannelFaqDescription(
@@ -268,6 +278,23 @@ export function buildAgentHostEcosystemFaqItems(hostSlug: string): PublicFaqItem
 
 	if (ecosystemId === 'openai-personal-agents') {
 		return buildOpenAiPersonalAgentsFaqItems(slug);
+	}
+
+	if (ecosystemId === 'google-gemini' && slug === 'gemini') {
+		return [
+			{
+				title: 'How is Gemini Task different from Android Studio or Antigravity CLI?',
+				description: googleGeminiSurfaceCompareFaqDescription()
+			},
+			{
+				title: 'Which channels are Gemini-first on Gemini Task?',
+				description: googleGeminiFirstClassChannelFaqDescription(
+					'gemini',
+					'/docs/agent-setup-guides/gemini',
+					'Gemini Task'
+				)
+			}
+		];
 	}
 
 	if (ecosystemId === 'xai-grok' && slug === 'grok-bot') {
@@ -398,6 +425,9 @@ function firstClassChannelAudienceHook(hostSlug: string, platformLabel: string):
 		return `${platformLabel} is first-class for Grok Bot on OpenQuok.`;
 	}
 	if (ecosystemId === 'google-gemini') {
+		if (slug === 'gemini') {
+			return `${platformLabel} is a Gemini-first example for Gemini Task on OpenQuok.`;
+		}
 		if (slug === 'antigravity-cli') {
 			return `${platformLabel} is a Gemini-first example for Antigravity CLI on OpenQuok.`;
 		}
@@ -601,6 +631,7 @@ export function getPrimaryAgentHostSlugForChannelPage(channelSlug: string): stri
 	const ecosystemId = getChannelPageEcosystemId(channelSlug);
 	if (ecosystemId === 'meta-consumer') return 'meta-muse';
 	if (ecosystemId === 'xai-grok') return 'grok-bot';
+	if (ecosystemId === 'google-gemini') return 'gemini';
 	return undefined;
 }
 
@@ -610,7 +641,7 @@ export function getPrimaryEcosystemSurfaceSlugForChannelPage(
 ): string | undefined {
 	return (
 		getPrimaryAgentHostSlugForChannelPage(channelSlug) ??
-		(getChannelPageEcosystemId(channelSlug) === 'google-gemini' ? 'android-studio' : undefined)
+		(getChannelPageEcosystemId(channelSlug) === 'google-gemini' ? 'gemini' : undefined)
 	);
 }
 
@@ -645,10 +676,10 @@ export function buildPublicChannelEcosystemAudienceTailoredCard(
 
 	if (ecosystemId === 'google-gemini') {
 		return {
-			iconName: icons.AndroidStudio.name,
-			iconClass: 'text-emerald-400',
+			iconName: icons.Gemini.name,
+			iconClass: 'text-sky-400',
 			title: 'Gemini-first in Google’s toolchain',
-			description: `${label} fits Gemini MCP scheduling on OpenQuok. YouTube is the flagship example for video and Shorts. Connect OpenQuok in Android Studio or Antigravity CLI, then schedule every other network from the same workspace.`,
+			description: `${label} fits Gemini Task and OpenQuok Connected Apps (MCP). YouTube is the flagship example for video and Shorts. You can also connect OpenQuok in Android Studio or Antigravity CLI, then schedule every other network from the same workspace.`,
 			containerClass: CARD_CONTAINER_CLASS
 		};
 	}

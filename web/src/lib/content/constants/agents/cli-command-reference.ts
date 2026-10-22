@@ -129,6 +129,16 @@ export const META_MUSE_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
 	{ id: 'skill-md', label: 'SKILL.md in VM', command: OPENQUOK_CORE_SKILL_INSTALL_META_MUSE_CURL }
 ];
 
+/** Gemini Task: add OpenQuok under Connected Apps → Custom apps (MCP server URL from Developers → Access). */
+export const OPENQUOK_GEMINI_CONNECTED_APP_MCP_HINT = `# In gemini.google.com → Settings → Connected Apps → Add a custom app
+# Paste your OpenQuok MCP URL (includes your programmatic token in the path or use Advanced → headers)
+# Example shape — copy the live URL from Developers → Access in your workspace:
+https://www.openquok.com/api/v1/mcp/<your-token>`;
+
+/** Gemini Task: reference openquok-core in a skill, then @-mention the skill in a task thread. */
+export const OPENQUOK_GEMINI_SKILL_TASK_HINT = `# Save openquok-core instructions as a Gemini skill, then in Task mode:
+# @your-skill Draft LinkedIn and X posts for tomorrow — list channels first, queue drafts only.`;
+
 /** MCP-capable clients (Codex, Cursor, etc.): install openquok-core via npx skills add. */
 export const MCP_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
 	{ id: 'npx', label: 'npx', command: OPENQUOK_CORE_SKILL_INSTALL_NPX }
@@ -160,6 +170,16 @@ openquok auth:login
 # Option 2: Programmatic token — generate from Developers → Access (headless / CI)
 export OPENQUOK_API_KEY="opo_..."
 openquok auth:status`;
+
+export const GEMINI_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
+	{
+		id: 'mcp-connected-app',
+		label: 'Connected App (MCP)',
+		command: OPENQUOK_GEMINI_CONNECTED_APP_MCP_HINT
+	},
+	{ id: 'skill-task', label: 'Skill in Task', command: OPENQUOK_GEMINI_SKILL_TASK_HINT },
+	{ id: 'public-api', label: 'Public API token', command: OPENQUOK_CORE_SKILL_AUTH_SNIPPET }
+];
 
 /** Essential openquok commands for public agent landing pages (full list in agent skill docs). */
 export const OPENQUOK_CLI_COMMAND_REFERENCE: readonly OpenquokCliCommandReferenceItem[] = [

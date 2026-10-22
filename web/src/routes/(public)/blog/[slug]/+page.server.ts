@@ -3,7 +3,7 @@ import type { BlogPostCommentViewModel } from '$lib/blogs/GetBlog.presenter.svel
 
 import { error } from '@sveltejs/kit';
 
-import { ApiError } from '$lib/core/HttpGateway';
+import { throwPublicCmsLoadError } from '$lib/public-cms';
 
 import {
 	buildBlogInlineImageSrc,
@@ -46,10 +46,7 @@ export async function load({ url, params, fetch, cookies, parent }) {
 			relatedLimit: relatedPostsLimit
 		}));
 	} catch (err) {
-		if (err instanceof ApiError && err.status === 429) {
-			throw error(503, 'Temporarily unavailable');
-		}
-		throw err;
+		throwPublicCmsLoadError(err);
 	}
 
 	if (!currentPostVm) {

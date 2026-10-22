@@ -14,6 +14,7 @@ import {
 	getRootPathPublicSkillBuilder,
 	getRootPathPublicSkillBuilderChannel
 } from '$lib/area-public/constants/getRootPathPublicTools';
+import { withOptionalCmsFallback } from '$lib/core/HttpGateway';
 import { linkDirectoryRepository } from '$lib/link-directory/index';
 import { getListingPresenter } from '$lib/listings/index';
 import {
@@ -58,8 +59,8 @@ export async function loadAgentOpportunitiesPreviewStateless(params: {
 	/** When set, playbooks grid links to `/tools/skill-builder/{slug}`; otherwise `/tools/skill-builder`. */
 	skillBuilderChannelSlug?: string | null;
 	/**
-	 * When set (e.g. agent channel slug), load the published site and show its HowTo opportunity cards
-	 * (not the site card) — even when directory tags differ from listing tags.
+	 * When set, load that published build-backlinks site and show its HowTo opportunity cards
+	 * (not the site card). Must be a real link-directory site slug — not the channel catalog slug.
 	 */
 	featuredBacklinkSiteSlug?: string | null;
 	/** Published HowTo opportunities from the featured site (after the site card). Default 2 when featured slug is set. */
@@ -101,7 +102,14 @@ export async function loadAgentOpportunitiesPreviewStateless(params: {
 					})
 				: Promise.resolve({ sites: [] }),
 			featuredBacklinkSiteSlug
-				? linkDirectoryRepository.getPublishedSiteBySlug(featuredBacklinkSiteSlug, params.fetch)
+				? withOptionalCmsFallback(
+						() =>
+							linkDirectoryRepository.getPublishedSiteBySlug(
+								featuredBacklinkSiteSlug,
+								params.fetch
+							),
+						null
+					)
 				: Promise.resolve(null)
 		]);
 

@@ -1,6 +1,6 @@
 ---
 title: Overview - Setup Guides for different agents
-description: Set up the OpenQuok CLI and skill on AI agent hosts (OpenClaw, Hermes, Grok Bot, OpenAI Dots, Meta Muse, ThinkRail, Manus, and more).
+description: Set up the OpenQuok CLI and skill on AI agent hosts (OpenClaw, Hermes, Grok Bot, OpenAI Dots, Meta Muse, ThinkRail, Manus, Gemini Task, and more).
 order: 0
 lastUpdated: 2026-09-21
 sidebar:
@@ -27,6 +27,7 @@ For **native MCP clients** (Cursor, Claude Code, Codex, VS Code Copilot), you ca
 <LinkCard title="ThinkRail" description="ThinkRail is a worktree IDE. Install openquok-core as a pi skill. Schedule posts. You approve on OpenQuok." href="/docs/agent-setup-guides/thinkrail" />
 <LinkCard title="Meta Muse" description="Meta's consumer agent can build a custom OpenQuok connector from the public API. Optional CLI in the Secure VM." href="/docs/agent-setup-guides/meta-muse" />
 <LinkCard title="Manus" description="Import openquok-core as a Manus Skill from GitHub or upload. Run the CLI on a Cloud Computer." href="/docs/agent-setup-guides/manus" />
+<LinkCard title="Gemini Task" description="Add OpenQuok as a custom Connected App (MCP) in the Gemini app. Use skills and task schedules for recurring drafts." href="/docs/agent-setup-guides/gemini" />
 </CardGrid>
 
 ## Related Section(s)

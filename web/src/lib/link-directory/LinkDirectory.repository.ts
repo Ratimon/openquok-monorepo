@@ -1,13 +1,14 @@
 import {
 	HttpGateway,
 	HttpMethod,
+	withClientErrorFallback,
 	withNotFoundFallback,
 	withOptionalCmsFallback
 } from '$lib/core/HttpGateway';
 import {
 	publicCmsEditorManagedDetailRequestOptions,
 	publicCmsServerRequestOptions
-} from '$lib/core/publicCmsFetch';
+} from '$lib/public-cms';
 
 import type { LinkDirectoryConfig } from '$lib/link-directory/constants/config';
 import type {
@@ -227,27 +228,31 @@ export class LinkDirectoryRepository {
 	}
 
 	async getActiveCategories(fetch?: typeof globalThis.fetch): Promise<LinkDirectoryCategoryDto[]> {
-		const { data: categoriesDto, ok } = await this.httpGateway.get<CategoriesResponseDto>(
-			this.config.endpoints.getActiveCategories,
-			undefined,
-			publicCmsServerRequestOptions(fetch)
-		);
-		if (ok && categoriesDto?.success && Array.isArray(categoriesDto.data)) {
-			return categoriesDto.data;
-		}
-		return [];
+		return withClientErrorFallback(async () => {
+			const { data: categoriesDto, ok } = await this.httpGateway.get<CategoriesResponseDto>(
+				this.config.endpoints.getActiveCategories,
+				undefined,
+				publicCmsServerRequestOptions(fetch)
+			);
+			if (ok && categoriesDto?.success && Array.isArray(categoriesDto.data)) {
+				return categoriesDto.data;
+			}
+			return [];
+		}, []);
 	}
 
 	async getActiveTags(fetch?: typeof globalThis.fetch): Promise<LinkDirectoryTagDto[]> {
-		const { data: tagsDto, ok } = await this.httpGateway.get<TagsResponseDto>(
-			this.config.endpoints.getActiveTags,
-			undefined,
-			publicCmsServerRequestOptions(fetch)
-		);
-		if (ok && tagsDto?.success && Array.isArray(tagsDto.data)) {
-			return tagsDto.data;
-		}
-		return [];
+		return withClientErrorFallback(async () => {
+			const { data: tagsDto, ok } = await this.httpGateway.get<TagsResponseDto>(
+				this.config.endpoints.getActiveTags,
+				undefined,
+				publicCmsServerRequestOptions(fetch)
+			);
+			if (ok && tagsDto?.success && Array.isArray(tagsDto.data)) {
+				return tagsDto.data;
+			}
+			return [];
+		}, []);
 	}
 
 	async getMySavedSites(fetch?: typeof globalThis.fetch): Promise<LinkDirectorySavedSiteDto[]> {

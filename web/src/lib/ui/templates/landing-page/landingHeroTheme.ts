@@ -130,6 +130,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'Meta Muse',
 	'ThinkRail',
 	'Manus',
+	'Gemini Task',
 	'openclaw',
 	'hermes',
 	'agent hosts',

@@ -664,7 +664,7 @@ export class GetListingPresenter {
 	}
 
 	public async loadAllTagsVm(fetch?: typeof globalThis.fetch): Promise<TagViewModel[]> {
-		const tagsPm = await this.listingRepository.getAllTags(fetch);
+		const tagsPm = await this.listingRepository.getActiveTags(fetch);
 		return tagsPm.map((tag) => this.toTagVm(tag));
 	}
 

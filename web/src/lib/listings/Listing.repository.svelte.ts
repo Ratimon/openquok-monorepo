@@ -1,8 +1,14 @@
-import { HttpGateway, HttpMethod, withClientErrorFallback, withOptionalCmsFallback } from '$lib/core/HttpGateway';
+import {
+	HttpGateway,
+	HttpMethod,
+	withClientErrorFallback,
+	withNotFoundFallback,
+	withOptionalCmsFallback
+} from '$lib/core/HttpGateway';
 import {
 	publicCmsEditorManagedDetailRequestOptions,
 	publicCmsServerRequestOptions
-} from '$lib/core/publicCmsFetch';
+} from '$lib/public-cms';
 
 import {
 	getDefaultSchemaTypeForListingKind,
@@ -267,6 +273,7 @@ export interface ListingConfig {
 		updateCategory: (id: string) => string;
 		deleteCategory: (id: string) => string;
 		getAllTags: string;
+		getActiveTags: string;
 		getAllTagGroups: string;
 		createTag: string;
 		updateTag: (id: string) => string;
@@ -757,15 +764,17 @@ export class ListingRepository {
 	}
 
 	async getPublishedBySlug(slug: string, fetch?: typeof globalThis.fetch): Promise<ListingProgrammerModel | null> {
-		const { data: getPublishedBySlugDto, ok } = await this.httpGateway.get<GetListingResponseDto>(
-			this.config.endpoints.getPublishedBySlug(slug),
-			undefined,
-			publicCmsEditorManagedDetailRequestOptions(fetch)
-		);
-		if (ok && getPublishedBySlugDto?.success && getPublishedBySlugDto.data) {
-			return this.toListingPm(getPublishedBySlugDto.data);
-		}
-		return null;
+		return withNotFoundFallback(async () => {
+			const { data: getPublishedBySlugDto, ok } = await this.httpGateway.get<GetListingResponseDto>(
+				this.config.endpoints.getPublishedBySlug(slug),
+				undefined,
+				publicCmsEditorManagedDetailRequestOptions(fetch)
+			);
+			if (ok && getPublishedBySlugDto?.success && getPublishedBySlugDto.data) {
+				return this.toListingPm(getPublishedBySlugDto.data);
+			}
+			return null;
+		}, null);
 	}
 
 	async getPublishedStacks(
@@ -787,34 +796,38 @@ export class ListingRepository {
 		if (params.sortByKey) query.sortByKey = params.sortByKey;
 		if (params.sortByOrder != null) query.sortByOrder = params.sortByOrder;
 
-		const { data: getPublishedStacksDto, ok } = await this.httpGateway.get<GetListingsCollectionResponseDto>(
-			this.config.endpoints.getPublishedStacks,
-			query,
-			publicCmsServerRequestOptions(params.fetch)
-		);
+		return withOptionalCmsFallback(async () => {
+			const { data: getPublishedStacksDto, ok } = await this.httpGateway.get<GetListingsCollectionResponseDto>(
+				this.config.endpoints.getPublishedStacks,
+				query,
+				publicCmsServerRequestOptions(params.fetch)
+			);
 
-		if (ok && getPublishedStacksDto?.success && Array.isArray(getPublishedStacksDto.data)) {
-			return {
-				listings: getPublishedStacksDto.data.map((row) => this.toListingPm(row)),
-				count: getPublishedStacksDto.count ?? 0
-			};
-		}
-		return { listings: [], count: 0 };
+			if (ok && getPublishedStacksDto?.success && Array.isArray(getPublishedStacksDto.data)) {
+				return {
+					listings: getPublishedStacksDto.data.map((row) => this.toListingPm(row)),
+					count: getPublishedStacksDto.count ?? 0
+				};
+			}
+			return { listings: [], count: 0 };
+		}, { listings: [], count: 0 });
 	}
 
 	async getPublishedStackBySlug(
 		slug: string,
 		fetch?: typeof globalThis.fetch
 	): Promise<ListingProgrammerModel | null> {
-		const { data: getPublishedStackDto, ok } = await this.httpGateway.get<GetListingResponseDto>(
-			this.config.endpoints.getPublishedStackBySlug(slug),
-			undefined,
-			publicCmsEditorManagedDetailRequestOptions(fetch)
-		);
-		if (ok && getPublishedStackDto?.success && getPublishedStackDto.data) {
-			return this.toListingPm(getPublishedStackDto.data);
-		}
-		return null;
+		return withNotFoundFallback(async () => {
+			const { data: getPublishedStackDto, ok } = await this.httpGateway.get<GetListingResponseDto>(
+				this.config.endpoints.getPublishedStackBySlug(slug),
+				undefined,
+				publicCmsEditorManagedDetailRequestOptions(fetch)
+			);
+			if (ok && getPublishedStackDto?.success && getPublishedStackDto.data) {
+				return this.toListingPm(getPublishedStackDto.data);
+			}
+			return null;
+		}, null);
 	}
 
 	async getListingCreators(fetch?: typeof globalThis.fetch): Promise<ListingCreatorProgrammerModel[]> {
@@ -1187,15 +1200,17 @@ export class ListingRepository {
 	}
 
 	async getActiveCategories(fetch?: typeof globalThis.fetch): Promise<ListingCategoryProgrammerModel[]> {
-		const { data: getActiveCategoriesDto, ok } = await this.httpGateway.get<GetListingCategoriesResponseDto>(
-			this.config.endpoints.getActiveCategories,
-			undefined,
-			publicCmsServerRequestOptions(fetch)
-		);
-		if (ok && getActiveCategoriesDto?.success && Array.isArray(getActiveCategoriesDto.data)) {
-			return getActiveCategoriesDto.data.map((row) => this.toCategoryPm(row));
-		}
-		return [];
+		return withClientErrorFallback(async () => {
+			const { data: getActiveCategoriesDto, ok } = await this.httpGateway.get<GetListingCategoriesResponseDto>(
+				this.config.endpoints.getActiveCategories,
+				undefined,
+				publicCmsServerRequestOptions(fetch)
+			);
+			if (ok && getActiveCategoriesDto?.success && Array.isArray(getActiveCategoriesDto.data)) {
+				return getActiveCategoriesDto.data.map((row) => this.toCategoryPm(row));
+			}
+			return [];
+		}, []);
 	}
 
 	async createCategory(
@@ -1261,6 +1276,22 @@ export class ListingRepository {
 		}
 	}
 
+	/** Public hub/filter catalog (active tags only, anonymous SSR). */
+	async getActiveTags(fetch?: typeof globalThis.fetch): Promise<ListingTagProgrammerModel[]> {
+		return withClientErrorFallback(async () => {
+			const { data: getActiveTagsDto, ok } = await this.httpGateway.get<GetListingTagsResponseDto>(
+				this.config.endpoints.getActiveTags,
+				undefined,
+				publicCmsServerRequestOptions(fetch)
+			);
+			if (ok && getActiveTagsDto?.success && Array.isArray(getActiveTagsDto.data)) {
+				return getActiveTagsDto.data.map((row) => this.toTagPm(row));
+			}
+			return [];
+		}, []);
+	}
+
+	/** Admin/editor taxonomy (includes inactive tags; requires session). */
 	async getAllTags(fetch?: typeof globalThis.fetch): Promise<ListingTagProgrammerModel[]> {
 		const { data: getAllTagsDto, ok } = await this.httpGateway.get<GetListingTagsResponseDto>(
 			this.config.endpoints.getAllTags,

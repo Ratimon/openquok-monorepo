@@ -26,6 +26,7 @@ const listingConfig = {
 		updateCategory: (id: string) => `/api/v1/listings/categories/${id}`,
 		deleteCategory: (id: string) => `/api/v1/listings/categories/${id}`,
 		getAllTags: '/api/v1/listings/tags/all-full',
+		getActiveTags: '/api/v1/listings/tags/active-full',
 		getAllTagGroups: '/api/v1/listings/tags/groups',
 		createTag: '/api/v1/listings/tags',
 		updateTag: (id: string) => `/api/v1/listings/tags/${id}`,

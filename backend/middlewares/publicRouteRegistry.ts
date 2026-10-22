@@ -33,6 +33,7 @@ export const PUBLIC_PATH_PREFIXES = [
 export const PUBLIC_PATH_EXACT = [
     "/blog-system/posts",
     "/blog-system/rss",
+    "/blog-system/information",
     "/blog-system/authors",
     "/blog-system/topics",
     "/blog-system/topics/active",

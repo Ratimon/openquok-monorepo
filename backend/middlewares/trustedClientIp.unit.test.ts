@@ -80,6 +80,19 @@ describe("trustedClientIp", () => {
         ).toBe("192.0.2.8");
     });
 
+    it("uses the leftmost X-Forwarded-For client when CF-Connecting-IP is absent", () => {
+        setServerTrustConfig({ trustCloudflareHeaders: true, verifyCloudflareIpRange: false });
+
+        expect(
+            trustedClientIp(
+                asReq({
+                    ip: "35.93.39.191",
+                    headers: { "x-forwarded-for": "203.0.113.10, 35.93.39.191" },
+                })
+            )
+        ).toBe("203.0.113.10");
+    });
+
     it("ignores CF-Connecting-IP when verify is on and the peer is not Cloudflare", () => {
         setServerTrustConfig({ trustCloudflareHeaders: true, verifyCloudflareIpRange: true });
 

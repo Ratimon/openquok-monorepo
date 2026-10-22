@@ -32753,6 +32753,7 @@ var init_publicRouteRegistry = __esm({
     PUBLIC_PATH_EXACT = [
       "/blog-system/posts",
       "/blog-system/rss",
+      "/blog-system/information",
       "/blog-system/authors",
       "/blog-system/topics",
       "/blog-system/topics/active",
@@ -45908,14 +45909,23 @@ var shouldTrustCfConnectingIp = (req, cfConnectingIp) => {
   if (!isCloudflareIp(proxyIp)) return false;
   return normalizeIpAddress(cfConnectingIp) !== null;
 };
+var forwardedClientIp = (req) => {
+  const xff = firstHeaderValue2(req.headers["x-forwarded-for"]);
+  if (!xff) return null;
+  return normalizeIpAddress(xff);
+};
 var trustedClientIp = (req) => {
   const proxyIp = proxyIpFromRequest(req) ?? "unknown";
   const { trustCloudflareHeaders } = serverTrustConfig();
   if (!trustCloudflareHeaders) return proxyIp;
   const cfConnectingIp = firstHeaderValue2(req.headers["cf-connecting-ip"]);
-  if (!cfConnectingIp) return proxyIp;
-  if (!shouldTrustCfConnectingIp(req, cfConnectingIp)) return proxyIp;
-  return normalizeIpAddress(cfConnectingIp) ?? proxyIp;
+  if (cfConnectingIp) {
+    if (!shouldTrustCfConnectingIp(req, cfConnectingIp)) return proxyIp;
+    return normalizeIpAddress(cfConnectingIp) ?? proxyIp;
+  }
+  const fromForwarded = forwardedClientIp(req);
+  if (fromForwarded) return fromForwarded;
+  return proxyIp;
 };
 
 // middlewares/rateLimit.ts

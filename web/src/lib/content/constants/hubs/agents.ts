@@ -1,3 +1,4 @@
+import { AGENTS_HUB_CLOUD_BROWSER_VS_OPENQUOK_FAQ } from '$lib/content/constants/agents/agentCloudSchedulingFaq';
 import type { PublicAgentsHubCompareSection, PublicAgentsHubFaqSection } from '$lib/content/constants/agents/types';
 import {
 	appendPublicGeneralFaqItems,
@@ -62,7 +63,7 @@ export const PUBLIC_AGENTS_HUB = {
 			{
 				title: 'When should I choose an agent host?',
 				description:
-					'Choose an agent host to schedule from chat apps, keep memory, and run parallel sessions. Install openquok-core as a SKILL.md you can customize. OpenClaw, Hermes, <a href="/agents/grok-bot">Grok Bot</a>, <a href="/agents/dots">Dots</a>, <a href="/agents/meta-muse">Meta Muse</a>, <a href="/agents/thinkrail">ThinkRail</a>, and <a href="/agents/manus">Manus</a> stay reachable while you are away.'
+					'Choose an agent host to schedule from chat apps, keep memory, and run parallel sessions. Install openquok-core as a SKILL.md you can customize. OpenClaw, Hermes, <a href="/agents/grok-bot">Grok Bot</a>, <a href="/agents/dots">Dots</a>, <a href="/agents/meta-muse">Meta Muse</a>, <a href="/agents/thinkrail">ThinkRail</a>, <a href="/agents/manus">Manus</a>, and <a href="/agents/gemini">Gemini Task</a> stay reachable while you are away.'
 			},
 			{
 				title: 'When should I choose an MCP client?',
@@ -72,7 +73,7 @@ export const PUBLIC_AGENTS_HUB = {
 			{
 				title: 'How do I pay for agent hosts vs MCP clients?',
 				description:
-					'OpenQuok bills workspaces, channels, and scheduling. Your LLM and agent app bill separately. OpenClaw, Hermes, and ThinkRail are open source. Grok Bot needs SuperGrok or Cursor. Dots need eligible ChatGPT plans. Cursor, Claude Code, and Codex use their own plans. OpenQuok MCP needs only your programmatic token.'
+					'OpenQuok bills workspaces, channels, and scheduling. Your LLM and agent app bill separately. OpenClaw, Hermes, and ThinkRail are open source. Grok Bot is included with paid Cursor plans or linked SuperGrok. Dots need eligible ChatGPT Pro or Business Premium. Cursor, Claude Code, and Codex use their own plans. OpenQuok MCP needs only your programmatic token.'
 			},
 			{
 				title: 'What is the MCP host vs MCP client?',
@@ -87,13 +88,14 @@ export const PUBLIC_AGENTS_HUB = {
 			{
 				title: 'Which path gives me persistent memory?',
 				description:
-					'Agent hosts like OpenClaw, Hermes, <a href="/agents/grok-bot">Grok Bot</a>, <a href="/agents/dots">Dots</a>, <a href="/agents/meta-muse">Meta Muse</a>, <a href="/agents/thinkrail">ThinkRail</a>, and <a href="/agents/manus">Manus</a> are built for long-lived sessions — they remember preferences, past decisions, and project context across conversations. MCP clients like <a href="/agents/cursor">Cursor</a> and <a href="/agents/grok-build">Grok Build</a> typically run per-session: productive for focused coding sprints, but you start fresh when you open a new session unless the client stores its own project notes.'
+					'Agent hosts like OpenClaw, Hermes, <a href="/agents/grok-bot">Grok Bot</a>, <a href="/agents/dots">Dots</a>, <a href="/agents/meta-muse">Meta Muse</a>, <a href="/agents/thinkrail">ThinkRail</a>, <a href="/agents/manus">Manus</a>, and <a href="/agents/gemini">Gemini Task</a> are built for long-lived sessions — they remember preferences, past decisions, and project context across conversations. MCP clients like <a href="/agents/cursor">Cursor</a> and <a href="/agents/grok-build">Grok Build</a> typically run per-session: productive for focused coding sprints, but you start fresh when you open a new session unless the client stores its own project notes.'
 			},
 			{
 				title: 'Do I still approve posts before they publish?',
 				description:
 					'Yes, regardless of path. Agent hosts and MCP clients create drafts or scheduled items in your OpenQuok workspace. Nothing goes live on autopilot — review on the calendar or kanban and approve what should publish.'
-			}
+			},
+			AGENTS_HUB_CLOUD_BROWSER_VS_OPENQUOK_FAQ
 		],
 			PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS
 		)

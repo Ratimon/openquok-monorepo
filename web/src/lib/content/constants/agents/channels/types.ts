@@ -11,6 +11,11 @@ export type PublicAgentChannelPageConfig = {
 	icon: IconName;
 	/** Listing tag slug for playbooks and building blocks preview filters. */
 	listingTagSlug: string;
+	/**
+	 * Published build-backlinks site slug when it differs from `channelSlug`, or when HowTo
+	 * opportunity cards should load from a known site guide. Omit when no site matches.
+	 */
+	featuredBacklinkSiteSlug?: string;
 	providerIdentifiers: readonly string[];
 	kanbanBentoId: PublicChannelFeatureBentoId;
 	analyticsBentoId: PublicChannelFeatureBentoId;

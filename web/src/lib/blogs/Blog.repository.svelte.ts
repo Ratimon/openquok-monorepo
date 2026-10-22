@@ -7,7 +7,7 @@ import {
 import {
 	publicCmsEditorManagedDetailRequestOptions,
 	publicCmsServerRequestOptions
-} from '$lib/core/publicCmsFetch';
+} from '$lib/public-cms';
 import type {
 	BlogPostFormSchemaType,
 	BlogSeoFaqItem,
@@ -677,41 +677,47 @@ export class BlogRepository {
 
 	/** Public topic list for filters (no auth). */
 	async getBlogTopicsPublic(fetch?: typeof globalThis.fetch): Promise<BlogTopicProgrammerModel[]> {
-		const { data: dto, ok } = await this.httpGateway.get<GetBlogTopicsResponseDto>(
-			this.config.endpoints.getTopics,
-			undefined,
-			publicCmsServerRequestOptions(fetch)
-		);
-		if (ok && dto?.success && Array.isArray(dto.data)) {
-			return dto.data.map((topicDto) => this.toBlogTopicPm(topicDto));
-		}
-		return [];
+		return withClientErrorFallback(async () => {
+			const { data: dto, ok } = await this.httpGateway.get<GetBlogTopicsResponseDto>(
+				this.config.endpoints.getTopics,
+				undefined,
+				publicCmsServerRequestOptions(fetch)
+			);
+			if (ok && dto?.success && Array.isArray(dto.data)) {
+				return dto.data.map((topicDto) => this.toBlogTopicPm(topicDto));
+			}
+			return [];
+		}, []);
 	}
 
 	/** Public list of authors with at least one published post (no auth). */
 	async getPublishedBlogAuthors(fetch?: typeof globalThis.fetch): Promise<PublishedBlogAuthorProgrammerModel[]> {
-		const { data: dto, ok } = await this.httpGateway.get<GetPublishedBlogAuthorsResponseDto>(
-			this.config.endpoints.getPublishedAuthors,
-			undefined,
-			publicCmsServerRequestOptions(fetch)
-		);
-		if (ok && dto?.success && Array.isArray(dto.data)) {
-			return dto.data.map((row) => this.toPublishedBlogAuthorPm(row));
-		}
-		return [];
+		return withClientErrorFallback(async () => {
+			const { data: dto, ok } = await this.httpGateway.get<GetPublishedBlogAuthorsResponseDto>(
+				this.config.endpoints.getPublishedAuthors,
+				undefined,
+				publicCmsServerRequestOptions(fetch)
+			);
+			if (ok && dto?.success && Array.isArray(dto.data)) {
+				return dto.data.map((row) => this.toPublishedBlogAuthorPm(row));
+			}
+			return [];
+		}, []);
 	}
 
 	/** Public active topics with post counts (no auth). */
 	async getActiveBlogTopicsPublic(fetch?: typeof globalThis.fetch): Promise<ActiveBlogTopicProgrammerModel[]> {
-		const { data: dto, ok } = await this.httpGateway.get<GetActiveBlogTopicsResponseDto>(
-			this.config.endpoints.getActiveTopics,
-			undefined,
-			publicCmsServerRequestOptions(fetch)
-		);
-		if (ok && dto?.success && Array.isArray(dto.data)) {
-			return dto.data.map((row) => this.toActiveBlogTopicPm(row));
-		}
-		return [];
+		return withClientErrorFallback(async () => {
+			const { data: dto, ok } = await this.httpGateway.get<GetActiveBlogTopicsResponseDto>(
+				this.config.endpoints.getActiveTopics,
+				undefined,
+				publicCmsServerRequestOptions(fetch)
+			);
+			if (ok && dto?.success && Array.isArray(dto.data)) {
+				return dto.data.map((row) => this.toActiveBlogTopicPm(row));
+			}
+			return [];
+		}, []);
 	}
 
 	async getBlogInformation(fetch?: typeof globalThis.fetch): Promise<BlogInformationProgrammerModel> {

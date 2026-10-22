@@ -12,7 +12,7 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps, TabItem, T
 
 ## Prerequisites
 
-- An eligible plan such as SuperGrok Heavy, Cursor Ultra, or Cursor Teams Premium — sign in with your Cursor account when you install Grok Bot.
+- An eligible plan: **Cursor Pro, Pro+, Ultra**, or **self-serve Cursor Teams** (sign in with the same Cursor account), or a linked **SuperGrok**, **SuperGrok Plus**, **SuperGrok Heavy**, or **X Premium+** account, or a **self-serve Grok Business** seat. See <DocsExternalLink href="https://cursor.com/help/grok-bot/plans">Cursor Grok Bot plans and billing</DocsExternalLink>.
 - The Grok Bot desktop app (macOS or Windows) or iOS app, with at least one Bot created.
 - For OAuth device login: you can authorize the sign-in link on your phone when the Bot asks you to log in.
 
@@ -128,7 +128,7 @@ Posts should land as drafts or scheduled items in your OpenQuok workspace. Revie
 </Callout>
 
 <Callout type="note" title="Plan eligibility">
-<p>Grok Bot requires an eligible subscription (for example SuperGrok Heavy, Cursor Ultra, or Cursor Teams Premium). OpenQuok billing is separate — you still need a workspace and connected channels in the OpenQuok app.</p>
+<p>Grok Bot is included with paid individual Cursor plans and self-serve Teams, or via a linked SuperGrok / X Premium+ grant or Grok Business seat — see <DocsExternalLink href="https://cursor.com/help/grok-bot/plans">Cursor’s plan matrix</DocsExternalLink>. Legacy request-based Cursor pricing may exclude Grok Bot until you opt into usage-based pricing. OpenQuok billing is separate.</p>
 </Callout>
 
 ## Skill source on GitHub

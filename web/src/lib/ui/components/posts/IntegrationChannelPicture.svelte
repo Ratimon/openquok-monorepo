@@ -5,7 +5,7 @@
 		fetchExternalProxiedImageBlobCached,
 		fetchIntegrationAvatarBlobCached,
 		fetchIntegrationProfileStorageBlobCached
-	} from '$lib/core/externalProxiedImageCache';
+	} from '$lib/images/proxiedImageBlobCache';
 	import {
 		integrationProfilePictureNeedsAuthenticatedProxy,
 		isIntegrationProfileStoragePath

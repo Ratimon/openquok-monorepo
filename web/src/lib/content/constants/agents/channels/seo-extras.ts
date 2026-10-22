@@ -84,7 +84,7 @@ const HOST_GLOBAL_SEO_EXTRAS: Readonly<Record<string, readonly string[]>> = {
 		'xAI Grok teammate scheduling',
 		'xAI Grok Bot OpenQuok',
 		'Cursor Grok Bot scheduling',
-		'Cursor Ultra Grok Bot social posts',
+		'Cursor Pro Grok Bot social posts',
 		'Cursor Teams Grok Bot OpenQuok',
 		'SpaceX Grok Bot social media',
 		'SuperGrok Heavy Grok Bot posts'

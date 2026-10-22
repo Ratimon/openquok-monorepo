@@ -175,6 +175,17 @@ describe('buildAgentHostEcosystemFaqItems', () => {
 		expect(titles).not.toContain('Is Meta Muse the same as Muse Code?');
 	});
 
+	it('merges Gemini Task host with one Google surface compare FAQ from the ecosystem', () => {
+		const page = getPublicAgentHostBySlug('gemini');
+		expect(page).toBeDefined();
+		const titles = page!.faqItems.map((item) => item.title);
+		expect(titles.filter((t) => /Android Studio or Antigravity CLI/i.test(t))).toHaveLength(1);
+		expect(titles).toContain(
+			'How is Gemini Task different from Android Studio or Antigravity CLI?'
+		);
+		expect(titles).toContain('Which channels are Gemini-first on Gemini Task?');
+	});
+
 	it('compares Grok Bot with Grok Build and Cursor', () => {
 		const page = getPublicAgentHostBySlug('grok-bot');
 		expect(page).toBeDefined();
@@ -326,17 +337,16 @@ describe('channel page ecosystem (/channels/{slug})', () => {
 		);
 	});
 
-	it('pins android-studio then antigravity-cli MCP for YouTube ecosystem', () => {
+	it('pins gemini host then android-studio and antigravity-cli MCP for YouTube ecosystem', () => {
 		const items = [
 			{ slug: 'cursor', title: 'Cursor' },
 			{ slug: 'antigravity-cli', title: 'Antigravity CLI' },
-			{ slug: 'android-studio', title: 'Android Studio' }
+			{ slug: 'android-studio', title: 'Android Studio' },
+			{ slug: 'gemini', title: 'Gemini Task' }
 		];
 		expect(
-			sortAgentIntegrationsForEcosystem(items, 'android-studio', 'mcp-client').map(
-				(item) => item.slug
-			)
-		).toEqual(['android-studio', 'antigravity-cli', 'cursor']);
+			sortAgentIntegrationsForEcosystem(items, 'gemini', 'agent-host').map((item) => item.slug)
+		).toEqual(['gemini', 'cursor', 'antigravity-cli', 'android-studio']);
 	});
 
 	it('pins grok-build then cursor MCP for Grok Bot ecosystem', () => {

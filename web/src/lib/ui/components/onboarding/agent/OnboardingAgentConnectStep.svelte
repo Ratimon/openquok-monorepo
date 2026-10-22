@@ -160,7 +160,7 @@
 									class="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary"
 									aria-hidden="true"
 								>1</span>
-								<span>Install Grok Bot on macOS, Windows, or iOS (eligible Cursor or SuperGrok plan).</span>
+								<span>Install Grok Bot on macOS, Windows, or iOS (Cursor Pro and up, or linked SuperGrok).</span>
 							</li>
 							<li class="flex gap-3">
 								<span

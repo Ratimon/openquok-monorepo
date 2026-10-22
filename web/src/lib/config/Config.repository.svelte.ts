@@ -1,5 +1,5 @@
 import type { HttpGateway } from '$lib/core/HttpGateway';
-import { publicCmsServerRequestOptions } from '$lib/core/publicCmsFetch';
+import { publicCmsServerRequestOptions } from '$lib/public-cms';
 import { httpGateway } from '$lib/core/index';
 
 export interface ModuleConfigResponseDto {

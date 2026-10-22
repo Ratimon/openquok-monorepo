@@ -73,6 +73,13 @@ export const AGENT_HOST_PROFILES: readonly AgentHostProfile[] = [
 		scenarioIds: ['model-agnostic'],
 		traits: ['desktop-ide', 'worktree', 'skill-path'],
 		featureHighlights: []
+	},
+	{
+		slug: 'gemini',
+		uiArchetype: 'connector-personal-agent',
+		scenarioIds: [],
+		traits: ['connected-apps-mcp', 'workspace-native', 'task-schedules'],
+		featureHighlights: []
 	}
 ];
 

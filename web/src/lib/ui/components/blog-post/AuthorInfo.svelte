@@ -1,8 +1,10 @@
 <script lang="ts">
+	import { getBlogAuthorProfilePath } from '$lib/blogs/utils/blogAuthorPaths';
+	import { url } from '$lib/utils/path';
 	import { cn } from '$lib/ui/helpers/common';
 
 	import * as Avatar from '$lib/ui/components/avatar';
-	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
+	import InternalLink from '$lib/ui/links/InternalLink.svelte';
 	import SupabaseUserAvatar from '$lib/ui/supabase/SupabaseUserAvatar.svelte';
 
 	export type BlogPostAuthorVm = {
@@ -22,6 +24,9 @@
 	let { author, class: className = '' }: Props = $props();
 
 	let displayName = $derived(author?.fullName || author?.username || 'Anonymous');
+	let authorProfileHref = $derived(
+		author ? url(`/${getBlogAuthorProfilePath(author)}`) : null
+	);
 </script>
 
 {#if author}
@@ -43,11 +48,11 @@
 			</Avatar.Root>
 
 			<p class="font-semibold">
-				{#if author.website?.trim()}
-					<ExternalLink href={author.website.trim()} class="relative inline-block underline">
+				{#if authorProfileHref}
+					<InternalLink href={authorProfileHref} class="relative inline-block underline">
 						<span class="absolute inset-0" aria-hidden="true"></span>
 						{displayName}
-					</ExternalLink>
+					</InternalLink>
 				{:else}
 					<span>{displayName}</span>
 				{/if}
