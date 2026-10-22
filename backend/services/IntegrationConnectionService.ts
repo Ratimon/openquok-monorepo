@@ -302,8 +302,18 @@ export class IntegrationConnectionService {
         return this.integrations.customers(organizationId);
     }
 
+    /** Programmatic API — channel groups for the workspace (org from API key). */
+    async publicGetIntegrationCustomers(organizationId: string) {
+        return this.integrations.customers(organizationId);
+    }
+
     async createIntegrationCustomer(authUserId: string, organizationId: string, name: string) {
         await this.assertOrganizationMember(authUserId, organizationId);
+        return this.integrations.createIntegrationCustomer(organizationId, name);
+    }
+
+    /** Programmatic API — create a channel group without session membership checks. */
+    async publicCreateIntegrationCustomer(organizationId: string, name: string) {
         return this.integrations.createIntegrationCustomer(organizationId, name);
     }
 
@@ -314,6 +324,15 @@ export class IntegrationConnectionService {
         name: string
     ): Promise<void> {
         await this.assertOrganizationMember(authUserId, organizationId);
+        await this.integrations.updateIntegrationCustomerName(organizationId, customerId, name);
+    }
+
+    /** Programmatic API — rename a channel group without session membership checks. */
+    async publicUpdateIntegrationCustomerName(
+        organizationId: string,
+        customerId: string,
+        name: string
+    ): Promise<void> {
         await this.integrations.updateIntegrationCustomerName(organizationId, customerId, name);
     }
 

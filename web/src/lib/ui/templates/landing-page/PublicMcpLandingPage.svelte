@@ -30,6 +30,7 @@
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import PublicOpportunitiesPreviewGrid from '$lib/ui/templates/opportunities-preview/PublicOpportunitiesPreviewGrid.svelte';
 	import PublicAgentFeatureSection from '$lib/ui/templates/landing-page/PublicAgentFeatureSection.svelte';
+	import { isPublicDirectoryChannelSlug } from '$lib/content/constants/channels';
 	import PublicMcpIntegrationSetup from '$lib/ui/templates/landing-page/PublicMcpIntegrationSetup.svelte';
 	import PublicMcpHero from '$lib/ui/templates/landing-page/PublicMcpHero.svelte';
 	import PublicComingSoonIntegrationPage from '$lib/ui/templates/landing-page/PublicComingSoonIntegrationPage.svelte';
@@ -76,6 +77,10 @@
 	const configHeadingId = 'public-mcp-landing-config-heading';
 
 	let integrationTab = $state<PublicMcpIntegrationTab>('mcp');
+
+	const skillSetupVariant = $derived(
+		activeChannelSlug && isPublicDirectoryChannelSlug(activeChannelSlug) ? 'directory' : 'default'
+	);
 
 	let resolvedSkillSetupSteps = $derived(resolvePublicMcpSkillSetupSteps(mcpVm));
 
@@ -133,6 +138,7 @@
 			agentLabel={mcpVm.agentLabel}
 			activeClient={mcpVm.mcpClient}
 			headingId={configHeadingId}
+			skillSetupVariant={skillSetupVariant}
 			bind:integrationTab
 		/>
 	</div>

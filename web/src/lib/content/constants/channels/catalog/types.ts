@@ -7,15 +7,11 @@ import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 
 export type PublicChannelKind = 'social' | 'directory';
 
-export type PublicChannelFeatureSectionKind = 'default' | 'team-hero';
-
 export type PublicChannelFeatureSection = {
 	subtitle: string;
 	/** Comma-separated lines; each part gets landing-page gradient styling (see FEATURE_*_TITLE in config). */
 	title: string;
 	description: string;
-	/** Renders `PublicLandingTeamFeatureHero` instead of a media hero row. */
-	sectionKind?: PublicChannelFeatureSectionKind;
 	/** Optional demo asset under `/landing/` or `/static/`. */
 	imageSrc?: string;
 	imageAlt?: string;

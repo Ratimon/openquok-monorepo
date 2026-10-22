@@ -1,4 +1,8 @@
-import { profileSimilarityPercentToMain, type BusinessProfileData } from "openquok-common";
+import {
+    profileSimilarityPercentToMain,
+    type BusinessProfileData,
+    type ProfileLaunchMissingField,
+} from "openquok-common";
 
 import { parseSubmissionListingEvidence } from "../../services/autoLaunch/submissionListingEvidence";
 import { resolveAutoLaunchProfileImageUrl } from "../images/autoLaunchProfileMediaImages";
@@ -104,6 +108,26 @@ export type AutoLaunchSubmissionCompleteDto = {
     status: AutoLaunchSubmissionRow["status"];
     listingUrl: string | null;
     alreadyCompleted: boolean;
+};
+
+export type AutoLaunchProfileListingSummaryDestinationRow = {
+    destinationId: string;
+    providerSlug: string;
+    destinationName: string;
+    submissionStatus: "none" | "completed" | "other";
+    syncStatus: AutoLaunchSubmissionSyncStatus | null;
+    readiness: {
+        isReady: boolean;
+        missingFields: ProfileLaunchMissingField[];
+    };
+};
+
+export type AutoLaunchProfileListingSummaryDto = {
+    profileId: string;
+    publishedDirectorySiteCount: number;
+    submittedDirectorySiteCount: number;
+    unsubmittedDirectorySiteCount: number;
+    destinations: AutoLaunchProfileListingSummaryDestinationRow[];
 };
 
 function resolveSnapshotProfileData(profileData: BusinessProfileData): BusinessProfileData {

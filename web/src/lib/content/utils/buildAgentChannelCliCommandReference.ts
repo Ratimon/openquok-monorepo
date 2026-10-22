@@ -427,6 +427,66 @@ export function buildAgentChannelFollowUpCliCommands(
 openquok posts:create --json ./examples/${exampleFile}`;
 }
 
+function directoryAgentChannelCliRecipes(
+	siteKey: string,
+	platformLabel: string
+): readonly AgentChannelCliRecipe[] {
+	return [
+		{
+			command: `openquok directory:destinations:list | jq '.data[] | select(.providerSlug=="${siteKey}")'`,
+			description: `List published ${platformLabel} launch destinations`
+		},
+		{
+			command: 'openquok directory:profiles:list --main-only',
+			description: 'List main product profiles in your workspace'
+		},
+		{
+			command: `openquok directory:variants:ensure <main-profile-id> --site-key ${siteKey}`,
+			description: `Create or return the ${platformLabel} variant for a main profile`
+		},
+		{
+			command: 'openquok directory:listings <profile-id>',
+			description: `Listing readiness and submission status for ${platformLabel}`
+		},
+		{
+			command: 'openquok directory:analytics:overview --profile <main-profile-id>',
+			description: 'Domain rating overview — read checkedAt on cached metrics'
+		},
+		{
+			command:
+				'openquok directory:analytics:competitors:add --domain <competitor-domain> --label "Competitor"',
+			description: 'Track competitor domains next to your product site'
+		}
+	];
+}
+
+/** Directory launch CLI commands for agent×directory channel SEO landings. */
+export function buildDirectoryAgentChannelCliCommandReference(
+	siteKey: string,
+	platformLabel: string
+): readonly OpenquokCliCommandReferenceItem[] {
+	return directoryAgentChannelCliRecipes(siteKey, platformLabel).map(toCommandReferenceItem);
+}
+
+/** Directory profile / variant / listing readiness snippet for agent channel feature rows. */
+export function buildDirectoryAgentChannelKanbanCliCommands(
+	siteKey: string,
+	platformLabel: string
+): string {
+	return `# ${platformLabel} profile, variant, and listing readiness
+MAIN_ID=$(openquok directory:profiles:list --main-only | jq -r '.data[0].id')
+openquok directory:variants:ensure "$MAIN_ID" --site-key ${siteKey}
+openquok directory:listings "$MAIN_ID" | jq '.data.destinations[] | select(.providerSlug=="${siteKey}")'`;
+}
+
+/** Directory SEO (cached DR) snippet for agent channel feature rows. */
+export function buildDirectoryAgentChannelAnalyticsCliCommands(platformLabel: string): string {
+	return `# ${platformLabel} directory SEO (cached DR metrics)
+openquok directory:analytics:overview --profile "$MAIN_ID" | jq '.data.productDomain.checkedAt'
+openquok directory:analytics:history --profile "$MAIN_ID" -d 90
+openquok directory:analytics:refresh --profile "$MAIN_ID"`;
+}
+
 /** Canonical / syndication CLI snippet for channels without date-range analytics. */
 export function buildAgentChannelCanonicalCliCommands(providerIdentifier: string): string {
 	return `# Discover the channel, then syndicate with a canonical URL

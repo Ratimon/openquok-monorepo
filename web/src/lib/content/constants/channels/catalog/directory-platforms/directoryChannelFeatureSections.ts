@@ -34,8 +34,10 @@ export function buildDirectoryChannelFeatureSections(
 		{
 			subtitle: product.feature2.subtitle,
 			title: product.feature2.title,
-			description: product.feature2.description,
-			sectionKind: 'team-hero'
+			description:
+				`${product.feature2.description} Automate profiles, variants, and listing readiness with openquok directory:* from your terminal or CI — then use the browser extension when you submit on ${siteHost}.`,
+			bentoId: 'directory-workspaces-team',
+			mediaOnRight: false
 		},
 		{
 			subtitle: product.feature3.subtitle,

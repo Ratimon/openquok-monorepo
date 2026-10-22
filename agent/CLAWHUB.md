@@ -6,6 +6,7 @@
 |------|------|--------|-------|
 | `openquok-core` | `agent/skills/openquok-core/` | `SKILL.md` + `resources/` | Primary CLI skill; auth, media Rule 2, channel recipes |
 | `openquok-tiktok-slideshow` | `agent/skills/openquok-tiktok-slideshow/` | `SKILL.md` + `scripts/` + `references/` | Sibling pipeline skill; **requires** `openquok-core` / `openquok` on PATH; install with **Copy** so `scripts/` are real files |
+| `openquok-directory-launch` | `agent/skills/openquok-directory-launch/` | `SKILL.md` + `resources/` | Sibling skill for `directory:*` CLI and MCP directory launch / SEO; **requires** `openquok-core` / `openquok` on PATH |
 
 Frontmatter on each skill declares both hosts: OpenClaw `metadata.openclaw.requires.bins` and Hermes `prerequisites.commands` + `metadata.hermes`.
 
@@ -79,6 +80,26 @@ clawhub skill publish ./agent/skills/openquok-tiktok-slideshow \
   --name "OpenQuok TikTok Slideshow"
 ```
 
+### openquok-directory-launch
+
+```bash
+pnpm publish:clawhub:directory-launch:dry-run
+pnpm publish:clawhub:directory-launch:manual
+```
+
+Equivalent raw commands:
+
+```bash
+clawhub skill publish ./agent/skills/openquok-directory-launch \
+  --slug openquok-directory-launch \
+  --name "OpenQuok Directory Launch" \
+  --dry-run
+
+clawhub skill publish ./agent/skills/openquok-directory-launch \
+  --slug openquok-directory-launch \
+  --name "OpenQuok Directory Launch"
+```
+
 Later changes auto-bump the patch version when content changes. Pass `--version <semver>` only when you need an explicit release.
 
 Optional flags:
@@ -95,12 +116,14 @@ Publishing releases each skill under **MIT-0** on ClawHub (free, open redistribu
 clawhub search openquok
 clawhub inspect openquok-core
 clawhub inspect openquok-tiktok-slideshow
+clawhub inspect openquok-directory-launch
 ```
 
 Public pages (after review completes):
 
 - `https://clawhub.ai/skills/openquok-core`
 - `https://clawhub.ai/skills/openquok-tiktok-slideshow`
+- `https://clawhub.ai/skills/openquok-directory-launch`
 
 New releases may stay hidden from install/search until automated security review finishes. Use `clawhub scan --slug <slug>` while logged in to check scan status.
 
@@ -111,6 +134,7 @@ Users install from the workspace directory (e.g. `cd /data/workspace` on Docker/
 ```bash
 clawhub install openquok-core
 clawhub install openquok-tiktok-slideshow
+clawhub install openquok-directory-launch
 ```
 
 Equivalent native commands:
@@ -118,6 +142,7 @@ Equivalent native commands:
 ```bash
 openclaw skills install openquok-core
 openclaw skills install openquok-tiktok-slideshow
+openclaw skills install openquok-directory-launch
 ```
 
 Skills that ship `scripts/` (today: `openquok-tiktok-slideshow`) must land as **real files**, not agent-dir symlinks only. Prefer Copy when the host offers it; GitHub/skills CLI installs should use `--copy`:
@@ -157,7 +182,7 @@ To cover every skill under `agent/skills/` when any of them change, prefer `root
 
 ## Maintainer checklist
 
-- [ ] `SKILL.md` frontmatter `name` matches the ClawHub slug (`openquok-core`, `openquok-tiktok-slideshow`, …).
+- [ ] `SKILL.md` frontmatter `name` matches the ClawHub slug (`openquok-core`, `openquok-tiktok-slideshow`, `openquok-directory-launch`, …).
 - [ ] `description` and `metadata.openclaw` are valid single-line JSON where required.
 - [ ] Sibling skills with `scripts/` document Copy / `--copy` install and do not claim to replace `openquok-core`.
 - [ ] Run `clawhub skill publish ... --dry-run` before the first live publish of that slug.

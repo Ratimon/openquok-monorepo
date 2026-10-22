@@ -10,7 +10,7 @@
  * - **Tier 1** — `channels/catalog/platforms/{slug}.ts` full `/channels/{slug}` VM.
  * - **Tier 2** — `channels/api/posting/platforms/{slug}.ts` and `channels/api/scheduling/platforms/{slug}.ts`.
  * - **Tier 3** — `channels/tool-surfaces/{slug}.ts` sparse tool patches; merged in `tools/{tool}/general.ts`.
- * Agent host×channel pages stay host-first in `agents/channels/{host}.ts` (derived from catalog).
+ * Agent host×channel pages: host SEO in `agents/channels/hosts/{host}.ts`; page config kinds in `agents/channels/kinds/`.
  * MCP client×channel pages compose `mcps/hosts/{mcp}.ts` + `channels/catalog/platforms/{channel}.ts` via `buildMcpChannelLandingVm` — see `mcps/channels/index.ts`.
  *
  * Channel catalog source of truth: `PUBLIC_CHANNEL_LANDING_PAGES` in `channels/catalog/seeds.ts`.
@@ -147,7 +147,7 @@ export const PUBLIC_PROGRAMMATIC_LANDING_SURFACES: readonly ProgrammaticLandingS
 			symbol: 'buildAgentsChannelAudienceSection'
 		},
 		tailored: {
-			modulePath: 'web/src/lib/content/constants/agents/channels/{host}.ts',
+			modulePath: 'web/src/lib/content/constants/agents/channels/hosts/{host}.ts',
 			symbol: 'host channel overrides (+ channels/catalog/platforms/{channelSlug}.ts)'
 		}
 	},

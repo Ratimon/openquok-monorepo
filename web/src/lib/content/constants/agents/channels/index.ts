@@ -1,5 +1,6 @@
 import { getRootPathPublicAgentChannel } from '$lib/area-public/constants/getRootPathPublicAgents';
-import { getPublicChannelBySlug, listPublicChannelsForHub } from '$lib/content/constants/channels';
+import { getPublicChannelBySlug } from '$lib/content/constants/channels';
+import { PUBLIC_AGENT_CHANNEL_HUB_CHANNELS } from '$lib/content/constants/channels/catalog/agentChannelHubSeeds';
 import { getAvailablePublicMcpLandingBySlug } from '$lib/content/constants/mcps';
 import { route } from '$lib/utils/path';
 
@@ -13,22 +14,22 @@ import {
 	sortAgentChannelHubLinks
 } from '$lib/content/constants/agents/ecosystems';
 import { buildAgentChannelPageConfig } from '$lib/content/constants/agents/channels/general';
-import { grokBotAgentChannelConfigs, grokBotAgentChannelHost } from '$lib/content/constants/agents/channels/grok-bot';
-import { dotsAgentChannelConfigs, dotsAgentChannelHost } from '$lib/content/constants/agents/channels/dots';
+import { grokBotAgentChannelConfigs, grokBotAgentChannelHost } from '$lib/content/constants/agents/channels/hosts/grok-bot';
+import { dotsAgentChannelConfigs, dotsAgentChannelHost } from '$lib/content/constants/agents/channels/hosts/dots';
 import {
 	thinkrailAgentChannelConfigs,
 	thinkrailAgentChannelHost
-} from '$lib/content/constants/agents/channels/thinkrail';
+} from '$lib/content/constants/agents/channels/hosts/thinkrail';
 import {
 	metaMuseAgentChannelConfigs,
 	metaMuseAgentChannelHost
-} from '$lib/content/constants/agents/channels/meta-muse';
-import { manusAgentChannelConfigs, manusAgentChannelHost } from '$lib/content/constants/agents/channels/manus';
-import { hermesAgentChannelConfigs, hermesAgentChannelHost } from '$lib/content/constants/agents/channels/hermes';
+} from '$lib/content/constants/agents/channels/hosts/meta-muse';
+import { manusAgentChannelConfigs, manusAgentChannelHost } from '$lib/content/constants/agents/channels/hosts/manus';
+import { hermesAgentChannelConfigs, hermesAgentChannelHost } from '$lib/content/constants/agents/channels/hosts/hermes';
 import {
 	openclawAgentChannelConfigs,
 	openclawAgentChannelHost
-} from '$lib/content/constants/agents/channels/openclaw';
+} from '$lib/content/constants/agents/channels/hosts/openclaw';
 
 export * from '$lib/content/constants/agents/channels/types';
 export {
@@ -38,19 +39,19 @@ export {
 	type AgentsChannelAudienceMode,
 	type AgentsChannelAudienceSection
 } from '$lib/content/constants/agents/channels/general';
-export { openclawAgentChannelHost, openclawAgentChannelConfigs } from '$lib/content/constants/agents/channels/openclaw';
-export { hermesAgentChannelHost, hermesAgentChannelConfigs } from '$lib/content/constants/agents/channels/hermes';
-export { grokBotAgentChannelHost, grokBotAgentChannelConfigs } from '$lib/content/constants/agents/channels/grok-bot';
-export { dotsAgentChannelHost, dotsAgentChannelConfigs } from '$lib/content/constants/agents/channels/dots';
+export { openclawAgentChannelHost, openclawAgentChannelConfigs } from '$lib/content/constants/agents/channels/hosts/openclaw';
+export { hermesAgentChannelHost, hermesAgentChannelConfigs } from '$lib/content/constants/agents/channels/hosts/hermes';
+export { grokBotAgentChannelHost, grokBotAgentChannelConfigs } from '$lib/content/constants/agents/channels/hosts/grok-bot';
+export { dotsAgentChannelHost, dotsAgentChannelConfigs } from '$lib/content/constants/agents/channels/hosts/dots';
 export {
 	thinkrailAgentChannelHost,
 	thinkrailAgentChannelConfigs
-} from '$lib/content/constants/agents/channels/thinkrail';
+} from '$lib/content/constants/agents/channels/hosts/thinkrail';
 export {
 	metaMuseAgentChannelHost,
 	metaMuseAgentChannelConfigs
-} from '$lib/content/constants/agents/channels/meta-muse';
-export { manusAgentChannelHost, manusAgentChannelConfigs } from '$lib/content/constants/agents/channels/manus';
+} from '$lib/content/constants/agents/channels/hosts/meta-muse';
+export { manusAgentChannelHost, manusAgentChannelConfigs } from '$lib/content/constants/agents/channels/hosts/manus';
 
 /** Agent host slugs that support `/agents/{agentSlug}/{channelSlug}` SEO pages. */
 export const PUBLIC_AGENT_CHANNEL_HOST_SLUGS = [
@@ -110,7 +111,7 @@ export function isPublicAgentChannelHostSlug(slug: string): slug is PublicAgentC
 }
 
 const channelBySlug = new Map(
-	listPublicChannelsForHub().map((channel) => [channel.slug, channel])
+	PUBLIC_AGENT_CHANNEL_HUB_CHANNELS.map((channel) => [channel.slug, channel])
 );
 
 function hubDescriptionForChannel(slug: string, platformLabel: string): string {
@@ -154,7 +155,7 @@ export function listPublicAgentChannelsForHub(
 	}
 
 	if (getAvailablePublicMcpLandingBySlug(normalizedSlug)) {
-		const links = listPublicChannelsForHub().map((channel) => ({
+		const links = PUBLIC_AGENT_CHANNEL_HUB_CHANNELS.map((channel) => ({
 			slug: channel.slug,
 			platformLabel: channel.platformLabel,
 			icon: channel.icon,

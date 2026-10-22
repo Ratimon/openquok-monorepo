@@ -1,8 +1,8 @@
 ---
 title: Overview - MCP Examples
-description: OpenQuok MCP agent workflows — prompts or examples for scheduling, posts management, analytics, plugs, and per-platform recipes.
+description: OpenQuok MCP agent workflows — prompts or examples for scheduling, posts management, analytics, plugs, directory launch, and per-platform recipes.
 order: 0
-lastUpdated: 2026-09-10
+lastUpdated: 2026-10-22
 sidebar:
   label: Overview
 ---
@@ -13,11 +13,13 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/co
 
 ## What is in this section
 
-Copy-pasteable recipes for AI agents using OpenQuok MCP. Each page shows what you can **ask your agent** in plain language and the tool payloads the agent builds behind the scenes — <Badge text="schedulePostTool" variant="default" />, <Badge text="postsList" variant="default" />, <Badge text="analyticsPost" variant="default" />, <Badge text="plugsUpsert" variant="default" />, and more.
+Copy-pasteable recipes for AI agents using OpenQuok MCP, grouped by social channel or directory launch platform. Each social page shows what you can **ask your agent** in plain language and the tool payloads the agent builds behind the scenes — <Badge text="schedulePostTool" variant="default" />, <Badge text="postsList" variant="default" />, <Badge text="analyticsPost" variant="default" />, <Badge text="plugsUpsert" variant="default" />, and more. Directory pages use <Badge text="directoryProfilesList" variant="default" />, <Badge text="directoryVariantsEnsure" variant="default" />, <Badge text="directoryProfilesUpdate" variant="default" />, <Badge text="directoryListingSummary" variant="default" />, and <Badge text="directorySeoOverview" variant="default" /> for profiles, variants, filling copy, readiness, and cached SEO. Tool intent tables: <a href="/docs/mcp-references/tools#directory-launch">Tools reference — Directory launch</a>.
 
 <Callout type="note">
-<p>OpenQuok ships first-party providers for <strong>Meta Threads</strong>, <strong>Facebook Page</strong>, <strong>Instagram</strong> (Business and Standalone), <strong>YouTube</strong>, <strong>TikTok</strong>, <strong>X</strong>, and <strong>LinkedIn</strong>. Additional pages appear here when new providers land in <Badge text="backend/integrations/providers/" variant="path" />.</p>
+<p>OpenQuok ships first-party <strong>social</strong> providers for <strong>Meta Threads</strong>, <strong>Facebook Page</strong>, <strong>Instagram</strong> (Business and Standalone), <strong>YouTube</strong>, <strong>TikTok</strong>, <strong>X</strong>, and <strong>LinkedIn</strong>. Additional social pages appear when new providers land in <Badge text="backend/integrations/providers/" variant="path" />.</p>
 </Callout>
+
+### Social channels
 
 <CardGrid>
 <LinkCard title="Facebook Page" description="Text, photos, link previews, and follow-up comments" href="/docs/mcp-examples/facebook" />
@@ -27,6 +29,23 @@ Copy-pasteable recipes for AI agents using OpenQuok MCP. Each page shows what yo
 <LinkCard title="TikTok" description="Videos and photo carousels with privacy settings" href="/docs/mcp-examples/tiktok" />
 <LinkCard title="LinkedIn" description="Text posts, document carousels, and first-comment chains" href="/docs/mcp-examples/linkedin" />
 <LinkCard title="X" description="Tweets, media, and multi-part threads" href="/docs/mcp-examples/x" />
+</CardGrid>
+
+<Callout type="note" title="Directory launch is not social posting">
+<p><strong>Directory launch</strong> prepares your product on <a href="/account/products">My Products</a> for sites like <strong>PeerPush</strong> and <strong>Uneed</strong>. Agents use <Badge text="directoryProfilesList" variant="default" />, <Badge text="directoryVariantsEnsure" variant="default" />, and related tools — not <Badge text="schedulePostTool" variant="default" />. You still submit on the directory site with the browser extension.</p>
+</Callout>
+
+<Callout type="tip" title="Main profile and site copy">
+<p>Your <strong>main product profile</strong> is the default record for your product. A <strong>directory variant</strong> is an optional copy for one launch site so you can tailor tagline and description for PeerPush or Uneed without changing every other destination.</p>
+<p>Before <Badge text="directoryVariantsEnsure" variant="default" />, call <Badge text="directoryProfilesList" variant="default" /> with <Badge text="mainOnly: true" variant="param" />. That lists only main profiles so the agent passes the correct main id. Without <Badge text="mainOnly" variant="param" />, the response also includes site copies.</p>
+<p>See <a href="/docs/getting-started/glossary#directory-launch">Glossary — Directory launch</a> for definitions.</p>
+</Callout>
+
+### Directory launch
+
+<CardGrid>
+<LinkCard title="PeerPush" description="Product profiles, peerpush variants, listing summary, and cached directory SEO" href="/docs/mcp-examples/peerpush" />
+<LinkCard title="Uneed" description="Product profiles, uneed variants, listing summary, and cached directory SEO" href="/docs/mcp-examples/uneed" />
 </CardGrid>
 
 ## List connected channels
@@ -107,6 +126,16 @@ If <Badge text="release_id" variant="param" /> is <Badge text="missing" variant=
 > Create a global plug on my X channel that auto-replies when a post hits 50 likes.
 
 See <a href="/docs/mcp-examples/threads">MCP examples — Threads</a>, <a href="/docs/mcp-examples/x">X</a>, and <a href="/docs/mcp-examples/linkedin">LinkedIn</a> for <Badge text="plugsCatalog" variant="default" /> → <Badge text="plugsUpsert" variant="default" /> walkthroughs. Global plugs are supported on Threads, X, and LinkedIn Page only. Cross-account comments on create use <Badge text="schedulePostTool.settings" variant="param" /> instead — see <a href="/docs/mcp-examples/threads">Threads cross-account example</a>.
+
+## Directory launch and SEO
+
+> List my directory product profiles, ensure a PeerPush variant for my main profile, and show which directories are ready to launch.
+
+The agent calls <Badge text="directoryProfilesList" variant="default" /> with <Badge text="mainOnly" variant="param" />, <Badge text="directoryVariantsEnsure" variant="default" /> with <Badge text="directorySiteKey" variant="param" /> <Badge text="peerpush" variant="default" />, then <Badge text="directoryListingSummary" variant="default" /> for readiness per destination. See <a href="/docs/mcp-examples/peerpush">MCP examples — PeerPush</a> and <a href="/docs/mcp-examples/uneed">Uneed</a> for per-site prompts.
+
+> What are my directory SEO ratings and when were they last checked?
+
+Call <Badge text="directorySeoOverview" variant="default" /> with your main <Badge text="productProfileId" variant="param" />. Use <Badge text="checkedAt" variant="param" /> on each metric and <Badge text="manualRefreshAvailableAt" variant="param" /> before <Badge text="directorySeoRefresh" variant="default" />.
 
 ## Conventions used in these pages
 

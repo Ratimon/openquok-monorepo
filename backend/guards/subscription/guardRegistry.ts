@@ -53,6 +53,10 @@ export const GUARD_REGISTRY: Record<SubscriptionSection, GuardRegistryEntry> = {
         kind: "account_quota",
         deniedMessage: "Your plan does not allow more workspaces. Upgrade to add more.",
     },
+    [SubscriptionSection.DIRECTORY_LAUNCH_ENABLED]: {
+        kind: "boolean",
+        deniedMessage: "Directory launch is not included on your current plan.",
+    },
     [SubscriptionSection.DIRECTORY_SEO_ENABLED]: {
         kind: "boolean",
         deniedMessage: "Directory analytics is not included on your current plan.",

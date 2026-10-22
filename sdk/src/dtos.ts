@@ -249,3 +249,185 @@ export type PublicAbortMultipartResponseDto = {
     };
 };
 
+/** Standard `{ success, data }` envelope for `/public/directory-launch/*` routes. */
+export type PublicDirectoryLaunchResponseDto<T> = {
+    success: boolean;
+    data: T;
+};
+
+export type PublicDirectoryLaunchDestinationDto = {
+    id: string;
+    providerSlug: string;
+    name: string;
+    shortDescription: string | null;
+    submissionPath: "extension" | "auto";
+    startUrl: string;
+    sortOrder: number;
+    opportunityDescription: string | null;
+    opportunityTitle: string | null;
+    opportunityDofollow: "dofollow" | "nofollow" | "unknown" | null;
+    opportunityCostTier: "free" | "freemium" | "paid" | null;
+    opportunityCostNote: string | null;
+    siteDomainRating: number | null;
+    siteMetricsUpdatedAt: string | null;
+    siteTitle: string | null;
+    pickerGroupKey: string | null;
+    pickerGroupTitle: string | null;
+    extensionConfig: Record<string, unknown>;
+};
+
+export type PublicDirectoryLaunchBusinessProfileDto = {
+    integrationCustomerId: string | null;
+    productProfileId: string | null;
+    name: string;
+    tagline: string | null;
+    websiteUrl: string | null;
+    logoUrl: string | null;
+};
+
+export type PublicDirectoryLaunchProfileDto = {
+    id: string;
+    organizationId: string;
+    integrationCustomerId: string | null;
+    name: string;
+    tagline: string | null;
+    description: string | null;
+    websiteUrl: string | null;
+    logoUrl: string | null;
+    profileData: Record<string, unknown>;
+    profileKind: "main" | "variant";
+    parentProfileId: string | null;
+    directorySiteKey: string | null;
+    similarityToMainPercent: number | null;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type PublicCreateDirectoryLaunchProfileDto = {
+    integrationCustomerId?: string | null;
+    name: string;
+    tagline?: string | null;
+    description?: string | null;
+    websiteUrl?: string | null;
+    logoUrl?: string | null;
+    profileData?: Record<string, unknown>;
+};
+
+export type PublicUpdateDirectoryLaunchProfileDto = {
+    name?: string;
+    tagline?: string | null;
+    description?: string | null;
+    websiteUrl?: string | null;
+    logoUrl?: string | null;
+    integrationCustomerId?: string | null;
+    profileData?: Record<string, unknown>;
+};
+
+export type PublicEnsureDirectoryLaunchVariantDto = {
+    directorySiteKey: string;
+    name?: string;
+};
+
+export type PublicDirectoryLaunchListingSummaryDestinationDto = {
+    destinationId: string;
+    providerSlug: string;
+    destinationName: string;
+    submissionStatus: "none" | "completed" | "other";
+    syncStatus: "pending" | "synced" | "stale" | null;
+    readiness: {
+        isReady: boolean;
+        missingFields: string[];
+    };
+};
+
+export type PublicDirectoryLaunchListingSummaryDto = {
+    profileId: string;
+    publishedDirectorySiteCount: number;
+    submittedDirectorySiteCount: number;
+    unsubmittedDirectorySiteCount: number;
+    destinations: PublicDirectoryLaunchListingSummaryDestinationDto[];
+};
+
+export type PublicDirectoryLaunchSubmissionDto = {
+    id: string;
+    organizationId: string;
+    productProfileId: string;
+    destinationId: string;
+    status: string;
+    listingUrl: string | null;
+    listingDofollow: boolean;
+    authEmail: string | null;
+    intentCreatedAt: string | null;
+    completedAt: string | null;
+    listingSyncedAt: string | null;
+    syncStatus: "pending" | "synced" | "stale";
+    createdAt: string;
+    updatedAt: string;
+};
+
+/** Standard `{ success, data }` envelope for `/public/directory-seo/*` routes. */
+export type PublicDirectorySeoResponseDto<T> = {
+    success: boolean;
+    data: T;
+};
+
+export type PublicDirectorySeoDomainMetricDto = {
+    domain: string;
+    domainRating: number | null;
+    checkedAt: string | null;
+    delta7Days: number | null;
+    delta30Days: number | null;
+    delta90Days: number | null;
+};
+
+export type PublicDirectorySeoCompetitorDto = {
+    domain: string;
+    label: string | null;
+    sortOrder: number;
+    domainRating: number | null;
+    checkedAt: string | null;
+};
+
+export type PublicDirectorySeoWorkspaceOverviewDto = {
+    productDomain: PublicDirectorySeoDomainMetricDto | null;
+    competitors: PublicDirectorySeoCompetitorDto[];
+    providerConfigured: boolean;
+    manualRefreshAvailableAt: string | null;
+};
+
+export type PublicDirectorySeoHistoryPointDto = {
+    capturedAt: string;
+    domainRating: number | null;
+};
+
+export type PublicDirectorySeoCompetitorHistoryDto = {
+    domain: string;
+    label: string | null;
+    points: PublicDirectorySeoHistoryPointDto[];
+};
+
+export type PublicDirectorySeoWorkspaceHistoryDto = {
+    product: PublicDirectorySeoHistoryPointDto[];
+    competitors: PublicDirectorySeoCompetitorHistoryDto[];
+};
+
+export type PublicDirectorySeoAddCompetitorDto = {
+    domain: string;
+    label?: string | null;
+    sortOrder?: number;
+};
+
+export type PublicDirectorySeoUpdateCompetitorDto = {
+    domain: string;
+    label: string | null;
+};
+
+export type PublicDirectorySeoDeleteCompetitorDto = {
+    domain: string;
+};
+
+export type PublicDirectorySeoRefreshDto = {
+    productProfileId: string;
+    force?: boolean;
+};
+

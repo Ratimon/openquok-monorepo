@@ -30,10 +30,10 @@ OpenQuok ships **two separate MCP servers** on different origins. Both use the p
 
 | Server | Typical host | Auth | What agents use it for |
 | --- | --- | --- | --- |
-| **Product (workspace)** | <Badge text="https://api.openquok.com" variant="new" /> (or your <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" />) | <Badge text="opo_" variant="default" /> Bearer or token in URL | Channels, scheduling, posts, plugs, analytics |
+| **Product (workspace)** | <Badge text="https://api.openquok.com" variant="new" /> (or your <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" />) | <Badge text="opo_" variant="default" /> Bearer or token in URL | Channels, scheduling, posts, plugs, analytics, directory launch, directory SEO |
 | **Documentation** | <Badge text="https://www.openquok.com" variant="new" /> (or your web app origin) | None — published docs only | <Badge text="search_docs" variant="default" />, <Badge text="read_page" variant="default" />, <Badge text="get_site_overview" variant="default" />, <Badge text="submit_feedback" variant="default" /> |
 
-The **product** server is what this guide focuses on: list connected channels, schedule and manage posts, configure plugs, and read analytics without installing the CLI skill.
+The **product** server is what this guide focuses on: list connected channels, schedule and manage posts, configure plugs, read analytics, and manage directory launch profiles and directory SEO without installing the CLI skill.
 
 Use the same <Badge text="opo_" variant="default" /> programmatic access token you generate under <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" /> for the product server only.
 
@@ -64,10 +64,18 @@ A typical workflow:
 3. **Manage** — <Badge text="postsList" variant="default" />, <Badge text="postsStatus" variant="default" />, <Badge text="postsReschedule" variant="default" />, <Badge text="postsDelete" variant="default" />, <Badge text="postsReviewTodo" variant="default" />; <Badge text="postsMissing" variant="default" /> then <Badge text="postsConnect" variant="default" /> when <Badge text="release_id" variant="param" /> is missing.
 4. **Analytics** — <Badge text="analyticsPlatform" variant="default" /> or <Badge text="analyticsPost" variant="default" /> with <Badge text="days" variant="param" /> <Badge text="7" variant="param" />, <Badge text="30" variant="param" />, or <Badge text="90" variant="param" />.
 5. **Plugs** — <Badge text="plugsCatalog" variant="default" />, <Badge text="plugsList" variant="default" />, <Badge text="plugsUpsert" variant="default" /> for global like-threshold rules; cross-account comments on create go in <Badge text="schedulePostTool" variant="default" /> <Badge text="settings" variant="param" />.
+6. **Directory launch** — <Badge text="directoryProfilesList" variant="default" /> with <Badge text="mainOnly" variant="param" />, open or create a per-site copy with <Badge text="directoryVariantsEnsure" variant="default" /> (<Badge text="directorySiteKey" variant="param" /> <Badge text="peerpush" variant="default" /> or <Badge text="uneed" variant="default" />), fill fields with <Badge text="directoryProfilesUpdate" variant="default" />, then <Badge text="directoryListingSummary" variant="default" /> before you launch in the browser extension (not <Badge text="schedulePostTool" variant="default" />).
+7. **Directory SEO** — <Badge text="directorySeoOverview" variant="default" /> and <Badge text="directorySeoHistory" variant="default" /> (cached metrics expose <Badge text="checkedAt" variant="param" />); <Badge text="directorySeoRefresh" variant="default" /> when <Badge text="manualRefreshAvailableAt" variant="param" /> allows.
 
 All of this can happen when you ask your agent something like:
 
 > Schedule a post to X for tomorrow at 10am: Excited to announce our new feature!
+
+For directory launch (PeerPush, Uneed, …):
+
+> Create or open my PeerPush product profile from my main business profile, then show what fields are still missing before I launch.
+
+The agent should call <Badge text="directoryProfilesList" variant="default" /> with <Badge text="mainOnly" variant="param" />, <Badge text="directoryVariantsEnsure" variant="default" /> with <Badge text="directorySiteKey: peerpush" variant="param" />, then <Badge text="directoryListingSummary" variant="default" />. See <a href="/docs/mcp-references/tools#directory-launch">Tools reference — Directory launch</a>.
 
 ## Endpoints (product MCP)
 

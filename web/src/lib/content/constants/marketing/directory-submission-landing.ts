@@ -226,9 +226,9 @@ export const PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG: PublicDirectorySubmissi
 			{
 				iconName: icons.Users.name,
 				iconClass: 'text-emerald-400',
-				title: 'Lean agencies',
+				title: 'Marketing teams',
 				description:
-					'You guide clients through directory forms. OpenQuok autofills while clients retain logins and final submit clicks.',
+					'You coordinate directory launches across sites. OpenQuok autofills from one profile — your team reviews each form and submits on the directory.',
 				containerClass: CARD_CONTAINER_CLASS
 			}
 		]

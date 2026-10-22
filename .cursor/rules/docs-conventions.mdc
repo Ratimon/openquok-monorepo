@@ -57,7 +57,7 @@ Applies to Markdown and MDsvex files under `web/src/content/docs/`.
   - Use a fenced **`text`** block for the literal placeholder string (best for URLs / redirect URIs).
   - Or restructure the sentence to avoid curly braces entirely (e.g. use `<Badge text="SERVER_URL" variant="envBackend" />` plus the literal suffix `/device/callback`).
   - For **`Badge`** (and similar) labels that must show REST or file paths with `{slug}` / `{host}` / `{id}` segments:
-    - **Best for tables with many templates:** define a **`const`** object in the page **`<script>`** (e.g. `programmaticSeoPaths`) whose values are normal JS strings like `'agents/channels/{host}.ts'`, then pass **`text={programmaticSeoPaths.agentsChannelsHostTs}`**. See **`web/src/content/docs/getting-started-for-dev/architecture.md`**.
+    - **Best for tables with many templates:** define a **`const`** object in the page **`<script>`** (e.g. `programmaticSeoPaths`) whose values are normal JS strings like `'agents/channels/hosts/{host}.ts'`, then pass **`text={programmaticSeoPaths.agentsChannelsHostTs}`**. See **`web/src/content/docs/getting-started-for-dev/architecture.md`**.
     - **Short one-offs:** use a **brace-wrapped JS string literal** so the whole label is one expression: **`<Badge text={"DELETE /public/integrations/{id}"} variant="path" />`** — the `{id}` inside the **string** is literal; this is **not** the same as **`text="…{id}…"`**.
   - **Never** use **`text="…{placeholder}…"`** when the braces are meant to be visible path/URL templates; use **`text={"…{placeholder}…"}`** or a **`<script>`** constant instead.
 

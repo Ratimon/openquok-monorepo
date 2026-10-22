@@ -9,6 +9,8 @@ import {
 import { buildDirectoryChannelProcessSection } from '$lib/content/constants/channels/catalog/directory-platforms/directoryChannelProcessSection';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/catalog/types';
 import {
+	buildChannelProgrammaticDirectoryLaunchFaqDescription,
+	buildChannelProgrammaticDirectoryLaunchFaqTitle,
 	faqHrefDocs,
 	faqLink,
 	publicFaqHref
@@ -83,6 +85,17 @@ export const uneedDirectoryChannel = {
 			title: 'Where can I read Uneed backlink and cost notes?',
 			description:
 				`Editorial catalog pages cover dofollow and pricing context. See ${faqLink('/build-backlinks/uneed', 'Uneed on Build backlinks')} and the ${faqLink('/channels#public-directory-channels-hub-heading', 'directory launch platforms')} hub section.`
+		},
+		{
+			title: buildChannelProgrammaticDirectoryLaunchFaqTitle('Uneed directory launches'),
+			description: buildChannelProgrammaticDirectoryLaunchFaqDescription({
+				preparePhrase:
+					'Create a product profile in the dashboard and install the OpenQuok browser extension for the uneed.best handoff',
+				cliExamplesHref: publicFaqHref.cliUneed,
+				cliExamplesLabel: 'Uneed CLI examples',
+				suffix:
+					'Directory SEO metrics are cached — read checkedAt and manualRefreshAvailableAt in API or CLI responses.'
+			})
 		}
 	],
 	docsPath: UNEED_DOCS_PATH,

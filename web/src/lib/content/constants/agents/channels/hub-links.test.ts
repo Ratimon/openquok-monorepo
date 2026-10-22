@@ -22,4 +22,12 @@ describe('listPublicAgentChannelsForHub', () => {
 		expect(links[0]?.slug).toBe('x');
 		expect(links[0]?.badgeLabel).toBe(AGENT_HOST_FIRST_CLASS_CHANNEL_BADGE);
 	});
+
+	it('includes directory launch channels for MCP clients', () => {
+		const links = listPublicAgentChannelsForHub('claude-code');
+		const slugs = links.map((link) => link.slug);
+		expect(slugs).toContain('peerpush');
+		expect(slugs).toContain('uneed');
+		expect(slugs).toContain('threads');
+	});
 });

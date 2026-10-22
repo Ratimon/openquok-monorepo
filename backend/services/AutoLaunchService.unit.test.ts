@@ -8,6 +8,7 @@ import type {
     AutoLaunchSubmissionRow,
 } from "../data/types/autoLaunchTypes";
 import type { IntegrationConnectionService } from "./IntegrationConnectionService";
+import type { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
 import { AutoLaunchService } from "./AutoLaunchService";
 import { signLaunchToken } from "../utils/auth/launchToken";
 import { computeListingFingerprintForSubmission } from "./autoLaunch/submissionListingSync";
@@ -129,14 +130,30 @@ function createMockIntegration(): jest.Mocked<Pick<IntegrationConnectionService,
     };
 }
 
+function createMockSubscriptionGuard(): jest.Mocked<Pick<SubscriptionGuardService, "assert">> {
+    return {
+        assert: jest.fn().mockResolvedValue(undefined),
+    };
+}
+
 describe("AutoLaunchService", () => {
     let repo: jest.Mocked<AutoLaunchRepository>;
     let integration: jest.Mocked<Pick<IntegrationConnectionService, "assertOrganizationMember">>;
+    let subscriptionGuard: jest.Mocked<Pick<SubscriptionGuardService, "assert">>;
 
     beforeEach(() => {
         repo = createMockRepo();
         integration = createMockIntegration();
+        subscriptionGuard = createMockSubscriptionGuard();
     });
+
+    function createService(): AutoLaunchService {
+        return new AutoLaunchService(
+            repo,
+            integration as unknown as IntegrationConnectionService,
+            subscriptionGuard as unknown as SubscriptionGuardService
+        );
+    }
 
     describe("updateProfile", () => {
         it("merges profileData patches onto existing profile_data", async () => {
@@ -150,10 +167,7 @@ describe("AutoLaunchService", () => {
             repo.findProfileById.mockResolvedValue(existing);
             repo.updateProfile.mockResolvedValue(updated);
 
-            const service = new AutoLaunchService(
-                repo,
-                integration as unknown as IntegrationConnectionService
-            );
+            const service = createService();
 
             await service.updateProfile(authUserId, profileId, {
                 profileData: { pricing_type: "paid" },
@@ -194,10 +208,7 @@ describe("AutoLaunchService", () => {
             repo.insertDirectoryVariantFromMain.mockResolvedValue(variant);
             repo.findProfilesByIds.mockResolvedValue([main]);
 
-            const service = new AutoLaunchService(
-                repo,
-                integration as unknown as IntegrationConnectionService
-            );
+            const service = createService();
 
             const dto = await service.createDirectoryVariant(authUserId, main.id, {
                 directorySiteKey: "peerpush",
@@ -226,10 +237,7 @@ describe("AutoLaunchService", () => {
             repo.findLatestSubmissionForProductDestination.mockResolvedValue(null);
             repo.insertSubmissionIntent.mockResolvedValue(submission);
 
-            const service = new AutoLaunchService(
-                repo,
-                integration as unknown as IntegrationConnectionService
-            );
+            const service = createService();
 
             const result = await service.createSubmissionIntent(authUserId, {
                 organizationId,
@@ -257,10 +265,7 @@ describe("AutoLaunchService", () => {
             repo.findLatestSubmissionForProductDestination.mockResolvedValue(open);
             repo.refreshSubmissionIntent.mockResolvedValue(refreshed);
 
-            const service = new AutoLaunchService(
-                repo,
-                integration as unknown as IntegrationConnectionService
-            );
+            const service = createService();
 
             const result = await service.createSubmissionIntent(authUserId, {
                 organizationId,
@@ -313,10 +318,7 @@ describe("AutoLaunchService", () => {
                 .mockResolvedValueOnce(completed);
             repo.reopenSubmissionForResync.mockResolvedValue(reopened);
 
-            const service = new AutoLaunchService(
-                repo,
-                integration as unknown as IntegrationConnectionService
-            );
+            const service = createService();
 
             const result = await service.createSubmissionIntent(authUserId, {
                 organizationId,
@@ -363,10 +365,7 @@ describe("AutoLaunchService", () => {
             repo.listSubmissions.mockResolvedValue([completed]);
             repo.findProfilesByIds.mockResolvedValue([profile]);
 
-            const service = new AutoLaunchService(
-                repo,
-                integration as unknown as IntegrationConnectionService
-            );
+            const service = createService();
 
             const result = await service.listSubmissions(authUserId, organizationId, {
                 productProfileId: profileId,
@@ -407,10 +406,7 @@ describe("AutoLaunchService", () => {
             repo.listSubmissions.mockResolvedValue([completed]);
             repo.findProfilesByIds.mockResolvedValue([liveProfile]);
 
-            const service = new AutoLaunchService(
-                repo,
-                integration as unknown as IntegrationConnectionService
-            );
+            const service = createService();
 
             const result = await service.listSubmissions(authUserId, organizationId, {});
 
@@ -422,10 +418,7 @@ describe("AutoLaunchService", () => {
             repo.listSubmissions.mockResolvedValue([open]);
             repo.findProfilesByIds.mockResolvedValue([profileRow()]);
 
-            const service = new AutoLaunchService(
-                repo,
-                integration as unknown as IntegrationConnectionService
-            );
+            const service = createService();
 
             const result = await service.listSubmissions(authUserId, organizationId, {});
 
@@ -464,10 +457,7 @@ describe("AutoLaunchService", () => {
             repo.listSubmissions.mockResolvedValue([completed]);
             repo.findProfilesByIds.mockResolvedValue([liveProfile]);
 
-            const service = new AutoLaunchService(
-                repo,
-                integration as unknown as IntegrationConnectionService
-            );
+            const service = createService();
 
             const result = await service.listSubmissions(authUserId, organizationId, {});
 
@@ -494,10 +484,7 @@ describe("AutoLaunchService", () => {
                 "unit-test-launch-token-secret"
             );
 
-            const service = new AutoLaunchService(
-                repo,
-                integration as unknown as IntegrationConnectionService
-            );
+            const service = createService();
 
             const result = await service.completeSubmission(authUserId, {
                 launchToken: token,
@@ -535,10 +522,7 @@ describe("AutoLaunchService", () => {
                 "unit-test-launch-token-secret"
             );
 
-            const service = new AutoLaunchService(
-                repo,
-                integration as unknown as IntegrationConnectionService
-            );
+            const service = createService();
 
             const result = await service.completeSubmission(authUserId, {
                 launchToken: token,
@@ -587,10 +571,7 @@ describe("AutoLaunchService", () => {
                 submissionRow({ product_profile_id: variant.id })
             );
 
-            const service = new AutoLaunchService(
-                repo,
-                integration as unknown as IntegrationConnectionService
-            );
+            const service = createService();
 
             await service.createSubmissionIntent(authUserId, {
                 organizationId,
@@ -648,10 +629,7 @@ describe("AutoLaunchService", () => {
             repo.updateCompletedSubmissionListingSync.mockResolvedValue(updated);
             repo.updateSubmissionListingDetails.mockResolvedValue(updated);
 
-            const service = new AutoLaunchService(
-                repo,
-                integration as unknown as IntegrationConnectionService
-            );
+            const service = createService();
 
             const row = await service.recordManualSubmissionComplete(authUserId, {
                 organizationId,
@@ -693,10 +671,7 @@ describe("AutoLaunchService", () => {
             repo.findLatestSubmissionForProductDestination.mockResolvedValue(existingCompleted);
             repo.updateSubmissionListingDetails.mockResolvedValue(existingCompleted);
 
-            const service = new AutoLaunchService(
-                repo,
-                integration as unknown as IntegrationConnectionService
-            );
+            const service = createService();
 
             const row = await service.recordManualSubmissionComplete(authUserId, {
                 organizationId,
@@ -711,6 +686,106 @@ describe("AutoLaunchService", () => {
             expect(repo.updateSubmissionListingDetails).toHaveBeenCalled();
             expect(repo.updateCompletedSubmissionListingSync).not.toHaveBeenCalled();
             expect(repo.insertManualCompletedSubmission).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("getProfileListingSummaryForOrganization", () => {
+        it("aggregates published destinations and submission readiness for a profile", async () => {
+            const profile = profileRow();
+            const destPeerpush = {
+                id: faker.string.uuid(),
+                provider_slug: "peerpush-standard-launch",
+                link_directory_opportunity_id: null,
+                name: "PeerPush Standard",
+                short_description: null,
+                submission_path: "extension" as const,
+                start_url: "https://peerpush.com/submit",
+                is_published: true,
+                created_at: faker.date.recent().toISOString(),
+                updated_at: faker.date.recent().toISOString(),
+                extension_config: {
+                    version: 1,
+                    steps: [
+                        {
+                            id: "info",
+                            label: "Info",
+                            fields: [
+                                {
+                                    key: "name",
+                                    label: "Name",
+                                    profilePath: "name",
+                                },
+                            ],
+                        },
+                    ],
+                },
+                sort_order: 1,
+                opportunity_description: null,
+                opportunity_title: null,
+                opportunity_dofollow: null,
+                opportunity_cost_tier: null,
+                opportunity_cost_note: null,
+                site_domain_rating: null,
+                site_metrics_updated_at: null,
+                site_title: null,
+                picker_group_key: "peerpush",
+                picker_group_title: "PeerPush",
+            };
+            const destUneed = {
+                ...destPeerpush,
+                id: faker.string.uuid(),
+                provider_slug: "uneed-join-line",
+                name: "Uneed Join",
+                sort_order: 2,
+                picker_group_key: "uneed",
+                picker_group_title: "Uneed",
+            };
+
+            repo.findProfileById.mockResolvedValue(profile);
+            repo.listPublishedDestinations.mockResolvedValue([destPeerpush, destUneed]);
+            repo.listSubmissions.mockResolvedValue([]);
+            repo.findProfilesByIds.mockResolvedValue([profile]);
+
+            const service = createService();
+            const summary = await service.getProfileListingSummaryForOrganization(organizationId, profileId);
+
+            expect(summary.profileId).toBe(profileId);
+            expect(summary.publishedDirectorySiteCount).toBe(2);
+            expect(summary.submittedDirectorySiteCount).toBe(0);
+            expect(summary.unsubmittedDirectorySiteCount).toBe(2);
+            expect(summary.destinations).toHaveLength(2);
+            expect(summary.destinations[0]?.readiness.isReady).toBe(false);
+            expect(summary.destinations[0]?.readiness.missingFields).toEqual(
+                expect.arrayContaining([expect.objectContaining({ path: "name" })])
+            );
+        });
+    });
+
+    describe("ensureDirectoryVariantProgrammatic", () => {
+        it("returns existing variant without creating a duplicate", async () => {
+            const main = profileRow({ profile_kind: "main", parent_profile_id: null });
+            const variant = profileRow({
+                id: faker.string.uuid(),
+                profile_kind: "directory_variant",
+                parent_profile_id: main.id,
+                directory_site_key: "peerpush",
+            });
+
+            repo.findProfileById.mockResolvedValue(main);
+            repo.findDirectoryVariantByParentAndSiteKey.mockResolvedValue(variant);
+            repo.findProfilesByIds.mockResolvedValue([]);
+
+            const service = createService();
+            const result = await service.ensureDirectoryVariantProgrammatic(
+                organizationId,
+                authUserId,
+                main.id,
+                { directorySiteKey: "peerpush" }
+            );
+
+            expect(result.created).toBe(false);
+            expect(result.profile.id).toBe(variant.id);
+            expect(repo.insertDirectoryVariantFromMain).not.toHaveBeenCalled();
         });
     });
 });

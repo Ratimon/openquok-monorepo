@@ -205,6 +205,16 @@ export const docsSidebarPublicApi: DocsSidebarSection[] = [
 		autogenerate: { directory: 'apis-uploads' }
 	},
 	{
+		label: 'Directory launch APIs',
+		icon: icons.Globe.name,
+		autogenerate: { directory: 'apis-directory-launch' }
+	},
+	{
+		label: 'Directory SEO APIs',
+		icon: icons.ChartBar.name,
+		autogenerate: { directory: 'apis-directory-seo' }
+	},
+	{
 		label: 'Provider settings',
 		icon: icons.Share2.name,
 		autogenerate: { directory: 'public-api-providers' }

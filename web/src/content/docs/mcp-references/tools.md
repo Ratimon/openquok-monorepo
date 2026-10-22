@@ -1,8 +1,8 @@
 ---
 title: Tools Reference
-description: OpenQuok MCP tools — list channels, schedule and manage posts, configure plugs, and read analytics.
+description: OpenQuok MCP tools — channels, posts, plugs, analytics, directory launch profiles, and directory SEO.
 order: 1
-lastUpdated: 2026-09-10
+lastUpdated: 2026-10-22
 ---
 
 <script>
@@ -13,7 +13,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 All tools run in the context of the workspace tied to your <Badge text="opo_" variant="default" /> token. They call the same backend services as <Badge text="/api/v1/public/*" variant="path" /> — lower latency, no HTTP loopback.
 
-A typical agent workflow: <Badge text="integrationList" variant="default" /> → <Badge text="schedulePostTool" variant="default" /> → <Badge text="postsList" variant="default" /> / <Badge text="postsStatus" variant="default" /> / <Badge text="postsReschedule" variant="default" /> → <Badge text="analyticsPost" variant="default" /> → <Badge text="plugsUpsert" variant="default" />. Image and video generation MCP tools from other catalogs are not available yet.
+A typical social workflow: <Badge text="integrationList" variant="default" /> → <Badge text="schedulePostTool" variant="default" /> → <Badge text="postsList" variant="default" /> / <Badge text="postsStatus" variant="default" /> / <Badge text="postsReschedule" variant="default" /> → <Badge text="analyticsPost" variant="default" /> → <Badge text="plugsUpsert" variant="default" />. For directory launch (My Products, not social channels): <Badge text="directoryProfilesList" variant="default" /> (<Badge text="mainOnly" variant="param" />) → <Badge text="directoryVariantsEnsure" variant="default" /> → <Badge text="directoryProfilesUpdate" variant="default" /> when filling copy → <Badge text="directoryListingSummary" variant="default" /> → optional <Badge text="directorySeoOverview" variant="default" />. Image and video generation MCP tools from other catalogs are not available yet.
 
 ## Channel discovery
 
@@ -496,6 +496,128 @@ Delete a saved global plug rule.
 | <Badge text="plugId" variant="param" /> | string | Yes | Plug row id from <Badge text="plugsList" variant="default" /> |
 
 **Output:** deletion confirmation.
+
+## Directory launch
+
+Requires a workspace plan with directory launch enabled. Tools call the same services as <Badge text="/public/directory-launch/*" variant="path" />. They manage **My Products** business profiles and browser-extension autofill — not <Badge text="schedulePostTool" variant="default" />.
+
+<Callout type="note" title="Main profile vs directory variant">
+<p>A <strong>main</strong> profile is your default product record. A <strong>directory variant</strong> is a per-site copy (for example <Badge text="peerpush" variant="default" /> or <Badge text="uneed" variant="default" />) linked to that main profile. Use <Badge text="directoryVariantsEnsure" variant="default" /> to create or open the variant; use <Badge text="directoryProfilesUpdate" variant="default" /> to fill or change copy on the main or variant row. OpenQuok does not click submit on directory sites — you launch with the extension after readiness looks good.</p>
+</Callout>
+
+| If the user asks… | Start with |
+| --- | --- |
+| Create or open a PeerPush / Uneed profile | <Badge text="directoryProfilesList" variant="default" /> (<Badge text="mainOnly: true" variant="param" />) → <Badge text="directoryVariantsEnsure" variant="default" /> |
+| Fill or update tagline, description, or site fields | <Badge text="directoryProfilesUpdate" variant="default" /> on the variant <Badge text="productProfileId" variant="param" /> |
+| What is missing before I launch? | <Badge text="directoryListingSummary" variant="default" /> |
+| Which launch paths exist? | <Badge text="directoryDestinationsList" variant="default" /> |
+
+Agent prompt recipes: <a href="/docs/mcp-examples/peerpush">MCP examples — PeerPush</a>, <a href="/docs/mcp-examples/uneed">Uneed</a>.
+
+### directoryDestinationsList
+
+Published directory launch destinations (read-only catalog). Returns provider slugs, <Badge text="directorySiteKey" variant="param" /> values such as <Badge text="peerpush" variant="default" /> and <Badge text="uneed" variant="default" />, and start URLs. Does not submit on directory sites.
+
+**Input:** none
+
+**Output:** array of destination rows (provider slug, site key, start URL).
+
+### directoryProfilesList
+
+List business profiles for directory launch (not social <Badge text="integrationList" variant="default" /> channels). Use <Badge text="mainOnly: true" variant="param" /> before <Badge text="directoryVariantsEnsure" variant="default" /> to resolve the main <Badge text="productProfileId" variant="param" />.
+
+**Input:**
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| <Badge text="integrationCustomerId" variant="param" /> | string | No | Channel group id from <Badge text="groupList" variant="default" /> |
+| <Badge text="mainOnly" variant="param" /> | boolean | No | When <Badge text="true" variant="default" />, exclude per-directory variants |
+
+**Output:** array of profile DTOs.
+
+### directoryProfilesGet
+
+Load one main or variant profile: <Badge text="profileData" variant="param" />, <Badge text="directorySiteKey" variant="param" />, <Badge text="similarityToMainPercent" variant="param" /> on variants.
+
+**Input:**
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| <Badge text="productProfileId" variant="param" /> | string | Yes | Main or variant product profile id |
+
+### directoryProfilesCreate
+
+Create a **new main** business profile (organization comes from the token). Does not create per-site variants — call <Badge text="directoryVariantsEnsure" variant="default" /> afterward.
+
+**Input:** <Badge text="name" variant="param" /> (required) plus optional <Badge text="integrationCustomerId" variant="param" />, <Badge text="tagline" variant="param" />, <Badge text="description" variant="param" />, <Badge text="websiteUrl" variant="param" />, <Badge text="logoUrl" variant="param" />, <Badge text="profileData" variant="param" /> object.
+
+### directoryProfilesUpdate
+
+Patch copy on a main or directory-variant profile (<Badge text="tagline" variant="param" />, <Badge text="description" variant="param" />, <Badge text="websiteUrl" variant="param" />, <Badge text="logoUrl" variant="param" />, <Badge text="profileData" variant="param" />). Use when the user asks to fill or revise tailored fields. Requires <Badge text="productProfileId" variant="param" /> plus at least one field to change.
+
+### directoryVariantsEnsure
+
+Create or return a per-directory copy of a main profile (idempotent). Typical flow: list mains with <Badge text="mainOnly" variant="param" />, then pass <Badge text="mainProductProfileId" variant="param" /> and <Badge text="directorySiteKey" variant="param" /> (<Badge text="peerpush" variant="default" />, <Badge text="uneed" variant="default" />, …). Copies the main profile on first create. Does not submit on the directory site.
+
+**Input:**
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| <Badge text="mainProductProfileId" variant="param" /> | string | Yes | Main profile id (not a variant id) |
+| <Badge text="directorySiteKey" variant="param" /> | string | Yes | Kebab-case site key |
+| <Badge text="name" variant="param" /> | string | No | Optional variant display name |
+
+**Output:** profile DTO plus <Badge text="created" variant="param" /> boolean.
+
+### directoryListingSummary
+
+Read-only launch readiness per published destination: submission status and missing profile fields before extension autofill.
+
+**Input:** <Badge text="productProfileId" variant="param" /> (required) — main or variant id.
+
+### directorySubmissionsList
+
+Read-only submission history (listing URLs, completion). Optional <Badge text="productProfileId" variant="param" /> and <Badge text="destinationId" variant="param" /> filters.
+
+## Directory SEO
+
+Requires directory SEO on the plan. Metrics are **cached** — each domain metric includes <Badge text="checkedAt" variant="param" />; overview responses include <Badge text="manualRefreshAvailableAt" variant="param" /> before calling <Badge text="directorySeoRefresh" variant="default" />.
+
+<Callout type="note">
+<p>Directory SEO tools mirror <Badge text="/public/directory-seo/*" variant="path" />. Treat <Badge text="checkedAt" variant="param" /> as the cache timestamp, not <Badge text="updatedAt" variant="param" />.</p>
+</Callout>
+
+### directorySeoOverview
+
+Cached directory SEO workspace overview for a **main** product profile (product domain metric and competitors). Read <Badge text="checkedAt" variant="param" /> before <Badge text="directorySeoRefresh" variant="default" />.
+
+**Input:** <Badge text="productProfileId" variant="param" /> (required).
+
+### directorySeoHistory
+
+Historical rating points for the product domain and tracked competitors.
+
+**Input:** <Badge text="productProfileId" variant="param" /> (required), optional <Badge text="days" variant="param" /> (default <Badge text="90" variant="param" />, max <Badge text="366" variant="param" />).
+
+### directorySeoRefresh
+
+Manual refresh when cooldown allows (or <Badge text="force" variant="param" /> when supported).
+
+**Input:** <Badge text="productProfileId" variant="param" /> (required), optional <Badge text="force" variant="param" /> boolean.
+
+### directorySeoCompetitorsAdd
+
+Add a competitor domain (workspace competitor quota applies).
+
+**Input:** <Badge text="domain" variant="param" /> (required), optional <Badge text="label" variant="param" /> and <Badge text="sortOrder" variant="param" />.
+
+### directorySeoCompetitorsRemove
+
+**Input:** <Badge text="domain" variant="param" /> (required).
+
+### directorySeoCompetitorsUpdate
+
+**Input:** <Badge text="domain" variant="param" /> (required), <Badge text="label" variant="param" /> (nullable).
 
 ## Related Section(s)
 

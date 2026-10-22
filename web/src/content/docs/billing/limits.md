@@ -31,6 +31,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 | **Media storage (per workspace)** | Upload rejected | Delete files in the media library, or upgrade |
 | **Public API** | Plan error on <Badge text="/api/v1/public/*" variant="path" /> | Subscribe on a paid tier that includes the public API |
 | **Shareable post preview** | Preview links or collaboration comments blocked | Team plan or above on **this workspace’s** subscription (see below) |
+| **Directory launch** | My Products, profiles, variants, submissions, or directory CLI/MCP blocked | Subscribe on a paid Cloud tier that includes directory launch (Solo and above on current plans) |
 | **Directory analytics** | **Directory** tab unavailable or API blocked | Subscribe on a paid Cloud tier (see <a href="/docs/cloud/plans">Plans</a>) |
 | **Directory competitors (per workspace)** | Cannot add another competitor domain | Remove a competitor, or upgrade (caps: Solo **2**, Team **3**, Ultimate **5**, Max **10**) |
 
@@ -101,6 +102,14 @@ If the plan has no team feature:
 > Public API access is not included on your current plan.
 
 **What to do:** Subscribe on a paid Cloud tier that includes the public API (Solo and above on current plans).
+
+### Directory launch
+
+When the workspace is not on a paid tier that includes directory launch (My Products, business profiles, extension handoff, submission tracking, and programmatic <Badge text="directory:*" variant="default" /> CLI or <Badge text="directory*" variant="default" /> MCP tools):
+
+> Directory launch is not included on your current plan.
+
+**What to do:** Subscribe or upgrade on <a href="/account/billing">Billing</a>. Paid tiers include directory launch on the same workspace as social scheduling. See <a href="/docs/cloud/plans">Plans and limits</a>.
 
 ### Directory analytics
 

@@ -21,6 +21,8 @@ import { PublicNotificationController } from "./PublicNotificationController";
 import { PostsController } from "./PostsController";
 import { PublicPostsController } from "./PublicPostsController";
 import { PublicAnalyticsController } from "./PublicAnalyticsController";
+import { PublicDirectoryLaunchController } from "./PublicDirectoryLaunchController";
+import { PublicDirectorySeoController } from "./PublicDirectorySeoController";
 import { OauthAppController } from "./OauthAppController";
 import { OauthController } from "./OauthController";
 import { ApprovedAppsController } from "./ApprovedAppsController";
@@ -133,6 +135,8 @@ export const publicNotificationController = new PublicNotificationController(not
 export const postsController = new PostsController(postsService);
 export const publicPostsController = new PublicPostsController(postsService);
 export const publicAnalyticsController = new PublicAnalyticsController(analyticsService, postsService);
+export const publicDirectoryLaunchController = new PublicDirectoryLaunchController(autoLaunchService);
+export const publicDirectorySeoController = new PublicDirectorySeoController(directorySeoWorkspaceService);
 export const oauthAppController = new OauthAppController(oauthAppService);
 export const oauthController = new OauthController(oauthService);
 export const approvedAppsController = new ApprovedAppsController(oauthService);

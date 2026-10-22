@@ -255,7 +255,11 @@ export const setsService = new SetsService(
     cacheInvalidationServiceConnection
 );
 
-export const autoLaunchService = new AutoLaunchService(autoLaunchRepository, integrationConnectionService);
+export const autoLaunchService = new AutoLaunchService(
+    autoLaunchRepository,
+    integrationConnectionService,
+    subscriptionGuard
+);
 
 export const directorySeoService = new DirectorySeoService(
     directorySeoRepository,

@@ -1,4 +1,4 @@
-import { listPublicChannelsForHub } from '$lib/content/constants/channels';
+import { PUBLIC_AGENT_CHANNEL_HUB_CHANNELS } from '$lib/content/constants/channels/catalog/agentChannelHubSeeds';
 
 import type { PublicAgentChannelHostConfig } from '$lib/content/constants/agents/channels/types';
 import { buildAgentChannelConfigsForHost } from '$lib/content/constants/agents/channels/general';
@@ -20,5 +20,5 @@ export const thinkrailAgentChannelHost: PublicAgentChannelHostConfig = {
 
 export const thinkrailAgentChannelConfigs = buildAgentChannelConfigsForHost(
 	thinkrailAgentChannelHost,
-	listPublicChannelsForHub()
+	PUBLIC_AGENT_CHANNEL_HUB_CHANNELS
 );

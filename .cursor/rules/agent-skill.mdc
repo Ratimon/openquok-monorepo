@@ -12,6 +12,7 @@ alwaysApply: false
 |------|---------|--------|------|
 | **Core CLI skill** | `openquok-core` | `SKILL.md` + `resources/` | Auth, media Rule 2, channel recipes, `openquok` workflows |
 | **Sibling pipeline skill** | `openquok-tiktok-slideshow` | `SKILL.md` + `scripts/` + `references/` | Domain pipeline (research → generate → post); **requires** `openquok-core` / `openquok` on PATH; never replaces core |
+| **Sibling CLI skill** | `openquok-directory-launch` | `SKILL.md` + `resources/` | `directory:*` CLI + hosted MCP directory launch/SEO; **requires** `openquok-core` / `openquok` on PATH; never replaces core |
 
 Sibling skills may depend on core recipes (upload → `{id,path}`, TikTok photo-carousel, `SELF_ONLY` drafts) by instructing the agent to follow `openquok-core` — do not duplicate long CLI matrices into the sibling `SKILL.md`.
 

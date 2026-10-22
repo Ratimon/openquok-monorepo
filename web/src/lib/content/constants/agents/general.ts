@@ -74,6 +74,37 @@ export const DEFAULT_AGENT_INTEGRATIONS: FeaturesAnimatedModel[] = [
 	}
 ];
 
+/** Integrate-step carousel on directory channel landings (`/agents/{host|mcp}/{directory-slug}`). */
+export const DEFAULT_DIRECTORY_AGENT_INTEGRATIONS: FeaturesAnimatedModel[] = [
+	{
+		name: 'Bloom',
+		provider: 'The brand layer for agents',
+		description:
+			'Register Bloom as an MCP server to onboard your brand and generate on-brand images — then reuse logos and creatives on profiles and directory launches with OpenQuok.',
+		iconName: icons.Bloom.name,
+		containerClass: 'bg-white',
+		iconClass: 'size-14'
+	},
+	{
+		name: 'RevenueCat',
+		provider: 'Subscriptions MCP for agents',
+		description:
+			'Connect the RevenueCat MCP server to read MRR, trials, and churn — then sharpen your product profile and directory pitch in OpenQuok before you submit on each site.',
+		iconName: icons.RevenueCat.name,
+		containerClass: 'bg-white',
+		iconClass: 'size-14'
+	},
+	{
+		name: 'Your own skills',
+		provider: 'OpenClaw ecosystem',
+		description:
+			'Install openquok-directory-launch next to openquok-core — list profiles, ensure variants, check listing readiness, then use the browser extension when you submit on the directory site.',
+		iconName: icons.Sparkles.name,
+		containerClass: 'bg-primary/10',
+		iconClass: 'size-12 text-primary'
+	}
+];
+
 /** Listing cards per preview grid block (playbooks or building blocks); see-all card is extra. */
 export const DEFAULT_OPPORTUNITIES_PREVIEW_ITEMS_PER_BLOCK = 6;
 

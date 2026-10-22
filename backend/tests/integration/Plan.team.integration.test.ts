@@ -450,6 +450,7 @@ describeIfSupabase("TEAM plan subscription limits (integration)", () => {
 
     it("blocks adding another directory SEO competitor when TEAM competitor cap is reached", async () => {
         const teamLimits = planLimitsForTier("TEAM");
+        expect(teamLimits.directory_launch_enabled).toBe(true);
         expect(teamLimits.directory_seo_enabled).toBe(true);
         expect(teamLimits.directory_seo_competitors_per_workspace).toBe(3);
 

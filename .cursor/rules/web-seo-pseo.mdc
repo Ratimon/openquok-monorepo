@@ -81,10 +81,10 @@ Pick the tier by route family. Tier 1 and Tier 2 both use a `platforms/{slug}.ts
 | --- | --- |
 | `/agents/{host}` (skill host) | `agents/hosts/{host}.ts` |
 | `/agents/{mcpSlug}` (MCP client) | `mcps/hosts/{mcpSlug}.ts` (+ default FAQ in `mcps/general.ts`, sparse FAQ deltas via `mergeMcpLandingFaqItems`) |
-| `/agents/{host}/{channelSlug}` | `agents/channels/{host}.ts` + `channels/catalog/platforms/{channelSlug}.ts` |
-| `/agents/{mcpSlug}/{channelSlug}` | `mcps/hosts/{mcpSlug}.ts` + `channels/catalog/platforms/{channelSlug}.ts` + `buildMcpChannelLandingVm.ts`; hub/routing: `agents/channels/index.ts` — **map:** `mcps/channels/index.ts` (no `mcps/channels/{channelSlug}.ts` seeds) |
+| `/agents/{host}/{channelSlug}` | `agents/channels/hosts/{host}.ts` + `channels/catalog/platforms/{channelSlug}.ts` or `channels/catalog/directory-platforms/{channelSlug}.ts`; shared builders `agents/channels/kinds/social.ts` / `kinds/directory.ts` via `agents/channels/general.ts` |
+| `/agents/{mcpSlug}/{channelSlug}` | `mcps/hosts/{mcpSlug}.ts` + channel catalog seed + `buildMcpChannelLandingVm.ts`; hub/routing: `agents/channels/index.ts` — **map:** `mcps/channels/index.ts` (no `mcps/channels/{channelSlug}.ts` seeds) |
 
-Do not add `agents/channels/{socialSlug}.ts` unless one host×channel needs copy that cannot live in the host template or catalog.
+Do not add per-slug files under `agents/channels/kinds/` for each social network — extend **`kinds/social.ts`** or **`buildAgentChannelCliCommandReference.ts`**. Directory launches use **`kinds/directory.ts`** and **`isPublicDirectoryChannel`** from `channels/index.ts`.
 
 Inventory: `web/src/lib/content/constants/_dev/programmatic-landing/publicProgrammaticLandingRegistry.ts`.
 

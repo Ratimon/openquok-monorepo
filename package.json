@@ -109,6 +109,8 @@
     "publish:clawhub:manual": "pnpm --filter ./agent run publish:clawhub:manual",
     "publish:clawhub:tiktok-slideshow:dry-run": "pnpm --filter ./agent run publish:clawhub:tiktok-slideshow:dry-run",
     "publish:clawhub:tiktok-slideshow:manual": "pnpm --filter ./agent run publish:clawhub:tiktok-slideshow:manual",
+    "publish:clawhub:directory-launch:dry-run": "pnpm --filter ./agent run publish:clawhub:directory-launch:dry-run",
+    "publish:clawhub:directory-launch:manual": "pnpm --filter ./agent run publish:clawhub:directory-launch:manual",
     "release:notes": "node scripts/release-notes.mjs"
   },
   "keywords": [],

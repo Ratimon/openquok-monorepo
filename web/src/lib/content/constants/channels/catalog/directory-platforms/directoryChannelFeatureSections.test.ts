@@ -19,6 +19,8 @@ describe('buildDirectoryChannelFeatureSections', () => {
 		expect(sections[2]?.title).toBe(product.feature3.title);
 		expect(sections[3]?.title).toBe(product.feature4.title);
 		expect(sections[4]?.title).toBe(product.feature5.title);
-		expect(sections[1]?.sectionKind).toBe('team-hero');
+		expect(sections[1]?.bentoId).toBe('directory-workspaces-team');
+		expect(sections[1]?.description).toContain('openquok directory:*');
+		expect(sections[1]?.description).toContain('peerpush.com');
 	});
 });

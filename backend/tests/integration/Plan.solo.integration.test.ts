@@ -956,6 +956,7 @@ describeIfSupabase("SOLO plan subscription limits (integration)", () => {
 
     it("blocks adding another directory SEO competitor when SOLO competitor cap is reached", async () => {
         const soloLimits = planLimitsForTier("SOLO");
+        expect(soloLimits.directory_launch_enabled).toBe(true);
         expect(soloLimits.directory_seo_enabled).toBe(true);
         expect(soloLimits.directory_seo_competitors_per_workspace).toBe(2);
 

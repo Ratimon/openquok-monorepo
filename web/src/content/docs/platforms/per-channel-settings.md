@@ -1,8 +1,8 @@
 ---
 title: Per-channel settings
-description: Composer Settings per network — privacy, post type, titles, disclosures, and publish options in OpenQuok.
+description: Composer Settings for social networks — and where directory launch stores per-site fields instead.
 order: 3
-lastUpdated: 2026-10-18
+lastUpdated: 2026-10-22
 sidebar:
   label: Per-channel settings
 ---
@@ -13,13 +13,23 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## Per-channel settings
 
-> Extra fields in the composer **Settings** panel that a network needs before you can schedule or publish.
+> Composer **Settings** for **social posting** only — not directory product profiles.
 
-Open **Settings** in the purple accordion while that channel is focused. Required fields block save until you fill them. API and CLI payloads use <Badge text="providerSettingsByIntegrationId" variant="param" /> — field names are in <a href="/docs/public-api-providers">Provider settings</a>. Media and character caps are in <a href="/docs/platforms/media-rules">Media rules</a>.
+Open **Settings** in the purple accordion while that **social** channel is focused. Required fields block save until you fill them. API and CLI payloads use <Badge text="providerSettingsByIntegrationId" variant="param" /> — field names are in <a href="/docs/public-api-providers">Provider settings</a>. Media and character caps are in <a href="/docs/platforms/media-rules">Media rules</a>.
 
-<Callout type="note">
-<p><strong>Directory launch</strong> destinations have no composer <strong>Settings</strong> panel. Configure the business profile on <a href="/account/products">My Products</a> instead. See <a href="/docs/directory-integration">Directory integration</a>.</p>
-</Callout>
+## Directory launch — product profile fields
+
+**PeerPush**, **Uneed**, and other directory destinations have **no** composer **Settings** panel and no <Badge text="providerSettingsByIntegrationId" variant="param" /> row on scheduled posts.
+
+| Topic | Social (sections below) | Directory launch |
+| --- | --- | --- |
+| **Where you configure** | Composer **Settings** per integration | <a href="/account/products">My Products</a> business profile |
+| **Per-site differences** | One integration UUID per connected account | **Main** profile plus optional **variant** per <Badge text="directorySiteKey" variant="param" /> (<Badge text="peerpush" variant="param" />, <Badge text="uneed" variant="param" />, …) |
+| **Programmatic API** | <Badge text="POST /public/posts" variant="path" /> + provider settings | <Badge text="/public/directory-launch/profiles*" variant="path" /> — see <a href="/docs/apis-directory-launch">Directory launch API</a> |
+
+<p>Field mapping and extension handoff: <a href="/docs/directory-integration">Directory integration</a>. Variants: <a href="/docs/directory-submission/profile-variants">Profile variants</a>. Connect model: <a href="/docs/platforms/connect-rules#directory-launch-platforms">Connect rules → Directory launch platforms</a>.</p>
+
+## Social posting — network settings
 
 ### X
 
@@ -190,7 +200,9 @@ You do not upload a PDF yourself. Comments on LinkedIn are <strong>text-only</st
 ## Related
 
 <CardGrid>
-<LinkCard title="Media rules" description="Attachments and character caps" href="/docs/platforms/media-rules" />
-<LinkCard title="Provider settings" description="API field names and JSON examples" href="/docs/public-api-providers" />
+<LinkCard title="Platforms overview" description="Social vs directory rules and identifiers" href="/docs/platforms" />
+<LinkCard title="Media rules" description="Social attachments and character caps" href="/docs/platforms/media-rules" />
+<LinkCard title="Directory integration" description="Per-directory profile fields and autofill" href="/docs/directory-integration" />
+<LinkCard title="Provider settings" description="API field names for social posts" href="/docs/public-api-providers" />
 <LinkCard title="Links and validation" description="Save-time errors when a required field is missing" href="/docs/creating-posts/links-and-validation" />
 </CardGrid>

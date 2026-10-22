@@ -48,6 +48,7 @@
 	import BentoLandingDirectoryProfileCases from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingDirectoryProfileCases.svelte';
 	import BentoLandingDirectoryTrackStatusPreview from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingDirectoryTrackStatusPreview.svelte';
 	import BentoLandingDirectoryAnalyticsPreview from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingDirectoryAnalyticsPreview.svelte';
+	import BentoLandingTeam from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingTeam.svelte';
 
 	type Props = {
 		bentoId: PublicChannelFeatureBentoId;
@@ -143,6 +144,8 @@
 	<BentoSkoolSettings {isLoggedIn} />
 {:else if bentoId === 'skool-follow-ups'}
 	<BentoSkoolFollowUps {isLoggedIn} />
+{:else if bentoId === 'directory-workspaces-team'}
+	<BentoLandingTeam {isLoggedIn} />
 {:else if bentoId === 'directory-profile-cases'}
 	<BentoLandingDirectoryProfileCases />
 {:else if bentoId === 'directory-extension-autofill'}

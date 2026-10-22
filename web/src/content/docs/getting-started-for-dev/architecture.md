@@ -46,7 +46,7 @@ const programmaticSeoPaths = {
 	mcpsHostsSlugTs: 'mcps/hosts/{slug}.ts',
 	mcpsChannelsMaintainerIndex: 'mcps/channels/index.ts',
 	agentsHostChannelSlugUrl: '/agents/{host}/{channelSlug}',
-	agentsChannelsHostTs: 'agents/channels/{host}.ts',
+	agentsChannelsHostTs: 'agents/channels/hosts/{host}.ts',
 	mcpsChannelsChannelSlugTs: 'mcps/channels/{channelSlug}.ts',
 	channelsChannelSlugTs: 'channels/catalog/platforms/{channelSlug}.ts',
 	apiSurfaceSlugSegment: '/{slug}',

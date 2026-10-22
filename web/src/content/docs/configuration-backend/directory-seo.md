@@ -40,7 +40,7 @@ Set these on the **backend API** (manual refresh and read APIs) and on the **hou
 | <Badge text="DIRECTORY_SEO_HISTORY_BACKFILL_TTL_DAYS" variant="envBackend" /> | <code>7</code> | Per domain, skip a repeat timeseries import while <Badge text="provider_history_backfilled_at" variant="param" /> on the snapshot is newer than this TTL. |
 
 <Callout type="note">
-<p>Plan limits (<Badge text="directory_seo_enabled" variant="param" />, competitor caps per workspace) live in subscription catalog code — not env vars. <strong>Free</strong> tiers disable Directory analytics regardless of DataForSEO credentials.</p>
+<p>Plan limits (<Badge text="directory_launch_enabled" variant="param" /> for My Products and directory programmatic surfaces, <Badge text="directory_seo_enabled" variant="param" /> for analytics, competitor caps per workspace) live in subscription catalog code — not env vars. <strong>Free</strong> tiers disable directory launch and Directory analytics regardless of DataForSEO credentials.</p>
 </Callout>
 
 <Callout type="warning" title="Local dev and API credits">

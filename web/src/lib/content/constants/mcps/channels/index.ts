@@ -12,7 +12,7 @@
  * | Routing, hub grid links, slug resolution | `agents/channels/index.ts` (`getPublicAgentChannelBySlug`, `listPublicAgentChannelsForHub`) |
  *
  * **Skill-based agent hosts** (OpenClaw, Grok Bot, Hermes, ThinkRail) use host-first overrides in
- * `agents/channels/{host}.ts` when copy must differ per host×channel — see `PUBLIC_AGENT_CHANNEL_HOST_SLUGS`.
+ * `agents/channels/hosts/{host}.ts` when host meta must differ — see `PUBLIC_AGENT_CHANNEL_HOST_SLUGS`. Channel **kind** builders: `agents/channels/kinds/social.ts` / `directory.ts`.
  *
  * Registry entry: `publicProgrammaticLandingRegistry.ts` → surface id `mcp-channel`.
  */

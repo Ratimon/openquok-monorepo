@@ -4,9 +4,25 @@ import { withAgentCreatePayload } from "./agent";
 import type {
     PublicAbortMultipartResponseDto,
     PublicChannelGroupDto,
+    PublicCreateDirectoryLaunchProfileDto,
     PublicCreateMultipartResponseDto,
     PublicCreatePostDto,
     PublicDeletePostDataDto,
+    PublicDirectoryLaunchBusinessProfileDto,
+    PublicDirectoryLaunchDestinationDto,
+    PublicDirectoryLaunchListingSummaryDto,
+    PublicDirectoryLaunchProfileDto,
+    PublicDirectoryLaunchResponseDto,
+    PublicDirectoryLaunchSubmissionDto,
+    PublicDirectorySeoAddCompetitorDto,
+    PublicDirectorySeoCompetitorDto,
+    PublicDirectorySeoDeleteCompetitorDto,
+    PublicDirectorySeoRefreshDto,
+    PublicDirectorySeoResponseDto,
+    PublicDirectorySeoUpdateCompetitorDto,
+    PublicDirectorySeoWorkspaceHistoryDto,
+    PublicDirectorySeoWorkspaceOverviewDto,
+    PublicEnsureDirectoryLaunchVariantDto,
     PublicFlipPostStatusDto,
     PublicReschedulePostDto,
     PublicIntegrationDto,
@@ -19,6 +35,7 @@ import type {
     PublicPlugUpsertResultDto,
     PublicPostSummaryDto,
     PublicSignPartsResponseDto,
+    PublicUpdateDirectoryLaunchProfileDto,
     PublicUpdatePostReleaseIdDataDto,
     PublicUpdatePostReviewTodoDto,
     PublicUploadResponseDto,
@@ -62,6 +79,27 @@ export type {
     PublicUploadDataDto,
     PublicUploadResponseDto,
     PublicWorkspaceDto,
+    PublicCreateDirectoryLaunchProfileDto,
+    PublicDirectoryLaunchBusinessProfileDto,
+    PublicDirectoryLaunchDestinationDto,
+    PublicDirectoryLaunchListingSummaryDestinationDto,
+    PublicDirectoryLaunchListingSummaryDto,
+    PublicDirectoryLaunchProfileDto,
+    PublicDirectoryLaunchResponseDto,
+    PublicDirectoryLaunchSubmissionDto,
+    PublicDirectorySeoAddCompetitorDto,
+    PublicDirectorySeoCompetitorDto,
+    PublicDirectorySeoCompetitorHistoryDto,
+    PublicDirectorySeoDeleteCompetitorDto,
+    PublicDirectorySeoDomainMetricDto,
+    PublicDirectorySeoHistoryPointDto,
+    PublicDirectorySeoRefreshDto,
+    PublicDirectorySeoResponseDto,
+    PublicDirectorySeoUpdateCompetitorDto,
+    PublicDirectorySeoWorkspaceHistoryDto,
+    PublicDirectorySeoWorkspaceOverviewDto,
+    PublicEnsureDirectoryLaunchVariantDto,
+    PublicUpdateDirectoryLaunchProfileDto,
 } from "./dtos";
 export { MAX_MEDIA_DIRECT_UPLOAD_BYTES, MEDIA_MULTIPART_PART_BYTES } from "./upload";
 
@@ -504,5 +542,155 @@ export default class Openquok {
     async listNotifications(page = 0) {
         const qs = page > 0 ? `?page=${page}` : "";
         return await this.json(`/public/notifications${qs}`);
+    }
+
+    /** Published directory launch destinations (`GET /public/directory-launch/destinations`). */
+    async listDirectoryLaunchDestinations(): Promise<
+        PublicDirectoryLaunchResponseDto<PublicDirectoryLaunchDestinationDto[]>
+    > {
+        return await this.json("/public/directory-launch/destinations");
+    }
+
+    /** Channel-group ↔ product rows (`GET /public/directory-launch/business-profiles`). */
+    async listDirectoryLaunchBusinessProfiles(): Promise<
+        PublicDirectoryLaunchResponseDto<PublicDirectoryLaunchBusinessProfileDto[]>
+    > {
+        return await this.json("/public/directory-launch/business-profiles");
+    }
+
+    /** Product profiles (`GET /public/directory-launch/profiles`). */
+    async listDirectoryLaunchProfiles(options?: {
+        integrationCustomerId?: string;
+    }): Promise<PublicDirectoryLaunchResponseDto<PublicDirectoryLaunchProfileDto[]>> {
+        const qs =
+            options?.integrationCustomerId?.trim()
+                ? toQueryString({ integrationCustomerId: options.integrationCustomerId.trim() })
+                : "";
+        return await this.json(`/public/directory-launch/profiles${qs ? `?${qs}` : ""}`);
+    }
+
+    /** One product profile (`GET /public/directory-launch/profiles/:id`). */
+    async getDirectoryLaunchProfile(
+        profileId: string
+    ): Promise<PublicDirectoryLaunchResponseDto<PublicDirectoryLaunchProfileDto>> {
+        return await this.json(
+            `/public/directory-launch/profiles/${encodeURIComponent(profileId)}`
+        );
+    }
+
+    /** Create main profile (`POST /public/directory-launch/profiles`). */
+    async createDirectoryLaunchProfile(
+        body: PublicCreateDirectoryLaunchProfileDto
+    ): Promise<PublicDirectoryLaunchResponseDto<PublicDirectoryLaunchProfileDto>> {
+        return await this.json("/public/directory-launch/profiles", {
+            method: "POST",
+            body,
+        });
+    }
+
+    /** Patch profile (`PATCH /public/directory-launch/profiles/:id`). */
+    async updateDirectoryLaunchProfile(
+        profileId: string,
+        body: PublicUpdateDirectoryLaunchProfileDto
+    ): Promise<PublicDirectoryLaunchResponseDto<PublicDirectoryLaunchProfileDto>> {
+        return await this.json(
+            `/public/directory-launch/profiles/${encodeURIComponent(profileId)}`,
+            {
+                method: "PATCH",
+                body,
+            }
+        );
+    }
+
+    /** Idempotent variant (`POST /public/directory-launch/profiles/:mainId/variants`). */
+    async ensureDirectoryLaunchVariant(
+        mainProfileId: string,
+        body: PublicEnsureDirectoryLaunchVariantDto
+    ): Promise<PublicDirectoryLaunchResponseDto<PublicDirectoryLaunchProfileDto>> {
+        return await this.json(
+            `/public/directory-launch/profiles/${encodeURIComponent(mainProfileId)}/variants`,
+            {
+                method: "POST",
+                body,
+            }
+        );
+    }
+
+    /** Launch readiness summary (`GET /public/directory-launch/profiles/:id/listing-summary`). */
+    async getDirectoryLaunchListingSummary(
+        profileId: string
+    ): Promise<PublicDirectoryLaunchResponseDto<PublicDirectoryLaunchListingSummaryDto>> {
+        return await this.json(
+            `/public/directory-launch/profiles/${encodeURIComponent(profileId)}/listing-summary`
+        );
+    }
+
+    /** Read-only submissions (`GET /public/directory-launch/submissions`). */
+    async listDirectoryLaunchSubmissions(options?: {
+        productProfileId?: string;
+        destinationId?: string;
+    }): Promise<PublicDirectoryLaunchResponseDto<PublicDirectoryLaunchSubmissionDto[]>> {
+        const qs = options ? toQueryString(options as Record<string, unknown>) : "";
+        return await this.json(`/public/directory-launch/submissions${qs ? `?${qs}` : ""}`);
+    }
+
+    /** Directory SEO overview (`GET /public/directory-seo/workspace/overview`). */
+    async getDirectorySeoOverview(
+        productProfileId: string
+    ): Promise<PublicDirectorySeoResponseDto<PublicDirectorySeoWorkspaceOverviewDto>> {
+        return await this.json(
+            `/public/directory-seo/workspace/overview?${toQueryString({ productProfileId })}`
+        );
+    }
+
+    /** Directory SEO history (`GET /public/directory-seo/workspace/history`). */
+    async getDirectorySeoHistory(
+        productProfileId: string,
+        days = 90
+    ): Promise<PublicDirectorySeoResponseDto<PublicDirectorySeoWorkspaceHistoryDto>> {
+        return await this.json(
+            `/public/directory-seo/workspace/history?${toQueryString({ productProfileId, days })}`
+        );
+    }
+
+    /** Manual refresh (`POST /public/directory-seo/workspace/refresh`). */
+    async refreshDirectorySeo(
+        body: PublicDirectorySeoRefreshDto
+    ): Promise<PublicDirectorySeoResponseDto<PublicDirectorySeoWorkspaceOverviewDto>> {
+        return await this.json("/public/directory-seo/workspace/refresh", {
+            method: "POST",
+            body,
+        });
+    }
+
+    /** Add competitor (`POST /public/directory-seo/workspace/competitors`). */
+    async addDirectorySeoCompetitor(
+        body: PublicDirectorySeoAddCompetitorDto
+    ): Promise<PublicDirectorySeoResponseDto<PublicDirectorySeoCompetitorDto> & { message: string }> {
+        return await this.json("/public/directory-seo/workspace/competitors", {
+            method: "POST",
+            body,
+        });
+    }
+
+    /** Remove competitor (`DELETE /public/directory-seo/workspace/competitors`). */
+    async deleteDirectorySeoCompetitor(body: PublicDirectorySeoDeleteCompetitorDto): Promise<{
+        success: boolean;
+        message: string;
+    }> {
+        return await this.json("/public/directory-seo/workspace/competitors", {
+            method: "DELETE",
+            body,
+        });
+    }
+
+    /** Update competitor label (`PATCH /public/directory-seo/workspace/competitors`). */
+    async updateDirectorySeoCompetitor(
+        body: PublicDirectorySeoUpdateCompetitorDto
+    ): Promise<PublicDirectorySeoResponseDto<PublicDirectorySeoCompetitorDto> & { message: string }> {
+        return await this.json("/public/directory-seo/workspace/competitors", {
+            method: "PATCH",
+            body,
+        });
     }
 }

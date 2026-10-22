@@ -6,6 +6,10 @@
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
 	import PublicAgentsLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicAgentsLandingBreadcrumb.svelte';
 	import PublicChannelsLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicChannelsLandingBreadcrumb.svelte';
+	import {
+		DIRECTORY_LAUNCH_MCP_SKILL_INSTALL_OPTIONS
+	} from '$lib/content/constants/agents/cli-command-reference';
+	import { ONBOARDING_INLINE_TERMINAL_CODE_CLASS } from '$lib/ui/components/onboarding/onboardingConstants';
 	import SkillInstallCommandTabs from '$lib/ui/templates/landing-page/SkillInstallCommandTabs.svelte';
 	import PublicHeroTitle from '$lib/ui/templates/titles/PublicHeroTitle.svelte';
 
@@ -24,6 +28,7 @@
 		docsCtaText?: string;
 		docsCtaHref?: string;
 		channelLabel?: string | null;
+		showDirectoryLaunchSkill?: boolean;
 	};
 
 	let {
@@ -33,7 +38,8 @@
 		ctaHref,
 		docsCtaText,
 		docsCtaHref,
-		channelLabel = null
+		channelLabel = null,
+		showDirectoryLaunchSkill = false
 	}: Props = $props();
 
 	const showDocsCta = $derived(Boolean(docsCtaText?.trim() && docsCtaHref?.trim()));
@@ -123,9 +129,15 @@
 					id={installHeadingId}
 					class="text-center text-sm font-semibold tracking-tight text-base-content/75 sm:text-base"
 				>
-					Install our core skill:
+					{showDirectoryLaunchSkill ? 'Install skills (core, then directory):' : 'Install our core skill:'}
 				</h2>
 				<SkillInstallCommandTabs options={agentVm.skillInstallOptions} />
+				{#if showDirectoryLaunchSkill}
+					<p class="text-center text-sm font-medium text-base-content/80">
+						Then <code class={ONBOARDING_INLINE_TERMINAL_CODE_CLASS}>openquok-directory-launch</code>
+					</p>
+					<SkillInstallCommandTabs options={DIRECTORY_LAUNCH_MCP_SKILL_INSTALL_OPTIONS} />
+				{/if}
 			</section>
 		</div>
 	</div>

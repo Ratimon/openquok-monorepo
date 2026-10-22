@@ -122,6 +122,7 @@ Details: [resources/command-reference.md](./resources/command-reference.md#authe
 | 5 | `posts:create` / `posts:status` / `posts:reschedule`; use `posts:status` to flip draft ↔ scheduled at the same time; use `posts:reschedule` to move the publish slot; agent drafts: `-t draft` + `--note`; TikTok inbox/private drafts: `--note` with finish-in-app checklist; update with `posts:review-todo` |
 | 6 | `analytics:platform` / `analytics:post` with `-d 7` \| `30` \| `90` |
 | 7 | Missing release id: `posts:missing` → `posts:connect --release-id` |
+| 8 | Directory launch (product profiles, PeerPush/Uneed variants, listing readiness, cached directory SEO): install sibling **openquok-directory-launch** — `directory:*` CLI or hosted MCP `directory*` / `directorySeo*` tools |
 
 Connect new channels in the web app; the CLI only uses UUIDs from `integrations:list`. **Browser extension channels** (Skool): connect in the dashboard with the extension while signed in on the platform site — the CLI cannot complete connect.
 

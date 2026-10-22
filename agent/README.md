@@ -12,6 +12,7 @@
 - List posts, flip draft ↔ scheduled (`posts:status`), and move publish slots (`posts:reschedule`)
 - Upload media for use in posts
 - List programmatic integrations and trigger provider-specific tools (e.g. Dev.to tags and organizations, LinkedIn company URLs)
+- Manage directory launch product profiles, variants, listing readiness, and directory SEO metrics (`directory:*`)
 
 
 ## Quickstart
@@ -139,6 +140,32 @@ openquok analytics:post <postId> [--days 7|30|90]
 - `analytics:post` returns per-post metrics (likes, comments, shares, …) for a **published** post. Drafts/queued posts return `[]`.
 - The `--days` window is one of `7`, `30`, or `90` (default `7`); the backend will reject any other value.
 
+### Directory launch and SEO
+
+```bash
+openquok directory:destinations:list
+openquok directory:profiles:list [--main-only] [--customer-group-id <customer-group-id>]
+openquok directory:profiles:get <profileId>
+openquok directory:profiles:create --name "…" [--json ./profile.json]
+openquok directory:profiles:update <profileId> [--json ./patch.json]
+openquok directory:variants:ensure <mainProfileId> --site-key peerpush
+openquok directory:listings <profileId>
+openquok directory:submissions:list [--profile <profileId>] [--destination <destinationId>]
+
+openquok directory:analytics:overview --profile <profileId>
+openquok directory:analytics:history --profile <profileId> [--days 1-366]
+openquok directory:analytics:refresh --profile <profileId> [--force]
+openquok directory:analytics:competitors:add --domain rival.example [--label "…"]
+openquok directory:analytics:competitors:remove --domain rival.example
+openquok directory:analytics:competitors:update --domain rival.example [--label "…"]
+```
+
+- Directory launch routes require the workspace **directory launch** plan capability; directory SEO commands require **directory SEO** (in addition to programmatic API access).
+- SEO responses are cached: inspect `checkedAt` on domain metrics and `manualRefreshAvailableAt` after refresh.
+- `directory:profiles:list --main-only` filters client-side (main profiles have no `parentProfileId`).
+- `directory:variants:ensure` is idempotent — existing variants return HTTP 200 with the same profile row.
+- Logo and screenshots: `--logo-url` and `profileData.gallery_urls` (max 3) on `directory:profiles:create` / `update`. CLI does not upload into the My Products profile-media bucket — use public https URLs or the web composer; optional `upload` / `upload-from-url` only add workspace media for posts. Details: [Directory launch CLI — logo and screenshots](https://www.openquok.com/docs/cli-usages/directory-launch#logo-and-screenshots).
+
 ### Media upload
 
 ```bash
@@ -208,7 +235,7 @@ pnpm --filter ./agent start -- --help
 After adding or renaming commands, run these to confirm every group is wired into `registerAllCommands`:
 
 ```bash
-# 1. Top-level `--help` should list config, auth, integrations, posts, analytics, upload, and upload-from-url verbs
+# 1. Top-level `--help` should list config, auth, integrations, posts, analytics, directory, upload, and upload-from-url verbs
 pnpm --filter ./agent cli -- --help
 
 # 2. Each command should respond to `--help` with its yargs `Examples:` block
@@ -223,6 +250,8 @@ pnpm --filter ./agent cli -- posts:delete --help
 pnpm --filter ./agent cli -- posts:missing --help
 pnpm --filter ./agent cli -- posts:connect --help
 pnpm --filter ./agent cli -- upload-from-url --help
+pnpm --filter ./agent cli -- directory:profiles:list --help
+pnpm --filter ./agent cli -- directory:listings --help
 ```
 
 For a connectivity smoke (requires a valid `opo_` programmatic token or stored credentials):

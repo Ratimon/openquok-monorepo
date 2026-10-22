@@ -6,6 +6,8 @@ export type MockProgrammaticApi = {
   baseUrl: string;
   /** Last JSON body received on `POST /api/v1/public/posts`. */
   getLastCreatePostBody: () => unknown | null;
+  /** Last query string on `GET /api/v1/public/directory-launch/profiles`. */
+  getLastDirectoryProfilesQuery: () => URLSearchParams | null;
   close: () => Promise<void>;
 };
 
@@ -15,9 +17,28 @@ export type MockProgrammaticApi = {
  */
 export function startMockProgrammaticApi(): Promise<MockProgrammaticApi> {
   let lastCreateBody: unknown | null = null;
+  let lastDirectoryProfilesQuery: URLSearchParams | null = null;
 
   const server = http.createServer((req, res) => {
-    const pathname = (req.url ?? "").split("?")[0] ?? "";
+    const rawUrl = req.url ?? "";
+    const pathname = rawUrl.split("?")[0] ?? "";
+
+    if (req.method === "GET" && pathname === "/api/v1/public/directory-launch/profiles") {
+      const q = rawUrl.includes("?") ? new URL(rawUrl, "http://127.0.0.1").searchParams : new URLSearchParams();
+      lastDirectoryProfilesQuery = q;
+      res.statusCode = 200;
+      res.setHeader("Content-Type", "application/json");
+      res.end(
+        JSON.stringify({
+          success: true,
+          data: [
+            { id: "main-1", name: "Main", parentProfileId: null, profileKind: "main" },
+            { id: "var-1", name: "Variant", parentProfileId: "main-1", profileKind: "variant" },
+          ],
+        })
+      );
+      return;
+    }
 
     if (req.method === "POST" && pathname === "/api/v1/public/posts") {
       const chunks: Buffer[] = [];
@@ -56,6 +77,7 @@ export function startMockProgrammaticApi(): Promise<MockProgrammaticApi> {
       resolve({
         baseUrl: `http://127.0.0.1:${addr.port}`,
         getLastCreatePostBody: () => lastCreateBody,
+        getLastDirectoryProfilesQuery: () => lastDirectoryProfilesQuery,
         close: () =>
           new Promise((res, rej) => {
             server.close((err) => (err ? rej(err) : res()));

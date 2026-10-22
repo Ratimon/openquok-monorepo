@@ -6,6 +6,7 @@ import {
 	buildPublicChannelAudienceTitle,
 	sortChannelPageAgentIntegrations
 } from '$lib/content/constants/channels/catalog/channelPageSeo';
+import { publicDirectoryChannelHeroStatBadges } from '$lib/content/constants/channels/catalog/directory-platforms/directoryChannelLandingShared';
 import {
 	getPublicChannelBySlug,
 	listPublicChannelsForHub,
@@ -52,7 +53,7 @@ describe('channelPageSeo', () => {
 		const peerpush = getPublicChannelBySlug('peerpush');
 		expect(peerpush?.channelKind).toBe('directory');
 		expect(peerpush?.heroTitle).toBe(
-			'Launch on PeerPush and other platforms in days not weeks'
+			'Launch on PeerPush and other platforms in one click not weeks'
 		);
 		expect(peerpush?.audienceTitle).toBe('Who launches on PeerPush with OpenQuok?');
 		expect(peerpush?.audienceSubtitle).toBe('For founders in the AI era');
@@ -61,12 +62,11 @@ describe('channelPageSeo', () => {
 		expect(peerpush?.featureSections).toHaveLength(5);
 		expect(peerpush?.featureSections.map((s) => s.bentoId)).toEqual([
 			'directory-extension-autofill',
-			undefined,
+			'directory-workspaces-team',
 			'directory-profile-cases',
 			'directory-analytics',
 			undefined
 		]);
-		expect(peerpush?.featureSections[1]?.sectionKind).toBe('team-hero');
 		expect(peerpush?.featureSections[4]?.imageSrc).toContain('search-console-performance');
 		expect(peerpush?.faqItems.some((item) => item.title.includes('Grok Bot'))).toBe(false);
 
@@ -74,5 +74,15 @@ describe('channelPageSeo', () => {
 		expect(socialSlugs.has('peerpush')).toBe(false);
 		expect(socialSlugs.has('uneed')).toBe(false);
 		expect(listPublicDirectoryChannelsForHub().map((c) => c.slug)).toEqual(['peerpush', 'uneed']);
+
+		const heroBadges = publicDirectoryChannelHeroStatBadges();
+		expect(heroBadges).toHaveLength(4);
+		expect(heroBadges.map((b) => b.value)).toEqual([
+			'Your picks',
+			'Team seats',
+			'Full control',
+			'More visibility'
+		]);
+		expect(heroBadges.every((b) => !b.value.includes('…'))).toBe(true);
 	});
 });

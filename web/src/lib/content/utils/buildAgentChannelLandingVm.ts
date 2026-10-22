@@ -8,9 +8,23 @@ import {
 	resolveAgentChannelAudienceCards
 } from '$lib/content/constants/agents/ecosystems';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels';
+import { isPublicDirectoryChannel } from '$lib/content/constants/channels';
 
 import { channelProviderIdentifiersSupportAnalytics } from '$data/social-providers';
 
+import {
+	buildDirectoryAgentChannelHeroDescription,
+	buildDirectoryAgentChannelHeroTitle,
+	buildDirectoryAgentChannelLandingFaqSubtitle,
+	buildDirectoryOpportunitiesPreviewCopy,
+	buildDirectoryWorkflowSectionDescription,
+	buildDirectoryWorkflowSectionDeviceMock,
+	buildDirectoryWorkflowSectionImageAlt,
+	buildDirectoryWorkflowSectionTitle,
+	DIRECTORY_WORKFLOW_MOCK_FALLBACK_CLIENT,
+	mapDirectoryChannelLandingFaqItems,
+	mapSetupStepsForDirectoryIntegrations
+} from '$lib/content/utils/buildDirectoryChannelLandingVmCopy';
 import { customizeAgentsChannelFeatureSections } from '$lib/content/utils/buildAgentsChannelFeatureSections';
 import { buildAgentsChannelAudienceSection } from '$lib/content/utils/buildAgentsChannelAudienceSection';
 import { buildAgentChannelMetaTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
@@ -55,6 +69,107 @@ export function buildAgentChannelLandingVm(params: {
 		platformLabel
 	);
 	const hostProfile = getAgentHostProfile(baseAgent.slug);
+	const channelLinks = buildChannelFaqLinks(channel.slug, channel.docsPath);
+	const agentLinks = buildAgentFaqLinks(baseAgent.slug, baseAgent.docsPath);
+	const featureSections = customizeAgentsChannelFeatureSections(
+		baseAgent.featureSections,
+		channel,
+		channelConfig,
+		'agent-host',
+		agentLabel
+	);
+	const hostFaqTitles = new Set(baseAgent.faqItems.map((item) => item.title));
+	const ecosystemChannelFaqItems = buildAgentChannelEcosystemFaqItems({
+		hostSlug: baseAgent.slug,
+		channelSlug: channel.slug,
+		platformLabel,
+		agentLabel
+	}).filter((item) => !hostFaqTitles.has(item.title));
+
+	if (isPublicDirectoryChannel(channel)) {
+		const messagingGateway = hostProfile?.uiArchetype === 'messaging-gateway';
+		const opportunitiesCopy = buildDirectoryOpportunitiesPreviewCopy(platformLabel, agentLabel);
+		const heroDescription = buildDirectoryAgentChannelHeroDescription({
+			agentLabel,
+			platformLabel,
+			channelSlug: channel.slug,
+			messagingGateway
+		});
+
+		return {
+			...baseAgent,
+			heroSecondaryIcon: channel.icon,
+			...audienceSection,
+			audienceCards,
+			setupSteps: mapSetupStepsForDirectoryIntegrations(baseAgent.setupSteps, {
+				platformLabel,
+				workflowLabel: agentLabel
+			}),
+			metaTitle: channelConfig.metaTitle,
+			metaDescription: channelConfig.metaDescription.replace('OpenClaw', agentLabel),
+			keywords: [
+				...channelConfig.keywords.map((keyword) =>
+					keyword.replace('OpenClaw', agentLabel)
+				)
+			],
+			heroTitle: buildDirectoryAgentChannelHeroTitle(platformLabel, agentLabel),
+			heroDescription,
+			workflowSection: baseAgent.workflowSection
+				? {
+						...baseAgent.workflowSection,
+						...buildDirectoryWorkflowSectionDeviceMock(DIRECTORY_WORKFLOW_MOCK_FALLBACK_CLIENT),
+						title: buildDirectoryWorkflowSectionTitle(platformLabel),
+						description: buildDirectoryWorkflowSectionDescription(
+							agentLabel,
+							platformLabel,
+							channel.slug
+						),
+						imageAlt: buildDirectoryWorkflowSectionImageAlt(agentLabel, platformLabel)
+					}
+				: undefined,
+			featureSections,
+			opportunitiesPreviewSection: {
+				...baseAgent.opportunitiesPreviewSection,
+				...opportunitiesCopy
+			},
+			comparisonSection: baseAgent.comparisonSection
+				? {
+						...baseAgent.comparisonSection,
+						description: baseAgent.comparisonSection.description.replace(
+							'agents',
+							`${platformLabel} directory launch from ${agentLabel}`
+						)
+					}
+				: undefined,
+			commandReferenceSection: baseAgent.commandReferenceSection
+				? {
+						...baseAgent.commandReferenceSection,
+						description: `${platformLabel} directory launch commands from the openquok-directory-launch skill (requires openquok-core) — structured JSON on stdout, product profiles, variants, and listing readiness before you submit on the directory site.`,
+						commands: channelConfig.commands
+					}
+				: undefined,
+			faqSubtitle: baseAgent.faqSubtitle,
+			faqTitle: `${agentLabel} + ${platformLabel}, answered`,
+			faqDescription: buildDirectoryAgentChannelLandingFaqSubtitle(agentLabel, platformLabel),
+			faqItems: appendChannelLandingFaqItems(
+				[
+					...ecosystemChannelFaqItems,
+					...mapDirectoryChannelLandingFaqItems(baseAgent.faqItems, {
+						assistantLabel: agentLabel,
+						platformLabel,
+						channelConfig,
+						mode: 'agent-host',
+						docsHref: channelLinks.docs,
+						channelLandingHref: channelLinks.channelLanding,
+						agentDocsHref: agentLinks.docs,
+						agentChannelHref: agentLinks.agentChannel(channel.slug)
+					})
+				],
+				channel.faqItems
+			)
+		};
+	}
+
 	const heroDescription =
 		hostProfile?.uiArchetype === 'messaging-gateway'
 			? `Message ${agentLabel} from Telegram, WhatsApp, or Slack. Add the openquok-core skill so it schedules ${platformLabel} posts while you review on the calendar or kanban.`
@@ -63,15 +178,6 @@ export function buildAgentChannelLandingVm(params: {
 					agentLabel,
 					platformLabel
 				});
-	const hostFaqTitles = new Set(baseAgent.faqItems.map((item) => item.title));
-	const ecosystemChannelFaqItems = buildAgentChannelEcosystemFaqItems({
-		hostSlug: baseAgent.slug,
-		channelSlug: channel.slug,
-		platformLabel,
-		agentLabel
-	}).filter((item) => !hostFaqTitles.has(item.title));
-	const channelLinks = buildChannelFaqLinks(channel.slug, channel.docsPath);
-	const agentLinks = buildAgentFaqLinks(baseAgent.slug, baseAgent.docsPath);
 	const humanizerChannelLinks = buildToolChannelFaqLinks('humanizer', channel.slug);
 
 	return {
@@ -98,12 +204,7 @@ export function buildAgentChannelLandingVm(params: {
 					imageAlt: `${agentLabel} chat scheduling ${platformLabel} posts via OpenQuok`
 				}
 			: undefined,
-		featureSections: customizeAgentsChannelFeatureSections(
-			baseAgent.featureSections,
-			channel,
-			channelConfig,
-			'agent-host'
-		),
+		featureSections,
 		opportunitiesPreviewSection: {
 			...baseAgent.opportunitiesPreviewSection,
 			title: `${platformLabel} viral formats`,
@@ -136,29 +237,29 @@ export function buildAgentChannelLandingVm(params: {
 			[
 				...ecosystemChannelFaqItems,
 				...baseAgent.faqItems.map((item) => {
-			if (item.title === 'Which social media platforms are supported?') {
-				return {
-					...item,
-					title: `How does ${agentLabel} schedule ${platformLabel} posts?`,
-					description: `Connect your ${platformLabel} account via the ${faqLink(channelLinks.docs, `${platformLabel} setup guide`)} or the ${faqLink(channelLinks.channelLanding, `${platformLabel} channel landing`)}. Install openquok-core on ${agentLabel} with the ${faqLink(agentLinks.docs, `${agentLabel} agent guide`)}. Message your assistant to schedule — ${agentLabel} uses integration UUIDs from openquok integrations:list to target your ${platformLabel} account. Every post lands as a draft or scheduled item until you approve on the calendar or kanban. Browse ${faqLink(channelLinks.playbooksTag, `${platformLabel} playbooks`)} and ${faqLink(channelLinks.buildingBlocksTag, `${platformLabel} building blocks`)} for format ideas.`
-				};
-			}
-			if (
-				item.title === 'What can OpenClaw do with OpenQuok?' ||
-				item.title === 'What can Hermes Agent do with OpenQuok?' ||
-				item.title === 'What can Grok Bot do with OpenQuok?' ||
-				item.title === 'What can ThinkRail do with OpenQuok?'
-			) {
-				const capabilities = supportsAnalytics
-					? `${agentLabel} can draft and schedule ${platformLabel} posts, upload images and video, apply per-platform settings, and pull platform and post analytics for your connected ${platformLabel} account. The openquok-core skill documents integrations:list, posts:create, posts:status, analytics:platform, upload, and more — every command returns structured JSON for the agent to parse. See ${faqLink(agentLinks.agentChannel(channel.slug), `${agentLabel} + ${platformLabel}`)} and the ${faqLink(humanizerChannelLinks.toolChannel, `${platformLabel} humanizer tool`)} for channel-specific workflows.`
-					: `${agentLabel} can draft and schedule ${platformLabel} posts, upload images and video, and apply per-platform settings for your connected ${platformLabel} account. The openquok-core skill documents integrations:list, posts:create, posts:status, upload, and more — every command returns structured JSON for the agent to parse. See ${faqLink(agentLinks.agentChannel(channel.slug), `${agentLabel} + ${platformLabel}`)} and the ${faqLink(humanizerChannelLinks.toolChannel, `${platformLabel} humanizer tool`)} for channel-specific workflows.`;
-				return {
-					...item,
-					title: `What can ${agentLabel} do with ${platformLabel} on OpenQuok?`,
-					description: capabilities
-				};
-			}
-			return item;
+					if (item.title === 'Which social media platforms are supported?') {
+						return {
+							...item,
+							title: `How does ${agentLabel} schedule ${platformLabel} posts?`,
+							description: `Connect your ${platformLabel} account via the ${faqLink(channelLinks.docs, `${platformLabel} setup guide`)} or the ${faqLink(channelLinks.channelLanding, `${platformLabel} channel landing`)}. Install openquok-core on ${agentLabel} with the ${faqLink(agentLinks.docs, `${agentLabel} agent guide`)}. Message your assistant to schedule — ${agentLabel} uses integration UUIDs from openquok integrations:list to target your ${platformLabel} account. Every post lands as a draft or scheduled item until you approve on the calendar or kanban. Browse ${faqLink(channelLinks.playbooksTag, `${platformLabel} playbooks`)} and ${faqLink(channelLinks.buildingBlocksTag, `${platformLabel} building blocks`)} for format ideas.`
+						};
+					}
+					if (
+						item.title === 'What can OpenClaw do with OpenQuok?' ||
+						item.title === 'What can Hermes Agent do with OpenQuok?' ||
+						item.title === 'What can Grok Bot do with OpenQuok?' ||
+						item.title === 'What can ThinkRail do with OpenQuok?'
+					) {
+						const capabilities = supportsAnalytics
+							? `${agentLabel} can draft and schedule ${platformLabel} posts, upload images and video, apply per-platform settings, and pull platform and post analytics for your connected ${platformLabel} account. The openquok-core skill documents integrations:list, posts:create, posts:status, analytics:platform, upload, and more — every command returns structured JSON for the agent to parse. See ${faqLink(agentLinks.agentChannel(channel.slug), `${agentLabel} + ${platformLabel}`)} and the ${faqLink(humanizerChannelLinks.toolChannel, `${platformLabel} humanizer tool`)} for channel-specific workflows.`
+							: `${agentLabel} can draft and schedule ${platformLabel} posts, upload images and video, and apply per-platform settings for your connected ${platformLabel} account. The openquok-core skill documents integrations:list, posts:create, posts:status, upload, and more — every command returns structured JSON for the agent to parse. See ${faqLink(agentLinks.agentChannel(channel.slug), `${agentLabel} + ${platformLabel}`)} and the ${faqLink(humanizerChannelLinks.toolChannel, `${platformLabel} humanizer tool`)} for channel-specific workflows.`;
+						return {
+							...item,
+							title: `What can ${agentLabel} do with ${platformLabel} on OpenQuok?`,
+							description: capabilities
+						};
+					}
+					return item;
 				})
 			],
 			channel.faqItems

@@ -30,6 +30,7 @@ import {
 	buildPublicChannelEcosystemAudienceTailoredCard,
 	buildPublicChannelEcosystemFaqItems
 } from '$lib/content/constants/agents/ecosystems';
+import { PUBLIC_AGENT_CHANNEL_HUB_CHANNELS } from '$lib/content/constants/channels/catalog/agentChannelHubSeeds';
 import { PUBLIC_DIRECTORY_CHANNEL_LANDING_PAGES } from '$lib/content/constants/channels/catalog/directory-seeds';
 import { PUBLIC_CHANNEL_LANDING_PAGES } from '$lib/content/constants/channels/catalog/seeds';
 
@@ -66,8 +67,13 @@ function getChannelSeedBySlug(key: string): PublicChannelLandingPageViewModel | 
 	return channelBySlug.get(key) ?? directoryChannelBySlug.get(key);
 }
 
-function isDirectoryChannelKind(page: PublicChannelLandingPageViewModel): boolean {
+export function isPublicDirectoryChannel(page: PublicChannelLandingPageViewModel): boolean {
 	return page.channelKind === 'directory';
+}
+
+export function isPublicDirectoryChannelSlug(slug: string): boolean {
+	const key = slug.trim().toLowerCase();
+	return directoryChannelBySlug.has(key);
 }
 
 /** Optional fourth WhoIsFor card from `audienceTailoredCard` on the channel seed. */
@@ -137,7 +143,7 @@ export function getPublicChannelBySlug(slug: string): PublicChannelLandingPageVi
 	const page = getChannelSeedBySlug(key);
 	if (!page) return undefined;
 
-	if (isDirectoryChannelKind(page)) {
+	if (isPublicDirectoryChannel(page)) {
 		return {
 			...page,
 			faqItems: appendPublicGeneralFaqItems(
@@ -172,6 +178,11 @@ export function listPublicChannelsForHub(): PublicChannelLandingPageViewModel[] 
 
 export function listPublicDirectoryChannelsForHub(): PublicChannelLandingPageViewModel[] {
 	return [...PUBLIC_DIRECTORY_CHANNEL_LANDING_PAGES];
+}
+
+/** Social posting + directory launch seeds for agent/MCP channel hub grids and host channel configs. */
+export function listPublicChannelsForAgentChannelHub(): PublicChannelLandingPageViewModel[] {
+	return [...PUBLIC_AGENT_CHANNEL_HUB_CHANNELS];
 }
 
 export function listAvailablePublicChannels(): PublicChannelLandingPageViewModel[] {

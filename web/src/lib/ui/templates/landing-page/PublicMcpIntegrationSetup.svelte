@@ -6,20 +6,24 @@
 
 	import * as Tabs from '$lib/ui/tabs';
 	import PublicMcpClientConfiguration from '$lib/ui/templates/landing-page/PublicMcpClientConfiguration.svelte';
-	import PublicMcpSkillConfiguration from '$lib/ui/templates/landing-page/PublicMcpSkillConfiguration.svelte';
+	import PublicMcpSkillConfiguration, {
+		type PublicMcpSkillSetupVariant
+	} from '$lib/ui/templates/landing-page/PublicMcpSkillConfiguration.svelte';
 
 	type Props = {
 		agentLabel: string;
 		activeClient: McpClient;
 		headingId: string;
 		integrationTab?: PublicMcpIntegrationTab;
+		skillSetupVariant?: PublicMcpSkillSetupVariant;
 	};
 
 	let {
 		agentLabel,
 		activeClient,
 		headingId,
-		integrationTab = $bindable<PublicMcpIntegrationTab>('mcp')
+		integrationTab = $bindable<PublicMcpIntegrationTab>('mcp'),
+		skillSetupVariant = 'default'
 	}: Props = $props();
 
 	const tabTriggerClass =
@@ -35,9 +39,17 @@
 			Connect OpenQuok
 		</h3>
 		<p class="text-sm leading-relaxed text-pretty text-base-content/65 sm:text-base">
-			Use native MCP tools or install the <code class={ONBOARDING_INLINE_TERMINAL_CODE_CLASS}
-				>openquok-core</code
-			> skill — {agentLabel} discovers commands through MCP or SKILL.md.
+			{#if skillSetupVariant === 'directory'}
+				Use hosted MCP <code class={ONBOARDING_INLINE_TERMINAL_CODE_CLASS}>directory*</code> tools with an
+				<code class={ONBOARDING_INLINE_TERMINAL_CODE_CLASS}>opo_</code> token, or install
+				<code class={ONBOARDING_INLINE_TERMINAL_CODE_CLASS}>openquok-core</code> plus
+				<code class={ONBOARDING_INLINE_TERMINAL_CODE_CLASS}>openquok-directory-launch</code> for
+				<code class={ONBOARDING_INLINE_TERMINAL_CODE_CLASS}>directory:*</code> CLI workflows in {agentLabel}.
+			{:else}
+				Use native MCP tools or install the <code class={ONBOARDING_INLINE_TERMINAL_CODE_CLASS}
+					>openquok-core</code
+				> skill — {agentLabel} discovers commands through MCP or SKILL.md.
+			{/if}
 		</p>
 	</div>
 
@@ -54,7 +66,7 @@
 		</Tabs.Content>
 
 		<Tabs.Content value="skill">
-			<PublicMcpSkillConfiguration {agentLabel} />
+			<PublicMcpSkillConfiguration {agentLabel} variant={skillSetupVariant} />
 		</Tabs.Content>
 	</Tabs.Root>
 </section>

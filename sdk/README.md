@@ -18,6 +18,7 @@
 - Manage integrations (list, groups, settings, trigger provider tools, OAuth URL, delete)
 - Configure global plugs (catalog, list, upsert, activate, delete)
 - Analytics, notifications, and missing-release linking
+- Directory launch (profiles, variants, listing summary, submissions) and directory SEO (overview, history, refresh, competitors)
 
 It’s intentionally small: a typed wrapper around the same HTTP endpoints the `openquok` CLI uses.
 
@@ -113,6 +114,21 @@ await openquok.post({
 | `getIntegrationAnalytics(id, 7\|30\|90)` | `GET /public/analytics/:id` |
 | `getPostAnalytics(postId, 7\|30\|90)` | `GET /public/analytics/post/:postId` |
 | `listNotifications(page?)` | `GET /public/notifications` |
+| `listDirectoryLaunchDestinations()` | `GET /public/directory-launch/destinations` |
+| `listDirectoryLaunchBusinessProfiles()` | `GET /public/directory-launch/business-profiles` |
+| `listDirectoryLaunchProfiles({ integrationCustomerId? })` | `GET /public/directory-launch/profiles` |
+| `getDirectoryLaunchProfile(profileId)` | `GET /public/directory-launch/profiles/:id` |
+| `createDirectoryLaunchProfile(body)` | `POST /public/directory-launch/profiles` |
+| `updateDirectoryLaunchProfile(profileId, body)` | `PATCH /public/directory-launch/profiles/:id` |
+| `ensureDirectoryLaunchVariant(mainProfileId, body)` | `POST /public/directory-launch/profiles/:mainId/variants` |
+| `getDirectoryLaunchListingSummary(profileId)` | `GET /public/directory-launch/profiles/:id/listing-summary` |
+| `listDirectoryLaunchSubmissions({ productProfileId?, destinationId? })` | `GET /public/directory-launch/submissions` |
+| `getDirectorySeoOverview(productProfileId)` | `GET /public/directory-seo/workspace/overview` |
+| `getDirectorySeoHistory(productProfileId, days?)` | `GET /public/directory-seo/workspace/history` |
+| `refreshDirectorySeo(body)` | `POST /public/directory-seo/workspace/refresh` |
+| `addDirectorySeoCompetitor(body)` | `POST /public/directory-seo/workspace/competitors` |
+| `deleteDirectorySeoCompetitor(body)` | `DELETE /public/directory-seo/workspace/competitors` |
+| `updateDirectorySeoCompetitor(body)` | `PATCH /public/directory-seo/workspace/competitors` |
 
 Exported helpers: `withAgentCreatePayload`, `OpenquokHttpError`, and DTO types from the package entry.
 

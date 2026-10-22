@@ -15,6 +15,8 @@ import {
 	buildAgentFaqLinks,
 	buildChannelFaqLinks,
 	buildChannelFreeTrialFaqDescription,
+	buildChannelProgrammaticDirectoryLaunchFaqDescription,
+	buildChannelProgrammaticDirectoryLaunchFaqTitle,
 	buildChannelProgrammaticSchedulingFaqDescription,
 	buildChannelProgrammaticSchedulingFaqTitle,
 	buildToolChannelFaqLinks,
@@ -50,6 +52,9 @@ describe('publicFaqLinks', () => {
 		expect(publicFaqHref.docsChannelGroups).toBe('/docs/channels/business-profiles');
 		expect(publicFaqHref.channels).toBe('/channels');
 		expect(publicFaqHref.cliGettingStarted).toBe('/docs/getting-started-for-cli');
+		expect(publicFaqHref.cliPeerpush).toBe('/docs/cli-examples/peerpush');
+		expect(publicFaqHref.cliUneed).toBe('/docs/cli-examples/uneed');
+		expect(publicFaqHref.cliDirectoryLaunch).toBe('/docs/cli-usages/directory-launch');
 		expect(publicFaqHref.cliSetupGuides).toBe('/docs/getting-started-for-cli');
 		expect(publicFaqHref.compareOpenquokBuffer).toBe('/compare/openquok/buffer');
 		expect(publicFaqHref.compareOpenquokHootsuite).toBe('/compare/openquok/hootsuite');
@@ -131,6 +136,26 @@ describe('publicFaqLinks', () => {
 				cliExamplesLabel: 'Threads CLI examples'
 			})
 		).toContain('href="/docs/cli-examples/threads"');
+	});
+
+	it('builds programmatic directory launch FAQ title and answer with MCP, CLI, API, and examples links', () => {
+		expect(buildChannelProgrammaticDirectoryLaunchFaqTitle('PeerPush directory launches')).toBe(
+			'Can I manage PeerPush directory launches from MCP, the API, or CLI?'
+		);
+		expect(
+			buildChannelProgrammaticDirectoryLaunchFaqDescription({
+				preparePhrase: 'Create a product profile in My Products',
+				cliExamplesHref: publicFaqHref.cliPeerpush,
+				cliExamplesLabel: 'PeerPush CLI examples'
+			})
+		).toContain('href="/docs/cli-usages/directory-launch"');
+		expect(
+			buildChannelProgrammaticDirectoryLaunchFaqDescription({
+				preparePhrase: 'Create a product profile in My Products',
+				cliExamplesHref: publicFaqHref.cliUneed,
+				cliExamplesLabel: 'Uneed CLI examples'
+			})
+		).toContain('href="/docs/cli-examples/uneed"');
 	});
 
 	it('builds free trial FAQ answer with self-hosting and pricing links', () => {

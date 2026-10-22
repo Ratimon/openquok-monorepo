@@ -134,7 +134,11 @@ function formatDirectoryCompetitorDomainsCell(limits: PlanLimits): PublicPricing
 	return { kind: 'text', text: `${total} (${perWorkspace}/ workspace)` };
 }
 
-function directoryPaidFeatureCell(limits: PlanLimits): PublicPricingCompareCellViewModel {
+function directoryLaunchFeatureCell(limits: PlanLimits): PublicPricingCompareCellViewModel {
+	return limits.directory_launch_enabled ? { kind: 'included' } : { kind: 'excluded' };
+}
+
+function directorySeoFeatureCell(limits: PlanLimits): PublicPricingCompareCellViewModel {
 	return limits.directory_seo_enabled ? { kind: 'included' } : { kind: 'excluded' };
 }
 
@@ -191,9 +195,10 @@ function compareCellForRow(
 		case 'directory_extension_autofill':
 		case 'directory_submission_tracking':
 		case 'directory_profile_variants':
+			return directoryLaunchFeatureCell(limits);
 		case 'directory_analytics':
 		case 'directory_catalog_dr':
-			return directoryPaidFeatureCell(limits);
+			return directorySeoFeatureCell(limits);
 		case 'directory_competitor_domains':
 			return formatDirectoryCompetitorDomainsCell(limits);
 		default:

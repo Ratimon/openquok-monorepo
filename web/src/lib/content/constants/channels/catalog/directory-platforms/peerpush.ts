@@ -9,6 +9,8 @@ import {
 import { buildDirectoryChannelProcessSection } from '$lib/content/constants/channels/catalog/directory-platforms/directoryChannelProcessSection';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/catalog/types';
 import {
+	buildChannelProgrammaticDirectoryLaunchFaqDescription,
+	buildChannelProgrammaticDirectoryLaunchFaqTitle,
 	faqHrefDocs,
 	faqLink,
 	publicFaqHref
@@ -83,6 +85,17 @@ export const peerpushDirectoryChannel = {
 			title: 'Where can I read editorial notes about PeerPush backlinks?',
 			description:
 				`OpenQuok also documents PeerPush on the build backlinks catalog for dofollow and cost context. See ${faqLink('/build-backlinks/peerpush', 'PeerPush on Build backlinks')} and ${faqLink('/channels#public-directory-channels-hub-heading', 'directory launch platforms')}.`
+		},
+		{
+			title: buildChannelProgrammaticDirectoryLaunchFaqTitle('PeerPush directory launches'),
+			description: buildChannelProgrammaticDirectoryLaunchFaqDescription({
+				preparePhrase:
+					'Create a product profile in your dashboard and install the OpenQuok browser extension for the peerpush.com handoff',
+				cliExamplesHref: publicFaqHref.cliPeerpush,
+				cliExamplesLabel: 'PeerPush CLI examples',
+				suffix:
+					'Directory SEO metrics are cached — read checkedAt and manualRefreshAvailableAt in API or CLI responses.'
+			})
 		}
 	],
 	docsPath: PEERPUSH_DOCS_PATH,

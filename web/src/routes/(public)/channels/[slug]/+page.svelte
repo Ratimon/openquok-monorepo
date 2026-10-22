@@ -41,6 +41,7 @@
 	import PublicChannelSiblingGrid from '$lib/ui/templates/landing-page/PublicChannelSiblingGrid.svelte';
 	import PublicLandingTeamFeatureHero from '$lib/ui/templates/landing-page/PublicLandingTeamFeatureHero.svelte';
 	import FeaturesOrdered from '$lib/ui/templates/FeaturesOrdered.svelte';
+	import { publicDirectoryChannelHeroStatBadges } from '$lib/content/constants/channels/catalog/directory-platforms/directoryChannelLandingShared';
 	import { publicLandingHeroStatBadgesFromFeatureSections } from '$lib/content/constants/marketing/publicLandingHeroStatBadges';
 	import PublicLandingHeroStatBadges from '$lib/ui/templates/landing-page/PublicLandingHeroStatBadges.svelte';
 
@@ -87,9 +88,15 @@
 	);
 
 	const channelHeroStatBadges = $derived(
-		channelVm?.featureSections?.length
-			? publicLandingHeroStatBadgesFromFeatureSections(channelVm.featureSections)
-			: []
+		isDirectoryChannel
+			? [...publicDirectoryChannelHeroStatBadges()]
+			: channelVm?.featureSections?.length
+				? publicLandingHeroStatBadgesFromFeatureSections(channelVm.featureSections)
+				: []
+	);
+
+	const channelHeroStatBadgesAriaLabel = $derived(
+		isDirectoryChannel ? 'Directory launch highlights' : `${channelVm.platformLabel} integration highlights`
 	);
 
 	const siblingChannels = $derived(
@@ -147,10 +154,7 @@
 	{/if}
 
 	{#if channelVm.available && channelHeroStatBadges.length > 0}
-		<PublicLandingHeroStatBadges
-			badges={channelHeroStatBadges}
-			ariaLabel="{channelVm.platformLabel} integration highlights"
-		/>
+		<PublicLandingHeroStatBadges badges={channelHeroStatBadges} ariaLabel={channelHeroStatBadgesAriaLabel} />
 	{/if}
 
 	<WhoIsFor
@@ -197,19 +201,7 @@
 				<BentoPublicChannelFeature bentoId={section.bentoId} {isLoggedIn} />
 			{/if}
 		{/snippet}
-		{#if section.sectionKind === 'team-hero'}
-			<PublicLandingTeamFeatureHero
-				heroTheme={landingHeroTheme}
-				landingSubtitle={section.subtitle}
-				landingTitle={section.title}
-				landingDescription={section.description}
-				showCta={false}
-				ctaText={featureCtaText}
-				ctaHref={secondaryCtaHref}
-				bgColorClass={(index + 1) % 2 === 0 ? 'bg-base-100' : 'bg-base-200'}
-				{isLoggedIn}
-			/>
-		{:else if section.mediaOnRight !== false}
+		{#if section.mediaOnRight !== false}
 			<HeroWithRightMedia
 				heroTheme={landingHeroTheme}
 				landingSubtitle={section.subtitle}

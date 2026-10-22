@@ -665,3 +665,28 @@ describe("directory SEO plan limits", () => {
         });
     });
 });
+
+describe("directory launch plan limits", () => {
+    it("blocks directory launch on FREE tier", async () => {
+        const guard = createGuardHarness({ workspaceTier: "FREE" });
+        await expect(
+            guard.assert(SubscriptionSection.DIRECTORY_LAUNCH_ENABLED, {
+                scope: "workspace",
+                organizationId,
+            })
+        ).rejects.toMatchObject({
+            section: SubscriptionSection.DIRECTORY_LAUNCH_ENABLED,
+        });
+    });
+
+    it("allows directory launch on SOLO tier", async () => {
+        const guard = createGuardHarness({ workspaceTier: "SOLO" });
+        await expect(
+            guard.assert(SubscriptionSection.DIRECTORY_LAUNCH_ENABLED, {
+                scope: "workspace",
+                organizationId,
+                workspaceRole: "owner",
+            })
+        ).resolves.toBeUndefined();
+    });
+});

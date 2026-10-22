@@ -23,6 +23,7 @@ They **never replace** openquok-core. Install core + the CLI first, then add the
 
 <CardGrid>
 <LinkCard title="openquok-tiktok-slideshow" description="Research a niche, lock a consistent character, generate portrait slides, overlay text, and draft a TikTok photo carousel via openquok-core" href="/docs/other-skills/openquok-tiktok-slideshow" />
+<LinkCard title="openquok-directory-launch" description="Product profiles, directory variants, listing readiness, and cached directory SEO via directory:* CLI or MCP directory tools" href="/docs/other-skills/openquok-directory-launch" />
 </CardGrid>
 
 ## Related Section(s)

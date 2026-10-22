@@ -201,6 +201,150 @@ export class OpenquokApi {
     });
   }
 
+  async listDirectoryLaunchDestinations(): Promise<unknown> {
+    return await requestJson({
+      url: this.url("/public/directory-launch/destinations"),
+      apiKey: this.cfg.apiKey,
+    });
+  }
+
+  async listDirectoryLaunchBusinessProfiles(): Promise<unknown> {
+    return await requestJson({
+      url: this.url("/public/directory-launch/business-profiles"),
+      apiKey: this.cfg.apiKey,
+    });
+  }
+
+  async listDirectoryLaunchProfiles(params?: {
+    integrationCustomerId?: string;
+  }): Promise<unknown> {
+    const u = new URL(this.url("/public/directory-launch/profiles"));
+    if (params?.integrationCustomerId?.trim()) {
+      u.searchParams.set("integrationCustomerId", params.integrationCustomerId.trim());
+    }
+    return await requestJson({ url: u.toString(), apiKey: this.cfg.apiKey });
+  }
+
+  async getDirectoryLaunchProfile(profileId: string): Promise<unknown> {
+    return await requestJson({
+      url: this.url(`/public/directory-launch/profiles/${encodeURIComponent(profileId)}`),
+      apiKey: this.cfg.apiKey,
+    });
+  }
+
+  async createDirectoryLaunchProfile(body: Record<string, unknown>): Promise<unknown> {
+    return await requestJson({
+      url: this.url("/public/directory-launch/profiles"),
+      apiKey: this.cfg.apiKey,
+      method: "POST",
+      body,
+    });
+  }
+
+  async updateDirectoryLaunchProfile(
+    profileId: string,
+    body: Record<string, unknown>
+  ): Promise<unknown> {
+    return await requestJson({
+      url: this.url(`/public/directory-launch/profiles/${encodeURIComponent(profileId)}`),
+      apiKey: this.cfg.apiKey,
+      method: "PATCH",
+      body,
+    });
+  }
+
+  async ensureDirectoryLaunchVariant(
+    mainProfileId: string,
+    body: { directorySiteKey: string; name?: string }
+  ): Promise<unknown> {
+    return await requestJson({
+      url: this.url(
+        `/public/directory-launch/profiles/${encodeURIComponent(mainProfileId)}/variants`
+      ),
+      apiKey: this.cfg.apiKey,
+      method: "POST",
+      body,
+    });
+  }
+
+  async getDirectoryLaunchListingSummary(profileId: string): Promise<unknown> {
+    return await requestJson({
+      url: this.url(
+        `/public/directory-launch/profiles/${encodeURIComponent(profileId)}/listing-summary`
+      ),
+      apiKey: this.cfg.apiKey,
+    });
+  }
+
+  async listDirectoryLaunchSubmissions(params?: {
+    productProfileId?: string;
+    destinationId?: string;
+  }): Promise<unknown> {
+    const u = new URL(this.url("/public/directory-launch/submissions"));
+    if (params?.productProfileId?.trim()) {
+      u.searchParams.set("productProfileId", params.productProfileId.trim());
+    }
+    if (params?.destinationId?.trim()) {
+      u.searchParams.set("destinationId", params.destinationId.trim());
+    }
+    return await requestJson({ url: u.toString(), apiKey: this.cfg.apiKey });
+  }
+
+  async getDirectorySeoOverview(productProfileId: string): Promise<unknown> {
+    const u = new URL(this.url("/public/directory-seo/workspace/overview"));
+    u.searchParams.set("productProfileId", productProfileId);
+    return await requestJson({ url: u.toString(), apiKey: this.cfg.apiKey });
+  }
+
+  async getDirectorySeoHistory(productProfileId: string, days = 90): Promise<unknown> {
+    const u = new URL(this.url("/public/directory-seo/workspace/history"));
+    u.searchParams.set("productProfileId", productProfileId);
+    u.searchParams.set("days", String(days));
+    return await requestJson({ url: u.toString(), apiKey: this.cfg.apiKey });
+  }
+
+  async refreshDirectorySeo(body: {
+    productProfileId: string;
+    force?: boolean;
+  }): Promise<unknown> {
+    return await requestJson({
+      url: this.url("/public/directory-seo/workspace/refresh"),
+      apiKey: this.cfg.apiKey,
+      method: "POST",
+      body,
+    });
+  }
+
+  async addDirectorySeoCompetitor(body: Record<string, unknown>): Promise<unknown> {
+    return await requestJson({
+      url: this.url("/public/directory-seo/workspace/competitors"),
+      apiKey: this.cfg.apiKey,
+      method: "POST",
+      body,
+    });
+  }
+
+  async deleteDirectorySeoCompetitor(body: { domain: string }): Promise<unknown> {
+    return await requestJson({
+      url: this.url("/public/directory-seo/workspace/competitors"),
+      apiKey: this.cfg.apiKey,
+      method: "DELETE",
+      body,
+    });
+  }
+
+  async updateDirectorySeoCompetitor(body: {
+    domain: string;
+    label: string | null;
+  }): Promise<unknown> {
+    return await requestJson({
+      url: this.url("/public/directory-seo/workspace/competitors"),
+      apiKey: this.cfg.apiKey,
+      method: "PATCH",
+      body,
+    });
+  }
+
   async uploadFromUrl(urlToFetch: string): Promise<unknown> {
     return await requestJson({
       url: this.url("/public/upload-from-url"),

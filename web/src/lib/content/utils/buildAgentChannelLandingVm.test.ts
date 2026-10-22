@@ -218,4 +218,102 @@ describe('buildMcpChannelLandingVm audience cards', () => {
 		expect(vm.audienceCards[0]?.description).toContain('first-class for Grok Build');
 		expect(xChannel!.audienceCards.at(-1)?.title).toBe('Grok Bot & xAI cloud desktop');
 	});
+
+	it('uses directory launch workflow mock on peerpush, not social schedule preview', () => {
+		const vm = buildClaudeCodePeerpushMcpVm();
+
+		expect(vm.workflowSection.deviceMock).toBe('desktop');
+		expect(vm.workflowSection.deviceMockContent).toBe('mcp-directory-launch-claude-code');
+		expect(vm.workflowSection.title).toContain('PeerPush');
+		expect(vm.workflowSection.deviceMockContent).not.toBe('mcp-workflow-claude-code');
+	});
+});
+
+function buildClaudeCodePeerpushMcpVm() {
+	const baseMcp = getPublicMcpLandingBySlug('claude-code');
+	const peerpushChannel = getPublicChannelBySlug('peerpush');
+	const peerpushConfig = getPublicAgentChannelBySlug('claude-code', 'peerpush');
+	expect(baseMcp).toBeDefined();
+	expect(peerpushChannel).toBeDefined();
+	expect(peerpushConfig).toBeDefined();
+
+	return buildMcpChannelLandingVm({
+		baseMcp: baseMcp!,
+		channel: peerpushChannel!,
+		channelConfig: peerpushConfig!
+	});
+}
+
+describe('buildMcpChannelLandingVm directory channels (claude-code × peerpush)', () => {
+	it('uses directory hero and meta instead of social scheduling copy', () => {
+		const vm = buildClaudeCodePeerpushMcpVm();
+
+		expect(vm.heroTitle).toBe('Prepare PeerPush launch from Claude Code then you submit');
+		expect(vm.heroDescription).toContain('peerpush');
+		expect(vm.heroDescription).toContain('listing readiness');
+		expect(vm.heroDescription).not.toMatch(/calendar|kanban|schedule.*posts/i);
+		expect(vm.metaDescription).toMatch(/domain rating/i);
+		expect(vm.metaDescription).not.toMatch(/calendar|kanban/i);
+	});
+
+	it('keeps MCP workflow subtitle and uses launch-prep description', () => {
+		const vm = buildClaudeCodePeerpushMcpVm();
+
+		expect(vm.workflowSection.subtitle).toBe('Prompt from your terminal');
+		expect(vm.workflowSection.title).toBe('One prompt, PeerPush launch prep');
+		expect(vm.workflowSection.description).toContain('listing summary');
+		expect(vm.workflowSection.description).toContain('no calendar or kanban');
+	});
+
+	it('replaces viral-formats opportunities with directory playbooks copy', () => {
+		const vm = buildClaudeCodePeerpushMcpVm();
+
+		expect(vm.opportunitiesPreviewSection.title).toBe('PeerPush launch playbooks');
+		expect(vm.opportunitiesPreviewSection.title).not.toMatch(/viral/i);
+		expect(vm.opportunitiesPreviewSection.description).toContain('directory launch');
+	});
+
+	it('maps directory MCP FAQ without social analytics commands', () => {
+		const vm = buildClaudeCodePeerpushMcpVm();
+		const mcpCapabilitiesFaq = vm.faqItems.find((item) =>
+			item.title.includes('OpenQuok MCP for PeerPush on Claude Code')
+		);
+		const launchFaq = vm.faqItems.find((item) =>
+			item.title.includes('prepare PeerPush directory launches')
+		);
+
+		expect(mcpCapabilitiesFaq?.description).toContain('listing readiness');
+		expect(mcpCapabilitiesFaq?.description).toContain('checkedAt');
+		expect(mcpCapabilitiesFaq?.description).not.toContain('analytics:platform');
+		expect(launchFaq?.description).toContain('directoryProfilesList');
+		expect(launchFaq?.description).toContain('directoryVariantsEnsure');
+		expect(launchFaq?.description).not.toMatch(/schedule.*posts|pull platform and post analytics/i);
+	});
+
+	it('uses directory-aware integrate step carousel copy', () => {
+		const vm = buildClaudeCodePeerpushMcpVm();
+		const integrateStep = vm.setupSteps.find((step) => step.animatedContent === 'agent-integrations');
+		const skillIntegrateStep = vm.skillSetupSteps.find(
+			(step) => step.animatedContent === 'agent-integrations'
+		);
+
+		expect(integrateStep?.content).toContain('openquok-directory-launch');
+		expect(integrateStep?.content).toContain('PeerPush');
+		expect(integrateStep?.animatedModels?.[0]?.description).toMatch(/directory launches|My Products/i);
+		expect(integrateStep?.animatedModels?.[0]?.description).not.toContain('schedule approved posts');
+		expect(skillIntegrateStep?.animatedModels?.[2]?.description).toContain('openquok-directory-launch');
+	});
+
+	it('does not expose social scale or impressions analytics feature rows', () => {
+		const vm = buildClaudeCodePeerpushMcpVm();
+
+		expect(vm.featureSections.some((section) => section.subtitle === 'Scale what works')).toBe(
+			false
+		);
+		const analyticsRow = vm.featureSections.find(
+			(section) => section.bentoId === 'directory-analytics'
+		);
+		expect(analyticsRow).toBeDefined();
+		expect(analyticsRow?.description).not.toMatch(/winners|impressions/i);
+	});
 });

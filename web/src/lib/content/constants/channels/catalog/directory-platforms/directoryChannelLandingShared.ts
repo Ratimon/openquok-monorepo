@@ -23,7 +23,7 @@ export function buildDirectoryChannelWhoIsFor(platformLabel: string): {
 
 /** Main hero title for `/channels/{directory-slug}` — names the platform and other directories. */
 export function buildDirectoryChannelHeroTitle(platformLabel: string): string {
-	return `Launch on ${platformLabel} and other platforms in days not weeks`;
+	return `Launch on ${platformLabel} and other platforms in one click not weeks`;
 }
 
 /** Result-driven hero description for `/channels/{directory-slug}` (platform site host in prose). */

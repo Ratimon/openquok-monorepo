@@ -1,12 +1,17 @@
 import {
     directorySiteKeyFromProviderSlug,
+    getProfileLaunchSummary,
     mergeBusinessProfileData,
+    SubscriptionSection,
     type BusinessProfileData,
+    type ProfileLaunchDestinationInput,
+    type ProfileLaunchSubmissionInput,
 } from "openquok-common";
 
 import { config } from "../config/GlobalConfig";
 import type { AutoLaunchRepository } from "../repositories/AutoLaunchRepository";
 import type { IntegrationConnectionService } from "./IntegrationConnectionService";
+import type { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
 import {
     AutoLaunchDestinationNotFoundError,
     AutoLaunchIntentNotAvailableError,
@@ -53,6 +58,7 @@ import {
     type AutoLaunchSubmissionCompleteDto,
     type AutoLaunchSubmissionDto,
     type AutoLaunchSubmissionIntentDto,
+    type AutoLaunchProfileListingSummaryDto,
     toAutoLaunchAdminDestinationDto,
     toAutoLaunchSubmissionDtoCollection,
 } from "../utils/dtos/AutoLaunchDTO";
@@ -69,8 +75,32 @@ function launchTokenSecret(): string {
 export class AutoLaunchService {
     constructor(
         private readonly autoLaunchRepository: AutoLaunchRepository,
-        private readonly integrationConnectionService: IntegrationConnectionService
+        private readonly integrationConnectionService: IntegrationConnectionService,
+        private readonly subscriptionGuard: SubscriptionGuardService
     ) {}
+
+    private async assertDirectoryLaunchEnabled(
+        organizationId: string,
+        authUserId: string
+    ): Promise<void> {
+        await this.subscriptionGuard.assert(SubscriptionSection.DIRECTORY_LAUNCH_ENABLED, {
+            scope: "workspace",
+            organizationId,
+            authUserId,
+        });
+    }
+
+    /** Programmatic API / MCP — membership is enforced by the caller. */
+    async assertDirectoryLaunchEnabledForProgrammatic(
+        organizationId: string,
+        publicUserId: string
+    ): Promise<void> {
+        await this.subscriptionGuard.assert(SubscriptionSection.DIRECTORY_LAUNCH_ENABLED, {
+            scope: "workspace",
+            organizationId,
+            publicUserId,
+        });
+    }
 
     async listPublishedDestinations(): Promise<AutoLaunchDestinationListRow[]> {
         return this.autoLaunchRepository.listPublishedDestinations();
@@ -165,6 +195,7 @@ export class AutoLaunchService {
         integrationCustomerId?: string
     ): Promise<AutoLaunchProductProfileDto[]> {
         await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+        await this.assertDirectoryLaunchEnabled(organizationId, authUserId);
         const rows = await this.autoLaunchRepository.listProfilesByOrganization(
             organizationId,
             integrationCustomerId
@@ -176,6 +207,7 @@ export class AutoLaunchService {
         const row = await this.autoLaunchRepository.findProfileById(profileId);
         if (!row) return null;
         await this.integrationConnectionService.assertOrganizationMember(authUserId, row.organization_id);
+        await this.assertDirectoryLaunchEnabled(row.organization_id, authUserId);
         const [dto] = await this.enrichProfileDtos(row.organization_id, [row]);
         return dto ?? null;
     }
@@ -190,6 +222,7 @@ export class AutoLaunchService {
             throw new AutoLaunchProfileNotFoundError(mainProfileId);
         }
         await this.integrationConnectionService.assertOrganizationMember(authUserId, main.organization_id);
+        await this.assertDirectoryLaunchEnabled(main.organization_id, authUserId);
         if (main.profile_kind === "directory_variant" || main.parent_profile_id) {
             throw new UserValidationError("Directory variants must be created from a main product profile.");
         }
@@ -230,6 +263,7 @@ export class AutoLaunchService {
         }
     ): Promise<AutoLaunchProductProfileDto> {
         await this.integrationConnectionService.assertOrganizationMember(authUserId, input.organizationId);
+        await this.assertDirectoryLaunchEnabled(input.organizationId, authUserId);
         const integrationCustomerId = await this.resolveIntegrationCustomerIdForNewProfile(
             authUserId,
             input.organizationId,
@@ -258,6 +292,7 @@ export class AutoLaunchService {
         organizationId: string
     ): Promise<BusinessProfileListRow[]> {
         await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+        await this.assertDirectoryLaunchEnabled(organizationId, authUserId);
         const customers = await this.integrationConnectionService.getIntegrationCustomers(
             authUserId,
             organizationId
@@ -320,6 +355,7 @@ export class AutoLaunchService {
             throw new AutoLaunchProfileNotFoundError(profileId);
         }
         await this.integrationConnectionService.assertOrganizationMember(authUserId, existing.organization_id);
+        await this.assertDirectoryLaunchEnabled(existing.organization_id, authUserId);
 
         if (patch.integrationCustomerId === null) {
             throw new UserValidationError("Business profile must stay linked to a channel group");
@@ -389,6 +425,7 @@ export class AutoLaunchService {
             throw new AutoLaunchProfileNotFoundError(profileId);
         }
         await this.integrationConnectionService.assertOrganizationMember(authUserId, existing.organization_id);
+        await this.assertDirectoryLaunchEnabled(existing.organization_id, authUserId);
         const ok = await this.autoLaunchRepository.softDeleteProfile(profileId, existing.organization_id);
         if (!ok) {
             throw new AutoLaunchProfileNotFoundError(profileId);
@@ -454,6 +491,7 @@ export class AutoLaunchService {
         filters: { productProfileId?: string; destinationId?: string }
     ): Promise<AutoLaunchSubmissionDto[]> {
         await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+        await this.assertDirectoryLaunchEnabled(organizationId, authUserId);
         const rows = await this.autoLaunchRepository.listSubmissions({
             organizationId,
             productProfileId: filters.productProfileId,
@@ -487,6 +525,7 @@ export class AutoLaunchService {
         input: RecordManualSubmissionCompleteBody
     ): Promise<AutoLaunchSubmissionRow> {
         await this.integrationConnectionService.assertOrganizationMember(authUserId, input.organizationId);
+        await this.assertDirectoryLaunchEnabled(input.organizationId, authUserId);
 
         const destination = await this.autoLaunchRepository.findDestinationById(input.destinationId);
         if (!destination?.is_published) {
@@ -601,6 +640,7 @@ export class AutoLaunchService {
         organizationId: string
     ): Promise<void> {
         await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+        await this.assertDirectoryLaunchEnabled(organizationId, authUserId);
 
         const submission = await this.autoLaunchRepository.findSubmissionById(submissionId);
         if (!submission || submission.organization_id !== organizationId) {
@@ -621,6 +661,7 @@ export class AutoLaunchService {
         input: UpdateSubmissionListingDetailsBody
     ): Promise<AutoLaunchSubmissionRow> {
         await this.integrationConnectionService.assertOrganizationMember(authUserId, input.organizationId);
+        await this.assertDirectoryLaunchEnabled(input.organizationId, authUserId);
 
         const submission = await this.autoLaunchRepository.findSubmissionById(submissionId);
         if (!submission || submission.organization_id !== input.organizationId) {
@@ -652,6 +693,7 @@ export class AutoLaunchService {
         }
     ): Promise<AutoLaunchSubmissionIntentDto> {
         await this.integrationConnectionService.assertOrganizationMember(authUserId, input.organizationId);
+        await this.assertDirectoryLaunchEnabled(input.organizationId, authUserId);
 
         const destination = await this.resolveDestination(input.destinationId, input.providerSlug);
         const profile = await this.resolveProductProfileForLaunch(
@@ -751,6 +793,7 @@ export class AutoLaunchService {
         }
 
         await this.integrationConnectionService.assertOrganizationMember(authUserId, payload.organizationId);
+        await this.assertDirectoryLaunchEnabled(payload.organizationId, authUserId);
 
         const existing = await this.autoLaunchRepository.findSubmissionById(payload.submissionId);
         if (!existing || existing.organization_id !== payload.organizationId) {
@@ -881,6 +924,380 @@ export class AutoLaunchService {
             return row;
         }
         throw new UserValidationError("destinationId or providerSlug is required");
+    }
+
+    async listProfilesProgrammatic(
+        organizationId: string,
+        integrationCustomerId?: string
+    ): Promise<AutoLaunchProductProfileDto[]> {
+        const rows = await this.autoLaunchRepository.listProfilesByOrganization(
+            organizationId,
+            integrationCustomerId
+        );
+        return this.enrichProfileDtos(organizationId, rows);
+    }
+
+    async getProfileProgrammatic(
+        organizationId: string,
+        profileId: string
+    ): Promise<AutoLaunchProductProfileDto | null> {
+        const row = await this.autoLaunchRepository.findProfileById(profileId);
+        if (!row || row.organization_id !== organizationId) {
+            return null;
+        }
+        const [dto] = await this.enrichProfileDtos(organizationId, [row]);
+        return dto ?? null;
+    }
+
+    async createProfileProgrammatic(
+        publicUserId: string,
+        input: {
+            organizationId: string;
+            integrationCustomerId?: string | null;
+            name: string;
+            tagline?: string | null;
+            description?: string | null;
+            websiteUrl?: string | null;
+            logoUrl?: string | null;
+            profileData: Record<string, unknown> | BusinessProfileData;
+        }
+    ): Promise<AutoLaunchProductProfileDto> {
+        const integrationCustomerId = await this.resolveIntegrationCustomerIdForProgrammaticProfile(
+            input.organizationId,
+            input.name,
+            input.integrationCustomerId ?? null
+        );
+        const row = await this.autoLaunchRepository.insertProfile({
+            organizationId: input.organizationId,
+            integrationCustomerId,
+            name: input.name.trim(),
+            tagline: input.tagline ?? null,
+            description: input.description ?? null,
+            websiteUrl: input.websiteUrl ?? null,
+            logoUrl: input.logoUrl ?? null,
+            profileData: parseBusinessProfileDataInput(
+                input.profileData as Record<string, unknown> | undefined
+            ),
+            createdByUserId: publicUserId,
+        });
+        const [dto] = await this.enrichProfileDtos(input.organizationId, [row]);
+        return dto!;
+    }
+
+    async updateProfileProgrammatic(
+        organizationId: string,
+        profileId: string,
+        patch: {
+            name?: string;
+            tagline?: string | null;
+            description?: string | null;
+            websiteUrl?: string | null;
+            logoUrl?: string | null;
+            integrationCustomerId?: string | null;
+            profileData?: Record<string, unknown> | BusinessProfileData;
+        }
+    ): Promise<AutoLaunchProductProfileDto> {
+        const existing = await this.autoLaunchRepository.findProfileById(profileId);
+        if (!existing || existing.organization_id !== organizationId) {
+            throw new AutoLaunchProfileNotFoundError(profileId);
+        }
+
+        if (patch.integrationCustomerId === null) {
+            throw new UserValidationError("Business profile must stay linked to a channel group");
+        }
+
+        const nextCustomerId = patch.integrationCustomerId ?? existing.integration_customer_id;
+        if (nextCustomerId) {
+            const ok = await this.autoLaunchRepository.integrationCustomerBelongsToOrg(
+                nextCustomerId,
+                organizationId
+            );
+            if (!ok) {
+                throw new UserValidationError("Channel group does not belong to this workspace");
+            }
+            const conflict = await this.autoLaunchRepository.findActiveProfileByIntegrationCustomerId(
+                organizationId,
+                nextCustomerId,
+                profileId
+            );
+            if (conflict) {
+                throw new UserValidationError("Another business profile is already linked to this channel group");
+            }
+        }
+
+        const nextProfileData =
+            patch.profileData !== undefined
+                ? mergeBusinessProfileData(
+                      existing.profile_data,
+                      parseBusinessProfileDataPatch(patch.profileData as Record<string, unknown>)
+                  )
+                : undefined;
+
+        const updated = await this.autoLaunchRepository.updateProfile({
+            profileId,
+            organizationId,
+            patch: {
+                name: patch.name,
+                tagline: patch.tagline,
+                description: patch.description,
+                websiteUrl: patch.websiteUrl,
+                logoUrl: patch.logoUrl,
+                integrationCustomerId: patch.integrationCustomerId,
+                profileData: nextProfileData,
+            },
+        });
+        if (!updated) {
+            throw new AutoLaunchProfileNotFoundError(profileId);
+        }
+
+        const customerIdToSync = updated.integration_customer_id;
+        if (patch.name?.trim() && customerIdToSync) {
+            await this.integrationConnectionService.publicUpdateIntegrationCustomerName(
+                organizationId,
+                customerIdToSync,
+                patch.name.trim()
+            );
+        }
+
+        const [dto] = await this.enrichProfileDtos(organizationId, [updated]);
+        return dto!;
+    }
+
+    async ensureDirectoryVariantProgrammatic(
+        organizationId: string,
+        publicUserId: string,
+        mainProfileId: string,
+        input: { directorySiteKey: string; name?: string }
+    ): Promise<{ profile: AutoLaunchProductProfileDto; created: boolean }> {
+        const main = await this.autoLaunchRepository.findProfileById(mainProfileId);
+        if (!main || main.organization_id !== organizationId) {
+            throw new AutoLaunchProfileNotFoundError(mainProfileId);
+        }
+        if (main.profile_kind === "directory_variant" || main.parent_profile_id) {
+            throw new UserValidationError("Directory variants must be created from a main product profile.");
+        }
+
+        const directorySiteKey = input.directorySiteKey.trim();
+        const existing = await this.autoLaunchRepository.findDirectoryVariantByParentAndSiteKey({
+            parentProfileId: main.id,
+            directorySiteKey,
+        });
+        if (existing) {
+            const [dto] = await this.enrichProfileDtos(organizationId, [existing]);
+            return { profile: dto!, created: false };
+        }
+
+        const variantName = input.name?.trim() || `${main.name} (${directorySiteKey})`;
+        const variant = await this.autoLaunchRepository.insertDirectoryVariantFromMain({
+            mainProfile: main,
+            directorySiteKey,
+            name: variantName,
+            createdByUserId: publicUserId,
+        });
+        const [dto] = await this.enrichProfileDtos(organizationId, [variant]);
+        return { profile: dto!, created: true };
+    }
+
+    async listBusinessProfilesProgrammatic(organizationId: string): Promise<BusinessProfileListRow[]> {
+        const customers = await this.integrationConnectionService.publicGetIntegrationCustomers(
+            organizationId
+        );
+        const profiles = await this.autoLaunchRepository.listProfilesByOrganization(organizationId);
+        const profileByCustomerId = new Map(
+            profiles
+                .filter((p) => p.integration_customer_id)
+                .map((p) => [p.integration_customer_id as string, p])
+        );
+
+        const rows: BusinessProfileListRow[] = customers.map((customer) => {
+            const profile = profileByCustomerId.get(customer.id);
+            return {
+                integration_customer_id: customer.id,
+                product_profile_id: profile?.id ?? null,
+                name: profile?.name ?? customer.name,
+                tagline: profile?.tagline ?? null,
+                website_url: profile?.website_url ?? null,
+                logo_url: profile?.logo_url ?? null,
+            };
+        });
+
+        for (const profile of profiles) {
+            if (
+                profile.integration_customer_id &&
+                customers.some((c) => c.id === profile.integration_customer_id)
+            ) {
+                continue;
+            }
+            rows.push({
+                integration_customer_id: profile.integration_customer_id,
+                product_profile_id: profile.id,
+                name: profile.name,
+                tagline: profile.tagline,
+                website_url: profile.website_url,
+                logo_url: profile.logo_url,
+            });
+        }
+
+        rows.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+        return rows;
+    }
+
+    async listSubmissionsProgrammatic(
+        organizationId: string,
+        filters: { productProfileId?: string; destinationId?: string }
+    ): Promise<AutoLaunchSubmissionDto[]> {
+        const rows = await this.autoLaunchRepository.listSubmissions({
+            organizationId,
+            productProfileId: filters.productProfileId,
+            destinationId: filters.destinationId,
+        });
+        const deduped = dedupeAutoLaunchSubmissionsByDestination(rows);
+        const profileIds = deduped.map((row) => row.product_profile_id);
+        const profiles = await this.autoLaunchRepository.findProfilesByIds({
+            organizationId,
+            profileIds,
+        });
+        const liveSnapshotByProfileId = new Map(
+            profiles.map((profile) => [profile.id, buildProfileSnapshot(profile)])
+        );
+
+        const syncStatusBySubmissionId = new Map(
+            deduped.map((row) => [
+                row.id,
+                resolveSubmissionSyncStatus(
+                    row,
+                    liveSnapshotByProfileId.get(row.product_profile_id) ?? null
+                ),
+            ])
+        );
+
+        return toAutoLaunchSubmissionDtoCollection(deduped, { syncStatusBySubmissionId });
+    }
+
+    async getProfileListingSummaryForOrganization(
+        organizationId: string,
+        profileId: string
+    ): Promise<AutoLaunchProfileListingSummaryDto> {
+        const profile = await this.autoLaunchRepository.findProfileById(profileId);
+        if (!profile || profile.organization_id !== organizationId) {
+            throw new AutoLaunchProfileNotFoundError(profileId);
+        }
+
+        const destinationRows = await this.autoLaunchRepository.listPublishedDestinations();
+        const destinations: ProfileLaunchDestinationInput[] = destinationRows.map((row) => ({
+            id: row.id,
+            providerSlug: row.provider_slug,
+            name: row.name,
+            sortOrder: row.sort_order,
+            extensionConfig: row.extension_config ?? {},
+        }));
+
+        const submissionRows = await this.autoLaunchRepository.listSubmissions({
+            organizationId,
+            productProfileId: profileId,
+        });
+        const deduped = dedupeAutoLaunchSubmissionsByDestination(submissionRows);
+        const profiles = await this.autoLaunchRepository.findProfilesByIds({
+            organizationId,
+            profileIds: [profileId],
+        });
+        const liveSnapshot =
+            profiles[0] ? buildProfileSnapshot(profiles[0]) : buildProfileSnapshot(profile);
+        const syncStatusBySubmissionId = new Map(
+            deduped.map((row) => [
+                row.id,
+                resolveSubmissionSyncStatus(row, liveSnapshot),
+            ])
+        );
+        const submissionDtos = toAutoLaunchSubmissionDtoCollection(deduped, {
+            syncStatusBySubmissionId,
+        });
+        const submissionInputs: ProfileLaunchSubmissionInput[] = submissionDtos.map((submission) => ({
+            destinationId: submission.destinationId,
+            status: submission.status,
+            syncStatus: submission.syncStatus,
+            completedAt: submission.completedAt,
+            updatedAt: submission.updatedAt,
+        }));
+
+        const summary = getProfileLaunchSummary(
+            buildProfileSnapshot(profile),
+            destinations,
+            submissionInputs
+        );
+
+        const unsubmittedDirectorySiteCount = Math.max(
+            0,
+            summary.publishedDirectorySiteCount - summary.submittedDirectorySiteCount
+        );
+
+        return {
+            profileId,
+            publishedDirectorySiteCount: summary.publishedDirectorySiteCount,
+            submittedDirectorySiteCount: summary.submittedDirectorySiteCount,
+            unsubmittedDirectorySiteCount,
+            destinations: summary.destinations.map((row) => ({
+                destinationId: row.destinationId,
+                providerSlug: row.providerSlug,
+                destinationName: row.destinationName,
+                submissionStatus: row.submissionStatus,
+                syncStatus: row.syncStatus,
+                readiness: {
+                    isReady: row.readiness.isReady,
+                    missingFields: row.readiness.missingFields,
+                },
+            })),
+        };
+    }
+
+    private async resolveIntegrationCustomerIdForProgrammaticProfile(
+        organizationId: string,
+        name: string,
+        explicitCustomerId: string | null
+    ): Promise<string> {
+        const trimmedName = name.trim();
+        if (!trimmedName) {
+            throw new UserValidationError("Business profile name is required");
+        }
+
+        if (explicitCustomerId) {
+            const ok = await this.autoLaunchRepository.integrationCustomerBelongsToOrg(
+                explicitCustomerId,
+                organizationId
+            );
+            if (!ok) {
+                throw new UserValidationError("Channel group does not belong to this workspace");
+            }
+            const existing = await this.autoLaunchRepository.findActiveProfileByIntegrationCustomerId(
+                organizationId,
+                explicitCustomerId
+            );
+            if (existing) {
+                throw new UserValidationError("A business profile already exists for this channel group");
+            }
+            return explicitCustomerId;
+        }
+
+        const byName = await this.integrationConnectionService.findIntegrationCustomerByOrgAndName(
+            organizationId,
+            trimmedName
+        );
+        if (byName) {
+            const existing = await this.autoLaunchRepository.findActiveProfileByIntegrationCustomerId(
+                organizationId,
+                byName.id
+            );
+            if (existing) {
+                throw new UserValidationError("A business profile with this name already exists");
+            }
+            return byName.id;
+        }
+
+        const created = await this.integrationConnectionService.publicCreateIntegrationCustomer(
+            organizationId,
+            trimmedName
+        );
+        return created.id;
     }
 }
 
