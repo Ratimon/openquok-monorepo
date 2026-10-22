@@ -1,7 +1,7 @@
 # Build from monorepo root: docker build -f orchestrator/Dockerfile .
 # Override CMD in Compose for each BullMQ worker entrypoint.
 
-ARG NODE_VERSION=24-bookworm-slim
+ARG NODE_VERSION=24.22.1-bookworm-slim
 
 FROM node:${NODE_VERSION} AS base
 ENV PNPM_HOME="/pnpm"

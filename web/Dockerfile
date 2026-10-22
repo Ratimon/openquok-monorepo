@@ -1,7 +1,7 @@
 # Build from monorepo root: docker build -f web/Dockerfile .
 # Pass VITE_* build args (see ARG list below) for client bundle configuration.
 
-ARG NODE_VERSION=24-bookworm-slim
+ARG NODE_VERSION=24.22.1-bookworm-slim
 
 FROM node:${NODE_VERSION} AS base
 ENV PNPM_HOME="/pnpm"

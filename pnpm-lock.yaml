@@ -317,6 +317,9 @@ importers:
 
   common:
     devDependencies:
+      '@types/node':
+        specifier: ^24
+        version: 24.12.0
       typescript:
         specifier: ^5.6.3
         version: 5.9.3

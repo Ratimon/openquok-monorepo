@@ -2,7 +2,7 @@
 title: Quick Start
 description: Quick start — install dependencies, setup guides, and run the OpenQuok's social scheduler locally.
 order: 2
-lastUpdated: 2026-07-26
+lastUpdated: 2026-10-22
 ---
 
 <script>
@@ -11,12 +11,12 @@ import { CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 
 ## Prerequisites
 
-- **Node.js** 24.x or higher
+- **Node.js** 24.22.1 or newer on the 24.x line (includes the Oct 2026 security release for Brotli, TLS, and DNS)
 - **Corepack** — enables the pinned **pnpm** version. Run `corepack enable`. The repo pins **pnpm** via the root `packageManager` field (e.g. `pnpm@10.30.3`) so installs stay consistent and avoid mixed-tooling issues.
 - A **Supabase** account (for backend / local development against the project)
 
 ```bash
-nvm use 24.14.0
+nvm use 24.22.1
 corepack enable
 ```
 

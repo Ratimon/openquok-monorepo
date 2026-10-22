@@ -1,7 +1,7 @@
 # Build from monorepo root: docker build -f agent/server/Dockerfile .
 # Optional Compose profile `cli` — device-flow OAuth helper for the CLI.
 
-ARG NODE_VERSION=24-bookworm-slim
+ARG NODE_VERSION=24.22.1-bookworm-slim
 
 FROM node:${NODE_VERSION} AS base
 ENV PNPM_HOME="/pnpm"

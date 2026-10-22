@@ -170,7 +170,7 @@ Let AI agents handle volume — drafting and scheduling at scale. You handle qua
 
 ### Prerequisites
 
-- Node.js 24+
+- Node.js 24.22.1+ (or run `nvm use` — see root `.nvmrc`)
 - Corepack (for pnpm)
 
 ```bash

@@ -28,7 +28,7 @@ Use these floors when you self-host OpenQuok with the Compose stack under <Badge
 ## Required software
 
 - <DocsExternalLink href="https://docs.docker.com/get-docker/">Docker</DocsExternalLink> Engine (or Docker Desktop) with **Compose v2** (<code>docker compose</code>)
-- Git, to clone this monorepo (images build from the repo root context; app images use **Node 24** on <code>bookworm-slim</code>)
+- Git, to clone this monorepo (images build from the repo root context; app images pin **Node 24.22.1** on <code>bookworm-slim</code> — rebuild images after security releases)
 - A **Supabase** project — hosted cloud **or** <DocsExternalLink href="https://supabase.com/docs/guides/cli/getting-started"><code>supabase start</code></DocsExternalLink> on the same host. App data and Auth go through Supabase; Compose does **not** bundle the Supabase multi-container stack in v1.
 
 ## Network and outbound access

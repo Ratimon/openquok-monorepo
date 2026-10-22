@@ -46,7 +46,7 @@ User-facing steps live in `web/src/content/docs/installation/` (`system-requirem
 
 ### Node and pnpm
 
-- **Runtime and build images use Node 24** on Debian Bookworm slim: `ARG NODE_VERSION=24-bookworm-slim` then `FROM node:${NODE_VERSION}`.
+- **Runtime and build images use Node 24** on Debian Bookworm slim: pin a patched release (e.g. `ARG NODE_VERSION=24.22.1-bookworm-slim`) then `FROM node:${NODE_VERSION}` — bump when Node ships security fixes on the 24.x line.
 - Keep **pnpm** in sync with root `package.json` `packageManager` via Corepack in the Dockerfile `base` stage (`corepack prepare pnpm@… --activate`).
 - When bumping Node for Docker, update **all** app Dockerfiles (`backend/`, `web/`, `orchestrator/`, `agent/server/`) together.
 
