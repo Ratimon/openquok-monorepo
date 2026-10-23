@@ -3,23 +3,41 @@
 	import type { TelegramMockAgentBranding } from '$lib/ui/templates/device-mocks/iphone-15-pro/telegramMockBranding';
 
 	import { page } from '$app/state';
+	import { getPublicChannelBySlug } from '$lib/content/constants/channels';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
 	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
 	import BentoPublicChannelFeature from '$lib/ui/templates/bento/minor-templates/BentoPublicChannelFeature.svelte';
 	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
+	import PublicAgentConnectOnceBeamMedia from '$lib/ui/templates/landing-page/PublicAgentConnectOnceBeamMedia.svelte';
 	import PublicAgentFeatureMedia from '$lib/ui/templates/landing-page/PublicAgentFeatureMedia.svelte';
 	import PublicAgentParallelMocks from '$lib/ui/templates/landing-page/PublicAgentParallelMocks.svelte';
+
 	type Props = {
 		section: PublicAgentFeatureSection;
 		index: number;
 		ctaText: string;
 		ctaHref: string;
 		telegramAgentBranding?: TelegramMockAgentBranding;
+		activeChannelSlug?: string | null;
 	};
 
-	let { section, index, ctaText, ctaHref, telegramAgentBranding }: Props = $props();
+	let {
+		section,
+		index,
+		ctaText,
+		ctaHref,
+		telegramAgentBranding,
+		activeChannelSlug = null
+	}: Props = $props();
+
+	const isConnectOnceIphoneSection = $derived(
+		section.subtitle.toLowerCase() === 'connect once' && section.deviceMock === 'iphone-15-pro'
+	);
+	const connectOnceChannelIconName = $derived(
+		activeChannelSlug ? getPublicChannelBySlug(activeChannelSlug)?.icon ?? null : null
+	);
 
 	const isLoggedIn = $derived(
 		Boolean((page.data as { isLoggedIn?: boolean } | undefined)?.isLoggedIn)
@@ -60,7 +78,7 @@
 			: section.deviceMock
 				? {
 						imageSrc: undefined,
-						mediaContainerClass: 'max-w-[320px]',
+						mediaContainerClass: isConnectOnceIphoneSection ? 'max-w-4xl' : 'max-w-[320px]',
 						mediaColumnClass: 'justify-center'
 					}
 				: {})
@@ -75,7 +93,15 @@
 			{telegramAgentBranding}
 		/>
 	{:else if section.deviceMock}
-		<PublicAgentFeatureMedia {section} {telegramAgentBranding} />
+		{#if isConnectOnceIphoneSection}
+			<PublicAgentConnectOnceBeamMedia
+				{section}
+				{telegramAgentBranding}
+				channelIconName={connectOnceChannelIconName}
+			/>
+		{:else}
+			<PublicAgentFeatureMedia {section} {telegramAgentBranding} />
+		{/if}
 	{:else if section.bentoId}
 		<BentoPublicChannelFeature bentoId={section.bentoId} {isLoggedIn} />
 	{/if}

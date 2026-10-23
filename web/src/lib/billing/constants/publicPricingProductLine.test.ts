@@ -4,10 +4,13 @@ import { GetPublicPricingPresenter } from '$lib/billing/GetPublicPricing.present
 import {
 	PUBLIC_PRICING_CARD_FEATURE_DEFINITIONS,
 	PUBLIC_PRICING_COMPARE_ROWS,
-	PUBLIC_PRICING_FEATURED_TIER
+	PUBLIC_PRICING_FEATURED_TIER,
+	PUBLIC_PRICING_LANDING_TAB_FEATURE_LIMIT,
+	PUBLIC_PRICING_LANDING_TAB_FEATURE_LIMIT_ALL
 } from '$lib/billing/constants/publicPricingCatalog';
 import {
 	filterCompareRowsByProductLine,
+	mergeLandingTabFeaturesForAllProductLines,
 	publicPricingCardFeatureLabels
 } from '$lib/billing/constants/publicPricingProductLines';
 import { planLimitsForTier } from 'openquok-common';
@@ -53,6 +56,21 @@ describe('publicPricingProductLine catalog', () => {
 		for (const id of directoryIds) expect(allIds.has(id)).toBe(true);
 		expect(allIds.size).toBeGreaterThan(socialIds.size);
 		expect(allIds.size).toBeGreaterThan(directoryIds.size);
+	});
+
+	it('mergeLandingTabFeaturesForAllProductLines unions social and directory tab bullets', () => {
+		const social = ['1 agent workspace', '500 posts per month', 'Calendar views'];
+		const directory = ['1 agent workspace', '3 competitor domains', 'Domain rating analytics'];
+		const merged = mergeLandingTabFeaturesForAllProductLines(
+			social,
+			directory,
+			PUBLIC_PRICING_LANDING_TAB_FEATURE_LIMIT,
+			PUBLIC_PRICING_LANDING_TAB_FEATURE_LIMIT_ALL
+		);
+
+		expect(merged).toContain('Calendar views');
+		expect(merged).toContain('Domain rating analytics');
+		expect(merged.filter((line) => line === '1 agent workspace')).toHaveLength(1);
 	});
 
 	it('card feature labels respect product-line filters', () => {
@@ -168,6 +186,35 @@ describe('GetPublicPricingPresenter product-line filters', () => {
 		expect(allSolo).toBeDefined();
 		expect(socialSolo!.features.some((f) => /directory analytics/i.test(f))).toBe(false);
 		expect(allSolo!.features.length).toBeGreaterThan(socialSolo!.features.length);
+	});
+
+	it('home landing tab merge includes directory bullets not shown on social-only tabs', () => {
+		const socialSolo = presenter.buildLandingTabPlans('MONTHLY', { productLine: 'social' }).find(
+			(p) => p.tier === 'SOLO'
+		);
+		const directorySolo = presenter.buildLandingTabPlans('MONTHLY', {
+			productLine: 'directory'
+		}).find((p) => p.tier === 'SOLO');
+
+		expect(socialSolo).toBeDefined();
+		expect(directorySolo).toBeDefined();
+
+		const merged = mergeLandingTabFeaturesForAllProductLines(
+			socialSolo!.features,
+			directorySolo!.features,
+			PUBLIC_PRICING_LANDING_TAB_FEATURE_LIMIT,
+			PUBLIC_PRICING_LANDING_TAB_FEATURE_LIMIT_ALL
+		);
+
+		expect(merged.some((line) => /domain rating analytics/i.test(line))).toBe(true);
+		expect(merged.some((line) => /posts per month/i.test(line))).toBe(true);
+		expect(merged.some((line) => /business profiles/i.test(line))).toBe(true);
+	});
+
+	it('all product line includes competitor domain limits on plan cards', () => {
+		const allSolo = presenter.buildPageVm('MONTHLY', 'all').plans.find((p) => p.tier === 'SOLO');
+		expect(allSolo).toBeDefined();
+		expect(allSolo!.features.some((line) => /competitor domains/i.test(line))).toBe(true);
 	});
 });
 

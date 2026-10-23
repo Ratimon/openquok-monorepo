@@ -285,7 +285,10 @@ function buildCardFeatures(
 			return line.label;
 		});
 
-	const directoryLimits = productLine === 'directory' ? directoryPlanLimitLabels(limits) : [];
+	const directoryLimits =
+		productLine === 'directory' || productLine === 'all'
+			? directoryPlanLimitLabels(limits)
+			: [];
 	const workspaceIdx = limitLines.findIndex((label) => /agent workspace/i.test(label));
 	const withDirectoryLimits =
 		directoryLimits.length === 0
@@ -310,15 +313,18 @@ function buildCardFeatures(
 		...withDirectoryLimits.slice(insertAt)
 	];
 
-	const marketingFeatures = publicPricingCardFeatureLabels(
-		PUBLIC_PRICING_CARD_FEATURE_DEFINITIONS,
-		productLine
-	).filter(
-		(label) => {
-			if (label.startsWith('Community') && !limits.community_features) return false;
-			return true;
-		}
-	);
+	const marketingFeatures = (
+		productLine === 'all'
+			? [
+					...publicPricingCardFeatureLabels(PUBLIC_PRICING_CARD_FEATURE_DEFINITIONS, 'directory'),
+					...publicPricingCardFeatureLabels(PUBLIC_PRICING_CARD_FEATURE_DEFINITIONS, 'social'),
+					...publicPricingCardFeatureLabels(PUBLIC_PRICING_CARD_FEATURE_DEFINITIONS, 'shared')
+				]
+			: publicPricingCardFeatureLabels(PUBLIC_PRICING_CARD_FEATURE_DEFINITIONS, productLine)
+	).filter((label) => {
+		if (label.startsWith('Community') && !limits.community_features) return false;
+		return true;
+	});
 	const seen = new Set<string>();
 	const merged: string[] = [];
 	for (const label of [...withAi, ...marketingFeatures]) {

@@ -59,7 +59,7 @@ export const hermesAgentSeed = {
 			iconClass: 'text-violet-400',
 			title: 'Gateway operators',
 			description:
-				'You run hermes gateway setup once and reach Telegram, Discord, Slack, WhatsApp, Signal, and 20+ more surfaces from a single Hermes Agent.',
+				'Run hermes gateway once. Reach Telegram, Discord, Slack, and 20+ apps from one agent.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -67,7 +67,7 @@ export const hermesAgentSeed = {
 			iconClass: 'text-indigo-400',
 			title: 'Skills Hub users',
 			description:
-				'Hermes can create and refine skills from experience. Add openquok-core under ~/.hermes/skills/ beside MCP servers and your own automations.',
+				'Add openquok-core under ~/.hermes/skills/. Hermes can grow skills from experience.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -75,7 +75,7 @@ export const hermesAgentSeed = {
 			iconClass: 'text-fuchsia-400',
 			title: 'VPS and desktop hosts',
 			description:
-				'Run the CLI installer on Linux, macOS, WSL2, or Windows — or use the Hermes Desktop app. Keep calendar approval while Hermes handles chat volume.',
+				'Install on Linux, macOS, or Windows. Hermes handles chat; you approve on the calendar.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],

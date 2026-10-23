@@ -76,19 +76,19 @@ function buildAgentAudienceCardHook(
 			case 0:
 				return `Ask ${agentLabel} to draft ${platformLabel} posts in chat.`;
 			case 1:
-				return `Batch ${platformLabel} drafts through ${agentLabel} — publish now, schedule, or approve on OpenQuok.`;
+				return `Batch ${platformLabel} drafts through ${agentLabel}. Schedule posts on OpenQuok.`;
 			default:
-				return `Let ${agentLabel} queue ${platformLabel} content.`;
+				return `${agentLabel} batches ${platformLabel} content.`;
 		}
 	}
 
 	switch (cardIndex) {
 		case 0:
-			return `Message ${agentLabel} to draft ${platformLabel} posts from chat — publish now, schedule, or approve on OpenQuok.`;
+			return `Message ${agentLabel} to draft ${platformLabel} posts. Approve on OpenQuok.`;
 		case 1:
-			return `${agentLabel} queues ${platformLabel} drafts at volume — your team can publish now or approve first.`;
+			return `Schedule ${platformLabel} at volume through ${agentLabel}. Your team approves on OpenQuok.`;
 		default:
-			return `Run ${agentLabel} per client workspace so ${platformLabel} drafts stay isolated.`;
+			return `Run ${agentLabel} per client. ${platformLabel} workspaces stay separate.`;
 	}
 }
 

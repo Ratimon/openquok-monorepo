@@ -54,6 +54,9 @@ export const PUBLIC_PRICING_LANDING_TAB_ICONS: Record<PaidSubscriptionTier, Icon
 /** Max feature bullets in the landing tab detail card (two-column grid). */
 export const PUBLIC_PRICING_LANDING_TAB_FEATURE_LIMIT = 11;
 
+/** Home (`productLine: all`) merges social + directory tab bullets — slightly higher cap. */
+export const PUBLIC_PRICING_LANDING_TAB_FEATURE_LIMIT_ALL = 16;
+
 /** Marketing plan-card bullets tagged by product line (`shared` bullets show in every filter mode). */
 export const PUBLIC_PRICING_CARD_FEATURE_DEFINITIONS: readonly PublicPricingCardFeatureDefinition[] = [
 	{ label: 'Official platform APIs', line: 'social' },

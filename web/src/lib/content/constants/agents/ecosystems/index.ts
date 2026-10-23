@@ -101,7 +101,7 @@ const audienceTailoredCardByHostSlug: Readonly<Record<string, AudienceCard>> = {
 		iconClass: 'text-emerald-400',
 		title: 'Open source on your Gateway',
 		description:
-			'OpenAI’s personal agent direction includes Dots on managed cloud computers. OpenClaw stays open source and foundation-supported. You still self-host the Gateway and control credentials.',
+			'Dots runs on OpenAI cloud computers. OpenClaw is open source — you self-host the Gateway and credentials.',
 		containerClass: CARD_CONTAINER_CLASS
 	},
 	dots: {

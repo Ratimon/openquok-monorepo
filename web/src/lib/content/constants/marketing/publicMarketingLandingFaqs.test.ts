@@ -18,6 +18,7 @@ describe('publicMarketingLandingFaqs', () => {
 		const section = getPublicMarketingLandingFaqSection('directory-submission');
 		expect(section.faqTitle.toLowerCase()).toContain('directory');
 		expect(section.faqItems.some((item) => item.title.includes('blast'))).toBe(true);
+		expect(section.faqItems.some((item) => /domain rating/i.test(item.title))).toBe(true);
 	});
 
 	it('dedupes shared general FAQ ids when merging marketing landings', () => {

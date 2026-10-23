@@ -178,6 +178,7 @@
 		{index}
 		ctaText={featureCtaText}
 		ctaHref={resolvedSecondaryCtaHref}
+		activeChannelSlug={activeChannelSlug}
 	/>
 {/each}
 

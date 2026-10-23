@@ -5,9 +5,13 @@
 
 	import { icons } from '$data/icons';
 	import { getPublicPricingPresenter } from '$lib/billing';
-	import { PUBLIC_PRICING_FILTERED_PRODUCT_LINE_FOOTNOTE } from '$lib/billing/constants/publicPricingProductLines';
+	import {
+		mergeLandingTabFeaturesForAllProductLines,
+		PUBLIC_PRICING_FILTERED_PRODUCT_LINE_FOOTNOTE
+	} from '$lib/billing/constants/publicPricingProductLines';
 	import {
 		PUBLIC_PRICING_LANDING_TAB_FEATURE_LIMIT,
+		PUBLIC_PRICING_LANDING_TAB_FEATURE_LIMIT_ALL,
 		PUBLIC_PRICING_LANDING_TAB_ICONS,
 		PUBLIC_PRICING_PLAN_META,
 		PUBLIC_PRICING_TIER_ORDER
@@ -103,17 +107,35 @@
 	const pageVm = $derived(getPublicPricingPresenter.buildPageVm(period, productLine));
 	const plans = $derived(plansProp ?? pageVm.plans);
 
-	const showProductLineFootnote = $derived(
-		!showProductLineSwitcher && productLine !== 'all'
-	);
+	const showProductLineFootnote = $derived(!showProductLineSwitcher);
 
 	const selectedPlan = $derived(
 		plans.find((plan) => plan.tier === selectedTier) ?? plans[0]
 	);
 
-	const selectedTabFeatures = $derived(
-		selectedPlan ? selectedPlan.features.slice(0, PUBLIC_PRICING_LANDING_TAB_FEATURE_LIMIT) : []
-	);
+	const selectedTabFeatures = $derived.by(() => {
+		if (!selectedPlan) return [];
+
+		if (productLine === 'all') {
+			const socialPlan = getPublicPricingPresenter
+				.buildPageVm(period, 'social')
+				.plans.find((plan) => plan.tier === selectedPlan.tier);
+			const directoryPlan = getPublicPricingPresenter
+				.buildPageVm(period, 'directory')
+				.plans.find((plan) => plan.tier === selectedPlan.tier);
+
+			if (socialPlan && directoryPlan) {
+				return mergeLandingTabFeaturesForAllProductLines(
+					socialPlan.features,
+					directoryPlan.features,
+					PUBLIC_PRICING_LANDING_TAB_FEATURE_LIMIT,
+					PUBLIC_PRICING_LANDING_TAB_FEATURE_LIMIT_ALL
+				);
+			}
+		}
+
+		return selectedPlan.features.slice(0, PUBLIC_PRICING_LANDING_TAB_FEATURE_LIMIT);
+	});
 
 	const selectedTabIcon = $derived(
 		selectedPlan ? PUBLIC_PRICING_LANDING_TAB_ICONS[selectedPlan.tier] : null

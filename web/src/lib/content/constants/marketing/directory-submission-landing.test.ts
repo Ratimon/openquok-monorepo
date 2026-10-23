@@ -49,4 +49,5 @@ describe('PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG', () => {
 	it('defines a five-step human-paced process', () => {
 		expect(PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG.processSection.steps).toHaveLength(5);
 	});
+
 });

@@ -87,7 +87,7 @@ export const facebookChannel = {
 			iconClass: 'text-rose-400',
 			title: 'Page owners',
 			description:
-				'Schedule Page posts, Reels, and Stories without switching between Business Suite tabs. Review drafts on one calendar before anything goes live.',
+				'Schedule Page posts, Reels, and Stories on one calendar. You approve before publish.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -95,7 +95,7 @@ export const facebookChannel = {
 			iconClass: 'text-lime-400',
 			title: 'Marketing teams',
 			description:
-				'Batch weeks of Page content. Review drafts before anything goes live. Campaigns ship on time without weekend scrambles.',
+				'Batch weeks of Page content. Review every draft before it goes live.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -103,7 +103,7 @@ export const facebookChannel = {
 			iconClass: 'text-emerald-400',
 			title: 'Agencies',
 			description:
-				'Manage multiple Facebook Pages in one workspace. Schedule at scale. Track insights per brand.',
+				'Manage many Pages in one workspace. Schedule at scale and track insights per brand.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],

@@ -62,7 +62,7 @@ export const metaMuseAgent = {
 			iconClass: 'text-emerald-400',
 			title: 'Messaging-first users',
 			description:
-				'You chat with Muse like a person in the Muse app or WhatsApp. Ask it to queue OpenQuok drafts while you are on the go. You still approve publishes on the calendar.',
+				'Chat with Muse in the app or WhatsApp. Queue OpenQuok drafts on the go; approve on the calendar.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -78,7 +78,7 @@ export const metaMuseAgent = {
 			iconClass: 'text-violet-300',
 			title: 'Creators and marketers',
 			description:
-				'Muse can plan launches and keep working after you close the app. When a reel, event, or campaign is ready, have Muse draft channel-specific posts — OpenQuok holds the approval step.',
+				'Muse plans launches in the background. When a campaign is ready, draft channel posts; approve on OpenQuok.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],

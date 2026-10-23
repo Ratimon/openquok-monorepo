@@ -47,7 +47,7 @@ export const peerpushDirectoryChannel = {
 		siteHost: 'peerpush.com',
 		discoveryFieldsLabel: 'PeerPush categories',
 		autofillDescription:
-			'Pick Standard launch or Free queue in My Products. The extension opens peerpush.com with your profile. Edit fields, then submit on PeerPush — and reuse the same profile on other directories you choose.'
+			'Pick PeerPush Standard launch or Free queue. The extension opens peerpush.com with your profile. Edit fields, then submit on PeerPush — and reuse the same profile on other directories you choose.'
 	}),
 	processSection: buildDirectoryChannelProcessSection({
 		channelSlug: 'peerpush',

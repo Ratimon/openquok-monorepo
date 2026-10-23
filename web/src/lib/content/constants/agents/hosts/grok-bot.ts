@@ -67,7 +67,7 @@ export const grokBotAgent = {
 			iconClass: 'text-neutral-300',
 			title: 'Eligible plan subscribers',
 			description:
-				'You create a Bot on Cursor Pro, Pro+, Ultra, or self-serve Teams, or link SuperGrok / X Premium+ per Cursor’s plan matrix. Each Bot is an always-on teammate with its own environment.',
+				'Create multiple Bots on an eligible Cursor or xAI plan. Each Bot is an always-on teammate.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -75,7 +75,7 @@ export const grokBotAgent = {
 			iconClass: 'text-zinc-400',
 			title: 'Cloud computer operators',
 			description:
-				'Every Bot keeps a persistent shared computer — browser, filesystem, and terminal. Install openquok-core once, then message the Bot from macOS, Windows, or iOS.',
+				'Each Bot has a shared cloud computer. Install openquok-core once; message from desktop or iOS.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -83,7 +83,7 @@ export const grokBotAgent = {
 			iconClass: 'text-stone-400',
 			title: 'Routines and plugins users',
 			description:
-				'Load openquok-core through Settings → Plugins or / in chat. Use Bot routines for recurring scheduling work while OpenQuok holds the approval checkpoint.',
+				'Load openquok-core via Plugins or / in chat. Routines handle volume; you approve on OpenQuok.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],

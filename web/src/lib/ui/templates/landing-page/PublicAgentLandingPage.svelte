@@ -233,6 +233,7 @@
 		ctaText={featureCtaText}
 		ctaHref={resolvedSecondaryCtaHref}
 		{telegramAgentBranding}
+		activeChannelSlug={activeChannelSlug}
 	/>
 {/each}
 

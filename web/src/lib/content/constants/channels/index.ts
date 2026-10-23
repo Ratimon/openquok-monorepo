@@ -25,6 +25,7 @@ import {
 	appendPublicGeneralFaqItems,
 	PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS
 } from '$lib/content/constants/faq';
+import { insertDirectoryLaunchDrGuaranteeFaqItems } from '$lib/content/constants/faq/marketing/directory-submission';
 import {
 	applyPublicChannelPageAudienceFirstCardHook,
 	buildPublicChannelEcosystemAudienceTailoredCard,
@@ -147,7 +148,9 @@ export function getPublicChannelBySlug(slug: string): PublicChannelLandingPageVi
 		return {
 			...page,
 			faqItems: appendPublicGeneralFaqItems(
-				[...page.faqItems],
+				insertDirectoryLaunchDrGuaranteeFaqItems([...page.faqItems], {
+					platformLabel: page.platformLabel
+				}),
 				PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS,
 				{ generalFirst: true }
 			)

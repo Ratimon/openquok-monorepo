@@ -61,7 +61,7 @@ export const claudeDuetAgent = {
 			iconClass: 'text-amber-300',
 			title: 'Operators who want proactive nudges',
 			description:
-				'You want a partner that flags calendar conflicts and drafts follow-ups. Pair Duet’s briefs with OpenQuok so social publishes still wait for your approval.',
+				'Duet flags conflicts and drafts follow-ups. Social publishes still wait for your approval on OpenQuok.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -69,7 +69,7 @@ export const claudeDuetAgent = {
 			iconClass: 'text-orange-300',
 			title: 'Mobile-first founders',
 			description:
-				'You reply on iOS or Android between meetings. Ask Duet to queue launch posts without opening a separate scheduler app.',
+				'Reply on iOS or Android between meetings. Ask Duet to queue launch posts from chat.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -77,7 +77,7 @@ export const claudeDuetAgent = {
 			iconClass: 'text-stone-300',
 			title: 'Small business owners in Claude',
 			description:
-				'You wear every hat—support, books, and marketing—from one Claude account. Teach Duet the openquok-core skill so launch posts stay in the same thread as the rest of your work.',
+				'Run support and marketing from one Claude account. Add openquok-core so launch posts stay in one thread.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],

@@ -10,7 +10,7 @@ export const PUBLIC_LANDING_WHO_IS_FOR_CARDS: readonly AudienceCard[] = [
 		iconClass: 'text-emerald-400',
 		title: 'Agentic',
 		description:
-			'Model-agnostic: AI agents on OpenClaw, Hermes Agent, Grok Bot, Dots, Meta Muse, ChatGPT, Claude, and Claude Code draft and schedule social posts. You approve each post before it publishes.',
+			'Model-agnostic: OpenClaw, Hermes Agent, Grok Bot, Claude Duet, Meta Muse, and Dots. Schedule social posts and run auto launch. You approve each publish.',
 		containerClass: CARD_CONTAINER_CLASS
 	},
 	{
@@ -18,7 +18,7 @@ export const PUBLIC_LANDING_WHO_IS_FOR_CARDS: readonly AudienceCard[] = [
 		iconClass: 'text-lime-400',
 		title: 'Developers',
 		description:
-			'Use open-source code, our SDK, Public API, and CLI. Post through official network APIs without building each integration yourself and not getting banned.',
+			'Use the SDK, Public API, and CLI for social scheduling and auto launch. Post through official network APIs without getting banned.',
 		containerClass: CARD_CONTAINER_CLASS
 	},
 	{
@@ -26,7 +26,7 @@ export const PUBLIC_LANDING_WHO_IS_FOR_CARDS: readonly AudienceCard[] = [
 		iconClass: 'text-rose-400',
 		title: 'Social teams',
 		description:
-			'Run a social media scheduler from one workspace. Plan posts on the calendar and share to every connected channel.',
+			'Plan social posts on one calendar. Auto launch submits directory listings from one workspace profile.',
 		containerClass: CARD_CONTAINER_CLASS
 	},
 	{
@@ -34,7 +34,7 @@ export const PUBLIC_LANDING_WHO_IS_FOR_CARDS: readonly AudienceCard[] = [
 		iconClass: 'text-sky-400',
 		title: 'Startups',
 		description:
-			'Submit product listings from one business profile. The browser extension autofills directory forms. You submit on each site.',
+			'Schedule launch posts and run auto launch for directory listings. One product profile powers both.',
 		containerClass: CARD_CONTAINER_CLASS
 	}
 ];

@@ -58,7 +58,7 @@ export const openclawAgentSeed = {
 			iconClass: 'text-emerald-400',
 			title: 'Local-first operators',
 			description:
-				'You run the OpenClaw Gateway on your Mac, Linux box, or VPS. Your workspace and skills stay on hardware you control while you message from chat.',
+				'Run OpenClaw Gateway on Mac, Linux, or a VPS. Your workspace stays on hardware you control.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -66,7 +66,7 @@ export const openclawAgentSeed = {
 			iconClass: 'text-lime-400',
 			title: 'Multi-channel inbox users',
 			description:
-				'OpenClaw bridges dozens of messaging apps — WhatsApp, Telegram, Slack, Discord, Signal, and more. Schedule social posts from the same thread you already use.',
+				'Reach WhatsApp, Telegram, Slack, and more from chat. Schedule social posts in the same thread.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -74,7 +74,7 @@ export const openclawAgentSeed = {
 			iconClass: 'text-rose-400',
 			title: 'ClawHub skill builders',
 			description:
-				'Install openquok-core beside browser, cron, and community skills from the registry. OpenClaw returns structured JSON; OpenQuok keeps human approval on the calendar.',
+				'Add openquok-core beside ClawHub skills. You approve publishes on the OpenQuok calendar.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],

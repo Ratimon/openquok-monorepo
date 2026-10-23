@@ -273,6 +273,15 @@ describe('buildMcpChannelLandingVm directory channels (claude-code × peerpush)'
 		expect(vm.opportunitiesPreviewSection.description).toContain('directory launch');
 	});
 
+	it('includes shared DR guarantee FAQ from the directory channel catalog', () => {
+		const vm = buildClaudeCodePeerpushMcpVm();
+		expect(
+			vm.faqItems.some((item) =>
+				/Do you guarantee a specific Domain Rating/i.test(item.title)
+			)
+		).toBe(true);
+	});
+
 	it('maps directory MCP FAQ without social analytics commands', () => {
 		const vm = buildClaudeCodePeerpushMcpVm();
 		const mcpCapabilitiesFaq = vm.faqItems.find((item) =>

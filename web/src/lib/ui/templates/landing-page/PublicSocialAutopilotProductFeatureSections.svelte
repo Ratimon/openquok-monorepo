@@ -6,11 +6,9 @@
 	import { PUBLIC_LANDING_COMPACT_TRIAL_CTA } from '$lib/content/constants/landing/hero-copy';
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 
-	import AnimatedBeamMultipleAgent from '$lib/ui/templates/landing-page/AnimatedBeamMultipleAgent.svelte';
+	import PublicAgentConnectOnceBeamMedia from '$lib/ui/templates/landing-page/PublicAgentConnectOnceBeamMedia.svelte';
 	import BentoLandingComposeSettings from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingComposeSettings.svelte';
 	import BentoLandingCrossAccountPlugs from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingCrossAccountPlugs.svelte';
-	import Iphone15ProMock from '$lib/ui/templates/device-mocks/iphone-15-pro/Iphone15ProMock.svelte';
-	import Iphone15ProMockContent from '$lib/ui/templates/device-mocks/iphone-15-pro/Iphone15ProMockContent.svelte';
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
 	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
 	import PublicAgentFeatureSection from '$lib/ui/templates/landing-page/PublicAgentFeatureSection.svelte';
@@ -60,21 +58,13 @@
 	mediaContainerClass="max-w-4xl"
 >
 	{#snippet rightMedia()}
-		<div
-			class="flex h-full w-full flex-col items-center gap-6 sm:flex-row sm:items-stretch sm:gap-4"
-			aria-hidden="true"
-		>
-			<div class="flex min-h-72 min-w-0 flex-1 items-stretch">
-				<AnimatedBeamMultipleAgent />
-			</div>
-			<div
-				class="mx-auto flex h-[360px] w-full max-w-[200px] shrink-0 items-center justify-center overflow-hidden sm:h-full sm:max-w-[220px] lg:max-w-[240px]"
-			>
-				<Iphone15ProMock class="h-full w-auto max-w-full">
-					<Iphone15ProMockContent content="telegram-connect" />
-				</Iphone15ProMock>
-			</div>
-		</div>
+		<PublicAgentConnectOnceBeamMedia
+			section={{
+				subtitle: sections.feature1.subtitle,
+				deviceMockContent: 'telegram-connect',
+				imageAlt: 'Telegram chat connecting OpenQuok'
+			}}
+		/>
 	{/snippet}
 </HeroWithRightMedia>
 

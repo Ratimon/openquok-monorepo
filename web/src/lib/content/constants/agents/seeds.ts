@@ -18,11 +18,11 @@ export const PUBLIC_AGENT_HOST_LANDING_PAGES: readonly PublicAgentHostLandingPag
 	hermesAgent,
 	grokBotAgent,
 	dotsAgent,
-	metaMuseAgent,
-	thinkrailAgent,
-	manusAgent,
 	geminiAgent,
-	claudeDuetAgent
+	claudeDuetAgent,
+	metaMuseAgent,
+	manusAgent,
+	thinkrailAgent
 ];
 
 export type PublicAgentHostFooterEntry = { slug: string; label: string };

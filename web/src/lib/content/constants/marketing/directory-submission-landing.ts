@@ -6,11 +6,8 @@ import type { IconName } from '$data/icons';
 
 import { getRootPathPublicDirectorySubmissionTool } from '$lib/area-public/constants/getRootPathPublicDirectorySubmissionTool';
 import type { FeaturesOrderedStep } from '$lib/content/constants/agents';
-import type { PublicFaqItem } from '$lib/content/constants/faq';
-import {
-	appendPublicGeneralFaqItems,
-	PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS
-} from '$lib/content/constants/faq';
+import { PUBLIC_DIRECTORY_SUBMISSION_LANDING_FAQ_SECTION } from '$lib/content/constants/faq/marketing/directory-submission';
+import type { PublicMarketingLandingFaqSection } from '$lib/content/constants/faq/marketing/types';
 import { PUBLIC_LANDING_HERO_TRIAL_CTA } from '$lib/content/constants/landing/hero-copy';
 import {
 	faqHrefDocs,
@@ -28,7 +25,6 @@ const directorySubmissionDocsHref = faqHrefDocs('directory-submission');
 const chromeExtensionDocsHref = faqHrefDocs('installation/chrome-extension');
 const directoryChannelsHubHref = `${route('channels')}#public-directory-channels-hub-heading`;
 const buildBacklinksHref = route('build-backlinks');
-const pricingHref = publicFaqHref.pricing;
 const publicLandingPath = route(getRootPathPublicDirectorySubmissionTool());
 
 export type PublicDirectorySubmissionCta = {
@@ -103,12 +99,7 @@ export type PublicDirectorySubmissionLandingConfig = {
 	relatedLinksSection: PublicDirectorySubmissionSectionHeader & {
 		items: readonly PublicDirectorySubmissionLinkCardItem[];
 	};
-	faqSection: {
-		faqSubtitle: string;
-		faqTitle: string;
-		faqDescription: string;
-		faqItems: readonly PublicFaqItem[];
-	};
+	faqSection: PublicMarketingLandingFaqSection;
 	docsBanner: {
 		title: string;
 		description: string;
@@ -120,29 +111,6 @@ export type PublicDirectorySubmissionLandingConfig = {
 		docsPath: string;
 	};
 };
-
-const tailoredFaqItems: readonly PublicFaqItem[] = [
-	{
-		title: 'Why not blast 30 directories in one day?',
-		description: `Bulk automation can trigger rejections and account flags when many listings appear at once. OpenQuok spreads your work, while you open one directory at a time, review autofilled fields, and submit when it looks right. That human pace protects your brand on PeerPush, Uneed, and the next sites you add. See ${faqLink(directorySubmissionDocsHref, 'directory submission')}.`
-	},
-	{
-		title: 'Do you submit directories for me like a $300 agency?',
-		description: `No. OpenQuok is software plus your review — not a done-for-you team. You keep directory logins and approve every form. You avoid agency fees that often start around $300 on public pricing pages while still moving faster than copy-paste alone. Compare workspace plans on ${faqLink(pricingHref, 'pricing')}.`
-	},
-	{
-		title: 'How is this different from cheap “24–48 hour” automation?',
-		description: `Fast bulk tools optimize for speed. OpenQuok optimizes for approval safety: one business profile, the ${faqLink(chromeExtensionDocsHref, 'Chrome extension')} for autofill, and steady progress in one dashboard. You choose which directories to open and when to click submit.`
-	},
-	{
-		title: 'Which directories does OpenQuok support today?',
-		description: `PeerPush and Uneed are live directory launch platforms. Each has its own submit flow and paid options on the directory site. OpenQuok does not bundle those listing fees. Browse ${faqLink(directoryChannelsHubHref, 'directory launch platforms')} and ${faqLink(buildBacklinksHref, 'build backlinks')} for research.`
-	},
-	{
-		title: 'Can I reuse the same profile for social scheduling?',
-		description: `Yes. Business profiles also feed social channels in the same workspace. Directory launch and social scheduling are separate workflows, but you keep one product story. ${faqLink(publicFaqHref.signUp, 'Sign up for free')} and connect channels from ${faqLink(publicFaqHref.connectChannelsGuide, 'Connect channel')}.`
-	}
-];
 
 export const PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG: PublicDirectorySubmissionLandingConfig = {
 	metaTitle: 'Directory Submission Tool — DR Growth & Human-Paced Launch',
@@ -426,13 +394,7 @@ export const PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG: PublicDirectorySubmissi
 			}
 		]
 	},
-	faqSection: {
-		faqSubtitle: 'Directory submission tool',
-		faqTitle: 'Questions about directory launch',
-		faqDescription:
-			'Why we favor your review and a steady pace over overnight bulk automation — and how OpenQuok supports that workflow.',
-		faqItems: appendPublicGeneralFaqItems(tailoredFaqItems, PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS)
-	},
+	faqSection: PUBLIC_DIRECTORY_SUBMISSION_LANDING_FAQ_SECTION,
 	docsBanner: {
 		title: 'Read the directory submission guide',
 		description:

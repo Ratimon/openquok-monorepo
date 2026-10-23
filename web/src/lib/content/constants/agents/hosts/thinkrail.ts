@@ -60,7 +60,7 @@ export const thinkrailAgent = {
 			iconClass: 'text-zinc-400',
 			title: 'Worktree-first developers',
 			description:
-				'Each ThinkRail workspace is a git worktree with its own branch, Monaco tabs, diffs, and terminals. Schedule client posts from the worktree that owns that repo.',
+				'Each workspace is a git worktree with its own branch. Schedule client posts from that repo.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -68,7 +68,7 @@ export const thinkrailAgent = {
 			iconClass: 'text-neutral-300',
 			title: 'In-process pi users',
 			description:
-				'Pi runs inside ThinkRail and loads skills from ~/.pi or .pi/skills in the worktree. openquok-core stays CLI-first without a separate Telegram bridge.',
+				'Pi runs in ThinkRail and loads skills from ~/.pi or .pi/skills. openquok-core stays CLI-first.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -76,7 +76,7 @@ export const thinkrailAgent = {
 			iconClass: 'text-stone-400',
 			title: 'Agency and multi-repo teams',
 			description:
-				'Spin a worktree per client or launch branch. Credentials and drafts stay scoped while pi handles volume from desktop chat.',
+				'Spin a worktree per client. Credentials stay scoped while pi handles volume from desktop chat.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],

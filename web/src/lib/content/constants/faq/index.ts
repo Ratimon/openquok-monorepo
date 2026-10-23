@@ -313,6 +313,7 @@ export const PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
 	'schedule-posts'
 ];
 
+
 /** `/social-media-management` — shared catalog first; page-specific copy appended after. */
 export const PUBLIC_SOCIAL_AUTOPILOT_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
 	'switch-from-buffer-hootsuite',
@@ -487,3 +488,5 @@ export function getDefaultPublicFaqConfigItems(): PublicFaqConfigItem[] {
 		answer: description
 	}));
 }
+
+// Programmatic marketing landing FAQs: `$lib/content/constants/faq/marketing` (avoid re-export here — circular init).

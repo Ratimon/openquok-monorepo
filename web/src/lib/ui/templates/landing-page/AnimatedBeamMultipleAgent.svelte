@@ -8,11 +8,13 @@
 	let containerRef = $state<HTMLElement>();
 	let userRef = $state<HTMLElement>();
 	let botTopRef = $state<HTMLElement>();
-	let botMiddleRef = $state<HTMLElement>();
+	let botUpperMidRef = $state<HTMLElement>();
+	let botLowerMidRef = $state<HTMLElement>();
 	let botBottomRef = $state<HTMLElement>();
-	let socialTopRef = $state<HTMLElement>();
-	let socialMiddleRef = $state<HTMLElement>();
-	let socialBottomRef = $state<HTMLElement>();
+	let channelTopRef = $state<HTMLElement>();
+	let channelUpperMidRef = $state<HTMLElement>();
+	let channelLowerMidRef = $state<HTMLElement>();
+	let channelBottomRef = $state<HTMLElement>();
 </script>
 
 <div
@@ -31,47 +33,59 @@
 			</BeamCircle>
 		</div>
 
-		<div class="flex h-full flex-col justify-between py-2 sm:py-4">
-			<BeamCircle class="size-14 sm:size-16">
+		<div class="flex h-full flex-col justify-between py-1 sm:py-2">
+			<BeamCircle class="size-12 sm:size-14">
 				<div bind:this={botTopRef} class="flex items-center justify-center text-base-content">
-					<AbstractIcon name={icons.Bot.name} width="26" height="26" />
+					<AbstractIcon name={icons.Bot.name} width="24" height="24" />
 				</div>
 			</BeamCircle>
-			<BeamCircle class="size-14 sm:size-16">
-				<div bind:this={botMiddleRef} class="flex items-center justify-center text-base-content">
-					<AbstractIcon name={icons.Bot.name} width="26" height="26" />
+			<BeamCircle class="size-12 sm:size-14">
+				<div bind:this={botUpperMidRef} class="flex items-center justify-center text-base-content">
+					<AbstractIcon name={icons.Bot.name} width="24" height="24" />
 				</div>
 			</BeamCircle>
-			<BeamCircle class="size-14 sm:size-16">
+			<BeamCircle class="size-12 sm:size-14">
+				<div bind:this={botLowerMidRef} class="flex items-center justify-center text-base-content">
+					<AbstractIcon name={icons.Bot.name} width="24" height="24" />
+				</div>
+			</BeamCircle>
+			<BeamCircle class="size-12 sm:size-14">
 				<div bind:this={botBottomRef} class="flex items-center justify-center text-base-content">
-					<AbstractIcon name={icons.Bot.name} width="26" height="26" />
+					<AbstractIcon name={icons.Bot.name} width="24" height="24" />
 				</div>
 			</BeamCircle>
 		</div>
 
-		<div class="flex h-full flex-col justify-between py-2 sm:py-4">
-			<BeamCircle class="size-14 sm:size-16">
-				<div bind:this={socialTopRef} class="flex items-center justify-center">
-					<AbstractIcon name={icons.InstagramGlyph.name} width="24" height="24" />
+		<div class="flex h-full flex-col justify-between py-1 sm:py-2">
+			<BeamCircle class="size-12 sm:size-14">
+				<div bind:this={channelTopRef} class="flex items-center justify-center">
+					<AbstractIcon name={icons.InstagramGlyph.name} width="22" height="22" />
 				</div>
 			</BeamCircle>
-			<BeamCircle class="size-14 sm:size-16">
-				<div bind:this={socialMiddleRef} class="flex items-center justify-center">
-					<AbstractIcon name={icons.TikTok.name} width="24" height="24" />
+			<BeamCircle class="size-12 sm:size-14">
+				<div bind:this={channelUpperMidRef} class="flex items-center justify-center">
+					<AbstractIcon name={icons.TikTok.name} width="22" height="22" />
 				</div>
 			</BeamCircle>
-			<BeamCircle class="size-14 sm:size-16">
-				<div bind:this={socialBottomRef} class="flex items-center justify-center">
-					<AbstractIcon name={icons.FacebookGlyph.name} width="24" height="24" />
+			<BeamCircle class="size-12 sm:size-14">
+				<div bind:this={channelLowerMidRef} class="flex items-center justify-center">
+					<AbstractIcon name={icons.PeerPush.name} width="22" height="22" />
+				</div>
+			</BeamCircle>
+			<BeamCircle class="size-12 sm:size-14">
+				<div bind:this={channelBottomRef} class="flex items-center justify-center">
+					<AbstractIcon name={icons.FacebookGlyph.name} width="22" height="22" />
 				</div>
 			</BeamCircle>
 		</div>
 	</div>
 
-	<AnimatedBeam {containerRef} fromRef={userRef} toRef={botTopRef} curvature={40} />
-	<AnimatedBeam {containerRef} fromRef={userRef} toRef={botMiddleRef} />
-	<AnimatedBeam {containerRef} fromRef={userRef} toRef={botBottomRef} curvature={-40} />
-	<AnimatedBeam {containerRef} fromRef={botMiddleRef} toRef={socialTopRef} curvature={40} />
-	<AnimatedBeam {containerRef} fromRef={botMiddleRef} toRef={socialMiddleRef} />
-	<AnimatedBeam {containerRef} fromRef={botMiddleRef} toRef={socialBottomRef} curvature={-40} />
+	<AnimatedBeam {containerRef} fromRef={userRef} toRef={botTopRef} curvature={50} />
+	<AnimatedBeam {containerRef} fromRef={userRef} toRef={botUpperMidRef} curvature={20} />
+	<AnimatedBeam {containerRef} fromRef={userRef} toRef={botLowerMidRef} curvature={-20} />
+	<AnimatedBeam {containerRef} fromRef={userRef} toRef={botBottomRef} curvature={-50} />
+	<AnimatedBeam {containerRef} fromRef={botTopRef} toRef={channelTopRef} curvature={40} />
+	<AnimatedBeam {containerRef} fromRef={botUpperMidRef} toRef={channelUpperMidRef} curvature={20} />
+	<AnimatedBeam {containerRef} fromRef={botLowerMidRef} toRef={channelLowerMidRef} curvature={-20} />
+	<AnimatedBeam {containerRef} fromRef={botBottomRef} toRef={channelBottomRef} curvature={-40} />
 </div>

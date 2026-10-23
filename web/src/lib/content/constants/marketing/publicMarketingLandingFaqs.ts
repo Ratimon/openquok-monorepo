@@ -1,21 +1,19 @@
 import type { PublicFaqItem } from '$lib/content/constants/faq';
 import { mergePublicFaqItemsUnique } from '$lib/content/constants/faq';
-import { PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG } from '$lib/content/constants/marketing/directory-submission-landing';
-import { PUBLIC_SOCIAL_AUTOPILOT_LANDING_CONFIG } from '$lib/content/constants/marketing/social-autopilot-landing';
+import {
+	PUBLIC_DIRECTORY_SUBMISSION_LANDING_FAQ_SECTION,
+	PUBLIC_SOCIAL_AUTOPILOT_LANDING_FAQ_SECTION
+} from '$lib/content/constants/faq/marketing';
+import type { PublicMarketingLandingFaqSection } from '$lib/content/constants/faq/marketing/types';
 
-export type PublicMarketingLandingFaqSection = {
-	faqSubtitle: string;
-	faqTitle: string;
-	faqDescription: string;
-	faqItems: readonly PublicFaqItem[];
-};
+export type { PublicMarketingLandingFaqSection } from '$lib/content/constants/faq/marketing/types';
 
 export type PublicMarketingLandingFaqId = 'social-autopilot' | 'directory-submission';
 
 /** Per-route FAQ sections for programmatic marketing landings. */
 export const PUBLIC_MARKETING_LANDING_FAQ_BY_ID = {
-	'social-autopilot': PUBLIC_SOCIAL_AUTOPILOT_LANDING_CONFIG.faqSection,
-	'directory-submission': PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG.faqSection
+	'social-autopilot': PUBLIC_SOCIAL_AUTOPILOT_LANDING_FAQ_SECTION,
+	'directory-submission': PUBLIC_DIRECTORY_SUBMISSION_LANDING_FAQ_SECTION
 } satisfies Record<PublicMarketingLandingFaqId, PublicMarketingLandingFaqSection>;
 
 /** Merge order when building the home page (`/`) FAQ accordion. */

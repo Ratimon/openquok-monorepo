@@ -61,7 +61,7 @@ export const manusAgent = {
 			iconClass: 'text-zinc-400',
 			title: 'Video and launch creators',
 			description:
-				'You finish product ads, tutorials, or motion graphics in Manus Video Editor or Alchemy mode. Export from Studio, then ask Manus to draft launch posts with openquok-core in the same project.',
+				'Finish ads or tutorials in Manus Studio. Ask Manus to draft launch posts with openquok-core.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -69,7 +69,7 @@ export const manusAgent = {
 			iconClass: 'text-neutral-300',
 			title: 'Game and interactive builders',
 			description:
-				'You ship playable games in Game Dev and host multiplayer on a Cloud Computer. When you publish a link or ship an update, Manus can queue social drafts — you still approve on OpenQuok.',
+				'Ship games on a Cloud Computer. When you publish an update, Manus queues drafts; you approve on OpenQuok.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -77,7 +77,7 @@ export const manusAgent = {
 			iconClass: 'text-stone-400',
 			title: 'Automation operators',
 			description:
-				'You use Manus Automations when email, ads, Slack, Notion, or calendar events fire. Add openquok-core so triggered runs can draft or schedule posts without a separate dashboard.',
+				'Use Manus Automations for email, Slack, or calendar triggers. openquok-core drafts or schedules posts.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],

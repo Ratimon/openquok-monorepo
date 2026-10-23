@@ -59,7 +59,7 @@ export const geminiAgent = {
 			iconClass: 'text-red-400',
 			title: 'YouTube and Google creators',
 			description:
-				'You already use Gemini with Drive, Gmail, and YouTube. Task mode can turn launch notes into channel-specific drafts while OpenQuok holds the publish step.',
+				'Use Gemini Task with Drive and YouTube. Turn launch notes into drafts; you approve publish.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -67,7 +67,7 @@ export const geminiAgent = {
 			iconClass: 'text-sky-300',
 			title: 'Scheduled operators',
 			description:
-				'You use Gemini skills and task schedules for inbox, research, and ops work. Add OpenQuok MCP so the same automations can queue social drafts on a cadence.',
+				'Use Gemini skills and task schedules for ops work. Add OpenQuok MCP to queue social drafts on a cadence.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -75,7 +75,7 @@ export const geminiAgent = {
 			iconClass: 'text-blue-300',
 			title: 'Workspace-first marketers',
 			description:
-				'Connected Apps can reach Calendar, Docs, Sheets, and third-party tools. OpenQuok adds the social scheduling layer without leaving Gemini.',
+				'Connected Apps reach Calendar, Docs, and Sheets. OpenQuok adds social scheduling in Gemini.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],

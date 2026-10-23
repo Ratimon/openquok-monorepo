@@ -62,7 +62,7 @@ describe('publicPricingLandingSectionConfig', () => {
 			subtitle: 'Pricings',
 			title: 'Find your perfect plan',
 			description:
-				'Transparent pricing for our social media scheduling tool. No hidden fees — cancel anytime. Start with a 7-day free trial.'
+				'Every paid tier includes social scheduling and directory launch on the same workspace. Transparent pricing — cancel anytime. Start with a 7-day free trial, no credit card required.'
 		});
 	});
 

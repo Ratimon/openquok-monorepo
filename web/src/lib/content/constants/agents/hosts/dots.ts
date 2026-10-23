@@ -58,7 +58,7 @@ export const dotsAgent = {
 			iconClass: 'text-violet-300',
 			title: 'Content and launch operators',
 			description:
-				'Your dot can turn transcripts into clips, show notes, and social drafts — the same workflow OpenAI describes for creators. OpenQuok holds the approval step before publish.',
+				'Turn transcripts into clips and social drafts on the dot computer. You approve before publish.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -66,7 +66,7 @@ export const dotsAgent = {
 			iconClass: 'text-emerald-300',
 			title: 'Slack and Teams first',
 			description:
-				'You start work in ChatGPT and follow through in Slack or Teams without losing context. Ask your dot to queue OpenQuok drafts from the channel you already use.',
+				'Start in ChatGPT; follow up in Slack or Teams. Queue OpenQuok drafts from the channel you use.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -74,7 +74,7 @@ export const dotsAgent = {
 			iconClass: 'text-stone-400',
 			title: 'Proactive scheduling with guardrails',
 			description:
-				'Dots can research in the background with read-only tools, then act when you approve. Pair Custom Rules with OpenQuok so you choose publish-now, schedule, or draft-and-review on the calendar.',
+				'Dots research in the background, then act when you approve. Custom Rules pair with OpenQuok scheduling.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],
