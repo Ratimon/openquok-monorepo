@@ -35,17 +35,23 @@ function parseEnvPort(key: string): number | null {
     return Number.isFinite(parsed) ? parsed : null;
 }
 
+function isRailwayHost(): boolean {
+    return Boolean(process.env.RAILWAY_ENVIRONMENT?.trim());
+}
+
 /**
  * Resolved at listen time from `process.env` (after dotenv), not frozen `config` from `backend/dist`.
  * Order: ORCHESTRATOR_WORKER_HEALTH_PORT=0 off; else explicit ORCHESTRATOR_WORKER_HEALTH_PORT;
- * else host PORT (Railway); else 3091.
+ * else host PORT when `RAILWAY_ENVIRONMENT` is set; else 3091 (avoids API PORT=3000 in local .env).
  */
 function resolveHealthPort(): number {
     const configured = parseEnvPort("ORCHESTRATOR_WORKER_HEALTH_PORT");
     if (configured === 0) return 0;
     if (configured != null && configured > 0) return configured;
-    const hostPort = parseEnvPort("PORT");
-    if (hostPort != null && hostPort > 0) return hostPort;
+    if (isRailwayHost()) {
+        const hostPort = parseEnvPort("PORT");
+        if (hostPort != null && hostPort > 0) return hostPort;
+    }
     return 3091;
 }
 

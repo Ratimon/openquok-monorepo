@@ -26,7 +26,7 @@ All expect **Redis** at `REDIS_*` (and optional `REDIS_BULLMQ_DB`), matching the
 | `SUPABASE_SECRET_KEY` | New secret key (`sb_secret_…`). Server-side only. Required in production for tables used by refresh, notifications, and scheduled posts. Legacy `service_role` JWT is not accepted. |
 | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_DB`, `REDIS_BULLMQ_DB` | Match the API’s queue/cache Redis; defaults exist for local Redis. |
 | `BULLMQ_WORKER_LOCK_DURATION_MS` | Optional. Flowcraft jobs use this as BullMQ `lockDuration` (default **600000** ms = 10 min). The upstream `@flowcraft/bullmq-adapter` did not set this; BullMQ’s **30s** default can cause `Error: could not renew lock for job …` when a node runs longer (OAuth refresh, slow HTTP). |
-| `ORCHESTRATOR_WORKER_HEALTH_PORT` | Optional. HTTP port for `GET /health` and `GET /health/status` (Redis PING + queue depth). Explicit value wins over host **`PORT`**; local `pnpm dev:worker:*` scripts set **`3091`** so API `PORT=3000` is unaffected. On Railway leave unset and use injected **`PORT`**. Set **`0`** to disable. Default **3091**. |
+| `ORCHESTRATOR_WORKER_HEALTH_PORT` | Optional. HTTP port for `GET /health` and `GET /health/status` (Redis PING + queue depth). Explicit value wins; on Railway (`RAILWAY_ENVIRONMENT` set) unset uses injected **`PORT`**; locally defaults to **`3091`** so API **`PORT=3000`** in `.env` is not reused. `pnpm dev:worker:*` also sets **`3091`**. Set **`0`** to disable. |
 | `SENTRY_DSN`, `SENTRY_ENABLED` | Optional. Same as the API; workers initialize Sentry on boot and report uncaught errors. Tag: `openquok.worker`. |
 
 **Integration refresh worker only**
@@ -88,13 +88,13 @@ pnpm install && pnpm railway:orchestrator:build
 
 (`railway:orchestrator:build` is an alias for `pnpm orchestrator:build:deps`.)
 
-**Start command** (pick one per service; repo root):
+**Railpack** — `orchestrator/railpack.*.json` appends `pnpm railway:orchestrator:build` to the provider **`build`** step and extends **`deploy.inputs`** with `orchestrator/dist`, `backend/dist`, and `common/dist` (repo [`.dockerignore`](../.dockerignore) excludes `**/dist`, so those paths must be copied explicitly). Do **not** replace deploy inputs with only a custom step — that drops the Node runtime. **Build** may also run via [`railway.toml`](../railway.toml). Local smoke: `pnpm railway:orchestrator:start:*`.
 
-| Worker | Start |
+| Worker | Railpack `startCommand` (monorepo `/app` root) |
 |--------|--------|
-| Integration refresh | `pnpm railway:orchestrator:start:integration-refresh` |
-| Housekeeping | `pnpm railway:orchestrator:start:housekeeping` |
-| Scheduled social post | `pnpm railway:orchestrator:start:scheduled-social-post` (alias of `pnpm orchestrator:start:worker:scheduled-social-post-bullmq`) |
+| Integration refresh | `node orchestrator/dist/worker/runIntegrationRefreshBullMqWorker.js` |
+| Housekeeping | `node orchestrator/dist/worker/runHousekeepingBullMqWorker.js` |
+| Scheduled social post | `node orchestrator/dist/worker/runScheduledSocialPostBullMqWorker.js` |
 
 Equivalent from **`orchestrator/`** after deps are built:
 
@@ -116,11 +116,7 @@ This matches the **separate worker service** pattern in Railway’s guide [Deplo
 4. From the **monorepo root**, link the CLI to the **target worker service**: `railway link` (pick project + service). For another worker, run `railway service` to point at the other service, or `railway unlink` then link again (see [Railway CLI](https://docs.railway.com/develop/cli)).
 5. **Deploy this directory** to the linked service: `railway up` (uploads/builds/deploys per [deploying from local](https://docs.railway.com/develop/cli#deploying)).  
    - **Build** is also defined in repo-root [`railway.toml`](../railway.toml) (`pnpm install && pnpm railway:orchestrator:build`); it overrides the dashboard when present ([config as code](https://docs.railway.com/reference/config-as-code)).
-6. In the Railway UI for **that service**, set **Start Command** to one of:
-   - `pnpm railway:orchestrator:start:integration-refresh`
-   - `pnpm railway:orchestrator:start:housekeeping`
-   - `pnpm railway:orchestrator:start:scheduled-social-post`  
-   (`railway.toml` intentionally omits a single `startCommand` so each worker can differ.)
+6. Set **`RAILPACK_CONFIG_FILE`** to the matching `orchestrator/railpack.*.json` (start is in that file). Do **not** set a dashboard Start Command to `pnpm …` unless your image includes pnpm at runtime. (`railway.toml` intentionally omits `startCommand` so each worker differs.)
 7. Stream logs: `railway logs`.
 
 **Run a worker locally with Railway-injected env** (after `railway link`, from monorepo root after `pnpm install`):  

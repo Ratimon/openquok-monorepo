@@ -1,6 +1,26 @@
 {
   "$schema": "https://schema.railpack.com",
+  "steps": {
+    "build": {
+      "commands": [
+        "...",
+        "export NODE_OPTIONS=--max-old-space-size=8192 && pnpm railway:orchestrator:build"
+      ]
+    }
+  },
   "deploy": {
-    "startCommand": "pnpm railway:orchestrator:start:housekeeping"
+    "inputs": [
+      "...",
+      {
+        "step": "build",
+        "include": [
+          "orchestrator/dist",
+          "backend/dist",
+          "common/dist",
+          "backend/static/routes-manifest.json"
+        ]
+      }
+    ],
+    "startCommand": "node orchestrator/dist/worker/runHousekeepingBullMqWorker.js"
   }
 }

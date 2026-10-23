@@ -27,9 +27,8 @@ Railway treats these as <DocsExternalLink href="https://docs.railway.com/service
 | Phase | Command / setting |
 |-------|-------------------|
 | **Build** (repo root) | <Badge text="pnpm install && pnpm railway:orchestrator:build" variant="default" /> |
-| **Start** — integration refresh | <Badge text="pnpm railway:orchestrator:start:integration-refresh" variant="default" /> |
-| **Start** — housekeeping | <Badge text="pnpm railway:orchestrator:start:housekeeping" variant="default" /> |
-| **Start** — scheduled social post | <Badge text="pnpm railway:orchestrator:start:scheduled-social-post" variant="default" /> |
+| **Start** (via <Badge text="RAILPACK_CONFIG_FILE" variant="envRuntime" />) | <Badge text="node orchestrator/dist/worker/&lt;worker&gt;.js" variant="default" /> in each <Badge text="orchestrator/railpack.*.json" variant="path" /> (monorepo root; Railpack keeps the Node runtime — do not override <code>deploy.inputs</code> in those files) |
+| **Start** (local / dashboard with pnpm on PATH) | <Badge text="pnpm railway:orchestrator:start:*" variant="default" /> |
 
 The repo includes <Badge text="railway.toml" variant="path" /> at the monorepo root with <code>buildCommand</code>, a restart policy, region <code>us-west2</code> (US West / Oregon), and replica limits for the lighter workers (<code>numReplicas = 1</code>, <code>1</code> vCPU, <code>1</code> GiB). <Badge text="scheduled-social-post" variant="default" /> uses <Badge text="railway.scheduled-social-post.toml" variant="path" /> (<code>1</code> vCPU, <code>2</code> GiB) — set that service’s Railway Config File to <code>/railway.scheduled-social-post.toml</code>. **Start command is not** fixed in those files so **each** worker can differ (<DocsExternalLink href="https://docs.railway.com/reference/config-as-code">config as code</DocsExternalLink>).
 
@@ -55,30 +54,14 @@ Use the same repository as the monorepo. Configure <DocsExternalLink href="https
 Set <Badge text="NODE_ENV=production" variant="envRuntime" />, Redis, Supabase, and any provider/email keys from <a href="/docs/configuration-worker">Configuration - Worker</a>.
 
 <Callout type="tip" title="Railpack config">
-Set <Badge text="RAILPACK_CONFIG_FILE" variant="envRuntime" /> (per service) to one of: <Badge text="railpack.integration-refresh.json" variant="param" />, <Badge text="railpack.housekeeping.json" variant="param" />, or <Badge text="railpack.scheduled-social-post.json" variant="param" /> (dashboard or <Badge text="railway variables set" variant="default" /> after <Badge text="railway service" variant="default" />). <Badge text="railpack.notification-email.json" variant="param" /> remains a one-release alias.
+Set <Badge text="RAILPACK_CONFIG_FILE" variant="envRuntime" /> (per service) to one of: <Badge text="orchestrator/railpack.integration-refresh.json" variant="param" />, <Badge text="orchestrator/railpack.housekeeping.json" variant="param" />, or <Badge text="orchestrator/railpack.scheduled-social-post.json" variant="param" /> (dashboard or <Badge text="railway variables set" variant="default" /> after <Badge text="railway service" variant="default" />). Each file extends the Railpack <code>build</code> step and copies <code>*/dist</code> into the runtime image (required because <Badge text=".dockerignore" variant="path" /> excludes <code>**/dist</code>). <Badge text="orchestrator/railpack.notification-email.json" variant="param" /> remains a one-release alias.
 </Callout>
 
-### Set Start Command
+### Start command
 
-In the service **Settings → Deploy → Start Command**, set exactly one of the following (from the monorepo root).
+When <Badge text="RAILPACK_CONFIG_FILE" variant="envRuntime" /> points at <Badge text="orchestrator/railpack.*.json" variant="path" />, leave the dashboard **Start Command** empty so Railpack uses <code>node orchestrator/dist/worker/…</code> from the monorepo root. Do **not** set <code>pnpm railway:orchestrator:start:*</code> — the runtime image may not include <code>pnpm</code>.
 
-**Integration refresh worker** —
-
-```bash
-pnpm railway:orchestrator:start:integration-refresh
-```
-
-**Housekeeping worker** (notification email digest + Directory SEO weekly refresh) —
-
-```bash
-pnpm railway:orchestrator:start:housekeeping
-```
-
-**Scheduled social post worker** (calendar publishes at <code>publish_date</code>) —
-
-```bash
-pnpm railway:orchestrator:start:scheduled-social-post
-```
+For local smoke tests from the monorepo root (with pnpm installed), you can still run <code>pnpm railway:orchestrator:start:*</code>.
 
 Avoid scale-to-zero if it would **stop** a process during long integration-refresh sleeps.
 
