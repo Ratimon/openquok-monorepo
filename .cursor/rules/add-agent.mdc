@@ -283,6 +283,14 @@ Update `agent/skills/openquok-core/` (`SKILL.md` metadata JSON for the host when
 - Ecosystem: **`AGENT_HOST_ECOSYSTEM_BY_SLUG['gemini'] = 'google-gemini'`** — fourth WhoIsFor card **Gemini-first in Google’s toolchain** (YouTube first-class). **`relatedAgentSlugs`**: `gemini`; pin before `android-studio` / `antigravity-cli` on `/channels/youtube`.
 - Reference implementation: **`hosts/gemini.ts`**, **`gemini-messaging-channels.ts`**, **`GEMINI_SKILL_INSTALL_OPTIONS`**, **`channels/gemini.ts`**, **`gemini-docs-overview`** mocks. Desktop workflow mocks (Grok Bot pattern). Icon: **`icons.Gemini.name`**.
 
+### Claude Duet specifics (`claude-duet`)
+
+- **Not** an MCP client — no `MCP_CLIENTS` entry and no `mcp-setup-guides/claude-duet.md`. **Not** **Claude Code** (`/agents/claude-code`) or **Claude Cowork** (`/agents/claude-cowork`) — those stay MCP clients with `claude mcp add` or desktop custom connectors.
+- Proactive consumer agent on iOS, Android, and claude.ai with a **virtual machine**, morning briefs, and skills/connectors from the Claude account. Official overview: Anthropic’s [Introducing Claude Duet](https://claude.com/resources/articles/claude-duet). Host icon: **`icons.ClaudeDuet`** (cream tile + duet mark from Anthropic’s app icon — not the generic Claude app tile).
+- Skill install: **`CLAUDE_DUET_SKILL_INSTALL_OPTIONS`** — `@openquok/auto-cli` on the VM + `openquok-core` in Claude skills (see **`hosts/claude-duet.ts`**, **`claude-duet-messaging-channels.ts`**, **`channels/hosts/claude-duet.ts`**, **`claude-duet-docs-overview`** / **`openquok-skill-install-claude-duet`** mocks). Mobile-first workflow mock (`iphone-15-pro` + `agent-chat-schedule`), not OpenClaw Telegram fallback.
+- Ecosystem: **`AGENT_HOST_ECOSYSTEM_BY_SLUG['claude-duet'] = 'anthropic-claude'`** — fourth WhoIsFor card **Professionals who live in Claude** (audience-focused; MCP siblings keep **Claude lab in one workspace**). **`relatedAgentSlugs`**: `claude-duet`; **`relatedMcpSlugs`**: `claude-code`, `claude-cowork`. Also set **`MCP_CLIENT_ECOSYSTEM_BY_SLUG`** for `claude-code` and `claude-cowork`. No first-class channel slugs (all networks from one workspace).
+- Cross-link **`/agents/claude-code`**, **`/agents/claude-cowork`**, and the harness blog scenario **Claude vs OpenAI** when readers pick surfaces.
+
 ### Manus specifics (`manus`)
 
 - **Not** an MCP client — no `mcps/manus.ts`, no `MCP_CLIENTS`, no `mcp-setup-guides/manus.md`.

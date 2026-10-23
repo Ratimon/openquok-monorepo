@@ -5,4 +5,5 @@ export type TerminalMockContentId =
 	| 'openquok-skill-install-dots'
 	| 'openquok-skill-install-meta-muse'
 	| 'openquok-skill-install-thinkrail'
-	| 'openquok-skill-install-manus';
+	| 'openquok-skill-install-manus'
+	| 'openquok-skill-install-claude-duet';

@@ -7,6 +7,7 @@
 	import DotsDocsOverviewMock from '$lib/ui/templates/device-mocks/safari/content/DotsDocsOverviewMock.svelte';
 	import ManusDocsOverviewMock from '$lib/ui/templates/device-mocks/safari/content/ManusDocsOverviewMock.svelte';
 	import GeminiDocsOverviewMock from '$lib/ui/templates/device-mocks/safari/content/GeminiDocsOverviewMock.svelte';
+	import ClaudeDuetDocsOverviewMock from '$lib/ui/templates/device-mocks/safari/content/ClaudeDuetDocsOverviewMock.svelte';
 	import MetaMuseDocsOverviewMock from '$lib/ui/templates/device-mocks/safari/content/MetaMuseDocsOverviewMock.svelte';
 	import ThinkRailDocsOverviewMock from '$lib/ui/templates/device-mocks/safari/content/ThinkRailDocsOverviewMock.svelte';
 	import HermesDocsOverviewMock from '$lib/ui/templates/device-mocks/safari/content/HermesDocsOverviewMock.svelte';
@@ -58,6 +59,8 @@
 	<ManusDocsOverviewMock />
 {:else if content === 'gemini-docs-overview'}
 	<GeminiDocsOverviewMock />
+{:else if content === 'claude-duet-docs-overview'}
+	<ClaudeDuetDocsOverviewMock />
 {:else if isMcpInstallContent(content)}
 	<McpClientInstallMock content={content} />
 {:else if isMcpVerifyContent(content)}

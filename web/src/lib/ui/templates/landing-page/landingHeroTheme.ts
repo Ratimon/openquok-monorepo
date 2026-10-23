@@ -131,6 +131,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'ThinkRail',
 	'Manus',
 	'Gemini Task',
+	'Claude Duet',
 	'openclaw',
 	'hermes',
 	'agent hosts',

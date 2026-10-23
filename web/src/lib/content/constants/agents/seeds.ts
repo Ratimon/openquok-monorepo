@@ -5,6 +5,7 @@ import {
 	grokBotAgent,
 	hermesAgent,
 	geminiAgent,
+	claudeDuetAgent,
 	manusAgent,
 	metaMuseAgent,
 	openclawAgent,
@@ -20,7 +21,8 @@ export const PUBLIC_AGENT_HOST_LANDING_PAGES: readonly PublicAgentHostLandingPag
 	metaMuseAgent,
 	thinkrailAgent,
 	manusAgent,
-	geminiAgent
+	geminiAgent,
+	claudeDuetAgent
 ];
 
 export type PublicAgentHostFooterEntry = { slug: string; label: string };

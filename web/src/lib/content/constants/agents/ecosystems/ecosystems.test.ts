@@ -41,6 +41,7 @@ describe('AGENT_HOST_ECOSYSTEM_BY_SLUG', () => {
 		expect(AGENT_HOST_ECOSYSTEM_BY_SLUG.dots).toBe('openai-personal-agents');
 		expect(AGENT_HOST_ECOSYSTEM_BY_SLUG['meta-muse']).toBe('meta-consumer');
 		expect(AGENT_HOST_ECOSYSTEM_BY_SLUG['grok-bot']).toBe('xai-grok');
+		expect(AGENT_HOST_ECOSYSTEM_BY_SLUG['claude-duet']).toBe('anthropic-claude');
 	});
 
 	it('registers only hosts that exist in PUBLIC_AGENT_HOST_LANDING_PAGES', () => {
@@ -175,6 +176,14 @@ describe('buildAgentHostEcosystemFaqItems', () => {
 		expect(titles).not.toContain('Is Meta Muse the same as Muse Code?');
 	});
 
+	it('merges Claude Duet host without duplicate Claude Code compare FAQ titles', () => {
+		const page = getPublicAgentHostBySlug('claude-duet');
+		expect(page).toBeDefined();
+		const titles = page!.faqItems.map((item) => item.title);
+		expect(titles.filter((t) => /Claude Code or Claude Cowork/i.test(t))).toHaveLength(1);
+		expect(titles).toContain('How is Claude Duet different from Claude Code or Claude Cowork?');
+	});
+
 	it('merges Gemini Task host with one Google surface compare FAQ from the ecosystem', () => {
 		const page = getPublicAgentHostBySlug('gemini');
 		expect(page).toBeDefined();
@@ -282,6 +291,10 @@ describe('resolveMcpClientAudienceCards', () => {
 			'Meta-owned channels first'
 		);
 		expect(resolveMcpClientAudienceCards([BASE_AUDIENCE_CARD], 'cursor')).toHaveLength(1);
+		expect(getMcpClientEcosystemId('claude-code')).toBe('anthropic-claude');
+		expect(resolveMcpClientAudienceCards([BASE_AUDIENCE_CARD], 'claude-code').at(-1)?.title).toBe(
+			'Claude lab in one workspace'
+		);
 	});
 
 	it('lands Grok Build and Muse Code with four WhoIsFor cards', () => {

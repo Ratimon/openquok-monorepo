@@ -171,6 +171,23 @@ openquok auth:login
 export OPENQUOK_API_KEY="opo_..."
 openquok auth:status`;
 
+/** Claude Duet: ask Duet to install the global CLI on its virtual machine. */
+export const OPENQUOK_CORE_SKILL_INSTALL_CLAUDE_DUET_ASK = `npm install -g @openquok/auto-cli@latest`;
+
+/** Claude Duet: curl SKILL.md, then add openquok-core to Claude skills. */
+export const OPENQUOK_CORE_SKILL_INSTALL_CLAUDE_DUET_CURL = `mkdir -p ~/openquok-core
+curl -fsSL "${OPENQUOK_CORE_SKILL_RAW_URL}" \\
+  -o ~/openquok-core/SKILL.md`;
+
+export const CLAUDE_DUET_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
+	{ id: 'ask-duet', label: 'Ask Claude Duet', command: OPENQUOK_CORE_SKILL_INSTALL_CLAUDE_DUET_ASK },
+	{
+		id: 'curl-skill',
+		label: 'curl + Skills',
+		command: OPENQUOK_CORE_SKILL_INSTALL_CLAUDE_DUET_CURL
+	}
+];
+
 export const GEMINI_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
 	{
 		id: 'mcp-connected-app',

@@ -42,7 +42,7 @@ export const AGENT_HOST_DECISION_SCENARIOS: readonly AgentHostDecisionScenario[]
 	{
 		id: 'no-server-ops-cloud-browser',
 		title: 'Persistent cloud browser without running a server',
-		hostSlugs: ['grok-bot', 'dots', 'manus']
+		hostSlugs: ['grok-bot', 'dots', 'manus', 'claude-duet']
 	},
 	{
 		id: 'model-agnostic',
@@ -84,6 +84,10 @@ export function buildAgentHostPickerFaqDescription(forHostSlug: string): string 
 
 	if (slug === 'grok-bot') {
 		return `Choose Grok Bot for many named Bots on one xAI cloud desktop without server ops. Choose ${faqLink(publicFaqHref.grokBuildLanding, 'Grok Build')} MCP when you want the xAI coding agent in your terminal. Choose ${faqLink(publicFaqHref.openclawLanding, 'OpenClaw')} when you must self-host and message from Telegram, WhatsApp, or Slack. Choose ${faqLink(publicFaqHref.dotsLanding, 'Dots')} for OpenAI workplace chat. See the ${blog}.`;
+	}
+
+	if (slug === 'claude-duet') {
+		return `Choose ${faqLink(publicFaqHref.claudeDuetLanding, 'Claude Duet')} for Anthropic’s proactive app on iOS, Android, and claude.ai with a virtual machine. Choose ${faqLink(publicFaqHref.claudeCodeLanding, 'Claude Code')} MCP when the terminal is home. Choose ${faqLink(publicFaqHref.grokBotLanding, 'Grok Bot')} or ${faqLink(publicFaqHref.dotsLanding, 'Dots')} for other vendor cloud teammates. See the ${blog}.`;
 	}
 
 	if (slug === 'openclaw' || slug === 'hermes') {

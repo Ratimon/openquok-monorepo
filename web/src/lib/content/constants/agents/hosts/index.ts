@@ -6,3 +6,4 @@ export { metaMuseAgent } from './meta-muse';
 export { thinkrailAgent } from './thinkrail';
 export { manusAgent } from './manus';
 export { geminiAgent } from './gemini';
+export { claudeDuetAgent } from './claude-duet';

@@ -192,6 +192,10 @@ export const publicFaqHref = {
 	antigravityCliLanding: faqHrefAgent('antigravity-cli'),
 	androidStudioLanding: faqHrefAgent('android-studio'),
 	geminiLanding: faqHrefAgent('gemini'),
+	claudeDuetLanding: faqHrefAgent('claude-duet'),
+	claudeDuetAgentGuide: faqHrefDocs('agent-setup-guides/claude-duet'),
+	claudeCodeLanding: faqHrefAgent('claude-code'),
+	claudeCoworkLanding: faqHrefAgent('claude-cowork'),
 	blogBufferAlternatives: faqHrefBlogPost(
 		'best-buffer-alternatives-for-teams-that-approve-ai-content-before-posting'
 	),

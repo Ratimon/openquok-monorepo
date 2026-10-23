@@ -5,6 +5,7 @@
 	import OpenquokSkillInstallDotsMock from '$lib/ui/templates/device-mocks/terminal/content/OpenquokSkillInstallDotsMock.svelte';
 	import OpenquokSkillInstallMetaMuseMock from '$lib/ui/templates/device-mocks/terminal/content/OpenquokSkillInstallMetaMuseMock.svelte';
 	import OpenquokSkillInstallManusMock from '$lib/ui/templates/device-mocks/terminal/content/OpenquokSkillInstallManusMock.svelte';
+	import OpenquokSkillInstallClaudeDuetMock from '$lib/ui/templates/device-mocks/terminal/content/OpenquokSkillInstallClaudeDuetMock.svelte';
 	import OpenquokSkillInstallThinkrailMock from '$lib/ui/templates/device-mocks/terminal/content/OpenquokSkillInstallThinkrailMock.svelte';
 	import OpenquokSkillInstallHermesMock from '$lib/ui/templates/device-mocks/terminal/content/OpenquokSkillInstallHermesMock.svelte';
 	import OpenquokSkillInstallMock from '$lib/ui/templates/device-mocks/terminal/content/OpenquokSkillInstallMock.svelte';
@@ -30,4 +31,6 @@
 	<OpenquokSkillInstallThinkrailMock />
 {:else if content === 'openquok-skill-install-manus'}
 	<OpenquokSkillInstallManusMock />
+{:else if content === 'openquok-skill-install-claude-duet'}
+	<OpenquokSkillInstallClaudeDuetMock />
 {/if}

@@ -24,6 +24,10 @@
 		GEMINI_EXTENSION_MESSAGING_CHANNELS
 	} from '$data/gemini-messaging-channels';
 	import {
+		CLAUDE_DUET_CORE_MESSAGING_CHANNELS,
+		CLAUDE_DUET_EXTENSION_MESSAGING_CHANNELS
+	} from '$data/claude-duet-messaging-channels';
+	import {
 		THINKRAIL_CORE_MESSAGING_CHANNELS,
 		THINKRAIL_EXTENSION_MESSAGING_CHANNELS
 	} from '$data/thinkrail-messaging-channels';
@@ -143,6 +147,10 @@
 		gemini: {
 			core: GEMINI_CORE_MESSAGING_CHANNELS,
 			extension: GEMINI_EXTENSION_MESSAGING_CHANNELS
+		},
+		'claude-duet': {
+			core: CLAUDE_DUET_CORE_MESSAGING_CHANNELS,
+			extension: CLAUDE_DUET_EXTENSION_MESSAGING_CHANNELS
 		}
 	} as const;
 

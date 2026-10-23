@@ -18,7 +18,8 @@ export type AgentHostEcosystemId =
 	| 'meta-consumer'
 	| 'openai-personal-agents'
 	| 'xai-grok'
-	| 'google-gemini';
+	| 'google-gemini'
+	| 'anthropic-claude';
 
 export type AgentHostEcosystem = {
 	id: AgentHostEcosystemId;
@@ -57,6 +58,12 @@ const ECOSYSTEM_PROFILES: Record<AgentHostEcosystemId, AgentHostEcosystem> = {
 		firstClassChannelSlugs: ['youtube'],
 		relatedAgentSlugs: ['gemini'],
 		relatedMcpSlugs: ['android-studio', 'antigravity-cli']
+	},
+	'anthropic-claude': {
+		id: 'anthropic-claude',
+		firstClassChannelSlugs: [],
+		relatedAgentSlugs: ['claude-duet'],
+		relatedMcpSlugs: ['claude-code', 'claude-cowork']
 	}
 };
 
@@ -66,7 +73,8 @@ export const AGENT_HOST_ECOSYSTEM_BY_SLUG: Readonly<Record<string, AgentHostEcos
 	dots: 'openai-personal-agents',
 	'meta-muse': 'meta-consumer',
 	'grok-bot': 'xai-grok',
-	gemini: 'google-gemini'
+	gemini: 'google-gemini',
+	'claude-duet': 'anthropic-claude'
 };
 
 /** MCP client slug → ecosystem id for WhoIsFor / first-class channel copy. */
@@ -74,7 +82,9 @@ export const MCP_CLIENT_ECOSYSTEM_BY_SLUG: Readonly<Record<string, AgentHostEcos
 	'muse-code': 'meta-consumer',
 	'grok-build': 'xai-grok',
 	'antigravity-cli': 'google-gemini',
-	'android-studio': 'google-gemini'
+	'android-studio': 'google-gemini',
+	'claude-code': 'anthropic-claude',
+	'claude-cowork': 'anthropic-claude'
 };
 
 const audienceTailoredCardByHostSlug: Readonly<Record<string, AudienceCard>> = {
@@ -117,6 +127,14 @@ const audienceTailoredCardByHostSlug: Readonly<Record<string, AudienceCard>> = {
 		description:
 			'Gemini Task connects OpenQuok through Connected Apps (MCP). YouTube is a natural first channel for video and Shorts. You can still schedule every other supported network from the same workspace.',
 		containerClass: CARD_CONTAINER_CLASS
+	},
+	'claude-duet': {
+		iconName: icons.ClaudeDuet.name,
+		iconClass: 'text-orange-400',
+		title: 'Professionals who live in Claude',
+		description:
+			'You are on Claude Pro or Max and want a proactive partner on your phone—not another terminal or desktop pane. Duet fits briefs and background tasks; OpenQuok keeps social publishes on your approval list.',
+		containerClass: CARD_CONTAINER_CLASS
 	}
 };
 
@@ -151,6 +169,22 @@ const audienceTailoredCardByMcpSlug: Readonly<Record<string, AudienceCard>> = {
 		title: 'Gemini-first in Google’s toolchain',
 		description:
 			'Connect OpenQuok in Antigravity CLI for Gemini in your terminal. YouTube is a natural first channel for video and Shorts. You can still schedule every other supported network from the same workspace.',
+		containerClass: CARD_CONTAINER_CLASS
+	},
+	'claude-code': {
+		iconName: icons.ClaudeGlyph.name,
+		iconClass: 'text-orange-400',
+		title: 'Claude lab in one workspace',
+		description:
+			'Claude Code fits terminal and repo sessions with claude mcp add. Claude Duet is the proactive app with a virtual machine. You can still schedule every other supported network from the same workspace.',
+		containerClass: CARD_CONTAINER_CLASS
+	},
+	'claude-cowork': {
+		iconName: icons.Claude.name,
+		iconClass: 'text-orange-400',
+		title: 'Claude lab in one workspace',
+		description:
+			'Claude Cowork fits desktop cowork with custom connectors. Claude Duet is the proactive mobile and web agent. You can still schedule every other supported network from the same workspace.',
 		containerClass: CARD_CONTAINER_CLASS
 	}
 };
@@ -220,6 +254,13 @@ function metaOwnedFirstClassChannelFaqDescription(agentSlug: string, docsPath: s
 	return `Facebook, Instagram, and Threads are first-class ${agentLabel} channels on OpenQuok. Start with ${fb}, ${ig}, or ${threads}, then add other networks from the same workspace.`;
 }
 
+function anthropicClaudeSurfaceCompareFaqDescription(): string {
+	const claudeDuet = faqLink(publicFaqHref.claudeDuetLanding, 'Claude Duet');
+	const claudeCode = faqLink(publicFaqHref.claudeCodeLanding, 'Claude Code');
+	const claudeCowork = faqLink(publicFaqHref.claudeCoworkLanding, 'Claude Cowork');
+	return `${claudeDuet} is Anthropic’s proactive agent on iOS, Android, and claude.ai — morning briefs, background tasks on a virtual machine, and skills from your Claude account. ${claudeCode} is the terminal coding agent with claude mcp add. ${claudeCowork} is the desktop cowork surface with custom connectors. Same OpenQuok workspace and approval flow. Pick Claude Duet for mobile-first proactive work. Pick Claude Code when the shell is home. Pick Claude Cowork for desktop cowork sessions.`;
+}
+
 function googleGeminiSurfaceCompareFaqDescription(): string {
 	const geminiTask = faqLink(publicFaqHref.geminiLanding, 'Gemini Task');
 	const androidStudio = faqLink(publicFaqHref.androidStudioLanding, 'Android Studio');
@@ -278,6 +319,19 @@ export function buildAgentHostEcosystemFaqItems(hostSlug: string): PublicFaqItem
 
 	if (ecosystemId === 'openai-personal-agents') {
 		return buildOpenAiPersonalAgentsFaqItems(slug);
+	}
+
+	if (ecosystemId === 'anthropic-claude' && slug === 'claude-duet') {
+		return [
+			{
+				title: 'How is Claude Duet different from Claude Code or Claude Cowork?',
+				description: anthropicClaudeSurfaceCompareFaqDescription()
+			},
+			{
+				title: 'How does Claude Duet compare to Grok Bot or Dots?',
+				description: buildAgentHostPickerFaqDescription('claude-duet')
+			}
+		];
 	}
 
 	if (ecosystemId === 'google-gemini' && slug === 'gemini') {
@@ -377,6 +431,24 @@ export function buildMcpClientEcosystemFaqItems(mcpSlug: string): PublicFaqItem[
 					'/docs/mcp-setup-guides/android-studio',
 					'Android Studio'
 				)
+			}
+		];
+	}
+
+	if (slug === 'claude-code') {
+		return [
+			{
+				title: 'How is Claude Code different from Claude Duet or Claude Cowork?',
+				description: anthropicClaudeSurfaceCompareFaqDescription()
+			}
+		];
+	}
+
+	if (slug === 'claude-cowork') {
+		return [
+			{
+				title: 'How is Claude Cowork different from Claude Duet or Claude Code?',
+				description: anthropicClaudeSurfaceCompareFaqDescription()
 			}
 		];
 	}
@@ -534,6 +606,10 @@ export function buildAgentChannelEcosystemHeroDescription(params: {
 		return `Message your dot from ChatGPT, Slack, or Microsoft Teams. Add openquok-core so it drafts and schedules ${platformLabel} posts while you review on the calendar or kanban.`;
 	}
 
+	if (ecosystemId === 'anthropic-claude' && slug === 'claude-duet') {
+		return `Message Claude Duet from iOS, Android, or claude.ai. Add openquok-core on its virtual machine so it drafts and schedules ${platformLabel} posts while you review on the calendar or kanban.`;
+	}
+
 	if (ecosystemId === 'xai-grok') {
 		return `Message ${agentLabel} from the macOS, Windows, or iOS app. Add openquok-core on its cloud computer so it drafts and schedules ${platformLabel} posts while you review and approve on the calendar or kanban.`;
 	}
@@ -610,6 +686,10 @@ export function buildAgentHostEcosystemChannelSiblingGridHubTitle(
 
 	if (ecosystemId === 'google-gemini' && agent.length > 0) {
 		return `${agent}: Gemini-first — YouTube and every supported channel`;
+	}
+
+	if (ecosystemId === 'anthropic-claude' && agent.length > 0) {
+		return `${agent}: Claude lab — every supported channel`;
 	}
 
 	return buildPublicAgentChannelSiblingGridHubTitle(agent);
@@ -796,6 +876,10 @@ export function buildAgentHostEcosystemChannelSiblingGridHubDescription(
 
 	if (ecosystemId === 'google-gemini' && agent.length > 0) {
 		return `Gemini-first scheduling for ${agent} — start with YouTube for video and Shorts, then open every other supported channel for workflows, CLI examples, and FAQs.`;
+	}
+
+	if (ecosystemId === 'anthropic-claude' && agent.length > 0) {
+		return `Pick a channel for ${agent} and Claude-aligned workflows. Compare Claude Code and Claude Cowork on the integrations grid when you evaluate MCP surfaces.`;
 	}
 
 	return buildPublicAgentChannelSiblingGridHubDescription(agent);

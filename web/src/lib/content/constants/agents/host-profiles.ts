@@ -80,6 +80,13 @@ export const AGENT_HOST_PROFILES: readonly AgentHostProfile[] = [
 		scenarioIds: [],
 		traits: ['connected-apps-mcp', 'workspace-native', 'task-schedules'],
 		featureHighlights: []
+	},
+	{
+		slug: 'claude-duet',
+		uiArchetype: 'vendor-cloud-computer',
+		scenarioIds: ['no-server-ops-cloud-browser'],
+		traits: ['proactive-agent', 'virtual-machine', 'mobile-ios-android'],
+		featureHighlights: []
 	}
 ];
 
