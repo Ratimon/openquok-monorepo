@@ -154,7 +154,7 @@ Repository layout at the root:
 - scripts/
 - package.json
 - pnpm-workspace.yaml
-- railway.toml
+- .railway/railway.ts
 - vercel.backend.json
 - vercel.web.json
 
@@ -522,7 +522,7 @@ Documentation UI (layouts, MDX helpers, search, nav):
 |------|---------|
 | <Badge text="package.json" variant="path" /> | Workspace scripts (`pnpm` filters), shared devDependencies, `packageManager` pin |
 | <Badge text="pnpm-workspace.yaml" variant="path" /> | Workspace package globs |
-| <Badge text="railway.toml" variant="path" /> | Railway deploy config for workers and related services |
+| <Badge text=".railway/railway.ts" variant="path" /> | Railway Infrastructure as Code for orchestrator worker services |
 | <Badge text="vercel.backend.json" variant="path" /> / <Badge text="vercel.web.json" variant="path" /> | Vercel project wiring templates for API and web packages |
 | <Badge text=".dockerignore" variant="path" /> | Excludes local artifacts from Docker build context |
 

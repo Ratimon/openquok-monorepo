@@ -1,20 +1,16 @@
 import { defineRailway, preserve, project, service } from "railway/iac";
 import type { DeployConfig } from "railway/iac";
 
-/** Matches repo-root `railway.toml` / `railway.scheduled-social-post.toml` buildCommand. */
 const WORKER_BUILD =
 	"export NODE_OPTIONS=--max-old-space-size=8192 && pnpm install --prod=false && pnpm railway:orchestrator:build";
 
-const WORKER_BASE = {
-	build: WORKER_BUILD,
-	healthcheck: "/health",
-	healthcheckTimeout: 300,
-	replicas: { "us-west2": 1 } as const,
-};
+const WORKER_REPLICAS = { "us-west2": 1 } as const;
 
 const LIGHT_WORKER_DEPLOY: DeployConfig = {
 	restartPolicyType: "ON_FAILURE",
 	restartPolicyMaxRetries: 10,
+	numReplicas: 1,
+	multiRegionConfig: { "us-west2": { numReplicas: 1 } },
 	limitOverride: {
 		containers: {
 			cpu: 1,
@@ -26,6 +22,8 @@ const LIGHT_WORKER_DEPLOY: DeployConfig = {
 const SCHEDULED_SOCIAL_POST_DEPLOY: DeployConfig = {
 	restartPolicyType: "ON_FAILURE",
 	restartPolicyMaxRetries: 10,
+	numReplicas: 1,
+	multiRegionConfig: { "us-west2": { numReplicas: 1 } },
 	limitOverride: {
 		containers: {
 			cpu: 1,
@@ -48,6 +46,9 @@ const workerEnv = {
 	INTEGRATIONS_TOKEN_ENCRYPTION_KEY: preserve(),
 	LINKEDIN_CLIENT_ID: preserve(),
 	LINKEDIN_CLIENT_SECRET: preserve(),
+	MAINTENANCE_MODE: preserve(),
+	MAINTENANCE_RETRY_AFTER_SECONDS: preserve(),
+	MAINTENANCE_BYPASS_SECRET: preserve(),
 	NODE_ENV: preserve(),
 	ORCHESTRATOR_INTEGRATION_REFRESH_TRANSPORT: preserve(),
 	ORCHESTRATOR_NOTIFICATION_EMAIL_TRANSPORT: preserve(),
@@ -98,17 +99,29 @@ const workerEnv = {
 
 export default defineRailway(() => {
 	const openquokWorkerScheduledSocialPost = service("openquok-worker-scheduled-social-post", {
-		...WORKER_BASE,
+		build: WORKER_BUILD,
+		start: "pnpm railway:orchestrator:start:scheduled-social-post",
+		healthcheck: "/health",
+		healthcheckTimeout: 300,
+		replicas: WORKER_REPLICAS,
 		deploy: SCHEDULED_SOCIAL_POST_DEPLOY,
 		env: workerEnv,
 	});
 	const openquokWorkerHousekeeping = service("openquok-worker-housekeeping", {
-		...WORKER_BASE,
+		build: WORKER_BUILD,
+		start: "pnpm railway:orchestrator:start:housekeeping",
+		healthcheck: "/health",
+		healthcheckTimeout: 300,
+		replicas: WORKER_REPLICAS,
 		deploy: LIGHT_WORKER_DEPLOY,
 		env: workerEnv,
 	});
 	const openquokWorkerIntegrationRefresh = service("openquok-worker-integration-refresh", {
-		...WORKER_BASE,
+		build: WORKER_BUILD,
+		start: "pnpm railway:orchestrator:start:integration-refresh",
+		healthcheck: "/health",
+		healthcheckTimeout: 300,
+		replicas: WORKER_REPLICAS,
 		deploy: LIGHT_WORKER_DEPLOY,
 		env: workerEnv,
 	});

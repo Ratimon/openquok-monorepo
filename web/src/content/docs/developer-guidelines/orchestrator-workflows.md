@@ -134,7 +134,7 @@ Also, the <code>@flowcraft/bullmq-adapter</code> version used in this repo curre
 ## Further reading
 
 - <a href="/docs/configuration-worker">Configuration - Worker</a> — env vars, production scripts, dotenv resolution
-- <a href="/docs/installation/railway">Railway Deployment</a> — persistent services, CLI, <Badge text="railway.toml" variant="path" />
+- <a href="/docs/installation/railway">Railway Deployment</a> — persistent services, CLI, <Badge text=".railway/railway.ts" variant="path" />
 - <DocsExternalLink href="https://flowcraft.js.org/guide/fluent">Fluent API</DocsExternalLink>
 - <DocsExternalLink href="https://flowcraft.js.org/guide/pausing">Pausing and sleep nodes</DocsExternalLink> (this workflow uses an imperative delay inside <code>tick</code> because the wait length comes from the database at runtime)
 - <DocsExternalLink href="https://flowcraft.js.org/guide/adapters/bullmq">Runtime adapter: BullMQ</DocsExternalLink> (reconciliation, webhooks, worker/client setup)

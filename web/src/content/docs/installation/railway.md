@@ -27,10 +27,17 @@ Railway treats these as <DocsExternalLink href="https://docs.railway.com/service
 | Phase | Command / setting |
 |-------|-------------------|
 | **Build** (repo root) | <Badge text="pnpm install && pnpm railway:orchestrator:build" variant="default" /> |
-| **Start** (via <Badge text="RAILPACK_CONFIG_FILE" variant="envRuntime" />) | <Badge text="node orchestrator/dist/worker/&lt;worker&gt;.js" variant="default" /> in each <Badge text="orchestrator/railpack.*.json" variant="path" /> (monorepo root; Railpack keeps the Node runtime — do not override <code>deploy.inputs</code> in those files) |
-| **Start** (local / dashboard with pnpm on PATH) | <Badge text="pnpm railway:orchestrator:start:*" variant="default" /> |
+| **Build / start / limits** | <Badge text=".railway/railway.ts" variant="path" /> (Infrastructure as Code) — apply with <Badge text="railway config apply" variant="default" /> |
+| **Start** (Railpack + monorepo scripts) | <Badge text="pnpm railway:orchestrator:start:*" variant="default" /> in each <Badge text="orchestrator/railpack.*.json" variant="path" /> |
 
-The repo includes <Badge text="railway.toml" variant="path" /> at the monorepo root with <code>buildCommand</code>, a restart policy, region <code>us-west2</code> (US West / Oregon), and replica limits for the lighter workers (<code>numReplicas = 1</code>, <code>1</code> vCPU, <code>1</code> GiB). <Badge text="scheduled-social-post" variant="default" /> uses <Badge text="railway.scheduled-social-post.toml" variant="path" /> (<code>1</code> vCPU, <code>2</code> GiB) — set that service’s Railway Config File to <code>/railway.scheduled-social-post.toml</code>. **Start command is not** fixed in those files so **each** worker can differ (<DocsExternalLink href="https://docs.railway.com/reference/config-as-code">config as code</DocsExternalLink>).
+Worker services use <Badge text=".railway/railway.ts" variant="path" /> for <code>build</code>, <code>start</code>, health check, region <code>us-west2</code>, and replica limits (<code>1</code> vCPU / <code>1</code> GiB for integration-refresh and housekeeping; <code>2</code> GiB for scheduled-social-post). Repo-root <Badge text="railway.toml" variant="path" /> is not used (<DocsExternalLink href="https://docs.railway.com/infrastructure-as-code">Infrastructure as Code</DocsExternalLink> replaces deprecated Config as Code).
+
+After you change <Badge text=".railway/railway.ts" variant="path" />, sync Railway from the **monorepo root** (requires a CLI that supports <code>railway config</code> — run <code>railway upgrade</code> if needed):
+
+```bash
+railway config plan
+railway config apply
+```
 
 ## Dashboard setup
 
@@ -54,14 +61,34 @@ Use the same repository as the monorepo. Configure <DocsExternalLink href="https
 Set <Badge text="NODE_ENV=production" variant="envRuntime" />, Redis, Supabase, and any provider/email keys from <a href="/docs/configuration-worker">Configuration - Worker</a>.
 
 <Callout type="tip" title="Railpack config">
-Set <Badge text="RAILPACK_CONFIG_FILE" variant="envRuntime" /> (per service) to one of: <Badge text="orchestrator/railpack.integration-refresh.json" variant="param" />, <Badge text="orchestrator/railpack.housekeeping.json" variant="param" />, or <Badge text="orchestrator/railpack.scheduled-social-post.json" variant="param" /> (dashboard or <Badge text="railway variables set" variant="default" /> after <Badge text="railway service" variant="default" />). Each file extends the Railpack <code>build</code> step and copies <code>*/dist</code> into the runtime image (required because <Badge text=".dockerignore" variant="path" /> excludes <code>**/dist</code>). <Badge text="orchestrator/railpack.notification-email.json" variant="param" /> remains a one-release alias.
+Set <Badge text="RAILPACK_CONFIG_FILE" variant="envRuntime" /> (per service) to one of: <Badge text="orchestrator/railpack.integration-refresh.json" variant="param" />, <Badge text="orchestrator/railpack.housekeeping.json" variant="param" />, or <Badge text="orchestrator/railpack.scheduled-social-post.json" variant="param" /> (setup scripts or <Badge text="railway variables set" variant="default" />). Each Railpack file copies compiled <code>*/dist</code> into the runtime image and starts via <code>pnpm railway:orchestrator:start:*</code>. Retire legacy <code>openquok-worker-notification-email</code> — use <strong>housekeeping</strong> only.
 </Callout>
 
-### Start command
+### Start command (one per worker service)
 
-When <Badge text="RAILPACK_CONFIG_FILE" variant="envRuntime" /> points at <Badge text="orchestrator/railpack.*.json" variant="path" />, leave the dashboard **Start Command** empty so Railpack uses <code>node orchestrator/dist/worker/…</code> from the monorepo root. Do **not** set <code>pnpm railway:orchestrator:start:*</code> — the runtime image may not include <code>pnpm</code>.
+Each Railway worker runs **one** start command from the **monorepo root** (<code>/app</code> in the container). The repo wires these in <Badge text=".railway/railway.ts" variant="path" /> (<code>start</code>) and the matching <Badge text="orchestrator/railpack.*.json" variant="path" /> (<code>deploy.startCommand</code>). After <Badge text="railway config apply" variant="default" />, leave **Settings → Deploy → Start Command** empty on each service so deploys use that code-defined command—do not paste a different command in the dashboard unless you are intentionally overriding. Clear any **Config file path** still pointing at removed <Badge text="railway.toml" variant="path" /> files.
 
-For local smoke tests from the monorepo root (with pnpm installed), you can still run <code>pnpm railway:orchestrator:start:*</code>.
+Use **exactly one** of the following per service (match <Badge text="RAILPACK_CONFIG_FILE" variant="envRuntime" /> to the same worker):
+
+**Integration refresh** — service e.g. <code>openquok-worker-integration-refresh</code>, <Badge text="orchestrator/railpack.integration-refresh.json" variant="param" /> —
+
+```bash
+pnpm railway:orchestrator:start:integration-refresh
+```
+
+**Housekeeping** (notification email digest + Directory SEO weekly refresh) — service e.g. <code>openquok-worker-housekeeping</code>, <Badge text="orchestrator/railpack.housekeeping.json" variant="param" /> —
+
+```bash
+pnpm railway:orchestrator:start:housekeeping
+```
+
+**Scheduled social post** (calendar publishes at <code>publish_date</code>) — service e.g. <code>openquok-worker-scheduled-social-post</code>, <Badge text="orchestrator/railpack.scheduled-social-post.json" variant="param" /> —
+
+```bash
+pnpm railway:orchestrator:start:scheduled-social-post
+```
+
+Local smoke (with pnpm installed): <code>railway run pnpm railway:orchestrator:start:&lt;worker&gt;</code> after <Badge text="railway link" variant="default" /> to that service.
 
 Avoid scale-to-zero if it would **stop** a process during long integration-refresh sleeps.
 

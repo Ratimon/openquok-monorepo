@@ -36,7 +36,6 @@
     "worker:scheduled-social-post-bullmq": "pnpm dev:worker:scheduled-social-post-bullmq",
     "railway:env:sync:integration-refresh:prod": "pnpm run script:railway:env:sync-worker-env -- --no-create-if-missing --skip-deploys --service-name openquok-worker-integration-refresh --railpack-config-file orchestrator/railpack.integration-refresh.json --env-file .env.production.local --var ORCHESTRATOR_INTEGRATION_REFRESH_TRANSPORT=bullmq",
     "railway:env:sync:housekeeping:prod": "pnpm run script:railway:env:sync-worker-env -- --no-create-if-missing --skip-deploys --service-name openquok-worker-housekeeping --railpack-config-file orchestrator/railpack.housekeeping.json --env-file .env.production.local --var ORCHESTRATOR_NOTIFICATION_EMAIL_TRANSPORT=bullmq",
-    "railway:env:sync:notification-email:prod": "pnpm run railway:env:sync:housekeeping:prod",
     "railway:env:sync:scheduled-social-post:prod": "pnpm run script:railway:env:sync-worker-env -- --no-create-if-missing --skip-deploys --service-name openquok-worker-scheduled-social-post --railpack-config-file orchestrator/railpack.scheduled-social-post.json --env-file .env.production.local --var ORCHESTRATOR_SCHEDULED_SOCIAL_POST_TRANSPORT=bullmq",
     "test:unit": "cross-env NODE_ENV=development jest --testPathPattern=unit\\.test\\.ts --no-coverage",
     "test:unit:refresh-token-workflow:in-process": "cross-env NODE_ENV=development jest flows/refreshTokenWorkflow.unit.test.ts --no-coverage",

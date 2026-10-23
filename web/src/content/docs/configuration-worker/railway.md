@@ -37,8 +37,13 @@ pnpm railway:orchestrator:start:scheduled-social-post
 ```
 
 <Callout type="note">
-Repo-root <Badge text="railway.toml" variant="path" /> sets build, health check, region (<code>us-west2</code>), and limits for integration-refresh / housekeeping (<code>1</code> vCPU, <code>1</code> GiB). Scheduled social post uses <Badge text="railway.scheduled-social-post.toml" variant="path" /> (<code>1</code> vCPU, <code>2</code> GiB) — point that service’s Railway Config File at <code>/railway.scheduled-social-post.toml</code>.
+<Badge text=".railway/railway.ts" variant="path" /> sets build, <code>pnpm railway:orchestrator:start:*</code>, health check, region (<code>us-west2</code>), and limits (<code>1</code> vCPU / <code>1</code> GiB for integration-refresh and housekeeping; <code>2</code> GiB for scheduled-social-post). Full setup: <a href="/docs/installation/railway">Railway (installation)</a>.
 </Callout>
+
+```bash
+railway config plan
+railway config apply
+```
 
 ## Stopping a worker service (Railway CLI)
 

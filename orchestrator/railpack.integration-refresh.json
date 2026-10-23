@@ -19,8 +19,13 @@
           "common/dist",
           "backend/static/routes-manifest.json"
         ]
+      },
+      {
+        "step": "packages:mise",
+        "include": ["/mise/shims", "/mise/installs"]
       }
     ],
-    "startCommand": "node orchestrator/dist/worker/runIntegrationRefreshBullMqWorker.js"
+    "paths": ["/mise/shims"],
+    "startCommand": "pnpm railway:orchestrator:start:integration-refresh"
   }
 }

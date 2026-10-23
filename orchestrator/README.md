@@ -88,13 +88,15 @@ pnpm install && pnpm railway:orchestrator:build
 
 (`railway:orchestrator:build` is an alias for `pnpm orchestrator:build:deps`.)
 
-**Railpack** — `orchestrator/railpack.*.json` appends `pnpm railway:orchestrator:build` to the provider **`build`** step and extends **`deploy.inputs`** with `orchestrator/dist`, `backend/dist`, and `common/dist` (repo [`.dockerignore`](../.dockerignore) excludes `**/dist`, so those paths must be copied explicitly). Do **not** replace deploy inputs with only a custom step — that drops the Node runtime. **Build** may also run via [`railway.toml`](../railway.toml). Local smoke: `pnpm railway:orchestrator:start:*`.
+**Infrastructure as Code** — build, start, health check, region (`us-west2`), and replica limits live in [`.railway/railway.ts`](../.railway/railway.ts). Apply with `railway config plan` / `railway config apply` (see [`.railway/README.md`](../.railway/README.md)). Do not add repo-root `railway.toml` (deprecated Config as Code).
 
-| Worker | Railpack `startCommand` (monorepo `/app` root) |
+**Railpack** — each `orchestrator/railpack.*.json` appends `pnpm railway:orchestrator:build`, copies `*/dist` into the runtime image ([`.dockerignore`](../.dockerignore) excludes `**/dist`), includes mise shims so **`pnpm`** works at start, and sets `startCommand` to the matching `pnpm railway:orchestrator:start:*` script.
+
+| Worker | Start (IaC + Railpack) |
 |--------|--------|
-| Integration refresh | `node orchestrator/dist/worker/runIntegrationRefreshBullMqWorker.js` |
-| Housekeeping | `node orchestrator/dist/worker/runHousekeepingBullMqWorker.js` |
-| Scheduled social post | `node orchestrator/dist/worker/runScheduledSocialPostBullMqWorker.js` |
+| Integration refresh | `pnpm railway:orchestrator:start:integration-refresh` |
+| Housekeeping | `pnpm railway:orchestrator:start:housekeeping` |
+| Scheduled social post | `pnpm railway:orchestrator:start:scheduled-social-post` |
 
 Equivalent from **`orchestrator/`** after deps are built:
 
@@ -114,9 +116,8 @@ This matches the **separate worker service** pattern in Railway’s guide [Deplo
 2. `railway login` — authenticate.
 3. In the Railway dashboard: create a project, add **Redis**, and expose the same connection details to the worker as **`REDIS_*`** (see the env table above—must match the API). Create an **empty** or Git-linked **worker** service for each process (integration refresh, notification email, scheduled social post, as needed).
 4. From the **monorepo root**, link the CLI to the **target worker service**: `railway link` (pick project + service). For another worker, run `railway service` to point at the other service, or `railway unlink` then link again (see [Railway CLI](https://docs.railway.com/develop/cli)).
-5. **Deploy this directory** to the linked service: `railway up` (uploads/builds/deploys per [deploying from local](https://docs.railway.com/develop/cli#deploying)).  
-   - **Build** is also defined in repo-root [`railway.toml`](../railway.toml) (`pnpm install && pnpm railway:orchestrator:build`); it overrides the dashboard when present ([config as code](https://docs.railway.com/reference/config-as-code)).
-6. Set **`RAILPACK_CONFIG_FILE`** to the matching `orchestrator/railpack.*.json` (start is in that file). Do **not** set a dashboard Start Command to `pnpm …` unless your image includes pnpm at runtime. (`railway.toml` intentionally omits `startCommand` so each worker differs.)
+5. **Deploy** with `pnpm railway:deploy:<worker>` or `railway up` after linking the correct service.
+6. Set **`RAILPACK_CONFIG_FILE`** to the matching `orchestrator/railpack.*.json` (setup scripts do this). Keep **build/start/limits** in sync via `.railway/railway.ts` (`railway config apply`).
 7. Stream logs: `railway logs`.
 
 **Run a worker locally with Railway-injected env** (after `railway link`, from monorepo root after `pnpm install`):  
@@ -125,7 +126,7 @@ This matches the **separate worker service** pattern in Railway’s guide [Deplo
 ### Other hosts
 
 1. **Fly.io Machines**: one app (or one process group) per worker, **min machines = 1** for workers that must stay up when idle (important for integration refresh, which may sleep until token expiry).
-2. Any container host: same **`node orchestrator/dist/worker/...`** entrypoints after the same build graph.
+2. Any container host: same **`pnpm railway:orchestrator:start:*`** (or `node orchestrator/dist/worker/...`) after the same build graph.
 
 Local scripts use `tsx` and `NODE_ENV=development`; production uses **`node`** on **`orchestrator/dist/`** with the **minimal** env set for that worker (see the table above), not necessarily every API variable.
 
