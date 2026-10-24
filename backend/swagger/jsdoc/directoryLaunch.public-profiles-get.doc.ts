@@ -9,8 +9,8 @@
  *       - DirectoryLaunch
  *     summary: Get a product profile (API key)
  *     description: >-
- *       Returns the full profile DTO including `profileData`, variant fields, and
- *       `similarityToMainPercent` when the row is a directory variant.
+ *       Load one product's listing copy and custom fields for an editor or handoff doc. Includes
+ *       variant metadata and `similarityToMainPercent` when the row is a per-directory variant.
  *     parameters:
  *       - in: path
  *         name: id

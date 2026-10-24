@@ -1,7 +1,7 @@
 ---
 title: 'Ensure variant'
-description: 'POST /public/directory-launch/profiles/{mainId}/variants — idempotent variant for `directorySiteKey` (200 when it already exists, 201 when created).'
+description: Prepare different pitch text for one directory site without cloning the whole product. OpenQuok returns an existing variant or creates one for that site.
 openapi: 'POST /public/directory-launch/profiles/{mainId}/variants'
 order: 7
-lastUpdated: 2026-10-21
+lastUpdated: 2026-10-24
 ---

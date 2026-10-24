@@ -1,7 +1,7 @@
 ---
 title: 'List profiles'
-description: 'GET /public/directory-launch/profiles — main and variant product profiles; optional `integrationCustomerId` query filter.'
+description: Sync every product profile from OpenQuok into your CRM, admin, or reporting stack. Filter by business profile when you run a multi-client workspace.
 openapi: 'GET /public/directory-launch/profiles'
 order: 3
-lastUpdated: 2026-10-21
+lastUpdated: 2026-10-24
 ---

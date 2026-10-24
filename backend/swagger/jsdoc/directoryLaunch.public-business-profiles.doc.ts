@@ -9,8 +9,9 @@
  *       - DirectoryLaunch
  *     summary: List business profile rows (API key)
  *     description: >-
- *       Returns channel-group ↔ product profile rows for the organization bound to the API key.
- *       Use `integrationCustomerId` and `productProfileId` when wiring profiles to channel groups.
+ *       List client or brand buckets when one API key manages many accounts. Each row links a
+ *       channel group id to a product profile id for scoped automations. Requires directory launch
+ *       on the workspace plan (`directory_launch_enabled`).
  *     responses:
  *       '200':
  *         description: Business profile rows for this workspace.

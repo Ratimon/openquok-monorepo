@@ -9,8 +9,8 @@
  *       - DirectoryLaunch
  *     summary: List submissions (API key, read-only)
  *     description: >-
- *       Read-only list of directory launch submissions for the workspace. Filter by
- *       `productProfileId` and/or `destinationId`.
+ *       Export live listing URLs and submission status for client portals or reports. Read-only;
+ *       filter by `productProfileId` and/or `destinationId`.
  *     parameters:
  *       - in: query
  *         name: productProfileId

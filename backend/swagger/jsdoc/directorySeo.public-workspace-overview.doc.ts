@@ -9,9 +9,9 @@
  *       - DirectorySeo
  *     summary: Directory SEO overview (API key)
  *     description: >-
- *       Domain rating snapshot for the product profile primary domain plus tracked competitors.
- *       DR values are cached — read `checkedAt` on each metric row and `manualRefreshAvailableAt`
- *       on the envelope before calling refresh. Requires `directory_seo_enabled` on the plan.
+ *       Snapshot domain rating for the product's primary domain and each tracked competitor — for
+ *       dashboards and client summaries. Values are cached; read `checkedAt` and
+ *       `manualRefreshAvailableAt` before calling refresh. Requires `directory_seo_enabled` on the plan.
  *     parameters:
  *       - in: query
  *         name: productProfileId

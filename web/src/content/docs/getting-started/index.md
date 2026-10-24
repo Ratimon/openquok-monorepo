@@ -46,9 +46,9 @@ Start with the track that matches you — the product, Cloud, a self-hosted inst
 <LinkCard title="Free tools" description="Creator tools — photo editor, humanizer, best time to post, and more." href="/tools" />
 </CardGrid>
 
-## Using OpenQuok
+## Social scheduling
 
-Guides for the dashboard — connect channels, compose and schedule posts, and manage your workspace day to day.
+Guides for the dashboard — connect channels, compose draft posts, review on calendar or kanban, schedule and publish when you approve.
 
 <CardGrid>
 <LinkCard title="Channels" description="Connect, group, and maintain social accounts in your workspace" href="/docs/channels" />
@@ -57,7 +57,21 @@ Guides for the dashboard — connect channels, compose and schedule posts, and m
 <LinkCard title="Saved" description="Explore the catalog, bookmark building blocks, compose stacks, and publish playbooks" href="/docs/saved" />
 <LinkCard title="Settings" description="Timezone, team, profile, developers, signatures, and approved apps" href="/docs/settings" />
 <LinkCard title="Platforms" description="Character limits, media rules, and follow-up support by network" href="/docs/platforms" />
-<LinkCard title="Automations" description="CLI, MCP, public API, RSS, and webhooks" href="/docs/automations" />
+<LinkCard title="Automations" description="CLI, MCP, public API, RSS, and webhooks for social workflows" href="/docs/automations" />
+</CardGrid>
+
+## Directory launch
+
+Guides for product profiles, directory autofill, and submission tracking — you submit each listing on the directory site.
+
+<CardGrid>
+<LinkCard title="Directory submission" description="Business profile, extension handoff, readiness, and mark each launch complete" href="/docs/directory-submission" />
+<LinkCard title="Track submissions" description="Listing URLs, dofollow notes, and progress on My Products" href="/docs/directory-submission/track-submissions" />
+<LinkCard title="Profile variants" description="Tailor copy per directory and see which profile the extension uses" href="/docs/directory-submission/profile-variants" />
+<LinkCard title="Directory analytics" description="Domain rating charts and competitor tracking on paid plans" href="/docs/directory-submission/directory-analytics" />
+<LinkCard title="Directory integration" description="How directory destinations differ from OAuth social channels" href="/docs/directory-integration" />
+<LinkCard title="Browser extension" description="Install the OpenQuok Chrome extension for directory autofill" href="/docs/installation/chrome-extension" />
+<LinkCard title="Saved backlinks" description="Bookmark directory sites from Build Backlinks and manage your shortlist" href="/docs/saved/backlinks" />
 </CardGrid>
 
 ## Building on OpenQuok

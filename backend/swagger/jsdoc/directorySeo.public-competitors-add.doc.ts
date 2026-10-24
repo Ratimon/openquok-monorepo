@@ -9,7 +9,7 @@
  *       - DirectorySeo
  *     summary: Add a competitor domain (API key)
  *     description: >-
- *       Tracks an additional competitor domain for the workspace. Subject to plan competitor quota.
+ *       Start benchmarking a rival domain next to a product profile. Subject to plan competitor quota.
  *     requestBody:
  *       required: true
  *       content:

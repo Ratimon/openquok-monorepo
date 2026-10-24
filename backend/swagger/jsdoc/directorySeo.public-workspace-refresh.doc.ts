@@ -9,8 +9,8 @@
  *       - DirectorySeo
  *     summary: Refresh directory SEO metrics (API key)
  *     description: >-
- *       Enqueues a manual refresh for the product profile workspace. Respect the cooldown returned
- *       as `manualRefreshAvailableAt` on overview responses unless `force` is true (operator-style bypass).
+ *       Request fresher domain rating before a client review when cached metrics are too old.
+ *       Respect `manualRefreshAvailableAt` from overview unless `force` is true (operator bypass).
  *     requestBody:
  *       required: true
  *       content:

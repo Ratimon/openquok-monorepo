@@ -9,8 +9,8 @@
  *       - DirectoryLaunch
  *     summary: List product profiles (API key)
  *     description: >-
- *       Lists main and variant product profiles for the API key workspace. Pass
- *       `integrationCustomerId` to filter profiles linked to a channel group.
+ *       Sync every product profile in the workspace into your CRM or admin. Optionally pass
+ *       `integrationCustomerId` to limit results to one business profile (channel group).
  *     parameters:
  *       - in: query
  *         name: integrationCustomerId

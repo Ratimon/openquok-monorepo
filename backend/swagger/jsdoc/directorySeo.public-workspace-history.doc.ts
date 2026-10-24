@@ -9,8 +9,8 @@
  *       - DirectorySeo
  *     summary: Directory SEO history (API key)
  *     description: >-
- *       Time series of domain rating points for the product domain and each tracked competitor.
- *       Pass `days` (default 90, max 366). Cached snapshots use `capturedAt` on each point.
+ *       Chart domain rating trends for the product and rivals over time. Pass `days` (default 90,
+ *       max 366). Each point includes `capturedAt` for cached snapshots.
  *     parameters:
  *       - in: query
  *         name: productProfileId

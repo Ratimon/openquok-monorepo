@@ -9,9 +9,10 @@
  *       - DirectoryLaunch
  *     summary: List published launch destinations (API key)
  *     description: >-
- *       Returns every published directory launch destination in the catalog, including
- *       `providerSlug`, `startUrl`, and `extensionConfig` fill steps. Requires a workspace
- *       plan with directory launch enabled (`directory_launch_enabled`).
+ *       List every directory site OpenQuok supports so you can build a launch picker or
+ *       onboarding checklist in your app. Each row includes the provider slug, start URL,
+ *       and extension fill steps. Requires directory launch on the workspace plan
+ *       (`directory_launch_enabled`).
  *     responses:
  *       '200':
  *         description: Published destinations.

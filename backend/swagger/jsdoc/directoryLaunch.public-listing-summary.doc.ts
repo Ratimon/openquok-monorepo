@@ -9,8 +9,8 @@
  *       - DirectoryLaunch
  *     summary: Listing summary for a profile (API key)
  *     description: >-
- *       Aggregated launch readiness per published destination: submission status, sync status,
- *       and missing profile fields required before extension handoff.
+ *       Show launch progress for one product — submission and sync status per directory site plus
+ *       missing fields before extension handoff. Use for status widgets and client updates.
  *     parameters:
  *       - in: path
  *         name: id

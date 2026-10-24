@@ -1,35 +1,35 @@
 ---
-title: Overview - Self-host with Your Own Social Key
-description: Connect social channels to OpenQuok — OAuth apps or a personal API key, backend env, and dashboard settings.
+title: Social integration overview
+description: Self-host operator guides to connect posting channels — OAuth apps, API keys, extension session, and backend env.
 order: 0
-lastUpdated: 2026-09-28
+lastUpdated: 2026-10-24
 sidebar:
   label: Overview
 ---
 
 <script>
-import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Overview
 
-<Callout type="tip" title="Self-host only">
-<p>These guides are for self-hosters who run OpenQuok themselves and register their own social developer apps. On <a href="/docs/cloud">OpenQuok Cloud</a>, those apps are already configured — you only connect your account.</p>
+<Callout type="tip" title="Self-host operators">
+<p>These guides are for people who run OpenQuok and register their own social developer apps. On <a href="/docs/cloud">OpenQuok Cloud</a>, those apps are already configured — workspace owners only connect their accounts.</p>
 </Callout>
 
-OpenQuok connects **social channels** through the **backend** integration layer: organization-scoped channels, optional **programmatic** APIs authenticated with a workspace <Badge text="opo_" variant="default" /> token, and one of three connect families.
+OpenQuok connects **social channels** through the backend integration layer. Each channel is organization-scoped. Workspaces can also call programmatic APIs with a <Badge text="opo_" variant="default" /> token. See <a href="/docs/getting-started-for-public-api#authentication">Public API authentication</a> for token setup.
 
-<strong>Most</strong> channels use <strong>OAuth</strong>. You apply for developer app , set redirect URIs, request API acess and store client IDs and secrets in backend environment.
+Connect models fall into three families:
 
-<strong>Some</strong> channels (for example Dev.to and Bluesky) use a <strong>personal API key</strong> the user pastes in Add Channel.
-
-<strong>Skool</strong> uses the <strong>browser extension</strong> — no operator OAuth app. Set <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_ID" variant="envWeb" /> on the web app and distribute the extension; see <a href="/docs/installation/chrome-extension">Browser extension</a>.
-
-See <a href="/docs/getting-started-for-public-api#authentication">Public API authentication</a> for workspace API token setup.
+- **OAuth (most networks)** — You create a developer app, set redirect URIs, request API access, and store client IDs and secrets in backend environment variables.
+- **Personal API key (for example Dev.to, Bluesky)** — The user pastes a key in Add Channel; operators document which env vars apply per guide.
+- **Browser extension (Skool)** — No operator OAuth app. Set <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_ID" variant="envWeb" /> on the web build and distribute the extension. See <a href="/docs/installation/chrome-extension">Browser extension</a>.
 
 <Callout type="danger">
-Never commit <Badge text="THREADS_APP_SECRET" variant="envBackend" /> or other provider secrets. Use <Badge text="backend/.env.development.local" variant="envBackend" /> (or your host’s secret store in production).
+<p>Never commit <Badge text="THREADS_APP_SECRET" variant="envBackend" /> or other provider secrets. Use <Badge text="backend/.env.development.local" variant="envBackend" /> locally or your host secret store in production.</p>
 </Callout>
+
+Directory launch destinations (extension autofill, no posting OAuth) are documented under <a href="/docs/directory-integration">Directory integration</a> and <a href="/docs/directory-submission">Directory submission</a>.
 
 ## Guides
 
@@ -54,5 +54,6 @@ Never commit <Badge text="THREADS_APP_SECRET" variant="envBackend" /> or other p
 <CardGrid>
 <LinkCard title="Backend configuration" description="Env files, Supabase, Redis, and service keys" href="/docs/configuration-backend" />
 <LinkCard title="Frontend configuration" description="Vite env and PWA" href="/docs/configuration-web" />
+<LinkCard title="Directory integration" description="Directory launch catalog and per-site operator guides" href="/docs/directory-integration" />
 <LinkCard title="Getting started" description="Stack overview and architecture" href="/docs/getting-started-for-dev" />
 </CardGrid>

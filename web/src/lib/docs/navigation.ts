@@ -99,7 +99,9 @@ function isSelfHostingDocsPath(segmentOrSlug: string): boolean {
 		segmentOrSlug === 'admin' ||
 		segmentOrSlug.startsWith('admin/') ||
 		segmentOrSlug === 'social-integration' ||
-		segmentOrSlug.startsWith('social-integration/')
+		segmentOrSlug.startsWith('social-integration/') ||
+		segmentOrSlug === 'directory-integration' ||
+		segmentOrSlug.startsWith('directory-integration/')
 	);
 }
 

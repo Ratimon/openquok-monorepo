@@ -9,9 +9,8 @@
  *       - DirectoryLaunch
  *     summary: Ensure a directory variant (API key)
  *     description: >-
- *       Creates a tailored variant profile for `directorySiteKey` under the given main profile.
- *       When a variant already exists, returns **200** with the existing profile (idempotent). A new
- *       variant returns **201**.
+ *       Prepare per-directory pitch text without cloning the whole product. Idempotent: returns
+ *       **200** when a variant for `directorySiteKey` already exists, **201** when created.
  *     parameters:
  *       - in: path
  *         name: mainId

@@ -1335,16 +1335,10 @@ var init_orchestratorFlows = __esm({
         transport: "bullmq"
       },
       /**
-       * Org notification emails: immediate sends enqueue `sendPlain` jobs; digest appends to Redis and the
-       * housekeeping worker flushes on a fixed interval (acknowledges Redis entries only after send succeeds).
-       * Directory SEO weekly domain refresh runs in the same process (stateless; stale domains from Postgres).
+       * Notification email orchestration (`sendPlain` jobs + digest flush on `digestFlushIntervalMs`).
+       * Implemented by the **housekeeping** worker (`workerServiceName`); queue name remains `notification-email`.
        */
       notificationEmail: {
-        /**
-         * Suggested long-running worker service name (e.g. on Railway) for this flow.
-         * Keep distinct per worker type so logs/metrics and deployments are unambiguous.
-         * Legacy Railway service: `openquok-worker-notification-email` (one-release alias).
-         */
         workerServiceName: "openquok-worker-housekeeping",
         queueName: "notification-email",
         transport: "bullmq",

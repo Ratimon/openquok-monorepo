@@ -9,8 +9,8 @@
  *       - DirectoryLaunch
  *     summary: Create a main product profile (API key)
  *     description: >-
- *       Creates a main (`profileKind: main`) product profile for the organization bound to the API key.
- *       Do not send `organizationId` — it is inferred from the key.
+ *       Add a new main product profile when your system already has listing copy. The organization
+ *       is inferred from the API key — do not send `organizationId`.
  *     requestBody:
  *       required: true
  *       content:

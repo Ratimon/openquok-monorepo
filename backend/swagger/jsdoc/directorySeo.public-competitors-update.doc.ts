@@ -8,6 +8,9 @@
  *     tags:
  *       - DirectorySeo
  *     summary: Update a competitor label (API key)
+ *     description: >-
+ *       Change the display label for a tracked competitor in your UI. The measured domain stays
+ *       the same.
  *     requestBody:
  *       required: true
  *       content:

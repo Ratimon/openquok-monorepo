@@ -8,6 +8,9 @@
  *     tags:
  *       - DirectorySeo
  *     summary: Remove a competitor domain (API key)
+ *     description: >-
+ *       Stop tracking a rival domain when it is no longer relevant. Frees chart space and
+ *       competitor quota.
  *     requestBody:
  *       required: true
  *       content:

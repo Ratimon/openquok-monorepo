@@ -1,8 +1,8 @@
 ---
 title: Overview - Directory SEO APIs
-description: 'Programmatic directory SEO: cached domain rating overview (`checkedAt`), history, manual refresh (`manualRefreshAvailableAt`), and competitor CRUD. Requires `directory_seo_enabled`.'
+description: Put OpenQuok domain rating and competitor benchmarks in your own dashboards, alerts, and client reports. Requires Directory SEO on your plan.
 order: 0
-lastUpdated: 2026-10-21
+lastUpdated: 2026-10-24
 ---
 
 <script>
@@ -12,12 +12,12 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 ## Endpoints
 
 <CardGrid>
-<LinkCard title="Workspace overview" description="Product domain DR, competitors, `checkedAt`, and refresh cooldown" href="/docs/apis-directory-seo/workspace-overview" />
-<LinkCard title="Workspace history" description="DR time series for product and competitors; `days` query (default 90)" href="/docs/apis-directory-seo/workspace-history" />
-<LinkCard title="Refresh workspace" description="POST manual refresh for a `productProfileId`" href="/docs/apis-directory-seo/workspace-refresh" />
-<LinkCard title="Add competitor" description="POST a competitor domain to track" href="/docs/apis-directory-seo/competitors-add" />
-<LinkCard title="Remove competitor" description="DELETE a tracked competitor domain" href="/docs/apis-directory-seo/competitors-delete" />
-<LinkCard title="Update competitor" description="PATCH competitor `label`" href="/docs/apis-directory-seo/competitors-update" />
+<LinkCard title="Workspace overview" description="Snapshot domain rating for product and rivals" href="/docs/apis-directory-seo/workspace-overview" />
+<LinkCard title="Workspace history" description="Trend charts over a date range" href="/docs/apis-directory-seo/workspace-history" />
+<LinkCard title="Refresh workspace" description="Fresher metrics before a client review" href="/docs/apis-directory-seo/workspace-refresh" />
+<LinkCard title="Add competitor" description="Track a rival domain beside a product" href="/docs/apis-directory-seo/competitors-add" />
+<LinkCard title="Remove competitor" description="Drop a rival from charts and quota" href="/docs/apis-directory-seo/competitors-delete" />
+<LinkCard title="Update competitor" description="Rename a rival in your UI only" href="/docs/apis-directory-seo/competitors-update" />
 </CardGrid>
 
 <Callout type="note" title="Cached metrics">

@@ -1,85 +1,108 @@
 ---
 title: Directory SEO & DataForSEO
-description: Configure live domain rating cache, DataForSEO credentials, and Directory analytics entitlements on the OpenQuok backend.
+description: Optional domain rating data for Directory analytics. Set DataForSEO credentials on the API and housekeeping worker.
 order: 12
-lastUpdated: 2026-10-20
+lastUpdated: 2026-10-24
 ---
 
 <script>
-import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-## Overview
+## What this is
 
-**Directory SEO** stores **global, rebuildable** domain rating snapshots for:
+**Directory analytics** can show a **domain rating** (and history charts) for:
 
-- The **website URL** on each paid workspace’s main business profile
-- **Competitor domains** users add under Directory analytics
+- The **website** on a paid workspace business profile
+- **Competitor domains** the workspace adds in the app
 
-OpenQuok calls DataForSEO for those hostnames:
+OpenQuok loads that data from [DataForSEO](https://dataforseo.com/) and saves it in your database so the app does not call the provider on every page view.
 
-- <Badge text="POST /v3/backlinks/summary/live" variant="path" /> — current domain rating (snapshot cache and weekly housekeeping samples).
-- <Badge text="POST /v3/backlinks/timeseries_summary/live" variant="path" /> — daily rank history import when a user opens Directory analytics history or overview (hybrid backfill; see below).
+User guide: <a href="/docs/directory-submission/directory-analytics">Directory analytics</a>.
 
-Results land in <Badge text="seo_domain_metric_snapshots" variant="path" /> (cache + backfill metadata) and <Badge text="seo_domain_metric_history" variant="path" /> (chart points). The API and housekeeping worker are **stateless**: each refresh reads TTL from Postgres and upserts idempotently — no per-pod in-memory schedule.
+## Do you need it?
 
-User-facing docs: <a href="/docs/directory-submission/directory-analytics">Directory analytics</a>.
+| Goal | What to do |
+| --- | --- |
+| You do not use Directory analytics ratings | Leave <Badge text="DATAFORSEO_API_KEY" variant="envBackend" /> empty. The rest of OpenQuok works. |
+| You want live ratings and charts | Create a DataForSEO account, set the key below, and run the **housekeeping** worker for weekly updates. |
+
+<Callout type="warning">
+<p>DataForSEO is a <strong>paid</strong> service. OpenQuok caches results to limit calls, but new domains, manual refresh, and history import can still use credits. Leave the key empty in dev unless you accept that cost.</p>
+</Callout>
+
+## Quick setup
+
+<Steps
+	howToName="Directory SEO setup"
+	howToDescription="Enable domain ratings for Directory analytics"
+>
+
+### Get a DataForSEO API key
+
+In the DataForSEO dashboard, copy your API **login** and **password**. Encode them as one Base64 string in the form <code>login:password</code> (many online Base64 encoders accept that text). That string is <Badge text="DATAFORSEO_API_KEY" variant="envBackend" />.
+
+### Set variables on the API
+
+Add the Directory SEO block to your **backend** env file (for example <Badge text="backend/.env.production.local" variant="envBackend" /> or your self-host <Badge text="infra/self-host/.env" variant="path" />). Names match <Badge text="backend/.env.development.example" variant="envBackend" />.
+
+At minimum:
+
+```bash
+DATAFORSEO_API_KEY=your-base64-login-password
+DIRECTORY_SEO_ENABLED=true
+```
+
+Restart the API after you change env values.
+
+### Set the same key on the housekeeping worker
+
+The **weekly** rating sweep runs in the **housekeeping** worker, not in the API process. Copy <Badge text="DATAFORSEO_API_KEY" variant="envBackend" /> and the <Badge text="DIRECTORY_SEO_*" variant="envBackend" /> values you use on the API into the worker env (see <Badge text="orchestrator/.env.production.example" variant="path" />). Restart the worker.
+
+If you run Compose or Railway, use the env file or service variables for that worker. See <a href="/docs/configuration-worker">Configuration - Worker</a>.
+
+</Steps>
 
 ## Environment variables
 
-Set these on the **backend API** (manual refresh and read APIs) and on the **housekeeping** worker (weekly sweep). Names match <Badge text="backend/config/GlobalConfig.ts" variant="path" /> and <Badge text="backend/.env.development.example" variant="envBackend" />.
+Set these on the **API** and on **housekeeping** (worker needs the key and weekly settings; history backfill settings are API-only).
 
-| Variable | Default | Role |
+| Variable | Default | What it does |
 | --- | --- | --- |
-| <Badge text="DATAFORSEO_API_KEY" variant="envBackend" /> | empty | Base64-encoded <code>login:password</code> for HTTP Basic auth. When empty, refresh endpoints no-op and return existing cache rows only. |
-| <Badge text="DIRECTORY_SEO_ENABLED" variant="envBackend" /> | <code>true</code> | Master switch for Directory SEO features in the API. |
-| <Badge text="DIRECTORY_SEO_CACHE_TTL_HOURS" variant="envBackend" /> | <code>168</code> | Global cache TTL per domain (7 days). Skips paid API calls while a snapshot is fresh unless <code>force</code> is added in a future tier. |
-| <Badge text="DIRECTORY_SEO_WEEKLY_REFRESH_ENABLED" variant="envBackend" /> | <code>true</code> | When <code>false</code>, the housekeeping timer does not run <code>runWeeklyRefresh()</code>. |
-| <Badge text="DIRECTORY_SEO_WEEKLY_REFRESH_INTERVAL_MS" variant="envBackend" /> | <code>604800000</code> | How often the housekeeping process enqueues the weekly Directory SEO sweep (default 7 days). |
-| <Badge text="DIRECTORY_SEO_HISTORY_BACKFILL_MAX_DAYS" variant="envBackend" /> | <code>90</code> | Upper bound on how many calendar days of daily rank the API imports from <Badge text="timeseries_summary/live" variant="path" /> on backfill (capped at 366 in code). |
-| <Badge text="DIRECTORY_SEO_HISTORY_BACKFILL_TTL_DAYS" variant="envBackend" /> | <code>7</code> | Per domain, skip a repeat timeseries import while <Badge text="provider_history_backfilled_at" variant="param" /> on the snapshot is newer than this TTL. |
+| <Badge text="DATAFORSEO_API_KEY" variant="envBackend" /> | empty | DataForSEO credentials (Base64 <code>login:password</code>). When empty, the app shows cached data only and does not fetch new ratings. |
+| <Badge text="DIRECTORY_SEO_ENABLED" variant="envBackend" /> | <code>true</code> | Turns Directory SEO API behavior on or off. |
+| <Badge text="DIRECTORY_SEO_CACHE_TTL_HOURS" variant="envBackend" /> | <code>168</code> | How long to reuse a rating before calling DataForSEO again (168 hours = 7 days). |
+| <Badge text="DIRECTORY_SEO_WEEKLY_REFRESH_ENABLED" variant="envBackend" /> | <code>true</code> | When <code>false</code>, housekeeping skips the weekly rating sweep. |
+| <Badge text="DIRECTORY_SEO_WEEKLY_REFRESH_INTERVAL_MS" variant="envBackend" /> | <code>604800000</code> | How often housekeeping runs that sweep (default 7 days). |
+| <Badge text="DIRECTORY_SEO_HISTORY_BACKFILL_MAX_DAYS" variant="envBackend" /> | <code>90</code> | Max days of chart history to import when someone opens Directory analytics history (API only). |
+| <Badge text="DIRECTORY_SEO_HISTORY_BACKFILL_TTL_DAYS" variant="envBackend" /> | <code>7</code> | Min days between repeat history imports for the same domain (API only). |
 
-<Callout type="note">
-<p>Plan limits (<Badge text="directory_launch_enabled" variant="param" /> for My Products and directory programmatic surfaces, <Badge text="directory_seo_enabled" variant="param" /> for analytics, competitor caps per workspace) live in subscription catalog code — not env vars. <strong>Free</strong> tiers disable directory launch and Directory analytics regardless of DataForSEO credentials.</p>
-</Callout>
+## When OpenQuok calls DataForSEO
 
-<Callout type="warning" title="Local dev and API credits">
-<p>Leave <Badge text="DATAFORSEO_API_KEY" variant="envBackend" /> empty in <Badge text="backend/.env.development.local" variant="envBackend" /> unless you want paid DataForSEO calls. With a key set, the API still respects <Badge text="DIRECTORY_SEO_CACHE_TTL_HOURS" variant="envBackend" /> for normal Directory analytics loads, but <strong>manual refresh</strong>, <strong>new or stale domains</strong>, <strong>bulk catalog DR refresh</strong>, the <strong>housekeeping weekly sweep</strong>, and the <strong>first history or overview load per domain per backfill TTL</strong> can each trigger billable requests (<Badge text="summary/live" variant="path" /> and/or <Badge text="timeseries_summary/live" variant="path" />). Disable <Badge text="DIRECTORY_SEO_WEEKLY_REFRESH_ENABLED" variant="envBackend" /> when running the worker locally with a production key.</p>
-</Callout>
+With a key set and Directory SEO enabled, paid calls can happen when:
 
-## Provider history backfill (API)
+- A domain has **no rating** or the **cache expired** (see TTL above).
+- A user uses **Refresh ratings** in Directory analytics.
+- Someone opens **history** or **overview** and the app imports daily rank data (up to the backfill limits).
+- **Housekeeping** runs the weekly sweep for stale domains on paid workspaces.
 
-When a entitled workspace loads Directory analytics <strong>history</strong> or <strong>overview</strong>, the API may import up to <Badge text="DIRECTORY_SEO_HISTORY_BACKFILL_MAX_DAYS" variant="envBackend" /> days of daily rank from <Badge text="POST /v3/backlinks/timeseries_summary/live" variant="path" /> (<code>group_range: day</code>, same <code>rank_scale: one_hundred</code> as summary). The housekeeping worker does <strong>not</strong> run this path — only user-driven reads through <Badge text="DirectorySeoWorkspaceService" variant="path" />.
+Cached ratings stay in Postgres. Users still see old numbers if the key is missing or the provider fails; errors are logged on the server.
 
-Behavior:
+## Turn it off or reduce cost
 
-- Skipped when <Badge text="DATAFORSEO_API_KEY" variant="envBackend" /> is unset or Directory SEO is disabled.
-- Skipped while <Badge text="provider_history_backfilled_at" variant="param" /> on <Badge text="seo_domain_metric_snapshots" variant="path" /> is within <Badge text="DIRECTORY_SEO_HISTORY_BACKFILL_TTL_DAYS" variant="envBackend" />.
-- On success, provider rows are stored with <Badge text="origin" variant="param" /> <code>provider_timeseries</code> (replacing prior provider rows in the same window). Ongoing snapshot refreshes still append <code>live_refresh</code> samples when rating or weekly cadence warrants it.
-- Failures are logged; the history endpoint still returns whatever rows are already in Postgres.
+- **Disable all Directory SEO API use:** <Badge text="DIRECTORY_SEO_ENABLED=false" variant="envBackend" /> on the API.
+- **Keep API but stop weekly worker calls:** <Badge text="DIRECTORY_SEO_WEEKLY_REFRESH_ENABLED=false" variant="envBackend" /> on housekeeping.
+- **No provider account:** leave <Badge text="DATAFORSEO_API_KEY" variant="envBackend" /> empty everywhere.
 
-## Data tier (operators)
+## Scheduled jobs
 
-| Table | Treat as |
-| --- | --- |
-| <Badge text="directory_seo_competitors" variant="path" /> | User config — do not truncate |
-| <Badge text="seo_domain_metric_snapshots" variant="path" /> | Rebuildable cache — safe to delete and refill; <Badge text="provider_history_backfilled_at" variant="param" /> tracks last timeseries import |
-| <Badge text="seo_domain_metric_history" variant="path" /> | Chart history — <Badge text="origin" variant="param" /> <code>live_refresh</code> (housekeeping/API samples) or <code>provider_timeseries</code> (daily import); provider rows for a domain can be replaced on backfill without deleting live samples |
-
-Writes to metric tables use the backend service role; workspace members read snapshots through session APIs with RLS on competitor rows.
-
-## Scheduled refresh vs pg_cron
-
-**Postgres <code>pg&#95;cron</code>** stays SQL-only (for example refresh token cleanup). **DataForSEO HTTP** runs in Node on the **housekeeping** worker, not inside <code>cron.schedule</code> in SQL.
-
-See <a href="/docs/configuration-backend/database#scheduled-jobs-pg_cron-vs-housekeeping-worker">Database → Scheduled jobs</a> and <a href="/docs/configuration-worker">Configuration - Worker</a>.
+Weekly rating refresh runs in the **housekeeping** worker in Node. It does **not** run inside Postgres cron. Database cron jobs in OpenQuok are for other tasks only. Details: <a href="/docs/configuration-backend/database#scheduled-jobs-pg_cron-vs-housekeeping-worker">Database → Scheduled jobs</a>.
 
 ## Related
 
 <CardGrid>
-<LinkCard title="Configuration - Worker" description="Housekeeping timers, Redis, and minimal worker env surface" href="/docs/configuration-worker" />
-<LinkCard title="Database & migrations" description="Aggregated migrations including auto-launch SEO tables" href="/docs/configuration-backend/database" />
-<LinkCard title="Directory analytics" description="Product UI for DR charts and competitors" href="/docs/directory-submission/directory-analytics" />
-<LinkCard title="Catalog DR refresh (admin)" description="CLI and secret-admin refresh for Build Backlinks site rows" href="/docs/admin/link-directory-catalog-dr-refresh" />
-<LinkCard title="Railway (workers)" description="Deploy housekeeping alongside other orchestrator workers" href="/docs/configuration-worker/railway" />
+<LinkCard title="Configuration - Worker" description="Housekeeping worker env and deploy" href="/docs/configuration-worker" />
+<LinkCard title="Directory analytics" description="How workspaces use ratings in the app" href="/docs/directory-submission/directory-analytics" />
+<LinkCard title="Database & migrations" description="Migrations for Directory and SEO tables" href="/docs/configuration-backend/database" />
+<LinkCard title="Catalog DR refresh (admin)" description="Refresh link-directory catalog ratings (admin)" href="/docs/admin/link-directory-catalog-dr-refresh" />
 </CardGrid>

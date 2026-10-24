@@ -1,17 +1,28 @@
 ---
-title: Manage a channel
-description: Reconnect, disable, or remove a connected social account in OpenQuok.
+title: Manage social and directory channels
+description: Reconnect or remove social accounts on My Dashboard, and manage directory launches on My Products.
 order: 2
-lastUpdated: 2026-09-29
+lastUpdated: 2026-10-24
 ---
 
 <script>
 import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-## Open the channel
+## Social vs directory
 
-> Reconnect, disable, copy IDs, assign groups, and remove channels from <strong>My Dashboard</strong> or the calendar.
+OpenQuok uses **channel** for two families. They do not share the same dashboard actions.
+
+| Family | Where you manage it | What you change |
+| --- | --- | --- |
+| **Social** | <a href="/account">My Dashboard</a> → <Badge text="Channels" variant="default" /> | OAuth or API connection, posts, time slots, disable, delete |
+| **Directory** | <a href="/account/products">My Products</a> | Business profile, launch handoff, submission status, listing URL |
+
+Directory destinations do not use <Badge text="Refresh connection" variant="default" /> or <Badge text="Create Post" variant="new" />. You submit each form on the directory site. See <a href="/docs/directory-integration">Directory integration</a> for how destinations differ from social accounts.
+
+## Open the social channel
+
+> Reconnect, disable, copy IDs, assign business profiles, and remove social accounts from <strong>My Dashboard</strong> or the calendar.
 
 **Where:** <a href="/account">My Dashboard</a> → <Badge text="Channels" variant="default" /> tab — click the channel and the actions modal appears. In table layout, click <Badge text="Actions" variant="default" />. You can also open a channel chip on the <a href="/account/calendar">calendar</a>.
 
@@ -21,7 +32,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ![Group Connected Channels Using Smart Filter](/docs/_assets/channel-groups/smart-filter-connected-channel.webp)
 
-## What you can do
+## Social channel actions
 
 | Action | What it does |
 | --- | --- |
@@ -34,7 +45,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 | <Badge text="Disable channel" variant="default" /> | Stops posting without removing the connection. Use <Badge text="Enable channel" variant="default" /> to resume |
 | <Badge text="Delete channel" variant="default" /> | Removes the connection from this workspace and deletes posts for this channel |
 
-## When the login expires
+## When the social login expires
 
 Social logins do not last forever. When one stops working, the channel shows <Badge text="Refresh needed" variant="param" /> and new posts start failing.
 
@@ -50,7 +61,7 @@ A few things to keep in mind:
 <p>If you connected with an invite link, send a fresh invite and have the same person approve access again.</p>
 </Callout>
 
-## Pause or remove
+## Pause or remove a social channel
 
 On Cloud, plan limits treat channels in two ways. A **connected** cap counts every non-deleted channel (including disabled ones). An **active** cap counts only channels that are not disabled. See <a href="/docs/billing/limits">Cloud limits</a>.
 
@@ -70,12 +81,35 @@ That includes sibling rows on other channels in the same post group. Already-pub
 
 On self-hosted OpenQuok with billing unset, there is no channel cap. Disable and delete are only about whether you still want that account in the workspace.
 
+## Directory channel actions
+
+You manage directory work on <a href="/account/products">My Products</a>, not on the <Badge text="Channels" variant="default" /> tab.
+
+| Task | Where |
+| --- | --- |
+| Edit product copy, logo, and directory fields | Business profile composer on My Products |
+| Check **readiness** before you launch | Destination card on the profile |
+| Start autofill on a directory site | <Badge text="Launch to directory" variant="new" /> (or the launch action on the card) |
+| Save listing URL and mark complete | Destination card after you submit on the directory site |
+| Fix URL, variant, or notes | <strong>Edit listing</strong> on a completed row |
+
+You do not disable or delete a directory destination like a social channel. Remove or reset tracking with <strong>mark incomplete</strong> when you plan to submit again. See <a href="/docs/directory-submission/track-submissions">Track submissions</a>.
+
+The same <a href="/docs/channels/channel-groups">business profile</a> can link social channels and hold directory launch data for one client or brand.
+
+<Callout type="note">
+<p>Some directory sites also appear when you click <Badge text="Add Channel" variant="new" /> on My Dashboard. That tile starts a launch path — it does not add a social posting connection.</p>
+</Callout>
+
 ## Related
 
 <CardGrid>
-<LinkCard title="Connect a channel" description="Add Channel, sign-in flows, API keys, and invite links" href="/docs/channels/connect" />
-<LinkCard title="Posting time slots" description="Usual posting hours per channel and how suggestions use them" href="/docs/channels/time-slots" />
-<LinkCard title="Business profiles" description="Bundle channels by client or brand" href="/docs/channels/channel-groups" />
-<LinkCard title="Cloud limits" description="What happens when a workspace hits the channel cap" href="/docs/billing/limits" />
+<LinkCard title="Connect a channel" description="Add Channel, sign-in flows, API keys, and invite links for social accounts" href="/docs/channels/connect" />
+<LinkCard title="Directory submission" description="Profile, extension handoff, and mark each launch complete" href="/docs/directory-submission" />
+<LinkCard title="Track submissions" description="Readiness, listing URL, and completion on My Products" href="/docs/directory-submission/track-submissions" />
+<LinkCard title="Posting time slots" description="Usual posting hours per social channel" href="/docs/channels/time-slots" />
+<LinkCard title="Business profiles" description="Bundle social channels and directory product data by client or brand" href="/docs/channels/channel-groups" />
+<LinkCard title="Directory integration" description="How directory destinations differ from OAuth social channels" href="/docs/directory-integration" />
+<LinkCard title="Cloud limits" description="Connected and active social channel caps on Cloud" href="/docs/billing/limits" />
 <LinkCard title="Glossary" description="Channel vs integration, time slots, and calendar vs kanban" href="/docs/getting-started/glossary" />
 </CardGrid>

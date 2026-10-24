@@ -9,7 +9,8 @@
  *       - DirectoryLaunch
  *     summary: Update a product profile (API key)
  *     description: >-
- *       Partial update for a main or variant profile in the API key workspace. Send at least one field.
+ *       Push copy or field updates from your source of truth into OpenQuok. Partial body — send at
+ *       least one mutable field.
  *     parameters:
  *       - in: path
  *         name: id
