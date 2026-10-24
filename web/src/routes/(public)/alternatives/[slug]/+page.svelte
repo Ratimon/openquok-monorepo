@@ -159,6 +159,12 @@
 			cardContainerClass:
 				'bg-linear-to-br from-violet-400/20 via-purple-300/16 to-fuchsia-300/16 text-violet-100 ring-violet-300/28'
 		},
+		publer: {
+			heroContainerClass:
+				'bg-linear-to-br from-teal-400/35 via-cyan-300/25 to-emerald-300/20 text-teal-50 ring-teal-300/40',
+			cardContainerClass:
+				'bg-linear-to-br from-teal-400/22 via-cyan-300/18 to-emerald-300/14 text-teal-50 ring-teal-300/28'
+		},
 		socialclaw: {
 			heroContainerClass:
 				'bg-linear-to-br from-red-500/30 via-rose-400/20 to-orange-300/20 text-red-50 ring-red-400/40',

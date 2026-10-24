@@ -28,6 +28,7 @@ import { postfastCompareProduct } from '$lib/content/constants/competitors/postf
 import { post2allCompareProduct } from '$lib/content/constants/competitors/post2all';
 import { postpeerCompareProduct } from '$lib/content/constants/competitors/postpeer';
 import { postizCompareProduct } from '$lib/content/constants/competitors/postiz';
+import { publerCompareProduct } from '$lib/content/constants/competitors/publer';
 import { recurpostCompareProduct } from '$lib/content/constants/competitors/recurpost';
 import { socialclawCompareProduct } from '$lib/content/constants/competitors/socialclaw';
 import { socialyncCompareProduct } from '$lib/content/constants/competitors/socialync';
@@ -58,6 +59,7 @@ export { postfastCompareProduct } from '$lib/content/constants/competitors/postf
 export { post2allCompareProduct } from '$lib/content/constants/competitors/post2all';
 export { postpeerCompareProduct } from '$lib/content/constants/competitors/postpeer';
 export { postizCompareProduct } from '$lib/content/constants/competitors/postiz';
+export { publerCompareProduct } from '$lib/content/constants/competitors/publer';
 export { recurpostCompareProduct } from '$lib/content/constants/competitors/recurpost';
 export { socialclawCompareProduct } from '$lib/content/constants/competitors/socialclaw';
 export { socialyncCompareProduct } from '$lib/content/constants/competitors/socialync';
@@ -83,6 +85,7 @@ export const PUBLIC_COMPARE_PRODUCTS: readonly CompareProduct[] = [
 	postpeerCompareProduct,
 	post2allCompareProduct,
 	postizCompareProduct,
+	publerCompareProduct,
 	socialclawCompareProduct,
 	socialyncCompareProduct,
 	sproutSocialCompareProduct,

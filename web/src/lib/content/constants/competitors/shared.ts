@@ -41,6 +41,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	postpeer: 'https://www.postpeer.dev',
 	post2all: 'https://www.post2all.com',
 	postiz: 'https://postiz.com',
+	publer: 'https://publer.com',
 	recurpost: 'https://recurpost.com',
 	socialclaw: 'https://getsocialclaw.com',
 	socialync: 'https://www.socialync.io',
@@ -64,6 +65,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	| 'postpeer'
 	| 'post2all'
 	| 'postiz'
+	| 'publer'
 	| 'recurpost'
 	| 'socialclaw'
 	| 'socialync'
