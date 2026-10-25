@@ -3,8 +3,7 @@ import type { PostDetails, PostResponse } from "../../social.integrations.interf
 import { publicUrlForObjectKey } from "../../../repositories/MediaRepository";
 import { stripComposerBodyForEditor } from "../../../utils/content/stripComposerBodyForEditor.js";
 import { throwIfMetaGraphInvalidAccessToken } from "../../../errors/metaGraphTokenError";
-
-const GRAPH = "https://graph.facebook.com/v20.0";
+import { metaFacebookGraphRoot } from "../meta/metaGraphApi.js";
 
 type MediaItem = { path: string; bucket?: string };
 
@@ -116,7 +115,7 @@ export async function publishFacebookPagePost(
 
     if (media.length > 0 && isMp4Path(media[0]!.path)) {
         const videoJson = await graphPostJson(
-            `${GRAPH}/${pageId}/videos?access_token=${enc}&fields=id,permalink_url`,
+            `${metaFacebookGraphRoot()}/${pageId}/videos?access_token=${enc}&fields=id,permalink_url`,
             {
                 file_url: media[0]!.path,
                 description: message,
@@ -140,7 +139,7 @@ export async function publishFacebookPagePost(
             : await Promise.all(
                   media.map(async (item) => {
                       const photoJson = await graphPostJson(
-                          `${GRAPH}/${pageId}/photos?access_token=${enc}`,
+                          `${metaFacebookGraphRoot()}/${pageId}/photos?access_token=${enc}`,
                           { url: item.path, published: false },
                           "Facebook photo upload"
                       );
@@ -156,7 +155,7 @@ export async function publishFacebookPagePost(
     };
 
     const feedJson = await graphPostJson(
-        `${GRAPH}/${pageId}/feed?access_token=${enc}&fields=id,permalink_url`,
+        `${metaFacebookGraphRoot()}/${pageId}/feed?access_token=${enc}&fields=id,permalink_url`,
         feedBody,
         "Facebook feed publish"
     );
@@ -184,7 +183,7 @@ export async function publishFacebookComment(
     }
 
     const json = await graphPostJson(
-        `${GRAPH}/${replyToId}/comments?access_token=${enc}&fields=id,permalink_url`,
+        `${metaFacebookGraphRoot()}/${replyToId}/comments?access_token=${enc}&fields=id,permalink_url`,
         body,
         "Facebook comment"
     );

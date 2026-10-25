@@ -8,6 +8,7 @@ import type { PostDetails, PostResponse } from "../../social.integrations.interf
 import { humanizeInstagramGraphError } from "./instagramGraphErrors";
 import { publicUrlForObjectKey } from "../../../repositories/MediaRepository";
 import { logger } from "../../../utils/Logger";
+import { metaGraphApiVersion } from "../meta/metaGraphApi.js";
 
 /** Normalized Instagram publish options for Content Publishing API calls. */
 export type InstagramGraduationStrategy = "MANUAL" | "SS_PERFORMANCE";
@@ -104,7 +105,7 @@ export function resolveInstagramPublishSettings(postDetailsSettings: unknown): I
     };
 }
 
-const DEFAULT_API_VERSION = "v20.0";
+const DEFAULT_API_VERSION = metaGraphApiVersion();
 const POLL_INTERVAL_MS = 3000;
 const POLL_MAX_ROUNDS = 60;
 
@@ -252,7 +253,7 @@ async function postForm(
 export type InstagramContentPublishTarget = {
     /** e.g. `graph.instagram.com` or `graph.facebook.com` */
     graphHostname: string;
-    /** Default `v20.0`. */
+    /** Defaults to `metaGraphApiVersion()` (`facebook/metaGraphApiVersion.ts`). */
     apiVersion?: string;
 };
 

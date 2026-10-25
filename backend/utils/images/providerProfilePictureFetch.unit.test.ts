@@ -5,7 +5,7 @@ import { downloadProviderProfilePicture, facebookGraphProfilePictureUrl } from "
 describe("facebookGraphProfilePictureUrl", () => {
     it("builds the Graph picture endpoint for a Page id", () => {
         expect(facebookGraphProfilePictureUrl("page-1")).toBe(
-            "https://graph.facebook.com/v20.0/page-1/picture?type=large"
+            "https://graph.facebook.com/v26.0/page-1/picture?type=large"
         );
     });
 });
@@ -39,7 +39,7 @@ describe("downloadProviderProfilePicture", () => {
         expect(result?.contentType).toBe("image/jpeg");
         expect(result?.buffer.equals(Buffer.from(bytes))).toBe(true);
         expect(String(jest.mocked(global.fetch).mock.calls[0]?.[0])).toContain(
-            "graph.facebook.com/v20.0/page-1/picture"
+            "graph.facebook.com/v26.0/page-1/picture"
         );
         expect(String(jest.mocked(global.fetch).mock.calls[0]?.[0])).toContain("access_token=tok");
     });

@@ -21,9 +21,11 @@ import { AppError } from "../../../errors/AppError";
 import { makeId } from "../../../utils/ids/makeId";
 import { oauthFrontendOrigin } from "../../utils/oauthFrontendOrigin";
 import { oauthFrontendSocialCallbackPath } from "../../utils/oauthFrontendCallbackPath";
-
-const GRAPH = "https://graph.facebook.com/v20.0";
-const IG_INSIGHTS_GRAPH = "https://graph.facebook.com/v21.0";
+import {
+    metaFacebookGraphRoot,
+    metaFacebookOAuthDialogUrl,
+    metaGraphApiVersion,
+} from "../meta/metaGraphApi.js";
 
 function facebookOAuth(): { appId: string; appSecret: string } {
     return (config.integrations as { facebook: { appId: string; appSecret: string } }).facebook;
@@ -83,7 +85,7 @@ export class InstagramBusinessProvider implements SocialProvider {
         if (!postDetails.length) return [];
         return publishInstagramGraphFeedPost(id, accessToken, postDetails[0]!, {
             graphHostname: "graph.facebook.com",
-            apiVersion: "v20.0",
+            apiVersion: metaGraphApiVersion(),
         });
     }
 
@@ -102,7 +104,7 @@ export class InstagramBusinessProvider implements SocialProvider {
         const [first] = postDetails;
         const { commentId, mediaPermalink } = await publishInstagramGraphComment({
             graphHost: "graph.facebook.com",
-            apiVersion: "v21.0",
+            apiVersion: metaGraphApiVersion(),
             mediaId: postId,
             lastCommentId,
             message: first.message ?? "",
@@ -135,7 +137,7 @@ export class InstagramBusinessProvider implements SocialProvider {
         }
 
         const tokenRes = await fetch(
-            `${GRAPH}/oauth/access_token?grant_type=fb_exchange_token` +
+            `${metaFacebookGraphRoot()}/oauth/access_token?grant_type=fb_exchange_token` +
                 `&client_id=${encodeURIComponent(appId)}` +
                 `&client_secret=${encodeURIComponent(appSecret)}` +
                 `&fb_exchange_token=${encodeURIComponent(refresh_token)}`
@@ -150,7 +152,7 @@ export class InstagramBusinessProvider implements SocialProvider {
         }
 
         const meRes = await fetch(
-            `${GRAPH}/me?fields=id,name,picture&access_token=${encodeURIComponent(extended.access_token)}`
+            `${metaFacebookGraphRoot()}/me?fields=id,name,picture&access_token=${encodeURIComponent(extended.access_token)}`
         );
         const me = (await meRes.json()) as { id?: string; name?: string; picture?: { data?: { url?: string } } };
 
@@ -181,7 +183,7 @@ export class InstagramBusinessProvider implements SocialProvider {
         const codeVerifier = makeId(10);
         const redirectUri = instagramBusinessRedirectUri();
         const url =
-            "https://www.facebook.com/v20.0/dialog/oauth" +
+            metaFacebookOAuthDialogUrl() +
             `?client_id=${encodeURIComponent(appId)}` +
             `&redirect_uri=${encodeURIComponent(redirectUri)}` +
             `&state=${state}` +
@@ -197,7 +199,7 @@ export class InstagramBusinessProvider implements SocialProvider {
         const redirectUri = instagramBusinessRedirectUri();
 
         const step1 = await fetch(
-            `${GRAPH}/oauth/access_token` +
+            `${metaFacebookGraphRoot()}/oauth/access_token` +
                 `?client_id=${encodeURIComponent(appId)}` +
                 `&redirect_uri=${encodeURIComponent(redirectUri)}` +
                 "&grant_type=authorization_code" +
@@ -213,7 +215,7 @@ export class InstagramBusinessProvider implements SocialProvider {
         }
 
         const step2 = await fetch(
-            `${GRAPH}/oauth/access_token` +
+            `${metaFacebookGraphRoot()}/oauth/access_token` +
                 "?grant_type=fb_exchange_token" +
                 `&client_id=${encodeURIComponent(appId)}` +
                 `&client_secret=${encodeURIComponent(appSecret)}` +
@@ -225,7 +227,7 @@ export class InstagramBusinessProvider implements SocialProvider {
         }
 
         const permRes = await fetch(
-            `${GRAPH}/me/permissions?access_token=${encodeURIComponent(longLived.access_token)}`
+            `${metaFacebookGraphRoot()}/me/permissions?access_token=${encodeURIComponent(longLived.access_token)}`
         );
         const permJson = (await permRes.json()) as { data?: Array<{ permission?: string; status?: string }> };
         const permissions = (permJson.data ?? [])
@@ -240,7 +242,7 @@ export class InstagramBusinessProvider implements SocialProvider {
         }
 
         const meRes = await fetch(
-            `${GRAPH}/me?fields=id,name,picture&access_token=${encodeURIComponent(longLived.access_token)}`
+            `${metaFacebookGraphRoot()}/me?fields=id,name,picture&access_token=${encodeURIComponent(longLived.access_token)}`
         );
         const me = (await meRes.json()) as { id?: string; name?: string; picture?: { data?: { url?: string } } };
 
@@ -292,11 +294,11 @@ export class InstagramBusinessProvider implements SocialProvider {
 
         const enc = encodeURIComponent(accessToken);
         await fetchPaginated(
-            `${GRAPH}/me/accounts?fields=id,instagram_business_account,username,name,picture.type(large)&limit=100&access_token=${enc}`
+            `${metaFacebookGraphRoot()}/me/accounts?fields=id,instagram_business_account,username,name,picture.type(large)&limit=100&access_token=${enc}`
         );
 
         try {
-            let bizUrl: string | undefined = `${GRAPH}/me/businesses?access_token=${enc}`;
+            let bizUrl: string | undefined = `${metaFacebookGraphRoot()}/me/businesses?access_token=${enc}`;
             while (bizUrl) {
                 const bizResponse = await fetch(bizUrl);
                 const bizJson = (await bizResponse.json()) as {
@@ -306,14 +308,14 @@ export class InstagramBusinessProvider implements SocialProvider {
                 for (const business of bizJson.data ?? []) {
                     try {
                         await fetchPaginated(
-                            `${GRAPH}/${business.id}/owned_pages?fields=id,instagram_business_account,username,name,picture.type(large)&limit=100&access_token=${enc}`
+                            `${metaFacebookGraphRoot()}/${business.id}/owned_pages?fields=id,instagram_business_account,username,name,picture.type(large)&limit=100&access_token=${enc}`
                         );
                     } catch {
                         // Continue with other businesses.
                     }
                     try {
                         await fetchPaginated(
-                            `${GRAPH}/${business.id}/client_pages?fields=id,instagram_business_account,username,name,picture.type(large)&limit=100&access_token=${enc}`
+                            `${metaFacebookGraphRoot()}/${business.id}/client_pages?fields=id,instagram_business_account,username,name,picture.type(large)&limit=100&access_token=${enc}`
                         );
                     } catch {
                         // Continue with other businesses.
@@ -330,7 +332,7 @@ export class InstagramBusinessProvider implements SocialProvider {
         for (const p of withIg) {
             const igId = p.instagram_business_account!.id;
             const igRes = await fetch(
-                `${GRAPH}/${igId}?fields=name,profile_picture_url,username&access_token=${enc}`
+                `${metaFacebookGraphRoot()}/${igId}?fields=name,profile_picture_url,username&access_token=${enc}`
             );
             const ig = (await igRes.json()) as {
                 name?: string;
@@ -358,14 +360,14 @@ export class InstagramBusinessProvider implements SocialProvider {
         username: string;
     }> {
         const pageRes = await fetch(
-            `${GRAPH}/${data.pageId}?fields=access_token,name,picture.type(large)&access_token=${encodeURIComponent(accessToken)}`
+            `${metaFacebookGraphRoot()}/${data.pageId}?fields=access_token,name,picture.type(large)&access_token=${encodeURIComponent(accessToken)}`
         );
         const pageJson = (await pageRes.json()) as { access_token?: string; name?: string };
         const pageToken = pageJson.access_token;
         if (!pageToken) throw new Error("Could not load Page access token");
 
         const igRes = await fetch(
-            `${GRAPH}/${data.id}?fields=username,name,profile_picture_url&access_token=${encodeURIComponent(accessToken)}`
+            `${metaFacebookGraphRoot()}/${data.id}?fields=username,name,profile_picture_url&access_token=${encodeURIComponent(accessToken)}`
         );
         const ig = (await igRes.json()) as {
             id?: string;
@@ -409,7 +411,7 @@ export class InstagramBusinessProvider implements SocialProvider {
 
     /** Instagram user insights via Facebook Graph (`instagram_manage_insights`). */
     async analytics(igUserId: string, accessToken: string, dateWindowDays: number): Promise<AnalyticsData[]> {
-        return fetchInstagramAccountInsights(IG_INSIGHTS_GRAPH, igUserId, accessToken, dateWindowDays);
+        return fetchInstagramAccountInsights(metaFacebookGraphRoot(), igUserId, accessToken, dateWindowDays);
     }
 
     /** Media insights for a published Instagram object id (`releaseId`). */
@@ -419,6 +421,6 @@ export class InstagramBusinessProvider implements SocialProvider {
         mediaId: string,
         _fromDate: number
     ): Promise<AnalyticsData[]> {
-        return fetchInstagramMediaInsights(IG_INSIGHTS_GRAPH, mediaId, accessToken);
+        return fetchInstagramMediaInsights(metaFacebookGraphRoot(), mediaId, accessToken);
     }
 }

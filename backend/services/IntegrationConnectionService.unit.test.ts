@@ -193,7 +193,7 @@ describe("IntegrationConnectionService", () => {
             ]);
             const { integrations: list } = await service().getIntegrationList(authUserId, orgId);
             expect(list[0]?.picture).toBe(
-                "https://graph.facebook.com/v20.0/page-123/picture?type=large"
+                "https://graph.facebook.com/v26.0/page-123/picture?type=large"
             );
         });
     });

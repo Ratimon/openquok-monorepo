@@ -2,8 +2,10 @@ import type { AnalyticsData } from "../../social.integrations.interface";
 
 import dayjs from "dayjs";
 
-/** Insights-only Graph version (legacy impression metrics removed Jun 2026). */
-export const FACEBOOK_INSIGHTS_GRAPH = "https://graph.facebook.com/v21.0";
+import { metaFacebookGraphRoot } from "../meta/metaGraphApi.js";
+
+/** Graph root for Page/post insights (same version as OAuth and publishing). */
+export const FACEBOOK_INSIGHTS_GRAPH = metaFacebookGraphRoot();
 
 export const FACEBOOK_PAGE_ANALYTICS_METRICS = [
     "page_total_media_view_unique",

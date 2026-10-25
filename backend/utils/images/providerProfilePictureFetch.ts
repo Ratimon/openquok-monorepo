@@ -5,11 +5,11 @@ import {
     type FetchedExternalImage,
 } from "./externalImageFetch";
 
-const GRAPH = "https://graph.facebook.com/v20.0";
+import { metaFacebookGraphRoot } from "../../integrations/providers/meta/metaGraphApi.js";
 
 /** Public Page avatar endpoint the browser can load (Graph 302s to a fresh signed CDN URL). */
 export function facebookGraphProfilePictureUrl(objectId: string): string {
-    return `${GRAPH}/${encodeURIComponent(objectId.trim())}/picture?type=large`;
+    return `${metaFacebookGraphRoot()}/${encodeURIComponent(objectId.trim())}/picture?type=large`;
 }
 
 async function imageFromResponse(response: Response): Promise<FetchedExternalImage | null> {

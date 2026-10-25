@@ -24,8 +24,7 @@ import { AppError } from "../../../errors/AppError";
 import { makeId } from "../../../utils/ids/makeId";
 import { oauthFrontendOrigin } from "../../utils/oauthFrontendOrigin";
 import { oauthFrontendSocialCallbackPath } from "../../utils/oauthFrontendCallbackPath";
-
-const GRAPH = "https://graph.facebook.com/v20.0";
+import { metaFacebookGraphRoot, metaFacebookOAuthDialogUrl } from "../meta/metaGraphApi.js";
 
 export type FacebookPageOption = {
     id: string;
@@ -155,7 +154,7 @@ export class FacebookProvider implements SocialProvider {
         }
 
         const tokenRes = await fetch(
-            `${GRAPH}/oauth/access_token?grant_type=fb_exchange_token` +
+            `${metaFacebookGraphRoot()}/oauth/access_token?grant_type=fb_exchange_token` +
                 `&client_id=${encodeURIComponent(appId)}` +
                 `&client_secret=${encodeURIComponent(appSecret)}` +
                 `&fb_exchange_token=${encodeURIComponent(refresh_token)}`
@@ -170,7 +169,7 @@ export class FacebookProvider implements SocialProvider {
         }
 
         const meRes = await fetch(
-            `${GRAPH}/me?fields=id,name,picture&access_token=${encodeURIComponent(extended.access_token)}`
+            `${metaFacebookGraphRoot()}/me?fields=id,name,picture&access_token=${encodeURIComponent(extended.access_token)}`
         );
         const me = (await meRes.json()) as { id?: string; name?: string; picture?: { data?: { url?: string } } };
 
@@ -201,7 +200,7 @@ export class FacebookProvider implements SocialProvider {
         const codeVerifier = makeId(10);
         const redirectUri = facebookRedirectUri();
         const url =
-            "https://www.facebook.com/v20.0/dialog/oauth" +
+            metaFacebookOAuthDialogUrl() +
             `?client_id=${encodeURIComponent(appId)}` +
             `&redirect_uri=${encodeURIComponent(redirectUri)}` +
             `&state=${state}` +
@@ -217,7 +216,7 @@ export class FacebookProvider implements SocialProvider {
         const redirectUri = facebookRedirectUri();
 
         const step1 = await fetch(
-            `${GRAPH}/oauth/access_token` +
+            `${metaFacebookGraphRoot()}/oauth/access_token` +
                 `?client_id=${encodeURIComponent(appId)}` +
                 `&redirect_uri=${encodeURIComponent(redirectUri)}` +
                 "&grant_type=authorization_code" +
@@ -233,7 +232,7 @@ export class FacebookProvider implements SocialProvider {
         }
 
         const step2 = await fetch(
-            `${GRAPH}/oauth/access_token` +
+            `${metaFacebookGraphRoot()}/oauth/access_token` +
                 "?grant_type=fb_exchange_token" +
                 `&client_id=${encodeURIComponent(appId)}` +
                 `&client_secret=${encodeURIComponent(appSecret)}` +
@@ -245,7 +244,7 @@ export class FacebookProvider implements SocialProvider {
         }
 
         const permRes = await fetch(
-            `${GRAPH}/me/permissions?access_token=${encodeURIComponent(longLived.access_token)}`
+            `${metaFacebookGraphRoot()}/me/permissions?access_token=${encodeURIComponent(longLived.access_token)}`
         );
         const permJson = (await permRes.json()) as { data?: Array<{ permission?: string; status?: string }> };
         const permissions = (permJson.data ?? [])
@@ -260,7 +259,7 @@ export class FacebookProvider implements SocialProvider {
         }
 
         const meRes = await fetch(
-            `${GRAPH}/me?fields=id,name,picture&access_token=${encodeURIComponent(longLived.access_token)}`
+            `${metaFacebookGraphRoot()}/me?fields=id,name,picture&access_token=${encodeURIComponent(longLived.access_token)}`
         );
         const me = (await meRes.json()) as { id?: string; name?: string; picture?: { data?: { url?: string } } };
 
@@ -304,11 +303,11 @@ export class FacebookProvider implements SocialProvider {
         };
 
         await fetchPaginated(
-            `${GRAPH}/me/accounts?fields=${fields}&limit=100&access_token=${enc}`
+            `${metaFacebookGraphRoot()}/me/accounts?fields=${fields}&limit=100&access_token=${enc}`
         );
 
         try {
-            let bizUrl: string | undefined = `${GRAPH}/me/businesses?access_token=${enc}`;
+            let bizUrl: string | undefined = `${metaFacebookGraphRoot()}/me/businesses?access_token=${enc}`;
             while (bizUrl) {
                 const bizResponse = await fetch(bizUrl);
                 const bizJson = (await bizResponse.json()) as {
@@ -318,14 +317,14 @@ export class FacebookProvider implements SocialProvider {
                 for (const business of bizJson.data ?? []) {
                     try {
                         await fetchPaginated(
-                            `${GRAPH}/${business.id}/owned_pages?fields=${fields}&limit=100&access_token=${enc}`
+                            `${metaFacebookGraphRoot()}/${business.id}/owned_pages?fields=${fields}&limit=100&access_token=${enc}`
                         );
                     } catch {
                         // Continue with other businesses.
                     }
                     try {
                         await fetchPaginated(
-                            `${GRAPH}/${business.id}/client_pages?fields=${fields}&limit=100&access_token=${enc}`
+                            `${metaFacebookGraphRoot()}/${business.id}/client_pages?fields=${fields}&limit=100&access_token=${enc}`
                         );
                     } catch {
                         // Continue with other businesses.
@@ -361,7 +360,7 @@ export class FacebookProvider implements SocialProvider {
         };
 
         const fromAccounts = await searchPaginated(
-            `${GRAPH}/me/accounts?fields=${fields}&limit=100&access_token=${enc}`
+            `${metaFacebookGraphRoot()}/me/accounts?fields=${fields}&limit=100&access_token=${enc}`
         );
         if (fromAccounts?.access_token) {
             return {
@@ -374,7 +373,7 @@ export class FacebookProvider implements SocialProvider {
         }
 
         try {
-            let bizUrl: string | undefined = `${GRAPH}/me/businesses?access_token=${enc}`;
+            let bizUrl: string | undefined = `${metaFacebookGraphRoot()}/me/businesses?access_token=${enc}`;
             while (bizUrl) {
                 const bizResponse = await fetch(bizUrl);
                 const bizJson = (await bizResponse.json()) as {
@@ -383,7 +382,7 @@ export class FacebookProvider implements SocialProvider {
                 };
                 for (const business of bizJson.data ?? []) {
                     const fromOwned = await searchPaginated(
-                        `${GRAPH}/${business.id}/owned_pages?fields=${fields}&limit=100&access_token=${enc}`
+                        `${metaFacebookGraphRoot()}/${business.id}/owned_pages?fields=${fields}&limit=100&access_token=${enc}`
                     );
                     if (fromOwned?.access_token) {
                         return {
@@ -395,7 +394,7 @@ export class FacebookProvider implements SocialProvider {
                         };
                     }
                     const fromClient = await searchPaginated(
-                        `${GRAPH}/${business.id}/client_pages?fields=${fields}&limit=100&access_token=${enc}`
+                        `${metaFacebookGraphRoot()}/${business.id}/client_pages?fields=${fields}&limit=100&access_token=${enc}`
                     );
                     if (fromClient?.access_token) {
                         return {

@@ -2,8 +2,7 @@ import type { PostDetails, PostResponse } from "../../social.integrations.interf
 
 import { publicUrlForObjectKey } from "../../../repositories/MediaRepository";
 import { throwIfMetaGraphInvalidAccessToken } from "../../../errors/metaGraphTokenError";
-
-const GRAPH = "https://graph.facebook.com/v20.0";
+import { metaFacebookGraphRoot } from "../meta/metaGraphApi.js";
 const STORY_VIDEO_POLL_INTERVAL_MS = 10_000;
 const STORY_VIDEO_DEADLINE_MS = 8 * 60 * 1000;
 
@@ -117,7 +116,7 @@ export function readFacebookPostType(settings: unknown): "post" | "story" {
 async function uploadStoryPhoto(pageId: string, accessToken: string, mediaUrl: string): Promise<string> {
     const enc = encodeURIComponent(accessToken);
     const photoJson = await graphPostJson(
-        `${GRAPH}/${pageId}/photos?access_token=${enc}`,
+        `${metaFacebookGraphRoot()}/${pageId}/photos?access_token=${enc}`,
         { url: mediaUrl, published: false },
         "Facebook story photo upload"
     );
@@ -127,7 +126,7 @@ async function uploadStoryPhoto(pageId: string, accessToken: string, mediaUrl: s
     }
 
     const storyJson = await graphPostJson(
-        `${GRAPH}/${pageId}/photo_stories?access_token=${enc}`,
+        `${metaFacebookGraphRoot()}/${pageId}/photo_stories?access_token=${enc}`,
         { photo_id: photoId },
         "Facebook photo story publish"
     );
@@ -138,7 +137,7 @@ async function uploadStoryPhoto(pageId: string, accessToken: string, mediaUrl: s
 async function startStoryVideoUpload(pageId: string, accessToken: string): Promise<{ videoId: string; uploadUrl: string }> {
     const enc = encodeURIComponent(accessToken);
     const startJson = await graphPostJson(
-        `${GRAPH}/${pageId}/video_stories?upload_phase=start&access_token=${enc}`,
+        `${metaFacebookGraphRoot()}/${pageId}/video_stories?upload_phase=start&access_token=${enc}`,
         {},
         "Facebook video story start"
     );
@@ -180,7 +179,7 @@ async function waitForFacebookVideoReady(videoId: string, accessToken: string, d
 
     while (Date.now() < deadline) {
         const json = await graphGetJson(
-            `${GRAPH}/${videoId}?fields=status&access_token=${enc}`,
+            `${metaFacebookGraphRoot()}/${videoId}?fields=status&access_token=${enc}`,
             "Facebook video story status"
         );
         if (isFacebookVideoReady(json.status)) {
@@ -194,7 +193,7 @@ async function waitForFacebookVideoReady(videoId: string, accessToken: string, d
 async function finishStoryVideo(pageId: string, accessToken: string, videoId: string): Promise<string> {
     const enc = encodeURIComponent(accessToken);
     const finishJson = await graphPostJson(
-        `${GRAPH}/${pageId}/video_stories?upload_phase=finish&video_id=${encodeURIComponent(videoId)}&access_token=${enc}`,
+        `${metaFacebookGraphRoot()}/${pageId}/video_stories?upload_phase=finish&video_id=${encodeURIComponent(videoId)}&access_token=${enc}`,
         {},
         "Facebook video story finish"
     );

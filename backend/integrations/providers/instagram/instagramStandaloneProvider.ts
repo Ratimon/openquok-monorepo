@@ -20,9 +20,9 @@ import { config } from "../../../config/GlobalConfig";
 import { makeId } from "../../../utils/ids/makeId";
 import { oauthFrontendOrigin } from "../../utils/oauthFrontendOrigin";
 import { oauthFrontendSocialCallbackPath } from "../../utils/oauthFrontendCallbackPath";
+import { metaGraphApiVersion, metaInstagramGraphRoot } from "../meta/metaGraphApi.js";
 
 const IG_GRAPH = "https://graph.instagram.com";
-const IG_INSIGHTS_GRAPH = "https://graph.instagram.com/v21.0";
 
 function instagramStandaloneOAuth(): { appId: string; appSecret: string } {
     return (config.integrations as { instagramStandalone: { appId: string; appSecret: string } }).instagramStandalone;
@@ -84,7 +84,7 @@ export class InstagramStandaloneProvider implements SocialProvider {
         if (!postDetails.length) return [];
         return publishInstagramGraphFeedPost(id, accessToken, postDetails[0]!, {
             graphHostname: "graph.instagram.com",
-            apiVersion: "v20.0",
+            apiVersion: metaGraphApiVersion(),
         });
     }
 
@@ -103,7 +103,7 @@ export class InstagramStandaloneProvider implements SocialProvider {
         const [first] = postDetails;
         const { commentId, mediaPermalink } = await publishInstagramGraphComment({
             graphHost: "graph.instagram.com",
-            apiVersion: "v21.0",
+            apiVersion: metaGraphApiVersion(),
             mediaId: postId,
             lastCommentId,
             message: first.message ?? "",
@@ -136,7 +136,7 @@ export class InstagramStandaloneProvider implements SocialProvider {
         }
 
         const meRes = await fetch(
-            `https://graph.instagram.com/v21.0/me?fields=user_id,username,name,profile_picture_url&access_token=${encodeURIComponent(body.access_token)}`
+            `${metaInstagramGraphRoot()}/me?fields=user_id,username,name,profile_picture_url&access_token=${encodeURIComponent(body.access_token)}`
         );
         const me = (await meRes.json()) as {
             user_id?: string;
@@ -225,7 +225,7 @@ export class InstagramStandaloneProvider implements SocialProvider {
         }
 
         const meRes = await fetch(
-            `https://graph.instagram.com/v21.0/me?fields=user_id,username,name,profile_picture_url&access_token=${encodeURIComponent(longLived.access_token)}`
+            `${metaInstagramGraphRoot()}/me?fields=user_id,username,name,profile_picture_url&access_token=${encodeURIComponent(longLived.access_token)}`
         );
         const me = (await meRes.json()) as {
             user_id?: string;
@@ -249,7 +249,7 @@ export class InstagramStandaloneProvider implements SocialProvider {
 
     /** Same metrics as Instagram Business, via Instagram Graph host (Business Login). */
     async analytics(igUserId: string, accessToken: string, dateWindowDays: number): Promise<AnalyticsData[]> {
-        return fetchInstagramAccountInsights(IG_INSIGHTS_GRAPH, igUserId, accessToken, dateWindowDays);
+        return fetchInstagramAccountInsights(metaInstagramGraphRoot(), igUserId, accessToken, dateWindowDays);
     }
 
     async postAnalytics(
@@ -258,6 +258,6 @@ export class InstagramStandaloneProvider implements SocialProvider {
         mediaId: string,
         _fromDate: number
     ): Promise<AnalyticsData[]> {
-        return fetchInstagramMediaInsights(IG_INSIGHTS_GRAPH, mediaId, accessToken);
+        return fetchInstagramMediaInsights(metaInstagramGraphRoot(), mediaId, accessToken);
     }
 }
