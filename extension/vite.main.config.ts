@@ -13,16 +13,16 @@ export default defineConfig({
 		rollupOptions: {
 			input: {
 				background: resolve(extensionRoot, 'src/background.ts'),
-				popup: resolve(extensionRoot, 'src/popup/popup.ts'),
+				sidepanel: resolve(extensionRoot, 'src/ui/sidepanel/sidepanel.ts'),
 			},
 			output: {
 				entryFileNames: (chunk) => {
-					if (chunk.name === 'popup') return 'popup.js';
+					if (chunk.name === 'sidepanel') return 'sidepanel.js';
 					if (chunk.name === 'background') return 'background.js';
 					return `${chunk.name}.js`;
 				},
 				assetFileNames: (asset) => {
-					if (asset.name?.endsWith('.css')) return 'popup.css';
+					if (asset.name?.endsWith('.css')) return 'sidepanel.css';
 					return 'assets/[name]-[hash][extname]';
 				},
 				format: 'es',

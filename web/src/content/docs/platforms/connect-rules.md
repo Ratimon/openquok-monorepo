@@ -2,7 +2,7 @@
 title: Connect flow & rules
 description: How you connect each OpenQuok channel in Add Channel — OAuth, credentials, browser extension, self-host operator OAuth keys, channel keys, and how directory launches differ.
 order: 1
-lastUpdated: 2026-10-22
+lastUpdated: 2026-10-25
 sidebar:
   label: Connect rules
 ---
@@ -19,6 +19,10 @@ OpenQuok registers **twelve** social posting channels. Connect each one once per
 
 <Callout type="note">
 <p><strong>Directory launch</strong> sites (PeerPush, Uneed, and future catalog rows) are not OAuth posting integrations. They are listed under <a href="#directory-launch-platforms">Directory launch platforms</a> below.</p>
+</Callout>
+
+<Callout type="note">
+<p>The OpenQuok browser extension <strong>does not change</strong> how you connect a channel. OAuth, credentials, and Skool cookie-session connect still happen only in <Badge text="Add Channel" variant="new" /> on the dashboard. The extension <strong>Social</strong> side panel lists integrations you already connected and schedules or drafts via your dashboard session (<Badge text="POST /api/v1/posts" variant="path" />). Directory autofill uses the <strong>Directory</strong> tab and host content scripts only — not <Badge text="POST /public/posts" variant="path" />. Details: <a href="/docs/installation/chrome-extension">Browser extension</a>.</p>
 </Callout>
 
 <p class="not-prose flex flex-wrap items-center gap-3">
@@ -46,7 +50,7 @@ Instagram and LinkedIn each map to **two** channel keys in the table below (Busi
 | --- | --- |
 | **OAuth** | OpenQuok sends you to the platform. You sign in and approve access there. You return to OpenQuok. Some networks then ask you to pick a Page, Instagram account, or YouTube channel. |
 | **Credentials in OpenQuok** | You paste your own API key in a dialog. The self-host operator does not add platform OAuth keys for that channel. |
-| **Browser extension** | One extension, two flows. **Social posting (Skool):** install the extension, stay signed in on Skool, and approve a dashboard prompt in <Badge text="Add Channel" variant="new" /> — OpenQuok reads session cookies for scheduled posts, not platform OAuth. **Directory launch (PeerPush, Uneed, …):** build a product profile on <a href="/account/products">My Products</a>, use <Badge text="Launch to directory" variant="new" /> (or the Add Channel tile), then the extension autofills the directory submission form in Chrome — no social channel key and no OAuth to the directory. See <a href="/docs/installation/chrome-extension">Browser extension</a>. |
+| **Browser extension** | One extension, three surfaces. **Connect (Skool):** install the extension, stay signed in on Skool, and approve a dashboard prompt in <Badge text="Add Channel" variant="new" /> — OpenQuok reads session cookies for scheduled posts, not platform OAuth. **Schedule (OAuth, credentials, Skool):** side panel <strong>Social</strong> tab + dashboard session — <Badge text="POST /api/v1/posts" variant="path" />; no OAuth or secrets in the extension. **Directory launch (PeerPush, Uneed, …):** product profile on <a href="/account/products">My Products</a>, <Badge text="Launch to directory" variant="new" />, then side panel <strong>Directory</strong> tab or host autofill — no social channel key and no OAuth to the directory. See <a href="/docs/installation/chrome-extension">Browser extension</a>. |
 
 ![Open The modal to connect a channel](/docs/_assets/channel-groups/add-channel-modal.webp)
 
@@ -82,7 +86,7 @@ The last column marks which channels need that operator setup (**Yes** for OAuth
 
 Most channels use **OAuth**: you click the network in **Add Channel**, sign in on the platform site, and return to OpenQuok.
 
-**Dev.to** and **Bluesky** use credentials in Add Channel. **Skool** uses the <a href="/docs/installation/chrome-extension">OpenQuok browser extension</a> while you are signed in on Skool — there is no Skool OAuth app for operators to configure. The same extension also powers **directory launch** autofill from My Products; that path is in <a href="#directory-launch-platforms">Directory launch platforms</a> below.
+**Dev.to** and **Bluesky** use credentials in Add Channel. **Skool** uses the <a href="/docs/installation/chrome-extension">OpenQuok browser extension</a> while you are signed in on Skool — there is no Skool OAuth app for operators to configure. After channels are connected, the extension <strong>Social</strong> side panel can schedule or draft posts with your dashboard session; it does not add a fourth connect type. The same extension also powers **directory launch** autofill from My Products; that path is in <a href="#directory-launch-platforms">Directory launch platforms</a> below.
 
 Operator setup for each OAuth network is in <a href="/docs/social-integration">Social integrations</a>.
 

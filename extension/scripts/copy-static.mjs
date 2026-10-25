@@ -8,7 +8,8 @@ const distDir = join(extensionRoot, 'dist');
 mkdirSync(distDir, { recursive: true });
 
 copyFileSync(join(extensionRoot, 'manifest.json'), join(distDir, 'manifest.json'));
-copyFileSync(join(extensionRoot, 'popup.html'), join(distDir, 'popup.html'));
+copyFileSync(join(extensionRoot, 'sidepanel.html'), join(distDir, 'sidepanel.html'));
+copyFileSync(join(extensionRoot, 'sidepanel-bootstrap.js'), join(distDir, 'sidepanel-bootstrap.js'));
 
 const iconsSrc = join(extensionRoot, 'icons');
 const iconsDest = join(distDir, 'icons');

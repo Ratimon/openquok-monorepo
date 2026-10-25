@@ -12,7 +12,9 @@ globs:
   - common/src/auto-launch/**
   - common/src/browser-extension/pageAssist.ts
   - extension/src/content/directory-launch/**
-  - extension/src/directory-launch/**
+  - extension/src/directory/**
+  - extension/src/shared/**
+  - extension/src/background/**
   - extension/scripts/build-extension.mjs
   - extension/manifest.json
   - web/src/lib/auto-launch/**
@@ -107,7 +109,7 @@ Readiness and card hints use the same paths (`common/src/auto-launch/profileLaun
 - `web/src/lib/auto-launch/businessProfileFormValidation.ts` (which composer tab opens on error)
 - `common/src/auto-launch/businessProfileData.ts` limits if new arrays/tags apply
 
-Extension fill behavior: `extension/src/directory-launch/fillEngine.ts`, `profileValues.ts` (+ `fillEngine.test.ts` for tag/array quirks).
+Extension fill behavior: `extension/src/directory/directory-launch/fillEngine.ts`, `profileValues.ts` (+ `fillEngine.test.ts` for tag/array quirks).
 
 ## Browser extension
 
@@ -154,7 +156,7 @@ Operators can also create sites/opportunities in **secret-admin** without new se
 | `web/src/lib/auto-launch/buildDirectoryAddChannelTiles.test.ts` | Site key + logo/branding |
 | `web/src/lib/auto-launch/utils/buildProfileLaunchCardVm.test.ts` | Card aggregate labels |
 | `web/src/lib/auto-launch/businessProfileFormValidation.test.ts` | Tab routing for new `profilePath`s |
-| `extension/src/directory-launch/fillEngine.test.ts` | Fill modes / DOM assumptions |
+| `extension/src/directory/directory-launch/fillEngine.test.ts` | Fill modes / DOM assumptions |
 | `web/src/lib/auto-launch/browser-extension/directoryLaunchHandoff.test.ts` | Handoff payload shape |
 
 ## Docs (same PR)

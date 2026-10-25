@@ -37,8 +37,24 @@ export {
 	type CookieSessionProvider,
 } from './cookieSessionProviders.js';
 export {
+	CREDENTIALS_SOCIAL_PROVIDER_IDENTIFIERS,
+	EXTENSION_CONNECT_FAMILIES,
+	getExtensionConnectFamily,
+	isExtensionConnectFamily,
+	isExtensionSocialPostingProviderId,
+	listExtensionConnectFamilyMetadata,
+	listIdentifiersByExtensionConnectFamily,
+	OAUTH_SOCIAL_PROVIDER_IDENTIFIERS,
+	type CredentialsSocialProviderIdentifier,
+	type ExtensionConnectFamily,
+	type ExtensionConnectFamilyMetadata,
+	type OAuthSocialProviderIdentifier,
+} from './connectFamily.js';
+export {
 	directoryLaunchProviders,
 	getDirectoryLaunchProvider,
+	getDirectoryLaunchSiteKeyFromLocation,
+	getDirectoryLaunchUniqueHostPatterns,
 	isDirectoryLaunchProviderId,
 	listDirectoryLaunchProviderSummaries,
 	type AutoLaunchCompletePayload,

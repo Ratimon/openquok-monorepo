@@ -12,21 +12,26 @@ const sharedBuild = {
 
 /** MV3: each manifest entry must be one self-contained ES module (no shared `assets/` chunks). */
 const inlineEntries = [
-	{ file: 'src/background.ts', out: 'background.js' },
-	{ file: 'src/popup/popup.ts', out: 'popup.js' },
+	{ file: 'src/background.ts', out: 'background.js', cssOut: null },
+	{ file: 'src/ui/sidepanel/sidepanel.ts', out: 'sidepanel.js', cssOut: 'sidepanel.css' },
 ];
 
+/** One bundled host script per directory site (all provider slugs on that site). */
 const contentScriptSpecs = [
-	{ name: 'uneed-join-line', file: 'uneed-join-line.ts' },
-	{ name: 'uneed-paid-launch', file: 'uneed-paid-launch.ts' },
-	{ name: 'uneed-maker-profile', file: 'uneed-maker-profile.ts' },
-	{ name: 'peerpush-standard-launch', file: 'peerpush-standard-launch.ts' },
-	{ name: 'peerpush-free-queue', file: 'peerpush-free-queue.ts' },
+	{
+		out: 'openquok-directory-peerpush.js',
+		file: 'peerpush-host.ts',
+	},
+	{
+		out: 'openquok-directory-uneed.js',
+		file: 'uneed-host.ts',
+	},
 ];
 
 let emptyOutDir = true;
 
 for (const entry of inlineEntries) {
+	const cssOut = entry.cssOut;
 	await build({
 		build: {
 			...sharedBuild,
@@ -38,7 +43,9 @@ for (const entry of inlineEntries) {
 					format: 'es',
 					entryFileNames: entry.out,
 					assetFileNames: (asset) => {
-						if (asset.name?.endsWith('.css')) return 'popup.css';
+						if (cssOut && asset.name?.endsWith('.css')) {
+							return cssOut;
+						}
 						return 'assets/[name]-[hash][extname]';
 					},
 					inlineDynamicImports: true,
@@ -59,7 +66,7 @@ for (const spec of contentScriptSpecs) {
 				input: resolve(extensionRoot, `src/content/directory-launch/${spec.file}`),
 				output: {
 					format: 'es',
-					entryFileNames: `content/directory-launch/${spec.name}.js`,
+					entryFileNames: `content/directory-launch/${spec.out}`,
 					inlineDynamicImports: true,
 				},
 			},

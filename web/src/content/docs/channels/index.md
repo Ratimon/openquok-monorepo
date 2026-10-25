@@ -48,7 +48,7 @@ OpenQuok supports Meta Threads, Instagram (Business and Standalone), Facebook Pa
 
 <CardGrid>
 <LinkCard title="Connect a channel" description="Add Channel, sign-in flows, API keys, and invite links for clients" href="/docs/channels/connect" />
-<LinkCard title="Manage social and directory channels" description="Social actions on My Dashboard and directory launches on My Products" href="/docs/channels/manage" />
+<LinkCard title="Manage a channel" description="Reconnect, disable, or disconnect a connected account" href="/docs/channels/manage" />
 <LinkCard title="Posting time slots" description="Set usual posting hours per channel and how suggestions use them" href="/docs/channels/time-slots" />
 <LinkCard title="Business profiles" description="Bundle channels by client or brand and filter My Dashboard and the calendar" href="/docs/channels/channel-groups" />
 </CardGrid>

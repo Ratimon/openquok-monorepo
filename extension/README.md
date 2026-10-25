@@ -13,7 +13,9 @@ pnpm --filter @openquok/browser-extension build
 
 Output is in `extension/dist/`. Load **that folder** in Chrome via **Extensions → Developer mode → Load unpacked** (not `extension/` itself). After each build, click **Reload** on the extension card.
 
-**popup**, **background**, and **content scripts** are each built as a single self-contained ES module (no shared `dist/assets/` chunks). If you see `Cannot use import statement outside a module` or “Extension background is not running”, rebuild, reload `extension/dist` on `chrome://extensions`, and open **Service worker** to confirm there are no errors.
+**side panel**, **background**, and **content scripts** are each built as a single self-contained ES module (no shared `dist/assets/` chunks). Clicking the toolbar icon opens the side panel. If you see `Cannot use import statement outside a module` or “Extension background is not running”, rebuild, reload `extension/dist` on `chrome://extensions`, and open **Service worker** to confirm there are no errors.
+
+**Side panel CSP / SvelteKit script errors:** The panel must load from `chrome-extension://<id>/sidepanel.html`, not from `https://www.openquok.com`. If DevTools shows blocked `/_app/immutable/*.js` scripts, you are not on the extension page (wrong unpack path, stale extension, or a website opened in the panel). Reload unpacked **`extension/dist`** only.
 
 Optional zip for manual distribution:
 
@@ -35,6 +37,6 @@ pnpm --filter @openquok/browser-extension zip
 
 1. Register the destination in `common/src/browser-extension/pageAssist.ts` (`directoryLaunchProviders`).
 2. Add a thin entry under `extension/src/content/directory-launch/` and register it in `extension/manifest.json` `content_scripts`.
-3. Rebuild the extension. The toolbar popup and on-page step rail read `extension_config.steps` from the dashboard handoff payload.
+3. Rebuild the extension. The side panel **Directory** tab and on-page step rail read `extension_config.steps` from the dashboard handoff payload.
 
 Message types and payloads are defined in `openquok-common` (`common/src/browser-extension/`).

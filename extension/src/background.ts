@@ -1,7 +1,16 @@
 import { isAutoLaunchMessageType } from 'openquok-common';
 
-import { handleAutoLaunchRuntimeMessage } from './auto-launch/backgroundHandlers.js';
-import { handleExternalMessage } from './messageHandler.js';
+import { handleAutoLaunchRuntimeMessage } from './background/directoryHandlers.js';
+import { handleExternalMessage } from './background/externalHandlers.js';
+import {
+	enableSidePanelOnActionClick,
+	registerSidePanelToolbarClickFallback,
+} from './background/sidePanelBehavior.js';
+import {
+	installSocialExtensionSurfaces,
+	registerSocialBackgroundHandlers,
+} from './background/socialHandlers.js';
+import { OPEN_URL_MESSAGE } from './directory/directory-launch/directoryGate.js';
 import { ensureRefreshAlarms, handleRefreshAlarm } from './refresh/alarms.js';
 
 function replyWhenDone(
@@ -31,7 +40,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 	if (typeof type !== 'string') return;
 
 	const isAutoLaunch =
-		type.startsWith('OPENQUOK_AUTO_LAUNCH') || isAutoLaunchMessageType(type);
+		type.startsWith('OPENQUOK_AUTO_LAUNCH') ||
+		type === 'OPENQUOK_CHECK_DIRECTORY_GATE' ||
+		type === OPEN_URL_MESSAGE ||
+		isAutoLaunchMessageType(type);
 
 	if (isAutoLaunch) {
 		replyWhenDone(handleAutoLaunchRuntimeMessage(record, sender), sendResponse);
@@ -45,10 +57,20 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 	void handleRefreshAlarm(alarm.name);
 });
 
-chrome.runtime.onInstalled.addListener(() => {
+registerSocialBackgroundHandlers();
+registerSidePanelToolbarClickFallback();
+void enableSidePanelOnActionClick();
+
+function bootstrapExtensionSurfaces(): void {
+	installSocialExtensionSurfaces();
+	void enableSidePanelOnActionClick();
 	void ensureRefreshAlarms();
+}
+
+chrome.runtime.onInstalled.addListener(() => {
+	bootstrapExtensionSurfaces();
 });
 
 chrome.runtime.onStartup.addListener(() => {
-	void ensureRefreshAlarms();
+	bootstrapExtensionSurfaces();
 });

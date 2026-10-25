@@ -1,5 +1,6 @@
 dist/
 node_modules/
 openquok-browser-extension.zip
+.rea-*.json
 icons/*.png
 !icons/.gitkeep

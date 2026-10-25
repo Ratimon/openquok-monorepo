@@ -2,7 +2,7 @@
 title: Connect a channel
 description: How OpenQuok connects a social account — OAuth redirect, pasted credentials, or the browser extension.
 order: 1
-lastUpdated: 2026-10-09
+lastUpdated: 2026-10-25
 ---
 
 <script>
@@ -94,6 +94,8 @@ OpenQuok supports **three** ways to connect. Which one you get depends on the pl
 
 <p>To reconnect, sign in on Skool again and use <Badge text="Refresh connection" variant="default" /> on the dashboard.</p>
 
+<p>The same extension also powers <strong>social scheduling</strong> from the Chrome <strong>side panel</strong> (<strong>Social</strong> tab). After you connect channels in <Badge text="Add Channel" variant="new" />, sign in to OpenQuok in the panel, pick channels, and schedule or draft with <Badge text="POST /api/v1/posts" variant="path" /> — OAuth tokens and API keys stay on the server. The extension does not run OAuth or credential forms; connect types are unchanged. See <a href="/docs/installation/chrome-extension">Browser extension</a> and <a href="/docs/platforms/connect-rules">Connect rules</a>.</p>
+
 </TabItem>
 </Tabs>
 
@@ -145,7 +147,7 @@ See <a href="/docs/troubleshooting/oauth-connect">Troubleshooting → OAuth and 
 ## Related
 
 <CardGrid>
-<LinkCard title="Manage social and directory channels" description="Reconnect or remove social accounts; manage directory launches on My Products" href="/docs/channels/manage" />
+<LinkCard title="Manage a channel" description="Reconnect, disable, or disconnect a connected account" href="/docs/channels/manage" />
 <LinkCard title="Posting time slots" description="Set usual posting hours after you connect" href="/docs/channels/time-slots" />
 <LinkCard title="Business profiles" description="Link channels by client or brand" href="/docs/channels/channel-groups" />
 <LinkCard title="Dev.to" description="Create an API key and connect Dev.to" href="/docs/social-integration/devto" />

@@ -19,6 +19,8 @@ import {
     TokenError,
     UserConflictError,
     AuthError,
+    AuthNotFoundError,
+    AuthValidationError,
 } from "../errors/AuthError";
 import { InfraError, ValidationError, DatabaseEntityNotFoundError } from "../errors/InfraError";
 import { VerifyEmailTemplate } from "../emails/VerifyEmailTemplate";
@@ -135,6 +137,33 @@ export class AuthController {
             path: "/",
             ...(domain ? { domain } : {}),
         });
+    }
+
+    private clearRefreshTokenCookie(res: Response): void {
+        const isProduction = serverConfig.nodeEnv === "production";
+        const domain = (() => {
+            if (!isProduction) return undefined;
+            try {
+                const backUrl = new URL(serverConfig.backendDomainUrl ?? "");
+                const hostname = backUrl.hostname;
+                if (hostname === "localhost") return undefined;
+                if (/^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)) return undefined;
+                const site = this.getSiteKey(hostname);
+                if (hostname !== site && hostname.endsWith(`.${site}`)) return site;
+                return undefined;
+            } catch {
+                return undefined;
+            }
+        })();
+
+        const attrs = {
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: this.getSameSiteValue(),
+            path: "/",
+            ...(domain ? { domain } : {}),
+        };
+        res.clearCookie("refreshToken", attrs);
     }
 
     /**
@@ -575,7 +604,7 @@ export class AuthController {
                     logger.warn({ msg: "Failed to revoke refresh token", error: (err as Error).message });
                 }
             }
-            res.clearCookie("refreshToken");
+            this.clearRefreshTokenCookie(res);
             clearWorkspaceSessionCookies(res);
             await this.authenticationService.signOut({ req, res });
             logger.info({ msg: "User signed out" });
@@ -653,7 +682,7 @@ export class AuthController {
             });
         } catch (error) {
             // Clear custom refresh cookie on any refresh failure to avoid being stuck with a spent/invalid token.
-            if (req.cookies?.refreshToken) res.clearCookie("refreshToken");
+            if (req.cookies?.refreshToken) this.clearRefreshTokenCookie(res);
 
             // Normalize Supabase refresh token failures to 401 (Supabase sometimes reports them as 400).
             const message =
@@ -680,6 +709,43 @@ export class AuthController {
         }
     };
 
+    /** Read-only session check for browser extension gate (does not rotate refresh tokens). */
+    public verifyRefresh: validateRefreshTokenRequestHandler = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) => {
+        try {
+            const refreshToken = req.body?.refreshToken ?? req.cookies?.refreshToken;
+            if (!refreshToken) {
+                res.status(401).json({
+                    success: false,
+                    message: "Session expired or invalid. Please sign in again.",
+                });
+                return;
+            }
+            await this.authenticationService.validateRefreshToken(refreshToken);
+            res.status(200).json({
+                success: true,
+                data: { valid: true },
+                message: "Session is valid",
+            });
+        } catch (error) {
+            if (
+                error instanceof DatabaseEntityNotFoundError ||
+                error instanceof ValidationError ||
+                error instanceof AuthValidationError ||
+                error instanceof AuthNotFoundError
+            ) {
+                res.status(401).json({
+                    success: false,
+                    message: "Session expired or invalid. Please sign in again.",
+                });
+                return;
+            }
+            next(error);
+        }
+    };
 
     public askPasswordReset: validateResetPasswordRequestHandler = async (req: Request, res: Response, next: NextFunction) => {
         try {

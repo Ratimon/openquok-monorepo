@@ -1,0 +1,296 @@
+:root {
+	color-scheme: light dark;
+	font-family:
+		system-ui,
+		-apple-system,
+		'Segoe UI',
+		Roboto,
+		sans-serif;
+	font-size: 13px;
+	line-height: 1.45;
+}
+
+body {
+	margin: 0;
+	min-width: 280px;
+	background: #0f172a;
+	color: #e2e8f0;
+}
+
+.sidepanel-shell {
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
+}
+
+.shell-header {
+	padding: 10px 12px 8px;
+	border-bottom: 1px solid #334155;
+	background: #0f172a;
+	position: sticky;
+	top: 0;
+	z-index: 1;
+}
+
+.brand {
+	display: block;
+	font-size: 13px;
+	font-weight: 700;
+	margin-bottom: 8px;
+}
+
+.tab-nav {
+	display: flex;
+	gap: 6px;
+}
+
+.tab-btn {
+	flex: 1;
+	cursor: pointer;
+	border: 1px solid #334155;
+	border-radius: 8px;
+	padding: 7px 10px;
+	font-size: 12px;
+	font-weight: 600;
+	background: #1e293b;
+	color: #94a3b8;
+}
+
+.tab-btn.is-active {
+	background: #2563eb;
+	border-color: #2563eb;
+	color: #fff;
+}
+
+.tab-panel {
+	flex: 1;
+}
+
+.tab-panel.hidden {
+	display: none;
+}
+
+.wrap,
+.tab-wrap {
+	padding: 12px 12px 14px;
+}
+
+.tab-lead {
+	margin: 0 0 12px;
+}
+
+h1 {
+	font-size: 14px;
+	margin: 0 0 4px;
+	font-weight: 700;
+}
+
+.muted {
+	color: #94a3b8;
+	font-size: 11px;
+	margin: 0 0 12px;
+}
+
+.session-hint {
+	margin-top: 8px;
+	margin-bottom: 0;
+}
+
+.gate-card {
+	background: #1e293b;
+	border: 1px solid #334155;
+	border-radius: 10px;
+	padding: 12px 14px;
+	margin-bottom: 10px;
+}
+
+.gate-card strong {
+	display: block;
+	font-size: 13px;
+	margin-bottom: 6px;
+}
+
+.gate-card .muted {
+	margin-bottom: 12px;
+}
+
+.gate-card .primary {
+	width: 100%;
+	margin-bottom: 12px;
+}
+
+.gate-selfhost {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-top: 4px;
+	padding-top: 12px;
+	border-top: 1px solid #334155;
+}
+
+.gate-selfhost-input {
+	width: 100%;
+	box-sizing: border-box;
+	padding: 8px 10px;
+	border-radius: 8px;
+	border: 1px solid #334155;
+	background: #0f172a;
+	color: #e2e8f0;
+	font-size: 12px;
+}
+
+.gate-selfhost .secondary {
+	width: 100%;
+}
+
+.gate-refresh {
+	width: 100%;
+	margin-top: 10px;
+}
+
+.card {
+	background: #1e293b;
+	border: 1px solid #334155;
+	border-radius: 10px;
+	padding: 10px 12px;
+	margin-bottom: 10px;
+}
+
+.card strong {
+	display: block;
+	font-size: 13px;
+	margin-bottom: 4px;
+}
+
+.status {
+	font-size: 12px;
+	color: #cbd5e1;
+	margin: 0;
+}
+
+.progress {
+	font-size: 11px;
+	color: #94a3b8;
+	margin-top: 6px;
+}
+
+.field-label {
+	display: block;
+	font-size: 11px;
+	color: #94a3b8;
+	margin-bottom: 4px;
+}
+
+.channel-select {
+	width: 100%;
+	box-sizing: border-box;
+	margin-bottom: 10px;
+	padding: 8px 10px;
+	border-radius: 8px;
+	border: 1px solid #334155;
+	background: #1e293b;
+	color: #e2e8f0;
+	font-size: 12px;
+}
+
+.actions {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+button {
+	cursor: pointer;
+	border: none;
+	border-radius: 8px;
+	padding: 9px 12px;
+	font-size: 12px;
+	font-weight: 600;
+	background: #2563eb;
+	color: #fff;
+}
+
+button.secondary {
+	background: #334155;
+	color: #e2e8f0;
+}
+
+button:disabled {
+	opacity: 0.55;
+	cursor: not-allowed;
+}
+
+.error {
+	color: #fca5a5;
+	font-size: 11px;
+	margin-top: 8px;
+}
+
+.footer {
+	margin-top: 10px;
+	font-size: 10px;
+	color: #64748b;
+}
+
+.composer-body {
+	width: 100%;
+	box-sizing: border-box;
+	margin-bottom: 10px;
+	padding: 8px 10px;
+	border-radius: 8px;
+	border: 1px solid #334155;
+	background: #1e293b;
+	color: #e2e8f0;
+	font-size: 12px;
+	font-family: inherit;
+	resize: vertical;
+	min-height: 88px;
+}
+
+.composer-schedule {
+	width: 100%;
+	box-sizing: border-box;
+	margin-bottom: 10px;
+	padding: 8px 10px;
+	border-radius: 8px;
+	border: 1px solid #334155;
+	background: #1e293b;
+	color: #e2e8f0;
+	font-size: 12px;
+}
+
+.channel-list {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin-bottom: 10px;
+	max-height: 160px;
+	overflow-y: auto;
+}
+
+.channel-row {
+	display: flex;
+	gap: 8px;
+	align-items: flex-start;
+	font-size: 12px;
+	color: #e2e8f0;
+	cursor: pointer;
+}
+
+.channel-row-muted {
+	opacity: 0.55;
+	cursor: not-allowed;
+}
+
+.channel-id {
+	color: #64748b;
+	font-size: 10px;
+}
+
+.composer-actions {
+	margin-top: 4px;
+}
+
+.status.success {
+	color: #86efac;
+}

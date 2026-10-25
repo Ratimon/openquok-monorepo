@@ -459,8 +459,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 	FEATURE_1_TITLE: {
 		description: 'Headline for the first secondary hero section (comma separates accent phrase)',
 		type: 'string',
-		default:
-			'Connect once, social scheduling and auto launch, via chat, minimal hallucinations',
+		default: 'Connect once, automate social platforms, via chat, minimal hallucinations',
 		inputType: 'input',
 		maxInputLength: 100
 	},
@@ -468,7 +467,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'Support copy for the first secondary hero section',
 		type: 'string',
 		default:
-			'Give each brand or agent its own workspace with isolated channels. Message agents from Telegram, ChatGPT, Claude, or Grok Bot. Schedule social posts and run auto launch for directory listings. Each workflow stays separate so your AI does not mix contexts.',
+			'Give each brand, client, or agent its own workspace with isolated channels. Reach your agents from Telegram or other chat apps (ChatGPT, Claude, Openclaw, etc.), then run dozens of social channels without one shared context — or your AI mixing up workflows.',
 		inputType: 'textarea',
 		maxInputLength: 300
 	},
@@ -497,14 +496,14 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 	FEATURE_3_SUBTITLE: {
 		description: 'Tag above the third secondary hero section',
 		type: 'string',
-		default: 'Global vs per-target modes',
+		default: 'Global vs Per-network modes',
 		inputType: 'input',
 		maxInputLength: 60
 	},
 	FEATURE_3_TITLE: {
 		description: 'Headline for the third secondary hero section (comma separates accent phrase)',
 		type: 'string',
-		default: 'One draft, then craft per social or listing target, quickly',
+		default: 'One draft, then craft with per-platform settings, quickly',
 		inputType: 'input',
 		maxInputLength: 100
 	},
@@ -512,7 +511,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'Support copy for the third secondary hero section',
 		type: 'string',
 		default:
-			'Write once in global mode, then tune each social channel or directory launch. Set Facebook link previews, Threads replies, Instagram post types, PeerPush listing fields, and more without losing shared copy.',
+			'Write once in global mode, then customize any connected account — Facebook link previews, Threads replies, Instagram post types, and more — without losing your shared copy.',
 		inputType: 'textarea',
 		maxInputLength: 300
 	},
@@ -608,14 +607,14 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 	FEATURE_8_SUBTITLE: {
 		description: 'Tag above the eighth secondary hero section',
 		type: 'string',
-		default: 'Social and directory analytics',
+		default: 'Built-in analytics',
 		inputType: 'input',
 		maxInputLength: 60
 	},
 	FEATURE_8_TITLE: {
 		description: 'Headline for the eighth secondary hero section (comma separates accent phrase)',
 		type: 'string',
-		default: 'Track social engagement and domain rating, see winners, adapt correctly',
+		default: 'Track engagement, see winners, and adapt correctly',
 		inputType: 'input',
 		maxInputLength: 100
 	},
@@ -623,7 +622,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'Support copy for the eighth secondary hero section',
 		type: 'string',
 		default:
-			'See impressions, likes, comments, and shares for social posts. Track domain rating, compare competitors, and review directory launch progress in one workspace. Improve what you approved.',
+			'Track impressions, likes, comments, shares, and engagement in one place. Compare performance by platform and channel, and improve the posts you approved.',
 		inputType: 'textarea',
 		maxInputLength: 300
 	},
@@ -700,7 +699,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'Support copy for the landing pricing tabs section',
 		type: 'string',
 		default:
-			'Every paid tier includes social scheduling and directory launch on the same workspace. Transparent pricing — cancel anytime. Start with a 7-day free trial, no credit card required.',
+			'Transparent pricing for our social media scheduling tool. No hidden fees — cancel anytime. Start with a 7-day free trial.',
 		inputType: 'textarea',
 		maxInputLength: 300
 	},
