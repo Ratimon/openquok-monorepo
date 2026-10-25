@@ -47,7 +47,7 @@ See <a href="/docs/help">Help and support</a> for the full guide.
 
 - **Billing and invoices** — <a href="/account/billing">Billing</a> and the Stripe portal first.
 - **Product issues** — <a href="/docs/troubleshooting">Troubleshooting</a> and <a href="/docs/getting-started/quickstart">Quickstart</a>.
-- **Discord** — <DocsExternalLink href="https://discord.gg/wXgWcYzU4">OpenQuok Discord</DocsExternalLink> for quick questions (no API keys or secrets).
+- **Discord** — <DocsExternalLink href="https://discord.com/invite/xBfTzZr63W">OpenQuok Discord</DocsExternalLink> for quick questions (no API keys or secrets).
 - **Email** — <a href="mailto:admin@openquok.com">admin@openquok.com</a>. Company contact on <a href="/about">About</a>.
 
 ## Related

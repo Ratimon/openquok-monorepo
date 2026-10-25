@@ -1,6 +1,6 @@
 import {
 	SOCIAL_PROFILE_LINKS,
-	getSocialProfileHref
+	resolveSocialProfileHref
 } from '$lib/config/constants/config';
 
 /** Host suffixes that pass link equity (`follow`) — first-party web only. */
@@ -52,11 +52,14 @@ export function isTrustedExternalHref(href: string): boolean {
 }
 
 /** Exact match against configured `SOCIAL_LINKS_*` profile URLs. */
-export function isConfiguredBrandSocialHref(href: string): boolean {
+export function isConfiguredBrandSocialHref(
+	href: string,
+	marketingConfig?: Record<string, string> | null
+): boolean {
 	const target = normalizeHrefForCompare(href);
 	if (!target) return false;
 	for (const link of SOCIAL_PROFILE_LINKS) {
-		const configured = getSocialProfileHref(link.CHANNEL_ID);
+		const configured = resolveSocialProfileHref(link.CHANNEL_ID, marketingConfig);
 		if (!configured) continue;
 		const normalized = normalizeHrefForCompare(configured);
 		if (normalized && normalized === target) return true;

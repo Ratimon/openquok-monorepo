@@ -1,7 +1,9 @@
 <script lang="ts">
+	import { page } from '$app/state';
+
 	import {
 		SOCIAL_FOLLOW_BAR_LINKS,
-		getSocialProfileHref
+		resolveSocialProfileHref
 	} from '$lib/config/constants/config';
 	import { cn } from '$lib/ui/helpers/common';
 
@@ -20,6 +22,10 @@
 		size = 'sm',
 		class: className = ''
 	}: Props = $props();
+
+	let marketingConfig = $derived(
+		(page.data.marketingInformationPm?.config ?? {}) as Record<string, string>
+	);
 </script>
 
 <div
@@ -27,7 +33,7 @@
 	aria-label="Social links"
 >
 	{#each SOCIAL_FOLLOW_BAR_LINKS as link (link.CHANNEL_ID)}
-		{@const href = getSocialProfileHref(link.CHANNEL_ID)}
+		{@const href = resolveSocialProfileHref(link.CHANNEL_ID, marketingConfig)}
 		{@const policy = href ? resolveExternalLinkPolicy(href) : null}
 		{#if href && policy}
 			<ExternalLink

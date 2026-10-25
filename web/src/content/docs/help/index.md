@@ -37,14 +37,14 @@ Most questions are already covered in the docs below. When you need a person, pi
 
 <p><strong>Billing and invoices</strong> — workspace owners use <a href="/account/billing">Billing</a> and the Stripe customer portal first.</p>
 
-<p><strong>Discord</strong> — <DocsExternalLink href="https://discord.gg/wXgWcYzU4">OpenQuok Discord</DocsExternalLink> for fast questions and screenshots. Do not paste API keys or OAuth secrets there.</p>
+<p><strong>Discord</strong> — <DocsExternalLink href="https://discord.com/invite/xBfTzZr63W">OpenQuok Discord</DocsExternalLink> for fast questions and screenshots. Do not paste API keys or OAuth secrets there.</p>
 
 <p><strong>Email</strong> — <a href="mailto:admin@openquok.com">admin@openquok.com</a> for billing, refunds, or anything you should not post publicly. Company contact details are on <a href="/about">About</a>.</p>
 
 </TabItem>
 <TabItem label="Self-hosted">
 
-<p>Self-hosted OpenQuok is mainly supported by the <strong>community</strong> on <DocsExternalLink href="https://discord.gg/wXgWcYzU4">Discord</DocsExternalLink>. There is no guaranteed response time.</p>
+<p>Self-hosted OpenQuok is mainly supported by the <strong>community</strong> on <DocsExternalLink href="https://discord.com/invite/xBfTzZr63W">Discord</DocsExternalLink>. There is no guaranteed response time.</p>
 
 <p>For a durable bug report, open an issue on <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/issues">GitHub</DocsExternalLink> with reproduction steps, OpenQuok version or commit, and how you deploy (Docker Compose, Vercel, Railway, and so on).</p>
 

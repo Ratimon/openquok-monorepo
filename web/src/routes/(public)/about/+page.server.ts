@@ -1,6 +1,6 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
+import { CONFIG_SCHEMA_COMPANY, resolveSocialSameAsUrls } from '$lib/config/constants/config';
 import { createOrganizationSEOSchema,
 	organizationSchemaId
 } from '$lib/content/utils/createOrganizationSEOSchema';
@@ -52,6 +52,9 @@ export async function load({ url, cookies, parent }) {
 		origin: url.origin,
 		email: supportEmail,
 		logo: new URL('/pwa/favicon.svg', url.origin).href,
+		sameAs: resolveSocialSameAsUrls(
+			marketingInformationPm?.config as Record<string, string> | undefined
+		),
 		contactPoint: [
 			{
 				'@type': 'ContactPoint',

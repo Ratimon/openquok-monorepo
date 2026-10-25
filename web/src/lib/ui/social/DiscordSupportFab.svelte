@@ -1,7 +1,8 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { icons } from '$data/icons';
 
-	import { getSocialProfileHref } from '$lib/config/constants/config';
+	import { resolveSocialProfileHref } from '$lib/config/constants/config';
 	import { cn } from '$lib/ui/helpers/common';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -13,7 +14,12 @@
 
 	let { class: className = '' }: Props = $props();
 
-	const discordHref = getSocialProfileHref('SOCIAL_LINKS_DISCORD');
+	let marketingConfig = $derived(
+		(page.data.marketingInformationPm?.config ?? {}) as Record<string, string>
+	);
+	let discordHref = $derived(
+		resolveSocialProfileHref('SOCIAL_LINKS_DISCORD', marketingConfig)
+	);
 </script>
 
 {#if discordHref}

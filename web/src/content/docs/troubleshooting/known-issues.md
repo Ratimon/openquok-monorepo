@@ -48,7 +48,7 @@ Default JSON body size is about **10 MB**. Inlining big base64 blobs in create-p
 | Channel | Best for |
 | --- | --- |
 | <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/issues">GitHub issues</DocsExternalLink> | Reproducible defects with version and steps |
-| <DocsExternalLink href="https://discord.gg/wXgWcYzU4">Discord</DocsExternalLink> | Quick questions, screenshots, self-host setup |
+| <DocsExternalLink href="https://discord.com/invite/xBfTzZr63W">Discord</DocsExternalLink> | Quick questions, screenshots, self-host setup |
 | <a href="mailto:admin@openquok.com">admin@openquok.com</a> | Cloud billing and account-specific problems |
 
 ## Related

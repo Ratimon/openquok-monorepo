@@ -11,7 +11,7 @@
 	import {
 		PUBLIC_FOOTER_LINKS_STATIC,
 		SOCIAL_FOLLOW_BAR_LINKS,
-		getSocialProfileHref
+		resolveSocialProfileHref
 	} from '$lib/config/constants/config';
 	import { docsSite, docsSidebarWidthCss } from '$lib/docs/constants';
 	import { isOpenapiReferenceChrome } from '$lib/docs/utils/openapi/openapiDocsLayout';
@@ -80,6 +80,10 @@
 			''
 	);
 
+	let marketingConfig = $derived(
+		(page.data.marketingInformationPm?.config ?? {}) as Record<string, string>
+	);
+
 	/** Sidebar only: GitHub repo + same follow profiles as landing footer. */
 	const socialLinks = $derived.by((): SocialLink[] => {
 		const out: SocialLink[] = [];
@@ -92,7 +96,7 @@
 			});
 		}
 		for (const link of SOCIAL_FOLLOW_BAR_LINKS) {
-			const href = getSocialProfileHref(link.CHANNEL_ID);
+			const href = resolveSocialProfileHref(link.CHANNEL_ID, marketingConfig);
 			if (!href) continue;
 			out.push({
 				platform: link.CHANNEL_NAME.toLowerCase(),

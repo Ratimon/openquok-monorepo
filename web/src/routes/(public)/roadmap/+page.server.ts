@@ -2,7 +2,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import { publicRoadmapPagePresenter } from '$lib/area-public';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
-import { PUBLIC_ROADMAP_HUB_FAQ } from '$lib/content/constants/hubs/roadmap';
+import { getPublicRoadmapHubFaq } from '$lib/content/constants/hubs/roadmap';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { buildRoadmapLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createMetaData } from '$lib/seo/createMetaData';
@@ -17,6 +17,9 @@ export async function load({ url, cookies, parent }) {
 	const isLoggedIn = !!accessToken;
 
 	const { companyInformationPm, marketingInformationPm } = await parent();
+	const roadmapHubFaq = getPublicRoadmapHubFaq(
+		marketingInformationPm?.config as Record<string, string> | undefined
+	);
 
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 
@@ -79,9 +82,9 @@ export async function load({ url, cookies, parent }) {
 			},
 			createPublicFaqSEOSchema({
 				pageUrl: `${canonical}#faq`,
-				name: PUBLIC_ROADMAP_HUB_FAQ.faqTitle,
-				description: PUBLIC_ROADMAP_HUB_FAQ.faqDescription,
-				items: PUBLIC_ROADMAP_HUB_FAQ.faqItems
+				name: roadmapHubFaq.faqTitle,
+				description: roadmapHubFaq.faqDescription,
+				items: roadmapHubFaq.faqItems
 			}),
 			createBreadcrumbListSchema(buildRoadmapLandingBreadcrumbItems(), url.origin)
 		])
@@ -95,6 +98,7 @@ export async function load({ url, cookies, parent }) {
 		roadmapColumnOptionsVm,
 		roadmapCategories,
 		metaTitle: customTitle,
-		metaDescription: customDescription
+		metaDescription: customDescription,
+		roadmapHubFaq
 	};
 }

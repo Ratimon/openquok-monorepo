@@ -1,6 +1,7 @@
 import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
+import type { PublicRoadmapHubFaqSection } from '$lib/content/constants/hubs/roadmap';
 import type {
 	RoadmapCategoryOptionViewModel,
 	RoadmapColumnOptionViewModel,
@@ -20,6 +21,7 @@ export async function load({ parent, data }) {
 			roadmapCategories: readonly RoadmapCategoryOptionViewModel[];
 			metaTitle: string;
 			metaDescription: string;
+			roadmapHubFaq: PublicRoadmapHubFaqSection;
 		};
 
 		return {
@@ -30,7 +32,8 @@ export async function load({ parent, data }) {
 			roadmapColumnOptionsVm: serverData.roadmapColumnOptionsVm,
 			roadmapCategories: serverData.roadmapCategories,
 			metaTitle: serverData.metaTitle,
-			metaDescription: serverData.metaDescription
+			metaDescription: serverData.metaDescription,
+			roadmapHubFaq: serverData.roadmapHubFaq
 		};
 	}
 

@@ -3,7 +3,7 @@ import { EMAIL_PRIMARY_COLOR } from "./emailTheme";
 import { escapeHtml } from "./htmlEscape";
 
 const SUPPORT_EMAIL = "admin@openquok.com";
-const DISCORD_SUPPORT_INVITE_URL = "https://discord.gg/wXgWcYzU4";
+const DISCORD_SUPPORT_INVITE_URL = "https://discord.com/invite/xBfTzZr63W";
 
 type GettingStartedStep = {
     title: string;

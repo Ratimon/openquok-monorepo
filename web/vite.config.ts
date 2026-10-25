@@ -63,7 +63,8 @@ function skipLazyDocVendorPackage(label: string): boolean {
 		pkg === 'delaunator' ||
 		pkg === 'internmap' ||
 		pkg === 'cose-base' ||
-		pkg === 'layout-base'
+		pkg === 'layout-base' ||
+		pkg.includes('layerstack')
 	);
 }
 
@@ -261,7 +262,17 @@ export default defineConfig({
 		// diagram chunks (flowchart-ELK ~1.4MB, cynefin, cytoscape, mermaid.core) still exceed
 		// Vite’s default 500 kB warning. Raise the limit so the build log only flags unexpected
 		// eager regressions — do not treat this as permission to ship huge sync bundles.
-		chunkSizeWarningLimit: 1500
+		chunkSizeWarningLimit: 1500,
+		rollupOptions: {
+			onwarn(warning, defaultHandler) {
+				// layerchart@2.8.x: unused `curveLinear` import in linkUtils.js (upstream).
+				const message = warning.message ?? '';
+				if (message.includes('curveLinear') && message.includes('layerchart')) {
+					return;
+				}
+				defaultHandler(warning);
+			}
+		}
 	},
 	server: {
 		// mkcert certs are local-dev-only (gitignored) and absent during `vite build`

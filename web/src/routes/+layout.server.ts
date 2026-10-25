@@ -3,7 +3,11 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 import { env } from '$env/dynamic/private';
 
 import { configRepository } from '$lib/config/Config.repository.svelte';
-import { getCompanyConfigDefaults, getPublicFooterLinks } from '$lib/config/constants/config';
+import {
+	getCompanyConfigDefaults,
+	getMarketingConfigDefaults,
+	getPublicFooterLinks
+} from '$lib/config/constants/config';
 import { publicLayoutPagePresenter } from '$lib/area-public/index';
 import { mergeModuleConfigDefaults } from '$lib/config/utils/mergeModuleConfigDefaults';
 import {
@@ -22,9 +26,21 @@ export async function load({ url, cookies, fetch }) {
 	const isLoggedIn = !!accessToken;
 
 	const staticCompanyInformationPm = getStaticCompanyInformationPm();
-	const marketingInformationPm = getStaticMarketingInformationPm();
+	const staticMarketingInformationPm = getStaticMarketingInformationPm();
 
-	const runtimeCompany = await configRepository.getPublicCompanyInformation(fetch);
+	const [runtimeCompany, runtimeMarketing] = await Promise.all([
+		configRepository.getPublicCompanyInformation(fetch),
+		configRepository.getPublicModuleConfig('marketing_information', fetch)
+	]);
+	const marketingConfig = mergeModuleConfigDefaults(
+		getMarketingConfigDefaults(),
+		runtimeMarketing
+	);
+	const marketingInformationPm = {
+		module_name: staticMarketingInformationPm.module_name,
+		config: marketingConfig,
+		updated_at: staticMarketingInformationPm.updated_at
+	};
 	const companyConfig = mergeModuleConfigDefaults(
 		getCompanyConfigDefaults(),
 		runtimeCompany?.config
@@ -54,7 +70,7 @@ export async function load({ url, cookies, fetch }) {
 	}) satisfies MetaTagsProps;
 
 	const footerInfo = publicLayoutPagePresenter.loadInfoForFooterStateless(companyConfig);
-	const footerNavigationLinks = await getPublicFooterLinks();
+	const footerNavigationLinks = await getPublicFooterLinks(marketingConfig);
 
 	return {
 		baseMetaTags,

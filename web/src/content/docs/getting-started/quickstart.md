@@ -152,7 +152,7 @@ Sign in, connect a channel, compose, pick a time, then confirm the post on the c
 
 ## If something goes wrong
 
-<p>You can always contact human support via <DocsExternalLink href="https://discord.gg/wXgWcYzU4">Discord</DocsExternalLink>, but the ticket can be closed faster if you provide the detailed error:</p>
+<p>You can always contact human support via <DocsExternalLink href="https://discord.com/invite/xBfTzZr63W">Discord</DocsExternalLink>, but the ticket can be closed faster if you provide the detailed error:</p>
 
 | Symptom | What to do |
 | --- | --- |

@@ -6,7 +6,8 @@ import {
 	CONFIG_SCHEMA_MARKETING,
 	getLandingPageConfigDefaults,
 	getPublicFaqConfigDefaults,
-	PUBLIC_NAVBAR_LINKS
+	PUBLIC_NAVBAR_LINKS,
+	resolveSocialSameAsUrls
 } from '$lib/config/constants/config';
 import { configRepository } from '$lib/config/Config.repository.svelte';
 import { mergeModuleConfigDefaults } from '$lib/config/utils/mergeModuleConfigDefaults';
@@ -170,7 +171,10 @@ export async function loadPublicCmsLandingPage(params: LoadPublicCmsLandingPageP
 		name: companyName,
 		url: companyUrl,
 		origin: url.origin,
-		logo: new URL('/pwa/favicon.svg', url.origin).href
+		logo: new URL('/pwa/favicon.svg', url.origin).href,
+		sameAs: resolveSocialSameAsUrls(
+			marketingInformationPm?.config as Record<string, string> | undefined
+		)
 	});
 
 	const audienceSectionTitle =

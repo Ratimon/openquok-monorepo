@@ -11,7 +11,7 @@
   <!-- Badges -->
   <a href="https://github.com/Ratimon/openquok-monorepo/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/github/license/Ratimon/openquok-monorepo?style=for-the-badge&labelColor=000000"></a>
   <a href="https://www.youtube.com/watch?v=iKNimZ9FBu8&t=1s"><img alt="Watch the demo" src="https://img.shields.io/badge/Watch%20the%20Demo-ff0000.svg?style=for-the-badge&logo=youtube&logoColor=white&labelColor=000000"></a>
-  <a href="https://discord.gg/wXgWcYzU4"><img alt="Join our Discord" src="https://img.shields.io/badge/Join%20our%20Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white&labelColor=000000"></a>
+  <a href="https://discord.com/invite/xBfTzZr63W"><img alt="Join our Discord" src="https://img.shields.io/badge/Join%20our%20Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white&labelColor=000000"></a>
 </p>
 
 <p align="center">
@@ -281,7 +281,7 @@ Learn more at [Architecture](https://www.openquok.com/docs/getting-started-for-d
 - [Facebook](https://www.facebook.com/profile.php?id=61591368794883)
 - [Instagram](https://www.instagram.com/openquok)
 - [LinkedIn](https://www.linkedin.com/company/openquok)
-- [Discord](https://discord.gg/wXgWcYzU4)
+- [Discord](https://discord.com/invite/xBfTzZr63W)
 
 **Featured Blogs**
 

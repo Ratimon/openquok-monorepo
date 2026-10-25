@@ -268,7 +268,7 @@ export const CONFIG_SCHEMA_MARKETING: ModuleConfigSchema = {
 	SOCIAL_LINKS_DISCORD: {
 		description: 'Discord community invite URL for support and updates.',
 		type: 'string',
-		default: 'https://discord.gg/wXgWcYzU4',
+		default: 'https://discord.com/invite/xBfTzZr63W',
 		inputType: 'input'
 	},
 	SOCIAL_LINKS_BLUESKY: {
@@ -344,17 +344,31 @@ export const SOCIAL_FOLLOW_BAR_LINKS = SOCIAL_PROFILE_LINKS.filter(
 	(link) => link.showInFollowBar !== false
 );
 
-/** Resolve a social profile URL from marketing schema defaults. */
-export function getSocialProfileHref(channelId: SocialLinkChannelId): string {
+/** Resolve a social profile URL: non-empty `marketing_information` overrides git schema defaults. */
+export function resolveSocialProfileHref(
+	channelId: SocialLinkChannelId,
+	marketingConfig?: Record<string, string> | null
+): string {
+	const runtime = marketingConfig?.[channelId];
+	if (typeof runtime === 'string' && runtime.trim()) {
+		return runtime.trim();
+	}
 	const raw = CONFIG_SCHEMA_MARKETING[channelId]?.default;
 	return typeof raw === 'string' ? raw.trim() : '';
 }
 
+/** Git defaults only — use {@link resolveSocialProfileHref} with layout `marketingInformationPm.config` in UI. */
+export function getSocialProfileHref(channelId: SocialLinkChannelId): string {
+	return resolveSocialProfileHref(channelId);
+}
+
 /** Non-empty profile URLs for schema.org Organization `sameAs`. */
-export function resolveSocialSameAsUrls(): string[] {
+export function resolveSocialSameAsUrls(
+	marketingConfig?: Record<string, string> | null
+): string[] {
 	const urls: string[] = [];
 	for (const link of SOCIAL_PROFILE_LINKS) {
-		const href = getSocialProfileHref(link.CHANNEL_ID);
+		const href = resolveSocialProfileHref(link.CHANNEL_ID, marketingConfig);
 		if (href) urls.push(href);
 	}
 	return urls;
@@ -906,7 +920,7 @@ export function getCompanyConfigDefaults(): Record<string, string> {
 	);
 }
 
-/** Default marketing_information values (git-managed; no runtime API on public routes). */
+/** Default marketing_information values (merged with public API in root layout SSR). */
 export function getMarketingConfigDefaults(): Record<string, string> {
 	return Object.fromEntries(
 		Object.entries(CONFIG_SCHEMA_MARKETING).map(([key, field]) => [
@@ -1050,11 +1064,19 @@ export const PUBLIC_FOOTER_LINKS_STATIC: PublicFooterLinksMap = {
 };
 
 /** Full footer columns including doc-derived sections. Await from server loads after docs preload. */
-export async function getPublicFooterLinks(): Promise<PublicFooterLinksMap> {
+export async function getPublicFooterLinks(
+	marketingConfig?: Record<string, string> | null
+): Promise<PublicFooterLinksMap> {
 	await preloadDocsRegistry();
+
+	const discordHref = resolveSocialProfileHref('SOCIAL_LINKS_DISCORD', marketingConfig);
+	const companyLinks = PUBLIC_FOOTER_LINKS_STATIC.Company.map((link) =>
+		link.label === 'Discord' ? { ...link, href: discordHref } : link
+	);
 
 	return {
 		...PUBLIC_FOOTER_LINKS_STATIC,
+		Company: companyLinks,
 		'How to self-host with different social channels':
 			buildPublicFooterSelfHostSocialIntegrationLinks()
 	};

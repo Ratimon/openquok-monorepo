@@ -47,12 +47,12 @@ describe('resolveExternalLinkPolicy', () => {
 	});
 
 	it('nofollows configured brand Discord invite', () => {
-		expect(isConfiguredBrandSocialHref('https://discord.gg/wXgWcYzU4')).toBe(true);
-		expect(resolveExternalLinkPolicy('https://discord.gg/wXgWcYzU4')).toEqual({
+		expect(isConfiguredBrandSocialHref('https://discord.com/invite/xBfTzZr63W')).toBe(true);
+		expect(resolveExternalLinkPolicy('https://discord.com/invite/xBfTzZr63W')).toEqual({
 			trusted: false,
 			follow: false
 		});
-		expect(externalLinkRelForHref('https://discord.gg/wXgWcYzU4')).toBe(
+		expect(externalLinkRelForHref('https://discord.com/invite/xBfTzZr63W')).toBe(
 			'noopener noreferrer nofollow'
 		);
 	});
@@ -100,7 +100,7 @@ describe('buildExternalLinkRel / externalLinkAnchorAttrs', () => {
 	});
 
 	it('returns blank-target attrs for brand social (nofollow)', () => {
-		const attrs = externalLinkAnchorAttrs('https://discord.gg/wXgWcYzU4');
+		const attrs = externalLinkAnchorAttrs('https://discord.com/invite/xBfTzZr63W');
 		expect(attrs.target).toBe('_blank');
 		expect(attrs.rel).toBe('noopener noreferrer nofollow');
 		expect(attrs.trusted).toBe(false);

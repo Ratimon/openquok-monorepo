@@ -31,7 +31,7 @@ describe('buildModuleConfigCodeDefaultsVm', () => {
 		const vm = buildModuleConfigCodeDefaultsVm(CONFIG_SCHEMA_MARKETING);
 
 		expect(vm.SOCIAL_LINKS_X).toBe('https://x.com/openquok');
-		expect(vm.SOCIAL_LINKS_DISCORD).toBe('https://discord.gg/wXgWcYzU4');
+		expect(vm.SOCIAL_LINKS_DISCORD).toBe('https://discord.com/invite/xBfTzZr63W');
 		expect(vm.SOCIAL_LINKS_YOUTUBE).toBe('');
 	});
 });

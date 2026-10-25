@@ -5,6 +5,7 @@ export {
 	LISTING_IMAGES_BUCKET,
 	getPublicFaqConfigDefaults,
 	getSocialProfileHref,
+	resolveSocialProfileHref,
 	resolveSocialSameAsUrls,
 	SOCIAL_FOLLOW_BAR_LINKS,
 	SOCIAL_PROFILE_LINKS,

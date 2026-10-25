@@ -4,7 +4,7 @@
 
 	import { page } from '$app/state';
 	import { publicRoadmapPagePresenter } from '$lib/area-public';
-	import { PUBLIC_ROADMAP_HUB_FAQ } from '$lib/content/constants/hubs/roadmap';
+	import type { PublicRoadmapHubFaqSection } from '$lib/content/constants/hubs/roadmap';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
@@ -24,6 +24,7 @@
 	let roadmapColumnOptionsVm = $derived(data.roadmapColumnOptionsVm);
 	let roadmapCategories = $derived(data.roadmapCategories);
 	let isLoggedIn = $derived(data.isLoggedIn ?? false);
+	let roadmapHubFaq = $derived(data.roadmapHubFaq as PublicRoadmapHubFaqSection);
 
 	let selectedCategoryIds = $derived(publicRoadmapPagePresenter.selectedCategoryIds);
 	let filteredItems = $derived(publicRoadmapPagePresenter.filterItems(roadmapItems));
@@ -86,10 +87,10 @@
 	<div class="container mx-auto px-4">
 		<PublicFaq
 			heroTheme={landingHeroTheme}
-			faqSubtitle={PUBLIC_ROADMAP_HUB_FAQ.faqSubtitle}
-			faqTitle={PUBLIC_ROADMAP_HUB_FAQ.faqTitle}
-			faqDescription={PUBLIC_ROADMAP_HUB_FAQ.faqDescription}
-			faqItems={[...PUBLIC_ROADMAP_HUB_FAQ.faqItems]}
+			faqSubtitle={roadmapHubFaq.faqSubtitle}
+			faqTitle={roadmapHubFaq.faqTitle}
+			faqDescription={roadmapHubFaq.faqDescription}
+			faqItems={[...roadmapHubFaq.faqItems]}
 			sectionClass="py-12 sm:py-16"
 		/>
 	</div>
