@@ -3,6 +3,7 @@ import './sidepanel.css';
 import { mountDirectoryTab } from './directoryTab.js';
 import { mountSocialTab } from './socialTab.js';
 import {
+	SIDE_PANEL_PENDING_TAB_KEY,
 	SIDE_PANEL_UI_MESSAGE,
 	type SidePanelFocusTab,
 	type SidePanelUiMessage,
@@ -89,4 +90,23 @@ const onRuntimeMessage = (message: unknown): void => {
 
 chrome.runtime.onMessage.addListener(onRuntimeMessage);
 
-setActiveTab('social');
+async function applyPendingFocusTab(): Promise<void> {
+	if (!chrome.storage?.session) {
+		setActiveTab('social');
+		return;
+	}
+	try {
+		const stored = await chrome.storage.session.get(SIDE_PANEL_PENDING_TAB_KEY);
+		const pending = stored[SIDE_PANEL_PENDING_TAB_KEY];
+		await chrome.storage.session.remove(SIDE_PANEL_PENDING_TAB_KEY);
+		if (pending === 'social' || pending === 'directory') {
+			setActiveTab(pending);
+			return;
+		}
+	} catch {
+		/* ignore */
+	}
+	setActiveTab('social');
+}
+
+void applyPendingFocusTab();

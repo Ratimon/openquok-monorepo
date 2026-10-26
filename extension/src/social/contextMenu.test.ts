@@ -24,6 +24,18 @@ describe('buildSocialComposerDraftFromContextMenu', () => {
 		});
 	});
 
+	it('maps link share to link URL in body', () => {
+		const draft = buildSocialComposerDraftFromContextMenu(
+			{
+				menuItemId: SOCIAL_CONTEXT_MENU_IDS.SHARE_LINK,
+				linkUrl: 'https://example.com/article',
+				pageUrl: 'https://example.com/',
+			},
+			{ title: 'Example home' } as chrome.tabs.Tab
+		);
+		expect(draft?.body).toBe('Example home\n\nhttps://example.com/article');
+	});
+
 	it('maps page share to title and URL', () => {
 		const draft = buildSocialComposerDraftFromContextMenu(
 			{

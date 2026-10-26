@@ -1,5 +1,29 @@
 const SIDE_PANEL_PATH = 'sidepanel.html';
 
+/**
+ * Open the side panel while the user-gesture chain is still active.
+ * Must run **synchronously** inside `contextMenus.onClicked` / `action.onClicked` — not inside an async IIFE.
+ */
+export function openSidePanelInUserGesture(tab?: chrome.tabs.Tab): void {
+	try {
+		if (tab?.id !== undefined) {
+			void chrome.sidePanel.open({ tabId: tab.id });
+			return;
+		}
+		if (tab?.windowId !== undefined) {
+			void chrome.sidePanel.open({ windowId: tab.windowId });
+			return;
+		}
+		void chrome.windows.getCurrent().then((window) => {
+			if (window.id !== undefined) {
+				void chrome.sidePanel.open({ windowId: window.id });
+			}
+		});
+	} catch {
+		/* sidePanel may be unavailable on older builds */
+	}
+}
+
 /** Open the extension side panel in the tab's window (or the current window). */
 export async function openSidePanelForTab(tab?: chrome.tabs.Tab): Promise<void> {
 	const windowId =
@@ -28,6 +52,6 @@ export function registerSidePanelToolbarClickFallback(): void {
 	if (toolbarClickFallbackRegistered) return;
 	toolbarClickFallbackRegistered = true;
 	chrome.action.onClicked.addListener((tab) => {
-		void openSidePanelForTab(tab);
+		openSidePanelInUserGesture(tab);
 	});
 }

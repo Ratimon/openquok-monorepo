@@ -65,6 +65,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 });
 
 registerSocialBackgroundHandlers();
+installSocialExtensionSurfaces();
 registerSidePanelToolbarClickFallback();
 void enableSidePanelOnActionClick();
 

@@ -9,3 +9,5 @@ export type SidePanelUiMessage = {
 	type: typeof SIDE_PANEL_UI_MESSAGE.FOCUS_TAB;
 	tab: SidePanelFocusTab;
 };
+
+export const SIDE_PANEL_PENDING_TAB_KEY = 'openquok:sidepanel-pending-tab';
