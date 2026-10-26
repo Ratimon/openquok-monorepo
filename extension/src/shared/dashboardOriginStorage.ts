@@ -65,3 +65,9 @@ export async function listDashboardOriginCandidates(): Promise<string[]> {
 
 	return candidates;
 }
+
+/** First remembered dashboard origin, or production default. */
+export async function getPreferredDashboardOrigin(): Promise<string> {
+	const candidates = await listDashboardOriginCandidates();
+	return candidates[0] ?? DEFAULT_DASHBOARD_ORIGINS[0];
+}

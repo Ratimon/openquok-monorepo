@@ -337,12 +337,12 @@ export function pageMatchesConfig(config: AutoLaunchExtensionConfig): boolean {
 
 export function buildStatusLine(config: AutoLaunchExtensionConfig, onReadyPage: boolean): string {
 	if (!onReadyPage && config.readyUrlHint) {
-		return `Navigate to a page that includes "${config.readyUrlHint}" to start auto-filling.`;
+		return `Open your product edit or submission page (the URL should include “${config.readyUrlHint}”). Then use Fill on each section below or Fill all steps.`;
 	}
 	if (!onReadyPage) {
-		return 'Navigate to the directory submission page to start auto-filling.';
+		return 'Open the directory listing or submission form in this tab. When the fields are visible, use Fill on each section or Fill all steps below.';
 	}
-	return 'Ready — use Fill on each step or Fill all steps.';
+	return 'You’re on the right page. Use Fill on each section—or Fill all steps—then review every field before you submit on this site.';
 }
 
 function wildcardToRegExp(pattern: string): RegExp {

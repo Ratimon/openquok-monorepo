@@ -37,14 +37,30 @@ The primary UI is the Chrome <strong>side panel</strong> (<Badge text="sidepanel
 
 | Tab | Purpose |
 | --- | --- |
-| <strong>Social</strong> | Unsigned: <strong>Connect to OpenQuok.com</strong> or <strong>Connect to self host</strong> (URL field, default <Badge text="https://localhost:5173" variant="path" /> for Vite dev — bare <Badge text="5173" variant="path" /> or <Badge text="localhost:5173" variant="path" /> autofill to that origin on blur). Keep a signed-in dashboard tab open on that origin — the extension reads your session from that tab (httpOnly cookies). Signed in: pick channels with the same circular avatar chips as the dashboard post composer (provider badge, tap to select), a short composer, <strong>Publish now</strong> / <strong>Schedule</strong> / <strong>Draft</strong>, and <strong>Open full composer</strong> for the dashboard editor. |
+| <strong>Social</strong> | Unsigned: <strong>Connect to OpenQuok.com</strong> or <strong>Connect to self host</strong> (URL field, default <Badge text="https://localhost:5173" variant="path" /> for Vite dev — bare <Badge text="5173" variant="path" /> or <Badge text="localhost:5173" variant="path" /> autofill to that origin on blur). Keep a signed-in dashboard tab open on that origin — the extension reads your session from that tab (httpOnly cookies). Signed in: pick channels with the same circular avatar chips as the dashboard post composer (provider badge, tap to select), a short composer with <strong>image and video</strong> attachments (toolbar <strong>+</strong>, thumbnail strip, up to <strong>10</strong> files), a live <strong>post preview</strong> (global when several channels are selected; network-styled when exactly one is selected), <strong>Publish now</strong> / <strong>Schedule</strong> / <strong>Draft</strong>, and <strong>Open full composer</strong> for the full dashboard editor (per-network preview tiles, media library, per-network media, AI tools, and large multipart uploads). |
 | <strong>Directory</strong> | Session checks, profile handoff status, and <strong>Fill</strong> actions for PeerPush and Uneed on the active tab. |
 
-On open, the Social tab reads any <strong>context-menu draft</strong> stored for this browser session and merges it into the composer body (or media URL for images).
+On open, the Social tab reads any <strong>context-menu draft</strong> stored for this browser session and merges it into the composer (text into the body; image shares upload when the URL is fetchable — see **Context menu**).
+
+### Composer media (Social tab)
+
+Attach **images or video** from your device with the toolbar control (same accepted types as the dashboard composer). Files stay as **local previews** in the thumbnail strip until you choose <strong>Publish now</strong>, <strong>Schedule</strong>, or <strong>Draft</strong> — then the extension uploads each attachment through your dashboard session to <Badge text="POST /api/v1/media/upload" variant="path" /> and creates the post. Remove an attachment with <strong>×</strong> on its thumbnail before you publish.
+
+| Limit | Value |
+| --- | --- |
+| Attachments per post | Up to <strong>10</strong> |
+| Single image (client check) | About <strong>30 MB</strong> |
+| Single video (client check) | Up to <strong>1 GB</strong> |
+
+Oversized or unsupported files are blocked before upload with an inline message. You can schedule a post with <strong>media only</strong> (empty caption) when at least one attachment is present. Per-network attachment counts and formats still apply when OpenQuok publishes — use <strong>Open full composer</strong> when you need the media library, per-channel media, or very large files on deployments that use direct-to-storage multipart in the web app.
+
+<Callout type="note">
+<p>Extension uploads use the session multipart route only (not the public API <Badge text="POST /public/upload" variant="path" /> gateway). Very large videos may be slow; prefer the dashboard composer for heavy clips.</p>
+</Callout>
 
 ### Channel selection (Social composer)
 
-Connected channels appear in a horizontal row of <strong>48px circular avatars</strong> <strong>above</strong> the post field, matching the dashboard post composer. Use <strong>Select all</strong> to toggle every schedulable channel, or <strong>Select grouped channels</strong> to pick a workspace group (the same channel groups you assign on the dashboard). Each chip shows the channel photo when OpenQuok has one (or the first two letters of the channel name), plus a small <strong>provider badge</strong> for the network. Tap a chip to include or exclude that channel: selected chips use a primary-colored ring and full color; unselected chips are grayscale. Channels that need a refresh or reconnect in the dashboard stay dimmed — hover for the reason; they do not toggle on until you fix them in the dashboard (you can still deselect one that was already selected). The dashed <strong>+</strong> chip at the end of the row opens the dashboard <strong>Add Channel</strong> picker (<Badge text="/account?addChannel=1" variant="path" />); the composer footer link points to the same place. The side panel uses the same <strong>forest</strong> theme tokens as the signed-in web app so Social and Directory tabs stay visually consistent.
+Connected channels appear in a horizontal row of <strong>48px circular avatars</strong> <strong>above</strong> the post field, matching the dashboard post composer. Use <strong>Select all</strong> to toggle every schedulable channel, or <strong>Select grouped channels</strong> to pick a workspace group (the same channel groups you assign on the dashboard). Each chip shows the channel photo when OpenQuok has one (or the first two letters of the channel name), plus a small <strong>provider badge</strong> for the network. Tap a chip to include or exclude that channel: selected chips use a primary-colored ring and full color; unselected chips are grayscale. Channels that need a refresh or reconnect in the dashboard stay dimmed — hover for the reason; they do not toggle on until you fix them in the dashboard (you can still deselect one that was already selected). The dashed <strong>+</strong> chip at the end of the row opens the dashboard <strong>Add Channel</strong> picker on <Badge text="/account" variant="path" /> (same as the in-app <strong>Add Channel</strong> button). If you already have an account tab open, the extension focuses it and opens the dialog without changing the URL; otherwise it opens <Badge text="/account?addChannel=1" variant="path" /> briefly, then the app returns to <Badge text="/account" variant="path" />. The Directory tab uses the same <strong>+</strong> chip. The side panel uses the same <strong>forest</strong> theme tokens as the signed-in web app so Social and Directory tabs stay visually consistent.
 
 <Callout type="note">
 <p><strong>Local dev (<Badge text="https://localhost:5173" variant="path" />):</strong> Sign in on your Vite dashboard, keep that tab focused in the window where you open the side panel, then tap <strong>Refresh</strong>. The footer shows which <strong>Environment</strong> origin the composer uses (local Vite proxies <Badge text="/api" variant="path" /> — it does not reuse production <Badge text="api.*" variant="path" /> hosts). If you still see production channels, you are still on a production session; sign out on <Badge text="www.openquok.com" variant="path" /> or use a separate Chrome profile for dev.</p>
@@ -58,7 +74,7 @@ On any site, right-click to share into OpenQuok:
 | --- | --- | --- |
 | <strong>Schedule with OpenQuok</strong> | Selected text | Body = selection |
 | <strong>Schedule with OpenQuok</strong> | Page background | Body = page title + URL |
-| <strong>Schedule with OpenQuok</strong> | Image | Media URL + page title in body |
+| <strong>Schedule with OpenQuok</strong> | Image | Fetches the image URL, uploads when possible, and attaches it; page title in body. If fetch or upload fails, falls back to pasting the URL in the body with a warning |
 
 The extension saves the draft, opens the side panel on the <strong>Social</strong> tab, and focuses the composer. It does not inject a composer into arbitrary websites — only directory hosts run autofill content scripts.
 
@@ -80,10 +96,22 @@ Run this after you build or update the extension from source, or before you ship
 - Select one or more channels, enter post text, and save a <strong>Draft</strong> or <strong>Schedule</strong> — confirm the post appears in the dashboard with the channels you picked (same <Badge text="integrationIds" variant="param" /> behavior as the full composer).
 - Optional: right-click selected text on any page, choose <strong>Schedule with OpenQuok</strong>, and confirm the draft merges into the composer body when the panel opens.
 
+### Social tab — media attachments
+
+- Tap the composer toolbar control to pick one <strong>image</strong> and one short <strong>video</strong> from your device; confirm thumbnails appear immediately (no network upload yet).
+- Remove one thumbnail with <strong>×</strong> and confirm it disappears from the strip.
+- Try an oversized image (above ~30 MB) or unsupported type and confirm the extension shows an error <strong>before</strong> upload starts.
+- With channels selected, schedule or save a <strong>Draft</strong> with <strong>empty caption</strong> but at least one attachment; confirm the post appears in the dashboard with media.
+- Schedule or draft with caption <strong>and</strong> attachments; confirm both land on the dashboard post.
+- Right-click an image on a normal https page, choose <strong>Schedule with OpenQuok</strong>, and confirm the side panel shows a preview (not only a bare URL in the body). Schedule or draft to confirm upload runs on submit; if the image cannot be fetched at submit time, confirm an error (or URL-in-body fallback when the attachment limit blocked a queue slot).
+- Type in the post field and confirm the <strong>Preview</strong> card updates (avatar, caption, first attachment). Select exactly one channel and confirm the preview uses that channel’s name and character hint; select two or more and confirm <strong>Global Edit</strong> styling.
+- Confirm <strong>Open full composer</strong> still opens the dashboard editor for advanced flows (unchanged).
+
 ### Directory tab and theme
 
 - Switch to <strong>Directory</strong> and confirm copy, gate messages, and <strong>Fill</strong> actions remain readable on the forest-themed panel (tabs, cards, and inputs — not only the Social composer).
 - With a product profile and an active directory handoff, smoke one <strong>Fill</strong> action on PeerPush or Uneed if you use directory launch in this profile.
+- Tap another directory channel avatar: confirm <strong>Switch directory site?</strong> opens the target URL; the chip tied to your active launch keeps a green ring until you clear the session.
 
 ## Who needs this
 

@@ -1,5 +1,8 @@
 import { isExtensionSocialPostingProviderId } from 'openquok-common';
 
+import { fetchComposerMediaFileFromUrl } from './fetchComposerMediaFromUrl.js';
+import { uploadComposerMediaMultipart } from './composerMediaUpload.js';
+import type { ComposerMediaUploadProgress } from './composerMediaUpload.js';
 import {
 	listAuthCheckOriginsForDashboard,
 	resolveApiOriginForDashboard,
@@ -36,12 +39,30 @@ export type SocialIntegrationChannel = {
 	unschedulableReason: string | null;
 };
 
+export type SocialComposerMediaItem = {
+	/** Stable client id for the thumbnail strip (remove, keys). */
+	id: string;
+	/** Set after a successful upload when scheduling or publishing. */
+	mediaId?: string;
+	path?: string;
+	previewUrl?: string;
+	/** Local file — preview only until Schedule / Draft / Publish. */
+	pendingFile?: File;
+	/** Context-menu image URL — fetched and uploaded on submit. */
+	pendingSourceUrl?: string;
+};
+
 export type CreateSocialPostInput = {
 	body: string;
 	integrationIds: string[];
 	scheduledAtIso: string;
 	status: 'draft' | 'scheduled';
+	media?: { id: string; path: string }[];
 };
+
+export type ComposerMediaUploadResult =
+	| { ok: true; id: string; path: string; publicUrl?: string }
+	| SocialApiFailure;
 
 export type CreateSocialPostResult =
 	| { ok: true; postGroupId: string | null }
@@ -399,6 +420,34 @@ export async function listSocialIntegrations(
 	return { ok: true, channels };
 }
 
+export async function uploadComposerMediaFile(
+	session: SocialSessionContext,
+	file: File,
+	opts?: { virtualPath?: string; onProgress?: (progress: ComposerMediaUploadProgress) => void }
+): Promise<ComposerMediaUploadResult> {
+	return uploadComposerMediaMultipart(
+		session.apiOrigin,
+		session.accessToken,
+		session.organizationId,
+		file,
+		opts
+	);
+}
+
+/**
+ * Fetches a remote http(s) asset in the extension context and uploads it via the session media API.
+ */
+export async function uploadComposerMediaFromUrl(
+	session: SocialSessionContext,
+	url: string
+): Promise<ComposerMediaUploadResult> {
+	const fetched = await fetchComposerMediaFileFromUrl(url);
+	if (!fetched.ok) {
+		return { ok: false, error: fetched.error };
+	}
+	return uploadComposerMediaFile(session, fetched.file);
+}
+
 export async function findSuggestedScheduleSlot(
 	session: SocialSessionContext
 ): Promise<{ ok: true; scheduledAtIso: string } | SocialApiFailure> {
@@ -423,8 +472,11 @@ export async function createSocialPost(
 	input: CreateSocialPostInput
 ): Promise<CreateSocialPostResult> {
 	const body = input.body.trim();
-	if (!body) {
-		return { ok: false, error: 'Write something to post.' };
+	const media = (input.media ?? []).filter(
+		(item) => typeof item.id === 'string' && item.id.trim() && typeof item.path === 'string' && item.path.trim()
+	);
+	if (!body && media.length === 0) {
+		return { ok: false, error: 'Write something to post or attach media.' };
 	}
 	if (input.integrationIds.length === 0) {
 		return { ok: false, error: 'Select at least one channel.' };
@@ -433,7 +485,7 @@ export async function createSocialPost(
 		return { ok: false, error: 'Pick a schedule time.' };
 	}
 
-	const result = await authorizedPost(session.apiOrigin, session.accessToken, '/posts', {
+	const payload: Record<string, unknown> = {
 		organizationId: session.organizationId,
 		body,
 		integrationIds: input.integrationIds,
@@ -442,7 +494,12 @@ export async function createSocialPost(
 		repeatInterval: null,
 		tagNames: [],
 		status: input.status,
-	});
+	};
+	if (media.length > 0) {
+		payload.media = media.map((item) => ({ id: item.id.trim(), path: item.path.trim() }));
+	}
+
+	const result = await authorizedPost(session.apiOrigin, session.accessToken, '/posts', payload);
 	if (!result.ok) return result;
 
 	const postGroup = result.data.postGroup;

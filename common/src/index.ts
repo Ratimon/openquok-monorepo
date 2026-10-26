@@ -43,6 +43,11 @@ export {
 	pricing,
 } from './subscription/pricing.js';
 export {
+	DASHBOARD_OPEN_ADD_CHANNEL_EXTENSION_MESSAGE,
+	DASHBOARD_OPEN_ADD_CHANNEL_URL_HASH,
+	DASHBOARD_OPEN_ADD_CHANNEL_WINDOW_EVENT,
+} from './browser-extension/dashboardPageBridge.js';
+export {
 	ACCOUNT_ADD_CHANNEL_QUERY,
 	ACCOUNT_ADD_CHANNEL_QUERY_VALUE,
 	buildDashboardAccountAddChannelPath,

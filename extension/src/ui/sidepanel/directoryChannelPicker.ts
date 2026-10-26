@@ -6,13 +6,16 @@ export type DirectoryChannelSummary = {
 	tierLabel: 'Free' | 'Paid';
 };
 
+const CHANNEL_ADD_PLUS_SVG =
+	'<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>';
+
 export type DirectoryChannelPickerOptions = {
 	channels: DirectoryChannelSummary[];
 	selectedId: string;
-	/** When true (active launch), only `lockedId` stays selected and chips are not clickable. */
-	locked: boolean;
-	lockedId?: string | null;
+	/** Highlights the channel tied to an active launch (all chips remain clickable). */
+	activeLaunchId?: string | null;
 	onSelect: (identifier: string) => void;
+	onAddChannel: () => void;
 };
 
 function variantLabel(name: string): string {
@@ -34,7 +37,7 @@ export function mountDirectoryChannelPicker(
 	host: HTMLElement,
 	opts: DirectoryChannelPickerOptions
 ): () => void {
-	const { channels, locked, lockedId, onSelect } = opts;
+	const { channels, activeLaunchId, onSelect, onAddChannel } = opts;
 	let selectedId = opts.selectedId;
 	const cleanupFns: Array<() => void> = [];
 
@@ -48,7 +51,7 @@ export function mountDirectoryChannelPicker(
 	for (const channel of channels) {
 		const siteKey = directorySiteKeyFromProviderSlug(channel.identifier);
 		const selected = selectedId === channel.identifier;
-		const isLockedOther = locked && lockedId && channel.identifier !== lockedId;
+		const isActiveLaunch = Boolean(activeLaunchId && channel.identifier === activeLaunchId);
 
 		const btn = document.createElement('button');
 		btn.type = 'button';
@@ -61,10 +64,7 @@ export function mountDirectoryChannelPicker(
 			`${channel.name} (${channel.tierLabel === 'Free' ? 'free tier' : 'paid tier'})`
 		);
 		if (selected) btn.classList.add('channel-picker-btn--selected');
-		if (isLockedOther) {
-			btn.classList.add('channel-picker-btn--disabled');
-			btn.setAttribute('aria-disabled', 'true');
-		}
+		if (isActiveLaunch) btn.classList.add('channel-picker-btn--launch-active');
 
 		const chip = document.createElement('span');
 		chip.className = 'directory-channel-chip';
@@ -109,28 +109,39 @@ export function mountDirectoryChannelPicker(
 		chip.appendChild(avatar);
 		btn.appendChild(chip);
 
-		if (!isLockedOther) {
-			const onClick = () => {
-				if (locked && lockedId) return;
-				selectedId = channel.identifier;
-				for (const option of row.querySelectorAll<HTMLButtonElement>('.channel-picker-btn')) {
-					const id = option.dataset.channelId;
-					const isSelected = id === selectedId;
-					option.classList.toggle('channel-picker-btn--selected', isSelected);
-					option.setAttribute('aria-selected', isSelected ? 'true' : 'false');
-					const av = option.querySelector('.channel-avatar');
-					av?.classList.toggle('channel-avatar--selected', isSelected);
-					av?.classList.toggle('channel-avatar--muted', !isSelected);
-				}
-				onSelect(channel.identifier);
-			};
-			btn.dataset.channelId = channel.identifier;
-			btn.addEventListener('click', onClick);
-			cleanupFns.push(() => btn.removeEventListener('click', onClick));
-		}
+		const onClick = () => {
+			selectedId = channel.identifier;
+			for (const option of row.querySelectorAll<HTMLButtonElement>('.channel-picker-btn')) {
+				const id = option.dataset.channelId;
+				const isSelected = id === selectedId;
+				option.classList.toggle('channel-picker-btn--selected', isSelected);
+				option.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+				const av = option.querySelector('.channel-avatar');
+				av?.classList.toggle('channel-avatar--selected', isSelected);
+				av?.classList.toggle('channel-avatar--muted', !isSelected);
+			}
+			onSelect(channel.identifier);
+		};
+		btn.dataset.channelId = channel.identifier;
+		btn.addEventListener('click', onClick);
+		cleanupFns.push(() => btn.removeEventListener('click', onClick));
 
 		row.appendChild(btn);
 	}
+
+	const addBtn = document.createElement('button');
+	addBtn.type = 'button';
+	addBtn.className = 'channel-picker-btn channel-add';
+	addBtn.setAttribute('aria-label', 'Add channel');
+	addBtn.title = 'Add channel in dashboard';
+	const addAvatar = document.createElement('span');
+	addAvatar.className = 'channel-avatar channel-add-avatar';
+	addAvatar.innerHTML = CHANNEL_ADD_PLUS_SVG;
+	addBtn.appendChild(addAvatar);
+	const onAdd = () => onAddChannel();
+	addBtn.addEventListener('click', onAdd);
+	cleanupFns.push(() => addBtn.removeEventListener('click', onAdd));
+	row.appendChild(addBtn);
 
 	host.appendChild(row);
 

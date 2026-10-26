@@ -62,6 +62,8 @@
 		allowedChannelCount?: number | null;
 		billingHref?: string;
 		channelGroups?: WorkspaceChannelGroupViewModel[];
+		/** Bumped by the account page when opening Add Channel from a deep link. */
+		addChannelPickerRequest?: number;
 	};
 
 	let {
@@ -85,7 +87,8 @@
 		onOpenChannelActions,
 		allowedChannelCount = null,
 		billingHref,
-		channelGroups = []
+		channelGroups = [],
+		addChannelPickerRequest = 0
 	}: Props = $props();
 
 	let channelUpgradeDialogOpen = $state(false);
@@ -405,6 +408,7 @@
 				hasConnectedChannels={connectedChannelCount >= 1}
 				channelLimitFull={isChannelLimitFull}
 				upgradeHref={billingHref}
+				openPickerRequest={addChannelPickerRequest}
 			/>
 			<AddProvider
 				invite

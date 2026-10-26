@@ -8,14 +8,77 @@ import { POPUP_UI_MESSAGE } from '../../directory/auto-launch/popupMessages.js';
 import type { StoredAutoLaunchState } from '../../directory/auto-launch/sessionStorage.js';
 import { isReadyPage, pageMatchesConfig } from '../../directory/directory-launch/stepRail.js';
 
+import { openDashboardAddChannel } from '../../shared/openDashboardUrl.js';
+import { getPreferredDashboardOrigin } from '../../shared/dashboardOriginStorage.js';
+
+import { confirmDirectoryChannelNavigation } from './directoryChannelNavigateDialog.js';
 import { mountDirectoryChannelPicker } from './directoryChannelPicker.js';
 import { el, escapeHtml, runtimeSendMessage } from './uiHelpers.js';
+
+function directoryChannelLabel(identifier: string): string {
+	return directoryChannels.find((c) => c.identifier === identifier)?.name ?? identifier;
+}
+
+function resolveDirectoryNavigateUrl(
+	identifier: string,
+	state: StoredAutoLaunchState | null
+): string | null {
+	const provider = getDirectoryLaunchProvider(identifier);
+	if (!provider) return null;
+	if (state?.session.providerSlug === identifier) {
+		return state.session.startUrl || provider.defaultStartUrl;
+	}
+	return provider.defaultStartUrl;
+}
+
+async function handleDirectoryChannelSelect(
+	identifier: string,
+	state: StoredAutoLaunchState | null,
+	renderRef: { current: (state: StoredAutoLaunchState | null, error?: string) => void }
+): Promise<void> {
+	const sessionSlug = state?.session.providerSlug ?? null;
+	const currentSelection = sessionSlug ?? selectedChannelId;
+
+	if (identifier === currentSelection) {
+		selectedChannelId = identifier;
+		if (sessionSlug === identifier) {
+			const result = await sendRuntime({ type: 'OPENQUOK_AUTO_LAUNCH_FOCUS_TAB' });
+			if (result.ok === false) {
+				renderRef.current(state, String(result.error ?? 'Could not focus directory tab.'));
+			}
+		}
+		return;
+	}
+
+	const targetUrl = resolveDirectoryNavigateUrl(identifier, state);
+	if (!targetUrl) return;
+
+	const confirmed = await confirmDirectoryChannelNavigation({
+		channelName: directoryChannelLabel(identifier),
+		targetUrl,
+		activeLaunchSlug: sessionSlug,
+		activeLaunchLabel: sessionSlug ? directoryChannelLabel(sessionSlug) : null,
+		selectedSlug: identifier,
+	});
+	if (!confirmed) {
+		renderRef.current(state);
+		return;
+	}
+
+	directoryPickerUserSelection = identifier;
+	selectedChannelId = identifier;
+	await chrome.tabs.create({ url: targetUrl, active: true });
+	renderRef.current(state);
+}
 
 const directoryChannels = listDirectoryLaunchProviderSummaries();
 
 let lastProgress: string | null = null;
 let selectedChannelId =
 	directoryChannels[0]?.identifier ?? 'peerpush-standard-launch';
+/** User-picked chip while a different launch may still be active. */
+let directoryPickerUserSelection: string | null = null;
+let lastRenderedSessionSlug: string | null = null;
 
 function statusForState(state: StoredAutoLaunchState | null): string {
 	if (!state) {
@@ -27,10 +90,10 @@ function statusForState(state: StoredAutoLaunchState | null): string {
 	}
 	if (!isReadyPage(config)) {
 		return config.readyUrlHint
-			? `Navigate to a page that includes "${config.readyUrlHint}".`
-			: 'Navigate to the submission page on this site.';
+			? `Open your edit or submission page (URL includes “${config.readyUrlHint}”), then use Fill on the on-page OpenQuok panel.`
+			: 'Open the directory listing or submission form, then use Fill on the on-page OpenQuok panel.';
 	}
-	return 'Ready on this tab — use Fill all steps or the on-page panel.';
+	return 'On the right page — use Fill on the on-page panel (each section or Fill all steps), then submit yourself on this site.';
 }
 
 async function fetchState(): Promise<{
@@ -64,14 +127,23 @@ export type DirectoryTabController = {
 
 export function mountDirectoryTab(root: HTMLElement): DirectoryTabController {
 	let destroyDirectoryPicker: (() => void) | null = null;
+	const renderRef = {
+		current: (_state: StoredAutoLaunchState | null, _error?: string) => {},
+	};
 
 	function render(state: StoredAutoLaunchState | null, error?: string): void {
 		const hasSession = Boolean(state);
 		const product = state?.session.profileSnapshot.name ?? '—';
 		const sessionSlug = state?.session.providerSlug ?? null;
-		if (sessionSlug) {
+		if (sessionSlug !== lastRenderedSessionSlug) {
+			directoryPickerUserSelection = null;
+			lastRenderedSessionSlug = sessionSlug;
+		}
+		if (sessionSlug && !directoryPickerUserSelection) {
 			selectedChannelId = sessionSlug;
 		}
+		const activeSelection =
+			directoryPickerUserSelection ?? sessionSlug ?? selectedChannelId;
 
 		destroyDirectoryPicker?.();
 		destroyDirectoryPicker = null;
@@ -102,14 +174,15 @@ export function mountDirectoryTab(root: HTMLElement): DirectoryTabController {
 
 		const pickerHost = root.querySelector<HTMLElement>('#directory-channel-picker');
 		if (pickerHost) {
-			const activeSelection = sessionSlug ?? selectedChannelId;
 			destroyDirectoryPicker = mountDirectoryChannelPicker(pickerHost, {
 				channels: directoryChannels,
 				selectedId: activeSelection,
-				locked: hasSession,
-				lockedId: sessionSlug,
+				activeLaunchId: sessionSlug,
 				onSelect: (identifier) => {
-					selectedChannelId = identifier;
+					void handleDirectoryChannelSelect(identifier, state, renderRef);
+				},
+				onAddChannel: () => {
+					void getPreferredDashboardOrigin().then((origin) => openDashboardAddChannel(origin));
 				},
 			});
 		}
@@ -152,6 +225,8 @@ export function mountDirectoryTab(root: HTMLElement): DirectoryTabController {
 			await refresh();
 		});
 	}
+
+	renderRef.current = render;
 
 	async function refresh(): Promise<void> {
 		const { state, backgroundUnreachable } = await fetchState();

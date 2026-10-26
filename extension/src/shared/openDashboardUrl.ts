@@ -1,5 +1,7 @@
 import { buildDashboardAccountAddChannelUrl } from 'openquok-common';
 
+import { DASHBOARD_BRIDGE_MESSAGE } from './dashboardBridgeMessages.js';
+
 import { clearPausedSocialDashboardOrigin } from './dashboardSocialDisconnect.js';
 import { rememberDashboardOrigin } from './dashboardOriginStorage.js';
 
@@ -210,7 +212,48 @@ export async function openDashboardAppUrl(rawUrl: string): Promise<void> {
 	await chrome.tabs.create({ url: href, active: true });
 }
 
+function isDashboardAccountPathname(pathname: string): boolean {
+	const normalized = pathname.replace(/\/+$/, '') || '/';
+	return normalized === '/account' || normalized.endsWith('/account');
+}
+
+async function openAddChannelOnExistingAccountTab(dashboardOrigin: string): Promise<boolean> {
+	if (typeof chrome === 'undefined' || typeof chrome.tabs?.query !== 'function') {
+		return false;
+	}
+	const accountTarget = `${dashboardOrigin.replace(/\/+$/, '')}/account`;
+	let tabs: chrome.tabs.Tab[] = [];
+	try {
+		tabs = await chrome.tabs.query({});
+	} catch {
+		return false;
+	}
+
+	for (const tab of tabs) {
+		if (!tab.id || !tab.url) continue;
+		if (!activeTabMatchesDashboardConnectTarget(tab.url, accountTarget)) continue;
+		let pathname = '';
+		try {
+			pathname = new URL(tab.url).pathname;
+		} catch {
+			continue;
+		}
+		if (!isDashboardAccountPathname(pathname)) continue;
+		try {
+			await chrome.tabs.update(tab.id, { active: true });
+			await chrome.tabs.sendMessage(tab.id, {
+				type: DASHBOARD_BRIDGE_MESSAGE.OPEN_ADD_CHANNEL_PICKER,
+			});
+			return true;
+		} catch {
+			/* content script not ready — fall back to navigation */
+		}
+	}
+	return false;
+}
+
 export async function openDashboardAddChannel(dashboardOrigin: string): Promise<void> {
+	if (await openAddChannelOnExistingAccountTab(dashboardOrigin)) return;
 	await openDashboardAppUrl(buildDashboardAccountAddChannelUrl(dashboardOrigin));
 }
 

@@ -24,10 +24,12 @@ describe('directoryChannelPicker', () => {
 			onSelect: (id) => {
 				selected = id;
 			},
+			onAddChannel: () => {},
 		});
 
 		const buttons = host.querySelectorAll('.channel-picker-btn');
-		expect(buttons.length).toBe(2);
+		expect(buttons.length).toBe(3);
+		expect(host.querySelector('.channel-add')).toBeTruthy();
 		expect(host.querySelector('.channel-picker-btn--selected')).toBeTruthy();
 		expect(host.querySelectorAll('.directory-channel-tier--free').length).toBe(1);
 		expect(host.querySelectorAll('.directory-channel-tier--paid').length).toBe(1);

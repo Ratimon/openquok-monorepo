@@ -15,7 +15,10 @@ function isOpenQuokDashboardUrl(url: URL): boolean {
 	if (host === 'localhost' || host === '127.0.0.1') {
 		return url.port === '5173' || url.port === '';
 	}
-	return host === 'openquok.com' || host.endsWith('.openquok.com');
+	if (host === 'openquok.com' || host.endsWith('.openquok.com')) {
+		return true;
+	}
+	return host === 'openquok.cloud' || host.endsWith('.openquok.cloud');
 }
 
 /**

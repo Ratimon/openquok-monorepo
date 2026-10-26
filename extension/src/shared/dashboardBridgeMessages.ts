@@ -1,3 +1,5 @@
+import { DASHBOARD_OPEN_ADD_CHANNEL_EXTENSION_MESSAGE } from 'openquok-common';
+
 /** Internal extension messages (content script ↔ service worker ↔ side panel). */
 export const DASHBOARD_BRIDGE_MESSAGE = {
 	/** Dashboard tab finished a cookie-authenticated refresh; carries bearer + org. */
@@ -6,6 +8,8 @@ export const DASHBOARD_BRIDGE_MESSAGE = {
 	REQUEST_SYNC: 'OPENQUOK_REQUEST_DASHBOARD_SYNC',
 	/** Dashboard signed out or session cookies cleared — drop cached extension session. */
 	CLEAR_SESSION: 'OPENQUOK_DASHBOARD_SESSION_CLEAR',
+	/** Open the Add Channel dialog on an already-loaded `/account` tab (no URL query). */
+	OPEN_ADD_CHANNEL_PICKER: DASHBOARD_OPEN_ADD_CHANNEL_EXTENSION_MESSAGE,
 } as const;
 
 export type DashboardSessionClearPayload = {

@@ -438,7 +438,7 @@ Use this checklist after local migrations and a fresh extension build. Goal: one
 
 The extension **side panel** (`extension/src/ui/sidepanel/sidepanel.ts`) exposes **Social** (session API composer) and **Directory** (auto-launch) tabs. User-facing docs: [Browser extension](../../web/src/content/docs/installation/chrome-extension.md). Social scheduling in v1 always uses the **server** path: dashboard session → `POST /api/v1/posts` → orchestrator (OAuth, credentials, and cookie-session channels such as Skool). Connect type per channel is unchanged — see [connect-rules](../../web/src/content/docs/platforms/connect-rules.md).
 
-**Social channel picker:** `mountChannelPicker` in `extension/src/ui/sidepanel/channelPicker.ts` mirrors the dashboard composer’s circular avatars (selection ring, grayscale when off, provider badge, authenticated avatar download/proxy). Styling uses forest semantic tokens in `sidepanel.css`. Manual smoke steps live in the browser extension doc under **Manual verification checklist**.
+**Social channel picker:** `mountChannelPicker` in `extension/src/ui/sidepanel/channelPicker.ts` mirrors the dashboard composer’s circular avatars (selection ring, grayscale when off, provider badge, authenticated avatar download/proxy). Styling uses forest semantic tokens in `sidepanel.css`. Manual smoke steps live in the browser extension doc under **Manual verification checklist** (channel picker + **Social tab — media attachments**).
 
 | Pattern | Common MV3 approaches (internal REA) | OpenQuok v1 |
 | --- | --- | --- |
@@ -446,6 +446,7 @@ The extension **side panel** (`extension/src/ui/sidepanel/sidepanel.ts`) exposes
 | Unsigned gate + session pickup | Product-origin cookie or JWT gate in the side panel | **Connect to OpenQuok.com** / self-host URL → dashboard `/sign-in`; `dashboardAuth` (`verify-refresh` + access mint) |
 | In-browser send on platform tab | DOM automation in the member’s live platform tab | **Stub only** — `BrowserPublishPort` in `extension/src/social/browserPublishPort.ts` |
 | Context menu → draft | `contextMenus` (selection, page, image) | **Schedule with OpenQuok** → `sessionDraftStorage` → `sidePanel.open` + Social tab focus (`extension/src/social/contextMenu.ts`) |
+| Composer media attach | Hosted app or popup with client upload progress | **Side panel** toolbar file pick + thumbnail strip — **local preview** (`blob:` / queued URL) until Schedule / Draft / Publish; `resolveComposerMediaAttachments` → `POST /api/v1/media/upload` then `createSocialPost` with `media: { id, path }[]`. Image context menu: `applySocialComposerDraftWithMedia` queues `pendingSourceUrl` (fetch on submit). Caps: 10 attachments; client size checks mirror `common/src/media/uploadLimits.ts` (~30 MB image / 1 GB video). Media library, per-integration media, and R2 multipart — dashboard only (**Open full composer**). Manual smoke: [Browser extension](../../web/src/content/docs/installation/chrome-extension.md) → **Social tab — media attachments**. |
 | Content scripts on arbitrary sites | Composer injection limited to the vendor’s own host | **No** social composer injection — context menu + side panel only; directory CS on PeerPush/Uneed hosts |
 
 ### `BrowserPublishPort` (phase 2)
@@ -476,7 +477,7 @@ Implementation detail: `extension/src/social/browserPublishPort.ts` and the tabl
 
 | Date | Notes |
 | --- | --- |
-| 2026-10-26 | Social channel picker parity note; manual side panel checklist in chrome-extension doc |
+| 2026-10-26 | Social channel picker parity; composer media upload row + **Social tab — media attachments** manual checklist in chrome-extension doc |
 | 2026-10-25 | Social shell patterns; side panel vs popup; context menu draft; `BrowserPublishPort` stub; user docs links |
 | 2026-10-24 | Directory login notification banners — OpenQuok mapping, PeerPush/Uneed adapter selectors, gate content script |
 | 2026-10-16 | Uneed + PeerPush `profilePath` mapping tables; My Products card manual smoke test |

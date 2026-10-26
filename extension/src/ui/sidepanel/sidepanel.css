@@ -144,6 +144,68 @@ h1 {
 	margin-bottom: 0;
 }
 
+.directory-nav-dialog-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 10000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 16px;
+	background: rgb(0 0 0 / 55%);
+}
+
+.directory-nav-dialog {
+	max-width: 320px;
+	width: 100%;
+	padding: 14px 14px 12px;
+	border: 1px solid var(--color-base-300);
+	border-radius: var(--radius-box);
+	background: var(--color-base-200);
+	box-shadow: 0 12px 40px rgb(0 0 0 / 35%);
+}
+
+.directory-nav-dialog-title {
+	margin: 0 0 8px;
+	font-size: 14px;
+	font-weight: 700;
+	color: var(--color-base-content);
+}
+
+.directory-nav-dialog-body {
+	margin: 0 0 14px;
+	font-size: 12px;
+	line-height: 1.45;
+	white-space: pre-line;
+	color: var(--color-base-content-muted);
+}
+
+.directory-nav-dialog-actions {
+	display: flex;
+	gap: 8px;
+	justify-content: flex-end;
+}
+
+.directory-nav-dialog-btn {
+	flex: 1;
+	max-width: 50%;
+	padding: 8px 10px;
+	font-size: 12px;
+}
+
+.directory-nav-dialog-btn--primary {
+	background: var(--color-primary);
+	color: var(--color-primary-content);
+	border: 1px solid transparent;
+	border-radius: var(--radius-field);
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.channel-picker-btn--launch-active .channel-avatar {
+	box-shadow: 0 0 0 2px var(--color-base-200), 0 0 0 3px var(--color-success, #22c55e);
+}
+
 .gate-card {
 	background: var(--color-base-200);
 	border: 1px solid var(--color-base-300);
@@ -331,8 +393,338 @@ button:disabled {
 	outline-offset: 1px;
 }
 
+.composer-media-file-input {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
 .composer-toolbar-host {
 	border-top: 1px solid var(--color-base-300);
+}
+
+.composer-media-strip-host {
+	margin-bottom: 10px;
+}
+
+.composer-post-preview-host {
+	margin-bottom: 12px;
+}
+
+.composer-post-preview {
+	max-width: 340px;
+	margin: 0 auto;
+	padding: 12px;
+	border: 1px solid var(--color-base-300);
+	border-radius: var(--radius-field);
+	background: var(--color-base-100);
+	color: var(--color-base-content);
+}
+
+.composer-post-preview--x {
+	background: color-mix(in oklab, var(--color-base-content) 6%, #000);
+	color: var(--color-base-100);
+	border-color: color-mix(in oklab, var(--color-base-100) 18%, transparent);
+}
+
+.composer-post-preview-header {
+	display: flex;
+	gap: 10px;
+	align-items: flex-start;
+}
+
+.composer-post-preview-avatar-wrap {
+	position: relative;
+	flex: 0 0 auto;
+	width: 40px;
+	height: 40px;
+}
+
+.composer-post-preview-avatar {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	border-radius: 999px;
+	overflow: hidden;
+	background: var(--color-base-200);
+	font-size: 12px;
+	font-weight: 700;
+	color: var(--color-base-content-muted);
+}
+
+.composer-post-preview--x .composer-post-preview-avatar {
+	background: color-mix(in oklab, var(--color-base-100) 12%, #000);
+	color: var(--color-base-100);
+}
+
+.composer-post-preview-avatar--initials {
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+}
+
+.composer-post-preview-avatar-img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.composer-post-preview-provider-badge {
+	position: absolute;
+	right: -2px;
+	bottom: -2px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 18px;
+	height: 18px;
+	border-radius: 999px;
+	background: var(--color-base-100);
+	color: var(--color-base-content);
+	box-shadow: 0 0 0 1px var(--color-base-300);
+}
+
+.composer-post-preview--x .composer-post-preview-provider-badge {
+	background: #000;
+	color: var(--color-base-100);
+	box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-base-100) 25%, transparent);
+}
+
+.composer-post-preview-meta {
+	min-width: 0;
+	flex: 1;
+}
+
+.composer-post-preview-name-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-bottom: 4px;
+}
+
+.composer-post-preview-name {
+	font-size: 13px;
+	font-weight: 700;
+	line-height: 1.3;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.composer-post-preview-verified {
+	display: inline-flex;
+	color: #38bdf8;
+	flex-shrink: 0;
+}
+
+.composer-post-preview-body {
+	margin: 0;
+	font-size: 12px;
+	line-height: 1.45;
+	white-space: pre-wrap;
+	color: color-mix(in oklab, var(--color-base-content) 92%, transparent);
+}
+
+.composer-post-preview--x .composer-post-preview-body {
+	color: color-mix(in oklab, var(--color-base-100) 92%, transparent);
+}
+
+.composer-post-preview-placeholder {
+	margin: 0;
+	font-size: 12px;
+	color: var(--color-base-content-muted);
+}
+
+.composer-post-preview--x .composer-post-preview-placeholder {
+	color: color-mix(in oklab, var(--color-base-100) 55%, transparent);
+}
+
+.composer-post-preview-overflow {
+	background: color-mix(in oklab, var(--color-error) 28%, transparent);
+	color: inherit;
+}
+
+.composer-post-preview-media {
+	margin-top: 10px;
+}
+
+.composer-post-preview-media-frame {
+	position: relative;
+	width: 100%;
+	aspect-ratio: 16 / 9;
+	overflow: hidden;
+	border-radius: calc(var(--radius-field) - 2px);
+	background: var(--color-base-200);
+	border: 1px solid var(--color-base-300);
+}
+
+.composer-post-preview-media-frame--threads {
+	aspect-ratio: 4 / 3;
+}
+
+.composer-post-preview-media-frame--video .composer-post-preview-media-video {
+	object-fit: cover;
+}
+
+.composer-post-preview-media-img,
+.composer-post-preview-media-video {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	background: var(--color-base-200);
+}
+
+.composer-post-preview-media-more {
+	display: inline-block;
+	margin-top: 6px;
+	font-size: 10px;
+	font-weight: 600;
+	color: var(--color-base-content-muted);
+}
+
+.composer-post-preview-footer {
+	margin-top: 8px;
+	font-size: 10px;
+	font-weight: 600;
+	color: var(--color-base-content-muted);
+	text-align: right;
+}
+
+.composer-post-preview-footer--over {
+	color: var(--color-error);
+}
+
+.composer-media-strip-host--empty {
+	display: none;
+}
+
+.composer-media-strip {
+	display: flex;
+	flex-wrap: nowrap;
+	gap: 8px;
+	padding: 8px 10px;
+	overflow-x: auto;
+	border: 1px solid var(--color-base-300);
+	border-radius: var(--radius-field);
+	background: var(--color-base-200);
+}
+
+.composer-media-thumb {
+	position: relative;
+	flex: 0 0 auto;
+	width: 56px;
+	height: 56px;
+}
+
+.composer-media-thumb-preview {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	border-radius: calc(var(--radius-field) - 2px);
+	background: var(--color-base-100);
+	border: 1px solid var(--color-base-300);
+}
+
+.composer-media-thumb-img,
+.composer-media-thumb-video {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.composer-media-thumb-video-badge {
+	position: absolute;
+	left: 4px;
+	bottom: 4px;
+	padding: 1px 4px;
+	border-radius: 3px;
+	font-size: 9px;
+	font-weight: 600;
+	line-height: 1.2;
+	color: var(--color-base-100);
+	background: color-mix(in oklab, var(--color-base-content) 72%, transparent);
+	pointer-events: none;
+}
+
+.composer-media-thumb-placeholder {
+	font-size: 10px;
+	font-weight: 600;
+	color: var(--color-base-content-muted);
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+}
+
+.composer-media-thumb-remove {
+	position: absolute;
+	top: -6px;
+	right: -6px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 20px;
+	height: 20px;
+	padding: 0;
+	border: 1px solid var(--color-base-300);
+	border-radius: 999px;
+	background: var(--color-base-100);
+	color: var(--color-base-content);
+	font-size: 14px;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.composer-media-thumb-remove:hover:not(:disabled) {
+	background: var(--color-base-200);
+}
+
+.composer-media-thumb-remove:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.composer-media-thumb--uploading {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: 1px dashed var(--color-base-300);
+	border-radius: calc(var(--radius-field) - 2px);
+	background: var(--color-base-100);
+}
+
+.composer-media-upload-spinner {
+	font-size: 18px;
+	font-weight: 700;
+	color: var(--color-base-content-muted);
+	animation: composer-media-pulse 1s ease-in-out infinite;
+}
+
+@keyframes composer-media-pulse {
+	0%,
+	100% {
+		opacity: 0.35;
+	}
+	50% {
+		opacity: 1;
+	}
+}
+
+.composer-toolbar-btn:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
 }
 
 .composer-toolbar {

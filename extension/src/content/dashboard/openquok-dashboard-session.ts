@@ -1,3 +1,5 @@
+import { DASHBOARD_OPEN_ADD_CHANNEL_WINDOW_EVENT } from 'openquok-common';
+
 import { DASHBOARD_BRIDGE_MESSAGE } from '../../shared/dashboardBridgeMessages.js';
 
 const BRIDGE_AT_KEY = 'openquok:bridge-at';
@@ -91,7 +93,19 @@ function shouldMintFreshAccessToken(): boolean {
 	}
 }
 
+function shouldSkipDashboardSessionSync(): boolean {
+	const path = window.location.pathname.replace(/\/+$/, '') || '/';
+	return (
+		path.endsWith('/sign-in') ||
+		path.endsWith('/sign-up') ||
+		path.includes('/verify-signup') ||
+		path.includes('/reset-password')
+	);
+}
+
 async function syncDashboardSessionToExtension(): Promise<void> {
+	if (shouldSkipDashboardSessionSync()) return;
+
 	const dashboardOrigin = window.location.origin;
 	try {
 		const me = await fetch(`${dashboardOrigin}/api/v1/users/me`, { credentials: 'include' });
@@ -166,5 +180,9 @@ chrome.runtime.onMessage.addListener((message) => {
 	const record = message as Record<string, unknown>;
 	if (record.type === DASHBOARD_BRIDGE_MESSAGE.REQUEST_SYNC) {
 		scheduleSync();
+		return;
+	}
+	if (record.type === DASHBOARD_BRIDGE_MESSAGE.OPEN_ADD_CHANNEL_PICKER) {
+		window.dispatchEvent(new CustomEvent(DASHBOARD_OPEN_ADD_CHANNEL_WINDOW_EVENT));
 	}
 });

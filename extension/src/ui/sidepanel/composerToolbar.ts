@@ -13,12 +13,16 @@ const TOOLBAR_ICON = {
 		'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" x2="10" y1="4" y2="4"/><line x1="14" x2="5" y1="20" y2="20"/><line x1="15" x2="9" y1="4" y2="20"/></svg>',
 	underline:
 		'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4v6a6 6 0 0 0 12 0V4"/><line x1="4" x2="20" y1="20" y2="20"/></svg>',
+	image:
+		'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>',
 } as const;
 
 const QUICK_EMOJIS = ['😀', '😊', '👍', '❤️', '🔥', '🎉', '✨', '🙏', '💯', '👏', '🚀', '✅'];
 
 export type ComposerToolbarOptions = {
 	getTextarea: () => HTMLTextAreaElement | null;
+	onPickFiles?: (files: FileList) => void;
+	mediaPickDisabled?: boolean;
 };
 
 function toolbarButton(label: string, iconSvg: string): HTMLButtonElement {
@@ -108,8 +112,36 @@ export function mountComposerToolbar(host: HTMLElement, opts: ComposerToolbarOpt
 	wireWrap(italicBtn, '*', '*');
 	wireWrap(underlineBtn, '__', '__');
 
-	bar.append(emojiWrap, hashBtn, mentionBtn, boldBtn, italicBtn, underlineBtn);
-	host.appendChild(bar);
+	const fileInput = document.createElement('input');
+	fileInput.type = 'file';
+	fileInput.accept = 'image/*,video/*';
+	fileInput.multiple = true;
+	fileInput.className = 'composer-media-file-input';
+	fileInput.setAttribute('aria-hidden', 'true');
+	fileInput.tabIndex = -1;
+
+	const imageBtn = toolbarButton('Attach image or video', TOOLBAR_ICON.image);
+	if (opts.mediaPickDisabled) {
+		imageBtn.disabled = true;
+	}
+	const onImageClick = () => {
+		if (opts.mediaPickDisabled) return;
+		fileInput.click();
+	};
+	const onFileChange = () => {
+		const files = fileInput.files;
+		if (files && files.length > 0) {
+			opts.onPickFiles?.(files);
+		}
+		fileInput.value = '';
+	};
+	imageBtn.addEventListener('click', onImageClick);
+	fileInput.addEventListener('change', onFileChange);
+	cleanupFns.push(() => imageBtn.removeEventListener('click', onImageClick));
+	cleanupFns.push(() => fileInput.removeEventListener('change', onFileChange));
+
+	bar.append(emojiWrap, imageBtn, hashBtn, mentionBtn, boldBtn, italicBtn, underlineBtn);
+	host.append(fileInput, bar);
 
 	const onDocClick = (e: MouseEvent) => {
 		if (emojiPanel.hidden) return;

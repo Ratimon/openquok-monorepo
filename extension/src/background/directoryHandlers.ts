@@ -6,7 +6,14 @@ import {
 	type AutoLaunchProgressPayload,
 } from 'openquok-common';
 
+import { CHECK_DIRECTORY_GATE_MESSAGE } from '../directory/directory-launch/directoryGate.js';
 import { postCompleteSubmission } from '../directory/auto-launch/openquokApi.js';
+import {
+	dashboardSignInUrl,
+	hasDashboardSessionCookie,
+	isDashboardLoggedIn,
+	readAccessTokenCookie,
+} from '../shared/dashboardAuth.js';
 import {
 	POPUP_UI_MESSAGE,
 	type PopupUiMessage,
@@ -278,11 +285,38 @@ async function sendToHandoffTabContent(message: Record<string, unknown>): Promis
 	return chrome.tabs.sendMessage(tabId, message);
 }
 
+async function resolveOpenQuokAuthForDirectoryGate(): Promise<{
+	loggedIn: boolean;
+	loginUrl: string;
+}> {
+	const state = await loadAutoLaunchState();
+	const preferredOrigin = state?.dashboardOrigin?.trim();
+	if (preferredOrigin) {
+		if (await hasDashboardSessionCookie(preferredOrigin)) {
+			return { loggedIn: true, loginUrl: dashboardSignInUrl(preferredOrigin) };
+		}
+		const token = await readAccessTokenCookie(preferredOrigin);
+		if (token && 'accessToken' in token) {
+			return { loggedIn: true, loginUrl: dashboardSignInUrl(preferredOrigin) };
+		}
+	}
+	return isDashboardLoggedIn();
+}
+
 export async function handleAutoLaunchRuntimeMessage(
 	message: Record<string, unknown>,
 	sender?: chrome.runtime.MessageSender
 ): Promise<unknown> {
 	const type = message.type;
+
+	if (type === CHECK_DIRECTORY_GATE_MESSAGE) {
+		const auth = await resolveOpenQuokAuthForDirectoryGate();
+		return {
+			ok: true,
+			openquokLoggedIn: auth.loggedIn,
+			openquokLoginUrl: auth.loginUrl,
+		};
+	}
 
 	if (type === 'OPENQUOK_AUTO_LAUNCH_GET_STATE') {
 		return { ok: true, state: await loadAutoLaunchState() };
