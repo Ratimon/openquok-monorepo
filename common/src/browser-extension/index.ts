@@ -1,4 +1,11 @@
 export {
+	ACCOUNT_ADD_CHANNEL_QUERY,
+	ACCOUNT_ADD_CHANNEL_QUERY_VALUE,
+	buildDashboardAccountAddChannelPath,
+	buildDashboardAccountAddChannelUrl,
+	isAccountAddChannelDeepLink,
+} from './accountDeepLinks.js';
+export {
 	AUTO_LAUNCH_MESSAGE_TYPE,
 	coerceAutoLaunchHandoffRequestFields,
 	isAutoLaunchHandoffRequestFields,

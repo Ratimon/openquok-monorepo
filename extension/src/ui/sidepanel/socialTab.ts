@@ -15,6 +15,8 @@ import { installSocialSessionWatch } from '../../shared/socialSessionWatch.js';
 import {
 	DEFAULT_SELF_HOST_DASHBOARD_INPUT,
 	normalizeSelfHostDashboardInput,
+	openDashboardAddChannel,
+	openDashboardAppUrl,
 	openDashboardUrl,
 	parseDashboardSignInInput,
 	PRODUCTION_DASHBOARD_SIGN_IN_URL,
@@ -38,6 +40,9 @@ import {
 	peekSocialComposerDraft,
 } from '../../social/sessionDraftStorage.js';
 
+import { selectionMatchesGroup } from '../../social/socialChannelSelection.js';
+import { mountChannelPicker } from './channelPicker.js';
+import { mountComposerToolbar } from './composerToolbar.js';
 import { el, escapeHtml } from './uiHelpers.js';
 
 export type SocialTabController = {
@@ -50,46 +55,18 @@ function isSocialApiFailure(
 	return 'ok' in value && value.ok === false;
 }
 
-function channelCheckboxList(channels: SocialIntegrationChannel[], selectedIds: Set<string>): string {
-	if (channels.length === 0) {
-		return '<p class="muted">No social channels connected. Add channels in the dashboard.</p>';
-	}
-
-	const rows = channels
-		.map((channel) => {
-			const schedulable = isSocialComposerChannel(channel);
-			const checked = selectedIds.has(channel.id) ? ' checked' : '';
-			const disabled = schedulable ? '' : ' disabled';
-			const hint = schedulable
-				? ''
-				: channel.refreshNeeded
-					? ' — refresh needed'
-					: channel.inBetweenSteps
-						? ' — finish connect in dashboard'
-						: channel.disabled
-							? ' — disabled'
-							: ' — unavailable';
-			return `
-				<label class="channel-row${schedulable ? '' : ' channel-row-muted'}">
-					<input type="checkbox" class="channel-check" value="${escapeHtml(channel.id)}"${checked}${disabled} />
-					<span>${escapeHtml(channel.name)} <span class="channel-id">${escapeHtml(channel.identifier)}</span>${escapeHtml(hint)}</span>
-				</label>
-			`;
-		})
-		.join('');
-
-	return `<div class="channel-list" role="group" aria-label="Channels">${rows}</div>`;
-}
-
 export function mountSocialTab(root: HTMLElement): SocialTabController {
 	let session: SocialSessionContext | null = null;
 	let loadedChannels: SocialIntegrationChannel[] = [];
 	let scheduleLocal = defaultComposerScheduleLocal();
 	let selectedChannelIds = new Set<string>();
+	let selectedGroupId: string | null = null;
 	let bodyDraft = '';
 	let submitting = false;
 	let selfHostInput = DEFAULT_SELF_HOST_DASHBOARD_INPUT;
 	let gateError = '';
+	let destroyChannelPicker: (() => void) | null = null;
+	let destroyComposerToolbar: (() => void) | null = null;
 
 	function applySelfHostFieldNormalization(raw: string): string {
 		const normalized = normalizeSelfHostDashboardInput(raw);
@@ -124,12 +101,11 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 		await openDashboardUrl(normalized);
 	}
 
-	function readSelectedChannels(): string[] {
-		const boxes = root.querySelectorAll<HTMLInputElement>('.channel-check:checked');
-		return Array.from(boxes).map((box) => box.value).filter(Boolean);
-	}
-
 	function renderGate(): void {
+		destroyChannelPicker?.();
+		destroyChannelPicker = null;
+		destroyComposerToolbar?.();
+		destroyComposerToolbar = null;
 		root.replaceChildren(
 			el(`
 				<div class="wrap tab-wrap">
@@ -199,6 +175,10 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 	}
 
 	function renderSessionError(message: string): void {
+		destroyChannelPicker?.();
+		destroyChannelPicker = null;
+		destroyComposerToolbar?.();
+		destroyComposerToolbar = null;
 		root.replaceChildren(
 			el(`
 				<div class="wrap tab-wrap">
@@ -230,12 +210,17 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 				session = null;
 				loadedChannels = [];
 				selectedChannelIds = new Set();
+				selectedGroupId = null;
 				renderGate();
 			})();
 		});
 	}
 
 	function renderLoading(): void {
+		destroyChannelPicker?.();
+		destroyChannelPicker = null;
+		destroyComposerToolbar?.();
+		destroyComposerToolbar = null;
 		root.replaceChildren(
 			el(`
 				<div class="wrap tab-wrap">
@@ -260,10 +245,13 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 					<strong>Compose</strong>
 					<p class="muted">Schedule via your OpenQuok session — tokens stay on the server.</p>
 				</div>
+				<label class="field-label">Connected channels</label>
+				<div id="social-channel-picker" class="channel-picker-host"></div>
 				<label class="field-label" for="social-body">Post</label>
-				<textarea id="social-body" class="composer-body" rows="5" placeholder="What do you want to share?"></textarea>
-				<label class="field-label">Channels</label>
-				${channelCheckboxList(loadedChannels, selectedChannelIds)}
+				<div class="composer-editor-shell">
+					<textarea id="social-body" class="composer-body" rows="5" placeholder="What do you want to share?"></textarea>
+					<div id="social-composer-toolbar" class="composer-toolbar-host"></div>
+				</div>
 				<label class="field-label" for="social-schedule">Schedule time</label>
 				<input id="social-schedule" class="composer-schedule" type="datetime-local" value="${escapeHtml(scheduleLocal)}" />
 				<div class="actions composer-actions">
@@ -279,22 +267,51 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 			</div>
 		`;
 
+		destroyChannelPicker?.();
+		destroyChannelPicker = null;
+		destroyComposerToolbar?.();
+		destroyComposerToolbar = null;
 		root.replaceChildren(el(composerHtml));
 
+		const pickerHost = root.querySelector<HTMLElement>('#social-channel-picker');
+		const activeSession = session;
+		if (pickerHost && activeSession) {
+			destroyChannelPicker = mountChannelPicker(pickerHost, {
+				channels: loadedChannels,
+				selectedIds: selectedChannelIds,
+				selectedGroupId,
+				session: activeSession,
+				onSelectionChange: (ids) => {
+					selectedChannelIds = ids;
+					if (
+						selectedGroupId &&
+						!selectionMatchesGroup(loadedChannels, ids, selectedGroupId)
+					) {
+						selectedGroupId = null;
+					}
+				},
+				onSelectedGroupIdChange: (groupId) => {
+					selectedGroupId = groupId;
+				},
+				onAddChannel: () => {
+					void openDashboardAddChannel(activeSession.dashboardOrigin);
+				},
+			});
+		}
+
 		const bodyEl = root.querySelector<HTMLTextAreaElement>('#social-body');
+		const toolbarHost = root.querySelector<HTMLElement>('#social-composer-toolbar');
+		if (toolbarHost) {
+			destroyComposerToolbar = mountComposerToolbar(toolbarHost, {
+				getTextarea: () => root.querySelector<HTMLTextAreaElement>('#social-body'),
+			});
+		}
 		if (bodyEl) {
 			bodyEl.value = bodyDraft;
 			bodyEl.addEventListener('input', () => {
 				bodyDraft = bodyEl.value;
 			});
 		}
-
-		root.querySelectorAll<HTMLInputElement>('.channel-check').forEach((box) => {
-			box.addEventListener('change', () => {
-				if (box.checked) selectedChannelIds.add(box.value);
-				else selectedChannelIds.delete(box.value);
-			});
-		});
 
 		root.querySelector('#social-disconnect')?.addEventListener('click', () => {
 			if (!session || submitting) return;
@@ -308,6 +325,7 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 					session = null;
 					loadedChannels = [];
 					selectedChannelIds = new Set();
+					selectedGroupId = null;
 					submitting = false;
 					renderGate();
 				})
@@ -319,7 +337,7 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 
 		root.querySelector('#social-open-dashboard')?.addEventListener('click', () => {
 			const origin = session?.dashboardOrigin;
-			if (origin) void openDashboardUrl(`${origin}/account`);
+			if (origin) void openDashboardAppUrl(`${origin}/account`);
 		});
 		root.querySelector('#social-refresh')?.addEventListener('click', () => {
 			void refresh();
@@ -345,7 +363,7 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 
 			const result = await createSocialPost(session, {
 				body,
-				integrationIds: readSelectedChannels(),
+				integrationIds: Array.from(selectedChannelIds),
 				scheduledAtIso,
 				status,
 			});
@@ -385,6 +403,7 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 				session = null;
 				loadedChannels = [];
 				selectedChannelIds = new Set();
+				selectedGroupId = null;
 				renderGate();
 				return;
 			}

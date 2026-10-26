@@ -1,3 +1,5 @@
+import { buildDashboardAccountAddChannelUrl } from 'openquok-common';
+
 import { clearPausedSocialDashboardOrigin } from './dashboardSocialDisconnect.js';
 import { rememberDashboardOrigin } from './dashboardOriginStorage.js';
 
@@ -174,6 +176,42 @@ async function focusActiveTabIfAlreadyOnDashboard(targetSignInUrl: string): Prom
 	if (!activeTabMatchesDashboardConnectTarget(active.url, targetSignInUrl)) return false;
 	await chrome.tabs.update(active.id, { active: true });
 	return true;
+}
+
+function normalizeDashboardAppUrl(rawUrl: string): string {
+	const trimmed = rawUrl.trim();
+	const withScheme = trimmed.includes('://') ? trimmed : `https://${trimmed}`;
+	return preferHttpsLocalDevSignInUrl(withScheme);
+}
+
+/** Opens a signed-in dashboard route (e.g. `/account?addChannel=1`) without rewriting to `/sign-in`. */
+export async function openDashboardAppUrl(rawUrl: string): Promise<void> {
+	const href = normalizeDashboardAppUrl(rawUrl);
+	try {
+		const origin = new URL(href).origin;
+		await rememberDashboardOrigin(origin);
+		await clearPausedSocialDashboardOrigin(origin);
+	} catch {
+		/* ignore */
+	}
+
+	if (typeof chrome !== 'undefined' && typeof chrome.tabs?.query === 'function') {
+		const [active] = await chrome.tabs.query({ active: true, currentWindow: true });
+		if (
+			active?.id &&
+			active.url &&
+			activeTabMatchesDashboardConnectTarget(active.url, href)
+		) {
+			await chrome.tabs.update(active.id, { url: href, active: true });
+			return;
+		}
+	}
+
+	await chrome.tabs.create({ url: href, active: true });
+}
+
+export async function openDashboardAddChannel(dashboardOrigin: string): Promise<void> {
+	await openDashboardAppUrl(buildDashboardAccountAddChannelUrl(dashboardOrigin));
 }
 
 export async function openDashboardUrl(rawUrl: string): Promise<void> {

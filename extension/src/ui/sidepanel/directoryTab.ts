@@ -8,6 +8,7 @@ import { POPUP_UI_MESSAGE } from '../../directory/auto-launch/popupMessages.js';
 import type { StoredAutoLaunchState } from '../../directory/auto-launch/sessionStorage.js';
 import { isReadyPage, pageMatchesConfig } from '../../directory/directory-launch/stepRail.js';
 
+import { mountDirectoryChannelPicker } from './directoryChannelPicker.js';
 import { el, escapeHtml, runtimeSendMessage } from './uiHelpers.js';
 
 const directoryChannels = listDirectoryLaunchProviderSummaries();
@@ -56,26 +57,14 @@ async function sendRuntime(message: Record<string, unknown>): Promise<Record<str
 	}
 }
 
-function channelSelectHtml(activeSlug: string | null, locked: boolean): string {
-	const options = directoryChannels
-		.map((ch) => {
-			const selected =
-				(activeSlug ?? selectedChannelId) === ch.identifier ? ' selected' : '';
-			return `<option value="${escapeHtml(ch.identifier)}"${selected}>${escapeHtml(ch.name)}</option>`;
-		})
-		.join('');
-	return `
-		<label class="field-label" for="channel-select">Directory channel</label>
-		<select id="channel-select" class="channel-select" ${locked ? 'disabled' : ''}>${options}</select>
-	`;
-}
-
 export type DirectoryTabController = {
 	refresh: () => Promise<void>;
 	destroy: () => void;
 };
 
 export function mountDirectoryTab(root: HTMLElement): DirectoryTabController {
+	let destroyDirectoryPicker: (() => void) | null = null;
+
 	function render(state: StoredAutoLaunchState | null, error?: string): void {
 		const hasSession = Boolean(state);
 		const product = state?.session.profileSnapshot.name ?? '—';
@@ -84,11 +73,15 @@ export function mountDirectoryTab(root: HTMLElement): DirectoryTabController {
 			selectedChannelId = sessionSlug;
 		}
 
+		destroyDirectoryPicker?.();
+		destroyDirectoryPicker = null;
+
 		root.replaceChildren(
 			el(`
 			<div class="wrap tab-wrap">
 				<p class="muted tab-lead">Human submits on the directory site — OpenQuok never clicks Submit.</p>
-				${channelSelectHtml(sessionSlug, hasSession)}
+				<label class="field-label">Directory channel</label>
+				<div id="directory-channel-picker" class="channel-picker-host"></div>
 				<div class="card">
 					<strong>${escapeHtml(product)}</strong>
 					<p class="status">${escapeHtml(statusForState(state))}</p>
@@ -107,10 +100,19 @@ export function mountDirectoryTab(root: HTMLElement): DirectoryTabController {
 		`)
 		);
 
-		const channelSelect = root.querySelector('#channel-select') as HTMLSelectElement | null;
-		channelSelect?.addEventListener('change', () => {
-			selectedChannelId = channelSelect.value;
-		});
+		const pickerHost = root.querySelector<HTMLElement>('#directory-channel-picker');
+		if (pickerHost) {
+			const activeSelection = sessionSlug ?? selectedChannelId;
+			destroyDirectoryPicker = mountDirectoryChannelPicker(pickerHost, {
+				channels: directoryChannels,
+				selectedId: activeSelection,
+				locked: hasSession,
+				lockedId: sessionSlug,
+				onSelect: (identifier) => {
+					selectedChannelId = identifier;
+				},
+			});
+		}
 
 		root.querySelector('#fill-all')?.addEventListener('click', async () => {
 			const result = await sendRuntime({ type: AUTO_LAUNCH_MESSAGE_TYPE.FILL_ALL });
@@ -185,6 +187,8 @@ export function mountDirectoryTab(root: HTMLElement): DirectoryTabController {
 	return {
 		refresh,
 		destroy: () => {
+			destroyDirectoryPicker?.();
+			destroyDirectoryPicker = null;
 			chrome.runtime.onMessage.removeListener(onRuntimeMessage);
 		},
 	};

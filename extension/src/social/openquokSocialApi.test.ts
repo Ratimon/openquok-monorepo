@@ -5,6 +5,7 @@ import {
 	datetimeLocalToIso,
 	isSocialComposerChannel,
 	listSocialIntegrations,
+	mapIntegrationRow,
 	resolveSocialSession,
 } from './openquokSocialApi.js';
 
@@ -38,37 +39,107 @@ describe('openquokSocialApi', () => {
 		vi.unstubAllGlobals();
 	});
 
+	const schedulableThreadsChannel = {
+		id: '1',
+		name: 'Threads',
+		identifier: 'threads',
+		picture: null,
+		group: null,
+		disabled: false,
+		inBetweenSteps: false,
+		refreshNeeded: false,
+		unschedulableReason: null,
+	};
+
 	it('isSocialComposerChannel excludes directory and broken channels', () => {
+		expect(isSocialComposerChannel(schedulableThreadsChannel)).toBe(true);
 		expect(
 			isSocialComposerChannel({
-				id: '1',
-				name: 'Threads',
-				identifier: 'threads',
-				disabled: false,
-				inBetweenSteps: false,
-				refreshNeeded: false,
-			})
-		).toBe(true);
-		expect(
-			isSocialComposerChannel({
+				...schedulableThreadsChannel,
 				id: '2',
 				name: 'PeerPush',
 				identifier: 'peerpush-standard-launch',
-				disabled: false,
-				inBetweenSteps: false,
-				refreshNeeded: false,
 			})
 		).toBe(false);
 		expect(
 			isSocialComposerChannel({
+				...schedulableThreadsChannel,
 				id: '3',
 				name: 'Skool',
 				identifier: 'skool',
-				disabled: false,
-				inBetweenSteps: false,
 				refreshNeeded: true,
+				unschedulableReason: 'Reconnect this channel first.',
 			})
 		).toBe(false);
+	});
+
+	it('mapIntegrationRow maps picture and unschedulableReason from list rows', () => {
+		expect(
+			mapIntegrationRow({
+				id: 'ch-1',
+				identifier: 'threads',
+				name: 'My Threads',
+				picture: ' integration-profiles/abc.png ',
+				disabled: false,
+				inBetweenSteps: false,
+				refreshNeeded: false,
+			})
+		).toEqual({
+			id: 'ch-1',
+			name: 'My Threads',
+			identifier: 'threads',
+			picture: 'integration-profiles/abc.png',
+			group: null,
+			disabled: false,
+			inBetweenSteps: false,
+			refreshNeeded: false,
+			unschedulableReason: null,
+		});
+
+		expect(
+			mapIntegrationRow({
+				id: 'ch-g',
+				identifier: 'facebook',
+				customer: { id: 'grp-1', name: 'Client A' },
+			})
+		).toMatchObject({
+			group: { id: 'grp-1', name: 'Client A' },
+		});
+
+		expect(
+			mapIntegrationRow({
+				id: 'ch-2',
+				identifier: 'skool',
+				picture: '   ',
+				refreshNeeded: true,
+			})
+		).toMatchObject({
+			picture: null,
+			refreshNeeded: true,
+			unschedulableReason: 'Reconnect this channel first.',
+		});
+
+		expect(
+			mapIntegrationRow({
+				id: 'ch-3',
+				identifier: 'facebook',
+				inBetweenSteps: true,
+			})
+		).toMatchObject({
+			unschedulableReason: 'Finish connecting this channel first.',
+		});
+
+		expect(
+			mapIntegrationRow({
+				id: 'ch-4',
+				identifier: 'instagram',
+				disabled: true,
+			})
+		).toMatchObject({
+			unschedulableReason: 'This channel is disabled.',
+		});
+
+		expect(mapIntegrationRow({ identifier: 'threads' })).toBeNull();
 	});
 
 	it('resolveSocialSession does not treat /users/me profile id as workspace id', async () => {
@@ -237,6 +308,7 @@ describe('openquokSocialApi', () => {
 							id: '11111111-1111-4111-8111-111111111111',
 							name: 'Threads',
 							identifier: 'threads',
+							picture: 'https://graph.facebook.com/me/picture',
 							disabled: false,
 							inBetweenSteps: false,
 							refreshNeeded: false,
@@ -266,7 +338,11 @@ describe('openquokSocialApi', () => {
 		expect(result.ok).toBe(true);
 		if (result.ok) {
 			expect(result.channels).toHaveLength(1);
-			expect(result.channels[0]?.identifier).toBe('threads');
+			expect(result.channels[0]).toMatchObject({
+				identifier: 'threads',
+				picture: 'https://graph.facebook.com/me/picture',
+				unschedulableReason: null,
+			});
 		}
 	});
 

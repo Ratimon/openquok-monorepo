@@ -19,13 +19,21 @@ export type SocialSessionContext = {
 	organizationId: string;
 };
 
+export type SocialIntegrationChannelGroup = {
+	id: string;
+	name: string;
+};
+
 export type SocialIntegrationChannel = {
 	id: string;
 	name: string;
 	identifier: string;
+	picture: string | null;
+	group: SocialIntegrationChannelGroup | null;
 	disabled: boolean;
 	inBetweenSteps: boolean;
 	refreshNeeded: boolean;
+	unschedulableReason: string | null;
 };
 
 export type CreateSocialPostInput = {
@@ -226,18 +234,55 @@ async function authorizedPost(
 	return { ok: true, data: nestedData(record) };
 }
 
-function mapIntegrationRow(row: Record<string, unknown>): SocialIntegrationChannel | null {
+function readIntegrationGroup(row: Record<string, unknown>): SocialIntegrationChannelGroup | null {
+	const raw =
+		(row.group && typeof row.group === 'object' ? row.group : null) ??
+		(row.customer && typeof row.customer === 'object' ? row.customer : null);
+	if (!raw || typeof raw !== 'object') return null;
+	const record = raw as Record<string, unknown>;
+	const id = typeof record.id === 'string' ? record.id.trim() : '';
+	const name = typeof record.name === 'string' ? record.name.trim() : '';
+	if (!id) return null;
+	return { id, name: name || id };
+}
+
+function readIntegrationPicture(row: Record<string, unknown>): string | null {
+	const picture = row.picture;
+	if (typeof picture !== 'string') return null;
+	const trimmed = picture.trim();
+	return trimmed ? trimmed : null;
+}
+
+function integrationUnschedulableReason(
+	disabled: boolean,
+	inBetweenSteps: boolean,
+	refreshNeeded: boolean
+): string | null {
+	if (disabled) return 'This channel is disabled.';
+	if (inBetweenSteps) return 'Finish connecting this channel first.';
+	if (refreshNeeded) return 'Reconnect this channel first.';
+	return null;
+}
+
+/** Maps a `/integrations/list` row into a social channel view model. */
+export function mapIntegrationRow(row: Record<string, unknown>): SocialIntegrationChannel | null {
 	const id = typeof row.id === 'string' ? row.id : '';
 	const identifier = typeof row.identifier === 'string' ? row.identifier : '';
 	const name = typeof row.name === 'string' ? row.name : identifier;
 	if (!id || !identifier) return null;
+	const disabled = row.disabled === true;
+	const inBetweenSteps = row.inBetweenSteps === true;
+	const refreshNeeded = row.refreshNeeded === true;
 	return {
 		id,
 		name,
 		identifier,
-		disabled: row.disabled === true,
-		inBetweenSteps: row.inBetweenSteps === true,
-		refreshNeeded: row.refreshNeeded === true,
+		picture: readIntegrationPicture(row),
+		group: readIntegrationGroup(row),
+		disabled,
+		inBetweenSteps,
+		refreshNeeded,
+		unschedulableReason: integrationUnschedulableReason(disabled, inBetweenSteps, refreshNeeded),
 	};
 }
 

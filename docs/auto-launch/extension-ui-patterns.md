@@ -438,6 +438,8 @@ Use this checklist after local migrations and a fresh extension build. Goal: one
 
 The extension **side panel** (`extension/src/ui/sidepanel/sidepanel.ts`) exposes **Social** (session API composer) and **Directory** (auto-launch) tabs. User-facing docs: [Browser extension](../../web/src/content/docs/installation/chrome-extension.md). Social scheduling in v1 always uses the **server** path: dashboard session → `POST /api/v1/posts` → orchestrator (OAuth, credentials, and cookie-session channels such as Skool). Connect type per channel is unchanged — see [connect-rules](../../web/src/content/docs/platforms/connect-rules.md).
 
+**Social channel picker:** `mountChannelPicker` in `extension/src/ui/sidepanel/channelPicker.ts` mirrors the dashboard composer’s circular avatars (selection ring, grayscale when off, provider badge, authenticated avatar download/proxy). Styling uses forest semantic tokens in `sidepanel.css`. Manual smoke steps live in the browser extension doc under **Manual verification checklist**.
+
 | Pattern | Common MV3 approaches (internal REA) | OpenQuok v1 |
 | --- | --- | --- |
 | Primary composer UI | Toolbar `action.default_popup` | **Side panel** only (`side_panel.default_path` + `openPanelOnActionClick`) |
@@ -474,6 +476,7 @@ Implementation detail: `extension/src/social/browserPublishPort.ts` and the tabl
 
 | Date | Notes |
 | --- | --- |
+| 2026-10-26 | Social channel picker parity note; manual side panel checklist in chrome-extension doc |
 | 2026-10-25 | Social shell patterns; side panel vs popup; context menu draft; `BrowserPublishPort` stub; user docs links |
 | 2026-10-24 | Directory login notification banners — OpenQuok mapping, PeerPush/Uneed adapter selectors, gate content script |
 | 2026-10-16 | Uneed + PeerPush `profilePath` mapping tables; My Products card manual smoke test |

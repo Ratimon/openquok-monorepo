@@ -43,6 +43,11 @@ export {
 	pricing,
 } from './subscription/pricing.js';
 export {
+	ACCOUNT_ADD_CHANNEL_QUERY,
+	ACCOUNT_ADD_CHANNEL_QUERY_VALUE,
+	buildDashboardAccountAddChannelPath,
+	buildDashboardAccountAddChannelUrl,
+	isAccountAddChannelDeepLink,
 	AUTO_LAUNCH_MESSAGE_TYPE,
 	BROWSER_EXTENSION_MESSAGE_TYPE,
 	COOKIE_SESSION_PROVIDERS,

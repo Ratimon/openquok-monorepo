@@ -209,6 +209,8 @@
 					onFocusIntegration={presenter.focusIntegration.bind(presenter)}
 					onRequestCustomize={presenter.requestCustomize.bind(presenter)}
 					onSelectGroup={presenter.selectGroup.bind(presenter)}
+					onToggleSelectAllSchedulable={presenter.toggleSelectAllSchedulable.bind(presenter)}
+					allSchedulableChannelsSelected={presenter.allSchedulableChannelsSelected()}
 					editorLocked={presenter.mode === 'custom' ? presenter.editorLocked : false}
 					editorLockMessage="Click this button to exit global editing and customize the post for this channel"
 					onEditorUnlock={() => {

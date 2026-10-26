@@ -93,6 +93,8 @@
 		onFocusIntegration: (id: string) => void;
 		onRequestCustomize: (id: string) => void;
 		onSelectGroup: (groupId: string | null) => void;
+		onToggleSelectAllSchedulable?: () => void;
+		allSchedulableChannelsSelected?: boolean;
 		editorLocked: boolean;
 		editorLockMessage: string;
 		onEditorUnlock: () => void;
@@ -166,6 +168,8 @@
 		onFocusIntegration,
 		onRequestCustomize,
 		onSelectGroup,
+		onToggleSelectAllSchedulable,
+		allSchedulableChannelsSelected = false,
 		editorLocked,
 		editorLockMessage,
 		onEditorUnlock,
@@ -542,7 +546,50 @@
 
 <div class="grid min-h-0 min-w-0 flex-1 grid-cols-1 divide-y divide-base-300 lg:grid-cols-2 lg:divide-x lg:divide-y-0">
 	<div class="flex min-h-0 min-w-0 flex-col gap-4 overflow-y-auto p-4 sm:p-6">
-		<div class="flex flex-col gap-3">
+		<div class="flex flex-col gap-2">
+			{#if !guestMode && onToggleSelectAllSchedulable}
+				<div class="flex flex-wrap items-center gap-3">
+					<label class="flex cursor-pointer items-center gap-2 text-sm text-base-content/80">
+						<input
+							type="checkbox"
+							class="size-3.5 rounded border-base-300 accent-primary"
+							checked={allSchedulableChannelsSelected}
+							onchange={() => onToggleSelectAllSchedulable()}
+						/>
+						Select all
+					</label>
+					<span class="hidden h-4 w-px bg-base-300 sm:block" aria-hidden="true"></span>
+					<div class="relative min-w-0 flex-1 sm:ml-auto sm:flex-none">
+						<div class={guestMode ? 'pointer-events-none' : ''} inert={guestMode}>
+							<SelectGroupTargeting
+								channels={socialChannels}
+								selectedGroupId={selectedGroupId}
+								onSelect={onSelectGroup}
+							/>
+						</div>
+					</div>
+				</div>
+			{:else}
+				<div class="relative shrink-0 self-end">
+					<div class={guestMode ? 'pointer-events-none' : ''} inert={guestMode}>
+						<SelectGroupTargeting
+							channels={socialChannels}
+							selectedGroupId={selectedGroupId}
+							onSelect={onSelectGroup}
+						/>
+					</div>
+					{#if guestMode}
+						<button
+							type="button"
+							class="absolute inset-0 z-10 rounded-lg"
+							aria-label="Connect your accounts"
+							onclick={() => openGuestLock('connect-channels')}
+						>
+							<ComposerGuestLockBadge />
+						</button>
+					{/if}
+				</div>
+			{/if}
 			<PicksSocialsComponent
 				channels={socialChannels}
 				{selectedIds}
@@ -551,25 +598,6 @@
 				{isLoggedIn}
 				onConnectAccounts={() => openGuestLock('connect-channels')}
 			/>
-			<div class="relative shrink-0 self-end">
-				<div class={guestMode ? 'pointer-events-none' : ''} inert={guestMode}>
-					<SelectGroupTargeting
-						channels={socialChannels}
-						selectedGroupId={selectedGroupId}
-						onSelect={onSelectGroup}
-					/>
-				</div>
-				{#if guestMode}
-					<button
-						type="button"
-						class="absolute inset-0 z-10 rounded-lg"
-						aria-label="Connect your accounts"
-						onclick={() => openGuestLock('connect-channels')}
-					>
-						<ComposerGuestLockBadge />
-					</button>
-				{/if}
-			</div>
 		</div>
 
 		<SelectTargets

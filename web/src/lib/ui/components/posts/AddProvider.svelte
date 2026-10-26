@@ -1,11 +1,16 @@
 <script lang="ts">
-	import type { BrowserExtensionSessionCookie } from 'openquok-common';
+	import {
+		ACCOUNT_ADD_CHANNEL_QUERY,
+		isAccountAddChannelDeepLink,
+		type BrowserExtensionSessionCookie
+	} from 'openquok-common';
 
 	import type { IntegrationCatalogItemProgrammerModel } from '$lib/integrations/Integrations.repository.svelte';
 	import type { IntegrationCatalogCustomField } from '$lib/integrations/utils/credentialsConnect';
 	import type { ButtonSize, ButtonVariant } from '$lib/ui/buttons/Button.svelte';
 
 	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import { getRootPathAccount } from '$lib/area-protected';
 	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
 	import {
@@ -143,6 +148,25 @@
 		}
 		open = true;
 	}
+
+	let addChannelDeepLinkHandled = $state(false);
+
+	$effect(() => {
+		if (invite || addChannelDeepLinkHandled) return;
+		if (!isAccountAddChannelDeepLink(page.url.searchParams)) return;
+		addChannelDeepLinkHandled = true;
+		void (async () => {
+			await ensureWorkspaceLoaded();
+			openAddChannelFlow();
+			const next = new URL(page.url);
+			next.searchParams.delete(ACCOUNT_ADD_CHANNEL_QUERY);
+			const query = next.searchParams.toString();
+			await goto(`${next.pathname}${query ? `?${query}` : ''}${next.hash}`, {
+				replaceState: true,
+				keepFocus: true
+			});
+		})();
+	});
 
 	const currentWorkspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
 

@@ -62,11 +62,16 @@ export type FieldFillResult = {
 	message?: string;
 };
 
+/** Short paid vs free label for extension directory channel chips (matches link-directory `cost_tier`). */
+export type DirectoryLaunchTierLabel = 'Free' | 'Paid';
+
 export interface DirectoryLaunchProvider {
 	/** Matches `auto_launch_destinations.provider_slug`. */
 	identifier: string;
 	/** Human label for popup / diagnostics. */
 	name: string;
+	/** Shown on the extension Directory tab channel avatar (top-right). */
+	tierLabel: DirectoryLaunchTierLabel;
 	/** Default entry URL when opening the directory from the extension popup. */
 	defaultStartUrl: string;
 	/** Built script path under `extension/dist/` (manifest `content_scripts[].js`). */
@@ -87,6 +92,7 @@ const UNEED_HOST_PERMISSION = '*://*.uneed.best/*';
 const UNEED_JOIN_LINE: DirectoryLaunchProvider = {
 	identifier: 'uneed-join-line',
 	name: 'Uneed — Join the line',
+	tierLabel: 'Free',
 	defaultStartUrl: 'https://uneed.best/pricing',
 	contentScriptEntry: 'content/directory-launch/openquok-directory-uneed.js',
 	hostPatterns: UNEED_HOST_PATTERNS,
@@ -96,6 +102,7 @@ const UNEED_JOIN_LINE: DirectoryLaunchProvider = {
 const UNEED_PAID_LAUNCH: DirectoryLaunchProvider = {
 	identifier: 'uneed-paid-launch',
 	name: 'Uneed — Paid launch',
+	tierLabel: 'Paid',
 	defaultStartUrl: 'https://uneed.best/pricing',
 	contentScriptEntry: 'content/directory-launch/openquok-directory-uneed.js',
 	hostPatterns: UNEED_HOST_PATTERNS,
@@ -105,6 +112,7 @@ const UNEED_PAID_LAUNCH: DirectoryLaunchProvider = {
 const UNEED_MAKER_PROFILE: DirectoryLaunchProvider = {
 	identifier: 'uneed-maker-profile',
 	name: 'Uneed — Maker profile',
+	tierLabel: 'Free',
 	defaultStartUrl: 'https://uneed.best/profile',
 	contentScriptEntry: 'content/directory-launch/openquok-directory-uneed.js',
 	hostPatterns: UNEED_HOST_PATTERNS,
@@ -121,6 +129,7 @@ const PEERPUSH_HOST_PERMISSION = '*://*.peerpush.com/*';
 const PEERPUSH_STANDARD_LAUNCH: DirectoryLaunchProvider = {
 	identifier: 'peerpush-standard-launch',
 	name: 'PeerPush — Standard launch',
+	tierLabel: 'Paid',
 	defaultStartUrl: 'https://peerpush.com/submit',
 	contentScriptEntry: 'content/directory-launch/openquok-directory-peerpush.js',
 	hostPatterns: PEERPUSH_HOST_PATTERNS,
@@ -130,6 +139,7 @@ const PEERPUSH_STANDARD_LAUNCH: DirectoryLaunchProvider = {
 const PEERPUSH_FREE_QUEUE: DirectoryLaunchProvider = {
 	identifier: 'peerpush-free-queue',
 	name: 'PeerPush — Free queue',
+	tierLabel: 'Free',
 	defaultStartUrl: 'https://peerpush.com/pricing',
 	contentScriptEntry: 'content/directory-launch/openquok-directory-peerpush.js',
 	hostPatterns: PEERPUSH_HOST_PATTERNS,
@@ -159,8 +169,16 @@ export function isDirectoryLaunchProviderId(identifier: string): boolean {
 	return providersById.has(identifier);
 }
 
-export function listDirectoryLaunchProviderSummaries(): { identifier: string; name: string }[] {
-	return directoryLaunchProviders.map(({ identifier, name }) => ({ identifier, name }));
+export function listDirectoryLaunchProviderSummaries(): {
+	identifier: string;
+	name: string;
+	tierLabel: DirectoryLaunchTierLabel;
+}[] {
+	return directoryLaunchProviders.map(({ identifier, name, tierLabel }) => ({
+		identifier,
+		name,
+		tierLabel,
+	}));
 }
 
 function normalizeDirectoryLaunchHostname(hostname: string): string {

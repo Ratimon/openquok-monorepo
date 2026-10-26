@@ -398,6 +398,16 @@ export class CreateSocialPostPresenter {
 	toggleChannel(id: string): void {
 		if (this.selectedIds.includes(id)) {
 			this.selectedIds = this.selectedIds.filter((x) => x !== id);
+			if (this.selectedGroupId) {
+				const hasAnyFromCustomer = this.selectedIds.some(
+					(sid) =>
+						this.baseSocialChannelsVm.find((c) => c.id === sid)?.group?.id ===
+						this.selectedGroupId
+				);
+				if (!hasAnyFromCustomer) {
+					this.selectedGroupId = null;
+				}
+			}
 			if (this.mode === 'custom' && this.focusedIntegrationId === id) {
 				this.focusedIntegrationId = this.selectedIds.length ? this.selectedIds[0]! : null;
 				this.customEditingUnlocked = false;
@@ -449,6 +459,26 @@ export class CreateSocialPostPresenter {
 			this.syncFollowUpRepliesAcrossSelectedChannels();
 			toast.success('Group channels selected');
 		}
+	}
+
+	allSchedulableChannelsSelected(): boolean {
+		const schedulable = this.baseSocialChannelsVm.filter((c) => isChannelSchedulable(c));
+		return (
+			schedulable.length > 0 && schedulable.every((c) => this.selectedIds.includes(c.id))
+		);
+	}
+
+	toggleSelectAllSchedulable(): void {
+		const schedulable = this.baseSocialChannelsVm.filter((c) => isChannelSchedulable(c));
+		if (!schedulable.length) return;
+		const allSelected = schedulable.every((c) => this.selectedIds.includes(c.id));
+		this.selectedGroupId = null;
+		if (allSelected) {
+			this.selectedIds = [];
+			return;
+		}
+		this.selectedIds = schedulable.map((c) => c.id);
+		this.syncFollowUpRepliesAcrossSelectedChannels();
 	}
 
 	// --- Editor mode & body persistence ---

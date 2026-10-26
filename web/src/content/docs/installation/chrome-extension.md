@@ -2,7 +2,7 @@
 title: OpenQuok browser extension
 description: Install the OpenQuok Chrome extension for Skool connect, side-panel social scheduling, directory autofill, and context-menu drafts.
 order: 7
-lastUpdated: 2026-10-25
+lastUpdated: 2026-10-26
 sidebar:
   label: Browser extension
 ---
@@ -37,10 +37,14 @@ The primary UI is the Chrome <strong>side panel</strong> (<Badge text="sidepanel
 
 | Tab | Purpose |
 | --- | --- |
-| <strong>Social</strong> | Unsigned: <strong>Connect to OpenQuok.com</strong> or <strong>Connect to self host</strong> (URL field, default <Badge text="https://localhost:5173" variant="path" /> for Vite dev — bare <Badge text="5173" variant="path" /> or <Badge text="localhost:5173" variant="path" /> autofill to that origin on blur). Keep a signed-in dashboard tab open on that origin — the extension reads your session from that tab (httpOnly cookies). Signed in: multi-select connected channels, a short composer, <strong>Publish now</strong> / <strong>Schedule</strong> / <strong>Draft</strong>, and <strong>Open full composer</strong> for the dashboard editor. |
+| <strong>Social</strong> | Unsigned: <strong>Connect to OpenQuok.com</strong> or <strong>Connect to self host</strong> (URL field, default <Badge text="https://localhost:5173" variant="path" /> for Vite dev — bare <Badge text="5173" variant="path" /> or <Badge text="localhost:5173" variant="path" /> autofill to that origin on blur). Keep a signed-in dashboard tab open on that origin — the extension reads your session from that tab (httpOnly cookies). Signed in: pick channels with the same circular avatar chips as the dashboard post composer (provider badge, tap to select), a short composer, <strong>Publish now</strong> / <strong>Schedule</strong> / <strong>Draft</strong>, and <strong>Open full composer</strong> for the dashboard editor. |
 | <strong>Directory</strong> | Session checks, profile handoff status, and <strong>Fill</strong> actions for PeerPush and Uneed on the active tab. |
 
 On open, the Social tab reads any <strong>context-menu draft</strong> stored for this browser session and merges it into the composer body (or media URL for images).
+
+### Channel selection (Social composer)
+
+Connected channels appear in a horizontal row of <strong>48px circular avatars</strong> <strong>above</strong> the post field, matching the dashboard post composer. Use <strong>Select all</strong> to toggle every schedulable channel, or <strong>Select grouped channels</strong> to pick a workspace group (the same channel groups you assign on the dashboard). Each chip shows the channel photo when OpenQuok has one (or the first two letters of the channel name), plus a small <strong>provider badge</strong> for the network. Tap a chip to include or exclude that channel: selected chips use a primary-colored ring and full color; unselected chips are grayscale. Channels that need a refresh or reconnect in the dashboard stay dimmed — hover for the reason; they do not toggle on until you fix them in the dashboard (you can still deselect one that was already selected). The dashed <strong>+</strong> chip at the end of the row opens the dashboard <strong>Add Channel</strong> picker (<Badge text="/account?addChannel=1" variant="path" />); the composer footer link points to the same place. The side panel uses the same <strong>forest</strong> theme tokens as the signed-in web app so Social and Directory tabs stay visually consistent.
 
 <Callout type="note">
 <p><strong>Local dev (<Badge text="https://localhost:5173" variant="path" />):</strong> Sign in on your Vite dashboard, keep that tab focused in the window where you open the side panel, then tap <strong>Refresh</strong>. The footer shows which <strong>Environment</strong> origin the composer uses (local Vite proxies <Badge text="/api" variant="path" /> — it does not reuse production <Badge text="api.*" variant="path" /> hosts). If you still see production channels, you are still on a production session; sign out on <Badge text="www.openquok.com" variant="path" /> or use a separate Chrome profile for dev.</p>
@@ -61,6 +65,25 @@ The extension saves the draft, opens the side panel on the <strong>Social</stron
 <Callout type="note">
 <p>Publishing still uses your OpenQuok session API (<Badge text="POST /api/v1/posts" variant="path" />). <strong>In-browser send</strong> from a live platform tab is planned for cookie-session channels but is not available in the current build.</p>
 </Callout>
+
+## Manual verification checklist
+
+Run this after you build or update the extension from source, or before you ship UI changes to the side panel. Use a Chrome profile where you are signed in to OpenQuok and have at least two connected social channels (for example Facebook and Skool).
+
+### Social tab
+
+- Open the side panel on the <strong>Social</strong> tab and confirm the composer loads with your dashboard session (connection label matches the origin you use).
+- Confirm <strong>Select all</strong> selects every schedulable channel and clears when you turn it off; <strong>Select grouped channels</strong> selects all channels in a group when you use workspace groups.
+- Confirm each connected channel shows an avatar (or initials), a provider badge, and toggles selection on click — unselected chips look muted/grayscale; selected chips show a primary ring.
+- If you have a channel that is not schedulable in the dashboard, confirm it stays non-interactive until fixed, the tooltip explains why, and you cannot newly select it from the extension.
+- Tap the <strong>+</strong> chip and confirm it opens your dashboard <a href="/account">Account</a> page (channels). Use the footer link for the same path if you prefer.
+- Select one or more channels, enter post text, and save a <strong>Draft</strong> or <strong>Schedule</strong> — confirm the post appears in the dashboard with the channels you picked (same <Badge text="integrationIds" variant="param" /> behavior as the full composer).
+- Optional: right-click selected text on any page, choose <strong>Schedule with OpenQuok</strong>, and confirm the draft merges into the composer body when the panel opens.
+
+### Directory tab and theme
+
+- Switch to <strong>Directory</strong> and confirm copy, gate messages, and <strong>Fill</strong> actions remain readable on the forest-themed panel (tabs, cards, and inputs — not only the Social composer).
+- With a product profile and an active directory handoff, smoke one <strong>Fill</strong> action on PeerPush or Uneed if you use directory launch in this profile.
 
 ## Who needs this
 

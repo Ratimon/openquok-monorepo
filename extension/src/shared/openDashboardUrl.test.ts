@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import { buildDashboardAccountAddChannelUrl } from 'openquok-common';
+
 import {
 	activeTabMatchesDashboardConnectTarget,
 	DEFAULT_SELF_HOST_DASHBOARD_INPUT,
@@ -119,5 +121,13 @@ describe('activeTabMatchesDashboardConnectTarget', () => {
 				'https://www.openquok.com/sign-in'
 			)
 		).toBe(false);
+	});
+});
+
+describe('buildDashboardAccountAddChannelUrl (Add Channel deep link)', () => {
+	it('appends addChannel=1 on /account', () => {
+		expect(buildDashboardAccountAddChannelUrl('https://www.openquok.com')).toBe(
+			'https://www.openquok.com/account?addChannel=1'
+		);
 	});
 });

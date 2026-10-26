@@ -16,3 +16,15 @@ const iconsDest = join(distDir, 'icons');
 if (existsSync(iconsSrc)) {
 	cpSync(iconsSrc, iconsDest, { recursive: true });
 }
+
+const linkDirectorySrc = join(extensionRoot, '../web/static/icons/link-directory');
+const linkDirectoryDest = join(distDir, 'icons/link-directory');
+if (existsSync(linkDirectorySrc)) {
+	mkdirSync(linkDirectoryDest, { recursive: true });
+	for (const slug of ['peerpush', 'uneed']) {
+		const file = join(linkDirectorySrc, `${slug}.svg`);
+		if (existsSync(file)) {
+			copyFileSync(file, join(linkDirectoryDest, `${slug}.svg`));
+		}
+	}
+}
