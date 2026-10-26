@@ -6,6 +6,16 @@ import {
 } from './dashboardApiOrigin.js';
 import { syncDashboardOriginFromActiveTab } from './dashboardActiveTab.js';
 import { listDashboardOriginCandidates } from './dashboardOriginStorage.js';
+import {
+	clearPausedSocialDashboardOrigin,
+	listPausedSocialDashboardOrigins,
+} from './dashboardSocialDisconnect.js';
+import { clearExtensionDashboardSessions } from './clearExtensionDashboardSession.js';
+import { findDashboardBridgeSession } from './dashboardBridgeStorage.js';
+import {
+	cacheMintedAccessToken,
+	readCachedMintedAccessToken,
+} from './dashboardMintedAccessTokenCache.js';
 import { preferHttpsLocalDevSignInUrl } from './openDashboardUrl.js';
 
 function normalizeDashboardUrl(origin: string): string {
@@ -17,7 +27,41 @@ function apiRoot(origin: string): string {
 }
 
 async function readCookiesForOrigin(origin: string): Promise<chrome.cookies.Cookie[]> {
-	return chrome.cookies.getAll({ url: normalizeDashboardUrl(origin) });
+	const normalized = normalizeDashboardUrl(origin);
+	const byUrl = await chrome.cookies.getAll({ url: normalized });
+	const sessionOnUrl = byUrl.some(
+		(cookie) =>
+			(cookie.name === 'refreshToken' || cookie.name === 'access_token') && Boolean(cookie.value)
+	);
+	if (sessionOnUrl) return byUrl;
+
+	try {
+		const host = new URL(normalized).hostname;
+		if (host === 'localhost' || host === '127.0.0.1') {
+			const byDomain = await chrome.cookies.getAll({ domain: host });
+			const sessionOnDomain = byDomain.filter(
+				(cookie) =>
+					(cookie.name === 'refreshToken' || cookie.name === 'access_token') && Boolean(cookie.value)
+			);
+			if (sessionOnDomain.length > 0) return [...byUrl, ...sessionOnDomain];
+		}
+	} catch {
+		/* ignore */
+	}
+	return byUrl;
+}
+
+/** After sign-in, cookies return but a prior Disconnect may still pause this origin. */
+async function clearPauseWhenSessionCookiesPresent(cookieOrigin: string): Promise<string | null> {
+	const cookies = await readCookiesForOrigin(cookieOrigin);
+	const hasSession = cookies.some(
+		(cookie) =>
+			(cookie.name === 'refreshToken' || cookie.name === 'access_token') && Boolean(cookie.value)
+	);
+	if (!hasSession) return null;
+	const dashboardOrigin = dashboardOriginForAuthCookie(cookieOrigin);
+	await clearPausedSocialDashboardOrigin(dashboardOrigin);
+	return dashboardOrigin;
 }
 
 /** Dashboard origin that owns session cookies (never a stale remembered host). */
@@ -37,65 +81,28 @@ export async function hasDashboardSessionCookie(origin: string): Promise<boolean
 	);
 }
 
-async function postVerifyRefresh(
-	apiOrigin: string,
-	refreshToken: string
-): Promise<'ok' | 'invalid' | 'retry'> {
-	const url = `${apiRoot(apiOrigin)}/auth/verify-refresh`;
-	try {
-		const response = await fetch(url, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			credentials: 'omit',
-			body: JSON.stringify({ refreshToken }),
-		});
-		if (response.ok) return 'ok';
-		if (response.status === 401 || response.status === 403) return 'invalid';
-		if (response.status === 404) return 'retry';
-		return 'retry';
-	} catch {
-		return 'retry';
-	}
+type MintAccessTokenResult =
+	| { ok: true; accessToken: string }
+	| { ok: false; error: string };
+
+function apiErrorMessage(body: unknown, fallback: string): string {
+	const record = body && typeof body === 'object' ? (body as Record<string, unknown>) : {};
+	const message =
+		(typeof record.message === 'string' && record.message) ||
+		(typeof record.error === 'string' && record.error);
+	return message || fallback;
 }
 
 /**
- * Confirms refresh session: prefers `/auth/verify-refresh` (no rotation).
- * When that route is missing (404 on all hosts), falls back to `/auth/refresh` mint.
+ * Mint a bearer access token via `POST /auth/refresh` (same path the dashboard uses).
+ * Does not call verify-refresh — DB-only verify can reject tokens that still refresh via Supabase.
  */
-async function confirmDashboardRefreshSession(
-	cookieOrigin: string,
-	refreshToken: string,
-	dashboardCandidates: string[]
-): Promise<boolean> {
-	const dashboardForApi =
-		dashboardCandidates.find((candidate) => candidate === cookieOrigin) ??
-		dashboardCandidates[0] ??
-		cookieOrigin;
-	const apiOrigins = await listAuthApiOriginsForDashboard(dashboardForApi);
-
-	let verifyUnavailable = false;
-
-	for (const apiOrigin of apiOrigins) {
-		const result = await postVerifyRefresh(apiOrigin, refreshToken);
-		if (result === 'ok') {
-			await rememberAuthApiOrigin(apiOrigin);
-			return true;
-		}
-		if (result === 'invalid') return false;
-		verifyUnavailable = true;
-	}
-
-	if (!verifyUnavailable) return false;
-
-	const minted = await mintAccessTokenFromRefreshToken(dashboardForApi, refreshToken);
-	return Boolean(minted);
-}
-
 async function mintAccessTokenFromRefreshToken(
 	dashboardOrigin: string,
 	refreshToken: string
-): Promise<string | null> {
+): Promise<MintAccessTokenResult> {
 	const apiOrigins = await listAuthApiOriginsForDashboard(dashboardOrigin);
+	let lastError = 'Could not read your session. Try signing in again on the dashboard.';
 
 	for (const apiOrigin of apiOrigins) {
 		const url = `${apiRoot(apiOrigin)}/auth/refresh`;
@@ -108,6 +115,7 @@ async function mintAccessTokenFromRefreshToken(
 				body: JSON.stringify({ refreshToken }),
 			});
 		} catch {
+			lastError = 'Could not reach the OpenQuok API. Is the backend running on port 3000?';
 			continue;
 		}
 
@@ -118,8 +126,16 @@ async function mintAccessTokenFromRefreshToken(
 			body = null;
 		}
 
-		if (response.status === 401 || response.status === 403) return null;
-		if (!response.ok) continue;
+		if (response.status === 401 || response.status === 403) {
+			return {
+				ok: false,
+				error: apiErrorMessage(body, 'Session expired. Sign in on the dashboard again.'),
+			};
+		}
+		if (!response.ok) {
+			lastError = apiErrorMessage(body, `Session refresh failed (${response.status}).`);
+			continue;
+		}
 
 		const record = body && typeof body === 'object' ? (body as Record<string, unknown>) : {};
 		const data =
@@ -129,31 +145,41 @@ async function mintAccessTokenFromRefreshToken(
 		const accessToken = typeof data.accessToken === 'string' ? data.accessToken : null;
 		if (accessToken?.trim()) {
 			await rememberAuthApiOrigin(apiOrigin);
-			return accessToken;
+			return { ok: true, accessToken };
 		}
 	}
 
-	return null;
+	return { ok: false, error: lastError };
 }
 
-export async function readAccessTokenCookie(dashboardOrigin: string): Promise<string | null> {
-	const origins = listAuthCheckOriginsForDashboard(dashboardOrigin);
-	const dashboardCandidates = await listDashboardOriginCandidates();
+export async function readAccessTokenCookie(
+	dashboardOrigin: string
+): Promise<{ accessToken: string } | { error: string } | null> {
+	const originCandidates = listAuthCheckOriginsForDashboard(dashboardOrigin);
 
-	for (const origin of origins) {
+	for (const origin of originCandidates) {
 		const cookies = await readCookiesForOrigin(origin);
 		const accessToken = cookies.find((cookie) => cookie.name === 'access_token' && cookie.value)?.value;
-		if (accessToken) return accessToken;
+		if (accessToken) return { accessToken };
 
 		const refreshToken = cookies.find((cookie) => cookie.name === 'refreshToken' && cookie.value)?.value;
 		if (!refreshToken) continue;
 
-		const valid = await confirmDashboardRefreshSession(origin, refreshToken, dashboardCandidates);
-		if (!valid) continue;
-
 		const minted = await mintAccessTokenFromRefreshToken(dashboardOrigin, refreshToken);
-		if (minted) return minted;
+		if (minted.ok) {
+			await cacheMintedAccessToken(dashboardOrigin, minted.accessToken);
+			return { accessToken: minted.accessToken };
+		}
+		return { error: minted.error };
 	}
+
+	const bridge = await findDashboardBridgeSession(originCandidates);
+	if (bridge?.accessToken) {
+		return { accessToken: bridge.accessToken };
+	}
+
+	const cached = await readCachedMintedAccessToken(dashboardOrigin);
+	if (cached) return { accessToken: cached };
 
 	return null;
 }
@@ -163,8 +189,8 @@ export function dashboardSignInUrl(origin: string): string {
 }
 
 /**
- * Logged-in when `access_token` is present, or `refreshToken` passes verify-refresh
- * (or `/auth/refresh` when verify-refresh is not deployed yet).
+ * Logged-in when a dashboard session cookie is present (`access_token` or httpOnly `refreshToken`).
+ * Access tokens for API calls are minted separately via `/auth/refresh`.
  */
 export async function isDashboardLoggedIn(): Promise<{
 	loggedIn: boolean;
@@ -177,28 +203,33 @@ export async function isDashboardLoggedIn(): Promise<{
 		listDashboardOriginCandidates(),
 	]);
 	let fallbackOrigin = dashboardCandidates[0] ?? 'https://www.openquok.com';
+	const pausedOrigins = await listPausedSocialDashboardOrigins();
 
 	for (const origin of checkOrigins) {
+		const unpaused = await clearPauseWhenSessionCookiesPresent(origin);
+		const dashboardOrigin = dashboardOriginForAuthCookie(origin);
+		if (unpaused) pausedOrigins.delete(unpaused);
+		if (pausedOrigins.has(dashboardOrigin)) continue;
+
 		const cookies = await readCookiesForOrigin(origin);
 		const accessToken = cookies.find((cookie) => cookie.name === 'access_token' && cookie.value)?.value;
 		if (accessToken) {
 			return {
 				loggedIn: true,
-				loginUrl: dashboardSignInUrl(dashboardOriginForAuthCookie(origin)),
+				loginUrl: dashboardSignInUrl(dashboardOrigin),
 			};
 		}
 
 		const refreshToken = cookies.find((cookie) => cookie.name === 'refreshToken' && cookie.value)?.value;
 		if (!refreshToken) continue;
 
-		const valid = await confirmDashboardRefreshSession(origin, refreshToken, dashboardCandidates);
-		if (!valid) continue;
-
 		return {
 			loggedIn: true,
-			loginUrl: dashboardSignInUrl(dashboardOriginForAuthCookie(origin)),
+			loginUrl: dashboardSignInUrl(dashboardOrigin),
 		};
 	}
+
+	await clearExtensionDashboardSessions([...checkOrigins, ...dashboardCandidates]);
 
 	for (const origin of dashboardCandidates) {
 		fallbackOrigin = origin;

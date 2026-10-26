@@ -50,6 +50,17 @@
       "matches": ["https://uneed.best/*", "https://www.uneed.best/*"],
       "js": ["content/directory-launch/openquok-directory-uneed.js"],
       "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "http://localhost/*",
+        "https://localhost/*",
+        "http://127.0.0.1/*",
+        "https://127.0.0.1/*",
+        "https://*.openquok.com/*"
+      ],
+      "js": ["content/dashboard/openquok-dashboard-session.js"],
+      "run_at": "document_idle"
     }
   ],
   "externally_connectable": {

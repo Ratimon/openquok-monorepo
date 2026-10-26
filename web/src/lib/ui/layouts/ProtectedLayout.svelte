@@ -5,7 +5,7 @@
 
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
-	import { invalidateAll } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import { toast } from '$lib/ui/sonner';
 	import { icons } from '$data/icons';
 	import { authenticationRepository, signoutPresenter } from '$lib/user-auth/index';
@@ -16,7 +16,8 @@
 	import { getRootPathEditorArea } from '$lib/area-admin/constants/getRootPathEditorArea';
 	import { getRootPathSecretAdminArea } from '$lib/area-admin/constants/getRootPathSecretAdminArea';
 	import { getRootPathAdminArea } from '$lib/area-admin/constants/getRootPathAdminArea';
-	import { absoluteUrl } from '$lib/utils/path';
+	import { absoluteUrl, url } from '$lib/utils/path';
+	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { ensureDefaultTheme } from '$lib/ui/daisyui/ThemeSwitcher.svelte';
 
 	import SidebarProtected from '$lib/ui/templates/SidebarProtected.svelte';
@@ -177,7 +178,7 @@
 			toast.error('An error occurred while signing out. Please try again later.');
 		} finally {
 			signoutPresenter.showToastMessage = false;
-			await invalidateAll();
+			await goto(url(getRootPathSignin()), { replaceState: true, invalidateAll: true });
 		}
 	}
 </script>

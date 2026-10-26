@@ -1,7 +1,20 @@
-import { isDashboardLoggedIn } from '../../shared/dashboardAuth.js';
+import { formatSocialConnectionLabel } from '../../shared/dashboardConnectionLabel.js';
+import { rememberDashboardOrigin } from '../../shared/dashboardOriginStorage.js';
+import { clearPausedSocialDashboardOrigin } from '../../shared/dashboardSocialDisconnect.js';
+import { hasDashboardSessionCookie, isDashboardLoggedIn } from '../../shared/dashboardAuth.js';
+import { listAuthCheckOriginsForDashboard } from '../../shared/dashboardApiOrigin.js';
+import {
+	requestDashboardSessionSyncFromOpenTabs,
+	waitMs,
+} from '../../shared/requestDashboardSessionSync.js';
+import {
+	detachSocialDashboardExtension,
+	disconnectSocialDashboardSession,
+} from '../../shared/dashboardSocialDisconnect.js';
 import { installSocialSessionWatch } from '../../shared/socialSessionWatch.js';
 import {
 	DEFAULT_SELF_HOST_DASHBOARD_INPUT,
+	normalizeSelfHostDashboardInput,
 	openDashboardUrl,
 	parseDashboardSignInInput,
 	PRODUCTION_DASHBOARD_SIGN_IN_URL,
@@ -78,6 +91,39 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 	let selfHostInput = DEFAULT_SELF_HOST_DASHBOARD_INPUT;
 	let gateError = '';
 
+	function applySelfHostFieldNormalization(raw: string): string {
+		const normalized = normalizeSelfHostDashboardInput(raw);
+		selfHostInput = normalized;
+		return normalized;
+	}
+
+	async function dashboardSessionExistsForSelfHostInput(raw: string): Promise<boolean> {
+		const signInUrl = parseDashboardSignInInput(raw);
+		if (!signInUrl) return false;
+		const origin = new URL(signInUrl).origin;
+		for (const checkOrigin of listAuthCheckOriginsForDashboard(origin)) {
+			if (await hasDashboardSessionCookie(checkOrigin)) return true;
+		}
+		return false;
+	}
+
+	async function connectSelfHostDashboard(raw: string): Promise<void> {
+		const normalized = applySelfHostFieldNormalization(raw);
+		const signInUrl = parseDashboardSignInInput(normalized);
+		if (!signInUrl) {
+			gateError = 'Enter a valid dashboard URL (e.g. https://localhost:5173).';
+			renderGate();
+			return;
+		}
+		gateError = '';
+		await prepareSelfHostReconnectHints();
+		if (await dashboardSessionExistsForSelfHostInput(normalized)) {
+			await refresh();
+			return;
+		}
+		await openDashboardUrl(normalized);
+	}
+
 	function readSelectedChannels(): string[] {
 		const boxes = root.querySelectorAll<HTMLInputElement>('.channel-check:checked');
 		return Array.from(boxes).map((box) => box.value).filter(Boolean);
@@ -99,7 +145,7 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 								type="text"
 								spellcheck="false"
 								autocomplete="off"
-								placeholder="localhost:5173"
+								placeholder="https://localhost:5173"
 								value="${escapeHtml(selfHostInput)}"
 							/>
 							<button type="button" id="social-sign-in-selfhost" class="secondary">Connect to self host</button>
@@ -118,6 +164,12 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 				selfHostInput = selfHostEl.value;
 				gateError = '';
 			});
+			selfHostEl.addEventListener('blur', () => {
+				const normalized = applySelfHostFieldNormalization(selfHostEl.value);
+				if (normalized !== selfHostEl.value) {
+					selfHostEl.value = normalized;
+				}
+			});
 		}
 
 		root.querySelector('#social-sign-in-cloud')?.addEventListener('click', () => {
@@ -126,20 +178,60 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 		});
 
 		root.querySelector('#social-gate-refresh')?.addEventListener('click', () => {
-			void refresh();
+			void prepareSelfHostReconnectHints().then(() => refresh());
 		});
 
 		root.querySelector('#social-sign-in-selfhost')?.addEventListener('click', () => {
-			const raw = selfHostEl?.value ?? selfHostInput;
-			selfHostInput = raw;
-			const signInUrl = parseDashboardSignInInput(raw);
-			if (!signInUrl) {
-				gateError = 'Enter a valid dashboard URL (e.g. localhost:5173).';
+			void connectSelfHostDashboard(selfHostEl?.value ?? selfHostInput);
+		});
+	}
+
+	async function prepareSelfHostReconnectHints(): Promise<void> {
+		const signInUrl = parseDashboardSignInInput(applySelfHostFieldNormalization(selfHostInput));
+		if (!signInUrl) return;
+		try {
+			const origin = new URL(signInUrl).origin;
+			await rememberDashboardOrigin(origin);
+			await clearPausedSocialDashboardOrigin(origin);
+		} catch {
+			/* ignore */
+		}
+	}
+
+	function renderSessionError(message: string): void {
+		root.replaceChildren(
+			el(`
+				<div class="wrap tab-wrap">
+					<div class="gate-card">
+						<strong>Could not open composer</strong>
+						<p class="error" role="alert">${escapeHtml(message)}</p>
+						<p class="muted">Make sure the API is running (local dev: backend on port 3000, dashboard on https://localhost:5173), then refresh.</p>
+						<button type="button" id="social-session-retry" class="primary gate-refresh">Refresh</button>
+						<button type="button" id="social-session-back-gate" class="secondary gate-refresh">Back to connect</button>
+					</div>
+				</div>
+			`)
+		);
+		root.querySelector('#social-session-retry')?.addEventListener('click', () => {
+			void refresh();
+		});
+		root.querySelector('#social-session-back-gate')?.addEventListener('click', () => {
+			void (async () => {
+				let origin = session?.dashboardOrigin ?? null;
+				if (!origin) {
+					const signInUrl = parseDashboardSignInInput(selfHostInput);
+					if (signInUrl) origin = new URL(signInUrl).origin;
+				}
+				if (!origin) {
+					const auth = await isDashboardLoggedIn();
+					origin = new URL(auth.loginUrl).origin;
+				}
+				await detachSocialDashboardExtension(origin);
+				session = null;
+				loadedChannels = [];
+				selectedChannelIds = new Set();
 				renderGate();
-				return;
-			}
-			gateError = '';
-			void openDashboardUrl(signInUrl);
+			})();
 		});
 	}
 
@@ -156,8 +248,14 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 	function renderComposer(error?: string, success?: string): void {
 		if (!session) return;
 
+		const connectionLabel = formatSocialConnectionLabel(session.dashboardOrigin);
+
 		const composerHtml = `
 			<div class="wrap tab-wrap">
+				<div class="connection-bar" role="status">
+					<span class="connection-label">${escapeHtml(connectionLabel)}</span>
+					<button type="button" id="social-disconnect" class="connection-disconnect secondary">Disconnect</button>
+				</div>
 				<div class="card">
 					<strong>Compose</strong>
 					<p class="muted">Schedule via your OpenQuok session — tokens stay on the server.</p>
@@ -177,8 +275,7 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 				</div>
 				${error ? `<p class="error" role="alert">${escapeHtml(error)}</p>` : ''}
 				${success ? `<p class="status success" role="status">${escapeHtml(success)}</p>` : ''}
-				<p class="footer muted">Environment: ${escapeHtml(session.dashboardOrigin)}</p>
-				<p class="footer">Reconnect or add channels under Account → Channels in the dashboard. For local dev, keep your <code>localhost:5173</code> tab focused and tap Refresh.</p>
+				<p class="footer">Reconnect or add channels under Account → Channels in the dashboard.</p>
 			</div>
 		`;
 
@@ -197,6 +294,27 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 				if (box.checked) selectedChannelIds.add(box.value);
 				else selectedChannelIds.delete(box.value);
 			});
+		});
+
+		root.querySelector('#social-disconnect')?.addEventListener('click', () => {
+			if (!session || submitting) return;
+			submitting = true;
+			void disconnectSocialDashboardSession({
+				dashboardOrigin: session.dashboardOrigin,
+				apiOrigin: session.apiOrigin,
+				accessToken: session.accessToken,
+			})
+				.then(() => {
+					session = null;
+					loadedChannels = [];
+					selectedChannelIds = new Set();
+					submitting = false;
+					renderGate();
+				})
+				.catch(() => {
+					submitting = false;
+					renderComposer('Could not disconnect. Try again or sign out in the dashboard.');
+				});
 		});
 
 		root.querySelector('#social-open-dashboard')?.addEventListener('click', () => {
@@ -264,10 +382,13 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 		if (isSocialApiFailure(resolved)) {
 			const auth = await isDashboardLoggedIn();
 			if (!auth.loggedIn) {
+				session = null;
+				loadedChannels = [];
+				selectedChannelIds = new Set();
 				renderGate();
 				return;
 			}
-			renderComposer(resolved.error);
+			renderSessionError(resolved.error);
 			return;
 		}
 
@@ -279,6 +400,7 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 		]);
 
 		if (!channelsResult.ok) {
+			loadedChannels = [];
 			renderComposer(channelsResult.error);
 			return;
 		}
@@ -299,7 +421,12 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 		renderComposer();
 	}
 
-	async function refresh(): Promise<void> {
+	async function refresh(options?: { requestDashboardSync?: boolean }): Promise<void> {
+		applySelfHostFieldNormalization(selfHostInput);
+		if (options?.requestDashboardSync) {
+			await requestDashboardSessionSyncFromOpenTabs();
+			await waitMs(400);
+		}
 		const pendingDraft = await peekSocialComposerDraft();
 		renderLoading();
 		session = null;
@@ -313,7 +440,9 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 			if (!auth.loggedIn) {
 				renderGate();
 			} else {
-				renderComposer('Could not reach OpenQuok. Check that the API is running, then try again.');
+				renderSessionError(
+					'Could not reach OpenQuok. Check that the API is running, then try again.'
+				);
 			}
 			return;
 		}
@@ -325,20 +454,22 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 	}
 
 	let refreshInFlight = false;
-	const refreshSafe = async (): Promise<void> => {
+	const refreshSafe = async (options?: { requestDashboardSync?: boolean }): Promise<void> => {
 		if (refreshInFlight) return;
 		refreshInFlight = true;
 		try {
-			await refresh();
+			await refresh(options);
 		} finally {
 			refreshInFlight = false;
 		}
 	};
 
-	void refreshSafe();
+	void refreshSafe({ requestDashboardSync: true });
 	installSocialSessionWatch(() => {
-		void refreshSafe();
+		void refreshSafe({ requestDashboardSync: false });
 	});
 
-	return { refresh: refreshSafe };
+	return {
+		refresh: () => refreshSafe({ requestDashboardSync: true }),
+	};
 }

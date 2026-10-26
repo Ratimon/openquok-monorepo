@@ -4,6 +4,8 @@ import {
 	listAuthCheckOriginsForDashboard,
 	resolveApiOriginForDashboard,
 } from '../shared/dashboardApiOrigin.js';
+import { clearExtensionDashboardSession } from '../shared/clearExtensionDashboardSession.js';
+import { findDashboardBridgeSession } from '../shared/dashboardBridgeStorage.js';
 import { isDashboardLoggedIn, readAccessTokenCookie } from '../shared/dashboardAuth.js';
 
 const ACTIVE_ORGANIZATION_COOKIE = 'showorg';
@@ -59,6 +61,85 @@ async function readActiveOrganizationId(dashboardOrigin: string): Promise<string
 	return null;
 }
 
+/** Workspace id from `GET /users/me` session fields — never use profile `id` (that is the user id). */
+function readWorkspaceIdFromUserMe(data: Record<string, unknown>): string | null {
+	const orgId = data.orgId ?? data.organizationId;
+	return typeof orgId === 'string' && orgId.trim() ? orgId.trim() : null;
+}
+
+function readOrganizationIdFromListRow(data: Record<string, unknown>): string | null {
+	const orgId = data.orgId ?? data.organizationId ?? data.id;
+	return typeof orgId === 'string' && orgId.trim() ? orgId.trim() : null;
+}
+
+type OrganizationResolveResult = string | null | { authFailed: true };
+
+async function resolveOrganizationIdForSession(
+	apiOrigin: string,
+	accessToken: string,
+	dashboardOrigin: string,
+	bridgeOrganizationId: string | null | undefined,
+	bridgeAccessToken: string | null | undefined
+): Promise<OrganizationResolveResult> {
+	const hintOrgIds: string[] = [];
+	const bridgeOrg = bridgeOrganizationId?.trim();
+	const bridgeToken = bridgeAccessToken?.trim();
+	if (bridgeOrg && bridgeToken && bridgeToken === accessToken.trim()) {
+		hintOrgIds.push(bridgeOrg);
+	}
+	const fromCookie = await readActiveOrganizationId(dashboardOrigin);
+	if (fromCookie && !hintOrgIds.includes(fromCookie)) {
+		hintOrgIds.push(fromCookie);
+	}
+
+	const orgsResponse = await fetch(`${apiRoot(apiOrigin)}/users/organizations`, {
+		method: 'GET',
+		headers: { Authorization: `Bearer ${accessToken}` },
+	});
+	let orgsBody: unknown = null;
+	try {
+		orgsBody = await orgsResponse.json();
+	} catch {
+		orgsBody = null;
+	}
+	if (!orgsResponse.ok) {
+		if (orgsResponse.status === 401 || orgsResponse.status === 403) return { authFailed: true };
+		return null;
+	}
+
+	const record = parseJsonRecord(orgsBody);
+	const list = record.data;
+	const orgIdsFromApi: string[] = [];
+	if (Array.isArray(list)) {
+		for (const row of list) {
+			if (!row || typeof row !== 'object') continue;
+			const id = readOrganizationIdFromListRow(row as Record<string, unknown>);
+			if (id) orgIdsFromApi.push(id);
+		}
+	}
+
+	if (orgIdsFromApi.length > 0) {
+		for (const hint of hintOrgIds) {
+			if (hint && orgIdsFromApi.includes(hint)) return hint;
+		}
+		return orgIdsFromApi[0];
+	}
+
+	const me = await authorizedGet(apiOrigin, accessToken, '/users/me');
+	if (!me.ok) {
+		if (me.status === 401 || me.status === 403) return { authFailed: true };
+	} else {
+		const fromMe = readWorkspaceIdFromUserMe(me.data);
+		if (fromMe) return fromMe;
+	}
+
+	for (const hint of hintOrgIds) {
+		if (hint) return hint;
+	}
+
+	return null;
+}
+
 function parseJsonRecord(body: unknown): Record<string, unknown> {
 	return body && typeof body === 'object' ? (body as Record<string, unknown>) : {};
 }
@@ -82,7 +163,9 @@ async function authorizedGet(
 	accessToken: string,
 	path: string,
 	query?: Record<string, string>
-): Promise<{ ok: true; data: Record<string, unknown> } | SocialApiFailure> {
+): Promise<
+	{ ok: true; data: Record<string, unknown> } | (SocialApiFailure & { status?: number })
+> {
 	const url = new URL(`${apiRoot(apiOrigin)}${path}`);
 	if (query) {
 		for (const [key, value] of Object.entries(query)) {
@@ -100,7 +183,11 @@ async function authorizedGet(
 		body = null;
 	}
 	if (!response.ok) {
-		return { ok: false, error: apiErrorMessage(body, `Request failed (${response.status}).`) };
+		return {
+			ok: false,
+			error: apiErrorMessage(body, `Request failed (${response.status}).`),
+			status: response.status,
+		};
 	}
 	const record = parseJsonRecord(body);
 	if (record.success === false) {
@@ -171,30 +258,70 @@ export async function resolveSocialSession(): Promise<SocialSessionContext | Soc
 	}
 
 	const dashboardOrigin = dashboardOriginFromLoginUrl(auth.loginUrl);
-	const accessToken = await readAccessTokenCookie(dashboardOrigin);
-	if (!accessToken) {
-		return { ok: false, error: 'Could not read your session. Try signing in again.' };
+	const originCandidates = listAuthCheckOriginsForDashboard(dashboardOrigin);
+	const bridge = await findDashboardBridgeSession(originCandidates);
+	const resolvedDashboardOrigin = bridge?.dashboardOrigin ?? dashboardOrigin;
+
+	const readAccessToken = async (): Promise<
+		{ ok: true; accessToken: string } | SocialApiFailure
+	> => {
+		const tokenResult = await readAccessTokenCookie(dashboardOrigin);
+		if (!tokenResult) {
+			return {
+				ok: false,
+				error:
+					'Could not read your session. Keep the dashboard tab open on this host, then refresh.',
+			};
+		}
+		if ('error' in tokenResult) {
+			return { ok: false, error: tokenResult.error };
+		}
+		return { ok: true, accessToken: tokenResult.accessToken };
+	};
+
+	let tokenRead = await readAccessToken();
+	if (!tokenRead.ok) return tokenRead;
+	let accessToken = tokenRead.accessToken;
+
+	const apiOrigin = await resolveApiOriginForDashboard(resolvedDashboardOrigin);
+	let organizationId = await resolveOrganizationIdForSession(
+		apiOrigin,
+		accessToken,
+		resolvedDashboardOrigin,
+		bridge?.organizationId,
+		bridge?.accessToken
+	);
+
+	if (organizationId && typeof organizationId === 'object' && 'authFailed' in organizationId) {
+		await clearExtensionDashboardSession(resolvedDashboardOrigin);
+		tokenRead = await readAccessToken();
+		if (!tokenRead.ok) return tokenRead;
+		accessToken = tokenRead.accessToken;
+		organizationId = await resolveOrganizationIdForSession(
+			apiOrigin,
+			accessToken,
+			resolvedDashboardOrigin,
+			null,
+			null
+		);
 	}
 
-	const apiOrigin = await resolveApiOriginForDashboard(dashboardOrigin);
-	let organizationId = await readActiveOrganizationId(dashboardOrigin);
-
-	if (!organizationId) {
-		const me = await authorizedGet(apiOrigin, accessToken, '/users/me');
-		if (!me.ok) return me;
-		const orgId = me.data.orgId;
-		organizationId = typeof orgId === 'string' && orgId.trim() ? orgId.trim() : null;
-	}
-
-	if (!organizationId) {
+	if (!organizationId || (typeof organizationId === 'object' && 'authFailed' in organizationId)) {
+		if (organizationId && typeof organizationId === 'object' && 'authFailed' in organizationId) {
+			return {
+				ok: false,
+				error: 'Session expired. Sign in on the dashboard again, then refresh this panel.',
+			};
+		}
 		return {
 			ok: false,
-			error: 'Pick a workspace in the OpenQuok dashboard, then refresh this panel.',
+			error:
+				'No workspace found. Create or join a workspace in the dashboard, then refresh this panel.',
 		};
 	}
 
 	return {
-		dashboardOrigin,
+		dashboardOrigin: resolvedDashboardOrigin,
 		apiOrigin,
 		accessToken,
 		organizationId,

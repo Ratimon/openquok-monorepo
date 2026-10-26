@@ -37,7 +37,7 @@ The primary UI is the Chrome <strong>side panel</strong> (<Badge text="sidepanel
 
 | Tab | Purpose |
 | --- | --- |
-| <strong>Social</strong> | Unsigned: <strong>Connect to OpenQuok.com</strong> or <strong>Connect to self host</strong> (URL field, default <Badge text="localhost:5173" variant="path" /> for Vite dev). Signed in: multi-select connected channels, a short composer, <strong>Publish now</strong> / <strong>Schedule</strong> / <strong>Draft</strong>, and <strong>Open full composer</strong> for the dashboard editor. |
+| <strong>Social</strong> | Unsigned: <strong>Connect to OpenQuok.com</strong> or <strong>Connect to self host</strong> (URL field, default <Badge text="https://localhost:5173" variant="path" /> for Vite dev — bare <Badge text="5173" variant="path" /> or <Badge text="localhost:5173" variant="path" /> autofill to that origin on blur). Keep a signed-in dashboard tab open on that origin — the extension reads your session from that tab (httpOnly cookies). Signed in: multi-select connected channels, a short composer, <strong>Publish now</strong> / <strong>Schedule</strong> / <strong>Draft</strong>, and <strong>Open full composer</strong> for the dashboard editor. |
 | <strong>Directory</strong> | Session checks, profile handoff status, and <strong>Fill</strong> actions for PeerPush and Uneed on the active tab. |
 
 On open, the Social tab reads any <strong>context-menu draft</strong> stored for this browser session and merges it into the composer body (or media URL for images).

@@ -71,6 +71,44 @@ describe('openquokSocialApi', () => {
 		).toBe(false);
 	});
 
+	it('resolveSocialSession does not treat /users/me profile id as workspace id', async () => {
+		vi.mocked(chrome.cookies.getAll).mockImplementation(async ({ url }) => {
+			if (url === 'https://localhost:5173') {
+				return [{ name: 'access_token', value: 'at' } as chrome.cookies.Cookie];
+			}
+			return [];
+		});
+
+		const userId = '2f5821aa-79ea-4486-b45e-2271b99bf012';
+		const orgId = '7339963e-e508-42ea-9fd0-74acfb7dad30';
+
+		const fetchMock = vi.fn().mockImplementation(async (url: string) => {
+			if (url.includes('/users/me')) {
+				return {
+					ok: true,
+					json: async () => ({
+						success: true,
+						data: { id: userId, email: 'a@b.com' },
+					}),
+				};
+			}
+			if (url.includes('/users/organizations')) {
+				return {
+					ok: true,
+					json: async () => ({
+						success: true,
+						data: [{ id: orgId, name: 'Main' }],
+					}),
+				};
+			}
+			return { ok: false, status: 404, json: async () => ({}) };
+		});
+		vi.stubGlobal('fetch', fetchMock);
+
+		const result = await resolveSocialSession();
+		expect(result).toMatchObject({ organizationId: orgId, accessToken: 'at' });
+	});
+
 	it('resolveSocialSession returns workspace error without showorg', async () => {
 		vi.mocked(chrome.cookies.getAll).mockImplementation(async ({ url }) => {
 			if (url === 'https://localhost:5173') {
@@ -83,8 +121,8 @@ describe('openquokSocialApi', () => {
 		});
 
 		const fetchMock = vi.fn().mockImplementation(async (url: string) => {
-			if (url.includes('/auth/verify-refresh')) {
-				return { ok: true, json: async () => ({ success: true }) };
+			if (url.includes('/users/organizations')) {
+				return { ok: true, json: async () => ({ success: true, data: [] }) };
 			}
 			if (url.includes('/users/me')) {
 				return { ok: true, json: async () => ({ success: true, data: { email: 'a@b.com' } }) };
@@ -96,7 +134,95 @@ describe('openquokSocialApi', () => {
 		const result = await resolveSocialSession();
 		expect(result).toEqual({
 			ok: false,
-			error: 'Pick a workspace in the OpenQuok dashboard, then refresh this panel.',
+			error: 'No workspace found. Create or join a workspace in the dashboard, then refresh this panel.',
+		});
+	});
+
+	it('resolveSocialSession mints from refresh cookie instead of a stale bridge token', async () => {
+		vi.mocked(chrome.cookies.getAll).mockImplementation(async ({ url }) => {
+			if (url === 'https://localhost:5173') {
+				return [{ name: 'refreshToken', value: 'rt-new' } as chrome.cookies.Cookie];
+			}
+			return [];
+		});
+		vi.stubGlobal('chrome', {
+			...chrome,
+			storage: {
+				local: { get: vi.fn().mockResolvedValue({}), set: vi.fn().mockResolvedValue(undefined) },
+				session: {
+					get: vi.fn().mockResolvedValue({
+						'openquok:dashboard-bridge-sessions': [
+							{
+								dashboardOrigin: 'https://localhost:5173',
+								accessToken: 'stale-bridge-token',
+								organizationId: 'org-bridge',
+								updatedAt: Date.now(),
+							},
+						],
+					}),
+					set: vi.fn().mockResolvedValue(undefined),
+				},
+			},
+		});
+
+		const fetchMock = vi.fn().mockImplementation(async (url: string, init?: RequestInit) => {
+			if (url.includes('/auth/refresh')) {
+				return {
+					ok: true,
+					json: async () => ({ data: { accessToken: 'fresh-minted' } }),
+				};
+			}
+			if (url.includes('/users/organizations')) {
+				expect(init?.headers).toMatchObject({ Authorization: 'Bearer fresh-minted' });
+				return {
+					ok: true,
+					json: async () => ({
+						success: true,
+						data: [{ id: 'org-from-list', name: 'Main' }],
+					}),
+				};
+			}
+			return { ok: false, status: 404, json: async () => ({}) };
+		});
+		vi.stubGlobal('fetch', fetchMock);
+
+		const result = await resolveSocialSession();
+		expect(result).toMatchObject({ accessToken: 'fresh-minted', organizationId: 'org-from-list' });
+		expect(fetchMock).toHaveBeenCalledWith(
+			expect.stringContaining('/auth/refresh'),
+			expect.anything()
+		);
+	});
+
+	it('resolveSocialSession uses first workspace from /users/organizations', async () => {
+		vi.mocked(chrome.cookies.getAll).mockImplementation(async ({ url }) => {
+			if (url === 'https://localhost:5173') {
+				return [{ name: 'access_token', value: 'at' } as chrome.cookies.Cookie];
+			}
+			return [];
+		});
+
+		const fetchMock = vi.fn().mockImplementation(async (url: string) => {
+			if (url.includes('/users/me')) {
+				return { ok: true, json: async () => ({ success: true, data: { email: 'a@b.com' } }) };
+			}
+			if (url.includes('/users/organizations')) {
+				return {
+					ok: true,
+					json: async () => ({
+						success: true,
+						data: [{ id: 'org-first', name: 'Main' }],
+					}),
+				};
+			}
+			return { ok: false, status: 404, json: async () => ({}) };
+		});
+		vi.stubGlobal('fetch', fetchMock);
+
+		const result = await resolveSocialSession();
+		expect(result).toMatchObject({
+			organizationId: 'org-first',
+			accessToken: 'at',
 		});
 	});
 

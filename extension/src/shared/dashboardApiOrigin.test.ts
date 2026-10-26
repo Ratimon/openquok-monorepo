@@ -37,7 +37,7 @@ describe('listAuthApiOriginsForDashboard', () => {
 		]);
 	});
 
-	it('lists only dashboard origin for local Vite', async () => {
+	it('lists only the Vite dashboard origin for local dev (API is proxied on /api)', async () => {
 		await expect(listAuthApiOriginsForDashboard('https://localhost:5173')).resolves.toEqual([
 			'https://localhost:5173',
 		]);

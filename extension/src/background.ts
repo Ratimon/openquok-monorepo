@@ -1,6 +1,7 @@
 import { isAutoLaunchMessageType } from 'openquok-common';
 
 import { handleAutoLaunchRuntimeMessage } from './background/directoryHandlers.js';
+import { handleDashboardBridgeRuntimeMessage } from './background/dashboardBridgeHandlers.js';
 import { handleExternalMessage } from './background/externalHandlers.js';
 import {
 	enableSidePanelOnActionClick,
@@ -47,6 +48,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 	if (isAutoLaunch) {
 		replyWhenDone(handleAutoLaunchRuntimeMessage(record, sender), sendResponse);
+		return true;
+	}
+
+	const bridgeResult = handleDashboardBridgeRuntimeMessage(record);
+	if (bridgeResult !== undefined) {
+		replyWhenDone(bridgeResult, sendResponse);
 		return true;
 	}
 

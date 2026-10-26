@@ -1,20 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { hasDashboardSessionCookie, isDashboardLoggedIn } from './dashboardAuth.js';
-
-function mockVerifyRefreshOk(): void {
-	vi.stubGlobal(
-		'fetch',
-		vi.fn().mockResolvedValue({
-			ok: true,
-			json: async () => ({ success: true, data: { valid: true } }),
-		})
-	);
-}
+import {
+	hasDashboardSessionCookie,
+	isDashboardLoggedIn,
+	readAccessTokenCookie,
+} from './dashboardAuth.js';
 
 describe('dashboardAuth', () => {
 	beforeEach(() => {
-		mockVerifyRefreshOk();
 		vi.stubGlobal('chrome', {
 			cookies: {
 				getAll: vi.fn(),
@@ -27,6 +20,9 @@ describe('dashboardAuth', () => {
 					}),
 					set: vi.fn().mockResolvedValue(undefined),
 				},
+			},
+			tabs: {
+				query: vi.fn().mockResolvedValue([]),
 			},
 		});
 	});
@@ -63,64 +59,6 @@ describe('dashboardAuth', () => {
 		});
 	});
 
-	it('falls back to /auth/refresh when verify-refresh is missing on all hosts', async () => {
-		vi.stubGlobal(
-			'fetch',
-			vi.fn().mockImplementation(async (input: RequestInfo | URL) => {
-				const url = String(input);
-				if (url.includes('/auth/verify-refresh')) {
-					return { ok: false, status: 404, json: async () => ({}) };
-				}
-				if (url.includes('/auth/refresh')) {
-					return {
-						ok: true,
-						status: 200,
-						json: async () => ({ data: { accessToken: 'at-fallback' } }),
-					};
-				}
-				return { ok: false, status: 404, json: async () => ({}) };
-			})
-		);
-		vi.mocked(chrome.cookies.getAll).mockImplementation(async ({ url }) => {
-			if (url === 'https://www.openquok.com') {
-				return [{ name: 'refreshToken', value: 'rt-prod' } as chrome.cookies.Cookie];
-			}
-			return [];
-		});
-
-		await expect(isDashboardLoggedIn()).resolves.toEqual({
-			loggedIn: true,
-			loginUrl: 'https://www.openquok.com/sign-in',
-		});
-	});
-
-	it('falls back to dashboard API origin when api host returns 404 for verify-refresh', async () => {
-		vi.stubGlobal(
-			'fetch',
-			vi.fn().mockImplementation(async (input: RequestInfo | URL) => {
-				const url = String(input);
-				if (url.includes('api.openquok.com') && url.includes('/auth/verify-refresh')) {
-					return { ok: false, status: 404, json: async () => ({}) };
-				}
-				if (url.includes('www.openquok.com') && url.includes('/auth/verify-refresh')) {
-					return { ok: true, status: 200, json: async () => ({ success: true, data: { valid: true } }) };
-				}
-				return { ok: false, status: 404, json: async () => ({}) };
-			})
-		);
-		vi.mocked(chrome.cookies.getAll).mockImplementation(async ({ url }) => {
-			if (url === 'https://www.openquok.com') {
-				return [{ name: 'refreshToken', value: 'rt-prod' } as chrome.cookies.Cookie];
-			}
-			return [];
-		});
-
-		await expect(isDashboardLoggedIn()).resolves.toEqual({
-			loggedIn: true,
-			loginUrl: 'https://www.openquok.com/sign-in',
-		});
-	});
-
 	it('isDashboardLoggedIn uses refreshToken on dashboard origin', async () => {
 		vi.mocked(chrome.cookies.getAll).mockImplementation(async ({ url }) => {
 			if (url === 'https://localhost:5173') {
@@ -133,6 +71,30 @@ describe('dashboardAuth', () => {
 			loggedIn: true,
 			loginUrl: 'https://localhost:5173/sign-in',
 		});
+	});
+
+	it('clears a paused origin when session cookies are present again', async () => {
+		vi.mocked(chrome.storage.local.get).mockImplementation(async (keys?: string | string[] | null) => {
+			if (
+				keys === 'openquok:social-paused-origins' ||
+				(Array.isArray(keys) && keys.includes('openquok:social-paused-origins'))
+			) {
+				return { 'openquok:social-paused-origins': ['https://localhost:5173'] };
+			}
+			return {};
+		});
+		vi.mocked(chrome.cookies.getAll).mockImplementation(async ({ url }) => {
+			if (url === 'https://localhost:5173') {
+				return [{ name: 'refreshToken', value: 'rt-local' } as chrome.cookies.Cookie];
+			}
+			return [];
+		});
+
+		await expect(isDashboardLoggedIn()).resolves.toEqual({
+			loggedIn: true,
+			loginUrl: 'https://localhost:5173/sign-in',
+		});
+		expect(chrome.storage.local.set).toHaveBeenCalledWith({ 'openquok:social-paused-origins': [] });
 	});
 
 	it('binds session to the cookie origin, not a stale remembered production host', async () => {
@@ -158,19 +120,39 @@ describe('dashboardAuth', () => {
 		});
 	});
 
-	it('isDashboardLoggedIn is false when verify-refresh rejects a stale cookie', async () => {
+	it('readAccessTokenCookie mints via /auth/refresh once', async () => {
+		const fetchMock = vi.fn().mockResolvedValue({
+			ok: true,
+			status: 200,
+			json: async () => ({ data: { accessToken: 'at-minted' } }),
+		});
+		vi.stubGlobal('fetch', fetchMock);
+		vi.mocked(chrome.cookies.getAll).mockResolvedValue([
+			{ name: 'refreshToken', value: 'rt-abc' } as chrome.cookies.Cookie,
+		]);
+
+		await expect(readAccessTokenCookie('https://localhost:5173')).resolves.toEqual({
+			accessToken: 'at-minted',
+		});
+		expect(fetchMock).toHaveBeenCalledTimes(1);
+		expect(String(fetchMock.mock.calls[0]?.[0])).toContain('/auth/refresh');
+	});
+
+	it('readAccessTokenCookie surfaces refresh failures', async () => {
 		vi.stubGlobal(
 			'fetch',
 			vi.fn().mockResolvedValue({
 				ok: false,
-				status: 401,
-				json: async () => ({ success: false }),
+				status: 500,
+				json: async () => ({ message: 'Internal error' }),
 			})
 		);
 		vi.mocked(chrome.cookies.getAll).mockResolvedValue([
-			{ name: 'refreshToken', value: 'revoked' } as chrome.cookies.Cookie,
+			{ name: 'refreshToken', value: 'rt-abc' } as chrome.cookies.Cookie,
 		]);
 
-		await expect(isDashboardLoggedIn()).resolves.toMatchObject({ loggedIn: false });
+		await expect(readAccessTokenCookie('https://localhost:5173')).resolves.toEqual({
+			error: 'Internal error',
+		});
 	});
 });

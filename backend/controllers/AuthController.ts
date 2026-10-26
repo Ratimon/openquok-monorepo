@@ -22,7 +22,12 @@ import {
     AuthNotFoundError,
     AuthValidationError,
 } from "../errors/AuthError";
-import { InfraError, ValidationError, DatabaseEntityNotFoundError } from "../errors/InfraError";
+import {
+	DatabaseError,
+	DatabaseEntityNotFoundError,
+	InfraError,
+	ValidationError,
+} from "../errors/InfraError";
 import { VerifyEmailTemplate } from "../emails/VerifyEmailTemplate";
 import { WelcomeEmailTemplate } from "../emails/WelcomeEmailTemplate";
 import { ResetPasswordEmailTemplate } from "../emails/ResetPasswordEmailTemplate";
@@ -637,29 +642,41 @@ export class AuthController {
             const user =
                 authUserId
                     ? await (async () => {
-                          // Build the same "current user" shape the frontend normally gets from GET /users/me,
-                          // so the client can skip an immediate /me fetch after refresh.
-                          const [{ userData }, { userId: publicId }] = await Promise.all([
-                              this.userService.getProfile(authUserId).then((u) => ({ userData: u })),
-                              this.userRepository.findUserIdByAuthId(authUserId),
-                          ]);
+                          try {
+                              // Build the same "current user" shape the frontend normally gets from GET /users/me,
+                              // so the client can skip an immediate /me fetch after refresh.
+                              const [{ userData }, { userId: publicId }] = await Promise.all([
+                                  this.userService.getProfile(authUserId).then((u) => ({ userData: u })),
+                                  this.userRepository.findUserIdByAuthId(authUserId),
+                              ]);
 
-                          const rolesResult = publicId
-                              ? await this.rbacService.getUserRoles(publicId)
-                              : { roles: [] as string[] };
-                          const isPlatformAdmin = publicId ? await this.rbacService.isPlatformAdmin(publicId) : false;
+                              const rolesResult = publicId
+                                  ? await this.rbacService.getUserRoles(publicId)
+                                  : { roles: [] as string[] };
+                              const isPlatformAdmin = publicId
+                                  ? await this.rbacService.isPlatformAdmin(publicId)
+                                  : false;
 
-                          return userData
-                              ? {
-                                    id: userData.id,
-                                    email: userData.email,
-                                    fullName: userData.full_name,
-                                    username: userData.email,
-                                    isEmailVerified: userData.is_email_verified === true,
-                                    roles: rolesResult.roles,
-                                    isPlatformAdmin,
-                                }
-                              : null;
+                              return userData
+                                  ? {
+                                        id: userData.id,
+                                        email: userData.email,
+                                        fullName: userData.full_name,
+                                        username: userData.email,
+                                        isEmailVerified: userData.is_email_verified === true,
+                                        roles: rolesResult.roles,
+                                        isPlatformAdmin,
+                                    }
+                                  : null;
+                          } catch (profileErr) {
+                              logger.warn({
+                                  msg: "Refresh succeeded but profile enrichment failed",
+                                  userId: authUserId,
+                                  error:
+                                      profileErr instanceof Error ? profileErr.message : String(profileErr),
+                              });
+                              return null;
+                          }
                       })()
                     : null;
 
@@ -740,6 +757,17 @@ export class AuthController {
                 res.status(401).json({
                     success: false,
                     message: "Session expired or invalid. Please sign in again.",
+                });
+                return;
+            }
+            if (error instanceof DatabaseError) {
+                logger.warn({
+                    msg: "verify-refresh database error",
+                    error: error instanceof Error ? error.message : String(error),
+                });
+                res.status(503).json({
+                    success: false,
+                    message: "Could not verify session right now. Try again shortly.",
                 });
                 return;
             }

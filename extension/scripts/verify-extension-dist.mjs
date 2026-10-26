@@ -10,6 +10,7 @@ const manifestPath = join(distDir, 'manifest.json');
 const allowedContentScripts = new Set([
 	'openquok-directory-peerpush.js',
 	'openquok-directory-uneed.js',
+	'openquok-dashboard-session.js',
 ]);
 
 function fail(message) {

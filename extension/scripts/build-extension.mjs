@@ -21,10 +21,17 @@ const contentScriptSpecs = [
 	{
 		out: 'openquok-directory-peerpush.js',
 		file: 'peerpush-host.ts',
+		dir: 'directory-launch',
 	},
 	{
 		out: 'openquok-directory-uneed.js',
 		file: 'uneed-host.ts',
+		dir: 'directory-launch',
+	},
+	{
+		out: 'openquok-dashboard-session.js',
+		file: 'openquok-dashboard-session.ts',
+		dir: 'dashboard',
 	},
 ];
 
@@ -63,10 +70,10 @@ for (const spec of contentScriptSpecs) {
 			outDir: resolve(extensionRoot, 'dist'),
 			emptyOutDir: false,
 			rollupOptions: {
-				input: resolve(extensionRoot, `src/content/directory-launch/${spec.file}`),
+				input: resolve(extensionRoot, `src/content/${spec.dir}/${spec.file}`),
 				output: {
 					format: 'es',
-					entryFileNames: `content/directory-launch/${spec.out}`,
+					entryFileNames: `content/${spec.dir}/${spec.out}`,
 					inlineDynamicImports: true,
 				},
 			},

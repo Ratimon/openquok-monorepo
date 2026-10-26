@@ -22,22 +22,56 @@ function isOpenQuokDashboardUrl(url: URL): boolean {
  * When the user has an OpenQuok dashboard tab focused (e.g. local Vite), pin that origin so
  * Social API calls match the environment they are testing — not a stale production remember.
  */
+function readDashboardOriginFromUrl(rawUrl: string): string | null {
+	try {
+		const parsed = new URL(rawUrl);
+		if (!isOpenQuokDashboardUrl(parsed)) return null;
+		return parsed.origin;
+	} catch {
+		return null;
+	}
+}
+
+/** Origins of every open OpenQuok dashboard tab (side panel may not be the active tab). */
+export async function listOpenDashboardTabOrigins(): Promise<string[]> {
+	if (typeof chrome === 'undefined' || typeof chrome.tabs?.query !== 'function') {
+		return [];
+	}
+
+	const tabs = await chrome.tabs.query({});
+	const seen = new Set<string>();
+	const origins: string[] = [];
+	for (const tab of tabs) {
+		if (!tab.url) continue;
+		const origin = readDashboardOriginFromUrl(tab.url);
+		if (!origin || seen.has(origin)) continue;
+		seen.add(origin);
+		origins.push(origin);
+	}
+	return origins;
+}
+
 export async function syncDashboardOriginFromActiveTab(): Promise<string | null> {
 	if (typeof chrome === 'undefined' || typeof chrome.tabs?.query !== 'function') {
 		return null;
 	}
 
-	const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-	const rawUrl = tabs[0]?.url;
-	if (!rawUrl) return null;
+	const [activeTabs, openOrigins] = await Promise.all([
+		chrome.tabs.query({ active: true, currentWindow: true }),
+		listOpenDashboardTabOrigins(),
+	]);
 
-	try {
-		const parsed = new URL(rawUrl);
-		if (!isOpenQuokDashboardUrl(parsed)) return null;
-		const origin = parsed.origin;
+	for (const origin of openOrigins) {
 		await rememberDashboardOrigin(origin);
-		return origin;
-	} catch {
-		return null;
 	}
+
+	const rawUrl = activeTabs[0]?.url;
+	if (!rawUrl) return openOrigins[0] ?? null;
+
+	const activeOrigin = readDashboardOriginFromUrl(rawUrl);
+	if (activeOrigin) {
+		await rememberDashboardOrigin(activeOrigin);
+		return activeOrigin;
+	}
+	return openOrigins[0] ?? null;
 }

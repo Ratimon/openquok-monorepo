@@ -1,4 +1,4 @@
-const SESSION_COOKIE_NAMES = new Set(['refreshToken', 'access_token', 'showorg']);
+const SESSION_COOKIE_NAMES = new Set(['showorg', 'refreshToken', 'access_token']);
 
 /**
  * Re-run Social tab session resolution when auth cookies change or the side panel is focused again.
@@ -11,13 +11,19 @@ export function installSocialSessionWatch(onSessionMaybeChanged: () => void): ()
 		debounceTimer = setTimeout(() => {
 			debounceTimer = null;
 			onSessionMaybeChanged();
-		}, 350);
+		}, 500);
 	};
 
 	const onCookieChanged = (change: chrome.cookies.CookieChangeInfo): void => {
 		const name = change.cookie?.name;
 		if (!name || !SESSION_COOKIE_NAMES.has(name)) return;
-		schedule();
+		if (name === 'refreshToken' || name === 'access_token') {
+			schedule();
+			return;
+		}
+		if (!change.removed && name === 'showorg') {
+			schedule();
+		}
 	};
 
 	if (typeof chrome !== 'undefined' && chrome.cookies?.onChanged) {

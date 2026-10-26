@@ -20,13 +20,17 @@ export type CompleteSubmissionResult =
 export async function postCompleteSubmission(
 	input: CompleteSubmissionInput
 ): Promise<CompleteSubmissionResult> {
-	const accessToken = await readAccessTokenCookie(input.dashboardOrigin);
-	if (!accessToken) {
+	const tokenResult = await readAccessTokenCookie(input.dashboardOrigin);
+	if (!tokenResult) {
 		return {
 			ok: false,
 			error: 'Sign in to OpenQuok in your browser, then try again.',
 		};
 	}
+	if ('error' in tokenResult) {
+		return { ok: false, error: tokenResult.error };
+	}
+	const accessToken = tokenResult.accessToken;
 
 	const apiOrigin = await resolveApiOriginForDashboard(input.dashboardOrigin);
 	const url = `${apiRoot(apiOrigin)}${AUTO_LAUNCH_COMPLETE_PATH}`;

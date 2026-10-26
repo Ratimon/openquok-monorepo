@@ -1,6 +1,6 @@
 import { listRefreshRegistrations } from '../storage/refreshTokenStorage.js';
 
-import { isLocalDashboardOrigin } from './dashboardActiveTab.js';
+import { isLocalDashboardOrigin, listOpenDashboardTabOrigins } from './dashboardActiveTab.js';
 import { listDashboardOriginCandidates } from './dashboardOriginStorage.js';
 
 export const LAST_API_ORIGIN_KEY = 'openquok:last-api-origin';
@@ -78,6 +78,9 @@ export async function listAuthApiOriginsForDashboard(dashboardOrigin: string): P
 	push(normalized);
 	push(deriveApiOriginFromDashboard(normalized));
 
+	// Local dev: mint via the Vite dashboard origin (`/api` proxy). Direct `:3000` calls use
+	// `chrome-extension://` as Origin and are rejected by API CORS (harmless but noisy).
+
 	if (hasChromeLocalStorage()) {
 		const storage = await chrome.storage.local.get([
 			LAST_AUTH_API_ORIGIN_KEY,
@@ -143,7 +146,10 @@ export async function resolveApiOriginForDashboard(dashboardOrigin: string): Pro
 
 /** Origins to scan for `refreshToken` / `access_token` (dashboard hosts only — cookies are not on `api.*`). */
 export async function listAuthCheckOrigins(): Promise<string[]> {
-	const dashboardCandidates = await listDashboardOriginCandidates();
+	const [dashboardCandidates, openTabOrigins] = await Promise.all([
+		listDashboardOriginCandidates(),
+		listOpenDashboardTabOrigins(),
+	]);
 
 	const seen = new Set<string>();
 	const origins: string[] = [];
@@ -155,6 +161,10 @@ export async function listAuthCheckOrigins(): Promise<string[]> {
 		seen.add(normalized);
 		origins.push(normalized);
 	};
+
+	for (const dashboard of openTabOrigins) {
+		push(dashboard);
+	}
 
 	for (const dashboard of dashboardCandidates) {
 		push(dashboard);
