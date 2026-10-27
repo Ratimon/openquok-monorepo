@@ -2,7 +2,7 @@
 title: Stripe billing
 description: Set up paid plans or run without billing.
 order: 10
-lastUpdated: 2026-07-16
+lastUpdated: 2026-10-27
 ---
 
 <script>
@@ -84,8 +84,8 @@ Set **all three** backend Stripe variables. With <Badge text="STRIPE_PUBLISHABLE
 Checkout and webhooks still require <Badge text="STRIPE_SECRET_KEY" variant="envBackend" /> and <Badge text="STRIPE_WEBHOOK_SECRET" variant="envBackend" />.
 
 <Callout type="note" title="Two checkout paths">
-<p><strong>Embedded</strong> (first-billing paywall): Stripe.js with <Badge text="VITE_PUBLIC_STRIPE_PUBLISHABLE_KEY" variant="envWeb" />. Session from <Badge text="POST /api/v1/billing/embedded" variant="path" />.</p>
-<p><strong>Redirect</strong> (account billing upgrades): hosted Checkout URL from <Badge text="POST /api/v1/billing/subscribe" variant="path" />.</p>
+<p><strong>Embedded</strong> (first-billing paywall and update card on Billing): Stripe.js with <Badge text="VITE_PUBLIC_STRIPE_PUBLISHABLE_KEY" variant="envWeb" />.</p>
+<p><strong>Redirect</strong> (plan upgrades on Billing): hosted Checkout from <Badge text="POST /api/v1/billing/subscribe" variant="path" />.</p>
 </Callout>
 
 <Callout type="tip" title="Backend vs web publishable key">
@@ -138,6 +138,17 @@ STRIPE_PRICE_ID_MAX_YEARLY=price_...
 ```
 
 Plan limits are edited in <Badge text="pricing.ts" variant="path" />, not in Stripe metadata.
+
+## Adaptive Pricing
+
+List prices are **USD**. To let customers pay in a local currency at checkout:
+
+1. Turn on **Adaptive Pricing** in the <DocsExternalLink href="https://dashboard.stripe.com/settings/adaptive-pricing">Stripe Dashboard</DocsExternalLink> and include **USD** in settlement currencies.
+2. Ship OpenQuok with billing enabled — checkout sessions and the embedded Billing form already opt in and show a **currency selector** when Stripe offers one.
+
+<Callout type="note" title="Card limits">
+<p>Local currency at checkout works with common card and wallet methods. If a charge fails after trial or renewal, the customer can update their card under <strong>Payment details</strong> on <Badge text="/account/billing" variant="path" />.</p>
+</Callout>
 
 ## Steps for Stripe Dashboard
 
@@ -255,9 +266,12 @@ Tiers: <Badge text="FREE" variant="param" />(authenticated, no paid row), <Badge
 | Method | Path | Purpose |
 | --- | --- | --- |
 | `GET` | `/api/v1/billing/plans` | Public plan catalog and limits |
-| `GET` | `/api/v1/billing/current?organizationId=` | Tier, drive usage, trial flags |
-| `POST` | `/api/v1/billing/embedded` | Create embedded Checkout session (client secret for Stripe.js) |
+| `GET` | `/api/v1/billing/current?organizationId=` | Tier, drive usage, trial flags, `billing.subscriptionPaymentStatus`, `billing.requiresPaymentUpdate` |
+| `POST` | `/api/v1/billing/embedded` | Embedded subscription checkout (client secret) |
+| `POST` | `/api/v1/billing/payment-method/embedded` | Embedded form to update card on Billing |
 | `POST` | `/api/v1/billing/subscribe` | Hosted Checkout redirect or upgrade existing sub |
+| `POST` | `/api/v1/billing/finish-trial` | End trial now and return payment result |
+| `POST` | `/api/v1/billing/retry-open-invoice` | Retry an unpaid invoice after a new card is saved |
 | `GET` | `/api/v1/billing/portal?organizationId=` | Stripe Customer Portal URL |
 | `GET` | `/api/v1/billing/check/:id?organizationId=` | Poll after Checkout return |
 | `POST` | `/api/v1/billing/webhooks/stripe` | Stripe webhooks (raw body; no JWT) |
@@ -295,6 +309,8 @@ Signed-in users with a workspace should see usage on **Billing** and in the medi
 | Checkout works but tier never updates | Webhook not reaching the API; wrong signing secret; migrations not applied |
 | `402` on media upload | Workspace over <Badge text="media_storage_bytes_per_workspace" variant="default" /> for its tier |
 | Webhook `400` / signature error | Body parsed as JSON before the webhook handler; use CLI forward URL on port **3000** |
+| Trial ends but subscription stays unpaid | Ask the customer to update their card under **Payment details** on Billing; confirm Adaptive Pricing is on in Stripe |
+| No currency selector at checkout | Turn on Adaptive Pricing in the Stripe Dashboard |
 
 ## Related configuration
 

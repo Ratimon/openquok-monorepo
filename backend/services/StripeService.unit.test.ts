@@ -32,7 +32,7 @@ const mockStripe = {
     checkout: { sessions: { create: jest.fn(), list: jest.fn() } },
     billingPortal: { sessions: { create: jest.fn() } },
     charges: { list: jest.fn() },
-    invoices: { retrieve: jest.fn(), createPreview: jest.fn() },
+    invoices: { retrieve: jest.fn(), createPreview: jest.fn(), pay: jest.fn() },
     refunds: { create: jest.fn() },
 };
 
@@ -719,6 +719,7 @@ describe("StripeService", () => {
                     mode: "subscription",
                     customer: customerId,
                     allow_promotion_codes: true,
+                    adaptive_pricing: { enabled: true },
                     subscription_data: expect.objectContaining({
                         // trial_period_days is in days - eg 7 days
                         trial_period_days: 7,
@@ -850,6 +851,7 @@ describe("StripeService", () => {
             expect(mockStripe.checkout.sessions.create).toHaveBeenCalledWith(
                 expect.objectContaining({
                     ui_mode: "elements",
+                    adaptive_pricing: { enabled: true },
                     subscription_data: expect.objectContaining({
                         trial_period_days: 7,
                     }),
@@ -866,9 +868,47 @@ describe("StripeService", () => {
             });
             const sessionArgs = mockStripe.checkout.sessions.create.mock.calls[0]?.[0] as {
                 subscription_data?: { trial_period_days?: number };
+                adaptive_pricing?: { enabled: boolean };
             };
             expect(sessionArgs.subscription_data).toBeDefined();
             expect(sessionArgs.subscription_data).not.toHaveProperty("trial_period_days");
+            expect(sessionArgs.adaptive_pricing).toEqual({ enabled: true });
+        });
+    });
+
+    describe("createEmbeddedPaymentMethodSetupSession", () => {
+        beforeEach(() => {
+            (subscriptionRepo.getOrganizationBilling as jest.Mock).mockResolvedValue({
+                id: organizationId,
+                name: "Acme",
+                stripe_customer_id: customerId,
+                allow_trial: true,
+                is_trialing: false,
+            });
+            mockStripe.checkout.sessions.create.mockResolvedValue({
+                client_secret: "cs_test_setup_secret",
+            });
+            mockStripe.customers.retrieve.mockResolvedValue({ id: customerId });
+            (organizationRepo.getTeam as jest.Mock).mockResolvedValue({
+                members: [{ role: "owner", email: "owner@example.com", full_name: "Jane Owner" }],
+            });
+        });
+
+        it("creates a setup Checkout session with adaptive pricing", async () => {
+            const result = await service().createEmbeddedPaymentMethodSetupSession({
+                organizationId,
+            });
+            expect(result).toEqual({ clientSecret: "cs_test_setup_secret" });
+            expect(mockStripe.checkout.sessions.create).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    ui_mode: "elements",
+                    mode: "setup",
+                    currency: "usd",
+                    customer: customerId,
+                    adaptive_pricing: { enabled: true },
+                    return_url: "https://app.example.com/account/billing?paymentMethod=updated",
+                })
+            );
         });
     });
 
@@ -1206,6 +1246,90 @@ describe("StripeService", () => {
                 year: [{ name: "SOLO", recurring: "year", price: 278 }],
             });
             expect(mockStripe.prices.retrieve).toHaveBeenCalled();
+        });
+    });
+
+    describe("resolveSubscriptionPaymentBillingFlags", () => {
+        beforeEach(() => {
+            (subscriptionRepo.getOrganizationBilling as jest.Mock).mockResolvedValue(
+                defaultOrganizationBilling()
+            );
+            (subscriptionService.getEffectiveSubscription as jest.Mock).mockResolvedValue(null);
+        });
+
+        it("returns null status when the workspace has no Stripe customer", async () => {
+            (subscriptionRepo.getOrganizationBilling as jest.Mock).mockResolvedValue({
+                ...defaultOrganizationBilling(),
+                stripe_customer_id: null,
+            });
+
+            await expect(
+                service().resolveSubscriptionPaymentBillingFlags(organizationId)
+            ).resolves.toEqual({
+                subscriptionPaymentStatus: null,
+                requiresPaymentUpdate: false,
+            });
+            expect(mockStripe.subscriptions.list).not.toHaveBeenCalled();
+        });
+
+        it("maps active subscription and no payment update required", async () => {
+            mockStripe.subscriptions.list.mockResolvedValue({
+                data: [
+                    stripeSubscription({
+                        status: "active",
+                        latest_invoice: { status: "paid", attempt_count: 1 } as Stripe.Invoice,
+                    }),
+                ],
+            });
+
+            await expect(
+                service().resolveSubscriptionPaymentBillingFlags(organizationId)
+            ).resolves.toEqual({
+                subscriptionPaymentStatus: "active",
+                requiresPaymentUpdate: false,
+            });
+            expect(mockStripe.subscriptions.list).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    customer: customerId,
+                    expand: ["data.latest_invoice"],
+                })
+            );
+        });
+
+        it("flags past_due and open invoice with failed attempts", async () => {
+            mockStripe.subscriptions.list.mockResolvedValue({
+                data: [
+                    stripeSubscription({
+                        status: "past_due",
+                        latest_invoice: { status: "open", attempt_count: 2 } as Stripe.Invoice,
+                    }),
+                ],
+            });
+
+            await expect(
+                service().resolveSubscriptionPaymentBillingFlags(organizationId)
+            ).resolves.toEqual({
+                subscriptionPaymentStatus: "past_due",
+                requiresPaymentUpdate: true,
+            });
+        });
+
+        it("flags requiresPaymentUpdate for unpaid status", async () => {
+            mockStripe.subscriptions.list.mockResolvedValue({
+                data: [
+                    stripeSubscription({
+                        status: "unpaid",
+                        latest_invoice: { status: "open", attempt_count: 0 } as Stripe.Invoice,
+                    }),
+                ],
+            });
+
+            await expect(
+                service().resolveSubscriptionPaymentBillingFlags(organizationId)
+            ).resolves.toEqual({
+                subscriptionPaymentStatus: "unpaid",
+                requiresPaymentUpdate: true,
+            });
         });
     });
 

@@ -3,6 +3,7 @@
 		Stripe,
 		StripeCheckoutLoadActionsSuccess,
 		StripeCheckoutSession,
+		StripeCurrencySelectorElement,
 		StripePaymentElement
 	} from '@stripe/stripe-js';
 
@@ -22,18 +23,38 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 
+	type CheckoutMode = 'subscription' | 'setup';
+
 	type Props = {
 		/** Empty while the parent is still creating the Checkout session. */
 		clientSecret: string;
 		showCoupon?: boolean;
 		checkoutUpdating?: boolean;
+		/** Subscription checkout (default) or payment-method setup session. */
+		checkoutMode?: CheckoutMode;
+		/** Overrides the default confirm button label. */
+		submitLabel?: string;
+		/** Overrides the payment section heading. */
+		sectionTitle?: string;
+		/** Hide the in-form heading when the parent already shows a title. */
+		hideHeading?: boolean;
 	};
 
-	let { clientSecret, showCoupon = false, checkoutUpdating = false }: Props = $props();
+	let {
+		clientSecret,
+		showCoupon = false,
+		checkoutUpdating = false,
+		checkoutMode = 'subscription',
+		submitLabel: submitLabelOverride,
+		sectionTitle: sectionTitleOverride,
+		hideHeading = false
+	}: Props = $props();
 
 	let paymentMountEl = $state<HTMLDivElement | null>(null);
+	let currencySelectorMountEl = $state<HTMLDivElement | null>(null);
 	let stripe = $state<Stripe | null>(null);
 	let paymentElement = $state<StripePaymentElement | null>(null);
+	let currencySelectorElement = $state<StripeCurrencySelectorElement | null>(null);
 	let actions = $state<StripeCheckoutLoadActionsSuccess | null>(null);
 	let session = $state<StripeCheckoutSession | null>(null);
 	let paymentReady = $state(false);
@@ -65,15 +86,38 @@
 		const trialEnd = displaySession?.recurring?.trial?.trialEnd;
 		return trialEnd ? dayjs(trialEnd * 1000).format('MMMM D, YYYY') : null;
 	});
-	const submitLabel = $derived(
-		displaySession?.recurring?.trial?.trialEnd
-			? 'Pay $0 today — start your free trial'
-			: 'Pay now'
+	const isSetupMode = $derived(checkoutMode === 'setup');
+	const sectionHeading = $derived(
+		sectionTitleOverride ?? (isSetupMode ? 'Payment details' : 'Payment')
 	);
-	const canSubmit = $derived(Boolean(session?.canConfirm) && !submitting && !checkoutUpdating);
+	const defaultSubmitLabel = $derived(
+		isSetupMode
+			? 'Save payment info'
+			: displaySession?.recurring?.trial?.trialEnd
+				? 'Pay $0 today — start your free trial'
+				: 'Pay now'
+	);
+	const confirmButtonLabel = $derived(submitLabelOverride ?? defaultSubmitLabel);
+	const canSubmit = $derived(
+		Boolean(actions) &&
+			!submitting &&
+			!checkoutUpdating &&
+			(isSetupMode
+				? paymentReady && (session?.canConfirm ?? true)
+				: Boolean(session?.canConfirm))
+	);
 	const showSummary = $derived(Boolean(displaySession) && (paymentReady || summarySession));
+	const showOrderSummary = $derived(!isSetupMode && showSummary && Boolean(displaySession));
+	const showSetupPaymentActions = $derived(
+		isSetupMode && paymentReady && Boolean(clientSecret) && !mountError
+	);
+	const showCheckoutFooter = $derived(
+		!isSetupMode && Boolean(displaySession) && showSummary
+	);
 
 	async function teardownCheckout(keepSummary = false): Promise<void> {
+		currencySelectorElement?.unmount();
+		currencySelectorElement = null;
 		paymentElement?.unmount();
 		paymentElement = null;
 		actions = null;
@@ -106,6 +150,7 @@
 		try {
 			const sdk = stripe.initCheckoutElementsSdk({
 				clientSecret: secret,
+				adaptivePricing: { allowed: true },
 				elementsOptions: { appearance: embeddedCheckoutAppearance(isDarkCheckoutTheme()) }
 			});
 
@@ -125,6 +170,12 @@
 			actions = loadResult.actions;
 			session = loadResult.actions.getSession();
 			summarySession = session;
+
+			if (currencySelectorMountEl) {
+				const currencyElement = sdk.createCurrencySelectorElement();
+				currencyElement.mount(currencySelectorMountEl);
+				currencySelectorElement = currencyElement;
+			}
 
 			const element = sdk.createPaymentElement({
 				fields: { billingDetails: { address: 'if_required' } },
@@ -200,7 +251,7 @@
 	}
 
 	$effect(() => {
-		if (!clientSecret || !stripe || !paymentMountEl) return;
+		if (!clientSecret || !stripe || !paymentMountEl || !currencySelectorMountEl) return;
 		if (mountedSecret === clientSecret) return;
 		void mountCheckout(clientSecret);
 	});
@@ -219,16 +270,46 @@
 	});
 </script>
 
-<form class="flex flex-1 flex-col pt-6 lg:pt-0" onsubmit={handleSubmit}>
+<form
+	class={cn('flex flex-1 flex-col', hideHeading ? 'pt-0' : 'pt-6 lg:pt-0')}
+	onsubmit={handleSubmit}
+>
 	<div>
-		<h2 class="mb-8 text-2xl font-bold">Payment</h2>
+		{#if !hideHeading}
+			<h2 class={cn('font-bold', isSetupMode ? 'mb-4 text-xl' : 'mb-8 text-2xl')}>{sectionHeading}</h2>
+		{/if}
 		<div class="relative">
 			{#if mountError}
 				<div class="alert alert-error text-sm" role="alert">
 					<span>{mountError}</span>
 				</div>
 			{/if}
-			<div bind:this={paymentMountEl} class="min-h-[220px]"></div>
+			<div bind:this={currencySelectorMountEl} class="mb-4 empty:hidden"></div>
+			<div
+				bind:this={paymentMountEl}
+				class={cn(
+					isSetupMode
+						? !paymentReady && 'min-h-[140px]'
+						: 'min-h-[220px]'
+				)}
+			></div>
+			{#if showSetupPaymentActions}
+				<div class="mt-4 flex flex-col gap-3 border-t border-base-300 pt-4">
+					<Button type="submit" variant="primary" disabled={!canSubmit} class="w-full">
+						{submitting ? 'Processing…' : confirmButtonLabel}
+					</Button>
+					<div class="flex items-center gap-1 text-sm font-medium text-base-content/70">
+						<span>Secure payments processed by</span>
+						<AbstractIcon
+							name={icons.Stripe.name}
+							class="mt-0.5 text-[#635BFF]"
+							width="40"
+							height="17"
+							focusable="false"
+						/>
+					</div>
+				</div>
+			{/if}
 			{#if (!paymentReady || checkoutUpdating || !clientSecret) && !mountError}
 				<div
 					class="absolute inset-0 flex items-center justify-center rounded-lg bg-base-100/80 backdrop-blur-[1px]"
@@ -239,7 +320,7 @@
 		</div>
 	</div>
 
-	{#if showSummary && displaySession}
+	{#if showOrderSummary && displaySession}
 		<div class="relative mt-10">
 			{#if checkoutUpdating || !paymentReady}
 				<div
@@ -373,10 +454,14 @@
 			{/if}
 		{/if}
 
+	{/if}
+
+	{#if showCheckoutFooter}
 		<div
 			class={cn(
 				'mt-8 flex flex-col gap-4 border-t border-base-300 pt-6 lg:sticky lg:bottom-0 lg:bg-base-100',
-				'lg:flex-row lg:items-center lg:justify-between'
+				'lg:flex-row lg:items-center lg:justify-between',
+				showOrderSummary ? '' : 'mt-10'
 			)}
 		>
 			{#if trialEndLabel}
@@ -387,7 +472,7 @@
 				</p>
 			{/if}
 			<Button type="submit" variant="primary" disabled={!canSubmit} class="w-full sm:w-auto">
-				{submitting ? 'Processing…' : submitLabel}
+				{submitting ? 'Processing…' : confirmButtonLabel}
 			</Button>
 		</div>
 

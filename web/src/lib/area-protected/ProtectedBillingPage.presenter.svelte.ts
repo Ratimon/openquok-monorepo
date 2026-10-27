@@ -101,6 +101,13 @@ export class ProtectedBillingPagePresenter {
 		return this.billingPresenter.openPortal();
 	}
 
+	loadEmbeddedPaymentMethodSetupSecret(): Promise<{
+		clientSecret: string | null;
+		errorMessage: string | null;
+	}> {
+		return this.billingPresenter.loadEmbeddedPaymentMethodSetupSecret();
+	}
+
 	reactivateSubscription(): Promise<void> {
 		return this.billingPresenter.reactivateSubscription();
 	}
@@ -194,8 +201,12 @@ export class ProtectedBillingPagePresenter {
 		return 'pending_confirmation';
 	}
 
-	finishTrial(): Promise<void> {
+	finishTrial() {
 		return this.billingPresenter.finishTrial();
+	}
+
+	retryOpenInvoice() {
+		return this.billingPresenter.retryOpenInvoice();
 	}
 
 	pollTrialFinished(): Promise<boolean> {

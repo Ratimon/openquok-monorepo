@@ -1,8 +1,8 @@
 ---
 title: Managing your subscription
-description: OpenQuok Subscription — upgrade, downgrade, switch monthly or yearly, cancel, and open the Stripe portal for cards and invoices.
+description: Upgrade, downgrade, or cancel your plan, update your card in-app, and open Stripe for invoices.
 order: 1
-lastUpdated: 2026-09-23
+lastUpdated: 2026-10-27
 sidebar:
   label: Subscription
 ---
@@ -76,13 +76,11 @@ Yearly prices include a 20% discount versus twelve monthly payments. See <a href
 
 ## Payment method and invoices
 
-When you have a Stripe customer on file, Billing shows **Update payment method / invoices history**. That opens the **Stripe customer portal** for:
+On Billing, open **Payment details** to add or change your card in the app. If you see a currency dropdown, pick your local currency before you save.
 
-- Card add or replace
-- Invoice and receipt download
-- Billing email on file
+Use **Invoices & billing history** for PDF invoices and receipts (Stripe portal).
 
-Do not send card numbers to support. Portal changes stay in Stripe.
+If payment fails after trial or renewal, Billing may ask you to update your card there. Do not email card numbers to support.
 
 ## Cancelling
 

@@ -42,6 +42,12 @@ billingRouter.post(
     validateBillingSubscribeBody,
     billingController.embedded
 );
+billingRouter.post(
+    "/payment-method/embedded",
+    authWithRoles,
+    validateBillingOrganizationQuery,
+    billingController.embeddedPaymentMethod
+);
 billingRouter.get("/portal", authWithRoles, validateBillingOrganizationQuery, billingController.portal);
 billingRouter.get(
     "/check/:id",
@@ -72,6 +78,12 @@ billingRouter.get(
     authWithRoles,
     validateBillingOrganizationQuery,
     billingController.isTrialFinished
+);
+billingRouter.post(
+    "/retry-open-invoice",
+    authWithRoles,
+    validateBillingOrganizationQuery,
+    billingController.retryOpenInvoice
 );
 billingRouter.post(
     "/prorate",

@@ -13,7 +13,10 @@ import {
     PLATFORM_ADMIN_EFFECTIVE_TIER,
     type SubscriptionGuardService,
 } from "../guards/subscription/SubscriptionGuardService";
-import type { StripeService } from "../services/StripeService";
+import type {
+    StripeService,
+    SubscriptionPaymentBillingStatus,
+} from "../services/StripeService";
 import type { TrialBrowserService } from "../services/TrialBrowserService";
 import type {
     OrganizationSubscriptionRow,
@@ -250,6 +253,20 @@ export class BillingController {
         }
     };
 
+    embeddedPaymentMethod = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const organizationId = resolveActiveOrganizationId(req, { required: true })!;
+            const authUserId = (req as AuthenticatedRequest).user?.id;
+            const result = await this.stripeService.createEmbeddedPaymentMethodSetupSession({
+                organizationId,
+                authUserId,
+            });
+            res.status(200).json({ success: true, data: result });
+        } catch (error) {
+            next(error);
+        }
+    };
+
     portal = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const organizationId = resolveActiveOrganizationId(req, { required: true })!;
@@ -313,16 +330,23 @@ export class BillingController {
         try {
             const organizationId = resolveActiveOrganizationId(req, { required: true })!;
             const org = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+            let data;
             try {
-                await this.stripeService.finishTrial(org?.stripe_customer_id);
+                data = await this.stripeService.finishTrial(org?.stripe_customer_id);
             } catch (err) {
                 logger.warn({
                     msg: "[Billing] finishTrial Stripe call failed",
                     organizationId,
                     error: err instanceof Error ? err.message : String(err),
                 });
+                data = {
+                    finished: false,
+                    paymentFailed: true,
+                    message:
+                        "We could not finish your trial right now. Update your payment method or try again.",
+                };
             }
-            res.status(200).json({ success: true, data: { finish: true } });
+            res.status(200).json({ success: true, data });
         } catch (error) {
             next(error);
         }
@@ -332,10 +356,26 @@ export class BillingController {
         try {
             const organizationId = resolveActiveOrganizationId(req, { required: true })!;
             const org = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+            const finished = await this.stripeService.isTrialConversionFinished(
+                org?.stripe_customer_id
+            );
             res.status(200).json({
                 success: true,
-                data: { finished: !org?.is_trialing },
+                data: { finished },
             });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    retryOpenInvoice = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const organizationId = resolveActiveOrganizationId(req, { required: true })!;
+            const org = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+            const data = await this.stripeService.retryOpenSubscriptionInvoice(
+                org?.stripe_customer_id
+            );
+            res.status(200).json({ success: true, data });
         } catch (error) {
             next(error);
         }
@@ -531,6 +571,8 @@ export class BillingController {
             allowTrial: boolean;
             isTrialing: boolean;
             hasStripeCustomer: boolean;
+            subscriptionPaymentStatus: SubscriptionPaymentBillingStatus | null;
+            requiresPaymentUpdate: boolean;
         } | null = null;
         try {
             const orgBilling =
@@ -553,10 +595,31 @@ export class BillingController {
                         });
                     }
                 }
+                let subscriptionPaymentStatus: SubscriptionPaymentBillingStatus | null = null;
+                let requiresPaymentUpdate = false;
+                if (orgBilling.stripe_customer_id) {
+                    try {
+                        const paymentFlags =
+                            await this.stripeService.resolveSubscriptionPaymentBillingFlags(
+                                billingOrganizationId,
+                                authUserId
+                            );
+                        subscriptionPaymentStatus = paymentFlags.subscriptionPaymentStatus;
+                        requiresPaymentUpdate = paymentFlags.requiresPaymentUpdate;
+                    } catch (error) {
+                        logger.warn({
+                            msg: "buildCurrentBillingData: subscription payment status lookup failed",
+                            organizationId: billingOrganizationId,
+                            error: error instanceof Error ? error.message : String(error),
+                        });
+                    }
+                }
                 billing = {
                     allowTrial: effectiveAllowTrial,
                     isTrialing: orgBilling.is_trialing,
                     hasStripeCustomer: Boolean(orgBilling.stripe_customer_id),
+                    subscriptionPaymentStatus,
+                    requiresPaymentUpdate,
                 };
             } else {
                 billing = null;

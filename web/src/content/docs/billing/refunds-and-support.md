@@ -1,8 +1,8 @@
 ---
 title: Refunds and support
-description: OpenQuok Cloud refund policy — 7-day for unused billing periods, billing page tips, and how to reach billing support.
+description: Refund policy, fix billing and card errors on the Billing page, and contact support.
 order: 5
-lastUpdated: 2026-09-23
+lastUpdated: 2026-10-27
 ---
 
 <script>
@@ -13,7 +13,7 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/co
 
 > Cancel from Billing. Refund requests follow the policy below.
 
-**Where:** Open the account menu in the header, then choose <Badge text="Billing" variant="default" /> at <a href="/account/billing">/account/billing</a> to cancel or open the Stripe portal for invoices. Email <a href="mailto:admin@openquok.com">admin@openquok.com</a> for refund requests (see **Refunds** below). Only the workspace **owner** manages subscription and portal access.
+**Where:** Open the account menu in the header, then choose <Badge text="Billing" variant="default" /> at <a href="/account/billing">/account/billing</a> to cancel or fix payment. Email <a href="mailto:admin@openquok.com">admin@openquok.com</a> for refund requests (see **Refunds** below). Only the workspace **owner** manages subscription and portal access.
 
 ## Refunds
 
@@ -38,14 +38,14 @@ This matches the refund answer on <a href="/pricing">Pricing</a> and our <a href
 | Problem | What to try |
 | --- | --- |
 | Checkout or portal will not load | Allow <Badge text="*.stripe.com" variant="default" /> in ad blockers. Try a normal browser window (not strict private mode). |
-| Card declined | Use the Stripe portal from Billing to update the payment method. |
+| Card declined or unpaid after trial | Open **Payment details** on Billing → **Update payment method**. Pick a local currency if shown, then save a new card. |
 | Discount code rejected | See <a href="/docs/billing/codes-and-offers">Codes and offers</a> — spelling, expiry, and monthly vs yearly rules. |
 
 ## How to get help
 
 See <a href="/docs/help">Help and support</a> for the full guide.
 
-- **Billing and invoices** — <a href="/account/billing">Billing</a> and the Stripe portal first.
+- **Billing and invoices** — <a href="/account/billing">Billing</a> first.
 - **Product issues** — <a href="/docs/troubleshooting">Troubleshooting</a> and <a href="/docs/getting-started/quickstart">Quickstart</a>.
 - **Discord** — <DocsExternalLink href="https://discord.com/invite/xBfTzZr63W">OpenQuok Discord</DocsExternalLink> for quick questions (no API keys or secrets).
 - **Email** — <a href="mailto:admin@openquok.com">admin@openquok.com</a>. Company contact on <a href="/about">About</a>.

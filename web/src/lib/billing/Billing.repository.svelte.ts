@@ -13,16 +13,32 @@ export interface BillingConfig {
 		root: string;
 		subscribe: string;
 		embedded: string;
+		paymentMethodEmbedded: string;
 		portal: string;
 		checkCheckout: (id: string) => string;
 		checkDiscount: string;
 		applyDiscount: string;
 		finishTrial: string;
 		isTrialFinished: string;
+		retryOpenInvoice: string;
 		prorate: string;
 		cancel: string;
 	};
 }
+
+export type FinishTrialResult = {
+	finished: boolean;
+	requiresAction?: boolean;
+	clientSecret?: string;
+	paymentFailed?: boolean;
+	message?: string;
+};
+
+export type RetryOpenInvoiceResult = {
+	paid: boolean;
+	message?: string;
+	finishTrial?: FinishTrialResult;
+};
 
 /** Wire tier row from GET /billing/plans (camelCase after gateway). */
 interface BillingPlanWireDto {
@@ -86,6 +102,8 @@ export interface BillingCurrentProgrammerModel {
 		allowTrial: boolean;
 		isTrialing: boolean;
 		hasStripeCustomer: boolean;
+		subscriptionPaymentStatus: string | null;
+		requiresPaymentUpdate: boolean;
 	} | null;
 	billingEnabled: boolean;
 }
@@ -253,6 +271,25 @@ export class BillingRepository {
 		return clientSecret ? { clientSecret } : null;
 	}
 
+	async createEmbeddedPaymentMethodSetup(
+		organizationId: string
+	): Promise<{ clientSecret?: string } | null> {
+		const { data: paymentMethodEmbeddedDto, ok } = await this.httpGateway.post<{
+			success: boolean;
+			data?: { clientSecret?: string; client_secret?: string };
+			message?: string;
+		}>(this.config.endpoints.paymentMethodEmbedded, undefined, {
+			withCredentials: true,
+			params: { organizationId }
+		});
+
+		if (!ok || !paymentMethodEmbeddedDto?.data) return null;
+
+		const payload = paymentMethodEmbeddedDto.data;
+		const clientSecret = (payload.clientSecret ?? payload.client_secret)?.trim();
+		return clientSecret ? { clientSecret } : null;
+	}
+
 	async subscribe(params: {
 		organizationId: string;
 		billing: PaidSubscriptionTier;
@@ -347,12 +384,27 @@ export class BillingRepository {
 		return 0;
 	}
 
-	async finishTrial(organizationId: string): Promise<boolean> {
+	async finishTrial(organizationId: string): Promise<FinishTrialResult | null> {
 		const { data: finishTrialDto, ok } = await this.httpGateway.post<{
 			success: boolean;
+			data?: FinishTrialResult;
 		}>(this.config.endpoints.finishTrial, { organizationId }, { withCredentials: true });
 
-		return Boolean(ok && finishTrialDto?.success);
+		if (!ok || !finishTrialDto?.success || !finishTrialDto.data) return null;
+		return finishTrialDto.data;
+	}
+
+	async retryOpenInvoice(organizationId: string): Promise<RetryOpenInvoiceResult | null> {
+		const { data: retryOpenInvoiceDto, ok } = await this.httpGateway.post<{
+			success: boolean;
+			data?: RetryOpenInvoiceResult;
+		}>(this.config.endpoints.retryOpenInvoice, undefined, {
+			withCredentials: true,
+			params: { organizationId }
+		});
+
+		if (!ok || !retryOpenInvoiceDto?.success || !retryOpenInvoiceDto.data) return null;
+		return retryOpenInvoiceDto.data;
 	}
 
 	async isTrialFinished(organizationId: string): Promise<boolean> {

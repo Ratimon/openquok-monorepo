@@ -1,4 +1,8 @@
-import type { BillingRepository } from '$lib/billing/Billing.repository.svelte';
+import type {
+	BillingRepository,
+	FinishTrialResult,
+	RetryOpenInvoiceResult
+} from '$lib/billing/Billing.repository.svelte';
 import type { PaidSubscriptionTier, SubscriptionPeriod } from 'openquok-common';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 
@@ -14,6 +18,7 @@ export type SubscribeResult =
 
 export class BillingPresenter {
 	checkoutBusy = $state(false);
+	paymentMethodSetupBusy = $state(false);
 
 	private reloadPricing: (() => Promise<void>) | null = null;
 
@@ -78,6 +83,50 @@ export class BillingPresenter {
 					: 'Could not start embedded checkout. Try again.';
 			toast.error(message);
 			return { clientSecret: null, errorMessage: message };
+		}
+	}
+
+	async loadEmbeddedPaymentMethodSetupSecret(): Promise<{
+		clientSecret: string | null;
+		errorMessage: string | null;
+	}> {
+		const organizationId = this.organizationId;
+		if (!organizationId) {
+			return { clientSecret: null, errorMessage: null };
+		}
+
+		if (!STRIPE_PUBLISHABLE_KEY) {
+			const message =
+				'VITE_PUBLIC_STRIPE_PUBLISHABLE_KEY is not configured in the web environment.';
+			toast.error(message);
+			return { clientSecret: null, errorMessage: message };
+		}
+
+		this.paymentMethodSetupBusy = true;
+		try {
+			const result = await this.billingRepository.createEmbeddedPaymentMethodSetup(
+				organizationId
+			);
+			const clientSecret = result?.clientSecret?.trim() ?? null;
+			if (!clientSecret) {
+				const message =
+					'Payment setup session did not return a client secret. Confirm backend Stripe keys and FRONTEND_DOMAIN_URL.';
+				toast.error(message);
+				return { clientSecret: null, errorMessage: message };
+			}
+			return { clientSecret, errorMessage: null };
+		} catch (error) {
+			const message =
+				error instanceof ApiError
+					? messageFromApiError(
+							error,
+							'Could not start payment method setup. Try again or contact support.'
+						)
+					: 'Could not start payment method setup. Try again.';
+			toast.error(message);
+			return { clientSecret: null, errorMessage: message };
+		} finally {
+			this.paymentMethodSetupBusy = false;
 		}
 	}
 
@@ -208,10 +257,16 @@ export class BillingPresenter {
 		});
 	}
 
-	async finishTrial(): Promise<void> {
+	async finishTrial(): Promise<FinishTrialResult | null> {
 		const organizationId = this.organizationId;
-		if (!organizationId) return;
-		await this.billingRepository.finishTrial(organizationId);
+		if (!organizationId) return null;
+		return this.billingRepository.finishTrial(organizationId);
+	}
+
+	async retryOpenInvoice(): Promise<RetryOpenInvoiceResult | null> {
+		const organizationId = this.organizationId;
+		if (!organizationId) return null;
+		return this.billingRepository.retryOpenInvoice(organizationId);
 	}
 
 	async pollTrialFinished(): Promise<boolean> {

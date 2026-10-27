@@ -25,6 +25,11 @@ import type { OrganizationRepository } from "../repositories/OrganizationReposit
 import type { UserRepository } from "../repositories/UserRepository";
 import type { TrialBrowserService } from "./TrialBrowserService";
 import { normalizeCloudTrialBrowserSignal } from "../utils/billing/resolveCloudTrialBrowserSignal";
+import {
+    finishTrialResultFromSubscription,
+    isTrialConversionFinishedStatus,
+    type FinishTrialResult,
+} from "./billing/finishTrialPaymentResult";
 
 const STRIPE_SERVICE_METADATA = "openquok";
 const STRIPE_METADATA_CLOUD_TRIAL_BROWSER_SIGNAL = "cloudTrialBrowserSignalId";
@@ -33,6 +38,22 @@ export type CheckoutPollStatus = {
     status: 0 | 1 | 2;
     /** Workspace that owns the subscription row (for switching `showorg` after redirect). */
     organizationId?: string;
+};
+
+export type SubscriptionPaymentBillingStatus =
+    | "active"
+    | "past_due"
+    | "trialing"
+    | "unpaid"
+    | "incomplete"
+    | "unknown";
+
+export type { FinishTrialResult } from "./billing/finishTrialPaymentResult";
+
+export type RetryOpenInvoiceResult = {
+    paid: boolean;
+    message?: string;
+    finishTrial?: FinishTrialResult;
 };
 
 export interface BillingSubscribeBody {
@@ -508,6 +529,7 @@ export class StripeService {
                 customer,
                 line_items: [{ price: priceId, quantity: 1 }],
                 allow_promotion_codes: true,
+                adaptive_pricing: { enabled: true },
                 success_url: `${frontend}/account?checkout=${uniqueId}`,
                 cancel_url: `${frontend}/account/billing`,
                 subscription_data: {
@@ -718,17 +740,122 @@ export class StripeService {
         return true;
     }
 
-    async finishTrial(customerId: string | null | undefined): Promise<void> {
-        if (!customerId) return;
+    async finishTrial(customerId: string | null | undefined): Promise<FinishTrialResult> {
+        if (!customerId?.trim()) {
+            return { finished: false, message: "No Stripe customer for this workspace." };
+        }
+
         const stripe = getStripeClient();
-        const subs = (await stripe.subscriptions.list({ customer: customerId, limit: 20 })).data.filter(
-            (s) => s.status === "trialing"
-        );
-        if (!subs[0]?.id) return;
-        const updated = await stripe.subscriptions.update(subs[0].id, { trial_end: "now" });
+        const trialing = (
+            await stripe.subscriptions.list({ customer: customerId, limit: 20 })
+        ).data.filter((s) => s.status === "trialing");
+
+        if (!trialing[0]?.id) {
+            const openSubs = await this.listOpenStripeSubscriptions(customerId);
+            const existing =
+                this.pickOpenQuokSubscription(openSubs) ??
+                this.pickOpenBillableSubscription(openSubs);
+            if (existing?.status === "active") {
+                await this.syncSubscriptionFromStripe(existing);
+                return { finished: true };
+            }
+            return { finished: false, message: "No trialing subscription found for this workspace." };
+        }
+
+        const updated = await stripe.subscriptions.update(trialing[0].id, {
+            trial_end: "now",
+            expand: ["latest_invoice.payment_intent"],
+        });
         await this.syncSubscriptionFromStripe(updated);
-        const org = await this.subscriptionRepository.getOrganizationByStripeCustomerId(customerId);
-        if (org) await this.subscriptionRepository.setTrialing(org.id, false);
+        return finishTrialResultFromSubscription(updated);
+    }
+
+    async isTrialConversionFinished(customerId: string | null | undefined): Promise<boolean> {
+        if (!customerId?.trim()) return false;
+
+        const openSubs = await this.listOpenStripeSubscriptions(customerId);
+        const sub =
+            this.pickOpenQuokSubscription(openSubs) ??
+            this.pickOpenBillableSubscription(openSubs);
+        if (!sub) return false;
+        return isTrialConversionFinishedStatus(sub.status);
+    }
+
+    async retryOpenSubscriptionInvoice(
+        customerId: string | null | undefined
+    ): Promise<RetryOpenInvoiceResult> {
+        if (!customerId?.trim()) {
+            return { paid: false, message: "No Stripe customer for this workspace." };
+        }
+
+        const stripe = getStripeClient();
+        const openSubs = await this.listOpenStripeSubscriptions(customerId);
+        const sub =
+            this.pickOpenQuokSubscription(openSubs) ??
+            this.pickOpenBillableSubscription(openSubs);
+        if (!sub) {
+            return { paid: false, message: "No subscription found to bill." };
+        }
+
+        if (sub.status === "active") {
+            return { paid: true };
+        }
+
+        const latestInvoice = sub.latest_invoice;
+        const invoiceId =
+            typeof latestInvoice === "string"
+                ? latestInvoice
+                : latestInvoice?.status === "open"
+                  ? latestInvoice.id
+                  : null;
+
+        if (!invoiceId) {
+            const retrieved = await stripe.subscriptions.retrieve(sub.id, {
+                expand: ["latest_invoice.payment_intent"],
+            });
+            await this.syncSubscriptionFromStripe(retrieved);
+            if (retrieved.status === "active") {
+                return { paid: true };
+            }
+            return {
+                paid: false,
+                message: "No open invoice to retry.",
+                finishTrial: finishTrialResultFromSubscription(retrieved),
+            };
+        }
+
+        try {
+            await stripe.invoices.pay(invoiceId);
+        } catch (error) {
+            logger.warn({
+                msg: "retryOpenSubscriptionInvoice: invoices.pay failed",
+                customerId,
+                invoiceId,
+                error: error instanceof Error ? error.message : String(error),
+            });
+            const retrieved = await stripe.subscriptions.retrieve(sub.id, {
+                expand: ["latest_invoice.payment_intent"],
+            });
+            await this.syncSubscriptionFromStripe(retrieved);
+            return {
+                paid: false,
+                message: "Payment could not be completed. Update your payment method and try again.",
+                finishTrial: finishTrialResultFromSubscription(retrieved),
+            };
+        }
+
+        const retrieved = await stripe.subscriptions.retrieve(sub.id, {
+            expand: ["latest_invoice.payment_intent"],
+        });
+        await this.syncSubscriptionFromStripe(retrieved);
+        if (retrieved.status === "active") {
+            return { paid: true };
+        }
+        return {
+            paid: false,
+            message: "Payment is still pending or requires action.",
+            finishTrial: finishTrialResultFromSubscription(retrieved),
+        };
     }
 
     async previewProration(
@@ -803,6 +930,29 @@ export class StripeService {
 
     private isBillableStripeStatus(status: Stripe.Subscription.Status): boolean {
         return status === "active" || status === "trialing" || status === "past_due";
+    }
+
+    private isSubscriptionPaymentBillingStatus(status: Stripe.Subscription.Status): boolean {
+        return (
+            status === "active" ||
+            status === "trialing" ||
+            status === "past_due" ||
+            status === "unpaid" ||
+            status === "incomplete"
+        );
+    }
+
+    private pickSubscriptionForPaymentBilling(
+        subs: Stripe.Subscription[]
+    ): Stripe.Subscription | undefined {
+        return (
+            subs.find(
+                (s) =>
+                    this.isSubscriptionPaymentBillingStatus(s.status) &&
+                    s.metadata?.service === STRIPE_SERVICE_METADATA &&
+                    this.tierFromMetadata(s.metadata) != null
+            ) ?? subs.find((s) => this.isSubscriptionPaymentBillingStatus(s.status))
+        );
     }
 
     private pickSubscriptionScheduledToCancel(
@@ -996,6 +1146,7 @@ export class StripeService {
                 customer,
                 line_items: [{ price: priceId, quantity: 1 }],
                 allow_promotion_codes: true,
+                adaptive_pricing: { enabled: true },
                 return_url: `${frontend}/account?checkout=${uniqueId}`,
                 subscription_data: {
                     ...(params.allowTrial ? { trial_period_days: 7 } : {}),
@@ -1028,6 +1179,107 @@ export class StripeService {
                 throw error;
             }
             this.rethrowStripeAsValidation(error);
+        }
+    }
+
+    async createEmbeddedPaymentMethodSetupSession(params: {
+        organizationId: string;
+        authUserId?: string;
+    }): Promise<{ clientSecret: string }> {
+        const customer = await this.createOrGetCustomer(params.organizationId);
+        const contact = await this.resolveBillingContact(
+            params.organizationId,
+            params.authUserId
+        );
+        await this.syncStripeCustomerProfile(customer, contact);
+        const frontend = this.frontendUrl();
+        if (!frontend) {
+            throw new UserValidationError(
+                "FRONTEND_DOMAIN_URL is not configured. Set it in the backend env for checkout redirect URLs."
+            );
+        }
+
+        try {
+            const stripe = getStripeClient();
+            const session = await stripe.checkout.sessions.create({
+                ui_mode: "elements",
+                mode: "setup",
+                currency: "usd",
+                customer,
+                adaptive_pricing: { enabled: true },
+                return_url: `${frontend}/account/billing?paymentMethod=updated`,
+                metadata: {
+                    service: STRIPE_SERVICE_METADATA,
+                    organizationId: params.organizationId,
+                },
+            });
+
+            const clientSecret = session.client_secret?.trim();
+            if (!clientSecret) {
+                throw new UserValidationError(
+                    "Stripe did not return a checkout client secret. Confirm your Stripe API version supports ui_mode elements."
+                );
+            }
+            return { clientSecret };
+        } catch (error) {
+            if (error instanceof UserValidationError) {
+                throw error;
+            }
+            this.rethrowStripeAsValidation(error);
+        }
+    }
+
+    async resolveSubscriptionPaymentBillingFlags(
+        organizationId: string,
+        authUserId?: string
+    ): Promise<{
+        subscriptionPaymentStatus: SubscriptionPaymentBillingStatus | null;
+        requiresPaymentUpdate: boolean;
+    }> {
+        const { billingOrgId } = await this.resolveBillingSubscription(organizationId, authUserId);
+        const org = await this.subscriptionRepository.getOrganizationBilling(billingOrgId);
+        const customerId = org?.stripe_customer_id?.trim();
+        if (!customerId) {
+            return { subscriptionPaymentStatus: null, requiresPaymentUpdate: false };
+        }
+
+        try {
+            const openSubs = await this.listOpenStripeSubscriptions(customerId);
+            const sub = this.pickSubscriptionForPaymentBilling(openSubs);
+            if (!sub) {
+                return { subscriptionPaymentStatus: null, requiresPaymentUpdate: false };
+            }
+
+            const latestInvoice = sub.latest_invoice as Stripe.Invoice | null | undefined;
+            const subscriptionPaymentStatus = this.mapSubscriptionPaymentBillingStatus(sub.status);
+            const requiresPaymentUpdate =
+                sub.status === "past_due" ||
+                sub.status === "unpaid" ||
+                (latestInvoice?.status === "open" && (latestInvoice.attempt_count ?? 0) > 0);
+
+            return { subscriptionPaymentStatus, requiresPaymentUpdate };
+        } catch (error) {
+            logger.warn({
+                msg: "resolveSubscriptionPaymentBillingFlags failed",
+                organizationId: billingOrgId,
+                error: error instanceof Error ? error.message : String(error),
+            });
+            return { subscriptionPaymentStatus: null, requiresPaymentUpdate: false };
+        }
+    }
+
+    private mapSubscriptionPaymentBillingStatus(
+        status: Stripe.Subscription.Status
+    ): SubscriptionPaymentBillingStatus {
+        switch (status) {
+            case "active":
+            case "past_due":
+            case "trialing":
+            case "unpaid":
+            case "incomplete":
+                return status;
+            default:
+                return "unknown";
         }
     }
 

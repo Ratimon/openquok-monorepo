@@ -32773,6 +32773,50 @@ var init_stripe = __esm({
     stripeClient = null;
   }
 });
+
+// services/billing/finishTrialPaymentResult.ts
+function isTrialConversionFinishedStatus(status) {
+  if (status === "trialing") return false;
+  return status === "active";
+}
+function paymentIntentFromSubscription(subscription) {
+  const invoice = subscription.latest_invoice;
+  if (!invoice || typeof invoice === "string") return null;
+  const paymentIntent = invoice.payment_intent;
+  if (!paymentIntent || typeof paymentIntent === "string") return null;
+  return paymentIntent;
+}
+function finishTrialResultFromSubscription(subscription) {
+  if (subscription.status === "active") {
+    return { finished: true };
+  }
+  if (subscription.status === "trialing") {
+    return { finished: false, message: "Trial is still active." };
+  }
+  const paymentIntent = paymentIntentFromSubscription(subscription);
+  if (paymentIntent?.status === "requires_action" && paymentIntent.client_secret) {
+    return {
+      finished: false,
+      requiresAction: true,
+      clientSecret: paymentIntent.client_secret
+    };
+  }
+  if (paymentIntent?.status === "requires_payment_method" || subscription.status === "past_due" || subscription.status === "incomplete" || subscription.status === "unpaid") {
+    return {
+      finished: false,
+      paymentFailed: true,
+      message: "We could not charge your payment method. Update your card in Payment details and try again."
+    };
+  }
+  return {
+    finished: false,
+    message: "Subscription payment is still processing. Try again in a moment."
+  };
+}
+var init_finishTrialPaymentResult = __esm({
+  "services/billing/finishTrialPaymentResult.ts"() {
+  }
+});
 var STRIPE_SERVICE_METADATA, STRIPE_METADATA_CLOUD_TRIAL_BROWSER_SIGNAL, STRIPE_PRICE_LOOKUP_KEYS, StripeService;
 var init_StripeService = __esm({
   "services/StripeService.ts"() {
@@ -32784,6 +32828,7 @@ var init_StripeService = __esm({
     init_makeId();
     init_Logger();
     init_resolveCloudTrialBrowserSignal();
+    init_finishTrialPaymentResult();
     STRIPE_SERVICE_METADATA = "openquok";
     STRIPE_METADATA_CLOUD_TRIAL_BROWSER_SIGNAL = "cloudTrialBrowserSignalId";
     STRIPE_PRICE_LOOKUP_KEYS = PAID_SUBSCRIPTION_TIERS.flatMap((tier) => [
@@ -33162,6 +33207,7 @@ var init_StripeService = __esm({
             customer,
             line_items: [{ price: priceId, quantity: 1 }],
             allow_promotion_codes: true,
+            adaptive_pricing: { enabled: true },
             success_url: `${frontend}/account?checkout=${uniqueId}`,
             cancel_url: `${frontend}/account/billing`,
             subscription_data: {
@@ -33333,16 +33379,94 @@ var init_StripeService = __esm({
         return true;
       }
       async finishTrial(customerId) {
-        if (!customerId) return;
+        if (!customerId?.trim()) {
+          return { finished: false, message: "No Stripe customer for this workspace." };
+        }
         const stripe = getStripeClient();
-        const subs = (await stripe.subscriptions.list({ customer: customerId, limit: 20 })).data.filter(
-          (s) => s.status === "trialing"
-        );
-        if (!subs[0]?.id) return;
-        const updated = await stripe.subscriptions.update(subs[0].id, { trial_end: "now" });
+        const trialing = (await stripe.subscriptions.list({ customer: customerId, limit: 20 })).data.filter((s) => s.status === "trialing");
+        if (!trialing[0]?.id) {
+          const openSubs = await this.listOpenStripeSubscriptions(customerId);
+          const existing = this.pickOpenQuokSubscription(openSubs) ?? this.pickOpenBillableSubscription(openSubs);
+          if (existing?.status === "active") {
+            await this.syncSubscriptionFromStripe(existing);
+            return { finished: true };
+          }
+          return { finished: false, message: "No trialing subscription found for this workspace." };
+        }
+        const updated = await stripe.subscriptions.update(trialing[0].id, {
+          trial_end: "now",
+          expand: ["latest_invoice.payment_intent"]
+        });
         await this.syncSubscriptionFromStripe(updated);
-        const org = await this.subscriptionRepository.getOrganizationByStripeCustomerId(customerId);
-        if (org) await this.subscriptionRepository.setTrialing(org.id, false);
+        return finishTrialResultFromSubscription(updated);
+      }
+      async isTrialConversionFinished(customerId) {
+        if (!customerId?.trim()) return false;
+        const openSubs = await this.listOpenStripeSubscriptions(customerId);
+        const sub = this.pickOpenQuokSubscription(openSubs) ?? this.pickOpenBillableSubscription(openSubs);
+        if (!sub) return false;
+        return isTrialConversionFinishedStatus(sub.status);
+      }
+      async retryOpenSubscriptionInvoice(customerId) {
+        if (!customerId?.trim()) {
+          return { paid: false, message: "No Stripe customer for this workspace." };
+        }
+        const stripe = getStripeClient();
+        const openSubs = await this.listOpenStripeSubscriptions(customerId);
+        const sub = this.pickOpenQuokSubscription(openSubs) ?? this.pickOpenBillableSubscription(openSubs);
+        if (!sub) {
+          return { paid: false, message: "No subscription found to bill." };
+        }
+        if (sub.status === "active") {
+          return { paid: true };
+        }
+        const latestInvoice = sub.latest_invoice;
+        const invoiceId = typeof latestInvoice === "string" ? latestInvoice : latestInvoice?.status === "open" ? latestInvoice.id : null;
+        if (!invoiceId) {
+          const retrieved2 = await stripe.subscriptions.retrieve(sub.id, {
+            expand: ["latest_invoice.payment_intent"]
+          });
+          await this.syncSubscriptionFromStripe(retrieved2);
+          if (retrieved2.status === "active") {
+            return { paid: true };
+          }
+          return {
+            paid: false,
+            message: "No open invoice to retry.",
+            finishTrial: finishTrialResultFromSubscription(retrieved2)
+          };
+        }
+        try {
+          await stripe.invoices.pay(invoiceId);
+        } catch (error) {
+          logger.warn({
+            msg: "retryOpenSubscriptionInvoice: invoices.pay failed",
+            customerId,
+            invoiceId,
+            error: error instanceof Error ? error.message : String(error)
+          });
+          const retrieved2 = await stripe.subscriptions.retrieve(sub.id, {
+            expand: ["latest_invoice.payment_intent"]
+          });
+          await this.syncSubscriptionFromStripe(retrieved2);
+          return {
+            paid: false,
+            message: "Payment could not be completed. Update your payment method and try again.",
+            finishTrial: finishTrialResultFromSubscription(retrieved2)
+          };
+        }
+        const retrieved = await stripe.subscriptions.retrieve(sub.id, {
+          expand: ["latest_invoice.payment_intent"]
+        });
+        await this.syncSubscriptionFromStripe(retrieved);
+        if (retrieved.status === "active") {
+          return { paid: true };
+        }
+        return {
+          paid: false,
+          message: "Payment is still pending or requires action.",
+          finishTrial: finishTrialResultFromSubscription(retrieved)
+        };
       }
       async previewProration(organizationId, body) {
         const customer = await this.createOrGetCustomer(organizationId);
@@ -33407,6 +33531,14 @@ var init_StripeService = __esm({
       }
       isBillableStripeStatus(status) {
         return status === "active" || status === "trialing" || status === "past_due";
+      }
+      isSubscriptionPaymentBillingStatus(status) {
+        return status === "active" || status === "trialing" || status === "past_due" || status === "unpaid" || status === "incomplete";
+      }
+      pickSubscriptionForPaymentBilling(subs) {
+        return subs.find(
+          (s) => this.isSubscriptionPaymentBillingStatus(s.status) && s.metadata?.service === STRIPE_SERVICE_METADATA && this.tierFromMetadata(s.metadata) != null
+        ) ?? subs.find((s) => this.isSubscriptionPaymentBillingStatus(s.status));
       }
       pickSubscriptionScheduledToCancel(subs) {
         return subs.find(
@@ -33538,6 +33670,7 @@ var init_StripeService = __esm({
             customer,
             line_items: [{ price: priceId, quantity: 1 }],
             allow_promotion_codes: true,
+            adaptive_pricing: { enabled: true },
             return_url: `${frontend}/account?checkout=${uniqueId}`,
             subscription_data: {
               ...params.allowTrial ? { trial_period_days: 7 } : {},
@@ -33569,6 +33702,85 @@ var init_StripeService = __esm({
             throw error;
           }
           this.rethrowStripeAsValidation(error);
+        }
+      }
+      async createEmbeddedPaymentMethodSetupSession(params) {
+        const customer = await this.createOrGetCustomer(params.organizationId);
+        const contact = await this.resolveBillingContact(
+          params.organizationId,
+          params.authUserId
+        );
+        await this.syncStripeCustomerProfile(customer, contact);
+        const frontend = this.frontendUrl();
+        if (!frontend) {
+          throw new UserValidationError(
+            "FRONTEND_DOMAIN_URL is not configured. Set it in the backend env for checkout redirect URLs."
+          );
+        }
+        try {
+          const stripe = getStripeClient();
+          const session = await stripe.checkout.sessions.create({
+            ui_mode: "elements",
+            mode: "setup",
+            currency: "usd",
+            customer,
+            adaptive_pricing: { enabled: true },
+            return_url: `${frontend}/account/billing?paymentMethod=updated`,
+            metadata: {
+              service: STRIPE_SERVICE_METADATA,
+              organizationId: params.organizationId
+            }
+          });
+          const clientSecret = session.client_secret?.trim();
+          if (!clientSecret) {
+            throw new UserValidationError(
+              "Stripe did not return a checkout client secret. Confirm your Stripe API version supports ui_mode elements."
+            );
+          }
+          return { clientSecret };
+        } catch (error) {
+          if (error instanceof UserValidationError) {
+            throw error;
+          }
+          this.rethrowStripeAsValidation(error);
+        }
+      }
+      async resolveSubscriptionPaymentBillingFlags(organizationId, authUserId) {
+        const { billingOrgId } = await this.resolveBillingSubscription(organizationId, authUserId);
+        const org = await this.subscriptionRepository.getOrganizationBilling(billingOrgId);
+        const customerId = org?.stripe_customer_id?.trim();
+        if (!customerId) {
+          return { subscriptionPaymentStatus: null, requiresPaymentUpdate: false };
+        }
+        try {
+          const openSubs = await this.listOpenStripeSubscriptions(customerId);
+          const sub = this.pickSubscriptionForPaymentBilling(openSubs);
+          if (!sub) {
+            return { subscriptionPaymentStatus: null, requiresPaymentUpdate: false };
+          }
+          const latestInvoice = sub.latest_invoice;
+          const subscriptionPaymentStatus = this.mapSubscriptionPaymentBillingStatus(sub.status);
+          const requiresPaymentUpdate = sub.status === "past_due" || sub.status === "unpaid" || latestInvoice?.status === "open" && (latestInvoice.attempt_count ?? 0) > 0;
+          return { subscriptionPaymentStatus, requiresPaymentUpdate };
+        } catch (error) {
+          logger.warn({
+            msg: "resolveSubscriptionPaymentBillingFlags failed",
+            organizationId: billingOrgId,
+            error: error instanceof Error ? error.message : String(error)
+          });
+          return { subscriptionPaymentStatus: null, requiresPaymentUpdate: false };
+        }
+      }
+      mapSubscriptionPaymentBillingStatus(status) {
+        switch (status) {
+          case "active":
+          case "past_due":
+          case "trialing":
+          case "unpaid":
+          case "incomplete":
+            return status;
+          default:
+            return "unknown";
         }
       }
       async listCharges(organizationId) {
@@ -40228,6 +40440,19 @@ var init_BillingController = __esm({
           next(error);
         }
       };
+      embeddedPaymentMethod = async (req, res, next) => {
+        try {
+          const organizationId = resolveActiveOrganizationId(req, { required: true });
+          const authUserId = req.user?.id;
+          const result = await this.stripeService.createEmbeddedPaymentMethodSetupSession({
+            organizationId,
+            authUserId
+          });
+          res.status(200).json({ success: true, data: result });
+        } catch (error) {
+          next(error);
+        }
+      };
       portal = async (req, res, next) => {
         try {
           const organizationId = resolveActiveOrganizationId(req, { required: true });
@@ -40287,16 +40512,22 @@ var init_BillingController = __esm({
         try {
           const organizationId = resolveActiveOrganizationId(req, { required: true });
           const org = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+          let data;
           try {
-            await this.stripeService.finishTrial(org?.stripe_customer_id);
+            data = await this.stripeService.finishTrial(org?.stripe_customer_id);
           } catch (err) {
             logger.warn({
               msg: "[Billing] finishTrial Stripe call failed",
               organizationId,
               error: err instanceof Error ? err.message : String(err)
             });
+            data = {
+              finished: false,
+              paymentFailed: true,
+              message: "We could not finish your trial right now. Update your payment method or try again."
+            };
           }
-          res.status(200).json({ success: true, data: { finish: true } });
+          res.status(200).json({ success: true, data });
         } catch (error) {
           next(error);
         }
@@ -40305,10 +40536,25 @@ var init_BillingController = __esm({
         try {
           const organizationId = resolveActiveOrganizationId(req, { required: true });
           const org = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+          const finished = await this.stripeService.isTrialConversionFinished(
+            org?.stripe_customer_id
+          );
           res.status(200).json({
             success: true,
-            data: { finished: !org?.is_trialing }
+            data: { finished }
           });
+        } catch (error) {
+          next(error);
+        }
+      };
+      retryOpenInvoice = async (req, res, next) => {
+        try {
+          const organizationId = resolveActiveOrganizationId(req, { required: true });
+          const org = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+          const data = await this.stripeService.retryOpenSubscriptionInvoice(
+            org?.stripe_customer_id
+          );
+          res.status(200).json({ success: true, data });
         } catch (error) {
           next(error);
         }
@@ -40486,10 +40732,30 @@ ${feedback}`,
                 });
               }
             }
+            let subscriptionPaymentStatus = null;
+            let requiresPaymentUpdate = false;
+            if (orgBilling.stripe_customer_id) {
+              try {
+                const paymentFlags = await this.stripeService.resolveSubscriptionPaymentBillingFlags(
+                  billingOrganizationId,
+                  authUserId
+                );
+                subscriptionPaymentStatus = paymentFlags.subscriptionPaymentStatus;
+                requiresPaymentUpdate = paymentFlags.requiresPaymentUpdate;
+              } catch (error) {
+                logger.warn({
+                  msg: "buildCurrentBillingData: subscription payment status lookup failed",
+                  organizationId: billingOrganizationId,
+                  error: error instanceof Error ? error.message : String(error)
+                });
+              }
+            }
             billing = {
               allowTrial: effectiveAllowTrial,
               isTrialing: orgBilling.is_trialing,
-              hasStripeCustomer: Boolean(orgBilling.stripe_customer_id)
+              hasStripeCustomer: Boolean(orgBilling.stripe_customer_id),
+              subscriptionPaymentStatus,
+              requiresPaymentUpdate
             };
           } else {
             billing = null;
@@ -50907,6 +51173,12 @@ billingRouter.post(
   validateBillingSubscribeBody,
   billingController.embedded
 );
+billingRouter.post(
+  "/payment-method/embedded",
+  authWithRoles12,
+  validateBillingOrganizationQuery,
+  billingController.embeddedPaymentMethod
+);
 billingRouter.get("/portal", authWithRoles12, validateBillingOrganizationQuery, billingController.portal);
 billingRouter.get(
   "/check/:id",
@@ -50937,6 +51209,12 @@ billingRouter.get(
   authWithRoles12,
   validateBillingOrganizationQuery,
   billingController.isTrialFinished
+);
+billingRouter.post(
+  "/retry-open-invoice",
+  authWithRoles12,
+  validateBillingOrganizationQuery,
+  billingController.retryOpenInvoice
 );
 billingRouter.post(
   "/prorate",

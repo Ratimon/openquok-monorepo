@@ -16,11 +16,13 @@
 		BillingCancelFeedbackDialog,
 		BillingCancelRetentionDialog,
 		BillingFaq,
+		BillingPaymentDetailsSection,
 		BillingPeriodToggle,
 		BillingPlansSection,
 		BillingWorkspaceSelect,
 		FinishTrial
 	} from '$lib/ui/components/billing';
+	import { toast } from '$lib/ui/sonner';
 	import HomeAccountNoticeBanner from '$lib/ui/components/home/HomeAccountNoticeBanner.svelte';
 	import AbstractModal from '$lib/ui/modals/AbstractModal.svelte';
 
@@ -45,8 +47,11 @@
 			: ownedWorkspaces.length > 1
 	);
 	const finishTrialQuery = $derived(page.url.searchParams.get('finishTrial'));
+	const paymentMethodUpdatedQuery = $derived(page.url.searchParams.get('paymentMethod'));
 
 	let period = $state<'MONTHLY' | 'YEARLY'>('MONTHLY');
+	let paymentDetailsExpanded = $state(true);
+	let paymentMethodClientSecret = $state<string | null>(null);
 	let showFinishTrial = $state(false);
 	let showCancelConfirmDialog = $state(false);
 	let showRetentionDialog = $state(false);
@@ -65,9 +70,16 @@
 	const userOnFreeTier = $derived((currentTier ?? 'FREE') === 'FREE');
 	const allowTrial = $derived(pagePresenter.currentVm?.billing?.allowTrial ?? false);
 	const checkoutBusy = $derived(pagePresenter.billingPresenter.checkoutBusy);
+	const paymentMethodSetupBusy = $derived(pagePresenter.billingPresenter.paymentMethodSetupBusy);
+	const requiresPaymentUpdate = $derived(
+		pagePresenter.currentVm?.billing?.requiresPaymentUpdate === true
+	);
 	const hasSubscriptionRecord = $derived(Boolean(subscription?.id));
 	const checkoutEnabled = $derived(pagePresenter.billingEnabled);
 	const billingActionsEnabled = $derived(checkoutEnabled && canManageBilling);
+	const showPaymentDetailsSection = $derived(
+		billingActionsEnabled && hasActiveSubscription
+	);
 	const canCancelSubscription = $derived(
 		billingActionsEnabled && hasActiveSubscription && !cancelAt
 	);
@@ -133,6 +145,18 @@
 		paymentPortalUrl = null;
 	}
 
+	async function startPaymentMethodUpdate(): Promise<void> {
+		paymentDetailsExpanded = true;
+		const result = await pagePresenter.loadEmbeddedPaymentMethodSetupSecret();
+		paymentMethodClientSecret = result.clientSecret;
+	}
+
+	function scrollToPaymentDetails(): void {
+		paymentDetailsExpanded = true;
+		document.getElementById('billing-payment-details')?.scrollIntoView({ behavior: 'smooth' });
+		void startPaymentMethodUpdate();
+	}
+
 	async function proceedAfterCancelConfirm(): Promise<void> {
 		showCancelConfirmDialog = false;
 		const hasOffer = await pagePresenter.checkRetentionOffer();
@@ -169,14 +193,39 @@
 	});
 
 	$effect(() => {
+		if (requiresPaymentUpdate) {
+			paymentDetailsExpanded = true;
+		}
+	});
+
+	$effect(() => {
 		const orgId = organizationId;
 		if (!orgId) return;
-		void pagePresenter.load().then(() => {
+		void pagePresenter.load().then(async () => {
 			const loadedPeriod = pagePresenter.currentVm?.subscription?.period;
 			if (loadedPeriod) {
 				period = loadedPeriod;
 			}
+			if (paymentMethodUpdatedQuery === 'updated') {
+				paymentDetailsExpanded = true;
+				paymentMethodClientSecret = null;
+				toast.success('Payment method updated.');
+				const retry = await pagePresenter.retryOpenInvoice();
+				if (retry?.paid) {
+					toast.success('Outstanding invoice paid. Your subscription is active.');
+					await pagePresenter.load();
+				} else if (retry?.message && !retry.paid) {
+					toast.message(retry.message);
+				}
+			}
 		});
+	});
+
+	$effect(() => {
+		const orgId = organizationId;
+		if (!orgId) {
+			paymentMethodClientSecret = null;
+		}
 	});
 
 </script>
@@ -294,28 +343,54 @@
 				/>
 			</div>
 
-			{#if billingActionsEnabled && hasSubscriptionRecord}
-				<div class="flex flex-wrap justify-center gap-2.5">
-					{#if pagePresenter.currentVm?.billing?.hasStripeCustomer}
+			{#if requiresPaymentUpdate && billingActionsEnabled}
+				<HomeAccountNoticeBanner
+					iconName={icons.CircleAlert.name}
+					tone="accent"
+					dismissible={false}
+				>
+					<p class="text-base-content/90">
+						We could not charge your saved payment method. Update your card below to keep your
+						subscription active.
+					</p>
+					{#snippet actions()}
 						<Button
+							type="button"
 							variant="primary"
-							size="default"
-							disabled={checkoutBusy}
-							onclick={() => void pagePresenter.openPortal()}
+							size="sm"
+							disabled={checkoutBusy || paymentMethodSetupBusy}
+							onclick={scrollToPaymentDetails}
 						>
-							Update payment method / invoices history
+							Update payment method
 						</Button>
-					{/if}
-					{#if canCancelSubscription}
-						<Button
-							variant="red"
-							size="default"
-							disabled={checkoutBusy}
-							onclick={startCancelSubscription}
-						>
-							Cancel subscription
-						</Button>
-					{/if}
+					{/snippet}
+				</HomeAccountNoticeBanner>
+			{/if}
+
+			{#if showPaymentDetailsSection}
+				<div id="billing-payment-details">
+					<BillingPaymentDetailsSection
+						bind:expanded={paymentDetailsExpanded}
+						{requiresPaymentUpdate}
+						{checkoutBusy}
+						setupBusy={paymentMethodSetupBusy}
+						clientSecret={paymentMethodClientSecret}
+						onRequestSetup={startPaymentMethodUpdate}
+						onOpenPortal={() => void pagePresenter.openPortal()}
+					/>
+				</div>
+			{/if}
+
+			{#if canCancelSubscription}
+				<div class="flex flex-wrap justify-center gap-2.5">
+					<Button
+						variant="red"
+						size="default"
+						disabled={checkoutBusy}
+						onclick={startCancelSubscription}
+					>
+						Cancel subscription
+					</Button>
 				</div>
 			{/if}
 
@@ -338,6 +413,7 @@
 			}}
 			onFinishTrial={() => pagePresenter.finishTrial()}
 			onPollFinished={() => pagePresenter.pollTrialFinished()}
+			onOpenPaymentDetails={() => void scrollToPaymentDetails()}
 		/>
 	{/if}
 
