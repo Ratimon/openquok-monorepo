@@ -6,8 +6,6 @@
 	import type { ButtonSize, ButtonVariant } from '$lib/ui/buttons/Button.svelte';
 
 	import { goto } from '$app/navigation';
-	import { page } from '$app/state';
-	import { tick } from 'svelte';
 	import { getRootPathAccount } from '$lib/area-protected';
 	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
 	import {
@@ -73,8 +71,6 @@
 		/** When true, opening the provider picker shows an upgrade prompt instead. */
 		channelLimitFull?: boolean;
 		upgradeHref?: string;
-		/** Increment from the account page when `/account?addChannel=1` is handled. */
-		openPickerRequest?: number;
 	};
 
 	let {
@@ -90,8 +86,7 @@
 		buttonClass,
 		iconClass,
 		channelLimitFull = false,
-		upgradeHref,
-		openPickerRequest = 0
+		upgradeHref
 	}: Props = $props();
 
 	const channelButtonVariant = $derived(
@@ -148,18 +143,6 @@
 		}
 		open = true;
 	}
-
-	let lastHandledOpenPickerRequest = $state(0);
-
-	$effect(() => {
-		if (invite || openPickerRequest <= 0 || openPickerRequest === lastHandledOpenPickerRequest) {
-			return;
-		}
-		lastHandledOpenPickerRequest = openPickerRequest;
-		void tick()
-			.then(() => ensureWorkspaceLoaded())
-			.then(() => openAddChannelFlow());
-	});
 
 	const currentWorkspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
 

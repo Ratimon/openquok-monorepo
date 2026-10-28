@@ -53,6 +53,7 @@
 	import SignatureModal from '$lib/ui/components/signature/SignatureModal.svelte';
 	import LinkedInCompanyModal from '$lib/ui/components/posts/providers/linkedin/LinkedInCompanyModal.svelte';
 	import SignInToComposerActionModal from '$lib/ui/components/posts/SignInToComposerActionModal.svelte';
+	import ContentEditorLinkDialog from '$lib/ui/editor/ContentEditorLinkDialog.svelte';
 	import * as Tooltip from '$lib/ui/tooltip';
 
 	interface ComposerMediaToolbarProps {
@@ -183,6 +184,9 @@
 	let summarizeSourceBody = $state('');
 	let humanizeSourceBody = $state('');
 	let linkedInCompanyOpen = $state(false);
+	let richLinkDialogOpen = $state(false);
+	let richLinkDialogMode = $state<'insert' | 'edit'>('insert');
+	let richLinkDialogInitialHref = $state('');
 	let guestLockOpen = $state(false);
 	let guestLockAction = $state<GuestComposerLockAction>('media-library');
 	const isLinkedInFocus = $derived(
@@ -414,25 +418,60 @@
 		tiptapEditor?.chain().focus().toggleOrderedList().run();
 	}
 
-	function insertRichLink() {
+	function openRichLinkDialog() {
 		if (!tiptapEditor) return;
 		const { href } = tiptapEditor.getAttributes('link');
-		const url = window.prompt(href ? 'Edit link URL:' : 'Enter link URL:', href || 'https://');
-		if (url === null) return;
-		if (url === '') {
-			tiptapEditor.chain().focus().extendMarkRange('link').unsetLink().run();
+		if (href && tiptapEditor.isActive('link')) {
+			richLinkDialogMode = 'edit';
+			richLinkDialogInitialHref = String(href);
+		} else {
+			richLinkDialogMode = 'insert';
+			richLinkDialogInitialHref = 'https://';
+		}
+		richLinkDialogOpen = true;
+	}
+
+	function handleRichLinkConfirm(raw: string) {
+		if (!tiptapEditor) return;
+		const trimmed = raw.trim();
+		const editingExisting = richLinkDialogMode === 'edit';
+
+		if (editingExisting) {
+			if (!trimmed) {
+				richLinkDialogOpen = false;
+				tiptapEditor.chain().focus().extendMarkRange('link').unsetLink().run();
+				return;
+			}
+			const nextHref = validateComposerLinkHref(trimmed);
+			if (!nextHref) {
+				toast.error('That link is not allowed. Use http(s) URLs or relative paths.');
+				return;
+			}
+			richLinkDialogOpen = false;
+			tiptapEditor.chain().focus().extendMarkRange('link').setLink({ href: nextHref }).run();
 			return;
 		}
-		const nextHref = validateComposerLinkHref(url);
+
+		if (!trimmed) {
+			richLinkDialogOpen = false;
+			return;
+		}
+		const nextHref = validateComposerLinkHref(trimmed);
 		if (!nextHref) {
 			toast.error('That link is not allowed. Use http(s) URLs or relative paths.');
 			return;
 		}
+		richLinkDialogOpen = false;
+		const { href } = tiptapEditor.getAttributes('link');
 		if (href) {
 			tiptapEditor.chain().focus().extendMarkRange('link').setLink({ href: nextHref }).run();
-			return;
+		} else {
+			tiptapEditor.chain().focus().setLink({ href: nextHref }).run();
 		}
-		tiptapEditor.chain().focus().setLink({ href: nextHref }).run();
+	}
+
+	function handleRichLinkCancel() {
+		richLinkDialogOpen = false;
 	}
 
 	const mediaGenerationFields = $derived.by(
@@ -729,7 +768,7 @@
 						type="button"
 						class={iconBtn}
 						disabled={disabled || uploadBusy || !tiptapEditor}
-						onclick={composeTooltipTriggerClick(props, insertRichLink)}
+						onclick={composeTooltipTriggerClick(props, openRichLinkDialog)}
 						aria-label="Insert or edit a link"
 					>
 						<AbstractIcon name={icons.Link.name} class="size-5" width="20" height="20" />
@@ -962,6 +1001,17 @@
 	constraintProviderIdentifiers={constraintProviderIdentifiers}
 	onReplaceBody={replaceBodyFromModal}
 />
+
+{#if isRichEditor}
+	<ContentEditorLinkDialog
+		bind:open={richLinkDialogOpen}
+		mode={richLinkDialogMode}
+		initialHref={richLinkDialogInitialHref}
+		placeholder="https://example.com"
+		onConfirm={handleRichLinkConfirm}
+		onCancel={handleRichLinkCancel}
+	/>
+{/if}
 
 {#if showLinkedInCompany && !guestMode && focusedIntegrationId && organizationId}
 	<LinkedInCompanyModal

@@ -2,7 +2,7 @@
 title: Connect a channel
 description: How OpenQuok connects a social account — OAuth redirect, pasted credentials, or the browser extension.
 order: 1
-lastUpdated: 2026-10-25
+lastUpdated: 2026-10-09
 ---
 
 <script>
@@ -93,8 +93,6 @@ OpenQuok supports **three** ways to connect. Which one you get depends on the pl
 </Callout>
 
 <p>To reconnect, sign in on Skool again and use <Badge text="Refresh connection" variant="default" /> on the dashboard.</p>
-
-<p>The same extension also powers <strong>social scheduling</strong> from the Chrome <strong>side panel</strong> (<strong>Social</strong> tab). After you connect channels in <Badge text="Add Channel" variant="new" />, sign in to OpenQuok in the panel, pick channels, and schedule or draft with <Badge text="POST /api/v1/posts" variant="path" /> — OAuth tokens and API keys stay on the server. The extension does not run OAuth or credential forms; connect types are unchanged. See <a href="/docs/installation/chrome-extension">Browser extension</a> and <a href="/docs/platforms/connect-rules">Connect rules</a>.</p>
 
 </TabItem>
 </Tabs>

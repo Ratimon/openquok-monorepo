@@ -2,16 +2,18 @@
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 	import type { CrossAccountPlugState } from '$lib/posts/utils/create-post';
 	import type {
+		BlueskyThreadGateSetting,
 		DevtoTagOption,
 		TiktokContentPostingMethod,
 		TiktokPrivacyLevel,
 		XReplySetting,
-		YoutubeTagOption,
-		BlueskyThreadGateSetting
+		YoutubeTagOption
 	} from '$lib/ui/components/posts/providers/provider.types';
 
 	import { icons } from '$data/icons';
 	import { integrationsRepository } from '$lib/integrations';
+	import { readRedditLaunchSettings } from '$lib/ui/components/posts/providers/reddit/reddit.provider';
+	import { normalizeSubredditInput } from '$lib/utils/normalizeSubredditInput';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import * as Accordion from '$lib/ui/accordion';
 
@@ -24,6 +26,7 @@
 	import YoutubeSettings from '$lib/ui/components/posts/providers/youtube/YoutubeSettings.svelte';
 	import DevtoSettings from '$lib/ui/components/posts/providers/devto/DevtoSettings.svelte';
 	import SkoolSettings from '$lib/ui/components/posts/providers/skool/SkoolSettings.svelte';
+	import RedditSettings from '$lib/ui/components/posts/providers/reddit/RedditSettings.svelte';
 	import TiktokSettings from '$lib/ui/components/posts/providers/tiktok/TiktokSettings.svelte';
 	import XSettings from '$lib/ui/components/posts/providers/x/XSettings.svelte';
 	import BlueskySettings from '$lib/ui/components/posts/providers/bluesky/BlueskySettings.svelte';
@@ -99,6 +102,10 @@
 			groupSlug?: string;
 			label?: string;
 			labelLabel?: string;
+		};
+		reddit: {
+			subreddit: string;
+			title: string;
 		};
 		bluesky: {
 			linkUrl?: string;
@@ -216,6 +223,9 @@
 	let skGroupSlug = $state('');
 	let skLabel = $state('');
 	let skLabelLabel = $state('');
+
+	let rdSubreddit = $state('');
+	let rdTitle = $state('');
 
 	let bskyLinkUrl = $state('');
 	let bskyLinkTitle = $state('');
@@ -460,6 +470,9 @@
 			skLabel = '';
 			skLabelLabel = '';
 		}
+		const redditSettings = readRedditLaunchSettings(s as Record<string, unknown>);
+		rdSubreddit = redditSettings.subreddit;
+		rdTitle = redditSettings.title;
 		if (s.bluesky && typeof s.bluesky === 'object') {
 			bskyLinkUrl = typeof s.bluesky.linkUrl === 'string' ? s.bluesky.linkUrl : '';
 			bskyLinkTitle = typeof s.bluesky.linkTitle === 'string' ? s.bluesky.linkTitle : '';
@@ -597,6 +610,15 @@
 					...(groupSlug ? { groupSlug } : {}),
 					...(label && label !== 'none' ? { label } : {}),
 					...(labelLabel ? { labelLabel } : {})
+				}
+			};
+		} else if (identifier === 'reddit') {
+			const subreddit = normalizeSubredditInput(rdSubreddit);
+			const title = rdTitle.trim();
+			next = {
+				reddit: {
+					subreddit,
+					title
 				}
 			};
 		} else if (identifier === 'bluesky') {
@@ -760,6 +782,8 @@
 			integrationId={channel.id}
 			{disabled}
 		/>
+	{:else if identifier === 'reddit'}
+		<RedditSettings bind:subreddit={rdSubreddit} bind:title={rdTitle} {disabled} />
 	{:else if identifier === 'bluesky'}
 		<BlueskySettings
 			bind:linkUrl={bskyLinkUrl}

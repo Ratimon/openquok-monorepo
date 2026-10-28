@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "OpenQuok",
-  "version": "0.1.12",
+  "version": "0.1.16",
   "description": "Connect cookie-session social channels to OpenQuok, refresh sessions, and assist directory launches.",
   "icons": {
     "16": "icons/icon-16.png",
@@ -26,12 +26,15 @@
     "alarms",
     "storage",
     "tabs",
+    "scripting",
     "contextMenus",
     "sidePanel",
     "activeTab"
   ],
   "host_permissions": [
     "*://*.skool.com/*",
+    "*://*.reddit.com/*",
+    "*://reddit.com/*",
     "*://*.peerpush.com/*",
     "*://*.uneed.best/*",
     "https://*.openquok.com/*",
@@ -60,6 +63,21 @@
         "https://*.openquok.com/*"
       ],
       "js": ["content/dashboard/openquok-dashboard-session.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://www.reddit.com/submit*",
+        "https://www.reddit.com/r/*/submit*",
+        "https://www.reddit.com/user/*/submit*",
+        "https://reddit.com/submit*",
+        "https://reddit.com/r/*/submit*",
+        "https://reddit.com/user/*/submit*",
+        "https://old.reddit.com/submit*",
+        "https://old.reddit.com/r/*/submit*",
+        "https://old.reddit.com/user/*/submit*"
+      ],
+      "js": ["content/social-reddit/openquok-reddit-submit.js"],
       "run_at": "document_idle"
     }
   ],

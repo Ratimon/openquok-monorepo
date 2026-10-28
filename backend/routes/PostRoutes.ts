@@ -20,6 +20,9 @@ import {
     validateFlipPostStatus,
     validateReschedulePost,
     validatePublishPostNow,
+    validateMemberBrowserHandoffQuery,
+    validateMemberBrowserHandoffMedia,
+    validateMemberBrowserComplete,
 } from "../data/schemas/postSchemas";
 
 type PostRouter = ReturnType<typeof Router>;
@@ -51,6 +54,24 @@ postRouter.get("/group/:postGroup", auth, validatePostGroupParams, postsControll
 postRouter.put("/group/:postGroup", auth, validateUpdatePostGroupBody, postsController.updatePostGroup);
 postRouter.delete("/group/:postGroup", auth, validateDeletePostGroup, postsController.deletePostGroup);
 postRouter.get("/:postId/missing", auth, validatePostMissingQuery, postsController.getMissingPublishCandidates);
+postRouter.get(
+    "/:postId/member-browser-handoff",
+    auth,
+    validateMemberBrowserHandoffQuery,
+    postsController.getMemberBrowserHandoff
+);
+postRouter.get(
+    "/:postId/member-browser-handoff/media/:mediaIndex",
+    auth,
+    validateMemberBrowserHandoffMedia,
+    postsController.getMemberBrowserHandoffMedia
+);
+postRouter.post(
+    "/:postId/member-browser-complete",
+    auth,
+    validateMemberBrowserComplete,
+    postsController.completeMemberBrowserHandoff
+);
 postRouter.put("/:postId/release-id", auth, validateUpdatePostReleaseId, postsController.updatePostReleaseId);
 postRouter.put("/:postId/publish-now", auth, validatePublishPostNow, postsController.publishPostNow);
 postRouter.put("/:postId/status", auth, validateFlipPostStatus, postsController.flipPostStatus);

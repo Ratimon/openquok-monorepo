@@ -52,7 +52,10 @@
 	const canSubmit = $derived(
 		!submitting &&
 			!resolvingPds &&
-			fields.every((field) => (values[field.key] ?? '').trim().length > 0)
+			fields.every((field) => {
+				const value = values[field.key] ?? '';
+				return validateCatalogCustomFieldValue(field, value) === null;
+			})
 	);
 
 	const showBlueskyPdsLookup = $derived(providerIdentifier === 'bluesky' && resolvingPds);
@@ -123,7 +126,11 @@
 
 <form class="space-y-4" onsubmit={handleSubmit}>
 	<p class="text-sm text-base-content/70">
-		{#if isSingleApiKeyForm}
+		{#if providerIdentifier === 'reddit'}
+			Optional label below is only for your channel list in OpenQuok. Sign in on reddit.com in Chrome when
+			you are ready to post. The browser extension can copy drafts, open the submit page, and autofill — you
+			click Post on Reddit.
+		{:else if isSingleApiKeyForm}
 			{#if isHostedCloud}
 				Paste your {providerName} API key. OpenQuok encrypts it on the server to publish for you — it is
 				not saved in your browser.

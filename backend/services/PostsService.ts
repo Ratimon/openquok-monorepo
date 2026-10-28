@@ -32,6 +32,18 @@ import { stripComposerBodyForEditor } from "../utils/content/stripComposerBodyFo
 import { validateScheduledCaptionsForIntegration } from "../utils/content/validateProviderCaptionLength";
 import { resolvePublishIntegrationIds } from "../utils/posts/crossAccountPublishChannels";
 import { expandRecurringPostsForCalendarRange } from "../utils/posts/expandRecurringPostsForCalendarRange";
+import { storageR2Repository } from "../repositories/index";
+import { UploadFactory } from "../connections/upload/upload.factory";
+import type { IUploadProvider } from "../connections/upload/upload.interface";
+import {
+    assertHandoffReadableState,
+    assertMemberBrowserHandoffPost,
+    buildMemberBrowserHandoffDto,
+    fileNameFromMediaPath,
+    handoffMediaItemAtIndex,
+    parseReleaseFieldsFromHandoffUrl,
+    type MemberBrowserHandoffDto,
+} from "../utils/posts/memberBrowserHandoff";
 
 import { AppError } from "../errors/AppError";
 import { ProviderAccessTokenExpiredError } from "../errors/ProviderIntegrationErrors";
@@ -1739,6 +1751,125 @@ export class PostsService {
         });
 
         return { id: postId, releaseId: trimmed };
+    }
+
+    async getMemberBrowserHandoff(params: {
+        authUserId: string;
+        organizationId: string;
+        postId: string;
+    }): Promise<{ handoff: MemberBrowserHandoffDto }> {
+        const { authUserId, organizationId, postId } = params;
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+
+        const { post, provider } = await this._resolveMemberBrowserHandoffPost(organizationId, postId);
+        assertHandoffReadableState(post.state);
+        return { handoff: buildMemberBrowserHandoffDto(post, provider) };
+    }
+
+    async getMemberBrowserHandoffMedia(params: {
+        authUserId: string;
+        organizationId: string;
+        postId: string;
+        mediaIndex: number;
+    }): Promise<{ buffer: Buffer; contentType: string; fileName: string }> {
+        const { authUserId, organizationId, postId, mediaIndex } = params;
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+
+        const { post } = await this._resolveMemberBrowserHandoffPost(organizationId, postId);
+        assertHandoffReadableState(post.state);
+
+        const item = handoffMediaItemAtIndex(post.image, mediaIndex);
+        if (!item?.path?.trim()) {
+            throw new AppError("Media not found for this post", 404);
+        }
+
+        const upload = PostsService.handoffUploadProvider();
+        const path = item.path.trim();
+        let buffer: Buffer;
+        let contentType: string;
+
+        if (path.startsWith("http://") || path.startsWith("https://")) {
+            let response: Response;
+            try {
+                response = await fetch(path);
+            } catch {
+                throw new AppError("Could not fetch remote media", 502);
+            }
+            if (!response.ok) {
+                throw new AppError(`Could not fetch remote media (${response.status})`, 502);
+            }
+            buffer = Buffer.from(await response.arrayBuffer());
+            contentType = response.headers.get("content-type")?.trim() || "application/octet-stream";
+        } else {
+            const downloaded = await upload.downloadObject(path);
+            buffer = downloaded.buffer;
+            contentType = downloaded.contentType?.trim() || "application/octet-stream";
+        }
+
+        return {
+            buffer,
+            contentType,
+            fileName: fileNameFromMediaPath(path),
+        };
+    }
+
+    private static handoffUploadProvider(): IUploadProvider {
+        return UploadFactory.createStorage(storageR2Repository);
+    }
+
+    async completeMemberBrowserHandoff(params: {
+        authUserId: string;
+        organizationId: string;
+        postId: string;
+        releaseUrl?: string;
+    }): Promise<{ id: string }> {
+        const { authUserId, organizationId, postId, releaseUrl } = params;
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+
+        const { post, provider } = await this._resolveMemberBrowserHandoffPost(organizationId, postId);
+        assertHandoffReadableState(post.state);
+
+        const { releaseId, releaseUrl: storedReleaseUrl } = parseReleaseFieldsFromHandoffUrl(
+            provider.identifier,
+            releaseUrl
+        );
+
+        await this.postsRepository.updatePostRowPublishResult(postId, {
+            state: "PUBLISHED",
+            releaseId,
+            releaseUrl: storedReleaseUrl,
+            error: null,
+        });
+
+        await this._invalidatePostAnalyticsCaches(organizationId, postId);
+        await this._invalidatePostMutationCaches({
+            organizationId,
+            postGroup: post.post_group,
+            postIds: [postId],
+        });
+
+        return { id: postId };
+    }
+
+    private async _resolveMemberBrowserHandoffPost(
+        organizationId: string,
+        postId: string
+    ): Promise<{ post: SocialPostLike; provider: SocialProvider }> {
+        const post = await this.postsRepository.getPostById(postId);
+        if (!post || post.organization_id !== organizationId) {
+            throw new AppError("Post not found", 404);
+        }
+        if (!post.integration_id) {
+            throw new AppError("Channel not found for this post", 404);
+        }
+
+        const integrationRow = await this.integrationService.getById(organizationId, post.integration_id);
+        const provider = this.integrationManager.getSocialIntegration(integrationRow?.provider_identifier ?? "");
+        assertMemberBrowserHandoffPost(post, organizationId, integrationRow, provider);
+        if (!provider) {
+            throw new AppError("This post does not use member browser handoff", 400);
+        }
+        return { post, provider };
     }
 
     /** Invalidate cached post-level analytics for all date windows for this row. */

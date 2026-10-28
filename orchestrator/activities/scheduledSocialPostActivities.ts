@@ -3,7 +3,8 @@ import type { AuthTokenDetails, IntegrationRecord, PostDetails, PostResponse } f
 import type { IntegrationRepository } from "backend/repositories/IntegrationRepository.js";
 import type { PlugRepository } from "backend/repositories/PlugRepository.js";
 import type { IntegrationLike } from "backend/utils/dtos/IntegrationDTO.js";
-import type { PostThreadReplyLike, SocialPostLike } from "backend/utils/dtos/PostDTO.js";
+import type { PostStateDb, PostThreadReplyLike, SocialPostLike } from "backend/utils/dtos/PostDTO.js";
+import { isMemberBrowserHandoffProvider } from "backend/utils/posts/memberBrowserHandoff.js";
 import type { NotificationService } from "backend/services/NotificationService.js";
 import type { NotificationEmailType } from "openquok-common";
 
@@ -24,7 +25,7 @@ import { providerDisplayName } from "../providers/scheduledPublish/registry.js";
 
 export type ScheduledPostsRepository = {
     listPostsByGroup: (postGroup: string) => Promise<SocialPostLike[]>;
-    markPostState: (postId: string, state: "QUEUE" | "PUBLISHED" | "ERROR" | "DRAFT", errMessage?: string | null) => Promise<void>;
+    markPostState: (postId: string, state: PostStateDb, errMessage?: string | null) => Promise<void>;
     updatePostRowPublishResult: (
         postId: string,
         input: { state: "PUBLISHED" | "ERROR"; releaseId: string | null; releaseUrl: string | null; error: string | null }
@@ -908,6 +909,28 @@ async function publishRootForRow(
             organizationId,
             integrationId: post.integration_id,
             channelName: intRow.name || "channel",
+            provider: intRow.provider_identifier,
+        });
+        return null;
+    }
+
+    if (isMemberBrowserHandoffProvider(social)) {
+        await deps.postsRepository.markPostState(postId, "AWAITING_MEMBER", null);
+        const label = providerDisplayName(intRow.provider_identifier);
+        const chName = intRow.name || "channel";
+        await notify(
+            ns,
+            organizationId,
+            `Complete your ${label} post`,
+            `Your scheduled post for ${chName} is due. Submit it on reddit.com in your browser (the OpenQuok extension can copy, open the submit page, and autofill — you click Post).`,
+            true,
+            true,
+            "info"
+        );
+        logger.info({
+            msg: "[Orchestrator] post awaiting member browser completion",
+            postId,
+            organizationId,
             provider: intRow.provider_identifier,
         });
         return null;

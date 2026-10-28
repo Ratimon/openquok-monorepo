@@ -9,6 +9,7 @@ import { IntegrationManager } from "backend/integrations/integrationManager.js";
 import type { RefreshIntegrationService } from "backend/services/RefreshIntegrationService.js";
 import { logger } from "backend/utils/Logger.js";
 
+import { RedditProvider } from "backend/integrations/providers/reddit/redditProvider.js";
 import {
     createPublishScheduledGroupHandler,
     type ScheduledPostsRepository,
@@ -855,5 +856,40 @@ describe("scheduledSocialPostActivities / plugPipeline", () => {
 
             jest.useRealTimers();
         });
+    });
+
+    it("marks member-browser-handoff providers AWAITING_MEMBER without calling social.post", async () => {
+        const integrationRepo = createIntegrationRepoMock();
+        integrationRepo.getById.mockResolvedValue(minimalIntegration({ provider_identifier: "reddit" }));
+
+        const redditPost = jest.fn();
+        const redditProvider = new RedditProvider();
+        redditProvider.post = redditPost;
+
+        const manager = createPlugAwareIntegrationManager({
+            reddit: redditProvider,
+        });
+
+        const refreshService: Pick<RefreshIntegrationService, "refresh"> = { refresh: jest.fn().mockResolvedValue(false) };
+
+        const postsRepo = basePostsRepo(
+            minimalPost({
+                integration_id: integrationId,
+                content: "Post body for reddit",
+            })
+        );
+
+        const publish = createPublishScheduledGroupHandler({
+            postsRepository: postsRepo as unknown as ScheduledPostsRepository,
+            integrationRepository: integrationRepo,
+            integrationManager: manager,
+            refreshService,
+        });
+
+        await publish({ organizationId: orgId, postGroup });
+
+        expect(postsRepo.markPostState).toHaveBeenCalledWith(postId, "AWAITING_MEMBER", null);
+        expect(redditPost).not.toHaveBeenCalled();
+        expect(postsRepo.updatePostRowPublishResult).not.toHaveBeenCalled();
     });
 });

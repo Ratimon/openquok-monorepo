@@ -10,6 +10,7 @@ import type CacheInvalidationService from "../connections/cache/CacheInvalidatio
 import { IntegrationConnectionService } from "./IntegrationConnectionService";
 import type { IntegrationManager } from "../integrations/integrationManager";
 import { DevToProvider } from "../integrations/providers/devto/devtoProvider";
+import { RedditProvider } from "../integrations/providers/reddit/redditProvider";
 
 import { UserNotFoundError } from "../errors/UserError";
 import { OrganizationForbiddenError } from "../errors/OrganizationError";
@@ -584,6 +585,81 @@ describe("IntegrationConnectionService", () => {
             expect(out).not.toHaveProperty("token");
             expect(out).not.toHaveProperty("refresh_token");
             expect(out).not.toHaveProperty("refreshToken");
+        });
+
+        it("rejects duplicate display names for the same provider in one workspace", async () => {
+            orgRepo.findUserIdByAuthId.mockResolvedValue(mockFindUserIdByAuthIdResult(userId));
+            orgRepo.findMembership.mockResolvedValue(mockFindMembershipResult(activeMembershipRow()));
+            const reddit = new RedditProvider();
+            manager = createMockManager(reddit);
+            cache.get.mockImplementation(async (key: string) => {
+                if (key === "login:st") return null;
+                if (key === "organization:st") return orgId;
+                return null;
+            });
+            integrations.findActiveByOrgProviderDisplayName.mockResolvedValue({
+                id: "existing-id",
+                internal_id: "existing-internal",
+            });
+
+            const emptyLabelCode = Buffer.from(JSON.stringify({ label: "" }), "utf8").toString("base64");
+
+            await expect(
+                service().connectSocialMedia(authUserId, "reddit", {
+                    state: "st",
+                    code: emptyLabelCode,
+                    timezone: "0",
+                })
+            ).rejects.toMatchObject({
+                message: expect.stringMatching(/Another Reddit channel in this workspace is already named "Reddit"/),
+                metadata: expect.objectContaining({ errorCode: "INTEGRATION_DUPLICATE_NAME" }),
+            });
+
+            expect(integrations.findActiveByOrgProviderDisplayName).toHaveBeenCalledWith(
+                orgId,
+                "reddit",
+                "Reddit",
+                null
+            );
+            expect(integrations.upsertIntegration).not.toHaveBeenCalled();
+        });
+
+        it("allows the same display name on different providers in one workspace", async () => {
+            orgRepo.findUserIdByAuthId.mockResolvedValue(mockFindUserIdByAuthIdResult(userId));
+            orgRepo.findMembership.mockResolvedValue(mockFindMembershipResult(activeMembershipRow()));
+            cache.get.mockImplementation(async (key: string) => {
+                if (key === "login:st") return "verifier";
+                if (key === "organization:st") return orgId;
+                if (key === "external:st") return null;
+                if (key === "refresh:st") return null;
+                if (key === "onboarding:st") return null;
+                return null;
+            });
+            integrations.findActiveByOrgProviderDisplayName.mockImplementation(
+                async (_organizationId, providerIdentifier) => {
+                    if (providerIdentifier === "facebook") {
+                        return { id: "fb-id", internal_id: "fb-internal" };
+                    }
+                    return null;
+                }
+            );
+            integrations.upsertIntegration.mockResolvedValue(
+                sampleRow({ id: "new-id", name: "Brand Page", provider_identifier: "threads" })
+            );
+
+            await service().connectSocialMedia(authUserId, "threads", {
+                state: "st",
+                code: "c",
+                timezone: "0",
+            });
+
+            expect(integrations.findActiveByOrgProviderDisplayName).toHaveBeenCalledWith(
+                orgId,
+                "threads",
+                expect.any(String),
+                null
+            );
+            expect(integrations.upsertIntegration).toHaveBeenCalled();
         });
 
         it("removes OAuth keys via cacheInvalidator when present", async () => {

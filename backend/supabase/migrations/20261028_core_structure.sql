@@ -628,6 +628,22 @@ COMMENT ON COLUMN public.post_thread_replies.state IS 'Publish state for this re
 -- ---------------------------
 
 
+-- Module: post, File: 103_20261026_tables.sql
+-- ---------------------------
+-- MODULE NAME: post
+-- MODULE DATE: 20261026
+-- MODULE SCOPE: Tables
+-- ---------------------------
+
+BEGIN;
+
+DO $$ BEGIN
+    ALTER TYPE public.post_state ADD VALUE 'AWAITING_MEMBER';
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END $$;
+
+
 -- Module: post_internal_comment, File: 101_20260514_tables.sql
 -- ---------------------------
 -- MODULE NAME: post_internal_comment

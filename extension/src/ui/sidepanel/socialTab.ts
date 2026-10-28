@@ -49,10 +49,12 @@ import {
 } from '../../social/sessionDraftStorage.js';
 
 import { selectionMatchesGroup } from '../../social/socialChannelSelection.js';
+import { buildRedditClipboardText, copyTextToClipboard } from '../../social/reddit/pendingPosts.js';
 import { mountChannelPicker } from './channelPicker.js';
 import { mountComposerMediaStrip } from './composerMediaStrip.js';
 import { mountComposerPostPreview } from './composerPostPreview.js';
 import { mountComposerToolbar } from './composerToolbar.js';
+import { mountRedditActionNeeded, type RedditActionNeededController } from './redditActionNeeded.js';
 import { el, escapeHtml } from './uiHelpers.js';
 
 export type SocialTabController = {
@@ -82,6 +84,8 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 	let destroyComposerToolbar: (() => void) | null = null;
 	let destroyMediaStrip: (() => void) | null = null;
 	let postPreviewController: ReturnType<typeof mountComposerPostPreview> | null = null;
+	let redditActionNeeded: RedditActionNeededController | null = null;
+	let redditComposerCopyMessage = '';
 
 	function newComposerMediaClientId(): string {
 		if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -198,6 +202,11 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 		await openDashboardUrl(normalized);
 	}
 
+	function teardownRedditActionNeeded(): void {
+		redditActionNeeded?.destroy();
+		redditActionNeeded = null;
+	}
+
 	function teardownComposerWidgets(): void {
 		destroyChannelPicker?.();
 		destroyChannelPicker = null;
@@ -207,6 +216,7 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 		destroyMediaStrip = null;
 		postPreviewController?.destroy();
 		postPreviewController = null;
+		teardownRedditActionNeeded();
 	}
 
 	function renderGate(): void {
@@ -329,6 +339,16 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 		);
 	}
 
+	function selectedRedditChannelIds(): string[] {
+		return loadedChannels
+			.filter(
+				(ch) =>
+					selectedChannelIds.has(ch.id) &&
+					ch.identifier.trim().toLowerCase() === 'reddit'
+			)
+			.map((ch) => ch.id);
+	}
+
 	function renderComposer(error?: string, success?: string): void {
 		if (!session) return;
 
@@ -337,12 +357,15 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 
 		const connectionLabel = formatSocialConnectionLabel(session.dashboardOrigin);
 
+		const showRedditCopy = selectedRedditChannelIds().length > 0;
+
 		const composerHtml = `
 			<div class="wrap tab-wrap">
 				<div class="connection-bar" role="status">
 					<span class="connection-label">${escapeHtml(connectionLabel)}</span>
 					<button type="button" id="social-disconnect" class="connection-disconnect secondary">Disconnect</button>
 				</div>
+				<div id="social-reddit-action-needed" class="reddit-action-host"></div>
 				<div class="card">
 					<strong>Compose</strong>
 					<p class="muted">Schedule via your OpenQuok session — tokens stay on the server.</p>
@@ -363,11 +386,13 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 					<button type="button" id="social-publish-now-btn" class="primary" ${submitting ? 'disabled' : ''}>Publish now</button>
 					<button type="button" id="social-schedule-btn" class="primary" ${submitting ? 'disabled' : ''}>Schedule</button>
 					<button type="button" id="social-draft-btn" class="secondary" ${submitting ? 'disabled' : ''}>Save draft</button>
+					${showRedditCopy ? `<button type="button" id="social-reddit-copy" class="secondary">Copy for Reddit</button>` : ''}
 					<button type="button" id="social-open-dashboard" class="secondary">Open full composer</button>
 					<button type="button" id="social-refresh" class="secondary">Refresh</button>
 				</div>
 				${displayError ? `<p class="error" role="alert">${escapeHtml(displayError)}</p>` : ''}
 				${success ? `<p class="status success" role="status">${escapeHtml(success)}</p>` : ''}
+				${redditComposerCopyMessage ? `<p class="status success" role="status">${escapeHtml(redditComposerCopyMessage)}</p>` : ''}
 				<p class="footer">Reconnect or add channels under Account → Channels in the dashboard.</p>
 			</div>
 		`;
@@ -391,6 +416,7 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 					) {
 						selectedGroupId = null;
 					}
+					redditComposerCopyMessage = '';
 					syncComposerPostPreview();
 				},
 				onSelectedGroupIdChange: (groupId) => {
@@ -444,9 +470,31 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 			bodyEl.value = bodyDraft;
 			bodyEl.addEventListener('input', () => {
 				bodyDraft = bodyEl.value;
+				redditComposerCopyMessage = '';
 				syncComposerPostPreview();
 			});
 		}
+
+		const redditHost = root.querySelector('#social-reddit-action-needed');
+		if (redditHost && activeSession) {
+			redditActionNeeded = mountRedditActionNeeded(
+				redditHost,
+				() => session,
+				() => {
+					void refreshSafe({ requestDashboardSync: false });
+				}
+			);
+		}
+
+		root.querySelector('#social-reddit-copy')?.addEventListener('click', () => {
+			const body = bodyEl?.value ?? bodyDraft;
+			void copyTextToClipboard(buildRedditClipboardText({ body })).then((result) => {
+				redditComposerCopyMessage = result.ok
+					? (result.message ?? 'Copied for Reddit.')
+					: (result.error ?? 'Could not copy.');
+				renderComposer();
+			});
+		});
 
 		root.querySelector('#social-disconnect')?.addEventListener('click', () => {
 			if (!session || submitting) return;
@@ -534,6 +582,7 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 			const label =
 				opts?.successLabel ?? (status === 'draft' ? 'Draft saved.' : 'Post scheduled.');
 			renderComposer(undefined, label);
+			void redditActionNeeded?.refresh();
 		};
 
 		root.querySelector('#social-publish-now-btn')?.addEventListener('click', () => {

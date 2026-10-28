@@ -12,33 +12,21 @@ const sharedBuild = {
 
 /** MV3: each manifest entry must be one self-contained ES module (no shared `assets/` chunks). */
 const inlineEntries = [
-	{ file: 'src/background.ts', out: 'background.js', cssOut: null },
-	{ file: 'src/ui/sidepanel/sidepanel.ts', out: 'sidepanel.js', cssOut: 'sidepanel.css' },
+	{ file: 'src/background.ts', out: 'background.js' },
+	{ file: 'src/popup/popup.ts', out: 'popup.js' },
 ];
 
-/** One bundled host script per directory site (all provider slugs on that site). */
 const contentScriptSpecs = [
-	{
-		out: 'openquok-directory-peerpush.js',
-		file: 'peerpush-host.ts',
-		dir: 'directory-launch',
-	},
-	{
-		out: 'openquok-directory-uneed.js',
-		file: 'uneed-host.ts',
-		dir: 'directory-launch',
-	},
-	{
-		out: 'openquok-dashboard-session.js',
-		file: 'openquok-dashboard-session.ts',
-		dir: 'dashboard',
-	},
+	{ name: 'uneed-join-line', file: 'uneed-join-line.ts' },
+	{ name: 'uneed-paid-launch', file: 'uneed-paid-launch.ts' },
+	{ name: 'uneed-maker-profile', file: 'uneed-maker-profile.ts' },
+	{ name: 'peerpush-standard-launch', file: 'peerpush-standard-launch.ts' },
+	{ name: 'peerpush-free-queue', file: 'peerpush-free-queue.ts' },
 ];
 
 let emptyOutDir = true;
 
 for (const entry of inlineEntries) {
-	const cssOut = entry.cssOut;
 	await build({
 		build: {
 			...sharedBuild,
@@ -50,9 +38,7 @@ for (const entry of inlineEntries) {
 					format: 'es',
 					entryFileNames: entry.out,
 					assetFileNames: (asset) => {
-						if (cssOut && asset.name?.endsWith('.css')) {
-							return cssOut;
-						}
+						if (asset.name?.endsWith('.css')) return 'popup.css';
 						return 'assets/[name]-[hash][extname]';
 					},
 					inlineDynamicImports: true,
@@ -70,10 +56,10 @@ for (const spec of contentScriptSpecs) {
 			outDir: resolve(extensionRoot, 'dist'),
 			emptyOutDir: false,
 			rollupOptions: {
-				input: resolve(extensionRoot, `src/content/${spec.dir}/${spec.file}`),
+				input: resolve(extensionRoot, `src/content/directory-launch/${spec.file}`),
 				output: {
 					format: 'es',
-					entryFileNames: `content/${spec.dir}/${spec.out}`,
+					entryFileNames: `content/directory-launch/${spec.name}.js`,
 					inlineDynamicImports: true,
 				},
 			},

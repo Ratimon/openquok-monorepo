@@ -1,7 +1,7 @@
 import type { IntegrationLike } from "./IntegrationDTO";
 
 /** DB enum column `posts.state`. */
-export type PostStateDb = "QUEUE" | "PUBLISHED" | "ERROR" | "DRAFT";
+export type PostStateDb = "QUEUE" | "PUBLISHED" | "ERROR" | "DRAFT" | "AWAITING_MEMBER";
 
 /**
  * Raw row shape from Supabase `posts` select.

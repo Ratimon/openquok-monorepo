@@ -79,3 +79,27 @@ export async function fetchComposerMediaFileFromUrl(
 
 	return { ok: true, file };
 }
+
+export type DownloadMediaFileFromUrlResult = { ok: true } | { ok: false; error: string };
+
+/** Saves an http(s) asset to the user's downloads folder (side panel / extension page). */
+export async function downloadMediaFileFromUrl(
+	url: string
+): Promise<DownloadMediaFileFromUrlResult> {
+	const fetched = await fetchComposerMediaFileFromUrl(url);
+	if (!fetched.ok) return fetched;
+
+	const objectUrl = URL.createObjectURL(fetched.file);
+	try {
+		const anchor = document.createElement('a');
+		anchor.href = objectUrl;
+		anchor.download = fetched.file.name;
+		anchor.rel = 'noopener';
+		document.body.appendChild(anchor);
+		anchor.click();
+		anchor.remove();
+	} finally {
+		URL.revokeObjectURL(objectUrl);
+	}
+	return { ok: true };
+}

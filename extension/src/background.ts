@@ -3,6 +3,7 @@ import { isAutoLaunchMessageType } from 'openquok-common';
 import { handleAutoLaunchRuntimeMessage } from './background/directoryHandlers.js';
 import { handleDashboardBridgeRuntimeMessage } from './background/dashboardBridgeHandlers.js';
 import { handleExternalMessage } from './background/externalHandlers.js';
+import { handleRedditHandoffRuntimeMessage } from './social/reddit/handoffHandlers.js';
 import {
 	enableSidePanelOnActionClick,
 	registerSidePanelToolbarClickFallback,
@@ -54,6 +55,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 	const bridgeResult = handleDashboardBridgeRuntimeMessage(record);
 	if (bridgeResult !== undefined) {
 		replyWhenDone(bridgeResult, sendResponse);
+		return true;
+	}
+
+	const redditHandoff = handleRedditHandoffRuntimeMessage(record);
+	if (redditHandoff !== undefined) {
+		replyWhenDone(redditHandoff, sendResponse);
 		return true;
 	}
 

@@ -93,6 +93,11 @@ export type SkoolLaunchProviderSettings = {
 	labelLabel?: string;
 };
 
+export type RedditLaunchProviderSettings = {
+	subreddit: string;
+	title: string;
+};
+
 export type BlueskyThreadGateSetting =
 	| 'everyone'
 	| 'mentioned'

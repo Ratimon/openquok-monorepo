@@ -436,7 +436,7 @@ Use this checklist after local migrations and a fresh extension build. Goal: one
 
 ## Social shell — server publish vs browser port (OpenQuok)
 
-The extension **side panel** (`extension/src/ui/sidepanel/sidepanel.ts`) exposes **Social** (session API composer) and **Directory** (auto-launch) tabs. User-facing docs: [Browser extension](../../web/src/content/docs/installation/chrome-extension.md). Social scheduling in v1 always uses the **server** path: dashboard session → `POST /api/v1/posts` → orchestrator (OAuth, credentials, and cookie-session channels such as Skool). Connect type per channel is unchanged — see [connect-rules](../../web/src/content/docs/platforms/connect-rules.md).
+The extension **side panel** (`extension/src/ui/sidepanel/sidepanel.ts`) exposes **Social** (session API composer) and **Directory** (auto-launch) tabs. User-facing docs: [Browser extension](../../web/src/content/docs/installation/chrome-extension.md). Social scheduling in v1 uses the **server** path for OAuth and credentials channels and for **Skool** after cookie-session connect: dashboard session → `POST /api/v1/posts` → orchestrator → server publish. **Reddit** skips server publish: due rows become **awaiting member**; the extension assists with copy, open submit, and autofill on reddit.com (no Reddit cookies on the server, no extension refresh for Reddit). Connect type per channel is unchanged — see [connect-rules](../../web/src/content/docs/platforms/connect-rules.md).
 
 **Social channel picker:** `mountChannelPicker` in `extension/src/ui/sidepanel/channelPicker.ts` mirrors the dashboard composer’s circular avatars (selection ring, grayscale when off, provider badge, authenticated avatar download/proxy). Styling uses forest semantic tokens in `sidepanel.css`. Manual smoke steps live in the browser extension doc under **Manual verification checklist** (channel picker + **Social tab — media attachments**).
 
@@ -447,15 +447,28 @@ The extension **side panel** (`extension/src/ui/sidepanel/sidepanel.ts`) exposes
 | In-browser send on platform tab | DOM automation in the member’s live platform tab | **Stub only** — `BrowserPublishPort` in `extension/src/social/browserPublishPort.ts` |
 | Context menu → draft | `contextMenus` (selection, page, image) | **Schedule with OpenQuok** → `sessionDraftStorage` → `sidePanel.open` + Social tab focus (`extension/src/social/contextMenu.ts`) |
 | Composer media attach | Hosted app or popup with client upload progress | **Side panel** toolbar file pick + thumbnail strip — **local preview** (`blob:` / queued URL) until Schedule / Draft / Publish; `resolveComposerMediaAttachments` → `POST /api/v1/media/upload` then `createSocialPost` with `media: { id, path }[]`. Image context menu: `applySocialComposerDraftWithMedia` queues `pendingSourceUrl` (fetch on submit). Caps: 10 attachments; client size checks mirror `common/src/media/uploadLimits.ts` (~30 MB image / 1 GB video). Media library, per-integration media, and R2 multipart — dashboard only (**Open full composer**). Manual smoke: [Browser extension](../../web/src/content/docs/installation/chrome-extension.md) → **Social tab — media attachments**. |
-| Content scripts on arbitrary sites | Composer injection limited to the vendor’s own host | **No** social composer injection — context menu + side panel only; directory CS on PeerPush/Uneed hosts |
+| Content scripts on arbitrary sites | Composer injection limited to the vendor’s own host | **No** social composer injection — context menu + side panel only; directory CS on PeerPush/Uneed hosts; Reddit submit-page CS for autofill only (member completes Post) |
+
+### Reddit — member browser complete (not server publish)
+
+| Concern | Skool (cookie connect + server publish) | Reddit (manual channel + member complete) |
+| --- | --- | --- |
+| Connect in Add Channel | Browser extension reads Skool session cookies; server stores encrypted session | Manual channel confirm — empty server token; no Reddit cookie harvest |
+| At due time | Orchestrator publishes via server API | Orchestrator skips `social.post()` → **awaiting member** |
+| Extension role | Optional refresh via `POST /api/v1/integrations/extension-refresh` | OpenQuok session only: **Copy**, **Open submit**, **Autofill** on reddit.com submit URLs; **Mark posted** → complete API |
+| Autofill | N/A (server sends post) | Title + RTE body via content script; **does not** click Post or call Reddit submit API |
+| Global vs Settings | Title/group/category required in Settings | Empty Settings OK for global copy-only; subreddit/title/link when Settings are filled |
+
+User docs: [Reddit](../../web/src/content/docs/social-integration/reddit.md), [Per-channel settings](../../web/src/content/docs/platforms/per-channel-settings.md) (Reddit section).
 
 ### `BrowserPublishPort` (phase 2)
 
-Neutral comparison: some schedulers publish from the **member’s live browser session** on the network site (DOM automation), while OpenQuok v1 keeps platform tokens and Skool session material on the **server** after extension-assisted connect.
+Neutral comparison: some schedulers publish from the **member’s live browser session** on the network site (DOM automation), while OpenQuok v1 keeps platform tokens and Skool session material on the **server** after extension-assisted connect. Reddit is the opposite for publish: no server send — member completes on reddit.com with optional extension autofill.
 
 | Concern | Server path (shipped) | Browser port (stub) |
 | --- | --- | --- |
 | Skool | Encrypted cookies + API publish | Planned first `cookie_session` candidate — `skool` |
+| Reddit | Member browser handoff (awaiting member → complete API) | Shipped — copy / open submit / autofill; not `BrowserPublishPort` auto-click |
 | OAuth / credentials channels | API only | Not targeted for in-browser send |
 | Side panel **Schedule** | `createSocialPost` | Does not call the port until phase 2 |
 | Failure mode | API error toast | Stub returns `not_implemented` with user-facing copy |
@@ -477,6 +490,7 @@ Implementation detail: `extension/src/social/browserPublishPort.ts` and the tabl
 
 | Date | Notes |
 | --- | --- |
+| 2026-10-28 | Reddit member browser complete — manual channel connect; extension copy/open/autofill; not server publish or cookie refresh |
 | 2026-10-26 | Social channel picker parity; composer media upload row + **Social tab — media attachments** manual checklist in chrome-extension doc |
 | 2026-10-25 | Social shell patterns; side panel vs popup; context menu draft; `BrowserPublishPort` stub; user docs links |
 | 2026-10-24 | Directory login notification banners — OpenQuok mapping, PeerPush/Uneed adapter selectors, gate content script |

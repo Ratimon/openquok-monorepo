@@ -2,7 +2,7 @@
 title: Social integration overview
 description: Self-host operator guides to connect posting channels — OAuth apps, API keys, extension session, and backend env.
 order: 0
-lastUpdated: 2026-10-24
+lastUpdated: 2026-10-27
 sidebar:
   label: Overview
 ---
@@ -23,7 +23,7 @@ Connect models fall into three families:
 
 - **OAuth (most networks)** — You create a developer app, set redirect URIs, request API access, and store client IDs and secrets in backend environment variables.
 - **Personal API key (for example Dev.to, Bluesky)** — The user pastes a key in Add Channel; operators document which env vars apply per guide.
-- **Browser extension (Skool)** — No operator OAuth app. Set <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_ID" variant="envWeb" /> on the web build and distribute the extension. See <a href="/docs/installation/chrome-extension">Browser extension</a>.
+- **Browser extension (Skool, Reddit)** — No operator OAuth app. Set <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_ID" variant="envWeb" /> on the web build and distribute the extension. See <a href="/docs/installation/chrome-extension">Browser extension</a>.
 
 <Callout type="danger">
 <p>Never commit <Badge text="THREADS_APP_SECRET" variant="envBackend" /> or other provider secrets. Use <Badge text="backend/.env.development.local" variant="envBackend" /> locally or your host secret store in production.</p>
@@ -45,6 +45,7 @@ Directory launch destinations (extension autofill, no posting OAuth) are documen
 <LinkCard title="Dev.to" description="Connect with a personal API key and schedule markdown articles" href="/docs/social-integration/devto" />
 <LinkCard title="Bluesky" description="Connect with an app password and schedule text, media, and follow-up replies" href="/docs/social-integration/bluesky" />
 <LinkCard title="Skool" description="Connect with the browser extension — no operator OAuth app" href="/docs/social-integration/skool" />
+<LinkCard title="Reddit" description="Connect with the browser extension — draft in OpenQuok, submit on reddit.com" href="/docs/social-integration/reddit" />
 <LinkCard title="Browser extension" description="Build and install the OpenQuok Chrome extension" href="/docs/installation/chrome-extension" />
 <LinkCard title="Adding a provider" description="How to add a new social channel as a contributor" href="/docs/contribution-opportunities/add-provider" />
 </CardGrid>

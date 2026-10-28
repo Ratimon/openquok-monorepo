@@ -332,6 +332,71 @@ export class PostsController {
         }
     };
 
+    getMemberBrowserHandoff = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const postId = (req.params as { postId: string }).postId;
+            const organizationId = (req.query as { organizationId: string }).organizationId;
+            const data = await this.postsService.getMemberBrowserHandoff({
+                authUserId,
+                organizationId,
+                postId,
+            });
+            res.status(200).json({ success: true, data });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getMemberBrowserHandoffMedia = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const { postId, mediaIndex } = req.params as { postId: string; mediaIndex: string };
+            const organizationId = (req.query as { organizationId: string }).organizationId;
+            const { buffer, contentType, fileName } = await this.postsService.getMemberBrowserHandoffMedia({
+                authUserId,
+                organizationId,
+                postId,
+                mediaIndex: Number(mediaIndex),
+            });
+            const safeName = fileName.replace(/[^\w.\-()+ ]/g, "_") || "media";
+            res.setHeader("Content-Type", contentType);
+            res.setHeader("Content-Disposition", `attachment; filename="${safeName}"`);
+            res.status(200).send(buffer);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    completeMemberBrowserHandoff = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const postId = (req.params as { postId: string }).postId;
+            const body = req.body as { organizationId: string; releaseUrl?: string };
+            const data = await this.postsService.completeMemberBrowserHandoff({
+                authUserId,
+                organizationId: body.organizationId,
+                postId,
+                releaseUrl: body.releaseUrl,
+            });
+            res.status(200).json({ success: true, data });
+        } catch (error) {
+            next(error);
+        }
+    };
+
     updatePostReleaseId = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const authReq = req as AuthenticatedRequest;

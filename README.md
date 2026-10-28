@@ -157,17 +157,6 @@ Create a programmatic token under **Account → Settings → Developers → Acce
 
 Let AI agents handle volume — drafting and scheduling at scale. You handle quality: review and approve what goes live across your channels.
 
-### Agent skill and CLI
-
-Install **openquok-core** for your agent, then the CLI on the same host (the skill does not install `openquok`):
-
-```bash
-npx skills add https://github.com/Ratimon/openquok-monorepo/tree/main/agent --skill openquok-core
-npm install -g @openquok/auto-cli@latest
-```
-
-[CLI getting started](https://www.openquok.com/docs/getting-started-for-cli) · [Agent setup guides](https://www.openquok.com/docs/agent-setup-guides) · [`SKILL.md`](./agent/skills/openquok-core/SKILL.md)
-
 <div align="center">
 
 **Terminal** (`openquok` CLI · schedule posts · upload media · flip draft ↔ scheduled)  ·  **Chat** (OpenClaw · Hermes · Claude · Cursor)  ·  **Web UI** (calendar · kanban review · analytics · approve before publish)

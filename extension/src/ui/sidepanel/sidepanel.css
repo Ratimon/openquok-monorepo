@@ -1099,3 +1099,53 @@ button:disabled {
 .status.success {
 	color: var(--color-success);
 }
+
+.reddit-action-host:not(:empty) {
+	margin-bottom: 10px;
+}
+
+.reddit-action-needed .reddit-action-list {
+	list-style: none;
+	margin: 10px 0 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.reddit-action-item {
+	border: 1px solid var(--color-base-300);
+	border-radius: var(--radius-field);
+	padding: 10px;
+	background: var(--color-base-200);
+}
+
+.reddit-action-item-head {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	margin-bottom: 8px;
+}
+
+.reddit-action-target,
+.reddit-action-body-preview {
+	font-size: 0.85rem;
+	line-height: 1.35;
+}
+
+.reddit-action-meta {
+	font-size: 11px;
+	color: var(--color-base-content-muted);
+}
+
+.reddit-action-buttons {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.reddit-action-buttons .primary,
+.reddit-action-buttons .secondary {
+	font-size: 11px;
+	padding: 5px 8px;
+}

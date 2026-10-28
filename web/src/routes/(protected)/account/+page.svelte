@@ -11,7 +11,7 @@
 
 	// --- App / routing ---
 	import { browser } from '$app/environment';
-	import { getContext, onMount, tick } from 'svelte';
+	import { getContext } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { absoluteUrl, route, url } from '$lib/utils/path';
@@ -40,13 +40,7 @@
 		ownedAccountBillingPresenter,
 		tierDisplayName
 	} from '$lib/billing';
-	import {
-		ACCOUNT_ADD_CHANNEL_QUERY,
-		DASHBOARD_OPEN_ADD_CHANNEL_URL_HASH,
-		DASHBOARD_OPEN_ADD_CHANNEL_WINDOW_EVENT,
-		isAccountAddChannelDeepLink,
-		isUnlimitedTeamMembersPerWorkspace
-	} from 'openquok-common';
+	import { isUnlimitedTeamMembersPerWorkspace } from 'openquok-common';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 	import { buildAccountSettingsSearchParams } from '$lib/settings/utils/buildAccountSettingsSearch';
 	import {
@@ -310,54 +304,8 @@
 
 	let homeDashboardTab = $state<AccountHomeDashboardTab>('channels');
 	let homeDashboardTabWorkspaceId = $state<string | null>(null);
-	let addChannelPickerRequest = $state(0);
-	let holdChannelsTabForAddChannel = $state(false);
-	async function openAddChannelPickerFromExtension() {
-		holdChannelsTabForAddChannel = true;
-		homeDashboardTab = 'channels';
-		await tick();
-		await tick();
-		addChannelPickerRequest += 1;
-		requestAnimationFrame(() => {
-			requestAnimationFrame(() => {
-				holdChannelsTabForAddChannel = false;
-			});
-		});
-	}
-
-	function stripAddChannelDeepLinkFromUrl() {
-		if (!browser) return;
-		const next = new URL(page.url);
-		if (
-			!isAccountAddChannelDeepLink(next.searchParams) &&
-			next.hash !== DASHBOARD_OPEN_ADD_CHANNEL_URL_HASH
-		) {
-			return;
-		}
-		next.searchParams.delete(ACCOUNT_ADD_CHANNEL_QUERY);
-		const qs = next.searchParams.toString();
-		void goto(`${accountPath}${qs ? `?${qs}` : ''}`, {
-			replaceState: true,
-			keepFocus: true,
-			noScroll: true
-		});
-	}
-
-	onMount(() => {
-		const onExtensionOpenAddChannel = () => {
-			void openAddChannelPickerFromExtension();
-		};
-		window.addEventListener(DASHBOARD_OPEN_ADD_CHANNEL_WINDOW_EVENT, onExtensionOpenAddChannel);
-		return () => {
-			window.removeEventListener(DASHBOARD_OPEN_ADD_CHANNEL_WINDOW_EVENT, onExtensionOpenAddChannel);
-		};
-	});
 
 	$effect(() => {
-		if (holdChannelsTabForAddChannel) {
-			homeDashboardTab = 'channels';
-			return;
-		}
 		const tabParam = page.url.searchParams.get('tab');
 		if (tabParam === 'products' || tabParam === 'channels' || tabParam === 'posts' || tabParam === 'feed') {
 			homeDashboardTab = tabParam;
@@ -365,10 +313,6 @@
 	});
 
 	$effect(() => {
-		if (holdChannelsTabForAddChannel) {
-			homeDashboardTab = 'channels';
-			return;
-		}
 		const orgId = workspaceId;
 		if (!orgId || orgId === homeDashboardTabWorkspaceId) return;
 		homeDashboardTabWorkspaceId = orgId;
@@ -1008,23 +952,6 @@
 		});
 	});
 
-	let consumedAddChannelDeepLink = $state('');
-
-	$effect(() => {
-		if (!browser) return;
-		const openFromQuery = isAccountAddChannelDeepLink(page.url.searchParams);
-		const openFromHash = page.url.hash === DASHBOARD_OPEN_ADD_CHANNEL_URL_HASH;
-		if (!openFromQuery && !openFromHash) return;
-
-		const key = `${page.url.pathname}${page.url.search}${page.url.hash}`;
-		if (consumedAddChannelDeepLink === key) return;
-		consumedAddChannelDeepLink = key;
-
-		void openAddChannelPickerFromExtension().then(() => {
-			stripAddChannelDeepLinkFromUrl();
-		});
-	});
-
 	$effect(() => {
 		const workspaceIdsKey = workspacesVm.map((w) => w.id).join(',');
 		if (!workspaceIdsKey || !browser) return;
@@ -1321,7 +1248,6 @@
 							channelActionsFor = integration;
 							channelActionsOpen = true;
 						}}
-						addChannelPickerRequest={addChannelPickerRequest}
 					/>
 				{/snippet}
 				{#snippet posts()}
