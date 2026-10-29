@@ -17,9 +17,6 @@
 			>Community or profile</label
 		>
 		<ProviderSubredditInput id="reddit-subreddit" bind:value={subreddit} {disabled} />
-		<p class="text-xs text-base-content/50">
-			Optional for copy-only posts.
-		</p>
 	</div>
 
 	<div class="space-y-1">
@@ -34,8 +31,8 @@
 			{disabled}
 		/>
 		<p class="text-xs text-base-content/50">
-			Optional for copy-only posts. Post body and links
-			come from the post editor caption (including the toolbar link button). Up to
+			Optional. Post body and links
+			come from the post editor caption. Up to
 			{REDDIT_TITLE_MAX_LENGTH} characters.
 		</p>
 	</div>

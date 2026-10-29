@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
 import { getPublicApiHubLandingHeroStatBadges } from '$lib/content/constants/channels/api/_shared/publicApiCapabilityHubStatBadgesConfig';
+import { redditChannel } from '$lib/content/constants/channels/catalog/platforms/reddit';
 import { publicLandingHeroStatBadgesFromFeatureSections } from '$lib/content/constants/marketing/publicLandingHeroStatBadges';
+import { splitPublicLandingTitleParts } from '$lib/ui/templates/titles/splitPublicLandingTitleParts';
 import { PUBLIC_HOME_LANDING_HERO_STAT_BADGES } from '$lib/content/constants/marketing/publicHomeLandingHeroStatBadges';
 
 describe('publicLandingHeroStatBadges', () => {
@@ -24,5 +26,23 @@ describe('publicLandingHeroStatBadges', () => {
 
 	it('returns four posting API hub badges', () => {
 		expect(getPublicApiHubLandingHeroStatBadges('posting')).toHaveLength(4);
+	});
+
+	it('reddit feature badge values omit clause commas', () => {
+		const badges = publicLandingHeroStatBadgesFromFeatureSections(redditChannel.featureSections);
+		expect(badges.map((b) => b.value)).toEqual([
+			'Schedule Reddit drafts',
+			'Reminded in OpenQuok',
+			'Write post as markdown'
+		]);
+		for (const badge of badges) {
+			expect(badge.value).not.toMatch(/,/);
+		}
+	});
+
+	it('splitPublicLandingTitleParts strips comma clause breaks for badges', () => {
+		expect(
+			splitPublicLandingTitleParts('Reminded in OpenQuok, you post on reddit.com yourself', true)[0]
+		).toBe('Reminded in OpenQuok');
 	});
 });

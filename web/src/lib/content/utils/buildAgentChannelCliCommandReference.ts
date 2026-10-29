@@ -364,6 +364,33 @@ const CHANNEL_CLI_RECIPES: Record<string, readonly AgentChannelCliRecipe[]> = {
 			'skool-follow-up.json',
 			'Schedule a post and follow-up comments on skool.replies'
 		)
+	],
+	reddit: [
+		{
+			command: discoverIntegrationCommand(['reddit']),
+			description: 'Discover your Reddit integration UUID (manual dashboard connect first)'
+		},
+		{
+			command: 'openquok integrations:settings "$REDDIT_ID"',
+			description: 'Get Reddit posting rules, markdown limits, and subreddit/title schema'
+		},
+		postsCreateJsonCommand(
+			'reddit-global-caption.json',
+			'Schedule shared markdown — finish on reddit.com when awaiting member'
+		),
+		postsCreateJsonCommand(
+			'reddit-subreddit-title.json',
+			'Schedule with reddit.subreddit and reddit.title for autofill'
+		),
+		postsCreateJsonCommand(
+			'reddit-with-image.json',
+			'Schedule with media for extension handoff download'
+		),
+		{
+			command:
+				'openquok posts:list | jq \'.items[] | select(.identifier=="reddit" and .state=="AWAITING_MEMBER")\'',
+			description: 'List Reddit rows waiting for a member to submit on reddit.com'
+		}
 	]
 };
 
@@ -384,7 +411,8 @@ const KANBAN_EXAMPLE_BY_CHANNEL: Record<string, string> = {
 	x: 'x-text-only.json',
 	devto: 'devto-article-title-tags.json',
 	bluesky: 'bluesky-text-only.json',
-	skool: 'skool-text-title-group.json'
+	skool: 'skool-text-title-group.json',
+	reddit: 'reddit-global-caption.json'
 };
 
 /** Kanban feature section CLI snippet for a platform. */
@@ -425,6 +453,15 @@ export function buildAgentChannelFollowUpCliCommands(
 				: `${channelSlug}-follow-up-replies.json`;
 	return `# ${platformLabel} post with follow-up reply
 openquok posts:create --json ./examples/${exampleFile}`;
+}
+
+/** Member browser handoff CLI snippet (no OpenQuok analytics or server publish). */
+export function buildAgentChannelMemberHandoffCliCommands(platformLabel: string): string {
+	return `# ${platformLabel} rows awaiting member (finish on reddit.com)
+openquok posts:list | jq '.items[] | select(.identifier=="reddit" and .state=="AWAITING_MEMBER")'
+
+# Human completes submit in dashboard or extension — not via opo_ API today
+openquok posts:create --json ./examples/reddit-subreddit-title.json`;
 }
 
 function directoryAgentChannelCliRecipes(

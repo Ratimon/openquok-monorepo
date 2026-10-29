@@ -23,6 +23,10 @@ describe('resolveSchedulePostComposerBentoId', () => {
 		expect(resolveSchedulePostComposerBentoId('skool')).toBe('skool-settings');
 	});
 
+	it('maps reddit to markdown composer bento', () => {
+		expect(resolveSchedulePostComposerBentoId('reddit')).toBe('reddit-markdown-composer');
+	});
+
 	it('returns undefined for empty or unknown slugs', () => {
 		expect(resolveSchedulePostComposerBentoId(null)).toBeUndefined();
 		expect(resolveSchedulePostComposerBentoId('')).toBeUndefined();

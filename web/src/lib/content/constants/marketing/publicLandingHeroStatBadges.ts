@@ -8,6 +8,8 @@ export type PublicLandingHeroStatBadge = {
 	href?: string;
 };
 
+import { splitPublicLandingTitleParts } from '$lib/ui/templates/titles/splitPublicLandingTitleParts';
+
 /** Short value from a feature hero title; label from subtitle. */
 export function publicLandingHeroStatBadgesFromFeatureSections(
 	sections: readonly { subtitle: string; title: string }[],
@@ -21,9 +23,9 @@ export function publicLandingHeroStatBadgesFromFeatureSections(
 }
 
 function featureSectionTitleToBadgeValue(title: string): string {
-	const commaPart = title.split(',')[0]?.trim();
-	if (commaPart && commaPart.length <= 36) return commaPart;
-	const words = title.replace(/\n/g, ' ').trim().split(/\s+/);
+	const head = splitPublicLandingTitleParts(title, true)[0]?.trim() ?? title.trim();
+	if (head.length <= 36) return head;
+	const words = head.split(/\s+/);
 	if (words.length <= 4) return words.join(' ');
 	return `${words.slice(0, 3).join(' ')}…`;
 }

@@ -30,7 +30,7 @@ import {
 import { PUBLIC_API_MARKETING_HUB_FEATURE_SECTIONS } from '$lib/content/constants/channels/api/_shared/publicApiCapabilityHubFeatureConfig';
 
 describe('publicApiCatalog', () => {
-	it('registers ten posting platform slugs', () => {
+	it('registers eleven posting platform slugs', () => {
 		expect(PUBLIC_API_POSTING_PLATFORM_SLUGS).toEqual([
 			'tiktok',
 			'x',
@@ -41,7 +41,8 @@ describe('publicApiCatalog', () => {
 			'linkedin',
 			'bluesky',
 			'devto',
-			'skool'
+			'skool',
+			'reddit'
 		]);
 	});
 
@@ -61,11 +62,13 @@ describe('publicApiCatalog', () => {
 		expect(getPublicApiPostingPlatformBySlug('myspace')).toBeUndefined();
 		expect(isPublicApiPlatformSlug('devto')).toBe(true);
 		expect(getPublicApiPostingPlatformBySlug('skool')?.slug).toBe('skool');
+		expect(getPublicApiPostingPlatformBySlug('reddit')?.slug).toBe('reddit');
+		expect(isPublicApiPlatformSlug('reddit')).toBe(true);
 	});
 
 	it('builds hub platform cards from channel catalog', () => {
 		const cards = listPublicApiPostingPlatformsForHub();
-		expect(cards).toHaveLength(10);
+		expect(cards).toHaveLength(11);
 		expect(cards.map((card) => card.slug)).toEqual(PUBLIC_API_POSTING_PLATFORM_SLUGS);
 		expect(cards[0]?.platformLabel).toBe('TikTok');
 	});
@@ -142,6 +145,13 @@ describe('publicApiCatalog', () => {
 		expect(
 			devtoPosting?.faqItems.some((item) => item.title.includes('OAuth app counts'))
 		).toBe(false);
+
+		const redditPosting = getPublicApiPostingPlatformBySlug('reddit');
+		expect(redditPosting?.heroDescription).toContain('awaiting member');
+		expect(redditPosting?.faqItems.some((item) => item.title.includes('my own account'))).toBe(
+			true
+		);
+		expect(redditPosting?.formatExamples).toHaveLength(3);
 
 		const tiktokPosting = getPublicApiPlatformAudienceSection('posting', 'TikTok');
 		expect(tiktokPosting.audienceTitle).toContain('TikTok');

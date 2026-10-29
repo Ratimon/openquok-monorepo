@@ -9,6 +9,13 @@
 		buildPublicChannelAgentIntegrationsGridSubtitle,
 		buildPublicChannelAgentIntegrationsGridTitle
 	} from '$lib/content/utils/buildPublicChannelAgentIntegrationsGridCopy';
+	import {
+		buildBrowserExtensionAgentIntegrationCardDescription,
+		buildBrowserExtensionAgentIntegrationsGridDescription,
+		buildBrowserExtensionAgentIntegrationsGridSubtitle,
+		buildBrowserExtensionAgentIntegrationsGridTitle
+	} from '$lib/content/utils/buildBrowserExtensionLandingGridCopy';
+	import { getPublicChannelBySlug } from '$lib/content/constants/channels';
 	import { listPublicAgentIntegrationsForChannel } from '$lib/content/utils/listPublicAgentIntegrationsForChannel';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
@@ -21,9 +28,11 @@
 	type Props = {
 		channelSlug: string;
 		platformLabel: string;
+		/** When `browser-extension`, section copy and card blurbs target the extension landing. */
+		variant?: 'channel-page' | 'browser-extension';
 	};
 
-	let { channelSlug, platformLabel }: Props = $props();
+	let { channelSlug, platformLabel, variant = 'channel-page' }: Props = $props();
 
 	const headingId = 'public-channel-agent-integrations-heading';
 
@@ -32,12 +41,20 @@
 	const mcpClientItems = $derived(integrations.mcpClients);
 
 	const sectionTitle = $derived(
-		buildPublicChannelAgentIntegrationsGridTitle(platformLabel, channelSlug)
+		variant === 'browser-extension'
+			? buildBrowserExtensionAgentIntegrationsGridTitle()
+			: buildPublicChannelAgentIntegrationsGridTitle(platformLabel, channelSlug)
 	);
 	const sectionDescription = $derived(
-		buildPublicChannelAgentIntegrationsGridDescription(platformLabel, channelSlug)
+		variant === 'browser-extension'
+			? buildBrowserExtensionAgentIntegrationsGridDescription()
+			: buildPublicChannelAgentIntegrationsGridDescription(platformLabel, channelSlug)
 	);
-	const sectionSubtitle = buildPublicChannelAgentIntegrationsGridSubtitle();
+	const sectionSubtitle = $derived(
+		variant === 'browser-extension'
+			? buildBrowserExtensionAgentIntegrationsGridSubtitle()
+			: buildPublicChannelAgentIntegrationsGridSubtitle()
+	);
 	const coreLabel = buildPublicChannelAgentIntegrationsGridCoreLabel();
 	const extensionLabel = buildPublicChannelAgentIntegrationsGridExtensionLabel();
 
@@ -46,10 +63,21 @@
 	function toFeatureCardItem(
 		item: PublicChannelAgentIntegrationGridItem
 	): FeatureSimpleCardItem & { href: string; kind: PublicChannelAgentIntegrationGridItem['kind'] } {
+		const channel = getPublicChannelBySlug(channelSlug);
+		const integrationLive = channel?.available ?? false;
+		const description =
+			variant === 'browser-extension'
+				? buildBrowserExtensionAgentIntegrationCardDescription(
+						item.title,
+						item.kind,
+						item.available && integrationLive
+					)
+				: item.description;
+
 		return {
 			id: item.slug,
 			title: item.title,
-			description: item.description,
+			description,
 			icon: item.icon,
 			href: url(hostedMarketingHref(item.href, page.url.origin)),
 			kind: item.kind

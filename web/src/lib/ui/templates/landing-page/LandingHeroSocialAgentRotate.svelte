@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { LandingHeroSocialAgentRotateOption } from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import { LANDING_HERO_SOCIAL_AGENT_ROTATE_OPTIONS } from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import LandingHeroHighlightedText from '$lib/ui/texts/LandingHeroHighlightedText.svelte';
@@ -7,17 +8,21 @@
 	type Props = {
 		class?: string;
 		rotationInterval?: number;
+		options?: readonly LandingHeroSocialAgentRotateOption[];
 	};
 
-	let { class: className = '', rotationInterval = 2800 }: Props = $props();
+	let {
+		class: className = '',
+		rotationInterval = 2800,
+		options = LANDING_HERO_SOCIAL_AGENT_ROTATE_OPTIONS
+	}: Props = $props();
 
-	const rotateLabels = LANDING_HERO_SOCIAL_AGENT_ROTATE_OPTIONS.map((option) => option.label);
+	const rotateLabels = $derived(options.map((option) => option.label));
 
 	let activeIndex = $state(0);
 
 	const activeIconName = $derived(
-		LANDING_HERO_SOCIAL_AGENT_ROTATE_OPTIONS[activeIndex]?.iconName ??
-			LANDING_HERO_SOCIAL_AGENT_ROTATE_OPTIONS[0]?.iconName
+		options[activeIndex]?.iconName ?? options[0]?.iconName
 	);
 </script>
 

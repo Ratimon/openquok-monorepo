@@ -169,6 +169,7 @@ export const publicFaqHref = {
 	cliYoutube: faqHrefDocs('cli-examples/youtube'),
 	cliDevto: faqHrefDocs('cli-examples/devto'),
 	cliSkool: faqHrefDocs('cli-examples/skool'),
+	cliReddit: faqHrefDocs('cli-examples/reddit'),
 	cliPeerpush: faqHrefDocs('cli-examples/peerpush'),
 	cliUneed: faqHrefDocs('cli-examples/uneed'),
 	cliDirectoryLaunch: faqHrefDocs('cli-usages/directory-launch'),

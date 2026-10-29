@@ -31,6 +31,7 @@ import {
 	buildPublicChannelEcosystemAudienceTailoredCard,
 	buildPublicChannelEcosystemFaqItems
 } from '$lib/content/constants/agents/ecosystems';
+import { getChannelSeedBySlug } from '$lib/content/constants/channels/catalog/channelCatalogLookup';
 import { PUBLIC_AGENT_CHANNEL_HUB_CHANNELS } from '$lib/content/constants/channels/catalog/agentChannelHubSeeds';
 import { PUBLIC_DIRECTORY_CHANNEL_LANDING_PAGES } from '$lib/content/constants/channels/catalog/directory-seeds';
 import { PUBLIC_CHANNEL_LANDING_PAGES } from '$lib/content/constants/channels/catalog/seeds';
@@ -59,22 +60,10 @@ export {
 	uneedDirectoryChannel
 } from '$lib/content/constants/channels/catalog/directory-platforms/index';
 
-const channelBySlug = new Map(PUBLIC_CHANNEL_LANDING_PAGES.map((page) => [page.slug, page]));
-const directoryChannelBySlug = new Map(
-	PUBLIC_DIRECTORY_CHANNEL_LANDING_PAGES.map((page) => [page.slug, page])
-);
-
-function getChannelSeedBySlug(key: string): PublicChannelLandingPageViewModel | undefined {
-	return channelBySlug.get(key) ?? directoryChannelBySlug.get(key);
-}
+export { getChannelSeedBySlug, isPublicDirectoryChannelSlug } from '$lib/content/constants/channels/catalog/channelCatalogLookup';
 
 export function isPublicDirectoryChannel(page: PublicChannelLandingPageViewModel): boolean {
 	return page.channelKind === 'directory';
-}
-
-export function isPublicDirectoryChannelSlug(slug: string): boolean {
-	const key = slug.trim().toLowerCase();
-	return directoryChannelBySlug.has(key);
 }
 
 /** Optional fourth WhoIsFor card from `audienceTailoredCard` on the channel seed. */

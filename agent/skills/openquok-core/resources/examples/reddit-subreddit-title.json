@@ -1,0 +1,14 @@
+{
+  "scheduledAt": "2026-01-01T12:00:00.000Z",
+  "status": "scheduled",
+  "body": "Body and [links](https://example.com) stay in the caption. The title below is the reddit.com post title only.",
+  "integrationIds": ["<integration-id>"],
+  "providerSettingsByIntegrationId": {
+    "<integration-id>": {
+      "reddit": {
+        "subreddit": "r/openquok",
+        "title": "Weekly product update"
+      }
+    }
+  }
+}

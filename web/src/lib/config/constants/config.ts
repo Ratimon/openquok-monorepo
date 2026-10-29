@@ -31,6 +31,7 @@ import {
 	getRootPathPublicPlaybooksTags
 } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 import { getRootPathPublicDirectorySubmissionTool } from '$lib/area-public/constants/getRootPathPublicDirectorySubmissionTool';
+import { getRootPathPublicBrowserExtensionLanding } from '$lib/area-public/constants/getRootPathPublicBrowserExtensionLanding';
 import { getRootPathPublicRoadmap } from '$lib/area-public/constants/getRootPathPublicRoadmap';
 import { getRootPathPublicSelfHosting } from '$lib/area-public/constants/getRootPathPublicSelfHosting';
 import { getRootPathPublicSocialAutopilotLanding } from '$lib/area-public/constants/getRootPathPublicSocialAutopilotLanding';
@@ -110,6 +111,7 @@ const publicPayloadWizardPath = route(getRootPathPublicPayloadWizard());
 const publicRoadmapPath = route(getRootPathPublicRoadmap());
 const publicSelfHostingPath = route(getRootPathPublicSelfHosting());
 const publicDirectorySubmissionToolPath = route(getRootPathPublicDirectorySubmissionTool());
+const publicBrowserExtensionLandingPath = route(getRootPathPublicBrowserExtensionLanding());
 const publicSocialAutopilotLandingPath = route(getRootPathPublicSocialAutopilotLanding());
 const publicSocialMediaPostingApiPath = route(getRootPathSocialMediaPostingApi());
 const publicSocialMediaSchedulingApiPath = route(getRootPathSocialMediaSchedulingApi());
@@ -479,9 +481,9 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		maxInputLength: 60
 	},
 	FEATURE_2_TITLE: {
-		description: 'Headline for the second secondary hero section (comma separates accent phrase)',
+		description: 'Headline for the second secondary hero section (use line breaks, not commas, between phrases)',
 		type: 'string',
-		default: 'Invite by email, assign Member, manage seats by Admin',
+		default: 'Invite by email\nassign Member\nmanage seats by Admin',
 		inputType: 'input',
 		maxInputLength: 100
 	},
@@ -997,6 +999,7 @@ export const PUBLIC_FOOTER_LINKS_STATIC: PublicFooterLinksMap = {
 	Features: [
 		{ label: 'Directory submission tool', href: publicDirectorySubmissionToolPath },
 		{ label: 'Social media management', href: publicSocialAutopilotLandingPath },
+		{ label: 'Browser extension', href: publicBrowserExtensionLandingPath },
 		{ label: 'Self-hosted', href: publicSelfHostingPath },
 		{ label: 'All Supported Channels', href: publicChannelsPath },
 		{ label: 'All Agent Integrations', href: publicAgentsPath },

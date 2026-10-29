@@ -11,7 +11,7 @@ export type PublicChannelSiblingGridItem = {
 };
 
 import { getChannelPageEcosystemId } from '$lib/content/constants/agents/ecosystems';
-import { isPublicDirectoryChannelSlug } from '$lib/content/constants/channels';
+import { isPublicDirectoryChannelSlug } from '$lib/content/constants/channels/catalog/channelCatalogLookup';
 
 /** Section copy for the cross-link grid on `/channels/{slug}` and agent channel detail pages. */
 export function buildPublicChannelSiblingGridTitle(platformLabel: string): string {

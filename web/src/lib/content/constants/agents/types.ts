@@ -36,14 +36,18 @@ export type FeaturesOrderedDeviceMock =
 	| 'settings-panel'
 	| 'desktop';
 
-/** Marketing bento panel in `FeaturesOrdered` (directory submission landing). */
+/** Marketing bento panel in `FeaturesOrdered` (directory submission + browser extension landings). */
 export type FeaturesOrderedMarketingPanelId =
 	| 'directory-profile-readiness'
 	| 'directory-pick-destinations'
 	| 'directory-extension-autofill'
 	| 'directory-human-pace'
 	| 'directory-launch-opportunities'
-	| 'directory-track-status';
+	| 'directory-track-status'
+	| 'browser-extension-install'
+	| 'browser-extension-side-panel'
+	| 'browser-extension-connect'
+	| 'browser-extension-workflows';
 
 export type FeaturesOrderedStep = {
 	id: number;
@@ -66,6 +70,8 @@ export type FeaturesOrderedStep = {
 	/** Inline terminal preview when `deviceMock` is `terminal` (overrides `deviceMockContent`). */
 	terminalCode?: string;
 	mockUrl?: string;
+	/** When set with `deviceMock: 'safari'`, the media column links to this URL (e.g. Chrome Web Store). */
+	mockLinkHref?: string;
 	/** Optional HowToStep `url` in JSON-LD (fragment or absolute). */
 	howToStepUrl?: string;
 	iconName: IconName;

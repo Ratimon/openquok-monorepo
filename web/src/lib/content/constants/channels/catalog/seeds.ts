@@ -6,6 +6,7 @@ import {
 	facebookChannel,
 	instagramChannel,
 	linkedinChannel,
+	redditChannel,
 	skoolChannel,
 	threadsChannel,
 	tiktokChannel,
@@ -19,13 +20,14 @@ const COMING_SOON_CHANNELS: PublicChannelLandingPageViewModel[] = [];
 /** Single registry for channel landings — order drives hub, nav, and footer columns. */
 export const PUBLIC_CHANNEL_LANDING_PAGES: readonly PublicChannelLandingPageViewModel[] = [
 	facebookChannel,
-	threadsChannel,
 	instagramChannel,
+	threadsChannel,
 	youtubeChannel,
 	tiktokChannel,
 	linkedinChannel,
 	xChannel,
 	blueskyChannel,
+	redditChannel,
 	devtoChannel,
 	skoolChannel,
 	...COMING_SOON_CHANNELS

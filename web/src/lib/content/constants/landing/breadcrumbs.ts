@@ -13,6 +13,7 @@ export const PUBLIC_LANDING_BREADCRUMB = {
 	buildingBlocksHub: 'Building Blocks',
 	buildBacklinksHub: 'Build backlinks',
 	directorySubmissionTool: 'Directory submission tool',
+	browserExtension: 'Browser extension',
 	socialAutopilotLanding: 'Social media management',
 	categories: 'Categories',
 	tags: 'Tags'

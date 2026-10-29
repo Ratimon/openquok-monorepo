@@ -1,6 +1,6 @@
 ---
 title: OpenQuok browser extension
-description: Install the OpenQuok Chrome extension for Skool connect, side-panel social scheduling, directory autofill, and context-menu drafts.
+description: Install the OpenQuok Chrome extension for side-panel social scheduling, in-browser connect, directory autofill, and context-menu drafts.
 order: 7
 lastUpdated: 2026-10-26
 sidebar:
@@ -8,12 +8,12 @@ sidebar:
 ---
 
 <script>
-import { Badge, Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Overview
 
-The <strong>OpenQuok Chrome browser extension</strong> supports workflows that are not covered by platform OAuth or pasted API keys.
+The <strong>OpenQuok Chrome browser extension</strong> supports workflows that are not covered by platform OAuth or pasted API keys. For a product overview (post from any tab, side panel, directory autofill, Reddit handoff), see the <a href="/browser-extension">browser extension</a> page.
 
 | Use | What the extension does |
 | --- | --- |
@@ -195,6 +195,7 @@ If your workspace runs on another HTTPS host, add that origin to the manifest, r
 ## Related
 
 <CardGrid>
+<LinkCard title="Browser extension (overview)" description="Social media scheduler extension — post from any tab" href="/browser-extension" />
 <LinkCard title="Skool" description="Connect Skool with the extension and compose settings" href="/docs/social-integration/skool" />
 <LinkCard title="Directory submission" description="My Products workflow and extension handoff" href="/docs/directory-submission" />
 <LinkCard title="Connect rules" description="Channel keys, directory site keys, and connect types" href="/docs/platforms/connect-rules" />

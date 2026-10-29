@@ -95,6 +95,29 @@ describe('buildAgentChannelLandingVm analytics FAQ honesty', () => {
 		);
 		expect(vm.featureSections.some((section) => section.bentoId === 'skool-follow-ups')).toBe(true);
 	});
+
+	it('omits analytics marketing on OpenClaw × Reddit and surfaces member handoff', () => {
+		const openclaw = getPublicAgentHostBySlug('openclaw');
+		const redditChannel = getPublicChannelBySlug('reddit');
+		const redditConfig = getPublicAgentChannelBySlug('openclaw', 'reddit');
+		expect(openclaw).toBeDefined();
+		expect(redditChannel).toBeDefined();
+		expect(redditConfig).toBeDefined();
+
+		const vm = buildAgentChannelLandingVm({
+			baseAgent: openclaw!,
+			channel: redditChannel!,
+			channelConfig: redditConfig!
+		});
+
+		const description = capabilitiesFaqDescription(vm.faqItems);
+		expect(description).not.toContain('analytics:platform');
+		expect(redditConfig!.analyticsCliCommands).toContain('AWAITING_MEMBER');
+		expect(redditConfig!.analyticsCliCommands).not.toContain('analytics:platform');
+		expect(vm.featureSections.some((section) => section.bentoId === 'reddit-member-handoff')).toBe(
+			true
+		);
+	});
 });
 
 describe('buildAgentChannelLandingVm channel FAQ merge', () => {
@@ -217,6 +240,33 @@ describe('buildMcpChannelLandingVm audience cards', () => {
 		expect(vm.audienceCards.at(-1)?.description).toContain('terminal coding agent');
 		expect(vm.audienceCards[0]?.description).toContain('first-class for Grok Build');
 		expect(xChannel!.audienceCards.at(-1)?.title).toBe('Grok Bot & xAI cloud desktop');
+	});
+
+	it('uses Reddit draft handoff hero and subreddit moderators card on /agents/antigravity-cli/reddit', () => {
+		const baseMcp = getPublicMcpLandingBySlug('antigravity-cli');
+		const redditChannel = getPublicChannelBySlug('reddit');
+		const redditConfig = getPublicAgentChannelBySlug('antigravity-cli', 'reddit');
+		expect(baseMcp).toBeDefined();
+		expect(redditChannel).toBeDefined();
+		expect(redditConfig).toBeDefined();
+
+		const vm = buildMcpChannelLandingVm({
+			baseMcp: baseMcp!,
+			channel: redditChannel!,
+			channelConfig: redditConfig!
+		});
+
+		expect(vm.heroTitle).toBe(
+			'Draft in OpenQuok with Antigravity CLI\npost on reddit.com — lower ban risk'
+		);
+		expect(vm.heroDescription).toContain('you submit on reddit.com');
+		expect(vm.heroDescription).toContain('No server auto-post');
+		const titles = vm.audienceCards.map((card) => card.title);
+		expect(titles).toContain('Subreddit moderators');
+		expect(titles).toContain('Gemini-first in Google’s toolchain');
+		const moderators = vm.audienceCards.find((card) => card.title === 'Subreddit moderators');
+		expect(moderators?.description).toContain('Antigravity CLI');
+		expect(moderators?.description).toContain('reddit.com');
 	});
 
 	it('uses directory launch workflow mock on peerpush, not social schedule preview', () => {

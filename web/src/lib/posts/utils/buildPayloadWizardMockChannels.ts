@@ -23,7 +23,11 @@ export const PAYLOAD_WIZARD_MOCK_INTEGRATION_ID_BY_SLUG: Record<PublicApiPlatfor
 	youtube: '4d8e9f0a-6b7c-4d8e-9f0a-1b2c3d4e5f60',
 	facebook: '5e9f0a1b-7c8d-4e9f-0a1b-2c3d4e5f6071',
 	threads: '6f0a1b2c-8d9e-4f0a-1b2c-3d4e5f607182',
-	linkedin: '7a1b2c3d-9e0f-4a1b-2c3d-4e5f60718293'
+	linkedin: '7a1b2c3d-9e0f-4a1b-2c3d-4e5f60718293',
+	bluesky: '8b2c3d4e-0f1a-4b2c-3d4e-5f607182930a',
+	devto: '9c3d4e5f-1a2b-4c3d-4e5f-607182930a4b',
+	skool: '0d4e5f6a-2b3c-4d5e-5f60-7182930a4b5c',
+	reddit: '1e5f6a7b-3c4d-4e5f-6071-82930a4b5c6d'
 };
 
 export function payloadWizardMockIntegrationId(slug: PublicApiPlatformSlug): string {
@@ -75,7 +79,9 @@ export function buildPayloadWizardMockChannels(): CreateSocialPostChannelViewMod
 			unschedulableReason: null,
 			group: null,
 			postingTimes: [{ time: 540 }],
-			editor: normalizeIntegrationEditorMode(slug === 'x' ? 'html' : 'normal')
+			editor: normalizeIntegrationEditorMode(
+				slug === 'x' ? 'html' : slug === 'devto' || slug === 'reddit' ? 'markdown' : 'normal'
+			)
 		};
 	});
 }

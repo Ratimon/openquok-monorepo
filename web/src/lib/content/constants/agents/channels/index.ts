@@ -124,12 +124,9 @@ export function isPublicAgentChannelHostSlug(slug: string): slug is PublicAgentC
 	return (PUBLIC_AGENT_CHANNEL_HOST_SLUGS as readonly string[]).includes(slug.trim().toLowerCase());
 }
 
-const channelBySlug = new Map(
-	PUBLIC_AGENT_CHANNEL_HUB_CHANNELS.map((channel) => [channel.slug, channel])
-);
-
 function hubDescriptionForChannel(slug: string, platformLabel: string): string {
-	const channel = channelBySlug.get(slug);
+	const key = slug.trim().toLowerCase();
+	const channel = PUBLIC_AGENT_CHANNEL_HUB_CHANNELS.find((entry) => entry.slug === key);
 	if (channel?.hubDescription?.trim()) return channel.hubDescription.trim();
 	return `Workflows and examples for ${platformLabel}.`;
 }
@@ -139,7 +136,8 @@ function mapChannelConfigsToHubLinks(
 	configs: readonly PublicAgentChannelPageConfig[]
 ): PublicAgentChannelHubLinkViewModel[] {
 	const links = configs.map((config) => {
-		const channel = channelBySlug.get(config.channelSlug);
+		const channelKey = config.channelSlug.trim().toLowerCase();
+		const channel = PUBLIC_AGENT_CHANNEL_HUB_CHANNELS.find((entry) => entry.slug === channelKey);
 		return {
 			slug: config.channelSlug,
 			platformLabel: config.platformLabel,

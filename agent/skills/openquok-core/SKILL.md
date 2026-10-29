@@ -217,6 +217,7 @@ Provider settings overview: [resources/provider-settings.md](./resources/provide
 | Dev.to | `devto` | markdown article, title/tags/cover/canonical/org/series, `tags` + `organizations` tools, analytics | [devto-examples.md](./resources/devto-examples.md) |
 | Bluesky | `bluesky` | text/media (≤4 images or 1 MP4), follow-up replies (`bluesky.replies`), mentions | [bluesky-examples.md](./resources/bluesky-examples.md) |
 | Skool | `skool` | title/group/label, images, follow-up comments (`skool.replies`); extension connect in dashboard | [skool-examples.md](./resources/skool-examples.md) |
+| Reddit | `reddit` | markdown body, optional subreddit/title, media handoff; manual dashboard connect; **awaiting member** at due time — no server publish | [reddit-examples.md](./resources/reddit-examples.md) |
 
 Threads publish failures: [threads-publish.md](./resources/threads-publish.md).
 
@@ -248,3 +249,4 @@ Threads publish failures: [threads-publish.md](./resources/threads-publish.md).
 | Analytics rejected | `-d` must be **7**, **30**, or **90** |
 | Env key ignored | `auth:logout` if disk credentials exist |
 | Old CLI / wrong verify host | Compare `openquok --version` with the current release on the [CLI package page](https://www.npmjs.com/package/@openquok/auto-cli); reinstall or upgrade the binary there — skill install does not update it |
+| Reddit still not published after `posts:create` | Expected — due rows stay **AWAITING_MEMBER** until a member posts on reddit.com and marks complete; extension optional ([reddit-examples.md](./resources/reddit-examples.md)) |

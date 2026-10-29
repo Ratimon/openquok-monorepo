@@ -2,6 +2,7 @@ import type { IconName } from '$data/icons';
 import { icons } from '$data/icons';
 
 import type { FeaturesGridRowConfig } from '$data/landing-features-grid-types';
+import { HERO_DIRECTORY_PLATFORMS } from '$data/landing-directory-platforms';
 
 /** Tile config for landing-page social brand marks (hero strip + features grid). */
 export type LandingSocialPlatform = {
@@ -19,26 +20,8 @@ export type LandingSocialPlatform = {
 const GLYPH_TILE = 'bg-transparent p-0';
 const GLYPH_SIZE = { iconClass: 'size-8', iconWidth: '32', iconHeight: '32' } as const;
 
-/** Platforms shown in the hero icon strip (compact set). */
+/** Platforms shown in the hero icon strip row 1 (OAuth / scheduled publish). */
 export const HERO_SOCIAL_PLATFORMS: LandingSocialPlatform[] = [
-	{
-		id: 'x',
-		icon: icons.X.name,
-		containerClass: 'bg-neutral-800 text-white',
-		iconClass: 'size-6'
-	},
-	{
-		id: 'instagram',
-		icon: icons.InstagramGlyph.name,
-		containerClass: GLYPH_TILE,
-		...GLYPH_SIZE
-	},
-	{
-		id: 'linkedin',
-		icon: icons.LinkedInGlyph.name,
-		containerClass: GLYPH_TILE,
-		...GLYPH_SIZE
-	},
 	{
 		id: 'facebook',
 		icon: icons.FacebookGlyph.name,
@@ -46,16 +29,10 @@ export const HERO_SOCIAL_PLATFORMS: LandingSocialPlatform[] = [
 		...GLYPH_SIZE
 	},
 	{
-		id: 'tiktok',
-		icon: icons.TikTok.name,
+		id: 'instagram',
+		icon: icons.InstagramGlyph.name,
 		containerClass: GLYPH_TILE,
 		...GLYPH_SIZE
-	},
-	{
-		id: 'youtube',
-		icon: icons.YouTube.name,
-		containerClass: 'bg-[#FF0000] text-white',
-		iconClass: 'size-4'
 	},
 	{
 		id: 'threads',
@@ -66,14 +43,38 @@ export const HERO_SOCIAL_PLATFORMS: LandingSocialPlatform[] = [
 		iconHeight: '20'
 	},
 	{
-		id: 'devto',
-		icon: icons.DevtoGlyph.name,
+		id: 'youtube',
+		icon: icons.YouTube.name,
+		containerClass: 'bg-[#FF0000] text-white',
+		iconClass: 'size-4'
+	},
+	{
+		id: 'tiktok',
+		icon: icons.TikTok.name,
 		containerClass: GLYPH_TILE,
 		...GLYPH_SIZE
 	},
 	{
+		id: 'linkedin',
+		icon: icons.LinkedInGlyph.name,
+		containerClass: GLYPH_TILE,
+		...GLYPH_SIZE
+	},
+	{
+		id: 'x',
+		icon: icons.X.name,
+		containerClass: 'bg-neutral-800 text-white',
+		iconClass: 'size-6'
+	},
+	{
 		id: 'bluesky',
 		icon: icons.BlueskyGlyph.name,
+		containerClass: GLYPH_TILE,
+		...GLYPH_SIZE
+	},
+	{
+		id: 'devto',
+		icon: icons.DevtoGlyph.name,
 		containerClass: GLYPH_TILE,
 		...GLYPH_SIZE
 	},
@@ -83,6 +84,24 @@ export const HERO_SOCIAL_PLATFORMS: LandingSocialPlatform[] = [
 		containerClass: GLYPH_TILE,
 		...GLYPH_SIZE
 	}
+];
+
+/** Hero row 2 — draft + member handoff (not server-side publish). */
+export const HERO_DRAFT_HANDOFF_PLATFORMS: LandingSocialPlatform[] = [
+	{
+		id: 'reddit',
+		icon: icons.Reddit.name,
+		label: 'Reddit — draft in OpenQuok, you post on reddit.com',
+		containerClass: GLYPH_TILE,
+		...GLYPH_SIZE
+	}
+];
+
+/** Hero icon strip for `/browser-extension` (in-browser connect + handoff + directory). */
+export const HERO_BROWSER_EXTENSION_PLATFORMS: LandingSocialPlatform[] = [
+	HERO_SOCIAL_PLATFORMS.find((platform) => platform.id === 'skool')!,
+	...HERO_DRAFT_HANDOFF_PLATFORMS,
+	...HERO_DIRECTORY_PLATFORMS
 ];
 
 /** Full supported-channel set for the landing features grid (analytics + live OAuth providers). */
@@ -157,22 +176,28 @@ export const FEATURES_GRID_SOCIAL_PLATFORMS: LandingSocialPlatform[] = [
 		icon: icons.SkoolGlyph.name,
 		containerClass: GLYPH_TILE,
 		...GLYPH_SIZE
+	},
+	{
+		id: 'reddit',
+		icon: icons.Reddit.name,
+		containerClass: GLYPH_TILE,
+		...GLYPH_SIZE
 	}
 ];
 
-/** Staggered row layout — each `platformIds` entry appears at most once across all rows (4 + 4 + 3). */
+/** Staggered row layout — each `platformIds` entry appears at most once across all rows (4 + 4 + 4). */
 export const FEATURES_GRID_SOCIAL_ROWS: FeaturesGridRowConfig[] = [
 	{
 		offsetClass: 'translate-x-4 sm:translate-x-6 md:translate-x-8',
-		platformIds: ['threads', 'instagram-business', 'facebook', 'youtube']
+		platformIds: ['facebook', 'instagram-business', 'threads', 'youtube']
 	},
 	{
 		offsetClass: 'translate-x-0',
-		platformIds: ['tiktok', 'linkedin', 'x', 'devto']
+		platformIds: ['tiktok', 'linkedin', 'x', 'bluesky']
 	},
 	{
 		offsetClass: '-translate-x-4 sm:-translate-x-6 md:-translate-x-8',
-		platformIds: ['bluesky', 'skool', 'instagram-standalone']
+		platformIds: ['reddit', 'devto', 'skool', 'instagram-standalone']
 	}
 ];
 

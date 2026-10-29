@@ -13,6 +13,7 @@ import {
 	getRootPathSocialMediaSchedulingApi
 } from '$lib/area-public/constants/getRootPathPublicApiMarketing';
 import { getRootPathPublicDirectorySubmissionTool } from '$lib/area-public/constants/getRootPathPublicDirectorySubmissionTool';
+import { getRootPathPublicBrowserExtensionLanding } from '$lib/area-public/constants/getRootPathPublicBrowserExtensionLanding';
 import { getRootPathPublicRoadmap } from '$lib/area-public/constants/getRootPathPublicRoadmap';
 import { getRootPathPublicSocialAutopilotLanding } from '$lib/area-public/constants/getRootPathPublicSocialAutopilotLanding';
 import { getRootPathPublicTools } from '$lib/area-public/constants/getRootPathPublicTools';
@@ -26,7 +27,8 @@ const EXTRA_HOSTED_MARKETING_SEGMENTS = [
 	'about',
 	'self-hosting',
 	getRootPathPublicSocialAutopilotLanding(),
-	getRootPathPublicDirectorySubmissionTool()
+	getRootPathPublicDirectorySubmissionTool(),
+	getRootPathPublicBrowserExtensionLanding()
 ] as const;
 
 /** Normalized prefixes (`/docs`, `/blog`, …) for public marketing routes. */

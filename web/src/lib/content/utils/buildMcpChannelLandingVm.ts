@@ -27,6 +27,10 @@ import { customizeAgentsChannelFeatureSections } from '$lib/content/utils/buildA
 import { buildAgentsChannelAudienceSection } from '$lib/content/utils/buildAgentsChannelAudienceSection';
 import { buildMcpChannelMetaTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
 import {
+	buildRedditHandoffAgentSurfaceHeroTitle,
+	buildRedditHandoffMcpHeroDescription
+} from '$lib/content/utils/buildRedditHandoffSurfaceHeroCopy';
+import {
 	buildChannelFaqLinks,
 	buildToolChannelFaqLinks,
 	faqHrefDocs,
@@ -160,8 +164,14 @@ export function buildMcpChannelLandingVm(params: {
 			'schedule posts via MCP',
 			...channelKeywords
 		],
-		heroTitle: `Schedule ${platformLabel} from ${clientLabel} then you approve`,
-		heroDescription: `Connect ${clientLabel} to OpenQuok over MCP with a programmatic token. Draft and schedule ${platformLabel} posts in natural language while you review and approve on the calendar or kanban.`,
+		heroTitle:
+			channel.slug === 'reddit'
+				? buildRedditHandoffAgentSurfaceHeroTitle(clientLabel)
+				: `Schedule ${platformLabel} from ${clientLabel} then you approve`,
+		heroDescription:
+			channel.slug === 'reddit'
+				? buildRedditHandoffMcpHeroDescription(clientLabel)
+				: `Connect ${clientLabel} to OpenQuok over MCP with a programmatic token. Draft and schedule ${platformLabel} posts in natural language while you review and approve on the calendar or kanban.`,
 		workflowSection: {
 			...baseMcp.workflowSection,
 			title: `One prompt, ${platformLabel} on your calendar`,

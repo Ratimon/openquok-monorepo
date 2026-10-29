@@ -5,6 +5,7 @@
 	import AuroraWobbleCard from '$lib/ui/card-wobble/AuroraWobbleCard.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import PublicLandingSectionHeading from '$lib/ui/templates/titles/PublicLandingSectionHeading.svelte';
+	import { landingTitleHasMultipleParts } from '$lib/ui/templates/titles/splitPublicLandingTitleParts';
 
 	export type AudienceCard = {
 		iconName: IconName;
@@ -56,8 +57,7 @@
 					{headingId}
 					title={landingTitle}
 					{heroTheme}
-					commaSeparated={true}
-					gradientMode="part"
+					gradientMode={landingTitleHasMultipleParts(landingTitle) ? 'part' : 'segment'}
 				/>
 			{/if}
 		</div>

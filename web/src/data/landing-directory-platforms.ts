@@ -3,7 +3,7 @@ import { icons } from '$data/icons';
 import type { FeaturesGridRowConfig } from '$data/landing-features-grid-types';
 import type { LandingSocialPlatform } from '$data/landing-social-platforms';
 
-/** Directory launch tiles for marketing grids (`/directory-submission-tool`). */
+/** Directory launch tiles for marketing grids and the home hero (row 3). */
 export const FEATURES_GRID_DIRECTORY_PLATFORMS: LandingSocialPlatform[] = [
 	{
 		id: 'peerpush',
@@ -26,6 +26,9 @@ export const FEATURES_GRID_DIRECTORY_PLATFORMS: LandingSocialPlatform[] = [
 		iconHeight: '32'
 	}
 ];
+
+/** Home hero icon strip — same tiles as {@link FEATURES_GRID_DIRECTORY_PLATFORMS}. */
+export const HERO_DIRECTORY_PLATFORMS = FEATURES_GRID_DIRECTORY_PLATFORMS;
 
 export const FEATURES_GRID_DIRECTORY_ROWS: FeaturesGridRowConfig[] = [
 	{

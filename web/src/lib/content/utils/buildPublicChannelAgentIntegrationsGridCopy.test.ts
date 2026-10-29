@@ -13,10 +13,10 @@ describe('buildPublicChannelAgentIntegrationsGridCopy', () => {
 	it('builds section subtitle, title, and description for a platform', () => {
 		expect(buildPublicChannelAgentIntegrationsGridSubtitle()).toBe('Agents & MCP integrations');
 		expect(buildPublicChannelAgentIntegrationsGridTitle('TikTok')).toBe(
-			'Schedule TikTok from OpenClaw, Grok Bot, and every agent host'
+			'Schedule TikTok from OpenClaw\nGrok Bot and every agent host'
 		);
 		expect(buildPublicChannelAgentIntegrationsGridTitle('X', 'x')).toBe(
-			'Schedule X from Grok Bot, Cursor MCP, and every agent host'
+			'Schedule X from Grok Bot\nCursor MCP and every agent host'
 		);
 		expect(buildPublicChannelAgentIntegrationsGridDescription('TikTok')).toContain('TikTok workflows');
 		expect(buildPublicChannelAgentIntegrationsGridExtensionLabel()).toBe('MCP clients');

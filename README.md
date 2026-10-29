@@ -70,18 +70,19 @@ OpenQuok documents **social posting channels** and **directory launch destinatio
 
 <p>
   <a href="https://www.openquok.com/channels/facebook"><img src="./assets/readme/socials/facebook.svg" alt="Facebook" width="32" height="32"></a>
-  <a href="https://www.openquok.com/channels/threads"><img src="./assets/readme/socials/threads.svg" alt="Threads" width="32" height="32"></a>
   <a href="https://www.openquok.com/channels/instagram"><img src="./assets/readme/socials/instagram.svg" alt="Instagram" width="32" height="32"></a>
-  <a href="https://www.openquok.com/channels/linkedin"><img src="./assets/readme/socials/linkedin.svg" alt="LinkedIn" width="32" height="32"></a>
-  <a href="https://www.openquok.com/channels/x"><img src="./assets/readme/socials/x.svg" alt="X" width="32" height="32"></a>
+  <a href="https://www.openquok.com/channels/threads"><img src="./assets/readme/socials/threads.svg" alt="Threads" width="32" height="32"></a>
   <a href="https://www.openquok.com/channels/youtube"><img src="./assets/readme/socials/youtube.svg" alt="YouTube" width="32" height="32"></a>
   <a href="https://www.openquok.com/channels/tiktok"><img src="./assets/readme/socials/tiktok.svg" alt="TikTok" width="32" height="32"></a>
+  <a href="https://www.openquok.com/channels/linkedin"><img src="./assets/readme/socials/linkedin.svg" alt="LinkedIn" width="32" height="32"></a>
+  <a href="https://www.openquok.com/channels/x"><img src="./assets/readme/socials/x.svg" alt="X" width="32" height="32"></a>
   <a href="https://www.openquok.com/channels/bluesky"><img src="./assets/readme/socials/bluesky.svg" alt="Bluesky" width="32" height="32"></a>
+  <a href="https://www.openquok.com/channels/reddit"><img src="./assets/readme/socials/reddit.svg" alt="Reddit" width="32" height="32"></a>
   <a href="https://www.openquok.com/channels/devto"><img src="./assets/readme/socials/devto.svg" alt="Dev.to" width="32" height="32"></a>
   <a href="https://www.openquok.com/channels/skool"><img src="./assets/readme/socials/skool.svg" alt="Skool" width="32" height="32"></a>
 </p>
 
-OpenQuok ships OAuth or API integrations for **Facebook Page**, **Threads**, **Instagram** (Business and Standalone), **LinkedIn** profile and Page, **X**, **YouTube**, **TikTok**, **Dev.to**, **Bluesky**, and **Skool**.
+OpenQuok ships OAuth or API integrations for **Facebook Page**, **Threads**, **Instagram** (Business and Standalone), **LinkedIn** profile and Page, **X**, **YouTube**, **TikTok**, **Reddit**, **Dev.to**, **Bluesky**, and **Skool**.
 
 Dev.to and Bluesky connect with credentials you paste in Add Channel — no OAuth redirect. Skool connects with the OpenQuok browser extension while you are signed in on skool.com.
 

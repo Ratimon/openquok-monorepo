@@ -44,6 +44,9 @@
 	import BentoSkoolBulkScheduling from '$lib/ui/templates/bento/minor-templates/skool/BentoSkoolBulkScheduling.svelte';
 	import BentoSkoolFollowUps from '$lib/ui/templates/bento/minor-templates/skool/BentoSkoolFollowUps.svelte';
 	import BentoSkoolSettings from '$lib/ui/templates/bento/minor-templates/skool/BentoSkoolSettings.svelte';
+	import BentoRedditBulkScheduling from '$lib/ui/templates/bento/minor-templates/reddit/BentoRedditBulkScheduling.svelte';
+	import BentoRedditMemberHandoff from '$lib/ui/templates/bento/minor-templates/reddit/BentoRedditMemberHandoff.svelte';
+	import BentoRedditMarkdownComposer from '$lib/ui/templates/bento/minor-templates/reddit/BentoRedditMarkdownComposer.svelte';
 	import BentoLandingDirectoryAutofillPreview from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingDirectoryAutofillPreview.svelte';
 	import BentoLandingDirectoryProfileCases from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingDirectoryProfileCases.svelte';
 	import BentoLandingDirectoryTrackStatusPreview from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingDirectoryTrackStatusPreview.svelte';
@@ -144,6 +147,12 @@
 	<BentoSkoolSettings {isLoggedIn} />
 {:else if bentoId === 'skool-follow-ups'}
 	<BentoSkoolFollowUps {isLoggedIn} />
+{:else if bentoId === 'reddit-bulk-scheduling'}
+	<BentoRedditBulkScheduling />
+{:else if bentoId === 'reddit-member-handoff'}
+	<BentoRedditMemberHandoff />
+{:else if bentoId === 'reddit-markdown-composer'}
+	<BentoRedditMarkdownComposer {isLoggedIn} />
 {:else if bentoId === 'directory-workspaces-team'}
 	<BentoLandingTeam {isLoggedIn} />
 {:else if bentoId === 'directory-profile-cases'}

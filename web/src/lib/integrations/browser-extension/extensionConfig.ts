@@ -14,6 +14,15 @@ export function isBrowserExtensionConfigured(): boolean {
 	return getBrowserExtensionId().length > 0;
 }
 
+/** Public Chrome Web Store listing when `VITE_OPENQUOK_BROWSER_EXTENSION_ID` is set; otherwise category browse. */
+export function getBrowserExtensionChromeWebStoreListingUrl(): string {
+	const id = getBrowserExtensionId();
+	if (id) {
+		return `https://chromewebstore.google.com/detail/openquok/${id}`;
+	}
+	return 'https://chromewebstore.google.com/category/extensions';
+}
+
 /**
  * Origin the extension uses for `POST /api/v1/integrations/extension-refresh`
  * (see extension `apiRoot` — appends `/api/v1` to this value).

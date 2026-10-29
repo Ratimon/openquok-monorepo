@@ -19,7 +19,7 @@ describe('buildPayloadWizardMockChannels', () => {
 		const mocks = buildPayloadWizardMockChannels();
 
 		expect(mocks).toHaveLength(PUBLIC_API_POSTING_PLATFORM_SLUGS.length);
-		expect(mocks.length).toBe(7);
+		expect(mocks.length).toBe(11);
 
 		for (const slug of PUBLIC_API_POSTING_PLATFORM_SLUGS) {
 			const channel = getPublicChannelBySlug(slug);

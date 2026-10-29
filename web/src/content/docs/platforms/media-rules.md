@@ -2,7 +2,7 @@
 title: Media rules
 description: Composer media and caption rules for social channels — and how directory launch limits differ on My Products.
 order: 2
-lastUpdated: 2026-10-22
+lastUpdated: 2026-10-28
 sidebar:
   label: Media rules
 ---
@@ -35,6 +35,7 @@ The **Characters** column is the main caption or body. The same cap applies to e
 | **Dev.to** | <Badge text="devto" variant="param" /> | Markdown body; optional **cover image** in Settings (not required on the media strip) | **100,000** (body) |
 | **Bluesky** | <Badge text="bluesky" variant="param" /> | Text-only OK; up to **4** images <strong>or</strong> **1** MP4 (never mixed; MP4 max **300 MB**, **10** min) | **300** graphemes |
 | **Skool** | <Badge text="skool" variant="param" /> | Text-only OK; images on the media strip (uploaded to Skool at publish); **no** native video on the OpenQuok path | **5,000** |
+| **Reddit** | <Badge text="reddit" variant="param" /> | Text-only OK; images on the media strip via <Badge text="upload" variant="default" /> / <Badge text="media[].path" variant="param" /> — OpenQuok stores files for handoff; the extension can <strong>Download</strong> at due time; **no** server upload to Reddit’s API | **10,000** (body) |
 
 <Callout type="note">
 <p> On X, the limit depends on the post type: <strong>280</strong> characters for a standard post, <strong>4,000</strong> when the connected account is verified, and up to <strong>100,000</strong> in long-form <strong>article</strong> mode on the platform. OpenQuok schedules standard and verified posts only — it uses the <strong>280</strong> or <strong>4,000</strong> cap from the table.</p>
@@ -48,7 +49,11 @@ The **Characters** column is the main caption or body. The same cap applies to e
 <p>In <strong>Global</strong> mode, one shared media list must satisfy every selected network. Unlock a channel to give it its own attachments. See <a href="/docs/creating-posts/global-vs-per-channel">Global vs per-channel</a>.</p>
 </Callout>
 
-Connect methods are in <a href="/docs/platforms/connect-rules">Connect rules</a>. Extra length limits in **Settings** are in <a href="/docs/platforms/per-channel-settings">Per-channel settings</a> — for example YouTube **title** (**2–100** characters), Dev.to **title** (at least **2** characters), TikTok photo carousel **title** (up to **90** characters), and Skool **title** (at least **1** character) plus **category** for the target group.
+Connect methods are in <a href="/docs/platforms/connect-rules">Connect rules</a>. Extra length limits in **Settings** are in <a href="/docs/platforms/per-channel-settings">Per-channel settings</a> — for example YouTube **title** (**2–100** characters), Dev.to **title** (at least **2** characters), TikTok photo carousel **title** (up to **90** characters), Skool **title** (at least **1** character) plus **category** for the target group, and Reddit **title** (**1–300** characters) when subreddit or title Settings are in use.
+
+<Callout type="note">
+<p><strong>Reddit</strong> rows stay <strong>awaiting member</strong> at due time — OpenQuok does not publish media or body to Reddit from the backend. Attachments are for your handoff workflow (dashboard copy and optional extension download). See <a href="/docs/social-integration/reddit">Reddit setup</a>.</p>
+</Callout>
 
 | Where you work | Length check |
 | --- | --- |
@@ -64,6 +69,7 @@ Connect methods are in <a href="/docs/platforms/connect-rules">Connect rules</a>
 | <Badge text="facebook" variant="param" /> | One image per follow-up (no video) |
 | <Badge text="youtube" variant="param" />, <Badge text="tiktok" variant="param" />, <Badge text="devto" variant="param" /> | Follow-ups not supported |
 | <Badge text="skool" variant="param" /> | Yes (same upload rules as the main post) |
+| <Badge text="reddit" variant="param" /> | Follow-ups not supported |
 
 Terminology for thread replies vs comments is in <a href="/docs/platforms">Platforms overview</a>. Composer steps are in <a href="/docs/creating-posts/threads-and-comments">Threads and comments</a>.
 
@@ -81,7 +87,7 @@ Each channel uses one caption editor mode when you unlock it in per-channel mode
 | Editor | Channel keys |
 | --- | --- |
 | **Standard** | <Badge text="threads" variant="param" />, <Badge text="facebook" variant="param" />, <Badge text="instagram-business" variant="param" />, <Badge text="instagram-standalone" variant="param" />, <Badge text="linkedin" variant="param" />, <Badge text="linkedin-page" variant="param" />, <Badge text="youtube" variant="param" />, <Badge text="tiktok" variant="param" />, <Badge text="bluesky" variant="param" />, <Badge text="skool" variant="param" /> |
-| **Markdown** | <Badge text="devto" variant="param" /> |
+| **Markdown** | <Badge text="devto" variant="param" />, <Badge text="reddit" variant="param" /> |
 | **HTML** | <Badge text="x" variant="param" /> (published as plain text after strip) |
 
 <Callout type="note">

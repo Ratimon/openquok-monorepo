@@ -14,7 +14,8 @@ export type PublicApiPlatformSlug =
 	| 'linkedin'
 	| 'bluesky'
 	| 'devto'
-	| 'skool';
+	| 'skool'
+	| 'reddit';
 
 /** Tabbed static request/response pair on platform slug pages. */
 export type PublicApiFormatExample = {

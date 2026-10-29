@@ -8,6 +8,7 @@ import { icons } from '$data/icons';
 import type { IconName } from '$data/icons';
 
 import { getRootPathPublicSelfHosting } from '$lib/area-public/constants/getRootPathPublicSelfHosting';
+import { getRootPathPublicBrowserExtensionLanding } from '$lib/area-public/constants/getRootPathPublicBrowserExtensionLanding';
 import type { PublicFaqItem } from '$lib/content/constants/faq';
 import {
 	appendPublicGeneralFaqItems,
@@ -23,6 +24,7 @@ import { route } from '$lib/utils/path';
 
 const OPENQUOK_LICENSE_HREF = `${OPENQUOK_GITHUB_REPO_HREF}/blob/main/LICENSE`;
 const publicSelfHostingPath = route(getRootPathPublicSelfHosting());
+const browserExtensionLandingPath = route(getRootPathPublicBrowserExtensionLanding());
 const systemRequirementsHref = faqHrefDocs('installation/system-requirements');
 const configurationAgentHref = faqHrefDocs('configuration-agent');
 const oauthServerHref = faqHrefDocs('admin/oauth-server');
@@ -229,6 +231,15 @@ export const PUBLIC_SELF_HOSTING_LANDING_CONFIG = {
 		description:
 			'Requirements, deployment, and optional agent auth — follow these steps before you open your instance to users.',
 		items: [
+			{
+				id: 'browser-extension',
+				title: 'Browser extension',
+				description:
+					'Side-panel scheduling, directory autofill, and Reddit handoff — install against your self-host origin.',
+				href: browserExtensionLandingPath,
+				ctaLabel: 'View product page',
+				iconName: icons.CustomizedDrawnLaptop.name
+			},
 			{
 				id: 'docker-compose',
 				title: 'Docker Compose self-host guide',

@@ -70,4 +70,18 @@ describe('landingHeroTheme feature-row title clauses', () => {
 		expect(highlightedTextsInClause(graphemesClause)).toContain('graphemes');
 		expect(highlightedTextsInClause(mentionsClause)).toContain('@mentions');
 	});
+
+	it('continues gradient alternation across newline hero lines', () => {
+		const line1 = 'Draft in OpenQuok';
+		const line2 = 'post on reddit.com — lower ban risk';
+		const segments1 = landingHeroTheme.parseLandingHeroTitlePartSegments(line1);
+		const segments2 = landingHeroTheme.parseLandingHeroTitlePartSegments(line2);
+		const offset = segments1.filter((s) => !s.highlight).length;
+
+		const line2LeadClass = landingHeroTheme.titleSegmentClassWithOffset(0, segments2, offset);
+		const line2LeadLocalOnly = landingHeroTheme.titleSegmentClass(0, segments2);
+
+		expect(line2LeadLocalOnly).toContain('from-emerald-300');
+		expect(line2LeadClass).toContain('from-fuchsia-300');
+	});
 });

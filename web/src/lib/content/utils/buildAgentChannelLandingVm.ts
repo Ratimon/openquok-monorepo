@@ -29,6 +29,10 @@ import { customizeAgentsChannelFeatureSections } from '$lib/content/utils/buildA
 import { buildAgentsChannelAudienceSection } from '$lib/content/utils/buildAgentsChannelAudienceSection';
 import { buildAgentChannelMetaTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
 import {
+	buildRedditHandoffAgentHostHeroDescription,
+	buildRedditHandoffAgentSurfaceHeroTitle
+} from '$lib/content/utils/buildRedditHandoffSurfaceHeroCopy';
+import {
 	buildAgentFaqLinks,
 	buildChannelFaqLinks,
 	buildToolChannelFaqLinks,
@@ -171,7 +175,9 @@ export function buildAgentChannelLandingVm(params: {
 	}
 
 	const heroDescription =
-		hostProfile?.uiArchetype === 'messaging-gateway'
+		channel.slug === 'reddit'
+			? buildRedditHandoffAgentHostHeroDescription(agentLabel)
+			: hostProfile?.uiArchetype === 'messaging-gateway'
 			? `Message ${agentLabel} from Telegram, WhatsApp, or Slack. Add the openquok-core skill so it schedules ${platformLabel} posts while you review on the calendar or kanban.`
 			: buildAgentChannelEcosystemHeroDescription({
 					hostSlug: baseAgent.slug,
@@ -192,7 +198,10 @@ export function buildAgentChannelLandingVm(params: {
 				keyword.replace('OpenClaw', agentLabel)
 			)
 		],
-		heroTitle: `Schedule ${platformLabel} from ${agentLabel} then you approve`,
+		heroTitle:
+			channel.slug === 'reddit'
+				? buildRedditHandoffAgentSurfaceHeroTitle(agentLabel)
+				: `Schedule ${platformLabel} from ${agentLabel} then you approve`,
 		heroDescription,
 		workflowSection: baseAgent.workflowSection
 			? {

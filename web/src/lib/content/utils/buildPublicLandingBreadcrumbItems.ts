@@ -357,6 +357,13 @@ export function buildDirectorySubmissionToolLandingBreadcrumbItems(): Breadcrumb
 	];
 }
 
+export function buildBrowserExtensionLandingBreadcrumbItems(): BreadcrumbCrumb[] {
+	return [
+		{ label: 'Home', href: '/' },
+		{ label: PUBLIC_LANDING_BREADCRUMB.browserExtension }
+	];
+}
+
 export function buildSocialAutopilotLandingBreadcrumbItems(): BreadcrumbCrumb[] {
 	return [
 		{ label: 'Home', href: '/' },

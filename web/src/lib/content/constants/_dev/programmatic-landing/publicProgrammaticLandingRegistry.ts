@@ -250,6 +250,20 @@ export const PUBLIC_PROGRAMMATIC_LANDING_SURFACES: readonly ProgrammaticLandingS
 			'Submitator-style directory landing — human review, steady pace, process steps, three-way pricing compare.'
 	},
 	{
+		id: 'browser-extension',
+		routePattern: '/browser-extension',
+		hubPath: null,
+		channelParam: null,
+		scale: 'none',
+		generic: {
+			modulePath: 'web/src/lib/content/constants/marketing/browser-extension-landing.ts',
+			symbol: 'PUBLIC_BROWSER_EXTENSION_LANDING_CONFIG'
+		},
+		tailored: null,
+		notes:
+			'Chrome extension landing — side panel scheduling, Skool connect, directory autofill, related docs grid.'
+	},
+	{
 		id: 'social-autopilot-landing',
 		routePattern: '/social-media-management',
 		hubPath: null,
@@ -404,6 +418,7 @@ export function getProgrammaticLandingPageCounts(): ProgrammaticPageCounts {
 		'scheduling-api-platform': api.length,
 		'self-hosting': 1,
 		'directory-submission-tool': 1,
+		'browser-extension': 1,
 		'social-autopilot-landing': 1,
 		'tools-hub': 1,
 		humanizer: listHumanizeChannelsForHub().length + 1,

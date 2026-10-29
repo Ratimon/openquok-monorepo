@@ -1,4 +1,4 @@
-import { getPublicChannelBySlug } from '$lib/content/constants/channels/index';
+import { getChannelSeedBySlug } from '$lib/content/constants/channels/catalog/channelCatalogLookup';
 
 import type {
 	PublicApiCapability,
@@ -153,7 +153,8 @@ const PROVIDER_IDENTIFIER_BY_SLUG: Record<PublicApiPlatformSlug, string> = {
 	linkedin: 'linkedin',
 	bluesky: 'bluesky',
 	devto: 'devto',
-	skool: 'skool'
+	skool: 'skool',
+	reddit: 'reddit'
 };
 
 const PUBLIC_API_PROVIDERS_DOCS_BY_SLUG: Record<PublicApiPlatformSlug, string> = {
@@ -166,7 +167,8 @@ const PUBLIC_API_PROVIDERS_DOCS_BY_SLUG: Record<PublicApiPlatformSlug, string> =
 	linkedin: 'public-api-providers/linkedin',
 	bluesky: 'public-api-providers/bluesky',
 	devto: 'public-api-providers/devto',
-	skool: 'public-api-providers/skool'
+	skool: 'public-api-providers/skool',
+	reddit: 'public-api-providers/reddit'
 };
 
 const CLI_EXAMPLES_HREF_BY_SLUG: Record<PublicApiPlatformSlug, string> = {
@@ -179,7 +181,8 @@ const CLI_EXAMPLES_HREF_BY_SLUG: Record<PublicApiPlatformSlug, string> = {
 	linkedin: publicFaqHref.cliLinkedin,
 	bluesky: publicFaqHref.cliBluesky,
 	devto: publicFaqHref.cliDevto,
-	skool: publicFaqHref.cliSkool
+	skool: publicFaqHref.cliSkool,
+	reddit: publicFaqHref.cliReddit
 };
 
 export function getPublicApiProviderIdentifier(slug: PublicApiPlatformSlug): string {
@@ -187,7 +190,7 @@ export function getPublicApiProviderIdentifier(slug: PublicApiPlatformSlug): str
 }
 
 export function buildPublicApiPlatformHubCard(slug: PublicApiPlatformSlug): PublicApiPlatformHubCard {
-	const channel = getPublicChannelBySlug(slug);
+	const channel = getChannelSeedBySlug(slug);
 	if (!channel) {
 		throw new Error(`Missing public channel catalog entry for API platform slug: ${slug}`);
 	}
@@ -204,7 +207,7 @@ export function buildPublicApiPlatformFaqItems(
 	slug: PublicApiPlatformSlug,
 	capability: PublicApiCapability
 ): PublicFaqItem[] {
-	const channel = getPublicChannelBySlug(slug);
+	const channel = getChannelSeedBySlug(slug);
 	if (!channel) {
 		throw new Error(`Missing public channel catalog entry for API platform slug: ${slug}`);
 	}
@@ -276,7 +279,7 @@ type BuildPlatformPageParams = {
 export function buildPublicApiPlatformPage(
 	params: BuildPlatformPageParams
 ): PublicApiPlatformPageViewModel {
-	const channel = getPublicChannelBySlug(params.slug);
+	const channel = getChannelSeedBySlug(params.slug);
 	if (!channel) {
 		throw new Error(`Missing public channel catalog entry for API platform slug: ${params.slug}`);
 	}

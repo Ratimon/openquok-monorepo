@@ -14,6 +14,7 @@ import {
 	blueskyPublicApiSchedulingPlatform,
 	devtoPublicApiSchedulingPlatform,
 	skoolPublicApiSchedulingPlatform,
+	redditPublicApiSchedulingPlatform,
 	facebookPublicApiSchedulingPlatform,
 	instagramPublicApiSchedulingPlatform,
 	linkedinPublicApiSchedulingPlatform,
@@ -40,7 +41,8 @@ const schedulingPlatformBySlug = new Map<PublicApiPlatformSlug, PublicApiPlatfor
 	['linkedin', linkedinPublicApiSchedulingPlatform],
 	['bluesky', blueskyPublicApiSchedulingPlatform],
 	['devto', devtoPublicApiSchedulingPlatform],
-	['skool', skoolPublicApiSchedulingPlatform]
+	['skool', skoolPublicApiSchedulingPlatform],
+	['reddit', redditPublicApiSchedulingPlatform]
 ]);
 
 export function getPublicApiSchedulingHubPage(): PublicApiHubPageViewModel {

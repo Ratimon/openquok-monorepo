@@ -4,7 +4,8 @@
 		PublicSelfHostingTrustBadge
 	} from '$lib/content/constants/marketing/self-hosting-landing';
 
-	import LandingHeroHighlightedText from '$lib/ui/texts/LandingHeroHighlightedText.svelte';
+	import PublicLandingSectionHeading from '$lib/ui/templates/titles/PublicLandingSectionHeading.svelte';
+	import { landingTitleHasMultipleParts } from '$lib/ui/templates/titles/splitPublicLandingTitleParts';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AuroraBackground from '$lib/ui/background/AuroraBackground.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
@@ -34,13 +35,6 @@
 	}: Props = $props();
 
 	const headingId = 'public-self-hosting-hero-heading';
-
-	const titleParts = $derived(
-		title
-			.split(',')
-			.map((part) => part.trim())
-			.filter((part) => part.length > 0)
-	);
 </script>
 
 <AuroraBackground class="relative isolate !min-h-0 overflow-hidden">
@@ -55,32 +49,15 @@
 			<PublicSelfHostingLandingBreadcrumb />
 		</div>
 
-		<h1
-			id={headingId}
-			class="mt-4 text-3xl font-black tracking-tight text-balance sm:text-4xl lg:text-5xl"
-		>
-			{#each titleParts as part, index (index)}
-				{@const partClass = landingHeroTheme.titlePartClass(index, titleParts.length)}
-				{@const segments = landingHeroTheme.parseLandingHeroTitlePartSegments(part)}
-				{@const layoutClass =
-					titleParts.length >= 3 ? 'block' : index > 0 ? 'block sm:inline' : ''}
-				{#if landingHeroTheme.landingHeroTitlePartHasHighlight(segments)}
-					<span class={layoutClass}>
-						{#each segments as seg, segmentIndex (segmentIndex)}
-							{#if seg.highlight}
-								<LandingHeroHighlightedText>{seg.text}</LandingHeroHighlightedText>
-							{:else}
-								<span class={partClass}>{seg.text}</span>
-							{/if}
-						{/each}{#if titleParts.length < 3 && index < titleParts.length - 1},{/if}
-					</span>
-				{:else}
-					<span class="{partClass} {layoutClass}">
-						{part}{#if titleParts.length < 3 && index < titleParts.length - 1},{/if}
-					</span>
-				{/if}
-			{/each}
-		</h1>
+		<PublicLandingSectionHeading
+			{headingId}
+			{title}
+			heroTheme={landingHeroTheme}
+			titleScale="main"
+			headingLevel="h1"
+			class="mt-4 text-3xl sm:text-4xl lg:text-5xl"
+			gradientMode={landingTitleHasMultipleParts(title) ? 'part' : 'segment'}
+		/>
 
 		<p class={landingHeroTheme.descriptionClass}>
 			{description}

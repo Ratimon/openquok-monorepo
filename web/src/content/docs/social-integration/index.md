@@ -45,7 +45,7 @@ Directory launch destinations (extension autofill, no posting OAuth) are documen
 <LinkCard title="Dev.to" description="Connect with a personal API key and schedule markdown articles" href="/docs/social-integration/devto" />
 <LinkCard title="Bluesky" description="Connect with an app password and schedule text, media, and follow-up replies" href="/docs/social-integration/bluesky" />
 <LinkCard title="Skool" description="Connect with the browser extension — no operator OAuth app" href="/docs/social-integration/skool" />
-<LinkCard title="Reddit" description="Connect with the browser extension — draft in OpenQuok, submit on reddit.com" href="/docs/social-integration/reddit" />
+<LinkCard title="Reddit" description="Add Reddit as a manual channel in the dashboard — draft in OpenQuok, submit on reddit.com" href="/docs/social-integration/reddit" />
 <LinkCard title="Browser extension" description="Build and install the OpenQuok Chrome extension" href="/docs/installation/chrome-extension" />
 <LinkCard title="Adding a provider" description="How to add a new social channel as a contributor" href="/docs/contribution-opportunities/add-provider" />
 </CardGrid>

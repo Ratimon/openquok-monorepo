@@ -90,7 +90,7 @@ function normalizeSubredditOnPaste(event: ClipboardEvent) {
 	</div>
 	<p id="{id}-hint" class="text-xs text-base-content/50">
 		Use <span class="font-mono">r/</span> for a subreddit or <span class="font-mono">u/</span> for your profile.
-		Paste <span class="font-mono">r/name</span> or <span class="font-mono">u/name</span> — the prefix is stripped automatically.
+		Paste <span class="font-mono">r/name</span> or <span class="font-mono">u/name</span>.
 	</p>
 	{#if showError && validationMessage}
 		<p id="{id}-error" class="text-xs text-error">{validationMessage}</p>

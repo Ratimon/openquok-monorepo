@@ -5,7 +5,8 @@ import {
 	buildAgentChannelAnalyticsCliCommands,
 	buildAgentChannelCliCommandReference,
 	buildAgentChannelFollowUpCliCommands,
-	buildAgentChannelKanbanCliCommands
+	buildAgentChannelKanbanCliCommands,
+	buildAgentChannelMemberHandoffCliCommands
 } from '$lib/content/utils/buildAgentChannelCliCommandReference';
 
 import type {
@@ -24,7 +25,8 @@ const CHANNEL_PROVIDER_IDENTIFIERS: Record<string, readonly string[]> = {
 	x: ['x'],
 	devto: ['devto'],
 	bluesky: ['bluesky'],
-	skool: ['skool']
+	skool: ['skool'],
+	reddit: ['reddit']
 };
 
 const KANBAN_BENTO_BY_CHANNEL: Record<string, PublicChannelFeatureBentoId> = {
@@ -37,7 +39,8 @@ const KANBAN_BENTO_BY_CHANNEL: Record<string, PublicChannelFeatureBentoId> = {
 	x: 'x-bulk-scheduling',
 	devto: 'devto-bulk-scheduling',
 	bluesky: 'bluesky-bulk-scheduling',
-	skool: 'skool-bulk-scheduling'
+	skool: 'skool-bulk-scheduling',
+	reddit: 'reddit-bulk-scheduling'
 };
 
 const ANALYTICS_BENTO_BY_CHANNEL: Record<string, PublicChannelFeatureBentoId> = {
@@ -60,6 +63,7 @@ export function buildSocialAgentChannelPageConfig(
 	const providerIdentifiers =
 		CHANNEL_PROVIDER_IDENTIFIERS[channel.slug] ?? [channel.platformId || channel.slug];
 	const supportsAnalytics = channelProviderIdentifiersSupportAnalytics(providerIdentifiers);
+	const isRedditHandoff = channel.slug === 'reddit';
 
 	return {
 		channelSlug: channel.slug,
@@ -82,11 +86,15 @@ export function buildSocialAgentChannelPageConfig(
 		kanbanCliCommands: buildAgentChannelKanbanCliCommands(channel.slug, channel.platformLabel),
 		analyticsCliCommands: supportsAnalytics
 			? buildAgentChannelAnalyticsCliCommands(channel.platformLabel, providerIdentifiers)
-			: buildAgentChannelFollowUpCliCommands(channel.slug, channel.platformLabel),
+			: isRedditHandoff
+				? buildAgentChannelMemberHandoffCliCommands(channel.platformLabel)
+				: buildAgentChannelFollowUpCliCommands(channel.slug, channel.platformLabel),
 		kanbanMcpPrompts: `Schedule a ${channel.platformLabel} post for tomorrow at 9am — move to review with a note to check the CTA before it goes live`,
 		analyticsMcpPrompts: supportsAnalytics
 			? `What performed best on my ${channel.platformLabel} account over the last 30 days?
 Break down likes, comments, and shares for post <id>`
-			: `Schedule a ${channel.platformLabel} post with a follow-up reply five minutes after the main post goes live`
+			: isRedditHandoff
+				? `List my Reddit posts in AWAITING_MEMBER — remind me to finish on reddit.com and mark complete in the dashboard`
+				: `Schedule a ${channel.platformLabel} post with a follow-up reply five minutes after the main post goes live`
 	};
 }

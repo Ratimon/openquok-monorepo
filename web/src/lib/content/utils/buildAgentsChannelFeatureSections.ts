@@ -47,7 +47,8 @@ function findChannelFollowUpFeatureSection(
 ): PublicChannelFeatureSection | undefined {
 	return (
 		sections.find((section) => section.bentoId?.endsWith('-follow-ups')) ??
-		sections.find((section) => section.bentoId?.endsWith('-threads'))
+		sections.find((section) => section.bentoId?.endsWith('-threads')) ??
+		sections.find((section) => section.bentoId?.endsWith('-member-handoff'))
 	);
 }
 
