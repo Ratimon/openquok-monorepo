@@ -7,6 +7,7 @@
 	import VideoOrImage from '$lib/ui/media-files/VideoOrImage.svelte';
 	import { PUBLIC_LANDING_COMPACT_TRIAL_CTA } from '$lib/content/constants/landing/hero-copy';
 	import PublicLandingSectionHeading from '$lib/ui/templates/titles/PublicLandingSectionHeading.svelte';
+	import { landingTitleHasMultipleParts } from '$lib/ui/templates/titles/splitPublicLandingTitleParts';
 
 	type Props = {
 		heroTheme: LandingHeroTheme;
@@ -58,7 +59,7 @@
 		children
 	}: Props = $props();
 
-	const commaSeparatedTitle = $derived(landingTitle.includes(','));
+	const commaSeparatedTitle = $derived(landingTitleHasMultipleParts(landingTitle));
 
 	const resolvedMediaContainerClass = $derived(
 		mediaContainerClass ?? (leftMedia ? 'max-w-2xl' : 'max-w-lg')

@@ -5,6 +5,7 @@ import { icons } from '$data/icons';
 import type { IconName } from '$data/icons';
 
 import { getRootPathPublicDirectorySubmissionTool } from '$lib/area-public/constants/getRootPathPublicDirectorySubmissionTool';
+import { getRootPathPublicBrowserExtensionLanding } from '$lib/area-public/constants/getRootPathPublicBrowserExtensionLanding';
 import type { FeaturesOrderedStep } from '$lib/content/constants/agents';
 import { PUBLIC_DIRECTORY_SUBMISSION_LANDING_FAQ_SECTION } from '$lib/content/constants/faq/marketing/directory-submission';
 import type { PublicMarketingLandingFaqSection } from '$lib/content/constants/faq/marketing/types';
@@ -386,10 +387,10 @@ export const PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG: PublicDirectorySubmissi
 			},
 			{
 				id: 'chrome-extension',
-				title: 'Chrome extension install',
-				description: 'Install and pin the extension before your first autofill launch.',
-				href: chromeExtensionDocsHref,
-				ctaLabel: 'Install extension →',
+				title: 'Browser extension',
+				description: 'Side panel scheduling, Skool connect, and directory autofill — install before your first launch.',
+				href: route(getRootPathPublicBrowserExtensionLanding()),
+				ctaLabel: 'View product page →',
 				iconName: icons.CustomizedDrawnLaptop.name
 			}
 		]

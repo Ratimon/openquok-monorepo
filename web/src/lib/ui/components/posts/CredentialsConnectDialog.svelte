@@ -38,11 +38,13 @@
 	let connectPrefillBusy = $state(false);
 
 	const connectDescription = $derived(
-		providerIdentifier === 'bluesky'
-			? 'Use a Bluesky app password with your handle and PDS service URL. Two-factor auth can stay on — not your main account password.'
-			: isSingleApiKeyForm
-				? 'This channel uses an API key instead of an OAuth redirect.'
-				: 'This channel uses pasted account credentials instead of an OAuth redirect. OpenQuok encrypts them on the server.'
+		providerIdentifier === 'reddit'
+			? 'Add a Reddit channel to draft and schedule in OpenQuok. You post on reddit.com when a row is due — OpenQuok does not store your Reddit login or publish from the server.'
+			: providerIdentifier === 'bluesky'
+				? 'Use a Bluesky app password with your handle and PDS service URL. Two-factor auth can stay on — not your main account password.'
+				: isSingleApiKeyForm
+					? 'This channel uses an API key instead of an OAuth redirect.'
+					: 'This channel uses pasted account credentials instead of an OAuth redirect. OpenQuok encrypts them on the server.'
 	);
 </script>
 

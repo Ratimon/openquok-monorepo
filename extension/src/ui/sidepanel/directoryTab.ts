@@ -1,0 +1,270 @@
+import {
+	AUTO_LAUNCH_MESSAGE_TYPE,
+	getDirectoryLaunchProvider,
+	listDirectoryLaunchProviderSummaries,
+} from 'openquok-common';
+
+import { POPUP_UI_MESSAGE } from '../../directory/auto-launch/popupMessages.js';
+import type { StoredAutoLaunchState } from '../../directory/auto-launch/sessionStorage.js';
+import { isReadyPage, pageMatchesConfig } from '../../directory/directory-launch/stepRail.js';
+
+import { openDashboardAddChannel } from '../../shared/openDashboardUrl.js';
+import { getPreferredDashboardOrigin } from '../../shared/dashboardOriginStorage.js';
+
+import { confirmDirectoryChannelNavigation } from './directoryChannelNavigateDialog.js';
+import { mountDirectoryChannelPicker } from './directoryChannelPicker.js';
+import { el, escapeHtml, runtimeSendMessage } from './uiHelpers.js';
+
+function directoryChannelLabel(identifier: string): string {
+	return directoryChannels.find((c) => c.identifier === identifier)?.name ?? identifier;
+}
+
+function resolveDirectoryNavigateUrl(
+	identifier: string,
+	state: StoredAutoLaunchState | null
+): string | null {
+	const provider = getDirectoryLaunchProvider(identifier);
+	if (!provider) return null;
+	if (state?.session.providerSlug === identifier) {
+		return state.session.startUrl || provider.defaultStartUrl;
+	}
+	return provider.defaultStartUrl;
+}
+
+async function handleDirectoryChannelSelect(
+	identifier: string,
+	state: StoredAutoLaunchState | null,
+	renderRef: { current: (state: StoredAutoLaunchState | null, error?: string) => void }
+): Promise<void> {
+	const sessionSlug = state?.session.providerSlug ?? null;
+	const currentSelection = sessionSlug ?? selectedChannelId;
+
+	if (identifier === currentSelection) {
+		selectedChannelId = identifier;
+		if (sessionSlug === identifier) {
+			const result = await sendRuntime({ type: 'OPENQUOK_AUTO_LAUNCH_FOCUS_TAB' });
+			if (result.ok === false) {
+				renderRef.current(state, String(result.error ?? 'Could not focus directory tab.'));
+			}
+		}
+		return;
+	}
+
+	const targetUrl = resolveDirectoryNavigateUrl(identifier, state);
+	if (!targetUrl) return;
+
+	const confirmed = await confirmDirectoryChannelNavigation({
+		channelName: directoryChannelLabel(identifier),
+		targetUrl,
+		activeLaunchSlug: sessionSlug,
+		activeLaunchLabel: sessionSlug ? directoryChannelLabel(sessionSlug) : null,
+		selectedSlug: identifier,
+	});
+	if (!confirmed) {
+		renderRef.current(state);
+		return;
+	}
+
+	directoryPickerUserSelection = identifier;
+	selectedChannelId = identifier;
+	await chrome.tabs.create({ url: targetUrl, active: true });
+	renderRef.current(state);
+}
+
+const directoryChannels = listDirectoryLaunchProviderSummaries();
+
+let lastProgress: string | null = null;
+let selectedChannelId =
+	directoryChannels[0]?.identifier ?? 'peerpush-standard-launch';
+/** User-picked chip while a different launch may still be active. */
+let directoryPickerUserSelection: string | null = null;
+let lastRenderedSessionSlug: string | null = null;
+
+function statusForState(state: StoredAutoLaunchState | null): string {
+	if (!state) {
+		return 'No active launch. Start from OpenQuok (Build backlinks or My Products).';
+	}
+	const config = state.session.extensionConfig;
+	if (!pageMatchesConfig(config)) {
+		return `Open ${state.session.startUrl} and continue on the directory site.`;
+	}
+	if (!isReadyPage(config)) {
+		return config.readyUrlHint
+			? `Open your edit or submission page (URL includes “${config.readyUrlHint}”), then use Fill on the on-page OpenQuok panel.`
+			: 'Open the directory listing or submission form, then use Fill on the on-page OpenQuok panel.';
+	}
+	return 'On the right page — use Fill on the on-page panel (each section or Fill all steps), then submit yourself on this site.';
+}
+
+async function fetchState(): Promise<{
+	state: StoredAutoLaunchState | null;
+	backgroundUnreachable: boolean;
+}> {
+	try {
+		const response = (await runtimeSendMessage({ type: 'OPENQUOK_AUTO_LAUNCH_GET_STATE' })) as {
+			state?: StoredAutoLaunchState | null;
+		};
+		return { state: response?.state ?? null, backgroundUnreachable: false };
+	} catch {
+		return { state: null, backgroundUnreachable: true };
+	}
+}
+
+async function sendRuntime(message: Record<string, unknown>): Promise<Record<string, unknown>> {
+	try {
+		const response = await runtimeSendMessage(message);
+		return (response ?? {}) as Record<string, unknown>;
+	} catch (error) {
+		const messageText = error instanceof Error ? error.message : 'Could not reach extension background.';
+		return { ok: false, error: messageText };
+	}
+}
+
+export type DirectoryTabController = {
+	refresh: () => Promise<void>;
+	destroy: () => void;
+};
+
+export function mountDirectoryTab(root: HTMLElement): DirectoryTabController {
+	let destroyDirectoryPicker: (() => void) | null = null;
+	const renderRef = {
+		current: (_state: StoredAutoLaunchState | null, _error?: string) => {},
+	};
+
+	function render(state: StoredAutoLaunchState | null, error?: string): void {
+		const hasSession = Boolean(state);
+		const product = state?.session.profileSnapshot.name ?? '—';
+		const sessionSlug = state?.session.providerSlug ?? null;
+		if (sessionSlug !== lastRenderedSessionSlug) {
+			directoryPickerUserSelection = null;
+			lastRenderedSessionSlug = sessionSlug;
+		}
+		if (sessionSlug && !directoryPickerUserSelection) {
+			selectedChannelId = sessionSlug;
+		}
+		const activeSelection =
+			directoryPickerUserSelection ?? sessionSlug ?? selectedChannelId;
+
+		destroyDirectoryPicker?.();
+		destroyDirectoryPicker = null;
+
+		root.replaceChildren(
+			el(`
+			<div class="wrap tab-wrap">
+				<p class="muted tab-lead">Human submits on the directory site — OpenQuok never clicks Submit.</p>
+				<label class="field-label">Directory channel</label>
+				<div id="directory-channel-picker" class="channel-picker-host"></div>
+				<div class="card">
+					<strong>${escapeHtml(product)}</strong>
+					<p class="status">${escapeHtml(statusForState(state))}</p>
+					${lastProgress ? `<p class="progress">${escapeHtml(lastProgress)}</p>` : ''}
+					${hasSession ? `<p class="muted session-hint">Active launch: ${escapeHtml(sessionSlug ?? '')}</p>` : ''}
+				</div>
+				<div class="actions">
+					<button id="fill-all" ${hasSession ? '' : 'disabled'}>Fill all on directory tab</button>
+					<button id="focus-tab" class="secondary" ${hasSession ? '' : 'disabled'}>Focus directory tab</button>
+					<button id="open-start" class="secondary">Open directory page</button>
+					<button id="mark-done" class="secondary" ${hasSession ? '' : 'disabled'}>Mark submitted in OpenQuok</button>
+					<button id="clear" class="secondary" ${hasSession ? '' : 'disabled'}>Clear session</button>
+				</div>
+				${error ? `<p class="error">${escapeHtml(error)}</p>` : ''}
+			</div>
+		`)
+		);
+
+		const pickerHost = root.querySelector<HTMLElement>('#directory-channel-picker');
+		if (pickerHost) {
+			destroyDirectoryPicker = mountDirectoryChannelPicker(pickerHost, {
+				channels: directoryChannels,
+				selectedId: activeSelection,
+				activeLaunchId: sessionSlug,
+				onSelect: (identifier) => {
+					void handleDirectoryChannelSelect(identifier, state, renderRef);
+				},
+				onAddChannel: () => {
+					void getPreferredDashboardOrigin().then((origin) => openDashboardAddChannel(origin));
+				},
+			});
+		}
+
+		root.querySelector('#fill-all')?.addEventListener('click', async () => {
+			const result = await sendRuntime({ type: AUTO_LAUNCH_MESSAGE_TYPE.FILL_ALL });
+			if (result.ok === false) {
+				render(state, String(result.error ?? 'Fill failed.'));
+			}
+		});
+
+		root.querySelector('#focus-tab')?.addEventListener('click', async () => {
+			const result = await sendRuntime({ type: 'OPENQUOK_AUTO_LAUNCH_FOCUS_TAB' });
+			if (result.ok === false) {
+				render(state, String(result.error ?? 'Could not focus directory tab.'));
+			}
+		});
+
+		root.querySelector('#open-start')?.addEventListener('click', async () => {
+			const slug = sessionSlug ?? selectedChannelId;
+			const provider = getDirectoryLaunchProvider(slug);
+			const url = hasSession ? state?.session.startUrl : provider?.defaultStartUrl;
+			if (!url) return;
+			await chrome.tabs.create({ url, active: true });
+		});
+
+		root.querySelector('#mark-done')?.addEventListener('click', async () => {
+			const result = await sendRuntime({ type: 'OPENQUOK_AUTO_LAUNCH_COMPLETE' });
+			if (result.ok === false) {
+				render(state, String(result.error ?? 'Could not mark complete.'));
+				return;
+			}
+			lastProgress = null;
+			await refresh();
+		});
+
+		root.querySelector('#clear')?.addEventListener('click', async () => {
+			await sendRuntime({ type: 'OPENQUOK_AUTO_LAUNCH_CLEAR' });
+			lastProgress = null;
+			await refresh();
+		});
+	}
+
+	renderRef.current = render;
+
+	async function refresh(): Promise<void> {
+		const { state, backgroundUnreachable } = await fetchState();
+		render(
+			state,
+			backgroundUnreachable
+				? 'Extension background is not running. On chrome://extensions, open OpenQuok → Service worker (or Reload), then try again.'
+				: undefined
+		);
+	}
+
+	const onRuntimeMessage = (message: unknown): void => {
+		if (!message || typeof message !== 'object') return;
+		const record = message as Record<string, unknown>;
+		if (record.type === POPUP_UI_MESSAGE.STATE_CHANGED) {
+			void refresh();
+		}
+		if (record.type === POPUP_UI_MESSAGE.PROGRESS && record.progress) {
+			const p = record.progress as {
+				stepLabel?: string;
+				stepId?: string;
+				filledCount?: number;
+				totalFields?: number;
+			};
+			lastProgress = `${p.stepLabel ?? p.stepId}: ${p.filledCount}/${p.totalFields} fields`;
+			void refresh();
+		}
+	};
+
+	chrome.runtime.onMessage.addListener(onRuntimeMessage);
+	void refresh();
+
+	return {
+		refresh,
+		destroy: () => {
+			destroyDirectoryPicker?.();
+			destroyDirectoryPicker = null;
+			chrome.runtime.onMessage.removeListener(onRuntimeMessage);
+		},
+	};
+}

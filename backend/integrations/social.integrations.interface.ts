@@ -3,6 +3,7 @@
  * Shaped like the upstream social integration library; `IntegrationRecord` replaces ORM rows.
  */
 
+import type { ExtensionPublishMode } from "openquok-common";
 import type { GlobalPlugCatalogEntryDto, InternalPlugCatalogEntryDto } from "../utils/dtos/PlugDTO";
 
 /** DB row shape used where the upstream library. */
@@ -154,6 +155,8 @@ export interface SocialProvider extends IAuthenticator, ISocialMediaIntegration 
     maxLength: (additionalSettings?: unknown) => number;
     isWeb3?: boolean;
     isChromeExtension?: boolean;
+    /** When set with `isChromeExtension`, overrides default `server_api` publish (e.g. Reddit handoff). */
+    extensionPublishMode?: ExtensionPublishMode;
     extensionCookies?: { name: string; domain: string }[];
     editor: "none" | "normal" | "markdown" | "html";
     customFields?: () => Promise<

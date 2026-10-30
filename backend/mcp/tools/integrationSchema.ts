@@ -1,6 +1,8 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { resolveExtensionPublishMode } from "openquok-common";
 import type { IntegrationManager } from "../../integrations/integrationManager";
+import { MEMBER_BROWSER_HANDOFF_MCP_OUTPUT_NOTE } from "./memberBrowserHandoffMcpNotes";
 
 export function registerIntegrationSchemaTool(
     server: McpServer,
@@ -10,7 +12,8 @@ export function registerIntegrationSchemaTool(
         "integrationSchema",
         {
             description:
-                "Return posting rules, character limits, compose settings schema, and allow-listed tools for a platform (provider identifier, e.g. threads, facebook).",
+                "Return posting rules, character limits, compose settings schema, and allow-listed tools for a platform (provider identifier, e.g. threads, facebook). " +
+                "For Reddit, also read extensionPublishMode and agentNote — OpenQuok drafts and hand off; it does not publish to reddit.com from the server.",
             inputSchema: {
                 platform: z.string().describe("Social provider identifier (e.g. threads, facebook, x)"),
                 isPremium: z
@@ -26,11 +29,22 @@ export function registerIntegrationSchemaTool(
                 throw new Error(`Unknown platform: ${platform}`);
             }
 
+            const extensionPublishMode = resolveExtensionPublishMode({
+                identifier: provider.identifier,
+                isChromeExtension: provider.isChromeExtension,
+                extensionPublishMode: provider.extensionPublishMode,
+            });
+
             const output = {
                 rules: deps.integrationManager.getAllRulesDescription()[identifier] ?? "",
                 maxLength: provider.maxLength(isPremium ?? false),
                 settings: provider.settingsSchema ? provider.settingsSchema() : "No additional settings required",
                 tools: deps.integrationManager.getAllTools()[identifier] ?? [],
+                extensionPublishMode,
+                agentNote:
+                    extensionPublishMode === "member_browser_handoff"
+                        ? MEMBER_BROWSER_HANDOFF_MCP_OUTPUT_NOTE
+                        : undefined,
             };
 
             return {

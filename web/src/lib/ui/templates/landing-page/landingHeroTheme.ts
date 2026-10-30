@@ -26,6 +26,23 @@ export type LandingHeroSocialAgentRotateOption = {
 };
 
 /**
+ * Rotating platform row for `/browser-extension` hero (`extensionhost` token in line 2).
+ */
+export const LANDING_HERO_BROWSER_EXTENSION_ROTATE_OPTIONS: readonly LandingHeroSocialAgentRotateOption[] =
+	[
+		{ label: 'Skool', iconName: icons.SkoolGlyph.name },
+		{ label: 'Reddit', iconName: icons.Reddit.name },
+		{ label: 'PeerPush', iconName: icons.PeerPush.name },
+		{ label: 'Uneed', iconName: icons.Uneed.name }
+	];
+
+export const LANDING_HERO_BROWSER_EXTENSION_ROTATE_TEXTS =
+	LANDING_HERO_BROWSER_EXTENSION_ROTATE_OPTIONS.map((option) => option.label);
+
+/** Token in `/browser-extension` `hero.title` (e.g. `with extensionhost`). */
+export const LANDING_HERO_BROWSER_EXTENSION_ROTATE_TITLE_LINE = 'extensionhost';
+
+/**
  * Rotating agent row for `/social-media-management` hero (`agenthost` token in line 2).
  * Labels mirror `agentLabel` in `content/constants/agents/hosts/*.ts`; MCP rows use branded icons.
  */
@@ -78,7 +95,8 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'scheduling API platforms',
 	'posting API platforms',
 	'best time to post calculator',
-	'every connected channel',
+	'directly from Chrome',
+	'connected channels',
 	'API payload wizard',
 	'alternative scheduler',
 	'structured response',
@@ -178,6 +196,20 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'graphemes',
 	'@mentions',
 	'skool',
+	'autofill',
+	'your content',
+	'from any tab',
+	'from any page',
+	'without copy-paste',
+	'directly',
+	'Chrome',
+	'extension',
+	'post editor',
+	'avoid getting banned',
+	'lower ban risk',
+	'reddit.com',
+	'Reddit',
+	'subreddit',
 	// Social channels & networks
 	'directory',
 	'directories',
@@ -208,10 +240,11 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'thumbnail',
 	'conversation',
 	'effortlessly',
-	'confidently',
 	'efficiently',
-	'checklist',
+	'confidently',
+	'peacefully',
 	'correctly',
+	'checklist',
 	'workflow',
 	'profiles',
 	'terminal',
@@ -289,17 +322,29 @@ function landingHeroTitlePartHasHighlight(segments: LandingHeroTitleSegment[]): 
 	return segments.some((segment) => segment.highlight);
 }
 
+function titleNonHighlightGradientClass(nonHighlightIndex: number): string {
+	return nonHighlightIndex === 0
+		? LANDING_HERO_TITLE_GRADIENT_PRIMARY
+		: LANDING_HERO_TITLE_GRADIENT_ACCENT;
+}
+
 function titleSegmentClass(
 	segmentIndex: number,
 	segments: LandingHeroTitleSegment[]
 ): string {
-	let nonHighlightBefore = 0;
+	return titleSegmentClassWithOffset(segmentIndex, segments, 0);
+}
+
+function titleSegmentClassWithOffset(
+	segmentIndex: number,
+	segments: LandingHeroTitleSegment[],
+	nonHighlightOffset: number
+): string {
+	let nonHighlightBefore = nonHighlightOffset;
 	for (let i = 0; i < segmentIndex; i++) {
 		if (!segments[i].highlight) nonHighlightBefore++;
 	}
-	return nonHighlightBefore === 0
-		? LANDING_HERO_TITLE_GRADIENT_PRIMARY
-		: LANDING_HERO_TITLE_GRADIENT_ACCENT;
+	return titleNonHighlightGradientClass(nonHighlightBefore);
 }
 
 export const landingHeroTheme = {
@@ -327,6 +372,7 @@ export const landingHeroTheme = {
 		return LANDING_HERO_TITLE_GRADIENT_PRIMARY;
 	},
 	titleSegmentClass,
+	titleSegmentClassWithOffset,
 	parseLandingHeroTitlePartSegments,
 	landingHeroTitlePartHasHighlight
 };

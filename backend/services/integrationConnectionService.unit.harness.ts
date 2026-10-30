@@ -73,6 +73,7 @@ export function createMockIntegrations(): jest.Mocked<
         | "listByOrganization"
         | "getById"
         | "findActiveByInternalId"
+        | "findActiveByOrgProviderDisplayName"
         | "upsertIntegration"
         | "updateIntegrationById"
         | "setRefreshNeeded"
@@ -90,6 +91,7 @@ export function createMockIntegrations(): jest.Mocked<
         listByOrganization: jest.fn(),
         getById: jest.fn(),
         findActiveByInternalId: jest.fn().mockResolvedValue(null),
+        findActiveByOrgProviderDisplayName: jest.fn().mockResolvedValue(null),
         upsertIntegration: jest.fn(),
         updateIntegrationById: jest.fn(),
         setRefreshNeeded: jest.fn().mockResolvedValue(undefined),

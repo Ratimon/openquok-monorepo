@@ -22,7 +22,8 @@
 	import BillingPeriodToggle from '$lib/ui/components/billing/BillingPeriodToggle.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
 	import Background from '$lib/ui/background/Background.svelte';
-	import LandingHeroHighlightedText from '$lib/ui/texts/LandingHeroHighlightedText.svelte';
+	import PublicLandingSectionHeading from '$lib/ui/templates/titles/PublicLandingSectionHeading.svelte';
+	import { landingTitleHasMultipleParts } from '$lib/ui/templates/titles/splitPublicLandingTitleParts';
 
 	import { cn } from '$lib/ui/helpers/common';
 
@@ -141,13 +142,6 @@
 		selectedPlan ? PUBLIC_PRICING_LANDING_TAB_ICONS[selectedPlan.tier] : null
 	);
 
-	const titleParts = $derived(
-		landingTitle
-			.split(',')
-			.map((part) => part.trim())
-			.filter((part) => part.length > 0)
-	);
-
 	function selectTier(tier: PaidSubscriptionTier) {
 		selectedTier = tier;
 	}
@@ -172,32 +166,12 @@
 							{/if}
 
 							{#if landingTitle}
-								<h2
-									id={headingId}
-									class="text-2xl font-black tracking-tight text-balance sm:text-3xl lg:text-4xl"
-								>
-									{#each titleParts as part, index (index)}
-										{@const partClass = heroTheme.titlePartClass(index, titleParts.length)}
-										{@const segments = heroTheme.parseLandingHeroTitlePartSegments(part)}
-										{@const layoutClass =
-											titleParts.length >= 3 ? 'block' : index > 0 ? 'block sm:inline' : ''}
-										{#if heroTheme.landingHeroTitlePartHasHighlight(segments)}
-											<span class={layoutClass}>
-												{#each segments as seg, segmentIndex (segmentIndex)}
-													{#if seg.highlight}
-														<LandingHeroHighlightedText>{seg.text}</LandingHeroHighlightedText>
-													{:else}
-														<span class={partClass}>{seg.text}</span>
-													{/if}
-												{/each}{#if titleParts.length < 3 && index < titleParts.length - 1},{/if}
-											</span>
-										{:else}
-											<span class="{partClass} {layoutClass}">
-												{part}{#if titleParts.length < 3 && index < titleParts.length - 1},{/if}
-											</span>
-										{/if}
-									{/each}
-								</h2>
+								<PublicLandingSectionHeading
+									{headingId}
+									title={landingTitle}
+									{heroTheme}
+									gradientMode={landingTitleHasMultipleParts(landingTitle) ? 'part' : 'segment'}
+								/>
 							{/if}
 
 							{#if landingDescription}

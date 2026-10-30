@@ -17,6 +17,7 @@
 	import DirectoryUneedSiteSafariMock from '$lib/ui/templates/device-mocks/safari/content/DirectoryUneedSiteSafariMock.svelte';
 	import ExternalSitePlaceholderSafariMock from '$lib/ui/templates/device-mocks/safari/content/ExternalSitePlaceholderSafariMock.svelte';
 	import OpenclawDocsOverviewMock from '$lib/ui/templates/device-mocks/safari/content/OpenclawDocsOverviewMock.svelte';
+	import ChromeWebStoreOpenQuokSafariMock from '$lib/ui/templates/device-mocks/safari/content/ChromeWebStoreOpenQuokSafariMock.svelte';
 
 	type Props = {
 		content?: SafariMockContentId;
@@ -37,7 +38,9 @@
 	}
 </script>
 
-{#if content === 'directory-site-peerpush'}
+{#if content === 'chrome-web-store-openquok'}
+	<ChromeWebStoreOpenQuokSafariMock />
+{:else if content === 'directory-site-peerpush'}
 	<DirectoryPeerPushSiteSafariMock />
 {:else if content === 'directory-site-uneed'}
 	<DirectoryUneedSiteSafariMock />

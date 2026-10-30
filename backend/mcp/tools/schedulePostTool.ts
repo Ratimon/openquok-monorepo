@@ -10,6 +10,7 @@ import {
     mapSchedulePostToolInput,
     type SchedulePostToolInput,
 } from "./schedulePostTool.adapter";
+import { MEMBER_BROWSER_HANDOFF_MCP_TOOL_DESCRIPTION_APPENDIX } from "./memberBrowserHandoffMcpNotes";
 
 const socialPostSchema = z.object({
     integration: z.string(),
@@ -48,9 +49,14 @@ export function registerSchedulePostTool(
                 "additional strings are same-account reply chains only), optional settings (REST providerSettingsByIntegrationId), " +
                 "optional attachments (public HTTPS URLs). Put cross-account comments/reposts in settings on the publisher — " +
                 "threads.crossAccountPlugs, threads.internalEngagementPlug, x.crossAccountPlugs, linkedin.crossAccountPlugs — " +
-                "with acting channel UUIDs from integrationList, not extra postsAndComments strings.",
+                "with acting channel UUIDs from integrationList, not extra postsAndComments strings. " +
+                MEMBER_BROWSER_HANDOFF_MCP_TOOL_DESCRIPTION_APPENDIX,
             inputSchema: {
-                type: z.enum(["draft", "schedule", "now"]).describe("draft | schedule | now"),
+                type: z
+                    .enum(["draft", "schedule", "now"])
+                    .describe(
+                        "draft | schedule | now. On Reddit, draft prepares handoff copy; schedule/now queue a due-time reminder — not a server publish to reddit.com."
+                    ),
                 date: z.string().optional().describe("ISO-8601 time when type is schedule"),
                 socialPost: z
                     .array(socialPostSchema)

@@ -43,6 +43,7 @@ Each provider page below documents the JSON shape under <Badge text="providerSet
 | Dev.to | <Badge text="devto" variant="default" /> | Dashboard API key — not <Badge text="GET /api/v1/public/social/devto" variant="default" /> | <a href="/docs/social-integration/devto">Dev.to</a> |
 | Bluesky | <Badge text="bluesky" variant="default" /> | Dashboard app password — not <Badge text="GET /api/v1/public/social/bluesky" variant="default" /> | <a href="/docs/social-integration/bluesky">Bluesky</a> |
 | Skool | <Badge text="skool" variant="default" /> | Dashboard browser extension — not <Badge text="GET /api/v1/public/social/skool" variant="default" /> | <a href="/docs/social-integration/skool">Skool</a> |
+| Reddit | <Badge text="reddit" variant="default" /> | Dashboard manual channel — not <Badge text="GET /api/v1/public/social/reddit" variant="default" /> | <a href="/docs/social-integration/reddit">Reddit</a> |
 
 The <strong>Identifier</strong> column matches the <Badge text="identifier" variant="param" /> field returned by <a href="/docs/apis-integrations/integration-settings">Channel settings &amp; tools</a> for each connected channel. For OAuth providers it also matches the <Badge text=":integration" variant="param" /> path parameter on <a href="/docs/apis-integrations/connect">Connect Channel (OAuth)</a>.
 
@@ -73,6 +74,7 @@ Character limits and media rules are in <a href="/docs/platforms/media-rules">Me
 <LinkCard title="Dev.to Settings" description="Title, tags, canonical URL, organization, and cover image" href="/docs/public-api-providers/devto" />
 <LinkCard title="Bluesky Settings" description="300-character cap, media rules, and bluesky.replies follow-ups" href="/docs/public-api-providers/bluesky" />
 <LinkCard title="Skool Settings" description="Title, group, label, images, and skool.replies follow-up comments" href="/docs/public-api-providers/skool" />
+<LinkCard title="Reddit Settings" description="Markdown body, subreddit, title, media handoff — awaiting member on reddit.com" href="/docs/public-api-providers/reddit" />
 </CardGrid>
 
 ## Plugs and follow-up comments

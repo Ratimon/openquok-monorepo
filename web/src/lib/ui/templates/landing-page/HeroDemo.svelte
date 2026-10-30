@@ -4,6 +4,7 @@
 	import HeroVideoModal from '$lib/ui/modals/HeroVideoModal.svelte';
 	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
 	import PublicLandingSectionHeading from '$lib/ui/templates/titles/PublicLandingSectionHeading.svelte';
+	import { landingTitleHasMultipleParts } from '$lib/ui/templates/titles/splitPublicLandingTitleParts';
 
 	type Props = {
 		heroTheme: LandingHeroTheme;
@@ -53,8 +54,7 @@
 					{headingId}
 					title={landingTitle}
 					{heroTheme}
-					commaSeparated={true}
-					gradientMode="part"
+					gradientMode={landingTitleHasMultipleParts(landingTitle) ? 'part' : 'segment'}
 				/>
 			{/if}
 

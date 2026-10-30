@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "OpenQuok",
-  "version": "0.1.0",
+  "version": "0.1.16",
   "description": "Connect cookie-session social channels to OpenQuok, refresh sessions, and assist directory launches.",
   "icons": {
     "16": "icons/icon-16.png",
@@ -9,51 +9,75 @@
     "128": "icons/icon-128.png"
   },
   "action": {
-    "default_title": "OpenQuok",
-    "default_popup": "popup.html"
+    "default_title": "OpenQuok"
   },
   "background": {
     "service_worker": "background.js",
     "type": "module"
   },
-  "permissions": ["cookies", "alarms", "storage", "tabs"],
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self';"
+  },
+  "permissions": [
+    "cookies",
+    "alarms",
+    "storage",
+    "tabs",
+    "scripting",
+    "contextMenus",
+    "sidePanel",
+    "activeTab"
+  ],
   "host_permissions": [
     "*://*.skool.com/*",
+    "*://*.reddit.com/*",
+    "*://reddit.com/*",
     "*://*.peerpush.com/*",
     "*://*.uneed.best/*",
     "https://*.openquok.com/*",
     "http://localhost/*",
-    "http://127.0.0.1/*"
+    "http://127.0.0.1/*",
+    "https://localhost/*",
+    "https://127.0.0.1/*"
   ],
   "content_scripts": [
     {
-      "matches": ["https://uneed.best/*", "https://www.uneed.best/*"],
-      "js": ["content/directory-launch/uneed-join-line.js"],
-      "type": "module",
-      "run_at": "document_idle"
-    },
-    {
-      "matches": ["https://uneed.best/*", "https://www.uneed.best/*"],
-      "js": ["content/directory-launch/uneed-paid-launch.js"],
-      "type": "module",
-      "run_at": "document_idle"
-    },
-    {
-      "matches": ["https://uneed.best/*", "https://www.uneed.best/*"],
-      "js": ["content/directory-launch/uneed-maker-profile.js"],
-      "type": "module",
-      "run_at": "document_idle"
-    },
-    {
       "matches": ["https://peerpush.com/*", "https://www.peerpush.com/*"],
-      "js": ["content/directory-launch/peerpush-standard-launch.js"],
-      "type": "module",
+      "js": ["content/directory-launch/openquok-directory-peerpush.js"],
       "run_at": "document_idle"
     },
     {
-      "matches": ["https://peerpush.com/*", "https://www.peerpush.com/*"],
-      "js": ["content/directory-launch/peerpush-free-queue.js"],
-      "type": "module",
+      "matches": ["https://uneed.best/*", "https://www.uneed.best/*"],
+      "js": ["content/directory-launch/openquok-directory-uneed.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "http://localhost/*",
+        "https://localhost/*",
+        "http://127.0.0.1/*",
+        "https://127.0.0.1/*",
+        "https://*.openquok.com/*"
+      ],
+      "js": ["content/dashboard/openquok-dashboard-session.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://www.reddit.com/submit*",
+        "https://www.reddit.com/r/*/submit*",
+        "https://www.reddit.com/user/*/submit*",
+        "https://reddit.com/submit*",
+        "https://reddit.com/r/*/submit*",
+        "https://reddit.com/user/*/submit*",
+        "https://old.reddit.com/submit*",
+        "https://old.reddit.com/r/*/submit*",
+        "https://old.reddit.com/user/*/submit*"
+      ],
+      "js": ["content/social-reddit/openquok-reddit-submit.js"],
       "run_at": "document_idle"
     }
   ],

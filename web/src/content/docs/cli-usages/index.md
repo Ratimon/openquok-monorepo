@@ -55,6 +55,7 @@ For install and auth, start at <a href="/docs/getting-started-for-cli">Get Start
 
 <CardGrid>
 <LinkCard title="CLI Examples" description="Per-network social recipes and PeerPush / Uneed directory launch examples" href="/docs/cli-examples" />
+<LinkCard title="Reddit CLI examples" description="Manual channel, schedule with subreddit and title, media handoff on reddit.com" href="/docs/cli-examples/reddit" />
 <LinkCard title="Public API" description="REST endpoints and OAuth used by the CLI and SDK" href="/docs/getting-started-for-public-api" />
 <LinkCard title="CLI authentication" description="OAuth device flow, programmatic token, and custom auth server URL" href="/docs/getting-started-for-cli/authentication" />
 </CardGrid>

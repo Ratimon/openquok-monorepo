@@ -9,6 +9,7 @@ authRouter.post("/sign-up", authSchemas.validateSignUpRequest, authController.si
 authRouter.post("/sign-in", authSchemas.validateSignInRequest, authController.signIn);
 authRouter.post("/sign-out", authController.signOut);
 authRouter.post("/refresh", authSchemas.validateRefreshTokenRequest, authController.refreshToken);
+authRouter.post("/verify-refresh", authSchemas.validateRefreshTokenRequest, authController.verifyRefresh);
 
 // OAuth (Google)
 authRouter.get("/oauth/google", authController.startGoogleOAuth);

@@ -454,3 +454,44 @@ export const SKOOL_FOLLOW_UP_PAYLOAD = {
 		}
 	}
 } as const;
+
+export const REDDIT_GLOBAL_CAPTION_PAYLOAD = {
+	scheduledAt: '2026-01-01T12:00:00.000Z',
+	status: 'scheduled',
+	body: '**Markdown caption** — paste this on reddit.com when the row is awaiting member. Pick any subreddit at post time.',
+	integrationIds: ['<integration-id>']
+} as const;
+
+export const REDDIT_SUBREDDIT_TITLE_PAYLOAD = {
+	scheduledAt: '2026-01-01T12:00:00.000Z',
+	status: 'scheduled',
+	body: 'Body and [links](https://example.com) stay in the caption. The title below is the reddit.com post title only.',
+	integrationIds: ['<integration-id>'],
+	providerSettingsByIntegrationId: {
+		'<integration-id>': {
+			reddit: {
+				subreddit: 'r/openquok',
+				title: 'Weekly product update'
+			}
+		}
+	}
+} as const;
+
+export const REDDIT_WITH_IMAGE_PAYLOAD = {
+	scheduledAt: '2026-01-01T12:00:00.000Z',
+	status: 'scheduled',
+	body: 'Screenshot walkthrough — attach media for extension handoff download; you still submit the post on reddit.com.',
+	integrationIds: ['<integration-id>'],
+	media: [
+		{
+			id: '<media-id>',
+			path: 'https://cdn.example.com/workspace/reddit-screenshot.png'
+		}
+	],
+	providerSettingsByIntegrationId: {
+		'<integration-id>': {
+			subreddit: 'openquok',
+			title: 'New feature screenshot'
+		}
+	}
+} as const;

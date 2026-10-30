@@ -112,6 +112,7 @@ export const socialProviderDisplayNameByIdentifier: Record<string, string> = {
 	'linkedin-page': 'LinkedIn Page',
 	devto: 'Dev.to',
 	bluesky: 'Bluesky',
+	reddit: 'Reddit',
 	skool: 'Skool'
 };
 
@@ -265,6 +266,12 @@ const SOCIAL_PROVIDER_ICON_SPECS: readonly SocialProviderIconSpec[] = [
 		icon: icons.SkoolGlyph.name,
 		listIcon: icons.Skool.name,
 		labels: ['Skool']
+	},
+	{
+		identifiers: ['reddit'],
+		icon: icons.Reddit.name,
+		listIcon: icons.Reddit.name,
+		labels: ['Reddit']
 	},
 	{
 		icon: icons.Mastodon.name,

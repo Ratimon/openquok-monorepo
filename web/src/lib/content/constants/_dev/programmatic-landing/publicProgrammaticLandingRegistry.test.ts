@@ -11,6 +11,7 @@ describe('publicProgrammaticLandingRegistry', () => {
 		const ids = PUBLIC_PROGRAMMATIC_LANDING_SURFACES.map((s) => s.id);
 		expect(ids).toContain('channel-detail');
 		expect(ids).toContain('directory-submission-tool');
+		expect(ids).toContain('browser-extension');
 		expect(ids).toContain('social-autopilot-landing');
 		expect(ids).toContain('posting-api-platform');
 		expect(ids).toContain('humanizer');
@@ -30,7 +31,7 @@ describe('publicProgrammaticLandingRegistry', () => {
 	it('reports stable catalog sizes for planning', () => {
 		const counts = getProgrammaticLandingPageCounts();
 		// Snapshot-style guard: update when you add agents, MCP clients, or catalog channels.
-		expect(counts.totalProgrammaticMarketingPages).toBeGreaterThanOrEqual(200);
+		expect(counts.totalProgrammaticMarketingPages).toBeGreaterThanOrEqual(201);
 		expect(counts.channelCatalogSlugs.length).toBeGreaterThanOrEqual(9);
 		expect(counts.apiPostingPlatformSlugs).toContain('bluesky');
 		expect(counts.perSurface['channel-detail']).toBe(counts.channelCatalogSlugs.length);

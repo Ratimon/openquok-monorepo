@@ -2,7 +2,7 @@
 title: Writing the post
 description: Write captions in OpenQuok — editor modes, toolbar, character count, mentions, AI tools, and Post Preview.
 order: 2
-lastUpdated: 2026-09-26
+lastUpdated: 2026-10-28
 ---
 
 <script>
@@ -27,7 +27,7 @@ In **Global** mode the caption box is always **Standard**: a plain **textarea** 
 
 ![Post Editor in Global Mode](/docs/_assets/creating-posts/first-global-edit.webp)
 
-When you **unlock** a channel that needs a different editor (eg. **Dev.to** uses **Markdown**; **X** uses **HTML**), the box switches to a rich editor with links, headings, and lists.
+When you **unlock** a channel that needs a different editor (eg. **Dev.to** and **Reddit** use **Markdown**; **X** uses **HTML**), the box switches to a rich editor with links, headings, and lists.
 
 ![Dev.to Post Editor](/docs/_assets/creating-posts/editor-devto.webp)
 
@@ -48,7 +48,7 @@ Each channel has an **editor mode**. **Global** mode always uses **Standard**. F
 | --- | --- | --- |
 | **Plain** <Badge text="none" variant="param"/> | Emoji, signatures, media, AI Writer, undo/redo | None yet — reserved for plain-text-only networks |
 | **Standard** <Badge text="normal" variant="param"/> | Bold, Italic, Underline, Emoji, Hashtag, <Badge text="@" variant="param" /> mention, signatures, media, AI Writer, undo/redo | **Global** mode; LinkedIn, Instagram, Facebook, YouTube, TikTok, Threads, Bluesky, and most social channels |
-| **Markdown** <Badge text="markdown" variant="param"/> | Standard tools **plus** links, Headings (H1–H3), Bullet and Numbered lists | **Dev.to** when unlocked |
+| **Markdown** <Badge text="markdown" variant="param"/> | Standard tools **plus** links, Headings (H1–H3), Bullet and Numbered lists | **Dev.to** and **Reddit** when unlocked |
 | **HTML** <Badge text="html" variant="param"/> | Same rich controls as Markdown | **X** when unlocked — tweets still publish as **plain text** |
 
 Media, Signatures, AI, and Undo/Redo stay available in every mode.
@@ -59,7 +59,7 @@ The LinkedIn **company** mention button appears only when a LinkedIn or LinkedIn
 
 **Standard** (Global mode and most channels): select text, then click **Bold**, **Italic**, or **Underline**. OpenQuok replaces the selection with **Unicode characters** — they look bold or italic in the Post Preview, but some channels may read them as normal letters.
 
-**Markdown** or **HTML** (for example Dev.to or X): the **real** bold, italic, and underline style are applied inside the editor.
+**Markdown** or **HTML** (for example Dev.to, Reddit, or X): the **real** bold, italic, and underline style are applied inside the editor.
 
 ## Emoji
 

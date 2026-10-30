@@ -40,6 +40,7 @@ Full JSON body: `openquok posts:create --json ./examples/<file>.json` with `prov
 | TikTok privacy / inbox | `privacy_level`, `content_posting_method`, `title`, `comment`, `duet`, `stitch`, … | `tiktok.privacy_level`, `tiktok.content_posting_method`, … |
 | Dev.to article | `title`, `tags`, `canonical`, `organization`, `series`, `main_image` / `mainImage` | `devto.title`, `devto.tags`, `devto.canonical`, `devto.organization`, `devto.series`, `devto.mainImage` |
 | Skool community post | `title`, `group`, `group_id` / `groupId`, `label` | `skool.title`, `skool.group`, `skool.label`, `skool.replies` |
+| Reddit text post | `subreddit`, `community` / `sub`, `title` | `reddit.subreddit`, `reddit.title` |
 
 Backend publish helpers accept **flat API keys** and **nested web buckets** where noted in each channel doc. For **scheduled follow-up replies**, always nest under the provider bucket in `--providerSettingsByIntegrationId` — that is what the worker reads at publish time (not a top-level `replies` key).
 

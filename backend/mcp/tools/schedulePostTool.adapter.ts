@@ -2,6 +2,10 @@ import type { CreatePostProgrammaticInput } from "../../services/PostsService";
 import type { PostMediaItemInput } from "../../utils/dtos/PostDTO";
 import { replyChainBucketForProvider } from "../../utils/dtos/PostDTO";
 import { makeId } from "../../utils/ids/makeId";
+import {
+    memberBrowserHandoffFieldsForProvider,
+    workspaceMemberBrowserHandoffAgentNote,
+} from "./memberBrowserHandoffMcpNotes";
 
 export type SchedulePostType = "draft" | "schedule" | "now";
 
@@ -178,16 +182,34 @@ export function mapSchedulePostToolInput(params: {
     };
 }
 
+export type SchedulePostToolOutputRow = {
+    postId: string;
+    integration: string;
+    memberBrowserHandoff?: boolean;
+    agentNote?: string;
+};
+
+export type SchedulePostToolOutput = {
+    output: SchedulePostToolOutputRow[];
+    workspaceAgentNote?: string;
+};
+
 export function formatSchedulePostToolOutput(
     posts: Array<{ id: string; integration_id: string | null }>,
     integrationIdentifiers: Record<string, string>
-): { output: Array<{ postId: string; integration: string }> } {
-    return {
-        output: posts.map((post) => ({
+): SchedulePostToolOutput {
+    const output: SchedulePostToolOutputRow[] = posts.map((post) => {
+        const integrationId = post.integration_id ?? "";
+        const integration = integrationId
+            ? (integrationIdentifiers[integrationId] ?? integrationId)
+            : "";
+        const handoff = memberBrowserHandoffFieldsForProvider(integration);
+        return {
             postId: post.id,
-            integration: post.integration_id
-                ? (integrationIdentifiers[post.integration_id] ?? post.integration_id)
-                : "",
-        })),
-    };
+            integration,
+            ...(handoff ?? {}),
+        };
+    });
+    const workspaceAgentNote = workspaceMemberBrowserHandoffAgentNote(integrationIdentifiers);
+    return workspaceAgentNote ? { output, workspaceAgentNote } : { output };
 }

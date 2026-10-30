@@ -13,6 +13,7 @@
 	import XPreview from '$lib/ui/components/posts/providers/x/XPreview.svelte';
 	import YoutubePreview from '$lib/ui/components/posts/providers/youtube/YoutubePreview.svelte';
 	import DevtoPreview from '$lib/ui/components/posts/providers/devto/DevtoPreview.svelte';
+	import RedditPreview from '$lib/ui/components/posts/providers/reddit/RedditPreview.svelte';
 	import SkoolPreview from '$lib/ui/components/posts/providers/skool/SkoolPreview.svelte';
 	import BlueskyPreview from '$lib/ui/components/posts/providers/bluesky/BlueskyPreview.svelte';
 
@@ -195,6 +196,16 @@
 		maximumCharacters={maxChars}
 		{threadReplies}
 		{threadFinisher}
+		{previewMetaLabel}
+		{providerSettings}
+	/>
+{:else if identifier === 'reddit'}
+	<RedditPreview
+		{channel}
+		{previewText}
+		{mediaUrls}
+		{mediaStoragePaths}
+		maximumCharacters={maxChars}
 		{previewMetaLabel}
 		{providerSettings}
 	/>

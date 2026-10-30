@@ -154,5 +154,5 @@ export const skoolChannel = {
 		}
 	],
 	docsPath: SKOOL_DOCS_PATH,
-	available: false
+	available: true
 } satisfies PublicChannelLandingPageViewModel;

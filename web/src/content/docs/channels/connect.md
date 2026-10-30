@@ -145,7 +145,7 @@ See <a href="/docs/troubleshooting/oauth-connect">Troubleshooting → OAuth and 
 ## Related
 
 <CardGrid>
-<LinkCard title="Manage social and directory channels" description="Reconnect or remove social accounts; manage directory launches on My Products" href="/docs/channels/manage" />
+<LinkCard title="Manage a channel" description="Reconnect, disable, or disconnect a connected account" href="/docs/channels/manage" />
 <LinkCard title="Posting time slots" description="Set usual posting hours after you connect" href="/docs/channels/time-slots" />
 <LinkCard title="Business profiles" description="Link channels by client or brand" href="/docs/channels/channel-groups" />
 <LinkCard title="Dev.to" description="Create an API key and connect Dev.to" href="/docs/social-integration/devto" />

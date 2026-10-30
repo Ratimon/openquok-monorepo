@@ -31,6 +31,14 @@
 		agentLabel?: string | null;
 		/** Agent or MCP slug for ecosystem-aware hub grid copy and ordering from load data. */
 		hostSlug?: string | null;
+		/** When set, replaces derived section title (e.g. programmatic marketing landings). */
+		sectionTitleOverride?: string;
+		sectionDescriptionOverride?: string;
+		cardDescriptionOverride?: (
+			platformLabel: string,
+			available: boolean,
+			channelSlug: string
+		) => string;
 	};
 
 	let {
@@ -38,7 +46,10 @@
 		activeChannelSlug = null,
 		activePlatformLabel = '',
 		agentLabel = null,
-		hostSlug = null
+		hostSlug = null,
+		sectionTitleOverride,
+		sectionDescriptionOverride,
+		cardDescriptionOverride
 	}: Props = $props();
 
 	const headingId = 'public-channel-sibling-grid-heading';
@@ -47,36 +58,41 @@
 	const resolvedHostSlug = $derived(hostSlug?.trim() ?? '');
 
 	const sectionTitle = $derived(
-		resolvedAgentLabel
-			? activePlatformLabel.trim()
-				? buildPublicAgentChannelSiblingGridTitle(activePlatformLabel, resolvedAgentLabel)
-				: resolvedHostSlug
-					? buildAgentHostEcosystemChannelSiblingGridHubTitle(
-							resolvedAgentLabel,
-							resolvedHostSlug
-						)
-					: buildPublicAgentChannelSiblingGridHubTitle(resolvedAgentLabel)
-			: buildPublicChannelSiblingGridTitle(activePlatformLabel)
+		sectionTitleOverride?.trim() ||
+			(resolvedAgentLabel
+				? activePlatformLabel.trim()
+					? buildPublicAgentChannelSiblingGridTitle(activePlatformLabel, resolvedAgentLabel)
+					: resolvedHostSlug
+						? buildAgentHostEcosystemChannelSiblingGridHubTitle(
+								resolvedAgentLabel,
+								resolvedHostSlug
+							)
+						: buildPublicAgentChannelSiblingGridHubTitle(resolvedAgentLabel)
+				: buildPublicChannelSiblingGridTitle(activePlatformLabel))
 	);
 
 	const sectionDescription = $derived(
-		resolvedAgentLabel
-			? activePlatformLabel.trim()
-				? buildPublicAgentChannelSiblingGridDescription(
-						activePlatformLabel,
-						resolvedAgentLabel,
-						activeChannelSlug ?? undefined
-					)
-				: resolvedHostSlug
-					? buildAgentHostEcosystemChannelSiblingGridHubDescription(
+		sectionDescriptionOverride?.trim() ||
+			(resolvedAgentLabel
+				? activePlatformLabel.trim()
+					? buildPublicAgentChannelSiblingGridDescription(
+							activePlatformLabel,
 							resolvedAgentLabel,
-							resolvedHostSlug
+							activeChannelSlug ?? undefined
 						)
-					: buildPublicAgentChannelSiblingGridHubDescription(resolvedAgentLabel)
-			: buildPublicChannelSiblingGridDescription(activePlatformLabel, activeChannelSlug ?? undefined)
+					: resolvedHostSlug
+						? buildAgentHostEcosystemChannelSiblingGridHubDescription(
+								resolvedAgentLabel,
+								resolvedHostSlug
+							)
+						: buildPublicAgentChannelSiblingGridHubDescription(resolvedAgentLabel)
+				: buildPublicChannelSiblingGridDescription(activePlatformLabel, activeChannelSlug ?? undefined))
 	);
 
 	function cardDescription(platformLabel: string, available: boolean, channelSlug: string): string {
+		if (cardDescriptionOverride) {
+			return cardDescriptionOverride(platformLabel, available, channelSlug);
+		}
 		if (agentLabel?.trim()) {
 			return buildPublicAgentChannelSiblingGridCardDescription(
 				platformLabel,

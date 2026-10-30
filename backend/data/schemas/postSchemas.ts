@@ -183,6 +183,31 @@ export const validateUpdatePostReleaseId: RequestHandler = validateRequest({
     body: updatePostReleaseIdBodySchema,
 });
 
+export const validateMemberBrowserHandoffQuery: RequestHandler = validateRequest({
+    params: postIdParamsSchema,
+    query: postOrganizationQuerySchema,
+});
+
+export const memberBrowserHandoffMediaParamsSchema = z.object({
+    postId: z.string().uuid("Invalid post id"),
+    mediaIndex: z.coerce.number().int().min(0, "Invalid media index"),
+});
+
+export const validateMemberBrowserHandoffMedia: RequestHandler = validateRequest({
+    params: memberBrowserHandoffMediaParamsSchema,
+    query: postOrganizationQuerySchema,
+});
+
+export const memberBrowserCompleteBodySchema = z.object({
+    organizationId: z.string().uuid("Invalid organization id"),
+    releaseUrl: z.string().trim().max(2000).optional(),
+});
+
+export const validateMemberBrowserComplete: RequestHandler = validateRequest({
+    params: postIdParamsSchema,
+    body: memberBrowserCompleteBodySchema,
+});
+
 export const updatePostReviewTodoBodySchema = z.object({
     organizationId: z.string().uuid("Invalid organization id"),
     note: z.string().max(2000).nullable().optional(),

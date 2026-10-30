@@ -57,7 +57,10 @@ import {
 	SKOOL_FOLLOW_UP_PAYLOAD,
 	SKOOL_TEXT_TITLE_GROUP_PAYLOAD,
 	SKOOL_WITH_IMAGE_PAYLOAD,
-	SKOOL_WITH_LABEL_PAYLOAD
+	SKOOL_WITH_LABEL_PAYLOAD,
+	REDDIT_GLOBAL_CAPTION_PAYLOAD,
+	REDDIT_SUBREDDIT_TITLE_PAYLOAD,
+	REDDIT_WITH_IMAGE_PAYLOAD
 } from '$lib/skill-builder/constants/skillBuilderChannelExamplePayloads';
 
 type SkillBuilderChannelRecipe = {
@@ -118,7 +121,8 @@ const CHANNEL_PROVIDER_IDENTIFIERS: Record<string, readonly string[]> = {
 	x: ['x'],
 	devto: ['devto'],
 	bluesky: ['bluesky'],
-	skool: ['skool']
+	skool: ['skool'],
+	reddit: ['reddit']
 };
 
 const CHANNEL_RECIPES: Record<string, readonly SkillBuilderChannelRecipe[]> = {
@@ -350,6 +354,29 @@ const CHANNEL_RECIPES: Record<string, readonly SkillBuilderChannelRecipe[]> = {
 			prompt: 'Schedule the main post and delayed comments on skool.replies.',
 			examplePayload: { ...SKOOL_FOLLOW_UP_PAYLOAD }
 		}
+	],
+	reddit: [
+		{
+			id: 'reddit-global-caption',
+			label: 'Global markdown caption',
+			prompt:
+				'Schedule shared Reddit markdown — the member picks the subreddit on reddit.com when the row is awaiting member.',
+			examplePayload: { ...REDDIT_GLOBAL_CAPTION_PAYLOAD }
+		},
+		{
+			id: 'reddit-subreddit-title',
+			label: 'Subreddit and title',
+			prompt:
+				'Set reddit.subreddit and reddit.title (or flat keys) for autofill — still finish the submit on reddit.com yourself.',
+			examplePayload: { ...REDDIT_SUBREDDIT_TITLE_PAYLOAD }
+		},
+		{
+			id: 'reddit-with-image',
+			label: 'Post with image',
+			prompt:
+				'Upload media for extension handoff download. OpenQuok does not publish to Reddit from the backend.',
+			examplePayload: { ...REDDIT_WITH_IMAGE_PAYLOAD }
+		}
 	]
 };
 
@@ -364,7 +391,9 @@ const CHANNEL_HUB_DESCRIPTIONS: Record<string, string> = {
 	devto: 'Markdown articles with title, tags, cover, series, and canonical URL.',
 	bluesky: 'Text posts, up to four images per post, one video per post, and follow-up replies.',
 	skool:
-		'Community posts with title, group, category, image attachments, and follow-up comments (browser extension connect).'
+		'Community posts with title, group, category, image attachments, and follow-up comments (browser extension connect).',
+	reddit:
+		'Markdown drafts with optional subreddit and title — rows stay awaiting member until you post on reddit.com (manual dashboard connect).'
 };
 
 function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): SkillBuilderChannelPageConfig {

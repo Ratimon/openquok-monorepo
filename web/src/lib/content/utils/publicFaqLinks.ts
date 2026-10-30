@@ -31,6 +31,7 @@ import {
 	getRootPathSocialMediaPostingApi,
 	getRootPathSocialMediaSchedulingApi
 } from '$lib/area-public/constants/getRootPathPublicApiMarketing';
+import { getRootPathPublicBrowserExtensionLanding } from '$lib/area-public/constants/getRootPathPublicBrowserExtensionLanding';
 import { getRootPathPublicSelfHosting } from '$lib/area-public/constants/getRootPathPublicSelfHosting';
 import {
 	getRootPathPublicBestTimeToPost,
@@ -135,6 +136,7 @@ export const publicFaqHref = {
 	buildingBlocksCategories: route(getRootPathPublicBuildingBlocksCategories()),
 	buildingBlocksTags: route(getRootPathPublicBuildingBlocksTags()),
 	selfHostingLanding: route(getRootPathPublicSelfHosting()),
+	browserExtensionLanding: route(getRootPathPublicBrowserExtensionLanding()),
 	dockerCompose: route(getRootPathPublicDocsInstallationDockerCompose()),
 	dockerPreBuiltImages: route(getRootPathPublicDocsInstallationDocker()),
 	productionDeployment: faqHrefDocs('installation/production-deployment'),
@@ -169,6 +171,7 @@ export const publicFaqHref = {
 	cliYoutube: faqHrefDocs('cli-examples/youtube'),
 	cliDevto: faqHrefDocs('cli-examples/devto'),
 	cliSkool: faqHrefDocs('cli-examples/skool'),
+	cliReddit: faqHrefDocs('cli-examples/reddit'),
 	cliPeerpush: faqHrefDocs('cli-examples/peerpush'),
 	cliUneed: faqHrefDocs('cli-examples/uneed'),
 	cliDirectoryLaunch: faqHrefDocs('cli-usages/directory-launch'),

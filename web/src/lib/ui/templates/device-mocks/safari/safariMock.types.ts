@@ -1,4 +1,5 @@
 export type SafariMockContentId =
+	| 'chrome-web-store-openquok'
 	| 'directory-site-peerpush'
 	| 'directory-site-uneed'
 	| 'external-site-placeholder'

@@ -31,6 +31,7 @@ Copy-pasteable recipes for the `openquok` CLI grouped by social network or direc
 <LinkCard title="Dev.to" description="Markdown articles with title, tags, canonical URL, and organization" href="/docs/cli-examples/devto" />
 <LinkCard title="Bluesky" description="Text, images, video, and bluesky.replies follow-ups" href="/docs/cli-examples/bluesky" />
 <LinkCard title="Skool" description="Title, group, label, images, and skool.replies follow-ups (extension connect)" href="/docs/cli-examples/skool" />
+<LinkCard title="Reddit" description="Manual channel, markdown, subreddit and title settings, media handoff, awaiting member on reddit.com" href="/docs/cli-examples/reddit" />
 </CardGrid>
 
 <Callout type="note" title="Directory launch is not posts:create">
@@ -58,6 +59,7 @@ THREADS_ID=$(openquok integrations:list | jq -r '.[] | select(.identifier=="thre
 INSTAGRAM_ID=$(openquok integrations:list | jq -r '.[] | select(.identifier | startswith("instagram")) | .id')
 YT_ID=$(openquok integrations:list | jq -r '.[] | select(.identifier=="youtube") | .id')
 DEVTO_ID=$(openquok integrations:list | jq -r '.[] | select(.identifier=="devto") | .id')
+REDDIT_ID=$(openquok integrations:list | jq -r '.[] | select(.identifier=="reddit") | .id')
 ```
 
 - The `--providerSettingsByIntegrationId` payloads shown match the JSON shapes the backend's provider modules expect today. If a key is missing or renamed, fetch the canonical schema with <a href="/docs/cli-usages/integrations"><Badge text="integrations:settings" variant="default" /></a> before scripting a batch.

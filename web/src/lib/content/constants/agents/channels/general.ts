@@ -123,10 +123,34 @@ function tailorAudienceCardDescription(
 	return `${base}. ${hook}`;
 }
 
+function appendChannelSeedAudienceTailoredCard(
+	cards: AudienceCard[],
+	channel: PublicChannelLandingPageViewModel,
+	agentLabel: string,
+	mode: AgentsChannelAudienceMode,
+	isDirectory: boolean
+): AudienceCard[] {
+	const tailored = channel.audienceTailoredCard;
+	if (!tailored || isDirectory || cards.some((card) => card.title === tailored.title)) {
+		return cards;
+	}
+
+	const base = tailored.description.trim().replace(/\.$/, '');
+	const description =
+		channel.slug === 'reddit'
+			? mode === 'mcp-client'
+				? `${base}. Ask ${agentLabel} to draft markdown; you submit on reddit.com.`
+				: `${base}. Message ${agentLabel} to draft markdown; you submit on reddit.com.`
+			: tailored.description;
+
+	return [...cards, { ...tailored, description }];
+}
+
 /**
  * WhoIsFor copy from channel **seed** cards (not `/channels/{slug}` ecosystem merge),
  * adapted for `/agents/{agentSlug}/{channelSlug}` with both platform and agent context.
- * Host/MCP fourth cards come from `resolveAgentChannelAudienceCards` / `resolveMcpChannelAudienceCards`.
+ * Host/MCP ecosystem cards come from `resolveAgentChannelAudienceCards` / `resolveMcpChannelAudienceCards`.
+ * Channel seed `audienceTailoredCard` (e.g. Reddit moderators) is appended before those.
  */
 export function buildAgentsChannelAudienceSection(params: {
 	channel: PublicChannelLandingPageViewModel;
@@ -148,17 +172,23 @@ export function buildAgentsChannelAudienceSection(params: {
 		audienceTitle: isDirectory
 			? channel.audienceTitle
 			: channel.audienceTitle.replace(/OpenQuok/g, agentLabel),
-		audienceCards: audienceCards.map((card, index) => ({
-			...card,
-			description: tailorAudienceCardDescription(
-				card.description,
-				index,
-				platformLabel,
-				agentLabel,
-				mode,
-				isDirectory,
-				siteKey
-			)
-		}))
+		audienceCards: appendChannelSeedAudienceTailoredCard(
+			audienceCards.map((card, index) => ({
+				...card,
+				description: tailorAudienceCardDescription(
+					card.description,
+					index,
+					platformLabel,
+					agentLabel,
+					mode,
+					isDirectory,
+					siteKey
+				)
+			})),
+			channel,
+			agentLabel,
+			mode,
+			isDirectory
+		)
 	};
 }

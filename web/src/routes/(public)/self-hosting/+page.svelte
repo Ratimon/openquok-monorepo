@@ -3,8 +3,8 @@
 
 	import { page } from '$app/state';
 	import { PUBLIC_HUB_DOCS_BANNERS } from '$lib/config/constants/config';
-import { PUBLIC_SELF_HOSTING_LANDING_CONFIG } from '$lib/content/constants/marketing/self-hosting-landing';
-import { PUBLIC_SELF_HOSTING_WHO_IS_FOR_SECTION } from '$lib/content/constants/marketing/self-hosting-who-is-for';
+	import { PUBLIC_SELF_HOSTING_LANDING_CONFIG } from '$lib/content/constants/marketing/self-hosting-landing';
+	import { PUBLIC_SELF_HOSTING_WHO_IS_FOR_SECTION } from '$lib/content/constants/marketing/self-hosting-who-is-for';
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
@@ -76,6 +76,13 @@ import { PUBLIC_SELF_HOSTING_WHO_IS_FOR_SECTION } from '$lib/content/constants/m
 			iconContainerClass: item.iconContainerClass
 		}))
 	);
+
+	const trustBadges = $derived(
+		landing.trustBadges.map((badge) => ({
+			...badge,
+			href: badge.href ? hostedMarketingHref(badge.href, page.url.origin) : undefined
+		}))
+	);
 </script>
 
 <JsonLdHead schemaData={schemaData} />
@@ -86,7 +93,7 @@ import { PUBLIC_SELF_HOSTING_WHO_IS_FOR_SECTION } from '$lib/content/constants/m
 		description={landing.hero.description}
 		primaryCta={landing.hero.primaryCta}
 		secondaryCta={landing.hero.secondaryCta}
-		trustBadges={landing.trustBadges}
+		trustBadges={trustBadges}
 		githubOwner="Ratimon"
 		githubRepo="openquok-monorepo"
 	/>

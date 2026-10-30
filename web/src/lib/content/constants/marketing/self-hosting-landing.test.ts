@@ -83,6 +83,7 @@ describe('PUBLIC_SELF_HOSTING_LANDING_CONFIG', () => {
 		const items = PUBLIC_SELF_HOSTING_LANDING_CONFIG.socialIntegrationSection.items;
 
 		expect(items.map((item) => item.id)).toEqual([
+			'social-integration-browser-extension',
 			'social-integration-overview',
 			'social-integration-threads',
 			'social-integration-instagram',
@@ -95,6 +96,9 @@ describe('PUBLIC_SELF_HOSTING_LANDING_CONFIG', () => {
 			'social-integration-devto',
 			'social-integration-bluesky'
 		]);
+		expect(items.find((item) => item.id === 'social-integration-browser-extension')?.href).toBe(
+			'/browser-extension'
+		);
 		expect(items.find((item) => item.id === 'social-integration-threads')?.href).toBe(
 			'/docs/social-integration/threads'
 		);
@@ -156,6 +160,7 @@ describe('PUBLIC_SELF_HOSTING_LANDING_CONFIG', () => {
 		expect(agentAuthFaq?.description).toContain('/docs/configuration-agent');
 		expect(agentAuthFaq?.description).toContain('/docs/admin/oauth-server');
 		expect(socialAppsFaq?.description).toContain(publicFaqHref.socialIntegration);
+		expect(socialAppsFaq?.description).toContain(publicFaqHref.browserExtensionLanding);
 	});
 });
 

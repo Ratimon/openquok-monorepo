@@ -8,6 +8,7 @@ import { icons } from '$data/icons';
 import type { IconName } from '$data/icons';
 
 import { getRootPathPublicSelfHosting } from '$lib/area-public/constants/getRootPathPublicSelfHosting';
+import { getRootPathPublicBrowserExtensionLanding } from '$lib/area-public/constants/getRootPathPublicBrowserExtensionLanding';
 import type { PublicFaqItem } from '$lib/content/constants/faq';
 import {
 	appendPublicGeneralFaqItems,
@@ -23,6 +24,7 @@ import { route } from '$lib/utils/path';
 
 const OPENQUOK_LICENSE_HREF = `${OPENQUOK_GITHUB_REPO_HREF}/blob/main/LICENSE`;
 const publicSelfHostingPath = route(getRootPathPublicSelfHosting());
+const browserExtensionLandingPath = route(getRootPathPublicBrowserExtensionLanding());
 const systemRequirementsHref = faqHrefDocs('installation/system-requirements');
 const configurationAgentHref = faqHrefDocs('configuration-agent');
 const oauthServerHref = faqHrefDocs('admin/oauth-server');
@@ -161,6 +163,14 @@ export const PUBLIC_SELF_HOSTING_LANDING_CONFIG = {
 			iconName: icons.DollarSign.name
 		},
 		{
+			id: 'browser-extension',
+			label: 'Browser extension',
+			description:
+				'Schedule from Chrome, connect Skool, autofill directories, and use Reddit handoff on your self-host origin.',
+			iconName: icons.CustomizedDrawnLaptop.name,
+			href: browserExtensionLandingPath
+		},
+		{
 			id: 'agpl-license',
 			label: 'AGPL-3.0-or-later',
 			description:
@@ -229,6 +239,15 @@ export const PUBLIC_SELF_HOSTING_LANDING_CONFIG = {
 		description:
 			'Requirements, deployment, and optional agent auth — follow these steps before you open your instance to users.',
 		items: [
+			{
+				id: 'browser-extension',
+				title: 'Browser extension',
+				description:
+					'Side-panel scheduling, directory autofill, and Reddit handoff — install against your self-host origin.',
+				href: browserExtensionLandingPath,
+				ctaLabel: 'View product page',
+				iconName: icons.CustomizedDrawnLaptop.name
+			},
 			{
 				id: 'docker-compose',
 				title: 'Docker Compose self-host guide',
@@ -315,8 +334,19 @@ export const PUBLIC_SELF_HOSTING_LANDING_CONFIG = {
 		subtitle: 'Connect channels',
 		title: 'Set up social networks',
 		description:
-			'Create developer apps and env vars for each network. Your team connects accounts in the dashboard once you finish.',
+			'Create developer apps and env vars for each network. Skool, Reddit, and directory launch also use the browser extension on your origin — see the product page below.',
 		items: [
+			{
+				id: 'social-integration-browser-extension',
+				title: 'Browser extension',
+				description:
+					'Side-panel scheduling, Skool connect, directory autofill, and Reddit handoff on your self-host URL.',
+				href: browserExtensionLandingPath,
+				ctaLabel: 'View product page',
+				iconName: icons.CustomizedDrawnLaptop.name,
+				iconContainerClass: 'bg-primary/10 text-primary ring-primary/20',
+				iconClass: 'size-5'
+			},
 			{
 				id: 'social-integration-overview',
 				title: 'Connections overview',
@@ -668,12 +698,12 @@ export const PUBLIC_SELF_HOSTING_LANDING_CONFIG = {
 				{
 					title: 'Is self-hosted OpenQuok the same product as hosted?',
 					description:
-						`Yes. You get the same calendar, kanban, composer, agents, Public API, and MCP tools. Plan limits on openquok.com apply only to the hosted cloud product. When you self-host, you skip hosted billing and use your own social developer apps. Compare paths on ${faqLink(publicSelfHostingPath, 'Self-host OpenQuok')}.`
+						`Yes. You get the same calendar, kanban, composer, agents, Public API, and MCP tools — plus the ${faqLink(browserExtensionLandingPath, 'browser extension')} on your origin. Plan limits on openquok.com apply only to the hosted cloud product. When you self-host, you skip hosted billing and use your own social developer apps. Compare paths on ${faqLink(publicSelfHostingPath, 'Self-host OpenQuok')}.`
 				},
 				{
 					title: 'Do I need my own Meta or Google developer apps?',
 					description:
-						`On self-host, yes — for networks that use OAuth sign-in. Set up only the channels your team will use, then restart the API. Dev.to and Bluesky use credentials each user pastes in the dashboard; you do not register a developer app for them. See ${faqLink(publicFaqHref.socialIntegration, 'social integration guides')} and ${faqLink(publicFaqHref.dockerCompose, 'Docker Compose')}.`
+						`On self-host, yes — for networks that use OAuth sign-in. Set up only the channels your team will use, then restart the API. Dev.to and Bluesky use credentials each user pastes in the dashboard; you do not register a developer app for them. Skool and Reddit use the ${faqLink(browserExtensionLandingPath, 'browser extension')} while signed in on their sites. See ${faqLink(publicFaqHref.socialIntegration, 'social integration guides')} and ${faqLink(publicFaqHref.dockerCompose, 'Docker Compose')}.`
 				},
 				{
 					title: 'Can agents authenticate without API keys on the host?',

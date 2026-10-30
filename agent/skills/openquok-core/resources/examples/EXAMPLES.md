@@ -115,6 +115,14 @@ Shared recipes — use the same JSON with `instagram-standalone` or `instagram-b
 | [skool-with-image.json](./skool-with-image.json) | Main post with uploaded image |
 | [skool-follow-up.json](./skool-follow-up.json) | `skool.replies` follow-up comments |
 
+## Reddit
+
+| File | Scenario |
+| --- | --- |
+| [reddit-global-caption.json](./reddit-global-caption.json) | Shared markdown caption only — no subreddit/title |
+| [reddit-subreddit-title.json](./reddit-subreddit-title.json) | Nested `reddit.subreddit` + `reddit.title` |
+| [reddit-with-image.json](./reddit-with-image.json) | Flat `subreddit` / `title` + uploaded image for handoff |
+
 ## Multi-channel
 
 | File | Scenario |

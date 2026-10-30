@@ -16,6 +16,7 @@ import { XProvider } from "./providers/x/xProvider";
 import { DevToProvider } from "./providers/devto/devtoProvider";
 import { BlueskyProvider } from "./providers/bluesky/blueskyProvider";
 import { SkoolProvider } from "./providers/skool/skoolProvider";
+import { RedditProvider } from "./providers/reddit/redditProvider";
 
 const socialIntegrationList: SocialProvider[] = [
     new ThreadsProvider(),
@@ -30,6 +31,7 @@ const socialIntegrationList: SocialProvider[] = [
     new DevToProvider(),
     new BlueskyProvider(),
     new SkoolProvider(),
+    new RedditProvider(),
 ];
 
 export class IntegrationManager {

@@ -11,6 +11,11 @@
 
 	type LandingHeroTheme = {
 		titleSegmentClass: (segmentIndex: number, segments: LandingHeroTitleSegment[]) => string;
+		titleSegmentClassWithOffset: (
+			segmentIndex: number,
+			segments: LandingHeroTitleSegment[],
+			nonHighlightOffset: number
+		) => string;
 		parseLandingHeroTitlePartSegments: (text: string) => LandingHeroTitleSegment[];
 	};
 

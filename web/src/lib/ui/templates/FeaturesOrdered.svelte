@@ -21,8 +21,10 @@
 	import SettingsPanelMockContent from '$lib/ui/templates/device-mocks/settings-panel/SettingsPanelMockContent.svelte';
 	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
 	import TerminalCommandMockContent from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMockContent.svelte';
-	import LandingHeroHighlightedText from '$lib/ui/texts/LandingHeroHighlightedText.svelte';
+	import PublicLandingSectionHeading from '$lib/ui/templates/titles/PublicLandingSectionHeading.svelte';
+	import { landingTitleHasMultipleParts } from '$lib/ui/templates/titles/splitPublicLandingTitleParts';
 	import DirectoryProcessMarketingPanel from '$lib/ui/templates/landing-page/directory-process/DirectoryProcessMarketingPanel.svelte';
+	import { resolveExternalLinkPolicy } from '$lib/utils/externalLinkRel';
 	import type { PublicDirectoryChannelSlug } from '$lib/content/constants/channels/catalog/directory-platforms/directoryChannelProcessSection';
 	import type { TelegramMockAgentBranding } from '$lib/ui/templates/device-mocks/iphone-15-pro/telegramMockBranding';
 
@@ -84,13 +86,6 @@
 	const activeStep = $derived(currentIndex >= 0 ? steps[currentIndex] : undefined);
 
 	const headingId = 'features-ordered-heading';
-
-	const titleParts = $derived(
-		sectionTitle
-			.split(',')
-			.map((part) => part.trim())
-			.filter((part) => part.length > 0)
-	);
 
 	const showSectionHeader = $derived(
 		Boolean(sectionSubtitle?.trim() || sectionTitle?.trim()) && heroTheme
@@ -188,32 +183,12 @@
 					{/if}
 
 					{#if sectionTitle}
-						<h2
-							id={headingId}
-							class="text-2xl font-black tracking-tight text-balance sm:text-3xl lg:text-4xl"
-						>
-							{#each titleParts as part, index (index)}
-								{@const partClass = heroTheme.titlePartClass(index, titleParts.length)}
-								{@const segments = heroTheme.parseLandingHeroTitlePartSegments(part)}
-								{@const layoutClass =
-									titleParts.length >= 3 ? 'block' : index > 0 ? 'block sm:inline' : ''}
-								{#if heroTheme.landingHeroTitlePartHasHighlight(segments)}
-									<span class={layoutClass}>
-										{#each segments as seg, segmentIndex (segmentIndex)}
-											{#if seg.highlight}
-												<LandingHeroHighlightedText>{seg.text}</LandingHeroHighlightedText>
-											{:else}
-												<span class={partClass}>{seg.text}</span>
-											{/if}
-										{/each}{#if titleParts.length < 3 && index < titleParts.length - 1},{/if}
-									</span>
-								{:else}
-									<span class="{partClass} {layoutClass}">
-										{part}{#if titleParts.length < 3 && index < titleParts.length - 1},{/if}
-									</span>
-								{/if}
-							{/each}
-						</h2>
+						<PublicLandingSectionHeading
+							{headingId}
+							title={sectionTitle}
+							{heroTheme}
+							gradientMode={landingTitleHasMultipleParts(sectionTitle) ? 'part' : 'segment'}
+						/>
 					{/if}
 
 					{#if showSectionDescription}
@@ -304,17 +279,36 @@
 				<div class="{mediaPanelClass} {ltr ? 'lg:order-1' : ''}">
 					{#key currentIndex}
 						{#if activeStep?.deviceMock === 'safari'}
-							<div
-								class="aspect-auto size-full overflow-hidden"
-								role="img"
-								aria-label={activeStep.mediaAlt ?? activeStep.title}
-							>
-								<SafariMock class="size-full" url={activeStep.mockUrl ?? 'docs.openclaw.ai'}>
-									<SafariMockContent
-										content={activeStep.deviceMockContent as SafariMockContentId | undefined}
-									/>
-								</SafariMock>
-							</div>
+							{@const safariLink = activeStep.mockLinkHref?.trim()
+								? resolveExternalLinkPolicy(activeStep.mockLinkHref.trim())
+								: null}
+							{#if safariLink}
+								<a
+									href={safariLink.href}
+									target={safariLink.target}
+									rel={safariLink.rel}
+									class="block aspect-auto size-full overflow-hidden rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+									aria-label={activeStep.mediaAlt ?? activeStep.title}
+								>
+									<SafariMock class="size-full" url={activeStep.mockUrl ?? 'docs.openclaw.ai'}>
+										<SafariMockContent
+											content={activeStep.deviceMockContent as SafariMockContentId | undefined}
+										/>
+									</SafariMock>
+								</a>
+							{:else}
+								<div
+									class="aspect-auto size-full overflow-hidden"
+									role="img"
+									aria-label={activeStep.mediaAlt ?? activeStep.title}
+								>
+									<SafariMock class="size-full" url={activeStep.mockUrl ?? 'docs.openclaw.ai'}>
+										<SafariMockContent
+											content={activeStep.deviceMockContent as SafariMockContentId | undefined}
+										/>
+									</SafariMock>
+								</div>
+							{/if}
 						{:else if activeStep?.deviceMock === 'desktop'}
 							<div
 								class="flex size-full items-center justify-center overflow-hidden"

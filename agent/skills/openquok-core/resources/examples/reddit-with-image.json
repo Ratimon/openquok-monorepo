@@ -1,0 +1,18 @@
+{
+  "scheduledAt": "2026-01-01T12:00:00.000Z",
+  "status": "scheduled",
+  "body": "Screenshot walkthrough — attach media for extension handoff download; you still submit the post on reddit.com.",
+  "integrationIds": ["<integration-id>"],
+  "media": [
+    {
+      "id": "<media-id>",
+      "path": "https://cdn.example.com/workspace/reddit-screenshot.png"
+    }
+  ],
+  "providerSettingsByIntegrationId": {
+    "<integration-id>": {
+      "subreddit": "openquok",
+      "title": "New feature screenshot"
+    }
+  }
+}

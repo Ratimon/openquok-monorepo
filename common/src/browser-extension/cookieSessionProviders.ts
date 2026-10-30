@@ -1,3 +1,4 @@
+import type { ExtensionPublishMode } from './extensionPublishMode.js';
 import type { BrowserExtensionCookieRef } from './types.js';
 
 /**
@@ -7,6 +8,8 @@ import type { BrowserExtensionCookieRef } from './types.js';
 export interface CookieSessionProvider {
 	/** Integration identifier (e.g. `skool`) — matches `SocialProvider.identifier`. */
 	identifier: string;
+	/** How scheduled posts publish for this channel (orchestrator vs member browser handoff). */
+	publishMode: ExtensionPublishMode;
 	/** Human label shown in extension diagnostics and connect UI. */
 	name: string;
 	/** URL passed to `chrome.cookies.getAll({ url })` when harvesting cookies. */
@@ -26,6 +29,7 @@ export function extensionCookiesForProvider(
 
 const SKOOL_PROVIDER: CookieSessionProvider = {
 	identifier: 'skool',
+	publishMode: 'server_api',
 	name: 'Skool',
 	cookieUrl: 'https://www.skool.com/',
 	hostPermission: '*://*.skool.com/*',

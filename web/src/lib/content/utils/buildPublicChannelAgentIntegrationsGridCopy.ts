@@ -4,7 +4,7 @@ export function buildPublicChannelAgentIntegrationsGridSubtitle(): string {
 	return 'Agents & MCP integrations';
 }
 
-/** Title for `FeaturesSectionHeader` — colon-separated for gradient-friendly line breaks. */
+/** Title for `FeaturesSectionHeader` — newline-separated to avoid comma wrap artifacts with highlight chips. */
 export function buildPublicChannelAgentIntegrationsGridTitle(
 	platformLabel: string,
 	channelSlug?: string
@@ -15,14 +15,14 @@ export function buildPublicChannelAgentIntegrationsGridTitle(
 
 	if (label.length > 0) {
 		if (ecosystemId === 'xai-grok') {
-			return `Schedule ${label} from Grok Bot, Cursor MCP, and every agent host`;
+			return `Schedule ${label} from Grok Bot\nCursor MCP and every agent host`;
 		}
 		if (ecosystemId === 'meta-consumer') {
-			return `Schedule ${label} from Meta Muse, OpenClaw, and every agent host`;
+			return `Schedule ${label} from Meta Muse\nOpenClaw and every agent host`;
 		}
-		return `Schedule ${label} from OpenClaw, Grok Bot, and every agent host`;
+		return `Schedule ${label} from OpenClaw\nGrok Bot and every agent host`;
 	}
-	return 'Schedule from OpenClaw, Grok Bot, and every agent host';
+	return 'Schedule from OpenClaw\nGrok Bot and every agent host';
 }
 
 export function buildPublicChannelAgentIntegrationsGridDescription(
@@ -35,14 +35,14 @@ export function buildPublicChannelAgentIntegrationsGridDescription(
 
 	if (label.length > 0) {
 		if (ecosystemId === 'xai-grok') {
-			return `Open a dedicated landing page for Grok Bot, Cursor, and every other agent or MCP client. You get ${label} workflows on xAI’s cloud desktop, openquok-core CLI examples, and integration FAQs.`;
+			return `Each agent page covers Grok Bot, Cursor, and other MCP clients. Find ${label} workflows for xAI's cloud desktop, openquok-core CLI examples, and FAQs.`;
 		}
 		if (ecosystemId === 'meta-consumer') {
-			return `Open Meta Muse, Muse Code, and every other agent landing for ${label}. You get Meta-first workflows, openquok-core CLI examples, and integration FAQs — plus OpenClaw, Cursor, and ChatGPT MCP.`;
+			return `Each agent page covers Meta Muse, Muse Code, and other hosts for ${label}. Find Meta-first workflows, CLI examples, and FAQs. OpenClaw, Cursor, and ChatGPT MCP are also listed.`;
 		}
-		return `Open a dedicated landing page for each autonomous agent or MCP client. You get ${label} workflows, openquok-core CLI examples, and integration FAQs — including Cursor, ChatGPT, Claude Code, and more.`;
+		return `Each agent host and MCP client has its own page. Find ${label} workflows, openquok-core CLI examples, and FAQs for Cursor, ChatGPT, Claude Code, and more.`;
 	}
-	return 'Open a dedicated landing page for each autonomous agent or MCP client. You get platform workflows, CLI examples, and integration FAQs.';
+	return 'Each agent host and MCP client has its own page. Find platform workflows, CLI examples, and FAQs.';
 }
 
 export function buildPublicChannelAgentIntegrationsGridCoreLabel(): string {

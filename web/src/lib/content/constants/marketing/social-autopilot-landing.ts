@@ -6,10 +6,13 @@
 import { icons } from '$data/icons';
 
 import { getRootPathPublicSocialAutopilotLanding } from '$lib/area-public/constants/getRootPathPublicSocialAutopilotLanding';
-import { PUBLIC_SOCIAL_AUTOPILOT_LANDING_FAQ_SECTION } from '$lib/content/constants/faq/marketing/social-autopilot';
-import type { PublicMarketingLandingFaqSection } from '$lib/content/constants/faq/marketing/types';
+import type { PublicFaqItem } from '$lib/content/constants/faq';
+import {
+	appendPublicGeneralFaqItems,
+	PUBLIC_SOCIAL_AUTOPILOT_FAQ_ITEM_IDS
+} from '$lib/content/constants/faq';
 import { PUBLIC_LANDING_HERO_TRIAL_CTA } from '$lib/content/constants/landing/hero-copy';
-import { publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+import { faqHrefDocs, faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 import type { PublicLandingHeroStatBadge } from '$lib/content/constants/marketing/publicLandingHeroStatBadges';
 import { route } from '$lib/utils/path';
@@ -68,7 +71,12 @@ export type PublicSocialAutopilotLandingConfig = {
 	};
 	productFeatureSections: PublicSocialAutopilotProductFeatureSections;
 	featuresGridSection: PublicSocialAutopilotSectionHeader;
-	faqSection: PublicMarketingLandingFaqSection;
+	faqSection: {
+		faqSubtitle: string;
+		faqTitle: string;
+		faqDescription: string;
+		faqItems: readonly PublicFaqItem[];
+	};
 	docsBanner: {
 		title: string;
 		description: string;
@@ -80,6 +88,22 @@ export type PublicSocialAutopilotLandingConfig = {
 		docsPath: string;
 	};
 };
+
+/** Page-specific FAQs after {@link PUBLIC_SOCIAL_AUTOPILOT_FAQ_ITEM_IDS} (no overlap with catalog). */
+const tailoredFaqItems: readonly PublicFaqItem[] = [
+	{
+		title: 'Do agents post without my approval?',
+		description: `No. Agent hosts, MCP clients, and the CLI can draft and queue posts, but nothing goes live until you approve on the ${faqLink(publicFaqHref.docsCalendar, 'calendar')} or ${faqLink(publicFaqHref.docsKanban, 'kanban')}.`
+	},
+	{
+		title: 'Can I schedule from Grok Bot or other agent hosts?',
+		description: `Yes. Install openquok-core on ${faqLink(publicFaqHref.grokBotLanding, 'Grok Bot')}, OpenClaw, ThinkRail, or other hosts listed in the ${faqLink(agentsHubHref, 'Agents hub')}. Chat-to-schedule uses the same review queue as the dashboard — see ${faqLink(publicFaqHref.grokBotAgentGuide, 'Grok Bot setup')}.`
+	},
+	{
+		title: 'Can I schedule from Chrome without opening the dashboard?',
+		description: `Yes. Install the OpenQuok browser extension and use the side panel from any tab — same channels, drafts, and approval flow as the dashboard. See the ${faqLink(publicFaqHref.browserExtensionLanding, 'browser extension')} page and the ${faqLink(faqHrefDocs('installation/chrome-extension'), 'install guide')}.`
+	}
+];
 
 export const PUBLIC_SOCIAL_AUTOPILOT_LANDING_CONFIG: PublicSocialAutopilotLandingConfig = {
 	metaTitle: 'Agentic Social Media Scheduling Platform',
@@ -193,7 +217,7 @@ export const PUBLIC_SOCIAL_AUTOPILOT_LANDING_CONFIG: PublicSocialAutopilotLandin
 			subtitle: 'Multi Agent Workspaces',
 			title: 'Connect once, automate social platforms, via chat, minimal hallucinations',
 			description:
-				'Give each brand, or agent its own workspace with isolated channels. Reach your agents from Telegram or other chat apps (ChatGPT, Claude, Openclaw, etc.), then run dozens of social channels without one shared context — or your AI mixing up workflows.'
+				'Give each brand, client, or agent its own workspace with isolated channels. Reach your agents from Telegram or other chat apps (ChatGPT, Claude, Openclaw, etc.), then run dozens of social channels without one shared context — or your AI mixing up workflows.'
 		},
 		feature2: {
 			subtitle: 'Workspaces, roles, and invites',
@@ -259,7 +283,15 @@ openquok analytics:post <post-id> -d 30`
 		description:
 			'Connect the networks you publish to and manage them from one workspace — no switching tools per platform.'
 	},
-	faqSection: PUBLIC_SOCIAL_AUTOPILOT_LANDING_FAQ_SECTION,
+	faqSection: {
+		faqSubtitle: 'Social autopilot',
+		faqTitle: 'Questions about agent-assisted scheduling',
+		faqDescription:
+			'How OpenQuok combines agents, MCP, CLI, and APIs with a human approval step.',
+		faqItems: appendPublicGeneralFaqItems(tailoredFaqItems, PUBLIC_SOCIAL_AUTOPILOT_FAQ_ITEM_IDS, {
+			generalFirst: true
+		})
+	},
 	docsBanner: {
 		title: 'Connect channels and wire your first agent',
 		description:

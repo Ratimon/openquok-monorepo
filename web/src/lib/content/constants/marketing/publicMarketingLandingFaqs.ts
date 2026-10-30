@@ -2,18 +2,23 @@ import type { PublicFaqItem } from '$lib/content/constants/faq';
 import { mergePublicFaqItemsUnique } from '$lib/content/constants/faq';
 import {
 	PUBLIC_DIRECTORY_SUBMISSION_LANDING_FAQ_SECTION,
+	PUBLIC_BROWSER_EXTENSION_LANDING_FAQ_SECTION,
 	PUBLIC_SOCIAL_AUTOPILOT_LANDING_FAQ_SECTION
 } from '$lib/content/constants/faq/marketing';
 import type { PublicMarketingLandingFaqSection } from '$lib/content/constants/faq/marketing/types';
 
 export type { PublicMarketingLandingFaqSection } from '$lib/content/constants/faq/marketing/types';
 
-export type PublicMarketingLandingFaqId = 'social-autopilot' | 'directory-submission';
+export type PublicMarketingLandingFaqId =
+	| 'social-autopilot'
+	| 'directory-submission'
+	| 'browser-extension';
 
 /** Per-route FAQ sections for programmatic marketing landings. */
 export const PUBLIC_MARKETING_LANDING_FAQ_BY_ID = {
 	'social-autopilot': PUBLIC_SOCIAL_AUTOPILOT_LANDING_FAQ_SECTION,
-	'directory-submission': PUBLIC_DIRECTORY_SUBMISSION_LANDING_FAQ_SECTION
+	'directory-submission': PUBLIC_DIRECTORY_SUBMISSION_LANDING_FAQ_SECTION,
+	'browser-extension': PUBLIC_BROWSER_EXTENSION_LANDING_FAQ_SECTION
 } satisfies Record<PublicMarketingLandingFaqId, PublicMarketingLandingFaqSection>;
 
 /** Merge order when building the home page (`/`) FAQ accordion. */

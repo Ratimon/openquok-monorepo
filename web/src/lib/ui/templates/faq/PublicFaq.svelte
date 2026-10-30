@@ -6,6 +6,7 @@
 
 	import FaqAccordion from '$lib/ui/templates/faq/FaqAccordion.svelte';
 	import PublicLandingSectionHeading from '$lib/ui/templates/titles/PublicLandingSectionHeading.svelte';
+	import { landingTitleHasMultipleParts } from '$lib/ui/templates/titles/splitPublicLandingTitleParts';
 
 	type Props = {
 		heroTheme: LandingHeroTheme;
@@ -62,8 +63,7 @@
 					{headingId}
 					title={faqTitle}
 					{heroTheme}
-					commaSeparated={true}
-					gradientMode="part"
+					gradientMode={landingTitleHasMultipleParts(faqTitle) ? 'part' : 'segment'}
 				/>
 			{/if}
 

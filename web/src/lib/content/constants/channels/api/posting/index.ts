@@ -10,6 +10,7 @@ import {
 	blueskyPublicApiPostingPlatform,
 	devtoPublicApiPostingPlatform,
 	skoolPublicApiPostingPlatform,
+	redditPublicApiPostingPlatform,
 	facebookPublicApiPostingPlatform,
 	instagramPublicApiPostingPlatform,
 	linkedinPublicApiPostingPlatform,
@@ -31,7 +32,8 @@ export const PUBLIC_API_POSTING_PLATFORM_SLUGS: readonly PublicApiPlatformSlug[]
 	'linkedin',
 	'bluesky',
 	'devto',
-	'skool'
+	'skool',
+	'reddit'
 ];
 
 const postingPlatformBySlug = new Map<PublicApiPlatformSlug, PublicApiPlatformPageViewModel>([
@@ -44,7 +46,8 @@ const postingPlatformBySlug = new Map<PublicApiPlatformSlug, PublicApiPlatformPa
 	['linkedin', linkedinPublicApiPostingPlatform],
 	['bluesky', blueskyPublicApiPostingPlatform],
 	['devto', devtoPublicApiPostingPlatform],
-	['skool', skoolPublicApiPostingPlatform]
+	['skool', skoolPublicApiPostingPlatform],
+	['reddit', redditPublicApiPostingPlatform]
 ]);
 
 export function getPublicApiPostingHubPage(): PublicApiHubPageViewModel {

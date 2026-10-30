@@ -48,7 +48,7 @@ Slot labels follow <Badge text="Timezone" variant="default" /> under <Badge text
 ## Related
 
 <CardGrid>
-<LinkCard title="Manage social and directory channels" description="Social actions on My Dashboard and directory launches on My Products" href="/docs/channels/manage" />
+<LinkCard title="Manage a channel" description="Reconnect, disable, or remove a connected account" href="/docs/channels/manage" />
 <LinkCard title="Business profiles" description="Bundle channels by client or brand and filter My Dashboard and the calendar" href="/docs/channels/channel-groups" />
 <LinkCard title="Connect a channel" description="Add Channel, sign-in flows, API keys, and invite links" href="/docs/channels/connect" />
 <LinkCard title="Find slot" description="Public API endpoint for the next free posting time" href="/docs/apis-posts/find-slot" />

@@ -2,7 +2,13 @@
 	import type { Snippet } from 'svelte';
 
 	import { icons } from '$data/icons';
-	import { HERO_SOCIAL_PLATFORMS } from '$data/landing-social-platforms';
+	import { HERO_DIRECTORY_PLATFORMS } from '$data/landing-directory-platforms';
+	import {
+		HERO_BROWSER_EXTENSION_PLATFORMS,
+		HERO_DRAFT_HANDOFF_PLATFORMS,
+		HERO_SOCIAL_PLATFORMS,
+		type LandingSocialPlatform
+	} from '$data/landing-social-platforms';
 
 	import { cn } from '$lib/ui/helpers/common';
 	import { socialProviderDisplayLabel } from '$data/social-providers';
@@ -26,7 +32,8 @@
 		landingHeroTheme,
 		PUBLIC_LANDING_MAIN_HERO_TITLE_CLASS,
 		PUBLIC_SOCIAL_AUTOPILOT_HERO_TITLE_CLASS,
-		PUBLIC_SOCIAL_AUTOPILOT_HERO_TITLE_LINE_CLASS
+		PUBLIC_SOCIAL_AUTOPILOT_HERO_TITLE_LINE_CLASS,
+		type LandingHeroSocialAgentRotateOption
 	} from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import { PUBLIC_LANDING_HERO_TRIAL_CTA } from '$lib/content/constants/landing/hero-copy';
 	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
@@ -35,6 +42,8 @@
 		heroTitle?: string;
 		heroSlogan?: string;
 		heroPlatformsLabel?: string;
+		/** Row 2 — Reddit member handoff + directory launch (PeerPush, Uneed). */
+		heroExtendedPlatformsLabel?: string;
 		ctaTextPrimary?: string;
 		ctaHrefPrimary?: string;
 		githubOwner?: string;
@@ -46,24 +55,58 @@
 		 * `dictionary` = sticker highlights from `landingHeroTheme`.
 		 */
 		heroTitleParseMode?: 'home-hours' | 'social-agent-rotate' | 'dictionary';
+		/** Override `agenthost` / `extensionhost` token for `social-agent-rotate` title parsing. */
+		heroTitleRotateMarker?: string;
+		/** Icon + label rotation in the highlighted chip (defaults to agent integrations). */
+		heroTitleRotateOptions?: readonly LandingHeroSocialAgentRotateOption[];
+		/**
+		 * `default` — OAuth row + extension handoff row (home, social autopilot).
+		 * `browser-extension` — OAuth row + Skool / Reddit / directory row (`/browser-extension`).
+		 */
+		heroPlatformStripVariant?: 'default' | 'browser-extension';
+		/** Label above the browser-extension platform row. */
+		heroBrowserExtensionPlatformsLabel?: string;
+		/** When false, hides the “with human support by @RATi_MOn” suffix on the slogan. */
+		showSloganHumanSupportSuffix?: boolean;
 	};
 
+	
 	let {
 		heroTitle = '',
 		heroSlogan = '',
 		heroPlatformsLabel = 'Connect your accounts — publish to your social channels',
+		heroExtendedPlatformsLabel =
+			'Draft then auto-fill with browser extension — you still post/launch on multiple channels by hand',
 		ctaTextPrimary = PUBLIC_LANDING_HERO_TRIAL_CTA,
 		ctaHrefPrimary = '#',
 		githubOwner = '',
 		githubRepo = '',
 		breadcrumb,
-		heroTitleParseMode = 'home-hours'
+		heroTitleParseMode = 'home-hours',
+		heroTitleRotateMarker,
+		heroTitleRotateOptions,
+		heroPlatformStripVariant = 'default',
+		heroBrowserExtensionPlatformsLabel = 'Extension workflows — in-browser connect, Reddit handoff, directory autofill',
+		showSloganHumanSupportSuffix = true
 	}: Props = $props();
+
+	const titleRotateMarker = $derived(
+		heroTitleRotateMarker ?? LANDING_HERO_SOCIAL_AGENT_ROTATE_TITLE_LINE
+	);
 
 	const HERO_SOCIAL_ICON_BOX_CLASS = 'rounded-md';
 
 	const HERO_SOCIAL_TOOLTIP_CLASS =
 		'border-neutral-800 bg-neutral-900 px-2.5 py-1 text-xs font-medium text-white shadow-lg';
+
+	function platformTooltipLabel(platform: LandingSocialPlatform): string {
+		return platform.label ?? socialProviderDisplayLabel(platform.id);
+	}
+
+	const heroExtendedPlatforms = $derived([
+		...HERO_DRAFT_HANDOFF_PLATFORMS,
+		...HERO_DIRECTORY_PLATFORMS
+	]);
 
 	type TextSegment = {
 		text: string;
@@ -97,10 +140,7 @@
 	function parseSocialAgentRotateTitleLine(text: string): TextSegment[] {
 		if (!text) return [];
 
-		const markerPattern = new RegExp(
-			`\\b${LANDING_HERO_SOCIAL_AGENT_ROTATE_TITLE_LINE}\\b`,
-			'i'
-		);
+		const markerPattern = new RegExp(`\\b${titleRotateMarker}\\b`, 'i');
 
 		if (markerPattern.test(text)) {
 			const beforeMarker = text.replace(markerPattern, '').trimEnd();
@@ -200,6 +240,19 @@
 
 		const isLastLine = lineIndex === totalLines - 1;
 		return isLastLine ? TITLE_GRADIENT_ACCENT : TITLE_GRADIENT_PRIMARY;
+	}
+
+	function countNonHighlightSegmentsBeforeLine(
+		lineModels: { segments: TextSegment[] }[],
+		lineIndex: number
+	): number {
+		let count = 0;
+		for (let i = 0; i < lineIndex; i++) {
+			for (const seg of lineModels[i].segments) {
+				if (!seg.highlight) count++;
+			}
+		}
+		return count;
 	}
 </script>
 <AuroraBackground>
@@ -330,10 +383,17 @@
 						{/each}
 					{:else if heroTitleParseMode === 'social-agent-rotate' && titleLineModels.length > 0}
 						{#each titleLineModels as lineModel, lineIndex (lineIndex)}
+							{@const lineNonHighlightOffset = countNonHighlightSegmentsBeforeLine(
+								titleLineModels,
+								lineIndex
+							)}
 							<span class={PUBLIC_SOCIAL_AUTOPILOT_HERO_TITLE_LINE_CLASS}>
 								{#each lineModel.segments as seg, segmentIndex (segmentIndex)}
 									{#if seg.highlight && seg.rotate && seg.rotateWithIcon}
-										<LandingHeroSocialAgentRotate class="shrink-0" />
+										<LandingHeroSocialAgentRotate
+											class="shrink-0"
+											options={heroTitleRotateOptions}
+										/>
 									{:else if seg.highlight && seg.rotate}
 										<LandingHeroHighlightedText class="shrink-0" triggerOnView={false}>
 											<TextRotate
@@ -348,9 +408,10 @@
 										<LandingHeroHighlightedText class="shrink-0">{seg.text}</LandingHeroHighlightedText>
 									{:else}
 										<span
-											class="shrink-0 {landingHeroTheme.titleSegmentClass(
+											class="shrink-0 {landingHeroTheme.titleSegmentClassWithOffset(
 												segmentIndex,
-												lineModel.segments
+												lineModel.segments,
+												lineNonHighlightOffset
 											)}"
 										>
 											{seg.text}
@@ -423,6 +484,7 @@
 					{:else}
 						{heroSlogan}
 					{/if}
+					{#if showSloganHumanSupportSuffix}
 					<span class="ms-1 inline-flex items-center gap-1.5 align-middle">
 						<span>with human support by</span>
 						<img
@@ -442,23 +504,14 @@
 							@RATi_MOn
 						</ExternalLink>
 					</span>
+					{/if}
 				</p>
 
-				<div class="mt-8">
-					<p
-						id="hero-supported-platforms-label"
-						class="mb-3 text-sm font-medium text-base-content/55 sm:text-base"
-					>
-						{heroPlatformsLabel}
-					</p>
-					<div
-						class="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5"
-						role="group"
-						aria-labelledby="hero-supported-platforms-label"
-					>
+				<div class="mt-8 space-y-5">
+					{#snippet heroPlatformIconStrip(platforms: readonly LandingSocialPlatform[])}
 						<Tooltip.Provider delayDuration={200}>
-							{#each HERO_SOCIAL_PLATFORMS as platform (platform.id)}
-								{@const label = platform.label ?? socialProviderDisplayLabel(platform.id)}
+							{#each platforms as platform (platform.id)}
+								{@const label = platformTooltipLabel(platform)}
 								<Tooltip.Root>
 									<Tooltip.Trigger>
 										{#snippet child({ props: triggerProps })}
@@ -491,10 +544,77 @@
 								</Tooltip.Root>
 							{/each}
 						</Tooltip.Provider>
-					</div>
-					<p class="mt-3 text-center text-xs text-base-content/45 sm:text-sm">
-						More channels on the way
-					</p>
+					{/snippet}
+
+					{#if heroPlatformStripVariant === 'browser-extension'}
+						<div>
+							<p
+								id="hero-supported-platforms-label"
+								class="mb-3 text-sm font-medium text-base-content/55 sm:text-base"
+							>
+								{heroPlatformsLabel}
+							</p>
+							<div
+								class="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5"
+								role="group"
+								aria-labelledby="hero-supported-platforms-label"
+							>
+								{@render heroPlatformIconStrip(HERO_SOCIAL_PLATFORMS)}
+							</div>
+						</div>
+
+						<div>
+							<p
+								id="hero-browser-extension-platforms-label"
+								class="mb-3 text-sm font-medium text-base-content/55 sm:text-base"
+							>
+								{heroBrowserExtensionPlatformsLabel}
+							</p>
+							<div
+								class="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5"
+								role="group"
+								aria-labelledby="hero-browser-extension-platforms-label"
+							>
+								{@render heroPlatformIconStrip(HERO_BROWSER_EXTENSION_PLATFORMS)}
+							</div>
+						</div>
+					{:else}
+						<div>
+							<p
+								id="hero-supported-platforms-label"
+								class="mb-3 text-sm font-medium text-base-content/55 sm:text-base"
+							>
+								{heroPlatformsLabel}
+							</p>
+							<div
+								class="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5"
+								role="group"
+								aria-labelledby="hero-supported-platforms-label"
+							>
+								{@render heroPlatformIconStrip(HERO_SOCIAL_PLATFORMS)}
+							</div>
+						</div>
+
+						<div>
+							<p
+								id="hero-extended-platforms-label"
+								class="mb-3 text-sm font-medium text-base-content/55 sm:text-base"
+							>
+								{heroExtendedPlatformsLabel}
+							</p>
+							<div
+								class="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5"
+								role="group"
+								aria-labelledby="hero-extended-platforms-label"
+							>
+								{@render heroPlatformIconStrip(heroExtendedPlatforms)}
+							</div>
+						</div>
+
+						<p class="text-center text-xs text-base-content/45 sm:text-sm">
+							More channels on the way
+						</p>
+					{/if}
 				</div>
 
 				<div class="mt-10 flex items-center justify-center pb-2">

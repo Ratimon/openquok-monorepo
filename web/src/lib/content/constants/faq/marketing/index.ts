@@ -10,3 +10,5 @@ export {
 	insertDirectoryLaunchDrGuaranteeFaqItems,
 	PUBLIC_DIRECTORY_SUBMISSION_LANDING_FAQ_SECTION
 } from '$lib/content/constants/faq/marketing/directory-submission';
+
+export { PUBLIC_BROWSER_EXTENSION_LANDING_FAQ_SECTION } from '$lib/content/constants/faq/marketing/browser-extension';

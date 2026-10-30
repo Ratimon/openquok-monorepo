@@ -9,6 +9,7 @@ import { xProvider } from '$lib/ui/components/posts/providers/x/x.provider';
 import { youtubeProvider } from '$lib/ui/components/posts/providers/youtube/youtube.provider';
 import { devtoProvider } from '$lib/ui/components/posts/providers/devto/devto.provider';
 import { skoolProvider } from '$lib/ui/components/posts/providers/skool/skool.provider';
+import { redditProvider } from '$lib/ui/components/posts/providers/reddit/reddit.provider';
 import { blueskyProvider } from '$lib/ui/components/posts/providers/bluesky/bluesky.provider';
 
 const DEFAULT_PROVIDER: LaunchProviderConfig = {
@@ -45,6 +46,8 @@ export function getLaunchProviderConfig(identifier: string | null | undefined): 
 	if (id === 'devto') return devtoProvider;
 
 	if (id === 'skool') return skoolProvider;
+
+	if (id === 'reddit') return redditProvider;
 
 	if (id === 'bluesky') return blueskyProvider;
 

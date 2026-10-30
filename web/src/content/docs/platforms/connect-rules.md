@@ -23,14 +23,15 @@ OpenQuok registers **twelve** social posting channels. Connect each one once per
 
 <p class="not-prose flex flex-wrap items-center gap-3">
 <a href="/channels/facebook" title="Facebook Page"><img src="/docs/_assets/platforms/socials/facebook.svg" alt="Facebook Page" width="32" height="32" /></a>
-<a href="/channels/threads" title="Threads"><img src="/docs/_assets/platforms/socials/threads.svg" alt="Threads" width="32" height="32" /></a>
 <a href="/channels/instagram" title="Instagram"><img src="/docs/_assets/platforms/socials/instagram.svg" alt="Instagram" width="32" height="32" /></a>
-<a href="/channels/linkedin" title="LinkedIn"><img src="/docs/_assets/platforms/socials/linkedin.svg" alt="LinkedIn" width="32" height="32" /></a>
-<a href="/channels/x" title="X"><img src="/docs/_assets/platforms/socials/x.svg" alt="X" width="32" height="32" /></a>
+<a href="/channels/threads" title="Threads"><img src="/docs/_assets/platforms/socials/threads.svg" alt="Threads" width="32" height="32" /></a>
 <a href="/channels/youtube" title="YouTube"><img src="/docs/_assets/platforms/socials/youtube.svg" alt="YouTube" width="32" height="32" /></a>
 <a href="/channels/tiktok" title="TikTok"><img src="/docs/_assets/platforms/socials/tiktok.svg" alt="TikTok" width="32" height="32" /></a>
-<a href="/channels/devto" title="Dev.to"><img src="/docs/_assets/platforms/socials/devto.svg" alt="Dev.to" width="32" height="32" /></a>
+<a href="/channels/linkedin" title="LinkedIn"><img src="/docs/_assets/platforms/socials/linkedin.svg" alt="LinkedIn" width="32" height="32" /></a>
+<a href="/channels/x" title="X"><img src="/docs/_assets/platforms/socials/x.svg" alt="X" width="32" height="32" /></a>
 <a href="/channels/bluesky" title="Bluesky"><img src="/docs/_assets/platforms/socials/bluesky.svg" alt="Bluesky" width="32" height="32" /></a>
+<a href="/channels/reddit" title="Reddit"><img src="/docs/_assets/platforms/socials/reddit.svg" alt="Reddit" width="32" height="32" /></a>
+<a href="/channels/devto" title="Dev.to"><img src="/docs/_assets/platforms/socials/devto.svg" alt="Dev.to" width="32" height="32" /></a>
 <a href="/channels/skool" title="Skool"><img src="/docs/_assets/platforms/socials/skool.svg" alt="Skool" width="32" height="32" /></a>
 </p>
 
@@ -108,6 +109,7 @@ Field mapping, variants, and submission tracking are in <a href="/docs/directory
 <LinkCard title="Directory integration" description="Directory vs social channel families" href="/docs/directory-integration" />
 <LinkCard title="Directory submission" description="My Products workflow and extension handoff" href="/docs/directory-submission" />
 <LinkCard title="Connect a channel" description="OAuth, credentials, and browser extension step by step" href="/docs/channels/connect" />
+<LinkCard title="Browser extension (overview)" description="Social media scheduler browser extension — post from any tab" href="/browser-extension" />
 <LinkCard title="Browser extension" description="Install the extension and set VITE_OPENQUOK_BROWSER_EXTENSION_ID" href="/docs/installation/chrome-extension" />
 <LinkCard title="Skool" description="Connect Skool with the browser extension" href="/docs/social-integration/skool" />
 </CardGrid>

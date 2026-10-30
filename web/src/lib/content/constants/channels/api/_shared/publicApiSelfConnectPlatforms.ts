@@ -6,7 +6,8 @@ import { faqHrefDocs, faqLink, faqLinkSelfHostChannelSetup, publicFaqHref } from
 export const PUBLIC_API_SELF_CONNECT_SLUGS: ReadonlySet<PublicApiPlatformSlug> = new Set([
 	'bluesky',
 	'devto',
-	'skool'
+	'skool',
+	'reddit'
 ]);
 
 export function isPublicApiSelfConnectSlug(slug: PublicApiPlatformSlug): boolean {
@@ -28,6 +29,8 @@ export function buildPublicApiSelfConnectDescription(
 			return `${signUp}, open a workspace, and choose Connect channel → ${platformLabel}. Paste a personal API key from DEV → Extensions for your account — not a key you issue to customers. For self-hosted deployments, see the ${selfHost}.`;
 		case 'skool':
 			return `${signUp}, install the ${faqLink(faqHrefDocs('installation/chrome-extension'), 'OpenQuok browser extension')}, sign in on skool.com in the same Chrome profile, then Add Channel → ${platformLabel} and approve the extension flow. For self-hosted deployments, see the ${selfHost}.`;
+		case 'reddit':
+			return `${signUp}, open a workspace, and choose Add Channel → ${platformLabel}. Confirm the manual-channel notice — OpenQuok does not store your Reddit login. When posts are due, you finish on reddit.com; the ${faqLink(faqHrefDocs('installation/chrome-extension'), 'browser extension')} is optional for copy, open submit, autofill, and media download — not for connect. For self-hosted deployments, see the ${selfHost}.`;
 		default:
 			return '';
 	}
@@ -53,6 +56,10 @@ export function buildPublicApiPersonalAccountFaqItem(
 		case 'skool':
 			credentialLine =
 				'Connect your Skool session through your browser extension approval. Do not run a “post to Skool for my customers” service without each customer connecting their own Skool channel in their own workspace.';
+			break;
+		case 'reddit':
+			credentialLine =
+				'Add your own Reddit channel as a manual integration in the dashboard. OpenQuok schedules drafts you finish on reddit.com — do not promise automatic Reddit publish from your opo_ token without a human handoff step.';
 			break;
 		default:
 			credentialLine = `Connect your own ${platformLabel} channel in the dashboard before you call the API.`;

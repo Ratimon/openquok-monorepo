@@ -1,6 +1,7 @@
 /** Per-slug posting API marketing VMs (`buildPublicApiPlatformPage`, capability `posting`). */
 export { blueskyPublicApiPostingPlatform } from '$lib/content/constants/channels/api/posting/platforms/bluesky';
 export { devtoPublicApiPostingPlatform } from '$lib/content/constants/channels/api/posting/platforms/devto';
+export { redditPublicApiPostingPlatform } from '$lib/content/constants/channels/api/posting/platforms/reddit';
 export { skoolPublicApiPostingPlatform } from '$lib/content/constants/channels/api/posting/platforms/skool';
 export { facebookPublicApiPostingPlatform } from '$lib/content/constants/channels/api/posting/platforms/facebook';
 export { instagramPublicApiPostingPlatform } from '$lib/content/constants/channels/api/posting/platforms/instagram';

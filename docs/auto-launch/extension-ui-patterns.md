@@ -50,6 +50,38 @@ flowchart TB
 | Third-party auth + BaaS profile sync | OpenQuok session cookies on `openquok.com`; `GET/POST /api/v1/auto-launch/*` org-scoped |
 | Web app as profile source of truth | Dashboard **My Products** + `submissions/intent` returns `profile_snapshot` + `extension_config` |
 | No `externally_connectable` in reference manifest | Dashboard handoff via existing `externally_connectable` + `extensionClient` (Skool path) |
+| Top **Login Required** banner(s) when product or directory session missing | Single shadow-DOM banner (`extension/src/directory-launch/loginBanner.ts`) via `directory-site-gate` content script; OpenQuok first, then directory site |
+| Directory login heuristic (e.g. nav shows `/auth/login`) | Per-site adapters under `extension/src/directory-launch/siteLogin/`; re-check on load (~1s), `MutationObserver` while banner visible, tab visibility / `popstate` |
+
+---
+
+## Directory login notification banners
+
+Reference MV3 extension (spike **1.4.6**) shows **two layered gates** on directory origins: a hosted **product account** banner when the SaaS session is missing, and a **directory site** banner when the user is signed into the product but not the directory (autofill stays gated until both pass).
+
+### Reference vs OpenQuok (behavioral)
+
+| Layer | Reference (observed) | OpenQuok |
+| --- | --- | --- |
+| Product / OpenQuok | Fixed top banner: **Login Required**, CTA **Go to Login** → hosted auth URL | `access_token` cookie on dashboard origin(s) via background (`OPENQUOK_CHECK_DIRECTORY_GATE`); CTA → `{origin}/sign-in` (remembered handoff origin, then defaults) |
+| Directory site | Second banner when product OK but directory session missing; CTA → directory login URL | Same banner chrome; copy names the site (PeerPush, Uneed); CTA → adapter `loginUrl` |
+| Layout / style | `position: fixed; top: 20px; left: 50%; transform: translateX(-50%);` ~90% width, max 600px; amber panel (`#fef3c7`, border `#f59e0b`) | Matched in `DirectoryLoginBanner`; `z-index` **2147483645** (step rail uses **2147483646** in `stepRail.ts`) |
+| Single injection | One gate script per host union | `extension/src/content/directory-launch/directory-site-gate.ts` — not duplicated per `provider_slug` bundle |
+
+Gate state is broadcast as `openquok-directory-gate-change` on `window`; directory launch providers disable **Fill** / **Fill all** and show inline copy from `directoryGate.ts` when either gate is closed.
+
+### Site login adapters (DOM heuristics)
+
+Adapters treat **presence of a nav “Log in” link** as signed **out** (inverse: link absent ⇒ logged in). Re-verify selectors when a directory changes its header or SPA shell.
+
+| Site key | `loggedIn` heuristic | Login URL | Evidence |
+| --- | --- | --- | --- |
+| `peerpush` | No `a[href="/auth/login"]` in the document | `https://peerpush.com/auth/login` | Nav link on `peerpush.com/pricing` when signed out (reference spike used the same selector theme on a sibling host) |
+| `uneed` | No `a[href="/login"]` in the document | `https://uneed.best/login` | Header **Log in** on `uneed.best/pricing` when signed out; nav may hydrate after first paint — gate re-checks after ~1s and on debounced DOM mutations |
+
+Unknown site keys default to **logged in** for the directory layer (avoid false “please log in” on future hosts until an adapter exists). Host patterns come from `getDirectoryLaunchUniqueHostPatterns()` / `getDirectoryLaunchSiteKeyFromLocation()` in `common/src/browser-extension/pageAssist.ts`.
+
+**Side panel:** `extension/src/ui/sidepanel/directoryTab.ts` calls the directory gate check and can surface an OpenQuok sign-in warning above disabled fill actions when the dashboard session is missing.
 
 ---
 
@@ -248,7 +280,8 @@ Recommend **`extension_config.version`** in OpenQuok seeds and hub copy that dir
 
 | Spike pattern | OpenQuok artifact |
 | --- | --- |
-| Popup profile picker + status | `extension/popup/` + cached API profiles |
+| Dual login banners (product + directory) | `directory-site-gate.ts` + `loginBanner.ts` + `siteLogin/*` + `dashboardAuth.ts` |
+| Side panel profile picker + status | `extension/src/ui/sidepanel/directoryTab.ts` + cached API profiles |
 | Per-site bundle | `manifest.json` `content_scripts` + `directory-launch/{slug}.js` |
 | Step rail + per-step Fill | Content script panel; `extension_config.steps` from API via `intent` |
 | Fill all | `AUTO_LAUNCH_FILL_ALL` message; sequential `fillStep` |
@@ -401,8 +434,52 @@ Use this checklist after local migrations and a fresh extension build. Goal: one
 
 ---
 
+## Social shell — server publish vs browser port (OpenQuok)
+
+The extension **side panel** (`extension/src/ui/sidepanel/sidepanel.ts`) exposes **Social** (session API composer) and **Directory** (auto-launch) tabs. User-facing docs: [Browser extension](../../web/src/content/docs/installation/chrome-extension.md). Social scheduling in v1 uses the **server** path for OAuth and credentials channels and for **Skool** after cookie-session connect: dashboard session → `POST /api/v1/posts` → orchestrator → server publish. **Reddit** skips server publish: due rows become **awaiting member**; the extension assists with copy, open submit, and autofill on reddit.com (no Reddit cookies on the server, no extension refresh for Reddit). Connect type per channel is unchanged — see [connect-rules](../../web/src/content/docs/platforms/connect-rules.md).
+
+**Social channel picker:** `mountChannelPicker` in `extension/src/ui/sidepanel/channelPicker.ts` mirrors the dashboard composer’s circular avatars (selection ring, grayscale when off, provider badge, authenticated avatar download/proxy). Styling uses forest semantic tokens in `sidepanel.css`. Manual smoke steps live in the browser extension doc under **Manual verification checklist** (channel picker + **Social tab — media attachments**).
+
+| Pattern | Common MV3 approaches (internal REA) | OpenQuok v1 |
+| --- | --- | --- |
+| Primary composer UI | Toolbar `action.default_popup` | **Side panel** only (`side_panel.default_path` + `openPanelOnActionClick`) |
+| Unsigned gate + session pickup | Product-origin cookie or JWT gate in the side panel | **Connect to OpenQuok.com** / self-host URL → dashboard `/sign-in`; `dashboardAuth` (`verify-refresh` + access mint) |
+| In-browser send on platform tab | DOM automation in the member’s live platform tab | **Stub only** — `BrowserPublishPort` in `extension/src/social/browserPublishPort.ts` |
+| Context menu → draft | `contextMenus` (selection, page, image) | **Schedule with OpenQuok** → `sessionDraftStorage` → `sidePanel.open` + Social tab focus (`extension/src/social/contextMenu.ts`) |
+| Composer media attach | Hosted app or popup with client upload progress | **Side panel** toolbar file pick + thumbnail strip — **local preview** (`blob:` / queued URL) until Schedule / Draft / Publish; `resolveComposerMediaAttachments` → `POST /api/v1/media/upload` then `createSocialPost` with `media: { id, path }[]`. Image context menu: `applySocialComposerDraftWithMedia` queues `pendingSourceUrl` (fetch on submit). Caps: 10 attachments; client size checks mirror `common/src/media/uploadLimits.ts` (~30 MB image / 1 GB video). Media library, per-integration media, and R2 multipart — dashboard only (**Open full composer**). Manual smoke: [Browser extension](../../web/src/content/docs/installation/chrome-extension.md) → **Social tab — media attachments**. |
+| Content scripts on arbitrary sites | Composer injection limited to the vendor’s own host | **No** social composer injection — context menu + side panel only; directory CS on PeerPush/Uneed hosts; Reddit submit-page CS for autofill only (member completes Post) |
+
+### Reddit — member browser complete (not server publish)
+
+| Concern | Skool (cookie connect + server publish) | Reddit (manual channel + member complete) |
+| --- | --- | --- |
+| Connect in Add Channel | Browser extension reads Skool session cookies; server stores encrypted session | Manual channel confirm — empty server token; no Reddit cookie harvest |
+| At due time | Orchestrator publishes via server API | Orchestrator skips `social.post()` → **awaiting member** |
+| Extension role | Optional refresh via `POST /api/v1/integrations/extension-refresh` | OpenQuok session only: **Copy**, **Open submit**, **Autofill** on reddit.com submit URLs; **Mark posted** → complete API |
+| Autofill | N/A (server sends post) | Title + RTE body via content script; **does not** click Post or call Reddit submit API |
+| Global vs Settings | Title/group/category required in Settings | Empty Settings OK for global copy-only; subreddit/title/link when Settings are filled |
+
+User docs: [Reddit](../../web/src/content/docs/social-integration/reddit.md), [Per-channel settings](../../web/src/content/docs/platforms/per-channel-settings.md) (Reddit section).
+
+### `BrowserPublishPort` (phase 2)
+
+Neutral comparison: some schedulers publish from the **member’s live browser session** on the network site (DOM automation), while OpenQuok v1 keeps platform tokens and Skool session material on the **server** after extension-assisted connect. Reddit is the opposite for publish: no server send — member completes on reddit.com with optional extension autofill.
+
+| Concern | Server path (shipped) | Browser port (stub) |
+| --- | --- | --- |
+| Skool | Encrypted cookies + API publish | Planned first `cookie_session` candidate — `skool` |
+| Reddit | Member browser handoff (awaiting member → complete API) | Shipped — copy / open submit / autofill; not `BrowserPublishPort` auto-click |
+| OAuth / credentials channels | API only | Not targeted for in-browser send |
+| Side panel **Schedule** | `createSocialPost` | Does not call the port until phase 2 |
+| Failure mode | API error toast | Stub returns `not_implemented` with user-facing copy |
+
+Implementation detail: `extension/src/social/browserPublishPort.ts` and the table above.
+
+---
+
 ## Related docs
 
+- Shipped user docs: [Browser extension](../../web/src/content/docs/installation/chrome-extension.md), [Connect a channel](../../web/src/content/docs/channels/connect.md), [Connect rules](../../web/src/content/docs/platforms/connect-rules.md)
 - Auto-launch architecture (protocol, tables, modal flow): `docs/auto-launch/architecture.md` (when added)
 - Future launch showcase (entries, boost stub, SKU): `docs/auto-launch/launch-showcase.md`
 - Internal implementation plan: auto-launch v1 modal + extension milestones in product planning (not duplicated here)
@@ -413,5 +490,9 @@ Use this checklist after local migrations and a fresh extension build. Goal: one
 
 | Date | Notes |
 | --- | --- |
+| 2026-10-28 | Reddit member browser complete — manual channel connect; extension copy/open/autofill; not server publish or cookie refresh |
+| 2026-10-26 | Social channel picker parity; composer media upload row + **Social tab — media attachments** manual checklist in chrome-extension doc |
+| 2026-10-25 | Social shell patterns; side panel vs popup; context menu draft; `BrowserPublishPort` stub; user docs links |
+| 2026-10-24 | Directory login notification banners — OpenQuok mapping, PeerPush/Uneed adapter selectors, gate content script |
 | 2026-10-16 | Uneed + PeerPush `profilePath` mapping tables; My Products card manual smoke test |
 | 2026-10-13 | Initial spike from CRX v1.4.6 unpack; PH-style step ids/labels and per-site manifest inventory |

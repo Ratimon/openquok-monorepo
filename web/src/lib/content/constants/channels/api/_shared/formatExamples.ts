@@ -1,3 +1,6 @@
+import redditGlobalCaption from '$openquok-core-examples/reddit-global-caption.json?raw';
+import redditSubredditTitle from '$openquok-core-examples/reddit-subreddit-title.json?raw';
+import redditWithImage from '$openquok-core-examples/reddit-with-image.json?raw';
 import blueskyFollowUp from '$openquok-core-examples/bluesky-follow-up.json?raw';
 import blueskyImages from '$openquok-core-examples/bluesky-images.json?raw';
 import blueskyTextOnly from '$openquok-core-examples/bluesky-text-only.json?raw';
@@ -70,7 +73,8 @@ function buildExamplesForCapability(
 		linkedin: 'LinkedIn',
 		bluesky: 'Bluesky',
 		devto: 'Dev.to',
-		skool: 'Skool'
+		skool: 'Skool',
+		reddit: 'Reddit'
 	};
 	const platformLabel = channelLabels[slug];
 
@@ -321,6 +325,27 @@ const SKOOL_ROWS = [
 	}
 ] as const;
 
+const REDDIT_ROWS = [
+	{
+		id: 'global-caption',
+		label: 'Global markdown caption',
+		requestJson: redditGlobalCaption,
+		sourceFile: 'reddit-global-caption.json'
+	},
+	{
+		id: 'subreddit-title',
+		label: 'Subreddit and title',
+		requestJson: redditSubredditTitle,
+		sourceFile: 'reddit-subreddit-title.json'
+	},
+	{
+		id: 'with-image',
+		label: 'With image handoff',
+		requestJson: redditWithImage,
+		sourceFile: 'reddit-with-image.json'
+	}
+] as const;
+
 export const PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM: Record<
 	PublicApiPlatformSlug,
 	{ posting: PublicApiFormatExample[]; scheduling: PublicApiFormatExample[] }
@@ -364,5 +389,9 @@ export const PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM: Record<
 	skool: {
 		posting: buildExamplesForCapability('skool', 'posting', [...SKOOL_ROWS]),
 		scheduling: buildExamplesForCapability('skool', 'scheduling', [...SKOOL_ROWS])
+	},
+	reddit: {
+		posting: buildExamplesForCapability('reddit', 'posting', [...REDDIT_ROWS]),
+		scheduling: buildExamplesForCapability('reddit', 'scheduling', [...REDDIT_ROWS])
 	}
 };
