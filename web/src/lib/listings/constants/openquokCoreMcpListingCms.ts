@@ -23,7 +23,7 @@ Authenticate with a programmatic token (\`opo_\`) from **Settings → Developers
 
 ## Typical chat flows
 
-- **Schedule** — \`integrationList\` then \`schedulePostTool\` (\`draft\` / \`schedule\` / \`now\`). Extra \`postsAndComments\` strings are same-account reply chains. Cross-account comment/repost belongs in \`settings\` (\`threads.crossAccountPlugs\`, \`x.crossAccountPlugs\`, LinkedIn plugs) on the publishing channel.
+- **Schedule** — \`integrationList\` then \`schedulePostTool\` (\`draft\` / \`schedule\` / \`now\`). Extra \`postsAndComments\` strings are same-account reply chains. Cross-account comment/repost belongs in \`settings\` (\`threads.crossAccountPlugs\`, \`x.crossAccountPlugs\`, LinkedIn plugs) on the publishing channel. **Reddit:** draft/handoff only — OpenQuok does not publish to reddit.com; \`schedule\`/\`now\` queue a due-time reminder (\`AWAITING_MEMBER\`), not a live Reddit post.
 - **Media** — \`uploadFromUrl\` (public HTTPS URL) then pass \`{id, path}\` into schedule settings, or pass URLs on \`schedulePostTool.attachments\`.
 - **Manage** — \`postsList\`, \`postsStatus\`, \`postsReschedule\`, \`postsDelete\`, \`postsReviewTodo\`; missing \`release_id\`: \`postsMissing\` then \`postsConnect\`.
 - **Analytics** — \`analyticsPlatform\` / \`analyticsPost\` with \`days\` 7, 30, or 90.
@@ -47,7 +47,7 @@ export const OPENQUOK_CORE_MCP_LISTING_TOOLS: readonly McpListingToolRow[] = [
 	{
 		name: 'integrationSchema',
 		description:
-			'Return posting rules, character limits, compose settings schema, and allow-listed tools for a platform (provider identifier, e.g. threads, facebook).'
+			'Return posting rules, character limits, compose settings schema, and allow-listed tools for a platform. For Reddit, includes extensionPublishMode member_browser_handoff and agentNote (draft/handoff — no server publish to reddit.com).'
 	},
 	{
 		name: 'triggerTool',
@@ -57,7 +57,7 @@ export const OPENQUOK_CORE_MCP_LISTING_TOOLS: readonly McpListingToolRow[] = [
 	{
 		name: 'schedulePostTool',
 		description:
-			'Create or schedule social posts across connected channels (draft, schedule, publish-now). Per-channel settings support follow-ups, internalEngagementPlug, and crossAccountPlugs (comment/repost from another connected account).'
+			'Create or schedule social posts across connected channels (draft, schedule, publish-now). Reddit exception: draft/handoff only — member submits on reddit.com; schedule/now queue AWAITING_MEMBER, not server publish. Cross-account plugs via settings on the publisher.'
 	},
 	{
 		name: 'uploadFromUrl',

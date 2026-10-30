@@ -282,5 +282,21 @@ describe("schedulePostTool.adapter", () => {
                 output: [{ postId, integration: "threads" }],
             });
         });
+
+        it("marks Reddit rows as member browser handoff with agent guidance", () => {
+            const redditIntegrationId = faker.string.uuid();
+            const postId = faker.string.uuid();
+            const out = formatSchedulePostToolOutput(
+                [{ id: postId, integration_id: redditIntegrationId }],
+                { [redditIntegrationId]: "reddit" }
+            );
+            expect(out.output[0]).toMatchObject({
+                postId,
+                integration: "reddit",
+                memberBrowserHandoff: true,
+                agentNote: expect.stringContaining("not server-published"),
+            });
+            expect(out.workspaceAgentNote).toContain("reddit.com");
+        });
     });
 });

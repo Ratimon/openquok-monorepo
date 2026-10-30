@@ -92,7 +92,22 @@ export {
 	type LaunchStep,
 	type LaunchStepField,
 	type LaunchStepFieldFillMode,
+	DEFAULT_EXTENSION_PUBLISH_MODE,
+	resolveExtensionPublishMode,
+	type ExtensionPublishMode,
+	type ExtensionPublishModeInput,
 } from './browser-extension/index.js';
+export {
+	formatRedditCommunityInput,
+	parseRedditCommunityInput,
+	redditCommunitySlugOnly,
+	redditCommunitySlugValidationError,
+	redditCommunityValidationError,
+	redditSubmitPathForCommunity,
+	REDDIT_COMMUNITY_SLUG_MAX_LENGTH,
+	type RedditCommunityKind,
+	type RedditCommunityTarget,
+} from './reddit/redditCommunityTarget.js';
 export {
 	buildListingProfileFingerprintPayload,
 	collectProfilePathsFromExtensionConfig,

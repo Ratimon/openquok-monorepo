@@ -76,6 +76,13 @@
 			iconContainerClass: item.iconContainerClass
 		}))
 	);
+
+	const trustBadges = $derived(
+		landing.trustBadges.map((badge) => ({
+			...badge,
+			href: badge.href ? hostedMarketingHref(badge.href, page.url.origin) : undefined
+		}))
+	);
 </script>
 
 <JsonLdHead schemaData={schemaData} />
@@ -86,7 +93,7 @@
 		description={landing.hero.description}
 		primaryCta={landing.hero.primaryCta}
 		secondaryCta={landing.hero.secondaryCta}
-		trustBadges={landing.trustBadges}
+		trustBadges={trustBadges}
 		githubOwner="Ratimon"
 		githubRepo="openquok-monorepo"
 	/>

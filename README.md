@@ -20,6 +20,7 @@
   · <a href="https://www.openquok.com/tools/skill-builder">Skill Builder</a>
   · <a href="https://www.openquok.com/tools/photo-editor">Photo Editor</a>
   · <a href="https://www.openquok.com/tools/humanizer">Humanizer</a>
+  · <a href="https://www.openquok.com/browser-extension">Browser extension</a>
   · <a href="https://www.openquok.com/docs/getting-started-for-public-api">Public API</a>
   · <a href="https://www.openquok.com/pricing">Pricing</a>
 </p>
@@ -32,6 +33,7 @@ Draft and schedule social posts. Review each post before publish. Build product 
 
 ### Social Scheduling
 
+- <img src="./assets/readme/features/calendar.svg" alt="" width="24" height="24" align="top"> **[Browser extension](https://www.openquok.com/browser-extension).** Schedule from any Chrome tab with the side panel, connect Skool while signed in on skool.com, start drafts from right-click, and use Reddit handoff helpers — see the [install guide](https://www.openquok.com/docs/installation/chrome-extension).
 - <img src="./assets/readme/features/accounts.svg" alt="" width="24" height="24" align="top"> **[Connect social channels](https://www.openquok.com/docs/channels/connect).** Add Facebook Page, Threads, Instagram, LinkedIn, X, YouTube, TikTok, Dev.to, Bluesky, and Skool to a workspace. Each network keeps its own posting rules and limits — see the [social channel catalog](https://www.openquok.com/channels).
 - <img src="./assets/readme/features/compose.svg" alt="" width="24" height="24" align="top"> **[Compose for each platform](https://www.openquok.com/docs/creating-posts).** Write once in Global mode or unlock a channel for its own caption, media, and settings. Preview each version before you schedule — see [Global vs per-channel](https://www.openquok.com/docs/creating-posts/global-vs-per-channel).
 - <img src="./assets/readme/features/photo-editor.svg" alt="" width="24" height="24" align="top"> **[Photo editor](https://www.openquok.com/tools/photo-editor).** Design and resize visuals for social channels in your browser. Pick platform aspect ratios, export PNG free, or save to your workspace when signed in.
@@ -46,7 +48,7 @@ Draft and schedule social posts. Review each post before publish. Build product 
 
 ### Directory launch
 
-- <img src="./assets/readme/features/compose.svg" alt="" width="24" height="24" align="top"> **[Directory submission](https://www.openquok.com/docs/directory-submission).** Build a product profile on [My Products](https://www.openquok.com/account/products), pick destinations such as PeerPush and Uneed, and launch with the [browser extension](https://www.openquok.com/docs/installation/chrome-extension). You review each form and submit on the directory site.
+- <img src="./assets/readme/features/compose.svg" alt="" width="24" height="24" align="top"> **[Directory submission](https://www.openquok.com/docs/directory-submission).** Build a product profile on [My Products](https://www.openquok.com/account/products), pick destinations such as PeerPush and Uneed, and launch with the [browser extension](https://www.openquok.com/browser-extension) ([install guide](https://www.openquok.com/docs/installation/chrome-extension)). You review each form and submit on the directory site.
 - <img src="./assets/readme/features/approvals.svg" alt="" width="24" height="24" align="top"> **[Listing readiness and tracking](https://www.openquok.com/docs/directory-submission/track-submissions).** See required fields, save live listing URLs, and use per-site variants — see [Profile variants](https://www.openquok.com/docs/directory-submission/profile-variants).
 - <img src="./assets/readme/features/analytics.svg" alt="" width="24" height="24" align="top"> **[Directory analytics](https://www.openquok.com/docs/directory-submission/directory-analytics).** Track domain rating for your product site and compare competitors on the **Directory** tab in [Analytics](https://www.openquok.com/account/analytics) (paid plans).
 - <img src="./assets/readme/features/automation.svg" alt="" width="24" height="24" align="top"> **[Directory launch API, CLI, and MCP](https://www.openquok.com/docs/apis-directory-launch).** List profiles, ensure variants, and check listing readiness programmatically — [CLI](https://www.openquok.com/docs/cli-usages/directory-launch), [MCP tools](https://www.openquok.com/docs/mcp-references/tools#directory-launch), and the [openquok-directory-launch](https://www.openquok.com/docs/other-skills/openquok-directory-launch) skill.
@@ -84,7 +86,7 @@ OpenQuok documents **social posting channels** and **directory launch destinatio
 
 OpenQuok ships OAuth or API integrations for **Facebook Page**, **Threads**, **Instagram** (Business and Standalone), **LinkedIn** profile and Page, **X**, **YouTube**, **TikTok**, **Reddit**, **Dev.to**, **Bluesky**, and **Skool**.
 
-Dev.to and Bluesky connect with credentials you paste in Add Channel — no OAuth redirect. Skool connects with the OpenQuok browser extension while you are signed in on skool.com.
+Dev.to and Bluesky connect with credentials you paste in Add Channel — no OAuth redirect. Skool connects with the [OpenQuok browser extension](https://www.openquok.com/browser-extension) while you are signed in on skool.com.
 
 Posting formats, follow-up comments, and social analytics vary by network. Some integrations require provider app approval or publicly reachable media URLs on self-hosted deployments.
 
@@ -97,11 +99,11 @@ Posting formats, follow-up comments, and social analytics vary by network. Some 
   <a href="https://www.openquok.com/channels/uneed"><img src="./web/static/icons/link-directory/uneed.svg" alt="Uneed" width="32" height="32"></a>
 </p>
 
-**PeerPush** and **Uneed** use a product profile on [My Products](https://www.openquok.com/account/products) and the same [browser extension](https://www.openquok.com/docs/installation/chrome-extension) as Skool — for directory autofill, not OAuth to the directory site. You submit on peerpush.com and uneed.best yourself.
+**PeerPush** and **Uneed** use a product profile on [My Products](https://www.openquok.com/account/products) and the same [browser extension](https://www.openquok.com/browser-extension) as Skool — for directory autofill, not OAuth to the directory site. You submit on peerpush.com and uneed.best yourself.
 
 Directory site keys, variants, and extension handoff are in [Directory integration](https://www.openquok.com/docs/directory-integration) and [Connect rules → Directory launch](https://www.openquok.com/docs/platforms/connect-rules#directory-launch-platforms).
 
-[Directory submission](https://www.openquok.com/docs/directory-submission) · [Directory submission tool](https://www.openquok.com/directory-submission-tool) · [Directory channel catalog](https://www.openquok.com/channels#public-directory-channels-hub-heading)
+[Directory submission](https://www.openquok.com/docs/directory-submission) · [Directory submission tool](https://www.openquok.com/directory-submission-tool) · [Browser extension](https://www.openquok.com/browser-extension) · [Directory channel catalog](https://www.openquok.com/channels#public-directory-channels-hub-heading)
 
 ## Supported Agents & MCP
 
@@ -199,7 +201,7 @@ docker compose -f infra/self-host/docker-compose.yml up --build
 
 **Pull pre-built images (optional)** — skip local builds for API and workers when published tags exist (`ghcr.io/ratimon/openquok-*` or `docker.io/ratimon/openquok-*`). Set `OPENQUOK_IMAGE_TAG` in `.env`, use the `docker-compose.images.yml` overlay, `pull`, then `up` — you still **`compose build web`** unless your `VITE_*` match the published web bake. Details: [Docker (pre-built images)](https://www.openquok.com/docs/installation/docker). Maintainers: [infra/self-host/PUBLISHING.md](infra/self-host/PUBLISHING.md) (tag `self-host-v<semver>` → CI publish).
 
-When the stack is up, open the UI at **http://localhost:4007** (API at **http://localhost:3000**). Full env and bring-up steps: [Docker Compose (self-host)](https://www.openquok.com/docs/installation/docker-compose).
+When the stack is up, open the UI at **http://localhost:4007** (API at **http://localhost:3000**). Full env and bring-up steps: [Docker Compose (self-host)](https://www.openquok.com/docs/installation/docker-compose). For Skool connect, side-panel scheduling, directory autofill, and Reddit handoff on your origin, see [Self-host OpenQuok](https://www.openquok.com/self-hosting) and the [browser extension](https://www.openquok.com/browser-extension) product page ([install guide](https://www.openquok.com/docs/installation/chrome-extension)).
 
 ---
 

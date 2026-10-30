@@ -55,3 +55,9 @@ export {
 	type LaunchStepFieldFillMode,
 } from './pageAssist.js';
 export type { BrowserExtensionCookieRef } from './types.js';
+export {
+	DEFAULT_EXTENSION_PUBLISH_MODE,
+	resolveExtensionPublishMode,
+	type ExtensionPublishMode,
+	type ExtensionPublishModeInput,
+} from './extensionPublishMode.js';

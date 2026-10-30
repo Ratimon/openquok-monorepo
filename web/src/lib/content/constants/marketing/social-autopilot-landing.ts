@@ -12,7 +12,7 @@ import {
 	PUBLIC_SOCIAL_AUTOPILOT_FAQ_ITEM_IDS
 } from '$lib/content/constants/faq';
 import { PUBLIC_LANDING_HERO_TRIAL_CTA } from '$lib/content/constants/landing/hero-copy';
-import { faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+import { faqHrefDocs, faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 import type { PublicLandingHeroStatBadge } from '$lib/content/constants/marketing/publicLandingHeroStatBadges';
 import { route } from '$lib/utils/path';
@@ -98,6 +98,10 @@ const tailoredFaqItems: readonly PublicFaqItem[] = [
 	{
 		title: 'Can I schedule from Grok Bot or other agent hosts?',
 		description: `Yes. Install openquok-core on ${faqLink(publicFaqHref.grokBotLanding, 'Grok Bot')}, OpenClaw, ThinkRail, or other hosts listed in the ${faqLink(agentsHubHref, 'Agents hub')}. Chat-to-schedule uses the same review queue as the dashboard — see ${faqLink(publicFaqHref.grokBotAgentGuide, 'Grok Bot setup')}.`
+	},
+	{
+		title: 'Can I schedule from Chrome without opening the dashboard?',
+		description: `Yes. Install the OpenQuok browser extension and use the side panel from any tab — same channels, drafts, and approval flow as the dashboard. See the ${faqLink(publicFaqHref.browserExtensionLanding, 'browser extension')} page and the ${faqLink(faqHrefDocs('installation/chrome-extension'), 'install guide')}.`
 	}
 ];
 

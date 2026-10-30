@@ -5,7 +5,6 @@ import {
 } from '$lib/content/constants/faq';
 import type { PublicMarketingLandingFaqSection } from '$lib/content/constants/faq/marketing/types';
 import { getRootPathPublicAgentChannel } from '$lib/area-public/constants/getRootPathPublicAgents';
-import { getRootPathPublicBrowserExtensionLanding } from '$lib/area-public/constants/getRootPathPublicBrowserExtensionLanding';
 import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
 import { getRootPathPublicDirectorySubmissionTool } from '$lib/area-public/constants/getRootPathPublicDirectorySubmissionTool';
 import { getRootPathPublicSocialAutopilotLanding } from '$lib/area-public/constants/getRootPathPublicSocialAutopilotLanding';
@@ -16,7 +15,7 @@ const chromeExtensionDocsHref = faqHrefDocs('installation/chrome-extension');
 const connectChannelsHref = publicFaqHref.connectChannelsGuide;
 const connectRulesHref = faqHrefDocs('platforms/connect-rules');
 const directorySubmissionDocsHref = faqHrefDocs('directory-submission');
-const browserExtensionLandingHref = route(getRootPathPublicBrowserExtensionLanding());
+const browserExtensionLandingHref = publicFaqHref.browserExtensionLanding;
 const socialAutopilotLandingHref = route(getRootPathPublicSocialAutopilotLanding());
 const directorySubmissionToolHref = route(getRootPathPublicDirectorySubmissionTool());
 const redditChannelHref = route(getRootPathPublicChannel('reddit'));
@@ -25,7 +24,7 @@ const cursorRedditAgentHref = route(getRootPathPublicAgentChannel('cursor', 'red
 const BROWSER_EXTENSION_TAILORED_FAQ_ITEMS: readonly PublicFaqItem[] = [
 	{
 		title: 'Does the extension replace Add Channel in the dashboard?',
-		description: `No. OAuth and credential networks still connect in the dashboard with ${faqLink(connectChannelsHref, 'Add Channel')}. The extension adds a ${faqLink(chromeExtensionDocsHref, 'Chrome side panel')} to schedule or draft to channels you already connected, plus in-browser connect and directory autofill when a live browser session is required. See ${faqLink(connectRulesHref, 'connect rules')} for which flows use the extension.`
+		description: `No. OAuth and credential networks still connect in the dashboard with ${faqLink(connectChannelsHref, 'Add Channel')}. The extension adds a Chrome side panel to schedule or draft to channels you already connected, plus in-browser connect and directory autofill when a live browser session is required. Product overview: ${faqLink(browserExtensionLandingHref, 'browser extension')}. See ${faqLink(connectRulesHref, 'connect rules')} for which flows use the extension.`
 	},
 	{
 		title: 'Which social networks can I schedule from the side panel?',
@@ -33,7 +32,7 @@ const BROWSER_EXTENSION_TAILORED_FAQ_ITEMS: readonly PublicFaqItem[] = [
 	},
 	{
 		title: 'Can I start a post from text or images on a page?',
-		description: `Yes. Right-click selected text, a link, or an image and send it into the side panel — like drafting from whatever you are reading. OpenQuok opens the Social tab with your draft ready; publishing still runs on OpenQuok after you submit. Details in the ${faqLink(chromeExtensionDocsHref, 'install guide')}.`
+		description: `Yes. Right-click selected text, a link, or an image and send it into the side panel — like drafting from whatever you are reading. OpenQuok opens the Social tab with your draft ready; publishing still runs on OpenQuok after you submit. See the ${faqLink(browserExtensionLandingHref, 'browser extension')} page and the ${faqLink(chromeExtensionDocsHref, 'install guide')}.`
 	},
 	{
 		title: 'How does directory autofill work?',
@@ -41,7 +40,7 @@ const BROWSER_EXTENSION_TAILORED_FAQ_ITEMS: readonly PublicFaqItem[] = [
 	},
 	{
 		title: 'Can I use the extension with self-hosted OpenQuok?',
-		description: `Yes. Sign in on your self-host dashboard origin from the side panel (or keep a signed-in tab on that host). Set ${faqLink(faqHrefDocs('configuration-web'), 'VITE_OPENQUOK_BROWSER_EXTENSION_ID')} on the web app and add your HTTPS origin to the extension manifest when you build from source. Details are in the ${faqLink(chromeExtensionDocsHref, 'browser extension install guide')}.`
+		description: `Yes. Sign in on your self-host dashboard origin from the side panel (or keep a signed-in tab on that host). Set ${faqLink(faqHrefDocs('configuration-web'), 'VITE_OPENQUOK_BROWSER_EXTENSION_ID')} on the web app and add your HTTPS origin to the extension manifest when you build from source. See ${faqLink(publicFaqHref.selfHostingLanding, 'self-host OpenQuok')}, the ${faqLink(browserExtensionLandingHref, 'browser extension')} page, and the ${faqLink(chromeExtensionDocsHref, 'install guide')}.`
 	},
 	{
 		title: 'Is Reddit posting automated through the extension?',

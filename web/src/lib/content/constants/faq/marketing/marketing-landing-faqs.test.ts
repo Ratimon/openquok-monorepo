@@ -17,8 +17,9 @@ describe('PUBLIC_SOCIAL_AUTOPILOT_LANDING_FAQ_SECTION', () => {
 		const items = PUBLIC_SOCIAL_AUTOPILOT_LANDING_FAQ_SECTION.faqItems;
 
 		expect(items[0]?.id).toBe('switch-from-buffer-hootsuite');
-		expect(items.at(-1)?.title).toBe('Can I schedule from Grok Bot or other agent hosts?');
-		expect(items.at(-2)?.title).toBe('Do agents post without my approval?');
+		expect(items.at(-1)?.title).toBe('Can I schedule from Chrome without opening the dashboard?');
+		expect(items.at(-2)?.title).toBe('Can I schedule from Grok Bot or other agent hosts?');
+		expect(items.at(-3)?.title).toBe('Do agents post without my approval?');
 	});
 
 	it('includes catalog and agent-host links without duplicate channel or MCP primers', () => {
@@ -28,6 +29,7 @@ describe('PUBLIC_SOCIAL_AUTOPILOT_LANDING_FAQ_SECTION', () => {
 
 		expect(html).toContain('/compare/openquok/buffer');
 		expect(html).toContain(`href="${publicFaqHref.grokBotLanding}"`);
+		expect(html).toContain(`href="${publicFaqHref.browserExtensionLanding}"`);
 		expect(html).toContain(`href="${publicFaqHref.connectChannelsGuide}"`);
 		expect(items.some((item) => item.id === 'what-is-mcp')).toBe(true);
 		expect(items.some((item) => item.id === 'what-is-channel')).toBe(true);
@@ -44,6 +46,7 @@ describe('PUBLIC_DIRECTORY_SUBMISSION_LANDING_FAQ_SECTION', () => {
 
 		expect(html).toContain(`href="${publicFaqHref.signUp}"`);
 		expect(html).toContain(`href="${faqHrefDocs('directory-submission')}"`);
+		expect(html).toContain(`href="${publicFaqHref.browserExtensionLanding}"`);
 		expect(html).toContain(`href="${faqHrefDocs('installation/chrome-extension')}"`);
 	});
 

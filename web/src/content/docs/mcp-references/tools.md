@@ -86,10 +86,14 @@ Return posting rules, character limits, compose settings schema, and allow-liste
     "rules": "…",
     "maxLength": 500,
     "settings": { },
-    "tools": []
+    "tools": [],
+    "extensionPublishMode": "member_browser_handoff",
+    "agentNote": "Reddit handoff only — not server-published…"
   }
 }
 ```
+
+For <Badge text="reddit" variant="default" />, <Badge text="extensionPublishMode" variant="param" /> is <Badge text="member_browser_handoff" variant="default" /> and <Badge text="agentNote" variant="param" /> explains draft/handoff (omit on OAuth channels).
 
 ### triggerTool
 
@@ -109,7 +113,7 @@ Invoke an allow-listed provider method on a connected channel (same behavior as 
 
 ### schedulePostTool
 
-Create or schedule posts across one or more connected channels.
+Create or schedule posts across one or more connected channels. On <Badge text="reddit" variant="default" />, treat this as **draft/handoff** — OpenQuok does not publish to reddit.com from the server (see callout below).
 
 **Input:**
 
@@ -140,6 +144,10 @@ Each <Badge text="socialPost" variant="param" /> entry:
   ]
 }
 ```
+
+<Callout type="warning">
+<p><Badge text="reddit" variant="default" /> uses <strong>member browser handoff</strong>, not server-side publish. <Badge text="schedulePostTool" variant="default" /> with <Badge text="type" variant="param" /> <Badge text="draft" variant="default" /> prepares title, subreddit, and body for review. <Badge text="schedule" variant="default" /> or <Badge text="now" variant="default" /> only queues a due-time reminder — at publish time the post becomes <Badge text="AWAITING_MEMBER" variant="default" /> and the member submits on reddit.com (the OpenQuok extension can assist). Do not tell users the post went live on Reddit from MCP alone. Call <Badge text="integrationSchema" variant="default" /> with <Badge text="platform" variant="param" /> <Badge text="reddit" variant="default" /> for <Badge text="extensionPublishMode" variant="param" /> and <Badge text="agentNote" variant="param" />.</p>
+</Callout>
 
 <Callout type="tip">
 <p>On <Badge text="threads" variant="default" /> and <Badge text="x" variant="default" />, the first <Badge text="postsAndComments" variant="param" /> string is the main thread; remaining strings map to same-account reply chains. Cross-account comments or reposts belong in <Badge text="settings" variant="param" /> — <Badge text="threads.crossAccountPlugs" variant="param" />, <Badge text="x.crossAccountPlugs" variant="param" />, or <Badge text="linkedin.crossAccountPlugs" variant="param" /> — with acting channel UUIDs from <Badge text="integrationList" variant="default" />. See <a href="/docs/mcp-examples/threads">MCP examples — Threads</a> and <a href="/docs/cli-examples/threads">CLI examples — Threads</a>.</p>
