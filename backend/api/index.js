@@ -425,11 +425,15 @@ var init_messages = __esm({
 });
 
 // ../common/dist/browser-extension/cookieSessionProviders.js
-var SKOOL_PROVIDER, COOKIE_SESSION_PROVIDERS;
+function getCookieSessionProvider(identifier) {
+  return providersById.get(identifier);
+}
+var SKOOL_PROVIDER, COOKIE_SESSION_PROVIDERS, providersById;
 var init_cookieSessionProviders = __esm({
   "../common/dist/browser-extension/cookieSessionProviders.js"() {
     SKOOL_PROVIDER = {
       identifier: "skool",
+      publishMode: "server_api",
       name: "Skool",
       cookieUrl: "https://www.skool.com/",
       hostPermission: "*://*.skool.com/*",
@@ -439,17 +443,47 @@ var init_cookieSessionProviders = __esm({
       ]
     };
     COOKIE_SESSION_PROVIDERS = [SKOOL_PROVIDER];
-    new Map(COOKIE_SESSION_PROVIDERS.map((provider) => [provider.identifier, provider]));
+    providersById = new Map(COOKIE_SESSION_PROVIDERS.map((provider) => [provider.identifier, provider]));
+  }
+});
+
+// ../common/dist/auto-launch/directorySiteKey.js
+function directorySiteKeyFromProviderSlug(providerSlug, publishedSiteSlugs = []) {
+  const trimmed = providerSlug.trim();
+  const slugs = [...publishedSiteSlugs].sort((a, b) => b.length - a.length);
+  for (const slug of slugs) {
+    if (trimmed === slug || trimmed.startsWith(`${slug}-`)) {
+      return slug;
+    }
+  }
+  const dash = trimmed.indexOf("-");
+  return dash === -1 ? trimmed : trimmed.slice(0, dash);
+}
+var init_directorySiteKey = __esm({
+  "../common/dist/auto-launch/directorySiteKey.js"() {
   }
 });
 
 // ../common/dist/browser-extension/pageAssist.js
 function listDirectoryLaunchProviderSummaries() {
-  return directoryLaunchProviders.map(({ identifier, name }) => ({ identifier, name }));
+  return directoryLaunchProviders.map(({ identifier, name, tierLabel }) => ({
+    identifier,
+    name,
+    tierLabel
+  }));
+}
+function normalizeDirectoryLaunchHostname(hostname) {
+  const trimmed = hostname.trim().toLowerCase();
+  return trimmed.startsWith("www.") ? trimmed.slice(4) : trimmed;
+}
+function hostnameFromDirectoryLaunchHostPattern(pattern) {
+  const match = /^https?:\/\/([^/*]+)/i.exec(pattern);
+  return match ? normalizeDirectoryLaunchHostname(match[1]) : null;
 }
 var LAUNCH_STEP_FIELD_FILL_MODES, UNEED_HOST_PATTERNS, UNEED_HOST_PERMISSION, UNEED_JOIN_LINE, UNEED_PAID_LAUNCH, UNEED_MAKER_PROFILE, PEERPUSH_HOST_PATTERNS, PEERPUSH_HOST_PERMISSION, PEERPUSH_STANDARD_LAUNCH, PEERPUSH_FREE_QUEUE, directoryLaunchProviders;
 var init_pageAssist = __esm({
   "../common/dist/browser-extension/pageAssist.js"() {
+    init_directorySiteKey();
     LAUNCH_STEP_FIELD_FILL_MODES = [
       "text",
       "select",
@@ -467,24 +501,27 @@ var init_pageAssist = __esm({
     UNEED_JOIN_LINE = {
       identifier: "uneed-join-line",
       name: "Uneed \u2014 Join the line",
+      tierLabel: "Free",
       defaultStartUrl: "https://uneed.best/pricing",
-      contentScriptEntry: "content/directory-launch/uneed-join-line.js",
+      contentScriptEntry: "content/directory-launch/openquok-directory-uneed.js",
       hostPatterns: UNEED_HOST_PATTERNS,
       hostPermission: UNEED_HOST_PERMISSION
     };
     UNEED_PAID_LAUNCH = {
       identifier: "uneed-paid-launch",
       name: "Uneed \u2014 Paid launch",
+      tierLabel: "Paid",
       defaultStartUrl: "https://uneed.best/pricing",
-      contentScriptEntry: "content/directory-launch/uneed-paid-launch.js",
+      contentScriptEntry: "content/directory-launch/openquok-directory-uneed.js",
       hostPatterns: UNEED_HOST_PATTERNS,
       hostPermission: UNEED_HOST_PERMISSION
     };
     UNEED_MAKER_PROFILE = {
       identifier: "uneed-maker-profile",
       name: "Uneed \u2014 Maker profile",
+      tierLabel: "Free",
       defaultStartUrl: "https://uneed.best/profile",
-      contentScriptEntry: "content/directory-launch/uneed-maker-profile.js",
+      contentScriptEntry: "content/directory-launch/openquok-directory-uneed.js",
       hostPatterns: UNEED_HOST_PATTERNS,
       hostPermission: UNEED_HOST_PERMISSION
     };
@@ -496,16 +533,18 @@ var init_pageAssist = __esm({
     PEERPUSH_STANDARD_LAUNCH = {
       identifier: "peerpush-standard-launch",
       name: "PeerPush \u2014 Standard launch",
+      tierLabel: "Paid",
       defaultStartUrl: "https://peerpush.com/submit",
-      contentScriptEntry: "content/directory-launch/peerpush-standard-launch.js",
+      contentScriptEntry: "content/directory-launch/openquok-directory-peerpush.js",
       hostPatterns: PEERPUSH_HOST_PATTERNS,
       hostPermission: PEERPUSH_HOST_PERMISSION
     };
     PEERPUSH_FREE_QUEUE = {
       identifier: "peerpush-free-queue",
       name: "PeerPush \u2014 Free queue",
+      tierLabel: "Free",
       defaultStartUrl: "https://peerpush.com/pricing",
-      contentScriptEntry: "content/directory-launch/peerpush-free-queue.js",
+      contentScriptEntry: "content/directory-launch/openquok-directory-peerpush.js",
       hostPatterns: PEERPUSH_HOST_PATTERNS,
       hostPermission: PEERPUSH_HOST_PERMISSION
     };
@@ -517,6 +556,44 @@ var init_pageAssist = __esm({
       PEERPUSH_STANDARD_LAUNCH
     ];
     new Map(directoryLaunchProviders.map((provider) => [provider.identifier, provider]));
+    (() => {
+      const map = /* @__PURE__ */ new Map();
+      for (const provider of directoryLaunchProviders) {
+        const siteKey = directorySiteKeyFromProviderSlug(provider.identifier);
+        for (const pattern of provider.hostPatterns) {
+          const host = hostnameFromDirectoryLaunchHostPattern(pattern);
+          if (host) {
+            map.set(host, siteKey);
+          }
+        }
+      }
+      return map;
+    })();
+  }
+});
+
+// ../common/dist/browser-extension/extensionPublishMode.js
+function resolveExtensionPublishMode(input) {
+  if (input.extensionPublishMode) {
+    return input.extensionPublishMode;
+  }
+  const id = input.identifier?.trim().toLowerCase();
+  if (id) {
+    const cookieProvider = getCookieSessionProvider(id);
+    if (cookieProvider) {
+      return cookieProvider.publishMode;
+    }
+  }
+  if (input.isChromeExtension) {
+    return DEFAULT_EXTENSION_PUBLISH_MODE;
+  }
+  return void 0;
+}
+var DEFAULT_EXTENSION_PUBLISH_MODE;
+var init_extensionPublishMode = __esm({
+  "../common/dist/browser-extension/extensionPublishMode.js"() {
+    init_cookieSessionProviders();
+    DEFAULT_EXTENSION_PUBLISH_MODE = "server_api";
   }
 });
 
@@ -527,6 +604,74 @@ var init_browser_extension = __esm({
     init_messages();
     init_cookieSessionProviders();
     init_pageAssist();
+    init_extensionPublishMode();
+  }
+});
+
+// ../common/dist/reddit/redditCommunityTarget.js
+function redditCommunitySlugOnly(raw) {
+  const trimmed = raw.trim();
+  if (!trimmed)
+    return "";
+  const withoutKind = trimmed.replace(/^(r|u)\//i, "");
+  let slug = withoutKind.replace(/^\/+/, "").trim();
+  slug = slug.replace(/\/+$/, "");
+  const slashIdx = slug.indexOf("/");
+  if (slashIdx >= 0)
+    slug = slug.slice(0, slashIdx);
+  return slug;
+}
+function parseRedditCommunityInput(raw) {
+  const trimmed = raw.trim();
+  if (!trimmed)
+    return null;
+  const lower = trimmed.toLowerCase();
+  let kind = "subreddit";
+  let rest = trimmed;
+  if (lower.startsWith("u/")) {
+    kind = "user";
+    rest = trimmed.slice(2);
+  } else if (lower.startsWith("r/")) {
+    kind = "subreddit";
+    rest = trimmed.slice(2);
+  }
+  const slug = redditCommunitySlugOnly(rest);
+  if (!slug)
+    return null;
+  return { kind, slug };
+}
+function formatRedditCommunityInput(raw) {
+  const parsed = parseRedditCommunityInput(raw);
+  if (!parsed)
+    return "";
+  const prefix = parsed.kind === "user" ? "u" : "r";
+  return `${prefix}/${parsed.slug}`;
+}
+function redditCommunitySlugValidationError(slug) {
+  if (!slug)
+    return null;
+  if (slug.length > REDDIT_COMMUNITY_SLUG_MAX_LENGTH) {
+    return `Names must be at most ${REDDIT_COMMUNITY_SLUG_MAX_LENGTH} characters`;
+  }
+  if (!SLUG_PATTERN.test(slug)) {
+    return "Enter a valid name (letters, numbers, and underscores only)";
+  }
+  return null;
+}
+function redditCommunityValidationError(raw) {
+  const canonical = formatRedditCommunityInput(raw);
+  if (!canonical)
+    return null;
+  const parsed = parseRedditCommunityInput(canonical);
+  if (!parsed)
+    return null;
+  return redditCommunitySlugValidationError(parsed.slug);
+}
+var REDDIT_COMMUNITY_SLUG_MAX_LENGTH, SLUG_PATTERN;
+var init_redditCommunityTarget = __esm({
+  "../common/dist/reddit/redditCommunityTarget.js"() {
+    REDDIT_COMMUNITY_SLUG_MAX_LENGTH = 21;
+    SLUG_PATTERN = /^[A-Za-z0-9_]+$/;
   }
 });
 
@@ -783,23 +928,6 @@ var init_profileSimilarityToMain = __esm({
   "../common/dist/auto-launch/profileSimilarityToMain.js"() {
     init_listingProfileFingerprint();
     BASE_PROFILE_PATHS = ["name", "tagline", "description", "website_url", "logo_url"];
-  }
-});
-
-// ../common/dist/auto-launch/directorySiteKey.js
-function directorySiteKeyFromProviderSlug(providerSlug, publishedSiteSlugs = []) {
-  const trimmed = providerSlug.trim();
-  const slugs = [...publishedSiteSlugs].sort((a, b) => b.length - a.length);
-  for (const slug of slugs) {
-    if (trimmed === slug || trimmed.startsWith(`${slug}-`)) {
-      return slug;
-    }
-  }
-  const dash = trimmed.indexOf("-");
-  return dash === -1 ? trimmed : trimmed.slice(0, dash);
-}
-var init_directorySiteKey = __esm({
-  "../common/dist/auto-launch/directorySiteKey.js"() {
   }
 });
 
@@ -1168,6 +1296,7 @@ var init_dist = __esm({
     init_types();
     init_pricing();
     init_browser_extension();
+    init_redditCommunityTarget();
     init_listingProfileFingerprint();
     init_profileSimilarityToMain();
     init_directorySiteKey();
@@ -4012,6 +4141,31 @@ var init_AuthController = __esm({
           ...domain ? { domain } : {}
         });
       }
+      clearRefreshTokenCookie(res) {
+        const isProduction = serverConfig4.nodeEnv === "production";
+        const domain = (() => {
+          if (!isProduction) return void 0;
+          try {
+            const backUrl = new URL(serverConfig4.backendDomainUrl ?? "");
+            const hostname = backUrl.hostname;
+            if (hostname === "localhost") return void 0;
+            if (/^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)) return void 0;
+            const site = this.getSiteKey(hostname);
+            if (hostname !== site && hostname.endsWith(`.${site}`)) return site;
+            return void 0;
+          } catch {
+            return void 0;
+          }
+        })();
+        const attrs = {
+          httpOnly: true,
+          secure: isProduction,
+          sameSite: this.getSameSiteValue(),
+          path: "/",
+          ...domain ? { domain } : {}
+        };
+        res.clearCookie("refreshToken", attrs);
+      }
       /**
        * Mitigate CSRF for endpoints that rely on the refreshToken cookie (SameSite=None in cross-site deployments).
        *
@@ -4383,7 +4537,7 @@ var init_AuthController = __esm({
               logger.warn({ msg: "Failed to revoke refresh token", error: err.message });
             }
           }
-          res.clearCookie("refreshToken");
+          this.clearRefreshTokenCookie(res);
           clearWorkspaceSessionCookies(res);
           await this.authenticationService.signOut({ req, res });
           logger.info({ msg: "User signed out" });
@@ -4407,21 +4561,30 @@ var init_AuthController = __esm({
           const data = await this.authenticationService.refreshToken(refreshToken, clientInfo);
           const authUserId = data.user?.id;
           const user = authUserId ? await (async () => {
-            const [{ userData }, { userId: publicId }] = await Promise.all([
-              this.userService.getProfile(authUserId).then((u) => ({ userData: u })),
-              this.userRepository.findUserIdByAuthId(authUserId)
-            ]);
-            const rolesResult = publicId ? await this.rbacService.getUserRoles(publicId) : { roles: [] };
-            const isPlatformAdmin = publicId ? await this.rbacService.isPlatformAdmin(publicId) : false;
-            return userData ? {
-              id: userData.id,
-              email: userData.email,
-              fullName: userData.full_name,
-              username: userData.email,
-              isEmailVerified: userData.is_email_verified === true,
-              roles: rolesResult.roles,
-              isPlatformAdmin
-            } : null;
+            try {
+              const [{ userData }, { userId: publicId }] = await Promise.all([
+                this.userService.getProfile(authUserId).then((u) => ({ userData: u })),
+                this.userRepository.findUserIdByAuthId(authUserId)
+              ]);
+              const rolesResult = publicId ? await this.rbacService.getUserRoles(publicId) : { roles: [] };
+              const isPlatformAdmin = publicId ? await this.rbacService.isPlatformAdmin(publicId) : false;
+              return userData ? {
+                id: userData.id,
+                email: userData.email,
+                fullName: userData.full_name,
+                username: userData.email,
+                isEmailVerified: userData.is_email_verified === true,
+                roles: rolesResult.roles,
+                isPlatformAdmin
+              } : null;
+            } catch (profileErr) {
+              logger.warn({
+                msg: "Refresh succeeded but profile enrichment failed",
+                userId: authUserId,
+                error: profileErr instanceof Error ? profileErr.message : String(profileErr)
+              });
+              return null;
+            }
           })() : null;
           if (serverConfig4.nodeEnv === "production" || cookieRefreshToken) {
             this.setRefreshTokenCookie(res, data.session.refresh_token);
@@ -4439,7 +4602,7 @@ var init_AuthController = __esm({
             message: "Token refreshed successfully"
           });
         } catch (error) {
-          if (req.cookies?.refreshToken) res.clearCookie("refreshToken");
+          if (req.cookies?.refreshToken) this.clearRefreshTokenCookie(res);
           const message = error instanceof Error ? error.message : typeof error === "string" ? error : "";
           if (message.includes("Invalid Refresh Token") || message.includes("Refresh Token Not Found")) {
             res.status(401).json({
@@ -4455,6 +4618,45 @@ var init_AuthController = __esm({
               success: false,
               message: "Session expired or invalid. Please sign in again.",
               error: { type: "Unauthorized", message: error.message }
+            });
+            return;
+          }
+          next(error);
+        }
+      };
+      /** Read-only session check for browser extension gate (does not rotate refresh tokens). */
+      verifyRefresh = async (req, res, next) => {
+        try {
+          const refreshToken = req.body?.refreshToken ?? req.cookies?.refreshToken;
+          if (!refreshToken) {
+            res.status(401).json({
+              success: false,
+              message: "Session expired or invalid. Please sign in again."
+            });
+            return;
+          }
+          await this.authenticationService.validateRefreshToken(refreshToken);
+          res.status(200).json({
+            success: true,
+            data: { valid: true },
+            message: "Session is valid"
+          });
+        } catch (error) {
+          if (error instanceof DatabaseEntityNotFoundError || error instanceof ValidationError || error instanceof AuthValidationError || error instanceof AuthNotFoundError) {
+            res.status(401).json({
+              success: false,
+              message: "Session expired or invalid. Please sign in again."
+            });
+            return;
+          }
+          if (error instanceof DatabaseError) {
+            logger.warn({
+              msg: "verify-refresh database error",
+              error: error instanceof Error ? error.message : String(error)
+            });
+            res.status(503).json({
+              success: false,
+              message: "Could not verify session right now. Try again shortly."
             });
             return;
           }
@@ -26673,6 +26875,219 @@ var init_skoolProvider = __esm({
   }
 });
 
+// integrations/providers/reddit/redditOAuth.ts
+var REDDIT_MAX_LENGTH, REDDIT_TITLE_MAX_LENGTH;
+var init_redditOAuth = __esm({
+  "integrations/providers/reddit/redditOAuth.ts"() {
+    init_GlobalConfig();
+    init_AppError();
+    init_ProviderIntegrationErrors();
+    init_oauthFrontendOrigin();
+    init_oauthFrontendCallbackPath();
+    REDDIT_MAX_LENGTH = 1e4;
+    REDDIT_TITLE_MAX_LENGTH = 300;
+  }
+});
+
+// integrations/providers/reddit/resolveRedditSettings.ts
+function isPlainObject17(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function readString4(source, ...keys) {
+  for (const key of keys) {
+    const value = source[key];
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+  return "";
+}
+function normalizeCommunity(raw) {
+  return formatRedditCommunityInput(raw);
+}
+function validateRedditSubredditSlug(subreddit) {
+  const canonical = normalizeCommunity(subreddit);
+  if (!canonical) return "Reddit posts require a community (r/name) or profile (u/name)";
+  const validation = redditCommunityValidationError(canonical);
+  if (validation) return validation;
+  return null;
+}
+function redditPerChannelSettingsActive(resolved) {
+  if (resolved.subreddit) return true;
+  if (resolved.title) return true;
+  return false;
+}
+function resolveRedditSettings(postDetailsSettings) {
+  if (!isPlainObject17(postDetailsSettings)) {
+    return { subreddit: "", title: "" };
+  }
+  let source = { ...postDetailsSettings };
+  const providerSettings = postDetailsSettings.providerSettings;
+  if (isPlainObject17(providerSettings)) {
+    const { reddit: redditBucket, ...flatProviderSettings } = providerSettings;
+    source = { ...source, ...flatProviderSettings };
+    if (isPlainObject17(redditBucket)) {
+      source = { ...source, ...redditBucket };
+    }
+  } else if (isPlainObject17(postDetailsSettings.reddit)) {
+    source = { ...source, ...postDetailsSettings.reddit };
+  }
+  const subreddit = normalizeCommunity(readString4(source, "subreddit", "community", "sub"));
+  const title = readString4(source, "title");
+  return {
+    subreddit,
+    title
+  };
+}
+var REDDIT_TITLE_MIN_LENGTH, REDDIT_SETTINGS_SCHEMA;
+var init_resolveRedditSettings = __esm({
+  "integrations/providers/reddit/resolveRedditSettings.ts"() {
+    init_dist();
+    init_redditOAuth();
+    REDDIT_TITLE_MIN_LENGTH = 1;
+    REDDIT_SETTINGS_SCHEMA = {
+      type: "object",
+      required: [],
+      properties: {
+        subreddit: {
+          type: "string",
+          description: "Target community or profile as r/name or u/name (bare name defaults to r/)"
+        },
+        title: {
+          type: "string",
+          minLength: REDDIT_TITLE_MIN_LENGTH,
+          maxLength: REDDIT_TITLE_MAX_LENGTH,
+          description: "Post title on reddit.com; body and links come from the composer caption"
+        }
+      }
+    };
+  }
+});
+
+// integrations/providers/reddit/redditCredentials.ts
+function decodeRedditManualConnectCode(code) {
+  try {
+    const raw = Buffer.from(code.trim(), "base64").toString("utf8");
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") {
+      throw new Error("Invalid connect payload");
+    }
+    const labelRaw = typeof parsed.label === "string" ? parsed.label : typeof parsed.channelLabel === "string" ? parsed.channelLabel : "";
+    const label = labelRaw.trim();
+    if (label.length > 80) {
+      throw new Error("Channel label must be at most 80 characters");
+    }
+    return { label };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Invalid connect payload";
+    throw new Error(message);
+  }
+}
+var init_redditCredentials = __esm({
+  "integrations/providers/reddit/redditCredentials.ts"() {
+  }
+});
+function tokenTtlSeconds4() {
+  return dayjs6__default.default().add(REDDIT_TOKEN_TTL_YEARS, "year").unix() - dayjs6__default.default().unix();
+}
+var REDDIT_TOKEN_TTL_YEARS, REDDIT_SERVER_PUBLISH_MESSAGE, RedditProvider;
+var init_redditProvider = __esm({
+  "integrations/providers/reddit/redditProvider.ts"() {
+    init_makeId();
+    init_resolveRedditSettings();
+    init_redditCredentials();
+    init_redditOAuth();
+    REDDIT_TOKEN_TTL_YEARS = 100;
+    REDDIT_SERVER_PUBLISH_MESSAGE = "Reddit posts must be completed in the member browser; server publish is not supported.";
+    RedditProvider = class {
+      identifier = "reddit";
+      name = "Reddit";
+      editor = "markdown";
+      isBetweenSteps = false;
+      isChromeExtension = false;
+      extensionPublishMode = "member_browser_handoff";
+      scopes = [];
+      toolTip = "Add a Reddit channel to draft and schedule in OpenQuok; you post on reddit.com when due";
+      rules = "Reddit posts are drafted and scheduled in OpenQuok. At publish time you complete the submit form on reddit.com in your browser (autofill only \u2014 you click Post). OpenQuok does not store your Reddit login or publish from the server.";
+      maxLength(_additionalSettings) {
+        return REDDIT_MAX_LENGTH;
+      }
+      validateCreatePost(input) {
+        const resolved = resolveRedditSettings({
+          providerSettings: input.providerSettings
+        });
+        if (!redditPerChannelSettingsActive(resolved)) {
+          return null;
+        }
+        const subredditError = validateRedditSubredditSlug(resolved.subreddit);
+        if (subredditError) return subredditError;
+        if (!resolved.title || resolved.title.length < REDDIT_TITLE_MIN_LENGTH) {
+          return "Reddit posts require a title";
+        }
+        if (resolved.title.length > REDDIT_TITLE_MAX_LENGTH) {
+          return `Reddit titles must be at most ${REDDIT_TITLE_MAX_LENGTH} characters`;
+        }
+        return null;
+      }
+      async customFields() {
+        return [
+          {
+            key: "label",
+            label: "Channel label (optional)",
+            validation: "/^.{0,80}$/",
+            type: "text"
+          }
+        ];
+      }
+      settingsSchema() {
+        return REDDIT_SETTINGS_SCHEMA;
+      }
+      async generateAuthUrl() {
+        const state = makeId(6);
+        const codeVerifier = makeId(10);
+        return { url: state, codeVerifier, state };
+      }
+      async authenticate(params) {
+        try {
+          const { label } = decodeRedditManualConnectCode(params.code);
+          const id = makeId(12);
+          const displayName = label || "Reddit";
+          return {
+            refreshToken: "",
+            expiresIn: tokenTtlSeconds4(),
+            accessToken: "",
+            id,
+            name: displayName,
+            picture: "",
+            username: displayName
+          };
+        } catch (e) {
+          const message = e instanceof Error ? e.message : "Invalid connect payload";
+          return message;
+        }
+      }
+      /** Manual channel — no Reddit token to refresh on the server. */
+      async refreshToken(_refreshToken) {
+        return {
+          refreshToken: "",
+          expiresIn: 0,
+          accessToken: "",
+          id: "",
+          name: "",
+          picture: "",
+          username: ""
+        };
+      }
+      async post(_id, _accessToken, _postDetails, _integration) {
+        throw new Error(REDDIT_SERVER_PUBLISH_MESSAGE);
+      }
+      async comment(_id, _postId, _lastCommentId, _accessToken, _postDetails, _integration) {
+        throw new Error(REDDIT_SERVER_PUBLISH_MESSAGE);
+      }
+    };
+  }
+});
+
 // integrations/integrationManager.ts
 var socialIntegrationList, IntegrationManager;
 var init_integrationManager = __esm({
@@ -26689,6 +27104,7 @@ var init_integrationManager = __esm({
     init_devtoProvider();
     init_blueskyProvider();
     init_skoolProvider();
+    init_redditProvider();
     socialIntegrationList = [
       new ThreadsProvider(),
       new FacebookProvider(),
@@ -26701,7 +27117,8 @@ var init_integrationManager = __esm({
       new XProvider(),
       new DevToProvider(),
       new BlueskyProvider(),
-      new SkoolProvider()
+      new SkoolProvider(),
+      new RedditProvider()
     ];
     IntegrationManager = class {
       getAllIntegrations() {
@@ -28955,7 +29372,7 @@ var init_TransactionalNotificationEmailService = __esm({
     };
   }
 });
-function isPlainObject17(value) {
+function isPlainObject18(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function providerCaptionDisplayName(providerIdentifier) {
@@ -29034,12 +29451,12 @@ function collectCaptionTextsFromProviderSettings(providerIdentifier, providerSet
   }
   const id = providerIdentifier.trim().toLowerCase();
   if (id === "threads") {
-    const threads = isPlainObject17(providerSettings.threads) ? providerSettings.threads : null;
+    const threads = isPlainObject18(providerSettings.threads) ? providerSettings.threads : null;
     if (threads) {
       if (threads.enabled === true) {
         pushCaptionText(out, threads.message, `${displayName} thread finisher`);
       }
-      const engagement = isPlainObject17(threads.internalEngagementPlug) ? threads.internalEngagementPlug : null;
+      const engagement = isPlainObject18(threads.internalEngagementPlug) ? threads.internalEngagementPlug : null;
       if (engagement?.enabled === true) {
         pushCaptionText(out, engagement.message, `${displayName} delayed engagement`);
       }
@@ -29047,12 +29464,12 @@ function collectCaptionTextsFromProviderSettings(providerIdentifier, providerSet
   }
   for (const bucket of CROSS_ACCOUNT_PLUG_BUCKETS) {
     const bucketSettings = providerSettings[bucket];
-    if (!isPlainObject17(bucketSettings)) continue;
+    if (!isPlainObject18(bucketSettings)) continue;
     const plugs = bucketSettings.crossAccountPlugs;
     if (!Array.isArray(plugs)) continue;
     for (const plug of plugs) {
-      if (!isPlainObject17(plug)) continue;
-      const fields = isPlainObject17(plug.fields) ? plug.fields : null;
+      if (!isPlainObject18(plug)) continue;
+      const fields = isPlainObject18(plug.fields) ? plug.fields : null;
       pushCaptionText(out, fields?.comment, `${displayName} cross-account plug comment`);
     }
   }
@@ -29210,6 +29627,138 @@ var init_expandRecurringPostsForCalendarRange = __esm({
     init_recurringPublishDate();
   }
 });
+
+// utils/posts/memberBrowserHandoff.ts
+function isValidHttpUrl2(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+function resolveProviderExtensionPublishMode(provider) {
+  return resolveExtensionPublishMode({
+    identifier: provider.identifier,
+    isChromeExtension: provider.isChromeExtension,
+    extensionPublishMode: provider.extensionPublishMode
+  });
+}
+function isMemberBrowserHandoffProvider(provider) {
+  return resolveProviderExtensionPublishMode(provider) === "member_browser_handoff";
+}
+function assertMemberBrowserHandoffPost(post, organizationId, integration, provider) {
+  if (!post || post.organization_id !== organizationId) {
+    throw new AppError("Post not found", 404);
+  }
+  if (!integration || integration.deleted_at) {
+    throw new AppError("Channel not found for this post", 404);
+  }
+  if (!provider || !isMemberBrowserHandoffProvider(provider)) {
+    throw new AppError("This post does not use member browser handoff", 400);
+  }
+  if (post.integration_id !== integration.id) {
+    throw new AppError("Channel does not match this post", 400);
+  }
+}
+function parsePostSettingsObject(settings) {
+  if (!settings?.trim()) return {};
+  try {
+    const parsed = JSON.parse(settings);
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return parsed;
+    }
+  } catch {
+    return {};
+  }
+  return {};
+}
+function resolveMediaDownloadUrl(path7) {
+  const trimmed = path7.trim();
+  if (!trimmed) return null;
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return trimmed;
+  }
+  return publicUrlForObjectKey(trimmed);
+}
+function mediaUrlsFromPostImage(image) {
+  const items = parsePostImageColumn(image);
+  const urls = [];
+  for (const item of items) {
+    const resolved = resolveMediaDownloadUrl(item.path ?? "");
+    if (resolved) urls.push(resolved);
+  }
+  return urls;
+}
+function fileNameFromMediaPath(path7) {
+  const trimmed = path7.trim();
+  if (!trimmed) return "media";
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    try {
+      const segment2 = new URL(trimmed).pathname.split("/").filter(Boolean).pop();
+      if (segment2) return decodeURIComponent(segment2);
+    } catch {
+    }
+    return "media";
+  }
+  const segment = trimmed.split("/").filter(Boolean).pop();
+  return segment ? decodeURIComponent(segment) : "media";
+}
+function handoffMediaItemsFromPostImage(image) {
+  return parsePostImageColumn(image).map((item) => ({
+    id: item.id,
+    fileName: fileNameFromMediaPath(item.path)
+  }));
+}
+function handoffMediaItemAtIndex(image, mediaIndex) {
+  if (!Number.isInteger(mediaIndex) || mediaIndex < 0) return null;
+  const items = parsePostImageColumn(image);
+  return items[mediaIndex] ?? null;
+}
+function buildMemberBrowserHandoffDto(post, provider) {
+  const editor2 = provider.editor ?? "normal";
+  const body = stripComposerBodyForEditor(editor2, post.content ?? "").trim();
+  const reddit = resolveRedditSettings(parsePostSettingsObject(post.settings));
+  return {
+    postId: post.id,
+    providerIdentifier: provider.identifier,
+    title: reddit.title,
+    body,
+    subreddit: reddit.subreddit,
+    mediaUrls: mediaUrlsFromPostImage(post.image),
+    mediaItems: handoffMediaItemsFromPostImage(post.image)
+  };
+}
+function assertHandoffReadableState(state) {
+  if (state !== "AWAITING_MEMBER") {
+    throw new AppError("Post is not awaiting member browser completion", 400);
+  }
+}
+function parseReleaseFieldsFromHandoffUrl(providerIdentifier, releaseUrlInput) {
+  const releaseUrl = releaseUrlInput?.trim() ?? "";
+  if (!releaseUrl) {
+    return { releaseId: null, releaseUrl: null };
+  }
+  if (!isValidHttpUrl2(releaseUrl)) {
+    throw new AppError("releaseUrl must be a valid http or https URL", 400);
+  }
+  const id = providerIdentifier.trim().toLowerCase();
+  if (id === "reddit") {
+    const match = releaseUrl.match(/\/comments\/([a-z0-9]+)\//i);
+    return { releaseId: match?.[1] ?? null, releaseUrl };
+  }
+  return { releaseId: null, releaseUrl };
+}
+var init_memberBrowserHandoff = __esm({
+  "utils/posts/memberBrowserHandoff.ts"() {
+    init_dist();
+    init_PostDTO();
+    init_stripComposerBodyForEditor();
+    init_resolveRedditSettings();
+    init_AppError();
+    init_MediaRepository();
+  }
+});
 function sleepMs8(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -29292,6 +29841,9 @@ var init_PostsService = __esm({
     init_validateProviderCaptionLength();
     init_crossAccountPublishChannels();
     init_expandRecurringPostsForCalendarRange();
+    init_repositories();
+    init_upload_factory();
+    init_memberBrowserHandoff();
     init_AppError();
     init_ProviderIntegrationErrors();
     init_GlobalConfig();
@@ -29315,7 +29867,7 @@ var init_PostsService = __esm({
     };
     POSTS_CACHE_TTL_SEC = 300;
     POST_ANALYTICS_CACHE_TTL_SEC = !process.env.NODE_ENV || process.env.NODE_ENV === "development" ? 1 : 3600;
-    PostsService = class {
+    PostsService = class _PostsService {
       constructor(postsRepository2, integrationConnectionService2, integrationService2, organizationRepository2, integrationManager2, refreshIntegrationService2, cache, cacheInvalidator, subscriptionGuard2) {
         this.postsRepository = postsRepository2;
         this.integrationConnectionService = integrationConnectionService2;
@@ -30448,6 +31000,91 @@ var init_PostsService = __esm({
           postIds: [postId]
         });
         return { id: postId, releaseId: trimmed };
+      }
+      async getMemberBrowserHandoff(params) {
+        const { authUserId, organizationId, postId } = params;
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+        const { post, provider } = await this._resolveMemberBrowserHandoffPost(organizationId, postId);
+        assertHandoffReadableState(post.state);
+        return { handoff: buildMemberBrowserHandoffDto(post, provider) };
+      }
+      async getMemberBrowserHandoffMedia(params) {
+        const { authUserId, organizationId, postId, mediaIndex } = params;
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+        const { post } = await this._resolveMemberBrowserHandoffPost(organizationId, postId);
+        assertHandoffReadableState(post.state);
+        const item = handoffMediaItemAtIndex(post.image, mediaIndex);
+        if (!item?.path?.trim()) {
+          throw new AppError("Media not found for this post", 404);
+        }
+        const upload4 = _PostsService.handoffUploadProvider();
+        const path7 = item.path.trim();
+        let buffer;
+        let contentType;
+        if (path7.startsWith("http://") || path7.startsWith("https://")) {
+          let response;
+          try {
+            response = await fetch(path7);
+          } catch {
+            throw new AppError("Could not fetch remote media", 502);
+          }
+          if (!response.ok) {
+            throw new AppError(`Could not fetch remote media (${response.status})`, 502);
+          }
+          buffer = Buffer.from(await response.arrayBuffer());
+          contentType = response.headers.get("content-type")?.trim() || "application/octet-stream";
+        } else {
+          const downloaded = await upload4.downloadObject(path7);
+          buffer = downloaded.buffer;
+          contentType = downloaded.contentType?.trim() || "application/octet-stream";
+        }
+        return {
+          buffer,
+          contentType,
+          fileName: fileNameFromMediaPath(path7)
+        };
+      }
+      static handoffUploadProvider() {
+        return UploadFactory.createStorage(storageR2Repository);
+      }
+      async completeMemberBrowserHandoff(params) {
+        const { authUserId, organizationId, postId, releaseUrl } = params;
+        await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+        const { post, provider } = await this._resolveMemberBrowserHandoffPost(organizationId, postId);
+        assertHandoffReadableState(post.state);
+        const { releaseId, releaseUrl: storedReleaseUrl } = parseReleaseFieldsFromHandoffUrl(
+          provider.identifier,
+          releaseUrl
+        );
+        await this.postsRepository.updatePostRowPublishResult(postId, {
+          state: "PUBLISHED",
+          releaseId,
+          releaseUrl: storedReleaseUrl,
+          error: null
+        });
+        await this._invalidatePostAnalyticsCaches(organizationId, postId);
+        await this._invalidatePostMutationCaches({
+          organizationId,
+          postGroup: post.post_group,
+          postIds: [postId]
+        });
+        return { id: postId };
+      }
+      async _resolveMemberBrowserHandoffPost(organizationId, postId) {
+        const post = await this.postsRepository.getPostById(postId);
+        if (!post || post.organization_id !== organizationId) {
+          throw new AppError("Post not found", 404);
+        }
+        if (!post.integration_id) {
+          throw new AppError("Channel not found for this post", 404);
+        }
+        const integrationRow = await this.integrationService.getById(organizationId, post.integration_id);
+        const provider = this.integrationManager.getSocialIntegration(integrationRow?.provider_identifier ?? "");
+        assertMemberBrowserHandoffPost(post, organizationId, integrationRow, provider);
+        if (!provider) {
+          throw new AppError("This post does not use member browser handoff", 400);
+        }
+        return { post, provider };
       }
       /** Invalidate cached post-level analytics for all date windows for this row. */
       async _invalidatePostAnalyticsCaches(organizationId, postId) {
@@ -42027,6 +42664,68 @@ var init_PostsController = __esm({
           next(error);
         }
       };
+      getMemberBrowserHandoff = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) {
+            return next(new UserAuthorizationError("Not authenticated"));
+          }
+          const postId = req.params.postId;
+          const organizationId = req.query.organizationId;
+          const data = await this.postsService.getMemberBrowserHandoff({
+            authUserId,
+            organizationId,
+            postId
+          });
+          res.status(200).json({ success: true, data });
+        } catch (error) {
+          next(error);
+        }
+      };
+      getMemberBrowserHandoffMedia = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) {
+            return next(new UserAuthorizationError("Not authenticated"));
+          }
+          const { postId, mediaIndex } = req.params;
+          const organizationId = req.query.organizationId;
+          const { buffer, contentType, fileName } = await this.postsService.getMemberBrowserHandoffMedia({
+            authUserId,
+            organizationId,
+            postId,
+            mediaIndex: Number(mediaIndex)
+          });
+          const safeName = fileName.replace(/[^\w.\-()+ ]/g, "_") || "media";
+          res.setHeader("Content-Type", contentType);
+          res.setHeader("Content-Disposition", `attachment; filename="${safeName}"`);
+          res.status(200).send(buffer);
+        } catch (error) {
+          next(error);
+        }
+      };
+      completeMemberBrowserHandoff = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) {
+            return next(new UserAuthorizationError("Not authenticated"));
+          }
+          const postId = req.params.postId;
+          const body = req.body;
+          const data = await this.postsService.completeMemberBrowserHandoff({
+            authUserId,
+            organizationId: body.organizationId,
+            postId,
+            releaseUrl: body.releaseUrl
+          });
+          res.status(200).json({ success: true, data });
+        } catch (error) {
+          next(error);
+        }
+      };
       updatePostReleaseId = async (req, res, next) => {
         try {
           const authReq = req;
@@ -44719,11 +45418,37 @@ var init_integrationList = __esm({
     init_context();
   }
 });
+
+// mcp/tools/memberBrowserHandoffMcpNotes.ts
+function isMemberBrowserHandoffProviderIdentifier(identifier) {
+  return MEMBER_BROWSER_HANDOFF_PROVIDER_IDS.has(identifier.trim().toLowerCase());
+}
+function memberBrowserHandoffFieldsForProvider(identifier) {
+  if (!isMemberBrowserHandoffProviderIdentifier(identifier)) {
+    return null;
+  }
+  return {
+    memberBrowserHandoff: true,
+    agentNote: MEMBER_BROWSER_HANDOFF_MCP_OUTPUT_NOTE
+  };
+}
+function workspaceMemberBrowserHandoffAgentNote(integrationIdentifiers) {
+  const hasHandoff = Object.values(integrationIdentifiers).some(isMemberBrowserHandoffProviderIdentifier);
+  return hasHandoff ? MEMBER_BROWSER_HANDOFF_MCP_OUTPUT_NOTE : void 0;
+}
+var MEMBER_BROWSER_HANDOFF_PROVIDER_IDS, MEMBER_BROWSER_HANDOFF_MCP_TOOL_DESCRIPTION_APPENDIX, MEMBER_BROWSER_HANDOFF_MCP_OUTPUT_NOTE;
+var init_memberBrowserHandoffMcpNotes = __esm({
+  "mcp/tools/memberBrowserHandoffMcpNotes.ts"() {
+    MEMBER_BROWSER_HANDOFF_PROVIDER_IDS = /* @__PURE__ */ new Set(["reddit"]);
+    MEMBER_BROWSER_HANDOFF_MCP_TOOL_DESCRIPTION_APPENDIX = "Reddit exception (member browser handoff): OpenQuok does not publish to reddit.com. Use type draft to prepare title, subreddit, and body for human review. type schedule or now only queues a due-time handoff (post becomes AWAITING_MEMBER); the member submits on reddit.com (extension can copy, open submit, and autofill). Do not claim the post went live on Reddit from this tool.";
+    MEMBER_BROWSER_HANDOFF_MCP_OUTPUT_NOTE = "Reddit handoff only \u2014 not server-published. Member must submit on reddit.com; use draft when you are preparing copy, not scheduling an automatic Reddit publish.";
+  }
+});
 function registerIntegrationSchemaTool(server2, deps) {
   server2.registerTool(
     "integrationSchema",
     {
-      description: "Return posting rules, character limits, compose settings schema, and allow-listed tools for a platform (provider identifier, e.g. threads, facebook).",
+      description: "Return posting rules, character limits, compose settings schema, and allow-listed tools for a platform (provider identifier, e.g. threads, facebook). For Reddit, also read extensionPublishMode and agentNote \u2014 OpenQuok drafts and hand off; it does not publish to reddit.com from the server.",
       inputSchema: {
         platform: zod.z.string().describe("Social provider identifier (e.g. threads, facebook, x)"),
         isPremium: zod.z.boolean().optional().describe("Whether the workspace has premium; affects maxLength when the provider tiers limits")
@@ -44735,11 +45460,18 @@ function registerIntegrationSchemaTool(server2, deps) {
       if (!provider) {
         throw new Error(`Unknown platform: ${platform}`);
       }
+      const extensionPublishMode = resolveExtensionPublishMode({
+        identifier: provider.identifier,
+        isChromeExtension: provider.isChromeExtension,
+        extensionPublishMode: provider.extensionPublishMode
+      });
       const output = {
         rules: deps.integrationManager.getAllRulesDescription()[identifier] ?? "",
         maxLength: provider.maxLength(isPremium ?? false),
         settings: provider.settingsSchema ? provider.settingsSchema() : "No additional settings required",
-        tools: deps.integrationManager.getAllTools()[identifier] ?? []
+        tools: deps.integrationManager.getAllTools()[identifier] ?? [],
+        extensionPublishMode,
+        agentNote: extensionPublishMode === "member_browser_handoff" ? MEMBER_BROWSER_HANDOFF_MCP_OUTPUT_NOTE : void 0
       };
       return {
         content: [{ type: "text", text: JSON.stringify({ output }, null, 2) }],
@@ -44750,6 +45482,8 @@ function registerIntegrationSchemaTool(server2, deps) {
 }
 var init_integrationSchema = __esm({
   "mcp/tools/integrationSchema.ts"() {
+    init_dist();
+    init_memberBrowserHandoffMcpNotes();
   }
 });
 function registerPlugsActivateTool(server2, deps) {
@@ -45385,18 +46119,25 @@ function mapSchedulePostToolInput(params) {
   };
 }
 function formatSchedulePostToolOutput(posts, integrationIdentifiers) {
-  return {
-    output: posts.map((post) => ({
+  const output = posts.map((post) => {
+    const integrationId = post.integration_id ?? "";
+    const integration = integrationId ? integrationIdentifiers[integrationId] ?? integrationId : "";
+    const handoff = memberBrowserHandoffFieldsForProvider(integration);
+    return {
       postId: post.id,
-      integration: post.integration_id ? integrationIdentifiers[post.integration_id] ?? post.integration_id : ""
-    }))
-  };
+      integration,
+      ...handoff ?? {}
+    };
+  });
+  const workspaceAgentNote = workspaceMemberBrowserHandoffAgentNote(integrationIdentifiers);
+  return workspaceAgentNote ? { output, workspaceAgentNote } : { output };
 }
 var THREAD_STYLE_PROVIDERS;
 var init_schedulePostTool_adapter = __esm({
   "mcp/tools/schedulePostTool.adapter.ts"() {
     init_PostDTO();
     init_makeId();
+    init_memberBrowserHandoffMcpNotes();
     THREAD_STYLE_PROVIDERS = /* @__PURE__ */ new Set(["threads", "x"]);
   }
 });
@@ -45404,9 +46145,11 @@ function registerSchedulePostTool(server2, deps) {
   server2.registerTool(
     "schedulePostTool",
     {
-      description: "Create or schedule social posts across connected channels (draft, schedule, publish-now). Per socialPost entry: publishing channel UUID, postsAndComments (first string is the main body; additional strings are same-account reply chains only), optional settings (REST providerSettingsByIntegrationId), optional attachments (public HTTPS URLs). Put cross-account comments/reposts in settings on the publisher \u2014 threads.crossAccountPlugs, threads.internalEngagementPlug, x.crossAccountPlugs, linkedin.crossAccountPlugs \u2014 with acting channel UUIDs from integrationList, not extra postsAndComments strings.",
+      description: "Create or schedule social posts across connected channels (draft, schedule, publish-now). Per socialPost entry: publishing channel UUID, postsAndComments (first string is the main body; additional strings are same-account reply chains only), optional settings (REST providerSettingsByIntegrationId), optional attachments (public HTTPS URLs). Put cross-account comments/reposts in settings on the publisher \u2014 threads.crossAccountPlugs, threads.internalEngagementPlug, x.crossAccountPlugs, linkedin.crossAccountPlugs \u2014 with acting channel UUIDs from integrationList, not extra postsAndComments strings. " + MEMBER_BROWSER_HANDOFF_MCP_TOOL_DESCRIPTION_APPENDIX,
       inputSchema: {
-        type: zod.z.enum(["draft", "schedule", "now"]).describe("draft | schedule | now"),
+        type: zod.z.enum(["draft", "schedule", "now"]).describe(
+          "draft | schedule | now. On Reddit, draft prepares handoff copy; schedule/now queue a due-time reminder \u2014 not a server publish to reddit.com."
+        ),
         date: zod.z.string().optional().describe("ISO-8601 time when type is schedule"),
         socialPost: zod.z.array(socialPostSchema).min(1).describe("Per-channel post payloads")
       }
@@ -45455,6 +46198,7 @@ var init_schedulePostTool = __esm({
     init_uploadProgrammaticMediaFromUrl();
     init_context();
     init_schedulePostTool_adapter();
+    init_memberBrowserHandoffMcpNotes();
     socialPostSchema = zod.z.object({
       integration: zod.z.string(),
       postsAndComments: zod.z.array(zod.z.string()).optional().describe(
@@ -45905,6 +46649,7 @@ authRouter.post("/sign-up", authSchemas_default.validateSignUpRequest, authContr
 authRouter.post("/sign-in", authSchemas_default.validateSignInRequest, authController.signIn);
 authRouter.post("/sign-out", authController.signOut);
 authRouter.post("/refresh", authSchemas_default.validateRefreshTokenRequest, authController.refreshToken);
+authRouter.post("/verify-refresh", authSchemas_default.validateRefreshTokenRequest, authController.verifyRefresh);
 authRouter.get("/oauth/google", authController.startGoogleOAuth);
 authRouter.get("/oauth/google/callback", authController.googleOAuthCallback);
 authRouter.get(
@@ -50493,6 +51238,26 @@ var validateUpdatePostReleaseId = validateRequest({
   params: postIdParamsSchema,
   body: updatePostReleaseIdBodySchema
 });
+var validateMemberBrowserHandoffQuery = validateRequest({
+  params: postIdParamsSchema,
+  query: postOrganizationQuerySchema
+});
+var memberBrowserHandoffMediaParamsSchema = zod.z.object({
+  postId: zod.z.string().uuid("Invalid post id"),
+  mediaIndex: zod.z.coerce.number().int().min(0, "Invalid media index")
+});
+var validateMemberBrowserHandoffMedia = validateRequest({
+  params: memberBrowserHandoffMediaParamsSchema,
+  query: postOrganizationQuerySchema
+});
+var memberBrowserCompleteBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  releaseUrl: zod.z.string().trim().max(2e3).optional()
+});
+var validateMemberBrowserComplete = validateRequest({
+  params: postIdParamsSchema,
+  body: memberBrowserCompleteBodySchema
+});
 var updatePostReviewTodoBodySchema = zod.z.object({
   organizationId: zod.z.string().uuid("Invalid organization id"),
   note: zod.z.string().max(2e3).nullable().optional(),
@@ -50947,6 +51712,24 @@ postRouter.get("/group/:postGroup", auth6, validatePostGroupParams, postsControl
 postRouter.put("/group/:postGroup", auth6, validateUpdatePostGroupBody, postsController.updatePostGroup);
 postRouter.delete("/group/:postGroup", auth6, validateDeletePostGroup, postsController.deletePostGroup);
 postRouter.get("/:postId/missing", auth6, validatePostMissingQuery, postsController.getMissingPublishCandidates);
+postRouter.get(
+  "/:postId/member-browser-handoff",
+  auth6,
+  validateMemberBrowserHandoffQuery,
+  postsController.getMemberBrowserHandoff
+);
+postRouter.get(
+  "/:postId/member-browser-handoff/media/:mediaIndex",
+  auth6,
+  validateMemberBrowserHandoffMedia,
+  postsController.getMemberBrowserHandoffMedia
+);
+postRouter.post(
+  "/:postId/member-browser-complete",
+  auth6,
+  validateMemberBrowserComplete,
+  postsController.completeMemberBrowserHandoff
+);
 postRouter.put("/:postId/release-id", auth6, validateUpdatePostReleaseId, postsController.updatePostReleaseId);
 postRouter.put("/:postId/publish-now", auth6, validatePublishPostNow, postsController.publishPostNow);
 postRouter.put("/:postId/status", auth6, validateFlipPostStatus, postsController.flipPostStatus);
