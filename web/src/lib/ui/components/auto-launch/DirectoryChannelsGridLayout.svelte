@@ -176,7 +176,22 @@
 	}
 
 	.directory-channels-grid-host :global(.wx-scroll) {
-		overflow-x: hidden !important;
+		overflow-x: auto !important;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.directory-channels-grid-host :global(.wx-header .wx-cell:last-child),
+	.directory-channels-grid-host :global(.wx-body .wx-row .wx-cell:last-child) {
+		position: sticky;
+		right: 0;
+		z-index: 3;
+		background: var(--color-base-100);
+		box-shadow: -6px 0 10px -4px color-mix(in oklab, var(--color-base-content) 18%, transparent);
+	}
+
+	.directory-channels-grid-host :global(.wx-header .wx-cell:last-child) {
+		z-index: 4;
+		background: color-mix(in oklab, var(--color-base-content) 12%, var(--color-base-100));
 	}
 
 	:global(.svar-grid-host--fit-content .wx-table-box) {

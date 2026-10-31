@@ -111,7 +111,7 @@ Run this after you build or update the extension from source, or before you ship
 
 - Switch to <strong>Directory</strong> and confirm copy, gate messages, and <strong>Fill</strong> actions remain readable on the forest-themed panel (tabs, cards, and inputs — not only the Social composer).
 - With a product profile and an active directory handoff, smoke one <strong>Fill</strong> action on PeerPush or Uneed if you use directory launch in this profile.
-- Tap another directory channel avatar: confirm <strong>Switch directory site?</strong> opens the target URL; the chip tied to your active launch keeps a green ring until you clear the session.
+- Tap a directory channel avatar: confirm the movable <strong>Fill</strong> panel opens on the directory browser tab (highlighted briefly) with working <strong>Fill</strong> buttons when you are signed in and have at least one product profile in OpenQuok — no need to start from My Products first if you are already on that directory site. Use <strong>Open directory page</strong> to navigate to a site — avatars no longer open the switch-site dialog.
 
 ## Who needs this
 

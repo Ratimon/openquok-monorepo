@@ -147,6 +147,9 @@ export class DirectoryLaunchStepRail {
 			}
 			.disclaimer { color: #64748b; font-size: 10px; }
 			.gate-hint { color: #94a3b8; font-size: 10px; margin: 0; }
+			.panel.panel--revealed {
+				box-shadow: 0 0 0 2px #38bdf8, 0 12px 40px rgba(0,0,0,.35);
+			}
 		`;
 
 		const panel = document.createElement('div');
@@ -183,6 +186,20 @@ export class DirectoryLaunchStepRail {
 		panel.style.left = '16px';
 		savePosition({ top: 96, left: 16 });
 		this.callbacks.onResetPosition();
+	}
+
+	/** Ensure the on-page Fill panel is mounted and visible (e.g. after side-panel channel click). */
+	revealPanel(): void {
+		if (!this.host) {
+			this.mount();
+		}
+		if (!this.host) return;
+		this.host.style.display = 'block';
+		this.host.style.visibility = 'visible';
+		const panel = this.shadow?.querySelector('.panel') as HTMLElement | null;
+		if (!panel) return;
+		panel.classList.add('panel--revealed');
+		window.setTimeout(() => panel.classList.remove('panel--revealed'), 800);
 	}
 
 	render(state: StepRailViewState): void {

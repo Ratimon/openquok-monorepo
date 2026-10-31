@@ -15,6 +15,12 @@ const ACTIVE_ORGANIZATION_COOKIE = 'showorg';
 
 export type SocialApiFailure = { ok: false; error: string };
 
+export function isSocialApiFailure(
+	value: SocialSessionContext | SocialApiFailure
+): value is SocialApiFailure {
+	return 'ok' in value && value.ok === false;
+}
+
 export type SocialSessionContext = {
 	dashboardOrigin: string;
 	apiOrigin: string;

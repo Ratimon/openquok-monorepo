@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "OpenQuok",
-  "version": "0.1.16",
-  "description": "Connect cookie-session social channels to OpenQuok, refresh sessions, and assist directory launches.",
+  "name": "OpenQuok: Social Media Scheduler & Directory Autofill",
+  "version": "0.1.18",
+  "description": "Schedule posts from a Chrome side panel. Right-click drafts, Skool connect, Reddit handoff, directory autofill for OpenQuok.",
   "icons": {
     "16": "icons/icon-16.png",
     "48": "icons/icon-48.png",

@@ -18,6 +18,7 @@ import {
 	resolveDirectoryGateState,
 	type DirectoryGateState,
 } from './directoryGate.js';
+import { OPENQUOK_AUTO_LAUNCH_SHOW_IDLE_PANEL } from '../auto-launch/constants.js';
 import { countFilled, fillLaunchStep } from './fillEngine.js';
 import {
 	buildStatusLine,
@@ -102,6 +103,22 @@ export function registerDirectoryLaunchProvider(providerSlug: string): void {
 		});
 	}
 
+	function showIdleLaunchPanel(): void {
+		rail.mount();
+		rail.render({
+			providerName: provider.name,
+			productName: '—',
+			statusLine:
+				'Start a directory launch from OpenQuok (My Products → Fill with extension). This panel lists each section with Fill once a launch is active.',
+			steps: [],
+			fieldResultsByStep: {},
+			fillDisabled: true,
+			fillGateMessage:
+				'No active launch yet. Fill buttons appear after you use Fill with extension on My Products.',
+		});
+		rail.revealPanel();
+	}
+
 	function sendProgress(
 		stepId: string,
 		stepLabel: string,
@@ -179,6 +196,7 @@ export function registerDirectoryLaunchProvider(providerSlug: string): void {
 		activeSession = session;
 		rail.mount();
 		renderRail();
+		rail.revealPanel();
 	}
 
 	function requestAttachFromBackground(): void {
@@ -208,6 +226,15 @@ export function registerDirectoryLaunchProvider(providerSlug: string): void {
 		if (message.type === AUTO_LAUNCH_MESSAGE_TYPE.START && session) {
 			rememberDashboardOrigin(message.dashboardOrigin);
 			activateSession(session);
+			sendResponse({ ok: true });
+			return false;
+		}
+
+		if (message.type === OPENQUOK_AUTO_LAUNCH_SHOW_IDLE_PANEL) {
+			if (typeof message.providerSlug === 'string' && message.providerSlug !== providerSlug) {
+				return false;
+			}
+			showIdleLaunchPanel();
 			sendResponse({ ok: true });
 			return false;
 		}

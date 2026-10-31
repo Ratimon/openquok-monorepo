@@ -60,6 +60,8 @@ type DirectoryChannelsGridVis = {
 	listUrlWidth: number;
 	actionsWidth: number;
 	showListUrl: boolean;
+	showDr: boolean;
+	showLinkType: boolean;
 	showReadiness: boolean;
 	showAuthEmail: boolean;
 	showDrUpdated: boolean;
@@ -71,8 +73,8 @@ const DR_COL_WIDTH = 56;
 const DR_UPDATED_COL_WIDTH = 108;
 const LINK_TYPE_COL_WIDTH = 96;
 const AUTH_EMAIL_COL_WIDTH = 132;
-const ACTIONS_COL_WIDTH_MIN = 200;
-const ACTIONS_COL_WIDTH_MAX = 248;
+const ACTIONS_COL_WIDTH_MIN = 220;
+const ACTIONS_COL_WIDTH_MAX = 280;
 const LIST_URL_MIN_WIDTH = 72;
 const DIRECTORY_MIN_WIDTH = 148;
 const DIRECTORY_FLEX_SHARE = 0.5;
@@ -145,6 +147,7 @@ function buildGridColumns(vis: DirectoryChannelsGridVis): IColumn[] {
 			id: 'catalogDrDisplay',
 			header: 'DR',
 			width: DR_COL_WIDTH,
+			hidden: !vis.showDr,
 			tooltip: false
 		},
 		{
@@ -158,6 +161,7 @@ function buildGridColumns(vis: DirectoryChannelsGridVis): IColumn[] {
 			id: 'linkTypeDisplay',
 			header: 'Link type',
 			width: LINK_TYPE_COL_WIDTH,
+			hidden: !vis.showLinkType,
 			tooltip: false
 		},
 		{
@@ -187,6 +191,7 @@ function buildGridColumns(vis: DirectoryChannelsGridVis): IColumn[] {
 
 function actionsColumnWidthForHost(hostWidthPx: number): number {
 	if (hostWidthPx <= 0) return ACTIONS_COL_WIDTH_MAX;
+	if (hostWidthPx < 960) return ACTIONS_COL_WIDTH_MAX;
 	return Math.min(
 		ACTIONS_COL_WIDTH_MAX,
 		Math.max(ACTIONS_COL_WIDTH_MIN, Math.floor(hostWidthPx * 0.26))
@@ -196,16 +201,18 @@ function actionsColumnWidthForHost(hostWidthPx: number): number {
 function gridVisForHostWidth(hostWidthPx: number): DirectoryChannelsGridVis {
 	const actionsWidth = actionsColumnWidthForHost(hostWidthPx);
 	const showListUrl = hostWidthPx <= 0 || hostWidthPx > 520;
+	const showDr = hostWidthPx <= 0 || hostWidthPx > 480;
+	const showLinkType = hostWidthPx <= 0 || hostWidthPx > 640;
 	const showDrUpdated = hostWidthPx <= 0 || hostWidthPx > 880;
 	const showReadiness = hostWidthPx <= 0 || hostWidthPx > 1024;
 	const showAuthEmail = hostWidthPx <= 0 || hostWidthPx > 1180;
 
 	const fixed =
 		STATUS_COL_WIDTH +
-		DR_COL_WIDTH +
-		LINK_TYPE_COL_WIDTH +
 		actionsWidth +
 		GRID_WIDTH_GUTTER +
+		(showDr ? DR_COL_WIDTH : 0) +
+		(showLinkType ? LINK_TYPE_COL_WIDTH : 0) +
 		(showDrUpdated ? DR_UPDATED_COL_WIDTH : 0) +
 		(showReadiness ? READINESS_COL_WIDTH : 0) +
 		(showAuthEmail ? AUTH_EMAIL_COL_WIDTH : 0) +
@@ -217,6 +224,8 @@ function gridVisForHostWidth(hostWidthPx: number): DirectoryChannelsGridVis {
 			listUrlWidth: LIST_URL_MIN_WIDTH,
 			actionsWidth,
 			showListUrl: true,
+			showDr: true,
+			showLinkType: true,
 			showReadiness: true,
 			showAuthEmail: true,
 			showDrUpdated: true
@@ -237,6 +246,8 @@ function gridVisForHostWidth(hostWidthPx: number): DirectoryChannelsGridVis {
 		listUrlWidth,
 		actionsWidth,
 		showListUrl,
+		showDr,
+		showLinkType,
 		showReadiness,
 		showAuthEmail,
 		showDrUpdated

@@ -4,6 +4,7 @@ import {
 	listDirectoryLaunchProviderSummaries,
 } from 'openquok-common';
 
+import { OPENQUOK_AUTO_LAUNCH_SHOW_PANEL } from '../../directory/auto-launch/constants.js';
 import { POPUP_UI_MESSAGE } from '../../directory/auto-launch/popupMessages.js';
 import type { StoredAutoLaunchState } from '../../directory/auto-launch/sessionStorage.js';
 import { isReadyPage, pageMatchesConfig } from '../../directory/directory-launch/stepRail.js';
@@ -11,24 +12,24 @@ import { isReadyPage, pageMatchesConfig } from '../../directory/directory-launch
 import { openDashboardAddChannel } from '../../shared/openDashboardUrl.js';
 import { getPreferredDashboardOrigin } from '../../shared/dashboardOriginStorage.js';
 
-import { confirmDirectoryChannelNavigation } from './directoryChannelNavigateDialog.js';
 import { mountDirectoryChannelPicker } from './directoryChannelPicker.js';
 import { el, escapeHtml, runtimeSendMessage } from './uiHelpers.js';
 
-function directoryChannelLabel(identifier: string): string {
-	return directoryChannels.find((c) => c.identifier === identifier)?.name ?? identifier;
-}
-
-function resolveDirectoryNavigateUrl(
+async function showFillPanelForChannel(
 	identifier: string,
-	state: StoredAutoLaunchState | null
-): string | null {
-	const provider = getDirectoryLaunchProvider(identifier);
-	if (!provider) return null;
-	if (state?.session.providerSlug === identifier) {
-		return state.session.startUrl || provider.defaultStartUrl;
+	state: StoredAutoLaunchState | null,
+	renderRef: { current: (state: StoredAutoLaunchState | null, error?: string) => void }
+): Promise<void> {
+	const result = await sendRuntime({
+		type: OPENQUOK_AUTO_LAUNCH_SHOW_PANEL,
+		providerSlug: identifier,
+	});
+	if (result.ok === false) {
+		renderRef.current(
+			state,
+			String(result.error ?? 'Could not open the Fill panel on the directory tab.')
+		);
 	}
-	return provider.defaultStartUrl;
 }
 
 async function handleDirectoryChannelSelect(
@@ -36,39 +37,9 @@ async function handleDirectoryChannelSelect(
 	state: StoredAutoLaunchState | null,
 	renderRef: { current: (state: StoredAutoLaunchState | null, error?: string) => void }
 ): Promise<void> {
-	const sessionSlug = state?.session.providerSlug ?? null;
-	const currentSelection = sessionSlug ?? selectedChannelId;
-
-	if (identifier === currentSelection) {
-		selectedChannelId = identifier;
-		if (sessionSlug === identifier) {
-			const result = await sendRuntime({ type: 'OPENQUOK_AUTO_LAUNCH_FOCUS_TAB' });
-			if (result.ok === false) {
-				renderRef.current(state, String(result.error ?? 'Could not focus directory tab.'));
-			}
-		}
-		return;
-	}
-
-	const targetUrl = resolveDirectoryNavigateUrl(identifier, state);
-	if (!targetUrl) return;
-
-	const confirmed = await confirmDirectoryChannelNavigation({
-		channelName: directoryChannelLabel(identifier),
-		targetUrl,
-		activeLaunchSlug: sessionSlug,
-		activeLaunchLabel: sessionSlug ? directoryChannelLabel(sessionSlug) : null,
-		selectedSlug: identifier,
-	});
-	if (!confirmed) {
-		renderRef.current(state);
-		return;
-	}
-
-	directoryPickerUserSelection = identifier;
 	selectedChannelId = identifier;
-	await chrome.tabs.create({ url: targetUrl, active: true });
-	renderRef.current(state);
+	directoryPickerUserSelection = identifier;
+	await showFillPanelForChannel(identifier, state, renderRef);
 }
 
 const directoryChannels = listDirectoryLaunchProviderSummaries();

@@ -11,6 +11,7 @@ const allowedContentScripts = new Set([
 	'openquok-directory-peerpush.js',
 	'openquok-directory-uneed.js',
 	'openquok-dashboard-session.js',
+	'openquok-reddit-submit.js',
 ]);
 
 function fail(message) {

@@ -1,7 +1,6 @@
 import { icons } from '$data/icons';
 
-import type { FeaturesGridRowConfig } from '$data/landing-features-grid-types';
-import type { LandingSocialPlatform } from '$data/landing-social-platforms';
+import type { FeaturesGridRowConfig, LandingSocialPlatform } from '$data/landing-features-grid-types';
 
 /** Directory launch tiles for marketing grids and the home hero (row 3). */
 export const FEATURES_GRID_DIRECTORY_PLATFORMS: LandingSocialPlatform[] = [

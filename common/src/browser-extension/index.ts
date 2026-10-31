@@ -39,6 +39,7 @@ export {
 export {
 	directoryLaunchProviders,
 	getDirectoryLaunchProvider,
+	getDirectoryLaunchSiteKeyFromLocation,
 	isDirectoryLaunchProviderId,
 	listDirectoryLaunchProviderSummaries,
 	type AutoLaunchCompletePayload,
@@ -61,3 +62,29 @@ export {
 	type ExtensionPublishMode,
 	type ExtensionPublishModeInput,
 } from './extensionPublishMode.js';
+export {
+	DASHBOARD_OPEN_ADD_CHANNEL_EXTENSION_MESSAGE,
+	DASHBOARD_OPEN_ADD_CHANNEL_URL_HASH,
+	DASHBOARD_OPEN_ADD_CHANNEL_WINDOW_EVENT,
+} from './dashboardPageBridge.js';
+export {
+	ACCOUNT_ADD_CHANNEL_QUERY,
+	ACCOUNT_ADD_CHANNEL_QUERY_VALUE,
+	buildDashboardAccountAddChannelPath,
+	buildDashboardAccountAddChannelUrl,
+	isAccountAddChannelDeepLink,
+} from './accountDeepLinks.js';
+export {
+	CREDENTIALS_SOCIAL_PROVIDER_IDENTIFIERS,
+	EXTENSION_CONNECT_FAMILIES,
+	getExtensionConnectFamily,
+	isExtensionConnectFamily,
+	isExtensionSocialPostingProviderId,
+	listExtensionConnectFamilyMetadata,
+	listIdentifiersByExtensionConnectFamily,
+	OAUTH_SOCIAL_PROVIDER_IDENTIFIERS,
+	type CredentialsSocialProviderIdentifier,
+	type ExtensionConnectFamily,
+	type ExtensionConnectFamilyMetadata,
+	type OAuthSocialProviderIdentifier,
+} from './connectFamily.js';

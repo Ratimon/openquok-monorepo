@@ -14,9 +14,17 @@ describe('ProductDirectoryChannelsGridTablePresenter responsive columns', () => 
 	it('hides narrow-only columns at typical phone widths', () => {
 		const columns = presenter.getGridColumnsForHostWidth(480);
 		expect(columnHidden(columns, 'listUrlDisplay')).toBe(true);
+		expect(columnHidden(columns, 'catalogDrDisplay')).toBe(true);
+		expect(columnHidden(columns, 'linkTypeDisplay')).toBe(true);
 		expect(columnHidden(columns, 'catalogDrUpdatedDisplay')).toBe(true);
 		expect(columnHidden(columns, 'readinessDisplay')).toBe(true);
 		expect(columnHidden(columns, 'authEmailDisplay')).toBe(true);
+	});
+
+	it('hides link type between phone and medium widths', () => {
+		const columns = presenter.getGridColumnsForHostWidth(600);
+		expect(columnHidden(columns, 'linkTypeDisplay')).toBe(true);
+		expect(columnHidden(columns, 'catalogDrDisplay')).toBe(false);
 	});
 
 	it('shows list URL and DR updated on medium widths', () => {

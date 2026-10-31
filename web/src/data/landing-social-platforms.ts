@@ -1,21 +1,9 @@
-import type { IconName } from '$data/icons';
 import { icons } from '$data/icons';
 
-import type { FeaturesGridRowConfig } from '$data/landing-features-grid-types';
+import type { FeaturesGridRowConfig, LandingSocialPlatform } from '$data/landing-features-grid-types';
 import { HERO_DIRECTORY_PLATFORMS } from '$data/landing-directory-platforms';
 
-/** Tile config for landing-page social brand marks (hero strip + features grid). */
-export type LandingSocialPlatform = {
-	id: string;
-	icon: IconName;
-	label?: string;
-	/** `/channels/{slug}` when tiles are linked (defaults from {@link resolveLandingSocialPlatformChannelSlug}). */
-	channelSlug?: string;
-	containerClass?: string;
-	iconClass?: string;
-	iconWidth?: string;
-	iconHeight?: string;
-};
+export type { LandingSocialPlatform } from '$data/landing-features-grid-types';
 
 const GLYPH_TILE = 'bg-transparent p-0';
 const GLYPH_SIZE = { iconClass: 'size-8', iconWidth: '32', iconHeight: '32' } as const;

@@ -11,34 +11,43 @@ const sharedBuild = {
 };
 
 /** MV3: each manifest entry must be one self-contained ES module (no shared `assets/` chunks). */
-const inlineEntries = [
-	{ file: 'src/background.ts', out: 'background.js' },
-	{ file: 'src/popup/popup.ts', out: 'popup.js' },
-];
-
-const contentScriptSpecs = [
-	{ name: 'uneed-join-line', file: 'uneed-join-line.ts' },
-	{ name: 'uneed-paid-launch', file: 'uneed-paid-launch.ts' },
-	{ name: 'uneed-maker-profile', file: 'uneed-maker-profile.ts' },
-	{ name: 'peerpush-standard-launch', file: 'peerpush-standard-launch.ts' },
-	{ name: 'peerpush-free-queue', file: 'peerpush-free-queue.ts' },
+const bundleEntries = [
+	{ input: 'src/background.ts', out: 'background.js' },
+	{ input: 'src/ui/sidepanel/sidepanel.ts', out: 'sidepanel.js', cssName: 'sidepanel.css' },
+	{
+		input: 'src/content/directory-launch/peerpush-host.ts',
+		out: 'content/directory-launch/openquok-directory-peerpush.js',
+	},
+	{
+		input: 'src/content/directory-launch/uneed-host.ts',
+		out: 'content/directory-launch/openquok-directory-uneed.js',
+	},
+	{
+		input: 'src/content/dashboard/openquok-dashboard-session.ts',
+		out: 'content/dashboard/openquok-dashboard-session.js',
+	},
+	{
+		input: 'src/content/social-reddit/reddit-submit-host.ts',
+		out: 'content/social-reddit/openquok-reddit-submit.js',
+	},
 ];
 
 let emptyOutDir = true;
 
-for (const entry of inlineEntries) {
+for (const entry of bundleEntries) {
+	const cssName = entry.cssName ?? null;
 	await build({
 		build: {
 			...sharedBuild,
 			outDir: resolve(extensionRoot, 'dist'),
 			emptyOutDir,
 			rollupOptions: {
-				input: resolve(extensionRoot, entry.file),
+				input: resolve(extensionRoot, entry.input),
 				output: {
 					format: 'es',
 					entryFileNames: entry.out,
 					assetFileNames: (asset) => {
-						if (asset.name?.endsWith('.css')) return 'popup.css';
+						if (cssName && asset.name?.endsWith('.css')) return cssName;
 						return 'assets/[name]-[hash][extname]';
 					},
 					inlineDynamicImports: true,
@@ -47,22 +56,4 @@ for (const entry of inlineEntries) {
 		},
 	});
 	emptyOutDir = false;
-}
-
-for (const spec of contentScriptSpecs) {
-	await build({
-		build: {
-			...sharedBuild,
-			outDir: resolve(extensionRoot, 'dist'),
-			emptyOutDir: false,
-			rollupOptions: {
-				input: resolve(extensionRoot, `src/content/directory-launch/${spec.file}`),
-				output: {
-					format: 'es',
-					entryFileNames: `content/directory-launch/${spec.name}.js`,
-					inlineDynamicImports: true,
-				},
-			},
-		},
-	});
 }

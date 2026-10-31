@@ -1,5 +1,6 @@
 import {
 	AUTO_LAUNCH_MESSAGE_TYPE,
+	getDirectoryLaunchProvider,
 	toAutoLaunchHandoffSession,
 	type AutoLaunchHandoffRequestFields,
 	type AutoLaunchHandoffSession,
@@ -8,6 +9,7 @@ import {
 
 import { CHECK_DIRECTORY_GATE_MESSAGE } from '../directory/directory-launch/directoryGate.js';
 import { postCompleteSubmission } from '../directory/auto-launch/openquokApi.js';
+import { buildDirectoryLaunchHandoffFromSite } from '../directory/auto-launch/startDirectoryLaunchFromSite.js';
 import {
 	dashboardSignInUrl,
 	hasDashboardSessionCookie,
@@ -18,6 +20,9 @@ import {
 	POPUP_UI_MESSAGE,
 	type PopupUiMessage,
 } from '../directory/auto-launch/popupMessages.js';
+import {
+	OPENQUOK_AUTO_LAUNCH_SHOW_PANEL,
+} from '../directory/auto-launch/constants.js';
 import {
 	clearAutoLaunchState,
 	loadAutoLaunchState,
@@ -186,6 +191,10 @@ function tabUrlMatchesSession(tabUrl: string, session: AutoLaunchHandoffSession)
 	if (patterns.length === 0) {
 		return tabUrl.startsWith(session.startUrl) || tabUrl.includes(session.startUrl);
 	}
+	return tabUrlMatchesHostPatterns(tabUrl, patterns);
+}
+
+function tabUrlMatchesHostPatterns(tabUrl: string, patterns: readonly string[]): boolean {
 	return patterns.some((pattern) => {
 		try {
 			const escaped = pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
@@ -242,6 +251,26 @@ export async function persistHandoff(
 
 	await openStartUrlForSession(session, fields);
 
+	return { submissionId: session.submissionId };
+}
+
+/** Attach an in-tab launch without opening `startUrl` in a new tab (directory-first flow). */
+export async function persistHandoffForTab(
+	fields: AutoLaunchHandoffRequestFields,
+	dashboardOrigin: string,
+	tabId: number
+): Promise<{ submissionId: string }> {
+	const session = toAutoLaunchHandoffSession(fields);
+	const state: StoredAutoLaunchState = {
+		session,
+		dashboardOrigin,
+		receivedAt: Date.now(),
+		handoffTabId: tabId,
+	};
+	ensureHandoffTabNavigationWatcher();
+	await saveAutoLaunchState(state);
+	broadcastPopup({ type: POPUP_UI_MESSAGE.STATE_CHANGED, state });
+	await sendStartToTab(tabId, session, dashboardOrigin);
 	return { submissionId: session.submissionId };
 }
 
@@ -365,6 +394,85 @@ export async function handleAutoLaunchRuntimeMessage(
 		const tab = await chrome.tabs.get(tabId);
 		if (tab.windowId != null) {
 			await chrome.windows.update(tab.windowId, { focused: true });
+		}
+		return { ok: true };
+	}
+
+	if (type === OPENQUOK_AUTO_LAUNCH_SHOW_PANEL) {
+		const providerSlugHint =
+			typeof message.providerSlug === 'string' ? message.providerSlug.trim() : '';
+		const state = await loadAutoLaunchState();
+
+		if (state?.session) {
+			let tabId = state.handoffTabId ?? null;
+			if (tabId != null) {
+				try {
+					await chrome.tabs.get(tabId);
+				} catch {
+					tabId = null;
+				}
+			}
+			if (tabId == null && state.session.startUrl) {
+				tabId = await findTabIdForStartUrlWithRetry(state.session.startUrl, 8, 100);
+				if (tabId != null) {
+					await saveAutoLaunchState({ ...state, handoffTabId: tabId });
+				}
+			}
+			if (tabId == null) {
+				return {
+					ok: false,
+					error: 'No directory tab found. Open the directory site for this launch.',
+				};
+			}
+			await sendStartToTab(tabId, state.session, state.dashboardOrigin);
+			await chrome.tabs.update(tabId, { active: true });
+			const tab = await chrome.tabs.get(tabId);
+			if (tab.windowId != null) {
+				await chrome.windows.update(tab.windowId, { focused: true });
+			}
+			return { ok: true };
+		}
+
+		if (!providerSlugHint) {
+			return {
+				ok: false,
+				error: 'No active directory launch. Start from OpenQuok (My Products → Fill with extension).',
+			};
+		}
+		const provider = getDirectoryLaunchProvider(providerSlugHint);
+		if (!provider) {
+			return { ok: false, error: 'Unknown directory channel.' };
+		}
+
+		const tabId = await activeTabId();
+		if (tabId == null) {
+			return { ok: false, error: 'No active browser tab.' };
+		}
+		const tab = await chrome.tabs.get(tabId);
+		if (!tab.url || !tabUrlMatchesHostPatterns(tab.url, provider.hostPatterns)) {
+			return {
+				ok: false,
+				error: `Open ${provider.name} in your browser tab first (or use Open directory page below), then start a launch from My Products.`,
+			};
+		}
+
+		const handoff = await buildDirectoryLaunchHandoffFromSite(providerSlugHint);
+		if (!handoff.ok) {
+			return { ok: false, error: handoff.error };
+		}
+
+		try {
+			await persistHandoffForTab(handoff.fields, handoff.dashboardOrigin, tabId);
+		} catch (error) {
+			const message =
+				error instanceof Error ? error.message : 'Could not start directory launch on this tab.';
+			return { ok: false, error: message };
+		}
+
+		await chrome.tabs.update(tabId, { active: true });
+		const focused = await chrome.tabs.get(tabId);
+		if (focused.windowId != null) {
+			await chrome.windows.update(focused.windowId, { focused: true });
 		}
 		return { ok: true };
 	}
