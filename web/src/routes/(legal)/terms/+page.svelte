@@ -37,7 +37,7 @@
 				Back
 			</Button>
 			<SectionTitle>Terms and Conditions of Use for {companyName}</SectionTitle>
-			<SectionDescription>Last updated October 9, 2026</SectionDescription>
+			<SectionDescription>Last updated October 31, 2026</SectionDescription>
 		</SectionHeaderContainer>
 		<SubSectionOuterContainer class="max-w-3xl !py-4">
 			<SubSectionInnerContainer
@@ -317,15 +317,22 @@
 					integration without liability to you.
 				</p>
 				<p>
-					<strong>Optional browser-extension channels.</strong> For some platforms that do not offer
-					public OAuth for third-party schedulers, you may connect using our optional Chrome browser
-					extension. You install the extension, remain signed in on that platform’s website, and
-					initiate connect from the dashboard. The extension reads session identifiers (such as
-					cookies) from that site only when you start connect or when you allow periodic refresh. This
-					is not an official OAuth authorization from the platform. You are solely responsible for
-					compliance with that platform’s terms, acceptable-use rules, and any restrictions on
-					automated or third-party access. We may modify or discontinue browser-extension channels if
-					the platform changes its site, policies, or technical controls.
+					<strong>Optional Chrome browser extension.</strong> You may install our optional extension
+					for side-panel scheduling, cookie-session channel connect (for platforms such as Skool
+					that do not offer public OAuth for third-party schedulers), Reddit compose handoff, and
+					supported directory listing autofill on destinations OpenQuok enables (including additional
+					product directories in future extension releases). For cookie-session connect, you remain signed in on
+					that platform’s website and initiate connect from the dashboard; the extension reads
+					session identifiers (such as cookies) only when you start connect or when you allow periodic
+					refresh. That flow is not an official OAuth authorization from the platform. For Reddit and
+					product directory sites enabled in OpenQuok (including additional directories added in
+					future extension releases), the extension may pre-fill compose or listing forms from your
+					OpenQuok workspace; you must review and submit on the third-party site yourself. You are solely
+					responsible for compliance with each platform’s terms, acceptable-use rules, and any
+					restrictions on automated or third-party access. Data handling is in our
+					<a href="/privacy-policy#browser-extension-chrome" class="link link-hover">Privacy Policy</a>
+					(Section 2.5). We may modify or discontinue extension features if a platform changes its
+					site, policies, or technical controls.
 				</p>
 
 				<h2>9. AI, agents, and automation</h2>

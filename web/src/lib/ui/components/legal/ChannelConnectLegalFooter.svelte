@@ -20,10 +20,10 @@
 	and
 	<PageLink href="/privacy-policy" class="link link-hover font-medium text-base-content/85">
 		Privacy Policy
-	</PageLink	>. Platform-specific terms apply when you authorize access.
+	</PageLink>. Platform-specific terms apply when you authorize access.
 	{#if browserExtension}
 		Browser-extension channels use your existing platform login in Chrome; see our
-		<PageLink href="/privacy-policy" class="link link-hover font-medium text-base-content/85">
+		<PageLink href="/privacy-policy#browser-extension-chrome" class="link link-hover font-medium text-base-content/85">
 			Privacy Policy
 		</PageLink>
 		for how session identifiers are handled.

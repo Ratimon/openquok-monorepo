@@ -37,7 +37,7 @@
 				Back
 			</Button>
 			<SectionTitle>Privacy Policy for {companyName}</SectionTitle>
-			<SectionDescription>Last updated October 9, 2026</SectionDescription>
+			<SectionDescription>Last updated October 31, 2026</SectionDescription>
 		</SectionHeaderContainer>
 		<SubSectionOuterContainer class="max-w-3xl !py-4">
 			<SubSectionInnerContainer
@@ -202,21 +202,11 @@
 						subscriber counts, page IDs, and channel IDs).
 					</li>
 					<li>
-						<strong>Browser-extension session channels:</strong> When you connect a Platform through
-						our optional Chrome browser extension (for example Skool), you initiate the flow from the
-						dashboard while signed in on that Platform’s website. The extension reads session
-						identifiers required to act as your account (such as HTTP cookies for that domain) and
-						sends them to our API over HTTPS. We validate the session with the Platform, store the
-						session payload encrypted at rest on our servers, and use it only to provide scheduling
-						and publishing you request. After connect, we may issue a signed refresh token returned
-						to the extension; the extension stores that token in Chrome local storage and, on a
-						periodic schedule you enable by connecting, sends updated session identifiers to our
-						<strong>extension-refresh</strong> endpoint so long-lived channels stay valid. Disconnecting
-						the channel in your workspace stops future refresh and removes the stored refresh token
-						from the extension when you use disconnect in the product. We do not use extension
-						session data for advertising. See also our
-						<a href="/cookie-policy" class="link link-hover">Cookie Policy</a> for how this relates
-						to first-party cookies on {companyUrl}.
+						<strong>OpenQuok Chrome browser extension:</strong> Optional add-on for side-panel
+						scheduling, cookie-session channel connect (for example Skool), Reddit compose handoff,
+						and directory listing autofill on product destinations OpenQuok supports (including
+						additional directories over time via extension updates). Data handling is described in
+						<a href="#browser-extension-chrome" class="link link-hover">Section 2.5</a>.
 					</li>
 					<li id="google-api-services">
 						<strong>YouTube and Google API Services:</strong> For YouTube specifically, the
@@ -647,6 +637,82 @@
 						to diagnose usability issues or abuse.
 					</li>
 				</ul>
+
+				<h3 id="browser-extension-chrome">
+					2.5 OpenQuok Chrome browser extension</h3>
+				<p>
+					Our optional <strong>Chrome browser extension</strong> (Manifest V3) works with your
+					{companyName} account at
+					<a href={companyUrl} class="link link-hover">{companyUrl}</a>. It is not required to use
+					the web app. All extension JavaScript is bundled in the package we publish; we do not load
+					remote code in the extension. This section describes what the extension accesses when
+					<strong>you</strong> install it and use its features.
+				</p>
+				<ul>
+					<li>
+						<strong>Side panel and scheduling:</strong> When you open the side panel and schedule or
+						save drafts, the extension calls our API with your OpenQuok session (after you sign in)
+						and the content you enter. This is the same scheduling data you could use in the
+						dashboard; we do not use it for advertising.
+					</li>
+					<li>
+						<strong>Dashboard session link:</strong> On {companyUrl} (and local development hosts if
+						you build from source), a content script lets the signed-in dashboard pass a short-lived
+						connect handshake to the extension so the side panel knows your workspace. We do not read
+						unrelated pages on those hosts.
+					</li>
+					<li>
+						<strong>Cookie-session channels (for example Skool):</strong> When you connect a Platform
+						that uses browser session instead of public OAuth, you start the flow from the dashboard
+						while signed in on that Platform’s site. The extension reads session identifiers required
+						to act as your account (such as HTTP cookies for that domain) and sends them to our API
+						over HTTPS. We validate the session with the Platform, store the session payload encrypted
+						at rest, and use it only for scheduling and publishing you request. After connect, we may
+						issue a signed refresh token to the extension; the extension stores it in Chrome extension
+						local storage and, on a periodic schedule you enable by connecting, sends updated session
+						identifiers to our <strong>extension-refresh</strong> endpoint. Disconnecting the channel
+						in your workspace stops refresh and removes the stored refresh token when you disconnect in
+						the product.
+					</li>
+					<li>
+						<strong>Reddit compose handoff:</strong> When you schedule or open a Reddit post through
+						OpenQuok, the extension may open Reddit’s submit page and pre-fill title, body, or related
+						fields from your OpenQuok draft. You review and click submit on Reddit yourself; the
+						extension does not post on your behalf without that action on reddit.com.
+					</li>
+					<li>
+						<strong>Directory autofill:</strong> When you launch a directory submission from My Products
+						on a destination OpenQuok supports (for example PeerPush or Uneed today; we may add other
+						product directories over time), the extension opens that directory’s site and may fill form
+						fields from product profile data we return over HTTPS. You review, edit, and submit on the
+						directory site yourself. The extension runs content scripts only on directory hostnames
+						listed in the extension manifest for that Chrome Web Store version, and only for fill or
+						launch steps you start. When we add a new directory destination, we ship an updated
+						extension with matching host permissions and update this policy as needed.
+					</li>
+					<li>
+						<strong>Local extension storage:</strong> Besides refresh tokens, the extension may store
+						workspace identifiers, pending directory-launch handoff state, and similar settings in
+						<code>chrome.storage.local</code> until you disconnect, complete the flow, or uninstall the
+						extension. See our
+						<a href="/cookie-policy" class="link link-hover">Cookie Policy</a> (local browser storage).
+					</li>
+					<li>
+						<strong>What we do not do:</strong> We do not sell extension-related data, use it for
+						credit decisions, or collect general web browsing history across all sites. Host access is
+						limited to OpenQuok (and local development hosts in builds that include them), Reddit
+						submit URLs, cookie-session platform domains, and product-directory domains declared in
+						the extension manifest for that release—not arbitrary browsing. The set of directory
+						domains may grow as we add launch destinations; each new host is included only in a
+						published extension update.
+					</li>
+				</ul>
+				<p>
+					To stop extension processing, disconnect affected channels in your workspace, uninstall the
+					extension from Chrome, or contact us at
+					<a href={supportContactHref} class="link link-hover">{supportEmail}</a> for account-related
+					requests described in Section 4.
+				</p>
 
 				<h2>
 					3. How we use your information</h2>
