@@ -354,10 +354,10 @@ export const landingHeroTheme = {
 	descriptionClass:
 		'pt-2 text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg',
 	ctaButtonClass:
-		'my-2 w-full max-w-xs justify-center rounded-full px-10 text-sm sm:text-base lg:text-lg',
+		'my-2 w-full max-w-full justify-center rounded-full px-5 text-sm sm:w-auto sm:max-w-xs sm:px-10 sm:text-base lg:text-lg',
 	/** Docs CTA uses a longer label — skip max-w-xs so glitch text is not clipped. */
 	docsCtaButtonClass:
-		'my-2 w-full max-w-none justify-center rounded-full px-10 text-sm whitespace-nowrap sm:w-auto sm:text-base lg:text-lg',
+		'my-2 w-full max-w-none justify-center rounded-full px-5 text-sm whitespace-normal text-center sm:px-10 sm:w-auto sm:whitespace-nowrap sm:text-base lg:text-lg',
 	/** Hero CTAs: stack full-width on small screens; row + wrap from `sm`. */
 	dualCtaRowClass:
 		'flex w-full max-w-md flex-col items-stretch gap-2 pt-2 sm:max-w-none sm:flex-row sm:flex-wrap sm:items-center sm:justify-center lg:justify-start',

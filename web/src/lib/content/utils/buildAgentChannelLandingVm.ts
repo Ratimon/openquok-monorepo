@@ -201,7 +201,7 @@ export function buildAgentChannelLandingVm(params: {
 		heroTitle:
 			channel.slug === 'reddit'
 				? buildRedditHandoffAgentSurfaceHeroTitle(agentLabel)
-				: `Schedule ${platformLabel} from ${agentLabel} then you approve`,
+				: `Schedule ${platformLabel}\nfrom ${agentLabel} then you approve`,
 		heroDescription,
 		workflowSection: baseAgent.workflowSection
 			? {

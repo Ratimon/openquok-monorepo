@@ -55,8 +55,7 @@
 	this={headingLevel}
 	id={headingId}
 	class={cn(
-		'text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl',
-		dictionaryTitleRender.lines.length === 1 ? 'text-balance' : '',
+		'w-full max-w-full min-w-0 text-3xl font-black tracking-tight break-words text-balance sm:text-4xl lg:text-5xl',
 		className
 	)}
 >

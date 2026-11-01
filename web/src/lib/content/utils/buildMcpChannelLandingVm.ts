@@ -167,7 +167,7 @@ export function buildMcpChannelLandingVm(params: {
 		heroTitle:
 			channel.slug === 'reddit'
 				? buildRedditHandoffAgentSurfaceHeroTitle(clientLabel)
-				: `Schedule ${platformLabel} from ${clientLabel} then you approve`,
+				: `Schedule ${platformLabel}\nfrom ${clientLabel} then you approve`,
 		heroDescription:
 			channel.slug === 'reddit'
 				? buildRedditHandoffMcpHeroDescription(clientLabel)

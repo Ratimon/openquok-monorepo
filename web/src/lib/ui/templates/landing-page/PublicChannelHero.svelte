@@ -17,6 +17,9 @@
 			nonHighlightOffset: number
 		) => string;
 		parseLandingHeroTitlePartSegments: (text: string) => LandingHeroTitleSegment[];
+		dualCtaRowClass: string;
+		docsCtaButtonClass: string;
+		ctaButtonClass: string;
 	};
 
 	type Props = {
@@ -35,9 +38,9 @@
 	const headingId = 'public-channel-hero-heading';
 </script>
 
-<AuroraBackground class="relative isolate overflow-hidden">
+<AuroraBackground class="relative isolate overflow-x-clip">
 	<div class="relative z-10 mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
-		<div class="mx-auto flex max-w-3xl flex-col items-center text-center">
+		<div class="mx-auto flex w-full min-w-0 max-w-3xl flex-col items-center text-center">
 			<div
 				class="mb-6 flex size-16 items-center justify-center rounded-2xl border border-white/10 bg-base-100/10 shadow-lg backdrop-blur-sm"
 				aria-hidden="true"
@@ -45,7 +48,7 @@
 				<AbstractIcon name={channelVm.icon} width="36" height="36" class="size-9" focusable="false" />
 			</div>
 
-			<div class="mb-6 flex justify-center">
+			<div class="mb-6 flex w-full min-w-0 justify-center">
 				<PublicChannelsLandingBreadcrumb
 					platformLabel={channelVm.platformLabel}
 					channelKind={channelVm.channelKind ?? 'social'}
@@ -59,14 +62,16 @@
 				class="mt-4 text-3xl sm:text-4xl lg:text-5xl"
 			/>
 
-			<p class="mt-6 text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg">
+			<p
+				class="mt-6 w-full max-w-full break-words text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg"
+			>
 				{channelVm.heroDescription}
 			</p>
 
-			<div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+			<div class="{heroTheme.dualCtaRowClass} lg:justify-center">
 				{#if showDocsCta}
 					<ButtonGlitchBrightness
-						class="my-2 w-full max-w-none justify-center rounded-full border-white/40 bg-transparent px-10 text-sm whitespace-nowrap text-white shadow-none hover:bg-white/10 sm:w-auto sm:text-base"
+						class="{heroTheme.docsCtaButtonClass} rounded-full border-white/40 bg-transparent text-white shadow-none hover:bg-white/10"
 						variant="ghost"
 						size="lg"
 						href={docsCtaHref}
@@ -76,7 +81,7 @@
 					</ButtonGlitchBrightness>
 				{/if}
 				<ButtonGlitchBrightness
-					class="my-2 w-full max-w-xs justify-center rounded-full px-10 text-sm sm:w-auto sm:text-base"
+					class="{heroTheme.ctaButtonClass} rounded-full"
 					variant="primary"
 					size="lg"
 					href={ctaHref}

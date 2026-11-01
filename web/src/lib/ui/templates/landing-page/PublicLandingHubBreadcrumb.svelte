@@ -4,6 +4,7 @@
 
 	import {
 		PUBLIC_LANDING_BREADCRUMB_LINK_CLASS,
+		PUBLIC_LANDING_BREADCRUMB_LIST_CLASS,
 		PUBLIC_LANDING_BREADCRUMB_PAGE_CLASS,
 		PUBLIC_LANDING_BREADCRUMB_SEPARATOR_CLASS
 	} from '$lib/ui/templates/landing-page/publicLandingBreadcrumbStyles';
@@ -30,8 +31,8 @@
 	}: Props = $props();
 </script>
 
-<Breadcrumb.Root class={cn('max-w-full', className)}>
-	<Breadcrumb.List>
+<Breadcrumb.Root class={cn('max-w-full w-full overflow-x-visible', className)}>
+	<Breadcrumb.List class={PUBLIC_LANDING_BREADCRUMB_LIST_CLASS}>
 		{#each items as item, index (index)}
 			{#if index > 0}
 				<Breadcrumb.Separator class={separatorClass} />
