@@ -2376,12 +2376,10 @@ COMMENT ON FUNCTION public.is_super_admin(UUID) IS 'Check if a user is a super a
 -- ---------------------------
 -- Users
 -- ---------------------------
+-- No anon/authenticated PostgREST writes on public.users; server uses service_role + RPCs (400).
+-- Public profile fields live on user_profiles (SELECT for anon below).
 
--- Anon: public profile columns only (no verification tokens)
-GRANT SELECT (id, full_name, email, is_email_verified, is_super_admin, created_at, updated_at) ON public.users TO anon;
-
--- Authenticated: full access (restricted by RLS)
-GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON public.users TO authenticated;
+GRANT REFERENCES, SELECT ON public.users TO authenticated;
 GRANT SELECT (email_verification_token, email_verification_token_expires) ON public.users TO authenticated;
 
 -- Service role
@@ -2398,31 +2396,8 @@ TO authenticated
 USING (auth_id = auth.uid());
 
 DROP POLICY IF EXISTS "Owners can update their profiles" ON public.users;
-CREATE POLICY "Owners can update their profiles"
-ON public.users
-AS PERMISSIVE
-FOR UPDATE
-TO authenticated
-USING (auth_id = auth.uid())
-WITH CHECK (auth_id = auth.uid());
-
 DROP POLICY IF EXISTS "Anon users can view public profiles" ON public.users;
-CREATE POLICY "Anon users can view public profiles"
-ON public.users
-AS PERMISSIVE
-FOR SELECT
-TO anon
-USING (true);
-
--- Super admins can view and update any user (e.g. for admin tooling)
 DROP POLICY IF EXISTS "Super admins can update any user data" ON public.users;
-CREATE POLICY "Super admins can update any user data"
-ON public.users
-AS PERMISSIVE
-FOR UPDATE
-TO authenticated
-USING (public.is_super_admin(auth.uid()))
-WITH CHECK (public.is_super_admin(auth.uid()));
 
 DROP POLICY IF EXISTS "Super admins can view all user data" ON public.users;
 CREATE POLICY "Super admins can view all user data"
@@ -6440,6 +6415,49 @@ $$;
 REVOKE ALL ON FUNCTION public.get_listing_creators() FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.get_listing_creators() FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.get_listing_creators() TO service_role;
+
+-- ---------------------------
+-- Guard privileged columns on public.users (defense in depth vs PostgREST)
+-- ---------------------------
+
+CREATE OR REPLACE FUNCTION public.guard_users_privileged_columns()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
+BEGIN
+    IF TG_OP <> 'UPDATE' THEN
+        RETURN NEW;
+    END IF;
+
+    IF current_user IN ('service_role', 'postgres') THEN
+        RETURN NEW;
+    END IF;
+
+    IF NEW.is_super_admin IS DISTINCT FROM OLD.is_super_admin
+       OR NEW.is_email_verified IS DISTINCT FROM OLD.is_email_verified
+       OR NEW.email_verification_token IS DISTINCT FROM OLD.email_verification_token
+       OR NEW.email_verification_token_expires IS DISTINCT FROM OLD.email_verification_token_expires
+       OR NEW.auth_id IS DISTINCT FROM OLD.auth_id
+       OR NEW.id IS DISTINCT FROM OLD.id
+       OR NEW.email IS DISTINCT FROM OLD.email
+       OR NEW.provider IS DISTINCT FROM OLD.provider
+       OR NEW.provider_id IS DISTINCT FROM OLD.provider_id
+       OR NEW.cloud_trial_consumed_at IS DISTINCT FROM OLD.cloud_trial_consumed_at
+       OR NEW.cloud_trial_browser_signal_id IS DISTINCT FROM OLD.cloud_trial_browser_signal_id
+    THEN
+        RAISE EXCEPTION 'update not allowed on protected user columns';
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS users_guard_privileged_columns ON public.users;
+CREATE TRIGGER users_guard_privileged_columns
+    BEFORE UPDATE ON public.users
+    FOR EACH ROW
+    EXECUTE FUNCTION public.guard_users_privileged_columns();
 
 -- ---------------------------
 -- END OF FILE

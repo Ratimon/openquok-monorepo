@@ -314,6 +314,49 @@ REVOKE ALL ON FUNCTION public.get_listing_creators() FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.get_listing_creators() TO service_role;
 
 -- ---------------------------
+-- Guard privileged columns on public.users (defense in depth vs PostgREST)
+-- ---------------------------
+
+CREATE OR REPLACE FUNCTION public.guard_users_privileged_columns()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
+BEGIN
+    IF TG_OP <> 'UPDATE' THEN
+        RETURN NEW;
+    END IF;
+
+    IF current_user IN ('service_role', 'postgres') THEN
+        RETURN NEW;
+    END IF;
+
+    IF NEW.is_super_admin IS DISTINCT FROM OLD.is_super_admin
+       OR NEW.is_email_verified IS DISTINCT FROM OLD.is_email_verified
+       OR NEW.email_verification_token IS DISTINCT FROM OLD.email_verification_token
+       OR NEW.email_verification_token_expires IS DISTINCT FROM OLD.email_verification_token_expires
+       OR NEW.auth_id IS DISTINCT FROM OLD.auth_id
+       OR NEW.id IS DISTINCT FROM OLD.id
+       OR NEW.email IS DISTINCT FROM OLD.email
+       OR NEW.provider IS DISTINCT FROM OLD.provider
+       OR NEW.provider_id IS DISTINCT FROM OLD.provider_id
+       OR NEW.cloud_trial_consumed_at IS DISTINCT FROM OLD.cloud_trial_consumed_at
+       OR NEW.cloud_trial_browser_signal_id IS DISTINCT FROM OLD.cloud_trial_browser_signal_id
+    THEN
+        RAISE EXCEPTION 'update not allowed on protected user columns';
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS users_guard_privileged_columns ON public.users;
+CREATE TRIGGER users_guard_privileged_columns
+    BEFORE UPDATE ON public.users
+    FOR EACH ROW
+    EXECUTE FUNCTION public.guard_users_privileged_columns();
+
+-- ---------------------------
 -- END OF FILE
 -- ---------------------------
 

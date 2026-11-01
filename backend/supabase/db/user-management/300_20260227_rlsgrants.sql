@@ -36,12 +36,10 @@ COMMENT ON FUNCTION public.is_super_admin(UUID) IS 'Check if a user is a super a
 -- ---------------------------
 -- Users
 -- ---------------------------
+-- No anon/authenticated PostgREST writes on public.users; server uses service_role + RPCs (400).
+-- Public profile fields live on user_profiles (SELECT for anon below).
 
--- Anon: public profile columns only (no verification tokens)
-GRANT SELECT (id, full_name, email, is_email_verified, is_super_admin, created_at, updated_at) ON public.users TO anon;
-
--- Authenticated: full access (restricted by RLS)
-GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON public.users TO authenticated;
+GRANT REFERENCES, SELECT ON public.users TO authenticated;
 GRANT SELECT (email_verification_token, email_verification_token_expires) ON public.users TO authenticated;
 
 -- Service role
@@ -58,31 +56,8 @@ TO authenticated
 USING (auth_id = auth.uid());
 
 DROP POLICY IF EXISTS "Owners can update their profiles" ON public.users;
-CREATE POLICY "Owners can update their profiles"
-ON public.users
-AS PERMISSIVE
-FOR UPDATE
-TO authenticated
-USING (auth_id = auth.uid())
-WITH CHECK (auth_id = auth.uid());
-
 DROP POLICY IF EXISTS "Anon users can view public profiles" ON public.users;
-CREATE POLICY "Anon users can view public profiles"
-ON public.users
-AS PERMISSIVE
-FOR SELECT
-TO anon
-USING (true);
-
--- Super admins can view and update any user (e.g. for admin tooling)
 DROP POLICY IF EXISTS "Super admins can update any user data" ON public.users;
-CREATE POLICY "Super admins can update any user data"
-ON public.users
-AS PERMISSIVE
-FOR UPDATE
-TO authenticated
-USING (public.is_super_admin(auth.uid()))
-WITH CHECK (public.is_super_admin(auth.uid()));
 
 DROP POLICY IF EXISTS "Super admins can view all user data" ON public.users;
 CREATE POLICY "Super admins can view all user data"
