@@ -241,7 +241,7 @@ A **main product profile** is your default product record on <a href="/account/p
 
 A **directory variant** is a **copy** of the main product profile for **one** launch site. They are shown as <strong>site key</strong>(e.g. <Badge text="peerpush" variant="default" /> or <Badge text="uneed" variant="default" />). You can change the variant for that site without changing the main profile used elsewhere.
 
-<p>Variants are optional. If you have no variant for a site, launch can still use the main profile. See <a href="/docs/directory-submission/profile-variants">Tailor profiles per directory</a>.</p>
+<p>Variants are optional. If you have no variant for a site, launch can still use the main profile. See <a href="/docs/directory-submission/profile-variants">Profile variants per directory</a>.</p>
 
 <p><strong>Ensure variant</strong> means create the copy the first time or open the copy you already have. CLI: <Badge text="directory:variants:ensure" variant="default" />. MCP: <Badge text="directoryVariantsEnsure" variant="default" />.</p>
 

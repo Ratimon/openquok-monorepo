@@ -1,8 +1,8 @@
 ---
 title: Business profiles
-description: Link OpenQuok channels to a business profile (client or brand), filter the dashboard by profile, and select every channel in a profile at once in the post editor.
+description: Business profiles bundle social channels for the dashboard and composer — and how that relates to product profiles and directory launch.
 order: 3
-lastUpdated: 2026-10-14
+lastUpdated: 2026-11-03
 ---
 
 <script>
@@ -19,7 +19,25 @@ A **business profile** is a workspace label for one or more channels — usually
 <p>Channels with no profile are shown under <strong>Not linked to a business profile</strong> section.</p>
 </Callout>
 
-If you manage social for more than one client, business profiles keep <strong>My Dashboard</strong> readable and let you focus on one account at a time. The same profile can also hold **product** details for directory launches on the **Products** tab.
+If you manage social for more than one client, business profiles keep <strong>My Dashboard</strong> readable and let you focus on one account at a time.
+
+## Social channels vs directory launch
+
+OpenQuok runs **social posting** and **directory launch** in the same workspace. They use different data:
+
+| | Social posting | Directory launch |
+| --- | --- | --- |
+| **What you add** | A social account from <strong>Add Channel</strong> on <a href="/account">My Dashboard</a> → <strong>Channels</strong> tab — OAuth, API key, or extension | A directory destination from the same picker — OpenQuok does not sign you in on the directory site |
+| **What you organize** | Link each social channel to a **business profile** (below) | A **product profile** on <a href="/account/products">My Dashboard</a> → <strong>Products</strong> tab — pitch, logo, readiness, submission status |
+| **What OpenQuok does** | Schedule and publish posts — calendar, kanban, composer | Autofill the directory form with the <a href="/docs/installation/chrome-extension">browser extension</a> — **you** click submit on the directory |
+
+Directory destinations do not appear in the post composer and do not schedule on the calendar.
+
+You can link a product profile to a business profile so one client’s social channels and directory launches stay under one brand. See <a href="/docs/getting-started/glossary#directory-launch">Glossary — Directory launch</a>.
+
+<Callout type="note">
+<p>New to directory launch? Start with <a href="/docs/directory-submission">Directory submission</a>, <a href="/docs/channels/connect#directory-launch-in-add-channel">Connect a channel — directory launch</a>, and <a href="/docs/channels">Channels overview</a>.</p>
+</Callout>
 
 ## Link a channel to a business profile
 
@@ -55,6 +73,8 @@ You can still add or remove individual channels after that.
 
 ## Connect a client’s channel first
 
+<p>These steps apply to <strong>social</strong> channels only. Directory launch uses <a href="/account/products">My Dashboard</a> → <strong>Products</strong> tab — see <a href="/docs/directory-submission">Directory submission</a>.</p>
+
 You do not need their OpenQuok login. Send an **invite link**, so they authorize on the social account themselves.
 
 ![Send Invitation Links](/docs/_assets/channel-groups/send-invite.webp)
@@ -79,9 +99,11 @@ The dashboard uses <strong>business profile</strong>. The public API and CLI cal
 ## Related
 
 <CardGrid>
-<LinkCard title="Connect a channel" description="Add Channel, OAuth, API keys, and invite links for clients" href="/docs/channels/connect" />
+<LinkCard title="Channels overview" description="Social posting vs directory launch in one workspace" href="/docs/channels" />
+<LinkCard title="Connect a channel" description="Add Channel — OAuth, keys, extension, and directory tiles" href="/docs/channels/connect" />
+<LinkCard title="Directory submission" description="Product profile, extension autofill, track submissions" href="/docs/directory-submission" />
 <LinkCard title="Manage a channel" description="Reconnect, disable, or remove a connected account" href="/docs/channels/manage" />
 <LinkCard title="Posting time slots" description="Usual posting hours per channel" href="/docs/channels/time-slots" />
 <LinkCard title="Approvals" description="Preview links and client comments before you schedule" href="/docs/posts-management/approvals" />
-<LinkCard title="Glossary" description="Business profiles, preview links, and calendar vs kanban" href="/docs/getting-started/glossary" />
+<LinkCard title="Glossary" description="Business profiles, product profiles, and directory launch" href="/docs/getting-started/glossary#business-profiles" />
 </CardGrid>

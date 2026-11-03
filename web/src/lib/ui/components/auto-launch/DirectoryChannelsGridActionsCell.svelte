@@ -78,7 +78,7 @@
 				disabled={ctx.tailorBusySiteKey === rowVm.siteKey}
 				onclick={() => void ctx.tailorForDirectory(rowVm)}
 			>
-				Tailor
+				Create variant
 			</Button>
 		{/if}
 		{#if rowVm.showLaunch}

@@ -82,11 +82,12 @@ Guides for product profiles, directory autofill, and submission tracking — you
 <LinkCard title="Directory submission" description="Business profile, extension handoff, readiness, and mark each launch complete" href="/docs/directory-submission" />
 <LinkCard title="Directory submission tool" description="DIY autofill and tracking vs done-for-you bulk packages — FAQs and product overview" href="/directory-submission-tool" />
 <LinkCard title="Track submissions" description="Listing URLs, dofollow notes, and progress on My Products" href="/docs/directory-submission/track-submissions" />
-<LinkCard title="Profile variants" description="Tailor copy per directory and see which profile the extension uses" href="/docs/directory-submission/profile-variants" />
+<LinkCard title="Profile variants" description="Site-specific copies per directory and which profile the extension uses" href="/docs/directory-submission/profile-variants" />
 <LinkCard title="Directory analytics" description="Domain rating charts and competitor tracking on paid plans" href="/docs/directory-submission/directory-analytics" />
 <LinkCard title="Directory integration" description="How directory destinations differ from OAuth social channels" href="/docs/directory-integration" />
 <LinkCard title="Browser extension" description="Install the OpenQuok Chrome extension for directory autofill" href="/docs/installation/chrome-extension" />
-<LinkCard title="Saved backlinks" description="Bookmark directory sites from Build Backlinks and manage your shortlist" href="/docs/saved/backlinks" />
+<LinkCard title="Build Backlinks" description="Public catalog, bookmarks, and research" href="/docs/directory-submission/build-backlinks" />
+<LinkCard title="Backlinks management" description="Reorder and mark outreach done on Account → Saved" href="/docs/saved/backlinks" />
 </CardGrid>
 
 ## Building on OpenQuok

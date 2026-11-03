@@ -56,7 +56,7 @@ You can bookmark while signed out. Anonymous bookmarks stay in browser storage o
 </Callout>
 
 <Callout type="note">
-<p>Listing bookmarks are separate from <strong>Backlinks</strong> shortlists on <a href="/account/saved?tab=backlinks">Account → Saved → Backlinks</a>. See <a href="/docs/saved/backlinks">Backlinks shortlist</a> for outreach sites.</p>
+<p>Listing bookmarks are separate from <strong>Backlinks</strong> lists. Hub research: <a href="/docs/directory-submission/build-backlinks">Build Backlinks</a>. Account tab: <a href="/docs/saved/backlinks">Backlinks management</a>.</p>
 </Callout>
 
 ## After you sign in
@@ -100,7 +100,7 @@ Anonymous bookmark picks may live in browser storage until you sign in and merge
 <LinkCard title="Compose a playbook" description="Selection bar and Skill Builder handoff" href="/docs/saved/compose-a-playbook" />
 <LinkCard title="Your library" description="Drafts, stats, and publish actions" href="/docs/saved/my-library" />
 <LinkCard title="Saved overview" description="Libs, Backlinks, and OpenQuok Core" href="/docs/saved" />
-<LinkCard title="Backlinks shortlist" description="Save outreach sites from Build Backlinks" href="/docs/saved/backlinks" />
-<LinkCard title="Building Blocks hub" description="Public catalog visitors see" href="/building-blocks" />
+<LinkCard title="Backlinks management" description="Saved tab — reorder and mark outreach done" href="/docs/saved/backlinks" />
+<LinkCard title="Build Backlinks" description="Public catalog vs My Products launch" href="/docs/directory-submission/build-backlinks" />
 <LinkCard title="Playbooks hub" description="Public playbook catalog" href="/playbooks" />
 </CardGrid>

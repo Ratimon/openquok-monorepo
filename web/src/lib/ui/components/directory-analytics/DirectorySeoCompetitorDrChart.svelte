@@ -18,6 +18,7 @@
 
 	type CompareRow = {
 		name: string;
+		detail: string;
 		rating: number;
 		color: string;
 	};
@@ -26,11 +27,10 @@
 		const rows: CompareRow[] = [];
 		let colorIndex = 0;
 		if (productDomain?.domainRating != null && Number.isFinite(productDomain.domainRating)) {
-			const label = productDomain.domain
-				? `You (${productDomain.domain})`
-				: 'Your domain';
+			const domain = productDomain.domain?.trim() ?? '';
 			rows.push({
-				name: label,
+				name: 'You',
+				detail: domain ? `Your domain (${domain})` : 'Your domain',
 				rating: Math.round(productDomain.domainRating),
 				color: directorySeoChartColorAt(colorIndex)
 			});
@@ -38,8 +38,10 @@
 		}
 		for (const competitor of competitors) {
 			if (competitor.domainRating == null || !Number.isFinite(competitor.domainRating)) continue;
+			const label = competitor.label?.trim();
 			rows.push({
-				name: competitor.label?.trim() || competitor.domain,
+				name: label || competitor.domain,
+				detail: label ? `${label} (${competitor.domain})` : competitor.domain,
 				rating: Math.round(competitor.domainRating),
 				color: directorySeoChartColorAt(colorIndex)
 			});
@@ -51,7 +53,7 @@
 	const chartConfig = $derived.by((): Chart.ChartConfig => {
 		const config: Chart.ChartConfig = {};
 		for (const row of chartData) {
-			config[row.name] = { label: row.name, color: row.color };
+			config[row.name] = { label: row.detail, color: row.color };
 		}
 		return config;
 	});
@@ -63,7 +65,12 @@
 		return 'h-44';
 	});
 
-	function truncateLabel(label: string, max = 28): string {
+	const chartPaddingLeft = $derived.by(() => {
+		const longest = chartData.reduce((max, row) => Math.max(max, row.name.length), 4);
+		return Math.min(200, Math.max(56, longest * 7 + 16));
+	});
+
+	function truncateLabel(label: string, max = 22): string {
 		const trimmed = label.trim();
 		if (trimmed.length <= max) return trimmed;
 		return `${trimmed.slice(0, max - 1)}…`;
@@ -82,7 +89,7 @@
 			y="name"
 			x="rating"
 			c="color"
-			padding={{ left: 8, right: 8 }}
+			padding={{ left: chartPaddingLeft, right: 12, top: 8, bottom: 8 }}
 			grid={{ x: true, y: false }}
 			rule={false}
 			axis={true}
@@ -100,7 +107,7 @@
 			}}
 		>
 			{#snippet tooltip()}
-				<Chart.Tooltip hideLabel />
+				<Chart.Tooltip />
 			{/snippet}
 		</BarChart>
 	</Chart.Container>

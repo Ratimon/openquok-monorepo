@@ -1,51 +1,83 @@
 ---
-title: Tailor profiles per directory
-description: Branch a directory-specific copy of your main business profile, track similarity, and launch with the right variant in OpenQuok.
+title: Profile variants per directory
+description: Optional site-specific copies of your main product profile — when to use them, and how Edit variant and Create variant work on My Products.
 order: 2
-lastUpdated: 2026-10-19
+lastUpdated: 2026-11-03
+sidebar:
+  label: Profile variants
 ---
 
 <script>
-import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
+import { Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-## Why directory variants exist
+## What you see on the product card
 
-Your **main** business profile on <a href="/account/products">My Products</a> is the default source for extension autofill. Some directories want a shorter tagline, different pricing copy, or site-specific fields.
+<p>On <a href="/account/products">My Dashboard</a> → <strong>Products</strong> tab, each product card includes actions for the <strong>main</strong> profile and for directory launches.</p>
 
-A **directory variant** is a full copy of the main profile, linked to one directory site (for example <Badge text="peerpush" variant="param" /> or <Badge text="uneed" variant="param" />). You edit the variant without changing the main profile for every other destination.
+![OpenQuok Main Profile Card](/docs/_assets/directory-submission/profile-main-card.webp)
+
+| Control | What it does |
+| --- | --- |
+| **Edit profile** | Opens the main product profile — name, tagline, description, logo, and shared fields |
+
+![Edit Main Profile Card](/docs/_assets/directory-submission/edit-profile.webp)
+
+| Control | What it does |
+| --- | --- |
+| **+ Add directory launch** | Pick a directory site and a launch path (for example PeerPush Standard launch or Uneed Paid launch), then hand off to the extension. OpenQuok uses the <strong>main</strong> profile unless you already created a site copy for that directory |
+| **Edit variant** | Opens a <strong>site copy</strong> you created earlier (shown in the list as <em>peerpush variant</em>, <em>uneed variant</em>, and so on, often with a <strong>match %</strong>) |
+
+<p><strong>+ Add directory launch</strong> does not create a site copy by itself. It starts a launch. You only need a variant when that directory should use different copy than the main profile.</p>
+
+## Main profile vs site copy
+
+> One main pitch — optional copies when a directory needs different wording.
+
+<p>Your <strong>main</strong> product profile is the default for extension autofill. A <strong>profile variant</strong> (site copy) is a duplicate for <strong>one</strong> directory site. You edit the copy for that site without changing every other destination.</p>
 
 <Callout type="note">
-<p>Variants are optional. When you have not created one for a site, launches still use the main profile.</p>
+<p>Variants are optional. If you never create one, <strong>+ Add directory launch</strong> and row-level <strong>Launch</strong> still use the main profile.</p>
 </Callout>
 
-## Create or open a variant
+## Create or edit a site copy
 
-On <a href="/account/products">My Products</a>, open a product’s directory grid or destination card.
+<Steps
+	howToName="Create or edit a directory profile variant"
+	howToDescription="Create site copy or Edit variant on the card."
+>
 
-1. Find the directory row you want to customize.
-2. Choose <strong>Tailor for this directory</strong> (or open an existing tailored profile from the nested variant list under the main card).
-3. OpenQuok creates a variant on first use — a copy of the main profile at that moment — or opens the one you already have for that <Badge text="site_key" variant="param" />.
+### Create a copy for one site
 
-Edit fields in the same profile composer as the main product. Save when you are done.
+<p>On the product card, expand <strong>Directory channels</strong>. On the row for that site, click <strong>Create variant</strong>. OpenQuok copies the main profile and opens the editor.</p>
+
+### Edit a copy you already have
+
+<p>Click <strong>Edit variant</strong> on the card (next to <em>peerpush variant</em>, and so on) or on the row in <strong>Directory channels</strong>.</p>
+
+### Save
+
+<p>Update fields in the profile composer and save.</p>
+
+</Steps>
+
+<p>After a copy exists, the row shows <strong>Edit variant</strong> instead of <strong>Create variant</strong>.</p>
 
 ## Similarity to main
 
-Each variant shows a **similarity %** compared to the main profile. OpenQuok compares normalized fields (name, tagline, description, website, logo, and shared <Badge text="profile_data" variant="param" /> keys) without calling external APIs.
+<p>Each site copy can show a <strong>match %</strong> (similarity to the main profile). OpenQuok compares name, tagline, description, website, logo, and shared fields — no external API calls.</p>
 
 | Signal | What it means |
 | --- | --- |
-| High similarity | Variant still matches the main pitch |
-| Lower similarity | You changed copy for this directory |
-| Main profile updated later | Variants may show a drift warning — review before the next launch |
-
-Use similarity to see which directories you have customized and whether a main-profile edit should be mirrored into variants.
+| High match | The site copy still aligns with your main pitch |
+| Lower match | You changed copy for this directory |
+| Main profile edited later | You may see a drift warning — review the variant before the next launch |
 
 ## Launches and submissions
 
-When you <Badge text="Launch to directory" variant="new" /> for a site that has a variant, OpenQuok hands off **that variant’s** snapshot to the extension. Submissions store the variant’s <Badge text="product_profile_id" variant="param" />.
+<p>When you launch to a site that has a variant, OpenQuok sends <strong>that variant’s</strong> snapshot to the extension. If no variant exists, the launch uses the <strong>main</strong> profile.</p>
 
-If no variant exists for the site, the launch uses the **main** profile — same as before variants shipped.
+<p>See <a href="/docs/directory-submission/track-submissions">Track submissions</a> to mark complete and save listing URLs after you publish on the directory.</p>
 
 ## Related
 

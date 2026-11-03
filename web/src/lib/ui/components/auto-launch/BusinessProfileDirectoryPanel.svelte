@@ -146,7 +146,7 @@
 				toast.error(resultVm.error);
 				return;
 			}
-			toast.success('Tailored profile created.');
+			toast.success('Variant created.');
 			onOpenVariantProfile?.(resultVm.profileId);
 		} finally {
 			tailorBusySiteKey = null;

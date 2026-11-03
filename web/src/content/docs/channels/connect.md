@@ -2,7 +2,7 @@
 title: Connect a channel
 description: How OpenQuok connects a social account — OAuth redirect, pasted credentials, or the browser extension.
 order: 1
-lastUpdated: 2026-10-09
+lastUpdated: 2026-11-03
 ---
 
 <script>
@@ -22,10 +22,15 @@ A **channel** is one linked social account — one X profile, one LinkedIn Page,
 
 The calendar, post editor, analytics, and templates all need at least one channel before they can do anything useful, so connecting is the first step in a new workspace.
 
-
 Pick the network you want. OpenQuok picks the connection flow for that platform — you do not choose it yourself.
 
 ![Open The modal to choose a channel to be conncted](/docs/_assets/channel-groups/add-channel-modal.webp)
+
+## Directory launch in Add Channel
+
+<Callout type="note">
+<p>The same <strong>Add Channel</strong> picker lists <strong>directory launch</strong> destinations. OpenQuok does not sign you in on the directory site. Build a product profile on <a href="/account/products">My Dashboard</a> → <strong>Products</strong> tab, then click <strong>Launch to directory</strong> — the <a href="/docs/installation/chrome-extension">browser extension</a> autofills; you submit on the directory. See <a href="/docs/directory-submission">Directory submission</a>.</p>
+</Callout>
 
 ## Connection flows
 
@@ -153,5 +158,6 @@ See <a href="/docs/troubleshooting/oauth-connect">Troubleshooting → OAuth and 
 <LinkCard title="Skool" description="Connect with the OpenQuok browser extension" href="/docs/social-integration/skool" />
 <LinkCard title="Browser extension" description="Build, install, and configure the extension ID" href="/docs/installation/chrome-extension" />
 <LinkCard title="Quickstart" description="Connect a channel and schedule your first post" href="/docs/getting-started/quickstart" />
+<LinkCard title="Directory submission" description="Product profile, Add Channel destinations, extension autofill" href="/docs/directory-submission" />
 <LinkCard title="OAuth and channel connect" description="Invalid state, Redis, and provider errors" href="/docs/troubleshooting/oauth-connect" />
 </CardGrid>

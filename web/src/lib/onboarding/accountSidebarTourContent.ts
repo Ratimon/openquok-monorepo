@@ -20,6 +20,8 @@ const GUIDE = {
 	globalPlugs: '/docs/automations/global-plugs',
 	internalPlugs: '/docs/automations/internal-plugs',
 	insights: '/docs/insights/workspace-analytics',
+	directoryAnalytics: '/docs/directory-submission/directory-analytics',
+	directorySubmission: '/docs/directory-submission',
 	media: '/docs/media',
 	addMedia: '/docs/media/add-media'
 } as const;
@@ -236,7 +238,7 @@ export const ACCOUNT_SIDEBAR_TOUR_CONTENT: Record<
 						'Reorder rows to prioritize outreach and mark ',
 						{ highlight: 'Done' },
 						' when you finish a site. That shortlist is separate from Libs catalog bookmarks. Details in ',
-						{ link: { label: 'Backlinks shortlist', href: GUIDE.savedBacklinks } },
+						{ link: { label: 'Backlinks management', href: GUIDE.savedBacklinks } },
 						'.'
 					]
 				]
@@ -292,8 +294,8 @@ export const ACCOUNT_SIDEBAR_TOUR_CONTENT: Record<
 		id: 'analytics',
 		steps: [
 			{
-				title: 'Analytics',
-				subtitle: 'See how posts perform after they leave the queue.',
+				title: 'Social analytics',
+				subtitle: 'Post reach and engagement after publish.',
 				iconName: icons.ChartBar.name,
 				image: {
 					src: '/docs/_assets/insights/overview-metric-cards.webp',
@@ -301,14 +303,51 @@ export const ACCOUNT_SIDEBAR_TOUR_CONTENT: Record<
 				},
 				paragraphs: [
 					[
-						'Connect channels on My Dashboard, then open Analytics. Compare ',
+						'Open ',
+						{ highlight: 'Analytics' },
+						' from the account sidebar. On the ',
+						{ highlight: 'Social' },
+						' tab, compare ',
 						{ highlight: 'reach, engagement, and trends' },
-						' across integrations. The ',
+						' across connected channels. See ',
 						{ link: { label: 'Workspace analytics', href: GUIDE.insights } },
-						' page describes each chart.'
+						' in the Guide.'
 					],
 					[
 						'Filter by channel and date range. Use the numbers to decide what to publish next.'
+					]
+				]
+			},
+			{
+				title: 'Directory analytics',
+				subtitle: 'Domain rating for your product site and competitors.',
+				iconName: icons.ChartBar.name,
+				image: {
+					src: '/docs/_assets/directory-submission/products-dashboard-browser.webp',
+					alt: 'My Products and directory launch alongside analytics'
+				},
+				paragraphs: [
+					[
+						'On the same ',
+						{ highlight: 'Analytics' },
+						' page, switch to the ',
+						{ highlight: 'Directory' },
+						' tab. Pick a ',
+						{ highlight: 'main' },
+						' product profile to see domain rating (DR), history, and workspace competitors — not social post metrics.'
+					],
+					[
+						'Launches and ',
+						{ highlight: 'Directory channels' },
+						' on a product card live under ',
+						{ highlight: 'My Dashboard' },
+						' → ',
+						{ highlight: 'Products' },
+						'. The Directory tab tracks your site DR over time (paid plans). See ',
+						{ link: { label: 'Directory analytics', href: GUIDE.directoryAnalytics } },
+						' and ',
+						{ link: { label: 'Directory submission', href: GUIDE.directorySubmission } },
+						'.'
 					]
 				]
 			}

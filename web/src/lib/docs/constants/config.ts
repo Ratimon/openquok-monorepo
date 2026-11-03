@@ -44,7 +44,7 @@ export const docsSidebarGeneral: DocsSidebarSection[] = [
 		autogenerate: { directory: 'getting-started' }
 	},
 	{
-		label: 'Channels',
+		label: 'Social Channels',
 		icon: icons.Share2.name,
 		autogenerate: { directory: 'channels' }
 	},
