@@ -84,6 +84,6 @@ import { Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/docs/mdx/
 <CardGrid>
 <LinkCard title="Directory submission overview" description="Extension workflow from profile to mark complete" href="/docs/directory-submission" />
 <LinkCard title="Track submissions" description="Listing URL, dofollow notes, and completion status" href="/docs/directory-submission/track-submissions" />
-<LinkCard title="Directory analytics" description="Domain rating for your product site and competitors" href="/docs/directory-submission/directory-analytics" />
+<LinkCard title="Directory analytics" description="Domain rating for your product site and competitors" href="/docs/insights/directory-analytics" />
 <LinkCard title="Business profiles" description="Link social channels to the same product profile" href="/docs/channels/channel-groups" />
 </CardGrid>

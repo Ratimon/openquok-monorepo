@@ -58,7 +58,7 @@ describe('PUBLIC_DIRECTORY_SUBMISSION_LANDING_FAQ_SECTION', () => {
 		expect(item!.title).not.toMatch(/refund/i);
 		const html = item!.description;
 		expect(html.toLowerCase()).toContain('do not guarantee');
-		expect(html).toContain(`href="${publicFaqHref.docsInsights}"`);
+		expect(html).toContain(`href="${publicFaqHref.docsDirectoryAnalytics}"`);
 		expect(html).not.toMatch(/refund/i);
 		expect(html).not.toMatch(/^\s*1\./);
 	});

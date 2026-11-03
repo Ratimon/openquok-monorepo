@@ -104,7 +104,7 @@ Compare directory sites on three surfaces:
 <CardGrid>
 <LinkCard title="Track submissions" description="Readiness on My Products, listing URL, dofollow notes, and mark complete" href="/docs/directory-submission/track-submissions" />
 <LinkCard title="Profile variants per directory" description="Site-specific copies, similarity %, and which profile the extension uses" href="/docs/directory-submission/profile-variants" />
-<LinkCard title="Directory analytics" description="Domain rating charts and competitor tracking on paid plans" href="/docs/directory-submission/directory-analytics" />
+<LinkCard title="Directory analytics" description="Domain rating charts and competitor tracking on paid plans" href="/docs/insights/directory-analytics" />
 <LinkCard title="Build Backlinks" description="Public catalog vs Channels setup and My Products" href="/docs/directory-submission/build-backlinks" />
 </CardGrid>
 

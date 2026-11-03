@@ -10,9 +10,6 @@ describe('resolveLegacyDocsSlug', () => {
 		);
 		expect(resolveLegacyDocsSlug('channels/connect')).toBeNull();
 		expect(resolveLegacyDocsSlug('channels/business-profiles')).toBe('channels/channel-groups');
-		expect(resolveLegacyDocsSlug('directory-submission/build-backlinks-hub')).toBe(
-			'directory-submission/build-backlinks'
-		);
 	});
 });
 

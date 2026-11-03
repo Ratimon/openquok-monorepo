@@ -23,6 +23,7 @@ describe('PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG', () => {
 		expect(html).toContain(`href="${publicFaqHref.signUp}"`);
 		expect(html).toContain(`href="${faqHrefDocs('directory-submission')}"`);
 		expect(html).toContain(`href="${faqHrefDocs('installation/chrome-extension')}"`);
+		expect(html).toContain(`href="${publicFaqHref.docsDirectoryAnalytics}"`);
 	});
 
 	it('lists three pricing comparison models', () => {

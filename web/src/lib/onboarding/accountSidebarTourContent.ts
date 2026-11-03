@@ -20,7 +20,7 @@ const GUIDE = {
 	globalPlugs: '/docs/automations/global-plugs',
 	internalPlugs: '/docs/automations/internal-plugs',
 	insights: '/docs/insights/workspace-analytics',
-	directoryAnalytics: '/docs/directory-submission/directory-analytics',
+	directoryAnalytics: '/docs/insights/directory-analytics',
 	directorySubmission: '/docs/directory-submission',
 	media: '/docs/media',
 	addMedia: '/docs/media/add-media'

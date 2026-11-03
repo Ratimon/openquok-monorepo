@@ -18,7 +18,7 @@ import { Badge, Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/do
 
 OpenQuok loads that data from [DataForSEO](https://dataforseo.com/) and saves it in your database so the app does not call the provider on every page view.
 
-User guide: <a href="/docs/directory-submission/directory-analytics">Directory analytics</a>.
+User guide: <a href="/docs/insights/directory-analytics">Directory analytics</a>.
 
 ## Do you need it?
 
@@ -102,7 +102,7 @@ Weekly rating refresh runs in the **housekeeping** worker in Node. It does **not
 
 <CardGrid>
 <LinkCard title="Configuration - Worker" description="Housekeeping worker env and deploy" href="/docs/configuration-worker" />
-<LinkCard title="Directory analytics" description="How workspaces use ratings in the app" href="/docs/directory-submission/directory-analytics" />
+<LinkCard title="Directory analytics" description="How workspaces use ratings in the app" href="/docs/insights/directory-analytics" />
 <LinkCard title="Database & migrations" description="Migrations for Directory and SEO tables" href="/docs/configuration-backend/database" />
 <LinkCard title="Catalog DR refresh (admin)" description="Refresh link-directory catalog ratings (admin)" href="/docs/admin/link-directory-catalog-dr-refresh" />
 </CardGrid>

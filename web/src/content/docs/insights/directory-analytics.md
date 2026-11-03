@@ -26,6 +26,22 @@ Directory analytics applies to **main** business profiles (not directory variant
 <p><strong>Free</strong> workspaces do not include Directory analytics or competitor tracking. Upgrade to a paid plan to use this tab.</p>
 </Callout>
 
+## Before you start
+
+1. Create a <strong>main</strong> business profile (not a per-directory variant).
+2. Add your product <strong>website URL</strong> on that profile.
+3. Pick the profile in the <strong>Product profile</strong> menu on the <strong>Directory</strong> tab.
+
+Without a website URL, OpenQuok cannot look up a domain rating.
+
+## What you see
+
+| Area | Meaning |
+| --- | --- |
+| **Your domain DR** | A score for your website hostname, with change over **7**, **30**, and **90** days |
+| **History** | A line chart for your domain over **7**, **30**, or **90** days |
+| **Competitors** | Other domains you add to compare against your site |
+
 ## Product grid DR vs live DR
 
 | Surface | Source | Purpose |
@@ -39,7 +55,7 @@ Directory analytics applies to **main** business profiles (not directory variant
 
 ## Competitors
 
-<p>Paid plans include a workspace pool of competitor domains — limits depend on plan tier. On <a href="/account/analytics">Account → Analytics</a> → <strong>Directory</strong>, pick a <strong>main</strong> product profile.</p>
+<p>Paid plans include a workspace pool of competitor domains — <strong>2</strong> / <strong>3</strong> / <strong>5</strong> / <strong>10</strong> per workspace on Solo / Team / Ultimate / Max. On <a href="/account/analytics">Account → Analytics</a> → <strong>Directory</strong>, pick a <strong>main</strong> product profile. See <a href="/docs/cloud/plans">Plans and limits</a> and <a href="/docs/billing/limits">Limits</a>.</p>
 
 <Steps
 	howToName="Track competitor domain rating"
@@ -60,15 +76,30 @@ Directory analytics applies to **main** business profiles (not directory variant
 
 ### Manage the list
 
-<p>Use <strong>Edit</strong> or <strong>Remove</strong> on each row beside the form. Click <strong>Refresh ratings</strong> at the top of the tab when the page says manual refresh is available.</p>
+<p>Use <strong>Edit</strong> to rename a competitor label (charts and compare pills use the label) or <strong>Remove</strong> on each row beside the form. Click <strong>Refresh ratings</strong> at the top of the tab when the page says manual refresh is available.</p>
 
 </Steps>
+
+## History chart
+
+<p>The first time you open the <strong>Directory</strong> tab (or switch the history range) after a domain has no imported history, OpenQuok may pull <strong>daily</strong> domain-rating points from DataForSEO so the chart is not a single dot. Those points are stored and reused for about <strong>one week</strong> before a refresh import can run again.</p>
+
+<p>After that, the chart blends:</p>
+
+- **Imported daily series** — past days from the provider backfill.
+- **Live samples** — new points when OpenQuok refreshes your snapshot (about weekly, or when you use <strong>Refresh ratings</strong>).
+
+<p>The score uses the same <strong>0–100</strong> scale as the headline DR. Gaps can appear when the provider has no rank for a day.</p>
+
+<Callout type="note">
+<p>Paid workspaces need a configured DataForSEO key on the server for live DR and history import. Without it, the page shows stored or empty values only.</p>
+</Callout>
 
 ## Refresh and accuracy
 
 <p>When you open the <strong>Directory</strong> tab, OpenQuok shows the last saved domain rating if it is less than about <strong>7 days</strong> old. If the rating is missing or older, OpenQuok fetches a new score from DataForSEO.</p>
 
-<p><strong>Refresh ratings</strong> requests a new lookup for your product domain and competitors. You can use it about <strong>once per week</strong> per product domain when the page shows that manual refresh is available. OpenQuok also updates old ratings on a background schedule (see <a href="/docs/configuration-worker">Configuration - Worker</a>).</p>
+<p><strong>Refresh ratings</strong> requests a new lookup for your product domain and competitors. You can use it about <strong>once per week</strong> per product domain when the page shows that manual refresh is available. If the button is disabled, hover it to see when the next refresh is allowed. OpenQuok also updates old ratings on a background schedule (see <a href="/docs/configuration-worker">Configuration - Worker</a>).</p>
 
 <p><strong>Link type</strong> (dofollow / nofollow) on My Products comes from the catalog and your submission notes. Directory analytics does not check every directory backlink in v1.</p>
 
@@ -77,9 +108,9 @@ Directory analytics applies to **main** business profiles (not directory variant
 ## Related
 
 <CardGrid>
+<LinkCard title="Insights overview" description="Social analytics, per-post stats, and how the tabs fit together" href="/docs/insights" />
 <LinkCard title="Profile variants per directory" description="Site-specific copies before you launch" href="/docs/directory-submission/profile-variants" />
-<LinkCard title="Domain analytics (product guide)" description="Directory tab for end users — profiles, refresh, and My Products DR vs live DR" href="/docs/insights/domain-analytics" />
 <LinkCard title="Workspace analytics (social)" description="Targeted channels and overview metrics for connected networks" href="/docs/insights/workspace-analytics" />
 <LinkCard title="Directory SEO & DataForSEO" description="Backend env vars, cache tables, and housekeeping refresh" href="/docs/configuration-backend/directory-seo" />
-<LinkCard title="Database & migrations" description="pg_cron vs housekeeping worker for scheduled jobs" href="/docs/configuration-backend/database" />
+<LinkCard title="Limits" description="Directory competitor caps and upgrade paths" href="/docs/billing/limits" />
 </CardGrid>

@@ -68,7 +68,7 @@ Yearly billing gives a 20% discount compared to paying monthly for the same year
 
 **Directory analytics (domain rating)** is the **Directory** tab on <a href="/account/analytics">Analytics</a>: domain rating for your product website, history charts, and manual refresh. Unpaid Cloud accounts do not get this tab.
 
-**Directory competitors (per workspace)** are extra domains you add on that tab to compare DR against your site. The cap is **per workspace**, not shared across workspaces on the account. Remove a competitor to free a slot, or upgrade for a higher cap. See <a href="/docs/insights/domain-analytics">Domain analytics</a>.
+**Directory competitors (per workspace)** are extra domains you add on that tab to compare DR against your site. The cap is **per workspace**, not shared across workspaces on the account. Remove a competitor to free a slot, or upgrade for a higher cap. See <a href="/docs/insights/directory-analytics">Directory analytics</a>.
 
 **Scheduling, analytics, agents, plugs** covers calendar, kanban, multi-channel publish, templates, signatures, agent skills, social channel analytics, and plug rules. Every paid tier includes these.
 

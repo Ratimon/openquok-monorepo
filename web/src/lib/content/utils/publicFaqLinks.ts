@@ -105,6 +105,7 @@ export const publicFaqHref = {
 	docsApprovals: faqHrefDocs('posts-management/approvals'),
 	docsDevelopers: faqHrefDocs('settings/developers'),
 	docsInsights: faqHrefDocs('insights/workspace-analytics'),
+	docsDirectoryAnalytics: faqHrefDocs('insights/directory-analytics'),
 	docsPlaybooks: faqHrefDocs('saved'),
 	docsPlaybooksExplore: faqHrefDocs('saved/explore-and-bookmarks'),
 	docsPlaybooksMyLibrary: faqHrefDocs('saved/my-library'),

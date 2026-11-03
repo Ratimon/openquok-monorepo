@@ -29,7 +29,7 @@ export function buildDirectoryLaunchDrGuaranteeFaqItem(options?: {
 	return {
 		title: DIRECTORY_LAUNCH_DR_GUARANTEE_FAQ_TITLE,
 		description:
-			`Directory launch is DIY software. You submit each form. OpenQuok gives business profiles, ${faqLink(publicFaqHref.browserExtensionLanding, 'browser extension')} autofill, submission tracking, and DR analytics. We do not guarantee a DR score or a timeline.${platformClause} DR can change when your site is strong, your listings are relevant, directories allow dofollow links, and crawlers find them. New domains often see slow change. Sites with high DR may see small moves. Track DR in ${faqLink(publicFaqHref.docsInsights, 'workspace analytics')}. Pick directories in ${faqLink(buildBacklinksHref, 'Build backlinks')}.`
+			`Directory launch is DIY software. You submit each form. OpenQuok gives business profiles, ${faqLink(publicFaqHref.browserExtensionLanding, 'browser extension')} autofill, submission tracking, and DR analytics. We do not guarantee a DR score or a timeline.${platformClause} DR can change when your site is strong, your listings are relevant, directories allow dofollow links, and crawlers find them. New domains often see slow change. Sites with high DR may see small moves. Track DR in ${faqLink(publicFaqHref.docsDirectoryAnalytics, 'Directory analytics')}. Pick directories in ${faqLink(buildBacklinksHref, 'Build backlinks')}.`
 	};
 }
 

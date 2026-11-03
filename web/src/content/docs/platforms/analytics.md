@@ -98,7 +98,7 @@ Directory destinations use **Directory analytics**, not social channel keys or p
 
 | Topic | Where |
 | --- | --- |
-| **DR and competitors** | <a href="/account/analytics">Account → Analytics</a> → **Directory** tab — see <a href="/docs/directory-submission/directory-analytics">Directory analytics</a> |
+| **DR and competitors** | <a href="/account/analytics">Account → Analytics</a> → **Directory** tab — see <a href="/docs/insights/directory-analytics">Directory analytics</a> |
 | **Listing readiness and submitted URLs** | <a href="/account/products">My Products</a> — see <a href="/docs/directory-submission/track-submissions">Track submissions</a> |
 | **API / MCP** | <Badge text="/public/directory-seo/*" variant="path" /> and MCP <Badge text="directorySeo*" variant="default" /> tools (plan-gated) — see <a href="/docs/configuration-backend/directory-seo">Backend → Directory SEO</a> and <a href="/docs/mcp-references/tools#directory-launch">MCP tools reference</a> |
 
@@ -113,7 +113,7 @@ Directory destinations use **Directory analytics**, not social channel keys or p
 <LinkCard title="Per-post metrics" description="Statistics from My Dashboard and the calendar" href="/docs/insights/per-post-metrics" />
 <LinkCard title="Actions and stats" description="Post card actions, failures, and the Statistics entry point" href="/docs/posts-management/actions-and-stats" />
 <LinkCard title="Connect rules" description="Social channel keys and directory launch platforms" href="/docs/platforms/connect-rules" />
-<LinkCard title="Directory analytics" description="DR history and competitors on the Directory tab" href="/docs/directory-submission/directory-analytics" />
+<LinkCard title="Directory analytics" description="DR history and competitors on the Directory tab" href="/docs/insights/directory-analytics" />
 <LinkCard title="Track submissions" description="Listing readiness and live URLs on My Products" href="/docs/directory-submission/track-submissions" />
 <LinkCard title="Platforms overview" description="Social vs directory rules and identifiers" href="/docs/platforms" />
 <LinkCard title="CLI Examples" description="CLI commands for analytics" href="/docs/cli-examples" />

@@ -60,6 +60,7 @@ describe('publicFaqLinks', () => {
 		expect(publicFaqHref.compareOpenquokHootsuite).toBe('/compare/openquok/hootsuite');
 		expect(publicFaqHref.humanizerTool).toBe('/tools/humanizer');
 		expect(publicFaqHref.skillBuilderTool).toBe('/tools/skill-builder');
+		expect(publicFaqHref.docsDirectoryAnalytics).toBe('/docs/insights/directory-analytics');
 		expect(publicFaqHref.docsPlaybooks).toBe('/docs/saved');
 		expect(publicFaqHref.docsPlaybooksCompose).toBe('/docs/saved/compose-a-playbook');
 		expect(publicFaqHref.docsSavedBacklinks).toBe('/docs/saved/backlinks');

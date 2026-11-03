@@ -117,7 +117,7 @@ When the workspace is not on a paid tier that includes Directory analytics:
 
 > Directory analytics is not included on your current plan.
 
-**What to do:** Subscribe or upgrade on <a href="/account/billing">Billing</a>. See <a href="/docs/insights/domain-analytics">Domain analytics</a>.
+**What to do:** Subscribe or upgrade on <a href="/account/billing">Billing</a>. See <a href="/docs/insights/directory-analytics">Directory analytics</a>.
 
 ### Directory competitors
 
