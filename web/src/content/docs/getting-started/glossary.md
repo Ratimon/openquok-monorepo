@@ -233,11 +233,13 @@ A **global plug** is a saved channel rule at <a href="/account/plugs">/account/p
 
 A **main product profile** is your default product record on <a href="/account/products">My Products</a> — name, tagline, description, website, logo, and directory-specific fields. You edit it in the same composer as variants.
 
+![OpenQuok Main product profile in My Product Tab](/docs/_assets/glossary/main-product-profile.webp)
+
 <p>In the CLI and MCP, list mains with <Badge text="directory:profiles:list --main-only" variant="default" /> or <Badge text="directoryProfilesList" variant="default" /> with <Badge text="mainOnly: true" variant="param" />.</p>
 
 <h3 id="directory-variant">Directory variant</h3>
 
-A **directory variant** is a **copy** of the main product profile for **one** launch site (site key <Badge text="peerpush" variant="default" /> or <Badge text="uneed" variant="default" />). You can change the variant for that site without changing the main profile used elsewhere.
+A **directory variant** is a **copy** of the main product profile for **one** launch site. They are shown as <strong>site key</strong>(e.g. <Badge text="peerpush" variant="default" /> or <Badge text="uneed" variant="default" />). You can change the variant for that site without changing the main profile used elsewhere.
 
 <p>Variants are optional. If you have no variant for a site, launch can still use the main profile. See <a href="/docs/directory-submission/profile-variants">Tailor profiles per directory</a>.</p>
 

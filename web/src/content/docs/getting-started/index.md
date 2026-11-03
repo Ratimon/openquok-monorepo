@@ -1,8 +1,8 @@
 ---
 title: Introduction to OpenQuok
-description: Schedule social posts with OpenQuok — connect channels, draft, and review before publish.
+description: Social scheduling and directory launch in one workspace — connect channels, draft posts, build product profiles, and review before you publish or submit.
 order: 0
-lastUpdated: 2026-09-29
+lastUpdated: 2026-11-02
 sidebar:
   label: Overview
 ---
@@ -13,13 +13,17 @@ import { CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 
 ## Overview
 
-> Connect channels, draft posts, and review on calendar or kanban before anything publishes.
+> Schedule social posts and launch product listings from one workspace. Review on the calendar or kanban before posts publish. Review each directory form before you submit on the directory site.
 
 ![Save hours scheduling social media at scale](/docs/_assets/getting-started/landing-page-hero.webp)
 
-OpenQuok is a **social scheduler** for volume without the headache. Agents draft and queue at scale, while you keep quality. You can review and approve on the **calendar** and **kanban** before anything publishes.
+OpenQuok is a **content workspace** for **social scheduling** and **directory launch**. Agents can draft at scale. You keep quality when you review and approve work before it goes live.
 
-Connect channels in a workspace. Write a post/content in the post editor, reuse templates, or send drafts from an agent. This can be done via CLI, MCP, and the public API (Typescript Nodejs sdk is also supportd).
+Use the dashboard, the [browser extension](/browser-extension), the CLI, MCP, and the public API (the TypeScript Node.js SDK is also supported). Self-host when you need an open alternative to closed SaaS tools.
+
+### Social posting channels
+
+Connect social channels in a workspace. Write in the post editor, reuse templates, or send drafts from an agent. Review drafts on the **calendar** and **kanban** before anything publishes to a network.
 
 <p class="not-prose flex flex-wrap items-center gap-3">
 <a href="/channels/facebook" title="Facebook Page"><img src="/docs/_assets/platforms/socials/facebook.svg" alt="Facebook Page" width="32" height="32" /></a>
@@ -33,6 +37,15 @@ Connect channels in a workspace. Write a post/content in the post editor, reuse 
 <a href="/channels/reddit" title="Reddit"><img src="/docs/_assets/platforms/socials/reddit.svg" alt="Reddit" width="32" height="32" /></a>
 <a href="/channels/devto" title="Dev.to"><img src="/docs/_assets/platforms/socials/devto.svg" alt="Dev.to" width="32" height="32" /></a>
 <a href="/channels/skool" title="Skool"><img src="/docs/_assets/platforms/socials/skool.svg" alt="Skool" width="32" height="32" /></a>
+</p>
+
+### Directory launch destinations
+
+Build a **product profile** on [My Products](/account/products). Pick a directory destination such as **PeerPush** or **Uneed**. Launch with the browser extension to autofill each form. You submit the listing on the directory site yourself. Directory destinations are not OAuth social channels — see [Directory integration](/docs/directory-integration).
+
+<p class="not-prose flex flex-wrap items-center gap-3">
+<a href="/channels/peerpush" title="PeerPush"><img src="/icons/link-directory/peerpush.svg" alt="PeerPush" width="32" height="32" /></a>
+<a href="/channels/uneed" title="Uneed"><img src="/icons/link-directory/uneed.svg" alt="Uneed" width="32" height="32" /></a>
 </p>
 
 
@@ -63,10 +76,11 @@ Guides for the dashboard — connect channels, compose draft posts, review on ca
 
 ## Directory launch
 
-Guides for product profiles, directory autofill, and submission tracking — you submit each listing on the directory site.
+Guides for product profiles, directory autofill, and submission tracking — you prefill your main profile then submit each listing on the directory site via our browser extention's autofill.
 
 <CardGrid>
 <LinkCard title="Directory submission" description="Business profile, extension handoff, readiness, and mark each launch complete" href="/docs/directory-submission" />
+<LinkCard title="Directory submission tool" description="DIY autofill and tracking vs done-for-you bulk packages — FAQs and product overview" href="/directory-submission-tool" />
 <LinkCard title="Track submissions" description="Listing URLs, dofollow notes, and progress on My Products" href="/docs/directory-submission/track-submissions" />
 <LinkCard title="Profile variants" description="Tailor copy per directory and see which profile the extension uses" href="/docs/directory-submission/profile-variants" />
 <LinkCard title="Directory analytics" description="Domain rating charts and competitor tracking on paid plans" href="/docs/directory-submission/directory-analytics" />

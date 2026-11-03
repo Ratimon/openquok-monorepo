@@ -1,18 +1,19 @@
 /**
  * `/browser-extension` programmatic landing config.
  */
-import { icons } from '$data/icons';
 import type { IconName } from '$data/icons';
+import type { FeaturesOrderedStep } from '$lib/content/constants/agents';
+import type { PublicMarketingLandingFaqSection } from '$lib/content/constants/faq/marketing/types';
+import type { PublicSetupStepsFooter } from '$lib/content/constants/landing/setup-steps-footer';
+import type { PublicLandingHeroStatBadge } from '$lib/content/constants/marketing/publicLandingHeroStatBadges';
 
 import { getRootPathPublicBrowserExtensionLanding } from '$lib/area-public/constants/getRootPathPublicBrowserExtensionLanding';
 import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
 import { getRootPathPublicDirectorySubmissionTool } from '$lib/area-public/constants/getRootPathPublicDirectorySubmissionTool';
 import { getRootPathPublicSocialAutopilotLanding } from '$lib/area-public/constants/getRootPathPublicSocialAutopilotLanding';
-import type { FeaturesOrderedStep } from '$lib/content/constants/agents';
 import { PUBLIC_BROWSER_EXTENSION_LANDING_FAQ_SECTION } from '$lib/content/constants/faq/marketing/browser-extension';
-import type { PublicMarketingLandingFaqSection } from '$lib/content/constants/faq/marketing/types';
-import type { PublicSetupStepsFooter } from '$lib/content/constants/landing/setup-steps-footer';
-import type { PublicLandingHeroStatBadge } from '$lib/content/constants/marketing/publicLandingHeroStatBadges';
+
+import { icons } from '$data/icons';
 import {
 	faqHrefDocs,
 	faqLink,

@@ -74,7 +74,7 @@ export const peerpushDirectoryChannel = {
 		{
 			title: 'What do I need before I launch on PeerPush?',
 			description:
-				`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, install the ${faqLink(faqHrefDocs('installation/chrome-extension'), 'OpenQuok browser extension')}, and create a product in My Products. Fill name, tagline, description, website, logo, and PeerPush discovery fields. Then open Add directory launch → PeerPush.`
+				`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, install the ${faqLink(publicFaqHref.browserExtensionLanding, 'OpenQuok browser extension')} (${faqLink(faqHrefDocs('installation/chrome-extension'), 'install guide')}), and create a product in My Products. Fill name, tagline, description, website, logo, and PeerPush discovery fields. Then open Add directory launch → PeerPush.`
 		},
 		{
 			title: 'What is the difference between Standard launch and the free queue?',

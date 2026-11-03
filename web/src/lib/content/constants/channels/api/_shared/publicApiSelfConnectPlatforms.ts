@@ -28,9 +28,9 @@ export function buildPublicApiSelfConnectDescription(
 		case 'devto':
 			return `${signUp}, open a workspace, and choose Connect channel → ${platformLabel}. Paste a personal API key from DEV → Extensions for your account — not a key you issue to customers. For self-hosted deployments, see the ${selfHost}.`;
 		case 'skool':
-			return `${signUp}, install the ${faqLink(faqHrefDocs('installation/chrome-extension'), 'OpenQuok browser extension')}, sign in on skool.com in the same Chrome profile, then Add Channel → ${platformLabel} and approve the extension flow. For self-hosted deployments, see the ${selfHost}.`;
+			return `${signUp}, install the ${faqLink(publicFaqHref.browserExtensionLanding, 'OpenQuok browser extension')} (${faqLink(faqHrefDocs('installation/chrome-extension'), 'install guide')}), sign in on skool.com in the same Chrome profile, then Add Channel → ${platformLabel} and approve the extension flow. For self-hosted deployments, see the ${selfHost}.`;
 		case 'reddit':
-			return `${signUp}, open a workspace, and choose Add Channel → ${platformLabel}. Confirm the manual-channel notice — OpenQuok does not store your Reddit login. When posts are due, you finish on reddit.com; the ${faqLink(faqHrefDocs('installation/chrome-extension'), 'browser extension')} is optional for copy, open submit, autofill, and media download — not for connect. For self-hosted deployments, see the ${selfHost}.`;
+			return `${signUp}, open a workspace, and choose Add Channel → ${platformLabel}. Confirm the manual-channel notice — OpenQuok does not store your Reddit login. When posts are due, you finish on reddit.com; the optional ${faqLink(publicFaqHref.browserExtensionLanding, 'browser extension')} (${faqLink(faqHrefDocs('installation/chrome-extension'), 'install guide')}) helps with copy, open submit, autofill, and media download — not for connect. For self-hosted deployments, see the ${selfHost}.`;
 		default:
 			return '';
 	}

@@ -11,6 +11,8 @@ import { listBestTimeChannelsForHub } from '$lib/content/constants/channels/tool
 import { listCanvasChannelsForHub } from '$lib/content/constants/channels/tools/photo-editor/general';
 import { listPublicAgentHostSeedsForFooter } from '$lib/content/constants/agents/seeds';
 import { listPublicChannelLandingSeedsForFooter } from '$lib/content/constants/channels/catalog/seeds';
+import { listPublicDirectoryChannelLandingSeedsForFooter } from '$lib/content/constants/channels/catalog/directory-seeds';
+import { PUBLIC_CHANNELS_HUB_SECTION_IDS } from '$lib/content/constants/landing/breadcrumbs';
 import { listPublicMcpLandingSeedsForFooter } from '$lib/content/constants/mcps/seeds';
 import {
 	getPublicApiPostingPlatformBySlug,
@@ -118,15 +120,46 @@ export function buildPublicFooterMcpIntegrationLinks(agentsHubHref: string): Pub
 	);
 }
 
-export function buildPublicFooterSupportedChannelLinks(channelsHubHref: string): PublicFooterLink[] {
+function channelsHubSectionHref(channelsHubPath: string, sectionId: string): string {
+	const base = channelsHubPath.replace(/#.*$/, '');
+	return `${base}#${sectionId}`;
+}
+
+export function buildPublicFooterSupportedSocialChannelLinks(
+	channelsHubPath: string
+): PublicFooterLink[] {
 	return buildPublicFooterHubLinks(
-		'All Supported Channels',
-		channelsHubHref,
+		'All Social Channels',
+		channelsHubSectionHref(
+			channelsHubPath,
+			PUBLIC_CHANNELS_HUB_SECTION_IDS.socialMediaPlatforms
+		),
 		listPublicChannelLandingSeedsForFooter().map((channel) => ({
 			platformLabel: channel.label,
 			href: route(getRootPathPublicChannel(channel.slug))
 		}))
 	);
+}
+
+export function buildPublicFooterSupportedDirectoryChannelLinks(
+	channelsHubPath: string
+): PublicFooterLink[] {
+	return buildPublicFooterHubLinks(
+		'All Directory Channels',
+		channelsHubSectionHref(
+			channelsHubPath,
+			PUBLIC_CHANNELS_HUB_SECTION_IDS.directoryLaunchPlatforms
+		),
+		listPublicDirectoryChannelLandingSeedsForFooter().map((channel) => ({
+			platformLabel: channel.label,
+			href: route(getRootPathPublicChannel(channel.slug))
+		}))
+	);
+}
+
+/** @deprecated Use buildPublicFooterSupportedSocialChannelLinks */
+export function buildPublicFooterSupportedChannelLinks(channelsHubHref: string): PublicFooterLink[] {
+	return buildPublicFooterSupportedSocialChannelLinks(channelsHubHref);
 }
 
 export function buildPublicFooterPostingApiPlatformLinks(

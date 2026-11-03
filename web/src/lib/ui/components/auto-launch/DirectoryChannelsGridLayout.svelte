@@ -232,6 +232,11 @@
 		width: 100%;
 	}
 
+	.directory-channels-grid-host :global(.wx-grid .wx-row.wx-autoheight .wx-cell:last-child),
+	.directory-channels-grid-host :global(.wx-grid .wx-row.wx-autoheight .wx-cell:last-child .wx-content) {
+		overflow: visible;
+	}
+
 	.svar-grid-host--fit-content :global(.wx-willow-theme),
 	.svar-grid-host--fit-content :global(.wx-willow-dark-theme) {
 		--wx-color-font: var(--color-base-content);

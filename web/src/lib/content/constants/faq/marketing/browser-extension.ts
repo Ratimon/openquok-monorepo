@@ -36,7 +36,7 @@ const BROWSER_EXTENSION_TAILORED_FAQ_ITEMS: readonly PublicFaqItem[] = [
 	},
 	{
 		title: 'How does directory autofill work?',
-		description: `Build a product profile on My Products, click Launch to directory, and the extension opens the directory site with mapped fields filled. You review and submit on the directory yourself. Step-by-step workflow: ${faqLink(directorySubmissionDocsHref, 'Directory submission')}. Product overview: ${faqLink(directorySubmissionToolHref, 'Directory submission tool')}.`
+		description: `Build a product profile on My Products, click Launch to directory, and the extension opens the directory site with mapped fields filled. You review and submit on the directory yourself. Step-by-step workflow: ${faqLink(directorySubmissionDocsHref, 'Directory submission')}. Product overview: ${faqLink(directorySubmissionToolHref, 'Directory submission tool')} and ${faqLink(publicFaqHref.channels, 'Channels')} directory cards.`
 	},
 	{
 		title: 'Can I use the extension with self-hosted OpenQuok?',

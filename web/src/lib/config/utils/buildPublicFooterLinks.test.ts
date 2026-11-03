@@ -11,12 +11,15 @@ import {
 	buildPublicFooterSchedulingApiPlatformLinks,
 	buildPublicFooterSelfHostSocialIntegrationLinks,
 	buildPublicFooterApisLinks,
-	buildPublicFooterSupportedChannelLinks
+	buildPublicFooterSupportedSocialChannelLinks,
+	buildPublicFooterSupportedDirectoryChannelLinks
 } from '$lib/config/utils/buildPublicFooterLinks';
 import { getPublicFooterLinks, PUBLIC_FOOTER_LINKS_STATIC } from '$lib/config/constants/config';
 import { preloadDocsRegistry } from '$lib/docs/content';
 import { listPublicAgentHostSeedsForFooter } from '$lib/content/constants/agents/seeds';
 import { listPublicChannelLandingSeedsForFooter } from '$lib/content/constants/channels/catalog/seeds';
+import { listPublicDirectoryChannelLandingSeedsForFooter } from '$lib/content/constants/channels/catalog/directory-seeds';
+import { PUBLIC_CHANNELS_HUB_SECTION_IDS } from '$lib/content/constants/landing/breadcrumbs';
 import { listPublicMcpLandingSeedsForFooter } from '$lib/content/constants/mcps/seeds';
 import {
 	getPublicApiPostingPlatformBySlug,
@@ -79,12 +82,30 @@ describe('buildPublicFooterLinks', () => {
 		expect(links.some((link) => link.label === 'Muse Code')).toBe(true);
 	});
 
-	it('lists every public channel under the channels hub', () => {
-		const links = buildPublicFooterSupportedChannelLinks('/channels');
+	it('lists every public social channel under the social channels hub section', () => {
+		const links = buildPublicFooterSupportedSocialChannelLinks('/channels');
 
-		expect(links[0]).toEqual({ label: 'All Supported Channels', href: '/channels' });
+		expect(links[0]).toEqual({
+			label: 'All Social Channels',
+			href: `/channels#${PUBLIC_CHANNELS_HUB_SECTION_IDS.socialMediaPlatforms}`
+		});
 		expect(links.slice(1)).toEqual(
 			listPublicChannelLandingSeedsForFooter().map((channel) => ({
+				label: channel.label,
+				href: route(getRootPathPublicChannel(channel.slug))
+			}))
+		);
+	});
+
+	it('lists every directory channel under the directory channels hub section', () => {
+		const links = buildPublicFooterSupportedDirectoryChannelLinks('/channels');
+
+		expect(links[0]).toEqual({
+			label: 'All Directory Channels',
+			href: `/channels#${PUBLIC_CHANNELS_HUB_SECTION_IDS.directoryLaunchPlatforms}`
+		});
+		expect(links.slice(1)).toEqual(
+			listPublicDirectoryChannelLandingSeedsForFooter().map((channel) => ({
 				label: channel.label,
 				href: route(getRootPathPublicChannel(channel.slug))
 			}))

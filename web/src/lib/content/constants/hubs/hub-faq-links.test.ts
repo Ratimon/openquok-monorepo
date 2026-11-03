@@ -102,6 +102,8 @@ describe('pSEO hub FAQ funnel links', () => {
 		const html = PUBLIC_CHANNELS_HUB_FAQ.faqItems.map((item) => item.description).join('\n');
 		expect(html).toContain(`href="${faqHrefDocs('directory-submission')}"`);
 		expect(html).toContain(`href="${publicFaqHref.channels}"`);
+		expect(html).toContain(`href="${publicFaqHref.browserExtensionLanding}"`);
+		expect(html).toContain(`href="${faqHrefDocs('installation/chrome-extension')}"`);
 	});
 
 	it('API marketing hubs link pricing from git-default trial and OAuth copy', () => {

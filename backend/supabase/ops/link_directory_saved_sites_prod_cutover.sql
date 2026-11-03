@@ -10,7 +10,7 @@
 --
 -- After this script (and before shipping API/web that call /me/saved-sites):
 --   cd backend
---   npx supabase@latest migration repair --linked --status applied <YYYYMMDD>
+--   npx supabase@latest migration repair <YYYYMMDD> --status applied --remote
 --
 -- Greenfield / no user rows: prefer full reset or db push of
 -- backend/supabase/migrations/*_core_structure.sql instead of this file.

@@ -74,7 +74,8 @@ const DR_UPDATED_COL_WIDTH = 108;
 const LINK_TYPE_COL_WIDTH = 96;
 const AUTH_EMAIL_COL_WIDTH = 132;
 const ACTIONS_COL_WIDTH_MIN = 220;
-const ACTIONS_COL_WIDTH_MAX = 280;
+/** Minimum width before rebalance; opportunity rows can show 4–5 buttons. */
+const ACTIONS_COL_WIDTH_FLOOR = 300;
 const LIST_URL_MIN_WIDTH = 72;
 const DIRECTORY_MIN_WIDTH = 148;
 const DIRECTORY_FLEX_SHARE = 0.5;
@@ -190,12 +191,29 @@ function buildGridColumns(vis: DirectoryChannelsGridVis): IColumn[] {
 }
 
 function actionsColumnWidthForHost(hostWidthPx: number): number {
-	if (hostWidthPx <= 0) return ACTIONS_COL_WIDTH_MAX;
-	if (hostWidthPx < 960) return ACTIONS_COL_WIDTH_MAX;
-	return Math.min(
-		ACTIONS_COL_WIDTH_MAX,
-		Math.max(ACTIONS_COL_WIDTH_MIN, Math.floor(hostWidthPx * 0.26))
-	);
+	if (hostWidthPx <= 0) return ACTIONS_COL_WIDTH_FLOOR;
+	if (hostWidthPx < 960) return ACTIONS_COL_WIDTH_FLOOR;
+	return Math.max(ACTIONS_COL_WIDTH_MIN, Math.floor(hostWidthPx * 0.26));
+}
+
+function totalVisibleGridWidth(vis: DirectoryChannelsGridVis): number {
+	let total = vis.directoryWidth + STATUS_COL_WIDTH + vis.actionsWidth + GRID_WIDTH_GUTTER;
+	if (vis.showListUrl) total += vis.listUrlWidth;
+	if (vis.showDr) total += DR_COL_WIDTH;
+	if (vis.showLinkType) total += LINK_TYPE_COL_WIDTH;
+	if (vis.showDrUpdated) total += DR_UPDATED_COL_WIDTH;
+	if (vis.showReadiness) total += READINESS_COL_WIDTH;
+	if (vis.showAuthEmail) total += AUTH_EMAIL_COL_WIDTH;
+	return total;
+}
+
+/** Assign leftover host width to Actions so buttons fit without horizontal scroll. */
+function rebalanceActionsColumn(vis: DirectoryChannelsGridVis, hostWidthPx: number): DirectoryChannelsGridVis {
+	const columnTotal = totalVisibleGridWidth(vis) - GRID_WIDTH_GUTTER;
+	const targetColumnTotal = hostWidthPx - GRID_WIDTH_GUTTER;
+	const slack = targetColumnTotal - columnTotal;
+	if (slack <= 0) return vis;
+	return { ...vis, actionsWidth: vis.actionsWidth + slack };
 }
 
 function gridVisForHostWidth(hostWidthPx: number): DirectoryChannelsGridVis {
@@ -241,17 +259,20 @@ function gridVisForHostWidth(hostWidthPx: number): DirectoryChannelsGridVis {
 		? Math.max(LIST_URL_MIN_WIDTH, remaining - directoryWidth)
 		: LIST_URL_MIN_WIDTH;
 
-	return {
-		directoryWidth,
-		listUrlWidth,
-		actionsWidth,
-		showListUrl,
-		showDr,
-		showLinkType,
-		showReadiness,
-		showAuthEmail,
-		showDrUpdated
-	};
+	return rebalanceActionsColumn(
+		{
+			directoryWidth,
+			listUrlWidth,
+			actionsWidth,
+			showListUrl,
+			showDr,
+			showLinkType,
+			showReadiness,
+			showAuthEmail,
+			showDrUpdated
+		},
+		hostWidthPx
+	);
 }
 
 function buildOpportunityRow(

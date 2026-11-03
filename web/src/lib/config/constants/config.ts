@@ -4,6 +4,7 @@ import type { ModuleConfigSchema } from '$lib/config/constants/types';
 import { icons } from '$data/icons';
 import { getDefaultPublicFaqConfigItems } from '$lib/content/constants/faq';
 import { PUBLIC_LANDING_COMPACT_TRIAL_CTA } from '$lib/content/constants/landing/hero-copy';
+import { PUBLIC_CHANNELS_HUB_SECTION_IDS } from '$lib/content/constants/landing/breadcrumbs';
 import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
 import { getRootPathPublicAgents } from '$lib/area-public/constants/getRootPathPublicAgents';
 import { getRootPathPublicChannels } from '$lib/area-public/constants/getRootPathPublicChannels';
@@ -59,7 +60,8 @@ import {
 	buildPublicFooterSelfHostSocialIntegrationLinks,
 	buildPublicFooterSkillBuilderLinks,
 	buildPublicFooterApisLinks,
-	buildPublicFooterSupportedChannelLinks
+	buildPublicFooterSupportedSocialChannelLinks,
+	buildPublicFooterSupportedDirectoryChannelLinks
 } from '$lib/config/utils/buildPublicFooterLinks';
 import { docsTabHref } from '$lib/docs/navigation';
 import { preloadDocsRegistry } from '$lib/docs/content';
@@ -78,6 +80,8 @@ import type { PublicFooterLinksMap } from '$lib/config/utils/buildPublicFooterLi
 const publicBlogPath = route(getRootPathPublicBlog());
 const publicAgentsPath = route(getRootPathPublicAgents());
 const publicChannelsPath = route(getRootPathPublicChannels());
+const publicChannelsSocialHubHref = `${publicChannelsPath}#${PUBLIC_CHANNELS_HUB_SECTION_IDS.socialMediaPlatforms}`;
+const publicChannelsDirectoryHubHref = `${publicChannelsPath}#${PUBLIC_CHANNELS_HUB_SECTION_IDS.directoryLaunchPlatforms}`;
 const publicComparePath = route(getRootPathPublicCompare());
 const publicAlternativesPath = route(getRootPathPublicAlternatives());
 const publicPlaybooksPath = route(getRootPathPublicPlaybooks());
@@ -123,7 +127,10 @@ const publicFooterBestTimeToPostLinks = buildPublicFooterBestTimeToPostLinks(pub
 const publicFooterAutonomousAgentIntegrationLinks =
 	buildPublicFooterAutonomousAgentIntegrationLinks(publicAgentsPath);
 const publicFooterMcpIntegrationLinks = buildPublicFooterMcpIntegrationLinks(publicAgentsPath);
-const publicFooterSupportedChannelLinks = buildPublicFooterSupportedChannelLinks(publicChannelsPath);
+const publicFooterSupportedSocialChannelLinks =
+	buildPublicFooterSupportedSocialChannelLinks(publicChannelsPath);
+const publicFooterSupportedDirectoryChannelLinks =
+	buildPublicFooterSupportedDirectoryChannelLinks(publicChannelsPath);
 const publicFooterApisLinks = buildPublicFooterApisLinks(
 	publicSocialMediaPostingApiPath,
 	publicSocialMediaSchedulingApiPath
@@ -1009,17 +1016,16 @@ export const PUBLIC_FOOTER_LINKS_STATIC: PublicFooterLinksMap = {
 		{ label: 'Compare', href: publicComparePath },
 		{ label: 'Sitemap', href: '/sitemap.xml' }
 	],
-
 	Features: [
 		{ label: 'Directory submission tool', href: publicDirectorySubmissionToolPath },
 		{ label: 'Social media management', href: publicSocialAutopilotLandingPath },
 		{ label: 'Browser extension', href: publicBrowserExtensionLandingPath },
 		{ label: 'Self-hosted', href: publicSelfHostingPath },
-		{ label: 'All Supported Channels', href: publicChannelsPath },
+		{ label: 'All Social Channels', href: publicChannelsSocialHubHref },
+		{ label: 'All Directory Channels', href: publicChannelsDirectoryHubHref },
 		{ label: 'All Agent Integrations', href: publicAgentsPath },
 	],
 	Resources: [
-
 		{ label: 'General Docs', href: publicDocsPath },
 		{ label: 'Developer Docs', href: publicDocsGettingStartedForDevPath },
 		{ label: 'Contribute', href: publicDocsContributingPath },
@@ -1054,7 +1060,8 @@ export const PUBLIC_FOOTER_LINKS_STATIC: PublicFooterLinksMap = {
 	],
 	'Autonomous Agent Integrations': publicFooterAutonomousAgentIntegrationLinks,
 	'MCP Integrations': publicFooterMcpIntegrationLinks,
-	'Supported Channels': publicFooterSupportedChannelLinks,
+	'Supported Social Channels': publicFooterSupportedSocialChannelLinks,
+	'Supported Directory Channels': publicFooterSupportedDirectoryChannelLinks,
 	'Payload Wizard Tools': publicFooterPayloadWizardLinks,
 	'Skill Builder Tools': publicFooterSkillBuilderLinks,
 	'Photo Editor Tools': publicFooterPhotoEditorLinks,

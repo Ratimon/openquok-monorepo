@@ -97,7 +97,7 @@ pnpm db:production:push-db
 ```
 
 <Callout type="tip" title="SQL editor + migration repair">
-<p>If you apply module SQL manually in the Supabase Dashboard instead of <code>db push</code>, run <code>migration repair --linked --status applied &lt;YYYYMMDD&gt;</code> afterward so CLI history matches the remote. See <a href="/docs/installation/production-deployment#supabase-production-migrations">Production — deployment → Supabase production migrations</a> for Option 1 vs Option 2 and when to use <code>applied</code> vs <code>reverted</code>.</p>
+<p>If you apply module SQL manually in the Supabase Dashboard instead of <code>db push</code>, run <code>npx supabase@latest migration repair &lt;YYYYMMDD&gt; --status applied --remote</code> from <Badge text="backend/" variant="path" /> afterward so CLI history matches the remote. See <a href="/docs/installation/production-deployment#supabase-production-migrations">Production — deployment → Supabase production migrations</a> for Option 1 vs Option 2 and when to use <code>applied</code> vs <code>reverted</code>.</p>
 </Callout>
 
 ## Supabase Cloud notes (pg_cron)

@@ -327,7 +327,7 @@ BEGIN
         RETURN NEW;
     END IF;
 
-    IF current_user IN ('service_role', 'postgres') THEN
+    IF current_user IN ('service_role', 'postgres', 'supabase_admin') THEN
         RETURN NEW;
     END IF;
 

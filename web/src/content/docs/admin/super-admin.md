@@ -2,7 +2,7 @@
 title: First setup as super admin
 description: Create the first platform admin after your first OpenQuok deployment.
 order: 1
-lastUpdated: 2026-07-16
+lastUpdated: 2026-11-02
 ---
 
 <script>
@@ -41,11 +41,26 @@ See <a href="/docs/configuration-backend/resend">Resend / email setup</a> for bo
 
 ### Promote your user to platform admin
 
-The admin entry points may appear in the UI, but **secret-admin routes** require <Badge text="is_super_admin" variant="param" /> on your user.
+Some admin links appear in the app UI. **Secret-admin routes** need <Badge text="is_super_admin" variant="param" /> set on your row in <Badge text="public.users" variant="path" />.
 
-Open the <DocsExternalLink href="https://supabase.com/dashboard">Supabase Dashboard</DocsExternalLink> → your project → <Badge text="Table Editor" variant="path" /> → the <Badge text="users" variant="default" /> table (or the table where your app stores <Badge text="public.users" variant="path" />). Find the row for **your** account (the email you signed up with) and set <Badge text="is_super_admin" variant="envBackend" /> from <Badge text="FALSE" variant="deprecated" /> to <Badge text="TRUE" variant="new" />, then save.
+You cannot change that flag in <Badge text="Table Editor" variant="path" />. The database blocks edits to protected user columns from the dashboard table UI.
 
-<Callout type="note" title="One super admin only">
+Open the <DocsExternalLink href="https://supabase.com/dashboard">Supabase Dashboard</DocsExternalLink> → your project → <Badge text="SQL Editor" variant="path" />. Run one statement. Use the email from signup:
+
+```sql
+UPDATE public.users
+SET is_super_admin = true,
+    updated_at = now()
+WHERE email = 'admin@example.com';
+```
+
+Replace `admin@example.com` in the statement with your signup email. Run the query.
+
+<Callout type="note" title="Local dev after db reset">
+After you sign up again, run from the repo root: <Badge text="pnpm backend:db:promote-platform-admin -- your@email.com" variant="default" />. The command uses <Badge text="SUPABASE_SECRET_KEY" variant="envBackend" /> from <Badge text="backend/.env.development.local" variant="path" /> (same as the API). You do not need SQL Editor for each reset.
+</Callout>
+
+<Callout type="warning">
 Use your real signup email as the only platform super admin. The seeded catalog row <Badge text="openquok" variant="param" /> (<Badge text="catalog@openquok.local" variant="default" />) is a <strong>display-only publisher</strong> for hub listings — it has no <Badge text="auth_id" variant="param" /> and must <strong>not</strong> be promoted to super admin.
 </Callout>
 

@@ -597,6 +597,56 @@ var init_extensionPublishMode = __esm({
   }
 });
 
+// ../common/dist/browser-extension/dashboardPageBridge.js
+var init_dashboardPageBridge = __esm({
+  "../common/dist/browser-extension/dashboardPageBridge.js"() {
+  }
+});
+
+// ../common/dist/browser-extension/accountDeepLinks.js
+var init_accountDeepLinks = __esm({
+  "../common/dist/browser-extension/accountDeepLinks.js"() {
+  }
+});
+
+// ../common/dist/browser-extension/connectFamily.js
+function buildConnectFamilyByIdentifier() {
+  const map = /* @__PURE__ */ new Map();
+  for (const identifier of OAUTH_SOCIAL_PROVIDER_IDENTIFIERS) {
+    map.set(identifier, "oauth");
+  }
+  for (const identifier of CREDENTIALS_SOCIAL_PROVIDER_IDENTIFIERS) {
+    map.set(identifier, "credentials");
+  }
+  for (const provider of COOKIE_SESSION_PROVIDERS) {
+    map.set(provider.identifier, "cookie_session");
+  }
+  for (const provider of directoryLaunchProviders) {
+    map.set(provider.identifier, "directory_launch");
+  }
+  return map;
+}
+var OAUTH_SOCIAL_PROVIDER_IDENTIFIERS, CREDENTIALS_SOCIAL_PROVIDER_IDENTIFIERS;
+var init_connectFamily = __esm({
+  "../common/dist/browser-extension/connectFamily.js"() {
+    init_cookieSessionProviders();
+    init_pageAssist();
+    OAUTH_SOCIAL_PROVIDER_IDENTIFIERS = [
+      "threads",
+      "facebook",
+      "instagram-business",
+      "instagram-standalone",
+      "linkedin",
+      "linkedin-page",
+      "youtube",
+      "tiktok",
+      "x"
+    ];
+    CREDENTIALS_SOCIAL_PROVIDER_IDENTIFIERS = ["bluesky", "devto"];
+    buildConnectFamilyByIdentifier();
+  }
+});
+
 // ../common/dist/browser-extension/index.js
 var init_browser_extension = __esm({
   "../common/dist/browser-extension/index.js"() {
@@ -605,6 +655,9 @@ var init_browser_extension = __esm({
     init_cookieSessionProviders();
     init_pageAssist();
     init_extensionPublishMode();
+    init_dashboardPageBridge();
+    init_accountDeepLinks();
+    init_connectFamily();
   }
 });
 

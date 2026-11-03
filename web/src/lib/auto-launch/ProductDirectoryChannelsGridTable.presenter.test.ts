@@ -41,4 +41,13 @@ describe('ProductDirectoryChannelsGridTablePresenter responsive columns', () => 
 		expect(columnHidden(columns, 'readinessDisplay')).toBe(false);
 		expect(columnHidden(columns, 'authEmailDisplay')).toBe(false);
 	});
+
+	it('allocates leftover host width to the actions column', () => {
+		const hostWidth = 960;
+		const columns = presenter.getGridColumnsForHostWidth(hostWidth);
+		const actions = columns.find((c) => c.id === 'actions');
+		expect(actions?.width).toBeGreaterThan(320);
+		const total = columns.reduce((sum, col) => (col.hidden ? sum : sum + (col.width ?? 0)), 0);
+		expect(total).toBe(hostWidth - 24);
+	});
 });

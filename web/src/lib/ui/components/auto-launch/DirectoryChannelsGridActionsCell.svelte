@@ -20,7 +20,7 @@
 	const rowVm = $derived(row as unknown as ProductDirectoryChannelTableRowViewModel);
 </script>
 
-<div class="directory-channels-actions-cell flex min-h-7 flex-nowrap items-center gap-1">
+<div class="directory-channels-actions-cell flex min-h-7 flex-wrap items-center gap-1">
 	{#if rowVm.rowKind === 'site'}
 		{#if rowVm.opportunityCount > 0 && ctx}
 			<Button

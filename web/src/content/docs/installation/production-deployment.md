@@ -2,7 +2,7 @@
 title: Production - deployment
 description: Deploy web, API, workers, and CLI auth to production.
 order: 1
-lastUpdated: 2026-09-25
+lastUpdated: 2026-11-03
 ---
 
 <script>
@@ -85,7 +85,11 @@ pnpm db:production:migration-list
 
 <p>Older aggregate files are removed from git, so production may still list a previous date until you push or repair.</p>
 
-<p><code>migration repair</code> only updates <code>supabase_migrations.schema_migrations</code> — it does not run or undo DDL. <code>--status applied &lt;YYYYMMDD&gt;</code> marks a version as applied (after manual SQL or when history lags schema). <code>--status reverted &lt;YYYYMMDD&gt;</code> removes a stale history row when the matching file is gone from the repo (common after squash); use the <strong>remote</strong> date from <code>migration list</code>, not the new local filename.</p>
+<p><code>migration repair</code> only updates <code>supabase_migrations.schema_migrations</code> — it does not run or undo DDL. Mark a version as applied after manual SQL or when history lags schema. Mark as reverted when the matching file is gone from the repo (common after squash). Use the <strong>remote</strong> date from <code>migration list</code>, not the new local filename.</p>
+
+<Callout type="note" title="Supabase CLI v3: --remote">
+<p>Hosted database commands use <Badge text="--remote" variant="param" /> (the project you linked with <code>supabase link</code>). The older <Badge text="--linked" variant="deprecated" /> flag is deprecated and removed in CLI v4. It does not change which database you hit — only the flag name and argument order changed. Put <Badge text="--remote" variant="param" /> at the end of the command.</p>
+</Callout>
 
 ### Option 1 — CLI push
 
@@ -97,7 +101,7 @@ pnpm db:production:push-db
 <p>Back up before the first push after a large re-aggregate. If dry-run fails with <strong>Remote migration versions not found in local migrations directory</strong>, revert the old remote date, then push the new aggregate:</p>
 
 ```bash
-npx supabase@latest migration repair --linked --status reverted 20260919
+npx supabase@latest migration repair 20260919 --status reverted --remote
 pnpm db:production:push-db:dry-run
 pnpm db:production:push-db
 ```
@@ -107,7 +111,7 @@ pnpm db:production:push-db
 <p>Run module delta SQL only (e.g. <Badge text="backend/supabase/db/blog/402_20260922_functions.sql" variant="path" />) in <strong>Dashboard → SQL Editor</strong>, then sync history to your local aggregate date:</p>
 
 ```bash
-npx supabase@latest migration repair --linked --status applied 20260923
+npx supabase@latest migration repair 20260923 --status applied --remote
 pnpm db:production:migration-list
 ```
 

@@ -112,17 +112,17 @@ export const skoolChannel = {
 		{
 			title: 'How do I connect Skool to OpenQuok?',
 			description:
-				`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, install the ${faqLink(faqHrefDocs('installation/chrome-extension'), 'OpenQuok browser extension')}, and sign in on skool.com in the same Chrome profile. Open a workspace and follow the ${faqLink(publicFaqHref.connectChannelsGuide, 'connect channels guide')} → browser extension → Skool. OpenQuok validates your session and stores it encrypted on the server. For self-hosted deployments, see the ${faqLinkSelfHostChannelSetup(SKOOL_DOCS_PATH, 'Skool')}.`
+				`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, install the ${faqLink(publicFaqHref.browserExtensionLanding, 'OpenQuok browser extension')} (${faqLink(faqHrefDocs('installation/chrome-extension'), 'install guide')}), and sign in on skool.com in the same Chrome profile. Open a workspace and follow the ${faqLink(publicFaqHref.connectChannelsGuide, 'connect channels guide')} → browser extension → Skool. OpenQuok validates your session and stores it encrypted on the server. For self-hosted deployments, see the ${faqLinkSelfHostChannelSetup(SKOOL_DOCS_PATH, 'Skool')}.`
 		},
 		{
 			title: 'Do I need the OpenQuok browser extension for Skool?',
 			description:
-				`Yes. Skool has no public OAuth flow for third-party schedulers. You connect while logged in on skool.com. The extension reads required session cookies only when you approve the connect flow in Add Channel. See ${faqLink(faqHrefDocs('installation/chrome-extension'), 'browser extension install')} and the ${faqLinkSelfHostChannelSetup(SKOOL_DOCS_PATH, 'Skool')}.`
+				`Yes. Skool has no public OAuth flow for third-party schedulers. You connect while logged in on skool.com. The extension reads required session cookies only when you approve the connect flow in Add Channel. See the ${faqLink(publicFaqHref.browserExtensionLanding, 'browser extension')} page, ${faqLink(faqHrefDocs('installation/chrome-extension'), 'install guide')}, and the ${faqLinkSelfHostChannelSetup(SKOOL_DOCS_PATH, 'Skool')}.`
 		},
 		{
 			title: 'Can I connect Skool with an invite link?',
 			description:
-				`No. Invite links work only for OAuth redirect networks. Skool is excluded. Each member connects from the dashboard with the extension, or signs in to OpenQuok and adds Skool themselves. See ${faqLink(publicFaqHref.connectChannelsGuide, 'connect channels guide')}.`
+				`No. Invite links work only for OAuth redirect networks. Skool is excluded. Each member connects from the dashboard with the ${faqLink(publicFaqHref.browserExtensionLanding, 'browser extension')}, or signs in to OpenQuok and adds Skool themselves. See ${faqLink(publicFaqHref.connectChannelsGuide, 'connect channels guide')}.`
 		},
 		{
 			title: 'What do I set before I schedule a Skool post?',

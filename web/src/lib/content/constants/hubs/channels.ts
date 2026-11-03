@@ -104,12 +104,17 @@ export const PUBLIC_CHANNELS_HUB_FAQ = {
 			{
 				title: 'How do directory launch platforms work?',
 				description:
-					`Open a ${faqLink(faqHrefDocs('directory-submission'), 'directory submission')} guide, fill your business profile once, then use the Chrome extension to autofill PeerPush, Uneed, and other directory forms. Mark each listing submitted when you finish on the directory site. See the ${faqLink(directorySubmissionToolHref, 'directory submission tool')} page for DIY vs done-for-you costs. Directory cards on ${faqLink(publicFaqHref.channels, 'Channels')} link to per-platform setup.`
+					`Open a ${faqLink(faqHrefDocs('directory-submission'), 'directory submission')} guide and fill your business profile once. Install the ${faqLink(publicFaqHref.browserExtensionLanding, 'OpenQuok browser extension')} (${faqLink(faqHrefDocs('installation/chrome-extension'), 'install guide')}) to autofill PeerPush, Uneed, and other directory forms. Mark each listing submitted when you finish on the directory site. See the ${faqLink(directorySubmissionToolHref, 'directory submission tool')} for DIY vs done-for-you costs. Directory cards on ${faqLink(publicFaqHref.channels, 'Channels')} link to per-platform setup.`
+			},
+			{
+				title: 'When do I need the OpenQuok browser extension?',
+				description:
+					`Use it for Skool connect while signed in on skool.com, directory autofill, Reddit compose handoff, and scheduling from the Chrome side panel. OAuth social networks still connect in the dashboard with Add Channel. See the ${faqLink(publicFaqHref.browserExtensionLanding, 'browser extension')} page and ${faqLink(faqHrefDocs('installation/chrome-extension'), 'install guide')}. ${faqLink(faqHrefDocs('platforms/connect-rules'), 'Connect rules')} lists which flows use the extension.`
 			},
 			{
 				title: 'Does OpenQuok submit my startup to directories for me?',
 				description:
-					'No. OpenQuok autofills forms from your profile and helps you track progress. You open the directory site, review the listing, and submit yourself. That keeps you in control of approvals, payments, and queue rules on each platform.'
+					`No. The ${faqLink(publicFaqHref.browserExtensionLanding, 'browser extension')} autofills forms from your profile and helps you track progress. You open the directory site, review the listing, and submit yourself. That keeps you in control of approvals, payments, and queue rules on each platform.`
 			},
 			{
 				title: 'Do I need my own Meta or Google developer app?',
