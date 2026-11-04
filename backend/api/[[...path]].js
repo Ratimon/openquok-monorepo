@@ -52108,7 +52108,7 @@ var createOauthAppBodySchema = zod.z.object({
   organizationId: zod.z.string().uuid("Invalid organization id"),
   name: zod.z.string().min(1, "Name is required").max(120).trim(),
   description: zod.z.string().max(2e3).trim().optional(),
-  pictureId: zod.z.string().uuid("Invalid picture id").optional(),
+  pictureId: zod.z.string().uuid("Invalid picture id").nullable().optional(),
   redirectUrl: zod.z.string().min(1, "Redirect URL is required").max(2e3).trim()
 });
 var validateCreateOauthApp = validateRequest({

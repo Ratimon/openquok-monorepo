@@ -372,11 +372,11 @@
 									Icon
 								</div>
 							{:else}
-								<div
-									class="flex size-12 flex-shrink-0 items-center justify-center rounded-full bg-base-300 text-lg font-semibold text-base-content/70"
-								>
-									{app.name?.[0]?.toUpperCase() ?? '?'}
-								</div>
+								<img
+									src={defaultProfilePreviewUrl}
+									alt=""
+									class="size-12 shrink-0 rounded-full object-cover"
+								/>
 							{/if}
 							<div>
 								<p class="font-medium">{app.name}</p>

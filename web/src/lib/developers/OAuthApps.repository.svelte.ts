@@ -136,7 +136,7 @@ export class OAuthAppsRepository {
 					name: params.name.trim(),
 					description: params.description ?? null,
 					redirectUrl: params.redirectUrl.trim(),
-					pictureId: params.pictureId ?? null
+					...(params.pictureId ? { pictureId: params.pictureId } : {})
 				},
 				withCredentials: true
 			});

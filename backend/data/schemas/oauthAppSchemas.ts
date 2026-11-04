@@ -14,7 +14,7 @@ export const createOauthAppBodySchema = z.object({
     organizationId: z.string().uuid("Invalid organization id"),
     name: z.string().min(1, "Name is required").max(120).trim(),
     description: z.string().max(2000).trim().optional(),
-    pictureId: z.string().uuid("Invalid picture id").optional(),
+    pictureId: z.string().uuid("Invalid picture id").nullable().optional(),
     redirectUrl: z.string().min(1, "Redirect URL is required").max(2000).trim(),
 });
 

@@ -2,6 +2,13 @@
 	import type { HomeWorkspaceCardViewModel } from '$lib/area-protected/GetHomeWorkspaces.presenter.svelte';
 	import type { PendingInviteViewModel } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 
+	import {
+		HOME_NOTICE_ACCOUNT_SCOPE,
+		persistHomeNoticeDismissed,
+		readHomeNoticeDismissed,
+		WORKSPACE_ONE_CONTEXT_NOTICE_KIND
+	} from '$lib/onboarding';
+
 	import { icons } from '$data/icons';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -96,6 +103,23 @@
 				? 'text-base font-bold text-base-content'
 				: 'text-xl font-bold text-base-content'
 	);
+
+	let workspaceContextNoticeDismissed = $state(false);
+
+	$effect(() => {
+		workspaceContextNoticeDismissed = readHomeNoticeDismissed(
+			WORKSPACE_ONE_CONTEXT_NOTICE_KIND,
+			HOME_NOTICE_ACCOUNT_SCOPE
+		);
+	});
+
+	function dismissWorkspaceContextNotice(): void {
+		workspaceContextNoticeDismissed = true;
+		persistHomeNoticeDismissed(
+			WORKSPACE_ONE_CONTEXT_NOTICE_KIND,
+			HOME_NOTICE_ACCOUNT_SCOPE
+		);
+	}
 </script>
 
 <section
@@ -139,30 +163,32 @@
 			{/if}
 
 			<section class="space-y-4">
-				{#if isStackLayout}
-					<HomeAccountNoticeBanner
-						iconName={icons.Info.name}
-						tone="neutral"
-						dismissible={true}
-					>
-						<p class="text-sm text-base-content/90">
-							<span class="font-medium text-base-content">One workspace = one context.</span>
-							Use for different brands to keep AI context focused.
-						</p>
-					</HomeAccountNoticeBanner>
-				{:else}
-					<HomeAccountNoticeBanner
-						iconName={icons.Info.name}
-						tone="neutral"
-						dismissible={true}
-					>
-						<p class="font-medium text-base-content">One workspace = one context</p>
-						<p class="mt-1 text-base-content/90">
-							Workspaces exist to keep the context focused. Connecting too many social
-							channels or installing too many skills can cause context rot and hallucinations.
-							Use for different brands.
-						</p>
-					</HomeAccountNoticeBanner>
+				{#if !workspaceContextNoticeDismissed}
+					{#if isStackLayout}
+						<HomeAccountNoticeBanner
+							iconName={icons.Info.name}
+							tone="neutral"
+							onDismiss={dismissWorkspaceContextNotice}
+						>
+							<p class="text-sm text-base-content/90">
+								<span class="font-medium text-base-content">One workspace = one context.</span>
+								Use for different brands to keep AI context focused.
+							</p>
+						</HomeAccountNoticeBanner>
+					{:else}
+						<HomeAccountNoticeBanner
+							iconName={icons.Info.name}
+							tone="neutral"
+							onDismiss={dismissWorkspaceContextNotice}
+						>
+							<p class="font-medium text-base-content">One workspace = one context</p>
+							<p class="mt-1 text-base-content/90">
+								Workspaces exist to keep the context focused. Connecting too many social
+								channels or installing too many skills can cause context rot and hallucinations.
+								Use for different brands.
+							</p>
+						</HomeAccountNoticeBanner>
+					{/if}
 				{/if}
 
 				{#if ownerCards.length === 0}
