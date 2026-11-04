@@ -81,6 +81,12 @@
 			cardContainerClass:
 				'bg-linear-to-br from-blue-500/20 via-sky-400/16 to-cyan-300/16 text-blue-100 ring-blue-400/28'
 		},
+		influence: {
+			heroContainerClass:
+				'bg-linear-to-br from-neutral-700/40 via-neutral-500/25 to-neutral-300/20 text-neutral-50 ring-neutral-400/35',
+			cardContainerClass:
+				'bg-linear-to-br from-neutral-700/28 via-neutral-500/18 to-neutral-300/14 text-neutral-50 ring-neutral-400/28'
+		},
 		later: {
 			heroContainerClass:
 				'bg-linear-to-br from-violet-800/40 via-fuchsia-700/20 to-orange-400/25 text-amber-50 ring-violet-500/40',

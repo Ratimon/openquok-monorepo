@@ -10,6 +10,7 @@ export type CompareProductSlug =
 	| 'hootsuite'
 	| 'heropost'
 	| 'hopper-hq'
+	| 'influence'
 	| 'later'
 	| 'buffer'
 	| 'blotato'

@@ -29,6 +29,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	hootsuite: 'https://www.hootsuite.com',
 	heropost: 'https://heropost.ai',
 	'hopper-hq': 'https://www.hopperhq.com',
+	influence: 'https://influence.so',
 	later: 'https://later.com',
 	buffer: 'https://buffer.com',
 	blotato: 'https://www.blotato.com',
@@ -53,6 +54,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	| 'hootsuite'
 	| 'heropost'
 	| 'hopper-hq'
+	| 'influence'
 	| 'later'
 	| 'buffer'
 	| 'blotato'

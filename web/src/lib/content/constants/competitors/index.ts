@@ -17,6 +17,7 @@ import { bufferCompareProduct } from '$lib/content/constants/competitors/buffer'
 import { breakreachCompareProduct } from '$lib/content/constants/competitors/breakreach';
 import { clawPostCompareProduct } from '$lib/content/constants/competitors/claw-post';
 import { hopperHqCompareProduct } from '$lib/content/constants/competitors/hopper-hq';
+import { influenceCompareProduct } from '$lib/content/constants/competitors/influence';
 import { heropostCompareProduct } from '$lib/content/constants/competitors/heropost';
 import { hootsuiteCompareProduct } from '$lib/content/constants/competitors/hootsuite';
 import { laterCompareProduct } from '$lib/content/constants/competitors/later';
@@ -45,6 +46,7 @@ export * from '$lib/content/constants/competitors/shared';
 export * from '$lib/content/constants/competitors/utils/comparePricing';
 export { openquokCompareProduct } from '$lib/content/constants/competitors/openquok';
 export { hopperHqCompareProduct } from '$lib/content/constants/competitors/hopper-hq';
+export { influenceCompareProduct } from '$lib/content/constants/competitors/influence';
 export { heropostCompareProduct } from '$lib/content/constants/competitors/heropost';
 export { hootsuiteCompareProduct } from '$lib/content/constants/competitors/hootsuite';
 export { laterCompareProduct } from '$lib/content/constants/competitors/later';
@@ -72,6 +74,7 @@ export const PUBLIC_COMPARE_PRODUCTS: readonly CompareProduct[] = [
 	hootsuiteCompareProduct,
 	heropostCompareProduct,
 	hopperHqCompareProduct,
+	influenceCompareProduct,
 	laterCompareProduct,
 	bufferCompareProduct,
 	blotatoCompareProduct,

@@ -63,6 +63,10 @@
 			containerClass:
 				'bg-linear-to-br from-blue-500/30 via-sky-400/20 to-cyan-300/20 text-blue-100 ring-blue-400/35'
 		},
+		influence: {
+			containerClass:
+				'bg-linear-to-br from-neutral-700/40 via-neutral-500/25 to-neutral-300/20 text-neutral-50 ring-neutral-400/35'
+		},
 		later: {
 			containerClass:
 				'bg-linear-to-br from-violet-800/40 via-fuchsia-700/20 to-orange-400/25 text-amber-50 ring-violet-500/40'
