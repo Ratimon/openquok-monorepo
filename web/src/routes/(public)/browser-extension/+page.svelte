@@ -26,6 +26,7 @@
 	import StripedPattern from '$lib/ui/patterns/StripedPattern.svelte';
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 	import PublicBrowserExtensionHero from '$lib/ui/templates/landing-page/PublicBrowserExtensionHero.svelte';
+	import HeroDemo from '$lib/ui/templates/landing-page/HeroDemo.svelte';
 	import PublicBrowserExtensionProductFeatureSections from '$lib/ui/templates/landing-page/PublicBrowserExtensionProductFeatureSections.svelte';
 	import PublicChannelAgentIntegrationsGrid from '$lib/ui/templates/landing-page/PublicChannelAgentIntegrationsGrid.svelte';
 	import PublicChannelSiblingGrid from '$lib/ui/templates/landing-page/PublicChannelSiblingGrid.svelte';
@@ -125,6 +126,16 @@
 		footerLinkHref={processStepsFooterHref}
 		sectionClass="scroll-mt-24 border-t border-base-content/10 bg-base-100 py-16 sm:py-20"
 		collapseDelay={8000}
+	/>
+
+	<HeroDemo
+		heroTheme={sectionHeroTheme}
+		landingSubtitle={landing.demoSection.subtitle}
+		landingTitle={landing.demoSection.title}
+		landingDescription={landing.demoSection.description}
+		youtubeVideoId={landing.demoSection.youtubeVideoId}
+		thumbnailAlt={landing.demoSection.thumbnailAlt}
+		headingId="browser-extension-demo-heading"
 	/>
 
 	<PublicBrowserExtensionProductFeatureSections

@@ -1,4 +1,4 @@
-export type DocsYoutubeVideoPreset = 'connectChannels';
+export type DocsYoutubeVideoPreset = 'connectChannels' | 'chromeExtension';
 
 export type DocsYoutubeVideoConfig = {
 	youtubeVideoId: string;
@@ -23,5 +23,14 @@ export const DOCS_YOUTUBE_VIDEOS: Record<DocsYoutubeVideoPreset, DocsYoutubeVide
 			'Walk through Add Channel on My Dashboard — OAuth redirect and credential-based networks.',
 		uploadDate: '2026-09-30T00:00:00Z',
 		schemaFragmentId: 'connect-channels-video'
+	},
+	chromeExtension: {
+		youtubeVideoId: 'CU-BIS006oQ',
+		thumbnailAlt: 'OpenQuok Chrome browser extension — side panel, scheduling, and directory autofill',
+		name: 'OpenQuok Chrome browser extension walkthrough',
+		description:
+			'Install the OpenQuok extension, sign in from the side panel, schedule or draft posts, and autofill directory launch forms.',
+		uploadDate: '2026-11-04T00:00:00Z',
+		schemaFragmentId: 'chrome-extension-video'
 	}
 };

@@ -11,7 +11,7 @@ import { Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/docs/mdx/
 
 ## Submission status on My Products
 
-<p>On <a href="/account/products">My Dashboard</a> → <strong>Products</strong> tab, each product profile shows <strong>directory destination</strong> cards grouped by site (PeerPush, Uneed, and others as they ship).</p>
+<p>On <a href="/account/products">My Dashboard</a> → <strong>Products</strong> tab, each product profile shows <strong>directory destination</strong> cards grouped by site.</p>
 
 ![Directory card group by site for each directory](/docs/_assets/directory-submission/profile-directory-channels.webp)
 
@@ -21,7 +21,7 @@ import { Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/docs/mdx/
 | **Submitted** | How many variants you marked complete for that site |
 | **Per-variant row** | One row per launch path (Standard launch vs free queue, Join the line vs paid launch, and so on) |
 
-<p>Readiness is about <strong>your OpenQuok profile</strong>, not whether the directory accepted you yet. Finish missing fields in the profile composer before you launch again.</p>
+<p>Readiness is about <strong>your OpenQuok profile</strong>, not whether the directory accepted you yet. Finish missing fields in the profile modal before you launch again.</p>
 
 ## After you publish on the directory
 

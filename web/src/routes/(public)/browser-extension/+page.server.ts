@@ -14,6 +14,7 @@ import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
 import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createPublicSetupStepsSEOSchema } from '$lib/seo/featuresOrderedHowToSchema';
+import { createLandingDemoSEOSchema } from '$lib/content/utils/createLandingDemoSEOSchema';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes, type JsonLdGraphNode } from '$lib/seo/jsonLdSchema';
 
 export const ssr = true;
@@ -85,6 +86,7 @@ export async function load({ url, cookies, parent }) {
 		keywords,
 		whoIsFor,
 		processSection,
+		demoSection,
 		softwareApplication
 	} = PUBLIC_BROWSER_EXTENSION_LANDING_CONFIG;
 
@@ -157,6 +159,13 @@ export async function load({ url, cookies, parent }) {
 				sectionDescription: processSection.description,
 				sectionSubtitle: processSection.subtitle,
 				steps: processSection.steps
+			}),
+			createLandingDemoSEOSchema({
+				youtubeVideoId: demoSection.youtubeVideoId,
+				name: demoSection.videoName,
+				description: demoSection.videoDescription,
+				pageUrl: canonical,
+				uploadDate: demoSection.uploadDate
 			}),
 			createBreadcrumbListSchema(buildBrowserExtensionLandingBreadcrumbItems(), url.origin)
 		])

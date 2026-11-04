@@ -26,6 +26,7 @@ import {
 	buildBrowserExtensionChannelCrossLinkGridTitle
 } from '$lib/content/utils/buildBrowserExtensionLandingGridCopy';
 import { getBrowserExtensionChromeWebStoreListingUrl } from '$lib/integrations/browser-extension/extensionConfig';
+import { DOCS_YOUTUBE_VIDEOS } from '$lib/docs/constants/docsYoutubeVideos';
 import { route } from '$lib/utils/path';
 
 const CARD_CONTAINER_CLASS = 'h-full min-h-[18rem]';
@@ -98,6 +99,13 @@ export type PublicBrowserExtensionLandingConfig = {
 	processSection: PublicBrowserExtensionSectionHeader & {
 		steps: readonly FeaturesOrderedStep[];
 		stepsFooter: PublicSetupStepsFooter;
+	};
+	demoSection: PublicBrowserExtensionSectionHeader & {
+		youtubeVideoId: string;
+		thumbnailAlt: string;
+		uploadDate: string;
+		videoName: string;
+		videoDescription: string;
 	};
 	productFeatureSections: BrowserExtensionProductFeatureSectionsConfig;
 	channelCrossLinkSection: PublicBrowserExtensionChannelCrossLinkSection;
@@ -269,6 +277,17 @@ export const PUBLIC_BROWSER_EXTENSION_LANDING_CONFIG: PublicBrowserExtensionLand
 			footerLinkLabel: 'Social media management →',
 			footerLinkHref: socialAutopilotLandingPath
 		}
+	},
+	demoSection: {
+		subtitle: 'Watch the Demo',
+		title: 'See OpenQuok extension, in action',
+		description:
+			'Walk through install, side panel sign-in, scheduling or drafts, and directory autofill — the same flows as the install guide.',
+		youtubeVideoId: DOCS_YOUTUBE_VIDEOS.chromeExtension.youtubeVideoId,
+		thumbnailAlt: DOCS_YOUTUBE_VIDEOS.chromeExtension.thumbnailAlt,
+		uploadDate: DOCS_YOUTUBE_VIDEOS.chromeExtension.uploadDate,
+		videoName: DOCS_YOUTUBE_VIDEOS.chromeExtension.name,
+		videoDescription: DOCS_YOUTUBE_VIDEOS.chromeExtension.description
 	},
 	productFeatureSections: {
 		feature1: {

@@ -4,7 +4,7 @@ export type { DocsYoutubeVideoPreset };
 
 const PRESET_ATTR_RE = /videoObjectPreset\s*=\s*["']([^"']+)["']/g;
 
-const KNOWN_PRESETS = new Set<DocsYoutubeVideoPreset>(['connectChannels']);
+const KNOWN_PRESETS = new Set<DocsYoutubeVideoPreset>(['connectChannels', 'chromeExtension']);
 
 /**
  * Reads `videoObjectPreset="…"` from MDX (e.g. on `VideoModal`) for SSR JSON-LD.

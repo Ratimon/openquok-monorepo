@@ -227,7 +227,7 @@ export function mountSocialTab(root: HTMLElement): SocialTabController {
 					<div class="gate-card">
 						<strong>Connect to OpenQuok</strong>
 						<p class="muted">Sign in on the dashboard to schedule posts and pick connected channels.</p>
-						<button type="button" id="social-sign-in-cloud" class="primary">Connect to OpenQuok.com</button>
+						<button type="button" id="social-sign-in-cloud" class="primary">Connect to Openquok.com</button>
 						<div class="gate-selfhost">
 							<label class="field-label" for="social-selfhost-url">Self host</label>
 							<input

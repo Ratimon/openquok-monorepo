@@ -16,6 +16,7 @@ export function createDocsVideoObjectNodes(params: {
 	return presets
 		.map((preset) => {
 			const config = DOCS_YOUTUBE_VIDEOS[preset];
+			if (!config) return null;
 			return createYoutubeVideoObjectSchema({
 				youtubeVideoId: config.youtubeVideoId,
 				name: config.name,
@@ -26,5 +27,5 @@ export function createDocsVideoObjectNodes(params: {
 				isPartOfId: techArticleId
 			});
 		})
-		.filter((node): node is VideoObject => '@type' in node && node['@type'] === 'VideoObject');
+		.filter((node): node is VideoObject => node != null && '@type' in node && node['@type'] === 'VideoObject');
 }

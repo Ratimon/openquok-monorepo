@@ -35,6 +35,12 @@ describe('PUBLIC_BROWSER_EXTENSION_LANDING_CONFIG', () => {
 		expect(PUBLIC_BROWSER_EXTENSION_LANDING_CONFIG.processSection.steps).toHaveLength(4);
 	});
 
+	it('uses the chrome extension docs walkthrough for the demo video', () => {
+		const { demoSection } = PUBLIC_BROWSER_EXTENSION_LANDING_CONFIG;
+		expect(demoSection.youtubeVideoId).toBe('CU-BIS006oQ');
+		expect(demoSection.thumbnailAlt.length).toBeGreaterThan(0);
+	});
+
 	it('uses Safari Chrome Web Store mock for the install step', () => {
 		const step = PUBLIC_BROWSER_EXTENSION_LANDING_CONFIG.processSection.steps[0];
 		expect(step.deviceMock).toBe('safari');

@@ -1,50 +1,63 @@
 ---
 title: OpenQuok browser extension
-description: Install the OpenQuok Chrome extension for side-panel social scheduling, in-browser connect, directory autofill, and context-menu drafts.
+description: Install the OpenQuok Chrome extension for side-panel scheduling, Skool connect, directory autofill, and context-menu drafts.
 order: 7
-lastUpdated: 2026-10-26
+lastUpdated: 2026-11-04
 sidebar:
   label: Browser extension
 ---
 
 <script>
-import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps, VideoModal } from '$lib/ui/components/docs/mdx/index.js';
+import { DOCS_YOUTUBE_VIDEOS } from '$lib/docs/constants/docsYoutubeVideos';
 </script>
 
 ## Overview
 
-The <strong>OpenQuok Chrome browser extension</strong> supports workflows that are not covered by platform OAuth or pasted API keys. For a product overview (post from any tab, side panel, directory autofill, Reddit handoff), see the <a href="/browser-extension">browser extension</a> page.
+The <strong>OpenQuok Chrome extension</strong> helps when a network needs the browser — not only dashboard OAuth or pasted keys. For a short product tour, see the <a href="/browser-extension">browser extension</a> page.
+
+See it in action:
+<VideoModal
+	videoObjectPreset="chromeExtension"
+	youtubeVideoId={DOCS_YOUTUBE_VIDEOS.chromeExtension.youtubeVideoId}
+	thumbnailAlt={DOCS_YOUTUBE_VIDEOS.chromeExtension.thumbnailAlt}
+/>
 
 | Use | What the extension does |
 | --- | --- |
-| **Social scheduling** | Open the <strong>side panel</strong> (<strong>Social</strong> tab), sign in with your OpenQuok dashboard session, pick connected channels, and <strong>schedule</strong> or <strong>draft</strong> posts via <Badge text="POST /api/v1/posts" variant="path" />. Publishing runs on OpenQuok servers. Connect OAuth and credential channels only in the dashboard — the extension does not replace <Badge text="Add Channel" variant="new" />. |
-| **Social posting — Skool** | When you connect in <Badge text="Add Channel" variant="new" />, it reads <strong>session cookies</strong> from skool.com so OpenQuok can schedule posts. The server validates the session and stores it encrypted. |
-| **Directory launch** | When you <Badge text="Launch to directory" variant="new" /> from <a href="/account/products">My Products</a>, it opens the directory site and <strong>autofills</strong> mapped fields from your product profile. You review and submit on the directory yourself. Use the side panel <strong>Directory</strong> tab for fill actions on the active tab. |
+| **Social scheduling** | Open the <strong>side panel</strong> → <strong>Social</strong>. Sign in with your dashboard. Pick channels and <strong>schedule</strong> or <strong>draft</strong> posts. OpenQuok publishes from the server. Connect channels required in the dashboard with <Badge text="Add Channel" variant="new" />. |
+| **Skool** | When you connect Skool in <Badge text="Add Channel" variant="new" />, the extension reads cookies from skool.com while you stay signed in there. OpenQuok checks the session and stores it encrypted. |
+| **Directory launch** | From <a href="/account/products">My Products</a>, choose <Badge text="Launch to directory" variant="new" />. The extension opens the directory site and fills fields from your product profile. You review and click submit on the directory. Use the side panel <strong>Directory</strong> tab to <strong>Fill</strong> on the open tab. |
 
-On supported directory hosts (today <strong>PeerPush</strong> and <strong>Uneed</strong>), the extension may show a <strong>yellow banner</strong> fixed at the top of the page when you are not signed in. It checks your OpenQuok dashboard session first, then whether you are logged into that directory site. Use <strong>Go to Login</strong> on the banner to open <a href="/sign-in">sign in</a> on your OpenQuok origin (the same host you use for the dashboard, including self-host) or the directory’s login page. When both sessions are active, the banner hides and autofill from the step rail works as usual. See <a href="/docs/directory-submission">Directory submission</a> for the full My Products → launch workflow.
+On directory sites, user are required to sign in to OpenQuok.
+
+![Add Directory Channel in Channels Tab](/docs/_assets/directory-submission/extension-banner.webp)
+
+Click <strong>Go to Login</strong> to open <a href="/sign-in">sign in</a> on the same host as your dashboard (including self-host) or the directory login page. See <a href="/docs/directory-submission">Directory submission</a> for My Products → launch steps.
 
 <Callout type="note">
-<p><strong>Skool</strong> is the only social channel that uses cookie-session connect today. <strong>PeerPush</strong>, <strong>Uneed</strong>, and future directory catalog rows use the same extension for autofill only — they do not add a posting integration or <Badge text="POST /public/posts" variant="path" /> target.</p>
+<p><strong>Skool</strong> is the only social channel that uses cookie connect today. <strong>PeerPush</strong> and <strong>Uneed</strong> use the extension for autofill only — OpenQuok does not post to those sites from the server.</p>
 </Callout>
 
 <Callout type="warning">
-<p>Session-based Skool connect is not official platform OAuth. For directory launch, you still comply with each directory’s terms when you publish. OpenQuok may change or remove an extension flow if a platform changes access.</p>
+<p>Skool connect is not official OAuth. For directories, you must follow each site’s rules when you submit. OpenQuok may change extension behavior if a platform changes access.</p>
 </Callout>
 
 ## Side panel (Social and Directory)
 
-The primary UI is the Chrome <strong>side panel</strong> (<Badge text="sidepanel.html" variant="path" />). Click the <strong>OpenQuok</strong> toolbar icon to open it, or use a context-menu action below (which also opens the panel on the <strong>Social</strong> tab).
+Click the <strong>OpenQuok</strong> toolbar icon to open the Chrome <strong>side panel</strong>. You can also open it from the context menu (see below) — that opens the <strong>Social</strong> tab.
 
 | Tab | Purpose |
 | --- | --- |
-| <strong>Social</strong> | Unsigned: <strong>Connect to OpenQuok.com</strong> or <strong>Connect to self host</strong> (URL field, default <Badge text="https://localhost:5173" variant="path" /> for Vite dev — bare <Badge text="5173" variant="path" /> or <Badge text="localhost:5173" variant="path" /> autofill to that origin on blur). Keep a signed-in dashboard tab open on that origin — the extension reads your session from that tab (httpOnly cookies). Signed in: pick channels with the same circular avatar chips as the dashboard post composer (provider badge, tap to select), a short composer with <strong>image and video</strong> attachments (toolbar <strong>+</strong>, thumbnail strip, up to <strong>10</strong> files), a live <strong>post preview</strong> (global when several channels are selected; network-styled when exactly one is selected), <strong>Publish now</strong> / <strong>Schedule</strong> / <strong>Draft</strong>, and <strong>Open full composer</strong> for the full dashboard editor (per-network preview tiles, media library, per-network media, AI tools, and large multipart uploads). |
-| <strong>Directory</strong> | Session checks, profile handoff status, and <strong>Fill</strong> actions for PeerPush and Uneed on the active tab. |
+| <strong>Social</strong> | Sign in to OpenQuok.com or enter a self-host URL (<Badge text="https://localhost:5173" variant="path" />). Keep a signed-in dashboard tab. Then pick channels, write a post, attach media, preview, and choose <strong>Publish now</strong>, <strong>Schedule</strong>, or <strong>Draft</strong>. Use <strong>web UI</strong> for the full feature (media library, AI tools, large uploads). |
+| <strong>Directory</strong> | Check sign-in, see profile status, and run <strong>Fill</strong> for PeerPush or Uneed on the active tab. |
 
-On open, the Social tab reads any <strong>context-menu draft</strong> stored for this browser session and merges it into the composer (text into the body; image shares upload when the URL is fetchable — see **Context menu**).
 
 ### Composer media (Social tab)
 
-Attach **images or video** from your device with the toolbar control (same accepted types as the dashboard composer). Files stay as **local previews** in the thumbnail strip until you choose <strong>Publish now</strong>, <strong>Schedule</strong>, or <strong>Draft</strong> — then the extension uploads each attachment through your dashboard session to <Badge text="POST /api/v1/media/upload" variant="path" /> and creates the post. Remove an attachment with <strong>×</strong> on its thumbnail before you publish.
+Use the toolbar <strong>+</strong> to attach images or video. Thumbnails show on your device until you publish, schedule, or draft — then the extension uploads to <Badge text="POST /api/v1/media/upload" variant="path" /> and creates the post. Remove a file with <strong>×</strong> on its thumbnail.
+
+![OpenQuok Chrome Extension's Social Tab](/docs/_assets/directory-submission/extension-social.webp)
 
 | Limit | Value |
 | --- | --- |
@@ -52,95 +65,70 @@ Attach **images or video** from your device with the toolbar control (same accep
 | Single image (client check) | About <strong>30 MB</strong> |
 | Single video (client check) | Up to <strong>1 GB</strong> |
 
-Oversized or unsupported files are blocked before upload with an inline message. You can schedule a post with <strong>media only</strong> (empty caption) when at least one attachment is present. Per-network attachment counts and formats still apply when OpenQuok publishes — use <strong>Open full composer</strong> when you need the media library, per-channel media, or very large files on deployments that use direct-to-storage multipart in the web app.
+<Callout type="warning">
+<p>Oversized or unsupported files are blocked when uploading. Network limits still apply at publish time — use <strong>Open full composer</strong> for the media library or very large files.</p>
+</Callout>
 
 <Callout type="note">
-<p>Extension uploads use the session multipart route only (not the public API <Badge text="POST /public/upload" variant="path" /> gateway). Very large videos may be slow; prefer the dashboard composer for heavy clips.</p>
+<p>Extension uploads use the signed-in dashboard route, not <Badge text="POST /public/upload" variant="path" />. Very large videos may be slow — use the dashboard composer for heavy clips.</p>
 </Callout>
 
 ### Channel selection (Social composer)
 
-Connected channels appear in a horizontal row of <strong>48px circular avatars</strong> <strong>above</strong> the post field, matching the dashboard post composer. Use <strong>Select all</strong> to toggle every schedulable channel, or <strong>Select grouped channels</strong> to pick a workspace group (the same channel groups you assign on the dashboard). Each chip shows the channel photo when OpenQuok has one (or the first two letters of the channel name), plus a small <strong>provider badge</strong> for the network. Tap a chip to include or exclude that channel: selected chips use a primary-colored ring and full color; unselected chips are grayscale. Channels that need a refresh or reconnect in the dashboard stay dimmed — hover for the reason; they do not toggle on until you fix them in the dashboard (you can still deselect one that was already selected). The dashed <strong>+</strong> chip at the end of the row opens the dashboard <strong>Add Channel</strong> picker on <Badge text="/account" variant="path" /> (same as the in-app <strong>Add Channel</strong> button). If you already have an account tab open, the extension focuses it and opens the dialog without changing the URL; otherwise it opens <Badge text="/account?addChannel=1" variant="path" /> briefly, then the app returns to <Badge text="/account" variant="path" />. The Directory tab uses the same <strong>+</strong> chip. The side panel uses the same <strong>forest</strong> theme tokens as the signed-in web app so Social and Directory tabs stay visually consistent.
+Channels appear as avatars above the post field. Use <strong>Select all</strong> or <strong>Select grouped channels</strong> for a workspace group. Tap a chip to include or exclude a channel. The <strong>+</strong> chip opens <strong>Add Channel</strong> on <a href="/account">My Dashboard</a> (or focuses an open account tab).
 
 <Callout type="note">
-<p><strong>Local dev (<Badge text="https://localhost:5173" variant="path" />):</strong> Sign in on your Vite dashboard, keep that tab focused in the window where you open the side panel, then tap <strong>Refresh</strong>. The footer shows which <strong>Environment</strong> origin the composer uses (local Vite proxies <Badge text="/api" variant="path" /> — it does not reuse production <Badge text="api.*" variant="path" /> hosts). If you still see production channels, you are still on a production session; sign out on <Badge text="www.openquok.com" variant="path" /> or use a separate Chrome profile for dev.</p>
+<p><strong>Local dev (<Badge text="https://localhost:5173" variant="path" />):</strong> Sign in, keep that tab in the same window as the side panel, then tap <strong>Refresh</strong>. If you are still on a production session — sign out on <Badge text="www.openquok.com" variant="path" /> or use a separate Chrome profile.</p>
 </Callout>
 
 ## Context menu
 
-On any site, right-click to share into OpenQuok:
+Right-click on any page:
 
 | Menu item | When it appears | Draft |
 | --- | --- | --- |
 | <strong>Schedule with OpenQuok</strong> | Selected text | Body = selection |
 | <strong>Schedule with OpenQuok</strong> | Page background | Body = page title + URL |
-| <strong>Schedule with OpenQuok</strong> | Image | Fetches the image URL, uploads when possible, and attaches it; page title in body. If fetch or upload fails, falls back to pasting the URL in the body with a warning |
+| <strong>Schedule with OpenQuok</strong> | Image | Uploads the image when possible. If upload fails, the URL goes in the body with a warning |
 
-The extension saves the draft, opens the side panel on the <strong>Social</strong> tab, and focuses the composer. It does not inject a composer into arbitrary websites — only directory hosts run autofill content scripts.
+![Right click to see OpenQuok in Context Menu](/docs/_assets/directory-submission/extension-context-menu.webp)
+
+The extension saves the draft, opens the side panel on <strong>Social</strong>, and focuses the composer.
 
 <Callout type="note">
-<p>Publishing still uses your OpenQuok session API (<Badge text="POST /api/v1/posts" variant="path" />). <strong>In-browser send</strong> from a live platform tab is planned for cookie-session channels but is not available in the current build.</p>
+<p>Posts still go through your signed-in API (<Badge text="POST /api/v1/posts" variant="path" />). Sending directly from a live platform tab is planned for cookie channels but is not in the current build.</p>
 </Callout>
 
-## Manual verification checklist
 
-Run this after you build or update the extension from source, or before you ship UI changes to the side panel. Use a Chrome profile where you are signed in to OpenQuok and have at least two connected social channels (for example Facebook and Skool).
-
-### Social tab
-
-- Open the side panel on the <strong>Social</strong> tab and confirm the composer loads with your dashboard session (connection label matches the origin you use).
-- Confirm <strong>Select all</strong> selects every schedulable channel and clears when you turn it off; <strong>Select grouped channels</strong> selects all channels in a group when you use workspace groups.
-- Confirm each connected channel shows an avatar (or initials), a provider badge, and toggles selection on click — unselected chips look muted/grayscale; selected chips show a primary ring.
-- If you have a channel that is not schedulable in the dashboard, confirm it stays non-interactive until fixed, the tooltip explains why, and you cannot newly select it from the extension.
-- Tap the <strong>+</strong> chip and confirm it opens your dashboard <a href="/account">Account</a> page (channels). Use the footer link for the same path if you prefer.
-- Select one or more channels, enter post text, and save a <strong>Draft</strong> or <strong>Schedule</strong> — confirm the post appears in the dashboard with the channels you picked (same <Badge text="integrationIds" variant="param" /> behavior as the full composer).
-- Optional: right-click selected text on any page, choose <strong>Schedule with OpenQuok</strong>, and confirm the draft merges into the composer body when the panel opens.
-
-### Social tab — media attachments
-
-- Tap the composer toolbar control to pick one <strong>image</strong> and one short <strong>video</strong> from your device; confirm thumbnails appear immediately (no network upload yet).
-- Remove one thumbnail with <strong>×</strong> and confirm it disappears from the strip.
-- Try an oversized image (above ~30 MB) or unsupported type and confirm the extension shows an error <strong>before</strong> upload starts.
-- With channels selected, schedule or save a <strong>Draft</strong> with <strong>empty caption</strong> but at least one attachment; confirm the post appears in the dashboard with media.
-- Schedule or draft with caption <strong>and</strong> attachments; confirm both land on the dashboard post.
-- Right-click an image on a normal https page, choose <strong>Schedule with OpenQuok</strong>, and confirm the side panel shows a preview (not only a bare URL in the body). Schedule or draft to confirm upload runs on submit; if the image cannot be fetched at submit time, confirm an error (or URL-in-body fallback when the attachment limit blocked a queue slot).
-- Type in the post field and confirm the <strong>Preview</strong> card updates (avatar, caption, first attachment). Select exactly one channel and confirm the preview uses that channel’s name and character hint; select two or more and confirm <strong>Global Edit</strong> styling.
-- Confirm <strong>Open full composer</strong> still opens the dashboard editor for advanced flows (unchanged).
-
-### Directory tab and theme
-
-- Switch to <strong>Directory</strong> and confirm copy, gate messages, and <strong>Fill</strong> actions remain readable on the forest-themed panel (tabs, cards, and inputs — not only the Social composer).
-- With a product profile and an active directory handoff, smoke one <strong>Fill</strong> action on PeerPush or Uneed if you use directory launch in this profile.
-- Tap a directory channel avatar: confirm the movable <strong>Fill</strong> panel opens on the directory browser tab (highlighted briefly) with working <strong>Fill</strong> buttons when you are signed in and have at least one product profile in OpenQuok — no need to start from My Products first if you are already on that directory site. Use <strong>Open directory page</strong> to navigate to a site — avatars no longer open the switch-site dialog.
 
 ## Who needs this
 
 | Audience | Action |
 | --- | --- |
-| <strong>Workspace members (social scheduling)</strong> | Install the extension, open the side panel <strong>Social</strong> tab, sign in to OpenQuok, and schedule to channels you already connected in the dashboard. |
-| <strong>Workspace members (Skool)</strong> | Install the extension in Chrome, stay signed in on Skool, then use <Badge text="Add Channel" variant="new" /> in the dashboard. |
-| <strong>Workspace members (directory)</strong> | Install the extension, complete a product profile on My Products, then launch to PeerPush, Uneed, or another supported directory. See <a href="/docs/directory-submission">Directory submission</a>. |
-| <strong>Self-host operators</strong> | Build the extension, set <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_ID" variant="envWeb" /> on the web app, and add your dashboard HTTPS origin to <Badge text="externally_connectable" variant="param" /> in the extension manifest. |
+| <strong>Social scheduling</strong> | Install the extension, open <strong>Social</strong>, sign in, and schedule to channels you connected in the dashboard. |
+| <strong>Skool</strong> | Install in Chrome, stay signed in on Skool, then use <Badge text="Add Channel" variant="new" /> in the dashboard. |
+| <strong>Directory launch</strong> | Install the extension, complete a product profile on My Products, then launch to PeerPush, Uneed, or another supported directory. See <a href="/docs/directory-submission">Directory submission</a>. |
+| <strong>Self-host operators</strong> | Build the extension, set <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_ID" variant="envWeb" /> on the web app, and add your dashboard HTTPS URL to <Badge text="externally_connectable" variant="param" /> in the manifest. |
 
 ## Environment variables (web)
 
-The dashboard sends messages to the extension with <Badge text="chrome.runtime.sendMessage" variant="default" />. Set the extension ID on the SvelteKit app:
+The dashboard talks to the extension with <Badge text="chrome.runtime.sendMessage" variant="default" />. Set the extension ID on the web app:
 
 | Variable | Purpose |
 | --- | --- |
-| <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_ID" variant="envWeb" /> | Chrome extension ID from <strong>Extensions → Details</strong> (or the Chrome Web Store listing when published). |
+| <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_ID" variant="envWeb" /> | Extension ID from <strong>Extensions → Details</strong> (or the Chrome Web Store when published). |
 
-Copy the key from <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/.env.development.example"><Badge text="web/.env.development.example" variant="path" /></DocsExternalLink> into <Badge text="web/.env.development.local" variant="envWeb" />. Restart the dev server after changes.
+Copy from <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/.env.development.example"><Badge text="web/.env.development.example" variant="path" /></DocsExternalLink> into <Badge text="web/.env.development.local" variant="envWeb" />. Restart the dev server after you change it.
 
 <Callout type="note">
-<p>Extension-based Skool connect does not need platform OAuth keys in your server config. The extension can refresh Skool cookies in the background while you stay signed in. Directory autofill reads profile data from OpenQuok over the same dashboard ↔ extension channel. See <a href="/docs/channels/connect">Connect a channel</a> and our <a href="/privacy-policy">Privacy Policy</a>.</p>
+<p>Skool connect does not need OAuth keys on the server. The extension can refresh Skool cookies while you stay signed in. Directory autofill reads profile data from OpenQuok over the same link. See <a href="/docs/channels/connect">Connect a channel</a> and our <a href="/privacy-policy">Privacy Policy</a>.</p>
 </Callout>
 
 ## Install from source (unpacked)
 
 <Steps
 	howToName="Load the OpenQuok browser extension in Chrome"
-	howToDescription="Build the extension package from the monorepo and load it unpacked for development or self-host."
+	howToDescription="Build the extension from the monorepo and load it unpacked for development or self-host."
 >
 
 ### Build the package
@@ -156,27 +144,27 @@ Output is in <Badge text="extension/dist/" variant="path" />.
 
 ### Load in Chrome
 
-Open <strong>chrome://extensions</strong>, enable <strong>Developer mode</strong>, click <strong>Load unpacked</strong>, and select <Badge text="extension/dist" variant="path" />.
+Open <strong>chrome://extensions</strong>, turn on <strong>Developer mode</strong>, click <strong>Load unpacked</strong>, and select <Badge text="extension/dist" variant="path" />.
 
 ![Load Unpacked OpenQuok Chrome Extension](/docs/_assets/installation/local-extension.webp)
 
-Copy the <strong>ID</strong> shown on the extension card into <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_ID" variant="envWeb" /> for your web deployment.
+Copy the <strong>ID</strong> from the extension card into <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_ID" variant="envWeb" /> for your web deployment.
 
 ### Open the side panel
 
-Pin the extension, then click the <strong>OpenQuok</strong> icon to open the side panel. Use <strong>Social</strong> to connect your dashboard session and schedule, or <strong>Directory</strong> after a launch from My Products.
+Pin the extension and click <strong>OpenQuok</strong>. Use <strong>Social</strong> to sign in and schedule, or <strong>Directory</strong> after a launch from My Products.
 
 ### Connect Skool (social posting)
 
 Open <strong>skool.com</strong> in the <strong>same Chrome profile</strong> as the extension and sign in.
 
-In OpenQuok, choose <Badge text="Add Channel" variant="new" /> → Skool. Read the browser-extension notice, then approve cookie access when prompted.
+In OpenQuok, choose <Badge text="Add Channel" variant="new" /> → Skool. Read the notice, then approve cookie access when prompted.
 
 ### Launch to a directory
 
-On <a href="/account/products">My Products</a>, open or create a business profile, pick a directory card (for example PeerPush or Uneed), and choose <Badge text="Launch to directory" variant="new" />. The extension opens the site and fills fields from your profile; you submit on the directory site.
+On <a href="/account/products">My Products</a>, open or create a business profile, pick PeerPush or Uneed, and choose <Badge text="Launch to directory" variant="new" />. The extension opens the site and fills fields; you submit on the directory site.
 
-If you browse a supported directory without an OpenQuok session, sign in at <a href="/sign-in">sign in</a> first (or use the banner’s <strong>Go to Login</strong>). You may also need an account on the directory itself before <strong>Fill</strong> actions are enabled.
+If you are not signed in to OpenQuok, sign in at <a href="/sign-in">sign in</a> first (or use the banner’s <strong>Go to Login</strong>). You may also need an account on the directory before <strong>Fill</strong> works.
 
 </Steps>
 
@@ -188,18 +176,55 @@ pnpm --filter @openquok/browser-extension zip
 
 ## Self-host dashboard origin
 
-The extension only accepts messages from origins listed in <Badge text="manifest.json" variant="path" /> → <Badge text="externally_connectable.matches" variant="param" />. Defaults include local dev and <Badge text="https://*.openquok.com/*" variant="path" />.
+The extension accepts messages only from URLs in <Badge text="manifest.json" variant="path" /> → <Badge text="externally_connectable.matches" variant="param" />. Defaults include local dev and <Badge text="https://*.openquok.com/*" variant="path" />.
 
-If your workspace runs on another HTTPS host, add that origin to the manifest, rebuild, and redistribute the extension to your users.
+If your dashboard runs on another HTTPS host, add that URL to the manifest, rebuild, and give users the new build.
+
+## Manual verification checklist for self-host
+
+Use this after you build or update the extension from source. Use a Chrome profile where you are signed in to OpenQuok with at least two social channels.
+
+### Checklist for Social Tab
+
+<Steps
+	howToName="Verify the Social tab"
+	howToDescription="Confirm session, channels, posts, media, and preview after an extension build."
+>
+
+### Session and channels
+
+<p>Open <strong>Social</strong> — the composer shows your dashboard session. <strong>Select all</strong> or <strong>Select grouped channels</strong>. Tap <strong>+</strong> — it opens Add Channel on the account page. Schedule a post. Optional: right-click text → <strong>Schedule with OpenQuok</strong> — text appears in the composer.</p>
+
+### Media and preview
+
+<p>Attach a media. Remove one with <strong>×</strong>. Try an oversized file — error before upload. Draft or schedule with media only (empty caption) — post has media on the dashboard. Right-click an image → <strong>Schedule with OpenQuok</strong> — preview or URL fallback behaves as expected. Confirm <strong>Preview</strong> updates; one channel vs many changes preview style. <strong>Open full composer</strong> still opens the dashboard editor.</p>
+
+</Steps>
+
+### Checklist for Directory Tab
+
+<Steps
+	howToName="Verify the Directory tab"
+	howToDescription="Confirm the panel, Fill actions, and directory avatars after an extension build."
+>
+
+### Panel and Fill
+
+<p>Switch to <strong>Directory</strong> — text and buttons are readable on the panel theme. Smoke one <strong>Fill</strong> on PeerPush or Uneed when you use directory launch.</p>
+
+### Directory avatar
+
+<p>Tap a directory avatar — the <strong>Fill</strong> panel opens on the directory tab when you are signed in with a product profile.</p>
+
+</Steps>
 
 ## Related
 
 <CardGrid>
-<LinkCard title="Browser extension (overview)" description="Social media scheduler extension — post from any tab" href="/browser-extension" />
-<LinkCard title="Skool" description="Connect Skool with the extension and compose settings" href="/docs/social-integration/skool" />
-<LinkCard title="Directory submission" description="My Products workflow and extension handoff" href="/docs/directory-submission" />
-<LinkCard title="Connect rules" description="Channel keys, directory site keys, and connect types" href="/docs/platforms/connect-rules" />
-<LinkCard title="Connect a channel" description="OAuth, credentials, and browser extension flows" href="/docs/channels/connect" />
+<LinkCard title="Browser extension (overview)" description="Post from any tab with the Chrome side panel" href="/browser-extension" />
+<LinkCard title="Skool" description="Connect Skool with the extension" href="/docs/social-integration/skool" />
+<LinkCard title="Directory submission" description="My Products and extension handoff" href="/docs/directory-submission" />
+<LinkCard title="Connect rules" description="Which networks use OAuth, keys, or the extension" href="/docs/platforms/connect-rules" />
+<LinkCard title="Connect a channel" description="Add Channel in the dashboard" href="/docs/channels/connect" />
 <LinkCard title="Web configuration" description="VITE_* variables for the dashboard" href="/docs/configuration-web" />
 </CardGrid>
-

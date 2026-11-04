@@ -75,7 +75,15 @@ Each directory destination shows **readiness** on the profile card. Fix missing 
 
 ### Launch to a directory
 
-<p>Click <strong>Launch to directory</strong> on the product profile, or add the site with <strong>Add Channel</strong> on <a href="/account">My Dashboard</a> → <strong>Channels</strong> tab first. Choose the site and variant — for example PeerPush Standard launch or Uneed Join the line. OpenQuok opens the correct website and sends a handoff to the extension.</p>
+<p>Click <strong>Launch to directory</strong> on the product profile, or add the site with <strong>Add Channel</strong> on <a href="/account">My Dashboard</a> → <strong>Channels</strong> tab first.</p>
+
+![Add Directory Channel in Channels Tab](/docs/_assets/directory-submission/fill-directory.webp)
+
+### Choose Listing Option
+
+<p>Choose the site and variant — for example PeerPush Standard launch or Uneed Join the line. OpenQuok opens the correct website and sends a handoff to the extension.</p>
+
+![Choose one of Directory 's Listing Options](/docs/_assets/directory-submission/fill-directory.webp)
 
 ### Review and submit on the directory
 
