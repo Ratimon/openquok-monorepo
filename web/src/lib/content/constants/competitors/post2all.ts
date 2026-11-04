@@ -1,4 +1,5 @@
 import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$lib/content/constants/competitors/types';
+import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
 
@@ -80,6 +81,7 @@ const POST2ALL_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Compar
 
 export const post2allCompareProduct: CompareProduct = {
 	slug: 'post2all',
+	categories: COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING,
 	name: 'post2all',
 	icon: icons.Post2all.name,
 	tagline: 'Social scheduler for teams and AI agents across thirteen networks',

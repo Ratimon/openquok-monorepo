@@ -1,4 +1,5 @@
 import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$lib/content/constants/competitors/types';
+import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
 
@@ -80,6 +81,7 @@ const RECURPOST_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Compa
 
 export const recurpostCompareProduct: CompareProduct = {
 	slug: 'recurpost',
+	categories: COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING,
 	name: 'RecurPost',
 	icon: icons.RecurPost.name,
 	tagline: 'Agency social scheduler with evergreen recycling since 2016',

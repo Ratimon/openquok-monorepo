@@ -1,4 +1,5 @@
 import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$lib/content/constants/competitors/types';
+import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
 
@@ -77,6 +78,7 @@ const MIXPOST_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Compare
 
 export const mixpostCompareProduct: CompareProduct = {
 	slug: 'mixpost',
+	categories: COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING,
 	name: 'Mixpost',
 	icon: icons.Mixpost.name,
 	tagline: 'Open-source, self-hosted social suite with one-time paid editions',

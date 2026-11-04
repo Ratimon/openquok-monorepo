@@ -1,4 +1,5 @@
 import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$lib/content/constants/competitors/types';
+import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
 
@@ -79,6 +80,7 @@ const HEROPOST_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Compar
 
 export const heropostCompareProduct: CompareProduct = {
 	slug: 'heropost',
+	categories: COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING,
 	name: 'Heropost',
 	icon: icons.Heropost.name,
 	tagline: 'Lifetime social scheduler with HeroAI and eleven networks',

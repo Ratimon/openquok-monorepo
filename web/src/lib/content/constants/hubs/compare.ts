@@ -4,7 +4,15 @@ import {
 	PUBLIC_COMPARE_HUB_FAQ_ITEM_IDS
 } from '$lib/content/constants/faq';
 
-import { faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+import { getRootPathPublicDirectorySubmissionTool } from '$lib/area-public/constants/getRootPathPublicDirectorySubmissionTool';
+import { getRootPathPublicSocialAutopilotLanding } from '$lib/area-public/constants/getRootPathPublicSocialAutopilotLanding';
+import { PUBLIC_COMPARE_HUB_SECTION_IDS } from '$lib/content/constants/landing/breadcrumbs';
+import {
+	faqHrefComparePair,
+	faqLink,
+	publicFaqHref
+} from '$lib/content/utils/publicFaqLinks';
+import { route } from '$lib/utils/path';
 
 export type PublicCompareHubFaqSection = {
 	faqSubtitle: string;
@@ -13,17 +21,72 @@ export type PublicCompareHubFaqSection = {
 	faqItems: readonly PublicFaqItem[];
 };
 
+export type PublicCompareHubSectionConfig = {
+	sectionId: string;
+	subtitle: string;
+	title: string;
+	description: string;
+	learnMoreHref: string;
+	learnMoreLabel: string;
+};
+
+const socialAutopilotLandingHref = route(getRootPathPublicSocialAutopilotLanding());
+const directorySubmissionToolHref = route(getRootPathPublicDirectorySubmissionTool());
+
+export const PUBLIC_COMPARE_HUB = {
+	metaTitle: 'Compare social schedulers and directory submission services',
+	metaDescription:
+		'Compare social media schedulers and directory submission services side by side. See OpenQuok vs Buffer, Later, and BoringLaunch on pricing, channels, DIY launch, and control.',
+	keywords: [
+		'social media scheduler comparison',
+		'compare social media scheduling tools',
+		'directory submission service comparison',
+		'DIY directory launch vs done for you',
+		'buffer vs hootsuite alternative',
+		'openquok vs boringlaunch',
+		'agent social media scheduling',
+		'multi-workspace social media scheduler'
+	] as const,
+	eyebrow: 'Compare',
+	title: 'Compare schedulers and directory launch services',
+	description:
+		'Open head-to-head pages for social media schedulers and directory submission services. You see pricing, features, and trade-offs before you switch tools or hire a done-for-you service.',
+	socialSection: {
+		sectionId: PUBLIC_COMPARE_HUB_SECTION_IDS.socialMediaSchedulers,
+		subtitle: 'Social scheduling',
+		title: 'Social media schedulers',
+		description:
+			'Compare OpenQuok to Buffer, Later, Hootsuite, and other schedulers. You review plan limits, connected channels, workspaces, and agent workflows in one place.',
+		learnMoreHref: socialAutopilotLandingHref,
+		learnMoreLabel: 'Social media management →'
+	} satisfies PublicCompareHubSectionConfig,
+	directorySection: {
+		sectionId: PUBLIC_COMPARE_HUB_SECTION_IDS.directorySubmissionServices,
+		subtitle: 'Directory launch',
+		title: 'Directory submission services',
+		description:
+			'Compare OpenQuok DIY directory launch to done-for-you services such as BoringLaunch. You review one-time fees, pace, control, and DR outcomes before you buy.',
+		learnMoreHref: directorySubmissionToolHref,
+		learnMoreLabel: 'Directory submission tool →'
+	} satisfies PublicCompareHubSectionConfig
+} as const;
+
 export const PUBLIC_COMPARE_HUB_FAQ = {
 	faqSubtitle: 'Compare FAQ',
 	faqTitle: 'Product Comparison, answered',
 	faqDescription:
-		'How head-to-head pages work, where to start with Buffer or Later, how pricing stacks up, and how to browse alternative directories.',
+		'How head-to-head pages work, where to start with Buffer or Later, directory submission comparisons, how pricing stacks up, and how to browse alternative directories.',
 	faqItems: appendPublicGeneralFaqItems(
 		[
 		{
 			title: 'How do OpenQuok comparison pages work?',
 			description:
-				`Pick a base product on ${faqLink(publicFaqHref.compare, 'Compare')}, then open a head-to-head page for pricing, channels, and feature rows. Each page lists strengths and trade-offs in plain language so you can shortlist schedulers before you sign up.`
+				`Pick a product family on ${faqLink(publicFaqHref.compare, 'Compare')}, then open a head-to-head page for pricing and feature rows. Social pages cover channels and agent tools. Directory pages cover DIY launch vs done-for-you submission. Each page lists strengths and trade-offs in plain language.`
+		},
+		{
+			title: 'Where should I start for directory launch comparisons?',
+			description:
+				`Read ${faqLink(faqHrefComparePair('openquok', 'boringlaunch'), 'OpenQuok vs BoringLaunch')} for DIY control, extension workflows, and one-time service fees. Open the ${faqLink(directorySubmissionToolHref, 'directory submission tool')} page when you want the OpenQuok DIY path in one place.`
 		},
 		{
 			title: 'Where should I start for OpenQuok vs Buffer?',

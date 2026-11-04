@@ -1,4 +1,5 @@
 import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$lib/content/constants/competitors/types';
+import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
 
@@ -90,6 +91,7 @@ const POSTFAST_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Compar
 
 export const postfastCompareProduct: CompareProduct = {
 	slug: 'postfast',
+	categories: COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING,
 	name: 'PostFast',
 	icon: icons.PostFast.name,
 	tagline: 'Multi-platform scheduler with MCP, API, and social inbox on every plan',

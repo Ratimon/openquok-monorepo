@@ -2,6 +2,7 @@
 	import type { PageData } from './$types';
 	import type { CompareProductSlug } from '$lib/content/constants/competitors';
 
+	import { COMPARE_PRODUCT_ICON_STYLES_HUB } from '$lib/content/constants/competitors/compareProductIconStyles';
 	import { publicAlternativesPagePresenter } from '$lib/area-public';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { route } from '$lib/utils/path';
@@ -36,108 +37,6 @@
 		publicAlternativesPagePresenter.filterHubEntries(hubVm.entries, searchQuery)
 	);
 
-	const PRODUCT_ICON_STYLES: Record<
-		CompareProductSlug,
-		{ containerClass: string; iconClass?: string }
-	> = {
-		openquok: {
-			containerClass:
-				'bg-linear-to-br from-emerald-400/30 via-lime-300/20 to-amber-300/25 text-white ring-emerald-300/35'
-		},
-		hootsuite: {
-			containerClass:
-				'bg-linear-to-br from-orange-400/30 via-amber-300/20 to-yellow-300/20 text-orange-100 ring-orange-300/35'
-		},
-		heropost: {
-			containerClass:
-				'bg-linear-to-br from-amber-500/30 via-orange-400/20 to-rose-400/25 text-amber-50 ring-amber-400/40'
-		},
-		'hopper-hq': {
-			containerClass:
-				'bg-linear-to-br from-blue-500/30 via-sky-400/20 to-cyan-300/20 text-blue-100 ring-blue-400/35'
-		},
-		influence: {
-			containerClass:
-				'bg-linear-to-br from-neutral-700/40 via-neutral-500/25 to-neutral-300/20 text-neutral-50 ring-neutral-400/35'
-		},
-		later: {
-			containerClass:
-				'bg-linear-to-br from-violet-800/40 via-fuchsia-700/20 to-orange-400/25 text-amber-50 ring-violet-500/40'
-		},
-		buffer: {
-			containerClass:
-				'bg-linear-to-br from-sky-400/30 via-cyan-300/20 to-blue-300/20 text-sky-100 ring-sky-300/35'
-		},
-		blotato: {
-			containerClass:
-				'bg-linear-to-br from-lime-500/35 via-amber-400/25 to-orange-400/20 text-lime-50 ring-lime-500/40'
-		},
-		breakreach: {
-			containerClass:
-				'bg-linear-to-br from-violet-600/35 via-purple-500/25 to-fuchsia-400/20 text-violet-50 ring-violet-500/40'
-		},
-		'claw-post': {
-			containerClass:
-				'bg-linear-to-br from-red-500/30 via-rose-400/20 to-cyan-400/20 text-red-50 ring-red-400/35'
-		},
-		recurpost: {
-			containerClass:
-				'bg-linear-to-br from-yellow-400/35 via-amber-300/20 to-yellow-500/25 text-yellow-50 ring-yellow-400/40'
-		},
-		mixpost: {
-			containerClass:
-				'bg-linear-to-br from-indigo-500/30 via-violet-400/20 to-cyan-300/20 text-indigo-100 ring-indigo-400/35'
-		},
-		openpost: {
-			containerClass:
-				'bg-linear-to-br from-teal-500/30 via-cyan-400/20 to-sky-300/20 text-teal-50 ring-teal-400/35'
-		},
-		'post-bridge': {
-			containerClass:
-				'bg-linear-to-br from-rose-400/30 via-orange-300/20 to-amber-300/20 text-rose-100 ring-rose-300/35'
-		},
-		postfast: {
-			containerClass:
-				'bg-linear-to-br from-blue-600/30 via-blue-400/20 to-cyan-300/20 text-blue-50 ring-blue-500/35'
-		},
-		postpeer: {
-			containerClass:
-				'bg-linear-to-br from-red-400/30 via-rose-300/20 to-orange-300/20 text-red-50 ring-red-300/35'
-		},
-		post2all: {
-			containerClass:
-				'bg-linear-to-br from-stone-600/35 via-stone-500/25 to-amber-200/20 text-stone-50 ring-stone-400/40'
-		},
-		postiz: {
-			containerClass:
-				'bg-linear-to-br from-violet-400/30 via-purple-300/20 to-fuchsia-300/20 text-violet-100 ring-violet-300/35'
-		},
-		publer: {
-			containerClass:
-				'bg-linear-to-br from-teal-400/35 via-cyan-300/25 to-emerald-300/20 text-teal-50 ring-teal-300/40'
-		},
-		socialclaw: {
-			containerClass:
-				'bg-linear-to-br from-red-500/30 via-rose-400/20 to-orange-300/20 text-red-50 ring-red-400/40'
-		},
-		socialync: {
-			containerClass:
-				'bg-linear-to-br from-violet-500/35 via-purple-400/25 to-fuchsia-400/20 text-violet-50 ring-violet-400/40'
-		},
-		'sprout-social': {
-			containerClass:
-				'bg-linear-to-br from-emerald-500/35 via-green-400/25 to-lime-300/20 text-emerald-50 ring-emerald-400/40'
-		},
-		typefully: {
-			containerClass:
-				'bg-linear-to-br from-blue-500/30 via-indigo-400/20 to-sky-300/20 text-blue-100 ring-blue-400/35'
-		},
-		usebard: {
-			containerClass:
-				'bg-linear-to-br from-purple-600/30 via-violet-500/20 to-fuchsia-400/20 text-purple-100 ring-purple-500/35'
-		}
-	};
-
 	// /sign-up
 	const rootPathSignUp = getRootPathSignup();
 	const signUpPath = route(rootPathSignUp);
@@ -145,7 +44,7 @@
 	const alternativesHubDocsBanner = PUBLIC_HUB_DOCS_BANNERS.alternatives;
 
 	function iconStyleForProduct(slug: CompareProductSlug) {
-		return PRODUCT_ICON_STYLES[slug];
+		return COMPARE_PRODUCT_ICON_STYLES_HUB[slug];
 	}
 
 	function handleSearchChange(value: string) {

@@ -44,10 +44,59 @@ export async function load({ url, cookies, parent }) {
 		}
 	});
 
-	const comparisonPages = hubVm.pairs.map((pair) => ({
-		name: `${hubVm.baseProductName} vs ${pair.name} comparison`,
-		url: new URL(pair.href, url.origin).href
-	}));
+	function buildComparisonListItems(
+		section: typeof hubVm.socialSection,
+		listId: string,
+		listName: string
+	) {
+		const comparisonPages = section.pairs.map((pair) => ({
+			name: `${section.baseProductName} vs ${pair.name} comparison`,
+			url: new URL(pair.href, url.origin).href
+		}));
+
+		if (comparisonPages.length === 0) {
+			return null;
+		}
+
+		return {
+			'@type': 'ItemList' as const,
+			'@id': listId,
+			name: listName,
+			url: canonical,
+			numberOfItems: comparisonPages.length,
+			itemListElement: comparisonPages.map((page, index) => ({
+				'@type': 'ListItem' as const,
+				position: index + 1,
+				item: {
+					'@type': 'WebPage' as const,
+					'@id': `${page.url}#webpage`,
+					name: page.name,
+					url: page.url,
+					isPartOf: {
+						'@type': 'WebSite' as const,
+						name: companyName,
+						url: url.origin
+					}
+				}
+			}))
+		};
+	}
+
+	const socialComparisonsList = buildComparisonListItems(
+		hubVm.socialSection,
+		`${canonical}#comparisons-social`,
+		'Social media scheduler comparisons'
+	);
+	const directoryComparisonsList = buildComparisonListItems(
+		hubVm.directorySection,
+		`${canonical}#comparisons-directory`,
+		'Directory submission service comparisons'
+	);
+
+	const mainEntityIds = [
+		socialComparisonsList ? socialComparisonsList['@id'] : null,
+		directoryComparisonsList ? directoryComparisonsList['@id'] : null
+	].filter(Boolean);
 
 	const schemaData = createJsonLdGraph(
 		filterNonEmptyJsonLdNodes([
@@ -57,37 +106,22 @@ export async function load({ url, cookies, parent }) {
 				name: hubVm.metaTitle,
 				description: hubVm.metaDescription,
 				url: canonical,
-				mainEntity: {
-					'@id': `${canonical}#comparisons`
-				},
+				...(mainEntityIds.length > 0
+					? {
+							mainEntity:
+								mainEntityIds.length === 1
+									? { '@id': mainEntityIds[0]! }
+									: mainEntityIds.map((id) => ({ '@id': id! }))
+						}
+					: {}),
 				isPartOf: {
 					'@type': 'WebSite',
 					name: companyName,
 					url: url.origin
 				}
 			},
-			{
-				'@type': 'ItemList',
-				'@id': `${canonical}#comparisons`,
-				name: 'Comparison pages',
-				url: canonical,
-				numberOfItems: comparisonPages.length,
-				itemListElement: comparisonPages.map((page, index) => ({
-					'@type': 'ListItem',
-					position: index + 1,
-					item: {
-						'@type': 'WebPage',
-						'@id': `${page.url}#webpage`,
-						name: page.name,
-						url: page.url,
-						isPartOf: {
-							'@type': 'WebSite',
-							name: companyName,
-							url: url.origin
-						}
-					}
-				}))
-			},
+			...(socialComparisonsList ? [socialComparisonsList] : []),
+			...(directoryComparisonsList ? [directoryComparisonsList] : []),
 			createPublicFaqSEOSchema({
 				pageUrl: `${canonical}#faq`,
 				name: PUBLIC_COMPARE_HUB_FAQ.faqTitle,

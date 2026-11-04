@@ -1,4 +1,5 @@
 import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$lib/content/constants/competitors/types';
+import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
 
@@ -73,6 +74,7 @@ const BLOTATO_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Compare
 
 export const blotatoCompareProduct: CompareProduct = {
 	slug: 'blotato',
+	categories: COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING,
 	name: 'Blotato',
 	icon: icons.Blotato.name,
 	tagline: 'Unified social API and MCP for AI agents and automation',

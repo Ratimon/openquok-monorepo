@@ -1,4 +1,5 @@
 import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$lib/content/constants/competitors/types';
+import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
 
@@ -82,6 +83,7 @@ const SOCIALCLAW_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Comp
 
 export const socialclawCompareProduct: CompareProduct = {
 	slug: 'socialclaw',
+	categories: COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING,
 	name: 'SocialClaw',
 	icon: icons.SocialClaw.name,
 	tagline: 'Agent-oriented scheduler with API, MCP, CLI, and media studio',

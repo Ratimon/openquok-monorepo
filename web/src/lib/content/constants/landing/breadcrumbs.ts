@@ -36,3 +36,12 @@ export const PUBLIC_CHANNELS_HUB_SECTION_IDS = {
 
 export type PublicChannelsHubSectionId =
 	(typeof PUBLIC_CHANNELS_HUB_SECTION_IDS)[keyof typeof PUBLIC_CHANNELS_HUB_SECTION_IDS];
+
+/** Scroll targets on `/compare` for hub section headings. */
+export const PUBLIC_COMPARE_HUB_SECTION_IDS = {
+	socialMediaSchedulers: 'public-compare-social-schedulers-heading',
+	directorySubmissionServices: 'public-compare-directory-submission-heading'
+} as const;
+
+export type PublicCompareHubSectionId =
+	(typeof PUBLIC_COMPARE_HUB_SECTION_IDS)[keyof typeof PUBLIC_COMPARE_HUB_SECTION_IDS];

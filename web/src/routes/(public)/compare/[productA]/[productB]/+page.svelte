@@ -33,7 +33,14 @@
 		type LandingHeroTheme
 	} from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import CompareProductLink from '$lib/ui/links/CompareProductLink.svelte';
+	import InternalLink from '$lib/ui/links/InternalLink.svelte';
+	import PublicCompareDirectoryLongForm from '$lib/ui/components/compare/PublicCompareDirectoryLongForm.svelte';
+	import PublicComparePageSectionNav, {
+		buildCompareDirectoryLongFormNavSections,
+		buildCompareSocialMatrixNavSections
+	} from '$lib/ui/components/compare/PublicComparePageSectionNav.svelte';
 	import PublicCompareLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicCompareLandingBreadcrumb.svelte';
+	import { getCompareProductHeroCardIconStyles } from '$lib/content/constants/competitors/compareProductIconStyles';
 
 	type Props = { data: PageData };
 
@@ -49,156 +56,17 @@
 	let withWithoutSection = $derived(detailVm.withWithoutSection);
 	let faqItems = $derived(detailVm.faqItems);
 	let relatedPairs = $derived(detailVm.relatedPairs);
-
-	const PRODUCT_ICON_STYLES: Record<
-		CompareProductSlug,
-		{ heroContainerClass: string; cardContainerClass: string; iconClass?: string }
-	> = {
-		openquok: {
-			heroContainerClass:
-				'bg-linear-to-br from-emerald-400/30 via-lime-300/20 to-amber-300/25 text-white ring-emerald-300/35',
-			cardContainerClass:
-				'bg-linear-to-br from-emerald-400/22 via-lime-300/16 to-amber-300/20 text-white ring-emerald-300/28'
-		},
-		hootsuite: {
-			heroContainerClass:
-				'bg-linear-to-br from-orange-400/30 via-amber-300/20 to-yellow-300/20 text-orange-100 ring-orange-300/35',
-			cardContainerClass:
-				'bg-linear-to-br from-orange-400/20 via-amber-300/16 to-yellow-300/16 text-orange-100 ring-orange-300/28'
-		},
-		heropost: {
-			heroContainerClass:
-				'bg-linear-to-br from-amber-500/30 via-orange-400/20 to-rose-400/25 text-amber-50 ring-amber-400/40',
-			cardContainerClass:
-				'bg-linear-to-br from-amber-500/22 via-orange-400/16 to-rose-400/18 text-amber-50 ring-amber-400/28'
-		},
-		'hopper-hq': {
-			heroContainerClass:
-				'bg-linear-to-br from-blue-500/30 via-sky-400/20 to-cyan-300/20 text-blue-100 ring-blue-400/35',
-			cardContainerClass:
-				'bg-linear-to-br from-blue-500/20 via-sky-400/16 to-cyan-300/16 text-blue-100 ring-blue-400/28'
-		},
-		influence: {
-			heroContainerClass:
-				'bg-linear-to-br from-neutral-700/40 via-neutral-500/25 to-neutral-300/20 text-neutral-50 ring-neutral-400/35',
-			cardContainerClass:
-				'bg-linear-to-br from-neutral-700/28 via-neutral-500/18 to-neutral-300/14 text-neutral-50 ring-neutral-400/28'
-		},
-		later: {
-			heroContainerClass:
-				'bg-linear-to-br from-violet-800/40 via-fuchsia-700/20 to-orange-400/25 text-amber-50 ring-violet-500/40',
-			cardContainerClass:
-				'bg-linear-to-br from-violet-800/28 via-fuchsia-700/16 to-orange-400/18 text-amber-50 ring-violet-500/28'
-		},
-		buffer: {
-			heroContainerClass:
-				'bg-linear-to-br from-sky-400/30 via-cyan-300/20 to-blue-300/20 text-sky-100 ring-sky-300/35',
-			cardContainerClass:
-				'bg-linear-to-br from-sky-400/20 via-cyan-300/16 to-blue-300/16 text-sky-100 ring-sky-300/28'
-		},
-		blotato: {
-			heroContainerClass:
-				'bg-linear-to-br from-lime-500/35 via-amber-400/25 to-orange-400/20 text-lime-50 ring-lime-500/40',
-			cardContainerClass:
-				'bg-linear-to-br from-lime-500/22 via-amber-400/18 to-orange-400/14 text-lime-50 ring-lime-500/28'
-		},
-		breakreach: {
-			heroContainerClass:
-				'bg-linear-to-br from-violet-600/35 via-purple-500/25 to-fuchsia-400/20 text-violet-50 ring-violet-500/40',
-			cardContainerClass:
-				'bg-linear-to-br from-violet-600/22 via-purple-500/18 to-fuchsia-400/14 text-violet-50 ring-violet-500/28'
-		},
-		'claw-post': {
-			heroContainerClass:
-				'bg-linear-to-br from-red-500/30 via-rose-400/20 to-cyan-400/20 text-red-50 ring-red-400/35',
-			cardContainerClass:
-				'bg-linear-to-br from-red-500/20 via-rose-400/16 to-cyan-400/16 text-red-50 ring-red-400/28'
-		},
-		recurpost: {
-			heroContainerClass:
-				'bg-linear-to-br from-yellow-400/35 via-amber-300/20 to-yellow-500/25 text-yellow-50 ring-yellow-400/40',
-			cardContainerClass:
-				'bg-linear-to-br from-yellow-400/22 via-amber-300/16 to-yellow-500/18 text-yellow-50 ring-yellow-400/28'
-		},
-		mixpost: {
-			heroContainerClass:
-				'bg-linear-to-br from-indigo-500/30 via-violet-400/20 to-cyan-300/20 text-indigo-100 ring-indigo-400/35',
-			cardContainerClass:
-				'bg-linear-to-br from-indigo-500/20 via-violet-400/16 to-cyan-300/16 text-indigo-100 ring-indigo-400/28'
-		},
-		openpost: {
-			heroContainerClass:
-				'bg-linear-to-br from-teal-500/30 via-cyan-400/20 to-sky-300/20 text-teal-50 ring-teal-400/35',
-			cardContainerClass:
-				'bg-linear-to-br from-teal-500/20 via-cyan-400/16 to-sky-300/16 text-teal-50 ring-teal-400/28'
-		},
-		'post-bridge': {
-			heroContainerClass:
-				'bg-linear-to-br from-rose-400/30 via-orange-300/20 to-amber-300/20 text-rose-100 ring-rose-300/35',
-			cardContainerClass:
-				'bg-linear-to-br from-rose-400/20 via-orange-300/16 to-amber-300/16 text-rose-100 ring-rose-300/28'
-		},
-		postfast: {
-			heroContainerClass:
-				'bg-linear-to-br from-blue-600/30 via-blue-400/20 to-cyan-300/20 text-blue-50 ring-blue-500/35',
-			cardContainerClass:
-				'bg-linear-to-br from-blue-600/20 via-blue-400/16 to-cyan-300/16 text-blue-50 ring-blue-500/28'
-		},
-		postpeer: {
-			heroContainerClass:
-				'bg-linear-to-br from-red-400/30 via-rose-300/20 to-orange-300/20 text-red-50 ring-red-300/35',
-			cardContainerClass:
-				'bg-linear-to-br from-red-400/20 via-rose-300/16 to-orange-300/16 text-red-50 ring-red-300/28'
-		},
-		post2all: {
-			heroContainerClass:
-				'bg-linear-to-br from-stone-600/35 via-stone-500/25 to-amber-200/20 text-stone-50 ring-stone-400/40',
-			cardContainerClass:
-				'bg-linear-to-br from-stone-600/28 via-stone-500/20 to-amber-200/16 text-stone-50 ring-stone-400/32'
-		},
-		postiz: {
-			heroContainerClass:
-				'bg-linear-to-br from-violet-400/30 via-purple-300/20 to-fuchsia-300/20 text-violet-100 ring-violet-300/35',
-			cardContainerClass:
-				'bg-linear-to-br from-violet-400/20 via-purple-300/16 to-fuchsia-300/16 text-violet-100 ring-violet-300/28'
-		},
-		publer: {
-			heroContainerClass:
-				'bg-linear-to-br from-teal-400/35 via-cyan-300/25 to-emerald-300/20 text-teal-50 ring-teal-300/40',
-			cardContainerClass:
-				'bg-linear-to-br from-teal-400/22 via-cyan-300/18 to-emerald-300/14 text-teal-50 ring-teal-300/28'
-		},
-		socialclaw: {
-			heroContainerClass:
-				'bg-linear-to-br from-red-500/30 via-rose-400/20 to-orange-300/20 text-red-50 ring-red-400/40',
-			cardContainerClass:
-				'bg-linear-to-br from-red-500/20 via-rose-400/16 to-orange-300/16 text-red-50 ring-red-400/28'
-		},
-		socialync: {
-			heroContainerClass:
-				'bg-linear-to-br from-violet-500/35 via-purple-400/25 to-fuchsia-400/20 text-violet-50 ring-violet-400/40',
-			cardContainerClass:
-				'bg-linear-to-br from-violet-500/22 via-purple-400/18 to-fuchsia-400/14 text-violet-50 ring-violet-400/30'
-		},
-		'sprout-social': {
-			heroContainerClass:
-				'bg-linear-to-br from-emerald-500/35 via-green-400/25 to-lime-300/20 text-emerald-50 ring-emerald-400/40',
-			cardContainerClass:
-				'bg-linear-to-br from-emerald-500/22 via-green-400/18 to-lime-300/14 text-emerald-50 ring-emerald-400/30'
-		},
-		typefully: {
-			heroContainerClass:
-				'bg-linear-to-br from-blue-500/30 via-indigo-400/20 to-sky-300/20 text-blue-100 ring-blue-400/35',
-			cardContainerClass:
-				'bg-linear-to-br from-blue-500/20 via-indigo-400/16 to-sky-300/16 text-blue-100 ring-blue-400/28'
-		},
-		usebard: {
-			heroContainerClass:
-				'bg-linear-to-br from-purple-600/30 via-violet-500/20 to-fuchsia-400/20 text-purple-100 ring-purple-500/35',
-			cardContainerClass:
-				'bg-linear-to-br from-purple-600/20 via-violet-500/16 to-fuchsia-400/16 text-purple-100 ring-purple-500/28'
-		}
-	};
+	let isDirectoryLongForm = $derived(detailVm.layout === 'directory_long_form');
+	let directoryLongForm = $derived(detailVm.longForm);
+	let directoryNavSections = $derived(
+		directoryLongForm ? buildCompareDirectoryLongFormNavSections(directoryLongForm) : []
+	);
+	let socialNavSections = $derived(
+		buildCompareSocialMatrixNavSections({
+			includeChannels: channelsSection != null,
+			includeFaq: faqItems.length > 0
+		})
+	);
 
 	// /sign-up
 	const rootPathSignUp = getRootPathSignup();
@@ -216,7 +84,9 @@
 			iconContainerClass:
 				'bg-linear-to-br from-violet-400/25 via-fuchsia-300/18 to-indigo-300/20 text-violet-100 ring-violet-300/30',
 			href: compareHubPath,
-			description: 'See all scheduler comparisons.',
+			description: isDirectoryLongForm
+				? 'See all directory submission comparisons.'
+				: 'See all scheduler comparisons.',
 			ctaLabel: 'Open'
 		},
 		...relatedPairs.map((pair) => ({
@@ -248,7 +118,7 @@
 		'bg-gradient-to-r from-fuchsia-300 via-rose-300 to-orange-300 bg-clip-text text-transparent';
 
 	function iconStyleForProduct(slug: CompareProductSlug) {
-		return PRODUCT_ICON_STYLES[slug];
+		return getCompareProductHeroCardIconStyles(slug);
 	}
 
 	const compareSectionHeroTheme: LandingHeroTheme = {
@@ -342,20 +212,112 @@
 		<p class="mx-auto max-w-2xl text-base text-base-content/70">
 			{detailVm.heroDescription}
 		</p>
-		<div class="flex justify-center pt-2">
-			<ButtonGlitchBrightness
-				class="my-2 w-full max-w-sm justify-center rounded-full px-8 text-sm sm:w-auto sm:max-w-none sm:px-10 sm:text-base"
-				variant="primary"
-				size="lg"
-				href={signUpPath}
-				preload="off"
-			>
-				{compareHeroCtaText}
-			</ButtonGlitchBrightness>
+		<div class="flex flex-col items-center justify-center gap-3 pt-2 sm:flex-row">
+			{#if isDirectoryLongForm && directoryLongForm}
+				<InternalLink
+					href={directoryLongForm.directorySubmissionToolPath}
+					class="btn btn-primary my-2 w-full max-w-sm rounded-full px-8 text-sm sm:w-auto sm:max-w-none sm:px-10 sm:text-base"
+				>
+					Explore directory launch
+				</InternalLink>
+				<ButtonGlitchBrightness
+					class="my-2 w-full max-w-sm justify-center rounded-full px-8 text-sm sm:w-auto sm:max-w-none sm:px-10 sm:text-base"
+					variant="outline"
+					size="lg"
+					href={signUpPath}
+					preload="off"
+				>
+					Start free trial
+				</ButtonGlitchBrightness>
+			{:else}
+				<ButtonGlitchBrightness
+					class="my-2 w-full max-w-sm justify-center rounded-full px-8 text-sm sm:w-auto sm:max-w-none sm:px-10 sm:text-base"
+					variant="primary"
+					size="lg"
+					href={signUpPath}
+					preload="off"
+				>
+					{compareHeroCtaText}
+				</ButtonGlitchBrightness>
+			{/if}
 		</div>
 	</header>
 
-	<section class="container mx-auto mt-16 max-w-5xl scroll-mt-24 px-4">
+	{#if isDirectoryLongForm && directoryLongForm}
+		<div class="container mx-auto mt-16 max-w-7xl px-4">
+			<PublicComparePageSectionNav
+				sections={directoryNavSections}
+				placement="inline"
+				class="mb-10"
+			/>
+			<div
+				class="lg:grid lg:grid-cols-[minmax(0,1fr)_min(100%,16rem)] lg:items-start lg:gap-8 xl:gap-10"
+			>
+				<div class="min-w-0">
+				<PublicCompareDirectoryLongForm
+					longForm={directoryLongForm}
+					heroTheme={compareSectionHeroTheme}
+					leftProduct={leftProductVm}
+					rightProduct={rightProductVm}
+					{compareRows}
+					{signUpPath}
+				/>
+
+				{#if faqItems.length > 0}
+					<PublicFaq heroTheme={faqHeroTheme} {faqItems} sectionClass="mt-20 scroll-mt-24" />
+				{/if}
+
+				<SimpleCardGrid
+					heroTheme={compareSectionHeroTheme}
+					headingId="compare-more-comparisons"
+					subtitle="next steps"
+					title="More comparisons"
+					description="Open more directory submission comparisons."
+					items={moreComparisonItems}
+					getItemKey={(item) => item.id}
+					sectionClass="pt-20 pb-0 scroll-mt-24"
+					patternComponent={StripedPattern}
+					patternClass="text-primary/12 stroke-[0.75]"
+				>
+					{#snippet card(item, context)}
+						<SimpleLinkCard
+							{item}
+							pattern={context.pattern}
+							patternComponent={context.patternComponent}
+							patternClass={context.patternClass}
+						/>
+					{/snippet}
+				</SimpleCardGrid>
+
+				<div class="pt-4">
+					<AccentSplitCtaBanner
+						title="See plans and pricing"
+						description="Review OpenQuok plans and pick one that fits your team."
+						ctaText="View pricing"
+						ctaHref={pricingPath}
+					/>
+
+					<CenteredDarkCtaBanner
+						title={CENTERED_DARK_CTA_BANNER_TITLE}
+						description={CENTERED_DARK_CTA_BANNER_DESCRIPTION}
+						ctaText={PUBLIC_BANNER_CTA_TEXT}
+						ctaHref={signUpPath}
+						sectionClass="pb-16 sm:pb-20"
+					/>
+				</div>
+			</div>
+
+				<PublicComparePageSectionNav sections={directoryNavSections} placement="sidebar" />
+			</div>
+		</div>
+	{:else}
+		<div class="container mx-auto mt-16 max-w-7xl px-4">
+			<PublicComparePageSectionNav sections={socialNavSections} placement="inline" class="mb-10" />
+			<div
+				class="lg:grid lg:grid-cols-[minmax(0,1fr)_min(100%,16rem)] lg:items-start lg:gap-8 xl:gap-10"
+			>
+				<div class="min-w-0">
+	<section class="scroll-mt-24">
 		<FeaturesSectionHeader
 			heroTheme={compareSectionHeroTheme}
 			headingId="compare-platform-overview"
@@ -445,7 +407,7 @@
 		</div>
 	</section>
 
-	<div class="container mx-auto mt-20 max-w-5xl px-4">
+	<div class="mt-20">
 		<PublicProductComparePricing
 			heroTheme={compareSectionHeroTheme}
 			headingId="compare-pricing-plans"
@@ -463,20 +425,22 @@
 		/>
 	</div>
 
-	<WithWithout
-		heroTheme={landingHeroTheme}
-		headingId="compare-channels"
-		withOnLeft
-		landingSubtitle={channelsSection.subtitle}
-		landingTitle={channelsSection.title}
-		landingDescription={channelsSection.description}
-		withoutTitle={channelsSection.withoutTitle}
-		withTitle={channelsSection.withTitle}
-		points={channelsSection.points}
-		sectionClass="mt-20 scroll-mt-24"
-	/>
+	{#if channelsSection}
+		<WithWithout
+			heroTheme={landingHeroTheme}
+			headingId="compare-channels"
+			withOnLeft
+			landingSubtitle={channelsSection.subtitle}
+			landingTitle={channelsSection.title}
+			landingDescription={channelsSection.description}
+			withoutTitle={channelsSection.withoutTitle}
+			withTitle={channelsSection.withTitle}
+			points={channelsSection.points}
+			sectionClass="mt-20 scroll-mt-24"
+		/>
+	{/if}
 
-	<div class="container mx-auto mt-20 max-w-5xl px-4">
+	<div class="mt-20">
 		<PublicProductCompareSection
 			heroTheme={compareSectionHeroTheme}
 			headingId="compare-feature-comparison"
@@ -499,12 +463,12 @@
 		withoutTitle={withWithoutSection.withoutTitle}
 		withTitle={withWithoutSection.withTitle}
 		points={withWithoutSection.points}
-		sectionClass="mt-20 bg-base-200 py-16 sm:py-20"
+		sectionClass="mt-20 scroll-mt-24 bg-base-200 py-16 sm:py-20"
 	/>
 
 	{#if faqItems.length > 0}
-		<div class="container mx-auto max-w-5xl px-4">
-			<PublicFaq heroTheme={faqHeroTheme} {faqItems} sectionClass="mt-20" />
+		<div class="mt-20 scroll-mt-24">
+			<PublicFaq heroTheme={faqHeroTheme} {faqItems} sectionClass="" />
 		</div>
 	{/if}
 
@@ -516,7 +480,7 @@
 		description="Open more product comparisons. Find a scheduler that fits your team."
 		items={moreComparisonItems}
 		getItemKey={(item) => item.id}
-		sectionClass="pt-20 pb-0"
+		sectionClass="pt-20 pb-0 scroll-mt-24"
 		patternComponent={StripedPattern}
 		patternClass="text-primary/12 stroke-[0.75]"
 	>
@@ -530,7 +494,7 @@
 		{/snippet}
 	</SimpleCardGrid>
 
-	<div class="container mx-auto px-4">
+	<div class="pt-4">
 		<AccentSplitCtaBanner
 			title="See plans and pricing"
 			description="Review OpenQuok plans and pick one that fits your team."
@@ -546,4 +510,10 @@
 			sectionClass="pb-16 sm:pb-20"
 		/>
 	</div>
+			</div>
+
+			<PublicComparePageSectionNav sections={socialNavSections} placement="sidebar" />
+		</div>
+	</div>
+	{/if}
 </SectionOuterContainer>

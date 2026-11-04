@@ -1,4 +1,5 @@
 import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$lib/content/constants/competitors/types';
+import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
 
@@ -99,6 +100,7 @@ const POSTIZ_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, CompareF
 
 export const postizCompareProduct: CompareProduct = {
 	slug: 'postiz',
+	categories: COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING,
 	name: 'Postiz',
 	icon: icons.Postiz.name,
 	tagline: 'Open-source agentic social scheduler with 30+ networks',

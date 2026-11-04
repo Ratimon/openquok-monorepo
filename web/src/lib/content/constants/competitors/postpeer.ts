@@ -1,4 +1,5 @@
 import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$lib/content/constants/competitors/types';
+import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
 
@@ -84,6 +85,7 @@ const POSTPEER_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Compar
 
 export const postpeerCompareProduct: CompareProduct = {
 	slug: 'postpeer',
+	categories: COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING,
 	name: 'PostPeer',
 	icon: icons.PostPeer.name,
 	tagline: 'Unified social media API for publishing, scheduling, and analytics',

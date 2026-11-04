@@ -1,4 +1,5 @@
 import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$lib/content/constants/competitors/types';
+import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
 
@@ -69,6 +70,7 @@ const TYPEFULLY_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Compa
 
 export const typefullyCompareProduct: CompareProduct = {
 	slug: 'typefully',
+	categories: COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING,
 	name: 'Typefully',
 	icon: icons.Typefully.name,
 	tagline: 'Writing-first social scheduler for creators and collaborative teams',

@@ -110,6 +110,7 @@ Put non-trivial logic in `$lib/<domain>/utils/`; call from `+page.server.ts` onl
 | Helper | Path | Returns |
 | --- | --- | --- |
 | `createPublicFaqSEOSchema` | `$lib/content/utils/createPublicFaqSEOSchema.ts` | `FAQPage` or `{}` |
+| `createComparePageOnPageNavigationSchema` | `$lib/content/utils/createComparePageOnPageNavigationSchema.ts` | `TableOfContents` (`#on-this-page`) + `WebPage.hasPart`; section URLs match compare “On this page” `#fragment`s or `{}` |
 | `createPublicAudienceSectionSEOSchema` | `$lib/content/utils/createPublicAudienceSEOSchema.ts` | `ItemList` (`#audience`) + `BusinessAudience` / `PeopleAudience` or `{}` |
 | `createPublicSetupStepsSEOSchema` | `$lib/seo/featuresOrderedHowToSchema.ts` | `HowTo` (`#setup-steps` or per-section `fragmentId`) from `FeaturesOrdered` steps or `{}` |
 | `createPublicPricingSectionSEOSchema` | `$lib/content/utils/createPublicPricingSEOSchema.ts` | `WebPage` (`#pricing`) with paid + self-host `Offer` list or `{}` |

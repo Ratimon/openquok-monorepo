@@ -13,137 +13,28 @@
 		PUBLIC_HUB_DOCS_BANNERS
 	} from '$lib/config/constants/config';
 	import { PUBLIC_COMPARE_HUB_FAQ } from '$lib/content/constants/hubs/compare';
+	import { COMPARE_PRODUCT_ICON_STYLES_HUB } from '$lib/content/constants/competitors/compareProductIconStyles';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
-	import { icons } from '$data/icons';
-
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
-	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
-	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
-	import PublicCompareLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicCompareLandingBreadcrumb.svelte';
+	import PublicCompareHubGrid from '$lib/ui/templates/landing-page/PublicCompareHubGrid.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
-	import StripedPattern from '$lib/ui/patterns/StripedPattern.svelte';
-	import SimpleCardGrid from '$lib/ui/templates/feature-grid/SimpleCardGrid.svelte';
-	import SimpleLinkCard from '$lib/ui/templates/feature-grid/SimpleLinkCard.svelte';
 
 	type Props = { data: PageData };
 
 	let { data }: Props = $props();
 
 	let schemaData = $derived(data.schemaData);
-	let defaultHubVm = $derived(data.hubVm);
 
 	let selectedBaseSlug = $state<CompareProductSlug>(COMPARE_HUB_BASE_SLUG);
 	let hubVm = $derived(publicComparePagePresenter.buildHubVm(selectedBaseSlug));
-	let productOptions = $derived(defaultHubVm.products);
-	let selectedBaseProduct = $derived(
-		productOptions.find((product) => product.slug === selectedBaseSlug) ?? productOptions[0]!
-	);
 
-	const PRODUCT_ICON_STYLES: Record<
-		CompareProductSlug,
-		{ containerClass: string; iconClass?: string }
-	> = {
-		openquok: {
-			containerClass:
-				'bg-linear-to-br from-emerald-400/30 via-lime-300/20 to-amber-300/25 text-white ring-emerald-300/35'
-		},
-		hootsuite: {
-			containerClass:
-				'bg-linear-to-br from-orange-400/30 via-amber-300/20 to-yellow-300/20 text-orange-100 ring-orange-300/35'
-		},
-		heropost: {
-			containerClass:
-				'bg-linear-to-br from-amber-500/30 via-orange-400/20 to-rose-400/25 text-amber-50 ring-amber-400/40'
-		},
-		'hopper-hq': {
-			containerClass:
-				'bg-linear-to-br from-blue-500/30 via-sky-400/20 to-cyan-300/20 text-blue-100 ring-blue-400/35'
-		},
-		influence: {
-			containerClass:
-				'bg-linear-to-br from-neutral-700/40 via-neutral-500/25 to-neutral-300/20 text-neutral-50 ring-neutral-400/35'
-		},
-		later: {
-			containerClass:
-				'bg-linear-to-br from-violet-800/40 via-fuchsia-700/20 to-orange-400/25 text-amber-50 ring-violet-500/40'
-		},
-		buffer: {
-			containerClass:
-				'bg-linear-to-br from-sky-400/30 via-cyan-300/20 to-blue-300/20 text-sky-100 ring-sky-300/35'
-		},
-		blotato: {
-			containerClass:
-				'bg-linear-to-br from-lime-500/35 via-amber-400/25 to-orange-400/20 text-lime-50 ring-lime-500/40'
-		},
-		breakreach: {
-			containerClass:
-				'bg-linear-to-br from-violet-600/35 via-purple-500/25 to-fuchsia-400/20 text-violet-50 ring-violet-500/40'
-		},
-		'claw-post': {
-			containerClass:
-				'bg-linear-to-br from-red-500/30 via-rose-400/20 to-cyan-400/20 text-red-50 ring-red-400/35'
-		},
-		recurpost: {
-			containerClass:
-				'bg-linear-to-br from-yellow-400/35 via-amber-300/20 to-yellow-500/25 text-yellow-50 ring-yellow-400/40'
-		},
-		mixpost: {
-			containerClass:
-				'bg-linear-to-br from-indigo-500/30 via-violet-400/20 to-cyan-300/20 text-indigo-100 ring-indigo-400/35'
-		},
-		openpost: {
-			containerClass:
-				'bg-linear-to-br from-teal-500/30 via-cyan-400/20 to-sky-300/20 text-teal-50 ring-teal-400/35'
-		},
-		'post-bridge': {
-			containerClass:
-				'bg-linear-to-br from-rose-400/30 via-orange-300/20 to-amber-300/20 text-rose-100 ring-rose-300/35'
-		},
-		postfast: {
-			containerClass:
-				'bg-linear-to-br from-blue-600/30 via-blue-400/20 to-cyan-300/20 text-blue-50 ring-blue-500/35'
-		},
-		postpeer: {
-			containerClass:
-				'bg-linear-to-br from-red-400/30 via-rose-300/20 to-orange-300/20 text-red-50 ring-red-300/35'
-		},
-		post2all: {
-			containerClass:
-				'bg-linear-to-br from-stone-600/35 via-stone-500/25 to-amber-200/20 text-stone-50 ring-stone-400/40'
-		},
-		postiz: {
-			containerClass:
-				'bg-linear-to-br from-violet-400/30 via-purple-300/20 to-fuchsia-300/20 text-violet-100 ring-violet-300/35'
-		},
-		publer: {
-			containerClass:
-				'bg-linear-to-br from-teal-400/35 via-cyan-300/25 to-emerald-300/20 text-teal-50 ring-teal-300/40'
-		},
-		socialclaw: {
-			containerClass:
-				'bg-linear-to-br from-red-500/30 via-rose-400/20 to-orange-300/20 text-red-50 ring-red-400/40'
-		},
-		socialync: {
-			containerClass:
-				'bg-linear-to-br from-violet-500/35 via-purple-400/25 to-fuchsia-400/20 text-violet-50 ring-violet-400/40'
-		},
-		'sprout-social': {
-			containerClass:
-				'bg-linear-to-br from-emerald-500/35 via-green-400/25 to-lime-300/20 text-emerald-50 ring-emerald-400/40'
-		},
-		typefully: {
-			containerClass:
-				'bg-linear-to-br from-blue-500/30 via-indigo-400/20 to-sky-300/20 text-blue-100 ring-blue-400/35'
-		},
-		usebard: {
-			containerClass:
-				'bg-linear-to-br from-purple-600/30 via-violet-500/20 to-fuchsia-400/20 text-purple-100 ring-purple-500/35'
-		}
-	};
+	function selectBaseProduct(slug: CompareProductSlug) {
+		selectedBaseSlug = slug;
+	}
 
 	// /sign-up
 	const rootPathSignUp = getRootPathSignup();
@@ -151,115 +42,20 @@
 
 	const compareHubDocsBanner = PUBLIC_HUB_DOCS_BANNERS.compare;
 
-	function selectBaseProduct(slug: CompareProductSlug) {
-		selectedBaseSlug = slug;
-	}
-
 	function iconStyleForProduct(slug: CompareProductSlug) {
-		return PRODUCT_ICON_STYLES[slug];
+		return COMPARE_PRODUCT_ICON_STYLES_HUB[slug];
 	}
 </script>
 
 <JsonLdHead schemaData={schemaData} />
 
-<SectionOuterContainer class="py-10 md:py-14">
-	<header class="container mx-auto max-w-4xl space-y-4 px-4 text-center">
-		<div class="flex justify-center">
-			<PublicCompareLandingBreadcrumb variant="hub" />
-		</div>
-		<h1
-			class="flex flex-wrap items-center justify-center gap-x-2 gap-y-3 text-3xl font-black tracking-tight text-base-content sm:text-4xl"
-		>
-			<DropdownMenu.Root>
-				<DropdownMenu.Trigger
-					type="button"
-					class="btn btn-primary inline-flex max-w-full items-center gap-3 rounded-full px-4 py-2 text-3xl font-black tracking-tight sm:px-5 sm:text-4xl"
-					aria-label="Choose the main product to compare"
-				>
-					<div
-						class={`flex size-10 shrink-0 items-center justify-center rounded-full ring-1 ${iconStyleForProduct(selectedBaseProduct.slug).containerClass}`}
-					>
-						<AbstractIcon
-							name={selectedBaseProduct.icon}
-							width="22"
-							height="22"
-							class={iconStyleForProduct(selectedBaseProduct.slug).iconClass ?? 'size-5.5'}
-							focusable="false"
-						/>
-					</div>
-					<span class="truncate">{hubVm.baseProductName}</span>
-					<AbstractIcon
-						name={icons.ChevronDown.name}
-						width="20"
-						height="20"
-						class="size-5 shrink-0 opacity-90"
-						focusable="false"
-					/>
-				</DropdownMenu.Trigger>
-				<DropdownMenu.Content align="center" class="min-w-[12rem]">
-					{#each productOptions as product (product.slug)}
-						<DropdownMenu.Item
-							class={product.slug === selectedBaseSlug
-								? 'font-semibold text-primary'
-								: undefined}
-							onclick={() => selectBaseProduct(product.slug)}
-						>
-							<div class="flex items-center gap-2">
-								<div
-									class={`flex size-6 shrink-0 items-center justify-center rounded-full ring-1 ${iconStyleForProduct(product.slug).containerClass}`}
-								>
-									<AbstractIcon
-										name={product.icon}
-										width="14"
-										height="14"
-										class={iconStyleForProduct(product.slug).iconClass ?? 'size-3.5'}
-										focusable="false"
-									/>
-								</div>
-								<span>{product.name}</span>
-							</div>
-						</DropdownMenu.Item>
-					{/each}
-				</DropdownMenu.Content>
-			</DropdownMenu.Root>
-			<span>vs. the rest</span>
-		</h1>
-		<p class="mx-auto max-w-2xl text-base text-base-content/70">
-			{hubVm.description}
-		</p>
-	</header>
-
-	<SimpleCardGrid
-		heroTheme={{
-			subtitleClass: 'text-xs font-bold tracking-wider text-primary uppercase',
-			parseLandingHeroTitlePartSegments: (text: string) => [{ text, highlight: false }]
-		}}
-		headingId="public-compare-grid-heading"
-		title=""
-		items={hubVm.pairs.map((pair) => ({
-			id: pair.slug,
-			title: `vs. ${pair.name}`,
-			iconName: pair.icon,
-			iconContainerClass: iconStyleForProduct(pair.slug as CompareProductSlug).containerClass,
-			iconClass: iconStyleForProduct(pair.slug as CompareProductSlug).iconClass,
-			href: pair.href,
-			description: pair.description,
-			ctaLabel: 'Open'
-		}))}
-		getItemKey={(item) => item.id}
-		sectionClass="pt-10 pb-0"
-		patternComponent={StripedPattern}
-		patternClass="text-primary/12 stroke-[0.75]"
-	>
-		{#snippet card(item, context)}
-			<SimpleLinkCard
-				{item}
-				pattern={context.pattern}
-				patternComponent={context.patternComponent}
-				patternClass={context.patternClass}
-			/>
-		{/snippet}
-	</SimpleCardGrid>
+<SectionOuterContainer class="py-0">
+	<PublicCompareHubGrid
+		{hubVm}
+		{selectedBaseSlug}
+		onSelectBaseProduct={selectBaseProduct}
+		{iconStyleForProduct}
+	/>
 
 	<div class="container mx-auto px-4">
 		<PublicFaq

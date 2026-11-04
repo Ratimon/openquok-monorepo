@@ -1,7 +1,7 @@
 import { socialPlatformIconForLabel } from '$data/social-providers';
 
 import type { ComparisonPoint } from '$lib/ui/templates/WithWithout.svelte';
-import type { CompareTalkingPointId } from '$lib/content/constants/competitors/types';
+import type { CompareProductCategory, CompareTalkingPointId } from '$lib/content/constants/competitors/types';
 
 export const COMPARE_CHANNELS_SECTION = {
 	subtitle: 'platform coverage',
@@ -17,11 +17,27 @@ export const COMPARE_TALKING_POINT_ORDER: readonly CompareTalkingPointId[] = [
 	'workspace_isolation',
 	'product_focus',
 	'programmatic_access',
-	'publishing_control'
+	'publishing_control',
+	'submission_model',
+	'pace_and_control',
+	'dr_outcomes'
 ];
 
 /** Default left-side product slug for the public compare hub and related-pair links. */
 export const COMPARE_HUB_BASE_SLUG = 'openquok' as const;
+
+export const COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING: readonly CompareProductCategory[] = [
+	'social_scheduling'
+];
+
+export const COMPARE_PRODUCT_CATEGORIES_DIRECTORY_SUBMISSION: readonly CompareProductCategory[] = [
+	'directory_submission'
+];
+
+export const COMPARE_PRODUCT_CATEGORIES_OPENQUOK: readonly CompareProductCategory[] = [
+	'social_scheduling',
+	'directory_submission'
+];
 
 /** Official marketing sites for compare / alternatives surfaces. */
 export const COMPARE_PRODUCT_WEBSITE_URLS = {
@@ -32,6 +48,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	influence: 'https://influence.so',
 	later: 'https://later.com',
 	buffer: 'https://buffer.com',
+	boringlaunch: 'https://www.boringlaunch.com/',
 	blotato: 'https://www.blotato.com',
 	breakreach: 'https://www.breakreach.com',
 	'claw-post': 'https://clawpost.net',
@@ -57,6 +74,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	| 'influence'
 	| 'later'
 	| 'buffer'
+	| 'boringlaunch'
 	| 'blotato'
 	| 'breakreach'
 	| 'claw-post'

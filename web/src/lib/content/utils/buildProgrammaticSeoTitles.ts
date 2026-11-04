@@ -1,4 +1,4 @@
-import type { CompareProduct } from '$lib/content/constants/competitors/types';
+import type { ComparePairLayout, CompareProduct } from '$lib/content/constants/competitors/types';
 import { COMPARE_HUB_BASE_SLUG } from '$lib/content/constants/competitors/shared';
 
 /**
@@ -160,7 +160,21 @@ export function buildPublicApiPlatformHeroTitle(
 	return `${platformLabel} ${verb} API`;
 }
 
-export function buildComparePairMetaTitle(left: CompareProduct, right: CompareProduct): string {
+export function buildComparePairMetaTitle(
+	left: CompareProduct,
+	right: CompareProduct,
+	layout: ComparePairLayout = 'social_matrix'
+): string {
+	if (layout === 'directory_long_form') {
+		if (left.slug === COMPARE_HUB_BASE_SLUG) {
+			return `${left.name} vs ${right.name}: Directory Launch Comparison`;
+		}
+		if (right.slug === COMPARE_HUB_BASE_SLUG) {
+			return `${right.name} vs ${left.name}: Best ${left.name} Alternative`;
+		}
+		return `${left.name} vs ${right.name}: Directory Launch Comparison`;
+	}
+
 	if (left.slug === COMPARE_HUB_BASE_SLUG) {
 		return `${left.name} vs ${right.name}: Social Media Scheduler Comparison`;
 	}

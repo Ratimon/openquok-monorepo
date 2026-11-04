@@ -8,11 +8,19 @@ import type {
 	CompareHubPairViewModel,
 	ComparePair,
 	CompareProduct,
+	CompareProductCategory,
 	CompareProductSlug,
 	PublicFaqItemId
 } from '$lib/content/constants/competitors/types';
 import { buildComparePair } from '$lib/content/constants/competitors/buildComparePair';
+import {
+	canCompareProducts,
+	filterCompareProductsForCategory,
+	getCompareProductCategory,
+	listComparePairsForCategory
+} from '$lib/content/constants/competitors/utils/compareProductCategories';
 import { blotatoCompareProduct } from '$lib/content/constants/competitors/blotato';
+import { boringlaunchCompareProduct } from '$lib/content/constants/competitors/boringlaunch';
 import { bufferCompareProduct } from '$lib/content/constants/competitors/buffer';
 import { breakreachCompareProduct } from '$lib/content/constants/competitors/breakreach';
 import { clawPostCompareProduct } from '$lib/content/constants/competitors/claw-post';
@@ -44,6 +52,12 @@ import {
 export * from '$lib/content/constants/competitors/types';
 export * from '$lib/content/constants/competitors/shared';
 export * from '$lib/content/constants/competitors/utils/comparePricing';
+export {
+	canCompareProducts,
+	getCompareProductCategory,
+	isDirectoryOnlyCompareProduct,
+	resolveComparePairLayout
+} from '$lib/content/constants/competitors/utils/compareProductCategories';
 export { openquokCompareProduct } from '$lib/content/constants/competitors/openquok';
 export { hopperHqCompareProduct } from '$lib/content/constants/competitors/hopper-hq';
 export { influenceCompareProduct } from '$lib/content/constants/competitors/influence';
@@ -53,6 +67,7 @@ export { laterCompareProduct } from '$lib/content/constants/competitors/later';
 export { mixpostCompareProduct } from '$lib/content/constants/competitors/mixpost';
 export { openpostCompareProduct } from '$lib/content/constants/competitors/openpost';
 export { blotatoCompareProduct } from '$lib/content/constants/competitors/blotato';
+export { boringlaunchCompareProduct } from '$lib/content/constants/competitors/boringlaunch';
 export { bufferCompareProduct } from '$lib/content/constants/competitors/buffer';
 export { breakreachCompareProduct } from '$lib/content/constants/competitors/breakreach';
 export { clawPostCompareProduct } from '$lib/content/constants/competitors/claw-post';
@@ -78,6 +93,7 @@ export const PUBLIC_COMPARE_PRODUCTS: readonly CompareProduct[] = [
 	laterCompareProduct,
 	bufferCompareProduct,
 	blotatoCompareProduct,
+	boringlaunchCompareProduct,
 	breakreachCompareProduct,
 	clawPostCompareProduct,
 	recurpostCompareProduct,
@@ -106,22 +122,25 @@ export function getCompareProduct(slug: string): CompareProduct | undefined {
 export function getComparePair(productA: string, productB: string): ComparePair | null {
 	const left = getCompareProduct(productA);
 	const right = getCompareProduct(productB);
-	if (!left || !right || left.slug === right.slug) return null;
+	if (!left || !right || !canCompareProducts(left, right)) return null;
 
 	return buildComparePair(left, right);
 }
 
 export function listComparePairsForHub(
-	baseSlug: CompareProductSlug = COMPARE_HUB_BASE_SLUG
+	baseSlug: CompareProductSlug = COMPARE_HUB_BASE_SLUG,
+	category?: CompareProductCategory
 ): CompareHubPairViewModel[] {
 	const baseProduct = getCompareProduct(baseSlug);
 	if (!baseProduct) return [];
 
-	return PUBLIC_COMPARE_PRODUCTS.filter((product) => product.slug !== baseSlug).map((rightProduct) => ({
-		productASlug: baseProduct.slug,
-		productBSlug: rightProduct.slug,
-		productBName: rightProduct.name
-	}));
+	return listComparePairsForCategory(PUBLIC_COMPARE_PRODUCTS, baseProduct, category);
+}
+
+export function listCompareProductsForHubDropdown(
+	category: CompareProductCategory
+): CompareProduct[] {
+	return filterCompareProductsForCategory(PUBLIC_COMPARE_PRODUCTS, category);
 }
 
 export { resolvePublicFaqItemsByIds };

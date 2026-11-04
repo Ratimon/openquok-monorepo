@@ -5,6 +5,8 @@ export type { PublicFaqItemId };
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import type { IconName } from '$data/icons';
 
+export type CompareProductCategory = 'social_scheduling' | 'directory_submission';
+
 export type CompareProductSlug =
 	| 'openquok'
 	| 'hootsuite'
@@ -29,7 +31,8 @@ export type CompareProductSlug =
 	| 'socialync'
 	| 'sprout-social'
 	| 'typefully'
-	| 'usebard';
+	| 'usebard'
+	| 'boringlaunch';
 
 /**
  * Comparison angles shared across products. When building a pair, a row is included only
@@ -41,7 +44,51 @@ export type CompareTalkingPointId =
 	| 'workspace_isolation'
 	| 'product_focus'
 	| 'programmatic_access'
-	| 'publishing_control';
+	| 'publishing_control'
+	| 'submission_model'
+	| 'pace_and_control'
+	| 'dr_outcomes';
+
+export type CompareLongFormSection = {
+	id: string;
+	navLabel: string;
+	subtitle: string;
+	title: string;
+	body: readonly string[];
+};
+
+/** Long-form compare sections for directory submission services (detail page). */
+export type CompareDirectoryLongFormContent = {
+	whyPeopleLook: CompareLongFormSection;
+	yourOptions: CompareLongFormSection;
+	switchingChecklist: CompareLongFormSection;
+	whenTheyWin: CompareLongFormSection;
+};
+
+export type ComparePairLayout = 'social_matrix' | 'directory_long_form';
+
+/** Sticky long-form compare detail (directory submission pairs). */
+export type CompareDetailLongFormViewModel = {
+	competitorSlug: CompareProductSlug;
+	competitorName: string;
+	openQuokName: string;
+	directorySubmissionToolPath: string;
+	chromeExtensionDocsPath: string;
+	whyPeopleLook: CompareLongFormSection;
+	yourOptions: CompareLongFormSection;
+	switchingChecklist: CompareLongFormSection;
+	openQuokAlternative: CompareLongFormSection;
+	whenTheyWin: CompareLongFormSection;
+	otherAlternatives: CompareLongFormSection;
+	otherAlternativePeers: readonly CompareLongFormPeerLink[];
+};
+
+export type CompareLongFormPeerLink = {
+	name: string;
+	slug: CompareProductSlug;
+	href: string;
+	description: string;
+};
 
 export type CompareTalkingPointCopy = {
 	/** Green (with / left) column when this product is on the left. */
@@ -87,6 +134,8 @@ export type ComparePricingUnit = 'flat' | 'per_channel' | 'per_seat';
 
 export type CompareProduct = {
 	slug: CompareProductSlug;
+	/** Hub sections and pair URLs: products compare only when categories overlap. */
+	categories: readonly CompareProductCategory[];
 	name: string;
 	icon: IconName;
 	tagline: string;
@@ -97,11 +146,15 @@ export type CompareProduct = {
 	channels: string[];
 	featureSupport: Partial<Record<PublicPricingCompareRowId, CompareFeatureCell>>;
 	comparison: CompareProductComparison;
+	/** Directory-service competitors: sticky long-form sections on compare detail. */
+	directoryLongForm?: CompareDirectoryLongFormContent;
 };
 
 export type ComparePair = {
 	productASlug: CompareProductSlug;
 	productBSlug: CompareProductSlug;
+	layout: ComparePairLayout;
+	longForm?: CompareDetailLongFormViewModel;
 	metaTitle: string;
 	metaDescription: string;
 	keywords: string[];

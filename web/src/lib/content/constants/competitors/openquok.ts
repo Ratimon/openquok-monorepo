@@ -1,5 +1,6 @@
 import type { PaidSubscriptionTier } from 'openquok-common';
 import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$lib/content/constants/competitors/types';
+import { COMPARE_PRODUCT_CATEGORIES_OPENQUOK } from '$lib/content/constants/competitors/shared';
 
 import { isUnlimitedTeamMembersPerWorkspace, planLimitsForTier } from 'openquok-common';
 
@@ -197,6 +198,7 @@ function buildOpenQuokTeamMembersCell(): string {
 
 export const openquokCompareProduct: CompareProduct = {
 	slug: 'openquok',
+	categories: COMPARE_PRODUCT_CATEGORIES_OPENQUOK,
 	name: 'OpenQuok',
 	icon: icons.OpenQuok.name,
 	tagline: 'Social media scheduler for people and AI agents',
@@ -234,6 +236,18 @@ export const openquokCompareProduct: CompareProduct = {
 			publishing_control: {
 				strength:
 					'Each agent draft lands as a draft or a scheduled post. You can add follow-up comments with delays.'
+			},
+			submission_model: {
+				strength:
+					'You keep business profiles in OpenQuok and submit each directory yourself with the browser extension autofill.'
+			},
+			pace_and_control: {
+				strength:
+					'You choose which directories to launch, when to submit, and how pitch variants read on each site.'
+			},
+			dr_outcomes: {
+				strength:
+					'Track domain rating, competitor domains, and catalog DR from Account → Analytics and My Products.'
 			}
 		}
 	}

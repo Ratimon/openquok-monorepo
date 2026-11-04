@@ -1,4 +1,5 @@
 import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$lib/content/constants/competitors/types';
+import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
 
@@ -79,6 +80,7 @@ const POST_BRIDGE_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Com
 
 export const postBridgeCompareProduct: CompareProduct = {
 	slug: 'post-bridge',
+	categories: COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING,
 	name: 'PostBridge',
 	icon: icons.PostBridge.name,
 	tagline: 'Straightforward hosted cross-poster for creators and small teams',

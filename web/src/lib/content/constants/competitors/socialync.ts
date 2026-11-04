@@ -1,4 +1,5 @@
 import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$lib/content/constants/competitors/types';
+import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
 
@@ -78,6 +79,7 @@ const SOCIALYNC_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Compa
 
 export const socialyncCompareProduct: CompareProduct = {
 	slug: 'socialync',
+	categories: COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING,
 	name: 'Socialync',
 	icon: icons.Socialync.name,
 	tagline: 'Cross-posting app for creators with mobile apps and MCP on the free tier',

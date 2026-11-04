@@ -8,6 +8,7 @@ export type BrandedIconName =
     | "Bluesky"
     | "BlueskyGlyph"
     | "Blotato"
+    | "BoringLaunch"
     | "Buffer"
     | "Breakreach"
     | "ClawPost"
@@ -142,6 +143,13 @@ export const brandedIcons = {
         box: 96,
         fill: true,
         svg: `<image href="/icons/blotato.webp" width="96" height="96"/>`
+    },
+    /** BoringLaunch product mark. BoringLaunch is a trademark of its respective owner. */
+    BoringLaunch: {
+        name: "BoringLaunch",
+        box: 32,
+        fill: true,
+        svg: `<image href="/icons/boringlaunch.ico" width="32" height="32"/>`
     },
     /** Buffer product mark. Buffer is a trademark of its respective owner. */
     Buffer: {
