@@ -34,7 +34,6 @@ describe('boringlaunchCompareProduct', () => {
 		expect(directoryLongForm).toBeDefined();
 		expect(directoryLongForm!.whyPeopleLook.id).toBe('why-people-look');
 		expect(directoryLongForm!.yourOptions.navLabel).toBe('Your options');
-		expect(directoryLongForm!.switchingChecklist.body.length).toBeGreaterThan(0);
 		expect(directoryLongForm!.whenTheyWin.title).toContain('BoringLaunch');
 	});
 

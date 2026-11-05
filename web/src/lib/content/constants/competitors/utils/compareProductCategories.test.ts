@@ -92,7 +92,10 @@ describe('compareProductCategories', () => {
 
 	it('listComparePairsForHub scopes directory_submission to directory peers only', () => {
 		const directoryPairs = listComparePairsForHub('openquok', 'directory_submission');
-		expect(directoryPairs.map((pair) => pair.productBSlug)).toEqual(['boringlaunch']);
+		expect(directoryPairs.map((pair) => pair.productBSlug).sort()).toEqual([
+			'boringlaunch',
+			'getmorebacklinks'
+		]);
 
 		const socialPairs = listComparePairsForHub('openquok', 'social_scheduling');
 		expect(socialPairs.map((pair) => pair.productBSlug)).toContain('buffer');
@@ -120,13 +123,16 @@ describe('compareProductCategories', () => {
 		const pair = buildComparePair(openquokCompareProduct, boringlaunchCompareProduct);
 		expect(pair.layout).toBe('directory_long_form');
 		expect(pair.longForm?.competitorSlug).toBe('boringlaunch');
-		expect(pair.longForm?.openQuokAlternative.id).toBe('openquok-alternative');
 
 		const vm = publicComparePagePresenter.buildDetailVm(pair);
 		expect(vm?.layout).toBe('directory_long_form');
-		expect(vm?.channelsSection).toBeNull();
+		expect(vm?.channelsSection).not.toBeNull();
+		expect(vm?.directoryCoverageSection).not.toBeNull();
 		expect(vm?.compareRows.every((row) => row.id.startsWith('directory_'))).toBe(true);
-		expect(vm?.longForm?.otherAlternativePeers).toEqual([]);
+		expect(vm?.longForm?.otherAlternativePeers.map((peer) => peer.slug)).toEqual([
+			'getmorebacklinks'
+		]);
 		expect(vm?.faqItems.some((item) => item.title.includes('Domain Rating'))).toBe(true);
+		expect(vm?.faqItems.length).toBeGreaterThan(3);
 	});
 });

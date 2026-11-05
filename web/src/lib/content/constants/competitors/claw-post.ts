@@ -75,7 +75,7 @@ export const clawPostCompareProduct: CompareProduct = {
 	icon: icons.ClawPost.name,
 	tagline: 'Browser-extension posting API for AI agents',
 	overview:
-		'Claw Post is agent-first social posting infrastructure that publishes through a logged-in Chrome extension instead of official platform APIs. Connect X, LinkedIn, Facebook, TikTok, and Instagram from your desktop browser, then trigger posts from a REST API, Streamable HTTP MCP with OAuth, or OpenClaw skills — with job queues, retries, idempotency keys, and signed media uploads.',
+		'Claw Post publishes through a logged-in Chrome extension instead of official platform APIs. You connect networks in the browser and post from a REST API, MCP, or OpenClaw skills. Job queues, retries, and signed media uploads are built in.',
 	pricingPlans: CLAW_POST_PRICING_PLANS,
 	channels: CLAW_POST_CHANNELS,
 	featureSupport: CLAW_POST_FEATURE_SUPPORT,

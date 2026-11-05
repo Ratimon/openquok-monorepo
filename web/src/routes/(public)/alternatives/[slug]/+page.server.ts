@@ -14,7 +14,14 @@ import {
 	getPublicFaqConfigDefaults
 } from '$lib/config/constants/config';
 import { isAlternativesTargetSlug } from '$lib/content/constants/competitors';
-import { PUBLIC_FAQ_ITEMS } from '$lib/content/constants/faq';
+import { buildAlternativesDetailNavSections } from '$lib/content/constants/competitors/comparePageSectionNav';
+import { createComparePageOnPageNavigationSchema } from '$lib/content/utils/createComparePageOnPageNavigationSchema';
+import {
+	insertDirectoryLaunchDrGuaranteeFaqItems,
+	PUBLIC_COMPARE_DETAIL_DIRECTORY_FAQ_ITEM_IDS,
+	PUBLIC_COMPARE_DETAIL_SOCIAL_FAQ_ITEM_IDS,
+	resolvePublicFaqItemsByIds
+} from '$lib/content/constants/faq';
 import { buildAlternativesLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
@@ -57,6 +64,46 @@ export async function load({ url, params, cookies, parent }) {
 	})) satisfies MetaTagsProps;
 
 	const canonical = buildCanonicalUrl(url);
+	const webPageId = `${canonical}#webpage`;
+
+	const faqFromIds = resolvePublicFaqItemsByIds(
+		detailVm.isDirectoryTarget
+			? PUBLIC_COMPARE_DETAIL_DIRECTORY_FAQ_ITEM_IDS
+			: PUBLIC_COMPARE_DETAIL_SOCIAL_FAQ_ITEM_IDS
+	);
+	const faqItems = detailVm.isDirectoryTarget
+		? insertDirectoryLaunchDrGuaranteeFaqItems(faqFromIds)
+		: faqFromIds;
+
+	const onPageNavSections = buildAlternativesDetailNavSections(
+		detailVm.longForm,
+		faqItems.length > 0
+	);
+	const onPageNavigationSchema = createComparePageOnPageNavigationSchema({
+		canonical,
+		webPageId,
+		sections: onPageNavSections
+	});
+
+	const webPageNode = {
+		'@type': 'WebPage',
+		'@id': webPageId,
+		name: detailVm.metaTitle,
+		description: customDescription,
+		url: canonical,
+		mainEntity: {
+			'@id': `${canonical}#alternatives`
+		},
+		isPartOf: {
+			'@type': 'WebSite',
+			name: companyName,
+			url: url.origin
+		},
+		...('webPageHasPartRef' in onPageNavigationSchema
+			? { hasPart: onPageNavigationSchema.webPageHasPartRef }
+			: {})
+	};
+
 	const pageMetaTags = withCanonicalMetaTags(metaTags, canonical, {
 		openGraph: {
 			title: customTitle,
@@ -68,25 +115,10 @@ export async function load({ url, params, cookies, parent }) {
 		}
 	});
 
-	const faqItems = PUBLIC_FAQ_ITEMS.slice(0, 3);
-
 	const schemaData = createJsonLdGraph(
 		filterNonEmptyJsonLdNodes([
-			{
-				'@type': 'WebPage',
-				'@id': `${canonical}#webpage`,
-				name: detailVm.metaTitle,
-				description: customDescription,
-				url: canonical,
-				mainEntity: {
-					'@id': `${canonical}#alternatives`
-				},
-				isPartOf: {
-					'@type': 'WebSite',
-					name: companyName,
-					url: url.origin
-				}
-			},
+			webPageNode,
+			...('nodes' in onPageNavigationSchema ? onPageNavigationSchema.nodes : []),
 			{
 				'@type': 'ItemList',
 				'@id': `${canonical}#alternatives`,

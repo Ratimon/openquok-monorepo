@@ -1,27 +1,14 @@
 import type { PublicAgentComparisonSection } from '$lib/content/constants/agents/types';
-import type {
-	CompareDetailLongFormViewModel,
-	CompareLongFormSection,
-	ComparePair,
-	CompareProduct,
-	PublicFaqItemId
-} from '$lib/content/constants/competitors/types';
+import type { ComparePair, CompareProduct } from '$lib/content/constants/competitors/types';
 
-import { getRootPathPublicDirectorySubmissionTool } from '$lib/area-public/constants/getRootPathPublicDirectorySubmissionTool';
-import { COMPARE_HUB_BASE_SLUG } from '$lib/content/constants/competitors/shared';
-import { COMPARE_TALKING_POINT_ORDER } from '$lib/content/constants/competitors/shared';
+import { buildCompareLongFormForPair } from '$lib/content/constants/competitors/buildCompareLongFormForPair';
+import { COMPARE_HUB_BASE_SLUG, COMPARE_TALKING_POINT_ORDER } from '$lib/content/constants/competitors/shared';
 import { resolveComparePairLayout } from '$lib/content/constants/competitors/utils/compareProductCategories';
+import {
+	PUBLIC_COMPARE_DETAIL_DIRECTORY_FAQ_ITEM_IDS,
+	PUBLIC_COMPARE_DETAIL_SOCIAL_FAQ_ITEM_IDS
+} from '$lib/content/constants/faq';
 import { buildComparePairMetaTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
-import { faqHrefDocs } from '$lib/content/utils/publicFaqLinks';
-import { route } from '$lib/utils/path';
-
-const DEFAULT_COMPARE_FAQ_ITEM_IDS: PublicFaqItemId[] = [
-	'switch-from-buffer-hootsuite',
-	'try-free',
-	'multi-workspace'
-];
-
-const DIRECTORY_COMPARE_FAQ_ITEM_IDS: PublicFaqItemId[] = ['try-free', 'multi-workspace'];
 
 export function buildComparePair(left: CompareProduct, right: CompareProduct): ComparePair {
 	const layout = resolveComparePairLayout(left, right);
@@ -31,97 +18,16 @@ export function buildComparePair(left: CompareProduct, right: CompareProduct): C
 		productASlug: left.slug,
 		productBSlug: right.slug,
 		layout,
-		longForm: isDirectoryLongForm ? buildDirectoryLongFormViewModel(left, right) : undefined,
+		longForm: buildCompareLongFormForPair(left, right) ?? undefined,
 		metaTitle: buildComparePairMetaTitle(left, right, layout),
 		metaDescription: buildCompareMetaDescription(left, right, layout),
 		keywords: buildCompareKeywords(left, right, layout),
 		heroTitle: buildHeroTitle(left, right, layout),
 		heroDescription: buildHeroDescription(left, right, layout),
 		withWithoutSection: buildWithWithoutSection(left, right),
-		faqItemIds: isDirectoryLongForm ? DIRECTORY_COMPARE_FAQ_ITEM_IDS : DEFAULT_COMPARE_FAQ_ITEM_IDS
-	};
-}
-
-function buildDirectoryLongFormViewModel(
-	left: CompareProduct,
-	right: CompareProduct
-): CompareDetailLongFormViewModel | undefined {
-	const openQuok =
-		left.slug === COMPARE_HUB_BASE_SLUG
-			? left
-			: right.slug === COMPARE_HUB_BASE_SLUG
-				? right
-				: undefined;
-	const competitor =
-		left.slug === COMPARE_HUB_BASE_SLUG
-			? right
-			: right.slug === COMPARE_HUB_BASE_SLUG
-				? left
-				: left.directoryLongForm
-					? left
-					: right.directoryLongForm
-						? right
-						: undefined;
-
-	if (!openQuok || !competitor?.directoryLongForm) return undefined;
-
-	const { directoryLongForm } = competitor;
-
-	return {
-		competitorSlug: competitor.slug,
-		competitorName: competitor.name,
-		openQuokName: openQuok.name,
-		directorySubmissionToolPath: route(getRootPathPublicDirectorySubmissionTool()),
-		chromeExtensionDocsPath: faqHrefDocs('installation/chrome-extension'),
-		whyPeopleLook: directoryLongForm.whyPeopleLook,
-		yourOptions: directoryLongForm.yourOptions,
-		switchingChecklist: directoryLongForm.switchingChecklist,
-		openQuokAlternative: buildOpenQuokAlternativeSection(openQuok, competitor),
-		whenTheyWin: personalizeWhenTheyWinSection(directoryLongForm.whenTheyWin, competitor.name),
-		otherAlternatives: buildOtherAlternativesSection(competitor.name),
-		otherAlternativePeers: []
-	};
-}
-
-function buildOpenQuokAlternativeSection(
-	openQuok: CompareProduct,
-	competitor: CompareProduct
-): CompareLongFormSection {
-	return {
-		id: 'openquok-alternative',
-		navLabel: 'OpenQuok alternative',
-		subtitle: 'DIY path',
-		title: `${openQuok.name} as the alternative to ${competitor.name}`,
-		body: [
-			`${openQuok.name} keeps directory launch inside your workspace. You create business profiles once and reuse them on every directory form.`,
-			'Use the Chrome extension to autofill each directory site. You review every field and click submit when the listing looks right.',
-			'You get submission tracking, profile variants, and domain rating analytics after listings go live. You are not limited to a one-time vendor report.',
-			'Start on the directory submission tool page, install the extension from the docs, and open a free trial when you want to launch yourself.'
-		]
-	};
-}
-
-function buildOtherAlternativesSection(competitorName: string): CompareLongFormSection {
-	return {
-		id: 'other-alternatives',
-		navLabel: 'Other alternatives',
-		subtitle: 'peers',
-		title: 'Other directory submission options',
-		body: [
-			`Besides ${competitorName}, you can compare OpenQuok to other directory services on our compare hub.`,
-			'Each page explains pricing, control, and whether you submit each listing yourself.'
-		]
-	};
-}
-
-function personalizeWhenTheyWinSection(
-	section: CompareLongFormSection,
-	competitorName: string
-): CompareLongFormSection {
-	if (section.title.includes(competitorName)) return section;
-	return {
-		...section,
-		title: section.title.replace(/\{competitor\}/g, competitorName)
+		faqItemIds: isDirectoryLongForm
+			? [...PUBLIC_COMPARE_DETAIL_DIRECTORY_FAQ_ITEM_IDS]
+			: [...PUBLIC_COMPARE_DETAIL_SOCIAL_FAQ_ITEM_IDS]
 	};
 }
 
@@ -259,7 +165,7 @@ function buildWithWithoutSection(
 		subtitle: 'comparisons',
 		title: buildWithWithoutTitle(left, right),
 		description: `${right.name} is for ${right.comparison.builtFor}. ${left.name} ${left.comparison.positioningWhenLeft}.`,
-		withoutTitle: right.comparison.withoutTitle ?? `Typical ${right.name} workflow`,
+		withoutTitle: right.name,
 		withTitle: left.name,
 		points: buildTopicComparisonPoints(left, right)
 	};

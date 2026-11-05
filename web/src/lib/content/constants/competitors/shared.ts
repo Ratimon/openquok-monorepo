@@ -49,6 +49,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	later: 'https://later.com',
 	buffer: 'https://buffer.com',
 	boringlaunch: 'https://www.boringlaunch.com/',
+	getmorebacklinks: 'https://www.getmorebacklinks.org/',
 	blotato: 'https://www.blotato.com',
 	breakreach: 'https://www.breakreach.com',
 	'claw-post': 'https://clawpost.net',
@@ -75,6 +76,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	| 'later'
 	| 'buffer'
 	| 'boringlaunch'
+	| 'getmorebacklinks'
 	| 'blotato'
 	| 'breakreach'
 	| 'claw-post'

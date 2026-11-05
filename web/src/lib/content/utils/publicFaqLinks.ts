@@ -32,7 +32,9 @@ import {
 	getRootPathSocialMediaSchedulingApi
 } from '$lib/area-public/constants/getRootPathPublicApiMarketing';
 import { getRootPathPublicBrowserExtensionLanding } from '$lib/area-public/constants/getRootPathPublicBrowserExtensionLanding';
+import { getRootPathPublicDirectorySubmissionTool } from '$lib/area-public/constants/getRootPathPublicDirectorySubmissionTool';
 import { getRootPathPublicSelfHosting } from '$lib/area-public/constants/getRootPathPublicSelfHosting';
+import { getRootPathPublicSocialAutopilotLanding } from '$lib/area-public/constants/getRootPathPublicSocialAutopilotLanding';
 import {
 	getRootPathPublicBestTimeToPost,
 	getRootPathPublicBestTimeToPostChannel,
@@ -138,6 +140,9 @@ export const publicFaqHref = {
 	buildingBlocksTags: route(getRootPathPublicBuildingBlocksTags()),
 	selfHostingLanding: route(getRootPathPublicSelfHosting()),
 	browserExtensionLanding: route(getRootPathPublicBrowserExtensionLanding()),
+	socialMediaManagementLanding: route(getRootPathPublicSocialAutopilotLanding()),
+	directorySubmissionToolLanding: route(getRootPathPublicDirectorySubmissionTool()),
+	buildBacklinks: route('build-backlinks'),
 	dockerCompose: route(getRootPathPublicDocsInstallationDockerCompose()),
 	dockerPreBuiltImages: route(getRootPathPublicDocsInstallationDocker()),
 	productionDeployment: faqHrefDocs('installation/production-deployment'),

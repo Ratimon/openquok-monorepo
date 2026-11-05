@@ -33,7 +33,11 @@ export type PublicFaqItemId =
 	| 'what-are-plugs'
 	| 'plugs-platform-support'
 	| 'delay-between-posts'
-	| 'too-many-channels';
+	| 'too-many-channels'
+	| 'openquok-social-media-management'
+	| 'openquok-directory-submission-tool'
+	| 'directory-launch-software-not-agency'
+	| 'compare-both-social-and-directory';
 
 export type PublicFaqItem = {
 	/** Set on git defaults; CMS overrides may omit. */
@@ -239,6 +243,30 @@ export const PUBLIC_FAQ_ITEMS: readonly PublicFaqItem[] = [
 		title: 'I have connnected too many channels, what should I do?',
 		description:
 			`Link channels to business profiles by client or brand, or disable ones you do not need. See ${faqLink(publicFaqHref.docsChannelGroups, 'Business profiles')} and ${faqLink(publicFaqHref.docsManageChannels, 'Manage channels')}. API: ${faqLink(publicFaqHref.channelGroups, 'List business profiles')}.`
+	},
+	{
+		id: 'openquok-social-media-management',
+		title: 'How does OpenQuok handle social media management?',
+		description:
+			`OpenQuok connects channels, a calendar, kanban, and an approval queue in one workspace. Agents can draft through ${faqLink(publicFaqHref.mcpSetupGuides, 'MCP')}, the ${faqLink(publicFaqHref.cliGettingStarted, 'CLI')}, or ${faqLink(publicFaqHref.agents, 'agent hosts')}. You approve before anything publishes. Read the full workflow on ${faqLink(publicFaqHref.socialMediaManagementLanding, 'Social media management')} and browse ${faqLink(publicFaqHref.channels, 'supported channels')}.`
+	},
+	{
+		id: 'openquok-directory-submission-tool',
+		title: 'How does OpenQuok directory launch work?',
+		description:
+			`OpenQuok is DIY directory launch software. You build business profiles, autofill forms with the ${faqLink(publicFaqHref.browserExtensionLanding, 'browser extension')}, and track each submission. We do not run a done-for-you campaign for you. Start on the ${faqLink(publicFaqHref.directorySubmissionToolLanding, 'Directory submission tool')} page, follow ${faqLink(faqHrefDocs('directory-submission'), 'directory submission docs')}, and pick targets in ${faqLink(publicFaqHref.buildBacklinks, 'Build backlinks')}.`
+	},
+	{
+		id: 'directory-launch-software-not-agency',
+		title: 'Do you submit directories for me like a $300 agency?',
+		description:
+			`No. OpenQuok is software plus your review — not a done-for-you team. You keep directory logins and approve every form. You avoid agency fees that often start around $300 on public pricing pages while still moving faster than copy-paste alone. See the ${faqLink(publicFaqHref.directorySubmissionToolLanding, 'Directory submission tool')} overview and ${faqLink(publicFaqHref.pricing, 'pricing')} for workspace plans.`
+	},
+	{
+		id: 'compare-both-social-and-directory',
+		title: 'Can I use OpenQuok for social scheduling and directory launch?',
+		description:
+			`Yes. Both workflows live in the same product. Use ${faqLink(publicFaqHref.socialMediaManagementLanding, 'Social media management')} for channels, agents, and approvals. Use ${faqLink(publicFaqHref.directorySubmissionToolLanding, 'Directory submission tool')} for business profiles, extension autofill, and submission tracking. One workspace can hold social channels and directory launch work for the same brand.`
 	}
 ];
 
@@ -374,6 +402,30 @@ export const PUBLIC_COMPARE_HUB_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
 	'switch-from-buffer-hootsuite',
 	'try-free',
 	'multi-workspace'
+];
+
+/** `/compare/{productA}/{productB}` — social scheduler pairs (OpenQuok vs Hootsuite, Buffer, …). */
+export const PUBLIC_COMPARE_DETAIL_SOCIAL_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
+	'switch-from-buffer-hootsuite',
+	'try-free',
+	'multi-workspace',
+	'schedule-posts',
+	'what-is-mcp',
+	'reach-official-api',
+	'openquok-social-media-management',
+	'openquok-directory-submission-tool',
+	'compare-both-social-and-directory'
+];
+
+/** `/compare/openquok/{directory-service}` — directory submission service pairs. */
+export const PUBLIC_COMPARE_DETAIL_DIRECTORY_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
+	'try-free',
+	'multi-workspace',
+	'openquok-directory-submission-tool',
+	'directory-launch-software-not-agency',
+	'openquok-social-media-management',
+	'compare-both-social-and-directory',
+	'schedule-posts'
 ];
 
 /** `/creators` hub. */

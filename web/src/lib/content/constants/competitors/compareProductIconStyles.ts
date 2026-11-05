@@ -67,6 +67,12 @@ const BASE = {
 		cardContainerClass:
 			'bg-linear-to-br from-zinc-600/22 via-stone-500/18 to-yellow-400/14 text-yellow-50 ring-yellow-500/28'
 	},
+	getmorebacklinks: {
+		heroContainerClass:
+			'bg-linear-to-br from-teal-600/35 via-emerald-500/25 to-cyan-400/20 text-teal-50 ring-teal-500/35',
+		cardContainerClass:
+			'bg-linear-to-br from-teal-600/22 via-emerald-500/18 to-cyan-400/14 text-teal-50 ring-teal-500/28'
+	},
 	breakreach: {
 		heroContainerClass:
 			'bg-linear-to-br from-violet-600/35 via-purple-500/25 to-fuchsia-400/20 text-violet-50 ring-violet-500/40',

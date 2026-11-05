@@ -25,6 +25,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 		};
 
 		return {
+			...data,
 			pageMetaTags: serverData.pageMetaTags,
 			detailVm: serverData.detailVm,
 			faqItems: serverData.faqItems,

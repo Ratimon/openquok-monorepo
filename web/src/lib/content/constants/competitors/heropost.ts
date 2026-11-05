@@ -85,10 +85,45 @@ export const heropostCompareProduct: CompareProduct = {
 	icon: icons.Heropost.name,
 	tagline: 'Lifetime social scheduler with HeroAI and eleven networks',
 	overview:
-		'Heropost is a hosted social media scheduler for creators, brands, and agencies. You connect eleven networks, write with HeroAI, schedule unlimited posts, and automate RSS, WordPress, Shopify, and store feeds. Starter, Growth, and Agency tiers are one-time lifetime payments with workspaces, analytics, and bulk CSV scheduling — plus a free trial before checkout.',
+		'Heropost is a hosted social scheduler for creators, brands, and agencies. You connect eleven networks, schedule unlimited posts, and automate feeds from RSS, WordPress, and Shopify. Lifetime tiers include workspaces, analytics, and bulk CSV scheduling.',
 	pricingPlans: HEROPOST_PRICING_PLANS,
 	channels: HEROPOST_CHANNELS,
 	featureSupport: HEROPOST_FEATURE_SUPPORT,
+	alternativesLongForm: {
+		whyPeopleLook: {
+			id: 'why-people-look',
+			navLabel: 'Why people look',
+			subtitle: 'Why people look',
+			title: 'Why teams look for Heropost alternatives',
+			body: [
+				'Heropost sells lifetime tiers with HeroAI and eleven networks.',
+				'Teams switch when they need self-hosting, agents, or a Public API.',
+				'You may outgrow workspace and account caps on lower tiers.'
+			]
+		},
+		yourOptions: {
+			id: 'your-options',
+			navLabel: 'Your options',
+			subtitle: 'Your options',
+			title: 'Stay on Heropost, switch schedulers, or adopt OpenQuok',
+			body: [
+				'Keep Heropost, pick another scheduler, or move to OpenQuok.',
+				'OpenQuok ranks first here for self-hosting and agent scheduling.',
+				'Compare list prices in the sections below.'
+			]
+		},
+		whenTheyWin: {
+			id: 'when-they-win',
+			navLabel: 'When they win',
+			subtitle: 'When they win',
+			title: 'When Heropost stays the better choice',
+			body: [
+				'You want eleven networks and HeroAI in one lifetime payment.',
+				'You use CSV bulk upload and store feeds in one dashboard.',
+				'You do not need self-hosting, MCP, or a Public API this quarter.'
+			]
+		}
+	},
 	comparison: {
 		headline: 'lifetime multi-network scheduling',
 		notAnother: 'lifetime deal dashboard',

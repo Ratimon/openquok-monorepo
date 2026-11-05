@@ -15,6 +15,8 @@ import {
 	PUBLIC_SOCIAL_AUTOPILOT_FAQ_ITEM_IDS,
 	PUBLIC_API_PLATFORM_FAQ_ITEM_IDS,
 	PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS,
+	PUBLIC_COMPARE_DETAIL_DIRECTORY_FAQ_ITEM_IDS,
+	PUBLIC_COMPARE_DETAIL_SOCIAL_FAQ_ITEM_IDS,
 	PUBLIC_FAQ_ITEMS,
 	PUBLIC_PRICING_FAQ_ITEM_IDS,
 	PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS,
@@ -161,6 +163,30 @@ describe('PUBLIC_FAQ_ITEMS', () => {
 			'Can I try OpenQuok for free?',
 			"Why should I use OpenQuok's multi-workspace?"
 		]);
+	});
+
+	it('links compare detail social FAQs to social media management and directory tool landings', () => {
+		const items = resolvePublicFaqItemsByIds(PUBLIC_COMPARE_DETAIL_SOCIAL_FAQ_ITEM_IDS);
+		const socialLanding = items.find((item) => item.id === 'openquok-social-media-management');
+		const directoryLanding = items.find((item) => item.id === 'openquok-directory-submission-tool');
+
+		expect(items.length).toBe(PUBLIC_COMPARE_DETAIL_SOCIAL_FAQ_ITEM_IDS.length);
+		expect(socialLanding?.description).toContain(
+			`href="${publicFaqHref.socialMediaManagementLanding}"`
+		);
+		expect(directoryLanding?.description).toContain(
+			`href="${publicFaqHref.directorySubmissionToolLanding}"`
+		);
+	});
+
+	it('links compare detail directory FAQs to directory submission tool landing', () => {
+		const items = resolvePublicFaqItemsByIds(PUBLIC_COMPARE_DETAIL_DIRECTORY_FAQ_ITEM_IDS);
+		const agency = items.find((item) => item.id === 'directory-launch-software-not-agency');
+
+		expect(items.length).toBe(PUBLIC_COMPARE_DETAIL_DIRECTORY_FAQ_ITEM_IDS.length);
+		expect(agency?.description).toContain(
+			`href="${publicFaqHref.directorySubmissionToolLanding}"`
+		);
 	});
 
 	it('keeps first-party FAQ links followable', () => {

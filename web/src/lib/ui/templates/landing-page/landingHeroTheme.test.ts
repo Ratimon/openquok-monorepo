@@ -12,6 +12,21 @@ describe('landingHeroTheme hub title segments', () => {
 			expect(segments.every((segment) => segment.highlight)).toBe(false);
 		}
 	});
+
+	it('chips trailing words on compare section titles', () => {
+		const segments = landingHeroTheme.parseLandingHeroTitlePartSegments('Platform overview');
+		expect(segments).toEqual([
+			{ text: 'Platform ', highlight: false },
+			{ text: 'overview', highlight: true }
+		]);
+	});
+
+	it('highlights competitor product names in narrative titles', () => {
+		const segments = landingHeroTheme.parseLandingHeroTitlePartSegments(
+			'Why teams switch from GetMoreBacklinks'
+		);
+		expect(segments.some((s) => s.highlight && s.text === 'GetMoreBacklinks')).toBe(true);
+	});
 });
 
 describe('landingHeroTheme feature-row title clauses', () => {

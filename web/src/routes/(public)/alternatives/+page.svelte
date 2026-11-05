@@ -24,6 +24,7 @@
 	import StripedPattern from '$lib/ui/patterns/StripedPattern.svelte';
 	import SimpleCardGrid from '$lib/ui/templates/feature-grid/SimpleCardGrid.svelte';
 	import SimpleLinkCard from '$lib/ui/templates/feature-grid/SimpleLinkCard.svelte';
+	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	type Props = { data: PageData };
 
@@ -77,8 +78,8 @@
 
 	<SimpleCardGrid
 		heroTheme={{
-			subtitleClass: 'text-xs font-bold tracking-wider text-primary uppercase',
-			parseLandingHeroTitlePartSegments: (text: string) => [{ text, highlight: false }]
+			...landingHeroTheme,
+			subtitleClass: 'text-xs font-bold tracking-wider text-primary uppercase'
 		}}
 		headingId="public-alternatives-grid-heading"
 		title=""

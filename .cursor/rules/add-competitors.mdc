@@ -33,7 +33,7 @@ Competitor data powers:
 | Compare hub | `/compare` | Two sections — **Social media schedulers** and **Directory submission services** — each with OpenQuok as base and category-scoped dropdown + cards |
 | Compare detail | `/compare/{productA}/{productB}` | Head-to-head when `getComparePair` succeeds (same category overlap); **404** on cross-category pairs (e.g. Buffer vs BoringLaunch) |
 | Alternatives hub | `/alternatives` | Directory card per **non-OpenQuok** competitor (`ALTERNATIVES_TARGET_SLUGS`) |
-| Alternatives detail | `/alternatives/{slug}` | “Best {name} alternatives” SEO page; OpenQuok ranked first among listings |
+| Alternatives detail | `/alternatives/{slug}` | Long-form sections + sticky **On this page** nav when `directoryLongForm` or default social long-form applies; ranked listings; OpenQuok #1 |
 
 **No new route files** are required for compare or alternatives when adding a competitor — only data + the manual steps below.
 
@@ -96,12 +96,13 @@ Export a `CompareProduct` with:
 | `slug`, `name`, `icon` | `icon: icons.{Brand}.name` |
 | `categories` | See **Slug type and categories** — required on every product |
 | `tagline` | Short subtitle under the name on compare pages (ASD-STE100) |
-| `overview` | 2–3 short sentences for platform overview and alternatives listings (ASD-STE100) |
+| `overview` | **Two or three short sentences** for platform overview and alternatives listings. Use simple words. One idea per sentence. Put pricing tiers, verify disclaimers, and feature lists in `tagline`, `pricingPlans`, or long-form sections — not here. |
 | `pricingPlans` | `ComparePricingPlan[]` — public list prices in USD; `monthlyPrice: null` for custom/enterprise; add a **Self-host** row at `$0` when the vendor ships AGPL/OSS self-host with no software fee; directory services use `pricePeriod: 'one_time'` on package rows |
 | `pricingUnit` | Optional: `per_channel` (Buffer, Hopper HQ), `per_seat` (Hootsuite), or omit for flat workspace/account bundles |
-| `channels` | **Social schedulers:** human labels aligned with `listAvailablePublicChannelCompareLabels()` in `channels/index.ts`. **Directory services:** `[]` — channel section is omitted on detail pages |
+| `channels` | **Social schedulers:** human labels aligned with `listAvailablePublicChannelCompareLabels()` in `channels/index.ts`. **Directory services:** `[]` — do not invent social lists; OpenQuok still shows **Supported social channels** on directory pairs from OpenQuok’s channel list |
+| `directoryCoverageSummary` | **Directory services only:** one paragraph from the vendor’s public pricing/site when they do not publish a fixed directory list (package counts, e.g. 100/200 submissions). Powers **Supported directory channels** on compare/alternatives (OpenQuok column: PeerPush + Uneed icons) |
 | `featureSupport` | `Partial<Record<PublicPricingCompareRowId, CompareFeatureCell>>` — **social:** cover social + shared rows you intend to show; **directory:** fill **`directory_*`** rows in `PUBLIC_PRICING_COMPARE_ROWS` honestly (done-for-you vs DIY); omit or use **No Info** on `official_api` when the vendor is a service, not a platform API publisher |
-| `directoryLongForm` | **Directory competitors only:** `CompareDirectoryLongFormContent` (`whyPeopleLook`, `yourOptions`, `switchingChecklist`, `whenTheyWin`) — ASD-STE100 body copy; merged in `buildComparePair.ts` with OpenQuok alternative + FAQ ids |
+| `directoryLongForm` | **Directory competitors only:** `CompareDirectoryLongFormContent` (`whyPeopleLook`, `yourOptions`, `whenTheyWin`) — ASD-STE100 body copy; **two or three short sentences per section**; set each section `subtitle` to the same text as `navLabel` (matches **On this page**); merged in `buildComparePair.ts` with FAQ ids |
 | `comparison` | `headline`, `notAnother`, `builtFor`, `positioningWhenLeft`, optional `withoutTitle`, and `talkingPoints` — all ASD-STE100 |
 
 ### Official platform APIs (`official_api`)
@@ -204,14 +205,15 @@ Automated coverage (extend when adding competitors):
 Use this checklist **instead of** social-only assumptions when the competitor is a done-for-you or managed directory launch vendor (not a social scheduler).
 
 1. **`categories`:** `['directory_submission']` only.
-2. **`channels`:** `[]` — do not invent social network lists.
-3. **`featureSupport`:** map **`directory_*`** rows from `PUBLIC_PRICING_COMPARE_ROWS` (`line === 'directory'`). Compare detail filters to these rows for directory pairs — social-only rows must not dominate the matrix.
-4. **`official_api`:** usually **`No Info`** or **`excluded`** — the product is a human submission service, not a scheduler publishing via platform OAuth APIs.
-5. **`pricingPlans`:** one-time packages (`pricePeriod: 'one_time'`) from the vendor’s public pricing page; cite URLs in the PR.
-6. **`directoryLongForm`:** four sections on the competitor constant; `buildComparePair` attaches the full long-form VM (OpenQuok alternative links to **`/directory-submission-tool`**, extension/docs — `installation/chrome-extension`).
-7. **OpenQuok:** ensure directory strengths in **`openquok.ts`** for with/without vs the new service.
-8. **Hub:** second section on `/compare` (`hubs/compare.ts` + `PublicCompareHubGrid` / presenter `directorySection`).
-9. **Tests + smoke:** `/compare/openquok/{slug}`, hub directory block, 404 on cross-category pairs (see **Smoke-test URLs**).
+2. **`channels`:** `[]` — do not invent social network lists (OpenQuok’s social channel grid still appears on OpenQuok vs directory pairs).
+3. **`directoryCoverageSummary`:** required when the vendor sells bulk submission packages without a public site list — honest copy from their pricing page (counts/tiers, not invented directory names).
+4. **`featureSupport`:** map **`directory_*`** rows from `PUBLIC_PRICING_COMPARE_ROWS` (`line === 'directory'`). Compare detail filters to these rows for directory pairs — social-only rows must not dominate the matrix.
+5. **`official_api`:** usually **`No Info`** or **`excluded`** — the product is a human submission service, not a scheduler publishing via platform OAuth APIs.
+6. **`pricingPlans`:** one-time packages (`pricePeriod: 'one_time'`) from the vendor’s public pricing page; cite URLs in the PR.
+7. **`directoryLongForm`:** three narrative sections on the competitor constant; compare and alternatives pages share the **unified On this page nav** (Platform overview → Why people look → Your options → Pricing & plans → [Supported social channels] → [Supported directory channels] → Feature comparison → With vs without → When they win → Other alternatives → Questions → [More comparisons on compare detail]).
+8. **OpenQuok:** ensure directory strengths in **`openquok.ts`** for with/without vs the new service.
+9. **Hub:** second section on `/compare` (`hubs/compare.ts` + `PublicCompareHubGrid` / presenter `directorySection`).
+10. **Tests + smoke:** `/compare/openquok/{slug}`, hub directory block, 404 on cross-category pairs (see **Smoke-test URLs**).
 
 Reference: **`boringlaunch.ts`**.
 

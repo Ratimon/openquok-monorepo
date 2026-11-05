@@ -220,6 +220,8 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'not weeks',
 	'PeerPush',
 	'Uneed',
+	'GetMoreBacklinks',
+	'BoringLaunch',
 	// Protected account app heroes
 	'Reusable Templates',
 	'Media Library',
@@ -232,6 +234,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'Calendar',
 	// Product & workflow terms
 	'OpenQuok',
+	'Hootsuite',
 	'carousels',
 	'analytics',
 	'Admin',
@@ -284,6 +287,37 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'questions'
 ] as const;
 
+/**
+ * Exact section titles (compare/alternatives detail) where the trailing substring
+ * gets the white chip; remainder uses gradient segments.
+ */
+const LANDING_HERO_FULL_TITLE_TRAILING_CHIP: Record<string, string> = {
+	'Platform overview': 'overview',
+	'Pricing & plans': 'plans',
+	'Feature comparison': 'comparison',
+	'Directory launch features': 'features',
+	'Supported social channels': 'channels',
+	'Supported directory channels': 'channels',
+	'More comparisons': 'comparisons'
+};
+
+function parseFullTitleTrailingChipSegments(text: string): LandingHeroTitleSegment[] | null {
+	const trailing = LANDING_HERO_FULL_TITLE_TRAILING_CHIP[text.trim()];
+	if (!trailing) return null;
+
+	const highlightStart = text.lastIndexOf(trailing);
+	if (highlightStart < 0) return null;
+
+	const before = text.slice(0, highlightStart);
+	const after = text.slice(highlightStart + trailing.length);
+
+	return [
+		before ? { text: before, highlight: false } : null,
+		{ text: trailing, highlight: true },
+		after ? { text: after, highlight: false } : null
+	].filter((segment): segment is LandingHeroTitleSegment => segment !== null);
+}
+
 function escapeRegExpLiteral(value: string): string {
 	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -309,6 +343,10 @@ const TITLE_PART_HIGHLIGHT_SPLIT = new RegExp(
 
 function parseLandingHeroTitlePartSegments(text: string): LandingHeroTitleSegment[] {
 	if (!text) return [];
+
+	const trailingChip = parseFullTitleTrailingChipSegments(text);
+	if (trailingChip) return trailingChip;
+
 	const parts = text.split(TITLE_PART_HIGHLIGHT_SPLIT);
 	const out: LandingHeroTitleSegment[] = [];
 	for (const p of parts) {

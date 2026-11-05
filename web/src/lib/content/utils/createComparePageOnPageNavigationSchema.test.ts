@@ -18,7 +18,7 @@ describe('createComparePageOnPageNavigationSchema', () => {
 
 	it('emits TableOfContents with fragment URLs matching the on-page nav', () => {
 		const sections = buildCompareSocialMatrixNavSections({
-			includeChannels: true,
+			includeSocialChannels: true,
 			includeFaq: true
 		});
 		const result = createComparePageOnPageNavigationSchema({
@@ -49,6 +49,14 @@ describe('createComparePageOnPageNavigationSchema', () => {
 			name: 'Platform overview',
 			url: `${canonical}#compare-platform-overview`
 		});
+		const whyPeopleLook = hasPart?.find((item) => item.name === 'Why people look');
+		expect(whyPeopleLook).toEqual({
+			'@type': 'SiteNavigationElement',
+			name: 'Why people look',
+			url: `${canonical}#why-people-look`
+		});
+		const platformOverview = hasPart?.find((item) => item.name === 'Platform overview');
+		expect(platformOverview?.url).toBe(`${canonical}#compare-platform-overview`);
 		expect(hasPart?.at(-1)).toEqual({
 			'@type': 'SiteNavigationElement',
 			name: 'More comparisons',
@@ -67,7 +75,7 @@ describe('createComparePageOnPageNavigationSchema', () => {
 
 	it('can be merged into a compare page graph', () => {
 		const sections = buildCompareSocialMatrixNavSections({
-			includeChannels: false,
+			includeSocialChannels: false,
 			includeFaq: false
 		});
 		const onPage = createComparePageOnPageNavigationSchema({

@@ -28,6 +28,9 @@ describe('PublicAlternativesPagePresenter', () => {
 		expect(vm!.keywords).toContain('Hootsuite alternatives');
 		expect(vm!.keywords).not.toContain('free Hootsuite alternative');
 		expect(vm!.description.toLowerCase()).toContain('alternatives');
+
+		const peerSlugs = vm!.longForm.otherAlternativePeers.map((peer) => peer.slug);
+		expect(peerSlugs.length).toBe(new Set(peerSlugs).size);
 	});
 
 	it('builds a Later alternatives directory with OpenQuok ranked first', () => {
@@ -47,5 +50,23 @@ describe('PublicAlternativesPagePresenter', () => {
 		const openQuokListing = vm!.listings.find((listing) => listing.isOpenQuok);
 		expect(openQuokListing?.detailDescription.toLowerCase()).toContain('open source');
 		expect(openQuokListing?.detailDescription).toContain('/self-hosting');
+	});
+
+	it('builds long-form nav sections for HeroPost alternatives', () => {
+		const vm = presenter.buildDetailVm('heropost');
+		expect(vm).not.toBeNull();
+		expect(vm!.longForm.whyPeopleLook.id).toBe('why-people-look');
+		expect(vm!.isDirectoryTarget).toBe(false);
+	});
+
+	it('builds directory long-form for GetMoreBacklinks with category-scoped listings', () => {
+		const vm = presenter.buildDetailVm('getmorebacklinks');
+		expect(vm).not.toBeNull();
+		expect(vm!.isDirectoryTarget).toBe(true);
+		expect(vm!.longForm.competitorName).toBe('GetMoreBacklinks');
+		expect(vm!.compareRows.length).toBeGreaterThan(0);
+		expect(vm!.listings.every((listing) => listing.slug === 'openquok' || listing.slug === 'boringlaunch')).toBe(
+			true
+		);
 	});
 });

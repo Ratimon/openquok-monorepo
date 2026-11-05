@@ -33,7 +33,25 @@ describe('PublicComparePagePresenter — directory compare smoke', () => {
 		expect(vm!.layout).toBe('directory_long_form');
 		expect(vm!.longForm?.competitorSlug).toBe('boringlaunch');
 		expect(vm!.longForm?.directorySubmissionToolPath).toContain('directory-submission-tool');
-		expect(vm!.channelsSection).toBeNull();
+		expect(vm!.channelsSection).not.toBeNull();
+		expect(vm!.directoryCoverageSection?.launchPlatforms.map((p) => p.label)).toEqual([
+			'PeerPush',
+			'Uneed'
+		]);
+		expect(vm!.directoryCoverageSection?.competitorSummary).toContain('50');
+		expect(vm!.faqItems.length).toBeGreaterThan(3);
+		expect(vm!.faqItems.some((item) => item.title.includes('Domain Rating'))).toBe(true);
+	});
+
+	it('builds expanded social compare FAQs for OpenQuok vs Hootsuite', () => {
+		const pair = getComparePair('openquok', 'hootsuite');
+		expect(pair).not.toBeNull();
+
+		const vm = presenter.buildDetailVm(pair!);
+		expect(vm!.faqItems.length).toBeGreaterThanOrEqual(8);
+		expect(vm!.faqItems.some((item) => item.id === 'openquok-social-media-management')).toBe(
+			true
+		);
 	});
 
 	it('does not build a detail VM for cross-category Buffer vs BoringLaunch', () => {

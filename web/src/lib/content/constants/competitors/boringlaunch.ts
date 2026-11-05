@@ -57,50 +57,34 @@ const BORINGLAUNCH_DIRECTORY_LONG_FORM: CompareDirectoryLongFormContent = {
 	whyPeopleLook: {
 		id: 'why-people-look',
 		navLabel: 'Why people look',
-		subtitle: 'the problem',
+		subtitle: 'Why people look',
 		title: 'Why teams look for directory submission help',
 		body: [
-			'Launching on startup directories takes hours of copy-paste work.',
-			'Each site wants a slightly different pitch, logo, and category.',
-			'Founders want backlinks and referral traffic without losing a week to forms.',
-			'Done-for-you services promise to submit your product to dozens or hundreds of lists in about seven days.'
+			'Startup directories need hours of copy-paste work.',
+			'Each site wants a different pitch, logo, and category.',
+			'Done-for-you services submit to dozens of lists in about seven days.'
 		]
 	},
 	yourOptions: {
 		id: 'your-options',
 		navLabel: 'Your options',
-		subtitle: 'models',
+		subtitle: 'Your options',
 		title: 'Done-for-you vs DIY directory launch',
 		body: [
-			'BoringLaunch sells one-time packages. You fill a form and their team submits on your behalf.',
-			'Basic covers 50+ platforms from $149. Not Boring targets 100+ platforms from $249. Priority starts within 24 hours from $549.',
-			'OpenQuok is a DIY path inside your workspace. You keep business profiles, use the Chrome extension to autofill each directory form, and submit yourself.',
-			'You pay a monthly workspace fee for scheduling plus directory launch tools — not a per-campaign listing fee.'
-		]
-	},
-	switchingChecklist: {
-		id: 'switching-checklist',
-		navLabel: 'Switching checklist',
-		subtitle: 'before you choose',
-		title: 'Checklist before you pick a directory path',
-		body: [
-			'Decide whether you need hands-off execution or control over every listing.',
-			'List which directories matter for your niche — paid AI lists vs general SaaS catalogs.',
-			'Set a budget for one-time agency spend vs ongoing workspace software.',
-			'Plan who owns pitch copy, screenshots, and founder accounts on each directory.',
-			'If you choose DIY, install the OpenQuok browser extension and connect a workspace with directory launch enabled.'
+			'BoringLaunch sells one-time packages. Their team submits after one intake form.',
+			'OpenQuok is DIY: business profiles, extension autofill, and you click submit.',
+			'See pricing and features below for a side-by-side view with OpenQuok.'
 		]
 	},
 	whenTheyWin: {
 		id: 'when-they-win',
 		navLabel: 'When they win',
-		subtitle: 'fit',
+		subtitle: 'When they win',
 		title: 'When BoringLaunch stays the better choice',
 		body: [
-			'You want zero form work during a launch week and can wait for vendor turnaround.',
-			'You prefer a fixed one-time invoice instead of learning new software.',
-			'You trust a human team to pick platforms and write submissions from one intake form.',
-			'You do not need ongoing submission tracking, profile variants, or in-app DR analytics after the campaign ends.'
+			'You want no form work during launch week.',
+			'You prefer one invoice and a human team picks platforms.',
+			'You do not need ongoing tracking or in-app DR analytics.'
 		]
 	}
 };
@@ -112,42 +96,36 @@ export const boringlaunchCompareProduct: CompareProduct = {
 	icon: icons.BoringLaunch.name,
 	tagline: 'Done-for-you startup directory submissions in about seven days',
 	overview:
-		'BoringLaunch is a done-for-you directory submission service for founders and SaaS teams. You share product details once. Their team submits to 50–100+ startup directories and similar platforms within about seven days. Plans are one-time fees from $149 to $549. You receive a detailed submission report rather than a self-serve dashboard.',
+		'BoringLaunch is a done-for-you directory service for founders and SaaS teams. You submit product details once. Their team lists you on 50–100+ directories in about seven days and sends a report.',
 	pricingPlans: BORINGLAUNCH_PRICING_PLANS,
 	channels: [],
 	featureSupport: BORINGLAUNCH_FEATURE_SUPPORT,
 	directoryLongForm: BORINGLAUNCH_DIRECTORY_LONG_FORM,
+	directoryCoverageSummary:
+		'50+ platforms on Basic ($149), 100+ on Not Boring ($249), and about 50–60 high-DR sites on Priority ($549). The vendor submits on your behalf — verify package details on boringlaunch.com.',
 	comparison: {
 		headline: 'done-for-you directory blitz',
 		notAnother: 'DIY listing tool',
 		builtFor: 'founders who want a human team to submit startup directories without opening each form',
 		positioningWhenLeft:
 			'handles bulk directory submissions as a managed service with one-time packages and a written report',
-		withoutTitle: 'Typical BoringLaunch engagement',
 		talkingPoints: {
 			submission_model: {
-				weakness:
-					'You hand product copy to a vendor once. You do not keep reusable business profiles or submit each directory yourself.'
+				weakness: 'You send copy to a vendor once. No reusable profiles or self-submit.'
 			},
 			pace_and_control: {
-				weakness:
-					'Turnaround follows vendor queue slots — often about seven days — with limited visibility until the report arrives.'
+				weakness: 'Turnaround follows vendor queues — often seven days — with little visibility until the report.'
 			},
 			dr_outcomes: {
-				weakness:
-					'DR and traffic gains depend on the vendor list and timing. You do not get workspace DR charts or competitor benchmarks in your own dashboard.'
+				weakness: 'DR gains depend on the vendor list. No in-app DR charts or competitor benchmarks.'
 			},
 			pricing_model: {
-				strength:
-					'One-time packages from $149 cover a full submission campaign without a monthly subscription.',
-				weakness:
-					'Each new product or relaunch may need another package — costs add up across multiple brands.'
+				strength: 'One-time packages from $149 cover a campaign without a monthly subscription.',
+				weakness: 'Each new product may need another package. Costs add up across brands.'
 			},
 			product_focus: {
-				strength:
-					'Purpose-built for directory backlinks and launch visibility — not a full social scheduling suite.',
-				weakness:
-					'No social publishing, agents, or directory autofill extension — directory work stops when the campaign ends.'
+				strength: 'Built for directory backlinks and launch visibility — not a full social suite.',
+				weakness: 'No social publishing, agents, or autofill after the campaign ends.'
 			}
 		}
 	}

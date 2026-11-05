@@ -1,7 +1,5 @@
 import type { PublicAgentComparisonSection } from '$lib/content/constants/agents';
 import {
-	buildCompareChannelPoints,
-	COMPARE_CHANNELS_SECTION,
 	COMPARE_HUB_BASE_SLUG,
 	getCompareProduct,
 	listComparePairsForHub,
@@ -17,6 +15,10 @@ import {
 	type CompareProductCategory,
 	type CompareProductSlug
 } from '$lib/content/constants/competitors';
+import {
+	buildCompareChannelSectionsForPair,
+	type CompareDirectoryCoverageViewModel
+} from '$lib/content/constants/competitors/utils/compareChannelSections';
 import type { PublicFaqItem } from '$lib/content/constants/faq';
 import { insertDirectoryLaunchDrGuaranteeFaqItems } from '$lib/content/constants/faq/marketing/directory-submission';
 import { PUBLIC_COMPARE_HUB } from '$lib/content/constants/hubs/compare';
@@ -107,6 +109,7 @@ export type CompareDetailViewModel = {
 	rightProduct: CompareProductSummaryViewModel;
 	compareRows: CompareFeatureRowViewModel[];
 	channelsSection: PublicAgentComparisonSection | null;
+	directoryCoverageSection: CompareDirectoryCoverageViewModel | null;
 	withWithoutSection: PublicAgentComparisonSection;
 	faqItems: PublicFaqItem[];
 	longForm: CompareDetailLongFormViewModel | null;
@@ -177,7 +180,9 @@ export class PublicComparePagePresenter {
 			? insertDirectoryLaunchDrGuaranteeFaqItems(faqFromIds)
 			: faqFromIds;
 
-		const relatedCategory = isDirectoryLongForm ? ('directory_submission' as const) : undefined;
+		const relatedCategory = isDirectoryLongForm
+			? ('directory_submission' as const)
+			: ('social_scheduling' as const);
 		const relatedPairs = listComparePairsForHub(COMPARE_HUB_BASE_SLUG, relatedCategory)
 			.filter((hubPair) => hubPair.productBSlug !== pair.productBSlug)
 			.map((hubPair) => {
@@ -191,17 +196,7 @@ export class PublicComparePagePresenter {
 				};
 			});
 
-		const bothChannelsEmpty =
-			leftProduct.channels.length === 0 && rightProduct.channels.length === 0;
-		const channelsSection =
-			isDirectoryLongForm || bothChannelsEmpty
-				? null
-				: {
-						...COMPARE_CHANNELS_SECTION,
-						withoutTitle: rightProduct.name,
-						withTitle: leftProduct.name,
-						points: buildCompareChannelPoints(leftProduct.channels, rightProduct.channels)
-					};
+		const channelSections = buildCompareChannelSectionsForPair(leftProduct, rightProduct);
 
 		const longForm =
 			pair.longForm != null
@@ -221,7 +216,8 @@ export class PublicComparePagePresenter {
 			leftProduct: toProductSummary(leftProduct),
 			rightProduct: toProductSummary(rightProduct),
 			compareRows,
-			channelsSection,
+			channelsSection: channelSections.socialChannelsSection,
+			directoryCoverageSection: channelSections.directoryCoverageSection,
 			withWithoutSection: pair.withWithoutSection,
 			faqItems,
 			longForm,

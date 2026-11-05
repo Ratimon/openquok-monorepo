@@ -32,7 +32,8 @@ export type CompareProductSlug =
 	| 'sprout-social'
 	| 'typefully'
 	| 'usebard'
-	| 'boringlaunch';
+	| 'boringlaunch'
+	| 'getmorebacklinks';
 
 /**
  * Comparison angles shared across products. When building a pair, a row is included only
@@ -51,6 +52,7 @@ export type CompareTalkingPointId =
 
 export type CompareLongFormSection = {
 	id: string;
+	/** Sticky “On this page” label. `subtitle` is the section eyebrow; match `navLabel` unless the title makes the eyebrow redundant. */
 	navLabel: string;
 	subtitle: string;
 	title: string;
@@ -61,7 +63,6 @@ export type CompareLongFormSection = {
 export type CompareDirectoryLongFormContent = {
 	whyPeopleLook: CompareLongFormSection;
 	yourOptions: CompareLongFormSection;
-	switchingChecklist: CompareLongFormSection;
 	whenTheyWin: CompareLongFormSection;
 };
 
@@ -76,8 +77,6 @@ export type CompareDetailLongFormViewModel = {
 	chromeExtensionDocsPath: string;
 	whyPeopleLook: CompareLongFormSection;
 	yourOptions: CompareLongFormSection;
-	switchingChecklist: CompareLongFormSection;
-	openQuokAlternative: CompareLongFormSection;
 	whenTheyWin: CompareLongFormSection;
 	otherAlternatives: CompareLongFormSection;
 	otherAlternativePeers: readonly CompareLongFormPeerLink[];
@@ -125,6 +124,7 @@ export type CompareProductComparison = {
 	/** Clause when this product is on the left: "{name} {positioningWhenLeft}." */
 	positioningWhenLeft: string;
 	/** Override for the without column title; defaults to "Typical {name} workflow". */
+	/** Optional legacy label for with/without; compare pages use the right product name. */
 	withoutTitle?: string;
 	/** Strengths and weaknesses keyed by comparison angle. */
 	talkingPoints: Partial<Record<CompareTalkingPointId, CompareTalkingPointCopy>>;
@@ -148,6 +148,10 @@ export type CompareProduct = {
 	comparison: CompareProductComparison;
 	/** Directory-service competitors: sticky long-form sections on compare detail. */
 	directoryLongForm?: CompareDirectoryLongFormContent;
+	/** Optional override for `/alternatives/{slug}` long-form (social schedulers). */
+	alternativesLongForm?: CompareDirectoryLongFormContent;
+	/** Done-for-you directory vendors: bulk package copy when they do not publish a site list. */
+	directoryCoverageSummary?: string;
 };
 
 export type ComparePair = {

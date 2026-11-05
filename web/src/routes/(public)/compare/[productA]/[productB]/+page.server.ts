@@ -76,7 +76,8 @@ export async function load({ url, params, cookies, parent }) {
 	const onPageNavSections = buildComparePageSectionNavItems({
 		layout: detailVm.layout,
 		longForm: detailVm.longForm,
-		includeChannels: detailVm.channelsSection != null,
+		includeSocialChannels: detailVm.channelsSection != null,
+		includeDirectoryChannels: detailVm.directoryCoverageSection != null,
 		includeFaq: detailVm.faqItems.length > 0
 	});
 	const onPageNavigationSchema = createComparePageOnPageNavigationSchema({

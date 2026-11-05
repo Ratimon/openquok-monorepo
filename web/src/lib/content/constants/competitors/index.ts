@@ -26,6 +26,7 @@ import { breakreachCompareProduct } from '$lib/content/constants/competitors/bre
 import { clawPostCompareProduct } from '$lib/content/constants/competitors/claw-post';
 import { hopperHqCompareProduct } from '$lib/content/constants/competitors/hopper-hq';
 import { influenceCompareProduct } from '$lib/content/constants/competitors/influence';
+import { getmorebacklinksCompareProduct } from '$lib/content/constants/competitors/getmorebacklinks';
 import { heropostCompareProduct } from '$lib/content/constants/competitors/heropost';
 import { hootsuiteCompareProduct } from '$lib/content/constants/competitors/hootsuite';
 import { laterCompareProduct } from '$lib/content/constants/competitors/later';
@@ -61,6 +62,7 @@ export {
 export { openquokCompareProduct } from '$lib/content/constants/competitors/openquok';
 export { hopperHqCompareProduct } from '$lib/content/constants/competitors/hopper-hq';
 export { influenceCompareProduct } from '$lib/content/constants/competitors/influence';
+export { getmorebacklinksCompareProduct } from '$lib/content/constants/competitors/getmorebacklinks';
 export { heropostCompareProduct } from '$lib/content/constants/competitors/heropost';
 export { hootsuiteCompareProduct } from '$lib/content/constants/competitors/hootsuite';
 export { laterCompareProduct } from '$lib/content/constants/competitors/later';
@@ -94,6 +96,7 @@ export const PUBLIC_COMPARE_PRODUCTS: readonly CompareProduct[] = [
 	bufferCompareProduct,
 	blotatoCompareProduct,
 	boringlaunchCompareProduct,
+	getmorebacklinksCompareProduct,
 	breakreachCompareProduct,
 	clawPostCompareProduct,
 	recurpostCompareProduct,
@@ -166,7 +169,11 @@ export function listAlternativeProductsFor(targetSlug: CompareProductSlug): Comp
 	const target = getCompareProduct(targetSlug);
 	if (!target) return [];
 
-	return PUBLIC_COMPARE_PRODUCTS.filter((product) => product.slug !== target.slug).sort((left, right) => {
+	return PUBLIC_COMPARE_PRODUCTS.filter((product) => {
+		if (product.slug === target.slug) return false;
+		if (product.slug === COMPARE_HUB_BASE_SLUG) return true;
+		return canCompareProducts(target, product);
+	}).sort((left, right) => {
 		if (left.slug === COMPARE_HUB_BASE_SLUG) return -1;
 		if (right.slug === COMPARE_HUB_BASE_SLUG) return 1;
 		return left.name.localeCompare(right.name);

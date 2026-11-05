@@ -203,7 +203,7 @@ export const openquokCompareProduct: CompareProduct = {
 	icon: icons.OpenQuok.name,
 	tagline: 'Social media scheduler for people and AI agents',
 	overview:
-		'OpenQuok is an open-source social media scheduler. Connect Facebook, Instagram, Threads, YouTube, TikTok, LinkedIn, X, Dev.to, Bluesky, Skool, and more. Plan posts on calendar and kanban views. Publish from the dashboard, or send drafts from agents with skills, MCP, and the Public API. Separate workspaces keep brands, clients, and agents apart.',
+		'OpenQuok is an open-source social media scheduler. Connect major networks and plan posts on calendar and kanban views. Publish from the dashboard or from agents with skills, MCP, and the Public API.',
 	pricingPlans: OPENQUOK_PRICING_PLANS,
 	channels: OPENQUOK_CHANNELS,
 	featureSupport: buildOpenQuokFeatureSupport(),
@@ -219,16 +219,14 @@ export const openquokCompareProduct: CompareProduct = {
 					'Agents draft and schedule with skills, MCP, or the Public API. You approve posts on the calendar.'
 			},
 			pricing_model: {
-				strength:
-					'Plans start at $29 per month per workspace. You do not pay per seat or per channel.'
+				strength: 'Plans from $29 per workspace per month. No per-seat or per-channel fees.'
 			},
 			workspace_isolation: {
 				strength:
 					'Each workspace has its own channels, OAuth app, token, and MCP endpoint.'
 			},
 			product_focus: {
-				strength:
-					'You pay for scheduling, analytics, and agent tools. You do not pay for unused suite extras.'
+				strength: 'You pay for scheduling and directory tools. Not unused suite extras.'
 			},
 			programmatic_access: {
 				strength: 'Each workspace has an MCP server and CLI. Agents connect without copy and paste.'
@@ -239,15 +237,13 @@ export const openquokCompareProduct: CompareProduct = {
 			},
 			submission_model: {
 				strength:
-					'You keep business profiles in OpenQuok and submit each directory yourself with the browser extension autofill.'
+					'Keep business profiles in OpenQuok. Submit each directory with extension autofill.'
 			},
 			pace_and_control: {
-				strength:
-					'You choose which directories to launch, when to submit, and how pitch variants read on each site.'
+				strength: 'You pick directories, timing, and pitch text on each site.'
 			},
 			dr_outcomes: {
-				strength:
-					'Track domain rating, competitor domains, and catalog DR from Account → Analytics and My Products.'
+				strength: 'Track domain rating and competitors in Account → Analytics.'
 			}
 		}
 	}

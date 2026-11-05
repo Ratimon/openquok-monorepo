@@ -2,6 +2,8 @@
 	export {
 		buildCompareDirectoryLongFormNavSections,
 		buildCompareSocialMatrixNavSections,
+		buildUnifiedCompareNavSections,
+		buildComparePageSectionNavItems,
 		type ComparePageSectionNavItem
 	} from '$lib/content/constants/competitors/comparePageSectionNav';
 </script>

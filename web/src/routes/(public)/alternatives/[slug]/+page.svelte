@@ -13,6 +13,7 @@
 	} from '$lib/config/constants/config';
 
 	import { getCompareProductHeroCardIconStyles } from '$lib/content/constants/competitors/compareProductIconStyles';
+	import { buildAlternativesDetailNavSections } from '$lib/content/constants/competitors/comparePageSectionNav';
 	import {
 		landingHeroTheme,
 		type LandingHeroTheme
@@ -20,8 +21,9 @@
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import CompareProductLink from '$lib/ui/links/CompareProductLink.svelte';
 	import PublicAlternativesListingCard from '$lib/ui/components/alternatives/PublicAlternativesListingCard.svelte';
+	import PublicCompareDirectoryLongForm from '$lib/ui/components/compare/PublicCompareDirectoryLongForm.svelte';
+	import PublicComparePageSectionNav from '$lib/ui/components/compare/PublicComparePageSectionNav.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
@@ -32,6 +34,7 @@
 	import PublicAlternativesLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicAlternativesLandingBreadcrumb.svelte';
 	import SimpleCardGrid from '$lib/ui/templates/feature-grid/SimpleCardGrid.svelte';
 	import SimpleLinkCard from '$lib/ui/templates/feature-grid/SimpleLinkCard.svelte';
+	import InternalLink from '$lib/ui/links/InternalLink.svelte';
 
 	type Props = { data: PageData };
 
@@ -42,17 +45,18 @@
 	let faqItems = $derived(data.faqItems);
 	let listings = $derived(detailVm.listings);
 	let otherTargets = $derived(detailVm.otherTargets);
-	let featuredListing = $derived(listings.find((listing) => listing.isOpenQuok) ?? listings[0]);
+	let longForm = $derived(detailVm.longForm);
 
-	// /sign-up
+	let navSections = $derived(
+		buildAlternativesDetailNavSections(longForm, faqItems.length > 0)
+	);
+
 	const rootPathSignUp = getRootPathSignup();
 	const signUpPath = route(rootPathSignUp);
 
-	// /alternatives
 	const rootPathAlternatives = getRootPathPublicAlternatives();
 	const alternativesHubPath = route(rootPathAlternatives);
 
-	// /pricing
 	const pricingPath = route('pricing');
 
 	const faqHeroTheme: LandingHeroTheme = {
@@ -62,10 +66,12 @@
 			'pt-2 text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg'
 	};
 
-	const sectionHeroTheme: LandingHeroTheme = {
-		...landingHeroTheme,
-		parseLandingHeroTitlePartSegments: (text: string) => [{ text, highlight: false }]
-	};
+	const sectionHeroTheme = landingHeroTheme;
+
+	const compareNamePrimaryClass =
+		'bg-gradient-to-r from-emerald-300 via-lime-300 to-amber-300 bg-clip-text text-transparent';
+	const compareNameAccentClass =
+		'bg-gradient-to-r from-fuchsia-300 via-rose-300 to-orange-300 bg-clip-text text-transparent';
 
 	function iconStyleForProduct(slug: CompareProductSlug) {
 		return getCompareProductHeroCardIconStyles(slug);
@@ -98,82 +104,85 @@
 		<p class="mx-auto max-w-2xl text-base text-base-content/70">
 			{detailVm.description}
 		</p>
+		<div class="flex flex-col items-center justify-center gap-3 pt-2 sm:flex-row">
+			{#if detailVm.isDirectoryTarget}
+				<InternalLink
+					href={longForm.directorySubmissionToolPath}
+					class="btn btn-primary my-2 w-full max-w-sm rounded-full px-8 text-sm sm:w-auto sm:max-w-none sm:px-10 sm:text-base"
+				>
+					Explore directory launch
+				</InternalLink>
+			{/if}
+			<ButtonGlitchBrightness
+				class="my-2 w-full max-w-sm justify-center rounded-full px-8 text-sm sm:w-auto sm:max-w-none sm:px-10 sm:text-base"
+				variant={detailVm.isDirectoryTarget ? 'outline' : 'primary'}
+				size="lg"
+				href={signUpPath}
+				preload="off"
+			>
+				Start free trial
+			</ButtonGlitchBrightness>
+		</div>
 	</header>
 
-	{#if featuredListing?.isOpenQuok}
-		<section class="container mx-auto mt-12 max-w-5xl px-4">
-			<div class="rounded-3xl border border-primary/20 bg-primary/5 p-8 text-center sm:p-10">
-				<p class="text-xs font-bold tracking-wider text-primary uppercase">Open source · free to self-host</p>
-				<h2 class="mt-3 text-2xl font-black tracking-tight text-base-content sm:text-3xl">
-					OpenQuok is a free, open-source social media scheduler
-				</h2>
-				<p class="mx-auto mt-4 max-w-2xl text-base text-base-content/75">
-					Self-host at no cost, or start a 7-day hosted trial. Connect your channels. Review each
-					draft on the calendar or kanban. Publish from the dashboard, or send drafts from agents with
-					skills, MCP, and the Public API.
-				</p>
-				<div class="mt-6 flex justify-center">
-					<ButtonGlitchBrightness
-						class="w-full max-w-sm justify-center rounded-full px-8 sm:w-auto"
-						variant="primary"
-						size="lg"
-						href={signUpPath}
-						preload="off"
-					>
-						Start for $0
-					</ButtonGlitchBrightness>
-				</div>
-			</div>
-		</section>
-	{/if}
+	<PublicComparePageSectionNav sections={navSections} placement="inline" class="container mx-auto mt-10 max-w-7xl px-4" />
 
-	<section class="container mx-auto mt-16 max-w-5xl scroll-mt-24 px-4">
-		<div class="mx-auto max-w-3xl space-y-4 text-center">
-			<p class={sectionHeroTheme.subtitleClass}>overview</p>
-			<h2
-				id="alternatives-target-overview"
-				class="text-2xl font-black tracking-tight text-balance sm:text-3xl lg:text-4xl"
+	<div
+		class="container mx-auto mt-10 grid max-w-7xl gap-10 px-4 lg:grid-cols-[minmax(0,1fr)_min(100%,16rem)] lg:gap-12"
+	>
+		<div class="min-w-0">
+			<PublicCompareDirectoryLongForm
+				{longForm}
+				heroTheme={sectionHeroTheme}
+				benefitsHeroTheme={landingHeroTheme}
+				leftProduct={detailVm.openQuokProduct}
+				rightProduct={detailVm.targetProduct}
+				compareRows={detailVm.compareRows}
+				channelsSection={detailVm.channelsSection}
+				directoryCoverageSection={detailVm.directoryCoverageSection}
+				withWithoutSection={detailVm.withWithoutSection}
+				isDirectoryCompare={detailVm.isDirectoryTarget}
+				omitCompareMatrixSections={true}
+				{compareNamePrimaryClass}
+				{compareNameAccentClass}
+				iconStyleForProduct={(slug) => iconStyleForProduct(slug)}
 			>
-				About{' '}
-				<CompareProductLink slug={detailVm.targetSlug}>{detailVm.targetName}</CompareProductLink>
-			</h2>
-			<p class="text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg">
-				{detailVm.targetTagline}
-			</p>
-		</div>
-		<p class="mt-6 text-base leading-relaxed text-base-content/80">
-			{detailVm.targetOverview}
-		</p>
-	</section>
+				{#snippet yourOptionsExtra()}
+					<div id="alternatives-best-list" class="scroll-mt-24">
+						<FeaturesSectionHeader
+							heroTheme={sectionHeroTheme}
+							headingId="alternatives-best-list-heading"
+							subtitle="ranked picks"
+							title={`Best alternatives to ${detailVm.targetName}`}
+							description={`See alternatives to ${detailVm.targetName}. You can compare prices, channels, and features.`}
+						/>
+						<div class="mt-10 space-y-6">
+							{#each listings as listing (listing.slug)}
+								<PublicAlternativesListingCard
+									listingVm={listing}
+									targetName={detailVm.targetName}
+									iconContainerClass={iconStyleForProduct(listing.slug).cardContainerClass}
+									iconClass={iconStyleForProduct(listing.slug).iconClass}
+								/>
+							{/each}
+						</div>
+					</div>
+				{/snippet}
+			</PublicCompareDirectoryLongForm>
 
-	<section class="container mx-auto mt-16 max-w-5xl scroll-mt-24 px-4">
-		<FeaturesSectionHeader
-			heroTheme={sectionHeroTheme}
-			headingId="alternatives-best-list"
-			subtitle="ranked picks"
-			title={`Best alternatives to ${detailVm.targetName}`}
-			description={`See alternatives to ${detailVm.targetName}. You can compare prices, channels, and features.`}
-		/>
-
-		<div class="mt-10 space-y-6">
-			{#each listings as listing (listing.slug)}
-				<PublicAlternativesListingCard
-					listingVm={listing}
-					targetName={detailVm.targetName}
-					iconContainerClass={iconStyleForProduct(listing.slug).cardContainerClass}
-					iconClass={iconStyleForProduct(listing.slug).iconClass}
-				/>
-			{/each}
+			<PublicFaq heroTheme={faqHeroTheme} {faqItems} sectionClass="mt-20 scroll-mt-24" />
 		</div>
-	</section>
+
+		<PublicComparePageSectionNav sections={navSections} placement="sidebar" />
+	</div>
 
 	{#if otherTargets.length > 0}
 		<SimpleCardGrid
 			heroTheme={sectionHeroTheme}
 			headingId="alternatives-other-targets"
-			subtitle="more directories"
+			subtitle={detailVm.isDirectoryTarget ? 'more directories' : 'more schedulers'}
 			title="Explore more alternatives"
-			description="Open other alternative directories."
+			description="Open other alternative directories in the same category."
 			items={[
 				{
 					id: 'all-alternatives',
@@ -194,7 +203,7 @@
 				}))
 			]}
 			getItemKey={(item) => item.id}
-			sectionClass="pt-20 pb-0"
+			sectionClass="container mx-auto max-w-5xl px-4 pt-20 pb-0"
 			patternComponent={StripedPattern}
 			patternClass="text-primary/12 stroke-[0.75]"
 		>
@@ -210,10 +219,6 @@
 	{/if}
 
 	<div class="container mx-auto max-w-5xl px-4">
-		<PublicFaq heroTheme={faqHeroTheme} {faqItems} sectionClass="mt-20" />
-	</div>
-
-	<div class="container mx-auto px-4">
 		<AccentSplitCtaBanner
 			title="See plans and pricing"
 			description="See OpenQuok prices, channels, and agent tools. Then pick a plan."

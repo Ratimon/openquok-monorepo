@@ -1,12 +1,33 @@
 import {
 	ALTERNATIVES_TARGET_SLUGS,
 	COMPARE_HUB_BASE_SLUG,
+	canCompareProducts,
+	getComparePair,
 	getCompareProduct,
 	getCompareProductWebsiteUrl,
 	listAlternativeProductsFor,
 	type CompareProduct,
 	type CompareProductSlug
 } from '$lib/content/constants/competitors';
+import {
+	buildCompareChannelSectionsForPair,
+	type CompareDirectoryCoverageViewModel
+} from '$lib/content/constants/competitors/utils/compareChannelSections';
+import {
+	buildAlternativesLongFormViewModel,
+	buildAlternativesPeerHubLinks,
+	mergeAlternativePeerLinksBySlug
+} from '$lib/content/constants/competitors/buildAlternativesLongForm';
+import { getCompareProductCategory } from '$lib/content/constants/competitors/utils/compareProductCategories';
+import type { PublicAgentComparisonSection } from '$lib/content/constants/agents/types';
+import type {
+	CompareDetailLongFormViewModel
+} from '$lib/content/constants/competitors/types';
+import { PUBLIC_PRICING_COMPARE_ROWS } from '$lib/billing/constants/publicPricingCatalog';
+import type {
+	CompareFeatureRowViewModel,
+	CompareProductSummaryViewModel
+} from '$lib/area-public/PublicComparePage.presenter.svelte';
 import type { IconName } from '$data/icons';
 
 import { route, url } from '$lib/utils/path';
@@ -63,6 +84,14 @@ export type AlternativesDetailViewModel = {
 	targetOverview: string;
 	listings: AlternativesListingViewModel[];
 	otherTargets: AlternativesHubEntryViewModel[];
+	longForm: CompareDetailLongFormViewModel;
+	isDirectoryTarget: boolean;
+	openQuokProduct: CompareProductSummaryViewModel;
+	targetProduct: CompareProductSummaryViewModel;
+	compareRows: CompareFeatureRowViewModel[];
+	channelsSection: PublicAgentComparisonSection | null;
+	directoryCoverageSection: CompareDirectoryCoverageViewModel | null;
+	withWithoutSection: PublicAgentComparisonSection;
 };
 
 export class PublicAlternativesPagePresenter {
@@ -114,9 +143,58 @@ export class PublicAlternativesPagePresenter {
 			this.buildListingVm(product, targetProduct, index + 1)
 		);
 
-		const otherTargets = ALTERNATIVES_TARGET_SLUGS.filter((slug) => slug !== targetSlug).map((slug) =>
-			this.buildHubEntryVm(slug)
+		const otherTargets = ALTERNATIVES_TARGET_SLUGS.filter((slug) => {
+			if (slug === targetSlug) return false;
+			const peer = getCompareProduct(slug);
+			return peer != null && canCompareProducts(targetProduct, peer);
+		}).map((slug) => this.buildHubEntryVm(slug));
+
+		const openQuok = getCompareProduct(COMPARE_HUB_BASE_SLUG);
+		if (!openQuok) return null;
+
+		const isDirectoryTarget =
+			getCompareProductCategory(targetProduct) === 'directory_submission';
+
+		const builtLongForm = buildAlternativesLongFormViewModel(targetProduct);
+		if (!builtLongForm) return null;
+
+		const hubPeers = buildAlternativesPeerHubLinks(
+			targetSlug,
+			otherTargets.map((entry) => entry.slug)
 		);
+		const longForm: CompareDetailLongFormViewModel = {
+			...builtLongForm,
+			otherAlternativePeers: mergeAlternativePeerLinksBySlug(
+				builtLongForm.otherAlternativePeers,
+				hubPeers
+			)
+		};
+
+		const comparePair = getComparePair(COMPARE_HUB_BASE_SLUG, targetSlug);
+		const withWithoutSection =
+			comparePair?.withWithoutSection ??
+			({
+				subtitle: 'comparisons',
+				title: `Alternatives to ${targetProduct.name}`,
+				description: `See how options compare to ${targetProduct.name}.`,
+				withoutTitle: targetProduct.name,
+				withTitle: openQuok.name,
+				points: []
+			} satisfies PublicAgentComparisonSection);
+
+		const compareRowSource = isDirectoryTarget
+			? PUBLIC_PRICING_COMPARE_ROWS.filter((row) => row.line === 'directory')
+			: PUBLIC_PRICING_COMPARE_ROWS;
+
+		const compareRows = compareRowSource.map((row) => ({
+			id: row.id,
+			label: row.label,
+			tooltip: row.tooltip,
+			left: openQuok.featureSupport[row.id] ?? { kind: 'excluded' as const },
+			right: targetProduct.featureSupport[row.id] ?? { kind: 'excluded' as const }
+		}));
+
+		const channelSections = buildCompareChannelSectionsForPair(openQuok, targetProduct);
 
 		const alternativeCountLabel =
 			listings.length === 1 ? '1 top alternative' : `${listings.length} top alternatives`;
@@ -124,7 +202,7 @@ export class PublicAlternativesPagePresenter {
 		return {
 			metaTitle: `Best ${targetProduct.name} Alternatives`,
 			metaDescription: `Compare alternatives to ${targetProduct.name}. See prices, channels, and agent tools. OpenQuok ranks first as an open-source option. Self-host for a $0 software fee, or start a 7-day hosted trial. See ${alternativeCountLabel}.`,
-			keywords: buildAlternativesDetailKeywords(targetProduct.name),
+			keywords: buildAlternativesDetailKeywords(targetProduct.name, isDirectoryTarget),
 			eyebrow: 'Alternatives',
 			title: `${targetProduct.name} alternatives`,
 			description: `See alternatives to ${targetProduct.name}. You can compare prices, channels, and features.`,
@@ -134,7 +212,15 @@ export class PublicAlternativesPagePresenter {
 			targetTagline: targetProduct.tagline,
 			targetOverview: targetProduct.overview,
 			listings,
-			otherTargets
+			otherTargets,
+			longForm,
+			isDirectoryTarget,
+			openQuokProduct: toProductSummary(openQuok),
+			targetProduct: toProductSummary(targetProduct),
+			compareRows,
+			channelsSection: channelSections.socialChannelsSection,
+			directoryCoverageSection: channelSections.directoryCoverageSection,
+			withWithoutSection
 		};
 	}
 
@@ -200,7 +286,22 @@ function buildAlternativeDetailDescription(
 	return `${product.name} is for ${product.comparison.builtFor}. ${product.name} ${product.comparison.positioningWhenLeft}.`;
 }
 
-function buildAlternativesDetailKeywords(competitorName: string): string[] {
+function buildAlternativesDetailKeywords(
+	competitorName: string,
+	isDirectoryTarget: boolean
+): string[] {
+	if (isDirectoryTarget) {
+		return [
+			`${competitorName} alternatives`,
+			`best ${competitorName} alternative`,
+			'directory submission service alternatives',
+			'done for you directory submissions',
+			'DIY directory launch',
+			`${competitorName} pricing`,
+			'startup directory launch'
+		];
+	}
+
 	return [
 		`${competitorName} alternatives`,
 		`best ${competitorName} alternative`,
@@ -212,4 +313,17 @@ function buildAlternativesDetailKeywords(competitorName: string): string[] {
 		'agent social media scheduling',
 		'multi-workspace scheduler'
 	];
+}
+
+function toProductSummary(product: CompareProduct): CompareProductSummaryViewModel {
+	return {
+		slug: product.slug,
+		name: product.name,
+		icon: product.icon,
+		tagline: product.tagline,
+		overview: product.overview,
+		pricingUnit: product.pricingUnit ?? 'flat',
+		pricingPlans: product.pricingPlans,
+		channels: product.channels
+	};
 }

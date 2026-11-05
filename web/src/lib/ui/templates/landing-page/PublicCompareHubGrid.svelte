@@ -9,6 +9,7 @@
 		landingHeroTheme,
 		PUBLIC_LANDING_MAIN_HERO_TITLE_CLASS
 	} from '$lib/ui/templates/landing-page/landingHeroTheme';
+	import InternalLink from '$lib/ui/links/InternalLink.svelte';
 
 	import InternalLink from '$lib/ui/links/InternalLink.svelte';
 	import PublicCompareHubProductPicker from '$lib/ui/components/compare/PublicCompareHubProductPicker.svelte';
@@ -35,9 +36,9 @@
 	const headingId = 'public-compare-hub-heading';
 
 	const cardGridHeroTheme = {
-		subtitleClass: 'text-xs font-bold tracking-wider text-primary uppercase',
-		parseLandingHeroTitlePartSegments: (text: string) => [{ text, highlight: false }]
-	} as const;
+		...landingHeroTheme,
+		subtitleClass: 'text-xs font-bold tracking-wider text-primary uppercase'
+	};
 
 	const heroHighlightGradientClass = $derived(
 		landingHeroTheme.titleSegmentClassWithOffset(

@@ -1,7 +1,3 @@
-<script module lang="ts">
-	let abstractIconInstance = 0;
-</script>
-
 <script lang="ts">
 	import type { IconEntry, IconName } from '$data/icons';
 	import { icons } from '$data/icons';
@@ -31,7 +27,8 @@
 		'aria-hidden': ariaHidden
 	}: Props = $props();
 
-	const instanceScope = `_${++abstractIconInstance}`;
+	/** Stable per instance on SSR + client (avoids {@html} hydration mismatch from a module counter). */
+	const instanceId = $props.id();
 
 	let meta = $derived(icons[name as IconName] as IconEntry | undefined);
 	let viewBox = $derived(
@@ -39,7 +36,7 @@
 	);
 	let isFill = $derived(meta?.fill === true);
 	let scopedSvg = $derived(
-		meta ? scopeSvgFragmentIds(meta.svg, `${meta.name}${instanceScope}_`) : ''
+		meta ? scopeSvgFragmentIds(meta.svg, `${meta.name}${instanceId}_`) : ''
 	);
 </script>
 
