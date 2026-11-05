@@ -1,22 +1,28 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import type { Offer, SoftwareApplication } from 'schema-dts';
+import { error } from '@sveltejs/kit';
 
 import type { JsonLdGraphNode } from '$lib/seo/jsonLdSchema';
 
-import { error } from '@sveltejs/kit';
-
 import { publicAlternativesPagePresenter } from '$lib/area-public';
 import type { AlternativesListingViewModel } from '$lib/area-public/PublicAlternativesPage.presenter.svelte';
+import {
+	formatAlternativesHubPlatformSupport
+} from '$lib/area-public/PublicAlternativesPage.presenter.svelte';
 import { getRootPathPublicAlternativesTarget } from '$lib/area-public/constants/getRootPathPublicAlternatives';
 import {
 	CONFIG_SCHEMA_COMPANY,
 	getPublicFaqConfigDefaults
 } from '$lib/config/constants/config';
-import { isAlternativesTargetSlug } from '$lib/content/constants/competitors';
+import { getCompareProduct, isAlternativesTargetSlug } from '$lib/content/constants/competitors';
+import { formatAlternativesHubPriceRange } from '$lib/content/constants/competitors/utils/comparePricing';
 import { buildAlternativesDetailNavSections } from '$lib/content/constants/competitors/comparePageSectionNav';
 import { createComparePageOnPageNavigationSchema } from '$lib/content/utils/createComparePageOnPageNavigationSchema';
 import { buildAlternativesDetailFaqItems } from '$lib/content/constants/faq/buildAlternativesDetailFaqItems';
+import {
+	parseAlternativesDetailFiltersFromUrl
+} from '$lib/content/constants/hubs/alternativesHubFilters';
+import { createAlternativesProductSoftwareApplicationSchema } from '$lib/content/utils/createAlternativesHubItemListSchema';
 import { buildAlternativesLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
@@ -33,7 +39,9 @@ export async function load({ url, params, cookies, parent }) {
 		throw error(404, 'Alternatives page not found');
 	}
 
-	const detailVm = publicAlternativesPagePresenter.buildDetailVm(slug);
+	const detailFiltersVm = parseAlternativesDetailFiltersFromUrl(url.searchParams);
+
+	const detailVm = publicAlternativesPagePresenter.buildDetailVm(slug, detailFiltersVm);
 	if (!detailVm) {
 		throw error(404, 'Alternatives page not found');
 	}
@@ -77,7 +85,7 @@ export async function load({ url, params, cookies, parent }) {
 		sections: onPageNavSections
 	});
 
-	const webPageNode = {
+	const webPageNode: JsonLdGraphNode = {
 		'@type': 'WebPage',
 		'@id': webPageId,
 		name: detailVm.metaTitle,
@@ -107,28 +115,37 @@ export async function load({ url, params, cookies, parent }) {
 		}
 	});
 
+	const alternativesItemListOrder =
+		detailFiltersVm.sort === 'platforms_desc'
+			? 'https://schema.org/ItemListOrderDescending'
+			: 'https://schema.org/ItemListOrderAscending';
+
+	const alternativesListId = `${canonical}#alternatives`;
+
 	const schemaData = createJsonLdGraph(
 		filterNonEmptyJsonLdNodes([
 			webPageNode,
 			...('nodes' in onPageNavigationSchema ? onPageNavigationSchema.nodes : []),
 			{
 				'@type': 'ItemList',
-				'@id': `${canonical}#alternatives`,
+				'@id': alternativesListId,
 				name: `Best alternatives to ${detailVm.targetName}`,
 				description: customDescription,
 				url: canonical,
 				numberOfItems: detailVm.listings.length,
+				itemListOrder: alternativesItemListOrder,
 				itemListElement: detailVm.listings.map((listing, index) => ({
 					'@type': 'ListItem',
 					position: index + 1,
 					item: {
-						'@id': `${canonical}#${listing.slug}`
+						'@id': `${canonical}#product-${listing.slug}`
 					}
 				}))
 			},
 			...detailVm.listings.map((listing) =>
-				createAlternativesSoftwareApplicationSEOSchema({
+				createAlternativesDetailSoftwareApplicationSchema({
 					canonical,
+					alternativesListId,
 					listing
 				})
 			),
@@ -152,46 +169,32 @@ export async function load({ url, params, cookies, parent }) {
 		pageMetaTags,
 		isLoggedIn,
 		detailVm,
+		detailFiltersVm,
 		faqItems,
 		schemaData
 	};
 }
 
-type CreateAlternativesSoftwareApplicationSEOSchemaParams = {
+type CreateAlternativesDetailSoftwareApplicationSchemaParams = {
 	canonical: string;
+	alternativesListId: string;
 	listing: AlternativesListingViewModel;
 };
 
-function createAlternativesSoftwareApplicationSEOSchema(
-	params: CreateAlternativesSoftwareApplicationSEOSchemaParams
+function createAlternativesDetailSoftwareApplicationSchema(
+	params: CreateAlternativesDetailSoftwareApplicationSchemaParams
 ): JsonLdGraphNode {
-	const { canonical, listing } = params;
+	const { canonical, alternativesListId, listing } = params;
+	const product = getCompareProduct(listing.slug);
+	if (!product) {
+		throw new Error(`Unknown compare product slug: ${listing.slug}`);
+	}
 
-	return {
-		'@type': 'SoftwareApplication',
-		'@id': `${canonical}#${listing.slug}`,
-		name: listing.name,
-		abstract: listing.tagline,
-		description: listing.overview,
-		applicationCategory: 'Social media scheduling application',
-		operatingSystem: 'Web',
-		url: listing.websiteUrl,
-		mainEntityOfPage: {
-			'@id': `${canonical}#webpage`
-		},
-		isPartOf: {
-			'@id': `${canonical}#alternatives`
-		},
-		...(listing.isOpenQuok ? { isAccessibleForFree: true } : {}),
-		...(listing.isOpenQuok
-			? {
-					offers: {
-						'@type': 'Offer',
-						price: '0',
-						priceCurrency: 'USD',
-						url: listing.websiteUrl
-					} satisfies Offer
-				}
-			: {})
-	} satisfies SoftwareApplication;
+	return createAlternativesProductSoftwareApplicationSchema({
+		pageUrl: canonical,
+		alternativesListId,
+		product,
+		platformSupportLabel: formatAlternativesHubPlatformSupport(product),
+		priceRangeLabel: formatAlternativesHubPriceRange(product.pricingPlans)
+	});
 }

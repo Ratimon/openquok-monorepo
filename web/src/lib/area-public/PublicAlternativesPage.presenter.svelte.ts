@@ -19,7 +19,14 @@ import {
 	mergeAlternativePeerLinksBySlug
 } from '$lib/content/constants/competitors/buildAlternativesLongForm';
 import { getCompareProductCategory } from '$lib/content/constants/competitors/utils/compareProductCategories';
+import { formatAlternativesHubPriceRange } from '$lib/content/constants/competitors/utils/comparePricing';
 import { PUBLIC_ALTERNATIVES_HUB } from '$lib/content/constants/hubs/alternatives';
+import type {
+	AlternativesDetailFilters,
+	AlternativesHubFilters,
+	AlternativesHubSort
+} from '$lib/content/constants/hubs/alternativesHubFilters';
+import { DEFAULT_ALTERNATIVES_HUB_SORT } from '$lib/content/constants/hubs/alternativesHubFilters';
 import type { PublicAgentComparisonSection } from '$lib/content/constants/agents/types';
 import type {
 	CompareDetailLongFormViewModel
@@ -37,6 +44,7 @@ import {
 	getRootPathPublicAlternativesComparePair,
 	getRootPathPublicAlternativesTarget
 } from '$lib/area-public/constants/getRootPathPublicAlternatives';
+import { getRootPathPublicComparePair } from '$lib/area-public/constants/getRootPathPublicCompare';
 import { publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 
 export type AlternativesHubEntryViewModel = {
@@ -46,6 +54,10 @@ export type AlternativesHubEntryViewModel = {
 	href: string;
 	title: string;
 	description: string;
+	/** Public list-price span across pricing plans (e.g. `$0–$49/mo`). */
+	priceRangeLabel: string;
+	/** Channel count or directory positioning for hub cards. */
+	platformSupportLabel: string;
 };
 
 export type AlternativesHubSectionViewModel = {
@@ -64,6 +76,7 @@ export type AlternativesHubViewModel = {
 	metaDescription: string;
 	keywords: string[];
 	eyebrow: string;
+	heroTitlePrefix: string;
 	heroHighlightText: string;
 	description: string;
 	socialSection: AlternativesHubSectionViewModel;
@@ -99,6 +112,7 @@ export type AlternativesDetailViewModel = {
 	otherTargets: AlternativesHubEntryViewModel[];
 	longForm: CompareDetailLongFormViewModel;
 	isDirectoryTarget: boolean;
+	isOpenQuokTarget: boolean;
 	openQuokProduct: CompareProductSummaryViewModel;
 	targetProduct: CompareProductSummaryViewModel;
 	compareRows: CompareFeatureRowViewModel[];
@@ -122,9 +136,13 @@ export class PublicAlternativesPagePresenter {
 	 */
 	buildHubVm(): AlternativesHubViewModel {
 		const allEntries = ALTERNATIVES_TARGET_SLUGS.map((slug) => this.buildHubEntryVm(slug));
-		const socialEntries = allEntries.filter(
-			(entry) => getCompareProductCategory(getCompareProduct(entry.slug)!) === 'social_scheduling'
-		);
+		const socialEntries = [
+			this.buildOpenQuokHubEntry(),
+			...allEntries.filter(
+				(entry) =>
+					getCompareProductCategory(getCompareProduct(entry.slug)!) === 'social_scheduling'
+			)
+		];
 		const directoryEntries = allEntries.filter(
 			(entry) =>
 				getCompareProductCategory(getCompareProduct(entry.slug)!) === 'directory_submission'
@@ -135,6 +153,7 @@ export class PublicAlternativesPagePresenter {
 			metaDescription: PUBLIC_ALTERNATIVES_HUB.metaDescription,
 			keywords: [...PUBLIC_ALTERNATIVES_HUB.keywords],
 			eyebrow: PUBLIC_ALTERNATIVES_HUB.eyebrow,
+			heroTitlePrefix: PUBLIC_ALTERNATIVES_HUB.heroTitlePrefix,
 			heroHighlightText: PUBLIC_ALTERNATIVES_HUB.heroHighlightText,
 			description: PUBLIC_ALTERNATIVES_HUB.description,
 			socialSection: buildAlternativesHubSection('social_scheduling', socialEntries),
@@ -142,14 +161,36 @@ export class PublicAlternativesPagePresenter {
 		};
 	}
 
-	buildDetailVm(targetSlug: CompareProductSlug): AlternativesDetailViewModel | null {
+	buildOpenQuokHubEntry(): AlternativesHubEntryViewModel {
+		const product = getCompareProduct(COMPARE_HUB_BASE_SLUG);
+		if (!product) {
+			throw new Error(`Unknown compare product slug: ${COMPARE_HUB_BASE_SLUG}`);
+		}
+
+		return buildAlternativesHubEntryFromProduct(product, {
+			title: 'OpenQuok alternatives',
+			description:
+				'Compare schedulers and directory services teams use instead of OpenQuok. You can compare prices, channels, and features.'
+		});
+	}
+
+	buildDetailVm(
+		targetSlug: CompareProductSlug,
+		detailFilters: AlternativesDetailFilters = { sort: DEFAULT_ALTERNATIVES_HUB_SORT }
+	): AlternativesDetailViewModel | null {
 		const targetProduct = getCompareProduct(targetSlug);
-		if (!targetProduct || targetSlug === COMPARE_HUB_BASE_SLUG) return null;
+		if (!targetProduct) return null;
+
+		const isOpenQuokTarget = targetSlug === COMPARE_HUB_BASE_SLUG;
 
 		const alternatives = listAlternativeProductsFor(targetSlug);
-		const listings = alternatives.map((product, index) =>
+		let listings = alternatives.map((product, index) =>
 			this.buildListingVm(product, targetProduct, index + 1)
 		);
+
+		if (detailFilters.sort !== DEFAULT_ALTERNATIVES_HUB_SORT) {
+			listings = sortAlternativesDetailListings(listings, detailFilters.sort);
+		}
 
 		const otherTargets = ALTERNATIVES_TARGET_SLUGS.filter((slug) => {
 			if (slug === targetSlug) return false;
@@ -161,6 +202,7 @@ export class PublicAlternativesPagePresenter {
 		if (!openQuok) return null;
 
 		const isDirectoryTarget =
+			!isOpenQuokTarget &&
 			getCompareProductCategory(targetProduct) === 'directory_submission';
 
 		const builtLongForm = buildAlternativesLongFormViewModel(targetProduct);
@@ -178,21 +220,29 @@ export class PublicAlternativesPagePresenter {
 			)
 		};
 
-		const comparePair = getComparePair(COMPARE_HUB_BASE_SLUG, targetSlug);
+		const comparePair = isOpenQuokTarget
+			? null
+			: getComparePair(COMPARE_HUB_BASE_SLUG, targetSlug);
 		const withWithoutSection =
 			comparePair?.withWithoutSection ??
 			({
 				subtitle: 'comparisons',
-				title: `Alternatives to ${targetProduct.name}`,
-				description: `See how options compare to ${targetProduct.name}.`,
-				withoutTitle: targetProduct.name,
+				title: isOpenQuokTarget
+					? 'Alternatives to OpenQuok'
+					: `Alternatives to ${targetProduct.name}`,
+				description: isOpenQuokTarget
+					? 'See how schedulers and directory services compare to OpenQuok.'
+					: `See how options compare to ${targetProduct.name}.`,
+				withoutTitle: isOpenQuokTarget ? 'Other products' : targetProduct.name,
 				withTitle: openQuok.name,
 				points: []
 			} satisfies PublicAgentComparisonSection);
 
-		const compareRowSource = isDirectoryTarget
-			? PUBLIC_PRICING_COMPARE_ROWS.filter((row) => row.line === 'directory')
-			: PUBLIC_PRICING_COMPARE_ROWS;
+		const compareRowSource = isOpenQuokTarget
+			? []
+			: isDirectoryTarget
+				? PUBLIC_PRICING_COMPARE_ROWS.filter((row) => row.line === 'directory')
+				: PUBLIC_PRICING_COMPARE_ROWS;
 
 		const compareRows = compareRowSource.map((row) => ({
 			id: row.id,
@@ -202,18 +252,36 @@ export class PublicAlternativesPagePresenter {
 			right: targetProduct.featureSupport[row.id] ?? { kind: 'excluded' as const }
 		}));
 
-		const channelSections = buildCompareChannelSectionsForPair(openQuok, targetProduct);
+		const channelSections = isOpenQuokTarget
+			? {
+					socialChannelsSection: null,
+					directoryCoverageSection: null
+				}
+			: buildCompareChannelSectionsForPair(openQuok, targetProduct);
 
 		const alternativeCountLabel =
 			listings.length === 1 ? '1 top alternative' : `${listings.length} top alternatives`;
 
+		const metaTitle = isOpenQuokTarget
+			? 'Best OpenQuok Alternatives'
+			: `Best ${targetProduct.name} Alternatives`;
+		const metaDescription = isOpenQuokTarget
+			? `Compare alternatives to OpenQuok. See social schedulers and directory submission services. Compare prices, channels, and agent tools. See ${alternativeCountLabel}.`
+			: `Compare alternatives to ${targetProduct.name}. See prices, channels, and agent tools. OpenQuok ranks first as an open-source option. Self-host for a $0 software fee, or start a 7-day hosted trial. See ${alternativeCountLabel}.`;
+
 		return {
-			metaTitle: `Best ${targetProduct.name} Alternatives`,
-			metaDescription: `Compare alternatives to ${targetProduct.name}. See prices, channels, and agent tools. OpenQuok ranks first as an open-source option. Self-host for a $0 software fee, or start a 7-day hosted trial. See ${alternativeCountLabel}.`,
-			keywords: buildAlternativesDetailKeywords(targetProduct.name, isDirectoryTarget),
+			metaTitle,
+			metaDescription,
+			keywords: buildAlternativesDetailKeywords(
+				targetProduct.name,
+				isDirectoryTarget,
+				isOpenQuokTarget
+			),
 			eyebrow: 'Alternatives',
 			title: `${targetProduct.name} alternatives`,
-			description: `See alternatives to ${targetProduct.name}. You can compare prices, channels, and features.`,
+			description: isOpenQuokTarget
+				? 'See schedulers and directory services teams evaluate instead of OpenQuok. You can compare prices, channels, and features.'
+				: `See alternatives to ${targetProduct.name}. You can compare prices, channels, and features.`,
 			targetSlug: targetProduct.slug,
 			targetName: targetProduct.name,
 			targetIcon: targetProduct.icon,
@@ -223,6 +291,7 @@ export class PublicAlternativesPagePresenter {
 			otherTargets,
 			longForm,
 			isDirectoryTarget,
+			isOpenQuokTarget,
 			openQuokProduct: toProductSummary(openQuok),
 			targetProduct: toProductSummary(targetProduct),
 			compareRows,
@@ -246,16 +315,35 @@ export class PublicAlternativesPagePresenter {
 	}
 
 	filterHubVm(hubVm: AlternativesHubViewModel, searchQuery: string): AlternativesHubViewModel {
+		return this.applyHubFilters(hubVm, { category: 'all', sort: 'name_asc', search: searchQuery });
+	}
+
+	applyHubFilters(
+		hubVm: AlternativesHubViewModel,
+		filters: AlternativesHubFilters
+	): AlternativesHubViewModel {
+		const searchQuery = filters.search ?? '';
+		const showSocial = filters.category === 'all' || filters.category === 'social';
+		const showDirectory = filters.category === 'all' || filters.category === 'directory';
+
 		return {
 			...hubVm,
-			socialSection: {
-				...hubVm.socialSection,
-				entries: this.filterHubEntries(hubVm.socialSection.entries, searchQuery)
-			},
-			directorySection: {
-				...hubVm.directorySection,
-				entries: this.filterHubEntries(hubVm.directorySection.entries, searchQuery)
-			}
+			socialSection: showSocial
+				? applyHubFiltersToSection(
+						hubVm.socialSection,
+						searchQuery,
+						filters.sort,
+						this.filterHubEntries.bind(this)
+					)
+				: { ...hubVm.socialSection, entries: [] },
+			directorySection: showDirectory
+				? applyHubFiltersToSection(
+						hubVm.directorySection,
+						searchQuery,
+						filters.sort,
+						this.filterHubEntries.bind(this)
+					)
+				: { ...hubVm.directorySection, entries: [] }
 		};
 	}
 
@@ -265,14 +353,7 @@ export class PublicAlternativesPagePresenter {
 			throw new Error(`Unknown compare product slug: ${slug}`);
 		}
 
-		return {
-			slug: product.slug,
-			name: product.name,
-			icon: product.icon,
-			href: url(route(getRootPathPublicAlternativesTarget(product.slug))),
-			title: `${product.name} alternatives`,
-			description: `Compare alternatives to ${product.name}. You can compare prices, channels, and features.`
-		};
+		return buildAlternativesHubEntryFromProduct(product);
 	}
 
 	private buildListingVm(
@@ -280,6 +361,14 @@ export class PublicAlternativesPagePresenter {
 		targetProduct: CompareProduct,
 		rank: number
 	): AlternativesListingViewModel {
+		const pair =
+			targetProduct.slug === COMPARE_HUB_BASE_SLUG
+				? getComparePair(product.slug, COMPARE_HUB_BASE_SLUG)
+				: getComparePair(product.slug, targetProduct.slug);
+		const comparePath = pair
+			? getRootPathPublicComparePair(pair.productASlug, pair.productBSlug)
+			: getRootPathPublicAlternativesComparePair(product.slug, targetProduct.slug);
+
 		return {
 			rank,
 			slug: product.slug,
@@ -289,18 +378,139 @@ export class PublicAlternativesPagePresenter {
 			overview: product.overview,
 			detailDescription: buildAlternativeDetailDescription(product, targetProduct),
 			websiteUrl: getCompareProductWebsiteUrl(product.slug),
-			compareHref: url(
-				route(getRootPathPublicAlternativesComparePair(product.slug, targetProduct.slug))
-			),
+			compareHref: url(route(comparePath)),
 			isOpenQuok: product.slug === COMPARE_HUB_BASE_SLUG
 		};
 	}
+}
+
+export function formatAlternativesHubPlatformSupport(product: CompareProduct): string {
+	if (getCompareProductCategory(product) === 'directory_submission') {
+		return '100+ platforms';
+	}
+
+	const count = resolveHubEntryPlatformCount(product);
+	return count === 1 ? '1 platform' : `${count} platforms`;
+}
+
+function buildAlternativesHubEntryFromProduct(
+	product: CompareProduct,
+	copy?: { title?: string; description?: string }
+): AlternativesHubEntryViewModel {
+	return {
+		slug: product.slug,
+		name: product.name,
+		icon: product.icon,
+		href: url(route(getRootPathPublicAlternativesTarget(product.slug))),
+		title: copy?.title ?? `${product.name} alternatives`,
+		description:
+			copy?.description ??
+			`Compare alternatives to ${product.name}. You can compare prices, channels, and features.`,
+		priceRangeLabel: formatAlternativesHubPriceRange(product.pricingPlans),
+		platformSupportLabel: formatAlternativesHubPlatformSupport(product)
+	};
+}
+
+export function resolveHubEntryLowestPrice(product: CompareProduct): number | null {
+	const prices = product.pricingPlans
+		.map((plan) => plan.monthlyPrice)
+		.filter((price): price is number => price != null);
+	if (prices.length === 0) return null;
+	return Math.min(...prices);
+}
+
+export function resolveHubEntryPlatformCount(product: CompareProduct): number {
+	return product.channels.length;
+}
+
+export function sortAlternativesHubEntries(
+	entries: AlternativesHubEntryViewModel[],
+	sort: AlternativesHubSort,
+	resolveProduct: (slug: CompareProductSlug) => CompareProduct | undefined = getCompareProduct
+): AlternativesHubEntryViewModel[] {
+	return [...entries].sort((left, right) => {
+		const leftProduct = resolveProduct(left.slug);
+		const rightProduct = resolveProduct(right.slug);
+
+		if (sort === 'name_asc' || !leftProduct || !rightProduct) {
+			return left.name.localeCompare(right.name);
+		}
+
+		if (sort === 'price_asc') {
+			const leftPrice = resolveHubEntryLowestPrice(leftProduct);
+			const rightPrice = resolveHubEntryLowestPrice(rightProduct);
+			if (leftPrice === null && rightPrice === null) {
+				return left.name.localeCompare(right.name);
+			}
+			if (leftPrice === null) return 1;
+			if (rightPrice === null) return -1;
+			if (leftPrice !== rightPrice) return leftPrice - rightPrice;
+			return left.name.localeCompare(right.name);
+		}
+
+		const leftPlatforms = resolveHubEntryPlatformCount(leftProduct);
+		const rightPlatforms = resolveHubEntryPlatformCount(rightProduct);
+		if (leftPlatforms !== rightPlatforms) return rightPlatforms - leftPlatforms;
+		return left.name.localeCompare(right.name);
+	});
+}
+
+export function sortAlternativesDetailListings(
+	listings: AlternativesListingViewModel[],
+	sort: AlternativesHubSort
+): AlternativesListingViewModel[] {
+	const sortedSlugs = sortAlternativesHubEntries(
+		listings.map((listing) => {
+			const product = getCompareProduct(listing.slug);
+			if (!product) {
+				throw new Error(`Unknown compare product slug: ${listing.slug}`);
+			}
+			return buildAlternativesHubEntryFromProduct(product, {
+				title: listing.name,
+				description: listing.overview
+			});
+		}),
+		sort
+	).map((entry) => entry.slug);
+
+	return sortedSlugs.map((slug, index) => {
+		const listing = listings.find((row) => row.slug === slug);
+		if (!listing) {
+			throw new Error(`Missing alternatives listing for slug: ${slug}`);
+		}
+		return { ...listing, rank: index + 1 };
+	});
+}
+
+function applyHubFiltersToSection(
+	section: AlternativesHubSectionViewModel,
+	searchQuery: string,
+	sort: AlternativesHubSort,
+	filterEntries: (
+		entries: AlternativesHubEntryViewModel[],
+		query: string
+	) => AlternativesHubEntryViewModel[]
+): AlternativesHubSectionViewModel {
+	const filtered = filterEntries(section.entries, searchQuery);
+	const pinnedOpenQuok = filtered.find((entry) => entry.slug === COMPARE_HUB_BASE_SLUG);
+	const peers = filtered.filter((entry) => entry.slug !== COMPARE_HUB_BASE_SLUG);
+	const sortedPeers = sortAlternativesHubEntries(peers, sort);
+	const entries = pinnedOpenQuok ? [pinnedOpenQuok, ...sortedPeers] : sortedPeers;
+
+	return {
+		...section,
+		entries
+	};
 }
 
 function buildAlternativeDetailDescription(
 	product: CompareProduct,
 	targetProduct: CompareProduct
 ): string {
+	if (targetProduct.slug === COMPARE_HUB_BASE_SLUG) {
+		return `${product.name} is for ${product.comparison.builtFor}. ${product.name} ${product.comparison.positioningWhenLeft}.`;
+	}
+
 	if (product.slug === COMPARE_HUB_BASE_SLUG) {
 		return `${product.name} is open source. Self-host for a $0 software fee (${publicFaqHref.selfHostingLanding}), or start a 7-day hosted trial. Teams leave ${targetProduct.name} for ${product.comparison.headline}, separate workspaces, and scheduling from skills, MCP, and the Public API.`;
 	}
@@ -331,8 +541,20 @@ function buildAlternativesHubSection(
 
 function buildAlternativesDetailKeywords(
 	competitorName: string,
-	isDirectoryTarget: boolean
+	isDirectoryTarget: boolean,
+	isOpenQuokTarget = false
 ): string[] {
+	if (isOpenQuokTarget) {
+		return [
+			'OpenQuok alternatives',
+			'best OpenQuok alternative',
+			'open source social media scheduler alternatives',
+			'directory submission service alternatives',
+			'social media scheduler alternatives',
+			'agent social media scheduling'
+		];
+	}
+
 	if (isDirectoryTarget) {
 		return [
 			`${competitorName} alternatives`,

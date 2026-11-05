@@ -39,7 +39,7 @@ const directorySubmissionToolHref = route(getRootPathPublicDirectorySubmissionTo
 export const PUBLIC_ALTERNATIVES_HUB = {
 	metaTitle: 'Social media scheduler and directory submission alternatives',
 	metaDescription:
-		'Compare alternatives to Buffer, Hootsuite, Later, BoringLaunch, and other schedulers and directory services. See ranked picks, pricing, channels, and agent workflows with OpenQuok first.',
+		'Compare pricing, supported platforms, and features across Buffer, Hootsuite, Later, BoringLaunch, and other social scheduler and directory submission alternatives. Ranked pages with list prices and compare links.',
 	keywords: [
 		'social media scheduler alternatives',
 		'directory submission service alternatives',
@@ -51,10 +51,12 @@ export const PUBLIC_ALTERNATIVES_HUB = {
 		'open source social media scheduler'
 	] as const,
 	eyebrow: 'Alternatives',
-	/** Gradient clause in the hub hero (after `Browse `). */
+	/** Plain clause before the gradient highlight in the hub H1 (e.g. `Find the right `). */
+	heroTitlePrefix: 'Find the right ',
+	/** Gradient clause in the hub hero (e.g. `alternatives`). */
 	heroHighlightText: 'alternatives',
 	description:
-		`See ranked alternatives for social schedulers and directory services.`,
+		'Compare pricing, supported platforms, and features across ranked social scheduler and directory submission alternatives. Filter by category, sort by price or platform count, then open each page for compare links.',
 	socialSection: {
 		sectionId: PUBLIC_ALTERNATIVES_HUB_SECTION_IDS.socialMediaSchedulers,
 		subtitle: 'Social scheduling',
@@ -84,6 +86,11 @@ export const PUBLIC_ALTERNATIVES_HUB_FAQ = {
 		'How ranked alternative pages work, where to start for Buffer, Hootsuite, or Postiz, directory submission alternatives, and how they relate to head-to-head compare pages.',
 	faqItems: appendPublicGeneralFaqItems(
 		[
+			{
+				title: 'Where should I start for OpenQuok alternatives?',
+				description:
+					`Open ${faqLink(route(getRootPathPublicAlternativesTarget('openquok')), 'OpenQuok alternatives')} for schedulers and directory services you can compare with OpenQuok. Use category and sort filters on the hub when you want a short list by price or platform count.`
+			},
 			{
 				title: 'Where should I start for Buffer alternatives?',
 				description:

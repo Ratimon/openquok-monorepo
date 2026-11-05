@@ -2,6 +2,7 @@ import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import type { AlternativesDetailViewModel } from '$lib/area-public/PublicAlternativesPage.presenter.svelte';
+import type { AlternativesDetailFilters } from '$lib/content/constants/hubs/alternativesHubFilters';
 
 import type { PublicFaqItem } from '$lib/content/constants/faq';
 
@@ -20,6 +21,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 		const serverData = data as {
 			pageMetaTags: MetaTagsProps;
 			detailVm: AlternativesDetailViewModel;
+			detailFiltersVm: AlternativesDetailFilters;
 			faqItems: PublicFaqItem[];
 			schemaData: unknown;
 		};
@@ -28,6 +30,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			...data,
 			pageMetaTags: serverData.pageMetaTags,
 			detailVm: serverData.detailVm,
+			detailFiltersVm: serverData.detailFiltersVm,
 			faqItems: serverData.faqItems,
 			schemaData: serverData.schemaData,
 			isLoggedIn: accurateIsLoggedIn,

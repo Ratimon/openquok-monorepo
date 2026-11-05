@@ -207,6 +207,41 @@ export const openquokCompareProduct: CompareProduct = {
 	pricingPlans: OPENQUOK_PRICING_PLANS,
 	channels: OPENQUOK_CHANNELS,
 	featureSupport: buildOpenQuokFeatureSupport(),
+	alternativesLongForm: {
+		whyPeopleLook: {
+			id: 'why-people-look',
+			navLabel: 'Why people look',
+			subtitle: 'Why people look',
+			title: 'Why teams look for OpenQuok alternatives',
+			body: [
+				'You may need a tool that fits an existing stack or procurement rules.',
+				'Some teams want a hosted scheduler without self-hosting or agent workflows.',
+				'Others want a done-for-you directory service instead of DIY launch.'
+			]
+		},
+		yourOptions: {
+			id: 'your-options',
+			navLabel: 'Your options',
+			subtitle: 'Your options',
+			title: 'Stay on OpenQuok, switch tools, or mix schedulers and directory services',
+			body: [
+				'You can keep OpenQuok, adopt another scheduler, or use a directory submission vendor.',
+				'This page ranks schedulers and directory services that pair with OpenQuok on compare.',
+				'Open each compare link to see prices, channels, and feature rows side by side.'
+			]
+		},
+		whenTheyWin: {
+			id: 'when-they-win',
+			navLabel: 'When they win',
+			subtitle: 'When they win',
+			title: 'When OpenQuok stays the better choice',
+			body: [
+				'You want open source scheduling with workspaces, MCP, CLI, and a Public API.',
+				'You self-host for a $0 software fee or use hosted tiers with a free trial.',
+				'You prefer DIY directory launch with the browser extension over per-site agency fees.'
+			]
+		}
+	},
 	comparison: {
 		headline: 'agent-native scheduling',
 		notAnother: 'browser-only scheduler',

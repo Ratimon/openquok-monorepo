@@ -1,8 +1,10 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import type { CompareProductSlug } from '$lib/content/constants/competitors';
+	import type { AlternativesHubFilters } from '$lib/content/constants/hubs/alternativesHubFilters';
 
-	import { publicAlternativesPagePresenter } from '$lib/area-public';
+	import { goto } from '$app/navigation';
+	import { buildAlternativesHubUrl } from '$lib/content/constants/hubs/alternativesHubFilters';
 	import { COMPARE_PRODUCT_ICON_STYLES_HUB } from '$lib/content/constants/competitors/compareProductIconStyles';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { route } from '$lib/utils/path';
@@ -32,10 +34,8 @@
 	let { data }: Props = $props();
 
 	let schemaData = $derived(data.schemaData);
-	let baseHubVm = $derived(data.hubVm);
-
-	let searchQuery = $state('');
-	let hubVm = $derived(publicAlternativesPagePresenter.filterHubVm(baseHubVm, searchQuery));
+	let hubVm = $derived(data.hubVm);
+	let filtersVm = $derived(data.filtersVm);
 
 	const rootPathSignUp = getRootPathSignup();
 	const signUpPath = route(rootPathSignUp);
@@ -46,8 +46,8 @@
 		return COMPARE_PRODUCT_ICON_STYLES_HUB[slug];
 	}
 
-	function handleSearchChange(value: string) {
-		searchQuery = value;
+	function handleFiltersChange(overrides: Partial<AlternativesHubFilters>) {
+		void goto(buildAlternativesHubUrl(filtersVm, overrides), { keepFocus: true });
 	}
 </script>
 
@@ -56,8 +56,8 @@
 <SectionOuterContainer class="py-0">
 	<PublicAlternativesHubGrid
 		{hubVm}
-		{searchQuery}
-		onSearchChange={handleSearchChange}
+		{filtersVm}
+		onFiltersChange={handleFiltersChange}
 		{iconStyleForProduct}
 	/>
 

@@ -2,10 +2,12 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import { publicAlternativesPagePresenter } from '$lib/area-public';
 import { getRootPathPublicAlternatives } from '$lib/area-public/constants/getRootPathPublicAlternatives';
+import { parseAlternativesHubFiltersFromUrl } from '$lib/content/constants/hubs/alternativesHubFilters';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { buildAlternativesLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { PUBLIC_ALTERNATIVES_HUB_FAQ } from '$lib/content/constants/hubs/alternatives';
 import { PUBLIC_PRODUCT_HUB_SOCIAL_VS_DIRECTORY_COMPARE } from '$lib/content/constants/hubs/productHubSocialVsDirectoryCompare';
+import { createAlternativesHubItemListSchema } from '$lib/content/utils/createAlternativesHubItemListSchema';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createPublicHubCompareSectionSchema } from '$lib/content/utils/createPublicHubCompareSectionSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
@@ -20,7 +22,9 @@ export async function load({ url, cookies, parent }) {
 	const { companyInformationPm, marketingInformationPm } = await parent();
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 
-	const hubVm = publicAlternativesPagePresenter.buildHubVm();
+	const filtersVm = parseAlternativesHubFiltersFromUrl(url.searchParams);
+	const baseHubVm = publicAlternativesPagePresenter.buildHubVm();
+	const hubVm = publicAlternativesPagePresenter.applyHubFilters(baseHubVm, filtersVm);
 	const customTitle = `${hubVm.metaTitle} | ${companyName}`;
 	const customDescription = hubVm.metaDescription;
 
@@ -47,13 +51,20 @@ export async function load({ url, cookies, parent }) {
 		}
 	});
 
-	const alternativePages = [
+	const hubListEntries = [
 		...hubVm.socialSection.entries,
 		...hubVm.directorySection.entries
-	].map((entry) => ({
-		name: entry.title,
-		url: new URL(entry.href, url.origin).href
-	}));
+	];
+	const { itemList: alternativesItemList, softwareApplications: alternativesProductSchemas } =
+		createAlternativesHubItemListSchema({
+			canonical,
+			origin: url.origin,
+			companyName,
+			name: 'Social media and directory submission alternatives',
+			description: hubVm.metaDescription,
+			entries: hubListEntries,
+			sort: filtersVm.sort
+		});
 
 	const webPageId = `${canonical}#webpage`;
 	const hubCompareSchema = createPublicHubCompareSectionSchema({
@@ -81,28 +92,8 @@ export async function load({ url, cookies, parent }) {
 				}
 			},
 			...hubCompareSchema.nodes,
-			{
-				'@type': 'ItemList',
-				'@id': `${canonical}#alternatives`,
-				name: 'Social media and directory submission alternatives',
-				url: canonical,
-				numberOfItems: alternativePages.length,
-				itemListElement: alternativePages.map((page, index) => ({
-					'@type': 'ListItem',
-					position: index + 1,
-					item: {
-						'@type': 'WebPage',
-						'@id': `${page.url}#webpage`,
-						name: page.name,
-						url: page.url,
-						isPartOf: {
-							'@type': 'WebSite',
-							name: companyName,
-							url: url.origin
-						}
-					}
-				}))
-			},
+			alternativesItemList,
+			...alternativesProductSchemas,
 			createPublicFaqSEOSchema({
 				pageUrl: `${canonical}#faq`,
 				name: PUBLIC_ALTERNATIVES_HUB_FAQ.faqTitle,
@@ -119,6 +110,7 @@ export async function load({ url, cookies, parent }) {
 	return {
 		pageMetaTags,
 		isLoggedIn,
+		filtersVm,
 		hubVm,
 		schemaData
 	};

@@ -1,4 +1,7 @@
-import type { CompareProductSlug } from '$lib/content/constants/competitors';
+import {
+	COMPARE_HUB_BASE_SLUG,
+	type CompareProductSlug
+} from '$lib/content/constants/competitors';
 import {
 	PUBLIC_ALTERNATIVES_DETAIL_SOCIAL_FAQ_ITEM_IDS,
 	PUBLIC_COMPARE_DETAIL_DIRECTORY_FAQ_ITEM_IDS,
@@ -24,6 +27,15 @@ function buildAlternativesSwitchFaqItem(
 	params: BuildAlternativesDetailFaqItemsParams
 ): PublicFaqItem {
 	const { targetName, targetSlug, isDirectoryTarget } = params;
+
+	if (targetSlug === COMPARE_HUB_BASE_SLUG) {
+		return {
+			title: 'What are common OpenQuok alternatives?',
+			description:
+				`Teams evaluate other social schedulers when they want a different pricing model, channel list, or hosted-only workflow. They also look at directory submission services when they prefer done-for-you listings over DIY launch in OpenQuok. Use the ranked list on this page and ${faqLink(publicFaqHref.compare, 'compare hub')} links for side-by-side matrices.`
+		};
+	}
+
 	const compareHref = faqHrefComparePair('openquok', targetSlug);
 	const compareLabel = `OpenQuok vs ${targetName}`;
 
@@ -47,6 +59,7 @@ export function buildAlternativesDetailFaqItems(
 	params: BuildAlternativesDetailFaqItemsParams
 ): PublicFaqItem[] {
 	const switchItem = buildAlternativesSwitchFaqItem(params);
+	const isOpenQuokTarget = params.targetSlug === COMPARE_HUB_BASE_SLUG;
 
 	if (params.isDirectoryTarget) {
 		const base = resolvePublicFaqItemsByIds(PUBLIC_COMPARE_DETAIL_DIRECTORY_FAQ_ITEM_IDS);
@@ -54,5 +67,8 @@ export function buildAlternativesDetailFaqItems(
 	}
 
 	const base = resolvePublicFaqItemsByIds(PUBLIC_ALTERNATIVES_DETAIL_SOCIAL_FAQ_ITEM_IDS);
-	return [switchItem, ...base];
+	const socialBase = isOpenQuokTarget
+		? base.filter((item) => item.id !== 'compare-both-social-and-directory')
+		: base;
+	return [switchItem, ...socialBase];
 }

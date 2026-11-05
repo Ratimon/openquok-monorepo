@@ -6,6 +6,7 @@ import {
 	PUBLIC_API_POSTING_HUB_FAQ,
 	PUBLIC_API_SCHEDULING_HUB_FAQ
 } from '$lib/content/constants/channels/api/_shared/publicApiCapabilityHubFaqConfig';
+import { PUBLIC_ALTERNATIVES_HUB_FAQ } from '$lib/content/constants/hubs/alternatives';
 import { PUBLIC_COMPARE_HUB_FAQ } from '$lib/content/constants/hubs/compare';
 import { PUBLIC_CREATORS_HUB_FAQ } from '$lib/content/constants/hubs/creators';
 import {
@@ -13,6 +14,7 @@ import {
 	PUBLIC_API_POSTING_HUB_FAQ_ITEM_IDS,
 	PUBLIC_API_SCHEDULING_HUB_FAQ_ITEM_IDS,
 	PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS,
+	PUBLIC_ALTERNATIVES_HUB_FAQ_ITEM_IDS,
 	PUBLIC_COMPARE_HUB_FAQ_ITEM_IDS,
 	PUBLIC_CREATORS_HUB_FAQ_ITEM_IDS,
 	PUBLIC_LISTINGS_HUB_FAQ_ITEM_IDS,
@@ -36,6 +38,11 @@ const HUB_FAQ_SECTIONS = [
 	{ name: '/agents hub', section: PUBLIC_AGENTS_HUB.faqSection, ids: PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS },
 	{ name: '/channels hub', section: PUBLIC_CHANNELS_HUB_FAQ, ids: PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS },
 	{ name: '/tools hub', section: PUBLIC_TOOLS_HUB_FAQ, ids: PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS },
+	{
+		name: '/alternatives hub',
+		section: PUBLIC_ALTERNATIVES_HUB_FAQ,
+		ids: PUBLIC_ALTERNATIVES_HUB_FAQ_ITEM_IDS
+	},
 	{ name: '/compare hub', section: PUBLIC_COMPARE_HUB_FAQ, ids: PUBLIC_COMPARE_HUB_FAQ_ITEM_IDS },
 	{ name: '/creators hub', section: PUBLIC_CREATORS_HUB_FAQ, ids: PUBLIC_CREATORS_HUB_FAQ_ITEM_IDS },
 	{ name: '/roadmap hub', section: PUBLIC_ROADMAP_HUB_FAQ, ids: PUBLIC_ROADMAP_HUB_FAQ_ITEM_IDS },
@@ -85,6 +92,12 @@ describe('pSEO hub FAQ funnel links', () => {
 			});
 		});
 	}
+
+	it('alternatives hub links OpenQuok alternatives detail from tailored copy', () => {
+		const html = PUBLIC_ALTERNATIVES_HUB_FAQ.faqItems.map((item) => item.description).join('\n');
+		expect(html).toContain('href="/alternatives/openquok"');
+		expect(html).toContain('OpenQuok alternatives');
+	});
 
 	it('compare hub links buffer compare and pricing from git-default copy', () => {
 		const html = PUBLIC_COMPARE_HUB_FAQ.faqItems.map((item) => item.description).join('\n');

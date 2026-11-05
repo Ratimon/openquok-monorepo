@@ -29,4 +29,16 @@ describe('buildAlternativesDetailFaqItems', () => {
 		expect(items[0]?.description).toContain('BoringLaunch');
 		expect(items[0]?.description).toContain('/alternatives/boringlaunch');
 	});
+
+	it('uses an OpenQuok-specific lead question on the OpenQuok alternatives page', () => {
+		const items = buildAlternativesDetailFaqItems({
+			targetName: 'OpenQuok',
+			targetSlug: 'openquok',
+			isDirectoryTarget: false
+		});
+
+		expect(items[0]?.title).toBe('What are common OpenQuok alternatives?');
+		expect(items[0]?.description).not.toContain('Why switch from OpenQuok to OpenQuok');
+		expect(items[0]?.description).toContain(publicFaqHref.compare);
+	});
 });

@@ -1,7 +1,10 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import type { CompareProductSlug } from '$lib/content/constants/competitors';
+	import type { AlternativesDetailFilters } from '$lib/content/constants/hubs/alternativesHubFilters';
 
+	import { goto } from '$app/navigation';
+	import { buildAlternativesDetailUrl } from '$lib/content/constants/hubs/alternativesHubFilters';
 	import { getRootPathPublicAlternatives } from '$lib/area-public/constants/getRootPathPublicAlternatives';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { route } from '$lib/utils/path';
@@ -32,6 +35,7 @@
 	import StripedPattern from '$lib/ui/patterns/StripedPattern.svelte';
 	import FeaturesSectionHeader from '$lib/ui/templates/feature-grid/FeaturesSectionHeader.svelte';
 	import PublicAlternativesLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicAlternativesLandingBreadcrumb.svelte';
+	import PublicAlternativesDetailListToolbar from '$lib/ui/templates/alternatives/PublicAlternativesDetailListToolbar.svelte';
 	import SimpleCardGrid from '$lib/ui/templates/feature-grid/SimpleCardGrid.svelte';
 	import SimpleLinkCard from '$lib/ui/templates/feature-grid/SimpleLinkCard.svelte';
 	import CompareProductLink from '$lib/ui/links/CompareProductLink.svelte';
@@ -42,6 +46,7 @@
 	let { data }: Props = $props();
 
 	let detailVm = $derived(data.detailVm);
+	let detailFiltersVm = $derived(data.detailFiltersVm);
 	let schemaData = $derived(data.schemaData);
 	let faqItems = $derived(data.faqItems);
 	let listings = $derived(detailVm.listings);
@@ -77,6 +82,12 @@
 	function iconStyleForProduct(slug: CompareProductSlug) {
 		return getCompareProductHeroCardIconStyles(slug);
 	}
+
+	function handleDetailSortChange(sort: AlternativesDetailFilters['sort']) {
+		void goto(buildAlternativesDetailUrl(detailVm.targetSlug, detailFiltersVm, { sort }), {
+			keepFocus: true
+		});
+	}
 </script>
 
 <JsonLdHead schemaData={schemaData} />
@@ -109,7 +120,7 @@
 			{detailVm.description}
 		</p>
 		<div class="flex flex-col items-center justify-center gap-3 pt-2 sm:flex-row">
-			{#if detailVm.isDirectoryTarget}
+			{#if detailVm.isDirectoryTarget || detailVm.isOpenQuokTarget}
 				<InternalLink
 					href={longForm.directorySubmissionToolPath}
 					class="btn btn-primary my-2 w-full max-w-sm rounded-full px-8 text-sm sm:w-auto sm:max-w-none sm:px-10 sm:text-base"
@@ -119,7 +130,7 @@
 			{/if}
 			<ButtonGlitchBrightness
 				class="my-2 w-full max-w-sm justify-center rounded-full px-8 text-sm sm:w-auto sm:max-w-none sm:px-10 sm:text-base"
-				variant={detailVm.isDirectoryTarget ? 'outline' : 'primary'}
+				variant={detailVm.isDirectoryTarget && !detailVm.isOpenQuokTarget ? 'outline' : 'primary'}
 				size="lg"
 				href={signUpPath}
 				preload="off"
@@ -158,9 +169,17 @@
 							headingId="alternatives-best-list-heading"
 							subtitle="ranked picks"
 							title={`Best alternatives to ${detailVm.targetName}`}
-							description={`See alternatives to ${detailVm.targetName}. You can compare prices, channels, and features.`}
+							description={detailVm.isOpenQuokTarget
+								? 'See schedulers and directory services teams evaluate instead of OpenQuok. You can compare prices, channels, and features.'
+								: `See alternatives to ${detailVm.targetName}. You can compare prices, channels, and features.`}
 						/>
-						<div class="mt-10 space-y-6">
+						<PublicAlternativesDetailListToolbar
+							class="mt-6"
+							filtersVm={detailFiltersVm}
+							listingCount={listings.length}
+							onSortChange={handleDetailSortChange}
+						/>
+						<div class="mt-6 space-y-6">
 							{#each listings as listing (listing.slug)}
 								<PublicAlternativesListingCard
 									listingVm={listing}
@@ -184,9 +203,15 @@
 		<SimpleCardGrid
 			heroTheme={sectionHeroTheme}
 			headingId="alternatives-other-targets"
-			subtitle={detailVm.isDirectoryTarget ? 'more directories' : 'more schedulers'}
+			subtitle={detailVm.isOpenQuokTarget
+				? 'more products'
+				: detailVm.isDirectoryTarget
+					? 'more directories'
+					: 'more schedulers'}
 			title="Explore more alternatives"
-			description="Open other alternative directories in the same category."
+			description={detailVm.isOpenQuokTarget
+				? 'Open alternative directories for schedulers and directory services.'
+				: 'Open other alternative directories in the same category.'}
 			items={[
 				{
 					id: 'all-alternatives',

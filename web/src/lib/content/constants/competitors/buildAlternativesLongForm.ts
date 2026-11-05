@@ -11,7 +11,8 @@ import { getRootPathPublicAlternativesTarget } from '$lib/area-public/constants/
 import {
 	assembleDirectoryLongFormViewModel,
 	assembleSocialAlternativesLongFormViewModel,
-	buildDefaultSocialAlternativesLongFormContent
+	buildDefaultSocialAlternativesLongFormContent,
+	buildOpenQuokOtherAlternativesSection
 } from '$lib/content/constants/competitors/buildCompareLongFormSections';
 import {
 	COMPARE_HUB_BASE_SLUG,
@@ -26,6 +27,22 @@ export function buildAlternativesLongFormViewModel(
 ): CompareDetailLongFormViewModel | null {
 	const openQuok = getCompareProduct(COMPARE_HUB_BASE_SLUG);
 	if (!openQuok) return null;
+
+	if (target.slug === COMPARE_HUB_BASE_SLUG) {
+		const content =
+			target.alternativesLongForm ?? buildDefaultSocialAlternativesLongFormContent(target);
+		const peers = buildOpenQuokAlternativesLongFormPeers();
+		const assembled = assembleSocialAlternativesLongFormViewModel({
+			competitor: target,
+			openQuok,
+			content,
+			otherAlternativePeers: peers
+		});
+		return {
+			...assembled,
+			otherAlternatives: buildOpenQuokOtherAlternativesSection()
+		};
+	}
 
 	const category = primaryAlternativesCategory(target);
 	const peers = buildAlternativesLongFormPeers(target.slug, category);
@@ -51,6 +68,18 @@ export function buildAlternativesLongFormViewModel(
 function primaryAlternativesCategory(target: CompareProduct): CompareProductCategory {
 	const category = getCompareProductCategory(target);
 	return category === 'directory_submission' ? 'directory_submission' : 'social_scheduling';
+}
+
+function buildOpenQuokAlternativesLongFormPeers(): CompareLongFormPeerLink[] {
+	const socialPeers = buildAlternativesLongFormPeers(
+		COMPARE_HUB_BASE_SLUG,
+		'social_scheduling'
+	);
+	const directoryPeers = buildAlternativesLongFormPeers(
+		COMPARE_HUB_BASE_SLUG,
+		'directory_submission'
+	);
+	return mergeAlternativePeerLinksBySlug(socialPeers, directoryPeers);
 }
 
 function buildAlternativesLongFormPeers(

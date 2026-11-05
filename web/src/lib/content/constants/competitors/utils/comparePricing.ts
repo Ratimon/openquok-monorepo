@@ -39,6 +39,42 @@ function formatUsd(amount: number): string {
 	return amount.toLocaleString('en-US', { maximumFractionDigits: 2 });
 }
 
+/** Public list-price formatting for compare and alternatives hub cards. */
+export function formatCompareListPriceUsd(amount: number): string {
+	return `$${formatUsd(amount)}`;
+}
+
+function formatAlternativesHubPriceSpan(low: number, high: number, suffix: '/mo' | ' one-time'): string {
+	const lowLabel = formatCompareListPriceUsd(low);
+	if (low === high) {
+		return suffix === '/mo' ? `${lowLabel}/mo` : `${lowLabel}${suffix}`;
+	}
+	return `${lowLabel}–${formatCompareListPriceUsd(high)}${suffix}`;
+}
+
+/** Lowest–highest public package prices for alternatives hub cards. */
+export function formatAlternativesHubPriceRange(plans: ComparePricingPlan[]): string {
+	const oneTimePlans = plans.filter((plan) => plan.pricePeriod === 'one_time');
+	const recurringPlans = plans.filter((plan) => (plan.pricePeriod ?? 'monthly') !== 'one_time');
+
+	const numericPrices = (source: ComparePricingPlan[]) =>
+		source.map((plan) => plan.monthlyPrice).filter((price): price is number => price != null);
+
+	if (oneTimePlans.length > 0 && recurringPlans.length === 0) {
+		const prices = numericPrices(oneTimePlans);
+		if (prices.length === 0) return 'Custom pricing';
+		return formatAlternativesHubPriceSpan(
+			Math.min(...prices),
+			Math.max(...prices),
+			' one-time'
+		);
+	}
+
+	const prices = numericPrices(recurringPlans.length > 0 ? recurringPlans : plans);
+	if (prices.length === 0) return 'Custom pricing';
+	return formatAlternativesHubPriceSpan(Math.min(...prices), Math.max(...prices), '/mo');
+}
+
 /** Scale per-channel list prices to a total monthly estimate for `channelCount` accounts. */
 export function scaleComparePlansToChannelTotal(
 	plans: ComparePricingPlan[],

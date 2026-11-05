@@ -18,6 +18,9 @@
 		description?: string;
 		ctaLabel?: string;
 		badgeLabel?: string;
+		/** Optional hub metrics row (alternatives directory cards). */
+		priceRangeLabel?: string;
+		platformSupportLabel?: string;
 	};
 
 	type Props = {
@@ -77,8 +80,47 @@
 				{item.description}
 			</p>
 		{/if}
-		<span class="mt-auto self-end text-sm font-medium text-primary" aria-hidden="true">
-			{item.ctaLabel ?? 'Explore'}
-		</span>
+		<div
+			class={[
+				'mt-auto flex flex-wrap items-end justify-between gap-3',
+				item.priceRangeLabel || item.platformSupportLabel
+					? 'border-t border-primary/15 pt-4'
+					: 'pt-3'
+			].join(' ')}
+		>
+			{#if item.priceRangeLabel || item.platformSupportLabel}
+				<dl
+					class="min-w-0 flex-1 space-y-2.5 rounded-xl border border-primary/25 bg-primary/5 px-3 py-2.5 ring-1 ring-primary/10"
+				>
+					{#if item.priceRangeLabel}
+						<div class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+							<dt class="text-xs font-bold tracking-wider text-primary uppercase">Price</dt>
+							<dd class="text-sm font-semibold tabular-nums text-primary">
+								{item.priceRangeLabel}
+							</dd>
+						</div>
+					{/if}
+					{#if item.platformSupportLabel}
+						<div class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+							<dt class="text-xs font-bold tracking-wider text-secondary uppercase">
+								Platforms
+							</dt>
+							<dd class="text-sm font-semibold text-secondary">
+								{item.platformSupportLabel}
+							</dd>
+						</div>
+					{/if}
+				</dl>
+			{/if}
+			<span
+				class={[
+					'shrink-0 text-sm font-semibold text-primary',
+					item.priceRangeLabel || item.platformSupportLabel ? '' : 'ms-auto'
+				].join(' ')}
+				aria-hidden="true"
+			>
+				{item.ctaLabel ?? 'Explore'}
+			</span>
+		</div>
 	</div>
 </PatternedCardShell>

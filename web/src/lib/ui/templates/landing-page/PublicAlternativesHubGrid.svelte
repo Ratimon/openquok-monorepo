@@ -1,6 +1,11 @@
 <script lang="ts">
 	import type { AlternativesHubViewModel } from '$lib/area-public/PublicAlternativesPage.presenter.svelte';
 	import type { CompareProductSlug } from '$lib/content/constants/competitors';
+	import type {
+		AlternativesHubCategory,
+		AlternativesHubFilters,
+		AlternativesHubSort
+	} from '$lib/content/constants/hubs/alternativesHubFilters';
 
 	import {
 		landingHeroTheme,
@@ -8,6 +13,7 @@
 	} from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import InternalLink from '$lib/ui/links/InternalLink.svelte';
 	import PublicAlternativesHubSectionHeading from '$lib/ui/components/alternatives/PublicAlternativesHubSectionHeading.svelte';
+	import PublicAlternativesHubToolbar from '$lib/ui/templates/alternatives/PublicAlternativesHubToolbar.svelte';
 	import PublicAlternativesLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicAlternativesLandingBreadcrumb.svelte';
 	import PublicHubSearchBar from '$lib/ui/templates/public-hub/PublicHubSearchBar.svelte';
 	import SimpleCardGrid from '$lib/ui/templates/feature-grid/SimpleCardGrid.svelte';
@@ -21,12 +27,30 @@
 
 	type Props = {
 		hubVm: AlternativesHubViewModel;
-		searchQuery: string;
-		onSearchChange: (value: string) => void;
+		filtersVm: AlternativesHubFilters;
+		onFiltersChange: (overrides: Partial<AlternativesHubFilters>) => void;
 		iconStyleForProduct: (slug: CompareProductSlug) => ProductIconStyle;
 	};
 
-	let { hubVm, searchQuery, onSearchChange, iconStyleForProduct }: Props = $props();
+	let { hubVm, filtersVm, onFiltersChange, iconStyleForProduct }: Props = $props();
+
+	let searchDraft = $state('');
+
+	$effect(() => {
+		searchDraft = filtersVm.search ?? '';
+	});
+
+	const showSocialSection = $derived(
+		filtersVm.category === 'all' || filtersVm.category === 'social'
+	);
+	const showDirectorySection = $derived(
+		filtersVm.category === 'all' || filtersVm.category === 'directory'
+	);
+
+	function applySearch() {
+		const term = searchDraft.trim();
+		onFiltersChange({ search: term || undefined });
+	}
 
 	const headingId = 'public-alternatives-hub-heading';
 
@@ -56,6 +80,8 @@
 			iconClass: iconStyleForProduct(entry.slug).iconClass,
 			href: entry.href,
 			description: entry.description,
+			priceRangeLabel: entry.priceRangeLabel,
+			platformSupportLabel: entry.platformSupportLabel,
 			ctaLabel: 'Open'
 		}));
 	}
@@ -68,7 +94,7 @@
 		</div>
 		<h1 id={headingId} class={`flex flex-col items-center ${alternativesHubHeroTitleClass}`}>
 			<span class={PUBLIC_SOCIAL_AUTOPILOT_HERO_TITLE_LINE_CLASS}>
-				<span class="inline-block shrink-0 text-base-content">Browse</span>
+				<span class="inline-block shrink-0 text-base-content">{hubVm.heroTitlePrefix}</span>
 				<span class={heroHighlightGradientClass}>{hubVm.heroHighlightText}</span>
 			</span>
 		</h1>
@@ -77,14 +103,21 @@
 		</p>
 	</header>
 
-	<div class="container mx-auto max-w-5xl px-4 pt-8">
+	<div class="container mx-auto max-w-5xl space-y-3 px-4 pt-8">
 		<PublicHubSearchBar
-			bind:value={searchQuery}
+			class="[&_input]:border-primary/20"
+			bind:value={searchDraft}
 			placeholder="Search alternatives…"
-			onchange={onSearchChange}
+			onchange={() => applySearch()}
+		/>
+		<PublicAlternativesHubToolbar
+			{filtersVm}
+			onCategoryChange={(category: AlternativesHubCategory) => onFiltersChange({ category })}
+			onSortChange={(sort: AlternativesHubSort) => onFiltersChange({ sort })}
 		/>
 	</div>
 
+	{#if showSocialSection}
 	<div class="mt-12">
 		<PublicAlternativesHubSectionHeading section={hubVm.socialSection} />
 
@@ -123,8 +156,15 @@
 			</InternalLink>
 		</p>
 	</div>
+	{/if}
 
-	<div class="mt-12 border-t border-base-content/10 pt-10 md:mt-14 md:pt-14">
+	{#if showDirectorySection}
+	<div
+		class={[
+			'mt-12 pt-10 md:mt-14 md:pt-14',
+			showSocialSection ? 'border-t border-base-content/10' : ''
+		]}
+	>
 		<PublicAlternativesHubSectionHeading section={hubVm.directorySection} />
 
 		<SimpleCardGrid
@@ -162,4 +202,5 @@
 			</InternalLink>
 		</p>
 	</div>
+	{/if}
 </section>

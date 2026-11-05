@@ -161,13 +161,24 @@ export function getCompareProductWebsiteUrl(slug: CompareProductSlug): string {
 }
 
 export function isAlternativesTargetSlug(slug: string): slug is CompareProductSlug {
-	return ALTERNATIVES_TARGET_SLUGS.includes(slug.trim().toLowerCase() as CompareProductSlug);
+	const key = slug.trim().toLowerCase() as CompareProductSlug;
+	if (key === COMPARE_HUB_BASE_SLUG) {
+		return getCompareProduct(key) != null;
+	}
+	return ALTERNATIVES_TARGET_SLUGS.includes(key);
 }
 
-/** Alternatives to `targetSlug`, with OpenQuok ranked first when present. */
+/** Alternatives to `targetSlug`, with OpenQuok ranked first when present (except on the OpenQuok target page). */
 export function listAlternativeProductsFor(targetSlug: CompareProductSlug): CompareProduct[] {
 	const target = getCompareProduct(targetSlug);
 	if (!target) return [];
+
+	if (target.slug === COMPARE_HUB_BASE_SLUG) {
+		return PUBLIC_COMPARE_PRODUCTS.filter((product) => {
+			if (product.slug === target.slug) return false;
+			return canCompareProducts(target, product);
+		}).sort((left, right) => left.name.localeCompare(right.name));
+	}
 
 	return PUBLIC_COMPARE_PRODUCTS.filter((product) => {
 		if (product.slug === target.slug) return false;

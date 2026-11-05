@@ -32,8 +32,8 @@ Competitor data powers:
 | --- | --- | --- |
 | Compare hub | `/compare` | Two sections — **Social media schedulers** and **Directory submission services** — each with OpenQuok as base and category-scoped dropdown + cards |
 | Compare detail | `/compare/{productA}/{productB}` | Head-to-head when `getComparePair` succeeds (same category overlap); **404** on cross-category pairs (e.g. Buffer vs BoringLaunch) |
-| Alternatives hub | `/alternatives` | Directory card per **non-OpenQuok** competitor (`ALTERNATIVES_TARGET_SLUGS`) |
-| Alternatives detail | `/alternatives/{slug}` | Long-form sections + sticky **On this page** nav when `directoryLongForm` or default social long-form applies; ranked listings; OpenQuok #1 |
+| Alternatives hub | `/alternatives` | Social and directory sections; pinned **OpenQuok alternatives** card in the social section; competitor cards from `ALTERNATIVES_TARGET_SLUGS`; category, sort, and search query params (`alternativesHubFilters.ts`) |
+| Alternatives detail | `/alternatives/{slug}` | Long-form sections + sticky **On this page** nav when `directoryLongForm` or default social long-form applies; ranked listings; OpenQuok #1 on competitor targets; **`/alternatives/openquok`** lists comparable peers (schedulers + directory) without OpenQuok as a peer row |
 
 **No new route files** are required for compare or alternatives when adding a competitor — only data + the manual steps below.
 
@@ -54,7 +54,7 @@ Use one **lowercase kebab-case** slug everywhere:
 - `COMPARE_PRODUCT_WEBSITE_URLS` key
 - Branded icon registry key (PascalCase, e.g. `Hootsuite` → `icons.Hootsuite.name`)
 
-Do **not** add OpenQuok as an alternatives **target** — `COMPARE_HUB_BASE_SLUG` (`openquok`) is excluded from `ALTERNATIVES_TARGET_SLUGS` by design.
+Do **not** add `openquok` to **`ALTERNATIVES_TARGET_SLUGS`** — that array drives auto-generated competitor hub cards only. OpenQuok still has a **manual** hub card (`buildOpenQuokHubEntry`) and a public detail route via **`isAlternativesTargetSlug('openquok')`** and **`listAlternativeProductsFor('openquok')`**.
 
 ---
 
@@ -179,7 +179,7 @@ After `PUBLIC_COMPARE_PRODUCTS` and `COMPARE_PRODUCT_WEBSITE_URLS` are updated:
 | `PublicComparePagePresenter` | Dual hub sections, detail VMs (`layout`, `longForm`, directory-only compare rows), related comparisons, SEO copy |
 | `buildComparePair.ts` | `layout`, `longForm` VM for `directory_long_form`; directory FAQ ids + DR guarantee FAQ where appropriate |
 | Compare detail UI | `PublicCompareDirectoryLongForm.svelte`, `PublicComparePageSectionNav.svelte` when `layout === 'directory_long_form'` |
-| `PublicAlternativesPagePresenter` | Hub directory entries, detail listings, search filter |
+| `PublicAlternativesPagePresenter` | Hub sections, pinned OpenQuok card, `applyHubFilters` (category / sort / search), detail listings, OpenQuok target page |
 | `buildComparePair.ts` | Meta titles, keywords, with/without sections for new pairs |
 | Compare/alternatives `+page.server.ts` | JSON-LD `ItemList` / `SoftwareApplication` nodes |
 | Footer | `PUBLIC_FOOTER_LINKS` → Alternatives hub already points at `/alternatives` |
@@ -189,14 +189,20 @@ Smoke-test URLs:
 - `/compare` — new product in the **correct hub section** dropdown and cards (social vs directory)
 - `/compare/openquok/{slug}` and `/compare/{slug}/openquok` — matrix layout for schedulers; **long-form + sticky nav (xl+)** for directory services
 - `/compare/{socialSlug}/{directorySlug}` — must **404** (cross-category)
-- `/alternatives` — new “{Name} alternatives” card (grouped by category on the hub when applicable)
-- `/alternatives/{slug}` — OpenQuok #1, other competitors listed, compare + website links work
+- `/alternatives` — new “{Name} alternatives” card in the correct section; hub filters (`?category=`, `?sort=`, `?search=`) and pinned **OpenQuok alternatives** card in the social section
+- `/alternatives/openquok` — peer schedulers and directory services; no OpenQuok listing row; optional `?sort=` matches hub sort semantics
+- `/alternatives/{slug}` — OpenQuok #1 on competitor targets, other competitors listed, compare + website links work
 
 Automated coverage (extend when adding competitors):
 
 - `web/src/lib/content/constants/competitors/utils/compareProductCategories.test.ts` — `canCompareProducts`, `listComparePairsForHub`, `getComparePair`, layout + `buildDetailVm` for directory pairs
 - `web/src/lib/content/constants/competitors/submission/boringlaunch.compareProduct.test.ts` — slug, website URL, categories, pricing shape for the reference directory competitor
 - `web/src/lib/area-public/PublicComparePage.presenter.test.ts` — hub section pair hrefs and directory detail smoke paths
+- `web/src/lib/area-public/PublicAlternativesPage.presenter.test.ts` — OpenQuok hub card, `applyHubFilters`, OpenQuok detail peers, sort helpers
+- `web/src/lib/content/constants/hubs/alternativesHubFilters.test.ts` — URL parse/build for hub and detail sort query params
+- `web/src/lib/content/utils/createAlternativesHubItemListSchema.test.ts` — filtered hub `ItemList` + `SoftwareApplication` JSON-LD
+- `web/src/lib/content/constants/faq/buildAlternativesDetailFaqItems.test.ts` — per-target FAQ lead questions (including OpenQuok)
+- `web/src/lib/content/constants/hubs/hub-faq-links.test.ts` — `/alternatives` hub FAQ funnel links (includes OpenQuok alternatives detail)
 
 ---
 
@@ -226,7 +232,7 @@ Only update when **OpenQuok product facts** change (pricing tiers, limits, chann
 - Pull plan limits from `openquok-common` (`planLimitsForTier`, etc.) — do not hand-copy prices.
 - Channels from `listAvailablePublicChannelCompareLabels()` (every public catalog channel, including coming-soon — no per-channel edit in `openquok.ts`).
 - `featureSupport` built dynamically in `buildOpenQuokFeatureSupport()`.
-- OpenQuok is `COMPARE_HUB_BASE_SLUG`; it is **not** an alternatives target slug.
+- OpenQuok is `COMPARE_HUB_BASE_SLUG`; it is **not** in `ALTERNATIVES_TARGET_SLUGS` (no duplicate auto hub card). Hub and detail exceptions: **`buildOpenQuokHubEntry`**, **`isAlternativesTargetSlug('openquok')`**, and **`alternativesLongForm`** / OpenQuok-specific detail FAQ on `/alternatives/openquok`.
 
 ---
 
@@ -237,6 +243,7 @@ Update when the new competitor should appear in marketing prose (not required fo
 | File | When |
 | --- | --- |
 | `web/src/lib/config/constants/config.ts` | `PUBLIC_HUB_DOCS_BANNERS.alternatives.description` or pricing banner copy that names competitors |
+| `web/src/lib/content/constants/hubs/alternatives.ts` | Hub FAQ or hero copy when the new competitor should be named on `/alternatives` (OpenQuok alternatives FAQ links `/alternatives/openquok`) |
 | `web/src/lib/content/constants/faq/index.ts` | FAQ answers that mention specific schedulers by name; compare `faqItemIds` use `PublicFaqItemId` + `resolvePublicFaqItemsByIds` (**web-landing-faqs**) |
 
 ---

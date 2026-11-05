@@ -36,6 +36,19 @@ export function buildSocialOtherAlternativesSection(competitorName: string): Com
 	};
 }
 
+export function buildOpenQuokOtherAlternativesSection(): CompareLongFormSection {
+	return {
+		id: 'other-alternatives',
+		navLabel: 'Other alternatives',
+		subtitle: 'Other alternatives',
+		title: 'Other product alternative pages',
+		body: [
+			'Open alternatives pages for schedulers and directory services.',
+			'Use the compare hub for a feature matrix between two products.'
+		]
+	};
+}
+
 export function personalizeWhenTheyWinSection(
 	section: CompareLongFormSection,
 	competitorName: string
