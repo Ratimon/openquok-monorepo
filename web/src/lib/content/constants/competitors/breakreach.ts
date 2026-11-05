@@ -82,7 +82,7 @@ export const breakreachCompareProduct: CompareProduct = {
 	icon: icons.Breakreach.name,
 	tagline: 'AI-native scheduler with ChatGPT, Claude, MCP, and twelve networks',
 	overview:
-		'Breakreach is a hosted social scheduling product built for AI assistants and agents. You connect up to twelve networks once, then schedule from ChatGPT, Claude, the hosted MCP server, or the REST API. It includes a visual calendar, unified inbox, analytics, AI content ideas, and webhooks — with account-based plans from Starter through Agency.',
+		'Breakreach is a hosted scheduler for AI agents. Connect up to twelve networks once. Schedule from ChatGPT, Claude, MCP, or the REST API.',
 	pricingPlans: BREAKREACH_PRICING_PLANS,
 	channels: BREAKREACH_CHANNELS,
 	featureSupport: BREAKREACH_FEATURE_SUPPORT,

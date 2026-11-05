@@ -86,7 +86,7 @@ export const post2allCompareProduct: CompareProduct = {
 	icon: icons.Post2all.name,
 	tagline: 'Social scheduler for teams and AI agents across thirteen networks',
 	overview:
-		'post2all is a hosted social media scheduling platform for creators, teams, and agencies. You can cross-post with per-account captions, use a visual calendar and analytics, and drive publishing from the dashboard, REST API, TypeScript SDK, CLI, or MCP — with flat plans from Creator through Agency and a seven-day free trial.',
+		'post2all is a hosted scheduler for creators and teams. Cross-post with per-account captions. Use the dashboard, REST API, SDK, CLI, or MCP.',
 	pricingPlans: POST2ALL_PRICING_PLANS,
 	channels: POST2ALL_CHANNELS,
 	featureSupport: POST2ALL_FEATURE_SUPPORT,

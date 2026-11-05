@@ -96,7 +96,7 @@ export const boringlaunchCompareProduct: CompareProduct = {
 	icon: icons.BoringLaunch.name,
 	tagline: 'Done-for-you startup directory submissions in about seven days',
 	overview:
-		'BoringLaunch is a done-for-you directory service for founders and SaaS teams. You submit product details once. Their team lists you on 50–100+ directories in about seven days and sends a report.',
+		'BoringLaunch submits your product to directories for you. Send product details once. The team lists you on 50–100+ sites in about seven days and sends a report.',
 	pricingPlans: BORINGLAUNCH_PRICING_PLANS,
 	channels: [],
 	featureSupport: BORINGLAUNCH_FEATURE_SUPPORT,

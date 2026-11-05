@@ -57,7 +57,7 @@ export const usebardCompareProduct: CompareProduct = {
 	icon: icons.UseBard.name,
 	tagline: 'Music-promo short video clips, edited and scheduled for you',
 	overview:
-		'UseBard is a music-promotion workflow for musicians, DJs, and producers. Upload raw video clips, approve short edits with your track added, and UseBard schedules them to TikTok, Instagram Reels, YouTube Shorts, and Facebook — aimed at artists who want posting handled without manual editing.',
+		'UseBard helps musicians promote tracks on short-form video. Upload clips, approve edits with your track, and schedule to TikTok, Reels, Shorts, and Facebook.',
 	pricingPlans: USEBARD_PRICING_PLANS,
 	channels: USEBARD_CHANNELS,
 	featureSupport: USEBARD_FEATURE_SUPPORT,

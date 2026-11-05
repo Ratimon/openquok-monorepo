@@ -86,7 +86,7 @@ export const recurpostCompareProduct: CompareProduct = {
 	icon: icons.RecurPost.name,
 	tagline: 'Agency social scheduler with evergreen recycling since 2016',
 	overview:
-		'RecurPost is a social media management tool and scheduler for agencies, freelancers, and teams managing multiple accounts. Plan campaigns, tailor posts per network, collect client approvals with a shareable link, recycle evergreen content, and send white-label reports — with per-profile pricing from $9/month and a 14-day free trial.',
+		'RecurPost is a scheduler for agencies and freelancers. Plan campaigns, recycle evergreen posts, and share client approvals. Pricing is per profile.',
 	pricingPlans: RECURPOST_PRICING_PLANS,
 	channels: RECURPOST_CHANNELS,
 	featureSupport: RECURPOST_FEATURE_SUPPORT,

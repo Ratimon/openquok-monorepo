@@ -45,3 +45,12 @@ export const PUBLIC_COMPARE_HUB_SECTION_IDS = {
 
 export type PublicCompareHubSectionId =
 	(typeof PUBLIC_COMPARE_HUB_SECTION_IDS)[keyof typeof PUBLIC_COMPARE_HUB_SECTION_IDS];
+
+/** Scroll targets on `/alternatives` for hub section headings. */
+export const PUBLIC_ALTERNATIVES_HUB_SECTION_IDS = {
+	socialMediaSchedulers: 'public-alternatives-social-schedulers-heading',
+	directorySubmissionServices: 'public-alternatives-directory-submission-heading'
+} as const;
+
+export type PublicAlternativesHubSectionId =
+	(typeof PUBLIC_ALTERNATIVES_HUB_SECTION_IDS)[keyof typeof PUBLIC_ALTERNATIVES_HUB_SECTION_IDS];

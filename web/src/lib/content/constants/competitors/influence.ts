@@ -87,7 +87,7 @@ export const influenceCompareProduct: CompareProduct = {
 	icon: icons.Influence.name,
 	tagline: 'AI social scheduler with Influence IQ and agent-ready MCP',
 	overview:
-		'Influence is an AI social media scheduler for creators, small businesses, and agencies. You connect social accounts, add Brand Guidelines, and plan campaigns on one calendar. Influence IQ suggests copy, media, and dates for each channel. You can schedule from the dashboard or from ChatGPT, Claude, and other agents through MCP setup guides.',
+		'Influence is an AI scheduler for creators and agencies. Connect accounts and plan on one calendar. Influence IQ suggests copy and dates. Use the dashboard or MCP.',
 	pricingPlans: INFLUENCE_PRICING_PLANS,
 	channels: INFLUENCE_CHANNELS,
 	featureSupport: INFLUENCE_FEATURE_SUPPORT,

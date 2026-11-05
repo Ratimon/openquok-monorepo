@@ -89,7 +89,7 @@ export const publerCompareProduct: CompareProduct = {
 	pricingUnit: 'per_channel',
 	tagline: 'Affordable social scheduler with bulk tools and agency workspaces',
 	overview:
-		'Publer is a social media management platform for creators, small businesses, and agencies. You get a drag-and-drop calendar, bulk CSV scheduling, Link in Bio, RSS automations, and optional analytics, API, and MCP on higher tiers — with per-account pricing from a free plan through Business and Enterprise.',
+		'Publer is social management for creators and agencies. It has a calendar, bulk CSV, Link in Bio, and RSS. Higher tiers add analytics, API, and MCP. Pricing is per account.',
 	pricingPlans: PUBLER_PRICING_PLANS,
 	channels: PUBLER_CHANNELS,
 	featureSupport: PUBLER_FEATURE_SUPPORT,

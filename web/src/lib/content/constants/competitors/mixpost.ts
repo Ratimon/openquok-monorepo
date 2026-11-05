@@ -83,7 +83,7 @@ export const mixpostCompareProduct: CompareProduct = {
 	icon: icons.Mixpost.name,
 	tagline: 'Open-source, self-hosted social suite with one-time paid editions',
 	overview:
-		'Mixpost is a self-hosted social media management platform for agencies, businesses, and creators who want data on their own infrastructure. Schedule across major networks, collaborate with unlimited team members, and extend Pro with analytics, approvals, API access, MCP, and webhooks — starting from a free open-source Lite edition or one-time Pro and Enterprise licenses.',
+		'Mixpost is self-hosted social management for agencies and teams. Schedule on major networks with unlimited team members. Pro adds analytics, approvals, API, and MCP.',
 	pricingPlans: MIXPOST_PRICING_PLANS,
 	channels: MIXPOST_CHANNELS,
 	featureSupport: MIXPOST_FEATURE_SUPPORT,

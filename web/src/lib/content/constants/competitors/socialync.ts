@@ -84,7 +84,7 @@ export const socialyncCompareProduct: CompareProduct = {
 	icon: icons.Socialync.name,
 	tagline: 'Cross-posting app for creators with mobile apps and MCP on the free tier',
 	overview:
-		'Socialync is a hosted cross-posting scheduler for creators, streamers, and small teams. You connect up to eight networks, upload once, and publish everywhere. The free plan includes five posts per month, MCP and API access, and official platform APIs. Paid plans add unlimited posts, analytics, AI captions, and a unified comment inbox.',
+		'Socialync is a cross-posting scheduler for creators and teams. Connect up to eight networks and upload once. The free plan includes MCP and API access.',
 	pricingPlans: SOCIALYNC_PRICING_PLANS,
 	channels: SOCIALYNC_CHANNELS,
 	featureSupport: SOCIALYNC_FEATURE_SUPPORT,

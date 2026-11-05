@@ -2,8 +2,8 @@
 	import type { PageData } from './$types';
 	import type { CompareProductSlug } from '$lib/content/constants/competitors';
 
-	import { COMPARE_PRODUCT_ICON_STYLES_HUB } from '$lib/content/constants/competitors/compareProductIconStyles';
 	import { publicAlternativesPagePresenter } from '$lib/area-public';
+	import { COMPARE_PRODUCT_ICON_STYLES_HUB } from '$lib/content/constants/competitors/compareProductIconStyles';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { route } from '$lib/utils/path';
 
@@ -15,30 +15,28 @@
 		PUBLIC_HUB_DOCS_BANNERS
 	} from '$lib/config/constants/config';
 
+	import { PUBLIC_ALTERNATIVES_HUB_FAQ } from '$lib/content/constants/hubs/alternatives';
+	import { PUBLIC_PRODUCT_HUB_SOCIAL_VS_DIRECTORY_COMPARE } from '$lib/content/constants/hubs/productHubSocialVsDirectoryCompare';
+	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
+
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
-	import PublicHubSearchBar from '$lib/ui/templates/public-hub/PublicHubSearchBar.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
-	import PublicAlternativesLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicAlternativesLandingBreadcrumb.svelte';
+	import Compare from '$lib/ui/templates/Compare.svelte';
+	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
+	import PublicAlternativesHubGrid from '$lib/ui/templates/landing-page/PublicAlternativesHubGrid.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
-	import StripedPattern from '$lib/ui/patterns/StripedPattern.svelte';
-	import SimpleCardGrid from '$lib/ui/templates/feature-grid/SimpleCardGrid.svelte';
-	import SimpleLinkCard from '$lib/ui/templates/feature-grid/SimpleLinkCard.svelte';
-	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	type Props = { data: PageData };
 
 	let { data }: Props = $props();
 
 	let schemaData = $derived(data.schemaData);
-	let hubVm = $derived(data.hubVm);
+	let baseHubVm = $derived(data.hubVm);
 
 	let searchQuery = $state('');
-	let filteredEntries = $derived(
-		publicAlternativesPagePresenter.filterHubEntries(hubVm.entries, searchQuery)
-	);
+	let hubVm = $derived(publicAlternativesPagePresenter.filterHubVm(baseHubVm, searchQuery));
 
-	// /sign-up
 	const rootPathSignUp = getRootPathSignup();
 	const signUpPath = route(rootPathSignUp);
 
@@ -55,66 +53,36 @@
 
 <JsonLdHead schemaData={schemaData} />
 
-<SectionOuterContainer class="py-10 md:py-14">
-	<header class="container mx-auto max-w-4xl space-y-4 px-4 text-center">
-		<div class="flex justify-center">
-			<PublicAlternativesLandingBreadcrumb variant="hub" />
-		</div>
-		<h1 class="text-3xl font-black tracking-tight text-base-content sm:text-4xl">
-			{hubVm.title}
-		</h1>
-		<p class="mx-auto max-w-2xl text-base text-base-content/70">
-			{hubVm.description}
-		</p>
-	</header>
+<SectionOuterContainer class="py-0">
+	<PublicAlternativesHubGrid
+		{hubVm}
+		{searchQuery}
+		onSearchChange={handleSearchChange}
+		{iconStyleForProduct}
+	/>
 
-	<div class="container mx-auto max-w-5xl px-4 pt-8">
-		<PublicHubSearchBar
-			bind:value={searchQuery}
-			placeholder="Search alternatives…"
-			onchange={handleSearchChange}
-		/>
-	</div>
-
-	<SimpleCardGrid
-		heroTheme={{
-			...landingHeroTheme,
-			subtitleClass: 'text-xs font-bold tracking-wider text-primary uppercase'
-		}}
-		headingId="public-alternatives-grid-heading"
-		title=""
-		items={filteredEntries.map((entry) => ({
-			id: entry.slug,
-			title: entry.title,
-			iconName: entry.icon,
-			iconContainerClass: iconStyleForProduct(entry.slug).containerClass,
-			iconClass: iconStyleForProduct(entry.slug).iconClass,
-			href: entry.href,
-			description: entry.description,
-			ctaLabel: 'Compare tools'
-		}))}
-		getItemKey={(item) => item.id}
-		sectionClass="pt-10 pb-0"
-		patternComponent={StripedPattern}
-		patternClass="text-primary/12 stroke-[0.75]"
-	>
-		{#snippet card(item, context)}
-			<SimpleLinkCard
-				{item}
-				pattern={context.pattern}
-				patternComponent={context.patternComponent}
-				patternClass={context.patternClass}
-			/>
-		{/snippet}
-	</SimpleCardGrid>
-
-	{#if filteredEntries.length === 0}
-		<p class="container mx-auto max-w-5xl px-4 pt-8 text-center text-base text-base-content/60">
-			No alternatives matched your search. Try another tool name.
-		</p>
-	{/if}
+	<Compare
+		heroTheme={landingHeroTheme}
+		headingId={PUBLIC_PRODUCT_HUB_SOCIAL_VS_DIRECTORY_COMPARE.schemaFragmentId}
+		landingSubtitle={PUBLIC_PRODUCT_HUB_SOCIAL_VS_DIRECTORY_COMPARE.subtitle}
+		landingTitle={PUBLIC_PRODUCT_HUB_SOCIAL_VS_DIRECTORY_COMPARE.title}
+		landingDescription={PUBLIC_PRODUCT_HUB_SOCIAL_VS_DIRECTORY_COMPARE.description}
+		leftTitle={PUBLIC_PRODUCT_HUB_SOCIAL_VS_DIRECTORY_COMPARE.leftTitle}
+		rightTitle={PUBLIC_PRODUCT_HUB_SOCIAL_VS_DIRECTORY_COMPARE.rightTitle}
+		points={[...PUBLIC_PRODUCT_HUB_SOCIAL_VS_DIRECTORY_COMPARE.points]}
+		sectionClass="border-t border-base-content/10 bg-base-100 py-16 sm:py-20"
+	/>
 
 	<div class="container mx-auto px-4">
+		<PublicFaq
+			heroTheme={landingHeroTheme}
+			faqSubtitle={PUBLIC_ALTERNATIVES_HUB_FAQ.faqSubtitle}
+			faqTitle={PUBLIC_ALTERNATIVES_HUB_FAQ.faqTitle}
+			faqDescription={PUBLIC_ALTERNATIVES_HUB_FAQ.faqDescription}
+			faqItems={[...PUBLIC_ALTERNATIVES_HUB_FAQ.faqItems]}
+			sectionClass="py-12 sm:py-16"
+		/>
+
 		<AccentSplitCtaBanner
 			title={alternativesHubDocsBanner.title}
 			description={alternativesHubDocsBanner.description}

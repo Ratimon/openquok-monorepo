@@ -85,7 +85,7 @@ export const postBridgeCompareProduct: CompareProduct = {
 	icon: icons.PostBridge.name,
 	tagline: 'Straightforward hosted cross-poster for creators and small teams',
 	overview:
-		'PostBridge is a hosted social scheduling tool focused on fast cross-posting. Connect major networks, tailor copy per platform or account, schedule posts (including carousels and bulk video), and optionally automate through a paid HTTP API add-on with MCP support — with flat Creator, Growth, and Pro plans plus a small free tier.',
+		'PostBridge is a hosted tool for fast cross-posting. Connect major networks and tailor copy per platform. Paid plans can add HTTP API and MCP.',
 	pricingPlans: POST_BRIDGE_PRICING_PLANS,
 	channels: POST_BRIDGE_CHANNELS,
 	featureSupport: POST_BRIDGE_FEATURE_SUPPORT,

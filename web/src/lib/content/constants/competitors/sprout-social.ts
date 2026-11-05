@@ -95,7 +95,7 @@ export const sproutSocialCompareProduct: CompareProduct = {
 	pricingUnit: 'per_seat',
 	tagline: 'Enterprise social suite with publishing, care, and listening',
 	overview:
-		'Sprout Social is a social media management platform for marketing and care teams. Plans cover publishing, Smart Inbox engagement, analytics, AI Assist, and optional listening — with per-seat pricing, profile limits on lower tiers, and a Sprout API on Advanced.',
+		'Sprout Social is a platform for marketing and care teams. Plans include publishing, Smart Inbox, analytics, and AI Assist. Pricing is per seat.',
 	pricingPlans: SPROUT_SOCIAL_PRICING_PLANS,
 	channels: SPROUT_SOCIAL_CHANNELS,
 	featureSupport: SPROUT_SOCIAL_FEATURE_SUPPORT,

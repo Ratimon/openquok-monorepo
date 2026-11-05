@@ -4,7 +4,9 @@ import { publicComparePagePresenter } from '$lib/area-public';
 import { getRootPathPublicCompare } from '$lib/area-public/constants/getRootPathPublicCompare';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { PUBLIC_COMPARE_HUB_FAQ } from '$lib/content/constants/hubs/compare';
+import { PUBLIC_PRODUCT_HUB_SOCIAL_VS_DIRECTORY_COMPARE } from '$lib/content/constants/hubs/productHubSocialVsDirectoryCompare';
 import { buildCompareLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
+import { createPublicHubCompareSectionSchema } from '$lib/content/utils/createPublicHubCompareSectionSchema';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
@@ -98,11 +100,18 @@ export async function load({ url, cookies, parent }) {
 		directoryComparisonsList ? directoryComparisonsList['@id'] : null
 	].filter(Boolean);
 
+	const webPageId = `${canonical}#webpage`;
+	const hubCompareSchema = createPublicHubCompareSectionSchema({
+		canonical,
+		webPageId,
+		section: PUBLIC_PRODUCT_HUB_SOCIAL_VS_DIRECTORY_COMPARE
+	});
+
 	const schemaData = createJsonLdGraph(
 		filterNonEmptyJsonLdNodes([
 			{
 				'@type': 'CollectionPage',
-				'@id': `${canonical}#webpage`,
+				'@id': webPageId,
 				name: hubVm.metaTitle,
 				description: hubVm.metaDescription,
 				url: canonical,
@@ -114,12 +123,14 @@ export async function load({ url, cookies, parent }) {
 									: mainEntityIds.map((id) => ({ '@id': id! }))
 						}
 					: {}),
+				hasPart: [hubCompareSchema.webPageHasPartRef],
 				isPartOf: {
 					'@type': 'WebSite',
 					name: companyName,
 					url: url.origin
 				}
 			},
+			...hubCompareSchema.nodes,
 			...(socialComparisonsList ? [socialComparisonsList] : []),
 			...(directoryComparisonsList ? [directoryComparisonsList] : []),
 			createPublicFaqSEOSchema({

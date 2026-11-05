@@ -88,7 +88,7 @@ export const hootsuiteCompareProduct: CompareProduct = {
 	pricingUnit: 'per_seat',
 	tagline: 'Social marketing suite with Wisdom AI since 2008',
 	overview:
-		'Hootsuite is an established social media management platform for marketing teams. Standard through Advanced plans cover publishing, a unified inbox, analytics, and Wisdom AI — with per-user pricing, up to 10 social accounts on Standard, and unlimited accounts on Professional and above.',
+		'Hootsuite is a social management platform for marketing teams. Plans include publishing, inbox, analytics, and Wisdom AI. Pricing is per user.',
 	pricingPlans: HOOTSUITE_PRICING_PLANS,
 	channels: HOOTSUITE_CHANNELS,
 	featureSupport: HOOTSUITE_FEATURE_SUPPORT,

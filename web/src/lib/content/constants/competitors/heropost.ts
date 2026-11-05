@@ -85,7 +85,7 @@ export const heropostCompareProduct: CompareProduct = {
 	icon: icons.Heropost.name,
 	tagline: 'Lifetime social scheduler with HeroAI and eleven networks',
 	overview:
-		'Heropost is a hosted social scheduler for creators, brands, and agencies. You connect eleven networks, schedule unlimited posts, and automate feeds from RSS, WordPress, and Shopify. Lifetime tiers include workspaces, analytics, and bulk CSV scheduling.',
+		'Heropost is a hosted scheduler for creators and agencies. Connect eleven networks and schedule unlimited posts. Automate feeds from RSS, WordPress, and Shopify.',
 	pricingPlans: HEROPOST_PRICING_PLANS,
 	channels: HEROPOST_CHANNELS,
 	featureSupport: HEROPOST_FEATURE_SUPPORT,

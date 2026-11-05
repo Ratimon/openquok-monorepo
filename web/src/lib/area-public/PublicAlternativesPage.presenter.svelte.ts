@@ -19,6 +19,7 @@ import {
 	mergeAlternativePeerLinksBySlug
 } from '$lib/content/constants/competitors/buildAlternativesLongForm';
 import { getCompareProductCategory } from '$lib/content/constants/competitors/utils/compareProductCategories';
+import { PUBLIC_ALTERNATIVES_HUB } from '$lib/content/constants/hubs/alternatives';
 import type { PublicAgentComparisonSection } from '$lib/content/constants/agents/types';
 import type {
 	CompareDetailLongFormViewModel
@@ -47,14 +48,26 @@ export type AlternativesHubEntryViewModel = {
 	description: string;
 };
 
+export type AlternativesHubSectionViewModel = {
+	sectionId: string;
+	subtitle: string;
+	titlePrefix: string;
+	titleHighlight: string;
+	description: string;
+	learnMoreHref: string;
+	learnMoreLabel: string;
+	entries: AlternativesHubEntryViewModel[];
+};
+
 export type AlternativesHubViewModel = {
 	metaTitle: string;
 	metaDescription: string;
 	keywords: string[];
 	eyebrow: string;
-	title: string;
+	heroHighlightText: string;
 	description: string;
-	entries: AlternativesHubEntryViewModel[];
+	socialSection: AlternativesHubSectionViewModel;
+	directorySection: AlternativesHubSectionViewModel;
 };
 
 export type AlternativesListingViewModel = {
@@ -108,29 +121,24 @@ export class PublicAlternativesPagePresenter {
 	 * `buildAlternativeDetailDescription`.
 	 */
 	buildHubVm(): AlternativesHubViewModel {
-		const entries = ALTERNATIVES_TARGET_SLUGS.map((slug) => this.buildHubEntryVm(slug));
+		const allEntries = ALTERNATIVES_TARGET_SLUGS.map((slug) => this.buildHubEntryVm(slug));
+		const socialEntries = allEntries.filter(
+			(entry) => getCompareProductCategory(getCompareProduct(entry.slug)!) === 'social_scheduling'
+		);
+		const directoryEntries = allEntries.filter(
+			(entry) =>
+				getCompareProductCategory(getCompareProduct(entry.slug)!) === 'directory_submission'
+		);
 
 		return {
-			metaTitle: 'Social Media Scheduler Alternatives',
-			metaDescription:
-				'Compare Buffer, Hootsuite, Later, and other social media management tools side by side. See pricing, channels, and agent workflows — and how OpenQuok compares for multi-workspace scheduling.',
-			keywords: [
-				'social media scheduler alternatives',
-				'social media management tool alternatives',
-				'buffer alternatives',
-				'hootsuite alternatives',
-				'later alternatives',
-				'sprout social alternatives',
-				'social media management tools',
-				'agent social media scheduling',
-				'multi-workspace scheduler',
-				'open source social media scheduler'
-			],
-			eyebrow: 'Alternatives',
-			title: 'Compare social media scheduler alternatives',
-			description:
-				`Side-by-side directories for popular schedulers — pricing, channels, and agent workflows. OpenQuok is open source; for the $0 operator-run path, see ${publicFaqHref.selfHostingLanding}.`,
-			entries
+			metaTitle: PUBLIC_ALTERNATIVES_HUB.metaTitle,
+			metaDescription: PUBLIC_ALTERNATIVES_HUB.metaDescription,
+			keywords: [...PUBLIC_ALTERNATIVES_HUB.keywords],
+			eyebrow: PUBLIC_ALTERNATIVES_HUB.eyebrow,
+			heroHighlightText: PUBLIC_ALTERNATIVES_HUB.heroHighlightText,
+			description: PUBLIC_ALTERNATIVES_HUB.description,
+			socialSection: buildAlternativesHubSection('social_scheduling', socialEntries),
+			directorySection: buildAlternativesHubSection('directory_submission', directoryEntries)
 		};
 	}
 
@@ -237,6 +245,20 @@ export class PublicAlternativesPagePresenter {
 		});
 	}
 
+	filterHubVm(hubVm: AlternativesHubViewModel, searchQuery: string): AlternativesHubViewModel {
+		return {
+			...hubVm,
+			socialSection: {
+				...hubVm.socialSection,
+				entries: this.filterHubEntries(hubVm.socialSection.entries, searchQuery)
+			},
+			directorySection: {
+				...hubVm.directorySection,
+				entries: this.filterHubEntries(hubVm.directorySection.entries, searchQuery)
+			}
+		};
+	}
+
 	private buildHubEntryVm(slug: CompareProductSlug): AlternativesHubEntryViewModel {
 		const product = getCompareProduct(slug);
 		if (!product) {
@@ -284,6 +306,27 @@ function buildAlternativeDetailDescription(
 	}
 
 	return `${product.name} is for ${product.comparison.builtFor}. ${product.name} ${product.comparison.positioningWhenLeft}.`;
+}
+
+function buildAlternativesHubSection(
+	category: 'social_scheduling' | 'directory_submission',
+	entries: AlternativesHubEntryViewModel[]
+): AlternativesHubSectionViewModel {
+	const config =
+		category === 'directory_submission'
+			? PUBLIC_ALTERNATIVES_HUB.directorySection
+			: PUBLIC_ALTERNATIVES_HUB.socialSection;
+
+	return {
+		sectionId: config.sectionId,
+		subtitle: config.subtitle,
+		titlePrefix: config.titlePrefix,
+		titleHighlight: config.titleHighlight,
+		description: config.description,
+		learnMoreHref: config.learnMoreHref,
+		learnMoreLabel: config.learnMoreLabel,
+		entries
+	};
 }
 
 function buildAlternativesDetailKeywords(

@@ -90,7 +90,7 @@ export const postpeerCompareProduct: CompareProduct = {
 	icon: icons.PostPeer.name,
 	tagline: 'Unified social media API for publishing, scheduling, and analytics',
 	overview:
-		'PostPeer is a developer-first social posting API for SaaS products, agencies, and AI agents. Connect accounts once, publish or schedule across major networks through one REST endpoint, and optionally wire agents through hosted MCP, SDKs, and skills — with credit-based pricing, webhooks, and analytics on every plan.',
+		'PostPeer is a REST API for social posting. Connect accounts once and publish to major networks. MCP, SDKs, webhooks, and analytics are available.',
 	pricingPlans: POSTPEER_PRICING_PLANS,
 	channels: POSTPEER_CHANNELS,
 	featureSupport: POSTPEER_FEATURE_SUPPORT,

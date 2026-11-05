@@ -101,7 +101,7 @@ export const openpostCompareProduct: CompareProduct = {
 	icon: icons.OpenPost.name,
 	tagline: 'Content workspace for solo founders with hosted and self-hosted paths',
 	overview:
-		'OpenPost is a publishing workspace for solo founders and small teams. Write once, adapt copy and media for each connected account, schedule from the calendar, and review analytics and inbox replies — with HTTP API, CLI, and MCP access on hosted plans, or zero software fee when you self-host the AGPL stack.',
+		'OpenPost is a publishing workspace for founders and small teams. Write once, adapt copy per network, and schedule from the calendar. Use hosted API, CLI, and MCP, or self-host.',
 	pricingPlans: OPENPOST_PRICING_PLANS,
 	channels: OPENPOST_CHANNELS,
 	featureSupport: OPENPOST_FEATURE_SUPPORT,

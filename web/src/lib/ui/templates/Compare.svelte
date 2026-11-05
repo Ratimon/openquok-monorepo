@@ -3,15 +3,11 @@
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import FeaturesSectionHeader from '$lib/ui/templates/feature-grid/FeaturesSectionHeader.svelte';
+	import type { LandingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	export type ComparePoint = {
 		left: string;
 		right: string;
-	};
-
-	type LandingHeroTheme = {
-		subtitleClass?: string;
-		parseLandingHeroTitlePartSegments: (text: string) => { text: string; highlight: boolean }[];
 	};
 
 	type Props = {
@@ -23,6 +19,8 @@
 		rightTitle: string;
 		points?: ComparePoint[];
 		sectionClass?: string;
+		/** In-page anchor and JSON-LD fragment (e.g. `social-vs-directory-compare`). */
+		headingId?: string;
 	};
 
 	let {
@@ -33,10 +31,9 @@
 		leftTitle,
 		rightTitle,
 		points = [],
-		sectionClass = 'border-t border-base-content/10 bg-base-100 py-16 sm:py-20'
+		sectionClass = 'border-t border-base-content/10 bg-base-100 py-16 sm:py-20',
+		headingId = 'compare-heading'
 	}: Props = $props();
-
-	const headingId = 'compare-heading';
 </script>
 
 <section class={sectionClass} aria-labelledby={headingId}>

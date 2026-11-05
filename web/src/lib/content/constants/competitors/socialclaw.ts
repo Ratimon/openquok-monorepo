@@ -88,7 +88,7 @@ export const socialclawCompareProduct: CompareProduct = {
 	icon: icons.SocialClaw.name,
 	tagline: 'Agent-oriented scheduler with API, MCP, CLI, and media studio',
 	overview:
-		'SocialClaw is a social publishing workspace for dashboard, API, and AI-agent workflows. Connect accounts once, host media, and schedule across Instagram, TikTok, X, LinkedIn, and other networks — with CLI, hosted MCP, agent skills, and a media studio for generated images, video, and voice. Paid plans are capped by connected accounts and monthly posts, from Starter through Pro.',
+		'SocialClaw is a workspace for dashboard and agent posting. Connect accounts and schedule on major networks. CLI, MCP, and a media studio are included.',
 	pricingPlans: SOCIALCLAW_PRICING_PLANS,
 	channels: SOCIALCLAW_CHANNELS,
 	featureSupport: SOCIALCLAW_FEATURE_SUPPORT,

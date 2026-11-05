@@ -80,7 +80,7 @@ export const laterCompareProduct: CompareProduct = {
 	icon: icons.Later.name,
 	tagline: 'Visual Instagram planner with Link in Bio',
 	overview:
-		'Later helps you plan social posts on a calendar and an Instagram grid. You can auto-publish to eight networks. You also get Link in Bio. Plans bill by social set. The trial is 14 days. Later has no public scheduling API.',
+		'Later helps you plan posts on a calendar and Instagram grid. Auto-publish to eight networks. Plans bill by social set. Later has no public scheduling API.',
 	pricingPlans: LATER_PRICING_PLANS,
 	channels: LATER_CHANNELS,
 	featureSupport: LATER_FEATURE_SUPPORT,

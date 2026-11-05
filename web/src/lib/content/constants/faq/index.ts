@@ -404,9 +404,28 @@ export const PUBLIC_COMPARE_HUB_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
 	'multi-workspace'
 ];
 
+/** `/alternatives` hub. */
+export const PUBLIC_ALTERNATIVES_HUB_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
+	'try-free',
+	'multi-workspace',
+	'compare-both-social-and-directory'
+];
+
 /** `/compare/{productA}/{productB}` — social scheduler pairs (OpenQuok vs Hootsuite, Buffer, …). */
 export const PUBLIC_COMPARE_DETAIL_SOCIAL_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
 	'switch-from-buffer-hootsuite',
+	'try-free',
+	'multi-workspace',
+	'schedule-posts',
+	'what-is-mcp',
+	'reach-official-api',
+	'openquok-social-media-management',
+	'openquok-directory-submission-tool',
+	'compare-both-social-and-directory'
+];
+
+/** `/alternatives/{slug}` social targets — excludes generic Buffer/Hootsuite switch (built per target). */
+export const PUBLIC_ALTERNATIVES_DETAIL_SOCIAL_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
 	'try-free',
 	'multi-workspace',
 	'schedule-posts',
@@ -502,6 +521,10 @@ export function getPublicToolsHubFaqItems(): PublicFaqItem[] {
 
 export function getPublicCompareHubFaqItems(): PublicFaqItem[] {
 	return resolvePublicFaqItemsByIds(PUBLIC_COMPARE_HUB_FAQ_ITEM_IDS);
+}
+
+export function getPublicAlternativesHubFaqItems(): PublicFaqItem[] {
+	return resolvePublicFaqItemsByIds(PUBLIC_ALTERNATIVES_HUB_FAQ_ITEM_IDS);
 }
 
 export function getPublicCreatorsHubFaqItems(): PublicFaqItem[] {

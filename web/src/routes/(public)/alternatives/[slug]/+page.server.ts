@@ -16,12 +16,7 @@ import {
 import { isAlternativesTargetSlug } from '$lib/content/constants/competitors';
 import { buildAlternativesDetailNavSections } from '$lib/content/constants/competitors/comparePageSectionNav';
 import { createComparePageOnPageNavigationSchema } from '$lib/content/utils/createComparePageOnPageNavigationSchema';
-import {
-	insertDirectoryLaunchDrGuaranteeFaqItems,
-	PUBLIC_COMPARE_DETAIL_DIRECTORY_FAQ_ITEM_IDS,
-	PUBLIC_COMPARE_DETAIL_SOCIAL_FAQ_ITEM_IDS,
-	resolvePublicFaqItemsByIds
-} from '$lib/content/constants/faq';
+import { buildAlternativesDetailFaqItems } from '$lib/content/constants/faq/buildAlternativesDetailFaqItems';
 import { buildAlternativesLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
@@ -66,14 +61,11 @@ export async function load({ url, params, cookies, parent }) {
 	const canonical = buildCanonicalUrl(url);
 	const webPageId = `${canonical}#webpage`;
 
-	const faqFromIds = resolvePublicFaqItemsByIds(
-		detailVm.isDirectoryTarget
-			? PUBLIC_COMPARE_DETAIL_DIRECTORY_FAQ_ITEM_IDS
-			: PUBLIC_COMPARE_DETAIL_SOCIAL_FAQ_ITEM_IDS
-	);
-	const faqItems = detailVm.isDirectoryTarget
-		? insertDirectoryLaunchDrGuaranteeFaqItems(faqFromIds)
-		: faqFromIds;
+	const faqItems = buildAlternativesDetailFaqItems({
+		targetName: detailVm.targetName,
+		targetSlug: detailVm.targetSlug,
+		isDirectoryTarget: detailVm.isDirectoryTarget
+	});
 
 	const onPageNavSections = buildAlternativesDetailNavSections(
 		detailVm.longForm,

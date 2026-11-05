@@ -203,7 +203,7 @@ export const openquokCompareProduct: CompareProduct = {
 	icon: icons.OpenQuok.name,
 	tagline: 'Social media scheduler for people and AI agents',
 	overview:
-		'OpenQuok is an open-source social media scheduler. Connect major networks and plan posts on calendar and kanban views. Publish from the dashboard or from agents with skills, MCP, and the Public API.',
+		'OpenQuok is an open-source social scheduler. Connect major networks and plan posts on calendar and kanban views. Publish from the dashboard or from agents via skills, MCP, and the Public API.',
 	pricingPlans: OPENQUOK_PRICING_PLANS,
 	channels: OPENQUOK_CHANNELS,
 	featureSupport: buildOpenQuokFeatureSupport(),

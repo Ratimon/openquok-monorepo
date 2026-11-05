@@ -75,7 +75,7 @@ export const typefullyCompareProduct: CompareProduct = {
 	icon: icons.Typefully.name,
 	tagline: 'Writing-first social scheduler for creators and collaborative teams',
 	overview:
-		'Typefully is a writing-first social media workspace for creators and teams. It centers a high-fidelity editor, review workflows, calendar scheduling, and cross-posting to text-forward networks — with Public API v2, MCP, agent skills, and AI writing tools, priced per social set from Free through Business plus Enterprise.',
+		'Typefully is a writing-first workspace for creators and teams. It has an editor, review flows, and calendar scheduling. API, MCP, and AI writing tools are included.',
 	pricingPlans: TYPEFULLY_PRICING_PLANS,
 	channels: TYPEFULLY_CHANNELS,
 	featureSupport: TYPEFULLY_FEATURE_SUPPORT,

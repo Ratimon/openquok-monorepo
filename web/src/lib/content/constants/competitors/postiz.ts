@@ -105,7 +105,7 @@ export const postizCompareProduct: CompareProduct = {
 	icon: icons.Postiz.name,
 	tagline: 'Open-source agentic social scheduler with 30+ networks',
 	overview:
-		'Postiz is an open-source social media scheduling suite for creators, teams, and agencies. It covers cross-posting, a visual calendar, AI text/image/video generation, analytics, plugs, and agent paths via REST API, CLI, and MCP — with channel-based cloud plans from Standard through Ultimate, plus a self-hosted option.',
+		'Postiz is open-source scheduling for teams and agencies. Cross-post from a calendar with AI media and analytics. Cloud plans or self-hosted.',
 	pricingPlans: POSTIZ_PRICING_PLANS,
 	channels: POSTIZ_CHANNELS,
 	featureSupport: POSTIZ_FEATURE_SUPPORT,

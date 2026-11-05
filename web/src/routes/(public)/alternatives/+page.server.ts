@@ -4,10 +4,14 @@ import { publicAlternativesPagePresenter } from '$lib/area-public';
 import { getRootPathPublicAlternatives } from '$lib/area-public/constants/getRootPathPublicAlternatives';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { buildAlternativesLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
+import { PUBLIC_ALTERNATIVES_HUB_FAQ } from '$lib/content/constants/hubs/alternatives';
+import { PUBLIC_PRODUCT_HUB_SOCIAL_VS_DIRECTORY_COMPARE } from '$lib/content/constants/hubs/productHubSocialVsDirectoryCompare';
+import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
+import { createPublicHubCompareSectionSchema } from '$lib/content/utils/createPublicHubCompareSectionSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
 import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
-import { createJsonLdGraph } from '$lib/seo/jsonLdSchema';
+import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 
 export const ssr = true;
 
@@ -43,54 +47,74 @@ export async function load({ url, cookies, parent }) {
 		}
 	});
 
-	const alternativePages = hubVm.entries.map((entry) => ({
+	const alternativePages = [
+		...hubVm.socialSection.entries,
+		...hubVm.directorySection.entries
+	].map((entry) => ({
 		name: entry.title,
 		url: new URL(entry.href, url.origin).href
 	}));
 
-	const schemaData = createJsonLdGraph([
-		{
-			'@type': 'CollectionPage',
-			'@id': `${canonical}#webpage`,
-			name: hubVm.metaTitle,
-			description: hubVm.metaDescription,
-			url: canonical,
-			mainEntity: {
-				'@id': `${canonical}#alternatives`
-			},
-			isPartOf: {
-				'@type': 'WebSite',
-				name: companyName,
-				url: url.origin
-			}
-		},
-		{
-			'@type': 'ItemList',
-			'@id': `${canonical}#alternatives`,
-			name: 'Social media scheduler alternatives',
-			url: canonical,
-			numberOfItems: alternativePages.length,
-			itemListElement: alternativePages.map((page, index) => ({
-				'@type': 'ListItem',
-				position: index + 1,
-				item: {
-					'@type': 'WebPage',
-					'@id': `${page.url}#webpage`,
-					name: page.name,
-					url: page.url,
-					isPartOf: {
-						'@type': 'WebSite',
-						name: companyName,
-						url: url.origin
-					}
+	const webPageId = `${canonical}#webpage`;
+	const hubCompareSchema = createPublicHubCompareSectionSchema({
+		canonical,
+		webPageId,
+		section: PUBLIC_PRODUCT_HUB_SOCIAL_VS_DIRECTORY_COMPARE
+	});
+
+	const schemaData = createJsonLdGraph(
+		filterNonEmptyJsonLdNodes([
+			{
+				'@type': 'CollectionPage',
+				'@id': webPageId,
+				name: hubVm.metaTitle,
+				description: hubVm.metaDescription,
+				url: canonical,
+				mainEntity: {
+					'@id': `${canonical}#alternatives`
+				},
+				hasPart: [hubCompareSchema.webPageHasPartRef],
+				isPartOf: {
+					'@type': 'WebSite',
+					name: companyName,
+					url: url.origin
 				}
-			}))
-		},
-		createBreadcrumbListSchema(
-			buildAlternativesLandingBreadcrumbItems({ variant: 'hub' }),
-			url.origin
-		)
-	]);
+			},
+			...hubCompareSchema.nodes,
+			{
+				'@type': 'ItemList',
+				'@id': `${canonical}#alternatives`,
+				name: 'Social media and directory submission alternatives',
+				url: canonical,
+				numberOfItems: alternativePages.length,
+				itemListElement: alternativePages.map((page, index) => ({
+					'@type': 'ListItem',
+					position: index + 1,
+					item: {
+						'@type': 'WebPage',
+						'@id': `${page.url}#webpage`,
+						name: page.name,
+						url: page.url,
+						isPartOf: {
+							'@type': 'WebSite',
+							name: companyName,
+							url: url.origin
+						}
+					}
+				}))
+			},
+			createPublicFaqSEOSchema({
+				pageUrl: `${canonical}#faq`,
+				name: PUBLIC_ALTERNATIVES_HUB_FAQ.faqTitle,
+				description: PUBLIC_ALTERNATIVES_HUB_FAQ.faqDescription,
+				items: PUBLIC_ALTERNATIVES_HUB_FAQ.faqItems
+			}),
+			createBreadcrumbListSchema(
+				buildAlternativesLandingBreadcrumbItems({ variant: 'hub' }),
+				url.origin
+			)
+		])
+	);
 
 	return {
 		pageMetaTags,

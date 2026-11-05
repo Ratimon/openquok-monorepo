@@ -82,7 +82,7 @@ export const bufferCompareProduct: CompareProduct = {
 	pricingUnit: 'per_channel',
 	tagline: 'Social media toolkit for creators and teams since 2010',
 	overview:
-		'Buffer is a social media management suite for individuals, creators, and small teams. It offers queue-based scheduling, an AI assistant, a community inbox, analytics, and a REST API — with per-channel pricing, volume discounts, and a free plan for up to three channels.',
+		'Buffer is a social suite for creators and small teams. It has queue scheduling, AI assist, inbox, analytics, and a REST API. Pricing is per channel.',
 	pricingPlans: BUFFER_PRICING_PLANS,
 	channels: BUFFER_CHANNELS,
 	featureSupport: BUFFER_FEATURE_SUPPORT,

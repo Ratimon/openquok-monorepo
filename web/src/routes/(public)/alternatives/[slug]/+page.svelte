@@ -34,6 +34,7 @@
 	import PublicAlternativesLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicAlternativesLandingBreadcrumb.svelte';
 	import SimpleCardGrid from '$lib/ui/templates/feature-grid/SimpleCardGrid.svelte';
 	import SimpleLinkCard from '$lib/ui/templates/feature-grid/SimpleLinkCard.svelte';
+	import CompareProductLink from '$lib/ui/links/CompareProductLink.svelte';
 	import InternalLink from '$lib/ui/links/InternalLink.svelte';
 
 	type Props = { data: PageData };
@@ -99,7 +100,10 @@
 			</div>
 		</div>
 		<h1 class="text-3xl font-black tracking-tight text-base-content sm:text-4xl">
-			{detailVm.title}
+			<CompareProductLink slug={detailVm.targetSlug} class={compareNameAccentClass}>
+				{detailVm.targetName}
+			</CompareProductLink>
+			<span class="text-base-content"> alternatives</span>
 		</h1>
 		<p class="mx-auto max-w-2xl text-base text-base-content/70">
 			{detailVm.description}

@@ -79,7 +79,7 @@ export const blotatoCompareProduct: CompareProduct = {
 	icon: icons.Blotato.name,
 	tagline: 'Unified social API and MCP for AI agents and automation',
 	overview:
-		'Blotato is a hosted social automation platform for creators, operators, and agencies. Connect nine networks once, then publish, schedule, reply to comments, manage DMs, and pull analytics from ChatGPT, Claude, MCP clients, REST, n8n, or Make. Flat plans bundle unlimited AI writing, AI media credits, viral templates, and faceless video — with a 7-day trial on every tier.',
+		'Blotato is a hosted automation tool for creators and agencies. Connect nine networks once. Publish and schedule from the dashboard, MCP, or REST.',
 	pricingPlans: BLOTATO_PRICING_PLANS,
 	channels: BLOTATO_CHANNELS,
 	featureSupport: BLOTATO_FEATURE_SUPPORT,

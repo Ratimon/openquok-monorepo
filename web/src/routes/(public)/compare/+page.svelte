@@ -13,12 +13,14 @@
 		PUBLIC_HUB_DOCS_BANNERS
 	} from '$lib/config/constants/config';
 	import { PUBLIC_COMPARE_HUB_FAQ } from '$lib/content/constants/hubs/compare';
-	import { COMPARE_PRODUCT_ICON_STYLES_HUB } from '$lib/content/constants/competitors/compareProductIconStyles';
+	import { PUBLIC_PRODUCT_HUB_SOCIAL_VS_DIRECTORY_COMPARE } from '$lib/content/constants/hubs/productHubSocialVsDirectoryCompare';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
+	import Compare from '$lib/ui/templates/Compare.svelte';
+	import { COMPARE_PRODUCT_ICON_STYLES_HUB } from '$lib/content/constants/competitors/compareProductIconStyles';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import PublicCompareHubGrid from '$lib/ui/templates/landing-page/PublicCompareHubGrid.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
@@ -55,6 +57,18 @@
 		{selectedBaseSlug}
 		onSelectBaseProduct={selectBaseProduct}
 		{iconStyleForProduct}
+	/>
+
+	<Compare
+		heroTheme={landingHeroTheme}
+		headingId={PUBLIC_PRODUCT_HUB_SOCIAL_VS_DIRECTORY_COMPARE.schemaFragmentId}
+		landingSubtitle={PUBLIC_PRODUCT_HUB_SOCIAL_VS_DIRECTORY_COMPARE.subtitle}
+		landingTitle={PUBLIC_PRODUCT_HUB_SOCIAL_VS_DIRECTORY_COMPARE.title}
+		landingDescription={PUBLIC_PRODUCT_HUB_SOCIAL_VS_DIRECTORY_COMPARE.description}
+		leftTitle={PUBLIC_PRODUCT_HUB_SOCIAL_VS_DIRECTORY_COMPARE.leftTitle}
+		rightTitle={PUBLIC_PRODUCT_HUB_SOCIAL_VS_DIRECTORY_COMPARE.rightTitle}
+		points={[...PUBLIC_PRODUCT_HUB_SOCIAL_VS_DIRECTORY_COMPARE.points]}
+		sectionClass="border-t border-base-content/10 bg-base-100 py-16 sm:py-20"
 	/>
 
 	<div class="container mx-auto px-4">

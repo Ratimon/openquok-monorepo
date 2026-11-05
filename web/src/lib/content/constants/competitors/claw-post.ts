@@ -75,7 +75,7 @@ export const clawPostCompareProduct: CompareProduct = {
 	icon: icons.ClawPost.name,
 	tagline: 'Browser-extension posting API for AI agents',
 	overview:
-		'Claw Post publishes through a logged-in Chrome extension instead of official platform APIs. You connect networks in the browser and post from a REST API, MCP, or OpenClaw skills. Job queues, retries, and signed media uploads are built in.',
+		'Claw Post publishes through a Chrome extension, not platform APIs. Connect networks in the browser. Post from REST, MCP, or OpenClaw skills.',
 	pricingPlans: CLAW_POST_PRICING_PLANS,
 	channels: CLAW_POST_CHANNELS,
 	featureSupport: CLAW_POST_FEATURE_SUPPORT,

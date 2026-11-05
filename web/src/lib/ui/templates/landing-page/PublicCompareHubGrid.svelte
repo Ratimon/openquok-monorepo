@@ -10,8 +10,6 @@
 		PUBLIC_LANDING_MAIN_HERO_TITLE_CLASS
 	} from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import InternalLink from '$lib/ui/links/InternalLink.svelte';
-
-	import InternalLink from '$lib/ui/links/InternalLink.svelte';
 	import PublicCompareHubProductPicker from '$lib/ui/components/compare/PublicCompareHubProductPicker.svelte';
 	import PublicCompareHubSectionHeading from '$lib/ui/components/compare/PublicCompareHubSectionHeading.svelte';
 	import PublicCompareLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicCompareLandingBreadcrumb.svelte';

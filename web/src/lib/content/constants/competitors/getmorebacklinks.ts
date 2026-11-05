@@ -99,7 +99,7 @@ export const getmorebacklinksCompareProduct: CompareProduct = {
 	icon: icons.GetMoreBacklinks.name,
 	tagline: 'Done-for-you directory and backlink packages per website in about 14 working days',
 	overview:
-		'GetMoreBacklinks sells done-for-you directory and backlink packages for SaaS and tech sites. You pay once per website for 100 or 200 submissions in about 14 working days. You get a report with listing data and screenshots.',
+		'GetMoreBacklinks sells done-for-you directory packages for SaaS and tech sites. Pay once per site for 100 or 200 submissions in about 14 working days. You get a report with listing data and screenshots.',
 	pricingPlans: GETMOREBACKLINKS_PRICING_PLANS,
 	channels: [],
 	featureSupport: GETMOREBACKLINKS_FEATURE_SUPPORT,

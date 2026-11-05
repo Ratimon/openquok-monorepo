@@ -128,6 +128,7 @@ export const publicFaqHref = {
 	compareOpenquokBuffer: faqHrefComparePair('openquok', 'buffer'),
 	compareOpenquokHootsuite: faqHrefComparePair('openquok', 'hootsuite'),
 	compareOpenquokLater: faqHrefComparePair('openquok', 'later'),
+	compareOpenquokPostiz: faqHrefComparePair('openquok', 'postiz'),
 	alternatives: route(getRootPathPublicAlternatives()),
 	alternativesLater: route(getRootPathPublicAlternativesTarget('later')),
 	playbooks: route(getRootPathPublicPlaybooks()),

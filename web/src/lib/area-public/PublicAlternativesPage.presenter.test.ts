@@ -8,13 +8,15 @@ describe('PublicAlternativesPagePresenter', () => {
 	it('focuses hub SEO on competitor alternatives, not the free self-host path', () => {
 		const vm = presenter.buildHubVm();
 
-		expect(vm.metaTitle).toBe('Social Media Scheduler Alternatives');
+		expect(vm.metaTitle).toBe('Social media scheduler and directory submission alternatives');
 		expect(vm.metaTitle.toLowerCase()).not.toMatch(/^free\b/);
 		expect(vm.metaDescription.toLowerCase()).toContain('compare');
 		expect(vm.metaDescription.toLowerCase()).not.toContain('free and open-source');
 		expect(vm.keywords).toContain('social media scheduler alternatives');
 		expect(vm.keywords).not.toContain('free social media scheduler');
-		expect(vm.title.toLowerCase()).toContain('alternatives');
+		expect(vm.heroHighlightText).toBe('alternatives');
+		expect(vm.socialSection.entries.length).toBeGreaterThan(0);
+		expect(vm.directorySection.entries.length).toBeGreaterThan(0);
 		expect(vm.description).toContain('/self-hosting');
 	});
 

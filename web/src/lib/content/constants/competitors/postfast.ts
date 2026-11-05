@@ -96,7 +96,7 @@ export const postfastCompareProduct: CompareProduct = {
 	icon: icons.PostFast.name,
 	tagline: 'Multi-platform scheduler with MCP, API, and social inbox on every plan',
 	overview:
-		'PostFast is a hosted social media scheduling platform for creators, teams, and agencies. It covers eleven networks from one composer, client workspaces, approvals, analytics, a social inbox, and agent paths via REST API, MCP, and ChatGPT or Claude connectors — with flat plan pricing from Starter through Enterprise and a seven-day free trial.',
+		'PostFast is a hosted scheduler for creators and agencies. Publish to eleven networks from one composer. Includes workspaces, approvals, inbox, and agent paths via API and MCP.',
 	pricingPlans: POSTFAST_PRICING_PLANS,
 	channels: POSTFAST_CHANNELS,
 	featureSupport: POSTFAST_FEATURE_SUPPORT,
