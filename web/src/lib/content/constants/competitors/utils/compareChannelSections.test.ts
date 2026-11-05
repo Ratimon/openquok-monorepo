@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { getmorebacklinksCompareProduct } from '$lib/content/constants/competitors/getmorebacklinks';
-import { openquokCompareProduct } from '$lib/content/constants/competitors/openquok';
-import { hootsuiteCompareProduct } from '$lib/content/constants/competitors/hootsuite';
+import { getmorebacklinksCompareProduct } from '$lib/content/constants/competitors/submission/getmorebacklinks';
+import { openquokCompareProduct } from '$lib/content/constants/competitors/scheduler/openquok';
+import { hootsuiteCompareProduct } from '$lib/content/constants/competitors/scheduler/hootsuite';
 
 import {
 	buildCompareChannelSectionsForPair,

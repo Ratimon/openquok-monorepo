@@ -21,10 +21,10 @@ Ship **one new competitor constant** plus **registry and UI wiring** in the same
 
 | Product line | Reference constant | Compare detail layout |
 | --- | --- | --- |
-| Social scheduler | **`hootsuite.ts`**, **`buffer.ts`** | `social_matrix` (feature matrix + channels) |
-| Directory submission service | **`boringlaunch.ts`** | `directory_long_form` (sticky section nav + long-form sections) |
+| Social scheduler | **`scheduler/hootsuite.ts`**, **`scheduler/buffer.ts`** | `social_matrix` (feature matrix + channels) |
+| Directory submission service | **`submission/boringlaunch.ts`** | `directory_long_form` (sticky section nav + long-form sections) |
 
-OpenQuok’s own entry is **`openquok.ts`** (special — see below). OpenQuok lists **both** categories so it can pair with schedulers and directory services.
+OpenQuok’s own entry is **`scheduler/openquok.ts`** (special — see below). OpenQuok lists **both** categories so it can pair with schedulers and directory services.
 
 Competitor data powers:
 
@@ -48,7 +48,7 @@ Follow **source-project-neutrality**: describe products and positioning in first
 Use one **lowercase kebab-case** slug everywhere:
 
 - `CompareProduct.slug` and `CompareProductSlug` union member
-- Filename: `web/src/lib/content/constants/competitors/{slug}.ts`
+- Filename: `web/src/lib/content/constants/competitors/scheduler/{slug}.ts` for social schedulers (including **`scheduler/openquok.ts`**); `web/src/lib/content/constants/competitors/submission/{slug}.ts` for directory submission services
 - Export name: `{slug}CompareProduct` (e.g. `hootsuiteCompareProduct`)
 - URLs: `/compare/openquok/{slug}`, `/alternatives/{slug}`
 - `COMPARE_PRODUCT_WEBSITE_URLS` key
@@ -87,7 +87,7 @@ Do **not** add OpenQuok as an alternatives **target** — `COMPARE_HUB_BASE_SLUG
 
 ### 3. Competitor constant (new file)
 
-**`web/src/lib/content/constants/competitors/{slug}.ts`**
+**`web/src/lib/content/constants/competitors/scheduler/{slug}.ts`** or **`web/src/lib/content/constants/competitors/submission/{slug}.ts`** (see **Identifier contract**)
 
 Export a `CompareProduct` with:
 
@@ -139,7 +139,7 @@ In the PR description (or review notes), cite **one or two URLs** and a short ph
 - For a pair row to appear in the with/without section, the **left** product needs `strength` and the **right** product needs `weakness` for the **same** topic id.
 - When OpenQuok is on the left, competitor `weakness` copy drives the “without” column.
 - When a competitor is on the left vs another competitor, both need matching topic keys.
-- **Directory pairs:** use directory topic ids — `submission_model`, `pace_and_control`, `dr_outcomes` (plus shared ids like `pricing_model`, `product_focus` when relevant). Extend **`openquok.ts`** `comparison.talkingPoints` (or directory-specific strengths) so OpenQuok vs a directory service is not empty.
+- **Directory pairs:** use directory topic ids — `submission_model`, `pace_and_control`, `dr_outcomes` (plus shared ids like `pricing_model`, `product_focus` when relevant). Extend **`scheduler/openquok.ts`** `comparison.talkingPoints` (or directory-specific strengths) so OpenQuok vs a directory service is not empty.
 
 ### 4. Registry
 
@@ -195,7 +195,7 @@ Smoke-test URLs:
 Automated coverage (extend when adding competitors):
 
 - `web/src/lib/content/constants/competitors/utils/compareProductCategories.test.ts` — `canCompareProducts`, `listComparePairsForHub`, `getComparePair`, layout + `buildDetailVm` for directory pairs
-- `web/src/lib/content/constants/competitors/boringlaunch.compareProduct.test.ts` — slug, website URL, categories, pricing shape for the reference directory competitor
+- `web/src/lib/content/constants/competitors/submission/boringlaunch.compareProduct.test.ts` — slug, website URL, categories, pricing shape for the reference directory competitor
 - `web/src/lib/area-public/PublicComparePage.presenter.test.ts` — hub section pair hrefs and directory detail smoke paths
 
 ---
@@ -211,15 +211,15 @@ Use this checklist **instead of** social-only assumptions when the competitor is
 5. **`official_api`:** usually **`No Info`** or **`excluded`** — the product is a human submission service, not a scheduler publishing via platform OAuth APIs.
 6. **`pricingPlans`:** one-time packages (`pricePeriod: 'one_time'`) from the vendor’s public pricing page; cite URLs in the PR.
 7. **`directoryLongForm`:** three narrative sections on the competitor constant; compare and alternatives pages share the **unified On this page nav** (Platform overview → Why people look → Your options → Pricing & plans → [Supported social channels] → [Supported directory channels] → Feature comparison → With vs without → When they win → Other alternatives → Questions → [More comparisons on compare detail]).
-8. **OpenQuok:** ensure directory strengths in **`openquok.ts`** for with/without vs the new service.
+8. **OpenQuok:** ensure directory strengths in **`scheduler/openquok.ts`** for with/without vs the new service.
 9. **Hub:** second section on `/compare` (`hubs/compare.ts` + `PublicCompareHubGrid` / presenter `directorySection`).
 10. **Tests + smoke:** `/compare/openquok/{slug}`, hub directory block, 404 on cross-category pairs (see **Smoke-test URLs**).
 
-Reference: **`boringlaunch.ts`**.
+Reference: **`submission/boringlaunch.ts`**.
 
 ---
 
-## OpenQuok entry (`openquok.ts`) — special case
+## OpenQuok entry (`scheduler/openquok.ts`) — special case
 
 Only update when **OpenQuok product facts** change (pricing tiers, limits, channels):
 
@@ -264,7 +264,7 @@ Update when the new competitor should appear in marketing prose (not required fo
 
 - [ ] `directoryLongForm` block complete; detail page uses `directory_long_form` layout and directory-only compare rows.
 - [ ] `official_api` set from evidence (typically **No Info** for managed submission services).
-- [ ] OpenQuok directory talking points updated in `openquok.ts`.
+- [ ] OpenQuok directory talking points updated in `scheduler/openquok.ts`.
 - [ ] `/compare/openquok/{slug}` and compare hub **Directory submission services** section verified; `/compare/{social}/{directory}` returns 404.
 - [ ] Cross-link CTAs point at `/directory-submission-tool` and extension install docs where appropriate.
 
@@ -275,6 +275,6 @@ Update when the new competitor should appear in marketing prose (not required fo
 If the feature matrix needs a **new row** for all products:
 
 1. Add the row to `PUBLIC_PRICING_COMPARE_ROWS` in `web/src/lib/billing/constants/publicPricingCatalog.ts`.
-2. Add `featureSupport` cells for **every** product in `competitors/` (including `openquok.ts`).
+2. Add `featureSupport` cells for **every** product in `competitors/scheduler/` and `competitors/submission/` (including `scheduler/openquok.ts`).
 
 That is a catalog change, not a single-competitor add.

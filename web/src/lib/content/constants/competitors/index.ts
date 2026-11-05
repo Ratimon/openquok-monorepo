@@ -19,32 +19,32 @@ import {
 	getCompareProductCategory,
 	listComparePairsForCategory
 } from '$lib/content/constants/competitors/utils/compareProductCategories';
-import { blotatoCompareProduct } from '$lib/content/constants/competitors/blotato';
-import { boringlaunchCompareProduct } from '$lib/content/constants/competitors/boringlaunch';
-import { bufferCompareProduct } from '$lib/content/constants/competitors/buffer';
-import { breakreachCompareProduct } from '$lib/content/constants/competitors/breakreach';
-import { clawPostCompareProduct } from '$lib/content/constants/competitors/claw-post';
-import { hopperHqCompareProduct } from '$lib/content/constants/competitors/hopper-hq';
-import { influenceCompareProduct } from '$lib/content/constants/competitors/influence';
-import { getmorebacklinksCompareProduct } from '$lib/content/constants/competitors/getmorebacklinks';
-import { heropostCompareProduct } from '$lib/content/constants/competitors/heropost';
-import { hootsuiteCompareProduct } from '$lib/content/constants/competitors/hootsuite';
-import { laterCompareProduct } from '$lib/content/constants/competitors/later';
-import { mixpostCompareProduct } from '$lib/content/constants/competitors/mixpost';
-import { openpostCompareProduct } from '$lib/content/constants/competitors/openpost';
-import { openquokCompareProduct } from '$lib/content/constants/competitors/openquok';
-import { postBridgeCompareProduct } from '$lib/content/constants/competitors/post-bridge';
-import { postfastCompareProduct } from '$lib/content/constants/competitors/postfast';
-import { post2allCompareProduct } from '$lib/content/constants/competitors/post2all';
-import { postpeerCompareProduct } from '$lib/content/constants/competitors/postpeer';
-import { postizCompareProduct } from '$lib/content/constants/competitors/postiz';
-import { publerCompareProduct } from '$lib/content/constants/competitors/publer';
-import { recurpostCompareProduct } from '$lib/content/constants/competitors/recurpost';
-import { socialclawCompareProduct } from '$lib/content/constants/competitors/socialclaw';
-import { socialyncCompareProduct } from '$lib/content/constants/competitors/socialync';
-import { sproutSocialCompareProduct } from '$lib/content/constants/competitors/sprout-social';
-import { typefullyCompareProduct } from '$lib/content/constants/competitors/typefully';
-import { usebardCompareProduct } from '$lib/content/constants/competitors/usebard';
+import { blotatoCompareProduct } from '$lib/content/constants/competitors/scheduler/blotato';
+import { bufferCompareProduct } from '$lib/content/constants/competitors/scheduler/buffer';
+import { breakreachCompareProduct } from '$lib/content/constants/competitors/scheduler/breakreach';
+import { clawPostCompareProduct } from '$lib/content/constants/competitors/scheduler/claw-post';
+import { hopperHqCompareProduct } from '$lib/content/constants/competitors/scheduler/hopper-hq';
+import { influenceCompareProduct } from '$lib/content/constants/competitors/scheduler/influence';
+import { heropostCompareProduct } from '$lib/content/constants/competitors/scheduler/heropost';
+import { hootsuiteCompareProduct } from '$lib/content/constants/competitors/scheduler/hootsuite';
+import { laterCompareProduct } from '$lib/content/constants/competitors/scheduler/later';
+import { mixpostCompareProduct } from '$lib/content/constants/competitors/scheduler/mixpost';
+import { openpostCompareProduct } from '$lib/content/constants/competitors/scheduler/openpost';
+import { openquokCompareProduct } from '$lib/content/constants/competitors/scheduler/openquok';
+import { postBridgeCompareProduct } from '$lib/content/constants/competitors/scheduler/post-bridge';
+import { postfastCompareProduct } from '$lib/content/constants/competitors/scheduler/postfast';
+import { post2allCompareProduct } from '$lib/content/constants/competitors/scheduler/post2all';
+import { postpeerCompareProduct } from '$lib/content/constants/competitors/scheduler/postpeer';
+import { postizCompareProduct } from '$lib/content/constants/competitors/scheduler/postiz';
+import { publerCompareProduct } from '$lib/content/constants/competitors/scheduler/publer';
+import { recurpostCompareProduct } from '$lib/content/constants/competitors/scheduler/recurpost';
+import { socialclawCompareProduct } from '$lib/content/constants/competitors/scheduler/socialclaw';
+import { socialyncCompareProduct } from '$lib/content/constants/competitors/scheduler/socialync';
+import { sproutSocialCompareProduct } from '$lib/content/constants/competitors/scheduler/sprout-social';
+import { typefullyCompareProduct } from '$lib/content/constants/competitors/scheduler/typefully';
+import { usebardCompareProduct } from '$lib/content/constants/competitors/scheduler/usebard';
+import { boringlaunchCompareProduct } from '$lib/content/constants/competitors/submission/boringlaunch';
+import { getmorebacklinksCompareProduct } from '$lib/content/constants/competitors/submission/getmorebacklinks';
 import {
 	COMPARE_HUB_BASE_SLUG,
 	COMPARE_PRODUCT_WEBSITE_URLS
@@ -59,32 +59,32 @@ export {
 	isDirectoryOnlyCompareProduct,
 	resolveComparePairLayout
 } from '$lib/content/constants/competitors/utils/compareProductCategories';
-export { openquokCompareProduct } from '$lib/content/constants/competitors/openquok';
-export { hopperHqCompareProduct } from '$lib/content/constants/competitors/hopper-hq';
-export { influenceCompareProduct } from '$lib/content/constants/competitors/influence';
-export { getmorebacklinksCompareProduct } from '$lib/content/constants/competitors/getmorebacklinks';
-export { heropostCompareProduct } from '$lib/content/constants/competitors/heropost';
-export { hootsuiteCompareProduct } from '$lib/content/constants/competitors/hootsuite';
-export { laterCompareProduct } from '$lib/content/constants/competitors/later';
-export { mixpostCompareProduct } from '$lib/content/constants/competitors/mixpost';
-export { openpostCompareProduct } from '$lib/content/constants/competitors/openpost';
-export { blotatoCompareProduct } from '$lib/content/constants/competitors/blotato';
-export { boringlaunchCompareProduct } from '$lib/content/constants/competitors/boringlaunch';
-export { bufferCompareProduct } from '$lib/content/constants/competitors/buffer';
-export { breakreachCompareProduct } from '$lib/content/constants/competitors/breakreach';
-export { clawPostCompareProduct } from '$lib/content/constants/competitors/claw-post';
-export { postBridgeCompareProduct } from '$lib/content/constants/competitors/post-bridge';
-export { postfastCompareProduct } from '$lib/content/constants/competitors/postfast';
-export { post2allCompareProduct } from '$lib/content/constants/competitors/post2all';
-export { postpeerCompareProduct } from '$lib/content/constants/competitors/postpeer';
-export { postizCompareProduct } from '$lib/content/constants/competitors/postiz';
-export { publerCompareProduct } from '$lib/content/constants/competitors/publer';
-export { recurpostCompareProduct } from '$lib/content/constants/competitors/recurpost';
-export { socialclawCompareProduct } from '$lib/content/constants/competitors/socialclaw';
-export { socialyncCompareProduct } from '$lib/content/constants/competitors/socialync';
-export { sproutSocialCompareProduct } from '$lib/content/constants/competitors/sprout-social';
-export { typefullyCompareProduct } from '$lib/content/constants/competitors/typefully';
-export { usebardCompareProduct } from '$lib/content/constants/competitors/usebard';
+export { openquokCompareProduct } from '$lib/content/constants/competitors/scheduler/openquok';
+export { hopperHqCompareProduct } from '$lib/content/constants/competitors/scheduler/hopper-hq';
+export { influenceCompareProduct } from '$lib/content/constants/competitors/scheduler/influence';
+export { getmorebacklinksCompareProduct } from '$lib/content/constants/competitors/submission/getmorebacklinks';
+export { heropostCompareProduct } from '$lib/content/constants/competitors/scheduler/heropost';
+export { hootsuiteCompareProduct } from '$lib/content/constants/competitors/scheduler/hootsuite';
+export { laterCompareProduct } from '$lib/content/constants/competitors/scheduler/later';
+export { mixpostCompareProduct } from '$lib/content/constants/competitors/scheduler/mixpost';
+export { openpostCompareProduct } from '$lib/content/constants/competitors/scheduler/openpost';
+export { blotatoCompareProduct } from '$lib/content/constants/competitors/scheduler/blotato';
+export { boringlaunchCompareProduct } from '$lib/content/constants/competitors/submission/boringlaunch';
+export { bufferCompareProduct } from '$lib/content/constants/competitors/scheduler/buffer';
+export { breakreachCompareProduct } from '$lib/content/constants/competitors/scheduler/breakreach';
+export { clawPostCompareProduct } from '$lib/content/constants/competitors/scheduler/claw-post';
+export { postBridgeCompareProduct } from '$lib/content/constants/competitors/scheduler/post-bridge';
+export { postfastCompareProduct } from '$lib/content/constants/competitors/scheduler/postfast';
+export { post2allCompareProduct } from '$lib/content/constants/competitors/scheduler/post2all';
+export { postpeerCompareProduct } from '$lib/content/constants/competitors/scheduler/postpeer';
+export { postizCompareProduct } from '$lib/content/constants/competitors/scheduler/postiz';
+export { publerCompareProduct } from '$lib/content/constants/competitors/scheduler/publer';
+export { recurpostCompareProduct } from '$lib/content/constants/competitors/scheduler/recurpost';
+export { socialclawCompareProduct } from '$lib/content/constants/competitors/scheduler/socialclaw';
+export { socialyncCompareProduct } from '$lib/content/constants/competitors/scheduler/socialync';
+export { sproutSocialCompareProduct } from '$lib/content/constants/competitors/scheduler/sprout-social';
+export { typefullyCompareProduct } from '$lib/content/constants/competitors/scheduler/typefully';
+export { usebardCompareProduct } from '$lib/content/constants/competitors/scheduler/usebard';
 
 export const PUBLIC_COMPARE_PRODUCTS: readonly CompareProduct[] = [
 	openquokCompareProduct,
