@@ -42,6 +42,11 @@
 	import PublicLandingTeamFeatureHero from '$lib/ui/templates/landing-page/PublicLandingTeamFeatureHero.svelte';
 	import FeaturesOrdered from '$lib/ui/templates/FeaturesOrdered.svelte';
 	import { publicDirectoryChannelHeroStatBadges } from '$lib/content/constants/channels/catalog/directory-platforms/directoryChannelLandingShared';
+	import {
+		getPublicBrowserExtensionChromeStoreCtaHref,
+		PUBLIC_BROWSER_EXTENSION_CHROME_STORE_CTA_LABEL,
+		shouldShowPublicBrowserExtensionChromeStoreCtaOnChannelLanding
+	} from '$lib/content/constants/landing/browser-extension-chrome-cta';
 	import { publicLandingHeroStatBadgesFromFeatureSections } from '$lib/content/constants/marketing/publicLandingHeroStatBadges';
 	import PublicLandingHeroStatBadges from '$lib/ui/templates/landing-page/PublicLandingHeroStatBadges.svelte';
 
@@ -77,7 +82,17 @@
 			: ''
 	);
 
-	const directoryChannelDocsHref = $derived(
+	const showExtensionChromeCta = $derived(
+		shouldShowPublicBrowserExtensionChromeStoreCtaOnChannelLanding(
+			channelVm.slug,
+			channelVm.channelKind === 'directory' ? 'directory' : 'social'
+		)
+	);
+
+	const extensionChromeStoreCtaHref = getPublicBrowserExtensionChromeStoreCtaHref();
+	const extensionChromeStoreCtaLabel = PUBLIC_BROWSER_EXTENSION_CHROME_STORE_CTA_LABEL;
+
+	const channelDocsCtaHref = $derived(
 		hostedMarketingHref(channelVm.docsPath, page.url.origin)
 	);
 
@@ -132,7 +147,9 @@
 				primaryCtaLabel={heroCtaText}
 				primaryCtaHref={secondaryCtaHref}
 				secondaryCtaLabel={PUBLIC_LANDING_GETTING_STARTED_GUIDE_CTA}
-				secondaryCtaHref={directoryChannelDocsHref}
+				secondaryCtaHref={channelDocsCtaHref}
+				tertiaryCtaLabel={extensionChromeStoreCtaLabel}
+				tertiaryCtaHref={extensionChromeStoreCtaHref}
 			/>
 		{:else}
 			<PublicChannelHero
@@ -141,7 +158,8 @@
 				ctaText={heroCtaText}
 				ctaHref={secondaryCtaHref}
 				docsCtaText={PUBLIC_LANDING_GETTING_STARTED_GUIDE_CTA}
-				docsCtaHref={channelVm.docsPath}
+				docsCtaHref={channelDocsCtaHref}
+				{showExtensionChromeCta}
 			/>
 		{/if}
 	{:else}

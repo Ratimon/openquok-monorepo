@@ -10,11 +10,20 @@ sidebar:
 <script>
 import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps, VideoModal } from '$lib/ui/components/docs/mdx/index.js';
 import { DOCS_YOUTUBE_VIDEOS } from '$lib/docs/constants/docsYoutubeVideos';
+import {
+	getPublicBrowserExtensionChromeStoreCtaHref,
+	PUBLIC_BROWSER_EXTENSION_CHROME_STORE_DOCS_LINK_LABEL
+} from '$lib/content/constants/landing/browser-extension-chrome-cta';
+
+const chromeWebStoreHref = getPublicBrowserExtensionChromeStoreCtaHref();
+const chromeWebStoreLinkLabel = PUBLIC_BROWSER_EXTENSION_CHROME_STORE_DOCS_LINK_LABEL;
 </script>
 
 ## Overview
 
 The <strong>OpenQuok Chrome extension</strong> helps when a network needs the browser — not only dashboard OAuth or pasted keys. For a short product tour, see the <a href="/browser-extension">browser extension</a> page.
+
+<p>On Google Chrome, install the published extension from the  <DocsExternalLink href={chromeWebStoreHref}>{chromeWebStoreLinkLabel}</DocsExternalLink>  listing. Self-host operators can still load an unpacked build — see <a href="#install-from-source-unpacked">Install from source</a>.</p>
 
 See it in action:
 <VideoModal
@@ -124,7 +133,15 @@ Copy from <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/b
 <p>Skool connect does not need OAuth keys on the server. The extension can refresh Skool cookies while you stay signed in. Directory autofill reads profile data from OpenQuok over the same link. See <a href="/docs/channels/connect">Connect a channel</a> and our <a href="/privacy-policy">Privacy Policy</a>.</p>
 </Callout>
 
-## Install from source (unpacked)
+## Install from Chrome Web Store
+
+<p>For most users on Google Chrome, install OpenQuok from the Chrome Web Store:</p>
+
+<p><DocsExternalLink href={chromeWebStoreHref}>{chromeWebStoreLinkLabel}</DocsExternalLink></p>
+
+<p>After install, pin the toolbar icon, set <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_ID" variant="envWeb" /> on the web app to the extension ID shown on <strong>chrome://extensions</strong> (or use the store listing ID when you installed from the Web Store), then open the side panel and sign in.</p>
+
+<h2 id="install-from-source-unpacked">Install from source (unpacked)</h2>
 
 <Steps
 	howToName="Load the OpenQuok browser extension in Chrome"

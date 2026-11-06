@@ -62,6 +62,7 @@ export const PUBLIC_PRICING_CARD_FEATURE_DEFINITIONS: readonly PublicPricingCard
 	{ label: 'Official platform APIs', line: 'social' },
 	{ label: 'Multi-channel publishing', line: 'social' },
 	{ label: 'Agent integrations', line: 'shared' },
+	{ label: 'Google Chrome extension', line: 'social' },
 	{ label: 'Analytics', line: 'social' },
 	{ label: 'Calendar views', line: 'social' },
 	{ label: 'Kanban views', line: 'social' },
@@ -115,6 +116,7 @@ export type PublicPricingCompareRowId =
 	| 'oauth_apps'
 	| 'mcp_server'
 	| 'cloud_storage'
+	| 'chrome_extension'
 	| 'multi_channel_publishing'
 	| 'ai_writer'
 	| 'ai_summarizer'
@@ -234,6 +236,13 @@ export const PUBLIC_PRICING_COMPARE_ROWS: readonly PublicPricingCompareRowDefini
 		label: 'Cloud media storage',
 		tooltip:
 			'Storage is capped per workspace. The table shows the total across all workspaces on the plan (for example 5 GiB per workspace × 2 workspaces = 10 GiB total).'
+	},
+	{
+		id: 'chrome_extension',
+		line: 'social',
+		label: 'Google Chrome extension',
+		tooltip:
+			'Install OpenQuok from the Chrome Web Store. Schedule from the side panel, connect Skool in the browser, get Reddit due-time handoff helpers, and autofill directory forms from your business profile.'
 	},
 	{
 		id: 'multi_channel_publishing',

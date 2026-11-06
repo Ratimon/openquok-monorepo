@@ -6,8 +6,15 @@ lastUpdated: 2026-11-03
 ---
 
 <script>
-import { Badge, Callout, CardGrid, LinkCard, TabItem, Tabs, VideoModal } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, TabItem, Tabs, VideoModal } from '$lib/ui/components/docs/mdx/index.js';
 import { DOCS_YOUTUBE_VIDEOS } from '$lib/docs/constants/docsYoutubeVideos';
+import {
+	getPublicBrowserExtensionChromeStoreCtaHref,
+	PUBLIC_BROWSER_EXTENSION_CHROME_STORE_DOCS_LINK_LABEL
+} from '$lib/content/constants/landing/browser-extension-chrome-cta';
+
+const chromeWebStoreHref = getPublicBrowserExtensionChromeStoreCtaHref();
+const chromeWebStoreLinkLabel = PUBLIC_BROWSER_EXTENSION_CHROME_STORE_DOCS_LINK_LABEL;
 </script>
 
 ## Where to start
@@ -29,7 +36,7 @@ Pick the network you want. OpenQuok picks the connection flow for that platform 
 ## Directory launch in Add Channel
 
 <Callout type="note">
-<p>The same <strong>Add Channel</strong> picker lists <strong>directory launch</strong> destinations. OpenQuok does not sign you in on the directory site. Build a product profile on <a href="/account/products">My Dashboard</a> → <strong>Products</strong> tab, then click <strong>Launch to directory</strong> — the <a href="/docs/installation/chrome-extension">browser extension</a> autofills; you submit on the directory. See <a href="/docs/directory-submission">Directory submission</a>.</p>
+<p>The same <strong>Add Channel</strong> picker lists <strong>directory launch</strong> destinations. OpenQuok does not sign you in on the directory site. Build a product profile on <a href="/account/products">My Dashboard</a> → <strong>Products</strong> tab, then click <strong>Launch to directory</strong> — the <a href="/docs/installation/chrome-extension">browser extension</a> autofills after you install from the  <DocsExternalLink href={chromeWebStoreHref}>{chromeWebStoreLinkLabel}</DocsExternalLink>  listing on Chrome. You submit on the directory. See <a href="/docs/directory-submission">Directory submission</a>.</p>
 </Callout>
 
 ## Connection flows
@@ -84,10 +91,10 @@ OpenQuok supports **three** ways to connect. Which one you get depends on the pl
 
 <p>Some networks have no public OAuth for schedulers. You install the <strong>OpenQuok browser extension</strong> in Chrome, stay signed in on the platform site, and connect from <Badge text="Add Channel" variant="new" />.</p>
 
-<p>Today that includes <strong>Skool</strong>:</p>
+<p>Today that includes <strong>Skool</strong> (cookie connect). <strong>Reddit</strong> stays a manual channel — the same extension optional helps copy and autofill when a post is due on reddit.com.</p>
 
 <ol>
-<li>Install the extension — see <a href="/docs/installation/chrome-extension">Browser extension</a>.</li>
+<li>Install from the  <DocsExternalLink href={chromeWebStoreHref}>{chromeWebStoreLinkLabel}</DocsExternalLink>  listing, or follow <a href="/docs/installation/chrome-extension">Browser extension</a> for source builds.</li>
 <li>Sign in on <strong>skool.com</strong> in the same Chrome profile.</li>
 <li>Click <strong>Skool</strong> in <Badge text="Add Channel" variant="new" />, read the notice, and approve cookie access.</li>
 <li>OpenQuok validates your session and saves the channel. The extension can refresh cookies about every 24 hours.</li>

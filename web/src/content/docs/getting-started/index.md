@@ -8,7 +8,14 @@ sidebar:
 ---
 
 <script>
-import { CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
+import { CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
+import {
+	getPublicBrowserExtensionChromeStoreCtaHref,
+	PUBLIC_BROWSER_EXTENSION_CHROME_STORE_DOCS_LINK_LABEL
+} from '$lib/content/constants/landing/browser-extension-chrome-cta';
+
+const chromeWebStoreHref = getPublicBrowserExtensionChromeStoreCtaHref();
+const chromeWebStoreLinkLabel = PUBLIC_BROWSER_EXTENSION_CHROME_STORE_DOCS_LINK_LABEL;
 </script>
 
 ## Overview
@@ -41,7 +48,7 @@ Connect social channels in a workspace. Write in the post editor, reuse template
 
 ### Directory launch destinations
 
-Build a **product profile** on [My Products](/account/products). Pick a directory destination such as **PeerPush** or **Uneed**. Launch with the browser extension to autofill each form. You submit the listing on the directory site yourself. Directory destinations are not OAuth social channels — see [Directory integration](/docs/directory-integration).
+Build a **product profile** on [My Products](/account/products). Pick a directory destination such as **PeerPush** or **Uneed**. Launch with the browser extension to autofill each form — install from the <DocsExternalLink href={chromeWebStoreHref}>{chromeWebStoreLinkLabel}</DocsExternalLink> listing on Chrome, or see [Browser extension](/docs/installation/chrome-extension). You submit the listing on the directory site yourself. Directory destinations are not OAuth social channels — see [Directory integration](/docs/directory-integration).
 
 <p class="not-prose flex flex-wrap items-center gap-3">
 <a href="/channels/peerpush" title="PeerPush"><img src="/icons/link-directory/peerpush.svg" alt="PeerPush" width="32" height="32" /></a>

@@ -10,6 +10,7 @@
 	import { DOCS_PLAYGROUND, type DocsPlaygroundContext } from '$lib/docs/docs-playground-context';
 
 	import { docsConfig } from '$lib/docs/constants';
+	import { getDoc, preloadDocsRegistry } from '$lib/docs/index';
 	import { calculateReadingTime, toc } from '$lib/docs/utils';
 	import { stringToSlug } from '$lib/ui/helpers/common';
 	import { icons } from '$data/icons';
@@ -49,22 +50,32 @@
 	let contentLoadFailed = $state(false);
 	let resolvedContent = $derived(content ?? clientContent);
 
+	const registryLocale = $derived(
+		!locale || locale === (docsConfig.i18n?.defaultLocale ?? 'en') ? undefined : locale
+	);
+
 	onMount(() => {
-		if (content || !browser) return;
-		const load = loadContent;
-		if (!load) {
-			contentLoadFailed = true;
-			return;
-		}
+		if (!browser || content) return;
 
 		let cancelled = false;
-		void load()
-			.then((component) => {
+		void (async () => {
+			try {
+				let load = loadContent;
+				if (!load) {
+					await preloadDocsRegistry(registryLocale);
+					const doc = getDoc(slug, registryLocale);
+					load = doc?.loadContent;
+				}
+				if (!load) {
+					if (!cancelled) contentLoadFailed = true;
+					return;
+				}
+				const component = await load();
 				if (!cancelled) clientContent = component;
-			})
-			.catch(() => {
+			} catch {
 				if (!cancelled) contentLoadFailed = true;
-			});
+			}
+		})();
 
 		return () => {
 			cancelled = true;

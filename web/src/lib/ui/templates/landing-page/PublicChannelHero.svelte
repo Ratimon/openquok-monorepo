@@ -4,6 +4,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AuroraBackground from '$lib/ui/background/AuroraBackground.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
+	import BrowserExtensionChromeStoreButton from '$lib/ui/buttons/BrowserExtensionChromeStoreButton.svelte';
 	import PublicChannelsLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicChannelsLandingBreadcrumb.svelte';
 	import PublicHeroTitle from '$lib/ui/templates/titles/PublicHeroTitle.svelte';
 
@@ -29,9 +30,18 @@
 		ctaHref: string;
 		docsCtaText?: string;
 		docsCtaHref?: string;
+		showExtensionChromeCta?: boolean;
 	};
 
-	let { channelVm, heroTheme, ctaText, ctaHref, docsCtaText, docsCtaHref }: Props = $props();
+	let {
+		channelVm,
+		heroTheme,
+		ctaText,
+		ctaHref,
+		docsCtaText,
+		docsCtaHref,
+		showExtensionChromeCta = false
+	}: Props = $props();
 
 	const showDocsCta = $derived(Boolean(docsCtaText?.trim() && docsCtaHref?.trim()));
 
@@ -79,6 +89,12 @@
 					>
 						{docsCtaText}
 					</ButtonGlitchBrightness>
+				{/if}
+				{#if showExtensionChromeCta}
+					<BrowserExtensionChromeStoreButton
+						variant="ghost"
+						class="{heroTheme.docsCtaButtonClass} rounded-full border-white/40 bg-transparent text-white shadow-none hover:bg-white/10"
+					/>
 				{/if}
 				<ButtonGlitchBrightness
 					class="{heroTheme.ctaButtonClass} rounded-full"

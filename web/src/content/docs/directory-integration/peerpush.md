@@ -7,6 +7,13 @@ lastUpdated: 2026-10-17
 
 <script>
 import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
+import {
+	getPublicBrowserExtensionChromeStoreCtaHref,
+	PUBLIC_BROWSER_EXTENSION_CHROME_STORE_DOCS_LINK_LABEL
+} from '$lib/content/constants/landing/browser-extension-chrome-cta';
+
+const chromeWebStoreHref = getPublicBrowserExtensionChromeStoreCtaHref();
+const chromeWebStoreLinkLabel = PUBLIC_BROWSER_EXTENSION_CHROME_STORE_DOCS_LINK_LABEL;
 </script>
 
 ## Overview
@@ -47,7 +54,7 @@ The readiness badge on the PeerPush card lists anything still missing. Fix gaps 
 
 ### Install the extension
 
-Install the <a href="/docs/installation/chrome-extension">OpenQuok browser extension</a> in Chrome and pin it for directory autofill.
+Install from the  <DocsExternalLink href={chromeWebStoreHref}>{chromeWebStoreLinkLabel}</DocsExternalLink>  listing in Chrome (or follow <a href="/docs/installation/chrome-extension">Browser extension</a> for source builds) and pin the OpenQuok extension for directory autofill.
 
 ### Open your product profile
 

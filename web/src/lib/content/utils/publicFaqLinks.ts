@@ -49,6 +49,10 @@ import {
 	getRootPathPublicTools
 } from '$lib/area-public/constants/getRootPathPublicTools';
 import { route } from '$lib/utils/path';
+import {
+	getPublicBrowserExtensionChromeStoreCtaHref,
+	PUBLIC_BROWSER_EXTENSION_CHROME_STORE_CTA_LABEL
+} from '$lib/content/constants/landing/browser-extension-chrome-cta';
 
 /** First-party GitHub repo (followable). Keep in sync with `docsSite.social.github`. */
 export const OPENQUOK_GITHUB_REPO_HREF = 'https://github.com/Ratimon/openquok-monorepo';
@@ -56,6 +60,28 @@ export const OPENQUOK_GITHUB_REPO_HREF = 'https://github.com/Ratimon/openquok-mo
 /** Root-relative FAQ anchor (no `rel="nofollow"` on first-party links). */
 export function faqLink(href: string, label: string): string {
 	return `<a href="${href}">${label}</a>`;
+}
+
+/** Third-party FAQ anchor (`target="_blank"`, policy-aligned `rel` — no import from `externalLinkRel` to avoid config↔faq init cycle). */
+export function faqExternalLink(href: string, label: string): string {
+	const trimmed = href.trim();
+	let rel = 'noopener noreferrer nofollow';
+	try {
+		const host = new URL(trimmed).hostname.replace(/^www\./, '').toLowerCase();
+		if (host === 'openquok.com' || host.endsWith('.openquok.com')) {
+			rel = 'noopener noreferrer';
+		}
+	} catch {
+		// keep default
+	}
+	return `<a href="${trimmed}" target="_blank" rel="${rel}">${label}</a>`;
+}
+
+/** Chrome Web Store listing for the published OpenQuok extension. */
+export function faqLinkChromeWebStore(
+	label: string = PUBLIC_BROWSER_EXTENSION_CHROME_STORE_CTA_LABEL
+): string {
+	return faqExternalLink(getPublicBrowserExtensionChromeStoreCtaHref(), label);
 }
 
 /** Docs page under `/docs/{slug…}` (slug without leading slash). */

@@ -24,7 +24,7 @@ API and worker processes stay **stateless**: timers enqueue or refresh work usin
 The **housekeeping** worker runs notification email digest flushing and, when configured, <code>DirectorySeoService.runWeeklyRefresh()</code>. Each run <strong>reloads stale domains from Postgres</strong> (main profile website URLs on paid tiers plus workspace competitors) — it does not keep a private list of “domains left this week” in process memory. Per-domain refresh is **idempotent**: respect <Badge text="DIRECTORY_SEO_CACHE_TTL_HOURS" variant="envBackend" />, upsert <Badge text="seo_domain_metric_snapshots" variant="path" />, append history when ratings change or the weekly sample policy applies. Any housekeeping replica can execute the timer; a crash mid-run is safe to retry.
 
 <Callout type="note">
-<p><strong>pg&#95;cron</strong> in Postgres remains SQL-only (for example token cleanup). DataForSEO HTTP never runs inside <code>cron.schedule</code>. See <a href="/docs/configuration-backend/database#scheduled-jobs-pg_cron-vs-housekeeping-worker">Database → Scheduled jobs</a> and <a href="/docs/configuration-backend/directory-seo">Directory SEO & DataForSEO</a>.</p>
+<p><strong>pg&#95;cron</strong> in Postgres remains SQL-only (for example token cleanup). DataForSEO HTTP never runs inside <code>cron.schedule</code>. See <a href="/docs/configuration-backend/database#scheduled-jobs-pg_cron-vs-housekeeping-worker">Database → Scheduled jobs</a> and <a href="/docs/configuration-backend/directory-seo">Directory SEO</a>.</p>
 </Callout>
 
 ## Queue dashboard (Bull Board)

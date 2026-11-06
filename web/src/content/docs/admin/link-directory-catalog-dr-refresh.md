@@ -89,7 +89,7 @@ You can type DR on a site in secret-admin. That value stays until the next catal
 ## Related
 
 <CardGrid>
-<LinkCard title="Directory SEO & DataForSEO" description="Cache TTL, worker sweep, and API env vars" href="/docs/configuration-backend/directory-seo" />
+<LinkCard title="Directory SEO" description="Cache TTL, worker sweep, and API env vars" href="/docs/configuration-backend/directory-seo" />
 <LinkCard title="Directory analytics (product)" description="My Products grid DR vs workspace Directory tab" href="/docs/insights/directory-analytics" />
 <LinkCard title="Admin overview" description="Other operator setup guides" href="/docs/admin" />
 </CardGrid>

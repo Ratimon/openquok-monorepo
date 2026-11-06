@@ -13,6 +13,7 @@ import {
 	buildChannelProgrammaticDirectoryLaunchFaqTitle,
 	faqHrefDocs,
 	faqLink,
+	faqLinkChromeWebStore,
 	publicFaqHref
 } from '$lib/content/utils/publicFaqLinks';
 
@@ -79,7 +80,7 @@ export const uneedDirectoryChannel = {
 		{
 			title: 'What should I prepare in my dashboard first?',
 			description:
-				`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, install the ${faqLink(publicFaqHref.browserExtensionLanding, 'OpenQuok browser extension')} (${faqLink(faqHrefDocs('installation/chrome-extension'), 'install guide')}), and complete the product profile fields Uneed expects — name, tagline, description, website, logo, and discovery tags. The readiness panel lists anything still missing.`
+				`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, install the OpenQuok browser extension from ${faqLinkChromeWebStore()} (${faqLink(faqHrefDocs('installation/chrome-extension'), 'install guide')} or ${faqLink(publicFaqHref.browserExtensionLanding, 'product overview')}), and complete the product profile fields Uneed expects — name, tagline, description, website, logo, and discovery tags. The readiness panel lists anything still missing.`
 		},
 		{
 			title: 'Where can I read Uneed backlink and cost notes?',

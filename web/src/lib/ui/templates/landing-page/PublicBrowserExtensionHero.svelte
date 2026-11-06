@@ -12,6 +12,8 @@
 		title: string;
 		slogan: string;
 		primaryCta: PublicBrowserExtensionCta;
+		secondaryCta: PublicBrowserExtensionCta;
+		tertiaryCta: PublicBrowserExtensionCta;
 		socialPlatformsLabel: string;
 		extensionPlatformsLabel: string;
 		githubOwner?: string;
@@ -22,6 +24,8 @@
 		title,
 		slogan,
 		primaryCta,
+		secondaryCta,
+		tertiaryCta,
 		socialPlatformsLabel,
 		extensionPlatformsLabel,
 		githubOwner = '',
@@ -45,6 +49,10 @@
 	showSloganHumanSupportSuffix={false}
 	ctaTextPrimary={primaryCta.label}
 	ctaHrefPrimary={primaryCta.href}
+	ctaTextSecondary={secondaryCta.label}
+	ctaHrefSecondary={secondaryCta.href}
+	ctaTextTertiary={tertiaryCta.label}
+	ctaHrefTertiary={tertiaryCta.href}
 	{githubOwner}
 	{githubRepo}
 	breadcrumb={browserExtensionHeroBreadcrumb}

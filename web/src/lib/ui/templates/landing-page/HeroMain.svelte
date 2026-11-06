@@ -37,6 +37,7 @@
 	} from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import { PUBLIC_LANDING_HERO_TRIAL_CTA } from '$lib/content/constants/landing/hero-copy';
 	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
+	import { externalLinkAnchorAttrs } from '$lib/utils/externalLinkRel';
 
 	type Props = {
 		heroTitle?: string;
@@ -46,6 +47,10 @@
 		heroExtendedPlatformsLabel?: string;
 		ctaTextPrimary?: string;
 		ctaHrefPrimary?: string;
+		ctaTextSecondary?: string;
+		ctaHrefSecondary?: string;
+		ctaTextTertiary?: string;
+		ctaHrefTertiary?: string;
 		githubOwner?: string;
 		githubRepo?: string;
 		breadcrumb?: Snippet;
@@ -79,6 +84,10 @@
 			'Draft then auto-fill with browser extension — you still post/launch on multiple channels by hand',
 		ctaTextPrimary = PUBLIC_LANDING_HERO_TRIAL_CTA,
 		ctaHrefPrimary = '#',
+		ctaTextSecondary,
+		ctaHrefSecondary,
+		ctaTextTertiary,
+		ctaHrefTertiary,
 		githubOwner = '',
 		githubRepo = '',
 		breadcrumb,
@@ -92,6 +101,18 @@
 
 	const titleRotateMarker = $derived(
 		heroTitleRotateMarker ?? LANDING_HERO_SOCIAL_AGENT_ROTATE_TITLE_LINE
+	);
+
+	const showHeroSecondaryCta = $derived(
+		Boolean(ctaTextSecondary?.trim() && ctaHrefSecondary?.trim())
+	);
+	const showHeroTertiaryCta = $derived(
+		Boolean(ctaTextTertiary?.trim() && ctaHrefTertiary?.trim())
+	);
+	const primaryCtaExternalAnchor = $derived(
+		ctaHrefPrimary && /^https?:\/\//i.test(ctaHrefPrimary)
+			? externalLinkAnchorAttrs(ctaHrefPrimary)
+			: null
 	);
 
 	const HERO_SOCIAL_ICON_BOX_CLASS = 'rounded-md';
@@ -618,15 +639,53 @@
 				</div>
 
 				<div class="mt-10 flex items-center justify-center pb-2">
-					<ButtonGlitchBrightness
-						class="w-2/3 text-sm sm:text-base lg:text-lg justify-center rounded-full px-10"
-						variant="primary"
-						size="lg"
-						href={ctaHrefPrimary}
-						preload="off"
-					>
-						{ctaTextPrimary}
-					</ButtonGlitchBrightness>
+					{#if showHeroSecondaryCta}
+						<div class="{landingHeroTheme.dualCtaRowClass} justify-center">
+							<ButtonGlitchBrightness
+								class={landingHeroTheme.compactCtaButtonClass}
+								variant="primary"
+								size="lg"
+								href={ctaHrefPrimary}
+								target={primaryCtaExternalAnchor?.target}
+								rel={primaryCtaExternalAnchor?.rel}
+								preload="off"
+							>
+								{ctaTextPrimary}
+							</ButtonGlitchBrightness>
+							<ButtonGlitchBrightness
+								class={landingHeroTheme.compactDocsCtaButtonClass}
+								variant="ghost"
+								size="lg"
+								href={ctaHrefSecondary}
+								preload="off"
+							>
+								{ctaTextSecondary}
+							</ButtonGlitchBrightness>
+							{#if showHeroTertiaryCta}
+								<ButtonGlitchBrightness
+									class={landingHeroTheme.compactDocsCtaButtonClass}
+									variant="ghost"
+									size="lg"
+									href={ctaHrefTertiary}
+									preload="off"
+								>
+									{ctaTextTertiary}
+								</ButtonGlitchBrightness>
+							{/if}
+						</div>
+					{:else}
+						<ButtonGlitchBrightness
+							class="w-2/3 text-sm sm:text-base lg:text-lg justify-center rounded-full px-10"
+							variant="primary"
+							size="lg"
+							href={ctaHrefPrimary}
+							target={primaryCtaExternalAnchor?.target}
+							rel={primaryCtaExternalAnchor?.rel}
+							preload="off"
+						>
+							{ctaTextPrimary}
+						</ButtonGlitchBrightness>
+					{/if}
 				</div>
 			</div>
 		</div>

@@ -48,7 +48,7 @@ New **social** networks follow <a href="/docs/contribution-opportunities/add-pro
 <LinkCard title="Directory submission" description="Launch workflow from My Products" href="/docs/directory-submission" />
 <LinkCard title="Profile variants per directory" description="Optional site copies before you launch" href="/docs/directory-submission/profile-variants" />
 <LinkCard title="Directory analytics" description="Domain rating for your product site on paid plans" href="/docs/insights/directory-analytics" />
-<LinkCard title="Directory SEO & DataForSEO" description="Optional domain rating cache for analytics" href="/docs/configuration-backend/directory-seo" />
+<LinkCard title="Directory SEO" description="Optional domain rating cache for analytics" href="/docs/configuration-backend/directory-seo" />
 <LinkCard title="Social integrations" description="OAuth, API keys, and extension setup for posting channels" href="/docs/social-integration" />
 <LinkCard title="Browser extension" description="Build and install the OpenQuok Chrome extension" href="/docs/installation/chrome-extension" />
 </CardGrid>

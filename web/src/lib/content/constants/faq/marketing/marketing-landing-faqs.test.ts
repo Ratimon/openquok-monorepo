@@ -30,6 +30,7 @@ describe('PUBLIC_SOCIAL_AUTOPILOT_LANDING_FAQ_SECTION', () => {
 		expect(html).toContain('/compare/openquok/buffer');
 		expect(html).toContain(`href="${publicFaqHref.grokBotLanding}"`);
 		expect(html).toContain(`href="${publicFaqHref.browserExtensionLanding}"`);
+		expect(html).toContain('chromewebstore.google.com');
 		expect(html).toContain(`href="${publicFaqHref.connectChannelsGuide}"`);
 		expect(items.some((item) => item.id === 'what-is-mcp')).toBe(true);
 		expect(items.some((item) => item.id === 'what-is-channel')).toBe(true);

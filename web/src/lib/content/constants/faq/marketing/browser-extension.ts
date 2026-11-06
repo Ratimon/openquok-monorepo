@@ -8,10 +8,12 @@ import { getRootPathPublicAgentChannel } from '$lib/area-public/constants/getRoo
 import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
 import { getRootPathPublicDirectorySubmissionTool } from '$lib/area-public/constants/getRootPathPublicDirectorySubmissionTool';
 import { getRootPathPublicSocialAutopilotLanding } from '$lib/area-public/constants/getRootPathPublicSocialAutopilotLanding';
-import { faqHrefDocs, faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+import { faqHrefDocs, faqLink, faqLinkChromeWebStore, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+
 import { route } from '$lib/utils/path';
 
 const chromeExtensionDocsHref = faqHrefDocs('installation/chrome-extension');
+const buildBacklinksHref = publicFaqHref.buildBacklinks;
 const connectChannelsHref = publicFaqHref.connectChannelsGuide;
 const connectRulesHref = faqHrefDocs('platforms/connect-rules');
 const directorySubmissionDocsHref = faqHrefDocs('directory-submission');
@@ -36,7 +38,7 @@ const BROWSER_EXTENSION_TAILORED_FAQ_ITEMS: readonly PublicFaqItem[] = [
 	},
 	{
 		title: 'How does directory autofill work?',
-		description: `Build a product profile on My Products, click Launch to directory, and the extension opens the directory site with mapped fields filled. You review and submit on the directory yourself. Step-by-step workflow: ${faqLink(directorySubmissionDocsHref, 'Directory submission')}. Product overview: ${faqLink(directorySubmissionToolHref, 'Directory submission tool')} and ${faqLink(publicFaqHref.channels, 'Channels')} directory cards.`
+		description: `Research directories in ${faqLink(buildBacklinksHref, 'Build backlinks')}, then build a product profile on our dahsboard and click Launch to directory. The extension opens the directory site with mapped fields filled. You review and submit on the directory yourself. ${faqLinkChromeWebStore()} from the Chrome Web Store when you are ready. Step-by-step workflow: ${faqLink(directorySubmissionDocsHref, 'Directory submission')}. Product overview: ${faqLink(directorySubmissionToolHref, 'Directory submission tool')} and ${faqLink(publicFaqHref.channels, 'Channels')} directory cards.`
 	},
 	{
 		title: 'Can I use the extension with self-hosted OpenQuok?',

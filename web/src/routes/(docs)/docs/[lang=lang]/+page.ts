@@ -23,6 +23,7 @@ export const load: PageLoad = async ({ params, url }) => {
 
 	const { prev, next } = getPrevNext(slug, params.lang);
 	const rawContent = await getRawContent(slug, params.lang);
+	const content = await doc.loadContent();
 
 	return {
 		meta: doc.meta,
@@ -31,7 +32,8 @@ export const load: PageLoad = async ({ params, url }) => {
 		prev,
 		next,
 		rawContent,
-		content: await doc.loadContent(),
+		content,
+		loadContent: doc.loadContent,
 		...(await buildDocsPageLoadExtras(rawContent, { meta: doc.meta, origin: url.origin }))
 	};
 };

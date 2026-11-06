@@ -100,6 +100,8 @@
 		primaryCtaHref={heroPrimaryHref}
 		secondaryCtaLabel={landing.hero.secondaryCta.label}
 		secondaryCtaHref={heroSecondaryHref}
+		tertiaryCtaLabel={landing.hero.extensionChromeCta.label}
+		tertiaryCtaHref={landing.hero.extensionChromeCta.href}
 		bullets={landing.hero.bullets}
 	/>
 

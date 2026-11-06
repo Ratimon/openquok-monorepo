@@ -8,7 +8,14 @@ sidebar:
 ---
 
 <script>
-import { Badge, Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
+import {
+	getPublicBrowserExtensionChromeStoreCtaHref,
+	PUBLIC_BROWSER_EXTENSION_CHROME_STORE_DOCS_LINK_LABEL
+} from '$lib/content/constants/landing/browser-extension-chrome-cta';
+
+const chromeWebStoreHref = getPublicBrowserExtensionChromeStoreCtaHref();
+const chromeWebStoreLinkLabel = PUBLIC_BROWSER_EXTENSION_CHROME_STORE_DOCS_LINK_LABEL;
 </script>
 
 ## What is a directory launch?
@@ -23,7 +30,7 @@ A **directory launch** is how you list a product on directory websites. OpenQuok
 
 <p><strong>Select where to launch.</strong> On <a href="/account/products">My Dashboard</a> → <strong>Products</strong> tab, each wired site shows on the product card with <strong>readiness</strong>. Click <strong>Launch to directory</strong>, pick the site, and choose a <strong>variant</strong> when the catalog offers more than one path (for example PeerPush Standard launch or Uneed Join the line).</p>
 
-<p><strong>Autofill in Chrome.</strong> OpenQuok opens the directory URL and sends a handoff to the <a href="/docs/installation/chrome-extension">browser extension</a>. Use the side panel <strong>Directory</strong> tab or <strong>Fill</strong> on the page.</p>
+<p><strong>Autofill in Chrome.</strong> OpenQuok opens the directory URL and sends a handoff to the <a href="/docs/installation/chrome-extension">browser extension</a>. Install from the  <DocsExternalLink href={chromeWebStoreHref}>{chromeWebStoreLinkLabel}</DocsExternalLink>  when you use Chrome. Use the side panel <strong>Directory</strong> tab or <strong>Fill</strong> on the page.</p>
 
 <p>Review every field, then submit or pay on the directory yourself. If you are already on those directory sites while signed in to OpenQuok, you can use the extension there too — you still need a product profile ready.</p>
 
@@ -59,7 +66,7 @@ Link social accounts to the same business profile when you want one client or br
 
 ### Install the browser extension
 
-Install and load the OpenQuok Chrome extension. See <a href="/docs/installation/chrome-extension">Browser extension</a>. Directory launch uses the same extension install as other extension-assisted flows.
+<p>Install the OpenQuok Chrome extension —  <DocsExternalLink href={chromeWebStoreHref}>{chromeWebStoreLinkLabel}</DocsExternalLink>  on Chrome, or follow <a href="/docs/installation/chrome-extension">Browser extension</a> for unpacked builds. Directory launch uses the same extension as Skool connect and Reddit handoff.</p>
 
 ### Create a product profile
 

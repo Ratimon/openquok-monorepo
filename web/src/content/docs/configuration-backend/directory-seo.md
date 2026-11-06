@@ -1,8 +1,8 @@
 ---
-title: Directory SEO & DataForSEO
-description: Optional domain rating data for Directory analytics. Set DataForSEO credentials on the API and housekeeping worker.
+title: Directory SEO
+description: Domain rating data for Directory analytics. Set DataForSEO credentials on the API and housekeeping worker.
 order: 12
-lastUpdated: 2026-10-24
+lastUpdated: 2026-11-06
 ---
 
 <script>

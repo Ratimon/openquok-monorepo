@@ -4,7 +4,7 @@ import {
 	PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS
 } from '$lib/content/constants/faq';
 import type { PublicMarketingLandingFaqSection } from '$lib/content/constants/faq/marketing/types';
-import { faqHrefDocs, faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+import { faqHrefDocs, faqLink, faqLinkChromeWebStore, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 import { route } from '$lib/utils/path';
 
 const DIRECTORY_AGENCY_FAQ_TITLE = 'Do you submit directories for me like a $300 agency?';
@@ -57,7 +57,7 @@ const DIRECTORY_SUBMISSION_TAILORED_FAQ_ITEMS: readonly PublicFaqItem[] = [
 	buildDirectoryLaunchDrGuaranteeFaqItem(),
 	{
 		title: 'How is this different from cheap “24–48 hour” automation?',
-		description: `Fast bulk tools optimize for speed. OpenQuok optimizes for approval safety: one business profile, the ${faqLink(publicFaqHref.browserExtensionLanding, 'browser extension')} for autofill, and steady progress in one dashboard. You choose which directories to open and when to click submit. Install steps: ${faqLink(chromeExtensionDocsHref, 'extension docs')}.`
+		description: `Fast bulk tools optimize for speed. OpenQuok optimizes for approval safety: one business profile, the ${faqLink(publicFaqHref.browserExtensionLanding, 'browser extension')} for autofill, and steady progress in one dashboard. You choose which directories to open and when to click submit. Pick opportunities in ${faqLink(buildBacklinksHref, 'Build backlinks')}, then ${faqLinkChromeWebStore()} or follow the ${faqLink(chromeExtensionDocsHref, 'extension install guide')}.`
 	},
 	{
 		title: 'Which directories does OpenQuok support today?',

@@ -271,7 +271,7 @@ A **directory destination** is one published launch path on a site — for examp
 <p>Billing, CLI (<Badge text="directory:analytics:*" variant="default" />), and MCP (<Badge text="directorySeoOverview" variant="default" />, etc.) may still say <strong>directory SEO</strong>. That is the same feature as <strong>directory analytics</strong> in the app.</p>
 </Callout>
 
-<p>See <a href="/docs/insights/directory-analytics">Directory analytics</a> and <a href="/docs/configuration-backend/directory-seo">Directory SEO & DataForSEO</a> (operator setup).</p>
+<p>See <a href="/docs/insights/directory-analytics">Directory analytics</a> and <a href="/docs/configuration-backend/directory-seo">Directory SEO</a> (operator setup).</p>
 
 <h2 id="agents-and-catalog">Agents and catalog</h2>
 

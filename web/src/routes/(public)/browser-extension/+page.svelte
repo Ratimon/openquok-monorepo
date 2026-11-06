@@ -57,7 +57,19 @@
 
 	const heroPrimaryCta = $derived({
 		label: landing.hero.primaryCta.label,
-		href: hostedMarketingHref(landing.hero.primaryCta.href, page.url.origin)
+		href: landing.hero.primaryCta.href.startsWith('http')
+			? landing.hero.primaryCta.href
+			: hostedMarketingHref(landing.hero.primaryCta.href, page.url.origin)
+	});
+
+	const heroSecondaryCta = $derived({
+		label: landing.hero.secondaryCta.label,
+		href: hostedMarketingHref(landing.hero.secondaryCta.href, page.url.origin)
+	});
+
+	const heroTertiaryCta = $derived({
+		label: landing.hero.tertiaryCta.label,
+		href: hostedMarketingHref(landing.hero.tertiaryCta.href, page.url.origin)
 	});
 
 	const processStepsFooterHref = $derived(
@@ -94,6 +106,8 @@
 		title={landing.hero.title}
 		slogan={landing.hero.description}
 		primaryCta={heroPrimaryCta}
+		secondaryCta={heroSecondaryCta}
+		tertiaryCta={heroTertiaryCta}
 		socialPlatformsLabel={landing.hero.heroSocialPlatformsLabel}
 		extensionPlatformsLabel={landing.hero.heroExtensionPlatformsLabel}
 		githubOwner="Ratimon"

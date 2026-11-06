@@ -36,13 +36,17 @@ export const load: PageLoad = async ({ params, url }) => {
 	const { prev, next } = getPrevNext(params.slug);
 	const rawContent = await getRawContent(params.slug);
 
+	const content = await doc.loadContent();
+
 	return {
 		meta: doc.meta,
 		slug: params.slug,
 		prev,
 		next,
 		rawContent,
-		content: await doc.loadContent(),
+		content,
+		/** Client hydration cannot call `getDoc()` — registry is server-only. */
+		loadContent: doc.loadContent,
 		...(await buildDocsPageLoadExtras(rawContent, {
 			meta: doc.meta,
 			origin: resolvePublicSiteUrl(url)

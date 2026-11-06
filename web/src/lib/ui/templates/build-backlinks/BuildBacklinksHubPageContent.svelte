@@ -24,6 +24,7 @@
 	import PublicOpportunitiesHubBreadcrumb from '$lib/ui/templates/public-hub/PublicOpportunitiesHubBreadcrumb.svelte';
 	import PublicHeroTitle from '$lib/ui/templates/titles/PublicHeroTitle.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
+	import BrowserExtensionChromeStoreButton from '$lib/ui/buttons/BrowserExtensionChromeStoreButton.svelte';
 
 	type Props = { data: BuildBacklinksHubPageContentData };
 
@@ -156,7 +157,11 @@
 				<div class="flex justify-center pt-2">
 					<BuildBacklinksHubStats {statsVm} />
 				</div>
-				<div class="flex justify-center pt-2">
+				<div class="flex flex-col items-stretch justify-center gap-2 pt-2 sm:flex-row sm:flex-wrap sm:items-center">
+					<BrowserExtensionChromeStoreButton
+						variant="ghost"
+						class={landingHeroTheme.compactDocsCtaButtonClass}
+					/>
 					<Button type="button" variant="primary" onclick={() => (submitOpen = true)}>
 						Suggest a site
 					</Button>
@@ -170,7 +175,11 @@
 				<p class="mx-auto max-w-3xl text-base leading-relaxed text-pretty text-base-content/70">
 					{heroDescription}
 				</p>
-				<div class="flex justify-center pt-2">
+				<div class="flex flex-col items-stretch justify-center gap-2 pt-2 sm:flex-row sm:flex-wrap sm:items-center">
+					<BrowserExtensionChromeStoreButton
+						variant="ghost"
+						class={landingHeroTheme.compactDocsCtaButtonClass}
+					/>
 					<Button type="button" variant="primary" onclick={() => (submitOpen = true)}>
 						Suggest a site
 					</Button>

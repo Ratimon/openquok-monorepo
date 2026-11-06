@@ -4,7 +4,7 @@ import {
 	PUBLIC_SOCIAL_AUTOPILOT_FAQ_ITEM_IDS
 } from '$lib/content/constants/faq';
 import type { PublicMarketingLandingFaqSection } from '$lib/content/constants/faq/marketing/types';
-import { faqHrefDocs, faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+import { faqHrefDocs, faqLink, faqLinkChromeWebStore, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 
 const agentsHubHref = publicFaqHref.agents;
 const chromeExtensionDocsHref = faqHrefDocs('installation/chrome-extension');
@@ -21,7 +21,7 @@ const SOCIAL_AUTOPILOT_TAILORED_FAQ_ITEMS: readonly PublicFaqItem[] = [
 	},
 	{
 		title: 'Can I schedule from Chrome without opening the dashboard?',
-		description: `Yes. Install the OpenQuok browser extension and use the side panel from any tab — same channels, drafts, and approval flow as the dashboard. See the ${faqLink(publicFaqHref.browserExtensionLanding, 'browser extension')} page and the ${faqLink(chromeExtensionDocsHref, 'install guide')}.`
+		description: `Yes. ${faqLinkChromeWebStore()} on Chrome, pin the OpenQuok extension, and use the side panel from any tab — same channels, drafts, and approval flow as the dashboard. Skool connect and Reddit due-time handoff also use this extension. See the ${faqLink(publicFaqHref.browserExtensionLanding, 'browser extension')} page and the ${faqLink(chromeExtensionDocsHref, 'install guide')}.`
 	}
 ];
 

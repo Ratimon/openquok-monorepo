@@ -31,6 +31,7 @@
 	import PublicOpportunitiesPreviewGrid from '$lib/ui/templates/opportunities-preview/PublicOpportunitiesPreviewGrid.svelte';
 	import PublicAgentFeatureSection from '$lib/ui/templates/landing-page/PublicAgentFeatureSection.svelte';
 	import { isPublicDirectoryChannelSlug } from '$lib/content/constants/channels';
+	import { isPublicBrowserExtensionHeroChannelSlug } from '$lib/content/constants/landing/browser-extension-chrome-cta';
 	import PublicMcpIntegrationSetup from '$lib/ui/templates/landing-page/PublicMcpIntegrationSetup.svelte';
 	import PublicMcpHero from '$lib/ui/templates/landing-page/PublicMcpHero.svelte';
 	import PublicComingSoonIntegrationPage from '$lib/ui/templates/landing-page/PublicComingSoonIntegrationPage.svelte';
@@ -110,6 +111,10 @@
 
 	let accentBannerTitle = $derived(accentSplitDocsCtaBannerTitle(mcpVm.agentLabel));
 	let accentBannerDescription = $derived(accentSplitDocsCtaBannerDescription(mcpVm.agentLabel));
+
+	const showExtensionChromeCta = $derived(
+		Boolean(activeChannelSlug && isPublicBrowserExtensionHeroChannelSlug(activeChannelSlug))
+	);
 </script>
 
 {#if isChannelComingSoon && comingSoonPlatformLabel && mcpVm.heroSecondaryIcon}
@@ -129,6 +134,7 @@
 		docsCtaText={PUBLIC_LANDING_GETTING_STARTED_GUIDE_CTA}
 		docsCtaHref={mcpVm.docsPath}
 		channelLabel={activeChannelLabel}
+		{showExtensionChromeCta}
 	/>
 {/if}
 

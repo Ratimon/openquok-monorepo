@@ -5,6 +5,10 @@ import {
 	PUBLIC_BROWSER_EXTENSION_LANDING_PATH
 } from '$lib/content/constants/marketing/browser-extension-landing';
 import { faqHrefDocs, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+import {
+	getPublicBrowserExtensionChromeStoreCtaHref,
+	PUBLIC_BROWSER_EXTENSION_CHROME_STORE_CTA_LABEL
+} from '$lib/content/constants/landing/browser-extension-chrome-cta';
 import { route } from '$lib/utils/path';
 import { getRootPathPublicBrowserExtensionLanding } from '$lib/area-public/constants/getRootPathPublicBrowserExtensionLanding';
 import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
@@ -16,10 +20,23 @@ describe('PUBLIC_BROWSER_EXTENSION_LANDING_CONFIG', () => {
 		);
 	});
 
-	it('points primary CTA at extension install docs', () => {
+	it('points primary CTA at the Chrome Web Store listing', () => {
 		expect(PUBLIC_BROWSER_EXTENSION_LANDING_CONFIG.hero.primaryCta.href).toBe(
+			getPublicBrowserExtensionChromeStoreCtaHref()
+		);
+		expect(PUBLIC_BROWSER_EXTENSION_LANDING_CONFIG.hero.primaryCta.label).toBe(
+			PUBLIC_BROWSER_EXTENSION_CHROME_STORE_CTA_LABEL
+		);
+	});
+
+	it('keeps install docs and how-it-works as secondary and tertiary hero CTAs', () => {
+		expect(PUBLIC_BROWSER_EXTENSION_LANDING_CONFIG.hero.secondaryCta.href).toBe(
 			faqHrefDocs('installation/chrome-extension')
 		);
+		expect(PUBLIC_BROWSER_EXTENSION_LANDING_CONFIG.hero.tertiaryCta.href).toBe(
+			`${PUBLIC_BROWSER_EXTENSION_LANDING_PATH}#browser-extension-process`
+		);
+		expect(PUBLIC_BROWSER_EXTENSION_LANDING_CONFIG.hero.tertiaryCta.label).toBe('How it works');
 	});
 
 	it('includes install and connect links in tailored FAQ answers', () => {

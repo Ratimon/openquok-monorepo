@@ -1,6 +1,6 @@
 import type { PublicFaqItem } from '$lib/content/constants/faq';
 
-import { faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+import { faqHrefDocs, faqLink, faqLinkChromeWebStore, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 
 export type PublicBuildBacklinksHubFaqSection = {
 	faqSubtitle: string;
@@ -57,6 +57,11 @@ export const PUBLIC_BUILD_BACKLINKS_HUB: PublicBuildBacklinksHubConfig = {
 				title: 'Link building is a lot of work — can OpenQuok automate it?',
 				description:
 					`Partly. OpenQuok can schedule and publish on supported social channels; directory submits, guest posts, and GitHub-style workflows stay manual on each platform. If an opportunity’s playbook shows connect or schedule, we can help from your workspace after you ${faqLink(publicFaqHref.signUp, 'sign up')}. See ${faqLink(publicFaqHref.channels, 'supported channels')} and the ${faqLink(publicFaqHref.connectChannelsGuide, 'connect channels guide')} for what applies today — we plan to add more networks over time, but not every listing qualifies yet.`
+			},
+			{
+				title: 'Can OpenQuok autofill directory launch forms from this catalog?',
+				description:
+					`Yes, when a directory supports OpenQuok launch. Pick sites in ${faqLink(publicFaqHref.buildBacklinks, 'Build backlinks')}, save a business profile in My Products, then ${faqLinkChromeWebStore()} and launch from the dashboard. The ${faqLink(publicFaqHref.browserExtensionLanding, 'browser extension')} fills mapped fields — you review and submit on each directory yourself. Overview: ${faqLink(publicFaqHref.directorySubmissionTool, 'Directory submission tool')}; setup: ${faqLink(faqHrefDocs('installation/chrome-extension'), 'extension install guide')}.`
 			}
 		] satisfies readonly PublicFaqItem[]
 	}

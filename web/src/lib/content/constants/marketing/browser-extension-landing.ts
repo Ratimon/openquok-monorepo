@@ -25,7 +25,10 @@ import {
 	buildBrowserExtensionChannelCrossLinkGridDescription,
 	buildBrowserExtensionChannelCrossLinkGridTitle
 } from '$lib/content/utils/buildBrowserExtensionLandingGridCopy';
-import { getBrowserExtensionChromeWebStoreListingUrl } from '$lib/integrations/browser-extension/extensionConfig';
+import {
+	getPublicBrowserExtensionChromeStoreCtaHref,
+	PUBLIC_BROWSER_EXTENSION_CHROME_STORE_CTA_LABEL
+} from '$lib/content/constants/landing/browser-extension-chrome-cta';
 import { DOCS_YOUTUBE_VIDEOS } from '$lib/docs/constants/docsYoutubeVideos';
 import { route } from '$lib/utils/path';
 
@@ -39,7 +42,7 @@ const socialAutopilotLandingPath = route(getRootPathPublicSocialAutopilotLanding
 const directorySubmissionToolPath = route(getRootPathPublicDirectorySubmissionTool());
 const redditChannelHref = route(getRootPathPublicChannel('reddit'));
 const skoolChannelHref = route(getRootPathPublicChannel('skool'));
-const chromeWebStoreListingUrl = getBrowserExtensionChromeWebStoreListingUrl();
+const chromeWebStoreListingUrl = getPublicBrowserExtensionChromeStoreCtaHref();
 const redditChannelSeed = getPublicChannelBySlug('reddit');
 
 export type PublicBrowserExtensionChannelCrossLinkSection = {
@@ -87,6 +90,7 @@ export type PublicBrowserExtensionLandingConfig = {
 	hero: PublicBrowserExtensionSectionHeader & {
 		primaryCta: PublicBrowserExtensionCta;
 		secondaryCta: PublicBrowserExtensionCta;
+		tertiaryCta: PublicBrowserExtensionCta;
 		heroSocialPlatformsLabel: string;
 		heroExtensionPlatformsLabel: string;
 	};
@@ -150,10 +154,14 @@ export const PUBLIC_BROWSER_EXTENSION_LANDING_CONFIG: PublicBrowserExtensionLand
 		heroSocialPlatformsLabel: 'Connect your accounts — publish to your social channels',
 		heroExtensionPlatformsLabel: 'In-browser connect, Reddit handoff, directory autofill',
 		primaryCta: {
-			label: 'Install for Chrome',
-			href: chromeExtensionDocsHref
+			label: PUBLIC_BROWSER_EXTENSION_CHROME_STORE_CTA_LABEL,
+			href: chromeWebStoreListingUrl
 		},
 		secondaryCta: {
+			label: 'Learn More',
+			href: chromeExtensionDocsHref
+		},
+		tertiaryCta: {
 			label: 'How it works',
 			href: `${publicLandingPath}#browser-extension-process`
 		}

@@ -8,7 +8,14 @@ sidebar:
 ---
 
 <script>
-import { Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
+import { Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
+import {
+	getPublicBrowserExtensionChromeStoreCtaHref,
+	PUBLIC_BROWSER_EXTENSION_CHROME_STORE_DOCS_LINK_LABEL
+} from '$lib/content/constants/landing/browser-extension-chrome-cta';
+
+const chromeWebStoreHref = getPublicBrowserExtensionChromeStoreCtaHref();
+const chromeWebStoreLinkLabel = PUBLIC_BROWSER_EXTENSION_CHROME_STORE_DOCS_LINK_LABEL;
 </script>
 
 ## What the catalog is
@@ -20,6 +27,8 @@ The public <a href="/build-backlinks">Build Backlinks</a> page lists directory a
 ![Public Backlinks Hub Pages](/docs/_assets/saved/public-backlinks-hub.webp)
 
 <p>Use <strong>Bookmark</strong> on a row to add it to your shortlist. You can bookmark without an account. When you sign in, bookmarks sync to <a href="/account/saved?tab=backlinks">Account → Saved</a> → <strong>Backlinks</strong> tab. See <a href="/docs/saved/backlinks">Backlinks management</a> to reorder and mark outreach done.</p>
+
+<p>When you launch on a wired directory from <a href="/account/products">My Products</a>, install the OpenQuok extension first —  <DocsExternalLink href={chromeWebStoreHref}>{chromeWebStoreLinkLabel}</DocsExternalLink>  on Chrome — then follow <a href="/docs/directory-submission">Directory submission</a>.</p>
 
 ## Catalog vs Channels vs My Products
 

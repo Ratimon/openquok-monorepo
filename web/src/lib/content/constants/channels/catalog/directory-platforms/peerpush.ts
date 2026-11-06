@@ -13,6 +13,7 @@ import {
 	buildChannelProgrammaticDirectoryLaunchFaqTitle,
 	faqHrefDocs,
 	faqLink,
+	faqLinkChromeWebStore,
 	publicFaqHref
 } from '$lib/content/utils/publicFaqLinks';
 
@@ -58,7 +59,7 @@ export const peerpushDirectoryChannel = {
 		siteRulesStepContent:
 			'PeerPush sets its own dofollow and listing rules on peerpush.com. Read them before you add a launch in My Products — OpenQuok maps your profile, you submit on the site.',
 		launchOpportunityStepContent:
-			'PeerPush offers Standard launch (paid, faster publish) and a free queue. Pick the destination in My Products that fits your budget. Dofollow terms can differ by variant — confirm on PeerPush before you pay.'
+			'PeerPush offers Standard launch (paid, faster publish) and a free queue. Pick the destination that fits your budget. Dofollow terms can differ by variant — confirm on PeerPush before you pay.'
 	}),
 	...buildDirectoryChannelWhoIsFor('PeerPush'),
 	faqSubtitle: 'Frequently asked questions',
@@ -74,7 +75,7 @@ export const peerpushDirectoryChannel = {
 		{
 			title: 'What do I need before I launch on PeerPush?',
 			description:
-				`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, install the ${faqLink(publicFaqHref.browserExtensionLanding, 'OpenQuok browser extension')} (${faqLink(faqHrefDocs('installation/chrome-extension'), 'install guide')}), and create a product in My Products. Fill name, tagline, description, website, logo, and PeerPush discovery fields. Then open Add directory launch → PeerPush.`
+				`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, install the OpenQuok browser extension from ${faqLinkChromeWebStore()} (${faqLink(faqHrefDocs('installation/chrome-extension'), 'install guide')} or ${faqLink(publicFaqHref.browserExtensionLanding, 'product overview')}), and create a product in My Products. Fill name, tagline, description, website, logo, and PeerPush discovery fields. Then open Add directory launch → PeerPush.`
 		},
 		{
 			title: 'What is the difference between Standard launch and the free queue?',

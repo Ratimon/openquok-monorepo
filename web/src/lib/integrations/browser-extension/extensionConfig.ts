@@ -1,6 +1,9 @@
 import { getApiBaseUrl } from '$lib/config/constants/apiBaseUrl';
 import { normalizeApiBaseUrl } from '$lib/utils/path';
 
+/** Published OpenQuok listing on the Chrome Web Store (public ID). */
+const OPENQUOK_BROWSER_EXTENSION_CHROME_WEB_STORE_ID = 'diloknijkhhggpfhenpoccnjbcjdoedn';
+
 /** Chrome extension ID for `chrome.runtime.sendMessage` (from Web Store or unpacked build). */
 export function getBrowserExtensionId(): string {
 	const raw =
@@ -14,13 +17,10 @@ export function isBrowserExtensionConfigured(): boolean {
 	return getBrowserExtensionId().length > 0;
 }
 
-/** Public Chrome Web Store listing when `VITE_OPENQUOK_BROWSER_EXTENSION_ID` is set; otherwise category browse. */
+/** Public Chrome Web Store listing; prefers `VITE_OPENQUOK_BROWSER_EXTENSION_ID`, else the published store ID. */
 export function getBrowserExtensionChromeWebStoreListingUrl(): string {
-	const id = getBrowserExtensionId();
-	if (id) {
-		return `https://chromewebstore.google.com/detail/openquok/${id}`;
-	}
-	return 'https://chromewebstore.google.com/category/extensions';
+	const id = getBrowserExtensionId() || OPENQUOK_BROWSER_EXTENSION_CHROME_WEB_STORE_ID;
+	return `https://chromewebstore.google.com/detail/openquok/${id}`;
 }
 
 /**

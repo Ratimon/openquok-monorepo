@@ -103,7 +103,7 @@ Without a website URL, OpenQuok cannot look up a domain rating.
 
 <p><strong>Link type</strong> (dofollow / nofollow) on My Products comes from the catalog and your submission notes. Directory analytics does not check every directory backlink in v1.</p>
 
-<p>Self-hosters: set <Badge text="DATAFORSEO_API_KEY" variant="envBackend" /> and Directory SEO env vars on the API and housekeeping worker. See <a href="/docs/configuration-backend/directory-seo">Directory SEO & DataForSEO</a>.</p>
+<p>Self-hosters: set <Badge text="DATAFORSEO_API_KEY" variant="envBackend" /> and Directory SEO env vars on the API and housekeeping worker. See <a href="/docs/configuration-backend/directory-seo">Directory SEO</a>.</p>
 
 ## Related
 
@@ -111,6 +111,6 @@ Without a website URL, OpenQuok cannot look up a domain rating.
 <LinkCard title="Insights overview" description="Social analytics, per-post stats, and how the tabs fit together" href="/docs/insights" />
 <LinkCard title="Profile variants per directory" description="Site-specific copies before you launch" href="/docs/directory-submission/profile-variants" />
 <LinkCard title="Workspace analytics (social)" description="Targeted channels and overview metrics for connected networks" href="/docs/insights/workspace-analytics" />
-<LinkCard title="Directory SEO & DataForSEO" description="Backend env vars, cache tables, and housekeeping refresh" href="/docs/configuration-backend/directory-seo" />
+<LinkCard title="Directory SEO" description="Backend env vars, cache tables, and housekeeping refresh" href="/docs/configuration-backend/directory-seo" />
 <LinkCard title="Limits" description="Directory competitor caps and upgrade paths" href="/docs/billing/limits" />
 </CardGrid>

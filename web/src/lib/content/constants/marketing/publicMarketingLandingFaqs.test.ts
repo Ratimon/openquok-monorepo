@@ -36,5 +36,7 @@ describe('publicMarketingLandingFaqs', () => {
 		expect(socialItems[0]?.id).toBe('switch-from-buffer-hootsuite');
 		expect(home[0]?.id).toBe('switch-from-buffer-hootsuite');
 		expect(home.length).toBeGreaterThan(PUBLIC_FAQ_ITEMS.length);
+		const homeHtml = home.map((item) => item.description).join(' ');
+		expect(homeHtml).toContain('chromewebstore.google.com');
 	});
 });

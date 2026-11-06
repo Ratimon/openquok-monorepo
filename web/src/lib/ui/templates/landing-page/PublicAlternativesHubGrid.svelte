@@ -17,7 +17,9 @@
 	import PublicAlternativesLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicAlternativesLandingBreadcrumb.svelte';
 	import PublicHubSearchBar from '$lib/ui/templates/public-hub/PublicHubSearchBar.svelte';
 	import SimpleCardGrid from '$lib/ui/templates/feature-grid/SimpleCardGrid.svelte';
-	import SimpleLinkCard from '$lib/ui/templates/feature-grid/SimpleLinkCard.svelte';
+	import PublicAlternativesHubLinkCard, {
+		type PublicAlternativesHubLinkCardItem
+	} from '$lib/ui/templates/alternatives/PublicAlternativesHubLinkCard.svelte';
 	import StripedPattern from '$lib/ui/patterns/StripedPattern.svelte';
 
 	type ProductIconStyle = {
@@ -71,7 +73,9 @@
 	const alternativesHubHeroTitleClass =
 		'text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl';
 
-	function entryCardItems(section: AlternativesHubViewModel['socialSection']) {
+	function entryCardItems(
+		section: AlternativesHubViewModel['socialSection']
+	): PublicAlternativesHubLinkCardItem[] {
 		return section.entries.map((entry) => ({
 			id: entry.slug,
 			title: entry.title,
@@ -132,7 +136,7 @@
 			patternClass="text-primary/12 stroke-[0.75]"
 		>
 			{#snippet card(item, context)}
-				<SimpleLinkCard
+				<PublicAlternativesHubLinkCard
 					{item}
 					pattern={context.pattern}
 					patternComponent={context.patternComponent}
@@ -178,7 +182,7 @@
 			patternClass="text-primary/12 stroke-[0.75]"
 		>
 			{#snippet card(item, context)}
-				<SimpleLinkCard
+				<PublicAlternativesHubLinkCard
 					{item}
 					pattern={context.pattern}
 					patternComponent={context.patternComponent}

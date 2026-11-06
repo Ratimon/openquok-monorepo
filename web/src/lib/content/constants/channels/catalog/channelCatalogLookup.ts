@@ -1,5 +1,6 @@
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/catalog/types';
 
+import { isPublicDirectoryChannelSlug } from '$lib/content/constants/channels/catalog/directory-channel-slugs';
 import { PUBLIC_DIRECTORY_CHANNEL_LANDING_PAGES } from '$lib/content/constants/channels/catalog/directory-seeds';
 import { PUBLIC_CHANNEL_LANDING_PAGES } from '$lib/content/constants/channels/catalog/seeds';
 
@@ -17,7 +18,4 @@ export function getChannelSeedBySlug(key: string): PublicChannelLandingPageViewM
 	return channelBySlug.get(normalized) ?? directoryChannelBySlug.get(normalized);
 }
 
-export function isPublicDirectoryChannelSlug(slug: string): boolean {
-	const key = slug.trim().toLowerCase();
-	return key.length > 0 && directoryChannelBySlug.has(key);
-}
+export { isPublicDirectoryChannelSlug };

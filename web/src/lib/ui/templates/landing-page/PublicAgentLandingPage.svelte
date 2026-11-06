@@ -65,6 +65,7 @@
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import PublicAgentFeatureSection from '$lib/ui/templates/landing-page/PublicAgentFeatureSection.svelte';
 	import { isPublicDirectoryChannelSlug } from '$lib/content/constants/channels';
+	import { isPublicBrowserExtensionHeroChannelSlug } from '$lib/content/constants/landing/browser-extension-chrome-cta';
 	import PublicAgentHero from '$lib/ui/templates/landing-page/PublicAgentHero.svelte';
 	import PublicComingSoonIntegrationPage from '$lib/ui/templates/landing-page/PublicComingSoonIntegrationPage.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
@@ -113,6 +114,10 @@
 
 	const showDirectoryLaunchSkill = $derived(
 		Boolean(activeChannelSlug && isPublicDirectoryChannelSlug(activeChannelSlug))
+	);
+
+	const showExtensionChromeCta = $derived(
+		Boolean(activeChannelSlug && isPublicBrowserExtensionHeroChannelSlug(activeChannelSlug))
 	);
 
 	const messagingChannelsByHostSlug = {
@@ -193,6 +198,7 @@
 		docsCtaHref={agentVm.docsPath}
 		channelLabel={activeChannelLabel}
 		{showDirectoryLaunchSkill}
+		{showExtensionChromeCta}
 	/>
 {/if}
 

@@ -170,6 +170,7 @@ function compareCellForRow(
 		case 'ai_summarizer':
 			return { kind: 'text', text: 'Unlimited' };
 		case 'multi_channel_publishing':
+		case 'chrome_extension':
 		case 'agent_integrations':
 		case 'analytics':
 		case 'photo_editor':
@@ -378,6 +379,7 @@ const COMPARE_ROW_CARD_FEATURE_MATCHERS: Partial<
 	public_api: (feature) => /public api/i.test(feature),
 	oauth_apps: (feature) => /oauth/i.test(feature),
 	mcp_server: (feature) => /mcp server/i.test(feature),
+	chrome_extension: (feature) => /google chrome extension/i.test(feature),
 	ai_writer: (feature) => /ai writer/i.test(feature),
 	ai_summarizer: (feature) => /ai summarizer/i.test(feature),
 	agent_integrations: (feature) => /^agent integrations$/i.test(feature.trim()),

@@ -11,6 +11,10 @@ import { PUBLIC_DIRECTORY_SUBMISSION_LANDING_FAQ_SECTION } from '$lib/content/co
 import type { PublicMarketingLandingFaqSection } from '$lib/content/constants/faq/marketing/types';
 import { PUBLIC_LANDING_HERO_TRIAL_CTA } from '$lib/content/constants/landing/hero-copy';
 import {
+	getPublicBrowserExtensionChromeStoreCtaHref,
+	PUBLIC_BROWSER_EXTENSION_CHROME_STORE_CTA_LABEL
+} from '$lib/content/constants/landing/browser-extension-chrome-cta';
+import {
 	faqHrefDocs,
 	faqLink,
 	publicFaqHref
@@ -74,6 +78,7 @@ export type PublicDirectorySubmissionLandingConfig = {
 		bullets: readonly string[];
 		primaryCta: PublicDirectorySubmissionCta;
 		secondaryCta: PublicDirectorySubmissionCta;
+		extensionChromeCta: PublicDirectorySubmissionCta;
 	};
 	trustStats: readonly PublicDirectorySubmissionTrustStat[];
 	whoIsFor: {
@@ -148,6 +153,10 @@ export const PUBLIC_DIRECTORY_SUBMISSION_LANDING_CONFIG: PublicDirectorySubmissi
 		secondaryCta: {
 			label: 'How it works',
 			href: `${publicLandingPath}#directory-submission-process`
+		},
+		extensionChromeCta: {
+			label: PUBLIC_BROWSER_EXTENSION_CHROME_STORE_CTA_LABEL,
+			href: getPublicBrowserExtensionChromeStoreCtaHref()
 		}
 	},
 	trustStats: [

@@ -7,6 +7,13 @@ lastUpdated: 2026-10-09
 
 <script>
 import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
+import {
+	getPublicBrowserExtensionChromeStoreCtaHref,
+	PUBLIC_BROWSER_EXTENSION_CHROME_STORE_DOCS_LINK_LABEL
+} from '$lib/content/constants/landing/browser-extension-chrome-cta';
+
+const chromeWebStoreHref = getPublicBrowserExtensionChromeStoreCtaHref();
+const chromeWebStoreLinkLabel = PUBLIC_BROWSER_EXTENSION_CHROME_STORE_DOCS_LINK_LABEL;
 </script>
 
 ## Overview
@@ -28,7 +35,7 @@ OpenQuok uses your active Skool browser session. Our OpenQuok chrome extension r
 ## Prerequisites
 
 1. <strong>Google Chrome</strong> (or a Chromium browser that supports the same extension APIs).
-2. The <strong>OpenQuok browser extension</strong> installed — see <a href="/docs/installation/chrome-extension">Browser extension</a>.
+2. The <strong>OpenQuok browser extension</strong> —  <DocsExternalLink href={chromeWebStoreHref}>{chromeWebStoreLinkLabel}</DocsExternalLink>  on Chrome, or see <a href="/docs/installation/chrome-extension">Browser extension</a> for unpacked installs.
 3. <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_ID" variant="envWeb" /> set on the web app you use for the dashboard.
 4. An active login on <DocsExternalLink href="https://www.skool.com/">skool.com</DocsExternalLink> in the same browser profile.
 
@@ -41,7 +48,7 @@ OpenQuok uses your active Skool browser session. Our OpenQuok chrome extension r
 
 ### Install and configure the extension
 
-Follow <a href="/docs/installation/chrome-extension">Browser extension</a>. Confirm the extension ID matches your env.
+<p>Install from the  <DocsExternalLink href={chromeWebStoreHref}>{chromeWebStoreLinkLabel}</DocsExternalLink>  listing, or follow <a href="/docs/installation/chrome-extension">Browser extension</a> for source builds. Confirm the extension ID matches <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_ID" variant="envWeb" /> on your dashboard host.</p>
 
 ### Sign in on Skool
 

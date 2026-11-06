@@ -11,6 +11,8 @@
 		primaryCtaHref: string;
 		secondaryCtaLabel?: string;
 		secondaryCtaHref?: string;
+		tertiaryCtaLabel?: string;
+		tertiaryCtaHref?: string;
 		bullets?: readonly string[];
 		bgColorClass?: string;
 	};
@@ -23,11 +25,14 @@
 		primaryCtaHref,
 		secondaryCtaLabel,
 		secondaryCtaHref,
+		tertiaryCtaLabel,
+		tertiaryCtaHref,
 		bullets = [],
 		bgColorClass = 'bg-base-100'
 	}: Props = $props();
 
 	const showDualCta = $derived(Boolean(secondaryCtaLabel?.trim() && secondaryCtaHref?.trim()));
+	const showTertiaryCta = $derived(Boolean(tertiaryCtaLabel?.trim() && tertiaryCtaHref?.trim()));
 	const heroSubtitle = $derived(subtitle.trim());
 </script>
 
@@ -42,6 +47,8 @@
 	primaryCtaHref={primaryCtaHref}
 	secondaryCtaText={showDualCta ? secondaryCtaLabel : undefined}
 	secondaryCtaHref={showDualCta ? secondaryCtaHref : undefined}
+	tertiaryCtaText={showTertiaryCta ? tertiaryCtaLabel : undefined}
+	tertiaryCtaHref={showTertiaryCta ? tertiaryCtaHref : undefined}
 	showCta={true}
 	{bgColorClass}
 	mediaContainerClass="max-w-xl"

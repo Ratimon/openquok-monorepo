@@ -1,6 +1,7 @@
 import {
 	faqHrefDocs,
 	faqLink,
+	faqLinkChromeWebStore,
 	OPENQUOK_GITHUB_REPO_HREF,
 	publicFaqHref
 } from '$lib/content/utils/publicFaqLinks';
@@ -80,7 +81,7 @@ export const PUBLIC_FAQ_ITEMS: readonly PublicFaqItem[] = [
 		id: 'switch-from-buffer-hootsuite',
 		title: 'Why switch from Buffer or Hootsuite?',
 		description:
-			`Legacy schedulers stack per-seat fees and enterprise tiers for calendar basics. OpenQuok covers connect channels, compose, calendar, multi-channel publish, and agent-first paths — workspaces, MCP, CLI, and API scheduling with human approval. Same workflow when you post by hand; built for when agents draft the work. Compare feature-by-feature on ${faqLink(publicFaqHref.compareOpenquokBuffer, 'OpenQuok vs Buffer')} and ${faqLink(publicFaqHref.compareOpenquokHootsuite, 'OpenQuok vs Hootsuite')}, or browse ${faqLink(publicFaqHref.compare, 'all comparisons')}.`
+			`Buffer and Hootsuite often charge per seat for calendar basics. OpenQuok gives you channels, scheduling, and multi-channel publish in one workspace. Agents can draft through MCP, the CLI, or the API — you approve before anything goes live. Compare ${faqLink(publicFaqHref.compareOpenquokBuffer, 'OpenQuok vs Buffer')}, ${faqLink(publicFaqHref.compareOpenquokHootsuite, 'OpenQuok vs Hootsuite')}, or ${faqLink(publicFaqHref.compare, 'all comparisons')}.`
 	},
 	{
 		id: 'try-free',
@@ -98,13 +99,13 @@ export const PUBLIC_FAQ_ITEMS: readonly PublicFaqItem[] = [
 		id: 'schedule-posts',
 		title: 'How do I schedule social media posts with OpenQuok?',
 		description:
-			`${faqLink(publicFaqHref.connectChannelsGuide, 'Connect channels')}, write in ${faqLink(publicFaqHref.docsCreatingPosts, 'Creating posts')}, then pick a time on the ${faqLink(publicFaqHref.docsCalendar, 'calendar')} or ${faqLink(publicFaqHref.docsKanban, 'kanban')}. Agents can use the ${faqLink(publicFaqHref.cliGettingStarted, 'CLI')}, ${faqLink(publicFaqHref.agentSetupGuides, 'agent setup guides')}, or ${faqLink(publicFaqHref.mcpSetupGuides, 'MCP setup guides')}.`
+			`${faqLink(publicFaqHref.connectChannelsGuide, 'Connect channels')}, write in ${faqLink(publicFaqHref.docsCreatingPosts, 'Creating posts')}, then pick a time on the ${faqLink(publicFaqHref.docsCalendar, 'calendar')} or ${faqLink(publicFaqHref.docsKanban, 'kanban')}. Agents can use the ${faqLink(publicFaqHref.cliGettingStarted, 'CLI')}, ${faqLink(publicFaqHref.agentSetupGuides, 'agent setup guides')}, or ${faqLink(publicFaqHref.mcpSetupGuides, 'MCP setup guides')}. From Chrome, install ${faqLinkChromeWebStore()} and draft from the ${faqLink(publicFaqHref.browserExtensionLanding, 'browser extension')} side panel without opening the dashboard every time.`
 	},
 	{
 		id: 'manage-social-media',
 		title: 'How do I manage social media with OpenQuok?',
 		description:
-			`${faqLink(publicFaqHref.connectChannelsGuide, 'Connect channels')} to your workspace. Manage drafts and scheduled posts on the ${faqLink(publicFaqHref.docsCalendar, 'calendar')} or ${faqLink(publicFaqHref.docsKanban, 'kanban')}. Review and approve posts before they publish. See ${faqLink(publicFaqHref.channels, 'supported channels')} for every network you can connect.`
+			`${faqLink(publicFaqHref.connectChannelsGuide, 'Connect channels')} to your workspace. Manage drafts and scheduled posts on the ${faqLink(publicFaqHref.docsCalendar, 'calendar')} or ${faqLink(publicFaqHref.docsKanban, 'kanban')}. Review and approve posts before they publish. Schedule or draft from any tab with the ${faqLink(publicFaqHref.browserExtensionLanding, 'OpenQuok browser extension')} — ${faqLinkChromeWebStore()} on Chrome — or stay in the dashboard. See ${faqLink(publicFaqHref.channels, 'supported channels')} for every network you can connect.`
 	},
 	{
 		id: 'agent-workspace',
@@ -248,13 +249,13 @@ export const PUBLIC_FAQ_ITEMS: readonly PublicFaqItem[] = [
 		id: 'openquok-social-media-management',
 		title: 'How does OpenQuok handle social media management?',
 		description:
-			`OpenQuok connects channels, a calendar, kanban, and an approval queue in one workspace. Agents can draft through ${faqLink(publicFaqHref.mcpSetupGuides, 'MCP')}, the ${faqLink(publicFaqHref.cliGettingStarted, 'CLI')}, or ${faqLink(publicFaqHref.agents, 'agent hosts')}. You approve before anything publishes. Read the full workflow on ${faqLink(publicFaqHref.socialMediaManagementLanding, 'Social media management')} and browse ${faqLink(publicFaqHref.channels, 'supported channels')}.`
+			`OpenQuok connects channels, a calendar, kanban, and an approval queue in one workspace. Agents can draft through ${faqLink(publicFaqHref.mcpSetupGuides, 'MCP')}, the ${faqLink(publicFaqHref.cliGettingStarted, 'CLI')}, or ${faqLink(publicFaqHref.agents, 'agent hosts')}. You approve before anything publishes. Schedule from Chrome with ${faqLinkChromeWebStore()} and the ${faqLink(publicFaqHref.browserExtensionLanding, 'browser extension')} side panel. Read the full workflow on ${faqLink(publicFaqHref.socialMediaManagementLanding, 'Social media management')} and browse ${faqLink(publicFaqHref.channels, 'supported channels')}.`
 	},
 	{
 		id: 'openquok-directory-submission-tool',
 		title: 'How does OpenQuok directory launch work?',
 		description:
-			`OpenQuok is DIY directory launch software. You build business profiles, autofill forms with the ${faqLink(publicFaqHref.browserExtensionLanding, 'browser extension')}, and track each submission. We do not run a done-for-you campaign for you. Start on the ${faqLink(publicFaqHref.directorySubmissionToolLanding, 'Directory submission tool')} page, follow ${faqLink(faqHrefDocs('directory-submission'), 'directory submission docs')}, and pick targets in ${faqLink(publicFaqHref.buildBacklinks, 'Build backlinks')}.`
+			`OpenQuok is DIY directory launch software. You build business profiles, autofill forms with the ${faqLink(publicFaqHref.browserExtensionLanding, 'browser extension')} — install from ${faqLinkChromeWebStore()} on Chrome — and track each submission. We do not run a done-for-you campaign for you. Start on the ${faqLink(publicFaqHref.directorySubmissionToolLanding, 'Directory submission tool')} page, follow ${faqLink(faqHrefDocs('directory-submission'), 'directory submission docs')}, and pick targets in ${faqLink(publicFaqHref.buildBacklinks, 'Build backlinks')}.`
 	},
 	{
 		id: 'directory-launch-software-not-agency',
@@ -266,7 +267,7 @@ export const PUBLIC_FAQ_ITEMS: readonly PublicFaqItem[] = [
 		id: 'compare-both-social-and-directory',
 		title: 'Can I use OpenQuok for social scheduling and directory launch?',
 		description:
-			`Yes. Both workflows live in the same product. Use ${faqLink(publicFaqHref.socialMediaManagementLanding, 'Social media management')} for channels, agents, and approvals. Use ${faqLink(publicFaqHref.directorySubmissionToolLanding, 'Directory submission tool')} for business profiles, extension autofill, and submission tracking. One workspace can hold social channels and directory launch work for the same brand.`
+			`Yes. Both workflows live in the same product. Use ${faqLink(publicFaqHref.socialMediaManagementLanding, 'Social media management')} for channels, agents, and approvals — including the ${faqLink(publicFaqHref.browserExtensionLanding, 'browser extension')} side panel after ${faqLinkChromeWebStore()}. Use ${faqLink(publicFaqHref.directorySubmissionToolLanding, 'Directory submission tool')} for business profiles, extension autofill on directory sites, and submission tracking. One workspace can hold social channels and directory launch work for the same brand.`
 	}
 ];
 

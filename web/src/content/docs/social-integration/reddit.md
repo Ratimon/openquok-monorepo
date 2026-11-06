@@ -2,11 +2,18 @@
 title: Reddit
 description: Add Reddit as a manual channel in OpenQuok, draft in the workspace, and complete posts on reddit.com yourself.
 order: 12
-lastUpdated: 2026-10-28
+lastUpdated: 2026-11-06
 ---
 
 <script>
 import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
+import {
+	getPublicBrowserExtensionChromeStoreCtaHref,
+	PUBLIC_BROWSER_EXTENSION_CHROME_STORE_DOCS_LINK_LABEL
+} from '$lib/content/constants/landing/browser-extension-chrome-cta';
+
+const chromeWebStoreHref = getPublicBrowserExtensionChromeStoreCtaHref();
+const chromeWebStoreLinkLabel = PUBLIC_BROWSER_EXTENSION_CHROME_STORE_DOCS_LINK_LABEL;
 </script>
 
 ## Overview
@@ -15,7 +22,9 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$li
 <p>Self-host installs do <strong>not</strong> register a Reddit OAuth app for workspace posting. You add Reddit as a <strong>manual channel</strong> from the dashboard. OpenQuok never stores your Reddit login or session cookies on the server.</p>
 </Callout>
 
-OpenQuok drafts and schedules Reddit posts in your workspace. When a post is due, OpenQuok marks it <strong>awaiting member</strong> and notifies you. You finish the post on <DocsExternalLink href="https://www.reddit.com/">reddit.com</DocsExternalLink> yourself — copy from the dashboard or extension, open the submit page, and optionally use the OpenQuok extension to autofill title and body. <strong>You</strong> review and click Post. OpenQuok does not publish to Reddit from the backend.
+OpenQuok drafts and schedules Reddit posts in your workspace. When a post is due, OpenQuok marks it <strong>awaiting member</strong> and notifies you.
+
+Then, you finish the post on <DocsExternalLink href="https://www.reddit.com/">reddit.com</DocsExternalLink> yourself — use the OpenQuok browser extension for <strong>Copy</strong>, <strong>Open submit</strong>, and <strong>Autofill</strong>, or copy from the dashboard and paste on reddit.com. <strong>You</strong> review and click Post. OpenQuok does not publish to Reddit from the backend.
 
 <Callout type="warning">
 <p>Autofill on reddit.com may break if Reddit changes its submit UI. OpenQuok does not guarantee autofill. Autofill does <strong>not</strong> click Submit for you.</p>
@@ -24,7 +33,7 @@ OpenQuok drafts and schedules Reddit posts in your workspace. When a post is due
 ## Prerequisites
 
 1. A workspace where you can use <Badge text="Add Channel" variant="new" />.
-2. Optional but recommended for due-time handoff: the <strong>OpenQuok browser extension</strong> — see <a href="/docs/installation/chrome-extension">Browser extension</a> (same dashboard session as the side panel; no Reddit cookie connect).
+2. The <strong>OpenQuok browser extension</strong> for due-time handoff — install from  <DocsExternalLink href={chromeWebStoreHref}>{chromeWebStoreLinkLabel}</DocsExternalLink>  on Chrome, or see <a href="/docs/installation/chrome-extension">Browser extension</a> (same dashboard session as the side panel; it does not read Reddit cookies for OpenQuok).
 3. When you post, sign in to Reddit in the browser profile you use for reddit.com.
 
 ## Connect Reddit
@@ -36,13 +45,19 @@ OpenQuok drafts and schedules Reddit posts in your workspace. When a post is due
 
 ### Add the channel
 
-In your workspace, open <Badge text="Add Channel" variant="new" /> → <strong>Reddit</strong>. Confirm the manual-channel notice. You can optionally set a <strong>channel label</strong> so the integration row is easy to spot in the composer. Labels must be <strong>unique among Reddit channels</strong> in this workspace (not across Facebook, X, and other platforms). If you leave the label blank, OpenQuok uses <Badge text="Reddit" variant="param" /> and only one unnamed Reddit channel is allowed.
+In your workspace, open <Badge text="Add Channel" variant="new" />. Select <strong>Reddit</strong>. Confirm the notice for manual channels.
+
+You can enter an optional <strong>channel label</strong>. A label helps you find this channel in the composer.
+
+Each Reddit channel in this workspace must have a different label. Labels on Facebook, X, or other platforms are not part of this rule.
+
+If you do not enter a label, OpenQuok uses <Badge text="Reddit" variant="param" />. You can add only one Reddit channel without a label in this workspace.
 
 OpenQuok saves the channel with an empty server token — there is no Reddit API login step.
 
-### Optional: install the extension
+### Install the extension
 
-If you want <strong>Copy</strong>, <strong>Open submit</strong>, and <strong>Autofill</strong> when posts are due, install the extension and sign in to OpenQuok from the side panel. The extension does <strong>not</strong> read Reddit cookies for OpenQuok API calls and does <strong>not</strong> refresh a Reddit session on the server.
+Install from the  <DocsExternalLink href={chromeWebStoreHref}>{chromeWebStoreLinkLabel}</DocsExternalLink>  listing (or see <a href="/docs/installation/chrome-extension">Browser extension</a> if self-host) and sign in to OpenQuok from the side panel so you can use <strong>Copy</strong>, <strong>Open submit</strong>, and <strong>Autofill</strong> when posts are due. The extension does <strong>not</strong> read Reddit cookies for OpenQuok API calls and does <strong>not</strong> refresh a Reddit session on the server.
 
 </Steps>
 

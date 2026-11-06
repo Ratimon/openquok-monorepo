@@ -8,7 +8,14 @@ sidebar:
 ---
 
 <script>
-import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
+import {
+	getPublicBrowserExtensionChromeStoreCtaHref,
+	PUBLIC_BROWSER_EXTENSION_CHROME_STORE_DOCS_LINK_LABEL
+} from '$lib/content/constants/landing/browser-extension-chrome-cta';
+
+const chromeWebStoreHref = getPublicBrowserExtensionChromeStoreCtaHref();
+const chromeWebStoreLinkLabel = PUBLIC_BROWSER_EXTENSION_CHROME_STORE_DOCS_LINK_LABEL;
 </script>
 
 ## Overview
@@ -23,7 +30,7 @@ Connect models fall into three families:
 
 - **OAuth (most networks)** — You create a developer app, set redirect URIs, request API access, and store client IDs and secrets in backend environment variables.
 - **Personal API key (for example Dev.to, Bluesky)** — The user pastes a key in Add Channel; operators document which env vars apply per guide.
-- **Browser extension (Skool, Reddit)** — No operator OAuth app. Set <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_ID" variant="envWeb" /> on the web build and distribute the extension. See <a href="/docs/installation/chrome-extension">Browser extension</a>.
+- **Browser extension (Skool, Reddit)** — No operator OAuth app. End users install from the  <DocsExternalLink href={chromeWebStoreHref}>{chromeWebStoreLinkLabel}</DocsExternalLink>  on Chrome (or an unpacked build). Set <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_ID" variant="envWeb" /> on the web build when you self-host. See <a href="/docs/installation/chrome-extension">Browser extension</a>.
 
 <Callout type="danger">
 <p>Never commit <Badge text="THREADS_APP_SECRET" variant="envBackend" /> or other provider secrets. Use <Badge text="backend/.env.development.local" variant="envBackend" /> locally or your host secret store in production.</p>

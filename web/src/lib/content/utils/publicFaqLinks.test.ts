@@ -22,6 +22,8 @@ import {
 	buildToolChannelFaqLinks,
 	faqHrefAgent,
 	faqLink,
+	faqExternalLink,
+	faqLinkChromeWebStore,
 	faqLinkSelfHostChannelSetup,
 	publicFaqHref
 } from '$lib/content/utils/publicFaqLinks';
@@ -29,6 +31,20 @@ import {
 describe('publicFaqLinks', () => {
 	it('wraps labels in root-relative anchors', () => {
 		expect(faqLink('/pricing', 'Pricing')).toBe('<a href="/pricing">Pricing</a>');
+	});
+
+	it('nofollows third-party FAQ anchors', () => {
+		expect(faqExternalLink('https://chromewebstore.google.com/detail/openquok/test', 'Add to Chrome')).toContain(
+			'rel="noopener noreferrer nofollow"'
+		);
+		expect(faqExternalLink('https://chromewebstore.google.com/detail/openquok/test', 'Add to Chrome')).toContain(
+			'target="_blank"'
+		);
+	});
+
+	it('builds Chrome Web Store FAQ link with default label', () => {
+		expect(faqLinkChromeWebStore()).toContain('chromewebstore.google.com');
+		expect(faqLinkChromeWebStore()).toContain("Add to Chrome, it's free");
 	});
 
 	it('labels self-host channel setup docs', () => {

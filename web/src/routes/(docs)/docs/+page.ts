@@ -12,6 +12,7 @@ export async function load({ url }) {
 
 	const { prev, next } = getPrevNext('getting-started');
 	const rawContent = await getRawContent('getting-started');
+	const content = await doc.loadContent();
 
 	return {
 		meta: doc.meta,
@@ -19,7 +20,8 @@ export async function load({ url }) {
 		prev,
 		next,
 		rawContent,
-		content: await doc.loadContent(),
+		content,
+		loadContent: doc.loadContent,
 		...(await buildDocsPageLoadExtras(rawContent, { meta: doc.meta, origin: url.origin }))
 	};
 }
