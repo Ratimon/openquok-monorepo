@@ -66,4 +66,10 @@ export type PublicChannelLandingPageViewModel = {
 	 * `platformLabel` is always included; these are appended in catalog order.
 	 */
 	comparePlatformLabels?: readonly string[];
+	/**
+	 * Short label for secret-admin link-directory selects when CTA kind is **Schedule post** —
+	 * e.g. Reddit uses a “Draft in OpenQuok…” hero line without a comma; other channels use the first
+	 * comma phrase from `heroTitle`.
+	 */
+	schedulePostSelectLabel?: string;
 };

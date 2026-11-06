@@ -336,6 +336,7 @@
 					<LinkDirectoryOpenQuokChannelSelect
 						label="OpenQuok channel"
 						bind:value={openquokChannelSlug}
+						selectLabelContext={{ ctaKind: openquokCtaKind }}
 					/>
 				{/if}
 				{#if showPlugName}

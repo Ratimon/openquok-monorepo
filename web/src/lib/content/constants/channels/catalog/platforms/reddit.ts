@@ -26,6 +26,7 @@ export const redditChannel = {
 	platformId: 'reddit',
 	platformLabel: 'Reddit',
 	icon: icons.Reddit.name,
+	schedulePostSelectLabel: 'Schedule Reddit drafts — you submit on reddit.com when due',
 	heroTitle: 'Draft in OpenQuok\npost on reddit.com — lower ban risk',
 	heroDescription:
 		'Schedule drafts, autofill with browser extension, then you submit on reddit.com. No bot automation — you follow subreddit rules and avoid getting banned. Optional extension',

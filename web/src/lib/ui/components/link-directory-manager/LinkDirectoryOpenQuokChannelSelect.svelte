@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { listAvailablePublicChannels } from '$lib/content/constants/channels';
-	import { publicChannelSelectLabel } from '$lib/link-directory/utils/publicChannelSelectLabel';
+	import {
+		publicChannelSelectLabel,
+		type PublicChannelSelectLabelContext
+	} from '$lib/link-directory/utils/publicChannelSelectLabel';
 	import { trimFormField } from '$lib/utils/trimFormField';
 
 	const helperText =
@@ -13,6 +16,8 @@
 		label?: string;
 		value?: string;
 		class?: string;
+		/** Drives per-channel label overrides (e.g. Reddit for schedule_post). */
+		selectLabelContext?: PublicChannelSelectLabelContext;
 		onValueChange?: (value: string) => void;
 	};
 
@@ -21,6 +26,7 @@
 		label,
 		value = $bindable(''),
 		class: className = '',
+		selectLabelContext,
 		onValueChange
 	}: Props = $props();
 
@@ -31,7 +37,7 @@
 			{ value: '', label: 'None — external platform only' },
 			...channels.map((channel) => ({
 				value: channel.slug,
-				label: `${publicChannelSelectLabel(channel)} (${channel.slug})`
+				label: `${publicChannelSelectLabel(channel, selectLabelContext)} (${channel.slug})`
 			}))
 		];
 		const trimmed = trimFormField(value);
