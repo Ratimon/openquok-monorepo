@@ -257,6 +257,7 @@ export function buildAgentChannelLandingVm(params: {
 						item.title === 'What can OpenClaw do with OpenQuok?' ||
 						item.title === 'What can Hermes Agent do with OpenQuok?' ||
 						item.title === 'What can Grok Bot do with OpenQuok?' ||
+						item.title === 'What can Rakazo do with OpenQuok?' ||
 						item.title === 'What can ThinkRail do with OpenQuok?'
 					) {
 						const capabilities = supportsAnalytics

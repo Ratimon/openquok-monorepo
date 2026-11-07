@@ -17,6 +17,7 @@
 	import DirectoryUneedSiteSafariMock from '$lib/ui/templates/device-mocks/safari/content/DirectoryUneedSiteSafariMock.svelte';
 	import ExternalSitePlaceholderSafariMock from '$lib/ui/templates/device-mocks/safari/content/ExternalSitePlaceholderSafariMock.svelte';
 	import OpenclawDocsOverviewMock from '$lib/ui/templates/device-mocks/safari/content/OpenclawDocsOverviewMock.svelte';
+	import RakazoDocsOverviewMock from '$lib/ui/templates/device-mocks/safari/content/RakazoDocsOverviewMock.svelte';
 	import ChromeWebStoreOpenQuokSafariMock from '$lib/ui/templates/device-mocks/safari/content/ChromeWebStoreOpenQuokSafariMock.svelte';
 
 	type Props = {
@@ -64,6 +65,8 @@
 	<GeminiDocsOverviewMock />
 {:else if content === 'claude-duet-docs-overview'}
 	<ClaudeDuetDocsOverviewMock />
+{:else if content === 'rakazo-docs-overview'}
+	<RakazoDocsOverviewMock />
 {:else if isMcpInstallContent(content)}
 	<McpClientInstallMock content={content} />
 {:else if isMcpVerifyContent(content)}

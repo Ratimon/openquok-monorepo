@@ -108,12 +108,13 @@ Directory site keys, variants, and extension handoff are in [Directory integrati
 
 ## Supported Agents & MCP
 
-- <img src="./assets/readme/features/ai.svg" alt="" width="24" height="24" align="top"> **Autonomous agent hosts.** **OpenClaw**, **Hermes Agent**, **Grok Bot**, **Dots**, **Meta Muse**, **ThinkRail**, **Manus**, **Gemini Task**, and **Claude Duet** install [OpenQuok Core](https://www.openquok.com/creators/openquok/building-blocks/openquok-core) (`@openquok/auto-cli` skill) or **Connected Apps (MCP)** and schedule from chat or a terminal — see [Agent setup guides](https://www.openquok.com/docs/agent-setup-guides) and the [agents catalog](https://www.openquok.com/agents).
+- <img src="./assets/readme/features/ai.svg" alt="" width="24" height="24" align="top"> **Autonomous agent hosts.** **OpenClaw**, **Hermes Agent**, **Grok Bot**, **Rakazo**, **Dots**, **Meta Muse**, **ThinkRail**, **Manus**, **Gemini Task**, and **Claude Duet** install [OpenQuok Core](https://www.openquok.com/creators/openquok/building-blocks/openquok-core) (`@openquok/auto-cli` skill) or **Connected Apps (MCP)** and schedule from chat or a terminal — see [Agent setup guides](https://www.openquok.com/docs/agent-setup-guides) and the [agents catalog](https://www.openquok.com/agents).
 
 <p>
   <a href="https://www.openquok.com/agents/openclaw"><img src="./assets/readme/agents-mcp/openclaw.svg" alt="OpenClaw" width="32" height="32"></a>
   <a href="https://www.openquok.com/agents/hermes"><img src="./assets/readme/agents-mcp/hermes.svg" alt="Hermes Agent" width="32" height="32"></a>
   <a href="https://www.openquok.com/agents/grok-bot"><img src="./assets/readme/agents-mcp/grok-bot.svg" alt="Grok Bot" width="32" height="32"></a>
+  <a href="https://www.openquok.com/agents/rakazo"><img src="./assets/readme/agents-mcp/rakazo.svg" alt="Rakazo" width="32" height="32"></a>
   <a href="https://www.openquok.com/agents/dots"><img src="./assets/readme/agents-mcp/dots.svg" alt="Dots" width="32" height="32"></a>
   <a href="https://www.openquok.com/agents/meta-muse"><img src="./assets/readme/agents-mcp/meta-muse.svg" alt="Meta Muse" width="32" height="32"></a>
   <a href="https://www.openquok.com/agents/thinkrail"><img src="./assets/readme/agents-mcp/thinkrail.svg" alt="ThinkRail" width="32" height="32"></a>

@@ -60,6 +60,19 @@ export const GROK_BOT_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
 	{ id: 'curl', label: 'curl + Plugins', command: OPENQUOK_CORE_SKILL_INSTALL_GROK_BOT_CURL }
 ];
 
+/** Rakazo: install the global CLI on the bot sandbox computer. */
+export const OPENQUOK_CORE_SKILL_INSTALL_RAKAZO_ASK = `npm install -g @openquok/auto-cli@latest`;
+
+/** Rakazo: fetch SKILL.md on the bot sandbox, then register as a bot skill. */
+export const OPENQUOK_CORE_SKILL_INSTALL_RAKAZO_CURL = `mkdir -p ~/skills/openquok-core
+curl -fsSL "${OPENQUOK_CORE_SKILL_RAW_URL}" \\
+  -o ~/skills/openquok-core/SKILL.md`;
+
+export const RAKAZO_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
+	{ id: 'ask-bot', label: 'Ask the bot', command: OPENQUOK_CORE_SKILL_INSTALL_RAKAZO_ASK },
+	{ id: 'curl', label: 'curl + skill', command: OPENQUOK_CORE_SKILL_INSTALL_RAKAZO_CURL }
+];
+
 /** Dots: ask your dot to install the global CLI on its cloud computer. */
 export const OPENQUOK_CORE_SKILL_INSTALL_DOTS_ASK = `npm install -g @openquok/auto-cli@latest`;
 

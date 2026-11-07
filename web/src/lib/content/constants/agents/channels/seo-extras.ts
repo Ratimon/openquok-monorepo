@@ -87,7 +87,15 @@ const HOST_GLOBAL_SEO_EXTRAS: Readonly<Record<string, readonly string[]>> = {
 		'Cursor Pro Grok Bot social posts',
 		'Cursor Teams Grok Bot OpenQuok',
 		'SpaceX Grok Bot social media',
-		'SuperGrok Heavy Grok Bot posts'
+		'SuperGrok Heavy Grok Bot posts',
+		'Rakazo alternative Grok Bot scheduling',
+		'open-source alternative Grok Bot OpenQuok'
+	],
+	rakazo: [
+		'Rakazo vs Grok Bot social scheduling',
+		'open-source Grok Bot alternative',
+		'self-hosted agent OpenQuok',
+		'Rakazo sandbox openquok-core'
 	],
 	dots: [
 		'OpenAI Dots social scheduler',

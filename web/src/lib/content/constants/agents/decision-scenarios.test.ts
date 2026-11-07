@@ -30,4 +30,10 @@ describe('buildAgentHostPickerFaqDescription', () => {
 		expect(html).toContain('Grok Bot');
 		expect(html).toContain('OpenClaw');
 	});
+
+	it('links Rakazo from grok-bot picker copy', () => {
+		const html = buildAgentHostPickerFaqDescription('grok-bot');
+		expect(html).toContain('/agents/rakazo');
+		expect(html).toContain('Rakazo');
+	});
 });

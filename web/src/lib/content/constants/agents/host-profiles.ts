@@ -87,6 +87,13 @@ export const AGENT_HOST_PROFILES: readonly AgentHostProfile[] = [
 		scenarioIds: ['no-server-ops-cloud-browser'],
 		traits: ['proactive-agent', 'virtual-machine', 'mobile-ios-android'],
 		featureHighlights: []
+	},
+	{
+		slug: 'rakazo',
+		uiArchetype: 'vendor-cloud-computer',
+		scenarioIds: ['self-hosted-data-control', 'messaging-gateway-ui', 'model-agnostic'],
+		traits: ['self-host', 'sandbox-per-bot', 'slack-desktop-mobile', 'mcp-optional'],
+		featureHighlights: []
 	}
 ];
 

@@ -12,5 +12,6 @@ export type SafariMockContentId =
 	| 'manus-docs-overview'
 	| 'gemini-docs-overview'
 	| 'claude-duet-docs-overview'
+	| 'rakazo-docs-overview'
 	| import('$lib/ui/templates/device-mocks/safari/mcpClientVerifyMockConfig').McpVerifySafariMockContentId
 	| import('$lib/ui/templates/device-mocks/safari/mcpClientVerifyMockConfig').McpInstallSafariMockContentId;

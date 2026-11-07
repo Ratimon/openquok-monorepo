@@ -39,6 +39,10 @@
 		OPENCLAW_CORE_MESSAGING_CHANNELS,
 		OPENCLAW_EXTENSION_MESSAGING_CHANNELS
 	} from '$data/openclaw-messaging-channels';
+	import {
+		RAKAZO_CORE_MESSAGING_CHANNELS,
+		RAKAZO_EXTENSION_MESSAGING_CHANNELS
+	} from '$data/rakazo-messaging-channels';
 
 	import { page } from '$app/state';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
@@ -156,6 +160,10 @@
 		'claude-duet': {
 			core: CLAUDE_DUET_CORE_MESSAGING_CHANNELS,
 			extension: CLAUDE_DUET_EXTENSION_MESSAGING_CHANNELS
+		},
+		rakazo: {
+			core: RAKAZO_CORE_MESSAGING_CHANNELS,
+			extension: RAKAZO_EXTENSION_MESSAGING_CHANNELS
 		}
 	} as const;
 

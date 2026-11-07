@@ -63,7 +63,7 @@ export const PUBLIC_AGENTS_HUB = {
 			{
 				title: 'When should I choose an agent host?',
 				description:
-					'Choose an agent host to schedule from chat apps, keep memory, and run parallel sessions. Install openquok-core as a SKILL.md you can customize. OpenClaw, Hermes, <a href="/agents/grok-bot">Grok Bot</a>, <a href="/agents/dots">Dots</a>, <a href="/agents/meta-muse">Meta Muse</a>, <a href="/agents/thinkrail">ThinkRail</a>, <a href="/agents/manus">Manus</a>, <a href="/agents/gemini">Gemini Task</a>, and <a href="/agents/claude-duet">Claude Duet</a> stay reachable while you are away.'
+					'Choose an agent host to schedule from chat apps, keep memory, and run parallel sessions. Install openquok-core as a SKILL.md you can customize. OpenClaw, Hermes, <a href="/agents/grok-bot">Grok Bot</a>, <a href="/agents/rakazo">Rakazo</a>, <a href="/agents/dots">Dots</a>, <a href="/agents/meta-muse">Meta Muse</a>, <a href="/agents/thinkrail">ThinkRail</a>, <a href="/agents/manus">Manus</a>, <a href="/agents/gemini">Gemini Task</a>, and <a href="/agents/claude-duet">Claude Duet</a> stay reachable while you are away.'
 			},
 			{
 				title: 'When should I choose an MCP client?',
@@ -88,7 +88,7 @@ export const PUBLIC_AGENTS_HUB = {
 			{
 				title: 'Which path gives me persistent memory?',
 				description:
-					'Agent hosts like OpenClaw, Hermes, <a href="/agents/grok-bot">Grok Bot</a>, <a href="/agents/dots">Dots</a>, <a href="/agents/meta-muse">Meta Muse</a>, <a href="/agents/thinkrail">ThinkRail</a>, <a href="/agents/manus">Manus</a>, <a href="/agents/gemini">Gemini Task</a>, and <a href="/agents/claude-duet">Claude Duet</a> are built for long-lived sessions — they remember preferences, past decisions, and project context across conversations. MCP clients like <a href="/agents/cursor">Cursor</a> and <a href="/agents/grok-build">Grok Build</a> typically run per-session: productive for focused coding sprints, but you start fresh when you open a new session unless the client stores its own project notes.'
+					'Agent hosts like OpenClaw, Hermes, <a href="/agents/grok-bot">Grok Bot</a>, <a href="/agents/rakazo">Rakazo</a>, <a href="/agents/dots">Dots</a>, <a href="/agents/meta-muse">Meta Muse</a>, <a href="/agents/thinkrail">ThinkRail</a>, <a href="/agents/manus">Manus</a>, <a href="/agents/gemini">Gemini Task</a>, and <a href="/agents/claude-duet">Claude Duet</a> are built for long-lived sessions — they remember preferences, past decisions, and project context across conversations. MCP clients like <a href="/agents/cursor">Cursor</a> and <a href="/agents/grok-build">Grok Build</a> typically run per-session: productive for focused coding sprints, but you start fresh when you open a new session unless the client stores its own project notes.'
 			},
 			{
 				title: 'Do I still approve posts before they publish?',

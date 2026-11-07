@@ -32,12 +32,12 @@ export const AGENT_HOST_DECISION_SCENARIOS: readonly AgentHostDecisionScenario[]
 	{
 		id: 'self-hosted-data-control',
 		title: 'Credentials on infrastructure you control',
-		hostSlugs: ['openclaw', 'hermes']
+		hostSlugs: ['openclaw', 'hermes', 'rakazo']
 	},
 	{
 		id: 'messaging-gateway-ui',
 		title: 'Telegram, WhatsApp, or Slack as the daily UI',
-		hostSlugs: ['openclaw', 'hermes']
+		hostSlugs: ['openclaw', 'hermes', 'rakazo']
 	},
 	{
 		id: 'no-server-ops-cloud-browser',
@@ -47,7 +47,7 @@ export const AGENT_HOST_DECISION_SCENARIOS: readonly AgentHostDecisionScenario[]
 	{
 		id: 'model-agnostic',
 		title: 'Any LLM vendor or self-hosted model',
-		hostSlugs: ['openclaw', 'hermes', 'thinkrail']
+		hostSlugs: ['openclaw', 'hermes', 'thinkrail', 'rakazo']
 	},
 	{
 		id: 'editor-mcp-sessions',
@@ -83,11 +83,15 @@ export function buildAgentHostPickerFaqDescription(forHostSlug: string): string 
 	}
 
 	if (slug === 'grok-bot') {
-		return `Choose Grok Bot for many named Bots on one xAI cloud desktop without server ops. Choose ${faqLink(publicFaqHref.grokBuildLanding, 'Grok Build')} MCP when you want the xAI coding agent in your terminal. Choose ${faqLink(publicFaqHref.openclawLanding, 'OpenClaw')} when you must self-host and message from Telegram, WhatsApp, or Slack. Choose ${faqLink(publicFaqHref.dotsLanding, 'Dots')} for OpenAI workplace chat. See the ${blog}.`;
+		return `Choose Grok Bot for many named Bots on one xAI cloud desktop without server ops. Choose ${faqLink(publicFaqHref.rakazoLanding, 'Rakazo')} when you want an open-source, self-hosted teammate platform with sandbox computers and your own model keys. Choose ${faqLink(publicFaqHref.grokBuildLanding, 'Grok Build')} MCP when you want the xAI coding agent in your terminal. Choose ${faqLink(publicFaqHref.openclawLanding, 'OpenClaw')} when you must self-host and message from Telegram, WhatsApp, or Slack. Choose ${faqLink(publicFaqHref.dotsLanding, 'Dots')} for OpenAI workplace chat. See the ${blog}.`;
 	}
 
 	if (slug === 'claude-duet') {
 		return `Choose ${faqLink(publicFaqHref.claudeDuetLanding, 'Claude Duet')} for Anthropic’s proactive app on iOS, Android, and claude.ai with a virtual machine. Choose ${faqLink(publicFaqHref.claudeCodeLanding, 'Claude Code')} MCP when the terminal is home. Choose ${faqLink(publicFaqHref.grokBotLanding, 'Grok Bot')} or ${faqLink(publicFaqHref.dotsLanding, 'Dots')} for other vendor cloud teammates. See the ${blog}.`;
+	}
+
+	if (slug === 'rakazo') {
+		return `Choose Rakazo when you want self-hosted persistent bots with sandboxed computers and your own model keys. Choose ${faqLink(publicFaqHref.grokBotLanding, 'Grok Bot')} when you prefer a managed xAI cloud desktop without operating a server. Choose ${faqLink(publicFaqHref.openclawLanding, 'OpenClaw')} or ${faqLink(faqHrefAgent('hermes'), 'Hermes Agent')} for gateway-first Telegram or WhatsApp setups. See the ${blog}.`;
 	}
 
 	if (slug === 'openclaw' || slug === 'hermes') {

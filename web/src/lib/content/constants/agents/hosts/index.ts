@@ -7,3 +7,4 @@ export { thinkrailAgent } from './thinkrail';
 export { manusAgent } from './manus';
 export { geminiAgent } from './gemini';
 export { claudeDuetAgent } from './claude-duet';
+export { rakazoAgent } from './rakazo';

@@ -1,5 +1,6 @@
 import { icons } from '$data/icons';
 
+import { buildAgentHostPickerFaqDescription } from '$lib/content/constants/agents/decision-scenarios';
 import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/agents/types';
 import { faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 import {
@@ -282,6 +283,10 @@ openquok analytics:post <post-id> -d 30`
 			title: 'What is Grok Bot?',
 			description:
 				`Grok Bot is an AI teammate product with a shared persistent cloud computer — browser, filesystem, and terminal — for each Bot you create. You message it from macOS, Windows desktop, or iOS, install skills via Settings → Plugins or / in chat, and set up routines for scheduled work. See the ${faqLink(publicFaqHref.grokBotLanding, 'Grok Bot integration')} and ${faqLink(publicFaqHref.agentSetupGuides, 'agent setup guides')}.`
+		},
+		{
+			title: 'How is Grok Bot different from Rakazo?',
+			description: buildAgentHostPickerFaqDescription('grok-bot')
 		},
 		{
 			title: 'Which plans can use Grok Bot?',

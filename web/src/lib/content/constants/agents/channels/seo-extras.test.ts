@@ -24,6 +24,13 @@ describe('buildAgentChannelSeoExtras', () => {
 		const extras = buildAgentChannelSeoExtras('grok-bot', 'X');
 		expect(extras).toContain('Cursor Grok Bot scheduling');
 		expect(extras).toContain('xAI Grok Bot OpenQuok');
+		expect(extras).toContain('Rakazo alternative Grok Bot scheduling');
+	});
+
+	it('includes Grok Bot comparison extras on Rakazo channel pages', () => {
+		const extras = buildAgentChannelSeoExtras('rakazo', 'Instagram');
+		expect(extras).toContain('Rakazo vs Grok Bot social scheduling');
+		expect(extras).toContain('open-source Grok Bot alternative');
 	});
 
 	it('includes ChatGPT dot extras for Dots channel pages', () => {
