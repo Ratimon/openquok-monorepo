@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { DirectoryAddChannelTileVm } from '$lib/auto-launch/buildDirectoryAddChannelTiles';
 	import type { IntegrationCatalogItemProgrammerModel } from '$lib/integrations/Integrations.repository.svelte';
 	import type { OnboardingMode } from '$lib/ui/components/onboarding/onboarding.types';
 	import type { OnboardingMcpClientId } from '$lib/ui/components/onboarding/mcp/onboardingMcpClients';
@@ -11,8 +12,11 @@
 	import { absoluteUrl, route } from '$lib/utils/path';
 	import { toast } from '$lib/ui/sonner';
 
+	import { fetchDirectoryAddChannelTiles } from '$lib/auto-launch/fetchDirectoryAddChannelTiles';
 	import { integrationsRepository } from '$lib/integrations';
 	import { workspaceSettingsPresenter } from '$lib/settings';
+
+	import AddDirectoryLaunch from '$lib/ui/components/auto-launch/AddDirectoryLaunch.svelte';
 
 	import { cn } from '$lib/ui/helpers/common';
 
@@ -20,6 +24,7 @@
 	import OnboardingAgentConnectStep from '$lib/ui/components/onboarding/agent/OnboardingAgentConnectStep.svelte';
 	import OnboardingMcpConnectStep from '$lib/ui/components/onboarding/mcp/OnboardingMcpConnectStep.svelte';
 	import OnboardingChannelStep from '$lib/ui/components/onboarding/OnboardingChannelStep.svelte';
+	import OnboardingBrowserExtensionStep from '$lib/ui/components/onboarding/OnboardingBrowserExtensionStep.svelte';
 	import OnboardingTutorialStep from '$lib/ui/components/onboarding/OnboardingTutorialStep.svelte';
 	import {
 		ONBOARDING_DIALOG_CONTENT_CLASS,
@@ -52,6 +57,9 @@
 	let step = $state(1);
 	let loading = $state(false);
 	let providers = $state<IntegrationCatalogItemProgrammerModel[]>([]);
+	let directoryTiles = $state<DirectoryAddChannelTileVm[]>([]);
+	let directoryLaunchOpen = $state(false);
+	let activeDirectoryTile = $state<DirectoryAddChannelTileVm | null>(null);
 
 	const currentWorkspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
 	const rootPathAccount = getRootPathAccount();
@@ -68,12 +76,18 @@
 		await workspaceSettingsPresenter.load({ includeTeam: false });
 	}
 
-	async function loadProviders() {
+	async function loadChannelPicker() {
 		loading = true;
 		try {
-			providers = await integrationsRepository.getCatalog();
+			const [catalog, tiles] = await Promise.all([
+				integrationsRepository.getCatalog(),
+				fetchDirectoryAddChannelTiles()
+			]);
+			providers = catalog;
+			directoryTiles = tiles;
 		} catch {
 			providers = [];
+			directoryTiles = [];
 		} finally {
 			loading = false;
 		}
@@ -91,7 +105,7 @@
 				handleOpenChange(false);
 				return;
 			}
-			void loadProviders();
+			void loadChannelPicker();
 		});
 	});
 
@@ -134,6 +148,12 @@
 			onboarding: 'true'
 		});
 		goto(absoluteUrl(`${connectPath}?${qs}`));
+	}
+
+	function onPickDirectoryTile(tile: DirectoryAddChannelTileVm) {
+		close();
+		activeDirectoryTile = tile;
+		directoryLaunchOpen = true;
 	}
 
 	function finish() {
@@ -215,13 +235,21 @@
 
 				<div class={ONBOARDING_SCROLL_BODY_CLASS}>
 					{#if stepKind === 'channel'}
-						<OnboardingChannelStep {providers} {loading} {onPickProvider} />
+						<OnboardingChannelStep
+							{providers}
+							{directoryTiles}
+							{loading}
+							{onPickProvider}
+							{onPickDirectoryTile}
+						/>
 					{:else if stepKind === 'connect-agent'}
 						<OnboardingAgentConnectStep />
 					{:else if stepKind === 'connect-mcp'}
 						<OnboardingMcpConnectStep bind:selectedClient={mcpClientId} />
 					{:else if stepKind === 'cli'}
 						<OnboardingAgentCliStep />
+					{:else if stepKind === 'browser-extension'}
+						<OnboardingBrowserExtensionStep mode={onboardingMode} />
 					{:else}
 						<OnboardingTutorialStep mode={onboardingMode} />
 					{/if}
@@ -246,3 +274,11 @@
 		</Tooltip.Provider>
 	</Dialog.Content>
 </Dialog.Root>
+
+<AddDirectoryLaunch
+	showTrigger={false}
+	bind:launcherOpen={directoryLaunchOpen}
+	returnToPath={returnTo}
+	providerSlugPrefix={activeDirectoryTile?.providerSlugPrefix}
+	destinationsDialogTitle={activeDirectoryTile?.dialogTitle ?? 'Launch to directory'}
+/>

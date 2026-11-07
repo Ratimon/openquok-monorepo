@@ -162,15 +162,20 @@ Create a programmatic token under **Account → Settings → Developers → Acce
 
 Let AI agents handle volume — drafting and scheduling at scale. You handle quality: review and approve what goes live across your channels.
 
-<div align="center">
+<p align="center">
+  <strong>Terminal</strong> (<code>openquok</code> CLI · schedule posts · upload media · flip draft ↔ scheduled) · <strong>Chat</strong> (Grok Bot · Hermes · Claude · Cursor) · <strong>Web UI</strong> (calendar · kanban review · analytics · approve before publish)
+</p>
 
-**Terminal** (`openquok` CLI · schedule posts · upload media · flip draft ↔ scheduled)  ·  **Chat** (OpenClaw · Hermes · Claude · Cursor)  ·  **Web UI** (calendar · kanban review · analytics · approve before publish)
-
-| <a href="assets/readme/5-calendar-filters-views.gif"><img src="assets/readme/5-calendar-filters-views.gif" alt="Calendar day, week, month, and list views with smart filters" width="440" /></a> | <a href="assets/readme/6-kanban-filters-drag-drop.gif"><img src="assets/readme/6-kanban-filters-drag-drop.gif" alt="Kanban drag-and-drop review workflow" width="440" /></a> |
-| :---: | :---: |
-| <a href="assets/readme/7-file-manager.gif"><img src="assets/readme/7-file-manager.gif" alt="File manager" width="440" /></a> | <a href="assets/readme/8-analytics.gif"><img src="assets/readme/8-analytics.gif" alt="Workspace analytics and per-post metrics" width="440" /></a> |
-
-</div>
+<p align="center">
+  <a href="./assets/readme/calendar-filters-views.gif"><img src="./assets/readme/calendar-filters-views.gif" alt="Calendar day, week, month, and list views with smart filters" width="440" /></a>
+  &nbsp;&nbsp;
+  <a href="./assets/readme/kanban-filters-drag-drop.gif"><img src="./assets/readme/kanban-filters-drag-drop.gif" alt="Kanban drag-and-drop review workflow" width="440" /></a>
+</p>
+<p align="center">
+  <a href="./assets/readme/file-manager.gif"><img src="./assets/readme/file-manager.gif" alt="File manager" width="440" /></a>
+  &nbsp;&nbsp;
+  <a href="./assets/readme/workspace-analytics.gif"><img src="./assets/readme/workspace-analytics.gif" alt="Workspace analytics and per-post metrics" width="440" /></a>
+</p>
 
 ---
 
@@ -290,6 +295,7 @@ Learn more at [Architecture](https://www.openquok.com/docs/getting-started-for-d
 
 **Featured Blogs**
 
+- [AI agents for Reddit: promote without getting banned](https://www.openquok.com/blog/ai-agents-for-reddit-promote-without-getting-banned) — draft with AI agents in OpenQuok, Global mode with other channels, human submit on reddit.com, and lower ban and shadowban risk
 - [Team collaboration in OpenQuok](https://www.openquok.com/blog/team-collaboration-in-openquok-workspaces-clients-and-preview-links) — workspaces, business profiles per client, invite links, templates, and preview links for sign-off
 - [Warm up a TikTok account](https://www.openquok.com/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience) — device setup and posting cadence before you scale carousels or agent-scheduled posts
 - [Meta Business verification for Facebook apps](https://www.openquok.com/blog/how-to-pass-meta-business-verification-for-a-facebook-app-or-skip-it-with-openquok) — pass Meta’s checks or connect Facebook through OpenQuok without a standalone app review path

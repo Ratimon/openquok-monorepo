@@ -13,6 +13,7 @@ import {
 	buildChannelFreeTrialFaqDescription,
 	buildChannelProgrammaticSchedulingFaqDescription,
 	buildChannelProgrammaticSchedulingFaqTitle,
+	faqHrefBlogPost,
 	faqHrefDocs,
 	faqLink,
 	faqLinkSelfHostChannelSetup,
@@ -140,6 +141,10 @@ export const redditChannel = {
 			title: 'Can OpenQuok still get my Reddit account banned?',
 			description:
 				'Yes, if you break Reddit or subreddit rules. OpenQuok does not guarantee immunity. We avoid auto-post by server or bot spam. You still need to control each draft and when to submit on reddit.com.'
+		},
+		{
+			title: 'How do I promote on Reddit without bans or shadowbans while using AI agents?',
+			description: `Read ${faqLink(faqHrefBlogPost('ai-agents-for-reddit-promote-without-getting-banned'), 'AI agents for Reddit: promote without getting banned')} on the OpenQuok blog. It covers <strong>human</strong> submit on reddit.com, subreddit fit, ban vs <strong>shadowban</strong> risk, and ${faqLink(faqHrefDocs('creating-posts/global-vs-per-channel'), 'Global mode')} with Reddit and other channels. ${faqLink(publicFaqHref.signUp, 'Sign up for free')}, connect Reddit, and keep drafts in OpenQuok—you still click Post yourself.`
 		},
 		{
 			title: buildChannelProgrammaticSchedulingFaqTitle('Reddit posts'),

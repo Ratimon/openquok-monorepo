@@ -5,6 +5,12 @@ import { escapeHtml } from "./htmlEscape";
 const SUPPORT_EMAIL = "admin@openquok.com";
 const DISCORD_SUPPORT_INVITE_URL = "https://discord.com/invite/xBfTzZr63W";
 
+/** Published OpenQuok listing on the Chrome Web Store (matches web `extensionConfig`). */
+const OPENQUOK_BROWSER_EXTENSION_CHROME_WEB_STORE_ID =
+    "diloknijkhhggpfhenpoccnjbcjdoedn";
+const OPENQUOK_BROWSER_EXTENSION_CHROME_WEB_STORE_URL = `https://chromewebstore.google.com/detail/openquok/${OPENQUOK_BROWSER_EXTENSION_CHROME_WEB_STORE_ID}`;
+const OPENQUOK_BROWSER_EXTENSION_CHROME_WEB_STORE_WELCOME_URL = `${OPENQUOK_BROWSER_EXTENSION_CHROME_WEB_STORE_URL}?utm_source=welcome-email`;
+
 type GettingStartedStep = {
     title: string;
     description: string;
@@ -27,8 +33,14 @@ const GETTING_STARTED_STEPS: GettingStartedStep[] = [
     {
         title: "Connect a channel",
         description:
-            "Link X, LinkedIn, TikTok, and other networks — OAuth or credentials, depending on the platform.",
+            "Link social networks or a directory launch. OAuth, credentials, or the browser — it depends on the platform.",
         path: "/docs/channels/connect",
+    },
+    {
+        title: "Install the Chrome extension (optional)",
+        description:
+            "Draft and schedule from the side panel. Skool, Reddit, and directory autofill need Chrome.",
+        path: OPENQUOK_BROWSER_EXTENSION_CHROME_WEB_STORE_WELCOME_URL,
     },
     {
         title: "Schedule your first post",
@@ -50,6 +62,14 @@ const GUIDE_LINKS: GuideLink[] = [
     {
         label: "Channels overview",
         href: "/docs/channels",
+    },
+    {
+        label: "Add OpenQuok in Chrome (Chrome Web Store)",
+        href: OPENQUOK_BROWSER_EXTENSION_CHROME_WEB_STORE_WELCOME_URL,
+    },
+    {
+        label: "Browser extension overview",
+        href: "/browser-extension",
     },
     {
         label: "Team collaboration: workspaces, clients, and preview links",

@@ -3676,7 +3676,7 @@ function absoluteUrl(frontendDomainUrl, path7) {
 function buildGuideLinkHtml(href, label) {
   return `<a href="${escapeHtml(href)}" style="color: ${EMAIL_PRIMARY_COLOR}; text-decoration: underline; font-size: 15px;">${escapeHtml(label)}</a>`;
 }
-var SUPPORT_EMAIL, DISCORD_SUPPORT_INVITE_URL, GETTING_STARTED_STEPS, GUIDE_LINKS, WelcomeEmailTemplate;
+var SUPPORT_EMAIL, DISCORD_SUPPORT_INVITE_URL, OPENQUOK_BROWSER_EXTENSION_CHROME_WEB_STORE_ID, OPENQUOK_BROWSER_EXTENSION_CHROME_WEB_STORE_URL, OPENQUOK_BROWSER_EXTENSION_CHROME_WEB_STORE_WELCOME_URL, GETTING_STARTED_STEPS, GUIDE_LINKS, WelcomeEmailTemplate;
 var init_WelcomeEmailTemplate = __esm({
   "emails/WelcomeEmailTemplate.ts"() {
     init_AbstractEmailTemplate();
@@ -3684,6 +3684,9 @@ var init_WelcomeEmailTemplate = __esm({
     init_htmlEscape();
     SUPPORT_EMAIL = "admin@openquok.com";
     DISCORD_SUPPORT_INVITE_URL = "https://discord.com/invite/xBfTzZr63W";
+    OPENQUOK_BROWSER_EXTENSION_CHROME_WEB_STORE_ID = "diloknijkhhggpfhenpoccnjbcjdoedn";
+    OPENQUOK_BROWSER_EXTENSION_CHROME_WEB_STORE_URL = `https://chromewebstore.google.com/detail/openquok/${OPENQUOK_BROWSER_EXTENSION_CHROME_WEB_STORE_ID}`;
+    OPENQUOK_BROWSER_EXTENSION_CHROME_WEB_STORE_WELCOME_URL = `${OPENQUOK_BROWSER_EXTENSION_CHROME_WEB_STORE_URL}?utm_source=welcome-email`;
     GETTING_STARTED_STEPS = [
       {
         title: "Open your dashboard",
@@ -3692,8 +3695,13 @@ var init_WelcomeEmailTemplate = __esm({
       },
       {
         title: "Connect a channel",
-        description: "Link X, LinkedIn, TikTok, and other networks \u2014 OAuth or credentials, depending on the platform.",
+        description: "Link social networks or a directory launch. OAuth, credentials, or the browser \u2014 it depends on the platform.",
         path: "/docs/channels/connect"
+      },
+      {
+        title: "Install the Chrome extension (optional)",
+        description: "Draft and schedule from the side panel. Skool, Reddit, and directory autofill need Chrome.",
+        path: OPENQUOK_BROWSER_EXTENSION_CHROME_WEB_STORE_WELCOME_URL
       },
       {
         title: "Schedule your first post",
@@ -3709,6 +3717,14 @@ var init_WelcomeEmailTemplate = __esm({
       {
         label: "Channels overview",
         href: "/docs/channels"
+      },
+      {
+        label: "Add OpenQuok in Chrome (Chrome Web Store)",
+        href: OPENQUOK_BROWSER_EXTENSION_CHROME_WEB_STORE_WELCOME_URL
+      },
+      {
+        label: "Browser extension overview",
+        href: "/browser-extension"
       },
       {
         label: "Team collaboration: workspaces, clients, and preview links",

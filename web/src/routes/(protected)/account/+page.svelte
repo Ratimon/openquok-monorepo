@@ -43,7 +43,9 @@
 	import { isUnlimitedTeamMembersPerWorkspace } from 'openquok-common';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 	import { buildAccountSettingsSearchParams } from '$lib/settings/utils/buildAccountSettingsSearch';
+	import { getPublicBrowserExtensionChromeStoreCtaHref } from '$lib/content/constants/landing/browser-extension-chrome-cta';
 	import {
+		GETTING_STARTED_BROWSER_EXTENSION_KIND,
 		GETTING_STARTED_NOTICE_KIND,
 		GETTING_STARTED_TIKTOK_WARMUP_KIND,
 		isOnboardingCompleted,
@@ -119,6 +121,9 @@
 			route(getRootPathPublicBlogPost('how-to-warm-up-a-tiktok-account-to-reach-a-us-audience')),
 			page.url.origin
 		)
+	);
+	const browserExtensionChromeStoreHref = $derived(
+		`${getPublicBrowserExtensionChromeStoreCtaHref()}?utm_source=getting-started-checklist`
 	);
 
 	const pagePresenter = protectedHomePagePresenter;
@@ -594,6 +599,7 @@
 	let gettingStartedDismissed = $state(false);
 	let gettingStartedModalOpen = $state(false);
 	let tiktokWarmupDone = $state(false);
+	let browserExtensionInstallDone = $state(false);
 
 	const HOME_NOTICE_KIND_NO_CHANNELS = 'no-channels';
 	const HOME_NOTICE_KIND_INVITE_TEAM = 'invite-team';
@@ -641,6 +647,13 @@
 		}
 	}
 
+	function markBrowserExtensionInstallDone(): void {
+		browserExtensionInstallDone = true;
+		if (workspaceId) {
+			persistHomeNoticeDismissedLocal(GETTING_STARTED_BROWSER_EXTENSION_KIND, workspaceId);
+		}
+	}
+
 	$effect(() => {
 		const orgId = workspaceId;
 		void productTourResetPresenter.revision;
@@ -649,6 +662,10 @@
 		soloUpgradeNoticeDismissed = readHomeNoticeDismissed(HOME_NOTICE_KIND_SOLO_UPGRADE, orgId);
 		gettingStartedDismissed = readHomeNoticeDismissed(GETTING_STARTED_NOTICE_KIND, orgId);
 		tiktokWarmupDone = readHomeNoticeDismissed(GETTING_STARTED_TIKTOK_WARMUP_KIND, orgId);
+		browserExtensionInstallDone = readHomeNoticeDismissed(
+			GETTING_STARTED_BROWSER_EXTENSION_KIND,
+			orgId
+		);
 	});
 
 	$effect(() => {
@@ -744,6 +761,14 @@
 			done: hasChannelForGettingStarted,
 			actionLabel: 'Add channel',
 			onAction: openOnboardingFlow
+		},
+		{
+			id: 'browser-extension',
+			label: 'Install browser extension (optional)',
+			done: browserExtensionInstallDone,
+			href: browserExtensionChromeStoreHref,
+			actionLabel: 'Mark done',
+			onAction: markBrowserExtensionInstallDone
 		},
 		{
 			id: 'timezone',

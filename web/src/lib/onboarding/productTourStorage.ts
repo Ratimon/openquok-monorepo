@@ -8,6 +8,7 @@ export const ACQUISITION_SURVEY_DONE_STORAGE_PREFIX = 'acquisition-survey:done';
 export const HOME_NOTICE_STORAGE_PREFIX = 'home:notice';
 export const GETTING_STARTED_NOTICE_KIND = 'getting-started';
 export const GETTING_STARTED_TIKTOK_WARMUP_KIND = 'getting-started-tiktok-warmup';
+export const GETTING_STARTED_BROWSER_EXTENSION_KIND = 'getting-started-browser-extension';
 /** Account home “one workspace = one context” sidebar notice (not per workspace). */
 export const WORKSPACE_ONE_CONTEXT_NOTICE_KIND = 'workspace-one-context';
 export const HOME_NOTICE_ACCOUNT_SCOPE = 'account';
@@ -65,6 +66,7 @@ export function resetProductTours(workspaceId: string | null): void {
 		if (workspaceId) {
 			localStorage.removeItem(homeNoticeStorageKey(GETTING_STARTED_NOTICE_KIND, workspaceId));
 			localStorage.removeItem(homeNoticeStorageKey(GETTING_STARTED_TIKTOK_WARMUP_KIND, workspaceId));
+			localStorage.removeItem(homeNoticeStorageKey(GETTING_STARTED_BROWSER_EXTENSION_KIND, workspaceId));
 		}
 	} catch {
 		// ignore

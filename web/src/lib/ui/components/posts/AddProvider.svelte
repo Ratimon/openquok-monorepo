@@ -4,6 +4,7 @@
 	import type { IntegrationCatalogItemProgrammerModel } from '$lib/integrations/Integrations.repository.svelte';
 	import type { IntegrationCatalogCustomField } from '$lib/integrations/utils/credentialsConnect';
 	import type { ButtonSize, ButtonVariant } from '$lib/ui/buttons/Button.svelte';
+	import type { DirectoryAddChannelTileVm } from '$lib/auto-launch/buildDirectoryAddChannelTiles';
 
 	import { goto } from '$app/navigation';
 	import { getRootPathAccount } from '$lib/area-protected';
@@ -33,12 +34,7 @@
 	import ChannelConnectLegalFooter from '$lib/ui/components/legal/ChannelConnectLegalFooter.svelte';
 	import AddDirectoryLaunch from '$lib/ui/components/auto-launch/AddDirectoryLaunch.svelte';
 	import DirectoryAddChannelTileIcon from '$lib/ui/components/auto-launch/DirectoryAddChannelTileIcon.svelte';
-	import { autoLaunchRepository } from '$lib/auto-launch';
-	import {
-		buildDirectoryAddChannelTiles,
-		type DirectoryAddChannelTileVm
-	} from '$lib/auto-launch/buildDirectoryAddChannelTiles';
-	import { linkDirectoryRepository } from '$lib/link-directory';
+	import { fetchDirectoryAddChannelTiles } from '$lib/auto-launch/fetchDirectoryAddChannelTiles';
 
 	// /account
 	const rootPathAccount = getRootPathAccount();
@@ -163,25 +159,6 @@
 	}
 
 	$effect(() => {
-	async function loadDirectoryAddChannelTiles() {
-		try {
-			const [destinations, publishedSites] = await Promise.all([
-				autoLaunchRepository.listDestinations(),
-				linkDirectoryRepository.getPublishedSites({ limit: 500, skip: 0 })
-			]);
-			const sitesBySlug = new Map(
-				publishedSites.sites.map((site) => [
-					site.slug,
-					{ title: site.title, logoUrl: site.logoUrl }
-				])
-			);
-			directoryTiles = buildDirectoryAddChannelTiles(destinations, sitesBySlug);
-		} catch {
-			directoryTiles = [];
-		}
-		directoryLogoFailedBySiteKey = {};
-	}
-
 		if (!open) {
 			channelCategoryFilter = 'all';
 			return;
@@ -194,7 +171,11 @@
 			}
 			void loadProviders();
 		});
-			void loadDirectoryAddChannelTiles();
+		void fetchDirectoryAddChannelTiles().then((tiles) => {
+			if (!open) return;
+			directoryTiles = tiles;
+			directoryLogoFailedBySiteKey = {};
+		});
 	});
 
 	function onPickProvider(identifier: string) {

@@ -5,4 +5,5 @@ export type OnboardingStepKind =
 	| 'connect-agent'
 	| 'cli'
 	| 'connect-mcp'
+	| 'browser-extension'
 	| 'tutorial';

@@ -209,6 +209,14 @@ export const PUBLIC_BROWSER_EXTENSION_LANDING_CONFIG: PublicBrowserExtensionLand
 				containerClass: CARD_CONTAINER_CLASS
 			},
 			{
+				iconName: icons.SkoolGlyph.name,
+				iconClass: 'text-violet-400',
+				title: 'Skool communities',
+				description:
+					'You host or teach in Skool and stay signed in on skool.com. Connect with Add Channel and schedule from the side panel while the extension refreshes your browser session.',
+				containerClass: CARD_CONTAINER_CLASS
+			},
+			{
 				iconName: icons.Globe.name,
 				iconClass: 'text-amber-400',
 				title: 'Launch teams',
@@ -219,17 +227,9 @@ export const PUBLIC_BROWSER_EXTENSION_LANDING_CONFIG: PublicBrowserExtensionLand
 			{
 				iconName: icons.Reddit.name,
 				iconClass: 'text-orange-500',
-				title: 'Reddit marketers',
+				title: 'Reddit marketers and moderators',
 				description:
-					'You draft in OpenQuok and post on reddit.com when each slot is due. The extension helps at handoff — you click Post yourself.',
-				containerClass: CARD_CONTAINER_CLASS
-			},
-			{
-				iconName: icons.MessageCircle.name,
-				iconClass: 'text-orange-400',
-				title: 'Subreddit moderators',
-				description:
-					'You plan announcements and recurring threads on one calendar. Use copy and open-submit helpers at due time — you still follow each sub’s rules.',
+					'You draft campaigns or plan subreddit announcements on one calendar, then post on reddit.com when each slot is due. Handoff helpers copy drafts and open submit — you click Post yourself and follow each sub’s rules.',
 				containerClass: CARD_CONTAINER_CLASS
 			}
 		]
