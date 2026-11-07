@@ -163,7 +163,7 @@ Create a programmatic token under **Account → Settings → Developers → Acce
 Let AI agents handle volume — drafting and scheduling at scale. You handle quality: review and approve what goes live across your channels.
 
 <p align="center">
-  <strong>Terminal</strong> (<code>openquok</code> CLI · schedule posts · upload media · flip draft ↔ scheduled) · <strong>Chat</strong> (Grok Bot · Hermes · Claude · Cursor) · <strong>Web UI</strong> (calendar · kanban review · analytics · approve before publish)
+  <strong>Terminal</strong> (<code>openquok</code> CLI · schedule posts · upload media · flip draft ↔ scheduled) · <strong>Chat</strong> (Grok Bot · Hermes · Claude · Cursor) · <strong>Web UI</strong> (calendar · kanban review · analytics · approve before publish) · <strong>Browser extension</strong> (<a href="https://chromewebstore.google.com/detail/openquok/diloknijkhhggpfhenpoccnjbcjdoedn">Chrome</a> side panel · schedule from any tab · Skool · Reddit · directory autofill)
 </p>
 
 <p align="center">
@@ -175,6 +175,11 @@ Let AI agents handle volume — drafting and scheduling at scale. You handle qua
   <a href="./assets/readme/file-manager.gif"><img src="./assets/readme/file-manager.gif" alt="File manager" width="440" /></a>
   &nbsp;&nbsp;
   <a href="./assets/readme/workspace-analytics.gif"><img src="./assets/readme/workspace-analytics.gif" alt="Workspace analytics and per-post metrics" width="440" /></a>
+</p>
+<p align="center">
+  <a href="./assets/readme/browser-extension-chrome.mp4">
+    <video src="./assets/readme/browser-extension-chrome.mp4" width="440" autoplay muted loop playsinline title="OpenQuok browser extension — Chrome side panel"></video>
+  </a>
 </p>
 
 ---
