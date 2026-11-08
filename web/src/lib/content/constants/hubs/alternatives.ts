@@ -104,7 +104,7 @@ export const PUBLIC_ALTERNATIVES_HUB_FAQ = {
 			{
 				title: 'Where should I start for Postiz alternatives?',
 				description:
-					`Open ${faqLink(route(getRootPathPublicAlternativesTarget('postiz')), 'Postiz alternatives')} for ranked picks. Read ${faqLink(publicFaqHref.compareOpenquokPostiz, 'OpenQuok vs Postiz')} for cloud vs self-host costs and channels. For Reddit draft-and-handoff vs server publish, read ${faqLink(publicFaqHref.blogRedditAgents, 'AI agents for Reddit without getting banned')}.`
+					`Open ${faqLink(route(getRootPathPublicAlternativesTarget('postiz')), 'Postiz alternatives')} for ranked picks. Read ${faqLink(publicFaqHref.compareOpenquokPostiz, 'OpenQuok vs Postiz')} for cloud vs self-host costs and channels. For a longer narrative on both open-source stacks, see ${faqLink(publicFaqHref.blogOpenquokVsPostiz, 'OpenQuok vs Postiz: two open-source schedulers, different strengths')}. For Reddit draft-and-handoff vs server publish, read ${faqLink(publicFaqHref.blogRedditAgents, 'AI agents for Reddit without getting banned')}.`
 			},
 			{
 				title: 'Where should I start for directory submission alternatives?',

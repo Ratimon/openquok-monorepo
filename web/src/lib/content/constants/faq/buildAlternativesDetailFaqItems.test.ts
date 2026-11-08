@@ -30,6 +30,18 @@ describe('buildAlternativesDetailFaqItems', () => {
 		expect(items[0]?.description).toContain('/alternatives/boringlaunch');
 	});
 
+	it('links Postiz switch FAQ to the vs Postiz blog and Reddit guide', () => {
+		const items = buildAlternativesDetailFaqItems({
+			targetName: 'Postiz',
+			targetSlug: 'postiz',
+			isDirectoryTarget: false
+		});
+
+		expect(items[0]?.title).toBe('Why switch from Postiz to OpenQuok?');
+		expect(items[0]?.description).toContain(publicFaqHref.blogOpenquokVsPostiz);
+		expect(items[0]?.description).toContain(publicFaqHref.blogRedditAgents);
+	});
+
 	it('uses an OpenQuok-specific lead question on the OpenQuok alternatives page', () => {
 		const items = buildAlternativesDetailFaqItems({
 			targetName: 'OpenQuok',

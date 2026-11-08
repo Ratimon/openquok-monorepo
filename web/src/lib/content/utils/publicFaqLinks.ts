@@ -251,7 +251,10 @@ export const publicFaqHref = {
 	blogTeamCollaboration: faqHrefBlogPost(
 		'team-collaboration-in-openquok-workspaces-clients-and-preview-links'
 	),
-	blogRedditAgents: faqHrefBlogPost('ai-agents-for-reddit-promote-without-getting-banned')
+	blogRedditAgents: faqHrefBlogPost('ai-agents-for-reddit-promote-without-getting-banned'),
+	blogOpenquokVsPostiz: faqHrefBlogPost(
+		'openquok-vs-postiz-two-open-source-schedulers-different-strengths'
+	)
 } as const;
 
 /** FAQ title for programmatic scheduling (MCP, API, CLI) on channel landing pages. */

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { getRootPathPublicComparePair } from '$lib/area-public/constants/getRootPathPublicCompare';
 import { PublicComparePagePresenter } from '$lib/area-public/PublicComparePage.presenter.svelte';
 import { getComparePair } from '$lib/content/constants/competitors';
+import { publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 import { route, url } from '$lib/utils/path';
 
 describe('PublicComparePagePresenter — directory compare smoke', () => {
@@ -41,6 +42,14 @@ describe('PublicComparePagePresenter — directory compare smoke', () => {
 		expect(vm!.directoryCoverageSection?.competitorSummary).toContain('50');
 		expect(vm!.faqItems.length).toBeGreaterThan(3);
 		expect(vm!.faqItems.some((item) => item.title.includes('Domain Rating'))).toBe(true);
+	});
+
+	it('prepends Postiz blog FAQ on OpenQuok vs Postiz compare detail', () => {
+		const pair = getComparePair('openquok', 'postiz');
+		expect(pair).not.toBeNull();
+
+		const vm = presenter.buildDetailVm(pair!);
+		expect(vm!.faqItems[0]?.description).toContain(publicFaqHref.blogOpenquokVsPostiz);
 	});
 
 	it('builds expanded social compare FAQs for OpenQuok vs Hootsuite', () => {

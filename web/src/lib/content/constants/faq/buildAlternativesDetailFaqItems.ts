@@ -51,7 +51,7 @@ function buildAlternativesSwitchFaqItem(
 		return {
 			title: `Why switch from ${targetName} to OpenQuok?`,
 			description:
-				`Teams leave ${targetName} when cloud channel caps, one workspace, or server-side Reddit publishing no longer fit. OpenQuok keeps Reddit as drafts you submit on reddit.com, with optional extension autofill — see ${faqLink(publicFaqHref.blogRedditAgents, 'AI agents for Reddit: promote without getting banned')}. Compare on ${faqLink(compareHref, compareLabel)} or use the ranked list on this page.`
+				`Teams leave ${targetName} when cloud channel caps, one workspace, or server-side Reddit publishing no longer fit. OpenQuok keeps Reddit as drafts you submit on reddit.com — see ${faqLink(publicFaqHref.blogRedditAgents, 'AI agents for Reddit: promote without getting banned')}. For a full open-source comparison (AGPL, MIT skills, kanban, directory autofill), read ${faqLink(publicFaqHref.blogOpenquokVsPostiz, 'OpenQuok vs Postiz: two open-source schedulers, different strengths')}. Compare on ${faqLink(compareHref, compareLabel)} or use the ranked list on this page.`
 		};
 	}
 

@@ -99,6 +99,11 @@ export const PUBLIC_COMPARE_HUB_FAQ = {
 				`Read ${faqLink(publicFaqHref.compareOpenquokLater, 'OpenQuok vs Later')} for social-set pricing, Instagram grid planning, Link in Bio, and agent workflows. Browse ${faqLink(publicFaqHref.alternativesLater, 'Later alternatives')} if you want workspace isolation and a public API instead of a visual dashboard.`
 		},
 		{
+			title: 'Where should I start for OpenQuok vs Postiz?',
+			description:
+				`Read ${faqLink(publicFaqHref.compareOpenquokPostiz, 'OpenQuok vs Postiz')} for the feature matrix. The ${faqLink(publicFaqHref.blogOpenquokVsPostiz, 'OpenQuok vs Postiz blog')} covers AGPL vs MIT skills, channel tiers, kanban, directory autofill, and Reddit handoff. For Reddit-only workflow detail, see ${faqLink(publicFaqHref.blogRedditAgents, 'AI agents for Reddit without getting banned')}.`
+		},
+		{
 			title: 'How does OpenQuok pricing compare?',
 			description:
 				`Comparison tables show public list prices side by side. OpenQuok includes workspace scheduling, agent CLI and MCP access, and API keys on paid tiers. Confirm seat limits, channel caps, and trial length on ${faqLink(publicFaqHref.pricing, 'Pricing')} before you switch.`

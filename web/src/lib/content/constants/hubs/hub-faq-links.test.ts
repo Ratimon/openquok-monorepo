@@ -105,6 +105,12 @@ describe('pSEO hub FAQ funnel links', () => {
 		expect(html).toContain(`href="${publicFaqHref.pricing}"`);
 	});
 
+	it('compare hub links OpenQuok vs Postiz blog from tailored copy', () => {
+		const html = PUBLIC_COMPARE_HUB_FAQ.faqItems.map((item) => item.description).join('\n');
+		expect(html).toContain(`href="${publicFaqHref.compareOpenquokPostiz}"`);
+		expect(html).toContain(`href="${publicFaqHref.blogOpenquokVsPostiz}"`);
+	});
+
 	it('channels hub links connect guide and trial pricing', () => {
 		const html = PUBLIC_CHANNELS_HUB_FAQ.faqItems.map((item) => item.description).join('\n');
 		expect(html).toContain(`href="${publicFaqHref.connectChannelsGuide}"`);

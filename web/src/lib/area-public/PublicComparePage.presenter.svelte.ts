@@ -20,6 +20,7 @@ import {
 	type CompareDirectoryCoverageViewModel
 } from '$lib/content/constants/competitors/utils/compareChannelSections';
 import type { PublicFaqItem } from '$lib/content/constants/faq';
+import { buildCompareDetailSocialFaqItems } from '$lib/content/constants/faq/buildCompareDetailFaqItems';
 import { insertDirectoryLaunchDrGuaranteeFaqItems } from '$lib/content/constants/faq/marketing/directory-submission';
 import { PUBLIC_COMPARE_HUB } from '$lib/content/constants/hubs/compare';
 import type { IconName } from '$data/icons';
@@ -173,12 +174,12 @@ export class PublicComparePagePresenter {
 			right: rightProduct.featureSupport[row.id] ?? { kind: 'excluded' as const }
 		}));
 
-		const faqFromIds = pair.faqItemIds?.length
-			? resolvePublicFaqItemsByIds(pair.faqItemIds)
-			: [];
+		const faqItemIds = pair.faqItemIds?.length ? pair.faqItemIds : [];
 		const faqItems = isDirectoryLongForm
-			? insertDirectoryLaunchDrGuaranteeFaqItems(faqFromIds)
-			: faqFromIds;
+			? insertDirectoryLaunchDrGuaranteeFaqItems(
+					faqItemIds.length ? resolvePublicFaqItemsByIds(faqItemIds) : []
+				)
+			: buildCompareDetailSocialFaqItems(leftProduct.slug, rightProduct.slug, faqItemIds);
 
 		const relatedCategory = isDirectoryLongForm
 			? ('directory_submission' as const)
