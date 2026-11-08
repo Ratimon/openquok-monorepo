@@ -3,7 +3,10 @@
 
 	import { page } from '$app/state';
 	import { PUBLIC_HUB_DOCS_BANNERS } from '$lib/config/constants/config';
-	import { PUBLIC_SELF_HOSTING_LANDING_CONFIG } from '$lib/content/constants/marketing/self-hosting-landing';
+	import {
+		PUBLIC_SELF_HOSTING_LANDING_CONFIG,
+		type PublicSelfHostingLinkCardItem
+	} from '$lib/content/constants/marketing/self-hosting-landing';
 	import { PUBLIC_SELF_HOSTING_WHO_IS_FOR_SECTION } from '$lib/content/constants/marketing/self-hosting-who-is-for';
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 
@@ -64,8 +67,8 @@
 		}))
 	);
 
-	const socialIntegrationItems = $derived(
-		landing.socialIntegrationSection.items.map((item) => ({
+	function mapSelfHostingLinkCardItems(items: readonly PublicSelfHostingLinkCardItem[]) {
+		return items.map((item) => ({
 			id: item.id,
 			title: item.title,
 			description: item.description,
@@ -74,7 +77,15 @@
 			iconName: item.iconName,
 			iconClass: item.iconClass,
 			iconContainerClass: item.iconContainerClass
-		}))
+		}));
+	}
+
+	const socialIntegrationItems = $derived(
+		mapSelfHostingLinkCardItems(data.socialIntegrationLinkCardItems)
+	);
+
+	const directoryIntegrationItems = $derived(
+		mapSelfHostingLinkCardItems(data.directoryIntegrationLinkCardItems)
 	);
 
 	const trustBadges = $derived(
@@ -205,6 +216,28 @@
 		title={landing.socialIntegrationSection.title}
 		description={landing.socialIntegrationSection.description}
 		items={socialIntegrationItems}
+		getItemKey={(item) => item.id}
+		sectionClass="mt-20 scroll-mt-24"
+		patternComponent={StripedPattern}
+		patternClass="text-primary/12 stroke-[0.75]"
+	>
+		{#snippet card(item, context)}
+			<SimpleLinkCard
+				{item}
+				pattern={context.pattern}
+				patternComponent={context.patternComponent}
+				patternClass={context.patternClass}
+			/>
+		{/snippet}
+	</SimpleCardGrid>
+
+	<SimpleCardGrid
+		heroTheme={sectionHeroTheme}
+		headingId="self-hosting-directory-integration-heading"
+		subtitle={landing.directoryIntegrationSection.subtitle}
+		title={landing.directoryIntegrationSection.title}
+		description={landing.directoryIntegrationSection.description}
+		items={directoryIntegrationItems}
 		getItemKey={(item) => item.id}
 		sectionClass="mt-20 scroll-mt-24"
 		patternComponent={StripedPattern}

@@ -94,9 +94,8 @@ export type PublicSelfHostingLandingConfig = {
 	startHereSection: PublicSelfHostingSectionHeader & {
 		items: readonly PublicSelfHostingStartHereItem[];
 	};
-	socialIntegrationSection: PublicSelfHostingSectionHeader & {
-		items: readonly PublicSelfHostingLinkCardItem[];
-	};
+	socialIntegrationSection: PublicSelfHostingSectionHeader;
+	directoryIntegrationSection: PublicSelfHostingSectionHeader;
 	stackSection: PublicSelfHostingSectionHeader & {
 		items: readonly PublicSelfHostingLinkCardItem[];
 	};
@@ -331,134 +330,16 @@ export const PUBLIC_SELF_HOSTING_LANDING_CONFIG = {
 		]
 	},
 	socialIntegrationSection: {
-		subtitle: 'Connect channels',
+		subtitle: 'Social channels',
 		title: 'Set up social networks',
 		description:
-			'Create developer apps and env vars for each network. Skool, Reddit, and directory launch also use the browser extension on your origin — see the product page below.',
-		items: [
-			{
-				id: 'social-integration-browser-extension',
-				title: 'Browser extension',
-				description:
-					'Side-panel scheduling, Skool connect, directory autofill, and Reddit handoff on your self-host URL.',
-				href: browserExtensionLandingPath,
-				ctaLabel: 'View product page',
-				iconName: icons.CustomizedDrawnLaptop.name,
-				iconContainerClass: 'bg-primary/10 text-primary ring-primary/20',
-				iconClass: 'size-5'
-			},
-			{
-				id: 'social-integration-overview',
-				title: 'Connections overview',
-				description: 'What you set up vs what your team connects in the app.',
-				href: faqHrefDocs('social-integration'),
-				ctaLabel: 'Open overview',
-				iconName: icons.Link.name,
-				iconContainerClass: 'bg-primary/10 text-primary ring-primary/20',
-				iconClass: 'size-5'
-			},
-			{
-				id: 'social-integration-threads',
-				title: 'Meta Threads',
-				description: 'Register your Meta app and connect Threads to your instance.',
-				href: faqHrefDocs('social-integration/threads'),
-				ctaLabel: 'Open guide',
-				iconName: icons.Threads.name,
-				iconContainerClass: 'bg-neutral-900 text-white ring-neutral-700/40',
-				iconClass: 'size-5'
-			},
-			{
-				id: 'social-integration-instagram',
-				title: 'Instagram',
-				description: 'Get Instagram API access and link it to OpenQuok.',
-				href: faqHrefDocs('social-integration/instagram'),
-				ctaLabel: 'Open guide',
-				iconName: icons.Instagram.name,
-				iconContainerClass:
-					'bg-gradient-to-br from-[#f09433]/25 via-[#e6683c]/25 to-[#bc1888]/25 text-pink-600 ring-pink-500/25',
-				iconClass: 'size-5'
-			},
-			{
-				id: 'social-integration-facebook',
-				title: 'Facebook Page',
-				description: 'Set up a Meta app for Facebook Page posting.',
-				href: faqHrefDocs('social-integration/facebook'),
-				ctaLabel: 'Open guide',
-				iconName: icons.Facebook.name,
-				iconContainerClass: 'bg-[#1877F2] text-white ring-[#1877F2]/30',
-				iconClass: 'size-5'
-			},
-			{
-				id: 'social-integration-youtube',
-				title: 'YouTube',
-				description: 'Turn on YouTube in Google Cloud and connect it.',
-				href: faqHrefDocs('social-integration/youtube'),
-				ctaLabel: 'Open guide',
-				iconName: icons.YouTube.name,
-				iconContainerClass: 'bg-[#FF0000] text-white ring-red-500/30',
-				iconClass: 'size-5'
-			},
-			{
-				id: 'social-integration-tiktok',
-				title: 'TikTok',
-				description: 'Register a TikTok developer app and add your callback URL.',
-				href: faqHrefDocs('social-integration/tiktok'),
-				ctaLabel: 'Open guide',
-				iconName: icons.TikTok.name,
-				iconContainerClass: 'bg-neutral-950 text-white ring-neutral-800/40',
-				iconClass: 'size-5'
-			},
-			{
-				id: 'social-integration-linkedin',
-				title: 'LinkedIn',
-				description: 'Create a LinkedIn app and connect personal profiles.',
-				href: faqHrefDocs('social-integration/linkedin'),
-				ctaLabel: 'Open guide',
-				iconName: icons.LinkedIn.name,
-				iconContainerClass: 'bg-[#0A66C2] text-white ring-[#0A66C2]/30',
-				iconClass: 'size-5'
-			},
-			{
-				id: 'social-integration-linkedin-page',
-				title: 'LinkedIn Page',
-				description: 'Set up posting to a LinkedIn Company Page.',
-				href: faqHrefDocs('social-integration/linkedin-page'),
-				ctaLabel: 'Open guide',
-				iconName: icons.LinkedIn.name,
-				iconContainerClass: 'bg-[#0A66C2] text-white ring-[#0A66C2]/30',
-				iconClass: 'size-5'
-			},
-			{
-				id: 'social-integration-x',
-				title: 'X (Twitter)',
-				description: 'Register an X developer app and add your callback URLs.',
-				href: faqHrefDocs('social-integration/x'),
-				ctaLabel: 'Open guide',
-				iconName: icons.X.name,
-				iconContainerClass: 'bg-neutral-800 text-white ring-neutral-700/40',
-				iconClass: 'size-5'
-			},
-			{
-				id: 'social-integration-devto',
-				title: 'Dev.to',
-				description: 'No app needed — users add their own API key in the dashboard.',
-				href: faqHrefDocs('social-integration/devto'),
-				ctaLabel: 'Open guide',
-				iconName: icons.Devto.name,
-				iconContainerClass: 'bg-[#0a0a0a] text-white ring-neutral-800/40',
-				iconClass: 'size-5'
-			},
-			{
-				id: 'social-integration-bluesky',
-				title: 'Bluesky',
-				description: 'No operator app — users connect with an app password in the dashboard.',
-				href: faqHrefDocs('social-integration/bluesky'),
-				ctaLabel: 'Open guide',
-				iconName: icons.Bluesky.name,
-				iconContainerClass: 'bg-[#0085FF]/15 text-[#0085FF] ring-[#0085FF]/25',
-				iconClass: 'size-5'
-			}
-		]
+			'Create developer apps and env vars for each OAuth network. Skool and Reddit use the browser extension on your origin — see the product page below.'
+	},
+	directoryIntegrationSection: {
+		subtitle: 'Directory channels',
+		title: 'Set up directory launch',
+		description:
+			'Ship extension destinations and profile field maps on your stack. You do not register a developer app per directory — operators maintain catalogs and users submit on each site.'
 	},
 	stackSection: {
 		subtitle: 'Modify further',

@@ -1,10 +1,12 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, beforeAll } from 'vitest';
 
 import {
 	PUBLIC_SELF_HOSTING_LANDING_CONFIG,
 	PUBLIC_SELF_HOST_PRICING_FOOTNOTE_CONFIG
 } from '$lib/content/constants/marketing/self-hosting-landing';
+import { buildPublicSelfHostingSocialIntegrationLinkCards } from '$lib/content/utils/buildPublicSelfHostingIntegrationLinkCards';
 import { publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+import { preloadDocsRegistry } from '$lib/docs/content';
 import { route } from '$lib/utils/path';
 import { getRootPathPublicSelfHosting } from '$lib/area-public/constants/getRootPathPublicSelfHosting';
 
@@ -79,29 +81,31 @@ describe('PUBLIC_SELF_HOSTING_LANDING_CONFIG', () => {
 		);
 	});
 
-	it('lists every social-integration operator guide', () => {
-		const items = PUBLIC_SELF_HOSTING_LANDING_CONFIG.socialIntegrationSection.items;
+	describe('integration link cards', () => {
+		beforeAll(async () => {
+			await preloadDocsRegistry();
+		});
 
-		expect(items.map((item) => item.id)).toEqual([
-			'social-integration-browser-extension',
-			'social-integration-overview',
-			'social-integration-threads',
-			'social-integration-instagram',
-			'social-integration-facebook',
-			'social-integration-youtube',
-			'social-integration-tiktok',
-			'social-integration-linkedin',
-			'social-integration-linkedin-page',
-			'social-integration-x',
-			'social-integration-devto',
-			'social-integration-bluesky'
-		]);
-		expect(items.find((item) => item.id === 'social-integration-browser-extension')?.href).toBe(
-			'/browser-extension'
-		);
-		expect(items.find((item) => item.id === 'social-integration-threads')?.href).toBe(
-			'/docs/social-integration/threads'
-		);
+		it('lists social operator guides from docs plus social prefix cards', () => {
+			const items = buildPublicSelfHostingSocialIntegrationLinkCards();
+
+			expect(items.map((item) => item.id).slice(0, 2)).toEqual([
+				'social-integration-browser-extension',
+				'social-integration-overview'
+			]);
+			expect(items.find((item) => item.id === 'social-integration-browser-extension')?.href).toBe(
+				'/browser-extension'
+			);
+			expect(items.find((item) => item.id === 'social-integration-threads')?.href).toBe(
+				'/docs/social-integration/threads'
+			);
+			expect(items.find((item) => item.id === 'social-integration-reddit')?.href).toBe(
+				'/docs/social-integration/reddit'
+			);
+			expect(items.find((item) => item.id === 'social-integration-skool')?.href).toBe(
+				'/docs/social-integration/skool'
+			);
+		});
 	});
 
 	it('explains pre-built images in FAQ', () => {

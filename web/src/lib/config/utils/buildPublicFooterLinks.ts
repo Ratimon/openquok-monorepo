@@ -20,6 +20,10 @@ import {
 	listPublicApiPostingPlatformsForHub,
 	listPublicApiSchedulingPlatformsForHub
 } from '$lib/content/constants/channels/api';
+import {
+	listSelfHostOperatorGuideFooterEntries,
+	SELF_HOST_SOCIAL_INTEGRATION_DOCS_DIRECTORY
+} from '$lib/content/utils/listSelfHostOperatorGuideDocs';
 import { getDocsByDirectory } from '$lib/docs/content';
 import { docsSidebarPublicApi } from '$lib/docs/constants/config';
 import { listSkillBuilderChannelsForHub } from '$lib/content/constants/channels/tools/skill-builder/general';
@@ -31,10 +35,8 @@ export type PublicFooterLinksMap = Record<string, PublicFooterLink[]>;
 
 type PublicFooterHubEntry = { platformLabel: string; href: string };
 
-const SOCIAL_INTEGRATION_DOCS_DIRECTORY = 'social-integration';
-
 /** Requires `preloadDocsRegistry()` — reads doc metadata from the shared docs registry. */
-function listDocDirectoryFooterEntries(directory: string): PublicFooterHubEntry[] {
+function listPublicApiDocFooterEntries(directory: string): PublicFooterHubEntry[] {
 	const entries = getDocsByDirectory(directory)
 		.filter((doc) => doc.slug !== directory)
 		.map((doc) => ({
@@ -46,10 +48,6 @@ function listDocDirectoryFooterEntries(directory: string): PublicFooterHubEntry[
 	return entries
 		.sort((a, b) => a.order - b.order || a.platformLabel.localeCompare(b.platformLabel))
 		.map(({ platformLabel, href }) => ({ platformLabel, href }));
-}
-
-function listPublicApiDocFooterEntries(directory: string): PublicFooterHubEntry[] {
-	return listDocDirectoryFooterEntries(directory);
 }
 
 function listPublicApiDocsSidebarSections() {
@@ -223,8 +221,8 @@ export function buildPublicFooterSelfHostSocialIntegrationLinks(): PublicFooterL
 
 	return buildPublicFooterHubLinks(
 		'All self-host social integrations',
-		route(`${docsRoot}/${SOCIAL_INTEGRATION_DOCS_DIRECTORY}`),
-		listDocDirectoryFooterEntries(SOCIAL_INTEGRATION_DOCS_DIRECTORY)
+		route(`${docsRoot}/${SELF_HOST_SOCIAL_INTEGRATION_DOCS_DIRECTORY}`),
+		listSelfHostOperatorGuideFooterEntries(SELF_HOST_SOCIAL_INTEGRATION_DOCS_DIRECTORY)
 	);
 }
 

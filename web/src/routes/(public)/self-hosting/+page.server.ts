@@ -7,7 +7,12 @@ import { PUBLIC_SELF_HOSTING_WHO_IS_FOR_SECTION } from '$lib/content/constants/m
 import { createPublicAudienceSectionSEOSchema } from '$lib/content/utils/createPublicAudienceSEOSchema';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createPublicSelfHostPricingOffer } from '$lib/content/utils/createPublicPricingSEOSchema';
+import {
+	buildPublicSelfHostingDirectoryIntegrationLinkCards,
+	buildPublicSelfHostingSocialIntegrationLinkCards
+} from '$lib/content/utils/buildPublicSelfHostingIntegrationLinkCards';
 import { buildSelfHostingLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
+import { preloadDocsRegistry } from '$lib/docs/content';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
 import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
@@ -18,6 +23,8 @@ export const ssr = true;
 export async function load({ url, cookies, parent }) {
 	const accessToken = cookies.get('access_token');
 	const isLoggedIn = !!accessToken;
+
+	await preloadDocsRegistry();
 
 	const { companyInformationPm, marketingInformationPm } = await parent();
 
@@ -86,9 +93,14 @@ export async function load({ url, cookies, parent }) {
 		])
 	);
 
+	const socialIntegrationLinkCardItems = buildPublicSelfHostingSocialIntegrationLinkCards();
+	const directoryIntegrationLinkCardItems = buildPublicSelfHostingDirectoryIntegrationLinkCards();
+
 	return {
 		pageMetaTags,
 		schemaData,
+		socialIntegrationLinkCardItems,
+		directoryIntegrationLinkCardItems,
 		isLoggedIn
 	};
 }

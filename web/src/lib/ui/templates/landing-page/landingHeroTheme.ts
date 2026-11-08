@@ -110,6 +110,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'building blocks',
 	'social platforms',
 	'social networks',
+	'directory launch',
 	'publish on time',
 	'Scheduling API',
 	'Posting API',

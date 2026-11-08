@@ -163,6 +163,7 @@ Operators can also create sites/opportunities in **secret-admin** without new se
 
 | Artifact | Action |
 | --- | --- |
+| `web/src/content/docs/directory-integration/{site}.md` | Operator setup guide (`title`, `description`, `order`, not draft) — autowires `/self-hosting` **Set up directory launch** cards via `buildPublicSelfHostingDirectoryIntegrationLinkCards()` |
 | `docs/auto-launch/extension-ui-patterns.md` | Add row to seeded destinations table; `profilePath` ↔ composer tab mapping; update manual smoke test counts (`N` published destinations) |
 | `docs/auto-launch/launch-showcase.md` | Update only if showcase marketing references the site |
 
@@ -199,6 +200,7 @@ Use as the execution list.
 **Tests & docs**
 
 - [ ] Unit tests above updated or added for new slug / paths
+- [ ] `directory-integration/{site}.md` operator guide (index `LinkCard` + `/self-hosting` card auto-wired; optional icon ring in `buildPublicSelfHostingIntegrationLinkCards.ts`)
 - [ ] `extension-ui-patterns.md` mapping + smoke test checklist
 - [ ] Manual smoke: Account → My Products → create/edit profile → Launch → fill → mark complete; card `submitted` count increments
 

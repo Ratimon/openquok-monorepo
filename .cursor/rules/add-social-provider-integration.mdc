@@ -132,7 +132,8 @@ Update: `providerSettings.ts` bucket; `crossAccountPlugPreview.ts`; `AddEditModa
 | --- | --- |
 | `/channels`, `/channels/{slug}` | `seeds.ts` + generic routes |
 | Footer **Supported Channels** | `listPublicChannelLandingSeedsForFooter()` |
-| Footer **self-host guides** | `social-integration/{id}.md` (`title`, `order`, not draft) |
+| Footer **self-host guides** | `social-integration/{id}.md` (`title`, `order`, not draft) via `listSelfHostOperatorGuideDocEntries` |
+| `/self-hosting` **Set up social networks** cards | Same `social-integration/{id}.md` frontmatter + `buildPublicSelfHostingSocialIntegrationLinkCards()` (server load after `preloadDocsRegistry`) — do **not** hand-edit card lists in `self-hosting-landing.ts` |
 | Compare OpenQuok column | `listAvailablePublicChannelCompareLabels()` — includes coming-soon; **do not** edit `openquok.ts` channels |
 | Humanizer + `/tools/humanizer/{slug}` | `listPublicChannelsForHub()` |
 | Payload wizard slugs | `PUBLIC_API_POSTING_PLATFORM_SLUGS` |
@@ -167,7 +168,7 @@ Extension / no analytics: do not claim workspace analytics on Best Time, Photo E
 
 | Artifact | Path |
 | --- | --- |
-| Setup | `social-integration/{id}.md` + index LinkCard |
+| Setup | `social-integration/{id}.md` + index LinkCard (also wires footer self-host column + `/self-hosting` link grid when `order` / `title` / `description` are set) |
 | Connect | `channels/connect.md`, `platforms/connect-rules.md` |
 | Public API page | `public-api-providers/{identifier}.md` + index; **public-api-surface-sync** (Swagger, SDK, MCP docs if exposed) |
 | Platforms | `media-rules.md`, `per-channel-settings.md` |
@@ -223,6 +224,6 @@ Use as the execution list; details above only when you need them.
 
 **Do not**
 
-- Hand-edit `openquok.ts` channel list, `PUBLIC_FOOTER_LINKS`, or per-channel nav for each slug
+- Hand-edit `openquok.ts` channel list, `PUBLIC_FOOTER_LINKS`, per-channel nav, or `self-hosting-landing.ts` integration card lists for each slug (add `social-integration/{id}.md` instead; optional branded icon ring in `buildPublicSelfHostingIntegrationLinkCards.ts` → `SELF_HOST_INTEGRATION_DOC_CARD_VISUALS`)
 - SQL-seed listing tags or oversell analytics / follow-ups on extension-only channels
 - Ship go-live channel pages with placeholder MP4 instead of bentos
