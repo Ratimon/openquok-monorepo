@@ -45,6 +45,7 @@ import { typefullyCompareProduct } from '$lib/content/constants/competitors/sche
 import { usebardCompareProduct } from '$lib/content/constants/competitors/scheduler/usebard';
 import { boringlaunchCompareProduct } from '$lib/content/constants/competitors/submission/boringlaunch';
 import { getmorebacklinksCompareProduct } from '$lib/content/constants/competitors/submission/getmorebacklinks';
+import { launchrepoCompareProduct } from '$lib/content/constants/competitors/submission/launchrepo';
 import {
 	COMPARE_HUB_BASE_SLUG,
 	COMPARE_PRODUCT_WEBSITE_URLS
@@ -63,6 +64,7 @@ export { openquokCompareProduct } from '$lib/content/constants/competitors/sched
 export { hopperHqCompareProduct } from '$lib/content/constants/competitors/scheduler/hopper-hq';
 export { influenceCompareProduct } from '$lib/content/constants/competitors/scheduler/influence';
 export { getmorebacklinksCompareProduct } from '$lib/content/constants/competitors/submission/getmorebacklinks';
+export { launchrepoCompareProduct } from '$lib/content/constants/competitors/submission/launchrepo';
 export { heropostCompareProduct } from '$lib/content/constants/competitors/scheduler/heropost';
 export { hootsuiteCompareProduct } from '$lib/content/constants/competitors/scheduler/hootsuite';
 export { laterCompareProduct } from '$lib/content/constants/competitors/scheduler/later';
@@ -97,6 +99,7 @@ export const PUBLIC_COMPARE_PRODUCTS: readonly CompareProduct[] = [
 	blotatoCompareProduct,
 	boringlaunchCompareProduct,
 	getmorebacklinksCompareProduct,
+	launchrepoCompareProduct,
 	breakreachCompareProduct,
 	clawPostCompareProduct,
 	recurpostCompareProduct,

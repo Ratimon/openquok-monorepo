@@ -53,6 +53,7 @@ export type BrandedIconName =
     | "LinkedInGlyph"
     | "LINE"
     | "Later"
+    | "LaunchRepo"
     | "Mastodon"
     | "Matrix"
     | "Mattermost"
@@ -395,6 +396,13 @@ export const brandedIcons = {
         box: 24,
         fill: true,
         svg: `<rect width="24" height="24" rx="6" fill="#0A0A0A"/><image href="/icons/later.png" x="1.5" y="7.4" width="21" height="9.2"/>`
+    },
+    /** LaunchRepo product mark. LaunchRepo is a trademark of its respective owner. */
+    LaunchRepo: {
+        name: "LaunchRepo",
+        box: 64,
+        fill: true,
+        svg: `<rect width="64" height="64" rx="14" fill="#ddfa73"/><path d="M18 46 46 18M20 18h26v26" fill="none" stroke="#252b20" stroke-width="6"/>`
     },
     /** Hopper HQ product mark. Hopper HQ is a trademark of its respective owner. */
     HopperHQ: {

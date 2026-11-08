@@ -33,7 +33,8 @@ export type CompareProductSlug =
 	| 'typefully'
 	| 'usebard'
 	| 'boringlaunch'
-	| 'getmorebacklinks';
+	| 'getmorebacklinks'
+	| 'launchrepo';
 
 /**
  * Comparison angles shared across products. When building a pair, a row is included only

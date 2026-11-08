@@ -15,6 +15,7 @@ describe('PublicComparePagePresenter — directory compare smoke', () => {
 		const directoryHrefs = vm.directorySection.pairs.map((pair) => pair.href);
 
 		expect(directorySlugs).toContain('boringlaunch');
+		expect(directorySlugs).toContain('launchrepo');
 		expect(vm.socialSection.pairs.map((pair) => pair.slug)).not.toContain('boringlaunch');
 		expect(vm.socialSection.title).toBe('OpenQuok vs other social schedulers');
 		expect(vm.directorySection.title).toBe('OpenQuok vs other submission services');
