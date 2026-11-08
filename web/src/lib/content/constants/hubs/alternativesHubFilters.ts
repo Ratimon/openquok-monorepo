@@ -1,5 +1,12 @@
-import { getRootPathPublicAlternatives } from '$lib/area-public/constants/getRootPathPublicAlternatives';
-import { getRootPathPublicAlternativesTarget } from '$lib/area-public/constants/getRootPathPublicAlternatives';
+import {
+	getRootPathPublicAlternatives,
+	getRootPathPublicAlternativesCategory,
+	getRootPathPublicAlternativesTarget
+} from '$lib/area-public/constants/getRootPathPublicAlternatives';
+import {
+	alternativesPathCategorySlugForHubCategory,
+	type AlternativesPathCategorySlug
+} from '$lib/content/constants/hubs/alternativesPathCategories';
 import type { CompareProductSlug } from '$lib/content/constants/competitors/types';
 import { route } from '$lib/utils/path';
 
@@ -68,9 +75,6 @@ export function parseAlternativesHubFiltersFromUrl(
 
 function appendAlternativesHubQueryParams(filters: AlternativesHubFilters): string {
 	const params = new URLSearchParams();
-	if (filters.category !== DEFAULT_ALTERNATIVES_HUB_CATEGORY) {
-		params.set('category', filters.category);
-	}
 	if (filters.sort !== DEFAULT_ALTERNATIVES_HUB_SORT) {
 		params.set('sort', filters.sort);
 	}
@@ -87,6 +91,48 @@ export function buildAlternativesHubUrl(
 ): string {
 	const next: AlternativesHubFilters = { ...current, ...overrides };
 	return `${route(getRootPathPublicAlternatives())}${appendAlternativesHubQueryParams(next)}`;
+}
+
+/** Main hub sort/search; social/directory selections route to `/alternatives/categories/{slug}`. */
+export function buildAlternativesHubNavigationUrl(
+	current: AlternativesHubFilters,
+	overrides: Partial<AlternativesHubFilters>
+): string {
+	const next: AlternativesHubFilters = { ...current, ...overrides };
+
+	if (next.category === 'social' || next.category === 'directory') {
+		const slug = alternativesPathCategorySlugForHubCategory(next.category);
+		return buildAlternativesCategoryHubUrl(slug, next, {});
+	}
+
+	return buildAlternativesHubUrl(
+		{ ...next, category: DEFAULT_ALTERNATIVES_HUB_CATEGORY },
+		{}
+	);
+}
+
+/** Category hub URLs omit `category` query — category comes from the path. */
+function appendAlternativesCategoryHubQueryParams(
+	filters: AlternativesHubFilters
+): string {
+	const params = new URLSearchParams();
+	if (filters.sort !== DEFAULT_ALTERNATIVES_HUB_SORT) {
+		params.set('sort', filters.sort);
+	}
+	if (filters.search?.trim()) {
+		params.set('search', filters.search.trim());
+	}
+	const query = params.toString();
+	return query ? `?${query}` : '';
+}
+
+export function buildAlternativesCategoryHubUrl(
+	categorySlug: AlternativesPathCategorySlug,
+	current: AlternativesHubFilters,
+	overrides: Partial<AlternativesHubFilters>
+): string {
+	const next: AlternativesHubFilters = { ...current, ...overrides };
+	return `${route(getRootPathPublicAlternativesCategory(categorySlug))}${appendAlternativesCategoryHubQueryParams(next)}`;
 }
 
 export type AlternativesDetailFilters = {

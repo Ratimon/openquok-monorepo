@@ -99,7 +99,6 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'directly from Chrome',
 	'connected channels',
 	'API payload wizard',
-	'alternative scheduler',
 	'structured response',
 	'marketing playbooks',
 	'scheduling playbooks',
@@ -213,6 +212,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'Reddit',
 	'subreddit',
 	// Social channels & networks
+	'alternatives',
 	'directory',
 	'directories',
 	'relevant directories',

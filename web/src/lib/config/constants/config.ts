@@ -9,7 +9,10 @@ import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPub
 import { getRootPathPublicAgents } from '$lib/area-public/constants/getRootPathPublicAgents';
 import { getRootPathPublicChannels } from '$lib/area-public/constants/getRootPathPublicChannels';
 import { getRootPathPublicCompare } from '$lib/area-public/constants/getRootPathPublicCompare';
-import { getRootPathPublicAlternatives } from '$lib/area-public/constants/getRootPathPublicAlternatives';
+import {
+	getRootPathPublicAlternatives,
+	getRootPathPublicAlternativesCategories
+} from '$lib/area-public/constants/getRootPathPublicAlternatives';
 import {
 	getRootPathPublicDocs,
 	getRootPathPublicDocsGettingStartedForDev,
@@ -84,6 +87,7 @@ const publicChannelsSocialHubHref = `${publicChannelsPath}#${PUBLIC_CHANNELS_HUB
 const publicChannelsDirectoryHubHref = `${publicChannelsPath}#${PUBLIC_CHANNELS_HUB_SECTION_IDS.directoryLaunchPlatforms}`;
 const publicComparePath = route(getRootPathPublicCompare());
 const publicAlternativesPath = route(getRootPathPublicAlternatives());
+const publicAlternativesCategoriesPath = route(getRootPathPublicAlternativesCategories());
 const publicPlaybooksPath = route(getRootPathPublicPlaybooks());
 const publicPlaybooksCategoriesPath = route(getRootPathPublicPlaybooksCategories());
 const publicPlaybooksTagsPath = route(getRootPathPublicPlaybooksTags());
@@ -1013,6 +1017,7 @@ export const PUBLIC_FOOTER_LINKS_STATIC: PublicFooterLinksMap = {
 		{ label: 'Blog Topics', href: '/blog/topic' },
 		{ label: 'Blog Authors', href: '/blog/author' },
 		{ label: 'Alternatives', href: publicAlternativesPath },
+		{ label: 'Alternatives Categories', href: publicAlternativesCategoriesPath },
 		{ label: 'Compare', href: publicComparePath },
 		{ label: 'Sitemap', href: '/sitemap.xml' }
 	],

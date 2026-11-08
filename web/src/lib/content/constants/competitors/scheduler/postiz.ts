@@ -38,22 +38,36 @@ const POSTIZ_PRICING_PLANS: ComparePricingPlan[] = [
 ];
 
 const POSTIZ_CHANNELS = [
-	'Facebook',
-	'Instagram',
-	'LinkedIn',
-	'X',
-	'TikTok',
-	'YouTube',
-	'Pinterest',
-	'Threads',
 	'Bluesky',
-	'Mastodon',
-	'Google Business Profile',
-	'Reddit',
+	'Dev.to',
 	'Discord',
+	'Dribbble',
+	'Facebook',
+	'Google Business Profile',
+	'Hashnode',
+	'Instagram',
+	'Kick',
+	'Lemmy',
+	'LinkedIn',
+	'Listmonk',
+	'Mastodon',
+	'Medium',
+	'MeWe',
+	'Nostr',
+	'Pinterest',
+	'Reddit',
+	'Skool',
 	'Slack',
 	'Telegram',
-	'Skool'
+	'Threads',
+	'TikTok',
+	'Twitch',
+	'Vk',
+	'Warpcast',
+	'Whop',
+	'WordPress',
+	'X',
+	'YouTube'
 ];
 
 const POSTIZ_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, CompareFeatureCell>> = {
@@ -109,6 +123,41 @@ export const postizCompareProduct: CompareProduct = {
 	pricingPlans: POSTIZ_PRICING_PLANS,
 	channels: POSTIZ_CHANNELS,
 	featureSupport: POSTIZ_FEATURE_SUPPORT,
+	alternativesLongForm: {
+		whyPeopleLook: {
+			id: 'why-people-look',
+			navLabel: 'Why people look',
+			subtitle: 'Why people look',
+			title: 'Why teams look for Postiz alternatives',
+			body: [
+				'Postiz packs 30-plus networks, AI media, and agent tooling into one open-source stack.',
+				'Cloud plans cap connected channels from five to one hundred. That pushes upgrades as you add brands.',
+				'Teams also outgrow one workspace, no in-product AI writer, and server-side Reddit publishing when they want safer drafts.'
+			]
+		},
+		yourOptions: {
+			id: 'your-options',
+			navLabel: 'Your options',
+			subtitle: 'Your options',
+			title: 'Stay on Postiz, pick another scheduler, or move to OpenQuok',
+			body: [
+				'You can self-host Postiz, stay on cloud tiers, or switch schedulers.',
+				'The ranked list below shows schedulers with list prices and compare links.',
+				'OpenQuok is open source with a $0 self-host software fee or hosted plans with a trial. It adds separate workspaces, unlimited AI writer, directory extension autofill, and Reddit drafts you submit yourself without server-side brand posts.'
+			]
+		},
+		whenTheyWin: {
+			id: 'when-they-win',
+			navLabel: 'When they win',
+			subtitle: 'When they win',
+			title: 'When Postiz stays the better choice',
+			body: [
+				'You want 30-plus networks with AI image and video generation in one calendar.',
+				'Customer groups and RSS auto-post fit how you run client brands today.',
+				'You are fine with channel-tier cloud pricing or operating the self-hosted stack yourself.'
+			]
+		}
+	},
 	comparison: {
 		headline: 'AI-heavy open-source automation',
 		notAnother: 'agentic automation suite',

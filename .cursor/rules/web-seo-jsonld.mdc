@@ -16,7 +16,7 @@ globs:
   - web/src/lib/posts/utils/createPostSEOSchema.ts
   - web/src/lib/listings/utils/listingSchema.ts
   - web/src/lib/listings/utils/create*SeoSchema.ts
-  - web/src/lib/listings/server/load*HubPage.server.ts
+  - web/src/lib/area-public/server/load*HubPage.server.ts
 alwaysApply: false
 ---
 

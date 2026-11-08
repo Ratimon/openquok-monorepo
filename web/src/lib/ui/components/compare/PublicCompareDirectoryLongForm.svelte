@@ -115,41 +115,12 @@
 		headingId="compare-platform-overview"
 		subtitle="Platform overview"
 		title="Platform overview"
-		description={`Read a short summary of ${leftProduct.name} and ${rightProduct.name}. Then compare prices, channels, and features.`}
+		description={omitCompareMatrixSections
+			? `Read a short summary of ${rightProduct.name}. Then see why teams look for alternatives below.`
+			: `Read a short summary of ${leftProduct.name} and ${rightProduct.name}. Then compare prices, channels, and features.`}
 	/>
-	<div class="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-2">
-		<article class="rounded-2xl border border-primary/20 bg-primary/5 p-6">
-			<div class="flex items-center gap-3">
-				<div
-					class={`flex size-11 shrink-0 items-center justify-center rounded-2xl shadow-sm ring-1 ${iconStyleForProduct(leftProduct.slug).cardContainerClass}`}
-				>
-					<AbstractIcon
-						name={leftProduct.icon}
-						width="22"
-						height="22"
-						class={iconStyleForProduct(leftProduct.slug).iconClass ?? 'size-5.5'}
-						focusable="false"
-					/>
-				</div>
-				<h3 class="text-xl font-semibold">
-					<CompareProductLink slug={leftProduct.slug} class={compareNamePrimaryClass}>
-						{leftProduct.name}
-					</CompareProductLink>
-				</h3>
-			</div>
-			<p class="mt-2 text-sm font-medium text-primary">{leftProduct.tagline}</p>
-			<p class="mt-4 text-base leading-relaxed text-base-content/80">{leftProduct.overview}</p>
-			<div class="mt-6">
-				<CompareProductLink
-					slug={leftProduct.slug}
-					class="btn btn-outline btn-sm justify-center sm:w-auto"
-					ariaLabel={`Visit ${leftProduct.name} official site`}
-				>
-					Visit official site
-				</CompareProductLink>
-			</div>
-		</article>
-		<article class="rounded-2xl border border-base-content/10 bg-base-200/40 p-6">
+	{#if omitCompareMatrixSections}
+		<article class="mt-10 max-w-2xl rounded-2xl border border-base-content/10 bg-base-200/40 p-6">
 			<div class="flex items-center gap-3">
 				<div
 					class={`flex size-11 shrink-0 items-center justify-center rounded-2xl shadow-sm ring-1 ${iconStyleForProduct(rightProduct.slug).cardContainerClass}`}
@@ -180,7 +151,72 @@
 				</CompareProductLink>
 			</div>
 		</article>
-	</div>
+	{:else}
+		<div class="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-2">
+			<article class="rounded-2xl border border-primary/20 bg-primary/5 p-6">
+				<div class="flex items-center gap-3">
+					<div
+						class={`flex size-11 shrink-0 items-center justify-center rounded-2xl shadow-sm ring-1 ${iconStyleForProduct(leftProduct.slug).cardContainerClass}`}
+					>
+						<AbstractIcon
+							name={leftProduct.icon}
+							width="22"
+							height="22"
+							class={iconStyleForProduct(leftProduct.slug).iconClass ?? 'size-5.5'}
+							focusable="false"
+						/>
+					</div>
+					<h3 class="text-xl font-semibold">
+						<CompareProductLink slug={leftProduct.slug} class={compareNamePrimaryClass}>
+							{leftProduct.name}
+						</CompareProductLink>
+					</h3>
+				</div>
+				<p class="mt-2 text-sm font-medium text-primary">{leftProduct.tagline}</p>
+				<p class="mt-4 text-base leading-relaxed text-base-content/80">{leftProduct.overview}</p>
+				<div class="mt-6">
+					<CompareProductLink
+						slug={leftProduct.slug}
+						class="btn btn-outline btn-sm justify-center sm:w-auto"
+						ariaLabel={`Visit ${leftProduct.name} official site`}
+					>
+						Visit official site
+					</CompareProductLink>
+				</div>
+			</article>
+			<article class="rounded-2xl border border-base-content/10 bg-base-200/40 p-6">
+				<div class="flex items-center gap-3">
+					<div
+						class={`flex size-11 shrink-0 items-center justify-center rounded-2xl shadow-sm ring-1 ${iconStyleForProduct(rightProduct.slug).cardContainerClass}`}
+					>
+						<AbstractIcon
+							name={rightProduct.icon}
+							width="22"
+							height="22"
+							class={iconStyleForProduct(rightProduct.slug).iconClass ?? 'size-5.5'}
+							focusable="false"
+						/>
+					</div>
+					<h3 class="text-xl font-semibold">
+						<CompareProductLink slug={rightProduct.slug} class={compareNameAccentClass}>
+							{rightProduct.name}
+						</CompareProductLink>
+					</h3>
+				</div>
+				<p class="mt-2 text-sm font-medium text-base-content/70">{rightProduct.tagline}</p>
+				<p class="mt-4 text-base leading-relaxed text-base-content/80">{rightProduct.overview}</p>
+				<div class="mt-6">
+					<CompareProductLink
+						slug={rightProduct.slug}
+						class="btn btn-outline btn-sm justify-center sm:w-auto"
+						ariaLabel={`Visit ${rightProduct.name} official site`}
+					>
+						Visit official site
+					</CompareProductLink>
+				</div>
+			</article>
+		</div>
+	{/if}
 </section>
 
 {@render longFormSection(longForm.whyPeopleLook, 'mt-20 scroll-mt-24')}

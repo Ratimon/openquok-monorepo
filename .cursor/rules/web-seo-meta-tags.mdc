@@ -6,7 +6,7 @@ globs:
   - web/src/routes/+layout.server.ts
   - web/src/lib/seo/createMetaData.ts
   - web/src/lib/seo/buildCanonicalUrl.ts
-  - web/src/lib/listings/server/load*HubPage.server.ts
+  - web/src/lib/area-public/server/load*HubPage.server.ts
 alwaysApply: false
 ---
 

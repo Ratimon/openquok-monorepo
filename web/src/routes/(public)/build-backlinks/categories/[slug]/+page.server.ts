@@ -1,6 +1,6 @@
 import { getRootPathPublicBuildBacklinksCategory } from '$lib/area-public/constants/getRootPathPublicBuildBacklinks';
 import { linkDirectoryRepository } from '$lib/link-directory/index';
-import { loadBuildBacklinksHubPage } from '$lib/link-directory/server/loadBuildBacklinksHubPage.server';
+import { loadBuildBacklinksHubPage } from '$lib/area-public/server/loadBuildBacklinksHubPage.server';
 import { formatBuildBacklinksFilterHeroTitle } from '$lib/link-directory/utils/formatBuildBacklinksFilterHeroTitle';
 
 export const ssr = true;

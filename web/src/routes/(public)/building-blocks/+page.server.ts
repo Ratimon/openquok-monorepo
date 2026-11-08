@@ -1,4 +1,4 @@
-import { loadBuildingBlocksHubPage } from '$lib/listings/server/loadBuildingBlocksHubPage.server';
+import { loadBuildingBlocksHubPage } from '$lib/area-public/server/loadBuildingBlocksHubPage.server';
 
 export const ssr = true;
 

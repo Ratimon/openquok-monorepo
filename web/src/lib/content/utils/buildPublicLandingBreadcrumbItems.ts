@@ -42,7 +42,11 @@ export type AgentsLandingBreadcrumbVariant = 'hub' | 'agent-host' | 'mcp-client'
 
 export type CompareLandingBreadcrumbVariant = 'hub' | 'detail';
 
-export type AlternativesLandingBreadcrumbVariant = 'hub' | 'detail';
+export type AlternativesLandingBreadcrumbVariant =
+	| 'hub'
+	| 'detail'
+	| 'categories-index'
+	| 'category';
 
 export function buildAgentsLandingBreadcrumbItems(params: {
 	variant: AgentsLandingBreadcrumbVariant;
@@ -127,23 +131,46 @@ export function buildCompareLandingBreadcrumbItems(params: {
 export function buildAlternativesLandingBreadcrumbItems(params: {
 	variant: AlternativesLandingBreadcrumbVariant;
 	pageLabel?: string | null;
+	categoryLabel?: string | null;
+	categorySlug?: string | null;
 }): BreadcrumbCrumb[] {
 	const alternativesHubHref = route(getRootPathPublicAlternatives());
-
-	if (params.variant === 'hub') {
-		return [
-			{ label: 'Home', href: '/' },
-			{ label: PUBLIC_LANDING_BREADCRUMB.alternativesHub }
-		];
-	}
-
 	const trimmedPageLabel = params.pageLabel?.trim() ?? '';
+	const trimmedCategoryLabel = params.categoryLabel?.trim() ?? '';
 
-	return [
-		{ label: 'Home', href: '/' },
-		{ label: PUBLIC_LANDING_BREADCRUMB.alternativesHub, href: alternativesHubHref },
-		{ label: trimmedPageLabel || PUBLIC_LANDING_BREADCRUMB.alternativesHub }
-	];
+	switch (params.variant) {
+		case 'hub':
+			return [
+				{ label: 'Home', href: '/' },
+				{ label: PUBLIC_LANDING_BREADCRUMB.alternativesHub }
+			];
+		case 'categories-index':
+			return [
+				{ label: 'Home', href: '/' },
+				{ label: PUBLIC_LANDING_BREADCRUMB.alternativesHub, href: alternativesHubHref },
+				{ label: PUBLIC_LANDING_BREADCRUMB.categories }
+			];
+		case 'category':
+			return [
+				{ label: 'Home', href: '/' },
+				{ label: PUBLIC_LANDING_BREADCRUMB.alternativesHub, href: alternativesHubHref },
+				{
+					label: trimmedCategoryLabel || PUBLIC_LANDING_BREADCRUMB.categories
+				}
+			];
+		case 'detail':
+			return [
+				{ label: 'Home', href: '/' },
+				{ label: PUBLIC_LANDING_BREADCRUMB.alternativesHub, href: alternativesHubHref },
+				{ label: trimmedPageLabel || PUBLIC_LANDING_BREADCRUMB.alternativesHub }
+			];
+		default:
+			return [
+				{ label: 'Home', href: '/' },
+				{ label: PUBLIC_LANDING_BREADCRUMB.alternativesHub, href: alternativesHubHref },
+				{ label: trimmedPageLabel || PUBLIC_LANDING_BREADCRUMB.alternativesHub }
+			];
+	}
 }
 
 export function buildChannelsLandingBreadcrumbItems(params: {

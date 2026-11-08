@@ -1,4 +1,4 @@
-import { loadBuildBacklinksHubPage } from '$lib/link-directory/server/loadBuildBacklinksHubPage.server';
+import { loadBuildBacklinksHubPage } from '$lib/area-public/server/loadBuildBacklinksHubPage.server';
 
 export const ssr = true;
 

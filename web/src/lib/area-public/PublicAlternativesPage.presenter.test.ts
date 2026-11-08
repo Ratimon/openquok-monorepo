@@ -22,18 +22,35 @@ describe('PublicAlternativesPagePresenter', () => {
 	it('focuses hub SEO on competitor alternatives, not the free self-host path', () => {
 		const vm = presenter.buildHubVm();
 
-		expect(vm.metaTitle).toBe('Social media scheduler and directory submission alternatives');
+		expect(vm.metaTitle).toBe('Best Social Media Scheduler and Directory Alternatives in 2026');
 		expect(vm.metaTitle.toLowerCase()).not.toMatch(/^free\b/);
 		expect(vm.metaDescription.toLowerCase()).toContain('compare');
 		expect(vm.metaDescription.toLowerCase()).not.toContain('free and open-source');
 		expect(vm.keywords).toContain('social media scheduler alternatives');
 		expect(vm.keywords).not.toContain('free social media scheduler');
-		expect(vm.heroHighlightText).toBe('alternatives');
+		expect(vm.heroHighlightText).toBe('product alternatives in 2026');
 		expect(vm.socialSection.entries.length).toBeGreaterThan(0);
 		expect(vm.directorySection.entries.length).toBeGreaterThan(0);
 		expect(vm.description.toLowerCase()).toContain('alternatives');
-		expect(vm.description.toLowerCase()).toContain('pricing');
-		expect(vm.heroTitlePrefix).toBe('Find the right ');
+		expect(vm.description.toLowerCase()).toContain('price');
+		expect(vm.heroTitlePrefix).toBe('Find the best ');
+	});
+
+	it('buildPathCategoryHubVm uses category SEO copy', () => {
+		const vm = presenter.buildPathCategoryHubVm('social-scheduler');
+
+		expect(vm.metaTitle).toBe('Best Social Media Scheduler Alternatives in 2026');
+		expect(vm.heroHighlightText).toBe('social media scheduler alternatives');
+		expect(vm.heroTitlePrefix).toBe('Find the best ');
+	});
+
+	it('listPathCategoriesForIndex returns both categories with counts', () => {
+		const categories = presenter.listPathCategoriesForIndex();
+		expect(categories.map((row) => row.slug)).toEqual([
+			'social-scheduler',
+			'directory-submission'
+		]);
+		expect(categories[0]?.entryCount).toBeGreaterThan(0);
 	});
 
 	it('pins the OpenQuok hub card first in the social section', () => {
@@ -126,7 +143,7 @@ describe('PublicAlternativesPagePresenter', () => {
 
 		expect(vm!.metaTitle).toBe('Best Hootsuite Alternatives');
 		expect(vm!.metaDescription.toLowerCase()).toContain('open-source');
-		expect(vm!.metaDescription.toLowerCase()).toContain('$0 software fee');
+		expect(vm!.metaDescription.toLowerCase()).toContain('$0 self-host software fee');
 		expect(vm!.keywords).toContain('Hootsuite alternatives');
 		expect(vm!.keywords).not.toContain('free Hootsuite alternative');
 		expect(vm!.description.toLowerCase()).toContain('alternatives');
@@ -159,6 +176,18 @@ describe('PublicAlternativesPagePresenter', () => {
 		expect(vm).not.toBeNull();
 		expect(vm!.longForm.whyPeopleLook.id).toBe('why-people-look');
 		expect(vm!.isDirectoryTarget).toBe(false);
+	});
+
+	it('builds Postiz-specific long-form and OpenQuok listing copy', () => {
+		const vm = presenter.buildDetailVm('postiz');
+		expect(vm).not.toBeNull();
+		expect(vm!.longForm.whyPeopleLook.title).toBe('Why teams look for Postiz alternatives');
+		expect(vm!.longForm.yourOptions.body.join(' ')).toMatch(/directory extension autofill/i);
+		expect(vm!.longForm.yourOptions.body.join(' ')).toMatch(/unlimited AI writer/i);
+
+		const openQuokListing = vm!.listings.find((listing) => listing.isOpenQuok);
+		expect(openQuokListing?.detailDescription).toMatch(/Reddit drafts you submit yourself/i);
+		expect(openQuokListing?.detailDescription).toMatch(/directory extension autofill/i);
 	});
 
 	it('builds directory long-form for GetMoreBacklinks with category-scoped listings', () => {

@@ -108,8 +108,8 @@ export const heropostCompareProduct: CompareProduct = {
 			title: 'Stay on Heropost, switch schedulers, or adopt OpenQuok',
 			body: [
 				'Keep Heropost, pick another scheduler, or move to OpenQuok.',
-				'OpenQuok ranks first here for self-hosting and agent scheduling.',
-				'Compare list prices in the sections below.'
+				'The ranked list below shows schedulers with list prices and compare links.',
+				'OpenQuok is open source with self-hosting, workspaces, MCP, and a Public API when you outgrow lifetime tiers.'
 			]
 		},
 		whenTheyWin: {

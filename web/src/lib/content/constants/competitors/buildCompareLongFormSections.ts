@@ -83,8 +83,8 @@ export function buildDefaultSocialAlternativesLongFormContent(
 			title: 'Stay, switch schedulers, or adopt open source',
 			body: [
 				`You can renew ${name}, pick another scheduler, or move to OpenQuok.`,
-				'OpenQuok ranks first here for self-hosting and agent scheduling.',
-				'Compare prices and channels in the sections below.'
+				'The ranked list below shows schedulers with list prices and compare links.',
+				'OpenQuok is open source with self-hosting, workspaces, and agent scheduling when those fit your stack.'
 			]
 		},
 		whenTheyWin: {

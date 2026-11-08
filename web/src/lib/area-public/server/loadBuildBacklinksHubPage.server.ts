@@ -28,8 +28,6 @@ import { parseHubListPagination } from '$lib/listings/utils/hubListPagination';
 import { formatBuildBacklinksHubHeroDescription } from '$lib/link-directory/utils/buildBuildBacklinksHubStats';
 import { shouldNoindexBuildBacklinksHubListing } from '$lib/link-directory/utils/shouldNoindexBuildBacklinksHubListing';
 
-export const ssr = true;
-
 type BuildBacklinksHubLoadOverrides = {
 	fixedCategorySlug?: string;
 	fixedTagSlug?: string;

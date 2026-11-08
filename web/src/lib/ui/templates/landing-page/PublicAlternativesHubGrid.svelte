@@ -7,10 +7,14 @@
 		AlternativesHubSort
 	} from '$lib/content/constants/hubs/alternativesHubFilters';
 
+	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
+	import PublicHeroTitle from '$lib/ui/templates/titles/PublicHeroTitle.svelte';
+	import type { AlternativesLandingBreadcrumbVariant } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 	import {
-		landingHeroTheme,
-		PUBLIC_SOCIAL_AUTOPILOT_HERO_TITLE_LINE_CLASS
-	} from '$lib/ui/templates/landing-page/landingHeroTheme';
+		getRootPathPublicAlternativesCategories
+	} from '$lib/area-public/constants/getRootPathPublicAlternatives';
+	import { route } from '$lib/utils/path';
+
 	import InternalLink from '$lib/ui/links/InternalLink.svelte';
 	import PublicAlternativesHubSectionHeading from '$lib/ui/components/alternatives/PublicAlternativesHubSectionHeading.svelte';
 	import PublicAlternativesHubToolbar from '$lib/ui/templates/alternatives/PublicAlternativesHubToolbar.svelte';
@@ -32,9 +36,24 @@
 		filtersVm: AlternativesHubFilters;
 		onFiltersChange: (overrides: Partial<AlternativesHubFilters>) => void;
 		iconStyleForProduct: (slug: CompareProductSlug) => ProductIconStyle;
+		breadcrumbVariant?: AlternativesLandingBreadcrumbVariant;
+		breadcrumbCategoryLabel?: string | null;
+		hideCategoryFilter?: boolean;
+		showCategoriesIndexLink?: boolean;
 	};
 
-	let { hubVm, filtersVm, onFiltersChange, iconStyleForProduct }: Props = $props();
+	let {
+		hubVm,
+		filtersVm,
+		onFiltersChange,
+		iconStyleForProduct,
+		breadcrumbVariant = 'hub',
+		breadcrumbCategoryLabel = null,
+		hideCategoryFilter = false,
+		showCategoriesIndexLink = true
+	}: Props = $props();
+
+	const categoriesIndexHref = route(getRootPathPublicAlternativesCategories());
 
 	let searchDraft = $state('');
 
@@ -61,17 +80,10 @@
 		subtitleClass: 'text-xs font-bold tracking-wider text-primary uppercase'
 	};
 
-	const heroHighlightGradientClass = $derived(
-		`${landingHeroTheme.titleSegmentClassWithOffset(
-			0,
-			[{ text: hubVm.heroHighlightText, highlight: false }],
-			1
-		)} inline-block shrink-0 pl-[0.2em] sm:pl-[0.28em]`
-	);
+	const hubHeroTitle = $derived(`${hubVm.heroTitlePrefix}${hubVm.heroHighlightText}`.trim());
 
-	/** Avoid `text-balance` on flex hero titles — it can visually merge adjacent word spans. */
 	const alternativesHubHeroTitleClass =
-		'text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl';
+		'mx-auto w-full max-w-4xl text-center text-4xl font-black tracking-tight text-balance break-words sm:text-5xl lg:text-6xl';
 
 	function entryCardItems(
 		section: AlternativesHubViewModel['socialSection']
@@ -94,17 +106,26 @@
 <section class="py-10 md:py-14" aria-labelledby={headingId}>
 	<header class="container mx-auto max-w-4xl space-y-4 px-4 text-center">
 		<div class="flex justify-center">
-			<PublicAlternativesLandingBreadcrumb variant="hub" />
+			<PublicAlternativesLandingBreadcrumb
+				variant={breadcrumbVariant}
+				categoryLabel={breadcrumbCategoryLabel}
+			/>
 		</div>
-		<h1 id={headingId} class={`flex flex-col items-center ${alternativesHubHeroTitleClass}`}>
-			<span class={PUBLIC_SOCIAL_AUTOPILOT_HERO_TITLE_LINE_CLASS}>
-				<span class="inline-block shrink-0 text-base-content">{hubVm.heroTitlePrefix}</span>
-				<span class={heroHighlightGradientClass}>{hubVm.heroHighlightText}</span>
-			</span>
-		</h1>
+		<PublicHeroTitle
+			title={hubHeroTitle}
+			{headingId}
+			class={alternativesHubHeroTitleClass}
+		/>
 		<p class="mx-auto max-w-2xl text-base text-base-content/70">
 			{hubVm.description}
 		</p>
+		{#if showCategoriesIndexLink && breadcrumbVariant === 'hub'}
+			<p class="text-sm text-base-content/60">
+				<InternalLink href={categoriesIndexHref} class="link link-hover text-primary">
+					Browse alternatives by category
+				</InternalLink>
+			</p>
+		{/if}
 	</header>
 
 	<div class="container mx-auto max-w-5xl space-y-3 px-4 pt-8">
@@ -116,6 +137,7 @@
 		/>
 		<PublicAlternativesHubToolbar
 			{filtersVm}
+			showCategoryFilter={!hideCategoryFilter}
 			onCategoryChange={(category: AlternativesHubCategory) => onFiltersChange({ category })}
 			onSortChange={(sort: AlternativesHubSort) => onFiltersChange({ sort })}
 		/>

@@ -4,7 +4,7 @@
 	import type { AlternativesHubFilters } from '$lib/content/constants/hubs/alternativesHubFilters';
 
 	import { goto } from '$app/navigation';
-	import { buildAlternativesHubUrl } from '$lib/content/constants/hubs/alternativesHubFilters';
+	import { buildAlternativesHubNavigationUrl } from '$lib/content/constants/hubs/alternativesHubFilters';
 	import { COMPARE_PRODUCT_ICON_STYLES_HUB } from '$lib/content/constants/competitors/compareProductIconStyles';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { route } from '$lib/utils/path';
@@ -47,7 +47,7 @@
 	}
 
 	function handleFiltersChange(overrides: Partial<AlternativesHubFilters>) {
-		void goto(buildAlternativesHubUrl(filtersVm, overrides), { keepFocus: true });
+		void goto(buildAlternativesHubNavigationUrl(filtersVm, overrides), { keepFocus: true });
 	}
 </script>
 

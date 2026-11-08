@@ -16,10 +16,17 @@
 		filtersVm: AlternativesHubFilters;
 		onCategoryChange: (category: AlternativesHubCategory) => void;
 		onSortChange: (sort: AlternativesHubSort) => void;
+		showCategoryFilter?: boolean;
 		class?: string;
 	};
 
-	let { filtersVm, onCategoryChange, onSortChange, class: className = '' }: Props = $props();
+	let {
+		filtersVm,
+		onCategoryChange,
+		onSortChange,
+		showCategoryFilter = true,
+		class: className = ''
+	}: Props = $props();
 
 	const selectedSortOption = $derived(
 		ALTERNATIVES_HUB_SORT_OPTIONS.find((option) => option.id === filtersVm.sort) ??
@@ -34,27 +41,32 @@
 	)}
 >
 	<div class="flex flex-wrap items-end justify-between gap-3">
-		<div class="flex min-w-0 flex-wrap items-end gap-3">
-			<div class="min-w-[9rem] shrink-0">
-				<label class="text-xs font-semibold uppercase tracking-wide text-primary/90" for="alternatives-hub-category">
-					Category
-				</label>
-				<select
-					id="alternatives-hub-category"
-					class="select select-bordered select-sm mt-1.5 w-full min-w-[9rem] border-primary/20 bg-base-100/60 text-sm"
-					value={filtersVm.category}
-					onchange={(event) => {
-						const value = (event.currentTarget as HTMLSelectElement)
-							.value as AlternativesHubCategory;
-						onCategoryChange(value);
-					}}
-				>
-					{#each ALTERNATIVES_HUB_CATEGORY_OPTIONS as option (option.id)}
-						<option value={option.id}>{option.label}</option>
-					{/each}
-				</select>
+		{#if showCategoryFilter}
+			<div class="flex min-w-0 flex-wrap items-end gap-3">
+				<div class="min-w-[9rem] shrink-0">
+					<label
+						class="text-xs font-semibold uppercase tracking-wide text-primary/90"
+						for="alternatives-hub-category"
+					>
+						Category
+					</label>
+					<select
+						id="alternatives-hub-category"
+						class="select select-bordered select-sm mt-1.5 w-full min-w-[9rem] border-primary/20 bg-base-100/60 text-sm"
+						value={filtersVm.category}
+						onchange={(event) => {
+							const value = (event.currentTarget as HTMLSelectElement)
+								.value as AlternativesHubCategory;
+							onCategoryChange(value);
+						}}
+					>
+						{#each ALTERNATIVES_HUB_CATEGORY_OPTIONS as option (option.id)}
+							<option value={option.id}>{option.label}</option>
+						{/each}
+					</select>
+				</div>
 			</div>
-		</div>
+		{/if}
 
 		<div class="shrink-0">
 			<label class="sr-only" for="alternatives-hub-sort">Sort alternatives</label>

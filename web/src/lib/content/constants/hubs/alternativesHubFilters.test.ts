@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+	buildAlternativesCategoryHubUrl,
 	buildAlternativesDetailUrl,
+	buildAlternativesHubNavigationUrl,
 	buildAlternativesHubUrl,
 	DEFAULT_ALTERNATIVES_HUB_CATEGORY,
 	DEFAULT_ALTERNATIVES_HUB_SORT,
@@ -39,6 +41,54 @@ describe('parseAlternativesHubFiltersFromUrl', () => {
 	});
 });
 
+describe('buildAlternativesHubNavigationUrl', () => {
+	const defaults = {
+		category: DEFAULT_ALTERNATIVES_HUB_CATEGORY,
+		sort: DEFAULT_ALTERNATIVES_HUB_SORT
+	} as const;
+
+	it('routes social and directory picks to category hubs', () => {
+		expect(buildAlternativesHubNavigationUrl(defaults, { category: 'social' })).toBe(
+			'/alternatives/categories/social-scheduler'
+		);
+		expect(
+			buildAlternativesHubNavigationUrl(
+				{ ...defaults, sort: 'price_asc', search: 'buffer' },
+				{ category: 'directory' }
+			)
+		).toBe('/alternatives/categories/directory-submission?sort=price_asc&search=buffer');
+	});
+
+	it('keeps sort and search on the main hub when category is all', () => {
+		expect(
+			buildAlternativesHubNavigationUrl(defaults, { sort: 'platforms_desc', search: 'hootsuite' })
+		).toBe('/alternatives?sort=platforms_desc&search=hootsuite');
+	});
+});
+
+describe('buildAlternativesCategoryHubUrl', () => {
+	const socialFilters = {
+		category: 'social' as const,
+		sort: DEFAULT_ALTERNATIVES_HUB_SORT
+	};
+
+	it('builds path-scoped URLs without category query', () => {
+		expect(buildAlternativesCategoryHubUrl('social-scheduler', socialFilters, {})).toBe(
+			'/alternatives/categories/social-scheduler'
+		);
+	});
+
+	it('keeps sort and search query params', () => {
+		expect(
+			buildAlternativesCategoryHubUrl(
+				'directory-submission',
+				socialFilters,
+				{ sort: 'price_asc', search: 'boring' }
+			)
+		).toBe('/alternatives/categories/directory-submission?sort=price_asc&search=boring');
+	});
+});
+
 describe('buildAlternativesHubUrl', () => {
 	const defaults = {
 		category: DEFAULT_ALTERNATIVES_HUB_CATEGORY,
@@ -49,10 +99,13 @@ describe('buildAlternativesHubUrl', () => {
 		expect(buildAlternativesHubUrl(defaults, {})).toBe('/alternatives');
 	});
 
-	it('includes non-default filters and preserves others', () => {
+	it('omits category query params on the main hub', () => {
 		expect(
-			buildAlternativesHubUrl(defaults, { category: 'directory', sort: 'platforms_desc', search: 'launch' })
-		).toBe('/alternatives?category=directory&sort=platforms_desc&search=launch');
+			buildAlternativesHubUrl(
+				{ ...defaults, category: 'directory' },
+				{ sort: 'platforms_desc', search: 'launch' }
+			)
+		).toBe('/alternatives?sort=platforms_desc&search=launch');
 	});
 
 	it('clears search when override is undefined', () => {

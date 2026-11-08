@@ -21,6 +21,11 @@ import {
 import { getCompareProductCategory } from '$lib/content/constants/competitors/utils/compareProductCategories';
 import { formatAlternativesHubPriceRange } from '$lib/content/constants/competitors/utils/comparePricing';
 import { PUBLIC_ALTERNATIVES_HUB } from '$lib/content/constants/hubs/alternatives';
+import {
+	ALTERNATIVES_PATH_CATEGORY_SLUGS,
+	PUBLIC_ALTERNATIVES_PATH_CATEGORIES,
+	type AlternativesPathCategorySlug
+} from '$lib/content/constants/hubs/alternativesPathCategories';
 import type {
 	AlternativesDetailFilters,
 	AlternativesHubFilters,
@@ -134,6 +139,45 @@ export class PublicAlternativesPagePresenter {
 	 * `buildAlternativesDetailKeywords`. OpenQuok #1 listing body copy is set in
 	 * `buildAlternativeDetailDescription`.
 	 */
+	buildPathCategoryHubVm(categorySlug: AlternativesPathCategorySlug): AlternativesHubViewModel {
+		const config = PUBLIC_ALTERNATIVES_PATH_CATEGORIES[categorySlug];
+		const base = this.buildHubVm();
+
+		return {
+			...base,
+			metaTitle: config.metaTitle,
+			metaDescription: config.metaDescription,
+			keywords: [...config.keywords],
+			heroTitlePrefix: config.heroTitlePrefix,
+			heroHighlightText: config.heroHighlightText,
+			description: config.heroDescription
+		};
+	}
+
+	listPathCategoriesForIndex(): Array<{
+		slug: AlternativesPathCategorySlug;
+		name: string;
+		description: string;
+		entryCount: number;
+	}> {
+		const hubVm = this.buildHubVm();
+
+		return ALTERNATIVES_PATH_CATEGORY_SLUGS.map((slug) => {
+			const config = PUBLIC_ALTERNATIVES_PATH_CATEGORIES[slug];
+			const section =
+				config.hubFilterCategory === 'social'
+					? hubVm.socialSection
+					: hubVm.directorySection;
+
+			return {
+				slug,
+				name: config.name,
+				description: config.description,
+				entryCount: section.entries.length
+			};
+		});
+	}
+
 	buildHubVm(): AlternativesHubViewModel {
 		const allEntries = ALTERNATIVES_TARGET_SLUGS.map((slug) => this.buildHubEntryVm(slug));
 		const socialEntries = [
@@ -267,7 +311,7 @@ export class PublicAlternativesPagePresenter {
 			: `Best ${targetProduct.name} Alternatives`;
 		const metaDescription = isOpenQuokTarget
 			? `Compare alternatives to OpenQuok. See social schedulers and directory submission services. Compare prices, channels, and agent tools. See ${alternativeCountLabel}.`
-			: `Compare alternatives to ${targetProduct.name}. See prices, channels, and agent tools. OpenQuok ranks first as an open-source option. Self-host for a $0 software fee, or start a 7-day hosted trial. See ${alternativeCountLabel}.`;
+			: `Compare alternatives to ${targetProduct.name}. See ranked schedulers with prices, channels, and agent tools. OpenQuok is the open-source option with a $0 self-host software fee or a 7-day hosted trial. See ${alternativeCountLabel}.`;
 
 		return {
 			metaTitle,
@@ -512,6 +556,9 @@ function buildAlternativeDetailDescription(
 	}
 
 	if (product.slug === COMPARE_HUB_BASE_SLUG) {
+		if (targetProduct.slug === 'postiz') {
+			return `${product.name} is open source. Self-host for a $0 software fee (${publicFaqHref.selfHostingLanding}), or start a 7-day hosted trial. Teams leave ${targetProduct.name} for separate workspaces, unlimited AI writer, directory extension autofill, Reddit drafts you submit yourself, and scheduling from skills, MCP, and the Public API.`;
+		}
 		return `${product.name} is open source. Self-host for a $0 software fee (${publicFaqHref.selfHostingLanding}), or start a 7-day hosted trial. Teams leave ${targetProduct.name} for ${product.comparison.headline}, separate workspaces, and scheduling from skills, MCP, and the Public API.`;
 	}
 

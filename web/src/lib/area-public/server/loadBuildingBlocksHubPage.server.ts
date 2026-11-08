@@ -2,11 +2,11 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 import type { ServerLoadEvent } from '@sveltejs/kit';
 import type { DefinedTerm } from 'schema-dts';
 
-import { getRootPathPublicPlaybooks } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
-import { publicPlaybooksPagePresenter } from '$lib/area-public';
+import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
+import { publicBuildingBlocksPagePresenter } from '$lib/area-public';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
-import { PUBLIC_PLAYBOOKS_HUB } from '$lib/listings/constants/publicListingsHubConfig';
-import type { StacksHubFilters } from '$lib/listings/listing.types';
+import { PUBLIC_BUILDING_BLOCKS_HUB } from '$lib/listings/constants/publicListingsHubConfig';
+import type { ExtensionsHubFilters } from '$lib/listings/listing.types';
 import { getListingPresenter } from '$lib/listings/index';
 import {
 	buildListingsHubBreadcrumbItems,
@@ -14,11 +14,11 @@ import {
 } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import {
+	createBuildingBlocksItemListSchema,
 	createCategoryAboutSchema,
 	createCollectionPageSchema,
-	createPlaybooksItemListSchema,
 	createTagAboutSchema
-} from '$lib/listings/utils/createPlaybooksSeoSchema';
+} from '$lib/listings/utils/createBuildingBlocksSeoSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
 import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
@@ -29,9 +29,7 @@ import {
 	paginateHubList
 } from '$lib/listings/utils/hubListPagination';
 
-export const ssr = true;
-
-type PlaybooksHubLoadOverrides = {
+type BuildingBlocksHubLoadOverrides = {
 	fixedCategorySlug?: string;
 	fixedTagSlug?: string;
 	fixedTagGroupSlug?: string;
@@ -44,9 +42,9 @@ type PlaybooksHubLoadOverrides = {
 	tagTermDescription?: string;
 };
 
-export async function loadPlaybooksHubPage(
+export async function loadBuildingBlocksHubPage(
 	event: ServerLoadEvent,
-	overrides: PlaybooksHubLoadOverrides = {}
+	overrides: BuildingBlocksHubLoadOverrides = {}
 ) {
 	const { url, fetch, cookies, parent } = event;
 	const {
@@ -68,8 +66,8 @@ export async function loadPlaybooksHubPage(
 	const { companyInformationPm, marketingInformationPm } = await parent();
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 
-	const filters: StacksHubFilters = {
-		...publicPlaybooksPagePresenter.parseFiltersFromUrl(url.searchParams)
+	const filters: ExtensionsHubFilters = {
+		...publicBuildingBlocksPagePresenter.parseFiltersFromUrl(url.searchParams)
 	};
 	if (fixedCategorySlug) {
 		filters.category = fixedCategorySlug;
@@ -82,25 +80,29 @@ export async function loadPlaybooksHubPage(
 		filters.tags = undefined;
 	}
 
-	const hub = await publicPlaybooksPagePresenter.loadPlaybooksHubStateless({
+	const hub = await publicBuildingBlocksPagePresenter.loadBuildingBlocksHubStateless({
 		fetch,
 		limit: HUB_LIST_FETCH_LIMIT
 	});
 	const tagsCatalog = await getListingPresenter.loadAllTagsVm(fetch);
-	const tagFilterVm = getListingPresenter.buildStacksTagFilterVm({
+	const tagFilterVm = getListingPresenter.buildExtensionsTagFilterVm({
 		tagsCatalog,
-		stacks: hub.stacks
+		extensions: hub.extensions
 	});
-	const filteredPlaybooks = publicPlaybooksPagePresenter.applyClientFilters(hub.stacks, filters, tagFilterVm);
+	const filteredBuildingBlocks = publicBuildingBlocksPagePresenter.applyClientFilters(
+		hub.extensions,
+		filters,
+		tagFilterVm
+	);
 
 	const { page, itemsPerPage } = parseHubListPagination(url.searchParams);
-	const paginatedPlaybooks = paginateHubList(filteredPlaybooks, page, itemsPerPage);
+	const paginatedBuildingBlocks = paginateHubList(filteredBuildingBlocks, page, itemsPerPage);
 
-	const statsVm = getListingPresenter.computeStacksHubStats(hub.stacks, hub.categories);
+	const statsVm = getListingPresenter.computeHubStats(hub.extensions, hub.categories);
 
-	const customTitle = heroTitle ?? PUBLIC_PLAYBOOKS_HUB.title;
-	const customDescription = heroDescription ?? PUBLIC_PLAYBOOKS_HUB.description;
-	const seoKeywords = PUBLIC_PLAYBOOKS_HUB.seoKeywords.filter(
+	const customTitle = heroTitle ?? PUBLIC_BUILDING_BLOCKS_HUB.title;
+	const customDescription = heroDescription ?? PUBLIC_BUILDING_BLOCKS_HUB.description;
+	const seoKeywords = PUBLIC_BUILDING_BLOCKS_HUB.seoKeywords.filter(
 		(keyword) => typeof keyword === 'string' && keyword.trim().length > 0
 	);
 
@@ -109,7 +111,7 @@ export async function loadPlaybooksHubPage(
 		marketingInformation: marketingInformationPm,
 		customTitle: `${customTitle} | ${companyName}`,
 		customDescription,
-		customSlug: customSlug ?? getRootPathPublicPlaybooks(),
+		customSlug: customSlug ?? getRootPathPublicBuildingBlocks(),
 		customTags: seoKeywords,
 		requestUrl: url
 	})) satisfies MetaTagsProps;
@@ -159,7 +161,7 @@ export async function loadPlaybooksHubPage(
 		fixedTagGroupSlug
 	});
 	const listingsBreadcrumb = {
-		kind: 'playbooks' as const,
+		kind: 'building-blocks' as const,
 		variant: listingsBreadcrumbVariant,
 		categoryLabel: fixedCategorySlug ? (categoryTermName ?? null) : null,
 		categorySlug: fixedCategorySlug ?? null,
@@ -178,17 +180,17 @@ export async function loadPlaybooksHubPage(
 				companyName,
 				name: customTitle,
 				description: customDescription,
-				mainEntityId: `${canonical}#playbooks-list`,
+				mainEntityId: `${canonical}#building-blocks-list`,
 				about: aboutNodes.length > 0 ? aboutNodes : undefined
 			}),
-			createPlaybooksItemListSchema({
+			createBuildingBlocksItemListSchema({
 				canonical,
 				origin: url.origin,
 				name: customTitle,
 				description: customDescription,
-				playbooks: paginatedPlaybooks.items,
-				totalCount: paginatedPlaybooks.count,
-				listOffset: paginatedPlaybooks.listOffset
+				buildingBlocks: paginatedBuildingBlocks.items,
+				totalCount: paginatedBuildingBlocks.count,
+				listOffset: paginatedBuildingBlocks.listOffset
 			}),
 			...aboutNodes,
 			...(fixedCategorySlug || fixedTagSlug || fixedTagGroupSlug
@@ -196,9 +198,9 @@ export async function loadPlaybooksHubPage(
 				: [
 						createPublicFaqSEOSchema({
 							pageUrl: `${canonical}#faq`,
-							name: PUBLIC_PLAYBOOKS_HUB.faqSection.faqTitle,
-							description: PUBLIC_PLAYBOOKS_HUB.faqSection.faqDescription,
-							items: PUBLIC_PLAYBOOKS_HUB.faqSection.faqItems
+							name: PUBLIC_BUILDING_BLOCKS_HUB.faqSection.faqTitle,
+							description: PUBLIC_BUILDING_BLOCKS_HUB.faqSection.faqDescription,
+							items: PUBLIC_BUILDING_BLOCKS_HUB.faqSection.faqItems
 						})
 					])
 		])
@@ -207,21 +209,21 @@ export async function loadPlaybooksHubPage(
 	return {
 		pageMetaTags,
 		isLoggedIn,
-		playbooksVm: paginatedPlaybooks.items,
-		allPlaybooksVm: hub.stacks,
+		buildingBlocksVm: paginatedBuildingBlocks.items,
+		allBuildingBlocksVm: hub.extensions,
 		categoriesVm: hub.categories,
 		statsVm,
 		filtersVm: filters,
 		tagFilterVm,
 		totalCount: hub.totalCount,
-		filteredCount: paginatedPlaybooks.count,
-		page: paginatedPlaybooks.page,
-		itemsPerPage: paginatedPlaybooks.itemsPerPage,
-		totalPages: paginatedPlaybooks.totalPages,
+		filteredCount: paginatedBuildingBlocks.count,
+		page: paginatedBuildingBlocks.page,
+		itemsPerPage: paginatedBuildingBlocks.itemsPerPage,
+		totalPages: paginatedBuildingBlocks.totalPages,
 		schemaData,
 		heroTitle: customTitle,
 		heroDescription: customDescription,
-		heroSubtitle: PUBLIC_PLAYBOOKS_HUB.subtitle,
+		heroSubtitle: PUBLIC_BUILDING_BLOCKS_HUB.subtitle,
 		listingsBreadcrumb
 	};
 }

@@ -37,9 +37,9 @@ const socialAutopilotLandingHref = route(getRootPathPublicSocialAutopilotLanding
 const directorySubmissionToolHref = route(getRootPathPublicDirectorySubmissionTool());
 
 export const PUBLIC_ALTERNATIVES_HUB = {
-	metaTitle: 'Social media scheduler and directory submission alternatives',
+	metaTitle: 'Best Social Media Scheduler and Directory Alternatives in 2026',
 	metaDescription:
-		'Compare pricing, supported platforms, and features across Buffer, Hootsuite, Later, BoringLaunch, and other social scheduler and directory submission alternatives. Ranked pages with list prices and compare links.',
+		'Compare the best social media scheduler and directory submission alternatives in 2026. Ranked pages cover Buffer, Hootsuite, Later, BoringLaunch, and peers with list prices and compare links.',
 	keywords: [
 		'social media scheduler alternatives',
 		'directory submission service alternatives',
@@ -51,12 +51,12 @@ export const PUBLIC_ALTERNATIVES_HUB = {
 		'open source social media scheduler'
 	] as const,
 	eyebrow: 'Alternatives',
-	/** Plain clause before the gradient highlight in the hub H1 (e.g. `Find the right `). */
-	heroTitlePrefix: 'Find the right ',
-	/** Gradient clause in the hub hero (e.g. `alternatives`). */
-	heroHighlightText: 'alternatives',
+	/** Plain clause before the gradient highlight in the hub H1 (e.g. `Find the best `). */
+	heroTitlePrefix: 'Find the best ',
+	/** Gradient clause in the hub hero (e.g. `product alternatives`). */
+	heroHighlightText: 'product alternatives in 2026',
 	description:
-		'Compare pricing, supported platforms, and features across ranked social scheduler and directory submission alternatives. Filter by category, sort by price or platform count, then open each page for compare links.',
+		'Compare ranked social scheduler and directory submission alternatives. Browse by category, sort by price or platform count, then open each page for compare links.',
 	socialSection: {
 		sectionId: PUBLIC_ALTERNATIVES_HUB_SECTION_IDS.socialMediaSchedulers,
 		subtitle: 'Social scheduling',
