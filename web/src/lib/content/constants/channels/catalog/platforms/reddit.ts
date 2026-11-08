@@ -16,6 +16,7 @@ import {
 	faqHrefBlogPost,
 	faqHrefDocs,
 	faqLink,
+	faqLinkChromeWebStore,
 	faqLinkSelfHostChannelSetup,
 	publicFaqHref
 } from '$lib/content/utils/publicFaqLinks';
@@ -115,17 +116,17 @@ export const redditChannel = {
 		{
 			title: 'How do I connect Reddit to OpenQuok?',
 			description:
-				`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, open a workspace, and choose ${faqLink(publicFaqHref.connectChannelsGuide, 'Connect channel')} → Reddit. Confirm the manual-channel notice — there is no Reddit OAuth connect step. For self-hosted deployments, see the ${faqLinkSelfHostChannelSetup(REDDIT_DOCS_PATH, 'Reddit')}.`
+				`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, install ${faqLinkChromeWebStore('the OpenQuok browser extension')} (${faqLink(faqHrefDocs('installation/chrome-extension'), 'install guide')}) in Chrome, and stay signed in on reddit.com in the same profile. Open a workspace, choose ${faqLink(publicFaqHref.connectChannelsGuide, 'Connect channel')} → Reddit, and confirm the manual-channel notice — there is no Reddit OAuth connect step. For self-hosted deployments, see the ${faqLinkSelfHostChannelSetup(REDDIT_DOCS_PATH, 'Reddit')}.`
 		},
 		{
 			title: 'Does OpenQuok publish to Reddit for me?',
 			description:
-				`No. When a post is due, OpenQuok reminds you to finish it on reddit.com. You fill in the submit form and click Post yourself. The optional ${faqLink(publicFaqHref.browserExtensionLanding, 'OpenQuok browser extension')} (${faqLink(faqHrefDocs('installation/chrome-extension'), 'install guide')}) can copy, open submit, autofill, and download media — it does not click Post for you. See the ${faqLinkSelfHostChannelSetup(REDDIT_DOCS_PATH, 'Reddit')}.`
+				`No. When a post is due, OpenQuok reminds you to finish it on reddit.com. You fill in the submit form and click Post yourself. The ${faqLink(publicFaqHref.browserExtensionLanding, 'OpenQuok browser extension')} (${faqLink(faqHrefDocs('installation/chrome-extension'), 'install guide')}) is required — copy, open submit, autofill, and media download — it does not click Post for you. See the ${faqLinkSelfHostChannelSetup(REDDIT_DOCS_PATH, 'Reddit')}.`
 		},
 		{
 			title: 'Do I need the OpenQuok browser extension for Reddit?',
 			description:
-				`No. Add Reddit as a manual channel in the dashboard only. You can submit on reddit.com without the extension. When a post is due, the optional ${faqLink(publicFaqHref.browserExtensionLanding, 'browser extension')} helps with copy, open submit, autofill, and media download. See the ${faqLink(faqHrefDocs('installation/chrome-extension'), 'install guide')} and ${faqLink(faqHrefDocs('platforms/connect-rules'), 'connect rules')}.`
+				`Yes. OpenQuok does not publish to Reddit from the server. Add Reddit in the dashboard, then install ${faqLinkChromeWebStore('the OpenQuok browser extension')} (${faqLink(faqHrefDocs('installation/chrome-extension'), 'install guide')}) in the same Chrome profile you use for reddit.com. When a post is due, the extension runs the handoff — without it you cannot complete posting from a scheduled slot. You still click Post on Reddit. See ${faqLink(faqHrefDocs('platforms/connect-rules'), 'connect rules')}.`
 		},
 		{
 			title: 'Why do third-party Reddit schedulers get accounts banned?',
@@ -135,7 +136,7 @@ export const redditChannel = {
 		{
 			title: 'Why does OpenQuok avoid server-side Reddit publishing?',
 			description:
-				`OpenQuok stores drafts in your workspace only. When a post is due, you submit on reddit.com in your browser. We do not publish from our backend. The optional ${faqLink(publicFaqHref.browserExtensionLanding, 'browser extension')} can copy, open submit, and autofill — you still click Post. See the ${faqLink(faqHrefDocs('installation/chrome-extension'), 'install guide')}.`
+				`OpenQuok stores drafts in your workspace only. When a post is due, you submit on reddit.com in your browser. We do not publish from our backend. The ${faqLink(publicFaqHref.browserExtensionLanding, 'browser extension')} is required for due-time copy, open submit, and autofill — you still click Post. See the ${faqLink(faqHrefDocs('installation/chrome-extension'), 'install guide')}.`
 		},
 		{
 			title: 'Can OpenQuok still get my Reddit account banned?',

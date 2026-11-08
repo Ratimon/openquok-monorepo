@@ -20,6 +20,7 @@ import {
 	buildChannelProgrammaticSchedulingFaqTitle,
 	faqHrefDocs,
 	faqLink,
+	faqLinkChromeWebStore,
 	faqLinkSelfHostChannelSetup,
 	publicFaqHref
 } from '$lib/content/utils/publicFaqLinks';
@@ -112,12 +113,12 @@ export const skoolChannel = {
 		{
 			title: 'How do I connect Skool to OpenQuok?',
 			description:
-				`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, install the ${faqLink(publicFaqHref.browserExtensionLanding, 'OpenQuok browser extension')} (${faqLink(faqHrefDocs('installation/chrome-extension'), 'install guide')}), and sign in on skool.com in the same Chrome profile. Open a workspace and follow the ${faqLink(publicFaqHref.connectChannelsGuide, 'connect channels guide')} → browser extension → Skool. OpenQuok validates your session and stores it encrypted on the server. For self-hosted deployments, see the ${faqLinkSelfHostChannelSetup(SKOOL_DOCS_PATH, 'Skool')}.`
+				`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, install ${faqLinkChromeWebStore('the OpenQuok browser extension')} (${faqLink(faqHrefDocs('installation/chrome-extension'), 'install guide')}) in Chrome — you need it to connect Skool and to publish scheduled posts. Stay signed in on skool.com in the same Chrome profile. Open a workspace and follow the ${faqLink(publicFaqHref.connectChannelsGuide, 'connect channels guide')} → browser extension → Skool. OpenQuok validates your session and stores it encrypted on the server. For self-hosted deployments, see the ${faqLinkSelfHostChannelSetup(SKOOL_DOCS_PATH, 'Skool')}.`
 		},
 		{
 			title: 'Do I need the OpenQuok browser extension for Skool?',
 			description:
-				`Yes. Skool has no public OAuth flow for third-party schedulers. You connect while logged in on skool.com. The extension reads required session cookies only when you approve the connect flow in Add Channel. See the ${faqLink(publicFaqHref.browserExtensionLanding, 'browser extension')} page, ${faqLink(faqHrefDocs('installation/chrome-extension'), 'install guide')}, and the ${faqLinkSelfHostChannelSetup(SKOOL_DOCS_PATH, 'Skool')}.`
+				`Yes. Skool has no public OAuth flow for third-party schedulers. Without ${faqLinkChromeWebStore('the OpenQuok browser extension')} you cannot connect Skool or publish from OpenQuok. You connect while logged in on skool.com; the extension reads required session cookies only when you approve the connect flow in Add Channel. See the ${faqLink(publicFaqHref.browserExtensionLanding, 'browser extension')} page, ${faqLink(faqHrefDocs('installation/chrome-extension'), 'install guide')}, and the ${faqLinkSelfHostChannelSetup(SKOOL_DOCS_PATH, 'Skool')}.`
 		},
 		{
 			title: 'Can I connect Skool with an invite link?',
