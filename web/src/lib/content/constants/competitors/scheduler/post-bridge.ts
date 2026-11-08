@@ -2,6 +2,21 @@ import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$li
 import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
+import { buildSchedulerAlternativesLongForm } from '$lib/content/constants/competitors/buildCompareLongFormSections';
+
+const POST_BRIDGE_ALTERNATIVES_LONG_FORM = buildSchedulerAlternativesLongForm(
+	'PostBridge',
+	[
+		'PostBridge gates API and MCP behind a paid add-on.',
+		'Free tier caps monthly posts. Scheduling depth is about two months ahead.',
+		'One login has no workspaces. There is no X or Threads reply-thread tooling.'
+	],
+	[
+		'You want lightweight cross-posting without enterprise suite weight.',
+		'Flat bundles for fifteen to unlimited accounts fit creators who outgrew free tools.',
+		'Per-platform overrides and a small content studio are enough for your workflow.'
+	]
+);
 
 const POST_BRIDGE_PRICING_PLANS: ComparePricingPlan[] = [
 	{
@@ -89,6 +104,7 @@ export const postBridgeCompareProduct: CompareProduct = {
 	pricingPlans: POST_BRIDGE_PRICING_PLANS,
 	channels: POST_BRIDGE_CHANNELS,
 	featureSupport: POST_BRIDGE_FEATURE_SUPPORT,
+	alternativesLongForm: POST_BRIDGE_ALTERNATIVES_LONG_FORM,
 	comparison: {
 		headline: 'simple hosted cross-posting',
 		notAnother: 'minimal cross-poster',

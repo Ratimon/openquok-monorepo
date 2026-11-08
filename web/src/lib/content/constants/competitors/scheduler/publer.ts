@@ -2,6 +2,24 @@ import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$li
 import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
+import { buildSchedulerAlternativesLongForm } from '$lib/content/constants/competitors/buildCompareLongFormSections';
+
+
+const PUBLER_ALTERNATIVES_LONG_FORM = buildSchedulerAlternativesLongForm(
+	'Publer',
+	[
+		'Publer locks AI Assist, MCP, and Public API behind Business plans.',
+		'Per-account and per-member add-ons add up for agencies.',
+		'Approvals and recycling need Business. Free and Professional stay manual.'
+	],
+	[
+		'You want CSV bulk upload and recycling at low per-account pricing.',
+		'The tenth connected account is free on paid tiers.',
+		'Unlimited workspaces and roles on Business fit distributed social teams.'
+	]
+);
+
+
 
 const PUBLER_PRICING_PLANS: ComparePricingPlan[] = [
 	{
@@ -93,6 +111,7 @@ export const publerCompareProduct: CompareProduct = {
 	pricingPlans: PUBLER_PRICING_PLANS,
 	channels: PUBLER_CHANNELS,
 	featureSupport: PUBLER_FEATURE_SUPPORT,
+	alternativesLongForm: PUBLER_ALTERNATIVES_LONG_FORM,
 	comparison: {
 		headline: 'bulk scheduling and affordable per-account pricing',
 		notAnother: 'bulk uploader tab',

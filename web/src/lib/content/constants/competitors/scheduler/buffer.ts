@@ -2,6 +2,24 @@ import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$li
 import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
+import { buildSchedulerAlternativesLongForm } from '$lib/content/constants/competitors/buildCompareLongFormSections';
+
+
+const BUFFER_ALTERNATIVES_LONG_FORM = buildSchedulerAlternativesLongForm(
+	'Buffer',
+	[
+		'Buffer charges per channel. Costs climb before volume discounts apply.',
+		'One queue holds every brand. There is no workspace isolation or MCP for agents.',
+		'Approvals need the Team plan. The REST API is rate-limited with no MCP.'
+	],
+	[
+		'You want a simple browser queue with a free tier and volume discounts.',
+		'AI Assistant in the queue is enough. You do not need external agent scheduling.',
+		'Community inbox and analytics meet your needs without enterprise suite cost.'
+	]
+);
+
+
 
 const BUFFER_PRICING_PLANS: ComparePricingPlan[] = [
 	{
@@ -86,6 +104,7 @@ export const bufferCompareProduct: CompareProduct = {
 	pricingPlans: BUFFER_PRICING_PLANS,
 	channels: BUFFER_CHANNELS,
 	featureSupport: BUFFER_FEATURE_SUPPORT,
+	alternativesLongForm: BUFFER_ALTERNATIVES_LONG_FORM,
 	comparison: {
 		headline: 'queue-based scheduling',
 		notAnother: 'queue tab',

@@ -2,6 +2,24 @@ import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$li
 import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
+import { buildSchedulerAlternativesLongForm } from '$lib/content/constants/competitors/buildCompareLongFormSections';
+
+
+const POSTPEER_ALTERNATIVES_LONG_FORM = buildSchedulerAlternativesLongForm(
+	'PostPeer',
+	[
+		'PostPeer meters credits. X and analytics posts burn quota fast.',
+		'The product is API-first. There is no kanban review workspace before publish.',
+		'One API key serves every integration. There are no workspace-scoped OAuth apps.'
+	],
+	[
+		'You embed social publishing in your product with one delivery API.',
+		'MCP, skills, and REST fit Cursor or Claude automation.',
+		'Unlimited connected accounts on SaaS plans simplify multi-tenant apps.'
+	]
+);
+
+
 
 const POSTPEER_PRICING_PLANS: ComparePricingPlan[] = [
 	{
@@ -94,6 +112,7 @@ export const postpeerCompareProduct: CompareProduct = {
 	pricingPlans: POSTPEER_PRICING_PLANS,
 	channels: POSTPEER_CHANNELS,
 	featureSupport: POSTPEER_FEATURE_SUPPORT,
+	alternativesLongForm: POSTPEER_ALTERNATIVES_LONG_FORM,
 	comparison: {
 		headline: 'unified social posting API',
 		notAnother: 'credit-metered API wrapper',

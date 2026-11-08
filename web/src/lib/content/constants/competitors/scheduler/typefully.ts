@@ -2,6 +2,24 @@ import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$li
 import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
+import { buildSchedulerAlternativesLongForm } from '$lib/content/constants/competitors/buildCompareLongFormSections';
+
+
+const TYPEFULLY_ALTERNATIVES_LONG_FORM = buildSchedulerAlternativesLongForm(
+	'Typefully',
+	[
+		'Typefully bills per social set. Multiple brands multiply cost.',
+		'Networks are text-forward. There is no Instagram, TikTok, or YouTube composer.',
+		'It is a hosted service. There is no self-host path for compliance.'
+	],
+	[
+		'You draft threads and long-form posts in a writing-first editor.',
+		'API, MCP, and agent skills are included even on the free plan.',
+		'Review comments and shared drafts fit small writing teams.'
+	]
+);
+
+
 
 const TYPEFULLY_PRICING_PLANS: ComparePricingPlan[] = [
 	{
@@ -79,6 +97,7 @@ export const typefullyCompareProduct: CompareProduct = {
 	pricingPlans: TYPEFULLY_PRICING_PLANS,
 	channels: TYPEFULLY_CHANNELS,
 	featureSupport: TYPEFULLY_FEATURE_SUPPORT,
+	alternativesLongForm: TYPEFULLY_ALTERNATIVES_LONG_FORM,
 	comparison: {
 		headline: 'writing-first social publishing',
 		notAnother: 'writing-first editor',

@@ -557,7 +557,7 @@ function buildAlternativeDetailDescription(
 
 	if (product.slug === COMPARE_HUB_BASE_SLUG) {
 		if (targetProduct.slug === 'postiz') {
-			return `${product.name} is open source. Self-host for a $0 software fee (${publicFaqHref.selfHostingLanding}), or start a 7-day hosted trial. Teams leave ${targetProduct.name} for separate workspaces, unlimited AI writer, directory extension autofill, Reddit drafts you submit yourself, and scheduling from skills, MCP, and the Public API.`;
+			return `${product.name} is open source. Self-host for a $0 software fee (${publicFaqHref.selfHostingLanding}), or start a 7-day hosted trial. Teams leave ${targetProduct.name} for separate workspaces, unlimited AI writer, directory extension autofill, Reddit drafts you submit on reddit.com (${publicFaqHref.blogRedditAgents}), and scheduling from skills, MCP, and the Public API.`;
 		}
 		return `${product.name} is open source. Self-host for a $0 software fee (${publicFaqHref.selfHostingLanding}), or start a 7-day hosted trial. Teams leave ${targetProduct.name} for ${product.comparison.headline}, separate workspaces, and scheduling from skills, MCP, and the Public API.`;
 	}

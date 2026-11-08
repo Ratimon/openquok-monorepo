@@ -1,12 +1,22 @@
-import type {
-	CompareDirectoryLongFormContent,
-	CompareFeatureCell,
-	ComparePricingPlan,
-	CompareProduct
-} from '$lib/content/constants/competitors/types';
+import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$lib/content/constants/competitors/types';
 import { COMPARE_PRODUCT_CATEGORIES_DIRECTORY_SUBMISSION } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
+import { buildDirectorySubmissionAlternativesLongForm } from '$lib/content/constants/competitors/buildCompareLongFormSections';
 import { icons } from '$data/icons';
+
+const GETMOREBACKLINKS_ALTERNATIVES_LONG_FORM = buildDirectorySubmissionAlternativesLongForm(
+	'GetMoreBacklinks',
+	[
+		'GetMoreBacklinks charges per website. Each new product pays the full package fee again.',
+		'Delivery takes about fourteen working days. You receive a report, not a live dashboard.',
+		'Orders may pause when the queue is full. You wait for intake to reopen.'
+	],
+	[
+		'You want experts to pick directories and deliver SEO plus landing page reports.',
+		'Pro bundles hand-written blog posts with two hundred submissions on the vendor site.',
+		'You prefer one payment and no browser extension during launch week.'
+	]
+);
 
 const GETMOREBACKLINKS_PRICING_PLANS: ComparePricingPlan[] = [
 	{
@@ -15,7 +25,7 @@ const GETMOREBACKLINKS_PRICING_PLANS: ComparePricingPlan[] = [
 		pricePeriod: 'one_time',
 		tagline: '100 backlink submissions per website',
 		footnote:
-			'Per website · 25 paid platforms · basic SEO and landing page reports · 0 blog posts · verify live pricing'
+			'Per website · 100 backlink submissions · 25 paid platforms · basic SEO and landing page reports · 0 blog posts'
 	},
 	{
 		name: 'Business',
@@ -23,7 +33,7 @@ const GETMOREBACKLINKS_PRICING_PLANS: ComparePricingPlan[] = [
 		pricePeriod: 'one_time',
 		tagline: '200 backlink submissions per website',
 		footnote:
-			'Per website · 50 paid platforms · basic SEO and landing reports · 0 blog posts · verify live pricing'
+			'Per website · 200 backlink submissions · 50 paid platforms · basic SEO and landing page reports · 0 blog posts'
 	},
 	{
 		name: 'Pro',
@@ -31,7 +41,7 @@ const GETMOREBACKLINKS_PRICING_PLANS: ComparePricingPlan[] = [
 		pricePeriod: 'one_time',
 		tagline: '200 submissions plus five hand-written blog posts',
 		footnote:
-			'Per website · 75 paid platforms · basic SEO and landing reports · 5 blog posts · verify live pricing'
+			'Per website · 200 backlink submissions · 75 paid platforms · basic SEO and landing page reports · 5 blog posts'
 	}
 ];
 
@@ -56,42 +66,6 @@ const GETMOREBACKLINKS_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId
 	directory_catalog_dr: { kind: 'excluded' }
 };
 
-const GETMOREBACKLINKS_DIRECTORY_LONG_FORM: CompareDirectoryLongFormContent = {
-	whyPeopleLook: {
-		id: 'why-people-look',
-		navLabel: 'Why people look',
-		subtitle: 'Why people look',
-		title: 'Why teams look for a GetMoreBacklinks alternative',
-		body: [
-			'GetMoreBacklinks sells one-time packages per website for 100 or 200 submissions.',
-			'Orders may pause when their queue is full. Each new site pays the full fee again.',
-			'Delivery takes about 14 working days. You get a report, not a live dashboard.'
-		]
-	},
-	yourOptions: {
-		id: 'your-options',
-		navLabel: 'Your options',
-		subtitle: 'Your options',
-		title: 'Another agency, DIY tools, or OpenQuok',
-		body: [
-			'Wait for orders to reopen, hire another agency, submit by hand, or use OpenQuok in your workspace.',
-			'OpenQuok uses business profiles and extension autofill. You track each listing yourself.',
-			'Verify prices on getmorebacklinks.org. Compare plans in the sections below.'
-		]
-	},
-	whenTheyWin: {
-		id: 'when-they-win',
-		navLabel: 'When they win',
-		subtitle: 'When they win',
-		title: 'When GetMoreBacklinks stays the better choice',
-		body: [
-			'You want SEO reports and blog posts bundled with directory work.',
-			'You want experts to pick lists. You do not want to run an extension.',
-			'You prefer one invoice and no software setup during launch week.'
-		]
-	}
-};
-
 export const getmorebacklinksCompareProduct: CompareProduct = {
 	slug: 'getmorebacklinks',
 	categories: COMPARE_PRODUCT_CATEGORIES_DIRECTORY_SUBMISSION,
@@ -103,7 +77,7 @@ export const getmorebacklinksCompareProduct: CompareProduct = {
 	pricingPlans: GETMOREBACKLINKS_PRICING_PLANS,
 	channels: [],
 	featureSupport: GETMOREBACKLINKS_FEATURE_SUPPORT,
-	directoryLongForm: GETMOREBACKLINKS_DIRECTORY_LONG_FORM,
+	directoryLongForm: GETMOREBACKLINKS_ALTERNATIVES_LONG_FORM,
 	directoryCoverageSummary:
 		'100 backlink submissions per website on Advanced ($379). 200 submissions on Business ($579) and Pro ($779). The vendor hand-picks directories and does not publish a fixed site list — verify packages on getmorebacklinks.org.',
 	comparison: {

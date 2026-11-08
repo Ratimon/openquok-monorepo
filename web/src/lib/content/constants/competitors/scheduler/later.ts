@@ -2,6 +2,24 @@ import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$li
 import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
+import { buildSchedulerAlternativesLongForm } from '$lib/content/constants/competitors/buildCompareLongFormSections';
+
+
+const LATER_ALTERNATIVES_LONG_FORM = buildSchedulerAlternativesLongForm(
+	'Later',
+	[
+		'Later limits social sets and posts per profile. Extra sets add monthly cost.',
+		'Caption Writer uses monthly credits. There is no MCP, Public API, or agent skills.',
+		'Later skips X and Bluesky. Approvals need Growth or Scale.'
+	],
+	[
+		'You plan Instagram on a visual calendar and grid with Link in Bio.',
+		'Access Groups separate brands inside one Later login.',
+		'UGC search and benchmarking matter more than agent scheduling this quarter.'
+	]
+);
+
+
 
 const LATER_PRICING_PLANS: ComparePricingPlan[] = [
 	{
@@ -84,6 +102,7 @@ export const laterCompareProduct: CompareProduct = {
 	pricingPlans: LATER_PRICING_PLANS,
 	channels: LATER_CHANNELS,
 	featureSupport: LATER_FEATURE_SUPPORT,
+	alternativesLongForm: LATER_ALTERNATIVES_LONG_FORM,
 	comparison: {
 		headline: 'visual Instagram planning',
 		notAnother: 'grid planner tab',

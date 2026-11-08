@@ -2,6 +2,24 @@ import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$li
 import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
+import { buildSchedulerAlternativesLongForm } from '$lib/content/constants/competitors/buildCompareLongFormSections';
+
+
+const HOOTSUITE_ALTERNATIVES_LONG_FORM = buildSchedulerAlternativesLongForm(
+	'Hootsuite',
+	[
+		'Hootsuite prices per seat. Team cost climbs from about $99 per user per month.',
+		'Wisdom AI stays inside the dashboard. External agents lack workspace MCP endpoints.',
+		'You pay for listening and ads bundles even when you only need scheduling.'
+	],
+	[
+		'Your marketing team already lives in Hootsuite for publishing and inbox.',
+		'Per-seat roles and approvals match how your department works.',
+		'You need listening and paid social tools in the same enterprise vendor.'
+	]
+);
+
+
 
 const HOOTSUITE_PRICING_PLANS: ComparePricingPlan[] = [
 	{
@@ -92,6 +110,7 @@ export const hootsuiteCompareProduct: CompareProduct = {
 	pricingPlans: HOOTSUITE_PRICING_PLANS,
 	channels: HOOTSUITE_CHANNELS,
 	featureSupport: HOOTSUITE_FEATURE_SUPPORT,
+	alternativesLongForm: HOOTSUITE_ALTERNATIVES_LONG_FORM,
 	comparison: {
 		headline: 'enterprise social marketing',
 		notAnother: 'enterprise dashboard',

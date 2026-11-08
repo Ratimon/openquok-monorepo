@@ -214,9 +214,9 @@ export const openquokCompareProduct: CompareProduct = {
 			subtitle: 'Why people look',
 			title: 'Why teams look for OpenQuok alternatives',
 			body: [
-				'You may need a tool that fits an existing stack or procurement rules.',
-				'Some teams want a hosted scheduler without self-hosting or agent workflows.',
-				'Others want a done-for-you directory service instead of DIY launch.'
+				'Procurement may require a named SaaS vendor instead of self-hosting.',
+				'Your team may prefer a familiar queue or enterprise inbox over agent MCP.',
+				'You may want a done-for-you directory campaign instead of DIY extension submit.'
 			]
 		},
 		yourOptions: {
@@ -236,9 +236,9 @@ export const openquokCompareProduct: CompareProduct = {
 			subtitle: 'When they win',
 			title: 'When OpenQuok stays the better choice',
 			body: [
-				'You want open source scheduling with workspaces, MCP, CLI, and a Public API.',
-				'You self-host for a $0 software fee or use hosted tiers with a free trial.',
-				'You prefer DIY directory launch with the browser extension over per-site agency fees.'
+				'You want separate workspaces with MCP, CLI, skills, and a Public API per brand.',
+				'Unlimited AI writer and AGPL self-host with a $0 software fee matter to you.',
+				'Reddit drafts with human submit on reddit.com, directory autofill, and kanban review fit how you publish. See https://www.openquok.com/blog/ai-agents-for-reddit-promote-without-getting-banned for Reddit agent workflows.'
 			]
 		}
 	},

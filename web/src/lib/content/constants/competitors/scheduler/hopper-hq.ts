@@ -2,6 +2,21 @@ import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$li
 import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
+import { buildSchedulerAlternativesLongForm } from '$lib/content/constants/competitors/buildCompareLongFormSections';
+
+const HOPPER_HQ_ALTERNATIVES_LONG_FORM = buildSchedulerAlternativesLongForm(
+	'Hopper HQ',
+	[
+		'Hopper HQ bills per connected account. Every new profile adds monthly cost.',
+		'One login holds all brands. There is no workspace MCP or Public API.',
+		'AI help stays in the planner. Agents cannot schedule from skills or CLI.'
+	],
+	[
+		'You plan Instagram and TikTok on a visual grid with unlimited AI in the planner.',
+		'Per-account pricing from about $6 fits small businesses with a handful of profiles.',
+		'Link-in-bio pages, hashtags, and bulk upload cover your visual-first workflow.'
+	]
+);
 
 const HOPPER_HQ_PRICING_PLANS: ComparePricingPlan[] = [
 	{
@@ -78,6 +93,7 @@ export const hopperHqCompareProduct: CompareProduct = {
 	pricingPlans: HOPPER_HQ_PRICING_PLANS,
 	channels: HOPPER_HQ_CHANNELS,
 	featureSupport: HOPPER_HQ_FEATURE_SUPPORT,
+	alternativesLongForm: HOPPER_HQ_ALTERNATIVES_LONG_FORM,
 	comparison: {
 		headline: 'visual-first scheduling',
 		notAnother: 'grid planner tab',

@@ -2,6 +2,24 @@ import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$li
 import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
+import { buildSchedulerAlternativesLongForm } from '$lib/content/constants/competitors/buildCompareLongFormSections';
+
+
+const SOCIALYNC_ALTERNATIVES_LONG_FORM = buildSchedulerAlternativesLongForm(
+	'Socialync',
+	[
+		'Socialync Free allows five posts per month and five accounts.',
+		'Free tier skips analytics, drafts, and comments.',
+		'MCP and API keys are account-level. There is no self-host AGPL path.'
+	],
+	[
+		'You cross-post short video from iOS or Android with one upload.',
+		'MCP and REST ship on the free plan for light agent use.',
+		'Flat $20 to $99 plans cover up to one hundred accounts.'
+	]
+);
+
+
 
 const SOCIALYNC_PRICING_PLANS: ComparePricingPlan[] = [
 	{
@@ -88,6 +106,7 @@ export const socialyncCompareProduct: CompareProduct = {
 	pricingPlans: SOCIALYNC_PRICING_PLANS,
 	channels: SOCIALYNC_CHANNELS,
 	featureSupport: SOCIALYNC_FEATURE_SUPPORT,
+	alternativesLongForm: SOCIALYNC_ALTERNATIVES_LONG_FORM,
 	comparison: {
 		headline: 'mobile-first cross-posting',
 		notAnother: 'mobile-only upload flow',

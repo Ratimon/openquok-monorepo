@@ -2,6 +2,21 @@ import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$li
 import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
+import { buildSchedulerAlternativesLongForm } from '$lib/content/constants/competitors/buildCompareLongFormSections';
+
+const SPROUT_SOCIAL_ALTERNATIVES_LONG_FORM = buildSchedulerAlternativesLongForm(
+	'Sprout Social',
+	[
+		'Sprout Social prices per seat from about $79 to $399 before add-ons.',
+		'Trellis AI stays in Sprout. External agents lack workspace MCP.',
+		'Public API needs Advanced and sales provisioning.'
+	],
+	[
+		'Marketing and care teams need inbox, listening, and publishing in one vendor.',
+		'Smart Inbox and influencer tools match enterprise social operations.',
+		'Message approvals and external calendar sharing fit regulated teams.'
+	]
+);
 
 const SPROUT_SOCIAL_PRICING_PLANS: ComparePricingPlan[] = [
 	{
@@ -99,6 +114,7 @@ export const sproutSocialCompareProduct: CompareProduct = {
 	pricingPlans: SPROUT_SOCIAL_PRICING_PLANS,
 	channels: SPROUT_SOCIAL_CHANNELS,
 	featureSupport: SPROUT_SOCIAL_FEATURE_SUPPORT,
+	alternativesLongForm: SPROUT_SOCIAL_ALTERNATIVES_LONG_FORM,
 	comparison: {
 		headline: 'enterprise social operations',
 		notAnother: 'enterprise inbox',

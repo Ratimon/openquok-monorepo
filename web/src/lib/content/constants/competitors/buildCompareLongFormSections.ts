@@ -60,27 +60,61 @@ export function personalizeWhenTheyWinSection(
 	};
 }
 
-export function buildDefaultSocialAlternativesLongFormContent(
-	target: CompareProduct
+/** Shared long-form block for directory submission `/alternatives/{slug}` pages. */
+export function buildDirectorySubmissionAlternativesLongForm(
+	name: string,
+	whyPeopleLook: readonly [string, string, string],
+	whenTheyWin: readonly [string, string, string],
+	yourOptions?: CompareLongFormSection
 ): CompareDirectoryLongFormContent {
-	const { name } = target;
 	return {
 		whyPeopleLook: {
 			id: 'why-people-look',
 			navLabel: 'Why people look',
 			subtitle: 'Why people look',
 			title: `Why teams look for ${name} alternatives`,
+			body: whyPeopleLook
+		},
+		yourOptions: yourOptions ?? {
+			id: 'your-options',
+			navLabel: 'Your options',
+			subtitle: 'Your options',
+			title: `Stay with ${name}, hire another agency, or launch with OpenQuok`,
 			body: [
-				`${name} ${target.comparison.positioningWhenLeft}.`,
-				'Teams switch when pricing, channels, or agent workflows no longer fit.',
-				'This page ranks options before you migrate accounts.'
+				`You can buy another ${name} package, hire a different agency, or use OpenQuok directory launch.`,
+				'The ranked list below shows directory services with package prices and compare links.',
+				'OpenQuok uses business profiles, extension autofill, and in-app DR analytics when you self-submit.'
 			]
+		},
+		whenTheyWin: {
+			id: 'when-they-win',
+			navLabel: 'When they win',
+			subtitle: 'When they win',
+			title: `When ${name} stays the better choice`,
+			body: whenTheyWin
+		}
+	};
+}
+
+/** Shared “Your options” block for social scheduler `/alternatives/{slug}` pages. */
+export function buildSchedulerAlternativesLongForm(
+	name: string,
+	whyPeopleLook: readonly [string, string, string],
+	whenTheyWin: readonly [string, string, string]
+): CompareDirectoryLongFormContent {
+	return {
+		whyPeopleLook: {
+			id: 'why-people-look',
+			navLabel: 'Why people look',
+			subtitle: 'Why people look',
+			title: `Why teams look for ${name} alternatives`,
+			body: whyPeopleLook
 		},
 		yourOptions: {
 			id: 'your-options',
 			navLabel: 'Your options',
 			subtitle: 'Your options',
-			title: 'Stay, switch schedulers, or adopt open source',
+			title: `Stay on ${name}, pick another scheduler, or move to OpenQuok`,
 			body: [
 				`You can renew ${name}, pick another scheduler, or move to OpenQuok.`,
 				'The ranked list below shows schedulers with list prices and compare links.',
@@ -92,13 +126,28 @@ export function buildDefaultSocialAlternativesLongFormContent(
 			navLabel: 'When they win',
 			subtitle: 'When they win',
 			title: `When ${name} stays the better choice`,
-			body: [
-				`${name} is built for ${target.comparison.builtFor}.`,
-				`You are happy with ${target.comparison.notAnother} and do not need workspaces or agent scheduling.`,
-				'Migration cost is higher than the benefit this quarter.'
-			]
+			body: whenTheyWin
 		}
 	};
+}
+
+export function buildDefaultSocialAlternativesLongFormContent(
+	target: CompareProduct
+): CompareDirectoryLongFormContent {
+	const { name } = target;
+	return buildSchedulerAlternativesLongForm(
+		name,
+		[
+			`${name} ${target.comparison.positioningWhenLeft}.`,
+			'Teams switch when pricing, channels, or agent workflows no longer fit.',
+			'This page ranks options before you migrate accounts.'
+		],
+		[
+			`${name} is built for ${target.comparison.builtFor}.`,
+			`You are happy with ${target.comparison.notAnother} and do not need workspaces or agent scheduling.`,
+			'Migration cost is higher than the benefit this quarter.'
+		]
+	);
 }
 
 export function assembleDirectoryLongFormViewModel(params: {

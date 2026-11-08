@@ -2,6 +2,24 @@ import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$li
 import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
+import { buildSchedulerAlternativesLongForm } from '$lib/content/constants/competitors/buildCompareLongFormSections';
+
+
+const BREAKREACH_ALTERNATIVES_LONG_FORM = buildSchedulerAlternativesLongForm(
+	'Breakreach',
+	[
+		'Breakreach runs on hosted ChatGPT and Claude connectors. There is no self-host path yet.',
+		'Starter caps accounts and AI agent messages. You hit limits before Agency tiers.',
+		'Connector flows trade some approval and plug controls for speed.'
+	],
+	[
+		'You schedule from ChatGPT or Claude every day and want a native connector.',
+		'Flat plans from $29 include MCP, REST, and unlimited posts.',
+		'Inbox, Inspirations, and twelve networks stay inside one hosted calendar.'
+	]
+);
+
+
 
 const BREAKREACH_PRICING_PLANS: ComparePricingPlan[] = [
 	{
@@ -86,6 +104,7 @@ export const breakreachCompareProduct: CompareProduct = {
 	pricingPlans: BREAKREACH_PRICING_PLANS,
 	channels: BREAKREACH_CHANNELS,
 	featureSupport: BREAKREACH_FEATURE_SUPPORT,
+	alternativesLongForm: BREAKREACH_ALTERNATIVES_LONG_FORM,
 	comparison: {
 		headline: 'ChatGPT-first scheduling',
 		notAnother: 'connector-only calendar',

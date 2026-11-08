@@ -186,7 +186,8 @@ describe('PublicAlternativesPagePresenter', () => {
 		expect(vm!.longForm.yourOptions.body.join(' ')).toMatch(/unlimited AI writer/i);
 
 		const openQuokListing = vm!.listings.find((listing) => listing.isOpenQuok);
-		expect(openQuokListing?.detailDescription).toMatch(/Reddit drafts you submit yourself/i);
+		expect(openQuokListing?.detailDescription).toMatch(/Reddit drafts you submit on reddit\.com/i);
+		expect(openQuokListing?.detailDescription).toContain('ai-agents-for-reddit-promote-without-getting-banned');
 		expect(openQuokListing?.detailDescription).toMatch(/directory extension autofill/i);
 	});
 

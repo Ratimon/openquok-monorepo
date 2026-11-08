@@ -2,6 +2,24 @@ import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$li
 import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
+import { buildSchedulerAlternativesLongForm } from '$lib/content/constants/competitors/buildCompareLongFormSections';
+
+
+const RECURPOST_ALTERNATIVES_LONG_FORM = buildSchedulerAlternativesLongForm(
+	'RecurPost',
+	[
+		'RecurPost has no Public API, MCP, or agent skills.',
+		'Per-profile add-ons and daily post caps hit agencies with many clients.',
+		'Client workspaces unlock only on Agency tiers near $79 per month.'
+	],
+	[
+		'You manage client approvals and evergreen libraries in one browser.',
+		'Shareable approval links and white-label reports fit freelancer workflows.',
+		'Inbox and Instagram DM automation matter more than agent scheduling.'
+	]
+);
+
+
 
 const RECURPOST_PRICING_PLANS: ComparePricingPlan[] = [
 	{
@@ -90,6 +108,7 @@ export const recurpostCompareProduct: CompareProduct = {
 	pricingPlans: RECURPOST_PRICING_PLANS,
 	channels: RECURPOST_CHANNELS,
 	featureSupport: RECURPOST_FEATURE_SUPPORT,
+	alternativesLongForm: RECURPOST_ALTERNATIVES_LONG_FORM,
 	comparison: {
 		headline: 'evergreen recycling and agency approvals',
 		notAnother: 'evergreen queue',

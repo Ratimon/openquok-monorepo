@@ -2,6 +2,24 @@ import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$li
 import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
+import { buildSchedulerAlternativesLongForm } from '$lib/content/constants/competitors/buildCompareLongFormSections';
+
+
+const POST2ALL_ALTERNATIVES_LONG_FORM = buildSchedulerAlternativesLongForm(
+	'post2all',
+	[
+		'post2all is hosted only. There is no AGPL or self-host MCP per brand.',
+		'Account caps and X post allowances vary by plan.',
+		'Profiles organize accounts. They are not isolated agent workspaces with separate tokens.'
+	],
+	[
+		'You want thirteen networks with CLI, MCP, and skills on flat monthly plans.',
+		'Unlimited posts and members on paid tiers reduce seat math.',
+		'Pre-publish validation and queue control fit agent-assisted scheduling.'
+	]
+);
+
+
 
 const POST2ALL_PRICING_PLANS: ComparePricingPlan[] = [
 	{
@@ -90,6 +108,7 @@ export const post2allCompareProduct: CompareProduct = {
 	pricingPlans: POST2ALL_PRICING_PLANS,
 	channels: POST2ALL_CHANNELS,
 	featureSupport: POST2ALL_FEATURE_SUPPORT,
+	alternativesLongForm: POST2ALL_ALTERNATIVES_LONG_FORM,
 	comparison: {
 		headline: 'agent-ready hosted scheduling',
 		notAnother: 'hosted agent scheduling stack',

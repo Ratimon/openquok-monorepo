@@ -2,6 +2,24 @@ import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$li
 import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
+import { buildSchedulerAlternativesLongForm } from '$lib/content/constants/competitors/buildCompareLongFormSections';
+
+
+const POSTFAST_ALTERNATIVES_LONG_FORM = buildSchedulerAlternativesLongForm(
+	'PostFast',
+	[
+		'PostFast caps posts per month on lower tiers before unlimited Pro.',
+		'Client workspaces are hosted. They do not isolate agent credentials per brand.',
+		'There is no self-host path or AGPL stack for compliance-heavy teams.'
+	],
+	[
+		'You want eleven networks, inbox, and MCP on every paid tier.',
+		'Flat monthly plans bundle API and agent connectors without per-seat fees.',
+		'CSV import, carousels, and mobile apps cover agency cross-posting.'
+	]
+);
+
+
 
 const POSTFAST_PRICING_PLANS: ComparePricingPlan[] = [
 	{
@@ -100,6 +118,7 @@ export const postfastCompareProduct: CompareProduct = {
 	pricingPlans: POSTFAST_PRICING_PLANS,
 	channels: POSTFAST_CHANNELS,
 	featureSupport: POSTFAST_FEATURE_SUPPORT,
+	alternativesLongForm: POSTFAST_ALTERNATIVES_LONG_FORM,
 	comparison: {
 		headline: 'hosted multi-platform automation',
 		notAnother: 'hosted automation dashboard',

@@ -2,6 +2,24 @@ import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$li
 import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
+import { buildSchedulerAlternativesLongForm } from '$lib/content/constants/competitors/buildCompareLongFormSections';
+
+
+const OPENPOST_ALTERNATIVES_LONG_FORM = buildSchedulerAlternativesLongForm(
+	'OpenPost',
+	[
+		'Hosted OpenPost caps posts, accounts, and workspaces by tier.',
+		'MCP scopes are account-level. There is no skill builder or workspace OAuth apps.',
+		'The channel list is narrower than all-in-one competitors with thirty-plus networks.'
+	],
+	[
+		'You want open source with a $0 software fee on self-host or simple hosted tiers.',
+		'Built-in editors, analytics, and account-specific versions fit solo founders.',
+		'API, CLI, and MCP share the same rules on hosted and self-hosted deploys.'
+	]
+);
+
+
 
 const OPENPOST_PRICING_PLANS: ComparePricingPlan[] = [
 	{
@@ -105,6 +123,7 @@ export const openpostCompareProduct: CompareProduct = {
 	pricingPlans: OPENPOST_PRICING_PLANS,
 	channels: OPENPOST_CHANNELS,
 	featureSupport: OPENPOST_FEATURE_SUPPORT,
+	alternativesLongForm: OPENPOST_ALTERNATIVES_LONG_FORM,
 	comparison: {
 		headline: 'founder-focused publishing workspace',
 		notAnother: 'browser-only queue',

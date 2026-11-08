@@ -2,6 +2,24 @@ import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$li
 import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
+import { buildSchedulerAlternativesLongForm } from '$lib/content/constants/competitors/buildCompareLongFormSections';
+
+
+const MIXPOST_ALTERNATIVES_LONG_FORM = buildSchedulerAlternativesLongForm(
+	'Mixpost',
+	[
+		'Mixpost Pro needs a one-time license and your own Laravel hosting.',
+		'API, MCP, and AI Assistant unlock only on Pro and Enterprise.',
+		'You operate compliance, backups, and upgrades on your servers.'
+	],
+	[
+		'You want AGPL self-host with unlimited seats and accounts on your infrastructure.',
+		'One-time Pro pricing beats recurring SaaS when you control the stack.',
+		'Workspaces, approvals, and multilingual posting on your instance fit agency resellers.'
+	]
+);
+
+
 
 const MIXPOST_PRICING_PLANS: ComparePricingPlan[] = [
 	{
@@ -87,6 +105,7 @@ export const mixpostCompareProduct: CompareProduct = {
 	pricingPlans: MIXPOST_PRICING_PLANS,
 	channels: MIXPOST_CHANNELS,
 	featureSupport: MIXPOST_FEATURE_SUPPORT,
+	alternativesLongForm: MIXPOST_ALTERNATIVES_LONG_FORM,
 	comparison: {
 		headline: 'self-hosted social suite',
 		notAnother: 'browser-only scheduler',

@@ -2,13 +2,31 @@ import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$li
 import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
+import { buildSchedulerAlternativesLongForm } from '$lib/content/constants/competitors/buildCompareLongFormSections';
+
+
+const INFLUENCE_ALTERNATIVES_LONG_FORM = buildSchedulerAlternativesLongForm(
+	'Influence',
+	[
+		'Influence IQ credits cap drafts, revisions, and image creation every month.',
+		'Starter and Growth cap posts. You need Pro for unlimited publishing.',
+		'One workspace mixes brands. There is no advertised Public REST API for your stack.'
+	],
+	[
+		'You want Influence IQ to turn a brief into channel-ready drafts you review first.',
+		'Starter lists at $11 per month with unlimited connected accounts in USD.',
+		'Engagement inbox, link analytics, and MCP guides sit in one AI-native calendar.'
+	]
+);
+
+
 
 const INFLUENCE_PRICING_PLANS: ComparePricingPlan[] = [
 	{
 		name: 'Starter',
 		monthlyPrice: 11,
 		tagline: 'Best for a steady posting rhythm on unlimited connected accounts',
-		footnote: '50 posts / month · 1,500 Influence IQ credits · 7-day free trial · annual billing $110/year in USD'
+		footnote: '50 posts / month · 1,500 Influence IQ credits · 7-day free trial · annual billing $190/year in USD'
 	},
 	{
 		name: 'Growth',
@@ -106,6 +124,7 @@ export const influenceCompareProduct: CompareProduct = {
 	pricingPlans: INFLUENCE_PRICING_PLANS,
 	channels: INFLUENCE_CHANNELS,
 	featureSupport: INFLUENCE_FEATURE_SUPPORT,
+	alternativesLongForm: INFLUENCE_ALTERNATIVES_LONG_FORM,
 	comparison: {
 		headline: 'Influence IQ campaign scheduling',
 		notAnother: 'Influence IQ autopilot',
@@ -118,8 +137,8 @@ export const influenceCompareProduct: CompareProduct = {
 				weakness: 'Monthly Influence IQ credits cap drafts, revisions, and image creation on every tier'
 			},
 			pricing_model: {
-				strength: 'Starter lists at $11 per month with unlimited connected accounts in USD',
-				weakness: 'Starter and Growth cap monthly posts before you need Pro for unlimited publishing'
+				strength: 'Starter lists at $19 per month with unlimited connected accounts in USD',
+				weakness: 'Starter and Growth cap monthly posts before Pro unlocks unlimited publishing'
 			},
 			workspace_isolation: {
 				strength: 'One calendar shows every connected profile and upcoming campaign',

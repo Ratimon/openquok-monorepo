@@ -47,6 +47,14 @@ function buildAlternativesSwitchFaqItem(
 		};
 	}
 
+	if (targetSlug === 'postiz') {
+		return {
+			title: `Why switch from ${targetName} to OpenQuok?`,
+			description:
+				`Teams leave ${targetName} when cloud channel caps, one workspace, or server-side Reddit publishing no longer fit. OpenQuok keeps Reddit as drafts you submit on reddit.com, with optional extension autofill — see ${faqLink(publicFaqHref.blogRedditAgents, 'AI agents for Reddit: promote without getting banned')}. Compare on ${faqLink(compareHref, compareLabel)} or use the ranked list on this page.`
+		};
+	}
+
 	return {
 		title: `Why switch from ${targetName} to OpenQuok?`,
 		description:

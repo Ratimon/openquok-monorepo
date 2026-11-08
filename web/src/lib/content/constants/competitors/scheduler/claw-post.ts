@@ -2,6 +2,21 @@ import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$li
 import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
+import { buildSchedulerAlternativesLongForm } from '$lib/content/constants/competitors/buildCompareLongFormSections';
+
+const CLAW_POST_ALTERNATIVES_LONG_FORM = buildSchedulerAlternativesLongForm(
+	'Claw Post',
+	[
+		'Claw Post queues jobs to a Chrome extension. There is no full calendar or kanban review.',
+		'Post quotas and account limits vary by tier. Only five networks ship today.',
+		'Posts fire through the extension. You do not get a draft-first workspace for every brand.'
+	],
+	[
+		'Your agent posts through a real logged-in browser session without holding passwords.',
+		'REST and Streamable HTTP MCP with OAuth fit extension-first automation.',
+		'You accept a job-queue model instead of a visual publishing workspace.'
+	]
+);
 
 const CLAW_POST_PRICING_PLANS: ComparePricingPlan[] = [
 	{
@@ -79,6 +94,7 @@ export const clawPostCompareProduct: CompareProduct = {
 	pricingPlans: CLAW_POST_PRICING_PLANS,
 	channels: CLAW_POST_CHANNELS,
 	featureSupport: CLAW_POST_FEATURE_SUPPORT,
+	alternativesLongForm: CLAW_POST_ALTERNATIVES_LONG_FORM,
 	comparison: {
 		headline: 'browser-session agent posting',
 		notAnother: 'headless Playwright loop',

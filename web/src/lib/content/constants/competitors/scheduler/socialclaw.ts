@@ -2,6 +2,24 @@ import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$li
 import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
+import { buildSchedulerAlternativesLongForm } from '$lib/content/constants/competitors/buildCompareLongFormSections';
+
+
+const SOCIALCLAW_ALTERNATIVES_LONG_FORM = buildSchedulerAlternativesLongForm(
+	'SocialClaw',
+	[
+		'SocialClaw uses one workspace API key for every brand.',
+		'Account and post caps force plan jumps on Startup and Plus tiers.',
+		'Agents can apply schedules with less human checkpoint than review-first tools.'
+	],
+	[
+		'You want CLI, MCP, and skills on the same calendar as the dashboard.',
+		'Starter from $15 includes media studio and eleven-plus networks.',
+		'Automatic retries and calendar edits fit builder-led automation.'
+	]
+);
+
+
 
 const SOCIALCLAW_PRICING_PLANS: ComparePricingPlan[] = [
 	{
@@ -92,6 +110,7 @@ export const socialclawCompareProduct: CompareProduct = {
 	pricingPlans: SOCIALCLAW_PRICING_PLANS,
 	channels: SOCIALCLAW_CHANNELS,
 	featureSupport: SOCIALCLAW_FEATURE_SUPPORT,
+	alternativesLongForm: SOCIALCLAW_ALTERNATIVES_LONG_FORM,
 	comparison: {
 		headline: 'agent publishing layer',
 		notAnother: 'apply-and-publish workspace',

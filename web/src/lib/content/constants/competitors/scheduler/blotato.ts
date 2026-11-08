@@ -2,6 +2,24 @@ import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$li
 import { COMPARE_PRODUCT_CATEGORIES_SOCIAL_SCHEDULING } from '$lib/content/constants/competitors/shared';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import { icons } from '$data/icons';
+import { buildSchedulerAlternativesLongForm } from '$lib/content/constants/competitors/buildCompareLongFormSections';
+
+
+const BLOTATO_ALTERNATIVES_LONG_FORM = buildSchedulerAlternativesLongForm(
+	'Blotato',
+	[
+		'Blotato bundles AI media, inbox automation, and agent publish paths in one account.',
+		'Account caps and AI credit pools force plan jumps as you add brands.',
+		'Agents can publish quickly. There is less emphasis on kanban review before go-live.'
+	],
+	[
+		'You want MCP and REST built for ChatGPT or Claude with one API key.',
+		'Flat plans with bundled AI credits fit solo operators and small teams.',
+		'Templates, AI video, DMs, and n8n or Make hooks cover your automation stack.'
+	]
+);
+
+
 
 const BLOTATO_PRICING_PLANS: ComparePricingPlan[] = [
 	{
@@ -83,6 +101,7 @@ export const blotatoCompareProduct: CompareProduct = {
 	pricingPlans: BLOTATO_PRICING_PLANS,
 	channels: BLOTATO_CHANNELS,
 	featureSupport: BLOTATO_FEATURE_SUPPORT,
+	alternativesLongForm: BLOTATO_ALTERNATIVES_LONG_FORM,
 	comparison: {
 		headline: 'agent-first social API and MCP',
 		notAnother: 'closed autopilot content factory',

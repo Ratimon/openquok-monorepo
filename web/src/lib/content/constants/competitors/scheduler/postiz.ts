@@ -132,7 +132,7 @@ export const postizCompareProduct: CompareProduct = {
 			body: [
 				'Postiz packs 30-plus networks, AI media, and agent tooling into one open-source stack.',
 				'Cloud plans cap connected channels from five to one hundred. That pushes upgrades as you add brands.',
-				'Teams also outgrow one workspace, no in-product AI writer, and server-side Reddit publishing when they want safer drafts.'
+				'Teams also outgrow one workspace, no in-product AI writer, and server-side Reddit publishing when they want human submit on reddit.com.'
 			]
 		},
 		yourOptions: {
@@ -143,7 +143,7 @@ export const postizCompareProduct: CompareProduct = {
 			body: [
 				'You can self-host Postiz, stay on cloud tiers, or switch schedulers.',
 				'The ranked list below shows schedulers with list prices and compare links.',
-				'OpenQuok is open source with a $0 self-host software fee or hosted plans with a trial. It adds separate workspaces, unlimited AI writer, directory extension autofill, and Reddit drafts you submit yourself without server-side brand posts.'
+				'OpenQuok is open source with a $0 self-host software fee or hosted plans with a trial. It adds separate workspaces, unlimited AI writer, directory extension autofill, and Reddit drafts you submit yourself. Read https://www.openquok.com/blog/ai-agents-for-reddit-promote-without-getting-banned for the agent and ban-risk playbook.'
 			]
 		},
 		whenTheyWin: {
@@ -189,7 +189,7 @@ export const postizCompareProduct: CompareProduct = {
 			publishing_control: {
 				strength: 'Visual calendar with per-channel previews before you schedule across networks',
 				weakness:
-					'Follow-up delays start at 1 minute — no sub-minute thread pacing; comment media blocked on Instagram and some networks'
+					'Reddit publishes through Postiz servers — not draft-and-handoff on reddit.com; follow-up delays start at 1 minute'
 			}
 		}
 	}

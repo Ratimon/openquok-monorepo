@@ -125,7 +125,7 @@ describe('buildAlternativesProductOffersSchema', () => {
 		const offer = buildAlternativesProductOffersSchema(
 			boringlaunch,
 			'https://www.boringlaunch.com/',
-			'$149–$549 one-time'
+			'$149–$649 one-time'
 		);
 		expect(offer?.['@type']).toBe('AggregateOffer');
 		expect(offer).toMatchObject({ lowPrice: '149', priceCurrency: 'USD' });
