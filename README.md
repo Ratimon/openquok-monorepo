@@ -204,17 +204,15 @@ Day-to-day commands (dev servers, tests, DB, deploy) live under [Development env
 
 ### Self-host (Docker Compose)
 
-**Build from clone (default)** — configure env, then build all services from the monorepo:
+Quick starter — copy env, add your Supabase keys, start the stack:
 
 ```bash
 cp infra/self-host/.env.example infra/self-host/.env
-# fill PUBLIC_SUPABASE_* / SUPABASE_SECRET_KEY (and matching VITE_* for the web image)
+# Edit infra/self-host/.env — set PUBLIC_SUPABASE_* / SUPABASE_SECRET_KEY and matching VITE_*
 docker compose -f infra/self-host/docker-compose.yml up --build
 ```
 
-**Pull pre-built images (optional)** — skip local builds for API and workers when published tags exist (`ghcr.io/ratimon/openquok-*` or `docker.io/ratimon/openquok-*`). Set `OPENQUOK_IMAGE_TAG` in `.env`, use the `docker-compose.images.yml` overlay, `pull`, then `up` — you still **`compose build web`** unless your `VITE_*` match the published web bake. Details: [Docker (pre-built images)](https://www.openquok.com/docs/installation/docker). Maintainers: [infra/self-host/PUBLISHING.md](infra/self-host/PUBLISHING.md) (tag `self-host-v<semver>` → CI publish).
-
-When the stack is up, open the UI at **http://localhost:4007** (API at **http://localhost:3000**). Full env and bring-up steps: [Docker Compose (self-host)](https://www.openquok.com/docs/installation/docker-compose). On **OpenQuok Cloud**, install the extension from the [Chrome Web Store](https://chromewebstore.google.com/detail/openquok/diloknijkhhggpfhenpoccnjbcjdoedn). When you self-host, set `VITE_OPENQUOK_BROWSER_EXTENSION_ID` on the web app and build or load the extension from [extension/](./extension) — see [Self-host OpenQuok](https://www.openquok.com/self-hosting), the [browser extension](https://www.openquok.com/browser-extension) overview, and the [install guide](https://www.openquok.com/docs/installation/chrome-extension).
+Open **http://localhost:4007** (API **http://localhost:3000**). More env options, pre-built images, and the browser extension: [Docker Compose (self-host)](https://www.openquok.com/docs/installation/docker-compose) · [Self-host OpenQuok](https://www.openquok.com/self-hosting).
 
 ---
 

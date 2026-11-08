@@ -11,7 +11,8 @@ import { getRootPathPublicChannels } from '$lib/area-public/constants/getRootPat
 import { getRootPathPublicCompare } from '$lib/area-public/constants/getRootPathPublicCompare';
 import {
 	getRootPathPublicAlternatives,
-	getRootPathPublicAlternativesCategories
+	getRootPathPublicAlternativesCategories,
+	getRootPathPublicAlternativesCategory
 } from '$lib/area-public/constants/getRootPathPublicAlternatives';
 import {
 	getRootPathPublicDocs,
@@ -88,6 +89,12 @@ const publicChannelsDirectoryHubHref = `${publicChannelsPath}#${PUBLIC_CHANNELS_
 const publicComparePath = route(getRootPathPublicCompare());
 const publicAlternativesPath = route(getRootPathPublicAlternatives());
 const publicAlternativesCategoriesPath = route(getRootPathPublicAlternativesCategories());
+const publicAlternativesSocialSchedulerCategoryPath = route(
+	getRootPathPublicAlternativesCategory('social-scheduler')
+);
+const publicAlternativesDirectorySubmissionCategoryPath = route(
+	getRootPathPublicAlternativesCategory('directory-submission')
+);
 const publicPlaybooksPath = route(getRootPathPublicPlaybooks());
 const publicPlaybooksCategoriesPath = route(getRootPathPublicPlaybooksCategories());
 const publicPlaybooksTagsPath = route(getRootPathPublicPlaybooksTags());
@@ -1016,9 +1023,6 @@ export const PUBLIC_FOOTER_LINKS_STATIC: PublicFooterLinksMap = {
 		{ label: 'Blog', href: publicBlogPath },
 		{ label: 'Blog Topics', href: '/blog/topic' },
 		{ label: 'Blog Authors', href: '/blog/author' },
-		{ label: 'Alternatives', href: publicAlternativesPath },
-		{ label: 'Alternatives Categories', href: publicAlternativesCategoriesPath },
-		{ label: 'Compare', href: publicComparePath },
 		{ label: 'Sitemap', href: '/sitemap.xml' }
 	],
 	Features: [
@@ -1042,6 +1046,16 @@ export const PUBLIC_FOOTER_LINKS_STATIC: PublicFooterLinksMap = {
 		{ label: 'Terms', href: '/terms' },
 		{ label: 'Privacy', href: '/privacy-policy' },
 		{ label: 'Cookies', href: '/cookie-policy' }
+	],
+	Alternatives: [
+		{ label: 'All Alternatives', href: publicAlternativesPath },
+		{ label: 'Alternatives Categories', href: publicAlternativesCategoriesPath },
+		{ label: 'Social media schedulers', href: publicAlternativesSocialSchedulerCategoryPath },
+		{
+			label: 'Directory submission services',
+			href: publicAlternativesDirectorySubmissionCategoryPath
+		},
+		{ label: 'Compare', href: publicComparePath }
 	],
 	Tools: [
 		{ label: 'All Free tools', href: publicToolsPath },

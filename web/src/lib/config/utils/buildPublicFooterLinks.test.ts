@@ -230,6 +230,24 @@ describe('buildPublicFooterLinks', () => {
 		});
 	});
 
+	it('exposes alternatives and compare hubs in a dedicated footer column', () => {
+		const links = PUBLIC_FOOTER_LINKS_STATIC.Alternatives;
+
+		expect(links).toEqual([
+			{ label: 'All Alternatives', href: '/alternatives' },
+			{ label: 'Alternatives Categories', href: '/alternatives/categories' },
+			{ label: 'Social media schedulers', href: '/alternatives/categories/social-scheduler' },
+			{
+				label: 'Directory submission services',
+				href: '/alternatives/categories/directory-submission'
+			},
+			{ label: 'Compare', href: '/compare' }
+		]);
+		expect(PUBLIC_FOOTER_LINKS_STATIC.Company.map((link) => link.label)).not.toContain(
+			'Alternatives'
+		);
+	});
+
 	it('builds public API docs sections from apis-* markdown frontmatter', () => {
 		const sections = buildPublicFooterPublicApiDocsLinkSections();
 
