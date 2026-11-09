@@ -98,6 +98,7 @@ Posting formats, follow-up comments, and social analytics vary by network. Some 
 <p>
   <a href="https://www.openquok.com/channels/peerpush"><img src="./web/static/icons/link-directory/peerpush.svg" alt="PeerPush" width="32" height="32"></a>
   <a href="https://www.openquok.com/channels/uneed"><img src="./web/static/icons/link-directory/uneed.svg" alt="Uneed" width="32" height="32"></a>
+  <a href="https://www.openquok.com/channels/open-launch"><img src="./web/static/icons/link-directory/open-launch.svg" alt="Open Launch" width="32" height="32"></a>
 </p>
 
 **PeerPush** and **Uneed** use a product profile on [My Products](https://www.openquok.com/account/products) and the same [browser extension](https://www.openquok.com/browser-extension) ([Chrome Web Store](https://chromewebstore.google.com/detail/openquok/diloknijkhhggpfhenpoccnjbcjdoedn)) as Skool — for directory autofill, not OAuth to the directory site. You submit on peerpush.com and uneed.best yourself.

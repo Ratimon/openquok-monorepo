@@ -40,6 +40,7 @@ describe('normalizeBusinessProfileData', () => {
 				use_cases: ['launch'],
 				target_audiences: [' founders '],
 				platforms: ['Web'],
+				tech_stack: [' Next.js ', 'PostgreSQL'],
 				alternatives: ['  Other Tool  '],
 			})
 		).toEqual({
@@ -47,6 +48,7 @@ describe('normalizeBusinessProfileData', () => {
 			use_cases: ['launch'],
 			target_audiences: ['founders'],
 			platforms: ['Web'],
+			tech_stack: ['Next.js', 'PostgreSQL'],
 			alternatives: ['Other Tool'],
 		});
 	});
@@ -61,7 +63,7 @@ describe('normalizeBusinessProfileData', () => {
 });
 
 describe('BUSINESS_PROFILE_MAX_TAGS', () => {
-	it('is three', () => {
-		expect(BUSINESS_PROFILE_MAX_TAGS).toBe(3);
+	it('allows more than legacy three-tag directory limits', () => {
+		expect(BUSINESS_PROFILE_MAX_TAGS).toBeGreaterThan(3);
 	});
 });

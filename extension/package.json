@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "prepare:icons": "node ./scripts/prepare-icons.mjs",
-    "build": "pnpm run prepare:icons && node ./scripts/build-extension.mjs && node ./scripts/copy-static.mjs",
+    "build": "pnpm run prepare:icons && node ./scripts/build-extension.mjs && node ./scripts/copy-static.mjs && node ./scripts/verify-extension-dist.mjs",
     "zip": "pnpm --filter openquok-common build && pnpm run build && node ./scripts/zip.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node ./run-vitest.mjs",

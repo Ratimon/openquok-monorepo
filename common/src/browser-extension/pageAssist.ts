@@ -146,6 +146,33 @@ const PEERPUSH_FREE_QUEUE: DirectoryLaunchProvider = {
 	hostPermission: PEERPUSH_HOST_PERMISSION,
 };
 
+const OPEN_LAUNCH_HOST_PATTERNS: readonly string[] = [
+	'https://open-launch.com/*',
+	'https://www.open-launch.com/*',
+];
+
+const OPEN_LAUNCH_HOST_PERMISSION = '*://*.open-launch.com/*';
+
+const OPEN_LAUNCH_PREMIUM_LAUNCH: DirectoryLaunchProvider = {
+	identifier: 'open-launch-premium-launch',
+	name: 'Open Launch — Premium launch',
+	tierLabel: 'Paid',
+	defaultStartUrl: 'https://open-launch.com/projects/submit',
+	contentScriptEntry: 'content/directory-launch/openquok-directory-open-launch.js',
+	hostPatterns: OPEN_LAUNCH_HOST_PATTERNS,
+	hostPermission: OPEN_LAUNCH_HOST_PERMISSION,
+};
+
+const OPEN_LAUNCH_FREE_LAUNCH: DirectoryLaunchProvider = {
+	identifier: 'open-launch-free-launch',
+	name: 'Open Launch — Free launch',
+	tierLabel: 'Free',
+	defaultStartUrl: 'https://open-launch.com/pricing',
+	contentScriptEntry: 'content/directory-launch/openquok-directory-open-launch.js',
+	hostPatterns: OPEN_LAUNCH_HOST_PATTERNS,
+	hostPermission: OPEN_LAUNCH_HOST_PERMISSION,
+};
+
 /** Registered directory launch destinations (extension manifest mirrors this list). */
 export const directoryLaunchProviders: readonly DirectoryLaunchProvider[] = [
 	UNEED_JOIN_LINE,
@@ -153,6 +180,8 @@ export const directoryLaunchProviders: readonly DirectoryLaunchProvider[] = [
 	UNEED_MAKER_PROFILE,
 	PEERPUSH_FREE_QUEUE,
 	PEERPUSH_STANDARD_LAUNCH,
+	OPEN_LAUNCH_FREE_LAUNCH,
+	OPEN_LAUNCH_PREMIUM_LAUNCH,
 ];
 
 const providersById = new Map<string, DirectoryLaunchProvider>(

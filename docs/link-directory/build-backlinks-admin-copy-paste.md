@@ -216,6 +216,43 @@ Paste into the opportunity modal **OpenQuok CTA** fieldset. Use em dash **—** 
 | **open-launch** | `free-launch` | 10 | `external_doc` | — | `https://open-launch.com/pricing` | `Open Launch pricing` |
 | **open-launch** | `premium-launch` | 20 | `external_doc` | — | `https://open-launch.com/pricing` | `Open Launch pricing` |
 | **awesome-selfhosted** | `list-pr` | 10 | `none` | — | `https://github.com/awesome-selfhosted/awesome-selfhosted-data/blob/master/CONTRIBUTING.md` | `Contributing guide` |
+
+---
+
+## Opportunity auto-launch reference (directory extension)
+
+Paste into the opportunity modal **Browser extension auto-launch** fieldset in secret-admin **after** the matching `auto_launch_destinations` row ships in the extension build. Opportunity slugs must match the auto-launch seed join (`free-launch`, `premium-launch` on site `open-launch`). **`guest-article` stays off** (editorial `external_doc` only).
+
+| Site | Opp slug | Auto-launch enabled | Extension provider slug |
+| --- | --- | --- | --- |
+| **open-launch** | `free-launch` | Yes | `open-launch-free-launch` |
+| **open-launch** | `premium-launch` | Yes | `open-launch-premium-launch` |
+| **open-launch** | `guest-article` | No | — |
+| **peerpush** | `free-queue` | Yes | `peerpush-free-queue` |
+| **peerpush** | `standard-launch` | Yes | `peerpush-standard-launch` |
+
+**Verify (no link-directory SQL for Open Launch):** after you save both launch opportunities, run:
+
+```bash
+node backend/scripts/verify-open-launch-link-directory-cms.mjs --api https://api.openquok.com
+```
+
+Or in the Supabase SQL editor (service role / editor access):
+
+```sql
+SELECT o.slug,
+       o.auto_launch_enabled,
+       o.auto_launch_provider_slug
+FROM public.link_directory_opportunities o
+JOIN public.link_directory_sites s ON s.id = o.site_id
+WHERE s.slug = 'open-launch'
+  AND o.slug IN ('free-launch', 'premium-launch', 'guest-article')
+ORDER BY o.sort_order;
+```
+
+Expected: `free-launch` and `premium-launch` have `auto_launch_enabled = true` with provider slugs above; `guest-article` has `auto_launch_enabled = false` and a null provider slug.
+
+---
 | **threads** | `profile-personal` | 10 | `connect_channel` | `threads` | — | `Connect Threads` |
 | **threads** | `profile-brand` | 15 | `connect_channel` | `threads` | — | `Connect Threads` |
 | **threads** | `thread-post-link` | 20 | `schedule_post` | `threads` | — | `Schedule post` |
@@ -865,6 +902,8 @@ Paste into the opportunity modal **OpenQuok CTA** fieldset. Use em dash **—** 
 ```html
 <p>Complete checkout and submit your product URL and assets. After the launch goes live, confirm the homepage listing uses a <strong>dofollow</strong> link to your site and save the badge or listing URL for your records.</p>
 ```
+
+**Auto-launch (listing manager):** enable **Browser extension auto-launch** on **`free-launch`** with provider **`open-launch-free-launch`**, and on **`premium-launch`** with **`open-launch-premium-launch`**. Leave **`guest-article`** unchecked. Do not add a `504_*` link-directory seed for Open Launch—production copy lives in CMS only.
 
 
 ---
@@ -1667,6 +1706,7 @@ Create each site with **Admin published** on. Map **OpenQuok channel slug** to t
 1. Upload a **square logo** per site in the editor (export from [`branded-icons.ts`](web/src/data/icons/branded-icons.ts) or official brand assets).
 2. Hard-refresh hub and site guides while logged out; confirm opportunity counts in FAQ blocks.
 3. **Existing admin rows:** if you already published opportunities under old slugs (`profile-website-bio`, `business-profile-link`, `bio-link-business`, `company-page-website`, `channel-about-links`, `profile-website-link`, `profile-website` on Dev.to, `submit-project` on Open Launch), either **rename slug + re-sort** to match this handbook or **add** the new rows and unpublish duplicates—Open Launch should be **`free-launch` @ `10`** and **`premium-launch` @ `20`** instead of a single `submit-project`.
-4. Optional: sync exemplar seed [`502_20251001_seed_link_directory_exemplar.sql`](backend/supabase/db/link-directory/502_20251001_seed_link_directory_exemplar.sql) in a follow-up PR so fresh environments match production.
+4. **Open Launch auto-launch:** confirm `free-launch` and `premium-launch` provider slugs in the **Opportunity auto-launch reference** table, then run `node backend/scripts/verify-open-launch-link-directory-cms.mjs`.
+5. Optional: sync exemplar seed [`502_20251001_seed_link_directory_exemplar.sql`](backend/supabase/db/link-directory/502_20251001_seed_link_directory_exemplar.sql) in a follow-up PR so fresh environments match production.
 
 Metrics are **estimates** — **monthly visits** from [Semrush Traffic Analytics](https://www.semrush.com/trending-websites/global/all) (August 2026 snapshot in the handbook); re-check Semrush overviews quarterly. Re-check **DA** on Moz and **DR** on Ahrefs when you rebaseline. Hub copy aggregates published opportunity counts automatically.

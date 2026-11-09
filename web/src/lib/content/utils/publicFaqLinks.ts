@@ -208,6 +208,7 @@ export const publicFaqHref = {
 	cliReddit: faqHrefDocs('cli-examples/reddit'),
 	cliPeerpush: faqHrefDocs('cli-examples/peerpush'),
 	cliUneed: faqHrefDocs('cli-examples/uneed'),
+	cliOpenLaunch: faqHrefDocs('cli-examples/open-launch'),
 	cliDirectoryLaunch: faqHrefDocs('cli-usages/directory-launch'),
 	humanizerTool: route(getRootPathPublicHumanizer()),
 	skillBuilderTool: route(getRootPathPublicSkillBuilder()),

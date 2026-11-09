@@ -161,7 +161,11 @@ Output is in <Badge text="extension/dist/" variant="path" />.
 
 ### Load in Chrome
 
-Open <strong>chrome://extensions</strong>, turn on <strong>Developer mode</strong>, click <strong>Load unpacked</strong>, and select <Badge text="extension/dist" variant="path" />.
+Open <strong>chrome://extensions</strong>, turn on <strong>Developer mode</strong>, click <strong>Load unpacked</strong>, and select the <strong>dist</strong> folder inside your monorepo clone (for example <Badge text="openquok-monorepo/extension/dist" variant="path" />). Chrome needs <strong>manifest.json</strong> in the folder you pick — not the repo root, not <Badge text="extension/" variant="path" /> alone, and not your Desktop or Downloads shortcut.
+
+<Callout type="warning">
+<p>Installing the published Chrome Web Store build does <strong>not</strong> block a separate unpacked copy. The Web Store build keeps its own extension ID; unpacked dev builds get a different ID — set <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_ID" variant="envWeb" /> to match whichever build your web app should talk to.</p>
+</Callout>
 
 ![Load Unpacked OpenQuok Chrome Extension](/docs/_assets/installation/local-extension.webp)
 

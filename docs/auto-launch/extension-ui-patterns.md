@@ -78,6 +78,7 @@ Adapters treat **presence of a nav “Log in” link** as signed **out** (invers
 | --- | --- | --- | --- |
 | `peerpush` | No `a[href="/auth/login"]` in the document | `https://peerpush.com/auth/login` | Nav link on `peerpush.com/pricing` when signed out (reference spike used the same selector theme on a sibling host) |
 | `uneed` | No `a[href="/login"]` in the document | `https://uneed.best/login` | Header **Log in** on `uneed.best/pricing` when signed out; nav may hydrate after first paint — gate re-checks after ~1s and on debounced DOM mutations |
+| `open-launch` | No `a[href="/sign-in"]` and no submit auth gate (`input[type="password"]` + `a[href="/sign-up"]` or **Welcome back** + **Login with Google**) | `https://open-launch.com/sign-in` | Nav **Sign in** after SPA hydration on `open-launch.com/pricing`; `/projects/submit` shows full-page login when session is missing |
 
 Unknown site keys default to **logged in** for the directory layer (avoid false “please log in” on future hosts until an adapter exists). Host patterns come from `getDirectoryLaunchUniqueHostPatterns()` / `getDirectoryLaunchSiteKeyFromLocation()` in `common/src/browser-extension/pageAssist.ts`.
 
@@ -301,8 +302,10 @@ OpenQuok stores business profiles in `auto_launch_product_profiles` (top-level `
 | `uneed-join-line` | Uneed — Join the line | `https://uneed.best/pricing` | `backend/supabase/db/auto-launch/502_20261013_seed_uneed_destinations.sql` |
 | `peerpush-free-queue` | PeerPush — Free queue | `https://peerpush.com/pricing` | `backend/supabase/db/auto-launch/503_20261016_seed_peerpush_destination.sql` |
 | `peerpush-standard-launch` | PeerPush — Standard launch | `https://peerpush.com/submit` | `backend/supabase/db/auto-launch/503_20261016_seed_peerpush_destination.sql` |
+| `open-launch-free-launch` | Open Launch — Free launch | `https://open-launch.com/pricing` | `backend/supabase/db/auto-launch/503_20261108_seed_open_launch_destination.sql` |
+| `open-launch-premium-launch` | Open Launch — Premium launch | `https://open-launch.com/projects/submit` | `backend/supabase/db/auto-launch/503_20261108_seed_open_launch_destination.sql` |
 
-`uneed-paid-launch` reuses the same product-listing steps as Join the line. `uneed-maker-profile` is a smaller profile-only flow (not used in the default smoke test below). `peerpush-free-queue` reuses the Standard launch `extension_config` with `readyUrlHint: pricing`.
+`uneed-paid-launch` reuses the same product-listing steps as Join the line. `uneed-maker-profile` is a smaller profile-only flow (not used in the default smoke test below). `peerpush-free-queue` reuses the Standard launch `extension_config` with `readyUrlHint: pricing`. `open-launch-free-launch` copies premium `extension_config` with `readyUrlHint: pricing`; launch date and review steps are user-completed in v1.
 
 **Link directory dofollow (catalog):** PeerPush Standard launch is `dofollow` (paid instant listing). PeerPush free queue is `unknown` (same pattern as Uneed Join the line — pricing does not document nofollow for the free tier; verify `rel` on the live listing).
 
@@ -364,15 +367,37 @@ Same step/field mapping as Standard launch (`extension_config` is shared; handof
 
 Tag-style fields use `fillMode: "tags"` in the seed; the extension formats array values for PeerPush combobox/tag inputs (`extension/src/directory-launch/profileValues.ts`). Logo and gallery steps use file inputs (fetch from stored logo/gallery URLs).
 
+### Open Launch — Free queue (`open-launch-free-launch`)
+
+Same step/field mapping as Premium launch (`extension_config` is shared; handoff opens **pricing** first). After you start submit from pricing, use the extension step rail on `open-launch.com/projects/submit` the same way as Premium launch.
+
+### Open Launch — Premium launch (`open-launch-premium-launch`)
+
+| Extension step | Directory form label | `profilePath` | `fillMode` | Composer tab |
+| --- | --- | --- | --- | --- |
+| Project Info | Project name | `name` | text | General |
+| Project Info | Website URL | `website_url` | text | General |
+| Project Info | Short description | `description` | rich_html | General |
+| Project Info | Logo | `logo_url` | file | Media |
+| Project Info | Product image | `profile_data.gallery_urls` | files | Media |
+| Details | Categories | `profile_data.categories` | tags | Discovery |
+| Details | Tech stack | `profile_data.tech_stack` | tags | Discovery |
+| Details | Platforms | `profile_data.platforms` | tags | Discovery |
+| Details | Pricing model | `profile_data.pricing_type` | select | General |
+| Details | GitHub | `profile_data.social_github` | text | Socials |
+| Details | X (Twitter) | `profile_data.social_x` | text | Socials |
+
+**Launch date** and **Review** wizard steps are not autofilled in v1 (user picks date and confirms payment on premium).
+
 ---
 
-## Manual smoke test: My Products cards (Uneed + PeerPush)
+## Manual smoke test: My Products cards (Uneed + PeerPush + Open Launch)
 
 Use this checklist after local migrations and a fresh extension build. Goal: one business profile, multiple **published** launch variants (Uneed + PeerPush seeds), card aggregate **`0/2` → `1/2` → `2/2` directories submitted** (one count per directory **site**, not per launch variant), plus readiness and stale badges.
 
 ### Prerequisites
 
-1. **Database**: Aggregated migrations applied so `uneed-join-line`, `peerpush-free-queue`, and `peerpush-standard-launch` exist with `is_published = true` (seeds above).
+1. **Database**: Aggregated migrations applied so `uneed-join-line`, `peerpush-free-queue`, `peerpush-standard-launch`, `open-launch-free-launch`, and `open-launch-premium-launch` exist with `is_published = true` (seeds above).
 2. **Web + API**: Dashboard signed into a workspace with auto-launch routes enabled.
 3. **Extension**: From monorepo root, `pnpm common:build` and `pnpm --filter @openquok/browser-extension build`; load **`extension/dist`** in Chrome and reload after each build (`extension/README.md`).
 4. **Handoff**: `VITE_OPENQUOK_BROWSER_EXTENSION_ID` matches the loaded extension; stay on the same origin as `externally_connectable` (localhost or `openquok.com`).
@@ -383,10 +408,10 @@ Use this checklist after local migrations and a fresh extension build. Goal: one
 2. **Create product** (or use an existing test profile). Save only **General** basics (name + website) — leave logo and Discovery empty.
 3. Confirm **business profile card** UI:
    - **Draft** badge (no logo or no completed submission yet).
-   - Aggregate line: **`0/N directories submitted`** where `N` is the count of unique directory **sites** with at least one published destination (expect **2**: Uneed and PeerPush, even when three or more launch rows appear under **Directory launches**).
+   - Aggregate line: **`0/N directories submitted`** where `N` is the count of unique directory **sites** with at least one published destination (expect **3**: Uneed, PeerPush, and Open Launch, even when five or more launch rows appear under **Directory launches**).
    - Readiness hint when fields are missing, e.g. **“Fill *k* more fields to autofill on …”** — click it; composer opens on **Discovery** or **General** per missing paths.
 4. On the card, confirm **Directory channels** shows the SVAR table (same **Add filters** smart-filter pattern as Account → Channels table view):
-   - One row per directory **site** (Uneed, PeerPush). **Launch** opens that site’s launch paths (join line, paid slot, standard submit, and so on).
+   - One row per directory **site** (Uneed, PeerPush, Open Launch). **Launch** opens that site’s launch paths (join line, paid slot, standard submit, free/premium queue, and so on).
    - Readiness badge: **Ready** or **N fields missing**.
    - **Launch** visible when no `completed` submission for that destination.
 

@@ -51,6 +51,7 @@ const DISCOVERY_PROFILE_PATH_PREFIXES = [
 	'profile_data.use_cases',
 	'profile_data.target_audiences',
 	'profile_data.platforms',
+	'profile_data.tech_stack',
 	'profile_data.alternatives',
 	'profile_data.monthly_revenue_usd',
 ];

@@ -4,6 +4,7 @@ import {
     BUSINESS_PROFILE_MAX_CATEGORIES,
     BUSINESS_PROFILE_MAX_GALLERY_URLS,
     BUSINESS_PROFILE_MAX_PLATFORMS,
+    BUSINESS_PROFILE_MAX_TECH_STACK,
     BUSINESS_PROFILE_MAX_TAGS,
     BUSINESS_PROFILE_MAX_TARGET_AUDIENCES,
     BUSINESS_PROFILE_MAX_USE_CASES,
@@ -78,6 +79,11 @@ export const businessProfileDataSchema = z
         platforms: z
             .array(z.string().trim().min(1).max(80))
             .max(BUSINESS_PROFILE_MAX_PLATFORMS)
+            .nullable()
+            .optional(),
+        tech_stack: z
+            .array(z.string().trim().min(1).max(80))
+            .max(BUSINESS_PROFILE_MAX_TECH_STACK)
             .nullable()
             .optional(),
         alternatives: z

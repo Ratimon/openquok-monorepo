@@ -35,7 +35,7 @@ Copy-pasteable recipes for the `openquok` CLI grouped by social network or direc
 </CardGrid>
 
 <Callout type="note" title="Directory launch is not posts:create">
-<p><strong>Directory launch</strong> recipes prepare your product on <a href="/account/products">My Products</a> for <strong>PeerPush</strong> and <strong>Uneed</strong>. They use <Badge text="directory:*" variant="default" /> commands, not <Badge text="posts:create" variant="default" />. You submit on the directory site with the browser extension.</p>
+<p><strong>Directory launch</strong> recipes prepare your product on <a href="/account/products">My Products</a> for <strong>PeerPush</strong>, <strong>Uneed</strong>, and <strong>Open Launch</strong>. They use <Badge text="directory:*" variant="default" /> commands, not <Badge text="posts:create" variant="default" />. You submit on the directory site with the browser extension.</p>
 </Callout>
 
 <Callout type="tip" title="Main profile and site copy">
@@ -48,6 +48,7 @@ Copy-pasteable recipes for the `openquok` CLI grouped by social network or direc
 <CardGrid>
 <LinkCard title="PeerPush" description="Product profiles, peerpush variants, listing summary, and cached directory SEO" href="/docs/cli-examples/peerpush" />
 <LinkCard title="Uneed" description="Product profiles, uneed variants, listing summary, and cached directory SEO" href="/docs/cli-examples/uneed" />
+<LinkCard title="Open Launch" description="Product profiles, open-launch variants, tech stack readiness, and cached directory SEO" href="/docs/cli-examples/open-launch" />
 </CardGrid>
 
 ## Conventions used in these pages

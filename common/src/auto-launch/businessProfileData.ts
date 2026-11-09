@@ -1,5 +1,5 @@
-/** Max product tags stored in `profile_data.tags` (directory listing forms). */
-export const BUSINESS_PROFILE_MAX_TAGS = 3;
+/** Max product tags stored in `profile_data.tags` (directory listing forms; per-site limits vary). */
+export const BUSINESS_PROFILE_MAX_TAGS = 32;
 
 /** Max product categories in `profile_data.categories` (discovery / product type). */
 export const BUSINESS_PROFILE_MAX_CATEGORIES = 3;
@@ -12,6 +12,9 @@ export const BUSINESS_PROFILE_MAX_TARGET_AUDIENCES = 3;
 
 /** Max platforms in `profile_data.platforms` (where the product is available). */
 export const BUSINESS_PROFILE_MAX_PLATFORMS = 5;
+
+/** Max technologies in `profile_data.tech_stack` (build stack on directory forms such as Open Launch). */
+export const BUSINESS_PROFILE_MAX_TECH_STACK = 5;
 
 /** Max similar products in `profile_data.alternatives`. */
 export const BUSINESS_PROFILE_MAX_ALTERNATIVES = 5;
@@ -49,6 +52,7 @@ export type BusinessProfileData = {
 	use_cases?: string[] | null;
 	target_audiences?: string[] | null;
 	platforms?: string[] | null;
+	tech_stack?: string[] | null;
 	alternatives?: string[] | null;
 	pricing_type?: BusinessProfilePricingType | null;
 	tags?: string[] | null;
@@ -119,6 +123,10 @@ export function normalizeBusinessProfileData(
 
 	if (value.platforms !== undefined) {
 		out.platforms = normalizeStringArray(value.platforms);
+	}
+
+	if (value.tech_stack !== undefined) {
+		out.tech_stack = normalizeStringArray(value.tech_stack);
 	}
 
 	if (value.alternatives !== undefined) {

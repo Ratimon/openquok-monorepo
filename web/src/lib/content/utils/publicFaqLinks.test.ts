@@ -70,6 +70,7 @@ describe('publicFaqLinks', () => {
 		expect(publicFaqHref.cliGettingStarted).toBe('/docs/getting-started-for-cli');
 		expect(publicFaqHref.cliPeerpush).toBe('/docs/cli-examples/peerpush');
 		expect(publicFaqHref.cliUneed).toBe('/docs/cli-examples/uneed');
+		expect(publicFaqHref.cliOpenLaunch).toBe('/docs/cli-examples/open-launch');
 		expect(publicFaqHref.cliDirectoryLaunch).toBe('/docs/cli-usages/directory-launch');
 		expect(publicFaqHref.cliSetupGuides).toBe('/docs/getting-started-for-cli');
 		expect(publicFaqHref.compareOpenquokBuffer).toBe('/compare/openquok/buffer');

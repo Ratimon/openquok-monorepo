@@ -36,6 +36,11 @@ describe('directorySiteKeyFromProviderSlug', () => {
 		expect(directorySiteKeyFromProviderSlug('uneed-join-line')).toBe('uneed');
 	});
 
+	it('resolves open-launch provider slugs to the open-launch site key', () => {
+		expect(directorySiteKeyFromProviderSlug('open-launch-premium-launch')).toBe('open-launch');
+		expect(directorySiteKeyFromProviderSlug('open-launch-free-launch')).toBe('open-launch');
+	});
+
 	it('matches multi-segment published site slugs', () => {
 		expect(directorySiteKeyFromProviderSlug('other-site-launch', ['other-site', 'other'])).toBe(
 			'other-site'

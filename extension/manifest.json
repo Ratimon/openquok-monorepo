@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "OpenQuok: Social Media Scheduler & Directory Autofill",
-  "version": "0.1.18",
+  "version": "0.1.19",
   "description": "Schedule posts from a Chrome side panel. Right-click drafts, Skool connect, Reddit handoff, directory autofill for OpenQuok.",
   "icons": {
     "16": "icons/icon-16.png",
@@ -37,6 +37,7 @@
     "*://reddit.com/*",
     "*://*.peerpush.com/*",
     "*://*.uneed.best/*",
+    "*://*.open-launch.com/*",
     "https://*.openquok.com/*",
     "http://localhost/*",
     "http://127.0.0.1/*",
@@ -52,6 +53,11 @@
     {
       "matches": ["https://uneed.best/*", "https://www.uneed.best/*"],
       "js": ["content/directory-launch/openquok-directory-uneed.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://open-launch.com/*", "https://www.open-launch.com/*"],
+      "js": ["content/directory-launch/openquok-directory-open-launch.js"],
       "run_at": "document_idle"
     },
     {

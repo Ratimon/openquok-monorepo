@@ -12,6 +12,7 @@
 		BUSINESS_PROFILE_MAX_ALTERNATIVES,
 		BUSINESS_PROFILE_MAX_CATEGORIES,
 		BUSINESS_PROFILE_MAX_PLATFORMS,
+		BUSINESS_PROFILE_MAX_TECH_STACK,
 		BUSINESS_PROFILE_MAX_TAGS,
 		BUSINESS_PROFILE_MAX_TARGET_AUDIENCES,
 		BUSINESS_PROFILE_MAX_USE_CASES,
@@ -102,11 +103,13 @@
 	let useCases = $state<string[]>([]);
 	let targetAudiences = $state<string[]>([]);
 	let platforms = $state<string[]>([]);
+	let techStack = $state<string[]>([]);
 	let alternatives = $state<string[]>([]);
 	let categoriesInput = $state('');
 	let useCasesInput = $state('');
 	let targetAudiencesInput = $state('');
 	let platformsInput = $state('');
+	let techStackInput = $state('');
 	let alternativesInput = $state('');
 	let pricingType = $state<(typeof BUSINESS_PROFILE_PRICING_TYPES)[number] | ''>('');
 	let tags = $state<string[]>([]);
@@ -150,6 +153,7 @@
 			use_cases: useCases,
 			target_audiences: targetAudiences,
 			platforms,
+			tech_stack: techStack,
 			alternatives,
 			pricing_type: pricingType === '' ? undefined : pricingType,
 			tags,
@@ -193,11 +197,13 @@
 		useCases = pd.use_cases ? [...pd.use_cases] : [];
 		targetAudiences = pd.target_audiences ? [...pd.target_audiences] : [];
 		platforms = pd.platforms ? [...pd.platforms] : [];
+		techStack = pd.tech_stack ? [...pd.tech_stack] : [];
 		alternatives = pd.alternatives ? [...pd.alternatives] : [];
 		categoriesInput = '';
 		useCasesInput = '';
 		targetAudiencesInput = '';
 		platformsInput = '';
+		techStackInput = '';
 		alternativesInput = '';
 		pricingType = pd.pricing_type ?? '';
 		tags = pd.tags ? [...pd.tags] : [];
@@ -354,6 +360,23 @@
 
 	function removePlatform(item: string) {
 		platforms = platforms.filter((t) => t !== item);
+	}
+
+	function addTechStackItem() {
+		const result = addStringListItem(
+			techStack,
+			techStackInput,
+			BUSINESS_PROFILE_MAX_TECH_STACK,
+			80,
+			'tech stack items'
+		);
+		if (!result) return;
+		techStack = result.items;
+		techStackInput = result.nextInput;
+	}
+
+	function removeTechStackItem(item: string) {
+		techStack = techStack.filter((t) => t !== item);
 	}
 
 	function addAlternative() {
@@ -581,8 +604,10 @@
 								{/if}
 							</label>
 							<div class="form-control w-full gap-1 sm:col-span-2">
-								<span class="text-sm font-medium text-base-content">
-									Tags (max {BUSINESS_PROFILE_MAX_TAGS})
+								<span class="text-sm font-medium text-base-content">Tags</span>
+								<span class="text-xs text-base-content/60">
+									Listing keywords for directory autofill — up to {BUSINESS_PROFILE_MAX_TAGS} on your
+									profile (each site may accept fewer).
 								</span>
 								{#if fieldErr('profileData.tags')}
 									<p class="text-xs text-error" role="alert">{fieldErr('profileData.tags')}</p>
@@ -679,7 +704,8 @@
 						<div class="grid gap-4 sm:grid-cols-2">
 							<p class="text-sm text-base-content/70 sm:col-span-2">
 								Discovery fields power directory search and filters (for example PeerPush categories, use cases,
-								and platforms). The first category is also used for single-category directories such as Uneed.
+								and platforms, or Open Launch tech stack). The first category is also used for single-category
+								directories such as Uneed.
 							</p>
 							{#each [
 								{
@@ -731,6 +757,19 @@
 									onAdd: addPlatform,
 									onRemove: removePlatform,
 									setInput: (v: string) => (platformsInput = v),
+									wide: true
+								},
+								{
+									label: 'Tech stack',
+									hint: `Technologies you built with (max ${BUSINESS_PROFILE_MAX_TECH_STACK})`,
+									fieldKey: 'profileData.tech_stack',
+									items: techStack,
+									input: techStackInput,
+									max: BUSINESS_PROFILE_MAX_TECH_STACK,
+									maxLen: 80,
+									onAdd: addTechStackItem,
+									onRemove: removeTechStackItem,
+									setInput: (v: string) => (techStackInput = v),
 									wide: true
 								},
 								{

@@ -169,6 +169,22 @@ Operators can also create sites/opportunities in **secret-admin** without new se
 
 No **public-api-surface-sync** unless you add new public API routes (current auto-launch is session-authenticated dashboard API, not `/api/v1/public/*`).
 
+## Marketing & docs icon surfaces (same PR)
+
+When a directory site ships on `/channels/{slug}` with extension launch, keep **directory destination icon rows** in sync with PeerPush / Uneed. Use the site slug for paths and channel links.
+
+| Surface | Path | What to add |
+| --- | --- | --- |
+| Home hero row 2 + `/browser-extension` strip | `web/src/data/landing-directory-platforms.ts` | Entry in `FEATURES_GRID_DIRECTORY_PLATFORMS` / `HERO_DIRECTORY_PLATFORMS` (`channelSlug`, `icons.{Brand}.name`, label) |
+| Home features grid (`IconTileGrid` `variant="home"`) | `web/src/data/landing-home-features-grid.ts` | `{site-slug}` in one of `FEATURES_GRID_HOME_ROWS[].platformIds` (rebalance row counts if needed) |
+| Directory-only marketing grid | `FEATURES_GRID_DIRECTORY_ROWS` in `landing-directory-platforms.ts` | Include `{site-slug}` in `platformIds` |
+| Getting started + platforms docs | `web/src/content/docs/getting-started/index.md`, `web/src/content/docs/platforms/index.md` | `<a href="/channels/{slug}">` + `<img src="/icons/link-directory/{slug}.svg" …>` in **Directory launch destinations** block |
+| Repository README | `README.md` → **Directory launch destinations** | Same icon row with `https://www.openquok.com/channels/{slug}` + `./web/static/icons/link-directory/{slug}.svg` |
+| Add Channel bundled logos | `buildDirectoryAddChannelTiles.ts` | `BUNDLED_DIRECTORY_LOGO_SLUGS` + `DIRECTORY_SITE_BRANDED_ICONS` when the tile should not rely on remote `logo_url` |
+| Landing Add Channel mock (optional) | `landingAddChannelDialogMock.ts` | `LANDING_ADD_CHANNEL_DIALOG_DIRECTORY_TILES` row when the bento shows directory picks |
+
+Update `web/src/data/landing-social-platforms.test.ts` when hero or home grid ids change (`HERO_DIRECTORY_PLATFORMS`, `FEATURES_GRID_HOME_ROWS` counts).
+
 ## PR checklist
 
 Use as the execution list.
@@ -204,12 +220,20 @@ Use as the execution list.
 - [ ] `extension-ui-patterns.md` mapping + smoke test checklist
 - [ ] Manual smoke: Account → My Products → create/edit profile → Launch → fill → mark complete; card `submitted` count increments
 
+**Marketing icon rows** (see **Marketing & docs icon surfaces**)
+
+- [ ] `landing-directory-platforms.ts` — hero + directory grid tile for `{site-slug}`
+- [ ] `landing-home-features-grid.ts` — home page icon grid includes `{site-slug}` when the site is a flagship destination
+- [ ] `getting-started/index.md`, `platforms/index.md`, and repo `README.md` — directory icon `<img>` + `/channels/{slug}` link
+- [ ] `landing-social-platforms.test.ts` — hero / home grid expectations updated
+
 ## Reference implementations
 
-| Site | Provider slugs (v1) | Start URLs |
-| --- | --- | --- |
-| Uneed | `uneed-join-line`, `uneed-paid-launch`, `uneed-maker-profile` | `uneed.best/pricing`, pricing, `/` |
-| PeerPush | `peerpush-free-queue`, `peerpush-standard-launch` | `peerpush.com/pricing`, `peerpush.com/submit` |
+| Site | Provider slugs (v1) | Start URLs | Catalog source |
+| --- | --- | --- | --- |
+| Uneed | `uneed-join-line`, `uneed-paid-launch`, `uneed-maker-profile` | `uneed.best/pricing`, pricing, `/` | Exemplar + auto-launch seeds |
+| PeerPush | `peerpush-free-queue`, `peerpush-standard-launch` | `peerpush.com/pricing`, `peerpush.com/submit` | `504_*` + `503_*` seeds |
+| Open Launch | `open-launch-free-launch`, `open-launch-premium-launch` | `open-launch.com/pricing`, `open-launch.com/projects/submit` | Listing manager (no `504_*` seed) |
 
 ## Do not
 

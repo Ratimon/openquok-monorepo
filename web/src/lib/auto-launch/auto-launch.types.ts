@@ -13,6 +13,7 @@ import {
 	BUSINESS_PROFILE_MAX_CATEGORIES,
 	BUSINESS_PROFILE_MAX_GALLERY_URLS,
 	BUSINESS_PROFILE_MAX_PLATFORMS,
+	BUSINESS_PROFILE_MAX_TECH_STACK,
 	BUSINESS_PROFILE_MAX_TAGS,
 	BUSINESS_PROFILE_MAX_TARGET_AUDIENCES,
 	BUSINESS_PROFILE_MAX_USE_CASES,
@@ -202,6 +203,11 @@ export const businessProfileDataFormSchema = z
 		platforms: z
 			.array(z.string().trim().min(1).max(80))
 			.max(BUSINESS_PROFILE_MAX_PLATFORMS)
+			.optional()
+			.default([]),
+		tech_stack: z
+			.array(z.string().trim().min(1).max(80))
+			.max(BUSINESS_PROFILE_MAX_TECH_STACK)
 			.optional()
 			.default([]),
 		alternatives: z
