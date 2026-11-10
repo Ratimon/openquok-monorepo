@@ -141,6 +141,63 @@ Standard accounts use a **280 weighted** character limit; enable **Verified** on
 | Mixed image + video | One media mode per post: up to four images **or** one video |
 | Automatic token refresh | No refresh cron; reconnect the channel when X returns auth errors |
 
+## Troubleshooting connect failures
+
+If **Add X** fails with <strong>Failed to generate an authorization URL (provider returned an error).</strong>, OpenQuok never received a consent URL from X. The backend already failed on <Badge text="POST https://api.x.com/oauth/request_token" variant="path" /> (OAuth 1.0a step 1).
+
+<Callout type="warning">
+<p>Keep <Badge text="Native App" variant="param" /> under User authentication settings. OpenQuok uses OAuth 1.0a with consumer keys on the server; switching to <Badge text="Web App, Automated App or Bot" variant="param" /> often causes X error <Badge text="32" variant="param" /> (<strong>Could not authenticate you</strong>) for this flow.</p>
+</Callout>
+
+### Portal checklist (same app as your env keys)
+
+Confirm all of the following on the <strong>openquok</strong> app in the X developer portal, then click <strong>Save</strong> at the bottom of User authentication settings:
+
+| Setting | Required value |
+| --- | --- |
+| App permissions | <Badge text="Read and Write" variant="param" /> (not Read only) |
+| Type of App | <Badge text="Native App" variant="param" /> |
+| Callback URI | <Badge text="https://www.openquok.com/integration/oauth/x" variant="path" /> for Cloud (exact match; optional <Badge text="https://localhost:5173/integration/oauth/x" variant="path" /> for local dev) |
+
+Your screenshot can show correct callbacks and <Badge text="Native App" variant="param" /> while <Badge text="Read and Write" variant="param" /> is still missing or unsaved — verify permissions on the same settings screen before copying keys.
+
+### X error 32 — consumer keys out of sync
+
+When X returns <strong>code 32</strong> (<strong>Could not authenticate you</strong>), <Badge text="X_API_KEY" variant="envBackend" /> and <Badge text="X_API_SECRET" variant="envBackend" /> in the deployment do not match the consumer keys for this app (stale pair, wrong app, or keys regenerated in the portal without updating Vercel).
+
+<Steps
+	howToName="Resync X consumer keys for Cloud"
+	howToDescription="Fix X error 32 when the portal looks correct but Add X still fails."
+>
+
+### Save authentication settings
+
+Complete User authentication (Read and Write, Native App, production callback). Save.
+
+### Regenerate consumer keys
+
+On <strong>Keys and tokens</strong> → <strong>Consumer Keys</strong>, copy the current <strong>API Key</strong> and <strong>API Secret</strong>, or use <strong>Regenerate</strong> and copy the new pair immediately. Do not use Access Token / Access Token Secret here — only consumer keys.
+
+### Update production env
+
+In Vercel (backend project) → <strong>Production</strong> environment variables, set <Badge text="X_API_KEY" variant="envBackend" /> and <Badge text="X_API_SECRET" variant="envBackend" />. Confirm <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> is <Badge text="https://www.openquok.com" variant="path" />. Redeploy the API.
+
+### Verify before asking users to retry
+
+From the monorepo, after copying the same values into <Badge text="backend/.env.production.local" variant="envBackend" />:
+
+```bash
+pnpm --filter backend run check:x-oauth -- --env-file .env.production.local
+```
+
+Exit code <Badge text="0" variant="new" /> means X accepted <Badge text="request_token" variant="param" /> and Cloud connect should work. Exit code <Badge text="1" variant="deprecated" /> with code 32 means keys or portal settings are still wrong — do not ask customers to retry yet.
+
+</Steps>
+
+<Callout type="note">
+<p>On Cloud, workspaces cannot supply their own X app. Only OpenQuok’s shared <Badge text="X_API_KEY" variant="envBackend" /> / <Badge text="X_API_SECRET" variant="envBackend" /> pair is used.</p>
+</Callout>
+
 ## Related
 
 <CardGrid>

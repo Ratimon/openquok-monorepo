@@ -87,6 +87,8 @@ function looksSensitiveHeuristic(key) {
  * @param {string} key
  */
 function isSensitiveKey(alwaysSensitiveKeys, key) {
+  // Vercel CLI rejects `--sensitive` on PUBLIC_* (meant to be exposed to the browser).
+  if (key.startsWith("PUBLIC_")) return false;
   return alwaysSensitiveKeys.has(key) || looksSensitiveHeuristic(key);
 }
 

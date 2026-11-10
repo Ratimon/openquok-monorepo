@@ -48007,6 +48007,10 @@ function buildProgrammaticSitemapPaths(constantsDir) {
       paths.push(`/alternatives/${encodeURIComponent(slug)}`);
     }
   }
+  paths.push("/alternatives/categories");
+  for (const categorySlug of ["social-scheduler", "directory-submission"]) {
+    paths.push(`/alternatives/categories/${encodeURIComponent(categorySlug)}`);
+  }
   for (const agentSlug of catalog.agents) {
     for (const channelSlug of allChannels) {
       paths.push(
