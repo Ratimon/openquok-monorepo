@@ -1,5 +1,5 @@
 {
-  "generated": "2026-11-12T11:11:57.268Z",
+  "generated": "2026-11-12T23:03:42.044Z",
   "compare": [
     "/compare/openquok/hootsuite",
     "/compare/openquok/heropost",
@@ -25,6 +25,7 @@
     "/compare/openquok/socialclaw",
     "/compare/openquok/socialync",
     "/compare/openquok/sprout-social",
+    "/compare/openquok/submitator",
     "/compare/openquok/typefully",
     "/compare/openquok/usebard",
     "/compare/heropost/hootsuite",
@@ -162,7 +163,10 @@
     "/compare/blotato/usebard",
     "/compare/boringlaunch/getmorebacklinks",
     "/compare/boringlaunch/launchrepo",
+    "/compare/boringlaunch/submitator",
     "/compare/getmorebacklinks/launchrepo",
+    "/compare/getmorebacklinks/submitator",
+    "/compare/launchrepo/submitator",
     "/compare/breakreach/claw-post",
     "/compare/breakreach/recurpost",
     "/compare/breakreach/mixpost",

@@ -171,8 +171,19 @@ export const createRateLimitStore = (limiterName: string): Store | undefined => 
 
     return new RedisStore({
         prefix,
-        sendCommand: (command: string, ...args: string[]) =>
-            client.call(command, ...args) as Promise<RedisReply>,
+        sendCommand: async (command: string, ...args: string[]) => {
+            try {
+                return (await client.call(command, ...args)) as RedisReply;
+            } catch (err) {
+                const message = err instanceof Error ? err.message : String(err);
+                logger.warn({
+                    msg: "[RateLimit] Redis command failed; skipping store increment for this request",
+                    command,
+                    error: message,
+                });
+                return 0 as RedisReply;
+            }
+        },
     });
 };
 

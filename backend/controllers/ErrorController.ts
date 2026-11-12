@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import { logger } from "../utils/Logger";
 import { Sentry } from "../connections/index";
 import { AuthError } from "../errors/AuthError";
-import { InfraError, ValidationError, DatabaseError } from "../errors/InfraError";
+import { InfraError, ValidationError, DatabaseError, DatabaseEntityNotFoundError } from "../errors/InfraError";
 import { RequestError } from "../errors/RequestError";
 import { AppError } from "../errors/AppError";
 import { SubscriptionError } from "../errors/SubscriptionError";
@@ -122,13 +122,18 @@ export function errorHandler(
     }
 
     if (err instanceof DatabaseError) {
-        logger.error({
+        const logPayload = {
             msg: "DatabaseError occurred",
             name: err.name,
             message: err.message,
             statusCode: err.statusCode,
             metadata: err.metadata,
-        });
+        };
+        if (err instanceof DatabaseEntityNotFoundError) {
+            logger.warn(logPayload);
+        } else {
+            logger.error(logPayload);
+        }
         res.status(err.statusCode).json({
             success: false,
             message: err.message,

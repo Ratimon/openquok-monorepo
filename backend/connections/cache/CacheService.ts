@@ -106,14 +106,30 @@ class CacheService {
         if (!key) throw new CacheOperationError("Cache key is required");
         if (typeof factory !== "function") throw new CacheOperationError("Factory must be a function");
 
-        const cached = await this.get(key);
-        if (cached !== null && cached !== undefined) {
-            return cached as T;
+        try {
+            const cached = await this.get(key);
+            if (cached !== null && cached !== undefined) {
+                return cached as T;
+            }
+        } catch (error) {
+            logger.warn({
+                msg: "[Cache] getOrSet read failed; loading from origin",
+                key,
+                error: error instanceof Error ? error.message : String(error),
+            });
         }
 
         const value = await factory();
         if (value !== null && value !== undefined) {
-            await this.set(key, value, ttl ?? this.defaultTTL);
+            try {
+                await this.set(key, value, ttl ?? this.defaultTTL);
+            } catch (error) {
+                logger.warn({
+                    msg: "[Cache] getOrSet write failed; returning fresh value",
+                    key,
+                    error: error instanceof Error ? error.message : String(error),
+                });
+            }
         }
         return value;
     }

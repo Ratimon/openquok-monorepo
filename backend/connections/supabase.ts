@@ -176,6 +176,46 @@ export function createSupabaseServiceClient(): SupabaseClient<Database> {
     }
 }
 
+/**
+ * Short-lived Supabase client for auth flows that set an in-memory user session
+ * (`refreshSession`, `verifyOtp`). Must never be the shared {@link createSupabaseServiceClient}
+ * singleton — user access tokens would override the secret key and break PostgREST (e.g. PGRST303).
+ */
+export function createSupabaseEphemeralAuthClient(): SupabaseClient<Database> {
+    const supabaseUrl = (supabaseConfig.supabaseUrl ?? "").trim();
+    const publishableKey = getSupabaseClientKey();
+    if (!supabaseUrl) {
+        throw new Error("PUBLIC_SUPABASE_URL (or config.supabase.supabaseUrl) is required");
+    }
+    if (!publishableKey) {
+        throw new Error(
+            "PUBLIC_SUPABASE_PUBLISHABLE_KEY (or config.supabase.supabasePublishableKey) is required"
+        );
+    }
+
+    return createClient<Database>(supabaseUrl, publishableKey, {
+        auth: {
+            autoRefreshToken: false,
+            persistSession: false,
+        },
+    });
+}
+
+/** Clears a polluted in-memory user session on the shared service client (legacy hot instances). */
+export async function clearSupabaseServiceClientUserSession(client: SupabaseClient<Database>): Promise<void> {
+    const { data } = await client.auth.getSession();
+    const accessToken = data.session?.access_token;
+    if (!accessToken) return;
+
+    const serverKey = getSupabaseServerKey().trim();
+    const isUserJwt = accessToken.startsWith("eyJ");
+    const isNotServerKey = serverKey.length > 0 && accessToken !== serverKey;
+
+    if (isUserJwt || isNotServerKey) {
+        await client.auth.signOut({ scope: "local" });
+    }
+}
+
 /** Options for createServerClient using getAll/setAll (non-deprecated). */
 type ServerClientOptions = Extract<
     Parameters<typeof createServerClient<Database>>[2],

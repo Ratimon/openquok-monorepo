@@ -2624,6 +2624,14 @@ var init_GlobalConfig = __esm({
       api: {
         prefix: resolvedApiPrefix
       },
+      /** Short-lived diagnostics toggles (Vercel log drains, attribution). */
+      observability: {
+        /**
+         * When true, emit one structured `http_path` log per finished request with a collapsed path template
+         * (enable briefly in production to attribute backend CDN volume).
+         */
+        logHttpPathTemplates: getEnvBoolean("LOG_HTTP_PATH_TEMPLATES", false)
+      },
       cors: {
         allowedOrigins: (() => {
           const feRaw = getEnvTrimmed("FRONTEND_DOMAIN_URL");
@@ -3210,6 +3218,35 @@ function createSupabaseServiceClient() {
     );
   }
 }
+function createSupabaseEphemeralAuthClient() {
+  const supabaseUrl = (supabaseConfig.supabaseUrl ?? "").trim();
+  const publishableKey = getSupabaseClientKey();
+  if (!supabaseUrl) {
+    throw new Error("PUBLIC_SUPABASE_URL (or config.supabase.supabaseUrl) is required");
+  }
+  if (!publishableKey) {
+    throw new Error(
+      "PUBLIC_SUPABASE_PUBLISHABLE_KEY (or config.supabase.supabasePublishableKey) is required"
+    );
+  }
+  return supabaseJs.createClient(supabaseUrl, publishableKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  });
+}
+async function clearSupabaseServiceClientUserSession(client) {
+  const { data } = await client.auth.getSession();
+  const accessToken2 = data.session?.access_token;
+  if (!accessToken2) return;
+  const serverKey = getSupabaseServerKey().trim();
+  const isUserJwt = accessToken2.startsWith("eyJ");
+  const isNotServerKey = serverKey.length > 0 && accessToken2 !== serverKey;
+  if (isUserJwt || isNotServerKey) {
+    await client.auth.signOut({ scope: "local" });
+  }
+}
 var supabaseConfig, serverConfig, supabaseAnonSingleton, supabase, createSupabaseRLSClient;
 var init_supabase = __esm({
   "connections/supabase.ts"() {
@@ -3371,13 +3408,29 @@ var init_CacheService = __esm({
         if (!this.enabled) return factory();
         if (!key) throw new CacheOperationError("Cache key is required");
         if (typeof factory !== "function") throw new CacheOperationError("Factory must be a function");
-        const cached2 = await this.get(key);
-        if (cached2 !== null && cached2 !== void 0) {
-          return cached2;
+        try {
+          const cached2 = await this.get(key);
+          if (cached2 !== null && cached2 !== void 0) {
+            return cached2;
+          }
+        } catch (error) {
+          logger.warn({
+            msg: "[Cache] getOrSet read failed; loading from origin",
+            key,
+            error: error instanceof Error ? error.message : String(error)
+          });
         }
         const value = await factory();
         if (value !== null && value !== void 0) {
-          await this.set(key, value, ttl ?? this.defaultTTL);
+          try {
+            await this.set(key, value, ttl ?? this.defaultTTL);
+          } catch (error) {
+            logger.warn({
+              msg: "[Cache] getOrSet write failed; returning fresh value",
+              key,
+              error: error instanceof Error ? error.message : String(error)
+            });
+          }
         }
         return value;
       }
@@ -15719,47 +15772,61 @@ var init_AuthenticationService = __esm({
         if (!refreshToken) {
           throw new AuthValidationError("Refresh token is required");
         }
-        let dbTokenValidated = true;
         try {
-          await this.refreshTokenRepository.validateToken(refreshToken);
-        } catch (error2) {
-          dbTokenValidated = false;
-          logger.warn({
-            msg: "Refresh token not found/invalid in DB; attempting Supabase refresh fallback",
-            error: error2 instanceof Error ? error2.message : String(error2)
+          let dbTokenValidated = true;
+          try {
+            await this.refreshTokenRepository.validateToken(refreshToken);
+          } catch (error2) {
+            dbTokenValidated = false;
+            logger.warn({
+              msg: "Refresh token not found/invalid in DB; attempting Supabase refresh fallback",
+              error: error2 instanceof Error ? error2.message : String(error2)
+            });
+          }
+          const ephemeralAuthClient = createSupabaseEphemeralAuthClient();
+          const { data, error } = await ephemeralAuthClient.auth.refreshSession({
+            refresh_token: refreshToken
+          });
+          if (error) {
+            const refreshFailureLogLevel = error.message.includes("Already Used") || error.message.includes("Not Found") ? "warn" : "error";
+            logger[refreshFailureLogLevel]({
+              msg: "Refresh token rejected by Supabase",
+              errorMessage: error.message
+            });
+            if (dbTokenValidated) {
+              await this.refreshTokenRepository.revokeToken(refreshToken);
+            }
+            throw new AuthError(`Failed to refresh session: ${error.message}`, 401, { cause: error });
+          }
+          const newToken = data.session?.refresh_token;
+          if (newToken && data.user?.id) {
+            if (dbTokenValidated) {
+              await this.rotateRefreshToken(refreshToken, newToken, {
+                userId: data.user.id,
+                ipAddress: options2.ipAddress,
+                userAgent: options2.userAgent
+              });
+            } else {
+              await this.refreshTokenRepository.createToken({
+                userId: data.user.id,
+                token: newToken,
+                ipAddress: options2.ipAddress ?? null,
+                userAgent: options2.userAgent ?? null
+              });
+            }
+          }
+          return {
+            session: data.session,
+            user: data.user ? { id: data.user.id } : void 0
+          };
+        } finally {
+          await clearSupabaseServiceClientUserSession(this.supabaseServiceClient).catch((err) => {
+            logger.warn({
+              msg: "Failed to clear shared Supabase service client user session after refresh",
+              error: err instanceof Error ? err.message : String(err)
+            });
           });
         }
-        const { data, error } = await this.supabaseServiceClient.auth.refreshSession({
-          refresh_token: refreshToken
-        });
-        if (error) {
-          logger.error({ msg: "Refresh token rejected by Supabase", errorMessage: error.message });
-          if (dbTokenValidated) {
-            await this.refreshTokenRepository.revokeToken(refreshToken);
-          }
-          throw new AuthError(`Failed to refresh session: ${error.message}`, 401, { cause: error });
-        }
-        const newToken = data.session?.refresh_token;
-        if (newToken && data.user?.id) {
-          if (dbTokenValidated) {
-            await this.rotateRefreshToken(refreshToken, newToken, {
-              userId: data.user.id,
-              ipAddress: options2.ipAddress,
-              userAgent: options2.userAgent
-            });
-          } else {
-            await this.refreshTokenRepository.createToken({
-              userId: data.user.id,
-              token: newToken,
-              ipAddress: options2.ipAddress ?? null,
-              userAgent: options2.userAgent ?? null
-            });
-          }
-        }
-        return {
-          session: data.session,
-          user: data.user ? { id: data.user.id } : void 0
-        };
       }
       async generateRefreshToken({
         userId,
@@ -15840,7 +15907,8 @@ var init_AuthenticationService = __esm({
       }
       async verifyOtp(email, code, type) {
         const normalizedEmail = normalizeEmail(email);
-        const { data, error } = await this.supabaseServiceClient.auth.verifyOtp({
+        const ephemeralAuthClient = createSupabaseEphemeralAuthClient();
+        const { data, error } = await ephemeralAuthClient.auth.verifyOtp({
           email: normalizedEmail,
           token: code,
           type
@@ -45873,7 +45941,19 @@ var init_rateLimitStore = __esm({
       const prefix = `${basePrefix}${limiterName}:`;
       return new rateLimitRedis.RedisStore({
         prefix,
-        sendCommand: (command, ...args) => client.call(command, ...args)
+        sendCommand: async (command, ...args) => {
+          try {
+            return await client.call(command, ...args);
+          } catch (err) {
+            const message = err instanceof Error ? err.message : String(err);
+            logger.warn({
+              msg: "[RateLimit] Redis command failed; skipping store increment for this request",
+              command,
+              error: message
+            });
+            return 0;
+          }
+        }
       });
     };
     resetRateLimitStoreForTests = () => {
@@ -48845,6 +48925,10 @@ var bundledRoutesManifestPath = path3__default.default.join(
   path3__default.default.dirname(url.fileURLToPath((typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('index.js', document.baseURI).href)))),
   "../static/routes-manifest.json"
 );
+var bundledSitemapProgrammaticPathsPath = path3__default.default.join(
+  path3__default.default.dirname(url.fileURLToPath((typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('index.js', document.baseURI).href)))),
+  "../static/sitemap-programmatic-paths.json"
+);
 function readBundledRoutesManifest() {
   return JSON.parse(fs2__default.default.readFileSync(bundledRoutesManifestPath, "utf8"));
 }
@@ -48854,6 +48938,47 @@ function getBundledRoutesManifest() {
     bundledRoutesManifestCache = readBundledRoutesManifest();
   }
   return bundledRoutesManifestCache;
+}
+var bundledSitemapProgrammaticPathsCache;
+function resolveSitemapProgrammaticPathsFile(manifestPath) {
+  const candidates = [
+    manifestPath ? path3__default.default.join(path3__default.default.dirname(manifestPath), "sitemap-programmatic-paths.json") : null,
+    path3__default.default.join(process.cwd(), "static/sitemap-programmatic-paths.json"),
+    path3__default.default.join(process.cwd(), "backend/static/sitemap-programmatic-paths.json"),
+    bundledSitemapProgrammaticPathsPath
+  ].filter((candidate) => Boolean(candidate));
+  for (const candidate of candidates) {
+    if (fs2__default.default.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  return void 0;
+}
+function parseSitemapProgrammaticPathsFile(filePath) {
+  const parsed = JSON.parse(fs2__default.default.readFileSync(filePath, "utf8"));
+  const compare = Array.isArray(parsed.compare) ? parsed.compare.filter((entry) => typeof entry === "string") : [];
+  const agentChannel = Array.isArray(parsed.agentChannel) ? parsed.agentChannel.filter((entry) => typeof entry === "string") : [];
+  return { compare, agentChannel };
+}
+function loadFilteredProgrammaticSeoPaths(routesManifestPath) {
+  if (bundledSitemapProgrammaticPathsCache) {
+    return bundledSitemapProgrammaticPathsCache;
+  }
+  const filePath = resolveSitemapProgrammaticPathsFile(routesManifestPath);
+  if (filePath) {
+    try {
+      bundledSitemapProgrammaticPathsCache = parseSitemapProgrammaticPathsFile(filePath);
+      return bundledSitemapProgrammaticPathsCache;
+    } catch (error) {
+      logger.warn({
+        msg: "Failed to read sitemap programmatic paths file",
+        filePath,
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  }
+  bundledSitemapProgrammaticPathsCache = { compare: [], agentChannel: [] };
+  return bundledSitemapProgrammaticPathsCache;
 }
 var EXCLUDED_PATHS = ["/robots.txt", "/sitemap.xml"];
 var CUSTOM_CHANGEFREQ = {
@@ -49048,20 +49173,12 @@ function buildPublicApiMarketingSitemapPaths(constantsDir) {
   }
   return paths;
 }
-function buildProgrammaticSitemapPaths(constantsDir) {
+function buildProgrammaticSitemapPaths(constantsDir, filteredSeoPaths) {
   const catalog = extractPublicCatalogSlugsFromDir(constantsDir);
   const compareSlugs = extractCompareProductSlugs(constantsDir);
   const allChannels = extractAllChannelSlugs(constantsDir);
   const paths = [];
-  for (const productA of compareSlugs) {
-    for (const productB of compareSlugs) {
-      if (productA !== productB) {
-        paths.push(
-          `/compare/${encodeURIComponent(productA)}/${encodeURIComponent(productB)}`
-        );
-      }
-    }
-  }
+  paths.push(...filteredSeoPaths.compare);
   for (const slug of compareSlugs) {
     if (slug !== COMPARE_HUB_BASE_SLUG) {
       paths.push(`/alternatives/${encodeURIComponent(slug)}`);
@@ -49071,13 +49188,7 @@ function buildProgrammaticSitemapPaths(constantsDir) {
   for (const categorySlug of ["social-scheduler", "directory-submission"]) {
     paths.push(`/alternatives/categories/${encodeURIComponent(categorySlug)}`);
   }
-  for (const agentSlug of catalog.agents) {
-    for (const channelSlug of allChannels) {
-      paths.push(
-        `/agents/${encodeURIComponent(agentSlug)}/${encodeURIComponent(channelSlug)}`
-      );
-    }
-  }
+  paths.push(...filteredSeoPaths.agentChannel);
   const apiPlatformSlugs = extractPublicApiPlatformSlugs(constantsDir);
   for (const toolPrefix of PUBLIC_TOOL_CHANNEL_PATHS) {
     const channelSlugs = toolPrefix === PUBLIC_TOOL_CHANNEL_PATH_HUMANIZER ? allChannels : toolPrefix === PUBLIC_TOOL_CHANNEL_PATH_PAYLOAD_WIZARD ? apiPlatformSlugs : catalog.channels;
@@ -49491,8 +49602,9 @@ async function generateSitemapUrls(options2) {
         channelCount: channels.length
       });
       const constantsDir = resolveWebConstantsDir(routesPath);
+      const filteredSeoPaths = loadFilteredProgrammaticSeoPaths(routesManifestPath);
       if (constantsDir) {
-        const programmaticPaths = buildProgrammaticSitemapPaths(constantsDir);
+        const programmaticPaths = buildProgrammaticSitemapPaths(constantsDir, filteredSeoPaths);
         pushSitemapPaths(urls, programmaticPaths, "monthly", staticLastMod);
         logger.info({
           msg: "Added programmatic SEO URLs to sitemap",
@@ -53744,13 +53856,18 @@ function errorHandler(err, _req, res, _next) {
     return;
   }
   if (err instanceof DatabaseError) {
-    logger.error({
+    const logPayload = {
       msg: "DatabaseError occurred",
       name: err.name,
       message: err.message,
       statusCode: err.statusCode,
       metadata: err.metadata
-    });
+    };
+    if (err instanceof DatabaseEntityNotFoundError) {
+      logger.warn(logPayload);
+    } else {
+      logger.error(logPayload);
+    }
     res.status(err.statusCode).json({
       success: false,
       message: err.message,
@@ -53884,6 +54001,65 @@ function applyMaintenanceMode(app2) {
   const { mode } = readMaintenanceConfig();
   logger.info({ msg: "[Setup] Maintenance mode", mode });
   app2.use(maintenanceModeMiddleware);
+}
+
+// middlewares/httpPathTemplateLog.ts
+init_publicRouteRegistry();
+
+// utils/http/httpPathTemplate.ts
+var UUID_RE2 = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
+function collapseVolatilePathSegments(pathname) {
+  let path7 = pathname.trim() || "/";
+  if (path7.length > 1 && path7.endsWith("/")) {
+    path7 = path7.slice(0, -1);
+  }
+  path7 = path7.replace(UUID_RE2, ":id");
+  path7 = path7.replace(/\/\d+(?=\/|$)/g, "/:num");
+  path7 = path7.replace(/\/[0-9a-f]{16,}(?=\/|$)/gi, "/:token");
+  return path7;
+}
+function httpPathTemplateForRequest(req, routePath) {
+  let template = collapseVolatilePathSegments(routePath);
+  if (routePath === "/image/download" && req.method === "GET") {
+    const dbName = typeof req.query?.databaseName === "string" ? req.query.databaseName : "*";
+    template = `/image/download?databaseName=${dbName}`;
+  }
+  if (template.startsWith("/public/")) {
+    const rest = template.slice("/public/".length);
+    const slash = rest.indexOf("/");
+    if (slash === -1) {
+      return `/public/${rest}`;
+    }
+    return `/public/${rest.slice(0, slash)}/:segment`;
+  }
+  return template;
+}
+
+// middlewares/httpPathTemplateLog.ts
+init_Logger();
+function applyHttpPathTemplateLogging(app2, config2) {
+  const observability = config2.observability;
+  if (!observability?.logHttpPathTemplates) {
+    return;
+  }
+  const rawPrefix = config2.api?.prefix ?? "/api/v1";
+  const apiPrefix = rawPrefix.replace(/\/+$/, "") || "/";
+  app2.use((req, res, next) => {
+    const startedAt = Date.now();
+    res.on("finish", () => {
+      const pathName = req.path;
+      const routePath = pathName.startsWith(apiPrefix) || pathName === apiPrefix ? normalizeApiRoutePath(pathName, apiPrefix) : pathName;
+      logger.info({
+        msg: "http_path",
+        method: req.method,
+        pathTemplate: httpPathTemplateForRequest(req, routePath),
+        status: res.statusCode,
+        durationMs: Date.now() - startedAt
+      });
+    });
+    next();
+  });
+  logger.info({ msg: "[Setup] HTTP path-template logging enabled" });
 }
 init_GlobalConfig();
 init_publicRouteRegistry();
@@ -54030,7 +54206,7 @@ var extractBearerToken = (req) => {
   const token = authHeader.slice("Bearer ".length).trim();
   return token.length > 0 ? token : null;
 };
-var UUID_RE2 = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+var UUID_RE3 = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 var normalizeAccessTokenForPeek = (raw) => {
   const trimmed = raw.trim();
   if (!trimmed) return null;
@@ -54066,7 +54242,7 @@ var decodeJwtSubForRateLimitKey = (token) => {
     const payloadJson = Buffer.from(parts[1], "base64url").toString("utf8");
     const payload = JSON.parse(payloadJson);
     const sub = payload.sub;
-    if (typeof sub !== "string" || !UUID_RE2.test(sub)) return null;
+    if (typeof sub !== "string" || !UUID_RE3.test(sub)) return null;
     const exp = payload.exp;
     if (typeof exp === "number" && exp * 1e3 < Date.now()) return null;
     return sub;
@@ -54076,7 +54252,7 @@ var decodeJwtSubForRateLimitKey = (token) => {
 };
 var tryResolveUserIdFromRequest = (req) => {
   const authenticatedUserId = req.user?.id;
-  if (authenticatedUserId && UUID_RE2.test(authenticatedUserId)) {
+  if (authenticatedUserId && UUID_RE3.test(authenticatedUserId)) {
     return authenticatedUserId;
   }
   const token = extractAccessTokenForPeek(req);
@@ -54467,6 +54643,7 @@ function configureCoreMiddleware(app2, config2, supabase2) {
   applyMaintenanceMode(app2);
   applyRateLimiting(app2);
   applyPublicCmsCacheHeaders(app2);
+  applyHttpPathTemplateLogging(app2, config2);
   app2.use((req, res, next) => {
     if (req._skipJsonParsing) return next();
     const limit = config2.server?.bodyLimit ?? "10mb";

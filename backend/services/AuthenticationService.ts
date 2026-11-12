@@ -6,7 +6,11 @@ import type { UserLike } from "../utils/dtos/UserDTO";
 import type { UserService } from "./UserService";
 import type { EmailService } from "./EmailService";
 
-import { createSupabaseRLSClient } from "../connections/supabase";
+import {
+    clearSupabaseServiceClientUserSession,
+    createSupabaseEphemeralAuthClient,
+    createSupabaseRLSClient,
+} from "../connections/supabase";
 import {
     AuthError,
     AuthValidationError,
@@ -196,60 +200,73 @@ export class AuthenticationService {
             throw new AuthValidationError("Refresh token is required");
         }
 
-        // DB token table can occasionally be out-of-sync (e.g. token store failed at sign-in, transient DB error).
-        // We treat DB validation as best-effort, then rely on Supabase as the source of truth for token validity.
-        let dbTokenValidated = true;
         try {
-            await this.refreshTokenRepository.validateToken(refreshToken);
-        } catch (error) {
-            dbTokenValidated = false;
-            logger.warn({
-                msg: "Refresh token not found/invalid in DB; attempting Supabase refresh fallback",
-                error: error instanceof Error ? error.message : String(error),
+            // DB token table can occasionally be out-of-sync (e.g. token store failed at sign-in, transient DB error).
+            // We treat DB validation as best-effort, then rely on Supabase as the source of truth for token validity.
+            let dbTokenValidated = true;
+            try {
+                await this.refreshTokenRepository.validateToken(refreshToken);
+            } catch (error) {
+                dbTokenValidated = false;
+                logger.warn({
+                    msg: "Refresh token not found/invalid in DB; attempting Supabase refresh fallback",
+                    error: error instanceof Error ? error.message : String(error),
+                });
+            }
+
+            const ephemeralAuthClient = createSupabaseEphemeralAuthClient();
+            const { data, error } = await ephemeralAuthClient.auth.refreshSession({
+                refresh_token: refreshToken,
+            });
+
+            if (error) {
+                const refreshFailureLogLevel =
+                    error.message.includes("Already Used") || error.message.includes("Not Found")
+                        ? "warn"
+                        : "error";
+                logger[refreshFailureLogLevel]({
+                    msg: "Refresh token rejected by Supabase",
+                    errorMessage: error.message,
+                });
+                if (dbTokenValidated) {
+                    await this.refreshTokenRepository.revokeToken(refreshToken);
+                }
+                // Normalize refresh-token rejections to 401 so the client treats it as logged out.
+                throw new AuthError(`Failed to refresh session: ${error.message}`, 401, { cause: error as Error });
+            }
+
+            const newToken = data.session?.refresh_token;
+            if (newToken && data.user?.id) {
+                if (dbTokenValidated) {
+                    await this.rotateRefreshToken(refreshToken, newToken, {
+                        userId: data.user.id,
+                        ipAddress: options.ipAddress,
+                        userAgent: options.userAgent,
+                    });
+                } else {
+                    // Re-sync DB state after fallback success.
+                    await this.refreshTokenRepository.createToken({
+                        userId: data.user.id,
+                        token: newToken,
+                        ipAddress: options.ipAddress ?? null,
+                        userAgent: options.userAgent ?? null,
+                    });
+                }
+            }
+
+            return {
+                session: data.session as { access_token: string; refresh_token: string },
+                user: data.user ? { id: data.user.id } : undefined,
+            };
+        } finally {
+            // Older builds called refreshSession on the shared service client; clear any leftover in-memory user JWT.
+            await clearSupabaseServiceClientUserSession(this.supabaseServiceClient).catch((err: unknown) => {
+                logger.warn({
+                    msg: "Failed to clear shared Supabase service client user session after refresh",
+                    error: err instanceof Error ? err.message : String(err),
+                });
             });
         }
-
-        const { data, error } = await this.supabaseServiceClient.auth.refreshSession({
-            refresh_token: refreshToken,
-        });
-
-        // NOTE:
-        // Do NOT call auth.signOut() here. On server-side Supabase clients it can still trigger a network sign-out,
-        // which may invalidate/rotate tokens unexpectedly and break subsequent refreshes.
-        // We rely on `persistSession: false` + `autoRefreshToken: false` on our server clients instead.
-
-        if (error) {
-            logger.error({ msg: "Refresh token rejected by Supabase", errorMessage: error.message });
-            if (dbTokenValidated) {
-                await this.refreshTokenRepository.revokeToken(refreshToken);
-            }
-            // Normalize refresh-token rejections to 401 so the client treats it as logged out.
-            throw new AuthError(`Failed to refresh session: ${error.message}`, 401, { cause: error as Error });
-        }
-
-        const newToken = data.session?.refresh_token;
-        if (newToken && data.user?.id) {
-            if (dbTokenValidated) {
-                await this.rotateRefreshToken(refreshToken, newToken, {
-                    userId: data.user.id,
-                    ipAddress: options.ipAddress,
-                    userAgent: options.userAgent,
-                });
-            } else {
-                // Re-sync DB state after fallback success.
-                await this.refreshTokenRepository.createToken({
-                    userId: data.user.id,
-                    token: newToken,
-                    ipAddress: options.ipAddress ?? null,
-                    userAgent: options.userAgent ?? null,
-                });
-            }
-        }
-
-        return {
-            session: data.session as { access_token: string; refresh_token: string },
-            user: data.user ? { id: data.user.id } : undefined,
-        };
     }
 
     async generateRefreshToken({
@@ -358,7 +375,8 @@ export class AuthenticationService {
         type: "recovery" | "signup"
     ): Promise<{ signedInUser: { id: string; email?: string }; session: { access_token: string; refresh_token: string } }> {
         const normalizedEmail = normalizeEmail(email);
-        const { data, error } = await this.supabaseServiceClient.auth.verifyOtp({
+        const ephemeralAuthClient = createSupabaseEphemeralAuthClient();
+        const { data, error } = await ephemeralAuthClient.auth.verifyOtp({
             email: normalizedEmail,
             token: code,
             type,
