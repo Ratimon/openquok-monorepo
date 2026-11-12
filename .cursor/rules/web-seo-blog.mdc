@@ -60,6 +60,10 @@ Absolute `https://www.openquok.com/…` is treated as internal (followable). Pre
 
 Third-party `http(s)` get `rel="noopener noreferrer nofollow"` + `target="_blank"` on display. You do not need to hand-author those attributes.
 
+## SERP pass (optional)
+
+Before a long Feature Walkthrough or competitive keyword post, run `.cursor/skills/serp-analysis/` (upstream [serp-analysis](https://github.com/aaron-he-zhu/aaron-marketing-skills/tree/main/seo-geo/survey/serp-analysis)) and store the brief + copy-paste fields under `docs/blog/*-blog-manager-copy-paste.md` (see `docs/blog/browser-extension-walkthrough-blog-manager-copy-paste.md`).
+
 ## Checklist (blog HTML)
 
 - [ ] Primary tool link is the matching page (`/tools/skill-builder` for skill posts) — not only `/tools`
