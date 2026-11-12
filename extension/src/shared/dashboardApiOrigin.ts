@@ -44,6 +44,19 @@ export function deriveApiOriginFromDashboard(dashboardOrigin: string): string | 
 	return null;
 }
 
+/** API origin for dashboard content scripts (sync; no chrome.storage). */
+export function resolveDashboardPageApiOrigin(dashboardOrigin: string): string {
+	const normalized = normalizeOrigin(dashboardOrigin);
+	if (!normalized) {
+		return 'https://www.openquok.com';
+	}
+	return deriveApiOriginFromDashboard(normalized) ?? normalized;
+}
+
+export function dashboardApiV1Root(apiOrigin: string): string {
+	return `${apiOrigin.replace(/\/+$/, '')}/api/v1`;
+}
+
 export async function rememberApiOrigin(origin: string): Promise<void> {
 	const normalized = normalizeOrigin(origin);
 	if (!normalized) return;

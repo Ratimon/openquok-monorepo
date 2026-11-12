@@ -25,8 +25,9 @@ const LEGACY_SECRET_ADMIN_LISTING_MANAGER_SEGMENT = 'listing-manager';
 
 /**
  * Forward `/api/*` (and local `/uploads/*`) to the backend when:
- * - `OPENQUOK_API_PROXY_TARGET` is set (Docker self-host: `http://api:3000`), or
- * - Vite dev (`import.meta.env.DEV`) with optional `DEV_BACKEND_PROXY_TARGET`.
+ * - `OPENQUOK_API_PROXY_TARGET` is set (Docker self-host: `http://api:3000`; overrides `VITE_API_BASE_URL` when both are set), or
+ * - Vite dev (`import.meta.env.DEV`) with optional `DEV_BACKEND_PROXY_TARGET`, or
+ * - production with `VITE_API_BASE_URL` (split www + api on Vercel).
  *
  * Same-origin relative API paths then work in the browser and in SSR (`event.fetch`).
  */
@@ -50,6 +51,11 @@ function resolveBackendProxyOrigin(): string | null {
 				? process.env.DEV_BACKEND_PROXY_TARGET.trim()
 				: '';
 		return (devTarget || DEFAULT_DEV_BACKEND_ORIGIN).replace(/\/+$/, '');
+	}
+	const viteApiBase =
+		typeof process.env.VITE_API_BASE_URL === 'string' ? process.env.VITE_API_BASE_URL.trim() : '';
+	if (viteApiBase) {
+		return viteApiBase.replace(/\/+$/, '');
 	}
 	return null;
 }

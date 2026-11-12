@@ -1,10 +1,34 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+	dashboardApiV1Root,
 	deriveApiOriginFromDashboard,
 	listAuthApiOriginsForDashboard,
 	resolveApiOriginForDashboard,
+	resolveDashboardPageApiOrigin,
 } from './dashboardApiOrigin.js';
+
+describe('resolveDashboardPageApiOrigin', () => {
+	it('maps www production dashboard to api host', () => {
+		expect(resolveDashboardPageApiOrigin('https://www.openquok.com')).toBe(
+			'https://api.openquok.com'
+		);
+	});
+
+	it('keeps local Vite origin (same-origin /api proxy)', () => {
+		expect(resolveDashboardPageApiOrigin('https://localhost:5173')).toBe(
+			'https://localhost:5173'
+		);
+	});
+});
+
+describe('dashboardApiV1Root', () => {
+	it('appends /api/v1 without double slashes', () => {
+		expect(dashboardApiV1Root('https://api.openquok.com/')).toBe(
+			'https://api.openquok.com/api/v1'
+		);
+	});
+});
 
 describe('deriveApiOriginFromDashboard', () => {
 	it('maps www production dashboard to api host', () => {

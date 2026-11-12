@@ -70,6 +70,7 @@ For deployment, ensure <Badge text="web/.env.production.local" variant="envWeb" 
 
 <Callout type="note">
 <p>Vercel builds need <Badge text="VITE_API_BASE_URL" variant="envWeb" /> and <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" />. Details: <a href="/docs/installation/vercel#prerendered-marketing-html-web-build">Prerendered marketing HTML</a>.</p>
+<p>When the API is on a separate host (for example <code>https://api.openquok.com</code> while the SPA is on <code>https://www.openquok.com</code>), <Badge text="VITE_API_BASE_URL" variant="envWeb" /> is enough: <Badge text="web/src/hooks.server.ts" variant="path" /> forwards <Badge text="/api/*" variant="path" /> on the web domain to that origin. Self-host Docker can override the proxy with <Badge text="OPENQUOK_API_PROXY_TARGET" variant="envRuntime" /> when the container must reach an internal API URL (see <a href="/docs/installation/docker">Docker</a>).</p>
 </Callout>
 
 Stripe subscription price ids are configured on the **web** (`VITE_PUBLIC_STRIPE_PRICE_ID_SOLO_MONTHLY`, and so on). See <a href="/docs/configuration-backend/stripe">Stripe billing</a>.

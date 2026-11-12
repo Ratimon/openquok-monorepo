@@ -1,6 +1,10 @@
 import { DASHBOARD_OPEN_ADD_CHANNEL_WINDOW_EVENT } from 'openquok-common';
 
 import { DASHBOARD_BRIDGE_MESSAGE } from '../../shared/dashboardBridgeMessages.js';
+import {
+	dashboardApiV1Root,
+	resolveDashboardPageApiOrigin,
+} from '../../shared/dashboardApiOrigin.js';
 
 const BRIDGE_AT_KEY = 'openquok:bridge-at';
 const BRIDGE_TOKEN_KEY = 'openquok:bridge-access-token';
@@ -36,14 +40,14 @@ function notifyExtensionSessionCleared(dashboardOrigin: string): void {
 	});
 }
 
-async function fetchOrganizationIdWithSession(dashboardOrigin: string): Promise<string | null> {
-	const me = await fetch(`${dashboardOrigin}/api/v1/users/me`, { credentials: 'include' });
+async function fetchOrganizationIdWithSession(apiOrigin: string): Promise<string | null> {
+	const me = await fetch(`${dashboardApiV1Root(apiOrigin)}/users/me`, { credentials: 'include' });
 	if (!me.ok) return null;
 	return readOrgIdFromMePayload(await me.json());
 }
 
-async function mintAccessToken(dashboardOrigin: string): Promise<string | null> {
-	const refresh = await fetch(`${dashboardOrigin}/api/v1/auth/refresh`, {
+async function mintAccessToken(apiOrigin: string): Promise<string | null> {
+	const refresh = await fetch(`${dashboardApiV1Root(apiOrigin)}/auth/refresh`, {
 		method: 'POST',
 		credentials: 'include',
 		headers: { 'Content-Type': 'application/json' },
@@ -107,8 +111,9 @@ async function syncDashboardSessionToExtension(): Promise<void> {
 	if (shouldSkipDashboardSessionSync()) return;
 
 	const dashboardOrigin = window.location.origin;
+	const apiOrigin = resolveDashboardPageApiOrigin(dashboardOrigin);
 	try {
-		const me = await fetch(`${dashboardOrigin}/api/v1/users/me`, { credentials: 'include' });
+		const me = await fetch(`${dashboardApiV1Root(apiOrigin)}/users/me`, { credentials: 'include' });
 		if (!me.ok) {
 			clearLocalBridgeCache();
 			notifyExtensionSessionCleared(dashboardOrigin);
@@ -117,7 +122,7 @@ async function syncDashboardSessionToExtension(): Promise<void> {
 
 		let organizationId = readOrgIdFromMePayload(await me.json());
 		if (!organizationId) {
-			organizationId = await fetchOrganizationIdWithSession(dashboardOrigin);
+			organizationId = await fetchOrganizationIdWithSession(apiOrigin);
 		}
 		if (!organizationId) {
 			try {
@@ -130,7 +135,7 @@ async function syncDashboardSessionToExtension(): Promise<void> {
 
 		let accessToken = readCachedAccessToken();
 		if (!accessToken || shouldMintFreshAccessToken()) {
-			const minted = await mintAccessToken(dashboardOrigin);
+			const minted = await mintAccessToken(apiOrigin);
 			if (minted) {
 				accessToken = minted;
 				cacheBridgeSession(accessToken, organizationId);
