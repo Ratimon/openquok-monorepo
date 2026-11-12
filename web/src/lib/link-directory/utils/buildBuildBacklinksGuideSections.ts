@@ -20,6 +20,7 @@ import {
 	formatSubStepTitle
 } from '$lib/link-directory/utils/formatBuildBacklinksGuideDisplayTitle';
 import { buildBacklinksGuideOrdinalIcon } from '$lib/link-directory/utils/buildBacklinksGuideOrdinalIcon';
+import { buildBacklinksDirectoryAutofillFooter } from '$lib/link-directory/utils/buildBacklinksDirectoryAutofillFooter';
 import { resolveOpportunityCta } from '$lib/link-directory/utils/resolveOpportunityCtaHref';
 import { linkDirectoryRichTextToPlainText } from '$lib/link-directory/utils/linkDirectoryRichText';
 
@@ -150,17 +151,36 @@ function mapDisplaySteps(
 }
 
 function resolveSectionFooter(
-	opportunity: LinkDirectoryOpportunityDto
+	opportunity: LinkDirectoryOpportunityDto,
+	siteTitle: string
 ): BuildBacklinksGuideSectionVm['footer'] | undefined {
 	if (opportunity.autoLaunchEnabled === true && opportunity.autoLaunchProviderSlug?.trim()) {
+		const autofillFooter = buildBacklinksDirectoryAutofillFooter(siteTitle);
 		return {
-			footerPrompt: PUBLIC_SETUP_STEPS_FOOTER_PROMPT,
-			footerLinkLabel: opportunity.ctaLabel?.trim() || 'Launch to directory',
+			footerPrompt: autofillFooter.footerPrompt,
+			footerLinkLabel: autofillFooter.footerLinkLabel,
 			footerLinkHref: '#',
 			autoLaunchProviderSlug: opportunity.autoLaunchProviderSlug.trim()
 		};
 	}
 	switch (opportunity.openquokCtaKind) {
+		case 'directory_channel': {
+			const cta = resolveOpportunityCta({
+				kind: 'directory_channel',
+				channelSlug: opportunity.openquokChannelSlug,
+				ctaHref: null,
+				ctaLabel: opportunity.ctaLabel
+			});
+			if (!cta) {
+				return undefined;
+			}
+			const autofill = buildBacklinksDirectoryAutofillFooter(siteTitle);
+			return {
+				footerPrompt: autofill.footerPrompt,
+				footerLinkLabel: cta.label,
+				footerLinkHref: cta.href
+			};
+		}
 		case 'schedule_post':
 			return getPublicCreatingPostsSetupStepsFooter();
 		case 'connect_channel':
@@ -287,7 +307,7 @@ export function buildBuildBacklinksGuideSections(params: {
 			displaySteps: mapDisplaySteps(opportunity, steps, siteUrl),
 			sectionMedia: buildBuildBacklinksOpportunityBentoStep(opportunity, siteUrl),
 			ltr: opportunityIndex % 2 === 1,
-			footer: resolveSectionFooter(opportunity),
+			footer: resolveSectionFooter(opportunity, siteTitle),
 			badgesOpportunity: opportunity
 		});
 	}

@@ -1326,7 +1326,8 @@ CREATE TABLE IF NOT EXISTS public.link_directory_opportunities (
             'connect_channel',
             'schedule_post',
             'use_plug',
-            'external_doc'
+            'external_doc',
+            'directory_channel'
         )),
     openquok_channel_slug TEXT,
     openquok_plug_name TEXT,
@@ -1432,6 +1433,30 @@ COMMIT;
 -- ---------------------------
 -- END OF FILE
 -- ---------------------------
+
+
+-- Module: link-directory, File: 106_20261112_cta_directory_channel.sql
+-- ---------------------------
+-- MODULE NAME: Link Directory
+-- MODULE DATE: 20261112
+-- MODULE SCOPE: Tables (allow directory_channel CTA kind on opportunities)
+-- ---------------------------
+
+BEGIN;
+
+ALTER TABLE public.link_directory_opportunities
+    DROP CONSTRAINT IF EXISTS link_directory_opportunities_openquok_cta_kind_check;
+
+ALTER TABLE public.link_directory_opportunities
+    ADD CONSTRAINT link_directory_opportunities_openquok_cta_kind_check
+    CHECK (openquok_cta_kind IN (
+        'none',
+        'connect_channel',
+        'schedule_post',
+        'use_plug',
+        'external_doc',
+        'directory_channel'
+    ));
 
 
 -- Module: auto-launch, File: 101_20261013_tables.sql
@@ -13515,6 +13540,7 @@ SET extension_config = $json${
                     "profilePath": "profile_data.categories",
                     "fillMode": "checkbox_group",
                     "checkboxCatalog": "open_launch_categories",
+                    "labelMatch": "section",
                     "maxItems": 3
                 },
                 {
@@ -13523,14 +13549,15 @@ SET extension_config = $json${
                     "profilePath": "profile_data.tech_stack",
                     "fillMode": "tags",
                     "maxItems": 5,
-                    "selectorHint": "input[name*='tech' i], [placeholder*='tech' i], [aria-label*='tech stack' i], [aria-label*='stack' i]"
+                    "selectorHint": "input[name*='tech' i], input[placeholder*='technology' i], [placeholder*='tech' i], [aria-label*='tech stack' i], [aria-label*='stack' i]"
                 },
                 {
                     "key": "platforms",
                     "label": "Platforms",
                     "profilePath": "profile_data.platforms",
                     "fillMode": "checkbox_group",
-                    "checkboxCatalog": "open_launch_platforms"
+                    "checkboxCatalog": "open_launch_platforms",
+                    "labelMatch": "section"
                 },
                 {
                     "key": "pricing_type",
@@ -13629,6 +13656,7 @@ SET extension_config = $json${
                     "profilePath": "profile_data.categories",
                     "fillMode": "checkbox_group",
                     "checkboxCatalog": "open_launch_categories",
+                    "labelMatch": "section",
                     "maxItems": 3
                 },
                 {
@@ -13637,14 +13665,15 @@ SET extension_config = $json${
                     "profilePath": "profile_data.tech_stack",
                     "fillMode": "tags",
                     "maxItems": 5,
-                    "selectorHint": "input[name*='tech' i], [placeholder*='tech' i], [aria-label*='tech stack' i], [aria-label*='stack' i]"
+                    "selectorHint": "input[name*='tech' i], input[placeholder*='technology' i], [placeholder*='tech' i], [aria-label*='tech stack' i], [aria-label*='stack' i]"
                 },
                 {
                     "key": "platforms",
                     "label": "Platforms",
                     "profilePath": "profile_data.platforms",
                     "fillMode": "checkbox_group",
-                    "checkboxCatalog": "open_launch_platforms"
+                    "checkboxCatalog": "open_launch_platforms",
+                    "labelMatch": "section"
                 },
                 {
                     "key": "pricing_type",
@@ -13699,28 +13728,34 @@ SET extension_config = $json${
                     "label": "Product name",
                     "profilePath": "name",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='name' i], input[placeholder*='product name' i], input[aria-label*='name' i]"
+                    "selectorHint": "#name, input#name"
                 },
                 {
                     "key": "tagline",
                     "label": "Tagline",
+                    "labelAliases": [
+                        "One-line tagline"
+                    ],
                     "profilePath": "tagline",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='tagline' i], textarea[name*='tagline' i], input[placeholder*='tagline' i], input[aria-label*='tagline' i]"
+                    "selectorHint": "#tagline, input#tagline"
                 },
                 {
                     "key": "description",
-                    "label": "Description",
+                    "label": "Product description",
+                    "labelAliases": [
+                        "Description"
+                    ],
                     "profilePath": "description",
-                    "fillMode": "rich_html",
-                    "selectorHint": "[contenteditable='true'], .ProseMirror, .tiptap, textarea[name*='description' i], textarea[placeholder*='description' i]"
+                    "fillMode": "text",
+                    "selectorHint": "#description, textarea#description"
                 },
                 {
                     "key": "website",
                     "label": "Website",
                     "profilePath": "website_url",
                     "fillMode": "text",
-                    "selectorHint": "input[type='url'], input[name*='website' i], input[name*='url' i], input[placeholder*='website' i]"
+                    "selectorHint": "#websiteUrl, input#websiteUrl, input[type='url'][id*='website' i]"
                 },
                 {
                     "key": "logo",
@@ -13728,7 +13763,7 @@ SET extension_config = $json${
                     "profilePath": "logo_url",
                     "fillMode": "file",
                     "fileInputIndex": 0,
-                    "selectorHint": "input[type='file'][accept*='image']"
+                    "selectorHint": "[data-field='logo'] input[type='file'], input[type='file'][accept*='image']"
                 }
             ]
         },
@@ -13741,42 +13776,52 @@ SET extension_config = $json${
                     "label": "Categories",
                     "profilePath": "profile_data.categories",
                     "fillMode": "tags",
-                    "selectorHint": "input[name*='categor' i], [placeholder*='categor' i], [role='combobox'][aria-label*='categor' i]"
+                    "labelMatch": "section",
+                    "tagsScope": "section",
+                    "maxItems": 3,
+                    "selectorHint": "[data-field='categories'] input[role='combobox'], [data-field='categories'] input[placeholder*='categor' i]"
                 },
                 {
                     "key": "use_cases",
-                    "label": "Use cases",
+                    "label": "Use Cases",
+                    "labelAliases": [
+                        "Use cases"
+                    ],
                     "profilePath": "profile_data.use_cases",
                     "fillMode": "tags",
-                    "selectorHint": "input[name*='use' i][name*='case' i], [placeholder*='use case' i], [aria-label*='use case' i]"
+                    "labelMatch": "section",
+                    "tagsScope": "section",
+                    "selectorHint": "[data-field='useCases'] input[role='combobox'], [data-field='useCases'] input[placeholder*='use case' i]"
                 },
                 {
                     "key": "target_audiences",
-                    "label": "Target audience",
+                    "label": "Target Audience",
+                    "labelAliases": [
+                        "Target audience",
+                        "Audiences"
+                    ],
                     "profilePath": "profile_data.target_audiences",
                     "fillMode": "tags",
-                    "selectorHint": "input[name*='audience' i], [placeholder*='audience' i], [aria-label*='audience' i]"
+                    "labelMatch": "section",
+                    "tagsScope": "section",
+                    "selectorHint": "[data-field='audiences'] input[role='combobox'], [data-field='audiences'] input[placeholder*='audience' i]"
                 },
                 {
                     "key": "pricing_type",
                     "label": "Pricing",
                     "profilePath": "profile_data.pricing_type",
                     "fillMode": "select",
-                    "selectorHint": "select[name*='pricing' i], [role='combobox'][aria-label*='pricing' i], button[aria-label*='pricing' i]"
+                    "selectorHint": "[data-field='pricingType'] select, select[aria-label='Pricing type']"
                 },
                 {
                     "key": "platforms",
                     "label": "Platforms",
                     "profilePath": "profile_data.platforms",
                     "fillMode": "tags",
-                    "selectorHint": "input[name*='platform' i], [placeholder*='platform' i], [aria-label*='platform' i]"
-                },
-                {
-                    "key": "monthly_revenue_usd",
-                    "label": "Monthly recurring revenue (optional)",
-                    "profilePath": "profile_data.monthly_revenue_usd",
-                    "fillMode": "text",
-                    "selectorHint": "input[name*='mrr' i], input[name*='monthly' i][name*='revenue' i], input[placeholder*='MRR' i], input[aria-label*='revenue' i]"
+                    "labelMatch": "section",
+                    "tagsScope": "section",
+                    "maxItems": 5,
+                    "selectorHint": "[data-field='platforms'] input[role='combobox'], [data-field='platforms'] input[placeholder*='platform' i]"
                 }
             ]
         },
@@ -13789,8 +13834,44 @@ SET extension_config = $json${
                     "label": "Screenshots",
                     "profilePath": "profile_data.gallery_urls",
                     "fillMode": "files",
-                    "fileInputIndex": 1,
-                    "selectorHint": "input[type='file'][accept*='image']"
+                    "fileInputIndex": 0,
+                    "selectorHint": "[data-field='screenshots'] input[type='file'], input[type='file'][accept*='image']"
+                }
+            ]
+        },
+        {
+            "id": "additional",
+            "label": "Additional Info",
+            "fields": [
+                {
+                    "key": "monthly_revenue_usd",
+                    "label": "Monthly recurring revenue (optional)",
+                    "labelAliases": [
+                        "MRR",
+                        "MRR - Monthly Recurring Revenue (optional)"
+                    ],
+                    "profilePath": "profile_data.monthly_revenue_usd",
+                    "fillMode": "text",
+                    "selectorHint": "#mrr, input#mrr, input[name='mrr'], input[placeholder='1000']"
+                },
+                {
+                    "key": "social_x",
+                    "label": "Twitter username",
+                    "labelAliases": [
+                        "X (Twitter)",
+                        "X username"
+                    ],
+                    "profilePath": "profile_data.social_x",
+                    "socialXScalar": "username",
+                    "fillMode": "text",
+                    "selectorHint": "#twitterUsername, input#twitterUsername, input[aria-label='X username']"
+                },
+                {
+                    "key": "social_linkedin",
+                    "label": "LinkedIn URL",
+                    "profilePath": "profile_data.social_linkedin",
+                    "fillMode": "text",
+                    "selectorHint": "#linkedinUrl, input#linkedinUrl, input[aria-label='LinkedIn URL'], input[type='url'][placeholder*='linkedin.com' i]"
                 }
             ]
         }
@@ -13820,28 +13901,34 @@ SET extension_config = $json${
                     "label": "Product name",
                     "profilePath": "name",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='name' i], input[placeholder*='product name' i], input[aria-label*='name' i]"
+                    "selectorHint": "#name, input#name"
                 },
                 {
                     "key": "tagline",
                     "label": "Tagline",
+                    "labelAliases": [
+                        "One-line tagline"
+                    ],
                     "profilePath": "tagline",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='tagline' i], textarea[name*='tagline' i], input[placeholder*='tagline' i], input[aria-label*='tagline' i]"
+                    "selectorHint": "#tagline, input#tagline"
                 },
                 {
                     "key": "description",
-                    "label": "Description",
+                    "label": "Product description",
+                    "labelAliases": [
+                        "Description"
+                    ],
                     "profilePath": "description",
-                    "fillMode": "rich_html",
-                    "selectorHint": "[contenteditable='true'], .ProseMirror, .tiptap, textarea[name*='description' i], textarea[placeholder*='description' i]"
+                    "fillMode": "text",
+                    "selectorHint": "#description, textarea#description"
                 },
                 {
                     "key": "website",
                     "label": "Website",
                     "profilePath": "website_url",
                     "fillMode": "text",
-                    "selectorHint": "input[type='url'], input[name*='website' i], input[name*='url' i], input[placeholder*='website' i]"
+                    "selectorHint": "#websiteUrl, input#websiteUrl, input[type='url'][id*='website' i]"
                 },
                 {
                     "key": "logo",
@@ -13849,7 +13936,7 @@ SET extension_config = $json${
                     "profilePath": "logo_url",
                     "fillMode": "file",
                     "fileInputIndex": 0,
-                    "selectorHint": "input[type='file'][accept*='image']"
+                    "selectorHint": "[data-field='logo'] input[type='file'], input[type='file'][accept*='image']"
                 }
             ]
         },
@@ -13862,42 +13949,52 @@ SET extension_config = $json${
                     "label": "Categories",
                     "profilePath": "profile_data.categories",
                     "fillMode": "tags",
-                    "selectorHint": "input[name*='categor' i], [placeholder*='categor' i], [role='combobox'][aria-label*='categor' i]"
+                    "labelMatch": "section",
+                    "tagsScope": "section",
+                    "maxItems": 3,
+                    "selectorHint": "[data-field='categories'] input[role='combobox'], [data-field='categories'] input[placeholder*='categor' i]"
                 },
                 {
                     "key": "use_cases",
-                    "label": "Use cases",
+                    "label": "Use Cases",
+                    "labelAliases": [
+                        "Use cases"
+                    ],
                     "profilePath": "profile_data.use_cases",
                     "fillMode": "tags",
-                    "selectorHint": "input[name*='use' i][name*='case' i], [placeholder*='use case' i], [aria-label*='use case' i]"
+                    "labelMatch": "section",
+                    "tagsScope": "section",
+                    "selectorHint": "[data-field='useCases'] input[role='combobox'], [data-field='useCases'] input[placeholder*='use case' i]"
                 },
                 {
                     "key": "target_audiences",
-                    "label": "Target audience",
+                    "label": "Target Audience",
+                    "labelAliases": [
+                        "Target audience",
+                        "Audiences"
+                    ],
                     "profilePath": "profile_data.target_audiences",
                     "fillMode": "tags",
-                    "selectorHint": "input[name*='audience' i], [placeholder*='audience' i], [aria-label*='audience' i]"
+                    "labelMatch": "section",
+                    "tagsScope": "section",
+                    "selectorHint": "[data-field='audiences'] input[role='combobox'], [data-field='audiences'] input[placeholder*='audience' i]"
                 },
                 {
                     "key": "pricing_type",
                     "label": "Pricing",
                     "profilePath": "profile_data.pricing_type",
                     "fillMode": "select",
-                    "selectorHint": "select[name*='pricing' i], [role='combobox'][aria-label*='pricing' i], button[aria-label*='pricing' i]"
+                    "selectorHint": "[data-field='pricingType'] select, select[aria-label='Pricing type']"
                 },
                 {
                     "key": "platforms",
                     "label": "Platforms",
                     "profilePath": "profile_data.platforms",
                     "fillMode": "tags",
-                    "selectorHint": "input[name*='platform' i], [placeholder*='platform' i], [aria-label*='platform' i]"
-                },
-                {
-                    "key": "monthly_revenue_usd",
-                    "label": "Monthly recurring revenue (optional)",
-                    "profilePath": "profile_data.monthly_revenue_usd",
-                    "fillMode": "text",
-                    "selectorHint": "input[name*='mrr' i], input[name*='monthly' i][name*='revenue' i], input[placeholder*='MRR' i], input[aria-label*='revenue' i]"
+                    "labelMatch": "section",
+                    "tagsScope": "section",
+                    "maxItems": 5,
+                    "selectorHint": "[data-field='platforms'] input[role='combobox'], [data-field='platforms'] input[placeholder*='platform' i]"
                 }
             ]
         },
@@ -13910,8 +14007,44 @@ SET extension_config = $json${
                     "label": "Screenshots",
                     "profilePath": "profile_data.gallery_urls",
                     "fillMode": "files",
-                    "fileInputIndex": 1,
-                    "selectorHint": "input[type='file'][accept*='image']"
+                    "fileInputIndex": 0,
+                    "selectorHint": "[data-field='screenshots'] input[type='file'], input[type='file'][accept*='image']"
+                }
+            ]
+        },
+        {
+            "id": "additional",
+            "label": "Additional Info",
+            "fields": [
+                {
+                    "key": "monthly_revenue_usd",
+                    "label": "Monthly recurring revenue (optional)",
+                    "labelAliases": [
+                        "MRR",
+                        "MRR - Monthly Recurring Revenue (optional)"
+                    ],
+                    "profilePath": "profile_data.monthly_revenue_usd",
+                    "fillMode": "text",
+                    "selectorHint": "#mrr, input#mrr, input[name='mrr'], input[placeholder='1000']"
+                },
+                {
+                    "key": "social_x",
+                    "label": "Twitter username",
+                    "labelAliases": [
+                        "X (Twitter)",
+                        "X username"
+                    ],
+                    "profilePath": "profile_data.social_x",
+                    "socialXScalar": "username",
+                    "fillMode": "text",
+                    "selectorHint": "#twitterUsername, input#twitterUsername, input[aria-label='X username']"
+                },
+                {
+                    "key": "social_linkedin",
+                    "label": "LinkedIn URL",
+                    "profilePath": "profile_data.social_linkedin",
+                    "fillMode": "text",
+                    "selectorHint": "#linkedinUrl, input#linkedinUrl, input[aria-label='LinkedIn URL'], input[type='url'][placeholder*='linkedin.com' i]"
                 }
             ]
         }
@@ -13939,30 +14072,36 @@ SET extension_config = $json${
                 {
                     "key": "name",
                     "label": "Product name",
+                    "labelAliases": [
+                        "Name"
+                    ],
                     "profilePath": "name",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='name' i], input[placeholder*='product' i]"
+                    "selectorHint": "input[name=\"name\"]"
                 },
                 {
                     "key": "slug",
                     "label": "Slug",
                     "profilePath": "profile_data.slug",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='slug' i], input[placeholder*='slug' i]"
+                    "selectorHint": "input[name=\"slug\"]"
                 },
                 {
                     "key": "website",
                     "label": "Website",
+                    "labelAliases": [
+                        "Url"
+                    ],
                     "profilePath": "website_url",
                     "fillMode": "text",
-                    "selectorHint": "input[type='url'], input[name*='website' i], input[name*='url' i]"
+                    "selectorHint": "input[name=\"url\"]"
                 },
                 {
                     "key": "tagline",
                     "label": "Tagline",
                     "profilePath": "tagline",
                     "fillMode": "text",
-                    "selectorHint": "textarea[maxlength='80'], input[maxlength='80'], input[aria-label*='tagline' i], textarea[aria-label*='tagline' i], input[placeholder*='tagline' i], textarea[placeholder*='tagline' i], input[id*='tagline' i], textarea[id*='tagline' i], input[name*='tagline' i], textarea[name*='tagline' i], input[name*='tagLine' i]",
+                    "selectorHint": "textarea[name=\"description\"], input[name='tagline'], textarea[name='tagline'], textarea[maxlength='80'], input[maxlength='80'], input[aria-label*='tagline' i], textarea[aria-label*='tagline' i], input[placeholder*='tagline' i], textarea[placeholder*='tagline' i], input[id*='tagline' i], textarea[id*='tagline' i], input[name*='tagLine' i]",
                     "maxScalarLength": 80,
                     "required": true
                 },
@@ -13984,9 +14123,12 @@ SET extension_config = $json${
                 {
                     "key": "tags",
                     "label": "Tags",
+                    "labelAliases": [
+                        "Select tags"
+                    ],
                     "profilePath": "profile_data.tags",
                     "fillMode": "tags",
-                    "selectorHint": "input[name*='tags' i]:not([name*='tagline' i]), input[aria-label*='tags' i]:not([aria-label*='tagline' i]), [data-testid*='tag-input' i], [data-testid*='tags-input' i]",
+                    "selectorHint": "button[aria-haspopup='listbox'][aria-label='Show popup'], button[aria-haspopup='listbox'][aria-label*='popup' i], input[name*='tags' i]:not([name*='tagline' i]), input[aria-label*='tags' i]:not([aria-label*='tagline' i]), [data-testid*='tag-input' i], [data-testid*='tags-input' i]",
                     "required": true,
                     "maxItems": 3,
                     "tagsCatalog": "uneed",
@@ -14009,7 +14151,7 @@ SET extension_config = $json${
                     "label": "Repository URL",
                     "profilePath": "profile_data.repository_url",
                     "fillMode": "text",
-                    "selectorHint": "input[type='url'][name*='repository' i], input[name*='repository' i], input[aria-label*='repository' i], input[placeholder*='repository' i], input[type='url'][name*='repo' i], input[name*='github' i], input[placeholder*='repository' i]"
+                    "selectorHint": "input[name=\"repo_url\"], input[placeholder*=\"github.com\" i]"
                 },
                 {
                     "key": "description",
@@ -14052,58 +14194,64 @@ SET extension_config = $json${
                 {
                     "key": "social_x",
                     "label": "X (Twitter)",
+                    "labelAliases": [
+                        "Twitter"
+                    ],
                     "profilePath": "profile_data.social_x",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='twitter' i], input[name*='x.com' i], input[placeholder*='twitter' i]"
+                    "selectorHint": "input[name*='twitter' i]:not([name='name']):not([name='repo_url']), input[name*='x.com' i], input[placeholder*='twitter' i]:not([name='repo_url'])"
                 },
                 {
                     "key": "social_github",
                     "label": "GitHub",
                     "profilePath": "profile_data.social_github",
+                    "profileSourcePaths": [
+                        "profile_data.repository_url"
+                    ],
                     "fillMode": "text",
-                    "selectorHint": "input[name*='github' i], input[placeholder*='github' i]"
+                    "selectorHint": "input[name*='github' i]:not([name='repo_url']):not([name='name']), input[aria-label*='github' i]"
                 },
                 {
                     "key": "social_instagram",
                     "label": "Instagram",
                     "profilePath": "profile_data.social_instagram",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='instagram' i], input[placeholder*='instagram' i]"
+                    "selectorHint": "input[name*='instagram' i]:not([name='name']), input[placeholder*='instagram' i]"
                 },
                 {
                     "key": "social_linkedin",
                     "label": "LinkedIn",
                     "profilePath": "profile_data.social_linkedin",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='linkedin' i], input[placeholder*='linkedin' i]"
+                    "selectorHint": "input[name*='linkedin' i]:not([name='name']), input[placeholder*='linkedin' i]"
                 },
                 {
                     "key": "social_tiktok",
                     "label": "TikTok",
                     "profilePath": "profile_data.social_tiktok",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='tiktok' i], input[placeholder*='tiktok' i]"
+                    "selectorHint": "input[name*='tiktok' i]:not([name='name']), input[placeholder*='tiktok' i]"
                 },
                 {
                     "key": "social_facebook",
                     "label": "Facebook",
                     "profilePath": "profile_data.social_facebook",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='facebook' i], input[placeholder*='facebook' i]"
+                    "selectorHint": "input[name*='facebook' i]:not([name='name']), input[placeholder*='facebook' i]"
                 },
                 {
                     "key": "social_youtube",
                     "label": "YouTube",
                     "profilePath": "profile_data.social_youtube",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='youtube' i], input[placeholder*='youtube' i]"
+                    "selectorHint": "input[name*='youtube' i]:not([name='name']):not([name='description']):not([name='repo_url']), input[type='url'][name*='youtube' i], input[type='url'][placeholder*='youtube' i]:not([name='name'])"
                 },
                 {
                     "key": "social_bluesky",
                     "label": "Bluesky",
                     "profilePath": "profile_data.social_bluesky",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='bluesky' i], input[name*='bsky' i], input[placeholder*='bluesky' i]"
+                    "selectorHint": "input[name*='bluesky' i]:not([name='name']), input[name*='bsky' i]:not([name='name']), input[placeholder*='bluesky' i]"
                 }
             ]
         },
@@ -14195,14 +14343,14 @@ SET extension_config = $json${
                     "label": "Display name",
                     "profilePath": "name",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='name' i], input[placeholder*='name' i]"
+                    "selectorHint": "input[name=\"name\"]"
                 },
                 {
                     "key": "website",
                     "label": "Website",
                     "profilePath": "website_url",
                     "fillMode": "text",
-                    "selectorHint": "input[type='url'], input[name*='website' i]"
+                    "selectorHint": "input[name=\"url\"]"
                 },
                 {
                     "key": "tagline",
@@ -14220,58 +14368,64 @@ SET extension_config = $json${
                 {
                     "key": "social_x",
                     "label": "X (Twitter)",
+                    "labelAliases": [
+                        "Twitter"
+                    ],
                     "profilePath": "profile_data.social_x",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='twitter' i], input[name*='x.com' i], input[placeholder*='twitter' i]"
+                    "selectorHint": "input[name*='twitter' i]:not([name='name']):not([name='repo_url']), input[name*='x.com' i], input[placeholder*='twitter' i]:not([name='repo_url'])"
                 },
                 {
                     "key": "social_github",
                     "label": "GitHub",
                     "profilePath": "profile_data.social_github",
+                    "profileSourcePaths": [
+                        "profile_data.repository_url"
+                    ],
                     "fillMode": "text",
-                    "selectorHint": "input[name*='github' i], input[placeholder*='github' i]"
+                    "selectorHint": "input[name*='github' i]:not([name='repo_url']):not([name='name']), input[aria-label*='github' i]"
                 },
                 {
                     "key": "social_instagram",
                     "label": "Instagram",
                     "profilePath": "profile_data.social_instagram",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='instagram' i], input[placeholder*='instagram' i]"
+                    "selectorHint": "input[name*='instagram' i]:not([name='name']), input[placeholder*='instagram' i]"
                 },
                 {
                     "key": "social_linkedin",
                     "label": "LinkedIn",
                     "profilePath": "profile_data.social_linkedin",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='linkedin' i], input[placeholder*='linkedin' i]"
+                    "selectorHint": "input[name*='linkedin' i]:not([name='name']), input[placeholder*='linkedin' i]"
                 },
                 {
                     "key": "social_tiktok",
                     "label": "TikTok",
                     "profilePath": "profile_data.social_tiktok",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='tiktok' i], input[placeholder*='tiktok' i]"
+                    "selectorHint": "input[name*='tiktok' i]:not([name='name']), input[placeholder*='tiktok' i]"
                 },
                 {
                     "key": "social_facebook",
                     "label": "Facebook",
                     "profilePath": "profile_data.social_facebook",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='facebook' i], input[placeholder*='facebook' i]"
+                    "selectorHint": "input[name*='facebook' i]:not([name='name']), input[placeholder*='facebook' i]"
                 },
                 {
                     "key": "social_youtube",
                     "label": "YouTube",
                     "profilePath": "profile_data.social_youtube",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='youtube' i], input[placeholder*='youtube' i]"
+                    "selectorHint": "input[name*='youtube' i]:not([name='name']):not([name='description']):not([name='repo_url']), input[type='url'][name*='youtube' i], input[type='url'][placeholder*='youtube' i]:not([name='name'])"
                 },
                 {
                     "key": "social_bluesky",
                     "label": "Bluesky",
                     "profilePath": "profile_data.social_bluesky",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='bluesky' i], input[name*='bsky' i], input[placeholder*='bluesky' i]"
+                    "selectorHint": "input[name*='bluesky' i]:not([name='name']), input[name*='bsky' i]:not([name='name']), input[placeholder*='bluesky' i]"
                 }
             ]
         }
@@ -14299,30 +14453,36 @@ SET extension_config = $json${
                 {
                     "key": "name",
                     "label": "Product name",
+                    "labelAliases": [
+                        "Name"
+                    ],
                     "profilePath": "name",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='name' i], input[placeholder*='product' i]"
+                    "selectorHint": "input[name=\"name\"]"
                 },
                 {
                     "key": "slug",
                     "label": "Slug",
                     "profilePath": "profile_data.slug",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='slug' i], input[placeholder*='slug' i]"
+                    "selectorHint": "input[name=\"slug\"]"
                 },
                 {
                     "key": "website",
                     "label": "Website",
+                    "labelAliases": [
+                        "Url"
+                    ],
                     "profilePath": "website_url",
                     "fillMode": "text",
-                    "selectorHint": "input[type='url'], input[name*='website' i], input[name*='url' i]"
+                    "selectorHint": "input[name=\"url\"]"
                 },
                 {
                     "key": "tagline",
                     "label": "Tagline",
                     "profilePath": "tagline",
                     "fillMode": "text",
-                    "selectorHint": "textarea[maxlength='80'], input[maxlength='80'], input[aria-label*='tagline' i], textarea[aria-label*='tagline' i], input[placeholder*='tagline' i], textarea[placeholder*='tagline' i], input[id*='tagline' i], textarea[id*='tagline' i], input[name*='tagline' i], textarea[name*='tagline' i], input[name*='tagLine' i]",
+                    "selectorHint": "textarea[name=\"description\"], input[name='tagline'], textarea[name='tagline'], textarea[maxlength='80'], input[maxlength='80'], input[aria-label*='tagline' i], textarea[aria-label*='tagline' i], input[placeholder*='tagline' i], textarea[placeholder*='tagline' i], input[id*='tagline' i], textarea[id*='tagline' i], input[name*='tagLine' i]",
                     "maxScalarLength": 80,
                     "required": true
                 },
@@ -14344,9 +14504,12 @@ SET extension_config = $json${
                 {
                     "key": "tags",
                     "label": "Tags",
+                    "labelAliases": [
+                        "Select tags"
+                    ],
                     "profilePath": "profile_data.tags",
                     "fillMode": "tags",
-                    "selectorHint": "input[name*='tags' i]:not([name*='tagline' i]), input[aria-label*='tags' i]:not([aria-label*='tagline' i]), [data-testid*='tag-input' i], [data-testid*='tags-input' i]",
+                    "selectorHint": "button[aria-haspopup='listbox'][aria-label='Show popup'], button[aria-haspopup='listbox'][aria-label*='popup' i], input[name*='tags' i]:not([name*='tagline' i]), input[aria-label*='tags' i]:not([aria-label*='tagline' i]), [data-testid*='tag-input' i], [data-testid*='tags-input' i]",
                     "required": true,
                     "maxItems": 3,
                     "tagsCatalog": "uneed",
@@ -14369,7 +14532,7 @@ SET extension_config = $json${
                     "label": "Repository URL",
                     "profilePath": "profile_data.repository_url",
                     "fillMode": "text",
-                    "selectorHint": "input[type='url'][name*='repository' i], input[name*='repository' i], input[aria-label*='repository' i], input[placeholder*='repository' i], input[type='url'][name*='repo' i], input[name*='github' i], input[placeholder*='repository' i]"
+                    "selectorHint": "input[name=\"repo_url\"], input[placeholder*=\"github.com\" i]"
                 },
                 {
                     "key": "description",
@@ -14412,58 +14575,64 @@ SET extension_config = $json${
                 {
                     "key": "social_x",
                     "label": "X (Twitter)",
+                    "labelAliases": [
+                        "Twitter"
+                    ],
                     "profilePath": "profile_data.social_x",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='twitter' i], input[name*='x.com' i], input[placeholder*='twitter' i]"
+                    "selectorHint": "input[name*='twitter' i]:not([name='name']):not([name='repo_url']), input[name*='x.com' i], input[placeholder*='twitter' i]:not([name='repo_url'])"
                 },
                 {
                     "key": "social_github",
                     "label": "GitHub",
                     "profilePath": "profile_data.social_github",
+                    "profileSourcePaths": [
+                        "profile_data.repository_url"
+                    ],
                     "fillMode": "text",
-                    "selectorHint": "input[name*='github' i], input[placeholder*='github' i]"
+                    "selectorHint": "input[name*='github' i]:not([name='repo_url']):not([name='name']), input[aria-label*='github' i]"
                 },
                 {
                     "key": "social_instagram",
                     "label": "Instagram",
                     "profilePath": "profile_data.social_instagram",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='instagram' i], input[placeholder*='instagram' i]"
+                    "selectorHint": "input[name*='instagram' i]:not([name='name']), input[placeholder*='instagram' i]"
                 },
                 {
                     "key": "social_linkedin",
                     "label": "LinkedIn",
                     "profilePath": "profile_data.social_linkedin",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='linkedin' i], input[placeholder*='linkedin' i]"
+                    "selectorHint": "input[name*='linkedin' i]:not([name='name']), input[placeholder*='linkedin' i]"
                 },
                 {
                     "key": "social_tiktok",
                     "label": "TikTok",
                     "profilePath": "profile_data.social_tiktok",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='tiktok' i], input[placeholder*='tiktok' i]"
+                    "selectorHint": "input[name*='tiktok' i]:not([name='name']), input[placeholder*='tiktok' i]"
                 },
                 {
                     "key": "social_facebook",
                     "label": "Facebook",
                     "profilePath": "profile_data.social_facebook",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='facebook' i], input[placeholder*='facebook' i]"
+                    "selectorHint": "input[name*='facebook' i]:not([name='name']), input[placeholder*='facebook' i]"
                 },
                 {
                     "key": "social_youtube",
                     "label": "YouTube",
                     "profilePath": "profile_data.social_youtube",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='youtube' i], input[placeholder*='youtube' i]"
+                    "selectorHint": "input[name*='youtube' i]:not([name='name']):not([name='description']):not([name='repo_url']), input[type='url'][name*='youtube' i], input[type='url'][placeholder*='youtube' i]:not([name='name'])"
                 },
                 {
                     "key": "social_bluesky",
                     "label": "Bluesky",
                     "profilePath": "profile_data.social_bluesky",
                     "fillMode": "text",
-                    "selectorHint": "input[name*='bluesky' i], input[name*='bsky' i], input[placeholder*='bluesky' i]"
+                    "selectorHint": "input[name*='bluesky' i]:not([name='name']), input[name*='bsky' i]:not([name='name']), input[placeholder*='bluesky' i]"
                 }
             ]
         },

@@ -892,6 +892,7 @@ var init_peerpush = __esm({
               "label": "Twitter username",
               "labelAliases": ["X (Twitter)", "X username"],
               "profilePath": "profile_data.social_x",
+              "socialXScalar": "username",
               "fillMode": "text",
               "selectorHint": "#twitterUsername, input#twitterUsername, input[aria-label='X username']"
             },
@@ -50713,7 +50714,8 @@ var ctaKindSchema = zod.z.enum([
   "connect_channel",
   "schedule_post",
   "use_plug",
-  "external_doc"
+  "external_doc",
+  "directory_channel"
 ]);
 var opportunityStepSchema = zod.z.object({
   order: zod.z.number().int().min(1),

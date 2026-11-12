@@ -933,7 +933,7 @@
 									<span class="text-sm font-medium text-base-content">
 										Monthly recurring revenue (optional)
 									</span>
-									<p class="text-xs text-base-content/60">USD; used on some directory forms (e.g. PeerPush).</p>
+									<p class="text-xs text-base-content/60">USD.</p>
 									<input
 										class="input input-bordered w-full"
 										type="text"

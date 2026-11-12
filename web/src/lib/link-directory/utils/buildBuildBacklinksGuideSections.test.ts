@@ -147,6 +147,54 @@ describe('buildBuildBacklinksGuideSections', () => {
 		expect(sections[1].steps[0].content).toContain('Add your site under Page About.');
 	});
 
+	it('uses directory_channel CTA to link /channels/{slug}', () => {
+		const sections = buildBuildBacklinksGuideSections({
+			canonical: 'https://example.com/build-backlinks/peerpush',
+			site: {
+				title: 'PeerPush',
+				shortDescription: null,
+				opportunities: [
+					makeOpportunity({
+						slug: 'standard-launch',
+						openquokCtaKind: 'directory_channel',
+						openquokChannelSlug: 'peerpush',
+						autoLaunchEnabled: false
+					})
+				]
+			}
+		});
+
+		expect(sections[1].footer).toMatchObject({
+			footerLinkLabel: 'Autofill on PeerPush',
+			footerLinkHref: '/channels/peerpush'
+		});
+	});
+
+	it('uses directory autofill copy for auto-launch opportunity footers', () => {
+		const sections = buildBuildBacklinksGuideSections({
+			canonical: 'https://example.com/build-backlinks/peerpush',
+			site: {
+				title: 'PeerPush',
+				shortDescription: null,
+				opportunities: [
+					makeOpportunity({
+						slug: 'standard-launch',
+						autoLaunchEnabled: true,
+						autoLaunchProviderSlug: 'peerpush-standard-launch',
+						ctaLabel: 'Submit on PeerPush'
+					})
+				]
+			}
+		});
+
+		expect(sections[1].footer).toMatchObject({
+			footerLinkLabel: 'Autofill on PeerPush',
+			footerPrompt:
+				'Build one product profile. The extension autofills the form. You submit on the directory site.',
+			autoLaunchProviderSlug: 'peerpush-standard-launch'
+		});
+	});
+
 	it('lists only opportunity sections with JSON sub-steps for nested HowTo', () => {
 		const sections = buildBuildBacklinksGuideSections({
 			canonical: 'https://example.com/build-backlinks/facebook',
