@@ -72,7 +72,7 @@ export function resolveAutoLaunchProfileMediaStorageKey(raw: string): string | n
 
 /**
  * Builds a browser-usable URL for an object in `auto_launch_profile_media` after upload.
- * Prefers `VITE_STORAGE_R2_PUBLIC_BASE_URL`, then Supabase public objects, then the API download URL.
+ * Uses `VITE_PUBLIC_SUPABASE_URL` for public objects, then the API download URL.
  */
 export function buildAutoLaunchProfileMediaPublicUrl(storagePath: string): string {
 	const key = resolveAutoLaunchProfileMediaStorageKey(storagePath);

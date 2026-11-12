@@ -217,10 +217,11 @@ describe('resolveBlogImageStorageKey', () => {
 });
 
 describe('buildBlogInlineImageSrc', () => {
-	it('prefers R2 public origin when configured', () => {
+	it('uses Supabase public URL when R2 is also configured', () => {
 		vi.stubEnv('VITE_STORAGE_R2_PUBLIC_BASE_URL', 'https://media.example.com');
+		vi.stubEnv('VITE_PUBLIC_SUPABASE_URL', 'https://abc.supabase.co');
 		expect(buildBlogInlineImageSrc('user-1/photo.webp')).toBe(
-			'https://media.example.com/blog_images/user-1/photo.webp'
+			'https://abc.supabase.co/storage/v1/object/public/blog_images/user-1/photo.webp'
 		);
 		vi.unstubAllEnvs();
 	});

@@ -108,7 +108,7 @@ export function resolveBlogImageStorageKey(raw: string): string | null {
 
 /**
  * Builds a browser-usable `src` for an object in `blog_images` after upload.
- * Prefers `VITE_STORAGE_R2_PUBLIC_BASE_URL`, then Supabase public objects, then the API download URL.
+ * Uses `VITE_PUBLIC_SUPABASE_URL` for public objects, then the API download URL.
  */
 export function buildBlogInlineImageSrc(storagePath: string): string {
 	const key = resolveBlogImageStorageKey(storagePath);

@@ -13,12 +13,6 @@ function trimApiBase(): string {
 	return normalizeApiBaseUrl(String(CONFIG_SCHEMA_BACKEND.API_BASE_URL.default ?? ''));
 }
 
-function trimPublicR2Base(): string {
-	return typeof import.meta !== 'undefined' && import.meta.env?.VITE_STORAGE_R2_PUBLIC_BASE_URL
-		? String(import.meta.env.VITE_STORAGE_R2_PUBLIC_BASE_URL).replace(/\/$/, '')
-		: '';
-}
-
 function trimSupabasePublicBase(): string {
 	return typeof import.meta !== 'undefined' && import.meta.env?.VITE_PUBLIC_SUPABASE_URL
 		? String(import.meta.env.VITE_PUBLIC_SUPABASE_URL).replace(/\/$/, '')
@@ -26,18 +20,14 @@ function trimSupabasePublicBase(): string {
 }
 
 /**
- * Stable browser URL for a public CMS/catalog storage object (blog hero, listing image, directory logo).
- * Prefers the R2 custom domain when configured, then Supabase public objects, then the API download proxy.
+ * Stable browser URL for a public CMS/catalog object in Supabase Storage (blog hero, directory logo, etc.).
+ * Uses Supabase public objects when `VITE_PUBLIC_SUPABASE_URL` is set, then the API download proxy.
+ * Workspace media on R2 uses `publicUrlForMediaStorageKey` — not this helper.
  */
 export function buildPublicCmsBucketObjectUrl(bucket: string, storageKey: string): string {
 	const trimmed = storageKey.trim().replace(/^\/+/, '');
 	if (!trimmed) return '';
 	if (/^https?:\/\//i.test(trimmed)) return trimmed;
-
-	const publicR2 = trimPublicR2Base();
-	if (publicR2) {
-		return `${publicR2}/${bucket}/${encodeStoragePathSegments(trimmed)}`;
-	}
 
 	const supabasePublic = trimSupabasePublicBase();
 	if (supabasePublic) {

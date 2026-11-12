@@ -78,7 +78,7 @@ export function resolveLinkDirectoryLogoStorageKey(raw: string): string | null {
 
 /**
  * Builds a browser-usable URL for an object in `link_directory_logos` after upload.
- * Prefers `VITE_STORAGE_R2_PUBLIC_BASE_URL`, then Supabase public objects, then the API download URL.
+ * Uses `VITE_PUBLIC_SUPABASE_URL` for public objects, then the API download URL.
  */
 export function buildLinkDirectoryLogoPublicUrl(storagePath: string): string {
 	const key = resolveLinkDirectoryLogoStorageKey(storagePath);
