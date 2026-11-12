@@ -11,6 +11,7 @@ import {
     BUSINESS_PROFILE_PRICING_TYPES,
     BUSINESS_PROFILE_SELLING_REASON_MIN_LENGTH,
     type BusinessProfileData,
+    normalizeBusinessProfileSlug,
 } from "openquok-common";
 import { z } from "zod";
 
@@ -47,14 +48,22 @@ const optionalUsdAmount = z
     .union([z.number().nonnegative().finite(), z.null()])
     .optional();
 
-const slugField = nullableTrimmedString(120).pipe(
-    z.union([
-        z.undefined(),
-        z.null(),
-        z
-            .string()
-            .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Invalid slug"),
-    ])
+function preprocessProfileSlugInput(value: unknown): unknown {
+    if (value === undefined || value === null) return value;
+    if (typeof value !== "string") return value;
+    const normalized = normalizeBusinessProfileSlug(value);
+    return normalized === "" ? null : normalized;
+}
+
+const slugField = z.preprocess(
+    preprocessProfileSlugInput,
+    nullableTrimmedString(120).pipe(
+        z.union([
+            z.undefined(),
+            z.null(),
+            z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Invalid slug"),
+        ])
+    )
 );
 
 export const businessProfileDataSchema = z

@@ -383,7 +383,8 @@ export async function handleAutoLaunchRuntimeMessage(
 	if (
 		type === AUTO_LAUNCH_MESSAGE_TYPE.START ||
 		type === AUTO_LAUNCH_MESSAGE_TYPE.FILL_ALL ||
-		type === AUTO_LAUNCH_MESSAGE_TYPE.FILL_STEP
+		type === AUTO_LAUNCH_MESSAGE_TYPE.FILL_STEP ||
+		type === AUTO_LAUNCH_MESSAGE_TYPE.FILL_FOCUSED
 	) {
 		try {
 			const response = await sendToHandoffTabContent({

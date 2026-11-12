@@ -3,8 +3,6 @@
  * registered in the extension manifest. Cookie-session channels stay in `cookieSessionProviders.ts`.
  */
 
-import { directorySiteKeyFromProviderSlug } from '../auto-launch/directorySiteKey.js';
-
 /** Mirrors `auto_launch_destinations.extension_config` (API / seeds). */
 export type AutoLaunchExtensionConfig = {
 	version?: number;
@@ -21,19 +19,51 @@ export const LAUNCH_STEP_FIELD_FILL_MODES = [
 	'boolean',
 	'rich_html',
 	'tags',
+	'checkbox_group',
 	'file',
 	'files',
 ] as const;
 export type LaunchStepFieldFillMode = (typeof LAUNCH_STEP_FIELD_FILL_MODES)[number];
 
+/** How `fillEngine` matches visible headings to `label` (see destination `extension_config`). */
+export const LAUNCH_STEP_FIELD_LABEL_MATCH_MODES = ['default', 'section'] as const;
+export type LaunchStepFieldLabelMatch = (typeof LAUNCH_STEP_FIELD_LABEL_MATCH_MODES)[number];
+
+/** How tag compare/fill scopes chip reads to a labeled block (see destination `extension_config`). */
+export const LAUNCH_STEP_FIELD_TAGS_SCOPE_MODES = ['section'] as const;
+export type LaunchStepFieldTagsScope = (typeof LAUNCH_STEP_FIELD_TAGS_SCOPE_MODES)[number];
+
 export type LaunchStepField = {
 	key: string;
 	label: string;
+	/** Extra headings in the DOM that should anchor this field (e.g. title case variants). */
+	labelAliases?: readonly string[];
 	profilePath: string;
 	selectorHint?: string;
 	fillMode?: LaunchStepFieldFillMode;
+	/**
+	 * `section` — wizard field title only (avoids option rows like Open Launch category "Platform"
+	 * matching field label "Platforms"). `default` — general fuzzy label pairing.
+	 */
+	labelMatch?: LaunchStepFieldLabelMatch;
+	/** When `section`, tag fields resolve chips within the heading block (`h3` + search), not site chrome. */
+	tagsScope?: LaunchStepFieldTagsScope;
 	/** When several `input[type=file]` match, pick by index (default 0). */
 	fileInputIndex?: number;
+	/** Destination form treats the control as mandatory (compare rail + fill hints). */
+	required?: boolean;
+	/** Cap for tag/array fields on the directory form (display + compare). */
+	maxItems?: number;
+	/** Alternate profile paths offered in the compare rail expand row (e.g. tags from discovery dims). */
+	profileSourcePaths?: readonly string[];
+	/** Truncate scalar fills and flag the profile compare cell when longer (e.g. Uneed tagline 80). */
+	maxScalarLength?: number;
+	/** Restrict tag fill + highlight unknown profile chips (e.g. `uneed` — see `fieldCatalogRegistry`). */
+	tagsCatalog?: string;
+	/** Map profile discovery values to directory checkbox labels before fill + compare warnings. */
+	checkboxCatalog?: string;
+	/** Official single-select labels for compare presets + fill coercion. */
+	selectCatalog?: string;
 };
 
 export type LaunchStep = {
@@ -82,182 +112,15 @@ export interface DirectoryLaunchProvider {
 	hostPermission: string;
 }
 
-const UNEED_HOST_PATTERNS: readonly string[] = [
-	'https://uneed.best/*',
-	'https://www.uneed.best/*',
-];
-
-const UNEED_HOST_PERMISSION = '*://*.uneed.best/*';
-
-const UNEED_JOIN_LINE: DirectoryLaunchProvider = {
-	identifier: 'uneed-join-line',
-	name: 'Uneed — Join the line',
-	tierLabel: 'Free',
-	defaultStartUrl: 'https://uneed.best/pricing',
-	contentScriptEntry: 'content/directory-launch/openquok-directory-uneed.js',
-	hostPatterns: UNEED_HOST_PATTERNS,
-	hostPermission: UNEED_HOST_PERMISSION,
-};
-
-const UNEED_PAID_LAUNCH: DirectoryLaunchProvider = {
-	identifier: 'uneed-paid-launch',
-	name: 'Uneed — Paid launch',
-	tierLabel: 'Paid',
-	defaultStartUrl: 'https://uneed.best/pricing',
-	contentScriptEntry: 'content/directory-launch/openquok-directory-uneed.js',
-	hostPatterns: UNEED_HOST_PATTERNS,
-	hostPermission: UNEED_HOST_PERMISSION,
-};
-
-const UNEED_MAKER_PROFILE: DirectoryLaunchProvider = {
-	identifier: 'uneed-maker-profile',
-	name: 'Uneed — Maker profile',
-	tierLabel: 'Free',
-	defaultStartUrl: 'https://uneed.best/profile',
-	contentScriptEntry: 'content/directory-launch/openquok-directory-uneed.js',
-	hostPatterns: UNEED_HOST_PATTERNS,
-	hostPermission: UNEED_HOST_PERMISSION,
-};
-
-const PEERPUSH_HOST_PATTERNS: readonly string[] = [
-	'https://peerpush.com/*',
-	'https://www.peerpush.com/*',
-];
-
-const PEERPUSH_HOST_PERMISSION = '*://*.peerpush.com/*';
-
-const PEERPUSH_STANDARD_LAUNCH: DirectoryLaunchProvider = {
-	identifier: 'peerpush-standard-launch',
-	name: 'PeerPush — Standard launch',
-	tierLabel: 'Paid',
-	defaultStartUrl: 'https://peerpush.com/submit',
-	contentScriptEntry: 'content/directory-launch/openquok-directory-peerpush.js',
-	hostPatterns: PEERPUSH_HOST_PATTERNS,
-	hostPermission: PEERPUSH_HOST_PERMISSION,
-};
-
-const PEERPUSH_FREE_QUEUE: DirectoryLaunchProvider = {
-	identifier: 'peerpush-free-queue',
-	name: 'PeerPush — Free queue',
-	tierLabel: 'Free',
-	defaultStartUrl: 'https://peerpush.com/pricing',
-	contentScriptEntry: 'content/directory-launch/openquok-directory-peerpush.js',
-	hostPatterns: PEERPUSH_HOST_PATTERNS,
-	hostPermission: PEERPUSH_HOST_PERMISSION,
-};
-
-const OPEN_LAUNCH_HOST_PATTERNS: readonly string[] = [
-	'https://open-launch.com/*',
-	'https://www.open-launch.com/*',
-];
-
-const OPEN_LAUNCH_HOST_PERMISSION = '*://*.open-launch.com/*';
-
-const OPEN_LAUNCH_PREMIUM_LAUNCH: DirectoryLaunchProvider = {
-	identifier: 'open-launch-premium-launch',
-	name: 'Open Launch — Premium launch',
-	tierLabel: 'Paid',
-	defaultStartUrl: 'https://open-launch.com/projects/submit',
-	contentScriptEntry: 'content/directory-launch/openquok-directory-open-launch.js',
-	hostPatterns: OPEN_LAUNCH_HOST_PATTERNS,
-	hostPermission: OPEN_LAUNCH_HOST_PERMISSION,
-};
-
-const OPEN_LAUNCH_FREE_LAUNCH: DirectoryLaunchProvider = {
-	identifier: 'open-launch-free-launch',
-	name: 'Open Launch — Free launch',
-	tierLabel: 'Free',
-	defaultStartUrl: 'https://open-launch.com/pricing',
-	contentScriptEntry: 'content/directory-launch/openquok-directory-open-launch.js',
-	hostPatterns: OPEN_LAUNCH_HOST_PATTERNS,
-	hostPermission: OPEN_LAUNCH_HOST_PERMISSION,
-};
-
-/** Registered directory launch destinations (extension manifest mirrors this list). */
-export const directoryLaunchProviders: readonly DirectoryLaunchProvider[] = [
-	UNEED_JOIN_LINE,
-	UNEED_PAID_LAUNCH,
-	UNEED_MAKER_PROFILE,
-	PEERPUSH_FREE_QUEUE,
-	PEERPUSH_STANDARD_LAUNCH,
-	OPEN_LAUNCH_FREE_LAUNCH,
-	OPEN_LAUNCH_PREMIUM_LAUNCH,
-];
-
-const providersById = new Map<string, DirectoryLaunchProvider>(
-	directoryLaunchProviders.map((provider) => [provider.identifier, provider])
-);
-
-export function getDirectoryLaunchProvider(
-	identifier: string
-): DirectoryLaunchProvider | undefined {
-	return providersById.get(identifier);
-}
-
-export function isDirectoryLaunchProviderId(identifier: string): boolean {
-	return providersById.has(identifier);
-}
-
-export function listDirectoryLaunchProviderSummaries(): {
-	identifier: string;
-	name: string;
-	tierLabel: DirectoryLaunchTierLabel;
-}[] {
-	return directoryLaunchProviders.map(({ identifier, name, tierLabel }) => ({
-		identifier,
-		name,
-		tierLabel,
-	}));
-}
-
-function normalizeDirectoryLaunchHostname(hostname: string): string {
-	const trimmed = hostname.trim().toLowerCase();
-	return trimmed.startsWith('www.') ? trimmed.slice(4) : trimmed;
-}
-
-function hostnameFromDirectoryLaunchHostPattern(pattern: string): string | null {
-	const match = /^https?:\/\/([^/*]+)/i.exec(pattern);
-	return match ? normalizeDirectoryLaunchHostname(match[1]) : null;
-}
-
-const directoryLaunchSiteKeyByHostname = (() => {
-	const map = new Map<string, string>();
-	for (const provider of directoryLaunchProviders) {
-		const siteKey = directorySiteKeyFromProviderSlug(provider.identifier);
-		for (const pattern of provider.hostPatterns) {
-			const host = hostnameFromDirectoryLaunchHostPattern(pattern);
-			if (host) {
-				map.set(host, siteKey);
-			}
-		}
-	}
-	return map;
-})();
-
-/** Deduped manifest `content_scripts[].matches` entries across all directory launch providers. */
-export function getDirectoryLaunchUniqueHostPatterns(): readonly string[] {
-	const seen = new Set<string>();
-	const patterns: string[] = [];
-	for (const provider of directoryLaunchProviders) {
-		for (const pattern of provider.hostPatterns) {
-			if (seen.has(pattern)) {
-				continue;
-			}
-			seen.add(pattern);
-			patterns.push(pattern);
-		}
-	}
-	return patterns;
-}
-
-/**
- * Maps a page hostname to a directory site key (`link_directory_sites.slug`), e.g. `peerpush.com` → `peerpush`.
- * Returns `undefined` when the host is not registered in `directoryLaunchProviders`.
- */
-export function getDirectoryLaunchSiteKeyFromLocation(hostname: string): string | undefined {
-	const normalized = normalizeDirectoryLaunchHostname(hostname);
-	return directoryLaunchSiteKeyByHostname.get(normalized);
-}
+export {
+	directoryLaunchProviders,
+	getDirectoryLaunchProvider,
+	getDirectoryLaunchSiteKeyFromLocation,
+	getDirectoryLaunchUniqueHostPatterns,
+	isDirectoryLaunchProviderId,
+	listDirectoryLaunchProviderSummaries,
+	resolveDirectoryLaunchStartUrl,
+} from '../auto-launch/destination-configs/directoryLaunchRegistry.js';
 
 /** Payload stored in the extension after dashboard handoff (`AUTO_LAUNCH_HANDOFF`). */
 export type AutoLaunchHandoffSession = {
@@ -265,6 +128,7 @@ export type AutoLaunchHandoffSession = {
 	launchToken: string;
 	providerSlug: string;
 	startUrl: string;
+	productProfileId?: string;
 	profileSnapshotHash?: string;
 	profileSnapshot: AutoLaunchProfileSnapshot;
 	extensionConfig: AutoLaunchExtensionConfig;

@@ -4,7 +4,13 @@ import {
 	listDirectoryLaunchProviderSummaries,
 } from 'openquok-common';
 
-import { OPENQUOK_AUTO_LAUNCH_SHOW_PANEL } from '../../directory/auto-launch/constants.js';
+import {
+	OPENQUOK_AUTO_LAUNCH_FOCUS_TAB,
+	OPENQUOK_AUTO_LAUNCH_OPEN_DIRECTORY_PAGE,
+	OPENQUOK_AUTO_LAUNCH_REFRESH_PROFILE,
+	OPENQUOK_AUTO_LAUNCH_RESET_PANEL_POSITION,
+	OPENQUOK_AUTO_LAUNCH_SHOW_PANEL,
+} from '../../directory/auto-launch/constants.js';
 import { POPUP_UI_MESSAGE } from '../../directory/auto-launch/popupMessages.js';
 import type { StoredAutoLaunchState } from '../../directory/auto-launch/sessionStorage.js';
 import { isReadyPage, pageMatchesConfig } from '../../directory/directory-launch/stepRail.js';
@@ -13,12 +19,18 @@ import { openDashboardAddChannel } from '../../shared/openDashboardUrl.js';
 import { getPreferredDashboardOrigin } from '../../shared/dashboardOriginStorage.js';
 
 import { mountDirectoryChannelPicker } from './directoryChannelPicker.js';
+import { mountDirectoryProfilePools } from './directoryProfilePools.js';
 import { el, escapeHtml, runtimeSendMessage } from './uiHelpers.js';
+
+type DirectoryTabRenderRef = {
+	current: (state: StoredAutoLaunchState | null, error?: string) => void;
+	refresh: () => Promise<void>;
+};
 
 async function showFillPanelForChannel(
 	identifier: string,
 	state: StoredAutoLaunchState | null,
-	renderRef: { current: (state: StoredAutoLaunchState | null, error?: string) => void }
+	renderRef: DirectoryTabRenderRef
 ): Promise<void> {
 	const result = await sendRuntime({
 		type: OPENQUOK_AUTO_LAUNCH_SHOW_PANEL,
@@ -27,15 +39,17 @@ async function showFillPanelForChannel(
 	if (result.ok === false) {
 		renderRef.current(
 			state,
-			String(result.error ?? 'Could not open the Fill panel on the directory tab.')
+			String(result.error ?? 'Could not start this directory launch.')
 		);
+		return;
 	}
+	await renderRef.refresh();
 }
 
 async function handleDirectoryChannelSelect(
 	identifier: string,
 	state: StoredAutoLaunchState | null,
-	renderRef: { current: (state: StoredAutoLaunchState | null, error?: string) => void }
+	renderRef: DirectoryTabRenderRef
 ): Promise<void> {
 	selectedChannelId = identifier;
 	directoryPickerUserSelection = identifier;
@@ -53,7 +67,7 @@ let lastRenderedSessionSlug: string | null = null;
 
 function statusForState(state: StoredAutoLaunchState | null): string {
 	if (!state) {
-		return 'No active launch. Start from OpenQuok (Build backlinks or My Products).';
+		return 'Pick a directory channel above to open that site and start filling (sign in to OpenQuok in this panel first). Or launch from My Products.';
 	}
 	const config = state.session.extensionConfig;
 	if (!pageMatchesConfig(config)) {
@@ -81,6 +95,13 @@ async function fetchState(): Promise<{
 	}
 }
 
+function pickerSlug(
+	state: StoredAutoLaunchState | null,
+	fallbackSessionSlug: string | null
+): string {
+	return directoryPickerUserSelection ?? fallbackSessionSlug ?? selectedChannelId;
+}
+
 async function sendRuntime(message: Record<string, unknown>): Promise<Record<string, unknown>> {
 	try {
 		const response = await runtimeSendMessage(message);
@@ -98,8 +119,10 @@ export type DirectoryTabController = {
 
 export function mountDirectoryTab(root: HTMLElement): DirectoryTabController {
 	let destroyDirectoryPicker: (() => void) | null = null;
-	const renderRef = {
+	let destroyProfilePools: (() => void) | null = null;
+	const renderRef: DirectoryTabRenderRef = {
 		current: (_state: StoredAutoLaunchState | null, _error?: string) => {},
+		refresh: async () => {},
 	};
 
 	function render(state: StoredAutoLaunchState | null, error?: string): void {
@@ -115,9 +138,16 @@ export function mountDirectoryTab(root: HTMLElement): DirectoryTabController {
 		}
 		const activeSelection =
 			directoryPickerUserSelection ?? sessionSlug ?? selectedChannelId;
+		const activeLaunchProvider = sessionSlug
+			? getDirectoryLaunchProvider(sessionSlug)
+			: undefined;
+		const activeLaunchName = activeLaunchProvider?.name ?? sessionSlug ?? '—';
+		const activeLaunchStartUrl = state?.session.startUrl?.trim() ?? '';
 
 		destroyDirectoryPicker?.();
 		destroyDirectoryPicker = null;
+		destroyProfilePools?.();
+		destroyProfilePools = null;
 
 		root.replaceChildren(
 			el(`
@@ -129,15 +159,30 @@ export function mountDirectoryTab(root: HTMLElement): DirectoryTabController {
 					<strong>${escapeHtml(product)}</strong>
 					<p class="status">${escapeHtml(statusForState(state))}</p>
 					${lastProgress ? `<p class="progress">${escapeHtml(lastProgress)}</p>` : ''}
-					${hasSession ? `<p class="muted session-hint">Active launch: ${escapeHtml(sessionSlug ?? '')}</p>` : ''}
+					${
+						hasSession
+							? `<div class="session-hint card-session-active">
+							<p class="session-hint-kicker">Active launch (one directory at a time)</p>
+							<p class="session-hint-title">${escapeHtml(activeLaunchName)}</p>
+							${
+								activeLaunchStartUrl
+									? `<p class="muted session-hint-url">${escapeHtml(activeLaunchStartUrl)}</p>`
+									: ''
+							}
+						</div>`
+							: ''
+					}
 				</div>
-				<div class="actions">
+				<div class="actions directory-actions">
+					<button id="refresh-profile" class="secondary" ${hasSession ? '' : 'disabled'}>Refresh profile from OpenQuok</button>
 					<button id="fill-all" ${hasSession ? '' : 'disabled'}>Fill all on directory tab</button>
-					<button id="focus-tab" class="secondary" ${hasSession ? '' : 'disabled'}>Focus directory tab</button>
-					<button id="open-start" class="secondary">Open directory page</button>
+					<button id="focus-tab" class="secondary" title="Switch to the browser tab for the active launch (same channel as Active launch below)." ${hasSession ? '' : 'disabled'}>Focus directory tab</button>
+					<button id="reset-fill-panel" class="secondary" title="Move the on-page fill panel back to the top-left so it is not hidden behind this side panel." ${hasSession ? '' : 'disabled'}>Reset fill panel to left</button>
+					<button id="open-start" class="secondary" title="Open the site for the selected channel chip above (starts a launch when it differs from the active one).">Open directory page</button>
 					<button id="mark-done" class="secondary" ${hasSession ? '' : 'disabled'}>Mark submitted in OpenQuok</button>
 					<button id="clear" class="secondary" ${hasSession ? '' : 'disabled'}>Clear session</button>
 				</div>
+				${hasSession ? '<div id="directory-profile-pools" class="profile-pools-host"></div>' : ''}
 				${error ? `<p class="error">${escapeHtml(error)}</p>` : ''}
 			</div>
 		`)
@@ -158,6 +203,23 @@ export function mountDirectoryTab(root: HTMLElement): DirectoryTabController {
 			});
 		}
 
+		const poolsHost = root.querySelector<HTMLElement>('#directory-profile-pools');
+		if (poolsHost && state) {
+			destroyProfilePools = mountDirectoryProfilePools(poolsHost, {
+				state,
+				onError: (message) => render(state, message),
+			});
+		}
+
+		root.querySelector('#refresh-profile')?.addEventListener('click', async () => {
+			const result = await sendRuntime({ type: OPENQUOK_AUTO_LAUNCH_REFRESH_PROFILE });
+			if (result.ok === false) {
+				render(state, String(result.error ?? 'Could not refresh profile.'));
+				return;
+			}
+			await refresh();
+		});
+
 		root.querySelector('#fill-all')?.addEventListener('click', async () => {
 			const result = await sendRuntime({ type: AUTO_LAUNCH_MESSAGE_TYPE.FILL_ALL });
 			if (result.ok === false) {
@@ -166,18 +228,34 @@ export function mountDirectoryTab(root: HTMLElement): DirectoryTabController {
 		});
 
 		root.querySelector('#focus-tab')?.addEventListener('click', async () => {
-			const result = await sendRuntime({ type: 'OPENQUOK_AUTO_LAUNCH_FOCUS_TAB' });
+			const result = await sendRuntime({
+				type: OPENQUOK_AUTO_LAUNCH_FOCUS_TAB,
+				providerSlug: pickerSlug(state, sessionSlug),
+			});
 			if (result.ok === false) {
 				render(state, String(result.error ?? 'Could not focus directory tab.'));
 			}
 		});
 
+		root.querySelector('#reset-fill-panel')?.addEventListener('click', async () => {
+			const result = await sendRuntime({
+				type: OPENQUOK_AUTO_LAUNCH_RESET_PANEL_POSITION,
+			});
+			if (result.ok === false) {
+				render(state, String(result.error ?? 'Could not reset fill panel.'));
+			}
+		});
+
 		root.querySelector('#open-start')?.addEventListener('click', async () => {
-			const slug = sessionSlug ?? selectedChannelId;
-			const provider = getDirectoryLaunchProvider(slug);
-			const url = hasSession ? state?.session.startUrl : provider?.defaultStartUrl;
-			if (!url) return;
-			await chrome.tabs.create({ url, active: true });
+			const result = await sendRuntime({
+				type: OPENQUOK_AUTO_LAUNCH_OPEN_DIRECTORY_PAGE,
+				providerSlug: pickerSlug(state, sessionSlug),
+			});
+			if (result.ok === false) {
+				render(state, String(result.error ?? 'Could not open directory page.'));
+				return;
+			}
+			await refresh();
 		});
 
 		root.querySelector('#mark-done')?.addEventListener('click', async () => {
@@ -209,6 +287,8 @@ export function mountDirectoryTab(root: HTMLElement): DirectoryTabController {
 		);
 	}
 
+	renderRef.refresh = refresh;
+
 	const onRuntimeMessage = (message: unknown): void => {
 		if (!message || typeof message !== 'object') return;
 		const record = message as Record<string, unknown>;
@@ -235,6 +315,8 @@ export function mountDirectoryTab(root: HTMLElement): DirectoryTabController {
 		destroy: () => {
 			destroyDirectoryPicker?.();
 			destroyDirectoryPicker = null;
+			destroyProfilePools?.();
+			destroyProfilePools = null;
 			chrome.runtime.onMessage.removeListener(onRuntimeMessage);
 		},
 	};

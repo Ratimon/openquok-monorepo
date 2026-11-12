@@ -51,6 +51,7 @@ export {
 	getCookieSessionProvider,
 	getDirectoryLaunchProvider,
 	getDirectoryLaunchSiteKeyFromLocation,
+	resolveDirectoryLaunchStartUrl,
 	coerceAutoLaunchHandoffRequestFields,
 	isAutoLaunchHandoffRequestFields,
 	isAutoLaunchMessageType,
@@ -67,8 +68,11 @@ export {
 	type AutoLaunchCompleteMessage,
 	type AutoLaunchCompletePayload,
 	type AutoLaunchExtensionConfig,
+	AUTO_LAUNCH_FOCUSED_FILL_MODES,
 	type AutoLaunchFillAllMessage,
+	type AutoLaunchFillFocusedMessage,
 	type AutoLaunchFillStepMessage,
+	type AutoLaunchFocusedFillMode,
 	type AutoLaunchHandoffRequestFields,
 	type AutoLaunchHandoffSession,
 	type AutoLaunchMessageType,
@@ -135,6 +139,18 @@ export {
 	computeListingProfileFingerprint,
 	resolveProfilePathValue,
 } from './auto-launch/listingProfileFingerprint.js';
+export {
+	highlightPathsForDestination,
+	listProfilePoolSections,
+	readProfilePathRaw,
+	resolveProfilePathArray,
+	type ListProfilePoolSectionsOptions,
+	type ProfilePoolFieldDefinition,
+	type ProfilePoolFieldKind,
+	type ProfilePoolFieldResolved,
+	type ProfilePoolSection,
+	type ProfilePoolSectionId,
+} from './auto-launch/profileFieldCatalog.js';
 export { profileSimilarityPercentToMain } from './auto-launch/profileSimilarityToMain.js';
 export { directorySiteKeyFromProviderSlug } from './auto-launch/directorySiteKey.js';
 export {
@@ -142,6 +158,21 @@ export {
 	getDirectorySiteOpportunityProgress,
 	type DirectorySiteOpportunityProgress
 } from './auto-launch/directoryOpportunityProgress.js';
+export {
+	DIRECTORY_EXTENSION_CONFIG_FIXTURES,
+	DIRECTORY_EXTENSION_CONFIG_PROVIDER_SLUGS,
+	getDirectoryExtensionConfigFixture,
+	OPEN_LAUNCH_FREE_LAUNCH_EXTENSION_CONFIG,
+	OPEN_LAUNCH_PREMIUM_LAUNCH_EXTENSION_CONFIG,
+	PEERPUSH_FREE_QUEUE_EXTENSION_CONFIG,
+	PEERPUSH_STANDARD_LAUNCH_EXTENSION_CONFIG,
+	UNEED_JOIN_LINE_EXTENSION_CONFIG,
+	UNEED_MAKER_PROFILE_EXTENSION_CONFIG,
+	UNEED_PAID_LAUNCH_EXTENSION_CONFIG,
+	coerceUneedPricingType,
+	matchUneedOfficialTag,
+	normalizeUneedTagLabel,
+} from './auto-launch/destination-configs/index.js';
 export {
 	collectProfileFieldsFromExtensionConfig,
 	getDestinationReadiness,
@@ -155,6 +186,22 @@ export {
 	type ProfileLaunchSummaryNextGap,
 } from './auto-launch/profileLaunchReadiness.js';
 export {
+	compareFieldRow,
+	normalizeForCompare,
+	normalizeProfileValue,
+	type CompareFieldRowOptions,
+	type DirectoryFieldCompareRow,
+	type FieldSyncStatus,
+	type NormalizedFieldValue,
+	type NormalizedFieldValueKind,
+} from './auto-launch/fieldCompare.js';
+export {
+	plainTextToSimpleHtml,
+	richHtmlToPlainText,
+	sanitizeRichHtmlBeforeCompare,
+	stripHtmlToPlainText,
+} from './auto-launch/richHtmlNormalize.js';
+export {
 	BUSINESS_PROFILE_INCLUDED_ASSET_SLUGS,
 	BUSINESS_PROFILE_MAX_ALTERNATIVES,
 	BUSINESS_PROFILE_MAX_CATEGORIES,
@@ -162,10 +209,12 @@ export {
 	BUSINESS_PROFILE_MAX_PLATFORMS,
 	BUSINESS_PROFILE_MAX_TECH_STACK,
 	BUSINESS_PROFILE_MAX_TAGS,
+	BUSINESS_PROFILE_DIRECTORY_TAGLINE_MAX,
 	BUSINESS_PROFILE_MAX_TARGET_AUDIENCES,
 	BUSINESS_PROFILE_MAX_USE_CASES,
 	BUSINESS_PROFILE_PRICING_TYPES,
 	BUSINESS_PROFILE_SELLING_REASON_MIN_LENGTH,
+	deriveListingTags,
 	EMPTY_BUSINESS_PROFILE_DATA,
 	mergeBusinessProfileData,
 	normalizeBusinessProfileData,
@@ -173,6 +222,32 @@ export {
 	type BusinessProfileIncludedAssetSlug,
 	type BusinessProfilePricingType,
 } from './auto-launch/businessProfileData.js';
+export {
+	applyLaunchFieldScalarCap,
+	applyLaunchFieldScalarCoercion,
+	applyLaunchFieldSelectCoercion,
+	coerceSocialXToUsername,
+	fillableTagsForLaunchField,
+	filterTagsForLaunchField,
+	invalidProfileSelectForField,
+	invalidProfileTagsForField,
+	profileScalarExceedsCap,
+	profileSelectPresetsForField,
+} from './auto-launch/launchFieldConstraints.js';
+export {
+	LAUNCH_FIELD_CATALOG_IDS,
+	catalogListFillSkipMessage,
+	catalogTagsDomFillSkipMessage,
+	choiceGroupControlCountBounds,
+	fieldHasLaunchFieldCatalog,
+	resolveLaunchFieldCatalogId,
+	type LaunchFieldCatalogId,
+} from './auto-launch/destination-configs/fieldCatalogRegistry.js';
+export {
+	BUSINESS_PROFILE_SLUG_PATTERN,
+	isValidBusinessProfileSlug,
+	normalizeBusinessProfileSlug,
+} from './auto-launch/normalizeBusinessProfileSlug.js';
 export {
 	MEDIA_VIRTUAL_GENERAL,
 	MEDIA_VIRTUAL_POSTS,

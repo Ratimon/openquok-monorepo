@@ -31,6 +31,16 @@ describe('businessProfileDataFormSchema', () => {
 		expect(result.success).toBe(true);
 	});
 
+	it('normalizes directory slugs with trailing hyphens', () => {
+		const result = businessProfileDataFormSchema.safeParse({
+			slug: 'openquok-peerpush-'
+		});
+		expect(result.success).toBe(true);
+		if (result.success) {
+			expect(result.data.slug).toBe('openquok-peerpush');
+		}
+	});
+
 	it('normalizes repository URL without scheme on save', () => {
 		const result = businessProfileDataFormSchema.safeParse({
 			is_open_source: true,

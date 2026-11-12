@@ -3,8 +3,14 @@ import type {
 	AutoLaunchProfileSnapshot,
 } from '../browser-extension/pageAssist.js';
 
+import type { LaunchStepField } from '../browser-extension/pageAssist.js';
 import { directorySiteKeyFromProviderSlug } from './directorySiteKey.js';
+import {
+	invalidProfileTagsForField,
+	profileScalarExceedsCap,
+} from './launchFieldConstraints.js';
 import { resolveProfilePathValue } from './listingProfileFingerprint.js';
+import { resolveProfilePathArray } from './profileFieldCatalog.js';
 
 export type ProfileLaunchMissingField = {
 	path: string;
@@ -86,6 +92,64 @@ export function collectProfileFieldsFromExtensionConfig(
 	return fields.sort((a, b) => a.path.localeCompare(b.path));
 }
 
+function collectConstraintViolations(
+	snapshot: AutoLaunchProfileSnapshot,
+	extensionConfig: AutoLaunchExtensionConfig | null | undefined
+): ProfileLaunchMissingField[] {
+	const missing: ProfileLaunchMissingField[] = [];
+	const seen = new Set<string>();
+
+	const pushMissing = (path: string, label: string) => {
+		const key = `${path}::${label}`;
+		if (seen.has(key)) return;
+		seen.add(key);
+		missing.push({ path, label });
+	};
+
+	for (const step of extensionConfig?.steps ?? []) {
+		for (const field of step.fields ?? []) {
+			appendFieldConstraintViolations(snapshot, field, pushMissing);
+		}
+	}
+
+	return missing;
+}
+
+function appendFieldConstraintViolations(
+	snapshot: AutoLaunchProfileSnapshot,
+	field: LaunchStepField,
+	pushMissing: (path: string, label: string) => void
+): void {
+	const profilePath = field.profilePath?.trim();
+	if (!profilePath) return;
+
+	if (field.fillMode === 'tags' || profilePath === 'profile_data.tags') {
+		const joined = resolveProfilePathValue(snapshot, profilePath);
+		const items = joined
+			? joined
+					.split(',')
+					.map((part) => part.trim())
+					.filter(Boolean)
+			: resolveProfilePathArray(snapshot, profilePath);
+		const invalidTags = invalidProfileTagsForField(items, field);
+		if (invalidTags.length > 0) {
+			pushMissing(
+				profilePath,
+				`${field.label}: replace non-Uneed tags (${invalidTags.slice(0, 3).join(', ')}${invalidTags.length > 3 ? '…' : ''})`
+			);
+		}
+		return;
+	}
+
+	const scalar = resolveProfilePathValue(snapshot, profilePath);
+	if (scalar && profileScalarExceedsCap(field, scalar)) {
+		pushMissing(
+			profilePath,
+			`${field.label} (max ${field.maxScalarLength} characters for this directory)`
+		);
+	}
+}
+
 export function getDestinationReadiness(
 	snapshot: AutoLaunchProfileSnapshot,
 	extensionConfig: AutoLaunchExtensionConfig | null | undefined
@@ -99,8 +163,14 @@ export function getDestinationReadiness(
 		}
 	}
 
+	for (const constraint of collectConstraintViolations(snapshot, extensionConfig)) {
+		if (!missingFields.some((entry) => entry.path === constraint.path && entry.label === constraint.label)) {
+			missingFields.push(constraint);
+		}
+	}
+
 	const totalFields = fieldDefs.length;
-	const filledFields = totalFields - missingFields.length;
+	const filledFields = Math.max(0, totalFields - missingFields.length);
 
 	return {
 		totalFields,

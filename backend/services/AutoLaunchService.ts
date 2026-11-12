@@ -773,6 +773,80 @@ export class AutoLaunchService {
         return toSubmissionIntentDto({
             submissionId: submission.id,
             launchToken,
+            productProfileId: profile.id,
+            destination,
+            profileSnapshot,
+        });
+    }
+
+    /** Rebuild handoff snapshot from the live product profile (extension after dashboard edits). */
+    async refreshSubmissionIntentFromLaunchToken(
+        authUserId: string,
+        launchToken: string,
+        productProfileIdOverride?: string
+    ): Promise<AutoLaunchSubmissionIntentDto> {
+        const secret = launchTokenSecret();
+        const payload = verifyLaunchToken(launchToken, secret);
+        if (!payload) {
+            throw new AutoLaunchTokenInvalidError();
+        }
+
+        await this.integrationConnectionService.assertOrganizationMember(
+            authUserId,
+            payload.organizationId
+        );
+        await this.assertDirectoryLaunchEnabled(payload.organizationId, authUserId);
+
+        const existing = await this.autoLaunchRepository.findSubmissionById(payload.submissionId);
+        if (!existing || existing.organization_id !== payload.organizationId) {
+            throw new AutoLaunchSubmissionNotFoundError(payload.submissionId);
+        }
+
+        const destination = await this.autoLaunchRepository.findDestinationById(existing.destination_id);
+        if (!destination) {
+            throw new AutoLaunchDestinationNotFoundError(existing.destination_id);
+        }
+        if (!destination.is_published) {
+            throw new AutoLaunchDestinationNotFoundError(destination.id);
+        }
+
+        const profileIdOverride = productProfileIdOverride?.trim() || undefined;
+        const profile = profileIdOverride
+            ? await this.resolveExplicitProfileForSubmissionRefresh(
+                  payload.organizationId,
+                  existing.product_profile_id,
+                  profileIdOverride
+              )
+            : await this.resolveProductProfileForLaunch(
+                  payload.organizationId,
+                  existing.product_profile_id,
+                  destination
+              );
+        const profileSnapshot = buildProfileSnapshot(profile);
+        const extensionConfig = destination.extension_config ?? {};
+
+        const submission = await this.autoLaunchRepository.refreshSubmissionIntent({
+            submissionId: existing.id,
+            organizationId: payload.organizationId,
+            profileSnapshot: profileSnapshot as unknown as Record<string, unknown>,
+            extensionConfigSnapshot: extensionConfig,
+            ...(profileIdOverride ? { productProfileId: profile.id } : {}),
+        });
+
+        const newLaunchToken = signLaunchToken(
+            {
+                submissionId: submission.id,
+                organizationId: payload.organizationId,
+                destinationId: destination.id,
+                providerSlug: destination.provider_slug,
+            },
+            secret
+        );
+
+        return toSubmissionIntentDto({
+            submissionId: submission.id,
+            launchToken: newLaunchToken,
+            productProfileId: profile.id,
             destination,
             profileSnapshot,
         });
@@ -884,6 +958,33 @@ export class AutoLaunchService {
                 : [];
         const mainById = new Map(mains.map((main) => [main.id, main]));
         return toAutoLaunchProductProfileDtoCollection(rows, mainById);
+    }
+
+    /** Main profile id shared by submission + optional directory variants. */
+    private async resolveExplicitProfileForSubmissionRefresh(
+        organizationId: string,
+        submissionProfileId: string,
+        requestedProfileId: string
+    ): Promise<AutoLaunchProductProfileRow> {
+        const submissionProfile = await this.autoLaunchRepository.findProfileById(submissionProfileId);
+        if (!submissionProfile || submissionProfile.organization_id !== organizationId) {
+            throw new AutoLaunchProfileNotFoundError(submissionProfileId);
+        }
+        const mainProfileId = submissionProfile.parent_profile_id ?? submissionProfile.id;
+
+        const profile = await this.autoLaunchRepository.findProfileById(requestedProfileId);
+        if (!profile || profile.organization_id !== organizationId) {
+            throw new AutoLaunchProfileNotFoundError(requestedProfileId);
+        }
+        const inFamily =
+            profile.id === mainProfileId ||
+            profile.parent_profile_id === mainProfileId;
+        if (!inFamily) {
+            throw new UserValidationError(
+                "productProfileId must be the main product profile or a directory variant of that product."
+            );
+        }
+        return profile;
     }
 
     private async resolveProductProfileForLaunch(

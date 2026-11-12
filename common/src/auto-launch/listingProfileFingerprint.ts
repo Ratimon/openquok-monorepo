@@ -4,6 +4,7 @@ import type {
 	AutoLaunchExtensionConfig,
 	AutoLaunchProfileSnapshot,
 } from '../browser-extension/pageAssist.js';
+import { deriveListingTags } from './businessProfileData.js';
 
 function readPath(root: Record<string, unknown>, path: string): unknown {
 	const segments = path.split('.').filter(Boolean);
@@ -51,6 +52,16 @@ export function resolveProfilePathValue(
 		profile_data: snapshot.profile_data ?? {},
 		integration_customer_id: snapshot.integration_customer_id,
 	};
+
+	if (profilePath === 'profile_data.tags') {
+		const profileData = snapshot.profile_data ?? {};
+		const storedTags = profileData.tags;
+		if (Array.isArray(storedTags) && storedTags.length > 0) {
+			return storedTags.map(String).join(', ');
+		}
+		const derived = deriveListingTags(profileData);
+		return derived.length > 0 ? derived.join(', ') : null;
+	}
 
 	const value = readPath(root, profilePath);
 	if (value === null || value === undefined) return null;

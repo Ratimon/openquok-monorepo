@@ -8,6 +8,10 @@
 		AutoLaunchProfileMediaPatch,
 		AutoLaunchProfileSavePayload
 	} from '$lib/auto-launch/AutoLaunchProducts.presenter.svelte';
+	import type {
+		DeleteBusinessProfileModalData,
+		DeleteBusinessProfileModalResult
+	} from '$lib/auto-launch/deleteBusinessProfileModal.types';
 
 	// --- App / routing ---
 	import { browser } from '$app/environment';
@@ -1023,13 +1027,17 @@
 		}
 	}
 
-	async function handleProductsDeleteProfile(profileId: string): Promise<void> {
-		const resultVm = await autoLaunchProductsPresenter.deleteProfile(profileId);
+	async function deleteBusinessProfileForModal(
+		data: DeleteBusinessProfileModalData
+	): Promise<DeleteBusinessProfileModalResult> {
+		const resultVm = await autoLaunchProductsPresenter.deleteProfile(data.profileId);
 		if (!resultVm.ok) {
-			toast.error(resultVm.error);
-			return;
+			return { success: false, message: resultVm.error };
 		}
-		toast.success('Business profile removed.');
+		return {
+			success: true,
+			message: data.isVariant ? 'Directory variant removed.' : 'Business profile removed.'
+		};
 	}
 
 	function handleSwitchWorkspace(nextWorkspaceId: string) {
@@ -1236,7 +1244,7 @@
 						composerInitialTab={autoLaunchProductsPresenter.composerInitialTab}
 						onOpenCreate={() => autoLaunchProductsPresenter.openCreateComposer()}
 						onOpenEdit={(profileId, tab) => autoLaunchProductsPresenter.openEditComposer(profileId, tab)}
-						onDeleteProfile={(id) => void handleProductsDeleteProfile(id)}
+						deleteBusinessProfileForModal={deleteBusinessProfileForModal}
 						onSaveProfile={handleProductsSaveProfile}
 						onComposerCancel={() => autoLaunchProductsPresenter.closeComposer()}
 						onDirectoryListingSaved={(submission) => {

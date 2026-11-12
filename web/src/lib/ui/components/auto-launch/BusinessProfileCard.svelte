@@ -1,14 +1,24 @@
 <script lang="ts">
-	import type { AutoLaunchSubmissionDto } from '$lib/auto-launch/auto-launch.types';
+	import type {
+		AutoLaunchProductProfileDto,
+		AutoLaunchSubmissionDto
+	} from '$lib/auto-launch/auto-launch.types';
 	import type { DirectoryLaunchSiteSummaryRow } from '$lib/auto-launch/groupDirectoryLaunchSiteSummaryRows';
 	import type { DirectoryProfileVariantRowViewModel } from '$lib/auto-launch/AutoLaunchProducts.presenter.svelte';
 	import type { BusinessProfileLaunchCardVm } from '$lib/auto-launch/utils/buildProfileLaunchCardVm';
 	import type { AutoLaunchDestinationDto } from '$lib/auto-launch/auto-launch.types';
+	import type {
+		DeleteBusinessProfileModalData,
+		DeleteBusinessProfileModalResult
+	} from '$lib/auto-launch/deleteBusinessProfileModal.types';
 
 	import { cn } from '$lib/ui/helpers/common';
+	import { icons } from '$data/icons';
+	import { destructiveGhostButtonClass } from '$lib/ui/constants/destructiveButtonClasses';
 
 	import AddDirectoryLaunch from '$lib/ui/components/auto-launch/AddDirectoryLaunch.svelte';
 	import BusinessProfileDirectoryPanel from '$lib/ui/components/auto-launch/BusinessProfileDirectoryPanel.svelte';
+	import ActionVerificationModal from '$lib/ui/modals/ActionVerificationModal.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 
 	type ComposerTabHint = 'discovery' | 'general';
@@ -33,7 +43,9 @@
 			directorySiteKey: string
 		) => Promise<{ ok: true; profileId: string } | { ok: false; error: string }>;
 		onEdit: (profileId: string, tab?: ComposerTabHint) => void;
-		onDelete: (profileId: string) => void;
+		deleteBusinessProfileForModal: (
+			data: DeleteBusinessProfileModalData
+		) => Promise<DeleteBusinessProfileModalResult>;
 	};
 
 	let {
@@ -50,8 +62,23 @@
 		onDirectoryListingRemoved,
 		onCreateDirectoryVariant,
 		onEdit,
-		onDelete
+		deleteBusinessProfileForModal
 	}: Props = $props();
+
+	let deleteModalOpen = $state(false);
+	let deleteModalTarget = $state<DeleteBusinessProfileModalData | null>(null);
+
+	const deleteModalTitle = $derived(
+		deleteModalTarget?.isVariant ? 'Delete directory variant' : 'Delete business profile'
+	);
+
+	const deleteModalDescription = $derived.by(() => {
+		if (!deleteModalTarget) return '';
+		if (deleteModalTarget.isVariant) {
+			return `Delete the ${deleteModalTarget.displayLabel} tailored profile? Launches on this directory will use your main profile copy again.`;
+		}
+		return `Remove "${deleteModalTarget.displayLabel}"? Tailored directory variants and launch progress for this product will be removed. This cannot be undone.`;
+	});
 
 	const profileInitial = $derived((vm.name || 'P').trim().slice(0, 1).toUpperCase());
 
@@ -71,6 +98,28 @@
 			? { label: 'Live', class: 'badge-success badge-outline' }
 			: { label: 'Draft', class: 'badge-ghost' }
 	);
+
+	function openDeleteMainProfileModal(): void {
+		deleteModalTarget = {
+			profileId: vm.profileId,
+			isVariant: false,
+			displayLabel: vm.name
+		};
+		deleteModalOpen = true;
+	}
+
+	function openDeleteVariantModal(variant: AutoLaunchProductProfileDto): void {
+		deleteModalTarget = {
+			profileId: variant.id,
+			isVariant: true,
+			displayLabel: variant.directorySiteKey ?? 'directory'
+		};
+		deleteModalOpen = true;
+	}
+
+	async function executeDeleteProfile(data: unknown): Promise<DeleteBusinessProfileModalResult> {
+		return deleteBusinessProfileForModal(data as DeleteBusinessProfileModalData);
+	}
 </script>
 
 <article
@@ -117,7 +166,13 @@
 				productProfileId={vm.profileId}
 				onDirectoryListingSaved={onDirectoryListingSaved}
 			/>
-			<Button type="button" variant="ghost" size="sm" onclick={() => onDelete(vm.profileId)}>
+			<Button
+				type="button"
+				variant="ghost"
+				size="sm"
+				class={destructiveGhostButtonClass}
+				onclick={openDeleteMainProfileModal}
+			>
 				Delete
 			</Button>
 		</div>
@@ -138,15 +193,26 @@
 									</span>
 								{/if}
 							</span>
-							<Button
-								type="button"
-								variant="ghost"
-								size="sm"
-								class="btn-xs h-7 min-h-0"
-								onclick={() => onEdit(variantRow.profile.id)}
-							>
-								Edit variant
-							</Button>
+							<div class="flex flex-wrap items-center gap-1">
+								<Button
+									type="button"
+									variant="ghost"
+									size="sm"
+									class="btn-xs h-7 min-h-0"
+									onclick={() => onEdit(variantRow.profile.id)}
+								>
+									Edit variant
+								</Button>
+								<Button
+									type="button"
+									variant="ghost"
+									size="sm"
+									class={cn('btn-xs h-7 min-h-0', destructiveGhostButtonClass)}
+									onclick={() => openDeleteVariantModal(variantRow.profile)}
+								>
+									Delete variant
+								</Button>
+							</div>
 						</div>
 						{#if variantRow.driftWarning}
 							<p class="text-warning">{variantRow.driftWarning}</p>
@@ -189,3 +255,20 @@
 		onListingDetailsRemoved={onDirectoryListingRemoved}
 	/>
 </article>
+
+{#if deleteModalTarget}
+	<ActionVerificationModal
+		data={deleteModalTarget}
+		bind:open={deleteModalOpen}
+		executionFunction={executeDeleteProfile}
+		buttonIconName={icons.Trash.name}
+		buttonText={deleteModalTarget.isVariant ? 'Delete variant' : 'Delete profile'}
+		modalTitle={deleteModalTitle}
+		modalDescription={deleteModalDescription}
+		modalVerficationWithAnswer={false}
+		confirmButtonVariant="red"
+		onSuccess={() => {
+			deleteModalTarget = null;
+		}}
+	/>
+{/if}

@@ -27,6 +27,7 @@ type SubmissionIntentRow = {
 	launchToken: string;
 	startUrl: string;
 	providerSlug: string;
+	productProfileId?: string;
 	profileSnapshot: Record<string, unknown>;
 	extensionConfig: Record<string, unknown>;
 };
@@ -131,6 +132,7 @@ export async function buildDirectoryLaunchHandoffFromSite(
 		launchToken: intent.launchToken,
 		providerSlug: intent.providerSlug,
 		startUrl: intent.startUrl,
+		...(intent.productProfileId ? { productProfileId: intent.productProfileId } : {}),
 		profileSnapshot: intent.profileSnapshot,
 		extensionConfig: intent.extensionConfig,
 		skipStartUrlTabOpen: true,

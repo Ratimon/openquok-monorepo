@@ -144,6 +144,36 @@ h1 {
 	margin-bottom: 0;
 }
 
+.card-session-active {
+	margin-top: 10px;
+	padding: 10px 12px;
+	border: 1px solid color-mix(in oklab, var(--color-primary) 35%, var(--color-base-300));
+	border-radius: var(--radius-box);
+	background: color-mix(in oklab, var(--color-primary) 8%, var(--color-base-200));
+}
+
+.session-hint-kicker {
+	margin: 0 0 4px;
+	font-size: 10px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--color-primary);
+}
+
+.session-hint-title {
+	margin: 0;
+	font-size: 13px;
+	font-weight: 650;
+	color: var(--color-base-content);
+}
+
+.session-hint-url {
+	margin: 4px 0 0;
+	font-size: 11px;
+	word-break: break-all;
+}
+
 .directory-nav-dialog-backdrop {
 	position: fixed;
 	inset: 0;
@@ -1148,4 +1178,169 @@ button:disabled {
 .reddit-action-buttons .secondary {
 	font-size: 11px;
 	padding: 5px 8px;
+}
+
+.directory-actions {
+	margin-bottom: 12px;
+}
+
+.profile-pools-host {
+	margin-bottom: 10px;
+}
+
+.profile-pools {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.profile-pools-lead {
+	margin: 0 0 4px;
+	font-size: 11px;
+	line-height: 1.4;
+}
+
+.profile-pools-file-hint {
+	margin: 0;
+	font-size: 10px;
+}
+
+.profile-pools-sections {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.profile-pool-section {
+	border: 1px solid var(--color-base-300);
+	border-radius: var(--radius-field);
+	background: var(--color-base-200);
+	overflow: hidden;
+}
+
+.profile-pool-section-summary {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 8px 10px;
+	font-size: 12px;
+	font-weight: 600;
+	cursor: pointer;
+	list-style: none;
+	color: var(--color-base-content);
+}
+
+.profile-pool-section-summary::-webkit-details-marker {
+	display: none;
+}
+
+.profile-pool-section-body {
+	padding: 0 10px 10px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.profile-pool-field {
+	padding: 8px;
+	border-radius: calc(var(--radius-field) - 2px);
+	border: 1px solid transparent;
+}
+
+.profile-pool-field--highlighted {
+	border-color: color-mix(in oklab, var(--color-primary) 35%, var(--color-base-300));
+	background: color-mix(in oklab, var(--color-primary) 6%, var(--color-base-200));
+}
+
+.profile-pool-field-head {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-bottom: 6px;
+}
+
+.profile-pool-field-label {
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--color-base-content);
+}
+
+.profile-pool-launch-badge {
+	flex-shrink: 0;
+	padding: 1px 5px;
+	border-radius: 4px;
+	font-size: 8px;
+	font-weight: 700;
+	letter-spacing: 0.03em;
+	text-transform: uppercase;
+	color: var(--color-primary);
+	background: color-mix(in oklab, var(--color-primary) 18%, var(--color-base-100));
+}
+
+.profile-pool-launch-badge--section {
+	font-size: 9px;
+}
+
+.profile-pool-checks {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.profile-pool-check {
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+	font-size: 11px;
+	color: var(--color-base-content);
+	cursor: pointer;
+}
+
+.profile-pool-check-input {
+	margin: 2px 0 0;
+	accent-color: var(--color-primary);
+}
+
+.profile-pool-check-text {
+	line-height: 1.35;
+	word-break: break-word;
+}
+
+.profile-pool-max {
+	display: block;
+	margin-top: 4px;
+	font-size: 10px;
+}
+
+.profile-pool-empty {
+	margin: 0;
+	font-size: 10px;
+}
+
+.profile-pool-scalar-row {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.profile-pool-scalar-value {
+	flex: 1;
+	min-width: 0;
+	font-size: 11px;
+	line-height: 1.35;
+	color: var(--color-base-content-muted);
+	word-break: break-word;
+}
+
+.profile-pool-fill-one {
+	flex-shrink: 0;
+	padding: 5px 8px;
+	font-size: 10px;
+}
+
+#profile-pools-fill-selected {
+	width: 100%;
 }

@@ -8589,6 +8589,172 @@ WHERE s.id = saved.site_id;
 -- ---------------------------
 
 
+-- Module: auto-launch, File: 401_20261109_functions_dev_business_profile.sql
+-- ---------------------------
+-- MODULE NAME: Auto Launch
+-- MODULE DATE: 20261109
+-- MODULE SCOPE: Functions (local dev — optional OpenQuok business profile seed)
+-- ---------------------------
+
+BEGIN;
+
+CREATE OR REPLACE FUNCTION public.auto_launch_dev_openquok_profile_seed_enabled()
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+    SELECT COALESCE(
+        (
+            SELECT (mc.config ->> 'SEED_OPENQUOK_BUSINESS_PROFILE_ON_ORG_CREATE')::boolean
+            FROM public.module_configs AS mc
+            WHERE mc.module_name = 'auto_launch'
+        ),
+        FALSE
+    );
+$$;
+
+COMMENT ON FUNCTION public.auto_launch_dev_openquok_profile_seed_enabled() IS
+    'When true (module_configs.auto_launch), new workspaces receive a pre-filled OpenQuok My Products profile for local dev.';
+
+CREATE OR REPLACE FUNCTION public.auto_launch_ensure_openquok_business_profile(p_organization_id uuid)
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $fn$
+DECLARE
+    v_profile_id uuid;
+    v_profile_data jsonb := $json$
+{
+    "slug": "openquok",
+    "categories": ["SaaS", "Marketing", "Developer Tools"],
+    "use_cases": ["Social Media Automation", "Content Creation", "AI Agents"],
+    "target_audiences": ["Content Creators", "Social Media Managers", "Founders"],
+    "platforms": ["Web", "API", "MCP", "CLI", "Chrome extension"],
+    "tech_stack": ["TypeScript", "SvelteKit", "Node.js", "PostgreSQL", "Supabase"],
+    "pricing_type": "freemium",
+    "is_open_source": true,
+    "repository_url": "https://github.com/Ratimon/openquok-monorepo",
+    "launch_video_url": "https://www.youtube.com/watch?v=iKNimZ9FBu8",
+    "gallery_urls": [],
+    "social_x": "https://x.com/openquok",
+    "social_youtube": "https://www.youtube.com/watch?v=iKNimZ9FBu8",
+    "acquisition_listed": false
+}
+$json$::jsonb;
+    v_openquok_description text := $html$
+<p>OpenQuok is an open-source Content OS for social scheduling and directory launch. Plan, draft, schedule, and track posts from one workspace. Use the calendar and kanban board—you approve every post before it goes live.</p>
+<p>Post everywhere you publish: Meta (Facebook Page, Instagram, Threads), LinkedIn, X, YouTube, TikTok, Bluesky, Dev.to, Skool, and Reddit. Connect AI agents through MCP, the openquok CLI, or the Public API.</p>
+<p>Install the OpenQuok Chrome extension to autofill directory forms on PeerPush, Uneed, Open Launch, and more. Run on OpenQuok Cloud or self-host the full stack (AGPL on GitHub).</p>
+$html$;
+    v_description text;
+BEGIN
+    v_description := v_openquok_description;
+    -- Uneed maps `profile_data.category` (single select); dashboard stores first Discovery category.
+    v_profile_data := v_profile_data || jsonb_build_object(
+        'category',
+        NULLIF(TRIM(v_profile_data #>> '{categories,0}'), '')
+    );
+
+    IF p_organization_id IS NULL THEN
+        RETURN NULL;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM public.organizations AS o WHERE o.id = p_organization_id) THEN
+        RETURN NULL;
+    END IF;
+
+    SELECT p.id
+    INTO v_profile_id
+    FROM public.auto_launch_product_profiles AS p
+    WHERE p.organization_id = p_organization_id
+      AND p.deleted_at IS NULL
+      AND p.profile_kind = 'main'
+      AND p.parent_profile_id IS NULL
+    ORDER BY p.created_at ASC
+    LIMIT 1;
+
+    IF v_profile_id IS NOT NULL THEN
+        -- Repair legacy rows where SQL dollar-quote delimiters were saved into description (local dev copy/paste).
+        UPDATE public.auto_launch_product_profiles AS p
+        SET
+            description = v_openquok_description,
+            updated_at = NOW()
+        WHERE p.id = v_profile_id
+          AND p.name = 'OpenQuok'
+          AND (
+              p.description LIKE '%$html$%'
+              OR p.description LIKE '%$json$%'
+          );
+        RETURN v_profile_id;
+    END IF;
+
+    INSERT INTO public.auto_launch_product_profiles (
+        organization_id,
+        name,
+        tagline,
+        description,
+        website_url,
+        logo_url,
+        profile_data,
+        profile_kind,
+        created_at,
+        updated_at
+    )
+    VALUES (
+        p_organization_id,
+        'OpenQuok',
+        'Save hours: agentic Social scheduling + Directory launch.',
+        v_description,
+        'https://www.openquok.com',
+        'https://www.openquok.com/pwa/favicon-512.png',
+        v_profile_data,
+        'main',
+        NOW(),
+        NOW()
+    )
+    RETURNING id INTO v_profile_id;
+
+    RETURN v_profile_id;
+END;
+$fn$;
+
+COMMENT ON FUNCTION public.auto_launch_ensure_openquok_business_profile(uuid) IS
+    'Idempotently inserts the exemplar OpenQuok business profile when the workspace has no main product profile.';
+
+CREATE OR REPLACE FUNCTION public.auto_launch_trg_seed_openquok_profile_after_org()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    IF public.auto_launch_dev_openquok_profile_seed_enabled() THEN
+        PERFORM public.auto_launch_ensure_openquok_business_profile(NEW.id);
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_auto_launch_seed_openquok_profile_on_org ON public.organizations;
+
+CREATE TRIGGER trg_auto_launch_seed_openquok_profile_on_org
+    AFTER INSERT ON public.organizations
+    FOR EACH ROW
+    EXECUTE FUNCTION public.auto_launch_trg_seed_openquok_profile_after_org();
+
+REVOKE ALL ON FUNCTION public.auto_launch_dev_openquok_profile_seed_enabled() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.auto_launch_ensure_openquok_business_profile(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.auto_launch_dev_openquok_profile_seed_enabled() TO service_role;
+GRANT EXECUTE ON FUNCTION public.auto_launch_ensure_openquok_business_profile(uuid) TO service_role;
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
 -- Module: user-management, File: 500_20260227_seed.sql
 -- ---------------------------
 -- MODULE NAME: User Management
@@ -12589,12 +12755,220 @@ WHERE s.id = sub.site_id;
 -- ---------------------------
 
 
+-- Module: link-directory, File: 505_20261110_seed_open_launch.sql
+-- ---------------------------
+-- MODULE NAME: Link Directory
+-- MODULE DATE: 20261110
+-- MODULE SCOPE: Seed (Open Launch premium + free opportunities for auto-launch destination joins)
+-- ---------------------------
+-- Production may author these in CMS; local / CI needs rows so auto_launch_destinations 504_* INSERT … SELECT succeeds.
+
+BEGIN;
+
+UPDATE public.link_directory_sites
+SET
+    site_url = 'https://open-launch.com',
+    short_description = 'Launch and list startup projects on open-launch.com.',
+    long_description = COALESCE(
+        long_description,
+        'Open Launch runs product launch slots (free queue and premium submit). Listings can link to your site when published.'
+    ),
+    is_admin_published = true,
+    published_at = COALESCE(published_at, NOW())
+WHERE slug = 'open-launch';
+
+INSERT INTO public.link_directory_opportunities (
+    id,
+    site_id,
+    published_at,
+    slug,
+    title,
+    opportunity_type_id,
+    effort,
+    approval_mode,
+    approval_time_hint,
+    dofollow,
+    cost_tier,
+    cost_note,
+    description,
+    steps,
+    openquok_cta_kind,
+    openquok_channel_slug,
+    openquok_plug_name,
+    cta_href,
+    cta_label,
+    sort_order,
+    is_admin_published,
+    auto_launch_enabled,
+    auto_launch_provider_slug
+)
+SELECT
+    'd5f7d000-0020-4000-a000-000000000018'::uuid,
+    s.id,
+    NOW(),
+    'premium-launch',
+    'Premium launch',
+    'd5f7d000-0004-4000-a000-000000000006'::uuid,
+    'medium',
+    'manual_review',
+    'Usually within a few business days after submit',
+    'unknown',
+    'paid',
+    'Check current pricing on Open Launch',
+    'Premium submit at open-launch.com/projects/submit lists your project when the slot is approved.',
+    '[
+        {"order":1,"title":"Open pricing","body":"Review free vs premium on https://open-launch.com/pricing."},
+        {"order":2,"title":"Submit project","body":"Sign in and complete the submit wizard at https://open-launch.com/projects/submit."},
+        {"order":3,"title":"Confirm listing","body":"Verify categories, tech stack, and links before you publish on Open Launch."}
+    ]'::jsonb,
+    'external_doc',
+    NULL,
+    NULL,
+    'https://open-launch.com/projects/submit',
+    'Submit on Open Launch',
+    20,
+    true,
+    true,
+    'open-launch-premium-launch'
+FROM public.link_directory_sites s
+WHERE s.slug = 'open-launch'
+ON CONFLICT (site_id, slug) DO UPDATE SET
+    title = EXCLUDED.title,
+    opportunity_type_id = EXCLUDED.opportunity_type_id,
+    effort = EXCLUDED.effort,
+    approval_mode = EXCLUDED.approval_mode,
+    approval_time_hint = EXCLUDED.approval_time_hint,
+    dofollow = EXCLUDED.dofollow,
+    cost_tier = EXCLUDED.cost_tier,
+    cost_note = EXCLUDED.cost_note,
+    description = EXCLUDED.description,
+    steps = EXCLUDED.steps,
+    openquok_cta_kind = EXCLUDED.openquok_cta_kind,
+    openquok_channel_slug = EXCLUDED.openquok_channel_slug,
+    openquok_plug_name = EXCLUDED.openquok_plug_name,
+    cta_href = EXCLUDED.cta_href,
+    cta_label = EXCLUDED.cta_label,
+    sort_order = EXCLUDED.sort_order,
+    is_admin_published = EXCLUDED.is_admin_published,
+    auto_launch_enabled = EXCLUDED.auto_launch_enabled,
+    auto_launch_provider_slug = EXCLUDED.auto_launch_provider_slug,
+    published_at = COALESCE(public.link_directory_opportunities.published_at, EXCLUDED.published_at);
+
+INSERT INTO public.link_directory_opportunities (
+    id,
+    site_id,
+    published_at,
+    slug,
+    title,
+    opportunity_type_id,
+    effort,
+    approval_mode,
+    approval_time_hint,
+    dofollow,
+    cost_tier,
+    cost_note,
+    description,
+    steps,
+    openquok_cta_kind,
+    openquok_channel_slug,
+    openquok_plug_name,
+    cta_href,
+    cta_label,
+    sort_order,
+    is_admin_published,
+    auto_launch_enabled,
+    auto_launch_provider_slug
+)
+SELECT
+    'd5f7d000-0020-4000-a000-000000000019'::uuid,
+    s.id,
+    NOW(),
+    'free-launch',
+    'Free launch',
+    'd5f7d000-0004-4000-a000-000000000006'::uuid,
+    'hard',
+    'manual_review',
+    'Free queue; timing varies by slot availability',
+    'unknown',
+    'free',
+    NULL,
+    'Join the free launch queue from open-launch.com/pricing, then complete submit when your slot is ready.',
+    '[
+        {"order":1,"title":"Open pricing","body":"Choose the free queue on https://open-launch.com/pricing."},
+        {"order":2,"title":"Prepare submit","body":"Have your project URL, logo, and discovery tags ready for the submit form."},
+        {"order":3,"title":"Publish","body":"Confirm your live listing URL on Open Launch when the slot goes live."}
+    ]'::jsonb,
+    'external_doc',
+    NULL,
+    NULL,
+    'https://open-launch.com/pricing',
+    'Open Launch pricing',
+    10,
+    true,
+    true,
+    'open-launch-free-launch'
+FROM public.link_directory_sites s
+WHERE s.slug = 'open-launch'
+ON CONFLICT (site_id, slug) DO UPDATE SET
+    title = EXCLUDED.title,
+    opportunity_type_id = EXCLUDED.opportunity_type_id,
+    effort = EXCLUDED.effort,
+    approval_mode = EXCLUDED.approval_mode,
+    approval_time_hint = EXCLUDED.approval_time_hint,
+    dofollow = EXCLUDED.dofollow,
+    cost_tier = EXCLUDED.cost_tier,
+    cost_note = EXCLUDED.cost_note,
+    description = EXCLUDED.description,
+    steps = EXCLUDED.steps,
+    openquok_cta_kind = EXCLUDED.openquok_cta_kind,
+    openquok_channel_slug = EXCLUDED.openquok_channel_slug,
+    openquok_plug_name = EXCLUDED.openquok_plug_name,
+    cta_href = EXCLUDED.cta_href,
+    cta_label = EXCLUDED.cta_label,
+    sort_order = EXCLUDED.sort_order,
+    is_admin_published = EXCLUDED.is_admin_published,
+    auto_launch_enabled = EXCLUDED.auto_launch_enabled,
+    auto_launch_provider_slug = EXCLUDED.auto_launch_provider_slug,
+    published_at = COALESCE(public.link_directory_opportunities.published_at, EXCLUDED.published_at);
+
+
+-- Module: auto-launch, File: 501_20261109_seed_dev_openquok_business_profile.sql
+-- ---------------------------
+-- MODULE NAME: Auto Launch
+-- MODULE DATE: 20261109
+-- MODULE SCOPE: Seed (default auto_launch module config — demo profile off in shared migrations)
+-- ---------------------------
+-- Production and hosted DBs: SEED_OPENQUOK_BUSINESS_PROFILE_ON_ORG_CREATE stays false.
+-- ON CONFLICT merge overwrites a previously true value idempotently.
+-- Local only: backend/supabase/seeds/local_dev_openquok_business_profile.sql runs after
+-- `supabase db reset` and sets the flag true + backfills workspaces.
+
+BEGIN;
+
+INSERT INTO public.module_configs (module_name, config)
+VALUES (
+    'auto_launch',
+    jsonb_build_object(
+        'SEED_OPENQUOK_BUSINESS_PROFILE_ON_ORG_CREATE',
+        FALSE
+    )
+)
+ON CONFLICT (module_name) DO UPDATE
+SET config = public.module_configs.config || EXCLUDED.config,
+    updated_at = NOW();
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
 -- Module: auto-launch, File: 502_20261013_seed_uneed_destinations.sql
 -- ---------------------------
 -- MODULE NAME: Auto Launch
 -- MODULE DATE: 20261013
 -- MODULE SCOPE: Seed (profile media bucket + Uneed destinations + editorial opportunity flags)
 -- ---------------------------
+-- extension_config: synced from destination-configs/*.ts via 505_*_extension_configs.sql
 -- Idempotent: matches opportunities on link_directory_sites.slug = 'uneed' + known opportunity
 -- slugs (production CMS rows use random UUIDs; local exemplar uses fixed UUIDs).
 
@@ -12785,248 +13159,10 @@ FROM (
                 LIMIT 1
             ),
             'Uneed — Join the line',
-            'Free product queue on Uneed; extension fills the listing form after you open Pricing.',
+            'Free product queue on Uneed; extension fills the listing form on Your tools.',
             'extension',
-            'https://uneed.best/pricing',
-            $json${
-                "version": 1,
-                "startUrlPatterns": [
-                    "https://uneed.best/*",
-                    "https://www.uneed.best/*"
-                ],
-                "readyUrlHint": "pricing",
-                "steps": [
-                    {
-                        "id": "general",
-                        "label": "General",
-                        "fields": [
-                            {
-                                "key": "name",
-                                "label": "Product name",
-                                "profilePath": "name",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='name' i], input[placeholder*='product' i]"
-                            },
-                            {
-                                "key": "slug",
-                                "label": "Slug",
-                                "profilePath": "profile_data.slug",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='slug' i], input[placeholder*='slug' i]"
-                            },
-                            {
-                                "key": "website",
-                                "label": "Website",
-                                "profilePath": "website_url",
-                                "fillMode": "text",
-                                "selectorHint": "input[type='url'], input[name*='website' i], input[name*='url' i]"
-                            },
-                            {
-                                "key": "tagline",
-                                "label": "Tagline",
-                                "profilePath": "tagline",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='tagline' i], textarea[name*='tagline' i], input[placeholder*='tagline' i]"
-                            },
-                            {
-                                "key": "category",
-                                "label": "Category",
-                                "profilePath": "profile_data.category",
-                                "fillMode": "select",
-                                "selectorHint": "select[name*='categor' i], [role='combobox'][aria-label*='categor' i], input[name*='categor' i]"
-                            },
-                            {
-                                "key": "pricing_type",
-                                "label": "Pricing",
-                                "profilePath": "profile_data.pricing_type",
-                                "fillMode": "select",
-                                "selectorHint": "select[name*='pricing' i], [role='combobox'][aria-label*='pricing' i]"
-                            },
-                            {
-                                "key": "tags",
-                                "label": "Tags",
-                                "profilePath": "profile_data.tags",
-                                "fillMode": "tags",
-                                "selectorHint": "input[name*='tag' i], [placeholder*='tag' i], [data-testid*='tag' i]"
-                            },
-                            {
-                                "key": "is_open_source",
-                                "label": "Open source",
-                                "profilePath": "profile_data.is_open_source",
-                                "fillMode": "boolean",
-                                "selectorHint": "input[type='checkbox'][name*='open' i], [role='switch'][aria-label*='open source' i]"
-                            },
-                            {
-                                "key": "repository_url",
-                                "label": "Repository URL",
-                                "profilePath": "profile_data.repository_url",
-                                "fillMode": "text",
-                                "selectorHint": "input[type='url'][name*='repo' i], input[name*='github' i], input[placeholder*='repository' i]"
-                            },
-                            {
-                                "key": "description",
-                                "label": "Rich description",
-                                "profilePath": "description",
-                                "fillMode": "rich_html",
-                                "selectorHint": "[contenteditable='true'], .ProseMirror, .tiptap, textarea[name*='description' i]"
-                            }
-                        ]
-                    },
-                    {
-                        "id": "media",
-                        "label": "Media",
-                        "fields": [
-                            {
-                                "key": "logo",
-                                "label": "Logo",
-                                "profilePath": "logo_url",
-                                "selectorHint": "input[type='file'][accept*='image']"
-                            },
-                            {
-                                "key": "launch_video_url",
-                                "label": "Launch video URL",
-                                "profilePath": "profile_data.launch_video_url",
-                                "fillMode": "text",
-                                "selectorHint": "input[type='url'][name*='video' i], input[placeholder*='video' i], input[name*='youtube' i]"
-                            },
-                            {
-                                "key": "gallery",
-                                "label": "Gallery images",
-                                "profilePath": "profile_data.gallery_urls",
-                                "selectorHint": "input[type='file'][accept*='image']:not(:first-of-type)"
-                            }
-                        ]
-                    },
-                    {
-                        "id": "socials",
-                        "label": "Socials",
-                        "fields": [
-                            {
-                                "key": "social_x",
-                                "label": "X (Twitter)",
-                                "profilePath": "profile_data.social_x",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='twitter' i], input[name*='x.com' i], input[placeholder*='twitter' i]"
-                            },
-                            {
-                                "key": "social_github",
-                                "label": "GitHub",
-                                "profilePath": "profile_data.social_github",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='github' i], input[placeholder*='github' i]"
-                            },
-                            {
-                                "key": "social_instagram",
-                                "label": "Instagram",
-                                "profilePath": "profile_data.social_instagram",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='instagram' i], input[placeholder*='instagram' i]"
-                            },
-                            {
-                                "key": "social_linkedin",
-                                "label": "LinkedIn",
-                                "profilePath": "profile_data.social_linkedin",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='linkedin' i], input[placeholder*='linkedin' i]"
-                            },
-                            {
-                                "key": "social_tiktok",
-                                "label": "TikTok",
-                                "profilePath": "profile_data.social_tiktok",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='tiktok' i], input[placeholder*='tiktok' i]"
-                            },
-                            {
-                                "key": "social_facebook",
-                                "label": "Facebook",
-                                "profilePath": "profile_data.social_facebook",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='facebook' i], input[placeholder*='facebook' i]"
-                            },
-                            {
-                                "key": "social_youtube",
-                                "label": "YouTube",
-                                "profilePath": "profile_data.social_youtube",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='youtube' i], input[placeholder*='youtube' i]"
-                            },
-                            {
-                                "key": "social_bluesky",
-                                "label": "Bluesky",
-                                "profilePath": "profile_data.social_bluesky",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='bluesky' i], input[name*='bsky' i], input[placeholder*='bluesky' i]"
-                            }
-                        ]
-                    },
-                    {
-                        "id": "sell",
-                        "label": "Sell",
-                        "fields": [
-                            {
-                                "key": "acquisition_listed",
-                                "label": "Listed for acquisition",
-                                "profilePath": "profile_data.acquisition_listed",
-                                "fillMode": "boolean",
-                                "selectorHint": "input[type='checkbox'][name*='acquisition' i], input[type='checkbox'][name*='sell' i], [role='switch'][aria-label*='acquisition' i]"
-                            },
-                            {
-                                "key": "asking_price_usd",
-                                "label": "Asking price (USD)",
-                                "profilePath": "profile_data.asking_price_usd",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='asking' i], input[name*='price' i][type='number'], input[placeholder*='asking' i]"
-                            },
-                            {
-                                "key": "ttm_revenue_usd",
-                                "label": "TTM revenue (USD)",
-                                "profilePath": "profile_data.ttm_revenue_usd",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='ttm' i][name*='revenue' i], input[name*='ttm_revenue' i], input[placeholder*='TTM revenue' i]"
-                            },
-                            {
-                                "key": "monthly_revenue_usd",
-                                "label": "Monthly revenue (USD)",
-                                "profilePath": "profile_data.monthly_revenue_usd",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='monthly' i][name*='revenue' i], input[name*='monthly_revenue' i]"
-                            },
-                            {
-                                "key": "ttm_profit_usd",
-                                "label": "TTM profit (USD)",
-                                "profilePath": "profile_data.ttm_profit_usd",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='ttm' i][name*='profit' i], input[name*='ttm_profit' i]"
-                            },
-                            {
-                                "key": "monthly_profit_usd",
-                                "label": "Monthly profit (USD)",
-                                "profilePath": "profile_data.monthly_profit_usd",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='monthly' i][name*='profit' i], input[name*='monthly_profit' i]"
-                            },
-                            {
-                                "key": "selling_reason",
-                                "label": "Selling reason",
-                                "profilePath": "profile_data.selling_reason",
-                                "fillMode": "text",
-                                "selectorHint": "textarea[name*='reason' i], textarea[name*='selling' i], textarea[placeholder*='reason' i]"
-                            },
-                            {
-                                "key": "included_assets",
-                                "label": "Included assets",
-                                "profilePath": "profile_data.included_assets",
-                                "fillMode": "tags",
-                                "selectorHint": "input[type='checkbox'][name*='asset' i], fieldset[name*='included' i] input[type='checkbox']"
-                            }
-                        ]
-                    }
-                ],
-                "proof": {
-                    "successPathRegex": "/product/|/launch/",
-                    "listingUrlSelector": "a[href*='uneed.best'][href*='/product']"
-                }
-        }$json$::jsonb,
+            'https://www.uneed.best/your-tools',
+            '{}'::jsonb,
             true,
             10,
             'uneed-product-listing'::text,
@@ -13046,266 +13182,8 @@ FROM (
             'Uneed — Paid launch',
             'Skip the line, fast-track, or relaunch tiers; same listing fields as the free queue.',
             'extension',
-            'https://uneed.best/pricing',
-            $json${
-                "version": 1,
-                "startUrlPatterns": [
-                    "https://uneed.best/*",
-                    "https://www.uneed.best/*"
-                ],
-                "readyUrlHint": "pricing",
-                "steps": [
-                    {
-                        "id": "general",
-                        "label": "General",
-                        "fields": [
-                            {
-                                "key": "name",
-                                "label": "Product name",
-                                "profilePath": "name",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='name' i], input[placeholder*='product' i]"
-                            },
-                            {
-                                "key": "slug",
-                                "label": "Slug",
-                                "profilePath": "profile_data.slug",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='slug' i], input[placeholder*='slug' i]"
-                            },
-                            {
-                                "key": "website",
-                                "label": "Website",
-                                "profilePath": "website_url",
-                                "fillMode": "text",
-                                "selectorHint": "input[type='url'], input[name*='website' i], input[name*='url' i]"
-                            },
-                            {
-                                "key": "tagline",
-                                "label": "Tagline",
-                                "profilePath": "tagline",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='tagline' i], textarea[name*='tagline' i], input[placeholder*='tagline' i]"
-                            },
-                            {
-                                "key": "category",
-                                "label": "Category",
-                                "profilePath": "profile_data.category",
-                                "fillMode": "select",
-                                "selectorHint": "select[name*='categor' i], [role='combobox'][aria-label*='categor' i], input[name*='categor' i]"
-                            },
-                            {
-                                "key": "pricing_type",
-                                "label": "Pricing",
-                                "profilePath": "profile_data.pricing_type",
-                                "fillMode": "select",
-                                "selectorHint": "select[name*='pricing' i], [role='combobox'][aria-label*='pricing' i]"
-                            },
-                            {
-                                "key": "tags",
-                                "label": "Tags",
-                                "profilePath": "profile_data.tags",
-                                "fillMode": "tags",
-                                "selectorHint": "input[name*='tag' i], [placeholder*='tag' i], [data-testid*='tag' i]"
-                            },
-                            {
-                                "key": "is_open_source",
-                                "label": "Open source",
-                                "profilePath": "profile_data.is_open_source",
-                                "fillMode": "boolean",
-                                "selectorHint": "input[type='checkbox'][name*='open' i], [role='switch'][aria-label*='open source' i]"
-                            },
-                            {
-                                "key": "repository_url",
-                                "label": "Repository URL",
-                                "profilePath": "profile_data.repository_url",
-                                "fillMode": "text",
-                                "selectorHint": "input[type='url'][name*='repo' i], input[name*='github' i], input[placeholder*='repository' i]"
-                            },
-                            {
-                                "key": "description",
-                                "label": "Rich description",
-                                "profilePath": "description",
-                                "fillMode": "rich_html",
-                                "selectorHint": "[contenteditable='true'], .ProseMirror, .tiptap, textarea[name*='description' i]"
-                            }
-                        ]
-                    },
-                    {
-                        "id": "media",
-                        "label": "Media",
-                        "fields": [
-                            {
-                                "key": "logo",
-                                "label": "Logo",
-                                "profilePath": "logo_url",
-                                "selectorHint": "input[type='file'][accept*='image']"
-                            },
-                            {
-                                "key": "launch_video_url",
-                                "label": "Launch video URL",
-                                "profilePath": "profile_data.launch_video_url",
-                                "fillMode": "text",
-                                "selectorHint": "input[type='url'][name*='video' i], input[placeholder*='video' i], input[name*='youtube' i]"
-                            },
-                            {
-                                "key": "gallery",
-                                "label": "Gallery images",
-                                "profilePath": "profile_data.gallery_urls",
-                                "selectorHint": "input[type='file'][accept*='image']:not(:first-of-type)"
-                            }
-                        ]
-                    },
-                    {
-                        "id": "socials",
-                        "label": "Socials",
-                        "fields": [
-                            {
-                                "key": "social_x",
-                                "label": "X (Twitter)",
-                                "profilePath": "profile_data.social_x",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='twitter' i], input[name*='x.com' i], input[placeholder*='twitter' i]"
-                            },
-                            {
-                                "key": "social_github",
-                                "label": "GitHub",
-                                "profilePath": "profile_data.social_github",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='github' i], input[placeholder*='github' i]"
-                            },
-                            {
-                                "key": "social_instagram",
-                                "label": "Instagram",
-                                "profilePath": "profile_data.social_instagram",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='instagram' i], input[placeholder*='instagram' i]"
-                            },
-                            {
-                                "key": "social_linkedin",
-                                "label": "LinkedIn",
-                                "profilePath": "profile_data.social_linkedin",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='linkedin' i], input[placeholder*='linkedin' i]"
-                            },
-                            {
-                                "key": "social_tiktok",
-                                "label": "TikTok",
-                                "profilePath": "profile_data.social_tiktok",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='tiktok' i], input[placeholder*='tiktok' i]"
-                            },
-                            {
-                                "key": "social_facebook",
-                                "label": "Facebook",
-                                "profilePath": "profile_data.social_facebook",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='facebook' i], input[placeholder*='facebook' i]"
-                            },
-                            {
-                                "key": "social_youtube",
-                                "label": "YouTube",
-                                "profilePath": "profile_data.social_youtube",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='youtube' i], input[placeholder*='youtube' i]"
-                            },
-                            {
-                                "key": "social_bluesky",
-                                "label": "Bluesky",
-                                "profilePath": "profile_data.social_bluesky",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='bluesky' i], input[name*='bsky' i], input[placeholder*='bluesky' i]"
-                            }
-                        ]
-                    },
-                    {
-                        "id": "sell",
-                        "label": "Sell",
-                        "fields": [
-                            {
-                                "key": "acquisition_listed",
-                                "label": "Listed for acquisition",
-                                "profilePath": "profile_data.acquisition_listed",
-                                "fillMode": "boolean",
-                                "selectorHint": "input[type='checkbox'][name*='acquisition' i], input[type='checkbox'][name*='sell' i], [role='switch'][aria-label*='acquisition' i]"
-                            },
-                            {
-                                "key": "asking_price_usd",
-                                "label": "Asking price (USD)",
-                                "profilePath": "profile_data.asking_price_usd",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='asking' i], input[name*='price' i][type='number'], input[placeholder*='asking' i]"
-                            },
-                            {
-                                "key": "ttm_revenue_usd",
-                                "label": "TTM revenue (USD)",
-                                "profilePath": "profile_data.ttm_revenue_usd",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='ttm' i][name*='revenue' i], input[name*='ttm_revenue' i], input[placeholder*='TTM revenue' i]"
-                            },
-                            {
-                                "key": "monthly_revenue_usd",
-                                "label": "Monthly revenue (USD)",
-                                "profilePath": "profile_data.monthly_revenue_usd",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='monthly' i][name*='revenue' i], input[name*='monthly_revenue' i]"
-                            },
-                            {
-                                "key": "ttm_profit_usd",
-                                "label": "TTM profit (USD)",
-                                "profilePath": "profile_data.ttm_profit_usd",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='ttm' i][name*='profit' i], input[name*='ttm_profit' i]"
-                            },
-                            {
-                                "key": "monthly_profit_usd",
-                                "label": "Monthly profit (USD)",
-                                "profilePath": "profile_data.monthly_profit_usd",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='monthly' i][name*='profit' i], input[name*='monthly_profit' i]"
-                            },
-                            {
-                                "key": "selling_reason",
-                                "label": "Selling reason",
-                                "profilePath": "profile_data.selling_reason",
-                                "fillMode": "text",
-                                "selectorHint": "textarea[name*='reason' i], textarea[name*='selling' i], textarea[placeholder*='reason' i]"
-                            },
-                            {
-                                "key": "included_assets",
-                                "label": "Included assets",
-                                "profilePath": "profile_data.included_assets",
-                                "fillMode": "tags",
-                                "selectorHint": "input[type='checkbox'][name*='asset' i], fieldset[name*='included' i] input[type='checkbox']"
-                            }
-                        ]
-                    },
-                    {
-                        "id": "launch_notes",
-                        "label": "Launch details",
-                        "fields": [
-                            {
-                                "key": "launch_date",
-                                "label": "Preferred launch date",
-                                "profilePath": "profile_data.launch_date",
-                                "fillMode": "text",
-                                "selectorHint": "input[type='date'], [data-test*='date' i]"
-                            },
-                            {
-                                "key": "tier_note",
-                                "label": "Tier or promo code",
-                                "profilePath": "profile_data.paid_tier_note",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='promo' i], input[name*='code' i]"
-                            }
-                        ]
-                    }
-                ],
-                "proof": {
-                    "successPathRegex": "/product/|/launch/",
-                    "listingUrlSelector": "a[href*='uneed.best'][href*='/product']"
-                }
-        }$json$::jsonb,
+            'https://www.uneed.best/your-tools',
+            '{}'::jsonb,
             true,
             20,
             'uneed-product-listing'::text,
@@ -13333,109 +13211,7 @@ FROM (
             'Free maker profile with a website field (typically nofollow).',
             'extension',
             'https://uneed.best/',
-            $json${
-                "version": 1,
-                "startUrlPatterns": [
-                    "https://uneed.best/*",
-                    "https://www.uneed.best/*"
-                ],
-                "readyUrlHint": "profile",
-                "steps": [
-                    {
-                        "id": "profile_info",
-                        "label": "Profile",
-                        "fields": [
-                            {
-                                "key": "name",
-                                "label": "Display name",
-                                "profilePath": "name",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='name' i], input[placeholder*='name' i]"
-                            },
-                            {
-                                "key": "website",
-                                "label": "Website",
-                                "profilePath": "website_url",
-                                "fillMode": "text",
-                                "selectorHint": "input[type='url'], input[name*='website' i]"
-                            },
-                            {
-                                "key": "tagline",
-                                "label": "Bio or tagline",
-                                "profilePath": "tagline",
-                                "fillMode": "text",
-                                "selectorHint": "textarea[name*='bio' i], textarea[name*='about' i], textarea[name*='tagline' i]"
-                            }
-                        ]
-                    },
-                    {
-                        "id": "socials",
-                        "label": "Socials",
-                        "fields": [
-                            {
-                                "key": "social_x",
-                                "label": "X (Twitter)",
-                                "profilePath": "profile_data.social_x",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='twitter' i], input[name*='x.com' i], input[placeholder*='twitter' i]"
-                            },
-                            {
-                                "key": "social_github",
-                                "label": "GitHub",
-                                "profilePath": "profile_data.social_github",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='github' i], input[placeholder*='github' i]"
-                            },
-                            {
-                                "key": "social_instagram",
-                                "label": "Instagram",
-                                "profilePath": "profile_data.social_instagram",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='instagram' i], input[placeholder*='instagram' i]"
-                            },
-                            {
-                                "key": "social_linkedin",
-                                "label": "LinkedIn",
-                                "profilePath": "profile_data.social_linkedin",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='linkedin' i], input[placeholder*='linkedin' i]"
-                            },
-                            {
-                                "key": "social_tiktok",
-                                "label": "TikTok",
-                                "profilePath": "profile_data.social_tiktok",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='tiktok' i], input[placeholder*='tiktok' i]"
-                            },
-                            {
-                                "key": "social_facebook",
-                                "label": "Facebook",
-                                "profilePath": "profile_data.social_facebook",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='facebook' i], input[placeholder*='facebook' i]"
-                            },
-                            {
-                                "key": "social_youtube",
-                                "label": "YouTube",
-                                "profilePath": "profile_data.social_youtube",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='youtube' i], input[placeholder*='youtube' i]"
-                            },
-                            {
-                                "key": "social_bluesky",
-                                "label": "Bluesky",
-                                "profilePath": "profile_data.social_bluesky",
-                                "fillMode": "text",
-                                "selectorHint": "input[name*='bluesky' i], input[name*='bsky' i], input[placeholder*='bluesky' i]"
-                            }
-                        ]
-                    }
-                ],
-                "proof": {
-                    "successPathRegex": "/profile/",
-                    "listingUrlSelector": "a[href*='uneed.best/profile']"
-                }
-        }$json$::jsonb,
+            '{}'::jsonb,
             true,
             30,
             NULL::text,
@@ -13462,7 +13238,6 @@ ON CONFLICT (provider_slug) DO UPDATE SET
     short_description = EXCLUDED.short_description,
     submission_path = EXCLUDED.submission_path,
     start_url = EXCLUDED.start_url,
-    extension_config = EXCLUDED.extension_config,
     is_published = EXCLUDED.is_published,
     sort_order = EXCLUDED.sort_order,
     picker_group_key = EXCLUDED.picker_group_key,
@@ -13474,10 +13249,11 @@ ON CONFLICT (provider_slug) DO UPDATE SET
 -- ---------------------------
 -- MODULE NAME: Auto Launch
 -- MODULE DATE: 20261016
--- MODULE SCOPE: Seed (PeerPush free queue + Standard launch destinations + extension_config)
+-- MODULE SCOPE: Seed (PeerPush free queue + Standard launch destinations)
 -- ---------------------------
+-- extension_config: synced from destination-configs/*.ts via 505_*_extension_configs.sql
 -- PeerPush submit form: logo file upload uses extension file fill (no fillMode on file steps).
--- Tag-style discovery fields use fillMode "tags"; description uses rich_html where the editor is ProseMirror-like.
+-- Tag-style discovery fields use fillMode "tags"; product description is plain text (profile HTML is stripped at fill/compare).
 
 BEGIN;
 
@@ -13503,131 +13279,7 @@ SELECT
     'Instant publish on PeerPush; extension autofills the submit flow at peerpush.com/submit.',
     'extension',
     'https://peerpush.com/submit',
-    $json${
-        "version": 1,
-        "startUrlPatterns": [
-            "https://peerpush.com/*",
-            "https://www.peerpush.com/*"
-        ],
-        "readyUrlHint": "submit",
-        "steps": [
-            {
-                "id": "basic",
-                "label": "Basic",
-                "fields": [
-                    {
-                        "key": "name",
-                        "label": "Product name",
-                        "profilePath": "name",
-                        "fillMode": "text",
-                        "selectorHint": "input[name*='name' i], input[placeholder*='product name' i], input[aria-label*='name' i]"
-                    },
-                    {
-                        "key": "tagline",
-                        "label": "Tagline",
-                        "profilePath": "tagline",
-                        "fillMode": "text",
-                        "selectorHint": "input[name*='tagline' i], textarea[name*='tagline' i], input[placeholder*='tagline' i], input[aria-label*='tagline' i]"
-                    },
-                    {
-                        "key": "description",
-                        "label": "Description",
-                        "profilePath": "description",
-                        "fillMode": "rich_html",
-                        "selectorHint": "[contenteditable='true'], .ProseMirror, .tiptap, textarea[name*='description' i], textarea[placeholder*='description' i]"
-                    },
-                    {
-                        "key": "website",
-                        "label": "Website",
-                        "profilePath": "website_url",
-                        "fillMode": "text",
-                        "selectorHint": "input[type='url'], input[name*='website' i], input[name*='url' i], input[placeholder*='website' i]"
-                    },
-                    {
-                        "key": "logo",
-                        "label": "Logo",
-                        "profilePath": "logo_url",
-                        "fillMode": "file",
-                        "fileInputIndex": 0,
-                        "selectorHint": "input[type='file'][accept*='image']"
-                    }
-                ]
-            },
-            {
-                "id": "discovery",
-                "label": "Discovery",
-                "fields": [
-                    {
-                        "key": "categories",
-                        "label": "Categories",
-                        "profilePath": "profile_data.categories",
-                        "fillMode": "tags",
-                        "selectorHint": "input[name*='categor' i], [placeholder*='categor' i], [role='combobox'][aria-label*='categor' i]"
-                    },
-                    {
-                        "key": "use_cases",
-                        "label": "Use cases",
-                        "profilePath": "profile_data.use_cases",
-                        "fillMode": "tags",
-                        "selectorHint": "input[name*='use' i][name*='case' i], [placeholder*='use case' i], [aria-label*='use case' i]"
-                    },
-                    {
-                        "key": "target_audiences",
-                        "label": "Target audience",
-                        "profilePath": "profile_data.target_audiences",
-                        "fillMode": "tags",
-                        "selectorHint": "input[name*='audience' i], [placeholder*='audience' i], [aria-label*='audience' i]"
-                    },
-                    {
-                        "key": "pricing_type",
-                        "label": "Pricing",
-                        "profilePath": "profile_data.pricing_type",
-                        "fillMode": "select",
-                        "selectorHint": "select[name*='pricing' i], [role='combobox'][aria-label*='pricing' i], button[aria-label*='pricing' i]"
-                    },
-                    {
-                        "key": "platforms",
-                        "label": "Platforms",
-                        "profilePath": "profile_data.platforms",
-                        "fillMode": "tags",
-                        "selectorHint": "input[name*='platform' i], [placeholder*='platform' i], [aria-label*='platform' i]"
-                    },
-                    {
-                        "key": "alternatives",
-                        "label": "Similar products",
-                        "profilePath": "profile_data.alternatives",
-                        "fillMode": "tags",
-                        "selectorHint": "input[name*='alternative' i], input[name*='similar' i], [placeholder*='alternative' i], [placeholder*='similar' i]"
-                    },
-                    {
-                        "key": "monthly_revenue_usd",
-                        "label": "Monthly recurring revenue (optional)",
-                        "profilePath": "profile_data.monthly_revenue_usd",
-                        "fillMode": "text",
-                        "selectorHint": "input[name*='mrr' i], input[name*='monthly' i][name*='revenue' i], input[placeholder*='MRR' i], input[aria-label*='revenue' i]"
-                    }
-                ]
-            },
-            {
-                "id": "media",
-                "label": "Media",
-                "fields": [
-                    {
-                        "key": "gallery",
-                        "label": "Screenshots",
-                        "profilePath": "profile_data.gallery_urls",
-                        "fillMode": "files",
-                        "fileInputIndex": 1,
-                        "selectorHint": "input[type='file'][accept*='image']"
-                    }
-                ]
-            }
-        ],
-        "proof": {
-            "successPathRegex": "/p/|/submit",
-            "listingUrlSelector": "a[href*='peerpush.com/p/']"
-        }
-    }$json$::jsonb,
+    '{}'::jsonb,
     true,
     40,
     NULL::text,
@@ -13642,7 +13294,6 @@ ON CONFLICT (provider_slug) DO UPDATE SET
     short_description = EXCLUDED.short_description,
     submission_path = EXCLUDED.submission_path,
     start_url = EXCLUDED.start_url,
-    extension_config = EXCLUDED.extension_config,
     is_published = EXCLUDED.is_published,
     sort_order = EXCLUDED.sort_order,
     picker_group_key = EXCLUDED.picker_group_key,
@@ -13671,19 +13322,13 @@ SELECT
     'Free queue on PeerPush; extension autofills after you open pricing and start submit.',
     'extension',
     'https://peerpush.com/pricing',
-    jsonb_set(COALESCE(std.extension_config, '{}'::jsonb), '{readyUrlHint}', '"pricing"'::jsonb),
+    '{}'::jsonb,
     true,
     35,
     NULL::text,
     NULL::text
 FROM public.link_directory_opportunities o
 INNER JOIN public.link_directory_sites s ON s.id = o.site_id
-CROSS JOIN LATERAL (
-    SELECT extension_config
-    FROM public.auto_launch_destinations
-    WHERE provider_slug = 'peerpush-standard-launch'
-    LIMIT 1
-) std
 WHERE s.slug = 'peerpush'
   AND o.slug = 'free-queue'
 ON CONFLICT (provider_slug) DO UPDATE SET
@@ -13692,7 +13337,6 @@ ON CONFLICT (provider_slug) DO UPDATE SET
     short_description = EXCLUDED.short_description,
     submission_path = EXCLUDED.submission_path,
     start_url = EXCLUDED.start_url,
-    extension_config = EXCLUDED.extension_config,
     is_published = EXCLUDED.is_published,
     sort_order = EXCLUDED.sort_order,
     picker_group_key = EXCLUDED.picker_group_key,
@@ -13700,12 +13344,13 @@ ON CONFLICT (provider_slug) DO UPDATE SET
     updated_at = NOW();
 
 
--- Module: auto-launch, File: 503_20261108_seed_open_launch_destination.sql
+-- Module: auto-launch, File: 504_20261109_seed_open_launch_destination.sql
 -- ---------------------------
 -- MODULE NAME: Auto Launch
 -- MODULE DATE: 20261108
--- MODULE SCOPE: Seed (Open Launch premium + free queue destinations + extension_config)
+-- MODULE SCOPE: Seed (Open Launch premium + free queue destinations)
 -- ---------------------------
+-- extension_config: synced from destination-configs/*.ts via 505_*_extension_configs.sql
 -- Joins link_directory_opportunities on site slug open-launch (CMS / listing manager in production).
 -- Launch date and Review steps are user-completed in v1 (no autofilled fields).
 
@@ -13733,111 +13378,7 @@ SELECT
     'Premium slot on Open Launch; extension autofills the submit wizard at open-launch.com/projects/submit.',
     'extension',
     'https://open-launch.com/projects/submit',
-    $json${
-        "version": 1,
-        "startUrlPatterns": [
-            "https://open-launch.com/*",
-            "https://www.open-launch.com/*"
-        ],
-        "readyUrlHint": "submit",
-        "steps": [
-            {
-                "id": "project_info",
-                "label": "Project Info",
-                "fields": [
-                    {
-                        "key": "name",
-                        "label": "Project name",
-                        "profilePath": "name",
-                        "fillMode": "text",
-                        "selectorHint": "input[name*='name' i], input[placeholder*='project name' i], input[aria-label*='name' i]"
-                    },
-                    {
-                        "key": "website",
-                        "label": "Website URL",
-                        "profilePath": "website_url",
-                        "fillMode": "text",
-                        "selectorHint": "input[type='url'], input[name*='website' i], input[name*='url' i], input[placeholder*='website' i]"
-                    },
-                    {
-                        "key": "description",
-                        "label": "Short description",
-                        "profilePath": "description",
-                        "fillMode": "rich_html",
-                        "selectorHint": "[contenteditable='true'], .ProseMirror, .tiptap, textarea[name*='description' i], textarea[placeholder*='description' i]"
-                    },
-                    {
-                        "key": "logo",
-                        "label": "Logo",
-                        "profilePath": "logo_url",
-                        "fillMode": "file",
-                        "fileInputIndex": 0,
-                        "selectorHint": "input[type='file'][accept*='image']"
-                    },
-                    {
-                        "key": "product_image",
-                        "label": "Product image",
-                        "profilePath": "profile_data.gallery_urls",
-                        "fillMode": "files",
-                        "fileInputIndex": 1,
-                        "selectorHint": "input[type='file'][accept*='image']"
-                    }
-                ]
-            },
-            {
-                "id": "details",
-                "label": "Details",
-                "fields": [
-                    {
-                        "key": "categories",
-                        "label": "Categories",
-                        "profilePath": "profile_data.categories",
-                        "fillMode": "tags",
-                        "selectorHint": "input[name*='categor' i], [placeholder*='categor' i], [role='combobox'][aria-label*='categor' i], fieldset input[type='checkbox']"
-                    },
-                    {
-                        "key": "tech_stack",
-                        "label": "Tech stack",
-                        "profilePath": "profile_data.tech_stack",
-                        "fillMode": "tags",
-                        "selectorHint": "input[name*='tech' i], [placeholder*='tech' i], [aria-label*='tech stack' i], [aria-label*='stack' i]"
-                    },
-                    {
-                        "key": "platforms",
-                        "label": "Platforms",
-                        "profilePath": "profile_data.platforms",
-                        "fillMode": "tags",
-                        "selectorHint": "input[name*='platform' i], [placeholder*='platform' i], [aria-label*='platform' i], fieldset input[type='checkbox']"
-                    },
-                    {
-                        "key": "pricing_type",
-                        "label": "Pricing model",
-                        "profilePath": "profile_data.pricing_type",
-                        "fillMode": "select",
-                        "selectorHint": "select[name*='pricing' i], [role='combobox'][aria-label*='pricing' i], button[aria-label*='pricing' i]"
-                    },
-                    {
-                        "key": "social_github",
-                        "label": "GitHub",
-                        "profilePath": "profile_data.social_github",
-                        "fillMode": "text",
-                        "selectorHint": "input[name*='github' i], input[placeholder*='github' i], input[aria-label*='github' i]"
-                    },
-                    {
-                        "key": "social_x",
-                        "label": "X (Twitter)",
-                        "profilePath": "profile_data.social_x",
-                        "fillMode": "text",
-                        "selectorHint": "input[name*='twitter' i], input[name*='x.com' i], input[placeholder*='twitter' i], input[aria-label*='twitter' i]"
-                    }
-                ]
-            }
-        ],
-        "proof": {
-            "successPathRegex": "/projects/|/submit",
-            "listingUrlSelector": "a[href*='open-launch.com/projects/']"
-        }
-    }$json$::jsonb,
+    '{}'::jsonb,
     true,
     45,
     'open-launch'::text,
@@ -13852,7 +13393,6 @@ ON CONFLICT (provider_slug) DO UPDATE SET
     short_description = EXCLUDED.short_description,
     submission_path = EXCLUDED.submission_path,
     start_url = EXCLUDED.start_url,
-    extension_config = EXCLUDED.extension_config,
     is_published = EXCLUDED.is_published,
     sort_order = EXCLUDED.sort_order,
     picker_group_key = EXCLUDED.picker_group_key,
@@ -13881,19 +13421,13 @@ SELECT
     'Free queue on Open Launch; extension autofills after you open pricing and start submit.',
     'extension',
     'https://open-launch.com/pricing',
-    jsonb_set(COALESCE(prem.extension_config, '{}'::jsonb), '{readyUrlHint}', '"pricing"'::jsonb),
+    '{}'::jsonb,
     true,
     42,
     'open-launch'::text,
     'Open Launch'::text
 FROM public.link_directory_opportunities o
 INNER JOIN public.link_directory_sites s ON s.id = o.site_id
-CROSS JOIN LATERAL (
-    SELECT extension_config
-    FROM public.auto_launch_destinations
-    WHERE provider_slug = 'open-launch-premium-launch'
-    LIMIT 1
-) prem
 WHERE s.slug = 'open-launch'
   AND o.slug = 'free-launch'
 ON CONFLICT (provider_slug) DO UPDATE SET
@@ -13902,12 +13436,1126 @@ ON CONFLICT (provider_slug) DO UPDATE SET
     short_description = EXCLUDED.short_description,
     submission_path = EXCLUDED.submission_path,
     start_url = EXCLUDED.start_url,
-    extension_config = EXCLUDED.extension_config,
     is_published = EXCLUDED.is_published,
     sort_order = EXCLUDED.sort_order,
     picker_group_key = EXCLUDED.picker_group_key,
     picker_group_title = EXCLUDED.picker_group_title,
     updated_at = NOW();
+
+
+-- Module: auto-launch, File: 505_20261111_extension_configs.sql
+-- ---------------------------
+-- MODULE NAME: Auto Launch
+-- MODULE DATE: 20261111
+-- MODULE SCOPE: Seed (synced extension_config from destination-configs/*.ts)
+-- GENERATED — do not edit; run pnpm sync:auto-launch-configs
+-- ---------------------------
+
+BEGIN;
+
+UPDATE public.auto_launch_destinations
+SET extension_config = $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://open-launch.com/*",
+        "https://www.open-launch.com/*"
+    ],
+    "readyUrlHint": "pricing",
+    "steps": [
+        {
+            "id": "project_info",
+            "label": "Project Info",
+            "fields": [
+                {
+                    "key": "name",
+                    "label": "Project name",
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='name' i], input[placeholder*='project name' i], input[aria-label*='name' i]"
+                },
+                {
+                    "key": "website",
+                    "label": "Website URL",
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[type='url'], input[name*='website' i], input[name*='url' i], input[placeholder*='website' i]"
+                },
+                {
+                    "key": "description",
+                    "label": "Short description",
+                    "profilePath": "description",
+                    "fillMode": "rich_html",
+                    "selectorHint": "[contenteditable='true'], .ProseMirror, .tiptap, textarea[name*='description' i], textarea[placeholder*='description' i]"
+                },
+                {
+                    "key": "logo",
+                    "label": "Logo",
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "selectorHint": "input[type='file'][accept*='image']"
+                },
+                {
+                    "key": "product_image",
+                    "label": "Product image",
+                    "profilePath": "profile_data.gallery_urls",
+                    "fillMode": "files",
+                    "fileInputIndex": 1,
+                    "selectorHint": "input[type='file'][accept*='image']"
+                }
+            ]
+        },
+        {
+            "id": "details",
+            "label": "Details",
+            "fields": [
+                {
+                    "key": "categories",
+                    "label": "Categories",
+                    "profilePath": "profile_data.categories",
+                    "fillMode": "checkbox_group",
+                    "checkboxCatalog": "open_launch_categories",
+                    "maxItems": 3
+                },
+                {
+                    "key": "tech_stack",
+                    "label": "Tech stack",
+                    "profilePath": "profile_data.tech_stack",
+                    "fillMode": "tags",
+                    "maxItems": 5,
+                    "selectorHint": "input[name*='tech' i], [placeholder*='tech' i], [aria-label*='tech stack' i], [aria-label*='stack' i]"
+                },
+                {
+                    "key": "platforms",
+                    "label": "Platforms",
+                    "profilePath": "profile_data.platforms",
+                    "fillMode": "checkbox_group",
+                    "checkboxCatalog": "open_launch_platforms"
+                },
+                {
+                    "key": "pricing_type",
+                    "label": "Pricing model",
+                    "profilePath": "profile_data.pricing_type",
+                    "fillMode": "select",
+                    "selectCatalog": "open_launch_pricing",
+                    "selectorHint": "input[type='radio'][name*='pricing' i], input[type='radio'][id*='pricing' i], select[name*='pricing' i], [role='combobox'][aria-label*='pricing' i]"
+                },
+                {
+                    "key": "social_github",
+                    "label": "GitHub",
+                    "profilePath": "profile_data.social_github",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='github' i], input[placeholder*='github' i], input[aria-label*='github' i]",
+                    "profileSourcePaths": [
+                        "profile_data.repository_url"
+                    ]
+                },
+                {
+                    "key": "social_x",
+                    "label": "X (Twitter)",
+                    "profilePath": "profile_data.social_x",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='twitter' i], input[name*='x.com' i], input[placeholder*='twitter' i], input[aria-label*='twitter' i]"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/projects/|/submit",
+        "listingUrlSelector": "a[href*='open-launch.com/projects/']"
+    }
+}$json$::jsonb
+WHERE provider_slug = 'open-launch-free-launch';
+
+UPDATE public.auto_launch_destinations
+SET extension_config = $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://open-launch.com/*",
+        "https://www.open-launch.com/*"
+    ],
+    "readyUrlHint": "submit",
+    "steps": [
+        {
+            "id": "project_info",
+            "label": "Project Info",
+            "fields": [
+                {
+                    "key": "name",
+                    "label": "Project name",
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='name' i], input[placeholder*='project name' i], input[aria-label*='name' i]"
+                },
+                {
+                    "key": "website",
+                    "label": "Website URL",
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[type='url'], input[name*='website' i], input[name*='url' i], input[placeholder*='website' i]"
+                },
+                {
+                    "key": "description",
+                    "label": "Short description",
+                    "profilePath": "description",
+                    "fillMode": "rich_html",
+                    "selectorHint": "[contenteditable='true'], .ProseMirror, .tiptap, textarea[name*='description' i], textarea[placeholder*='description' i]"
+                },
+                {
+                    "key": "logo",
+                    "label": "Logo",
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "selectorHint": "input[type='file'][accept*='image']"
+                },
+                {
+                    "key": "product_image",
+                    "label": "Product image",
+                    "profilePath": "profile_data.gallery_urls",
+                    "fillMode": "files",
+                    "fileInputIndex": 1,
+                    "selectorHint": "input[type='file'][accept*='image']"
+                }
+            ]
+        },
+        {
+            "id": "details",
+            "label": "Details",
+            "fields": [
+                {
+                    "key": "categories",
+                    "label": "Categories",
+                    "profilePath": "profile_data.categories",
+                    "fillMode": "checkbox_group",
+                    "checkboxCatalog": "open_launch_categories",
+                    "maxItems": 3
+                },
+                {
+                    "key": "tech_stack",
+                    "label": "Tech stack",
+                    "profilePath": "profile_data.tech_stack",
+                    "fillMode": "tags",
+                    "maxItems": 5,
+                    "selectorHint": "input[name*='tech' i], [placeholder*='tech' i], [aria-label*='tech stack' i], [aria-label*='stack' i]"
+                },
+                {
+                    "key": "platforms",
+                    "label": "Platforms",
+                    "profilePath": "profile_data.platforms",
+                    "fillMode": "checkbox_group",
+                    "checkboxCatalog": "open_launch_platforms"
+                },
+                {
+                    "key": "pricing_type",
+                    "label": "Pricing model",
+                    "profilePath": "profile_data.pricing_type",
+                    "fillMode": "select",
+                    "selectCatalog": "open_launch_pricing",
+                    "selectorHint": "input[type='radio'][name*='pricing' i], input[type='radio'][id*='pricing' i], select[name*='pricing' i], [role='combobox'][aria-label*='pricing' i]"
+                },
+                {
+                    "key": "social_github",
+                    "label": "GitHub",
+                    "profilePath": "profile_data.social_github",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='github' i], input[placeholder*='github' i], input[aria-label*='github' i]",
+                    "profileSourcePaths": [
+                        "profile_data.repository_url"
+                    ]
+                },
+                {
+                    "key": "social_x",
+                    "label": "X (Twitter)",
+                    "profilePath": "profile_data.social_x",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='twitter' i], input[name*='x.com' i], input[placeholder*='twitter' i], input[aria-label*='twitter' i]"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/projects/|/submit",
+        "listingUrlSelector": "a[href*='open-launch.com/projects/']"
+    }
+}$json$::jsonb
+WHERE provider_slug = 'open-launch-premium-launch';
+
+UPDATE public.auto_launch_destinations
+SET extension_config = $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://peerpush.com/*",
+        "https://www.peerpush.com/*"
+    ],
+    "readyUrlHint": "pricing",
+    "steps": [
+        {
+            "id": "basic",
+            "label": "Basic",
+            "fields": [
+                {
+                    "key": "name",
+                    "label": "Product name",
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='name' i], input[placeholder*='product name' i], input[aria-label*='name' i]"
+                },
+                {
+                    "key": "tagline",
+                    "label": "Tagline",
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='tagline' i], textarea[name*='tagline' i], input[placeholder*='tagline' i], input[aria-label*='tagline' i]"
+                },
+                {
+                    "key": "description",
+                    "label": "Description",
+                    "profilePath": "description",
+                    "fillMode": "rich_html",
+                    "selectorHint": "[contenteditable='true'], .ProseMirror, .tiptap, textarea[name*='description' i], textarea[placeholder*='description' i]"
+                },
+                {
+                    "key": "website",
+                    "label": "Website",
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[type='url'], input[name*='website' i], input[name*='url' i], input[placeholder*='website' i]"
+                },
+                {
+                    "key": "logo",
+                    "label": "Logo",
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "selectorHint": "input[type='file'][accept*='image']"
+                }
+            ]
+        },
+        {
+            "id": "discovery",
+            "label": "Discovery",
+            "fields": [
+                {
+                    "key": "categories",
+                    "label": "Categories",
+                    "profilePath": "profile_data.categories",
+                    "fillMode": "tags",
+                    "selectorHint": "input[name*='categor' i], [placeholder*='categor' i], [role='combobox'][aria-label*='categor' i]"
+                },
+                {
+                    "key": "use_cases",
+                    "label": "Use cases",
+                    "profilePath": "profile_data.use_cases",
+                    "fillMode": "tags",
+                    "selectorHint": "input[name*='use' i][name*='case' i], [placeholder*='use case' i], [aria-label*='use case' i]"
+                },
+                {
+                    "key": "target_audiences",
+                    "label": "Target audience",
+                    "profilePath": "profile_data.target_audiences",
+                    "fillMode": "tags",
+                    "selectorHint": "input[name*='audience' i], [placeholder*='audience' i], [aria-label*='audience' i]"
+                },
+                {
+                    "key": "pricing_type",
+                    "label": "Pricing",
+                    "profilePath": "profile_data.pricing_type",
+                    "fillMode": "select",
+                    "selectorHint": "select[name*='pricing' i], [role='combobox'][aria-label*='pricing' i], button[aria-label*='pricing' i]"
+                },
+                {
+                    "key": "platforms",
+                    "label": "Platforms",
+                    "profilePath": "profile_data.platforms",
+                    "fillMode": "tags",
+                    "selectorHint": "input[name*='platform' i], [placeholder*='platform' i], [aria-label*='platform' i]"
+                },
+                {
+                    "key": "monthly_revenue_usd",
+                    "label": "Monthly recurring revenue (optional)",
+                    "profilePath": "profile_data.monthly_revenue_usd",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='mrr' i], input[name*='monthly' i][name*='revenue' i], input[placeholder*='MRR' i], input[aria-label*='revenue' i]"
+                }
+            ]
+        },
+        {
+            "id": "media",
+            "label": "Media",
+            "fields": [
+                {
+                    "key": "gallery",
+                    "label": "Screenshots",
+                    "profilePath": "profile_data.gallery_urls",
+                    "fillMode": "files",
+                    "fileInputIndex": 1,
+                    "selectorHint": "input[type='file'][accept*='image']"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/p/|/submit",
+        "listingUrlSelector": "a[href*='peerpush.com/p/']"
+    }
+}$json$::jsonb
+WHERE provider_slug = 'peerpush-free-queue';
+
+UPDATE public.auto_launch_destinations
+SET extension_config = $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://peerpush.com/*",
+        "https://www.peerpush.com/*"
+    ],
+    "readyUrlHint": "submit",
+    "steps": [
+        {
+            "id": "basic",
+            "label": "Basic",
+            "fields": [
+                {
+                    "key": "name",
+                    "label": "Product name",
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='name' i], input[placeholder*='product name' i], input[aria-label*='name' i]"
+                },
+                {
+                    "key": "tagline",
+                    "label": "Tagline",
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='tagline' i], textarea[name*='tagline' i], input[placeholder*='tagline' i], input[aria-label*='tagline' i]"
+                },
+                {
+                    "key": "description",
+                    "label": "Description",
+                    "profilePath": "description",
+                    "fillMode": "rich_html",
+                    "selectorHint": "[contenteditable='true'], .ProseMirror, .tiptap, textarea[name*='description' i], textarea[placeholder*='description' i]"
+                },
+                {
+                    "key": "website",
+                    "label": "Website",
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[type='url'], input[name*='website' i], input[name*='url' i], input[placeholder*='website' i]"
+                },
+                {
+                    "key": "logo",
+                    "label": "Logo",
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "selectorHint": "input[type='file'][accept*='image']"
+                }
+            ]
+        },
+        {
+            "id": "discovery",
+            "label": "Discovery",
+            "fields": [
+                {
+                    "key": "categories",
+                    "label": "Categories",
+                    "profilePath": "profile_data.categories",
+                    "fillMode": "tags",
+                    "selectorHint": "input[name*='categor' i], [placeholder*='categor' i], [role='combobox'][aria-label*='categor' i]"
+                },
+                {
+                    "key": "use_cases",
+                    "label": "Use cases",
+                    "profilePath": "profile_data.use_cases",
+                    "fillMode": "tags",
+                    "selectorHint": "input[name*='use' i][name*='case' i], [placeholder*='use case' i], [aria-label*='use case' i]"
+                },
+                {
+                    "key": "target_audiences",
+                    "label": "Target audience",
+                    "profilePath": "profile_data.target_audiences",
+                    "fillMode": "tags",
+                    "selectorHint": "input[name*='audience' i], [placeholder*='audience' i], [aria-label*='audience' i]"
+                },
+                {
+                    "key": "pricing_type",
+                    "label": "Pricing",
+                    "profilePath": "profile_data.pricing_type",
+                    "fillMode": "select",
+                    "selectorHint": "select[name*='pricing' i], [role='combobox'][aria-label*='pricing' i], button[aria-label*='pricing' i]"
+                },
+                {
+                    "key": "platforms",
+                    "label": "Platforms",
+                    "profilePath": "profile_data.platforms",
+                    "fillMode": "tags",
+                    "selectorHint": "input[name*='platform' i], [placeholder*='platform' i], [aria-label*='platform' i]"
+                },
+                {
+                    "key": "monthly_revenue_usd",
+                    "label": "Monthly recurring revenue (optional)",
+                    "profilePath": "profile_data.monthly_revenue_usd",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='mrr' i], input[name*='monthly' i][name*='revenue' i], input[placeholder*='MRR' i], input[aria-label*='revenue' i]"
+                }
+            ]
+        },
+        {
+            "id": "media",
+            "label": "Media",
+            "fields": [
+                {
+                    "key": "gallery",
+                    "label": "Screenshots",
+                    "profilePath": "profile_data.gallery_urls",
+                    "fillMode": "files",
+                    "fileInputIndex": 1,
+                    "selectorHint": "input[type='file'][accept*='image']"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/p/|/submit",
+        "listingUrlSelector": "a[href*='peerpush.com/p/']"
+    }
+}$json$::jsonb
+WHERE provider_slug = 'peerpush-standard-launch';
+
+UPDATE public.auto_launch_destinations
+SET extension_config = $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://uneed.best/*",
+        "https://www.uneed.best/*"
+    ],
+    "readyUrlHint": "your-tools",
+    "steps": [
+        {
+            "id": "general",
+            "label": "General",
+            "fields": [
+                {
+                    "key": "name",
+                    "label": "Product name",
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='name' i], input[placeholder*='product' i]"
+                },
+                {
+                    "key": "slug",
+                    "label": "Slug",
+                    "profilePath": "profile_data.slug",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='slug' i], input[placeholder*='slug' i]"
+                },
+                {
+                    "key": "website",
+                    "label": "Website",
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[type='url'], input[name*='website' i], input[name*='url' i]"
+                },
+                {
+                    "key": "tagline",
+                    "label": "Tagline",
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "selectorHint": "textarea[maxlength='80'], input[maxlength='80'], input[aria-label*='tagline' i], textarea[aria-label*='tagline' i], input[placeholder*='tagline' i], textarea[placeholder*='tagline' i], input[id*='tagline' i], textarea[id*='tagline' i], input[name*='tagline' i], textarea[name*='tagline' i], input[name*='tagLine' i]",
+                    "maxScalarLength": 80,
+                    "required": true
+                },
+                {
+                    "key": "category",
+                    "label": "Category",
+                    "profilePath": "profile_data.category",
+                    "fillMode": "select",
+                    "selectCatalog": "uneed",
+                    "selectorHint": "select[name*='categor' i], [role='combobox'][aria-label*='categor' i], input[name*='categor' i]"
+                },
+                {
+                    "key": "pricing_type",
+                    "label": "Pricing",
+                    "profilePath": "profile_data.pricing_type",
+                    "fillMode": "select",
+                    "selectorHint": "select[name*='pricing' i], [role='combobox'][aria-label*='pricing' i]"
+                },
+                {
+                    "key": "tags",
+                    "label": "Tags",
+                    "profilePath": "profile_data.tags",
+                    "fillMode": "tags",
+                    "selectorHint": "input[name*='tags' i]:not([name*='tagline' i]), input[aria-label*='tags' i]:not([aria-label*='tagline' i]), [data-testid*='tag-input' i], [data-testid*='tags-input' i]",
+                    "required": true,
+                    "maxItems": 3,
+                    "tagsCatalog": "uneed",
+                    "profileSourcePaths": [
+                        "profile_data.use_cases",
+                        "profile_data.platforms",
+                        "profile_data.tech_stack",
+                        "profile_data.categories"
+                    ]
+                },
+                {
+                    "key": "is_open_source",
+                    "label": "Open source",
+                    "profilePath": "profile_data.is_open_source",
+                    "fillMode": "boolean",
+                    "selectorHint": "input[type='checkbox'][name*='open' i], [role='switch'][aria-label*='open source' i]"
+                },
+                {
+                    "key": "repository_url",
+                    "label": "Repository URL",
+                    "profilePath": "profile_data.repository_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[type='url'][name*='repository' i], input[name*='repository' i], input[aria-label*='repository' i], input[placeholder*='repository' i], input[type='url'][name*='repo' i], input[name*='github' i], input[placeholder*='repository' i]"
+                },
+                {
+                    "key": "description",
+                    "label": "Rich description",
+                    "profilePath": "description",
+                    "fillMode": "rich_html",
+                    "selectorHint": "label:has(+ .tiptap) + .tiptap .ProseMirror, label:has(+ div .tiptap) + div .tiptap .ProseMirror, .tiptap .ProseMirror[contenteditable='true'], [aria-label*='rich description' i] .ProseMirror"
+                }
+            ]
+        },
+        {
+            "id": "media",
+            "label": "Media",
+            "fields": [
+                {
+                    "key": "logo",
+                    "label": "Logo",
+                    "profilePath": "logo_url",
+                    "selectorHint": "input[type='file'][accept*='image']"
+                },
+                {
+                    "key": "launch_video_url",
+                    "label": "Launch video URL",
+                    "profilePath": "profile_data.launch_video_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[type='url'][aria-label*='launch video' i], input[type='url'][aria-label*='video url' i], input[type='url'][name*='launch_video' i], input[type='url'][name*='launchVideo' i], input[type='url'][name*='video_url' i]:not([name*='repo' i]):not([name*='repository' i]), input[type='url'][placeholder*='youtube' i], input[type='url'][placeholder*='vimeo' i]"
+                },
+                {
+                    "key": "gallery",
+                    "label": "Gallery images",
+                    "profilePath": "profile_data.gallery_urls",
+                    "selectorHint": "input[type='file'][accept*='image']:not(:first-of-type)"
+                }
+            ]
+        },
+        {
+            "id": "socials",
+            "label": "Socials",
+            "fields": [
+                {
+                    "key": "social_x",
+                    "label": "X (Twitter)",
+                    "profilePath": "profile_data.social_x",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='twitter' i], input[name*='x.com' i], input[placeholder*='twitter' i]"
+                },
+                {
+                    "key": "social_github",
+                    "label": "GitHub",
+                    "profilePath": "profile_data.social_github",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='github' i], input[placeholder*='github' i]"
+                },
+                {
+                    "key": "social_instagram",
+                    "label": "Instagram",
+                    "profilePath": "profile_data.social_instagram",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='instagram' i], input[placeholder*='instagram' i]"
+                },
+                {
+                    "key": "social_linkedin",
+                    "label": "LinkedIn",
+                    "profilePath": "profile_data.social_linkedin",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='linkedin' i], input[placeholder*='linkedin' i]"
+                },
+                {
+                    "key": "social_tiktok",
+                    "label": "TikTok",
+                    "profilePath": "profile_data.social_tiktok",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='tiktok' i], input[placeholder*='tiktok' i]"
+                },
+                {
+                    "key": "social_facebook",
+                    "label": "Facebook",
+                    "profilePath": "profile_data.social_facebook",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='facebook' i], input[placeholder*='facebook' i]"
+                },
+                {
+                    "key": "social_youtube",
+                    "label": "YouTube",
+                    "profilePath": "profile_data.social_youtube",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='youtube' i], input[placeholder*='youtube' i]"
+                },
+                {
+                    "key": "social_bluesky",
+                    "label": "Bluesky",
+                    "profilePath": "profile_data.social_bluesky",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='bluesky' i], input[name*='bsky' i], input[placeholder*='bluesky' i]"
+                }
+            ]
+        },
+        {
+            "id": "sell",
+            "label": "Sell",
+            "fields": [
+                {
+                    "key": "acquisition_listed",
+                    "label": "Listed for acquisition",
+                    "profilePath": "profile_data.acquisition_listed",
+                    "fillMode": "boolean",
+                    "selectorHint": "input[type='checkbox'][name*='acquisition' i], input[type='checkbox'][name*='sell' i], [role='switch'][aria-label*='acquisition' i]"
+                },
+                {
+                    "key": "asking_price_usd",
+                    "label": "Asking price (USD)",
+                    "profilePath": "profile_data.asking_price_usd",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='asking' i], input[name*='price' i][type='number'], input[placeholder*='asking' i]"
+                },
+                {
+                    "key": "ttm_revenue_usd",
+                    "label": "TTM revenue (USD)",
+                    "profilePath": "profile_data.ttm_revenue_usd",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='ttm' i][name*='revenue' i], input[name*='ttm_revenue' i], input[placeholder*='TTM revenue' i]"
+                },
+                {
+                    "key": "monthly_revenue_usd",
+                    "label": "Monthly revenue (USD)",
+                    "profilePath": "profile_data.monthly_revenue_usd",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='monthly' i][name*='revenue' i], input[name*='monthly_revenue' i]"
+                },
+                {
+                    "key": "ttm_profit_usd",
+                    "label": "TTM profit (USD)",
+                    "profilePath": "profile_data.ttm_profit_usd",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='ttm' i][name*='profit' i], input[name*='ttm_profit' i]"
+                },
+                {
+                    "key": "monthly_profit_usd",
+                    "label": "Monthly profit (USD)",
+                    "profilePath": "profile_data.monthly_profit_usd",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='monthly' i][name*='profit' i], input[name*='monthly_profit' i]"
+                },
+                {
+                    "key": "selling_reason",
+                    "label": "Selling reason",
+                    "profilePath": "profile_data.selling_reason",
+                    "fillMode": "text",
+                    "selectorHint": "textarea[name*='reason' i], textarea[name*='selling' i], textarea[placeholder*='reason' i]"
+                },
+                {
+                    "key": "included_assets",
+                    "label": "Included assets",
+                    "profilePath": "profile_data.included_assets",
+                    "fillMode": "tags",
+                    "selectorHint": "input[type='checkbox'][name*='asset' i], fieldset[name*='included' i] input[type='checkbox']"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/product/|/launch/",
+        "listingUrlSelector": "a[href*='uneed.best'][href*='/product']"
+    }
+}$json$::jsonb
+WHERE provider_slug = 'uneed-join-line';
+
+UPDATE public.auto_launch_destinations
+SET extension_config = $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://uneed.best/*",
+        "https://www.uneed.best/*"
+    ],
+    "readyUrlHint": "profile",
+    "steps": [
+        {
+            "id": "profile_info",
+            "label": "Profile",
+            "fields": [
+                {
+                    "key": "name",
+                    "label": "Display name",
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='name' i], input[placeholder*='name' i]"
+                },
+                {
+                    "key": "website",
+                    "label": "Website",
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[type='url'], input[name*='website' i]"
+                },
+                {
+                    "key": "tagline",
+                    "label": "Bio or tagline",
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "selectorHint": "textarea[name*='bio' i], textarea[name*='about' i], textarea[name*='tagline' i]"
+                }
+            ]
+        },
+        {
+            "id": "socials",
+            "label": "Socials",
+            "fields": [
+                {
+                    "key": "social_x",
+                    "label": "X (Twitter)",
+                    "profilePath": "profile_data.social_x",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='twitter' i], input[name*='x.com' i], input[placeholder*='twitter' i]"
+                },
+                {
+                    "key": "social_github",
+                    "label": "GitHub",
+                    "profilePath": "profile_data.social_github",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='github' i], input[placeholder*='github' i]"
+                },
+                {
+                    "key": "social_instagram",
+                    "label": "Instagram",
+                    "profilePath": "profile_data.social_instagram",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='instagram' i], input[placeholder*='instagram' i]"
+                },
+                {
+                    "key": "social_linkedin",
+                    "label": "LinkedIn",
+                    "profilePath": "profile_data.social_linkedin",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='linkedin' i], input[placeholder*='linkedin' i]"
+                },
+                {
+                    "key": "social_tiktok",
+                    "label": "TikTok",
+                    "profilePath": "profile_data.social_tiktok",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='tiktok' i], input[placeholder*='tiktok' i]"
+                },
+                {
+                    "key": "social_facebook",
+                    "label": "Facebook",
+                    "profilePath": "profile_data.social_facebook",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='facebook' i], input[placeholder*='facebook' i]"
+                },
+                {
+                    "key": "social_youtube",
+                    "label": "YouTube",
+                    "profilePath": "profile_data.social_youtube",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='youtube' i], input[placeholder*='youtube' i]"
+                },
+                {
+                    "key": "social_bluesky",
+                    "label": "Bluesky",
+                    "profilePath": "profile_data.social_bluesky",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='bluesky' i], input[name*='bsky' i], input[placeholder*='bluesky' i]"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/profile/",
+        "listingUrlSelector": "a[href*='uneed.best/profile']"
+    }
+}$json$::jsonb
+WHERE provider_slug = 'uneed-maker-profile';
+
+UPDATE public.auto_launch_destinations
+SET extension_config = $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://uneed.best/*",
+        "https://www.uneed.best/*"
+    ],
+    "readyUrlHint": "your-tools",
+    "steps": [
+        {
+            "id": "general",
+            "label": "General",
+            "fields": [
+                {
+                    "key": "name",
+                    "label": "Product name",
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='name' i], input[placeholder*='product' i]"
+                },
+                {
+                    "key": "slug",
+                    "label": "Slug",
+                    "profilePath": "profile_data.slug",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='slug' i], input[placeholder*='slug' i]"
+                },
+                {
+                    "key": "website",
+                    "label": "Website",
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[type='url'], input[name*='website' i], input[name*='url' i]"
+                },
+                {
+                    "key": "tagline",
+                    "label": "Tagline",
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "selectorHint": "textarea[maxlength='80'], input[maxlength='80'], input[aria-label*='tagline' i], textarea[aria-label*='tagline' i], input[placeholder*='tagline' i], textarea[placeholder*='tagline' i], input[id*='tagline' i], textarea[id*='tagline' i], input[name*='tagline' i], textarea[name*='tagline' i], input[name*='tagLine' i]",
+                    "maxScalarLength": 80,
+                    "required": true
+                },
+                {
+                    "key": "category",
+                    "label": "Category",
+                    "profilePath": "profile_data.category",
+                    "fillMode": "select",
+                    "selectCatalog": "uneed",
+                    "selectorHint": "select[name*='categor' i], [role='combobox'][aria-label*='categor' i], input[name*='categor' i]"
+                },
+                {
+                    "key": "pricing_type",
+                    "label": "Pricing",
+                    "profilePath": "profile_data.pricing_type",
+                    "fillMode": "select",
+                    "selectorHint": "select[name*='pricing' i], [role='combobox'][aria-label*='pricing' i]"
+                },
+                {
+                    "key": "tags",
+                    "label": "Tags",
+                    "profilePath": "profile_data.tags",
+                    "fillMode": "tags",
+                    "selectorHint": "input[name*='tags' i]:not([name*='tagline' i]), input[aria-label*='tags' i]:not([aria-label*='tagline' i]), [data-testid*='tag-input' i], [data-testid*='tags-input' i]",
+                    "required": true,
+                    "maxItems": 3,
+                    "tagsCatalog": "uneed",
+                    "profileSourcePaths": [
+                        "profile_data.use_cases",
+                        "profile_data.platforms",
+                        "profile_data.tech_stack",
+                        "profile_data.categories"
+                    ]
+                },
+                {
+                    "key": "is_open_source",
+                    "label": "Open source",
+                    "profilePath": "profile_data.is_open_source",
+                    "fillMode": "boolean",
+                    "selectorHint": "input[type='checkbox'][name*='open' i], [role='switch'][aria-label*='open source' i]"
+                },
+                {
+                    "key": "repository_url",
+                    "label": "Repository URL",
+                    "profilePath": "profile_data.repository_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[type='url'][name*='repository' i], input[name*='repository' i], input[aria-label*='repository' i], input[placeholder*='repository' i], input[type='url'][name*='repo' i], input[name*='github' i], input[placeholder*='repository' i]"
+                },
+                {
+                    "key": "description",
+                    "label": "Rich description",
+                    "profilePath": "description",
+                    "fillMode": "rich_html",
+                    "selectorHint": "label:has(+ .tiptap) + .tiptap .ProseMirror, label:has(+ div .tiptap) + div .tiptap .ProseMirror, .tiptap .ProseMirror[contenteditable='true'], [aria-label*='rich description' i] .ProseMirror"
+                }
+            ]
+        },
+        {
+            "id": "media",
+            "label": "Media",
+            "fields": [
+                {
+                    "key": "logo",
+                    "label": "Logo",
+                    "profilePath": "logo_url",
+                    "selectorHint": "input[type='file'][accept*='image']"
+                },
+                {
+                    "key": "launch_video_url",
+                    "label": "Launch video URL",
+                    "profilePath": "profile_data.launch_video_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[type='url'][aria-label*='launch video' i], input[type='url'][aria-label*='video url' i], input[type='url'][name*='launch_video' i], input[type='url'][name*='launchVideo' i], input[type='url'][name*='video_url' i]:not([name*='repo' i]):not([name*='repository' i]), input[type='url'][placeholder*='youtube' i], input[type='url'][placeholder*='vimeo' i]"
+                },
+                {
+                    "key": "gallery",
+                    "label": "Gallery images",
+                    "profilePath": "profile_data.gallery_urls",
+                    "selectorHint": "input[type='file'][accept*='image']:not(:first-of-type)"
+                }
+            ]
+        },
+        {
+            "id": "socials",
+            "label": "Socials",
+            "fields": [
+                {
+                    "key": "social_x",
+                    "label": "X (Twitter)",
+                    "profilePath": "profile_data.social_x",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='twitter' i], input[name*='x.com' i], input[placeholder*='twitter' i]"
+                },
+                {
+                    "key": "social_github",
+                    "label": "GitHub",
+                    "profilePath": "profile_data.social_github",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='github' i], input[placeholder*='github' i]"
+                },
+                {
+                    "key": "social_instagram",
+                    "label": "Instagram",
+                    "profilePath": "profile_data.social_instagram",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='instagram' i], input[placeholder*='instagram' i]"
+                },
+                {
+                    "key": "social_linkedin",
+                    "label": "LinkedIn",
+                    "profilePath": "profile_data.social_linkedin",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='linkedin' i], input[placeholder*='linkedin' i]"
+                },
+                {
+                    "key": "social_tiktok",
+                    "label": "TikTok",
+                    "profilePath": "profile_data.social_tiktok",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='tiktok' i], input[placeholder*='tiktok' i]"
+                },
+                {
+                    "key": "social_facebook",
+                    "label": "Facebook",
+                    "profilePath": "profile_data.social_facebook",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='facebook' i], input[placeholder*='facebook' i]"
+                },
+                {
+                    "key": "social_youtube",
+                    "label": "YouTube",
+                    "profilePath": "profile_data.social_youtube",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='youtube' i], input[placeholder*='youtube' i]"
+                },
+                {
+                    "key": "social_bluesky",
+                    "label": "Bluesky",
+                    "profilePath": "profile_data.social_bluesky",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='bluesky' i], input[name*='bsky' i], input[placeholder*='bluesky' i]"
+                }
+            ]
+        },
+        {
+            "id": "sell",
+            "label": "Sell",
+            "fields": [
+                {
+                    "key": "acquisition_listed",
+                    "label": "Listed for acquisition",
+                    "profilePath": "profile_data.acquisition_listed",
+                    "fillMode": "boolean",
+                    "selectorHint": "input[type='checkbox'][name*='acquisition' i], input[type='checkbox'][name*='sell' i], [role='switch'][aria-label*='acquisition' i]"
+                },
+                {
+                    "key": "asking_price_usd",
+                    "label": "Asking price (USD)",
+                    "profilePath": "profile_data.asking_price_usd",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='asking' i], input[name*='price' i][type='number'], input[placeholder*='asking' i]"
+                },
+                {
+                    "key": "ttm_revenue_usd",
+                    "label": "TTM revenue (USD)",
+                    "profilePath": "profile_data.ttm_revenue_usd",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='ttm' i][name*='revenue' i], input[name*='ttm_revenue' i], input[placeholder*='TTM revenue' i]"
+                },
+                {
+                    "key": "monthly_revenue_usd",
+                    "label": "Monthly revenue (USD)",
+                    "profilePath": "profile_data.monthly_revenue_usd",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='monthly' i][name*='revenue' i], input[name*='monthly_revenue' i]"
+                },
+                {
+                    "key": "ttm_profit_usd",
+                    "label": "TTM profit (USD)",
+                    "profilePath": "profile_data.ttm_profit_usd",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='ttm' i][name*='profit' i], input[name*='ttm_profit' i]"
+                },
+                {
+                    "key": "monthly_profit_usd",
+                    "label": "Monthly profit (USD)",
+                    "profilePath": "profile_data.monthly_profit_usd",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='monthly' i][name*='profit' i], input[name*='monthly_profit' i]"
+                },
+                {
+                    "key": "selling_reason",
+                    "label": "Selling reason",
+                    "profilePath": "profile_data.selling_reason",
+                    "fillMode": "text",
+                    "selectorHint": "textarea[name*='reason' i], textarea[name*='selling' i], textarea[placeholder*='reason' i]"
+                },
+                {
+                    "key": "included_assets",
+                    "label": "Included assets",
+                    "profilePath": "profile_data.included_assets",
+                    "fillMode": "tags",
+                    "selectorHint": "input[type='checkbox'][name*='asset' i], fieldset[name*='included' i] input[type='checkbox']"
+                }
+            ]
+        },
+        {
+            "id": "launch_notes",
+            "label": "Launch details",
+            "fields": [
+                {
+                    "key": "launch_date",
+                    "label": "Preferred launch date",
+                    "profilePath": "profile_data.launch_date",
+                    "fillMode": "text",
+                    "selectorHint": "input[type='date'], [data-test*='date' i]"
+                },
+                {
+                    "key": "tier_note",
+                    "label": "Tier or promo code",
+                    "profilePath": "profile_data.paid_tier_note",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='promo' i], input[name*='code' i]"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/product/|/launch/",
+        "listingUrlSelector": "a[href*='uneed.best'][href*='/product']"
+    }
+}$json$::jsonb
+WHERE provider_slug = 'uneed-paid-launch';
 
 
 -- Module: user-auth, File: 602_20250310_cron.sql

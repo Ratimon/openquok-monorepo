@@ -390,15 +390,1049 @@ var init_pricing = __esm({
   }
 });
 
+// ../common/dist/auto-launch/directorySiteKey.js
+function directorySiteKeyFromProviderSlug(providerSlug, publishedSiteSlugs = KNOWN_MULTI_SEGMENT_DIRECTORY_SITE_SLUGS) {
+  const trimmed = providerSlug.trim();
+  const slugs = [...publishedSiteSlugs].sort((a, b) => b.length - a.length);
+  for (const slug of slugs) {
+    if (trimmed === slug || trimmed.startsWith(`${slug}-`)) {
+      return slug;
+    }
+  }
+  const dash = trimmed.indexOf("-");
+  return dash === -1 ? trimmed : trimmed.slice(0, dash);
+}
+var KNOWN_MULTI_SEGMENT_DIRECTORY_SITE_SLUGS;
+var init_directorySiteKey = __esm({
+  "../common/dist/auto-launch/directorySiteKey.js"() {
+    KNOWN_MULTI_SEGMENT_DIRECTORY_SITE_SLUGS = ["open-launch"];
+  }
+});
+
+// ../common/dist/auto-launch/destination-configs/openLaunch.js
+function normalizeOpenLaunchChoiceLabel(raw) {
+  return raw.trim().replace(/\s+/g, " ").toLowerCase();
+}
+function matchOfficialLabel(raw, labels) {
+  const norm = normalizeOpenLaunchChoiceLabel(raw);
+  for (const label of labels) {
+    if (normalizeOpenLaunchChoiceLabel(label) === norm)
+      return label;
+  }
+  return null;
+}
+function matchOpenLaunchOfficialCategory(raw) {
+  const exact = matchOfficialLabel(raw, OPEN_LAUNCH_OFFICIAL_CATEGORY_LABELS);
+  if (exact)
+    return exact;
+  const norm = normalizeOpenLaunchChoiceLabel(raw);
+  for (const label of OPEN_LAUNCH_OFFICIAL_CATEGORY_LABELS) {
+    if (normalizeOpenLaunchChoiceLabel(label).includes(norm) || norm.includes(normalizeOpenLaunchChoiceLabel(label))) {
+      return label;
+    }
+  }
+  for (const [needle, label] of Object.entries(OPEN_LAUNCH_CATEGORY_ALIASES)) {
+    if (norm === needle || norm.includes(needle))
+      return label;
+  }
+  return null;
+}
+function matchOpenLaunchOfficialPlatform(raw) {
+  const exact = matchOfficialLabel(raw, OPEN_LAUNCH_OFFICIAL_PLATFORM_LABELS);
+  if (exact)
+    return exact;
+  const norm = normalizeOpenLaunchChoiceLabel(raw);
+  for (const [needle, label] of Object.entries(OPEN_LAUNCH_PLATFORM_ALIASES)) {
+    if (norm === needle || norm.includes(needle))
+      return label;
+  }
+  return null;
+}
+function invalidOpenLaunchProfileChoicesForField(items, field) {
+  if (!items?.length)
+    return [];
+  if (field.checkboxCatalog === "open_launch_categories") {
+    return items.filter((item) => matchOpenLaunchOfficialCategory(item) === null);
+  }
+  if (field.checkboxCatalog === "open_launch_platforms") {
+    return items.filter((item) => matchOpenLaunchOfficialPlatform(item) === null);
+  }
+  return [];
+}
+var OPEN_LAUNCH_PREMIUM_LAUNCH_EXTENSION_CONFIG, OPEN_LAUNCH_HOST_PATTERNS, OPEN_LAUNCH_HOST_PERMISSION, OPEN_LAUNCH_PREMIUM_LAUNCH, OPEN_LAUNCH_FREE_LAUNCH, OPEN_LAUNCH_DIRECTORY_LAUNCH_PROVIDERS, OPEN_LAUNCH_CATEGORY_SLUGS, OPEN_LAUNCH_CATEGORY_LABEL_BY_SLUG, OPEN_LAUNCH_OFFICIAL_CATEGORY_LABELS, OPEN_LAUNCH_OFFICIAL_PLATFORM_LABELS, OPEN_LAUNCH_CATEGORY_ALIASES, OPEN_LAUNCH_PLATFORM_ALIASES;
+var init_openLaunch = __esm({
+  "../common/dist/auto-launch/destination-configs/openLaunch.js"() {
+    OPEN_LAUNCH_PREMIUM_LAUNCH_EXTENSION_CONFIG = {
+      "version": 1,
+      "startUrlPatterns": [
+        "https://open-launch.com/*",
+        "https://www.open-launch.com/*"
+      ],
+      "readyUrlHint": "submit",
+      "steps": [
+        {
+          "id": "project_info",
+          "label": "Project Info",
+          "fields": [
+            {
+              "key": "name",
+              "label": "Project name",
+              "profilePath": "name",
+              "fillMode": "text",
+              "selectorHint": "input[name*='name' i], input[placeholder*='project name' i], input[aria-label*='name' i]"
+            },
+            {
+              "key": "website",
+              "label": "Website URL",
+              "profilePath": "website_url",
+              "fillMode": "text",
+              "selectorHint": "input[type='url'], input[name*='website' i], input[name*='url' i], input[placeholder*='website' i]"
+            },
+            {
+              "key": "description",
+              "label": "Short description",
+              "profilePath": "description",
+              "fillMode": "rich_html",
+              "selectorHint": "[contenteditable='true'], .ProseMirror, .tiptap, textarea[name*='description' i], textarea[placeholder*='description' i]"
+            },
+            {
+              "key": "logo",
+              "label": "Logo",
+              "profilePath": "logo_url",
+              "fillMode": "file",
+              "fileInputIndex": 0,
+              "selectorHint": "input[type='file'][accept*='image']"
+            },
+            {
+              "key": "product_image",
+              "label": "Product image",
+              "profilePath": "profile_data.gallery_urls",
+              "fillMode": "files",
+              "fileInputIndex": 1,
+              "selectorHint": "input[type='file'][accept*='image']"
+            }
+          ]
+        },
+        {
+          "id": "details",
+          "label": "Details",
+          "fields": [
+            {
+              "key": "categories",
+              "label": "Categories",
+              "profilePath": "profile_data.categories",
+              "fillMode": "checkbox_group",
+              "checkboxCatalog": "open_launch_categories",
+              "labelMatch": "section",
+              "maxItems": 3
+            },
+            {
+              "key": "tech_stack",
+              "label": "Tech stack",
+              "profilePath": "profile_data.tech_stack",
+              "fillMode": "tags",
+              "maxItems": 5,
+              "selectorHint": "input[name*='tech' i], input[placeholder*='technology' i], [placeholder*='tech' i], [aria-label*='tech stack' i], [aria-label*='stack' i]"
+            },
+            {
+              "key": "platforms",
+              "label": "Platforms",
+              "profilePath": "profile_data.platforms",
+              "fillMode": "checkbox_group",
+              "checkboxCatalog": "open_launch_platforms",
+              "labelMatch": "section"
+            },
+            {
+              "key": "pricing_type",
+              "label": "Pricing model",
+              "profilePath": "profile_data.pricing_type",
+              "fillMode": "select",
+              "selectCatalog": "open_launch_pricing",
+              "selectorHint": "input[type='radio'][name*='pricing' i], input[type='radio'][id*='pricing' i], select[name*='pricing' i], [role='combobox'][aria-label*='pricing' i]"
+            },
+            {
+              "key": "social_github",
+              "label": "GitHub",
+              "profilePath": "profile_data.social_github",
+              "fillMode": "text",
+              "selectorHint": "input[name*='github' i], input[placeholder*='github' i], input[aria-label*='github' i]",
+              "profileSourcePaths": ["profile_data.repository_url"]
+            },
+            {
+              "key": "social_x",
+              "label": "X (Twitter)",
+              "profilePath": "profile_data.social_x",
+              "fillMode": "text",
+              "selectorHint": "input[name*='twitter' i], input[name*='x.com' i], input[placeholder*='twitter' i], input[aria-label*='twitter' i]"
+            }
+          ]
+        }
+      ],
+      "proof": {
+        "successPathRegex": "/projects/|/submit",
+        "listingUrlSelector": "a[href*='open-launch.com/projects/']"
+      }
+    };
+    ({
+      ...OPEN_LAUNCH_PREMIUM_LAUNCH_EXTENSION_CONFIG,
+      readyUrlHint: "pricing"
+    });
+    OPEN_LAUNCH_HOST_PATTERNS = [
+      "https://open-launch.com/*",
+      "https://www.open-launch.com/*"
+    ];
+    OPEN_LAUNCH_HOST_PERMISSION = "*://*.open-launch.com/*";
+    OPEN_LAUNCH_PREMIUM_LAUNCH = {
+      identifier: "open-launch-premium-launch",
+      name: "Open Launch \u2014 Premium launch",
+      tierLabel: "Paid",
+      defaultStartUrl: "https://open-launch.com/projects/submit",
+      contentScriptEntry: "content/directory-launch/openquok-directory-open-launch.js",
+      hostPatterns: OPEN_LAUNCH_HOST_PATTERNS,
+      hostPermission: OPEN_LAUNCH_HOST_PERMISSION
+    };
+    OPEN_LAUNCH_FREE_LAUNCH = {
+      identifier: "open-launch-free-launch",
+      name: "Open Launch \u2014 Free launch",
+      tierLabel: "Free",
+      defaultStartUrl: "https://open-launch.com/dashboard",
+      contentScriptEntry: "content/directory-launch/openquok-directory-open-launch.js",
+      hostPatterns: OPEN_LAUNCH_HOST_PATTERNS,
+      hostPermission: OPEN_LAUNCH_HOST_PERMISSION
+    };
+    OPEN_LAUNCH_DIRECTORY_LAUNCH_PROVIDERS = [
+      OPEN_LAUNCH_FREE_LAUNCH,
+      OPEN_LAUNCH_PREMIUM_LAUNCH
+    ];
+    OPEN_LAUNCH_CATEGORY_SLUGS = [
+      "ai",
+      "analytics",
+      "api",
+      "ar-vr",
+      "blockchain",
+      "cms",
+      "cross-platform-development",
+      "data-science",
+      "databases",
+      "design-tools",
+      "developer-tools",
+      "devops",
+      "directory",
+      "ecommerce",
+      "edtech",
+      "finance-tech",
+      "game-development",
+      "gaming",
+      "graphics",
+      "greentech",
+      "hardware",
+      "healthtech",
+      "iot",
+      "launch-platform",
+      "machine-learning",
+      "marketing-tools",
+      "mobile-dev",
+      "nlp",
+      "online-community",
+      "open-source",
+      "platform",
+      "productivity",
+      "prototyping",
+      "robotics",
+      "saas",
+      "sales-tools",
+      "security",
+      "serverless",
+      "testing-qa",
+      "ui-ux",
+      "wearables",
+      "web-dev"
+    ];
+    OPEN_LAUNCH_CATEGORY_LABEL_BY_SLUG = {
+      ai: "AI",
+      analytics: "Analytics",
+      api: "APIs & Integrations",
+      "ar-vr": "AR/VR",
+      blockchain: "Blockchain",
+      cms: "CMS",
+      "cross-platform-development": "Cross-Platform Development",
+      "data-science": "Data Science",
+      databases: "Databases",
+      "design-tools": "Design Tools",
+      "developer-tools": "Developer Tools",
+      devops: "DevOps",
+      directory: "Directory",
+      ecommerce: "Ecommerce",
+      edtech: "EdTech",
+      "finance-tech": "Finance Tech",
+      "game-development": "Game Development",
+      gaming: "Gaming",
+      graphics: "Graphics",
+      greentech: "GreenTech",
+      hardware: "Hardware",
+      healthtech: "HealthTech",
+      iot: "IoT",
+      "launch-platform": "Launch Platform",
+      "machine-learning": "Machine Learning",
+      "marketing-tools": "Marketing Tools",
+      "mobile-dev": "Mobile Dev",
+      nlp: "NLP",
+      "online-community": "Online Community",
+      "open-source": "Open Source",
+      platform: "Platform",
+      productivity: "Productivity",
+      prototyping: "Prototyping",
+      robotics: "Robotics",
+      saas: "SaaS",
+      "sales-tools": "Sales Tools",
+      security: "Security",
+      serverless: "Serverless",
+      "testing-qa": "Testing & QA",
+      "ui-ux": "UI/UX",
+      wearables: "Wearables",
+      "web-dev": "Web Dev"
+    };
+    OPEN_LAUNCH_OFFICIAL_CATEGORY_LABELS = OPEN_LAUNCH_CATEGORY_SLUGS.map((slug) => OPEN_LAUNCH_CATEGORY_LABEL_BY_SLUG[slug]);
+    OPEN_LAUNCH_OFFICIAL_PLATFORM_LABELS = [
+      "Web",
+      "Mobile",
+      "Desktop",
+      "Api",
+      "Other"
+    ];
+    OPEN_LAUNCH_CATEGORY_ALIASES = {
+      marketing: "Marketing Tools",
+      "developer tools": "Developer Tools",
+      devtools: "Developer Tools",
+      engineering: "Developer Tools",
+      integration: "APIs & Integrations",
+      integrations: "APIs & Integrations",
+      api: "APIs & Integrations",
+      automation: "Productivity",
+      agents: "AI",
+      "ai agents": "AI",
+      "content creation": "Marketing Tools",
+      "social media": "Marketing Tools"
+    };
+    OPEN_LAUNCH_PLATFORM_ALIASES = {
+      api: "Api",
+      mcp: "Other",
+      cli: "Other",
+      "chrome extension": "Other",
+      extension: "Other",
+      extensions: "Other"
+    };
+  }
+});
+
+// ../common/dist/auto-launch/destination-configs/peerpush.js
+var PEERPUSH_HOST_PATTERNS, PEERPUSH_HOST_PERMISSION, PEERPUSH_STANDARD_LAUNCH, PEERPUSH_FREE_QUEUE, PEERPUSH_DIRECTORY_LAUNCH_PROVIDERS, PEERPUSH_STANDARD_LAUNCH_EXTENSION_CONFIG;
+var init_peerpush = __esm({
+  "../common/dist/auto-launch/destination-configs/peerpush.js"() {
+    PEERPUSH_HOST_PATTERNS = [
+      "https://peerpush.com/*",
+      "https://www.peerpush.com/*"
+    ];
+    PEERPUSH_HOST_PERMISSION = "*://*.peerpush.com/*";
+    PEERPUSH_STANDARD_LAUNCH = {
+      identifier: "peerpush-standard-launch",
+      name: "PeerPush \u2014 Standard launch",
+      tierLabel: "Paid",
+      defaultStartUrl: "https://peerpush.com/user/products",
+      contentScriptEntry: "content/directory-launch/openquok-directory-peerpush.js",
+      hostPatterns: PEERPUSH_HOST_PATTERNS,
+      hostPermission: PEERPUSH_HOST_PERMISSION
+    };
+    PEERPUSH_FREE_QUEUE = {
+      identifier: "peerpush-free-queue",
+      name: "PeerPush \u2014 Free queue",
+      tierLabel: "Free",
+      defaultStartUrl: "https://peerpush.com/user/products",
+      contentScriptEntry: "content/directory-launch/openquok-directory-peerpush.js",
+      hostPatterns: PEERPUSH_HOST_PATTERNS,
+      hostPermission: PEERPUSH_HOST_PERMISSION
+    };
+    PEERPUSH_DIRECTORY_LAUNCH_PROVIDERS = [
+      PEERPUSH_FREE_QUEUE,
+      PEERPUSH_STANDARD_LAUNCH
+    ];
+    PEERPUSH_STANDARD_LAUNCH_EXTENSION_CONFIG = {
+      "version": 1,
+      "startUrlPatterns": [
+        "https://peerpush.com/*",
+        "https://www.peerpush.com/*"
+      ],
+      "readyUrlHint": "submit",
+      "steps": [
+        {
+          "id": "basic",
+          "label": "Basic",
+          "fields": [
+            {
+              "key": "name",
+              "label": "Product name",
+              "profilePath": "name",
+              "fillMode": "text",
+              "selectorHint": "#name, input#name"
+            },
+            {
+              "key": "tagline",
+              "label": "Tagline",
+              "labelAliases": ["One-line tagline"],
+              "profilePath": "tagline",
+              "fillMode": "text",
+              "selectorHint": "#tagline, input#tagline"
+            },
+            {
+              "key": "description",
+              "label": "Product description",
+              "labelAliases": ["Description"],
+              "profilePath": "description",
+              "fillMode": "text",
+              "selectorHint": "#description, textarea#description"
+            },
+            {
+              "key": "website",
+              "label": "Website",
+              "profilePath": "website_url",
+              "fillMode": "text",
+              "selectorHint": "#websiteUrl, input#websiteUrl, input[type='url'][id*='website' i]"
+            },
+            {
+              "key": "logo",
+              "label": "Logo",
+              "profilePath": "logo_url",
+              "fillMode": "file",
+              "fileInputIndex": 0,
+              "selectorHint": "[data-field='logo'] input[type='file'], input[type='file'][accept*='image']"
+            }
+          ]
+        },
+        {
+          "id": "discovery",
+          "label": "Discovery",
+          "fields": [
+            {
+              "key": "categories",
+              "label": "Categories",
+              "profilePath": "profile_data.categories",
+              "fillMode": "tags",
+              "labelMatch": "section",
+              "tagsScope": "section",
+              "maxItems": 3,
+              "selectorHint": "[data-field='categories'] input[role='combobox'], [data-field='categories'] input[placeholder*='categor' i]"
+            },
+            {
+              "key": "use_cases",
+              "label": "Use Cases",
+              "labelAliases": ["Use cases"],
+              "profilePath": "profile_data.use_cases",
+              "fillMode": "tags",
+              "labelMatch": "section",
+              "tagsScope": "section",
+              "selectorHint": "[data-field='useCases'] input[role='combobox'], [data-field='useCases'] input[placeholder*='use case' i]"
+            },
+            {
+              "key": "target_audiences",
+              "label": "Target Audience",
+              "labelAliases": ["Target audience", "Audiences"],
+              "profilePath": "profile_data.target_audiences",
+              "fillMode": "tags",
+              "labelMatch": "section",
+              "tagsScope": "section",
+              "selectorHint": "[data-field='audiences'] input[role='combobox'], [data-field='audiences'] input[placeholder*='audience' i]"
+            },
+            {
+              "key": "pricing_type",
+              "label": "Pricing",
+              "profilePath": "profile_data.pricing_type",
+              "fillMode": "select",
+              "selectorHint": "[data-field='pricingType'] select, select[aria-label='Pricing type']"
+            },
+            {
+              "key": "platforms",
+              "label": "Platforms",
+              "profilePath": "profile_data.platforms",
+              "fillMode": "tags",
+              "labelMatch": "section",
+              "tagsScope": "section",
+              "maxItems": 5,
+              "selectorHint": "[data-field='platforms'] input[role='combobox'], [data-field='platforms'] input[placeholder*='platform' i]"
+            }
+          ]
+        },
+        {
+          "id": "media",
+          "label": "Media",
+          "fields": [
+            {
+              "key": "gallery",
+              "label": "Screenshots",
+              "profilePath": "profile_data.gallery_urls",
+              "fillMode": "files",
+              "fileInputIndex": 0,
+              "selectorHint": "[data-field='screenshots'] input[type='file'], input[type='file'][accept*='image']"
+            }
+          ]
+        },
+        {
+          "id": "additional",
+          "label": "Additional Info",
+          "fields": [
+            {
+              "key": "monthly_revenue_usd",
+              "label": "Monthly recurring revenue (optional)",
+              "labelAliases": ["MRR", "MRR - Monthly Recurring Revenue (optional)"],
+              "profilePath": "profile_data.monthly_revenue_usd",
+              "fillMode": "text",
+              "selectorHint": "#mrr, input#mrr, input[name='mrr'], input[placeholder='1000']"
+            },
+            {
+              "key": "social_x",
+              "label": "Twitter username",
+              "labelAliases": ["X (Twitter)", "X username"],
+              "profilePath": "profile_data.social_x",
+              "fillMode": "text",
+              "selectorHint": "#twitterUsername, input#twitterUsername, input[aria-label='X username']"
+            },
+            {
+              "key": "social_linkedin",
+              "label": "LinkedIn URL",
+              "profilePath": "profile_data.social_linkedin",
+              "fillMode": "text",
+              "selectorHint": "#linkedinUrl, input#linkedinUrl, input[aria-label='LinkedIn URL'], input[type='url'][placeholder*='linkedin.com' i]"
+            }
+          ]
+        }
+      ],
+      "proof": {
+        "successPathRegex": "/p/|/submit",
+        "listingUrlSelector": "a[href*='peerpush.com/p/']"
+      }
+    };
+    ({
+      ...PEERPUSH_STANDARD_LAUNCH_EXTENSION_CONFIG,
+      readyUrlHint: "pricing"
+    });
+  }
+});
+
+// ../common/dist/auto-launch/businessProfileData.js
+function isPlainObject(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function mergeBusinessProfileData(existing, patch) {
+  const base = isPlainObject(existing) ? { ...existing } : {};
+  const next = { ...base, ...patch };
+  return normalizeBusinessProfileData(next);
+}
+function normalizeBusinessProfileData(value) {
+  const out = {};
+  const slug = trimToNull(value.slug);
+  if (slug !== void 0)
+    out.slug = slug;
+  const category = trimToNull(value.category);
+  if (category !== void 0)
+    out.category = category;
+  if (value.categories !== void 0) {
+    out.categories = normalizeStringArray(value.categories);
+  }
+  if (value.use_cases !== void 0) {
+    out.use_cases = normalizeStringArray(value.use_cases);
+  }
+  if (value.target_audiences !== void 0) {
+    out.target_audiences = normalizeStringArray(value.target_audiences);
+  }
+  if (value.platforms !== void 0) {
+    out.platforms = normalizeStringArray(value.platforms);
+  }
+  if (value.tech_stack !== void 0) {
+    out.tech_stack = normalizeStringArray(value.tech_stack);
+  }
+  if (value.alternatives !== void 0) {
+    out.alternatives = normalizeStringArray(value.alternatives);
+  }
+  if (value.pricing_type !== void 0) {
+    const pt = value.pricing_type;
+    if (pt === null)
+      out.pricing_type = null;
+    else if (typeof pt === "string" && BUSINESS_PROFILE_PRICING_TYPES.includes(pt)) {
+      out.pricing_type = pt;
+    }
+  }
+  if (value.tags !== void 0) {
+    out.tags = normalizeStringArray(value.tags);
+  }
+  if (value.is_open_source !== void 0) {
+    out.is_open_source = value.is_open_source === null ? null : Boolean(value.is_open_source);
+  }
+  const repositoryUrl = trimToNull(value.repository_url);
+  if (repositoryUrl !== void 0)
+    out.repository_url = repositoryUrl;
+  const launchVideoUrl = trimToNull(value.launch_video_url);
+  if (launchVideoUrl !== void 0)
+    out.launch_video_url = launchVideoUrl;
+  if (value.gallery_urls !== void 0) {
+    out.gallery_urls = normalizeStringArray(value.gallery_urls);
+  }
+  for (const key of [
+    "social_x",
+    "social_github",
+    "social_instagram",
+    "social_linkedin",
+    "social_tiktok",
+    "social_facebook",
+    "social_youtube",
+    "social_bluesky"
+  ]) {
+    if (value[key] !== void 0) {
+      out[key] = trimToNull(value[key]) ?? null;
+    }
+  }
+  if (value.acquisition_listed !== void 0) {
+    out.acquisition_listed = value.acquisition_listed === null ? null : Boolean(value.acquisition_listed);
+  }
+  for (const key of [
+    "asking_price_usd",
+    "ttm_revenue_usd",
+    "monthly_revenue_usd",
+    "ttm_profit_usd",
+    "monthly_profit_usd"
+  ]) {
+    if (value[key] !== void 0) {
+      out[key] = normalizeUsdAmount(value[key]);
+    }
+  }
+  const sellingReason = trimToNull(value.selling_reason);
+  if (sellingReason !== void 0)
+    out.selling_reason = sellingReason;
+  if (value.included_assets !== void 0) {
+    out.included_assets = normalizeIncludedAssets(value.included_assets);
+  }
+  return out;
+}
+function trimToNull(value) {
+  if (value === void 0)
+    return void 0;
+  if (value === null)
+    return null;
+  if (typeof value !== "string")
+    return void 0;
+  const trimmed = value.trim();
+  return trimmed.length === 0 ? null : trimmed;
+}
+function normalizeStringArray(value) {
+  if (value === null)
+    return null;
+  if (!Array.isArray(value))
+    return [];
+  return value.filter((item) => typeof item === "string").map((item) => item.trim()).filter((item) => item.length > 0);
+}
+function normalizeUsdAmount(value) {
+  if (value === null)
+    return null;
+  if (typeof value !== "number" || !Number.isFinite(value))
+    return null;
+  if (value < 0)
+    return null;
+  return value;
+}
+function normalizeIncludedAssets(value) {
+  if (value === null)
+    return null;
+  if (!Array.isArray(value))
+    return [];
+  const slugs = [];
+  for (const item of value) {
+    if (typeof item !== "string")
+      continue;
+    const slug = item.trim();
+    if (!INCLUDED_ASSET_SET.has(slug))
+      continue;
+    if (!slugs.includes(slug)) {
+      slugs.push(slug);
+    }
+  }
+  return slugs;
+}
+function deriveListingTags(profileData) {
+  if (!profileData || typeof profileData !== "object")
+    return [];
+  const seen = /* @__PURE__ */ new Set();
+  const out = [];
+  for (const key of DERIVE_LISTING_TAG_KEYS) {
+    const items = normalizeStringArray(profileData[key]);
+    if (!items || items.length === 0)
+      continue;
+    for (const item of items) {
+      if (seen.has(item))
+        continue;
+      seen.add(item);
+      out.push(item);
+      if (out.length >= BUSINESS_PROFILE_MAX_TAGS)
+        return out;
+    }
+  }
+  return out;
+}
+var BUSINESS_PROFILE_MAX_TAGS, DERIVE_LISTING_TAG_KEYS, BUSINESS_PROFILE_MAX_CATEGORIES, BUSINESS_PROFILE_MAX_USE_CASES, BUSINESS_PROFILE_MAX_TARGET_AUDIENCES, BUSINESS_PROFILE_MAX_PLATFORMS, BUSINESS_PROFILE_MAX_TECH_STACK, BUSINESS_PROFILE_MAX_ALTERNATIVES, BUSINESS_PROFILE_MAX_GALLERY_URLS, BUSINESS_PROFILE_SELLING_REASON_MIN_LENGTH, BUSINESS_PROFILE_PRICING_TYPES, BUSINESS_PROFILE_INCLUDED_ASSET_SLUGS, INCLUDED_ASSET_SET;
+var init_businessProfileData = __esm({
+  "../common/dist/auto-launch/businessProfileData.js"() {
+    BUSINESS_PROFILE_MAX_TAGS = 32;
+    DERIVE_LISTING_TAG_KEYS = [
+      "categories",
+      "use_cases",
+      "target_audiences",
+      "platforms",
+      "tech_stack"
+    ];
+    BUSINESS_PROFILE_MAX_CATEGORIES = 3;
+    BUSINESS_PROFILE_MAX_USE_CASES = 3;
+    BUSINESS_PROFILE_MAX_TARGET_AUDIENCES = 3;
+    BUSINESS_PROFILE_MAX_PLATFORMS = 5;
+    BUSINESS_PROFILE_MAX_TECH_STACK = 5;
+    BUSINESS_PROFILE_MAX_ALTERNATIVES = 5;
+    BUSINESS_PROFILE_MAX_GALLERY_URLS = 3;
+    BUSINESS_PROFILE_SELLING_REASON_MIN_LENGTH = 20;
+    BUSINESS_PROFILE_PRICING_TYPES = ["free", "freemium", "paid"];
+    BUSINESS_PROFILE_INCLUDED_ASSET_SLUGS = [
+      "domain",
+      "source_code",
+      "social_accounts",
+      "customer_list",
+      "brand_assets",
+      "intellectual_property",
+      "contracts",
+      "inventory"
+    ];
+    INCLUDED_ASSET_SET = new Set(BUSINESS_PROFILE_INCLUDED_ASSET_SLUGS);
+  }
+});
+
+// ../common/dist/auto-launch/destination-configs/uneed.js
+function normalizeUneedTagLabel(raw) {
+  return raw.trim().replace(/^#/, "").replace(/\s+/g, " ").toLowerCase();
+}
+function uneedOfficialTagLookupSet() {
+  if (!uneedOfficialTagLookup) {
+    uneedOfficialTagLookup = new Set(UNEED_OFFICIAL_TAG_LABELS.map((label) => normalizeUneedTagLabel(label)));
+  }
+  return uneedOfficialTagLookup;
+}
+function isUneedOfficialTag(raw) {
+  return uneedOfficialTagLookupSet().has(normalizeUneedTagLabel(raw));
+}
+var UNEED_HOST_PATTERNS, UNEED_HOST_PERMISSION, UNEED_JOIN_LINE, UNEED_PAID_LAUNCH, UNEED_MAKER_PROFILE, UNEED_DIRECTORY_LAUNCH_PROVIDERS, UNEED_OFFICIAL_TAG_LABELS, uneedOfficialTagLookup;
+var init_uneed = __esm({
+  "../common/dist/auto-launch/destination-configs/uneed.js"() {
+    init_businessProfileData();
+    UNEED_HOST_PATTERNS = [
+      "https://uneed.best/*",
+      "https://www.uneed.best/*"
+    ];
+    UNEED_HOST_PERMISSION = "*://*.uneed.best/*";
+    UNEED_JOIN_LINE = {
+      identifier: "uneed-join-line",
+      name: "Uneed \u2014 Join the line",
+      tierLabel: "Free",
+      defaultStartUrl: "https://www.uneed.best/your-tools",
+      contentScriptEntry: "content/directory-launch/openquok-directory-uneed.js",
+      hostPatterns: UNEED_HOST_PATTERNS,
+      hostPermission: UNEED_HOST_PERMISSION
+    };
+    UNEED_PAID_LAUNCH = {
+      identifier: "uneed-paid-launch",
+      name: "Uneed \u2014 Paid launch",
+      tierLabel: "Paid",
+      defaultStartUrl: "https://www.uneed.best/your-tools",
+      contentScriptEntry: "content/directory-launch/openquok-directory-uneed.js",
+      hostPatterns: UNEED_HOST_PATTERNS,
+      hostPermission: UNEED_HOST_PERMISSION
+    };
+    UNEED_MAKER_PROFILE = {
+      identifier: "uneed-maker-profile",
+      name: "Uneed \u2014 Maker profile",
+      tierLabel: "Free",
+      defaultStartUrl: "https://uneed.best/profile",
+      contentScriptEntry: "content/directory-launch/openquok-directory-uneed.js",
+      hostPatterns: UNEED_HOST_PATTERNS,
+      hostPermission: UNEED_HOST_PERMISSION
+    };
+    UNEED_DIRECTORY_LAUNCH_PROVIDERS = [
+      UNEED_JOIN_LINE,
+      UNEED_PAID_LAUNCH,
+      UNEED_MAKER_PROFILE
+    ];
+    UNEED_OFFICIAL_TAG_LABELS = [
+      "3D",
+      "AB Testing",
+      "Accessibility",
+      "Advertising",
+      "Affiliation",
+      "Agile",
+      "AI",
+      "AI Agents",
+      "AI Coding",
+      "Analytics",
+      "Android",
+      "Audio",
+      "Automation",
+      "Avatars",
+      "Backgrounds",
+      "Blogging",
+      "Boilerplate",
+      "Bookmarks",
+      "Books",
+      "Briefs",
+      "Browser Extensions",
+      "Browsers",
+      "Business",
+      "Calendar",
+      "Cars",
+      "Changelogs",
+      "Charts",
+      "Chatbots",
+      "Christian",
+      "CI CD",
+      "CMS",
+      "Coaching",
+      "Cold Emails",
+      "Colors",
+      "Communication",
+      "Community",
+      "Conversion",
+      "Cooking",
+      "Coworking",
+      "CRM",
+      "Crypto",
+      "Cryptography",
+      "CSS",
+      "Customer Service",
+      "Dashboards",
+      "Database",
+      "Demos",
+      "Design",
+      "Design System",
+      "Desktop Apps",
+      "Development",
+      "Dictation",
+      "Directories",
+      "Discord",
+      "Documentation",
+      "Domains",
+      "Ebook",
+      "Education",
+      "Email Provider",
+      "Emails",
+      "Engineering",
+      "Environment",
+      "Events",
+      "Excel",
+      "Feedback",
+      "Figma",
+      "File Sharing",
+      "Fitness",
+      "Food Menu",
+      "Forms",
+      "Freelance",
+      "Fun",
+      "Funding",
+      "Gaming",
+      "GDPR",
+      "Git",
+      "Gradients",
+      "Gumroad",
+      "Habits",
+      "Happiness",
+      "Health",
+      "Hiring",
+      "Hosting",
+      "Human Resources",
+      "Icons",
+      "Idea validation",
+      "Illustrations",
+      "Image Optimization",
+      "Indie Making",
+      "Influencers",
+      "Inspiration",
+      "Instagram",
+      "Interior Design",
+      "Investing",
+      "Invoicing",
+      "iOS",
+      "Jobs",
+      "Journaling",
+      "Kids",
+      "Knowledge Bases",
+      "Language Learning",
+      "Lead Acquisition",
+      "Legal",
+      "Lifestyle",
+      "Linkedin",
+      "Logos",
+      "MacOS",
+      "Markdown",
+      "Marketing",
+      "MCP",
+      "Meetings",
+      "Moderation",
+      "Monitoring",
+      "Music",
+      "News",
+      "Newsletter",
+      "Notion",
+      "Nutrition",
+      "Onboarding",
+      "Open Source",
+      "Partnerships",
+      "Password Manager",
+      "PDF",
+      "Personal assistant",
+      "Personal Finances",
+      "Pets",
+      "Photography",
+      "Pitch Decks",
+      "Podcasts",
+      "Privacy",
+      "Productivity",
+      "Project Management",
+      "Prototyping",
+      "Python",
+      "QR Codes",
+      "Real Estate",
+      "Reddit",
+      "Reports",
+      "Research",
+      "Resume",
+      "Roadmap",
+      "Sales",
+      "Scraping",
+      "Screen Recording",
+      "Screenshots",
+      "Search Engine",
+      "Security",
+      "SEO",
+      "Shopify",
+      "Shortlinks",
+      "Slack",
+      "Smartphones",
+      "Social Media",
+      "Software",
+      "Sports",
+      "SQL",
+      "Stats",
+      "Surveys",
+      "SVG",
+      "Tailwindcss",
+      "Teaching",
+      "Templates",
+      "Terminal",
+      "Testimonials",
+      "Testing",
+      "Ticketing",
+      "TikTok",
+      "Time Tracking",
+      "Tracking",
+      "Transcription",
+      "Translations",
+      "Traveling",
+      "Twitter",
+      "Typography",
+      "UI Kit",
+      "Upscaling",
+      "Uptime",
+      "User Management",
+      "Video",
+      "VSCode",
+      "Waitlists",
+      "Wallpapers",
+      "Web3",
+      "Webflow",
+      "Website Builders",
+      "Windows",
+      "Writing",
+      "YouTube"
+    ];
+    uneedOfficialTagLookup = null;
+  }
+});
+
+// ../common/dist/auto-launch/destination-configs/directoryLaunchRegistry.js
+function listDirectoryLaunchProviderSummaries() {
+  return directoryLaunchProviders.map(({ identifier, name, tierLabel }) => ({
+    identifier,
+    name,
+    tierLabel
+  }));
+}
+function normalizeDirectoryLaunchHostname(hostname) {
+  const trimmed = hostname.trim().toLowerCase();
+  return trimmed.startsWith("www.") ? trimmed.slice(4) : trimmed;
+}
+function hostnameFromDirectoryLaunchHostPattern(pattern) {
+  const match = /^https?:\/\/([^/*]+)/i.exec(pattern);
+  return match ? normalizeDirectoryLaunchHostname(match[1]) : null;
+}
+var directoryLaunchProviders;
+var init_directoryLaunchRegistry = __esm({
+  "../common/dist/auto-launch/destination-configs/directoryLaunchRegistry.js"() {
+    init_directorySiteKey();
+    init_openLaunch();
+    init_peerpush();
+    init_uneed();
+    directoryLaunchProviders = [
+      ...UNEED_DIRECTORY_LAUNCH_PROVIDERS,
+      ...PEERPUSH_DIRECTORY_LAUNCH_PROVIDERS,
+      ...OPEN_LAUNCH_DIRECTORY_LAUNCH_PROVIDERS
+    ];
+    new Map(directoryLaunchProviders.map((provider) => [provider.identifier, provider]));
+    (() => {
+      const map = /* @__PURE__ */ new Map();
+      for (const provider of directoryLaunchProviders) {
+        const siteKey = directorySiteKeyFromProviderSlug(provider.identifier);
+        for (const pattern of provider.hostPatterns) {
+          const host = hostnameFromDirectoryLaunchHostPattern(pattern);
+          if (host) {
+            map.set(host, siteKey);
+          }
+        }
+      }
+      return map;
+    })();
+  }
+});
+
+// ../common/dist/browser-extension/pageAssist.js
+var LAUNCH_STEP_FIELD_FILL_MODES;
+var init_pageAssist = __esm({
+  "../common/dist/browser-extension/pageAssist.js"() {
+    init_directoryLaunchRegistry();
+    LAUNCH_STEP_FIELD_FILL_MODES = [
+      "text",
+      "select",
+      "boolean",
+      "rich_html",
+      "tags",
+      "checkbox_group",
+      "file",
+      "files"
+    ];
+  }
+});
+
 // ../common/dist/browser-extension/autoLaunchMessages.js
 var AUTO_LAUNCH_MESSAGE_TYPE;
 var init_autoLaunchMessages = __esm({
   "../common/dist/browser-extension/autoLaunchMessages.js"() {
+    init_directoryLaunchRegistry();
+    init_pageAssist();
+    [...LAUNCH_STEP_FIELD_FILL_MODES, "auto"];
     AUTO_LAUNCH_MESSAGE_TYPE = {
       HANDOFF: "AUTO_LAUNCH_HANDOFF",
       START: "AUTO_LAUNCH_START",
       FILL_STEP: "AUTO_LAUNCH_FILL_STEP",
       FILL_ALL: "AUTO_LAUNCH_FILL_ALL",
+      FILL_FOCUSED: "AUTO_LAUNCH_FILL_FOCUSED",
       PROGRESS: "AUTO_LAUNCH_PROGRESS",
       COMPLETE: "AUTO_LAUNCH_COMPLETE"
     };
@@ -426,9 +1460,9 @@ var init_messages = __esm({
 
 // ../common/dist/browser-extension/cookieSessionProviders.js
 function getCookieSessionProvider(identifier) {
-  return providersById.get(identifier);
+  return providersById2.get(identifier);
 }
-var SKOOL_PROVIDER, COOKIE_SESSION_PROVIDERS, providersById;
+var SKOOL_PROVIDER, COOKIE_SESSION_PROVIDERS, providersById2;
 var init_cookieSessionProviders = __esm({
   "../common/dist/browser-extension/cookieSessionProviders.js"() {
     SKOOL_PROVIDER = {
@@ -443,132 +1477,7 @@ var init_cookieSessionProviders = __esm({
       ]
     };
     COOKIE_SESSION_PROVIDERS = [SKOOL_PROVIDER];
-    providersById = new Map(COOKIE_SESSION_PROVIDERS.map((provider) => [provider.identifier, provider]));
-  }
-});
-
-// ../common/dist/auto-launch/directorySiteKey.js
-function directorySiteKeyFromProviderSlug(providerSlug, publishedSiteSlugs = []) {
-  const trimmed = providerSlug.trim();
-  const slugs = [...publishedSiteSlugs].sort((a, b) => b.length - a.length);
-  for (const slug of slugs) {
-    if (trimmed === slug || trimmed.startsWith(`${slug}-`)) {
-      return slug;
-    }
-  }
-  const dash = trimmed.indexOf("-");
-  return dash === -1 ? trimmed : trimmed.slice(0, dash);
-}
-var init_directorySiteKey = __esm({
-  "../common/dist/auto-launch/directorySiteKey.js"() {
-  }
-});
-
-// ../common/dist/browser-extension/pageAssist.js
-function listDirectoryLaunchProviderSummaries() {
-  return directoryLaunchProviders.map(({ identifier, name, tierLabel }) => ({
-    identifier,
-    name,
-    tierLabel
-  }));
-}
-function normalizeDirectoryLaunchHostname(hostname) {
-  const trimmed = hostname.trim().toLowerCase();
-  return trimmed.startsWith("www.") ? trimmed.slice(4) : trimmed;
-}
-function hostnameFromDirectoryLaunchHostPattern(pattern) {
-  const match = /^https?:\/\/([^/*]+)/i.exec(pattern);
-  return match ? normalizeDirectoryLaunchHostname(match[1]) : null;
-}
-var LAUNCH_STEP_FIELD_FILL_MODES, UNEED_HOST_PATTERNS, UNEED_HOST_PERMISSION, UNEED_JOIN_LINE, UNEED_PAID_LAUNCH, UNEED_MAKER_PROFILE, PEERPUSH_HOST_PATTERNS, PEERPUSH_HOST_PERMISSION, PEERPUSH_STANDARD_LAUNCH, PEERPUSH_FREE_QUEUE, directoryLaunchProviders;
-var init_pageAssist = __esm({
-  "../common/dist/browser-extension/pageAssist.js"() {
-    init_directorySiteKey();
-    LAUNCH_STEP_FIELD_FILL_MODES = [
-      "text",
-      "select",
-      "boolean",
-      "rich_html",
-      "tags",
-      "file",
-      "files"
-    ];
-    UNEED_HOST_PATTERNS = [
-      "https://uneed.best/*",
-      "https://www.uneed.best/*"
-    ];
-    UNEED_HOST_PERMISSION = "*://*.uneed.best/*";
-    UNEED_JOIN_LINE = {
-      identifier: "uneed-join-line",
-      name: "Uneed \u2014 Join the line",
-      tierLabel: "Free",
-      defaultStartUrl: "https://uneed.best/pricing",
-      contentScriptEntry: "content/directory-launch/openquok-directory-uneed.js",
-      hostPatterns: UNEED_HOST_PATTERNS,
-      hostPermission: UNEED_HOST_PERMISSION
-    };
-    UNEED_PAID_LAUNCH = {
-      identifier: "uneed-paid-launch",
-      name: "Uneed \u2014 Paid launch",
-      tierLabel: "Paid",
-      defaultStartUrl: "https://uneed.best/pricing",
-      contentScriptEntry: "content/directory-launch/openquok-directory-uneed.js",
-      hostPatterns: UNEED_HOST_PATTERNS,
-      hostPermission: UNEED_HOST_PERMISSION
-    };
-    UNEED_MAKER_PROFILE = {
-      identifier: "uneed-maker-profile",
-      name: "Uneed \u2014 Maker profile",
-      tierLabel: "Free",
-      defaultStartUrl: "https://uneed.best/profile",
-      contentScriptEntry: "content/directory-launch/openquok-directory-uneed.js",
-      hostPatterns: UNEED_HOST_PATTERNS,
-      hostPermission: UNEED_HOST_PERMISSION
-    };
-    PEERPUSH_HOST_PATTERNS = [
-      "https://peerpush.com/*",
-      "https://www.peerpush.com/*"
-    ];
-    PEERPUSH_HOST_PERMISSION = "*://*.peerpush.com/*";
-    PEERPUSH_STANDARD_LAUNCH = {
-      identifier: "peerpush-standard-launch",
-      name: "PeerPush \u2014 Standard launch",
-      tierLabel: "Paid",
-      defaultStartUrl: "https://peerpush.com/submit",
-      contentScriptEntry: "content/directory-launch/openquok-directory-peerpush.js",
-      hostPatterns: PEERPUSH_HOST_PATTERNS,
-      hostPermission: PEERPUSH_HOST_PERMISSION
-    };
-    PEERPUSH_FREE_QUEUE = {
-      identifier: "peerpush-free-queue",
-      name: "PeerPush \u2014 Free queue",
-      tierLabel: "Free",
-      defaultStartUrl: "https://peerpush.com/pricing",
-      contentScriptEntry: "content/directory-launch/openquok-directory-peerpush.js",
-      hostPatterns: PEERPUSH_HOST_PATTERNS,
-      hostPermission: PEERPUSH_HOST_PERMISSION
-    };
-    directoryLaunchProviders = [
-      UNEED_JOIN_LINE,
-      UNEED_PAID_LAUNCH,
-      UNEED_MAKER_PROFILE,
-      PEERPUSH_FREE_QUEUE,
-      PEERPUSH_STANDARD_LAUNCH
-    ];
-    new Map(directoryLaunchProviders.map((provider) => [provider.identifier, provider]));
-    (() => {
-      const map = /* @__PURE__ */ new Map();
-      for (const provider of directoryLaunchProviders) {
-        const siteKey = directorySiteKeyFromProviderSlug(provider.identifier);
-        for (const pattern of provider.hostPatterns) {
-          const host = hostnameFromDirectoryLaunchHostPattern(pattern);
-          if (host) {
-            map.set(host, siteKey);
-          }
-        }
-      }
-      return map;
-    })();
+    providersById2 = new Map(COOKIE_SESSION_PROVIDERS.map((provider) => [provider.identifier, provider]));
   }
 });
 
@@ -920,6 +1829,15 @@ function resolveProfilePathValue(snapshot, profilePath) {
     profile_data: snapshot.profile_data ?? {},
     integration_customer_id: snapshot.integration_customer_id
   };
+  if (profilePath === "profile_data.tags") {
+    const profileData = snapshot.profile_data ?? {};
+    const storedTags = profileData.tags;
+    if (Array.isArray(storedTags) && storedTags.length > 0) {
+      return storedTags.map(String).join(", ");
+    }
+    const derived = deriveListingTags(profileData);
+    return derived.length > 0 ? derived.join(", ") : null;
+  }
   const value = readPath(root, profilePath);
   if (value === null || value === void 0)
     return null;
@@ -949,6 +1867,55 @@ function computeListingProfileFingerprint(snapshot, extensionConfig) {
 var init_listingProfileFingerprint = __esm({
   "../common/dist/auto-launch/listingProfileFingerprint.js"() {
     init_sha256Utf8Hex();
+    init_businessProfileData();
+  }
+});
+
+// ../common/dist/auto-launch/profileFieldCatalog.js
+function buildProfileSnapshotRoot(snapshot) {
+  return {
+    name: snapshot.name,
+    tagline: snapshot.tagline,
+    description: snapshot.description,
+    website_url: snapshot.website_url,
+    logo_url: snapshot.logo_url,
+    profile_data: snapshot.profile_data ?? {},
+    integration_customer_id: snapshot.integration_customer_id
+  };
+}
+function readPath2(root, path7) {
+  const segments = path7.split(".").filter(Boolean);
+  let current = root;
+  for (const segment of segments) {
+    if (!current || typeof current !== "object")
+      return void 0;
+    current = current[segment];
+  }
+  return current;
+}
+function readProfilePathRaw(snapshot, profilePath) {
+  return readPath2(buildProfileSnapshotRoot(snapshot), profilePath);
+}
+function resolveProfilePathArray(snapshot, profilePath) {
+  const value = readProfilePathRaw(snapshot, profilePath);
+  let items;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    items = trimmed ? [trimmed] : [];
+  } else if (Array.isArray(value)) {
+    items = value.map((entry) => typeof entry === "string" ? entry.trim() : String(entry).trim()).filter(Boolean);
+  } else {
+    items = [];
+  }
+  if (profilePath === "profile_data.categories" && items.length > BUSINESS_PROFILE_MAX_CATEGORIES) {
+    return items.slice(0, BUSINESS_PROFILE_MAX_CATEGORIES);
+  }
+  return items;
+}
+var init_profileFieldCatalog = __esm({
+  "../common/dist/auto-launch/profileFieldCatalog.js"() {
+    init_businessProfileData();
+    init_listingProfileFingerprint();
   }
 });
 
@@ -990,6 +1957,78 @@ var init_directoryOpportunityProgress = __esm({
   }
 });
 
+// ../common/dist/auto-launch/destination-configs/syncMetadata.js
+var init_syncMetadata = __esm({
+  "../common/dist/auto-launch/destination-configs/syncMetadata.js"() {
+  }
+});
+
+// ../common/dist/auto-launch/destination-configs/fieldCatalogRegistry.js
+function resolveLaunchFieldCatalogId(field) {
+  if (field.tagsCatalog === "uneed")
+    return "uneed:tags";
+  if (field.selectCatalog === "uneed")
+    return "uneed:select";
+  if (field.checkboxCatalog === "open_launch_categories")
+    return "open_launch:categories";
+  if (field.checkboxCatalog === "open_launch_platforms")
+    return "open_launch:platforms";
+  if (field.selectCatalog === "open_launch_pricing")
+    return "open_launch:pricing";
+  return null;
+}
+function invalidProfileChoicesForField(items, field) {
+  if (!items?.length)
+    return [];
+  const id = resolveLaunchFieldCatalogId(field);
+  if (id === "uneed:tags") {
+    return items.filter((item) => !isUneedOfficialTag(item));
+  }
+  if (id === "open_launch:categories" || id === "open_launch:platforms") {
+    return invalidOpenLaunchProfileChoicesForField(items, field);
+  }
+  return [];
+}
+var init_fieldCatalogRegistry = __esm({
+  "../common/dist/auto-launch/destination-configs/fieldCatalogRegistry.js"() {
+    init_openLaunch();
+    init_uneed();
+  }
+});
+var init_destination_configs = __esm({
+  "../common/dist/auto-launch/destination-configs/index.js"() {
+    init_openLaunch();
+    init_peerpush();
+    init_uneed();
+    init_openLaunch();
+    init_peerpush();
+    init_uneed();
+    init_syncMetadata();
+    init_directoryLaunchRegistry();
+    init_openLaunch();
+    init_peerpush();
+    init_uneed();
+    init_fieldCatalogRegistry();
+    init_uneed();
+  }
+});
+
+// ../common/dist/auto-launch/launchFieldConstraints.js
+function profileScalarExceedsCap(field, scalar) {
+  const cap = field.maxScalarLength;
+  if (typeof cap !== "number" || cap <= 0 || !scalar)
+    return false;
+  return scalar.length > cap;
+}
+function invalidProfileTagsForField(items, field) {
+  return invalidProfileChoicesForField(items, field);
+}
+var init_launchFieldConstraints = __esm({
+  "../common/dist/auto-launch/launchFieldConstraints.js"() {
+    init_fieldCatalogRegistry();
+  }
+});
+
 // ../common/dist/auto-launch/profileLaunchReadiness.js
 function collectProfileFieldsFromExtensionConfig(config2) {
   const seen = /* @__PURE__ */ new Set();
@@ -1006,6 +2045,41 @@ function collectProfileFieldsFromExtensionConfig(config2) {
   }
   return fields.sort((a, b) => a.path.localeCompare(b.path));
 }
+function collectConstraintViolations(snapshot, extensionConfig) {
+  const missing = [];
+  const seen = /* @__PURE__ */ new Set();
+  const pushMissing = (path7, label) => {
+    const key = `${path7}::${label}`;
+    if (seen.has(key))
+      return;
+    seen.add(key);
+    missing.push({ path: path7, label });
+  };
+  for (const step of extensionConfig?.steps ?? []) {
+    for (const field of step.fields ?? []) {
+      appendFieldConstraintViolations(snapshot, field, pushMissing);
+    }
+  }
+  return missing;
+}
+function appendFieldConstraintViolations(snapshot, field, pushMissing) {
+  const profilePath = field.profilePath?.trim();
+  if (!profilePath)
+    return;
+  if (field.fillMode === "tags" || profilePath === "profile_data.tags") {
+    const joined = resolveProfilePathValue(snapshot, profilePath);
+    const items = joined ? joined.split(",").map((part) => part.trim()).filter(Boolean) : resolveProfilePathArray(snapshot, profilePath);
+    const invalidTags = invalidProfileTagsForField(items, field);
+    if (invalidTags.length > 0) {
+      pushMissing(profilePath, `${field.label}: replace non-Uneed tags (${invalidTags.slice(0, 3).join(", ")}${invalidTags.length > 3 ? "\u2026" : ""})`);
+    }
+    return;
+  }
+  const scalar = resolveProfilePathValue(snapshot, profilePath);
+  if (scalar && profileScalarExceedsCap(field, scalar)) {
+    pushMissing(profilePath, `${field.label} (max ${field.maxScalarLength} characters for this directory)`);
+  }
+}
 function getDestinationReadiness(snapshot, extensionConfig) {
   const fieldDefs = collectProfileFieldsFromExtensionConfig(extensionConfig);
   const missingFields = [];
@@ -1014,8 +2088,13 @@ function getDestinationReadiness(snapshot, extensionConfig) {
       missingFields.push({ path: path7, label });
     }
   }
+  for (const constraint of collectConstraintViolations(snapshot, extensionConfig)) {
+    if (!missingFields.some((entry) => entry.path === constraint.path && entry.label === constraint.label)) {
+      missingFields.push(constraint);
+    }
+  }
   const totalFields = fieldDefs.length;
-  const filledFields = totalFields - missingFields.length;
+  const filledFields = Math.max(0, totalFields - missingFields.length);
   return {
     totalFields,
     filledFields,
@@ -1117,168 +2196,33 @@ function getProfileLaunchSummary(snapshot, destinations, submissions) {
 var init_profileLaunchReadiness = __esm({
   "../common/dist/auto-launch/profileLaunchReadiness.js"() {
     init_directorySiteKey();
+    init_launchFieldConstraints();
     init_listingProfileFingerprint();
+    init_profileFieldCatalog();
   }
 });
 
-// ../common/dist/auto-launch/businessProfileData.js
-function isPlainObject(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+// ../common/dist/auto-launch/richHtmlNormalize.js
+var init_richHtmlNormalize = __esm({
+  "../common/dist/auto-launch/richHtmlNormalize.js"() {
+  }
+});
+
+// ../common/dist/auto-launch/fieldCompare.js
+var init_fieldCompare = __esm({
+  "../common/dist/auto-launch/fieldCompare.js"() {
+    init_listingProfileFingerprint();
+    init_profileFieldCatalog();
+    init_richHtmlNormalize();
+  }
+});
+
+// ../common/dist/auto-launch/normalizeBusinessProfileSlug.js
+function normalizeBusinessProfileSlug(raw) {
+  return raw.trim().toLowerCase().replace(/-+/g, "-").replace(/^-+|-+$/g, "").slice(0, 120);
 }
-function mergeBusinessProfileData(existing, patch) {
-  const base = isPlainObject(existing) ? { ...existing } : {};
-  const next = { ...base, ...patch };
-  return normalizeBusinessProfileData(next);
-}
-function normalizeBusinessProfileData(value) {
-  const out = {};
-  const slug = trimToNull(value.slug);
-  if (slug !== void 0)
-    out.slug = slug;
-  const category = trimToNull(value.category);
-  if (category !== void 0)
-    out.category = category;
-  if (value.categories !== void 0) {
-    out.categories = normalizeStringArray(value.categories);
-  }
-  if (value.use_cases !== void 0) {
-    out.use_cases = normalizeStringArray(value.use_cases);
-  }
-  if (value.target_audiences !== void 0) {
-    out.target_audiences = normalizeStringArray(value.target_audiences);
-  }
-  if (value.platforms !== void 0) {
-    out.platforms = normalizeStringArray(value.platforms);
-  }
-  if (value.alternatives !== void 0) {
-    out.alternatives = normalizeStringArray(value.alternatives);
-  }
-  if (value.pricing_type !== void 0) {
-    const pt = value.pricing_type;
-    if (pt === null)
-      out.pricing_type = null;
-    else if (typeof pt === "string" && BUSINESS_PROFILE_PRICING_TYPES.includes(pt)) {
-      out.pricing_type = pt;
-    }
-  }
-  if (value.tags !== void 0) {
-    out.tags = normalizeStringArray(value.tags);
-  }
-  if (value.is_open_source !== void 0) {
-    out.is_open_source = value.is_open_source === null ? null : Boolean(value.is_open_source);
-  }
-  const repositoryUrl = trimToNull(value.repository_url);
-  if (repositoryUrl !== void 0)
-    out.repository_url = repositoryUrl;
-  const launchVideoUrl = trimToNull(value.launch_video_url);
-  if (launchVideoUrl !== void 0)
-    out.launch_video_url = launchVideoUrl;
-  if (value.gallery_urls !== void 0) {
-    out.gallery_urls = normalizeStringArray(value.gallery_urls);
-  }
-  for (const key of [
-    "social_x",
-    "social_github",
-    "social_instagram",
-    "social_linkedin",
-    "social_tiktok",
-    "social_facebook",
-    "social_youtube",
-    "social_bluesky"
-  ]) {
-    if (value[key] !== void 0) {
-      out[key] = trimToNull(value[key]) ?? null;
-    }
-  }
-  if (value.acquisition_listed !== void 0) {
-    out.acquisition_listed = value.acquisition_listed === null ? null : Boolean(value.acquisition_listed);
-  }
-  for (const key of [
-    "asking_price_usd",
-    "ttm_revenue_usd",
-    "monthly_revenue_usd",
-    "ttm_profit_usd",
-    "monthly_profit_usd"
-  ]) {
-    if (value[key] !== void 0) {
-      out[key] = normalizeUsdAmount(value[key]);
-    }
-  }
-  const sellingReason = trimToNull(value.selling_reason);
-  if (sellingReason !== void 0)
-    out.selling_reason = sellingReason;
-  if (value.included_assets !== void 0) {
-    out.included_assets = normalizeIncludedAssets(value.included_assets);
-  }
-  return out;
-}
-function trimToNull(value) {
-  if (value === void 0)
-    return void 0;
-  if (value === null)
-    return null;
-  if (typeof value !== "string")
-    return void 0;
-  const trimmed = value.trim();
-  return trimmed.length === 0 ? null : trimmed;
-}
-function normalizeStringArray(value) {
-  if (value === null)
-    return null;
-  if (!Array.isArray(value))
-    return [];
-  return value.filter((item) => typeof item === "string").map((item) => item.trim()).filter((item) => item.length > 0);
-}
-function normalizeUsdAmount(value) {
-  if (value === null)
-    return null;
-  if (typeof value !== "number" || !Number.isFinite(value))
-    return null;
-  if (value < 0)
-    return null;
-  return value;
-}
-function normalizeIncludedAssets(value) {
-  if (value === null)
-    return null;
-  if (!Array.isArray(value))
-    return [];
-  const slugs = [];
-  for (const item of value) {
-    if (typeof item !== "string")
-      continue;
-    const slug = item.trim();
-    if (!INCLUDED_ASSET_SET.has(slug))
-      continue;
-    if (!slugs.includes(slug)) {
-      slugs.push(slug);
-    }
-  }
-  return slugs;
-}
-var BUSINESS_PROFILE_MAX_TAGS, BUSINESS_PROFILE_MAX_CATEGORIES, BUSINESS_PROFILE_MAX_USE_CASES, BUSINESS_PROFILE_MAX_TARGET_AUDIENCES, BUSINESS_PROFILE_MAX_PLATFORMS, BUSINESS_PROFILE_MAX_ALTERNATIVES, BUSINESS_PROFILE_MAX_GALLERY_URLS, BUSINESS_PROFILE_SELLING_REASON_MIN_LENGTH, BUSINESS_PROFILE_PRICING_TYPES, BUSINESS_PROFILE_INCLUDED_ASSET_SLUGS, INCLUDED_ASSET_SET;
-var init_businessProfileData = __esm({
-  "../common/dist/auto-launch/businessProfileData.js"() {
-    BUSINESS_PROFILE_MAX_TAGS = 3;
-    BUSINESS_PROFILE_MAX_CATEGORIES = 3;
-    BUSINESS_PROFILE_MAX_USE_CASES = 3;
-    BUSINESS_PROFILE_MAX_TARGET_AUDIENCES = 3;
-    BUSINESS_PROFILE_MAX_PLATFORMS = 5;
-    BUSINESS_PROFILE_MAX_ALTERNATIVES = 5;
-    BUSINESS_PROFILE_MAX_GALLERY_URLS = 3;
-    BUSINESS_PROFILE_SELLING_REASON_MIN_LENGTH = 20;
-    BUSINESS_PROFILE_PRICING_TYPES = ["free", "freemium", "paid"];
-    BUSINESS_PROFILE_INCLUDED_ASSET_SLUGS = [
-      "domain",
-      "source_code",
-      "social_accounts",
-      "customer_list",
-      "brand_assets",
-      "intellectual_property",
-      "contracts",
-      "inventory"
-    ];
-    INCLUDED_ASSET_SET = new Set(BUSINESS_PROFILE_INCLUDED_ASSET_SLUGS);
+var init_normalizeBusinessProfileSlug = __esm({
+  "../common/dist/auto-launch/normalizeBusinessProfileSlug.js"() {
   }
 });
 
@@ -1351,11 +2295,18 @@ var init_dist = __esm({
     init_browser_extension();
     init_redditCommunityTarget();
     init_listingProfileFingerprint();
+    init_profileFieldCatalog();
     init_profileSimilarityToMain();
     init_directorySiteKey();
     init_directoryOpportunityProgress();
+    init_destination_configs();
     init_profileLaunchReadiness();
+    init_fieldCompare();
+    init_richHtmlNormalize();
     init_businessProfileData();
+    init_launchFieldConstraints();
+    init_fieldCatalogRegistry();
+    init_normalizeBusinessProfileSlug();
     init_virtualPaths();
   }
 });
@@ -9895,8 +10846,8 @@ var init_LinkDirectoryRepository = __esm({
   site:site_id(id, title, slug)
 `;
     CATEGORY_EMBED = "category:link_directory_categories(id, name, slug, headline, description, sort_order, openquok_channels_hub_path)";
-    OPPORTUNITY_EMBED = "opportunities:link_directory_opportunities(id, site_id, slug, title, opportunity_type_id, effort, approval_mode, approval_time_hint, dofollow, cost_tier, cost_note, description, steps, openquok_cta_kind, openquok_channel_slug, openquok_plug_name, cta_href, cta_label, sort_order, is_admin_published, published_at, created_at, updated_at, opportunity_type:link_directory_opportunity_types(id, slug, label, description, sort_order))";
-    SELECT_OPPORTUNITY = "id, site_id, slug, title, opportunity_type_id, effort, approval_mode, approval_time_hint, dofollow, cost_tier, cost_note, description, steps, openquok_cta_kind, openquok_channel_slug, openquok_plug_name, cta_href, cta_label, sort_order, is_admin_published, published_at, created_at, updated_at, opportunity_type:link_directory_opportunity_types(id, slug, label, description, sort_order)";
+    OPPORTUNITY_EMBED = "opportunities:link_directory_opportunities(id, site_id, slug, title, opportunity_type_id, effort, approval_mode, approval_time_hint, dofollow, cost_tier, cost_note, description, steps, openquok_cta_kind, openquok_channel_slug, openquok_plug_name, cta_href, cta_label, sort_order, is_admin_published, published_at, auto_launch_enabled, auto_launch_provider_slug, created_at, updated_at, opportunity_type:link_directory_opportunity_types(id, slug, label, description, sort_order))";
+    SELECT_OPPORTUNITY = "id, site_id, slug, title, opportunity_type_id, effort, approval_mode, approval_time_hint, dofollow, cost_tier, cost_note, description, steps, openquok_cta_kind, openquok_channel_slug, openquok_plug_name, cta_href, cta_label, sort_order, is_admin_published, published_at, auto_launch_enabled, auto_launch_provider_slug, created_at, updated_at, opportunity_type:link_directory_opportunity_types(id, slug, label, description, sort_order)";
     SELECT_SITE = `${SITE_COLUMNS}, ${CATEGORY_EMBED}, ${OPPORTUNITY_EMBED}`;
     SELECT_SITE_FOR_SAVED_SITE = `${SITE_COLUMNS}, ${CATEGORY_EMBED}`;
     ALLOWED_PUBLISHED_SORT_KEYS2 = /* @__PURE__ */ new Set([
@@ -14112,6 +15063,7 @@ var init_AutoLaunchRepository = __esm({
         const { data, error } = await this.supabase.from(SUBMISSIONS_TABLE).update({
           profile_snapshot: params.profileSnapshot,
           extension_config_snapshot: params.extensionConfigSnapshot,
+          ...params.productProfileId ? { product_profile_id: params.productProfileId } : {},
           intent_created_at: now,
           updated_at: now
         }).eq("id", params.submissionId).eq("organization_id", params.organizationId).in("status", ["draft", "intent", "in_progress"]).select(SUBMISSION_COLS).single();
@@ -35503,6 +36455,7 @@ function toSubmissionIntentDto(params) {
     launchToken: params.launchToken,
     startUrl: params.destination.start_url,
     providerSlug: params.destination.provider_slug,
+    productProfileId: params.productProfileId,
     profileSnapshot: params.profileSnapshot,
     extensionConfig,
     steps
@@ -35568,6 +36521,12 @@ var init_launchToken = __esm({
     LAUNCH_TOKEN_TTL_MS = 48 * 60 * 60 * 1e3;
   }
 });
+function preprocessProfileSlugInput(value) {
+  if (value === void 0 || value === null) return value;
+  if (typeof value !== "string") return value;
+  const normalized = normalizeBusinessProfileSlug(value);
+  return normalized === "" ? null : normalized;
+}
 function parseBusinessProfileDataInput(value) {
   const parsed = businessProfileDataSchema.parse(value ?? {});
   return parsed;
@@ -35600,12 +36559,15 @@ var init_businessProfileDataSchemas = __esm({
       ])
     );
     optionalUsdAmount = zod.z.union([zod.z.number().nonnegative().finite(), zod.z.null()]).optional();
-    slugField = nullableTrimmedString(120).pipe(
-      zod.z.union([
-        zod.z.undefined(),
-        zod.z.null(),
-        zod.z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Invalid slug")
-      ])
+    slugField = zod.z.preprocess(
+      preprocessProfileSlugInput,
+      nullableTrimmedString(120).pipe(
+        zod.z.union([
+          zod.z.undefined(),
+          zod.z.null(),
+          zod.z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Invalid slug")
+        ])
+      )
     );
     businessProfileDataSchema = zod.z.object({
       slug: slugField,
@@ -35614,6 +36576,7 @@ var init_businessProfileDataSchemas = __esm({
       use_cases: zod.z.array(zod.z.string().trim().min(1).max(80)).max(BUSINESS_PROFILE_MAX_USE_CASES).nullable().optional(),
       target_audiences: zod.z.array(zod.z.string().trim().min(1).max(80)).max(BUSINESS_PROFILE_MAX_TARGET_AUDIENCES).nullable().optional(),
       platforms: zod.z.array(zod.z.string().trim().min(1).max(80)).max(BUSINESS_PROFILE_MAX_PLATFORMS).nullable().optional(),
+      tech_stack: zod.z.array(zod.z.string().trim().min(1).max(80)).max(BUSINESS_PROFILE_MAX_TECH_STACK).nullable().optional(),
       alternatives: zod.z.array(zod.z.string().trim().min(1).max(200)).max(BUSINESS_PROFILE_MAX_ALTERNATIVES).nullable().optional(),
       pricing_type: zod.z.enum(BUSINESS_PROFILE_PRICING_TYPES).nullable().optional(),
       tags: zod.z.array(zod.z.string().trim().min(1).max(80)).max(BUSINESS_PROFILE_MAX_TAGS).nullable().optional(),
@@ -36232,6 +37195,66 @@ var init_AutoLaunchService = __esm({
         return toSubmissionIntentDto({
           submissionId: submission.id,
           launchToken,
+          productProfileId: profile.id,
+          destination,
+          profileSnapshot
+        });
+      }
+      /** Rebuild handoff snapshot from the live product profile (extension after dashboard edits). */
+      async refreshSubmissionIntentFromLaunchToken(authUserId, launchToken, productProfileIdOverride) {
+        const secret = launchTokenSecret();
+        const payload = verifyLaunchToken(launchToken, secret);
+        if (!payload) {
+          throw new AutoLaunchTokenInvalidError();
+        }
+        await this.integrationConnectionService.assertOrganizationMember(
+          authUserId,
+          payload.organizationId
+        );
+        await this.assertDirectoryLaunchEnabled(payload.organizationId, authUserId);
+        const existing = await this.autoLaunchRepository.findSubmissionById(payload.submissionId);
+        if (!existing || existing.organization_id !== payload.organizationId) {
+          throw new AutoLaunchSubmissionNotFoundError(payload.submissionId);
+        }
+        const destination = await this.autoLaunchRepository.findDestinationById(existing.destination_id);
+        if (!destination) {
+          throw new AutoLaunchDestinationNotFoundError(existing.destination_id);
+        }
+        if (!destination.is_published) {
+          throw new AutoLaunchDestinationNotFoundError(destination.id);
+        }
+        const profileIdOverride = productProfileIdOverride?.trim() || void 0;
+        const profile = profileIdOverride ? await this.resolveExplicitProfileForSubmissionRefresh(
+          payload.organizationId,
+          existing.product_profile_id,
+          profileIdOverride
+        ) : await this.resolveProductProfileForLaunch(
+          payload.organizationId,
+          existing.product_profile_id,
+          destination
+        );
+        const profileSnapshot = buildProfileSnapshot(profile);
+        const extensionConfig = destination.extension_config ?? {};
+        const submission = await this.autoLaunchRepository.refreshSubmissionIntent({
+          submissionId: existing.id,
+          organizationId: payload.organizationId,
+          profileSnapshot,
+          extensionConfigSnapshot: extensionConfig,
+          ...profileIdOverride ? { productProfileId: profile.id } : {}
+        });
+        const newLaunchToken = signLaunchToken(
+          {
+            submissionId: submission.id,
+            organizationId: payload.organizationId,
+            destinationId: destination.id,
+            providerSlug: destination.provider_slug
+          },
+          secret
+        );
+        return toSubmissionIntentDto({
+          submissionId: submission.id,
+          launchToken: newLaunchToken,
+          productProfileId: profile.id,
           destination,
           profileSnapshot
         });
@@ -36316,6 +37339,25 @@ var init_AutoLaunchService = __esm({
         }) : [];
         const mainById = new Map(mains.map((main) => [main.id, main]));
         return toAutoLaunchProductProfileDtoCollection(rows, mainById);
+      }
+      /** Main profile id shared by submission + optional directory variants. */
+      async resolveExplicitProfileForSubmissionRefresh(organizationId, submissionProfileId, requestedProfileId) {
+        const submissionProfile = await this.autoLaunchRepository.findProfileById(submissionProfileId);
+        if (!submissionProfile || submissionProfile.organization_id !== organizationId) {
+          throw new AutoLaunchProfileNotFoundError(submissionProfileId);
+        }
+        const mainProfileId = submissionProfile.parent_profile_id ?? submissionProfile.id;
+        const profile = await this.autoLaunchRepository.findProfileById(requestedProfileId);
+        if (!profile || profile.organization_id !== organizationId) {
+          throw new AutoLaunchProfileNotFoundError(requestedProfileId);
+        }
+        const inFamily = profile.id === mainProfileId || profile.parent_profile_id === mainProfileId;
+        if (!inFamily) {
+          throw new UserValidationError(
+            "productProfileId must be the main product profile or a directory variant of that product."
+          );
+        }
+        return profile;
       }
       async resolveProductProfileForLaunch(organizationId, productProfileId, destination) {
         const profile = await this.autoLaunchRepository.findProfileById(productProfileId);
@@ -44170,6 +45212,23 @@ var init_AutoLaunchController = __esm({
           next(error);
         }
       };
+      /** POST /auto-launch/submissions/intent/refresh */
+      refreshSubmissionIntent = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+          const body = req.body;
+          const data = await this.autoLaunchService.refreshSubmissionIntentFromLaunchToken(
+            authUserId,
+            body.launchToken,
+            body.productProfileId
+          );
+          res.status(200).json({ success: true, data });
+        } catch (error) {
+          next(error);
+        }
+      };
       /** GET /auto-launch/admin/destinations */
       listAdminDestinations = async (req, res, next) => {
         try {
@@ -48007,6 +49066,10 @@ function buildProgrammaticSitemapPaths(constantsDir) {
       paths.push(`/alternatives/${encodeURIComponent(slug)}`);
     }
   }
+  paths.push("/alternatives/categories");
+  for (const categorySlug of ["social-scheduler", "directory-submission"]) {
+    paths.push(`/alternatives/categories/${encodeURIComponent(categorySlug)}`);
+  }
   for (const agentSlug of catalog.agents) {
     for (const channelSlug of allChannels) {
       paths.push(
@@ -50198,6 +51261,10 @@ var listAutoLaunchSubmissionsQuerySchema = zod.z.object({
   productProfileId: zod.z.string().uuid().optional(),
   destinationId: zod.z.string().uuid().optional()
 });
+var refreshSubmissionIntentBodySchema = zod.z.object({
+  launchToken: zod.z.string().min(1, "launchToken is required"),
+  productProfileId: zod.z.string().uuid("Invalid product profile id").optional()
+});
 var createSubmissionIntentBodySchema = zod.z.object({
   organizationId: zod.z.string().uuid("Invalid organization id"),
   productProfileId: zod.z.string().uuid("Invalid product profile id"),
@@ -50339,6 +51406,12 @@ autoLaunchRouter.post(
   auth2,
   validateRequest({ body: createSubmissionIntentBodySchema }),
   autoLaunchController.createSubmissionIntent
+);
+autoLaunchRouter.post(
+  "/submissions/intent/refresh",
+  auth2,
+  validateRequest({ body: refreshSubmissionIntentBodySchema }),
+  autoLaunchController.refreshSubmissionIntent
 );
 autoLaunchRouter.post(
   "/submissions/complete",

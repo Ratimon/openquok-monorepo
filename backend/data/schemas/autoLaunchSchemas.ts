@@ -138,6 +138,11 @@ export const listAutoLaunchSubmissionsQuerySchema = z.object({
     destinationId: z.string().uuid().optional(),
 });
 
+export const refreshSubmissionIntentBodySchema = z.object({
+    launchToken: z.string().min(1, "launchToken is required"),
+    productProfileId: z.string().uuid("Invalid product profile id").optional(),
+});
+
 export const createSubmissionIntentBodySchema = z
     .object({
         organizationId: z.string().uuid("Invalid organization id"),
@@ -233,6 +238,7 @@ export type CreateAutoLaunchProfileBody = z.infer<typeof createAutoLaunchProfile
 export type UpdateAutoLaunchProfileBody = z.infer<typeof updateAutoLaunchProfileBodySchema>;
 export type ListAutoLaunchSubmissionsQuery = z.infer<typeof listAutoLaunchSubmissionsQuerySchema>;
 export type CreateSubmissionIntentBody = z.infer<typeof createSubmissionIntentBodySchema>;
+export type RefreshSubmissionIntentBody = z.infer<typeof refreshSubmissionIntentBodySchema>;
 export type CompleteSubmissionBody = z.infer<typeof completeSubmissionBodySchema>;
 export type RecordManualSubmissionCompleteBody = z.infer<typeof recordManualSubmissionCompleteBodySchema>;
 export type UpdateSubmissionListingDetailsBody = z.infer<typeof updateSubmissionListingDetailsBodySchema>;

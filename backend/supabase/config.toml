@@ -24,6 +24,11 @@ shadow_port = 54320
 # server_version;` on the remote database to check.
 major_version = 17
 
+# Runs only on local `supabase db reset` (not shipped with remote migration apply).
+[db.seed]
+enabled = true
+sql_paths = ["./seeds/local_dev_openquok_business_profile.sql"]
+
 [db.pooler]
 enabled = false
 # Port to use for the local connection pooler.
@@ -100,7 +105,7 @@ enable_manual_linking = false
 
 [auth.email]
 # Allow/disallow new user signups via email to your project.
-enable_signup = true
+enabled = true
 # If enabled, a user will be required to confirm any email change on both the old, and new email
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
@@ -118,7 +123,7 @@ otp_expiry = 3600
 
 [auth.sms]
 # Allow/disallow new user signups via SMS to your project.
-enable_signup = false
+enabled = false
 # If enabled, users need to confirm their phone number before signing in.
 enable_confirmations = false
 # Template for sending OTP to users

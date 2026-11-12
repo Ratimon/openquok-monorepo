@@ -36,7 +36,7 @@ See it in action:
 | --- | --- |
 | **Social scheduling** | Open the <strong>side panel</strong> → <strong>Social</strong>. Sign in with your dashboard. Pick channels and <strong>schedule</strong> or <strong>draft</strong> posts. OpenQuok publishes from the server. Connect channels required in the dashboard with <Badge text="Add Channel" variant="new" />. |
 | **Skool** | When you connect Skool in <Badge text="Add Channel" variant="new" />, the extension reads cookies from skool.com while you stay signed in there. OpenQuok checks the session and stores it encrypted. |
-| **Directory launch** | From <a href="/account/products">My Products</a>, choose <Badge text="Launch to directory" variant="new" />. The extension opens the directory site and fills fields from your product profile. You review and click submit on the directory. Use the side panel <strong>Directory</strong> tab to <strong>Fill</strong> on the open tab. |
+| **Directory launch** | Side panel → <strong>Directory</strong>: sign in, pick a directory channel chip to open that site and load your product profile, then <strong>Fill</strong> on the directory tab (on-page panel or side panel). Or start from <a href="/account/products">My Products</a> with <Badge text="Launch to directory" variant="new" />. You submit on the directory site yourself. |
 
 On directory sites, user are required to sign in to OpenQuok.
 

@@ -33,8 +33,10 @@ pnpm --filter @openquok/browser-extension zip
 
 ## Directory launch (auto-launch)
 
-1. Register the destination in `common/src/browser-extension/pageAssist.ts` (`directoryLaunchProviders`).
-2. Add a thin entry under `extension/src/content/directory-launch/` and register it in `extension/manifest.json` `content_scripts`.
+1. In `common/src/auto-launch/destination-configs/<site>.ts`, export the `extension_config` fixture and one `{SITE}_DIRECTORY_LAUNCH_PROVIDERS` row per `provider_slug` (`hostPatterns`, `contentScriptEntry`, `defaultStartUrl`). Register fixtures in `destination-configs/index.ts` and append the site’s provider array in `destination-configs/directoryLaunchRegistry.ts` (aggregated `directoryLaunchProviders`). Run `pnpm sync:auto-launch-configs` when fixtures change.
+2. Add a thin entry under `extension/src/content/directory-launch/` (filename must match `contentScriptEntry`) and register it in `extension/manifest.json` `content_scripts` + `extension/scripts/build-extension.mjs`.
 3. Rebuild the extension. The toolbar popup and on-page step rail read `extension_config.steps` from the dashboard handoff payload.
+
+Types (`LaunchStepField`, `DirectoryLaunchProvider`) and registry re-exports remain on `common/src/browser-extension/pageAssist.ts`; new destinations do not edit that file for provider rows.
 
 Message types and payloads are defined in `openquok-common` (`common/src/browser-extension/`).

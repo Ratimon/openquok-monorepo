@@ -15,9 +15,7 @@ const FIELD_LABELS: Record<string, string> = {
 	'profileData.target_audiences': 'Target audiences',
 	'profileData.platforms': 'Platforms',
 	'profileData.tech_stack': 'Tech stack',
-	'profileData.alternatives': 'Similar products',
 	'profileData.pricing_type': 'Pricing',
-	'profileData.tags': 'Tags',
 	'profileData.repository_url': 'Repository URL',
 	'profileData.launch_video_url': 'Launch video URL',
 	'profileData.social_x': 'X (Twitter)',
@@ -51,8 +49,7 @@ export function businessProfileTabForFieldKey(key: string): BusinessProfileCompo
 		key === 'profileData.use_cases' ||
 		key === 'profileData.target_audiences' ||
 		key === 'profileData.platforms' ||
-		key === 'profileData.tech_stack' ||
-		key === 'profileData.alternatives'
+		key === 'profileData.tech_stack'
 	) {
 		return 'discovery';
 	}

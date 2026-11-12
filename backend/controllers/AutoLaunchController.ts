@@ -7,6 +7,7 @@ import type {
     CreateAutoLaunchProfileBody,
     CreateDirectoryProfileVariantBody,
     CreateSubmissionIntentBody,
+    RefreshSubmissionIntentBody,
     RecordManualSubmissionCompleteBody,
     ListAutoLaunchProfilesQuery,
     ListAutoLaunchSubmissionsQuery,
@@ -256,6 +257,24 @@ export class AutoLaunchController {
                 providerSlug: body.providerSlug,
             });
             res.status(201).json({ success: true, data });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** POST /auto-launch/submissions/intent/refresh */
+    refreshSubmissionIntent = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) return next(new UserAuthorizationError("Not authenticated"));
+            const body = req.body as RefreshSubmissionIntentBody;
+            const data = await this.autoLaunchService.refreshSubmissionIntentFromLaunchToken(
+                authUserId,
+                body.launchToken,
+                body.productProfileId
+            );
+            res.status(200).json({ success: true, data });
         } catch (error) {
             next(error);
         }
