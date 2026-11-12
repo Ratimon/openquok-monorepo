@@ -33,10 +33,6 @@ const chromeWebStoreLinkLabel = PUBLIC_BROWSER_EXTENSION_CHROME_STORE_DOCS_LINK_
 
 Each variant is a separate destination on your product profile. Readiness and submitted counts are tracked per variant. See <a href="/docs/directory-submission/track-submissions">Track submissions</a>.
 
-<Callout type="note" title="Wizard steps the extension skips">
-<p>Open Launch’s submit flow includes <strong>Launch date</strong> and <strong>Review</strong> after product details. OpenQuok autofills Project Info and Details in v1 — you complete date selection, review, and payment on open-launch.com.</p>
-</Callout>
-
 ## Profile fields to prepare
 
 Before you click <Badge text="Launch to directory" variant="new" /> → Open Launch, fill the product profile with:

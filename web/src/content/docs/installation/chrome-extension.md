@@ -183,9 +183,11 @@ In OpenQuok, choose <Badge text="Add Channel" variant="new" /> → Skool. Read t
 
 ### Launch to a directory
 
-On <a href="/account/products">My Products</a>, open or create a business profile, pick PeerPush or Uneed, and choose <Badge text="Launch to directory" variant="new" />. The extension opens the site and fills fields; you submit on the directory site.
+<p>Start from <a href="/account/products">My Products</a> with <Badge text="Launch to directory" variant="new" />, or open the side panel <strong>Directory</strong> tab and click a directory avatar. OpenQuok opens the site and autofills fields.</p>
 
-If you are not signed in to OpenQuok, sign in at <a href="/sign-in">sign in</a> first (or use the banner’s <strong>Go to Login</strong>). You may also need an account on the directory before <strong>Fill</strong> works.
+<p>Check values on the directory site. Click its submit or pay button yourself. Sign in at <a href="/sign-in">sign in</a> when the panel or banner asks. You may need a directory account before <strong>Fill</strong> works.</p>
+
+![Submit on the directory site](/docs/_assets/directory-submission/submit-on-directory.webp)
 
 </Steps>
 
