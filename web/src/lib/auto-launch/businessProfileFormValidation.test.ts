@@ -49,4 +49,20 @@ describe('parseBusinessProfileFormIssues', () => {
 			expect(parsed.firstTabWithError).toBe('discovery');
 		}
 	});
+
+	it('routes tech stack errors to the discovery tab', () => {
+		const result = autoLaunchProductProfileFormSchema.safeParse({
+			name: 'Acme',
+			profileData: {
+				tech_stack: ['a', 'b', 'c', 'd', 'e', 'f']
+			}
+		});
+		expect(result.success).toBe(false);
+		if (!result.success) {
+			const parsed = parseBusinessProfileFormIssues(result.error.issues);
+			expect(parsed.fieldErrors['profileData.tech_stack']).toBeTruthy();
+			expect(parsed.toastMessage).toContain('Tech stack');
+			expect(parsed.firstTabWithError).toBe('discovery');
+		}
+	});
 });

@@ -5,6 +5,7 @@ import { suggestBusinessProfileSlug } from './suggestBusinessProfileSlug';
 describe('suggestBusinessProfileSlug', () => {
 	it('slugifies product names like blog and link-directory admin', () => {
 		expect(suggestBusinessProfileSlug('OpenQuok Scheduler')).toBe('openquok-scheduler');
-		expect(suggestBusinessProfileSlug('  My Product!!  ')).toBe('my-product-');
+		expect(suggestBusinessProfileSlug('  My Product!!  ')).toBe('my-product');
+		expect(suggestBusinessProfileSlug('OpenQuok (peerpush)')).toBe('openquok-peerpush');
 	});
 });

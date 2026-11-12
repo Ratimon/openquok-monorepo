@@ -1,10 +1,16 @@
-import type {
-	AutoLaunchCompletePayload,
-	AutoLaunchExtensionConfig,
-	AutoLaunchHandoffSession,
-	AutoLaunchProfileSnapshot,
-	AutoLaunchProgressPayload,
+import { resolveDirectoryLaunchStartUrl } from '../auto-launch/destination-configs/directoryLaunchRegistry.js';
+import {
+	LAUNCH_STEP_FIELD_FILL_MODES,
+	type AutoLaunchCompletePayload,
+	type AutoLaunchExtensionConfig,
+	type AutoLaunchHandoffSession,
+	type AutoLaunchProfileSnapshot,
+	type AutoLaunchProgressPayload,
 } from './pageAssist.js';
+
+/** Fill mode for focused fill: standard step modes plus `auto` (infer from focused control). */
+export const AUTO_LAUNCH_FOCUSED_FILL_MODES = [...LAUNCH_STEP_FIELD_FILL_MODES, 'auto'] as const;
+export type AutoLaunchFocusedFillMode = (typeof AUTO_LAUNCH_FOCUSED_FILL_MODES)[number];
 
 /** Runtime messages between extension popup, background, and content scripts. */
 export const AUTO_LAUNCH_MESSAGE_TYPE = {
@@ -12,6 +18,7 @@ export const AUTO_LAUNCH_MESSAGE_TYPE = {
 	START: 'AUTO_LAUNCH_START',
 	FILL_STEP: 'AUTO_LAUNCH_FILL_STEP',
 	FILL_ALL: 'AUTO_LAUNCH_FILL_ALL',
+	FILL_FOCUSED: 'AUTO_LAUNCH_FILL_FOCUSED',
 	PROGRESS: 'AUTO_LAUNCH_PROGRESS',
 	COMPLETE: 'AUTO_LAUNCH_COMPLETE',
 } as const;
@@ -39,6 +46,13 @@ export type AutoLaunchFillAllMessage = {
 	type: typeof AUTO_LAUNCH_MESSAGE_TYPE.FILL_ALL;
 };
 
+export type AutoLaunchFillFocusedMessage = {
+	type: typeof AUTO_LAUNCH_MESSAGE_TYPE.FILL_FOCUSED;
+	values: string[];
+	fillMode: AutoLaunchFocusedFillMode;
+	profilePath?: string;
+};
+
 export type AutoLaunchProgressMessage = {
 	type: typeof AUTO_LAUNCH_MESSAGE_TYPE.PROGRESS;
 } & AutoLaunchProgressPayload;
@@ -52,11 +66,24 @@ export type AutoLaunchRuntimeMessage =
 	| AutoLaunchStartMessage
 	| AutoLaunchFillStepMessage
 	| AutoLaunchFillAllMessage
+	| AutoLaunchFillFocusedMessage
 	| AutoLaunchProgressMessage
 	| AutoLaunchCompleteMessage;
 
 function isNonEmptyString(value: unknown): value is string {
 	return typeof value === 'string' && value.trim().length > 0;
+}
+
+function isFocusedFillMode(value: unknown): value is AutoLaunchFocusedFillMode {
+	return (
+		typeof value === 'string' &&
+		(AUTO_LAUNCH_FOCUSED_FILL_MODES as readonly string[]).includes(value)
+	);
+}
+
+function isNonEmptyStringArray(value: unknown): value is string[] {
+	if (!Array.isArray(value) || value.length === 0) return false;
+	return value.every((entry) => typeof entry === 'string' && entry.trim().length > 0);
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -134,6 +161,8 @@ export type AutoLaunchHandoffRequestFields = {
 	launchToken: string;
 	providerSlug: string;
 	startUrl: string;
+	/** Product profile row backing `profileSnapshot` (main or directory variant). */
+	productProfileId?: string;
 	profileSnapshotHash?: string;
 	profileSnapshot: AutoLaunchProfileSnapshot;
 	extensionConfig: AutoLaunchExtensionConfig;
@@ -162,11 +191,17 @@ export function coerceAutoLaunchHandoffRequestFields(
 	const extensionConfig = coerceExtensionConfig(value.extensionConfig);
 	if (!profileSnapshot || extensionConfig === null) return null;
 
+	const productProfileId =
+		typeof value.productProfileId === 'string' && value.productProfileId.trim()
+			? value.productProfileId.trim()
+			: undefined;
+
 	return {
 		submissionId: value.submissionId.trim(),
 		launchToken: value.launchToken.trim(),
 		providerSlug: value.providerSlug.trim(),
 		startUrl: value.startUrl.trim(),
+		...(productProfileId ? { productProfileId } : {}),
 		...(value.profileSnapshotHash !== undefined
 			? { profileSnapshotHash: value.profileSnapshotHash.trim() }
 			: {}),
@@ -185,11 +220,13 @@ export function isAutoLaunchHandoffRequestFields(
 export function toAutoLaunchHandoffSession(
 	fields: AutoLaunchHandoffRequestFields
 ): AutoLaunchHandoffSession {
+	const startUrl = resolveDirectoryLaunchStartUrl(fields.providerSlug, fields.startUrl);
 	return {
 		submissionId: fields.submissionId,
 		launchToken: fields.launchToken,
 		providerSlug: fields.providerSlug,
-		startUrl: fields.startUrl,
+		startUrl,
+		productProfileId: fields.productProfileId,
 		profileSnapshotHash: fields.profileSnapshotHash,
 		profileSnapshot: fields.profileSnapshot,
 		extensionConfig: fields.extensionConfig,
@@ -208,6 +245,12 @@ export function isAutoLaunchRuntimeMessage(value: unknown): value is AutoLaunchR
 			return isNonEmptyString(value.stepId);
 		case AUTO_LAUNCH_MESSAGE_TYPE.FILL_ALL:
 			return true;
+		case AUTO_LAUNCH_MESSAGE_TYPE.FILL_FOCUSED:
+			return (
+				isNonEmptyStringArray(value.values) &&
+				isFocusedFillMode(value.fillMode) &&
+				(value.profilePath === undefined || isNonEmptyString(value.profilePath))
+			);
 		case AUTO_LAUNCH_MESSAGE_TYPE.PROGRESS:
 			return (
 				isNonEmptyString(value.providerSlug) &&

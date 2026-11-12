@@ -6,7 +6,7 @@
 	import { icons } from '$data/icons';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import Button from '$lib/ui/buttons/Button.svelte';
+	import Button, { type ButtonVariant } from '$lib/ui/buttons/Button.svelte';
 	import * as Field from '$lib/ui/field';
 	import {
 		Dialog,
@@ -30,6 +30,8 @@
 		modalDescription?: string;
 		modalVerficationWithAnswer?: boolean;
 		modalVerificationAnswer?: string;
+		/** Confirm action styling — use `red` for destructive flows (delete). */
+		confirmButtonVariant?: ButtonVariant;
 		onSuccess?: () => void;
 	};
 
@@ -46,6 +48,7 @@
 		modalDescription = 'Are you sure you want to perform this action?',
 		modalVerficationWithAnswer = true,
 		modalVerificationAnswer = 'YES',
+		confirmButtonVariant = 'primary',
 		onSuccess
 	}: Props<unknown> = $props();
 
@@ -113,7 +116,7 @@
 					Cancel
 				</Button>
 				<Button
-					variant="primary"
+					variant={confirmButtonVariant}
 					onclick={onSubmit}
 					disabled={
 						!data ||

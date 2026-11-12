@@ -114,6 +114,7 @@ OpenQuok stores your pitch, shows **listing readiness**, and the **browser exten
 <p class="not-prose flex flex-wrap items-center gap-3">
 <a href="/channels/peerpush" title="PeerPush"><img src="/icons/link-directory/peerpush.svg" alt="PeerPush" width="32" height="32" /></a>
 <a href="/channels/uneed" title="Uneed"><img src="/icons/link-directory/uneed.svg" alt="Uneed" width="32" height="32" /></a>
+<a href="/channels/open-launch" title="Open Launch"><img src="/icons/link-directory/open-launch.svg" alt="Open Launch" width="32" height="32" /></a>
 </p>
 
 | Topic | Social posting | Directory launch |

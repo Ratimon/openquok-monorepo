@@ -2,10 +2,13 @@ import {
     buildAdminLinkDirectorySitesCacheKey,
     buildPublishedLinkDirectorySitesCacheKey,
     toLinkDirectorySavedSiteDto,
+    toLinkDirectorySiteDto,
 } from "./LinkDirectoryDTO";
 import type {
     AdminLinkDirectorySitesFilterOptions,
+    LinkDirectoryOpportunityRow,
     LinkDirectorySavedSiteRow,
+    LinkDirectorySiteRow,
     PublishedLinkDirectorySitesFilterOptions,
 } from "../../data/types/linkDirectoryTypes";
 
@@ -134,6 +137,69 @@ describe("buildAdminLinkDirectorySitesCacheKey", () => {
                 "range:start:10:end:34",
             ].join(":")
         );
+    });
+});
+
+describe("LinkDirectoryDTO opportunity mapping", () => {
+    it("maps auto_launch columns on opportunities", () => {
+        const row = {
+            id: "o1",
+            site_id: "s1",
+            slug: "free-launch",
+            title: "Free launch",
+            opportunity_type_id: "t1",
+            effort: "hard",
+            approval_mode: "manual_review",
+            approval_time_hint: null,
+            dofollow: "unknown",
+            cost_tier: "free",
+            cost_note: null,
+            description: null,
+            steps: [],
+            openquok_cta_kind: "external_doc",
+            openquok_channel_slug: null,
+            openquok_plug_name: null,
+            cta_href: "https://open-launch.com/pricing",
+            cta_label: "Open Launch pricing",
+            sort_order: 10,
+            is_admin_published: true,
+            published_at: "2026-01-01T00:00:00.000Z",
+            auto_launch_enabled: true,
+            auto_launch_provider_slug: "open-launch-free-launch",
+        } as LinkDirectoryOpportunityRow;
+
+        const siteRow = {
+            id: "s1",
+            slug: "open-launch",
+            title: "Open Launch",
+            site_url: "https://open-launch.com",
+            logo_url: null,
+            short_description: null,
+            long_description: null,
+            domain_authority: null,
+            domain_rating: null,
+            monthly_visits: null,
+            metrics_source: null,
+            metrics_updated_at: null,
+            category_id: null,
+            is_openquok_auth_supported: false,
+            openquok_channel_slug: null,
+            is_admin_published: true,
+            sort_order: 0,
+            tag_slugs: [],
+            published_at: null,
+            likes: 0,
+            views: 0,
+            bookmark_count: 0,
+            average_rating: null,
+            ratings_count: 0,
+            opportunities: [row],
+        } as LinkDirectorySiteRow;
+
+        expect(toLinkDirectorySiteDto(siteRow).opportunities[0]).toMatchObject({
+            autoLaunchEnabled: true,
+            autoLaunchProviderSlug: "open-launch-free-launch",
+        });
     });
 });
 

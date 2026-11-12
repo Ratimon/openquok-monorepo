@@ -691,7 +691,7 @@ describe("AutoLaunchService", () => {
 
     describe("getProfileListingSummaryForOrganization", () => {
         it("aggregates published destinations and submission readiness for a profile", async () => {
-            const profile = profileRow();
+            const profile = profileRow({ name: "" });
             const destPeerpush = {
                 id: faker.string.uuid(),
                 provider_slug: "peerpush-standard-launch",

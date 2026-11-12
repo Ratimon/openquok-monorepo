@@ -118,7 +118,8 @@ CREATE TABLE IF NOT EXISTS public.link_directory_opportunities (
             'connect_channel',
             'schedule_post',
             'use_plug',
-            'external_doc'
+            'external_doc',
+            'directory_channel'
         )),
     openquok_channel_slug TEXT,
     openquok_plug_name TEXT,

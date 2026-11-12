@@ -66,10 +66,10 @@ const CATEGORY_EMBED =
     "category:link_directory_categories(id, name, slug, headline, description, sort_order, openquok_channels_hub_path)";
 
 const OPPORTUNITY_EMBED =
-    "opportunities:link_directory_opportunities(id, site_id, slug, title, opportunity_type_id, effort, approval_mode, approval_time_hint, dofollow, cost_tier, cost_note, description, steps, openquok_cta_kind, openquok_channel_slug, openquok_plug_name, cta_href, cta_label, sort_order, is_admin_published, published_at, created_at, updated_at, opportunity_type:link_directory_opportunity_types(id, slug, label, description, sort_order))";
+    "opportunities:link_directory_opportunities(id, site_id, slug, title, opportunity_type_id, effort, approval_mode, approval_time_hint, dofollow, cost_tier, cost_note, description, steps, openquok_cta_kind, openquok_channel_slug, openquok_plug_name, cta_href, cta_label, sort_order, is_admin_published, published_at, auto_launch_enabled, auto_launch_provider_slug, created_at, updated_at, opportunity_type:link_directory_opportunity_types(id, slug, label, description, sort_order))";
 
 const SELECT_OPPORTUNITY =
-    "id, site_id, slug, title, opportunity_type_id, effort, approval_mode, approval_time_hint, dofollow, cost_tier, cost_note, description, steps, openquok_cta_kind, openquok_channel_slug, openquok_plug_name, cta_href, cta_label, sort_order, is_admin_published, published_at, created_at, updated_at, opportunity_type:link_directory_opportunity_types(id, slug, label, description, sort_order)";
+    "id, site_id, slug, title, opportunity_type_id, effort, approval_mode, approval_time_hint, dofollow, cost_tier, cost_note, description, steps, openquok_cta_kind, openquok_channel_slug, openquok_plug_name, cta_href, cta_label, sort_order, is_admin_published, published_at, auto_launch_enabled, auto_launch_provider_slug, created_at, updated_at, opportunity_type:link_directory_opportunity_types(id, slug, label, description, sort_order)";
 
 const SELECT_SITE = `${SITE_COLUMNS}, ${CATEGORY_EMBED}, ${OPPORTUNITY_EMBED}`;
 

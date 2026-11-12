@@ -9,6 +9,10 @@
 		AutoLaunchProductProfileDto,
 		AutoLaunchSubmissionDto
 	} from '$lib/auto-launch/auto-launch.types';
+	import type {
+		DeleteBusinessProfileModalData,
+		DeleteBusinessProfileModalResult
+	} from '$lib/auto-launch/deleteBusinessProfileModal.types';
 
 	import { icons } from '$data/icons';
 
@@ -33,7 +37,9 @@
 			mainProfileId: string,
 			directorySiteKey: string
 		) => Promise<{ ok: true; profileId: string } | { ok: false; error: string }>;
-		onDeleteProfile: (profileId: string) => void;
+		deleteBusinessProfileForModal: (
+			data: DeleteBusinessProfileModalData
+		) => Promise<DeleteBusinessProfileModalResult>;
 		onSaveProfile: (
 			values: AutoLaunchProfileSavePayload,
 			uploadMediaForProfile: (profileId: string) => Promise<
@@ -62,7 +68,7 @@
 		onOpenCreate,
 		onOpenEdit,
 		onCreateDirectoryVariant,
-		onDeleteProfile,
+		deleteBusinessProfileForModal,
 		onSaveProfile,
 		onComposerCancel,
 		onDirectoryListingSaved,
@@ -70,6 +76,16 @@
 	}: Props = $props();
 
 	let composerRef: ProductProfileComposer | undefined = $state();
+
+	const composerTitle = $derived.by(() => {
+		if (!editingProfile) return 'New business profile';
+		if (editingProfile.profileKind === 'directory_variant') {
+			const site = editingProfile.directorySiteKey ?? 'directory';
+			return `Edit ${site} variant`;
+		}
+		return 'Edit business profile';
+	});
+
 </script>
 
 <div class="flex flex-wrap items-center justify-between gap-3">
@@ -111,7 +127,7 @@
 					onDirectoryListingSaved={onDirectoryListingSaved}
 					onDirectoryListingRemoved={onDirectoryListingRemoved}
 					onEdit={onOpenEdit}
-					onDelete={(id) => onDeleteProfile(id)}
+					{deleteBusinessProfileForModal}
 				/>
 			</li>
 		{/each}
@@ -125,8 +141,9 @@
 	initial={editingProfile}
 	initialTab={composerInitialTab}
 	submitting={composerSubmitting}
-	title={editingProfile ? 'Edit business profile' : 'New business profile'}
+	title={composerTitle}
 	onSubmit={(values) =>
 		void onSaveProfile(values, async (profileId) => composerRef?.uploadMediaForProfile(profileId))}
 	onCancel={onComposerCancel}
+	{deleteBusinessProfileForModal}
 />

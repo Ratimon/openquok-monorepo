@@ -78,23 +78,23 @@ Link social accounts to the same business profile when you want one client or br
 
 ### Check readiness
 
-Each directory destination shows **readiness** on the profile card. Fix missing fields in the profile editor before you open the directory site.
+Each destination shows **readiness** on the product card. Fix missing fields in the profile editor before you open the directory site.
 
-### Launch to a directory
+### Start the launch
 
-<p>Click <strong>Launch to directory</strong> on the product profile, or add the site with <strong>Add Channel</strong> on <a href="/account">My Dashboard</a> → <strong>Channels</strong> tab first.</p>
+<p><strong>From My Products:</strong> Click <strong>Launch to directory</strong>. Choose the site and variant (for example PeerPush Standard launch or Uneed Join the line). OpenQuok opens the site and sends a handoff to the extension.</p>
 
-![Add Directory Channel in Channels Tab](/docs/_assets/directory-submission/fill-directory.webp)
+![Choose a directory listing option](/docs/_assets/directory-submission/fill-directory.webp)
 
-### Choose Listing Option
+<p><strong>Or use the side panel:</strong> Open the extension side panel. Go to the <strong>Directory</strong> tab. Sign in to OpenQuok if the panel asks. Click a directory avatar. OpenQuok opens that site and loads your product profile for autofill. You can start from the directory tab when you already use the extension on other tabs.</p>
 
-<p>Choose the site and variant — for example PeerPush Standard launch or Uneed Join the line. OpenQuok opens the correct website and sends a handoff to the extension.</p>
-
-![Choose one of Directory 's Listing Options](/docs/_assets/directory-submission/fill-directory.webp)
+<p>You can also add a destination first with <strong>Add Channel</strong> on <a href="/account">My Dashboard</a> → <strong>Channels</strong> tab. Then launch from the product card or from the side panel.</p>
 
 ### Review and submit on the directory
 
-On the directory site, confirm autofilled values. Edit anything that still needs a human touch. Click the directory’s own submit or pay button. OpenQuok does not bypass their checkout or terms.
+<p>On the directory site, check autofilled fields. Change anything that needs a human touch. Use <strong>Fill</strong> on the page or in the side panel if you need more fields. Click the directory’s own submit or pay button. OpenQuok does not bypass paid checkout on the directory site.</p>
+
+![Submit on the directory site](/docs/_assets/directory-submission/submit-on-directory.webp)
 
 ### Mark complete and save the listing URL
 

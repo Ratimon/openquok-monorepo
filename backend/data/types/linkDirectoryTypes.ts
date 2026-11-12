@@ -7,7 +7,8 @@ export type LinkDirectoryCtaKind =
     | "connect_channel"
     | "schedule_post"
     | "use_plug"
-    | "external_doc";
+    | "external_doc"
+    | "directory_channel";
 export type LinkDirectorySubmissionStatus = "pending" | "approved" | "rejected";
 
 export type LinkDirectoryOpportunityStep = {

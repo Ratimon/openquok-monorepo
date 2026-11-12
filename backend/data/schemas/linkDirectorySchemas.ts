@@ -10,6 +10,7 @@ const ctaKindSchema = z.enum([
     "schedule_post",
     "use_plug",
     "external_doc",
+    "directory_channel",
 ]);
 
 const opportunityStepSchema = z.object({

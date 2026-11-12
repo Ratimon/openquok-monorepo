@@ -1,9 +1,10 @@
-import {
-	AUTO_LAUNCH_MESSAGE_TYPE,
-	getDirectoryLaunchProvider,
-	listDirectoryLaunchProviderSummaries,
-} from 'openquok-common';
+import { AUTO_LAUNCH_MESSAGE_TYPE, listDirectoryLaunchProviderSummaries } from 'openquok-common';
 
+import {
+	OPENQUOK_AUTO_LAUNCH_FOCUS_TAB,
+	OPENQUOK_AUTO_LAUNCH_OPEN_DIRECTORY_PAGE,
+	OPENQUOK_AUTO_LAUNCH_RESET_PANEL_POSITION,
+} from '../directory/auto-launch/constants.js';
 import { POPUP_UI_MESSAGE } from '../auto-launch/popupMessages.js';
 import type { StoredAutoLaunchState } from '../auto-launch/sessionStorage.js';
 import { isReadyPage, pageMatchesConfig } from '../directory-launch/stepRail.js';
@@ -116,6 +117,7 @@ function render(state: StoredAutoLaunchState | null, error?: string): void {
 				<div class="actions">
 					<button id="fill-all" ${hasSession ? '' : 'disabled'}>Fill all on directory tab</button>
 					<button id="focus-tab" class="secondary" ${hasSession ? '' : 'disabled'}>Focus directory tab</button>
+					<button id="reset-fill-panel" class="secondary" title="Move the on-page fill panel back to the top-left." ${hasSession ? '' : 'disabled'}>Reset fill panel to left</button>
 					<button id="open-start" class="secondary">Open directory page</button>
 					<button id="mark-done" class="secondary" ${hasSession ? '' : 'disabled'}>Mark submitted in OpenQuok</button>
 					<button id="clear" class="secondary" ${hasSession ? '' : 'disabled'}>Clear session</button>
@@ -139,20 +141,36 @@ function render(state: StoredAutoLaunchState | null, error?: string): void {
 	});
 
 	root.querySelector('#focus-tab')?.addEventListener('click', async () => {
-		const result = await sendRuntime({ type: 'OPENQUOK_AUTO_LAUNCH_FOCUS_TAB' });
+		const slug = sessionSlug ?? selectedChannelId;
+		const result = await sendRuntime({
+			type: OPENQUOK_AUTO_LAUNCH_FOCUS_TAB,
+			providerSlug: slug,
+		});
 		if (result.ok === false) {
 			render(state, String(result.error ?? 'Could not focus directory tab.'));
 		}
 	});
 
+	root.querySelector('#reset-fill-panel')?.addEventListener('click', async () => {
+		const result = await sendRuntime({
+			type: OPENQUOK_AUTO_LAUNCH_RESET_PANEL_POSITION,
+		});
+		if (result.ok === false) {
+			render(state, String(result.error ?? 'Could not reset fill panel.'));
+		}
+	});
+
 	root.querySelector('#open-start')?.addEventListener('click', async () => {
-		const slug = sessionSlug ?? selectedChannelId;
-		const provider = getDirectoryLaunchProvider(slug);
-		const url = hasSession
-			? state?.session.startUrl
-			: provider?.defaultStartUrl;
-		if (!url) return;
-		await chrome.tabs.create({ url, active: true });
+		const slug = channelSelect?.value ?? sessionSlug ?? selectedChannelId;
+		const result = await sendRuntime({
+			type: OPENQUOK_AUTO_LAUNCH_OPEN_DIRECTORY_PAGE,
+			providerSlug: slug,
+		});
+		if (result.ok === false) {
+			render(state, String(result.error ?? 'Could not open directory page.'));
+			return;
+		}
+		await refresh();
 	});
 
 	root.querySelector('#mark-done')?.addEventListener('click', async () => {

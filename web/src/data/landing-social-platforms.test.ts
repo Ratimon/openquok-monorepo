@@ -15,15 +15,20 @@ describe('FEATURES_GRID_SOCIAL_ROWS', () => {
 	it('splits home hero icon rows into scheduled social and extended (draft + directory)', () => {
 		expect(HERO_SOCIAL_PLATFORMS.map((platform) => platform.id)).not.toContain('reddit');
 		expect(HERO_DRAFT_HANDOFF_PLATFORMS.map((platform) => platform.id)).toEqual(['reddit']);
-		expect(HERO_DIRECTORY_PLATFORMS.map((platform) => platform.id)).toEqual(['peerpush', 'uneed']);
+		expect(HERO_DIRECTORY_PLATFORMS.map((platform) => platform.id)).toEqual([
+			'peerpush',
+			'uneed',
+			'open-launch'
+		]);
 		expect([...HERO_DRAFT_HANDOFF_PLATFORMS, ...HERO_DIRECTORY_PLATFORMS].map((p) => p.id)).toEqual(
-			['reddit', 'peerpush', 'uneed']
+			['reddit', 'peerpush', 'uneed', 'open-launch']
 		);
 		expect(HERO_BROWSER_EXTENSION_PLATFORMS.map((platform) => platform.id)).toEqual([
 			'skool',
 			'reddit',
 			'peerpush',
-			'uneed'
+			'uneed',
+			'open-launch'
 		]);
 	});
 
@@ -38,13 +43,14 @@ describe('FEATURES_GRID_SOCIAL_ROWS', () => {
 		expect(resolveLandingSocialPlatformChannelSlug(standalone!)).toBe('instagram');
 	});
 
-	it('balances home grid as 4 + 5 + 4 with directory tiles in the stack', () => {
+	it('balances home grid as 4 + 5 + 5 with directory tiles in the stack', () => {
 		const counts = FEATURES_GRID_HOME_ROWS.map((row) => row.platformIds.length);
-		expect(counts).toEqual([4, 5, 4]);
+		expect(counts).toEqual([4, 5, 5]);
 		const ids = FEATURES_GRID_HOME_ROWS.flatMap((row) => row.platformIds);
 		expect(ids).toContain('peerpush');
 		expect(ids).toContain('uneed');
+		expect(ids).toContain('open-launch');
 		expect(ids.filter((id) => id === 'peerpush').length).toBe(1);
-		expect(new Set(ids).size).toBe(13);
+		expect(new Set(ids).size).toBe(14);
 	});
 });

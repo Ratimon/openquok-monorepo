@@ -4,12 +4,14 @@ import {
     BUSINESS_PROFILE_MAX_CATEGORIES,
     BUSINESS_PROFILE_MAX_GALLERY_URLS,
     BUSINESS_PROFILE_MAX_PLATFORMS,
+    BUSINESS_PROFILE_MAX_TECH_STACK,
     BUSINESS_PROFILE_MAX_TAGS,
     BUSINESS_PROFILE_MAX_TARGET_AUDIENCES,
     BUSINESS_PROFILE_MAX_USE_CASES,
     BUSINESS_PROFILE_PRICING_TYPES,
     BUSINESS_PROFILE_SELLING_REASON_MIN_LENGTH,
     type BusinessProfileData,
+    normalizeBusinessProfileSlug,
 } from "openquok-common";
 import { z } from "zod";
 
@@ -46,14 +48,22 @@ const optionalUsdAmount = z
     .union([z.number().nonnegative().finite(), z.null()])
     .optional();
 
-const slugField = nullableTrimmedString(120).pipe(
-    z.union([
-        z.undefined(),
-        z.null(),
-        z
-            .string()
-            .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Invalid slug"),
-    ])
+function preprocessProfileSlugInput(value: unknown): unknown {
+    if (value === undefined || value === null) return value;
+    if (typeof value !== "string") return value;
+    const normalized = normalizeBusinessProfileSlug(value);
+    return normalized === "" ? null : normalized;
+}
+
+const slugField = z.preprocess(
+    preprocessProfileSlugInput,
+    nullableTrimmedString(120).pipe(
+        z.union([
+            z.undefined(),
+            z.null(),
+            z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Invalid slug"),
+        ])
+    )
 );
 
 export const businessProfileDataSchema = z
@@ -78,6 +88,11 @@ export const businessProfileDataSchema = z
         platforms: z
             .array(z.string().trim().min(1).max(80))
             .max(BUSINESS_PROFILE_MAX_PLATFORMS)
+            .nullable()
+            .optional(),
+        tech_stack: z
+            .array(z.string().trim().min(1).max(80))
+            .max(BUSINESS_PROFILE_MAX_TECH_STACK)
             .nullable()
             .optional(),
         alternatives: z

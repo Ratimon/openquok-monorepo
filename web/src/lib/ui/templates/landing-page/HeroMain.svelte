@@ -43,7 +43,7 @@
 		heroTitle?: string;
 		heroSlogan?: string;
 		heroPlatformsLabel?: string;
-		/** Row 2 — Reddit member handoff + directory launch (PeerPush, Uneed). */
+		/** Row 2 — Reddit member handoff + directory launch (PeerPush, Uneed, Open Launch). */
 		heroExtendedPlatformsLabel?: string;
 		ctaTextPrimary?: string;
 		ctaHrefPrimary?: string;

@@ -121,7 +121,14 @@ const linkDirectoryOpportunityFormObjectSchema = z.object({
 	description: z.string().max(10000).optional().nullable(),
 	steps: z.array(opportunityStepSchema).optional(),
 	openquok_cta_kind: z
-		.enum(['none', 'connect_channel', 'schedule_post', 'use_plug', 'external_doc'])
+		.enum([
+			'none',
+			'connect_channel',
+			'schedule_post',
+			'use_plug',
+			'external_doc',
+			'directory_channel'
+		])
 		.optional(),
 	openquok_channel_slug: z.string().max(200).optional().nullable(),
 	openquok_plug_name: z.string().max(200).optional().nullable(),
@@ -141,11 +148,14 @@ const linkDirectoryOpportunityFormObjectSchema = z.object({
 export const linkDirectoryOpportunityFormSchema = linkDirectoryOpportunityFormObjectSchema.superRefine(
 	(data, ctx) => {
 		const kind = data.openquok_cta_kind ?? 'none';
-		if (kind === 'connect_channel' || kind === 'schedule_post') {
+		if (kind === 'connect_channel' || kind === 'schedule_post' || kind === 'directory_channel') {
 			if (!data.openquok_channel_slug?.trim()) {
 				ctx.addIssue({
 					code: z.ZodIssueCode.custom,
-					message: 'Select an OpenQuok channel for this CTA.',
+					message:
+						kind === 'directory_channel'
+							? 'Select a directory launch channel.'
+							: 'Select an OpenQuok channel for this CTA.',
 					path: ['openquok_channel_slug']
 				});
 			}

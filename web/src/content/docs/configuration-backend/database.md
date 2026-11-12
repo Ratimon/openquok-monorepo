@@ -47,6 +47,10 @@ Local <code>supabase start</code> emits the new key format (<strong>Publishable 
 supabase db reset
 ```
 
+<Callout type="tip">
+<p>Shared migrations keep <code>SEED_OPENQUOK_BUSINESS_PROFILE_ON_ORG_CREATE</code> <strong>false</strong> in <strong>module_configs.auto_launch</strong> (safe for production). On local <code>supabase db reset</code>, <Badge text="backend/supabase/seeds/local_dev_openquok_business_profile.sql" variant="path" /> turns the flag <strong>on</strong> and backfills workspaces with a ready <strong>OpenQuok</strong> business profile. Sign up after reset — remote Supabase projects do not run that seed file.</p>
+</Callout>
+
 ### Generate types (optional)
 
 ```bash

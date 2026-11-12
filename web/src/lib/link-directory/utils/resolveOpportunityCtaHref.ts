@@ -1,4 +1,7 @@
 import type { LinkDirectoryCtaKind } from '$lib/link-directory/link-directory.types';
+import { publicDirectoryChannelLabel } from '$lib/content/constants/channels/catalog/publicDirectoryChannelOptions';
+import { buildBacklinksDirectoryAutofillFooter } from '$lib/link-directory/utils/buildBacklinksDirectoryAutofillFooter';
+import { route } from '$lib/utils/path';
 
 const CONNECT_CHANNELS_DOC = '/docs/channels/connect';
 const CREATING_POSTS_DOC = '/docs/creating-posts';
@@ -46,6 +49,19 @@ export function resolveOpportunityCta(params: {
 				};
 			}
 			return null;
+		case 'directory_channel': {
+			const slug = channelSlug?.trim();
+			if (!slug) {
+				return null;
+			}
+			const platformLabel = publicDirectoryChannelLabel(slug);
+			const autofill = buildBacklinksDirectoryAutofillFooter(platformLabel);
+			return {
+				href: route(`channels/${slug}`),
+				label: autofill.footerLinkLabel,
+				external: false
+			};
+		}
 		case 'none':
 		default:
 			if (ctaHref?.trim()) {

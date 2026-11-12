@@ -14,6 +14,7 @@ import {
     createAdminAutoLaunchDestinationBodySchema,
     createAutoLaunchProfileBodySchema,
     createSubmissionIntentBodySchema,
+    refreshSubmissionIntentBodySchema,
     listAutoLaunchProfilesQuerySchema,
     listAutoLaunchSubmissionsQuerySchema,
     listBusinessProfilesQuerySchema,
@@ -117,6 +118,12 @@ autoLaunchRouter.post(
     auth,
     validateRequest({ body: createSubmissionIntentBodySchema }),
     autoLaunchController.createSubmissionIntent
+);
+autoLaunchRouter.post(
+    "/submissions/intent/refresh",
+    auth,
+    validateRequest({ body: refreshSubmissionIntentBodySchema }),
+    autoLaunchController.refreshSubmissionIntent
 );
 autoLaunchRouter.post(
     "/submissions/complete",

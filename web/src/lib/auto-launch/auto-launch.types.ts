@@ -13,12 +13,21 @@ import {
 	BUSINESS_PROFILE_MAX_CATEGORIES,
 	BUSINESS_PROFILE_MAX_GALLERY_URLS,
 	BUSINESS_PROFILE_MAX_PLATFORMS,
+	BUSINESS_PROFILE_MAX_TECH_STACK,
 	BUSINESS_PROFILE_MAX_TAGS,
 	BUSINESS_PROFILE_MAX_TARGET_AUDIENCES,
 	BUSINESS_PROFILE_MAX_USE_CASES,
 	BUSINESS_PROFILE_PRICING_TYPES,
-	BUSINESS_PROFILE_SELLING_REASON_MIN_LENGTH
+	BUSINESS_PROFILE_SELLING_REASON_MIN_LENGTH,
+	normalizeBusinessProfileSlug
 } from 'openquok-common';
+
+function preprocessProfileSlugInput(value: unknown): unknown {
+	if (value === undefined || value === null) return value;
+	if (typeof value !== 'string') return value;
+	const normalized = normalizeBusinessProfileSlug(value);
+	return normalized === '' ? null : normalized;
+}
 
 export type { BusinessProfileData };
 
@@ -176,12 +185,20 @@ const optionalUsdFormField = z
 
 export const businessProfileDataFormSchema = z
 	.object({
-		slug: nullableTrimmedString(120).pipe(
-			z.union([
-				z.undefined(),
-				z.null(),
-				z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must use lowercase letters, numbers, and hyphens')
-			])
+		slug: z.preprocess(
+			preprocessProfileSlugInput,
+			nullableTrimmedString(120).pipe(
+				z.union([
+					z.undefined(),
+					z.null(),
+					z
+						.string()
+						.regex(
+							/^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+							'Slug must use lowercase letters, numbers, and hyphens'
+						)
+				])
+			)
 		),
 		category: nullableTrimmedString(200),
 		categories: z
@@ -202,6 +219,11 @@ export const businessProfileDataFormSchema = z
 		platforms: z
 			.array(z.string().trim().min(1).max(80))
 			.max(BUSINESS_PROFILE_MAX_PLATFORMS)
+			.optional()
+			.default([]),
+		tech_stack: z
+			.array(z.string().trim().min(1).max(80))
+			.max(BUSINESS_PROFILE_MAX_TECH_STACK)
 			.optional()
 			.default([]),
 		alternatives: z
@@ -293,7 +315,7 @@ export const autoLaunchProductProfileFormSchema: z.ZodType<AutoLaunchProductProf
 	tagline: optionalStringInput.pipe(
 		z
 			.string()
-			.max(500)
+			.max(80, 'Tagline must be 80 characters or fewer (Uneed and similar directories)')
 			.trim()
 			.transform((v) => v || null)
 	),

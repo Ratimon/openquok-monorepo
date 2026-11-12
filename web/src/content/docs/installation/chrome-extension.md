@@ -36,7 +36,7 @@ See it in action:
 | --- | --- |
 | **Social scheduling** | Open the <strong>side panel</strong> → <strong>Social</strong>. Sign in with your dashboard. Pick channels and <strong>schedule</strong> or <strong>draft</strong> posts. OpenQuok publishes from the server. Connect channels required in the dashboard with <Badge text="Add Channel" variant="new" />. |
 | **Skool** | When you connect Skool in <Badge text="Add Channel" variant="new" />, the extension reads cookies from skool.com while you stay signed in there. OpenQuok checks the session and stores it encrypted. |
-| **Directory launch** | From <a href="/account/products">My Products</a>, choose <Badge text="Launch to directory" variant="new" />. The extension opens the directory site and fills fields from your product profile. You review and click submit on the directory. Use the side panel <strong>Directory</strong> tab to <strong>Fill</strong> on the open tab. |
+| **Directory launch** | Side panel → <strong>Directory</strong>: sign in, pick a directory channel chip to open that site and load your product profile, then <strong>Fill</strong> on the directory tab (on-page panel or side panel). Or start from <a href="/account/products">My Products</a> with <Badge text="Launch to directory" variant="new" />. You submit on the directory site yourself. |
 
 On directory sites, user are required to sign in to OpenQuok.
 
@@ -161,7 +161,11 @@ Output is in <Badge text="extension/dist/" variant="path" />.
 
 ### Load in Chrome
 
-Open <strong>chrome://extensions</strong>, turn on <strong>Developer mode</strong>, click <strong>Load unpacked</strong>, and select <Badge text="extension/dist" variant="path" />.
+Open <strong>chrome://extensions</strong>, turn on <strong>Developer mode</strong>, click <strong>Load unpacked</strong>, and select the <strong>dist</strong> folder inside your monorepo clone (for example <Badge text="openquok-monorepo/extension/dist" variant="path" />). Chrome needs <strong>manifest.json</strong> in the folder you pick — not the repo root, not <Badge text="extension/" variant="path" /> alone, and not your Desktop or Downloads shortcut.
+
+<Callout type="warning">
+<p>Installing the published Chrome Web Store build does <strong>not</strong> block a separate unpacked copy. The Web Store build keeps its own extension ID; unpacked dev builds get a different ID — set <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_ID" variant="envWeb" /> to match whichever build your web app should talk to.</p>
+</Callout>
 
 ![Load Unpacked OpenQuok Chrome Extension](/docs/_assets/installation/local-extension.webp)
 
@@ -179,9 +183,11 @@ In OpenQuok, choose <Badge text="Add Channel" variant="new" /> → Skool. Read t
 
 ### Launch to a directory
 
-On <a href="/account/products">My Products</a>, open or create a business profile, pick PeerPush or Uneed, and choose <Badge text="Launch to directory" variant="new" />. The extension opens the site and fills fields; you submit on the directory site.
+<p>Start from <a href="/account/products">My Products</a> with <Badge text="Launch to directory" variant="new" />, or open the side panel <strong>Directory</strong> tab and click a directory avatar. OpenQuok opens the site and autofills fields.</p>
 
-If you are not signed in to OpenQuok, sign in at <a href="/sign-in">sign in</a> first (or use the banner’s <strong>Go to Login</strong>). You may also need an account on the directory before <strong>Fill</strong> works.
+<p>Check values on the directory site. Click its submit or pay button yourself. Sign in at <a href="/sign-in">sign in</a> when the panel or banner asks. You may need a directory account before <strong>Fill</strong> works.</p>
+
+![Submit on the directory site](/docs/_assets/directory-submission/submit-on-directory.webp)
 
 </Steps>
 

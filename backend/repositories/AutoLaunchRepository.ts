@@ -497,6 +497,7 @@ export class AutoLaunchRepository {
         organizationId: string;
         profileSnapshot: Record<string, unknown>;
         extensionConfigSnapshot: AutoLaunchExtensionConfig;
+        productProfileId?: string;
     }): Promise<AutoLaunchSubmissionRow> {
         const now = new Date().toISOString();
         const { data, error } = await this.supabase
@@ -504,6 +505,7 @@ export class AutoLaunchRepository {
             .update({
                 profile_snapshot: params.profileSnapshot,
                 extension_config_snapshot: params.extensionConfigSnapshot,
+                ...(params.productProfileId ? { product_profile_id: params.productProfileId } : {}),
                 intent_created_at: now,
                 updated_at: now,
             })

@@ -33,5 +33,13 @@ export const LANDING_ADD_CHANNEL_DIALOG_DIRECTORY_TILES: readonly DirectoryAddCh
 		brandedIconName: 'Uneed',
 		providerSlugPrefix: 'uneed',
 		dialogTitle: 'Launch to Uneed'
+	},
+	{
+		siteKey: 'open-launch',
+		label: 'Open Launch',
+		logoUrl: '/icons/link-directory/open-launch.svg',
+		brandedIconName: 'OpenLaunch',
+		providerSlugPrefix: 'open-launch',
+		dialogTitle: 'Launch to Open Launch'
 	}
 ];

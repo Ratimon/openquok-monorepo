@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { detectDirectorySiteLogin } from './detectDirectorySiteLogin.js';
+import { OPEN_LAUNCH_LOGIN_URL } from './open-launch.js';
 import { PEERPUSH_LOGIN_URL } from './peerpush.js';
 import { UNEED_LOGIN_URL } from './uneed.js';
 
@@ -26,6 +27,14 @@ describe('detectDirectorySiteLogin', () => {
 		expect(detectDirectorySiteLogin('uneed')).toEqual({
 			loggedIn: false,
 			loginUrl: UNEED_LOGIN_URL
+		});
+	});
+
+	it('dispatches to the open-launch adapter', () => {
+		document.body.innerHTML = `<a href="/sign-in">Sign in</a>`;
+		expect(detectDirectorySiteLogin('open-launch')).toEqual({
+			loggedIn: false,
+			loginUrl: OPEN_LAUNCH_LOGIN_URL
 		});
 	});
 

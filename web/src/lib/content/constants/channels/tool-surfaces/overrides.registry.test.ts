@@ -19,7 +19,7 @@ describe('tool-surfaces registry', () => {
 	it('keeps directory launch slugs off the social channels hub list', () => {
 		const socialHubSlugs = new Set(listPublicChannelsForHub().map((c) => c.slug));
 		const directorySlugs = listPublicDirectoryChannelsForHub().map((c) => c.slug);
-		expect(directorySlugs).toEqual(['peerpush', 'uneed']);
+		expect(directorySlugs).toEqual(['peerpush', 'uneed', 'open-launch']);
 		for (const slug of directorySlugs) {
 			expect(socialHubSlugs.has(slug)).toBe(false);
 		}

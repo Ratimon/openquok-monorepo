@@ -27,4 +27,29 @@ describe('resolveOpportunityCta', () => {
 		});
 		expect(cta?.href).toBe('/docs/channels/connect');
 	});
+
+	it('links directory_channel to the public channels page and ignores legacy ctaLabel', () => {
+		const cta = resolveOpportunityCta({
+			kind: 'directory_channel',
+			channelSlug: 'peerpush',
+			ctaHref: 'https://example.com/old',
+			ctaLabel: 'Connect Facebook'
+		});
+		expect(cta).toMatchObject({
+			href: '/channels/peerpush',
+			label: 'Autofill on PeerPush',
+			external: false
+		});
+	});
+
+	it('returns null for directory_channel without channel slug', () => {
+		expect(
+			resolveOpportunityCta({
+				kind: 'directory_channel',
+				channelSlug: null,
+				ctaHref: null,
+				ctaLabel: null
+			})
+		).toBeNull();
+	});
 });

@@ -1,5 +1,16 @@
-/** Max product tags stored in `profile_data.tags` (directory listing forms). */
-export const BUSINESS_PROFILE_MAX_TAGS = 3;
+/** Max listing tags after derivation from discovery dimensions (directory forms; per-site limits vary). */
+export const BUSINESS_PROFILE_MAX_TAGS = 32;
+
+/** Uneed (and similar directories) cap product taglines on listing forms. */
+export const BUSINESS_PROFILE_DIRECTORY_TAGLINE_MAX = 80;
+
+const DERIVE_LISTING_TAG_KEYS = [
+	'categories',
+	'use_cases',
+	'target_audiences',
+	'platforms',
+	'tech_stack',
+] as const satisfies readonly (keyof BusinessProfileData)[];
 
 /** Max product categories in `profile_data.categories` (discovery / product type). */
 export const BUSINESS_PROFILE_MAX_CATEGORIES = 3;
@@ -12,6 +23,9 @@ export const BUSINESS_PROFILE_MAX_TARGET_AUDIENCES = 3;
 
 /** Max platforms in `profile_data.platforms` (where the product is available). */
 export const BUSINESS_PROFILE_MAX_PLATFORMS = 5;
+
+/** Max technologies in `profile_data.tech_stack` (build stack on directory forms such as Open Launch). */
+export const BUSINESS_PROFILE_MAX_TECH_STACK = 5;
 
 /** Max similar products in `profile_data.alternatives`. */
 export const BUSINESS_PROFILE_MAX_ALTERNATIVES = 5;
@@ -49,6 +63,7 @@ export type BusinessProfileData = {
 	use_cases?: string[] | null;
 	target_audiences?: string[] | null;
 	platforms?: string[] | null;
+	tech_stack?: string[] | null;
 	alternatives?: string[] | null;
 	pricing_type?: BusinessProfilePricingType | null;
 	tags?: string[] | null;
@@ -119,6 +134,10 @@ export function normalizeBusinessProfileData(
 
 	if (value.platforms !== undefined) {
 		out.platforms = normalizeStringArray(value.platforms);
+	}
+
+	if (value.tech_stack !== undefined) {
+		out.tech_stack = normalizeStringArray(value.tech_stack);
 	}
 
 	if (value.alternatives !== undefined) {
@@ -230,6 +249,32 @@ function normalizeIncludedAssets(value: unknown): BusinessProfileIncludedAssetSl
 		}
 	}
 	return slugs;
+}
+
+/**
+ * Build directory listing tags from discovery dimensions (derive-only; not stored on save).
+ * Order: categories → use_cases → target_audiences → platforms → tech_stack; deduped, capped.
+ */
+export function deriveListingTags(
+	profileData: BusinessProfileData | Record<string, unknown> | null | undefined
+): string[] {
+	if (!profileData || typeof profileData !== 'object') return [];
+
+	const seen = new Set<string>();
+	const out: string[] = [];
+
+	for (const key of DERIVE_LISTING_TAG_KEYS) {
+		const items = normalizeStringArray((profileData as Record<string, unknown>)[key]);
+		if (!items || items.length === 0) continue;
+		for (const item of items) {
+			if (seen.has(item)) continue;
+			seen.add(item);
+			out.push(item);
+			if (out.length >= BUSINESS_PROFILE_MAX_TAGS) return out;
+		}
+	}
+
+	return out;
 }
 
 export const EMPTY_BUSINESS_PROFILE_DATA: BusinessProfileData = {};

@@ -56,8 +56,8 @@ WHERE email = 'admin@example.com';
 
 Replace `admin@example.com` in the statement with your signup email. Run the query.
 
-<Callout type="note" title="Local dev after db reset">
-After you sign up again, run from the repo root: <Badge text="pnpm backend:db:promote-platform-admin -- your@email.com" variant="default" />. The command uses <Badge text="SUPABASE_SECRET_KEY" variant="envBackend" /> from <Badge text="backend/.env.development.local" variant="path" /> (same as the API). You do not need SQL Editor for each reset.
+<Callout type="note">
+After you sign up again, run from the repo root: <Badge text="pnpm backend:db:promote-platform-admin -- your@email.com" variant="default" />.In local development, the command uses <Badge text="SUPABASE_SECRET_KEY" variant="envBackend" /> from <Badge text="backend/.env.development.local" variant="path" /> (same as the API). You do not need SQL Editor for each reset.
 </Callout>
 
 <Callout type="warning">

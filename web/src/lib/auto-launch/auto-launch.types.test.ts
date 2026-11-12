@@ -4,11 +4,12 @@ import {
 	autoLaunchProductProfileFormSchema,
 	businessProfileDataFormSchema
 } from '$lib/auto-launch/auto-launch.types';
+import { BUSINESS_PROFILE_MAX_TAGS } from 'openquok-common';
 
 describe('businessProfileDataFormSchema', () => {
-	it('rejects more than three tags', () => {
+	it('rejects tags above BUSINESS_PROFILE_MAX_TAGS', () => {
 		const result = businessProfileDataFormSchema.safeParse({
-			tags: ['a', 'b', 'c', 'd']
+			tags: Array.from({ length: BUSINESS_PROFILE_MAX_TAGS + 1 }, (_, i) => `tag-${i}`)
 		});
 		expect(result.success).toBe(false);
 	});
@@ -28,6 +29,16 @@ describe('businessProfileDataFormSchema', () => {
 			tags: ['devtools']
 		});
 		expect(result.success).toBe(true);
+	});
+
+	it('normalizes directory slugs with trailing hyphens', () => {
+		const result = businessProfileDataFormSchema.safeParse({
+			slug: 'openquok-peerpush-'
+		});
+		expect(result.success).toBe(true);
+		if (result.success) {
+			expect(result.data.slug).toBe('openquok-peerpush');
+		}
 	});
 
 	it('normalizes repository URL without scheme on save', () => {

@@ -58,7 +58,7 @@ describe('channelPageSeo', () => {
 		expect(peerpush?.audienceTitle).toBe('Who launches on PeerPush with OpenQuok?');
 		expect(peerpush?.audienceSubtitle).toBe('For founders in the AI era');
 		expect(peerpush?.audienceCards).toHaveLength(3);
-		expect(peerpush?.processSection?.steps).toHaveLength(5);
+		expect(peerpush?.processSection?.steps).toHaveLength(6);
 		expect(peerpush?.featureSections).toHaveLength(5);
 		expect(peerpush?.featureSections.map((s) => s.bentoId)).toEqual([
 			'directory-extension-autofill',
@@ -73,7 +73,20 @@ describe('channelPageSeo', () => {
 		const socialSlugs = new Set(listPublicChannelsForHub().map((c) => c.slug));
 		expect(socialSlugs.has('peerpush')).toBe(false);
 		expect(socialSlugs.has('uneed')).toBe(false);
-		expect(listPublicDirectoryChannelsForHub().map((c) => c.slug)).toEqual(['peerpush', 'uneed']);
+		expect(socialSlugs.has('open-launch')).toBe(false);
+
+		const openLaunch = getPublicChannelBySlug('open-launch');
+		expect(openLaunch?.channelKind).toBe('directory');
+		expect(openLaunch?.icon).toBe('OpenLaunch');
+		expect(openLaunch?.processSection?.steps.some((s) => s.deviceMockContent === 'directory-site-open-launch')).toBe(
+			true
+		);
+
+		expect(listPublicDirectoryChannelsForHub().map((c) => c.slug)).toEqual([
+			'peerpush',
+			'uneed',
+			'open-launch'
+		]);
 
 		const heroBadges = publicDirectoryChannelHeroStatBadges();
 		expect(heroBadges).toHaveLength(4);

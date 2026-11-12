@@ -323,6 +323,10 @@ export class AutoLaunchProductsPresenter {
 		if (!resultPm.ok) {
 			return { ok: false, error: resultPm.error ?? 'Could not delete profile.' };
 		}
+		if (this.editingProfileId === profileId) {
+			this.composerOpen = false;
+			this.closeComposer();
+		}
 		await this.loadProductsTab();
 		return { ok: true, created: false, shouldRefreshChannelGroups: false };
 	}

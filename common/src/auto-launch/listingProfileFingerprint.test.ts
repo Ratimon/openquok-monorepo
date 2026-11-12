@@ -124,6 +124,34 @@ describe('resolveProfilePathValue', () => {
 		expect(resolveProfilePathValue(snap, 'profile_data.social_x')).toBe('https://x.com/acme');
 		expect(resolveProfilePathValue(snap, 'profile_data.acquisition_listed')).toBe('true');
 	});
+
+	it('uses stored profile_data.tags when non-empty (legacy)', () => {
+		const snap = snapshot({
+			profile_data: {
+				tags: ['legacy-one', 'legacy-two'],
+				categories: ['ignored-for-tags'],
+			},
+		});
+		expect(resolveProfilePathValue(snap, 'profile_data.tags')).toBe('legacy-one, legacy-two');
+	});
+
+	it('derives profile_data.tags from discovery dimensions when stored tags are empty', () => {
+		const snap = snapshot({
+			profile_data: {
+				tags: [],
+				categories: ['SaaS'],
+				use_cases: ['launch'],
+				platforms: ['Web'],
+			},
+		});
+		expect(resolveProfilePathValue(snap, 'profile_data.tags')).toBe('SaaS, launch, Web');
+	});
+
+	it('returns null for profile_data.tags when legacy and derived tags are empty', () => {
+		const snap = snapshot({ profile_data: { pricing_type: 'free' } });
+		expect(resolveProfilePathValue(snap, 'profile_data.tags')).toBeNull();
+	});
+
 });
 
 describe('computeListingProfileFingerprint', () => {

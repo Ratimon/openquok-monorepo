@@ -68,6 +68,54 @@ describe('getDestinationReadiness', () => {
 	});
 });
 
+const openLaunchPremiumConfig: AutoLaunchExtensionConfig = {
+	version: 1,
+	steps: [
+		{
+			id: 'details',
+			label: 'Details',
+			fields: [
+				{
+					key: 'tech_stack',
+					label: 'Tech stack',
+					profilePath: 'profile_data.tech_stack',
+				},
+				{
+					key: 'categories',
+					label: 'Categories',
+					profilePath: 'profile_data.categories',
+				},
+			],
+		},
+	],
+};
+
+describe('open-launch destination readiness', () => {
+	it('reports missing tech stack when extension config requires it', () => {
+		const readiness = getDestinationReadiness(
+			snapshot({ profile_data: { categories: ['SaaS'] } }),
+			openLaunchPremiumConfig
+		);
+		expect(readiness.totalFields).toBe(2);
+		expect(readiness.filledFields).toBe(1);
+		expect(readiness.missingFields).toEqual([
+			{ path: 'profile_data.tech_stack', label: 'Tech stack' },
+		]);
+		expect(readiness.isReady).toBe(false);
+	});
+
+	it('is ready when categories and tech stack are filled', () => {
+		const readiness = getDestinationReadiness(
+			snapshot({
+				profile_data: { categories: ['SaaS'], tech_stack: ['Next.js', 'PostgreSQL'] },
+			}),
+			openLaunchPremiumConfig
+		);
+		expect(readiness.isReady).toBe(true);
+		expect(readiness.missingFields).toEqual([]);
+	});
+});
+
 describe('getProfileLaunchSummary', () => {
 	const destinations = [
 		{

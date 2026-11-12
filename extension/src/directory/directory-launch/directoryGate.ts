@@ -21,6 +21,7 @@ const DEFAULT_OPENQUOK_LOGIN_URL = 'https://www.openquok.com/sign-in';
 export const DIRECTORY_SITE_DISPLAY_NAME: Record<string, string> = {
 	peerpush: 'PeerPush',
 	uneed: 'Uneed',
+	'open-launch': 'Open Launch',
 };
 
 type CheckDirectoryGateResponse = {

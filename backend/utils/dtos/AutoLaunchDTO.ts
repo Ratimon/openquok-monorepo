@@ -98,6 +98,7 @@ export type AutoLaunchSubmissionIntentDto = {
     launchToken: string;
     startUrl: string;
     providerSlug: string;
+    productProfileId: string;
     profileSnapshot: AutoLaunchProfileSnapshot;
     extensionConfig: AutoLaunchExtensionConfig;
     steps: AutoLaunchExtensionConfig["steps"];
@@ -330,6 +331,7 @@ export function toAutoLaunchSubmissionDtoCollection(
 export function toSubmissionIntentDto(params: {
     submissionId: string;
     launchToken: string;
+    productProfileId: string;
     destination: AutoLaunchDestinationRow;
     profileSnapshot: AutoLaunchProfileSnapshot;
 }): AutoLaunchSubmissionIntentDto {
@@ -340,6 +342,7 @@ export function toSubmissionIntentDto(params: {
         launchToken: params.launchToken,
         startUrl: params.destination.start_url,
         providerSlug: params.destination.provider_slug,
+        productProfileId: params.productProfileId,
         profileSnapshot: params.profileSnapshot,
         extensionConfig,
         steps,

@@ -86,6 +86,7 @@ Return to OpenQuok. Mark the launch complete and paste the live <strong>listing 
 <CardGrid>
 <LinkCard title="Directory submission overview" description="Full launch workflow" href="/docs/directory-submission" />
 <LinkCard title="Uneed integration" description="Join the line and paid launch on Uneed" href="/docs/directory-integration/uneed" />
+<LinkCard title="Open Launch integration" description="Premium launch and free queue on open-launch.com" href="/docs/directory-integration/open-launch" />
 <LinkCard title="Directory integration overview" description="Social vs directory channels" href="/docs/directory-integration" />
 <LinkCard title="Business profiles" description="Products tab and channel grouping" href="/docs/channels/channel-groups" />
 </CardGrid>

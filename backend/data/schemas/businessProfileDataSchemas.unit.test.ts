@@ -15,9 +15,9 @@ describe("businessProfileDataSchema", () => {
         expect(result.success).toBe(true);
     });
 
-    it("rejects more than three tags", () => {
+    it("rejects tags above BUSINESS_PROFILE_MAX_TAGS", () => {
         const result = businessProfileDataSchema.safeParse({
-            tags: ["a", "b", "c", "d"],
+            tags: Array.from({ length: BUSINESS_PROFILE_MAX_TAGS + 1 }, (_, i) => `tag-${i}`),
         });
         expect(result.success).toBe(false);
     });
@@ -29,12 +29,20 @@ describe("businessProfileDataSchema", () => {
         expect(result.success).toBe(false);
     });
 
+    it("rejects more than five tech stack entries", () => {
+        const result = businessProfileDataSchema.safeParse({
+            tech_stack: ["a", "b", "c", "d", "e", "f"],
+        });
+        expect(result.success).toBe(false);
+    });
+
     it("accepts discovery list fields within limits", () => {
         const result = businessProfileDataSchema.safeParse({
             categories: ["SaaS", "AI"],
             use_cases: ["launch"],
             target_audiences: ["founders"],
             platforms: ["Web", "iOS"],
+            tech_stack: ["React", "Node.js"],
             alternatives: ["https://example.com/alternative"],
         });
         expect(result.success).toBe(true);
@@ -73,7 +81,7 @@ describe("businessProfileDataSchema", () => {
 
     it(`accepts up to ${BUSINESS_PROFILE_MAX_TAGS} tags and ${BUSINESS_PROFILE_MAX_GALLERY_URLS} gallery paths`, () => {
         const result = businessProfileDataSchema.safeParse({
-            tags: ["alpha", "beta", "gamma"],
+            tags: Array.from({ length: BUSINESS_PROFILE_MAX_TAGS }, (_, i) => `tag-${i}`),
             gallery_urls: ["org/p/1.png", "org/p/2.png", "org/p/3.png"],
             pricing_type: "freemium",
         });

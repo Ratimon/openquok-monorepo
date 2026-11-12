@@ -34,7 +34,7 @@ OpenQuok supports two families:
 | **Social** | OAuth, API key, or extension session (for example Skool) | Schedule and publish posts from the composer, calendar, and agents |
 | **Directory** | No OAuth to the directory site | Store a product profile on <a href="/account/products">My Products</a>, autofill directory forms with the <a href="/docs/installation/chrome-extension">browser extension</a>, and track submissions — **you** click submit on the directory |
 
-Social channels use the guides in this section (connect, manage, time slots). Directory launches use <a href="/docs/directory-submission">Directory submission</a> and per-site notes under <a href="/docs/directory-integration">Directory integration</a>. The public <a href="/channels">Channels hub</a> lists both **Social media platforms** and **Directory launch platforms** (for example PeerPush and Uneed).
+Social channels use the guides in this section (connect, manage, time slots). Directory launches use <a href="/docs/directory-submission">Directory submission</a> and per-site notes under <a href="/docs/directory-integration">Directory integration</a>. The public <a href="/channels">Channels hub</a> lists both **Social media platforms** and **Directory launch platforms** (for example PeerPush, Uneed, and Open Launch).
 
 ## Where channels show up
 
@@ -61,6 +61,7 @@ OpenQuok supports Meta Threads, Instagram (Business and Standalone), Facebook Pa
 <LinkCard title="Directory integration" description="How directory destinations differ from OAuth social channels" href="/docs/directory-integration" />
 <LinkCard title="PeerPush" description="Standard launch and free queue variants" href="/docs/directory-integration/peerpush" />
 <LinkCard title="Uneed" description="Join the line, paid launch, and maker profile" href="/docs/directory-integration/uneed" />
+<LinkCard title="Open Launch" description="Premium launch and free queue variants" href="/docs/directory-integration/open-launch" />
 </CardGrid>
 
 ## Related

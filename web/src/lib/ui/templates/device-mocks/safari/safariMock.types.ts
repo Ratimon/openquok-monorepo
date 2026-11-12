@@ -2,6 +2,7 @@ export type SafariMockContentId =
 	| 'chrome-web-store-openquok'
 	| 'directory-site-peerpush'
 	| 'directory-site-uneed'
+	| 'directory-site-open-launch'
 	| 'external-site-placeholder'
 	| 'openclaw-docs-overview'
 	| 'hermes-docs-overview'

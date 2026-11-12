@@ -8,6 +8,8 @@
     "preinstall": "npx only-allow pnpm",
     "---------------------- DEV WORKFLOW ----------------------": "",
     "common:build": "pnpm --filter openquok-common build",
+    "sync:auto-launch-configs": "pnpm common:build && node backend/scripts/sync-auto-launch-extension-configs.mjs",
+    "sync:auto-launch-configs:check": "pnpm common:build && node backend/scripts/sync-auto-launch-extension-configs.mjs --check",
     "web:dev": "pnpm --filter ./web dev",
     "web:check": "pnpm --filter ./web check",
     "web:test:pseo-registry": "pnpm --filter ./web run test:pseo-registry",

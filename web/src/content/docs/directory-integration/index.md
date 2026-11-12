@@ -40,6 +40,7 @@ New **social** networks follow <a href="/docs/contribution-opportunities/add-pro
 <CardGrid>
 <LinkCard title="PeerPush" description="Standard launch and free queue — profile fields and public landing" href="/docs/directory-integration/peerpush" />
 <LinkCard title="Uneed" description="Join the line, paid launch, and maker profile" href="/docs/directory-integration/uneed" />
+<LinkCard title="Open Launch" description="Premium launch and free queue — tech stack, extension wizard autofill" href="/docs/directory-integration/open-launch" />
 </CardGrid>
 
 ## Related Section(s)

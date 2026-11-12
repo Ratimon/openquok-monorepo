@@ -10,6 +10,7 @@
 	import { route, url } from '$lib/utils/path';
 	import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
 	import {
+		isPublicDirectoryChannelSlug,
 		listPublicChannelsForHub,
 		listPublicDirectoryChannelsForHub
 	} from '$lib/content/constants/channels/index';
@@ -97,7 +98,7 @@
 	);
 
 	const directoryChannelSlug = $derived(
-		isDirectoryChannel && (channelVm.slug === 'peerpush' || channelVm.slug === 'uneed')
+		isDirectoryChannel && isPublicDirectoryChannelSlug(channelVm.slug)
 			? (channelVm.slug as PublicDirectoryChannelSlug)
 			: undefined
 	);

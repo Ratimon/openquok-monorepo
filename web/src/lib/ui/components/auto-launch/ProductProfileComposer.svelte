@@ -9,10 +9,9 @@
 	import { autoLaunchProductProfileFormSchema } from '$lib/auto-launch';
 	import { parseBusinessProfileFormIssues } from '$lib/auto-launch/businessProfileFormValidation';
 	import {
-		BUSINESS_PROFILE_MAX_ALTERNATIVES,
 		BUSINESS_PROFILE_MAX_CATEGORIES,
 		BUSINESS_PROFILE_MAX_PLATFORMS,
-		BUSINESS_PROFILE_MAX_TAGS,
+		BUSINESS_PROFILE_MAX_TECH_STACK,
 		BUSINESS_PROFILE_MAX_TARGET_AUDIENCES,
 		BUSINESS_PROFILE_MAX_USE_CASES,
 		BUSINESS_PROFILE_PRICING_TYPES
@@ -35,6 +34,12 @@
 	import { Checkbox } from '$lib/ui/checkbox';
 	import ProviderHttpUrlInput from '$lib/ui/components/posts/providers/ProviderHttpUrlInput.svelte';
 	import { normalizeHttpUrlInputIfLikely } from '$lib/utils/normalizeHttpUrlInput';
+	import type {
+		DeleteBusinessProfileModalData,
+		DeleteBusinessProfileModalResult
+	} from '$lib/auto-launch/deleteBusinessProfileModal.types';
+	import { destructiveGhostButtonClass } from '$lib/ui/constants/destructiveButtonClasses';
+	import ActionVerificationModal from '$lib/ui/modals/ActionVerificationModal.svelte';
 
 	type ComposerTab = 'general' | 'discovery' | 'media' | 'socials' | 'sell';
 
@@ -50,6 +55,9 @@
 		title?: string;
 		onSubmit: (values: SubmitValues) => void | Promise<void>;
 		onCancel?: () => void;
+		deleteBusinessProfileForModal?: (
+			data: DeleteBusinessProfileModalData
+		) => Promise<DeleteBusinessProfileModalResult>;
 	};
 
 	let {
@@ -60,7 +68,8 @@
 		submitting = false,
 		title = 'Product profile',
 		onSubmit,
-		onCancel
+		onCancel,
+		deleteBusinessProfileForModal
 	}: Props = $props();
 
 	const tabTriggerClass =
@@ -102,15 +111,13 @@
 	let useCases = $state<string[]>([]);
 	let targetAudiences = $state<string[]>([]);
 	let platforms = $state<string[]>([]);
-	let alternatives = $state<string[]>([]);
+	let techStack = $state<string[]>([]);
 	let categoriesInput = $state('');
 	let useCasesInput = $state('');
 	let targetAudiencesInput = $state('');
 	let platformsInput = $state('');
-	let alternativesInput = $state('');
+	let techStackInput = $state('');
 	let pricingType = $state<(typeof BUSINESS_PROFILE_PRICING_TYPES)[number] | ''>('');
-	let tags = $state<string[]>([]);
-	let tagInput = $state('');
 	let isOpenSource = $state(false);
 	let repositoryUrl = $state('');
 	let launchVideoUrl = $state('');
@@ -137,7 +144,28 @@
 	let galleryUploadRef: BusinessProfileGalleryUpload | undefined = $state();
 
 	const profileId = $derived(initial?.id ?? null);
+	const isDirectoryVariant = $derived(initial?.profileKind === 'directory_variant');
 	const directorySlug = $derived(suggestBusinessProfileSlug(name));
+
+	let deleteVariantModalOpen = $state(false);
+	let deleteVariantModalData = $state<DeleteBusinessProfileModalData | null>(null);
+
+	function openDeleteVariantModal(): void {
+		if (!profileId || !deleteBusinessProfileForModal) return;
+		deleteVariantModalData = {
+			profileId,
+			isVariant: true,
+			displayLabel: initial?.directorySiteKey ?? 'directory'
+		};
+		deleteVariantModalOpen = true;
+	}
+
+	async function executeDeleteVariant(data: unknown): Promise<DeleteBusinessProfileModalResult> {
+		if (!deleteBusinessProfileForModal) {
+			return { success: false, message: 'Could not delete profile.' };
+		}
+		return deleteBusinessProfileForModal(data as DeleteBusinessProfileModalData);
+	}
 
 	function profileDataFromForm(): BusinessProfileDataFormInput {
 		const emptyToUndefined = (value: string) => (value.trim() ? value.trim() : undefined);
@@ -150,9 +178,8 @@
 			use_cases: useCases,
 			target_audiences: targetAudiences,
 			platforms,
-			alternatives,
+			tech_stack: techStack,
 			pricing_type: pricingType === '' ? undefined : pricingType,
-			tags,
 			is_open_source: isOpenSource,
 			repository_url: emptyToUndefined(repositoryUrl),
 			launch_video_url: emptyToUndefined(launchVideoUrl),
@@ -193,14 +220,13 @@
 		useCases = pd.use_cases ? [...pd.use_cases] : [];
 		targetAudiences = pd.target_audiences ? [...pd.target_audiences] : [];
 		platforms = pd.platforms ? [...pd.platforms] : [];
-		alternatives = pd.alternatives ? [...pd.alternatives] : [];
+		techStack = pd.tech_stack ? [...pd.tech_stack] : [];
 		categoriesInput = '';
 		useCasesInput = '';
 		targetAudiencesInput = '';
 		platformsInput = '';
-		alternativesInput = '';
+		techStackInput = '';
 		pricingType = pd.pricing_type ?? '';
-		tags = pd.tags ? [...pd.tags] : [];
 		isOpenSource = Boolean(pd.is_open_source);
 		repositoryUrl = pd.repository_url ?? pd.social_github ?? '';
 		launchVideoUrl = pd.launch_video_url ?? '';
@@ -223,7 +249,6 @@
 		sellingReason = pd.selling_reason ?? '';
 		includedAssets = pd.included_assets ? [...pd.included_assets] : [];
 
-		tagInput = '';
 		activeTab = initialTab ?? 'general';
 	}
 
@@ -248,25 +273,6 @@
 		if (!trimmed) return;
 		const normalized = normalizeHttpUrlInputIfLikely(trimmed);
 		if (normalized !== repositoryUrl) repositoryUrl = normalized;
-	}
-
-	function addTag() {
-		const next = tagInput.trim();
-		if (!next) return;
-		if (tags.length >= BUSINESS_PROFILE_MAX_TAGS) {
-			toast.error(`You can add up to ${BUSINESS_PROFILE_MAX_TAGS} tags.`);
-			return;
-		}
-		if (tags.some((t) => t.toLowerCase() === next.toLowerCase())) {
-			tagInput = '';
-			return;
-		}
-		tags = [...tags, next];
-		tagInput = '';
-	}
-
-	function removeTag(tag: string) {
-		tags = tags.filter((t) => t !== tag);
 	}
 
 	function addStringListItem(
@@ -356,21 +362,21 @@
 		platforms = platforms.filter((t) => t !== item);
 	}
 
-	function addAlternative() {
+	function addTechStackItem() {
 		const result = addStringListItem(
-			alternatives,
-			alternativesInput,
-			BUSINESS_PROFILE_MAX_ALTERNATIVES,
-			200,
-			'similar products'
+			techStack,
+			techStackInput,
+			BUSINESS_PROFILE_MAX_TECH_STACK,
+			80,
+			'tech stack items'
 		);
 		if (!result) return;
-		alternatives = result.items;
-		alternativesInput = result.nextInput;
+		techStack = result.items;
+		techStackInput = result.nextInput;
 	}
 
-	function removeAlternative(item: string) {
-		alternatives = alternatives.filter((t) => t !== item);
+	function removeTechStackItem(item: string) {
+		techStack = techStack.filter((t) => t !== item);
 	}
 
 	function toggleIncludedAsset(slugValue: string, checked: boolean) {
@@ -460,7 +466,19 @@
 					uses this profile when filling submissions.
 				</Dialog.Description>
 			</Dialog.Header>
-			<div class="flex shrink-0 items-center justify-end gap-2">
+			<div class="flex shrink-0 flex-wrap items-center justify-end gap-2">
+				{#if isDirectoryVariant && profileId && deleteBusinessProfileForModal}
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						class={destructiveGhostButtonClass}
+						disabled={submitting}
+						onclick={openDeleteVariantModal}
+					>
+						Delete variant
+					</Button>
+				{/if}
 				<Button type="button" variant="ghost" size="sm" disabled={submitting} onclick={handleCancel}>
 					Cancel
 				</Button>
@@ -551,14 +569,18 @@
 							</label>
 							<label class="form-control w-full gap-1">
 								<span class="text-sm font-medium text-base-content">Tagline</span>
+								<p class="text-xs text-base-content/60">
+									Short hook for directory listing forms (max 80 characters on Uneed).
+								</p>
 								<input
 									class={inputClasses('tagline')}
 									type="text"
 									bind:value={tagline}
-									maxlength={500}
+									maxlength={80}
 									disabled={submitting}
 									aria-invalid={fieldInvalid('tagline')}
 								/>
+								<p class="text-xs text-base-content/50">{tagline.length}/80</p>
 								{#if fieldErr('tagline')}
 									<p class="text-xs text-error" role="alert">{fieldErr('tagline')}</p>
 								{/if}
@@ -580,55 +602,6 @@
 									<p class="text-xs text-error" role="alert">{fieldErr('profileData.pricing_type')}</p>
 								{/if}
 							</label>
-							<div class="form-control w-full gap-1 sm:col-span-2">
-								<span class="text-sm font-medium text-base-content">
-									Tags (max {BUSINESS_PROFILE_MAX_TAGS})
-								</span>
-								{#if fieldErr('profileData.tags')}
-									<p class="text-xs text-error" role="alert">{fieldErr('profileData.tags')}</p>
-								{/if}
-								<div class="flex flex-wrap gap-2">
-									{#each tags as tag (tag)}
-										<span class="badge badge-outline gap-1 pr-1">
-											{tag}
-											<button
-												type="button"
-												class="rounded-full px-1 hover:bg-base-content/10"
-												disabled={submitting}
-												aria-label="Remove tag {tag}"
-												onclick={() => removeTag(tag)}
-											>
-												<AbstractIcon name={icons.X2.name} width="12" height="12" />
-											</button>
-										</span>
-									{/each}
-								</div>
-								<div class="flex gap-2">
-									<input
-										class="input input-bordered input-sm min-w-0 flex-1"
-										type="text"
-										bind:value={tagInput}
-										placeholder="Add a tag"
-										maxlength={80}
-										disabled={submitting || tags.length >= BUSINESS_PROFILE_MAX_TAGS}
-										onkeydown={(e) => {
-											if (e.key === 'Enter') {
-												e.preventDefault();
-												addTag();
-											}
-										}}
-									/>
-									<Button
-										type="button"
-										variant="outline"
-										size="sm"
-										disabled={submitting || tags.length >= BUSINESS_PROFILE_MAX_TAGS}
-										onclick={addTag}
-									>
-										Add
-									</Button>
-								</div>
-							</div>
 							<div
 								class="flex items-center justify-between gap-3 rounded-lg border border-base-300/80 px-3 py-2"
 							>
@@ -678,8 +651,10 @@
 					{:else if activeTab === 'discovery'}
 						<div class="grid gap-4 sm:grid-cols-2">
 							<p class="text-sm text-base-content/70 sm:col-span-2">
-								Discovery fields power directory search and filters (for example PeerPush categories, use cases,
-								and platforms). The first category is also used for single-category directories such as Uneed.
+								Discovery dimensions power directory search and filters. Sites that ask for generic keyword tags
+								derive them from these lists when the extension autofills. Competitor or “similar product” fields are
+								filled per directory when a form offers them. The first category is also used for single-category
+								directories such as Uneed.
 							</p>
 							{#each [
 								{
@@ -734,16 +709,16 @@
 									wide: true
 								},
 								{
-									label: 'Similar products',
-									hint: `Names or URLs of alternatives (max ${BUSINESS_PROFILE_MAX_ALTERNATIVES})`,
-									fieldKey: 'profileData.alternatives',
-									items: alternatives,
-									input: alternativesInput,
-									max: BUSINESS_PROFILE_MAX_ALTERNATIVES,
-									maxLen: 200,
-									onAdd: addAlternative,
-									onRemove: removeAlternative,
-									setInput: (v: string) => (alternativesInput = v),
+									label: 'Tech stack',
+									hint: `Technologies you built with (max ${BUSINESS_PROFILE_MAX_TECH_STACK})`,
+									fieldKey: 'profileData.tech_stack',
+									items: techStack,
+									input: techStackInput,
+									max: BUSINESS_PROFILE_MAX_TECH_STACK,
+									maxLen: 80,
+									onAdd: addTechStackItem,
+									onRemove: removeTechStackItem,
+									setInput: (v: string) => (techStackInput = v),
 									wide: true
 								}
 							] as row (row.fieldKey)}
@@ -958,7 +933,7 @@
 									<span class="text-sm font-medium text-base-content">
 										Monthly recurring revenue (optional)
 									</span>
-									<p class="text-xs text-base-content/60">USD; used on some directory forms (e.g. PeerPush).</p>
+									<p class="text-xs text-base-content/60">USD.</p>
 									<input
 										class="input input-bordered w-full"
 										type="text"
@@ -1028,3 +1003,20 @@
 		</form>
 	</Dialog.Content>
 </Dialog.Root>
+
+{#if deleteVariantModalData}
+	<ActionVerificationModal
+		data={deleteVariantModalData}
+		bind:open={deleteVariantModalOpen}
+		executionFunction={executeDeleteVariant}
+		buttonIconName={icons.Trash.name}
+		buttonText="Delete variant"
+		modalTitle="Delete directory variant"
+		modalDescription={`Delete the ${deleteVariantModalData.displayLabel} tailored profile? Launches on this directory will use your main profile copy again.`}
+		modalVerficationWithAnswer={false}
+		confirmButtonVariant="red"
+		onSuccess={() => {
+			deleteVariantModalData = null;
+		}}
+	/>
+{/if}

@@ -5,6 +5,7 @@
 		LinkDirectoryOpportunityStepDto,
 		LinkDirectoryOpportunityTypeDto
 	} from '$lib/link-directory/link-directory.types';
+	import type { DirectoryLaunchProviderSummary } from '$lib/auto-launch/auto-launch.types';
 	import { linkDirectoryOpportunityFormSchema } from '$lib/link-directory/link-directory-admin.types';
 	import { linkDirectoryRepository } from '$lib/link-directory/index';
 	import { defaultLinkDirectoryOpportunitySortOrder } from '$lib/link-directory/utils/defaultLinkDirectoryOpportunitySortOrder';
@@ -26,11 +27,11 @@
 	import { Input } from '$lib/ui/input';
 	import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '$lib/ui/dialog';
 
+	import LinkDirectoryDirectoryChannelSelect from '$lib/ui/components/link-directory-manager/LinkDirectoryDirectoryChannelSelect.svelte';
 	import LinkDirectoryOpenQuokChannelSelect from '$lib/ui/components/link-directory-manager/LinkDirectoryOpenQuokChannelSelect.svelte';
 	import LinkDirectoryOpportunityStepsEditor from '$lib/ui/components/link-directory-manager/LinkDirectoryOpportunityStepsEditor.svelte';
 	import LinkDirectoryAutoLaunchDestinationModal from '$lib/ui/components/link-directory-manager/LinkDirectoryAutoLaunchDestinationModal.svelte';
 	import { autoLaunchRepository } from '$lib/auto-launch/index';
-	import type { DirectoryLaunchProviderSummary } from '$lib/auto-launch/auto-launch.types';
 
 	const opportunitySortOrderHint =
 		'Playbook order on site guide (10, 20, 30…).';
@@ -85,6 +86,7 @@
 	const showChannelSelect = $derived(
 		openquokCtaKind === 'connect_channel' || openquokCtaKind === 'schedule_post'
 	);
+	const showDirectoryChannelSelect = $derived(openquokCtaKind === 'directory_channel');
 	const showPlugName = $derived(openquokCtaKind === 'use_plug');
 	const externalHrefRequired = $derived(openquokCtaKind === 'external_doc');
 
@@ -330,8 +332,14 @@
 						<option value="schedule_post">Schedule post (workspace)</option>
 						<option value="use_plug">Use plug</option>
 						<option value="external_doc">External setup guide</option>
+						<option value="directory_channel">Directory autofill (channels page)</option>
 					</select>
 				</label>
+				{#if showDirectoryChannelSelect}
+					<LinkDirectoryDirectoryChannelSelect
+						bind:value={openquokChannelSlug}
+					/>
+				{/if}
 				{#if showChannelSelect}
 					<LinkDirectoryOpenQuokChannelSelect
 						label="OpenQuok channel"

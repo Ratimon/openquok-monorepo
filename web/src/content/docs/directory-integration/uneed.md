@@ -88,6 +88,7 @@ You can also start from <Badge text="Add Channel" variant="new" /> when Uneed ap
 <CardGrid>
 <LinkCard title="Directory submission overview" description="Full launch workflow" href="/docs/directory-submission" />
 <LinkCard title="PeerPush integration" description="Standard launch and free queue" href="/docs/directory-integration/peerpush" />
+<LinkCard title="Open Launch integration" description="Premium launch and free queue on open-launch.com" href="/docs/directory-integration/open-launch" />
 <LinkCard title="Directory integration overview" description="Social vs directory channels" href="/docs/directory-integration" />
 <LinkCard title="Business profiles" description="Products tab and channel grouping" href="/docs/channels/channel-groups" />
 </CardGrid>
