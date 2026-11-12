@@ -231,13 +231,7 @@ Paste into the opportunity modal **Browser extension auto-launch** fieldset in s
 | **peerpush** | `free-queue` | Yes | `peerpush-free-queue` |
 | **peerpush** | `standard-launch` | Yes | `peerpush-standard-launch` |
 
-**Verify (no link-directory SQL for Open Launch):** after you save both launch opportunities, run:
-
-```bash
-node backend/scripts/verify-open-launch-link-directory-cms.mjs --api https://api.openquok.com
-```
-
-Or in the Supabase SQL editor (service role / editor access):
+**Verify (no link-directory SQL for Open Launch):** after you save both launch opportunities, check in the Supabase SQL editor (service role / editor access):
 
 ```sql
 SELECT o.slug,

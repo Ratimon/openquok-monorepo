@@ -227,6 +227,7 @@ export {
 	applyLaunchFieldScalarCoercion,
 	applyLaunchFieldSelectCoercion,
 	coerceSocialXToUsername,
+	coerceSocialXToUrl,
 	fillableTagsForLaunchField,
 	filterTagsForLaunchField,
 	invalidProfileSelectForField,

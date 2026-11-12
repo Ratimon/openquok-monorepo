@@ -20,11 +20,25 @@ const uneedTagsField: LaunchStepField = {
 };
 
 describe('launchFieldConstraints', () => {
-	it('coerces social_x profile URLs to usernames', () => {
+	it('coerces social_x to full URL by default (Uneed / Open Launch)', () => {
+		const field: LaunchStepField = {
+			key: 'social_x',
+			label: 'X (Twitter)',
+			profilePath: 'profile_data.social_x',
+		};
+		expect(applyLaunchFieldScalarCoercion('openquok', field)).toBe('https://x.com/openquok');
+		expect(applyLaunchFieldScalarCoercion('https://x.com/openquok', field)).toBe(
+			'https://x.com/openquok'
+		);
+		expect(applyLaunchFieldScalarCoercion('@acme', field)).toBe('https://x.com/acme');
+	});
+
+	it('coerces social_x to username when socialXScalar is username (PeerPush)', () => {
 		const field: LaunchStepField = {
 			key: 'social_x',
 			label: 'Twitter username',
 			profilePath: 'profile_data.social_x',
+			socialXScalar: 'username',
 		};
 		expect(
 			applyLaunchFieldScalarCoercion('https://x.com/openquok', field)

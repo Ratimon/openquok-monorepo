@@ -391,6 +391,7 @@ SET extension_config = $json${
                         "X username"
                     ],
                     "profilePath": "profile_data.social_x",
+                    "socialXScalar": "username",
                     "fillMode": "text",
                     "selectorHint": "#twitterUsername, input#twitterUsername, input[aria-label='X username']"
                 },
@@ -563,6 +564,7 @@ SET extension_config = $json${
                         "X username"
                     ],
                     "profilePath": "profile_data.social_x",
+                    "socialXScalar": "username",
                     "fillMode": "text",
                     "selectorHint": "#twitterUsername, input#twitterUsername, input[aria-label='X username']"
                 },

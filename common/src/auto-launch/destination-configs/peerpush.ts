@@ -173,6 +173,7 @@ export const PEERPUSH_STANDARD_LAUNCH_EXTENSION_CONFIG = {
 					"label": "Twitter username",
 					"labelAliases": ["X (Twitter)", "X username"],
 					"profilePath": "profile_data.social_x",
+					"socialXScalar": "username",
 					"fillMode": "text",
 					"selectorHint": "#twitterUsername, input#twitterUsername, input[aria-label='X username']",
 				},

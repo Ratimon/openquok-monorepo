@@ -546,7 +546,7 @@ Same step/field mapping as Premium launch (`open-launch-free-launch` fixture wit
 | Details | Platforms | `profile_data.platforms` | tags | Discovery |
 | Details | Pricing model | `profile_data.pricing_type` | select | General |
 | Details | GitHub | `profile_data.social_github` | text | Socials |
-| Details | X (Twitter) | `profile_data.social_x` | text | Socials |
+| Details | X (Twitter) | `profile_data.social_x` (full `https://x.com/…` URL) | text | Socials |
 
 **Launch date** and **Review** wizard steps are not autofilled in v1 (user picks date and confirms payment on premium).
 

@@ -94,7 +94,17 @@ Each directory destination shows **readiness** on the profile card. Fix missing 
 
 ### Review and submit on the directory
 
-On the directory site, confirm autofilled values. Edit anything that still needs a human touch. Click the directory’s own submit or pay button. OpenQuok does not bypass their checkout or terms.
+On the directory site, confirm autofilled values. Edit anything that still needs a human touch. Click the directory’s own submit or pay button.
+
+<Callout type="warning">
+<p>OpenQuok does not bypass their checkout.</p>
+</Callout>
+
+![Submit on Directory Site](/docs/_assets/directory-submission/submit-on-directory.webp)
+
+<Callout type="warning">
+<p>OpenQuok does not bypass their checkout.</p>
+</Callout>
 
 ### Mark complete and save the listing URL
 

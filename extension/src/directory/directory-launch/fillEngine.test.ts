@@ -889,6 +889,7 @@ describe('fillLaunchField', () => {
 				key: 'social_x',
 				label: 'Twitter username',
 				profilePath: 'profile_data.social_x',
+				socialXScalar: 'username',
 				selectorHint: '#twitterUsername, input[aria-label="X username"]',
 			})
 		);

@@ -33,10 +33,35 @@ export function coerceSocialXToUsername(value: string): string {
 	return trimmed.replace(/^@/, '');
 }
 
+/** Normalize profile social X to a full URL when the directory form validates `type=url`. */
+export function coerceSocialXToUrl(value: string): string {
+	const trimmed = value.trim();
+	if (!trimmed) return trimmed;
+	if (/^https?:\/\//i.test(trimmed)) {
+		try {
+			const url = new URL(trimmed);
+			const host = url.hostname.toLowerCase();
+			if (host.includes('twitter.com') || host === 'x.com' || host.endsWith('.x.com')) {
+				const handle = url.pathname.replace(/^\/+/, '').split('/')[0]?.trim();
+				if (handle) return `https://x.com/${handle.replace(/^@/, '')}`;
+			}
+		} catch {
+			/* keep original */
+		}
+		return trimmed;
+	}
+	const handle = trimmed.replace(/^@/, '').split('/')[0]?.trim();
+	if (!handle) return trimmed;
+	return `https://x.com/${handle}`;
+}
+
 /** Scalar transforms before DOM write (caps and select coercions are separate). */
 export function applyLaunchFieldScalarCoercion(value: string, field: LaunchStepField): string {
 	if (field.key === 'social_x' || field.profilePath === 'profile_data.social_x') {
-		return coerceSocialXToUsername(value);
+		if (field.socialXScalar === 'username') {
+			return coerceSocialXToUsername(value);
+		}
+		return coerceSocialXToUrl(value);
 	}
 	return value;
 }
