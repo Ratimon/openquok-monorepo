@@ -87,6 +87,7 @@ export type BrandedIconName =
     | "SocialClaw"
     | "Socialync"
     | "SproutSocial"
+    | "Submitator"
     | "Stripe"
     | "Telegram"
     | "ThinkRail"
@@ -738,6 +739,13 @@ export const brandedIcons = {
         box: 16,
         fill: true,
         svg: `<path fill-rule="evenodd" clip-rule="evenodd" fill="#2BB656" d="M7.29021 2.5C5.00991 2.5 3.16138 4.34853 3.16138 6.62915V14.2266C3.16138 14.4698 3.45571 14.5915 3.62798 14.4193L5.87095 12.1773H8.70948C10.9901 12.1773 12.8386 10.3287 12.8386 8.04842V2.5H7.29021Z"/><path fill-rule="evenodd" clip-rule="evenodd" fill="#006B40" d="M5.87088 12.1774H3.80615L5.09614 12.9518L5.87088 12.1774Z"/><path fill-rule="evenodd" clip-rule="evenodd" fill="#0CA750" d="M12.8387 2.5H7.29028V8.04842L12.8387 2.5Z"/><path fill-rule="evenodd" clip-rule="evenodd" fill="#006B40" d="M7.29021 2.5V2.5C5.00991 2.5 3.16138 4.34885 3.16138 6.62915V12.1773L7.29021 8.04842V2.5Z"/><path fill-rule="evenodd" clip-rule="evenodd" fill="#75DD66" d="M12.8387 2.5L7.29028 8.04842H12.8387V2.5Z"/>`
+    },
+    /** Submitator product mark. Submitator is a trademark of its respective owner. */
+    Submitator: {
+        name: "Submitator",
+        box: 32,
+        fill: true,
+        svg: `<image href="/icons/submitator.png" width="32" height="32"/>`
     },
     Stripe: {
         name: "Stripe",

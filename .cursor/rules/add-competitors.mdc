@@ -258,7 +258,7 @@ Update when the new competitor should appear in marketing prose (not required fo
 - [ ] `talkingPoints` pairs with OpenQuok (and peers) so with/without sections are not empty.
 - [ ] `compareProductIconStyles.ts` `BASE` entry added for the new slug (hub + hero + card rings).
 - [ ] User-facing copy on compare/alternatives detail pages is concise ASD-STE100 (short sentences, active voice, `you`).
-- [ ] Unit tests updated (`compareProductCategories.test.ts`, `{slug}.compareProduct.test.ts` or equivalent, `PublicComparePage.presenter.test.ts` when hub/detail wiring changes).
+- [ ] Unit tests updated (`compareProductCategories.test.ts`, `PublicComparePage.presenter.test.ts` when hub/detail wiring changes; optional `{slug}.compareProduct.test.ts` — reference **`boringlaunch.compareProduct.test.ts`** only, not required for every directory peer such as LaunchRepo).
 - [ ] `/compare`, `/compare/openquok/{slug}`, `/alternatives`, and `/alternatives/{slug}` smoke-tested (manual and/or presenter tests).
 - [ ] No third-party repo paths or attribution in SQL, comments, or user-facing strings (see **source-project-neutrality**).
 

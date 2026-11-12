@@ -46,6 +46,7 @@ import { usebardCompareProduct } from '$lib/content/constants/competitors/schedu
 import { boringlaunchCompareProduct } from '$lib/content/constants/competitors/submission/boringlaunch';
 import { getmorebacklinksCompareProduct } from '$lib/content/constants/competitors/submission/getmorebacklinks';
 import { launchrepoCompareProduct } from '$lib/content/constants/competitors/submission/launchrepo';
+import { submitatorCompareProduct } from '$lib/content/constants/competitors/submission/submitator';
 import {
 	COMPARE_HUB_BASE_SLUG,
 	COMPARE_PRODUCT_WEBSITE_URLS
@@ -65,6 +66,7 @@ export { hopperHqCompareProduct } from '$lib/content/constants/competitors/sched
 export { influenceCompareProduct } from '$lib/content/constants/competitors/scheduler/influence';
 export { getmorebacklinksCompareProduct } from '$lib/content/constants/competitors/submission/getmorebacklinks';
 export { launchrepoCompareProduct } from '$lib/content/constants/competitors/submission/launchrepo';
+export { submitatorCompareProduct } from '$lib/content/constants/competitors/submission/submitator';
 export { heropostCompareProduct } from '$lib/content/constants/competitors/scheduler/heropost';
 export { hootsuiteCompareProduct } from '$lib/content/constants/competitors/scheduler/hootsuite';
 export { laterCompareProduct } from '$lib/content/constants/competitors/scheduler/later';
@@ -114,6 +116,7 @@ export const PUBLIC_COMPARE_PRODUCTS: readonly CompareProduct[] = [
 	socialclawCompareProduct,
 	socialyncCompareProduct,
 	sproutSocialCompareProduct,
+	submitatorCompareProduct,
 	typefullyCompareProduct,
 	usebardCompareProduct
 ];

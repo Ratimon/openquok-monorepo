@@ -95,7 +95,8 @@ describe('compareProductCategories', () => {
 		expect(directoryPairs.map((pair) => pair.productBSlug).sort()).toEqual([
 			'boringlaunch',
 			'getmorebacklinks',
-			'launchrepo'
+			'launchrepo',
+			'submitator'
 		]);
 
 		const socialPairs = listComparePairsForHub('openquok', 'social_scheduling');
@@ -130,9 +131,10 @@ describe('compareProductCategories', () => {
 		expect(vm?.channelsSection).not.toBeNull();
 		expect(vm?.directoryCoverageSection).not.toBeNull();
 		expect(vm?.compareRows.every((row) => row.id.startsWith('directory_'))).toBe(true);
-		expect(vm?.longForm?.otherAlternativePeers.map((peer) => peer.slug)).toEqual([
+		expect(vm?.longForm?.otherAlternativePeers.map((peer) => peer.slug).sort()).toEqual([
 			'getmorebacklinks',
-			'launchrepo'
+			'launchrepo',
+			'submitator'
 		]);
 		expect(vm?.faqItems.some((item) => item.title.includes('Domain Rating'))).toBe(true);
 		expect(vm?.faqItems.length).toBeGreaterThan(3);

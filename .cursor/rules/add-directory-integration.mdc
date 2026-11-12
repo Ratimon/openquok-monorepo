@@ -172,3 +172,4 @@ No **public-api-surface-sync** unless new `/api/v1/public/*` routes.
 - Add inline `directoryLaunchProviders` entries in `pageAssist.ts` (registry lives in `destination-configs/`)
 - Confuse **site slug** with **provider slug**
 - Add `backend/integrations/providers/*` or social composer tiles for directory-only launches
+- Add or extend compare/alternatives competitor tests (e.g. `web/src/lib/content/constants/competitors/submission/*.compareProduct.test.ts`) — use **add-competitors.mdc** instead

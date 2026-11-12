@@ -79,6 +79,12 @@ const BASE = {
 		cardContainerClass:
 			'bg-linear-to-br from-lime-400/28 via-lime-300/20 to-emerald-300/14 text-lime-950 ring-lime-400/32'
 	},
+	submitator: {
+		heroContainerClass:
+			'bg-linear-to-br from-orange-500/35 via-rose-500/25 to-red-500/20 text-orange-50 ring-orange-500/40',
+		cardContainerClass:
+			'bg-linear-to-br from-orange-500/22 via-rose-500/18 to-red-500/14 text-orange-50 ring-orange-500/28'
+	},
 	breakreach: {
 		heroContainerClass:
 			'bg-linear-to-br from-violet-600/35 via-purple-500/25 to-fuchsia-400/20 text-violet-50 ring-violet-500/40',

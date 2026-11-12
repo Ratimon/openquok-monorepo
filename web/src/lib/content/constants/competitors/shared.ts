@@ -51,6 +51,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	boringlaunch: 'https://www.boringlaunch.com/',
 	getmorebacklinks: 'https://www.getmorebacklinks.org/',
 	launchrepo: 'https://launchrepo.dev/',
+	submitator: 'https://submitator.com/',
 	blotato: 'https://www.blotato.com',
 	breakreach: 'https://www.breakreach.com',
 	'claw-post': 'https://clawpost.net',
@@ -79,6 +80,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	| 'boringlaunch'
 	| 'getmorebacklinks'
 	| 'launchrepo'
+	| 'submitator'
 	| 'blotato'
 	| 'breakreach'
 	| 'claw-post'
