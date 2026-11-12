@@ -135,6 +135,15 @@ export const config: ConfigObject = {
         prefix: resolvedApiPrefix,
     },
 
+    /** Short-lived diagnostics toggles (Vercel log drains, attribution). */
+    observability: {
+        /**
+         * When true, emit one structured `http_path` log per finished request with a collapsed path template
+         * (enable briefly in production to attribute backend CDN volume).
+         */
+        logHttpPathTemplates: getEnvBoolean("LOG_HTTP_PATH_TEMPLATES", false),
+    },
+
     cors: {
         allowedOrigins: (() => {
             const feRaw = getEnvTrimmed("FRONTEND_DOMAIN_URL");

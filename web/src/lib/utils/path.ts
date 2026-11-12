@@ -20,9 +20,13 @@ export function absoluteUrl(path: string): string {
 	return `${base}${p}`;
 }
 
-/** Path for static assets (respects SvelteKit base path). */
+/** Path for static assets (respects SvelteKit base path). Absolute http(s) URLs are returned unchanged. */
 export function url(p: string): string {
-	const path = p.startsWith('/') ? p : `/${p}`;
+	const trimmed = p.trim();
+	if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+		return trimmed;
+	}
+	const path = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
 	return `${base}${path}`;
 }
 

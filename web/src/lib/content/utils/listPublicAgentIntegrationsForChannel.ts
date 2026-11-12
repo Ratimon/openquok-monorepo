@@ -70,20 +70,24 @@ export function listPublicAgentIntegrationsForChannel(
 		});
 	}
 
-	const mcpClients = listPublicMcpLandingPages().map((mcp) => ({
-		slug: mcp.slug,
-		title: mcp.agentLabel,
-		description: buildPublicChannelAgentIntegrationCardDescription(
-			channel.platformLabel,
-			mcp.agentLabel,
-			'mcp-client',
-			mcp.available && integrationLive
-		),
-		icon: mcp.icon,
-		href: route(getRootPathPublicAgentChannel(mcp.slug, normalizedChannel)),
-		available: mcp.available,
-		kind: 'mcp-client' as const
-	}));
+	const mcpClients: PublicChannelAgentIntegrationGridItem[] = [];
+	for (const mcp of listPublicMcpLandingPages()) {
+		if (!getPublicAgentChannelBySlug(mcp.slug, normalizedChannel)) continue;
+		mcpClients.push({
+			slug: mcp.slug,
+			title: mcp.agentLabel,
+			description: buildPublicChannelAgentIntegrationCardDescription(
+				channel.platformLabel,
+				mcp.agentLabel,
+				'mcp-client',
+				mcp.available && integrationLive
+			),
+			icon: mcp.icon,
+			href: route(getRootPathPublicAgentChannel(mcp.slug, normalizedChannel)),
+			available: mcp.available,
+			kind: 'mcp-client' as const
+		});
+	}
 
 	return {
 		agentHosts: sortChannelPageAgentIntegrations(agentHosts, normalizedChannel),

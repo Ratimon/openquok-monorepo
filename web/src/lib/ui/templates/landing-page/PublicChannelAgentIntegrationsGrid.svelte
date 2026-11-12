@@ -18,8 +18,7 @@
 	import { getPublicChannelBySlug } from '$lib/content/constants/channels';
 	import { listPublicAgentIntegrationsForChannel } from '$lib/content/utils/listPublicAgentIntegrationsForChannel';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
-	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
-	import { url } from '$lib/utils/path';
+	import { resolveHostedMarketingUrlForPage } from '$lib/utils/hostedMarketingHref';
 
 	import FeatureSimpleCard from '$lib/ui/templates/feature-grid/FeatureSimpleCard.svelte';
 	import type { FeatureSimpleCardItem } from '$lib/ui/templates/feature-grid/FeatureSimpleCard.svelte';
@@ -79,7 +78,7 @@
 			title: item.title,
 			description,
 			icon: item.icon,
-			href: url(hostedMarketingHref(item.href, page.url.origin)),
+			href: resolveHostedMarketingUrlForPage(item.href, page.url.origin),
 			kind: item.kind
 		};
 	}

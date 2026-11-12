@@ -9,6 +9,7 @@
  * Output: backend/static/routes-manifest.json
  */
 
+import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -19,6 +20,52 @@ const __dirname = path.dirname(__filename);
 const ROUTES_DIR = path.join(__dirname, '../web/src/routes');
 const WEB_CONSTANTS_DIR = path.join(__dirname, '../web/src/lib/content/constants');
 const OUTPUT_FILE = path.join(__dirname, '../backend/static/routes-manifest.json');
+const SITEMAP_PROGRAMMATIC_PATHS_FILE = path.join(
+	__dirname,
+	'../backend/static/sitemap-programmatic-paths.json'
+);
+const WEB_PACKAGE_DIR = path.join(__dirname, '../web');
+
+/** Keep in sync with backend/middlewares/generateSitemap.ts bundled programmatic paths JSON. */
+function exportSitemapProgrammaticPaths() {
+	const exportScript = path.join(
+		WEB_PACKAGE_DIR,
+		'src/lib/seo/sitemap/writeSitemapProgrammaticPathsJson.export.test.ts'
+	);
+	if (!fs.existsSync(exportScript)) {
+		console.warn(`Sitemap export script missing: ${exportScript}`);
+		return false;
+	}
+
+	try {
+		execSync('pnpm exec vitest run --config vitest.sitemap-export.config.ts --no-file-parallelism', {
+			cwd: WEB_PACKAGE_DIR,
+			stdio: 'inherit',
+			env: { ...process.env, NODE_ENV: 'production' }
+		});
+		return fs.existsSync(SITEMAP_PROGRAMMATIC_PATHS_FILE);
+	} catch (error) {
+		console.warn('Failed to export sitemap programmatic paths; using existing JSON if present.', error);
+		return fs.existsSync(SITEMAP_PROGRAMMATIC_PATHS_FILE);
+	}
+}
+
+function loadSitemapProgrammaticPaths() {
+	if (!fs.existsSync(SITEMAP_PROGRAMMATIC_PATHS_FILE)) {
+		return { compare: [], agentChannel: [] };
+	}
+
+	try {
+		const parsed = JSON.parse(fs.readFileSync(SITEMAP_PROGRAMMATIC_PATHS_FILE, 'utf8'));
+		const compare = Array.isArray(parsed.compare) ? parsed.compare.filter((p) => typeof p === 'string') : [];
+		const agentChannel = Array.isArray(parsed.agentChannel)
+			? parsed.agentChannel.filter((p) => typeof p === 'string')
+			: [];
+		return { compare, agentChannel };
+	} catch {
+		return { compare: [], agentChannel: [] };
+	}
+}
 
 const AGENT_HOST_PAGE_REGEX =
 	/pageType:\s*['"]agent-host['"][\s\S]*?slug:\s*['"]([^'"]+)['"][\s\S]*?available:\s*(true|false)/g;
@@ -311,19 +358,16 @@ function buildProgrammaticRoutes(constantsDir = WEB_CONSTANTS_DIR) {
 	const catalog = extractPublicCatalogSlugs(constantsDir);
 	const compareSlugs = extractCompareProductSlugs(constantsDir);
 	const allChannels = extractAllChannelSlugs(constantsDir);
+	const { compare: comparePaths, agentChannel: agentChannelPaths } = loadSitemapProgrammaticPaths();
 	const routes = [];
 
-	for (const productA of compareSlugs) {
-		for (const productB of compareSlugs) {
-			if (productA !== productB) {
-				routes.push({
-					path: `/compare/${encodeURIComponent(productA)}/${encodeURIComponent(productB)}`,
-					priority: 0.75,
-					changeFreq: 'monthly',
-					type: 'programmatic-compare'
-				});
-			}
-		}
+	for (const comparePath of comparePaths) {
+		routes.push({
+			path: comparePath,
+			priority: 0.75,
+			changeFreq: 'monthly',
+			type: 'programmatic-compare'
+		});
 	}
 
 	for (const slug of compareSlugs) {
@@ -337,15 +381,13 @@ function buildProgrammaticRoutes(constantsDir = WEB_CONSTANTS_DIR) {
 		}
 	}
 
-	for (const agentSlug of catalog.agents) {
-		for (const channelSlug of allChannels) {
-			routes.push({
-				path: `/agents/${encodeURIComponent(agentSlug)}/${encodeURIComponent(channelSlug)}`,
-				priority: 0.7,
-				changeFreq: 'monthly',
-				type: 'programmatic-agent-channel'
-			});
-		}
+	for (const agentChannelPath of agentChannelPaths) {
+		routes.push({
+			path: agentChannelPath,
+			priority: 0.7,
+			changeFreq: 'monthly',
+			type: 'programmatic-agent-channel'
+		});
 	}
 
 	const apiPlatformSlugs = extractPublicApiPlatformSlugs(constantsDir);
@@ -448,6 +490,7 @@ function generateManifest() {
 }
 
 try {
+	exportSitemapProgrammaticPaths();
 	generateManifest();
 } catch (error) {
 	console.error('Failed to generate routes manifest:', error);

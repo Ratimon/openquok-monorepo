@@ -1,11 +1,18 @@
 import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-	import type { PublicAgentViewModel } from '$lib/area-public/PublicAgentByPage.presenter.svelte';
-	import type { PublicAgentChannelHubLinkViewModel } from '$lib/content/constants/agents/channels';
-	import type { PublicOpportunitiesPreviewVm } from '$lib/opportunities/server/loadAgentOpportunitiesPreview.server';
+import type { PublicAgentViewModel } from '$lib/area-public/PublicAgentByPage.presenter.svelte';
+import type { PublicAgentChannelHubLinkViewModel } from '$lib/content/constants/agents/channels';
+import type { PublicOpportunitiesPreviewVm } from '$lib/opportunities/server/loadAgentOpportunitiesPreview.server';
+import { listPrerenderableAgentChannelParams } from '$lib/seo/prerender/listPrerenderableAgentChannelParams';
 
 import type { PageLoad } from './$types';
+
+export const prerender = 'auto';
+
+export function entries() {
+	return listPrerenderableAgentChannelParams();
+}
 
 export const load: PageLoad = async ({ parent, data }) => {
 	const parentData = await parent();

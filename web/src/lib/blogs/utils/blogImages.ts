@@ -1,7 +1,6 @@
 import { parseFragment, serialize } from 'parse5';
 
-import { CONFIG_SCHEMA_BACKEND } from '$lib/config/constants/config';
-import { normalizeApiBaseUrl } from '$lib/utils/path';
+import { buildPublicCmsBucketObjectUrl } from '$lib/medias/utils/buildPublicCmsBucketObjectUrl';
 
 import { BLOG_IMAGES_BUCKET } from '$lib/blogs/constants/config';
 
@@ -87,18 +86,6 @@ function mutateBlogHtmlWithParse5(html: string, mutate: (root: Parse5Node) => vo
 	return serialize(root);
 }
 
-function trimApiBase(): string {
-	return normalizeApiBaseUrl(String(CONFIG_SCHEMA_BACKEND.API_BASE_URL.default ?? ''));
-}
-
-/** Encode each path segment for use in a URL path (Supabase public object URL). */
-function encodeStoragePathSegments(storagePath: string): string {
-	return storagePath
-		.split('/')
-		.map((s) => encodeURIComponent(s))
-		.join('/');
-}
-
 /**
  * Normalizes hero fields and storage paths to a bare `blog_images` object key
  * (e.g. `authUid-random.jpg`), accepting legacy full public URLs or `blog_images/` prefixes.
@@ -121,24 +108,12 @@ export function resolveBlogImageStorageKey(raw: string): string | null {
 
 /**
  * Builds a browser-usable `src` for an object in `blog_images` after upload.
- * Uses `VITE_PUBLIC_SUPABASE_URL` when set; otherwise falls back to the API download URL.
+ * Prefers `VITE_STORAGE_R2_PUBLIC_BASE_URL`, then Supabase public objects, then the API download URL.
  */
 export function buildBlogInlineImageSrc(storagePath: string): string {
 	const key = resolveBlogImageStorageKey(storagePath);
 	if (!key) return '';
-
-	const trimmed = key;
-	const supabasePublic =
-		typeof import.meta !== 'undefined' && import.meta.env?.VITE_PUBLIC_SUPABASE_URL
-			? String(import.meta.env.VITE_PUBLIC_SUPABASE_URL).replace(/\/$/, '')
-			: '';
-
-	if (supabasePublic) {
-		return `${supabasePublic}/storage/v1/object/public/${BLOG_IMAGES_BUCKET}/${encodeStoragePathSegments(trimmed)}`;
-	}
-
-	const apiBase = trimApiBase();
-	return `${apiBase}/api/v1/image/download?databaseName=${BLOG_IMAGES_BUCKET}&imageUrl=${encodeURIComponent(trimmed)}`;
+	return buildPublicCmsBucketObjectUrl(BLOG_IMAGES_BUCKET, key);
 }
 
 const PUBLIC_OBJECT_MARKER = `/object/public/${BLOG_IMAGES_BUCKET}/`;

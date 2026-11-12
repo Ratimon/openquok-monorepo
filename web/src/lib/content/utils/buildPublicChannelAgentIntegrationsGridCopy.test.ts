@@ -55,6 +55,6 @@ describe('listPublicAgentIntegrationsForChannel', () => {
 		const { agentHosts, mcpClients } = listPublicAgentIntegrationsForChannel('x');
 		expect(agentHosts[0]?.slug).toBe('grok-bot');
 		expect(agentHosts[0]?.description).toContain('First-class');
-		expect(mcpClients[0]?.slug).toBe('cursor');
+		expect(mcpClients[0]?.slug).toBe('grok-build');
 	});
 });

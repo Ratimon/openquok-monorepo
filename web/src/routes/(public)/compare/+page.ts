@@ -5,6 +5,9 @@ import type { CompareHubViewModel } from '$lib/area-public/PublicComparePage.pre
 
 import type { PageLoad } from './$types';
 
+// SSR only: a prerendered `/compare` index would block `/compare/{a}/{b}` child routes.
+export const prerender = false;
+
 export const load: PageLoad = async ({ parent, data }) => {
 	const parentData = await parent();
 	const { isLoggedIn: accurateIsLoggedIn, currentUser } = parentData;

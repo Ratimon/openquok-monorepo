@@ -17,6 +17,7 @@ import { getRootPathPublicBrowserExtensionLanding } from '$lib/area-public/const
 import { getRootPathPublicRoadmap } from '$lib/area-public/constants/getRootPathPublicRoadmap';
 import { getRootPathPublicSocialAutopilotLanding } from '$lib/area-public/constants/getRootPathPublicSocialAutopilotLanding';
 import { getRootPathPublicTools } from '$lib/area-public/constants/getRootPathPublicTools';
+import { building } from '$app/environment';
 import { route, url } from '$lib/utils/path';
 
 /** Canonical hosted marketing origin. Self-host instances backlink here. */
@@ -203,4 +204,20 @@ export function rewriteHtmlHostedMarketingHrefs(
 		const extra = `href="${resolved.href}" target="${resolved.target}" rel="${resolved.rel}"`;
 		return rest.length > 0 ? `<a ${rest} ${extra}>` : `<a ${extra}>`;
 	});
+}
+
+function marketingOriginForPrerender(runtimeOrigin: string): string {
+	if (!building) return runtimeOrigin;
+	const fromEnv = import.meta.env.VITE_FRONTEND_DOMAIN_URL?.trim().replace(/\/+$/, '');
+	return fromEnv || OPENQUOK_HOSTED_WEB_ORIGIN;
+}
+
+/** Marketing path → final `href` for `<a>` (relative with base, or absolute backlink). */
+export function resolveHostedMarketingUrlForPage(
+	path: string,
+	runtimeOrigin: string,
+	options?: HostedMarketingHrefOptions
+): string {
+	const resolved = hostedMarketingHref(path, marketingOriginForPrerender(runtimeOrigin), options);
+	return url(resolved);
 }

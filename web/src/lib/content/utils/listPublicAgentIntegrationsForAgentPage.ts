@@ -5,6 +5,7 @@ import {
 	getRootPathPublicAgentChannel
 } from '$lib/area-public/constants/getRootPathPublicAgents';
 import { listPublicAgentsForHub, sortAgentIntegrationsForEcosystem } from '$lib/content/constants/agents';
+import { getPublicAgentChannelBySlug } from '$lib/content/constants/agents/channels';
 import { getPublicChannelBySlug } from '$lib/content/constants/channels';
 import { listPublicMcpLandingPages } from '$lib/content/constants/mcps';
 import { buildPublicAgentIntegrationHubCardDescription } from '$lib/content/utils/buildPublicAgentIntegrationsGridCopy';
@@ -55,8 +56,15 @@ export function listPublicAgentIntegrationsForAgentPage(
 	const platformLabel = channel?.platformLabel ?? '';
 	const integrationLive = channel?.available ?? true;
 
-	let agentHosts: PublicChannelAgentIntegrationGridItem[] = listPublicAgentsForHub().map(
-		(agent) => ({
+	const agentHosts: PublicChannelAgentIntegrationGridItem[] = [];
+	for (const agent of listPublicAgentsForHub()) {
+		if (
+			normalizedChannel &&
+			!getPublicAgentChannelBySlug(agent.slug, normalizedChannel)
+		) {
+			continue;
+		}
+		agentHosts.push({
 			slug: agent.slug,
 			title: agent.agentLabel,
 			description: cardDescription(
@@ -70,11 +78,15 @@ export function listPublicAgentIntegrationsForAgentPage(
 			href: agentPageHref(agent.slug, normalizedChannel || null),
 			available: agent.available,
 			kind: 'agent-host' as const
-		})
-	);
+		});
+	}
 
-	let mcpClients: PublicChannelAgentIntegrationGridItem[] = listPublicMcpLandingPages().map(
-		(mcp) => ({
+	const mcpClients: PublicChannelAgentIntegrationGridItem[] = [];
+	for (const mcp of listPublicMcpLandingPages()) {
+		if (normalizedChannel && !getPublicAgentChannelBySlug(mcp.slug, normalizedChannel)) {
+			continue;
+		}
+		mcpClients.push({
 			slug: mcp.slug,
 			title: mcp.agentLabel,
 			description: cardDescription(
@@ -88,13 +100,15 @@ export function listPublicAgentIntegrationsForAgentPage(
 			href: agentPageHref(mcp.slug, normalizedChannel || null),
 			available: mcp.available,
 			kind: 'mcp-client' as const
-		})
-	);
-
-	if (normalizedHost) {
-		agentHosts = sortAgentIntegrationsForEcosystem(agentHosts, normalizedHost, 'agent-host');
-		mcpClients = sortAgentIntegrationsForEcosystem(mcpClients, normalizedHost, 'mcp-client');
+		});
 	}
 
-	return { agentHosts, mcpClients };
+	const sortedAgentHosts = normalizedHost
+		? sortAgentIntegrationsForEcosystem(agentHosts, normalizedHost, 'agent-host')
+		: agentHosts;
+	const sortedMcpClients = normalizedHost
+		? sortAgentIntegrationsForEcosystem(mcpClients, normalizedHost, 'mcp-client')
+		: mcpClients;
+
+	return { agentHosts: sortedAgentHosts, mcpClients: sortedMcpClients };
 }

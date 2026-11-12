@@ -2,7 +2,7 @@
 title: Production - Vercel
 description: Deploy the web app and API on Vercel.
 order: 2
-lastUpdated: 2026-09-29
+lastUpdated: 2026-11-12
 ---
 
 <script>
@@ -132,6 +132,8 @@ npx vercel link
 
 <p class="mt-2"><Badge text="web/.vercel" variant="path" /> is usually gitignored; on a fresh clone, run <code>vercel link</code> again or set <Badge text="VERCEL_ORG_ID" variant="envRuntime" /> and <Badge text="VERCEL_PROJECT_ID" variant="envRuntime" /> before <code>pnpm vercel:deploy:web</code> (same pattern as CI).</p>
 
+<p class="mt-2">Prerendered marketing routes need a reachable API during <code>pnpm --filter web build</code>. See <a href="#prerendered-marketing-html-web-build">Prerendered marketing HTML</a> below.</p>
+
 </Callout>
 
 **Deploy web to Vercel (preview)** — from the repo root; installs with pnpm at the monorepo root and builds the <Badge text="web" variant="experimental" /> workspace package.
@@ -147,6 +149,18 @@ pnpm vercel:deploy:web:prod
 ```
 
 </Steps>
+
+<h2 id="prerendered-marketing-html-web-build">Prerendered marketing HTML</h2>
+
+<p>Production builds ship static HTML for docs, compare, and agent pages. Agent previews need a reachable API during the build.</p>
+
+<Callout type="warning" title="Web env">
+<p>Set <Badge text="VITE_API_BASE_URL" variant="envWeb" /> and <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> on the web Vercel project. Match the API’s <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" />. Do not set <Badge text="PRERENDER_SKIP_OPPORTUNITIES_PREVIEW=1" variant="envBackend" /> on Vercel.</p>
+</Callout>
+
+<p id="verify-prerender-build-locally">Local check: <code>cd web &amp;&amp; VERCEL=1 pnpm run build</code>. Redeploy the web app after you change compare, agent, or docs files in git. Secret-admin homepage copy still uses SSR.</p>
+
+<p id="anonymous-static-layout-config">Optional: <Badge text="USE_STATIC_ANONYMOUS_LAYOUT_CONFIG=1" variant="envRuntime" /> skips layout API calls for anonymous traffic on marketing paths. Redeploy after you change <Badge text="web/src/lib/config/" variant="path" /> defaults.</p>
 
 ## CLI auth server on Vercel
 

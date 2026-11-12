@@ -253,7 +253,7 @@ Set these in <Badge text="web/.env.development.local" variant="envBackend" /> (o
 | Variable | Browser upload | Values |
 | --- | --- | --- |
 | <Badge text="VITE_MEDIA_LIBRARY_UPLOAD" variant="envWeb" /> | How the browser sends files. **Default if unset:** <Badge text="direct" variant="envWeb" />. | <Badge text="VITE_MEDIA_LIBRARY_UPLOAD=direct" variant="envWeb" /> — presigned multipart to R2 (needs bucket CORS). <Badge text="VITE_MEDIA_LIBRARY_UPLOAD=local" variant="envWeb" /> — XHR to the API for disk storage (use with <Badge text="STORAGE_PROVIDER=local" variant="envBackend" />). <Badge text="VITE_MEDIA_LIBRARY_UPLOAD=api" variant="envWeb" /> — full multipart POST to <code>/api/v1/media/upload</code> through the API (no R2 CORS; higher load on the server). |
-| <Badge text="VITE_STORAGE_R2_PUBLIC_BASE_URL" variant="envWeb" /> | Public URLs for R2-hosted objects | Same origin as your bucket custom domain (no trailing slash). |
+| <Badge text="VITE_STORAGE_R2_PUBLIC_BASE_URL" variant="envWeb" /> | Public URLs for R2-hosted objects (workspace media and CMS images) | Same custom domain as the bucket (no trailing slash). CMS images skip <Badge text="/api/v1/image/download" variant="path" /> when this URL is set. |
 
 Example for **R2** + direct browser uploads:
 

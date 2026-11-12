@@ -2,7 +2,7 @@
 title: Vite (SvelteKit)
 description: Set web environment variables for local and production.
 order: 0.5
-lastUpdated: 2026-05-10
+lastUpdated: 2026-11-12
 ---
 
 <script>
@@ -67,6 +67,10 @@ In development, <Badge text="web/src/hooks.server.ts" variant="path" /> forwards
 ### Set production env values
 
 For deployment, ensure <Badge text="web/.env.production.local" variant="envWeb" /> (or your host’s production env) sets the same key names with production values. Double-check <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> against <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> on the API before you register OAuth redirect URIs in external dashboards.
+
+<Callout type="note">
+<p>Vercel builds need <Badge text="VITE_API_BASE_URL" variant="envWeb" /> and <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" />. Details: <a href="/docs/installation/vercel#prerendered-marketing-html-web-build">Prerendered marketing HTML</a>.</p>
+</Callout>
 
 Stripe subscription price ids are configured on the **web** (`VITE_PUBLIC_STRIPE_PRICE_ID_SOLO_MONTHLY`, and so on). See <a href="/docs/configuration-backend/stripe">Stripe billing</a>.
 

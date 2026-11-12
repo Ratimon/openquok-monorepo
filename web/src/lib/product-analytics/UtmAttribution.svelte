@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { building, browser } from '$app/environment';
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 
@@ -22,6 +23,7 @@
 	});
 
 	$effect(() => {
+		if (building || !browser) return;
 		const utm = readUtmFromSearchParams(page.url.searchParams);
 		if (utm) {
 			storeUtmIfEmpty(utm);

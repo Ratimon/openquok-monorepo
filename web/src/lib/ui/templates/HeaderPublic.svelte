@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Link } from '$lib/ui/nav-bars/Link';
+	import { building } from '$app/environment';
 	import { page } from '$app/state';
 	import { invalidateAll } from '$app/navigation';
 	import { toast } from '$lib/ui/sonner';
@@ -88,6 +89,17 @@
 
 	let signInHref = $derived.by(() => {
 		const pathname = page.url.pathname || '/';
+		if (building) {
+			const redirectTarget =
+				pathname === signInPath || pathname === signUpPath
+					? '/'
+					: pathname.startsWith('/')
+						? pathname
+						: `/${pathname}`;
+			return pathname !== signInPath
+				? `${signInPath}?redirectURL=${encodeURIComponent(redirectTarget)}`
+				: signInPath;
+		}
 		const search = page.url.search || '';
 		let redirectTarget: string;
 		if (pathname === signInPath || pathname === signUpPath) {

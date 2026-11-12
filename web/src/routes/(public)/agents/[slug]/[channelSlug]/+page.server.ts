@@ -3,6 +3,7 @@ import type { JsonLdGraphNode } from '$lib/seo/jsonLdSchema';
 import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 
 
+import { env } from '$env/dynamic/private';
 import { error } from '@sveltejs/kit';
 
 import { publicAgentByPagePresenter, isPublicAgentHostLandingPage, isPublicMcpLandingPage } from '$lib/area-public';
@@ -112,9 +113,12 @@ export async function load({ url, params, cookies, parent, fetch }) {
 	const accessToken = cookies.get('access_token');
 	const isLoggedIn = !!accessToken;
 
-	const opportunitiesPreviewVm = isChannelComingSoon
-		? null
-		: await loadAgentOpportunitiesPreviewStateless({
+	const skipOpportunitiesPreview = env.PRERENDER_SKIP_OPPORTUNITIES_PREVIEW === '1';
+
+	const opportunitiesPreviewVm =
+		isChannelComingSoon || skipOpportunitiesPreview
+			? null
+			: await loadAgentOpportunitiesPreviewStateless({
 				fetch,
 				previewSection: landingVm.opportunitiesPreviewSection,
 				listingTagSlug: channelConfig.listingTagSlug,

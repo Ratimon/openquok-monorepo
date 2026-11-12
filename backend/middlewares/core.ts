@@ -14,6 +14,7 @@ import {
 } from "../middlewares/publicRouteRegistry";
 import { applyPublicCmsCacheHeaders } from "../middlewares/publicCmsCacheHeaders";
 import { applyMaintenanceMode } from "../middlewares/maintenanceMode";
+import { applyHttpPathTemplateLogging } from "../middlewares/httpPathTemplateLog";
 import { applyRateLimiting } from "../middlewares/rateLimit";
 import { trialBrowserSignalMiddleware } from "../middlewares/trialBrowserSignalMiddleware";
 import { logger } from "../utils/Logger";
@@ -30,6 +31,7 @@ function configureCoreMiddleware(app: Express, config: ConfigObject, supabase: S
     // Rate limiting (before body parsing so limits apply to all API requests)
     applyRateLimiting(app);
     applyPublicCmsCacheHeaders(app);
+    applyHttpPathTemplateLogging(app, config);
 
     app.use((req: Request & { _skipJsonParsing?: boolean }, res: Response, next: NextFunction) => {
         if (req._skipJsonParsing) return next();

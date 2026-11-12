@@ -2,8 +2,15 @@ import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import type { CompareDetailViewModel } from '$lib/area-public/PublicComparePage.presenter.svelte';
+import { listPrerenderableCompareDetailParams } from '$lib/seo/prerender/listPrerenderableCompareDetailParams';
 
 import type { PageLoad } from './$types';
+
+export const prerender = 'auto';
+
+export function entries() {
+	return listPrerenderableCompareDetailParams();
+}
 
 export const load: PageLoad = async ({ parent, data }) => {
 	const parentData = await parent();

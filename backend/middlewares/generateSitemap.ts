@@ -11,6 +11,21 @@ const bundledRoutesManifestPath = path.join(
     "../static/routes-manifest.json",
 );
 
+const bundledSitemapProgrammaticPathsPath = path.join(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../static/sitemap-programmatic-paths.json",
+);
+
+interface SitemapProgrammaticPathsFile {
+    compare?: string[];
+    agentChannel?: string[];
+}
+
+interface FilteredProgrammaticSeoPaths {
+    compare: string[];
+    agentChannel: string[];
+}
+
 function readBundledRoutesManifest(): RouteManifest {
     return JSON.parse(fs.readFileSync(bundledRoutesManifestPath, "utf8")) as RouteManifest;
 }
@@ -22,6 +37,63 @@ function getBundledRoutesManifest(): RouteManifest {
         bundledRoutesManifestCache = readBundledRoutesManifest();
     }
     return bundledRoutesManifestCache;
+}
+
+let bundledSitemapProgrammaticPathsCache: FilteredProgrammaticSeoPaths | undefined;
+
+function resolveSitemapProgrammaticPathsFile(manifestPath?: string): string | undefined {
+    const candidates = [
+        manifestPath
+            ? path.join(path.dirname(manifestPath), "sitemap-programmatic-paths.json")
+            : null,
+        path.join(process.cwd(), "static/sitemap-programmatic-paths.json"),
+        path.join(process.cwd(), "backend/static/sitemap-programmatic-paths.json"),
+        bundledSitemapProgrammaticPathsPath,
+    ].filter((candidate): candidate is string => Boolean(candidate));
+
+    for (const candidate of candidates) {
+        if (fs.existsSync(candidate)) {
+            return candidate;
+        }
+    }
+
+    return undefined;
+}
+
+function parseSitemapProgrammaticPathsFile(filePath: string): FilteredProgrammaticSeoPaths {
+    const parsed = JSON.parse(fs.readFileSync(filePath, "utf8")) as SitemapProgrammaticPathsFile;
+    const compare = Array.isArray(parsed.compare)
+        ? parsed.compare.filter((entry): entry is string => typeof entry === "string")
+        : [];
+    const agentChannel = Array.isArray(parsed.agentChannel)
+        ? parsed.agentChannel.filter((entry): entry is string => typeof entry === "string")
+        : [];
+
+    return { compare, agentChannel };
+}
+
+/** Filtered compare and agent×channel paths — keep in sync with web `listSitemapCompareAndAgentChannelPaths`. */
+function loadFilteredProgrammaticSeoPaths(routesManifestPath?: string): FilteredProgrammaticSeoPaths {
+    if (bundledSitemapProgrammaticPathsCache) {
+        return bundledSitemapProgrammaticPathsCache;
+    }
+
+    const filePath = resolveSitemapProgrammaticPathsFile(routesManifestPath);
+    if (filePath) {
+        try {
+            bundledSitemapProgrammaticPathsCache = parseSitemapProgrammaticPathsFile(filePath);
+            return bundledSitemapProgrammaticPathsCache;
+        } catch (error) {
+            logger.warn({
+                msg: "Failed to read sitemap programmatic paths file",
+                filePath,
+                error: error instanceof Error ? error.message : String(error),
+            });
+        }
+    }
+
+    bundledSitemapProgrammaticPathsCache = { compare: [], agentChannel: [] };
+    return bundledSitemapProgrammaticPathsCache;
 }
 
 export interface GenerateSitemapOptions {
@@ -327,21 +399,16 @@ function buildPublicApiMarketingSitemapPaths(constantsDir: string): string[] {
     return paths;
 }
 
-function buildProgrammaticSitemapPaths(constantsDir: string): string[] {
+function buildProgrammaticSitemapPaths(
+    constantsDir: string,
+    filteredSeoPaths: FilteredProgrammaticSeoPaths,
+): string[] {
     const catalog = extractPublicCatalogSlugsFromDir(constantsDir);
     const compareSlugs = extractCompareProductSlugs(constantsDir);
     const allChannels = extractAllChannelSlugs(constantsDir);
     const paths: string[] = [];
 
-    for (const productA of compareSlugs) {
-        for (const productB of compareSlugs) {
-            if (productA !== productB) {
-                paths.push(
-                    `/compare/${encodeURIComponent(productA)}/${encodeURIComponent(productB)}`,
-                );
-            }
-        }
-    }
+    paths.push(...filteredSeoPaths.compare);
 
     for (const slug of compareSlugs) {
         if (slug !== COMPARE_HUB_BASE_SLUG) {
@@ -354,13 +421,7 @@ function buildProgrammaticSitemapPaths(constantsDir: string): string[] {
         paths.push(`/alternatives/categories/${encodeURIComponent(categorySlug)}`);
     }
 
-    for (const agentSlug of catalog.agents) {
-        for (const channelSlug of allChannels) {
-            paths.push(
-                `/agents/${encodeURIComponent(agentSlug)}/${encodeURIComponent(channelSlug)}`,
-            );
-        }
-    }
+    paths.push(...filteredSeoPaths.agentChannel);
 
     const apiPlatformSlugs = extractPublicApiPlatformSlugs(constantsDir);
 
@@ -921,8 +982,9 @@ async function generateSitemapUrls(options: GenerateSitemapOptions): Promise<Sit
             });
 
             const constantsDir = resolveWebConstantsDir(routesPath);
+            const filteredSeoPaths = loadFilteredProgrammaticSeoPaths(routesManifestPath);
             if (constantsDir) {
-                const programmaticPaths = buildProgrammaticSitemapPaths(constantsDir);
+                const programmaticPaths = buildProgrammaticSitemapPaths(constantsDir, filteredSeoPaths);
                 pushSitemapPaths(urls, programmaticPaths, "monthly", staticLastMod);
                 logger.info({
                     msg: "Added programmatic SEO URLs to sitemap",

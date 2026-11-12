@@ -217,6 +217,14 @@ describe('resolveBlogImageStorageKey', () => {
 });
 
 describe('buildBlogInlineImageSrc', () => {
+	it('prefers R2 public origin when configured', () => {
+		vi.stubEnv('VITE_STORAGE_R2_PUBLIC_BASE_URL', 'https://media.example.com');
+		expect(buildBlogInlineImageSrc('user-1/photo.webp')).toBe(
+			'https://media.example.com/blog_images/user-1/photo.webp'
+		);
+		vi.unstubAllEnvs();
+	});
+
 	it('builds an API download URL when Supabase public URL is unavailable', () => {
 		expect(buildBlogInlineImageSrc('user-1/photo.webp')).toBe(
 			'/api/v1/image/download?databaseName=blog_images&imageUrl=user-1%2Fphoto.webp'
