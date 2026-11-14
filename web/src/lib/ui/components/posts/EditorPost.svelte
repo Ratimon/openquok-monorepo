@@ -221,6 +221,11 @@
 		mediaToolbarRef?.openHumanize();
 	}
 
+	/** TipTap/plain body replace — for late prefill after the editor has mounted. */
+	export function prefillComposerPlainText(text: string): void {
+		replaceComposerBody(text);
+	}
+
 	const numMedia = $derived(postMediaItems.length);
 	const mediaAtCap = $derived(maxMediaItems != null && numMedia >= maxMediaItems);
 

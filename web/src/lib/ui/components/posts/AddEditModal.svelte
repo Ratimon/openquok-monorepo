@@ -351,6 +351,10 @@
 		editorPostRef?.openHumanize?.();
 	}
 
+	export function prefillComposerPlainText(text: string): void {
+		editorPostRef?.prefillComposerPlainText?.(text);
+	}
+
 	function handleToggleGlobalFromTargets() {
 		const needsConfirm =
 			mode === 'custom' &&

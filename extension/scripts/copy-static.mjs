@@ -1,13 +1,18 @@
-import { copyFileSync, cpSync, existsSync, mkdirSync } from 'node:fs';
+import { copyFileSync, cpSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { loadMergedManifest } from './merge-manifest.mjs';
+
 const extensionRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
-const distDir = join(extensionRoot, 'dist');
+const buildTarget = process.env.BUILD_TARGET === 'firefox' ? 'firefox' : 'chromium';
+const outDirName = process.env.EXTENSION_OUT_DIR?.trim() || 'dist';
+const distDir = join(extensionRoot, outDirName);
 
 mkdirSync(distDir, { recursive: true });
 
-copyFileSync(join(extensionRoot, 'manifest.json'), join(distDir, 'manifest.json'));
+const manifest = loadMergedManifest(buildTarget);
+writeFileSync(join(distDir, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
 copyFileSync(join(extensionRoot, 'sidepanel.html'), join(distDir, 'sidepanel.html'));
 copyFileSync(join(extensionRoot, 'sidepanel-bootstrap.js'), join(distDir, 'sidepanel-bootstrap.js'));
 

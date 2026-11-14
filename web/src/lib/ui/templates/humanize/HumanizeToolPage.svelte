@@ -3,6 +3,7 @@
 
 	import { browser } from '$app/environment';
 
+	import { stripHumanizerPrefillFromBrowserUrl } from '$lib/ai-humanize/utils/parseHumanizerPrefillQuery';
 	import { buildHumanizeFaqSection } from '$lib/content/constants/channels/tools/humanizer/faq';
 	import {
 		getRootPathPublicChannel,
@@ -54,6 +55,7 @@
 		composerMode?: 'global' | 'custom';
 		isLoggedIn?: boolean;
 		channelLinksVm?: HumanizeChannelHubLinkViewModel[];
+		prefillText?: string | null;
 	};
 
 	let {
@@ -64,7 +66,8 @@
 		focusedProviderIdentifier = null,
 		composerMode = 'global',
 		isLoggedIn = false,
-		channelLinksVm = []
+		channelLinksVm = [],
+		prefillText = null
 	}: Props = $props();
 
 	// /tools
@@ -103,6 +106,11 @@
 		channelSlug ? route(getRootPathPublicChannel(channelSlug)) : channelsHubHref
 	);
 	const faqSection = $derived(buildHumanizeFaqSection(channelSlug, channelLabel));
+
+	$effect(() => {
+		if (!browser || !prefillText) return;
+		stripHumanizerPrefillFromBrowserUrl();
+	});
 </script>
 
 {#snippet composerFallback()}
@@ -129,7 +137,12 @@
 			{#await loadHumanizeComposerPanelChunk()}
 				{@render composerFallback()}
 			{:then { default: HumanizeComposerPanel }}
-				<HumanizeComposerPanel {focusedProviderIdentifier} {composerMode} {isLoggedIn} />
+				<HumanizeComposerPanel
+					{focusedProviderIdentifier}
+					{composerMode}
+					{isLoggedIn}
+					{prefillText}
+				/>
 			{:catch}
 				<p class="text-error px-2 py-8 text-center text-sm">Could not load the composer.</p>
 			{/await}

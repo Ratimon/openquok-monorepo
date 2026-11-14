@@ -1,6 +1,8 @@
 dist/
+dist-firefox/
 node_modules/
 openquok-browser-extension.zip
+openquok-browser-extension-firefox.zip
 .rea-*.json
 icons/*.png
 !icons/.gitkeep

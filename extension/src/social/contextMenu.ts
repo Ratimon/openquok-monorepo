@@ -1,9 +1,9 @@
 import { openSidePanelInUserGesture } from '../background/sidePanelBehavior.js';
-import {
-	SIDE_PANEL_PENDING_TAB_KEY,
-	SIDE_PANEL_UI_MESSAGE,
-	type SidePanelFocusTab,
-} from '../ui/sidepanel/sidePanelMessages.js';
+import { openPublicHumanizerTab } from '../shared/openPublicHumanizer.js';
+
+import { openDirectorySidePanel, openSocialSidePanel } from './sidePanelNavigation.js';
+
+export { openDirectorySidePanel, openSocialSidePanel } from './sidePanelNavigation.js';
 
 import {
 	type SocialComposerDraftInput,
@@ -13,6 +13,7 @@ import {
 
 export const SOCIAL_CONTEXT_MENU_IDS = {
 	SHARE_SELECTION: 'openquok-share-selection',
+	HUMANIZE_SELECTION: 'openquok-humanize-selection',
 	SHARE_PAGE: 'openquok-share-page',
 	SHARE_LINK: 'openquok-share-link',
 	SHARE_IMAGE: 'openquok-share-image',
@@ -24,6 +25,7 @@ export const DIRECTORY_CONTEXT_MENU_IDS = {
 } as const;
 
 export const SOCIAL_CONTEXT_MENU_TITLE = 'Schedule with OpenQuok';
+export const HUMANIZER_CONTEXT_MENU_TITLE = 'Humanize selection with OpenQuok';
 export const DIRECTORY_CONTEXT_MENU_TITLE = 'Auto fill Directory with OpenQuok';
 
 const MENU_ID_TO_SOURCE: Record<string, SocialComposerDraftSource> = {
@@ -89,6 +91,11 @@ export function installSocialContextMenus(): void {
 			contexts: ['selection'],
 		});
 		chrome.contextMenus.create({
+			id: SOCIAL_CONTEXT_MENU_IDS.HUMANIZE_SELECTION,
+			title: HUMANIZER_CONTEXT_MENU_TITLE,
+			contexts: ['selection'],
+		});
+		chrome.contextMenus.create({
 			id: SOCIAL_CONTEXT_MENU_IDS.SHARE_PAGE,
 			title: SOCIAL_CONTEXT_MENU_TITLE,
 			contexts: ['page'],
@@ -116,30 +123,8 @@ export function installSocialContextMenus(): void {
 	});
 }
 
-async function focusSidePanelTab(tab: SidePanelFocusTab): Promise<void> {
-	try {
-		await chrome.storage.session.set({ [SIDE_PANEL_PENDING_TAB_KEY]: tab });
-	} catch {
-		/* ignore */
-	}
-	try {
-		await chrome.runtime.sendMessage({
-			type: SIDE_PANEL_UI_MESSAGE.FOCUS_TAB,
-			tab,
-		});
-	} catch {
-		// Panel may still be loading; pending tab is read on sidepanel init.
-	}
-}
-
-export async function openSocialSidePanel(tab?: chrome.tabs.Tab): Promise<void> {
-	openSidePanelInUserGesture(tab);
-	await focusSidePanelTab('social');
-}
-
-export async function openDirectorySidePanel(tab?: chrome.tabs.Tab): Promise<void> {
-	openSidePanelInUserGesture(tab);
-	await focusSidePanelTab('directory');
+async function focusSidePanelSocialTab(): Promise<void> {
+	await openSocialSidePanel();
 }
 
 async function completeSocialContextMenuClick(
@@ -150,16 +135,22 @@ async function completeSocialContextMenuClick(
 	if (draft) {
 		await writeSocialComposerDraft(draft);
 	}
-	await focusSidePanelTab('social');
+	await focusSidePanelSocialTab();
 }
 
 async function completeDirectoryContextMenuClick(): Promise<void> {
-	await focusSidePanelTab('directory');
+	await openDirectorySidePanel();
 }
 
 export function registerSocialContextMenuListeners(): void {
 	chrome.contextMenus.onClicked.addListener((info, tab) => {
 		const menuId = typeof info.menuItemId === 'string' ? info.menuItemId : '';
+		if (menuId === SOCIAL_CONTEXT_MENU_IDS.HUMANIZE_SELECTION) {
+			const selection = info.selectionText?.trim() ?? '';
+			void openPublicHumanizerTab(selection);
+			return;
+		}
+
 		const isDirectory = DIRECTORY_CONTEXT_MENU_IDS_SET.has(menuId);
 		const isSocial = SOCIAL_CONTEXT_MENU_IDS_SET.has(menuId);
 		if (!isDirectory && !isSocial) return;

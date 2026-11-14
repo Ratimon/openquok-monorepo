@@ -233,7 +233,10 @@
 										oninput={(e) => field.handleChange(e.currentTarget.value)}
 										class="input input-bordered mt-1 w-full"
 									/>
-									<Field.Description>At least 8 characters, one letter, one number.</Field.Description>
+									<Field.Description>
+										At least 8 characters, with one letter and one number. Use a longer, unique passphrase
+										— very common passwords may be rejected.
+									</Field.Description>
 									<Field.Error
 										errors={field.state.meta.errors as unknown as Array<{ message?: string }>}
 									/>

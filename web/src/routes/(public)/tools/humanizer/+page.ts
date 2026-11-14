@@ -20,6 +20,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			isLoggedIn?: boolean;
 			schemaData: unknown;
 			humanizerChannelsVm: HumanizeChannelHubLinkViewModel[];
+			prefillText?: string | null;
 		};
 
 		return {
@@ -32,6 +33,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			focusedProviderIdentifier: serverData.focusedProviderIdentifier,
 			composerMode: serverData.composerMode,
 			humanizerChannelsVm: serverData.humanizerChannelsVm,
+			prefillText: serverData.prefillText ?? null,
 			schemaData: serverData.schemaData,
 			isLoggedIn: accurateIsLoggedIn,
 			currentUser,

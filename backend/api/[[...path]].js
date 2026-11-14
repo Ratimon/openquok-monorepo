@@ -1459,6 +1459,21 @@ var init_messages = __esm({
   }
 });
 
+// ../common/dist/browser-extension/pageRuntimeBridge.js
+var BROWSER_EXTENSION_PAGE_BRIDGE_MESSAGE;
+var init_pageRuntimeBridge = __esm({
+  "../common/dist/browser-extension/pageRuntimeBridge.js"() {
+    init_messages();
+    BROWSER_EXTENSION_PAGE_BRIDGE_MESSAGE = {
+      /** Page → content script: invoke an extension API request. */
+      REQUEST: "OPENQUOK_EXTENSION_PAGE_REQUEST",
+      /** Content script → page: correlated response payload. */
+      RESPONSE: "OPENQUOK_EXTENSION_PAGE_RESPONSE"
+    };
+    new Set(Object.values(BROWSER_EXTENSION_PAGE_BRIDGE_MESSAGE));
+  }
+});
+
 // ../common/dist/browser-extension/cookieSessionProviders.js
 function getCookieSessionProvider(identifier) {
   return providersById2.get(identifier);
@@ -1561,6 +1576,7 @@ var init_connectFamily = __esm({
 var init_browser_extension = __esm({
   "../common/dist/browser-extension/index.js"() {
     init_autoLaunchMessages();
+    init_pageRuntimeBridge();
     init_messages();
     init_cookieSessionProviders();
     init_pageAssist();
@@ -5407,9 +5423,14 @@ var init_AuthController = __esm({
         try {
           const { email: rawEmail, password, fullName, cloudTrialBrowserSignalId } = req.body;
           const email = normalizeEmail(rawEmail);
-          const isEmailVerified = await this.userRepository.checkIfEmailVerified(email);
-          if (isEmailVerified) {
+          const { userData: existingUser } = await this.userRepository.findFullUserByEmail(email);
+          if (existingUser?.is_email_verified) {
             throw new UserConflictError("This email is already registered. Please sign in.");
+          }
+          if (existingUser && existingUser.is_email_verified === false) {
+            throw new UserConflictError(
+              "This email is already registered but not verified. Check your inbox (and spam) or use resend confirmation on the sign-up page."
+            );
           }
           const { newUser, session } = await this.authenticationService.signUp(
             email,
@@ -15642,6 +15663,50 @@ var init_repositories = __esm({
   }
 });
 
+// utils/auth/mapSupabaseSignUpError.ts
+function throwMappedSupabaseSignUpError(error) {
+  const msg = error.message?.trim() ?? "";
+  const lower = msg.toLowerCase();
+  const code = error.code?.toLowerCase() ?? "";
+  if (code === "user_already_exists" || lower.includes("already registered") || lower.includes("user already exists") || lower.includes("already been registered") || lower.includes("email address has already")) {
+    throw new UserConflictError("This email is already registered. Please sign in.");
+  }
+  if (code === "weak_password" || lower.includes("weak") || lower.includes("easy to guess") || lower.includes("known to be weak") || lower.includes("compromised") || lower.includes("pwned")) {
+    throw new AuthValidationError(
+      "That password is too easy to guess. Use a longer passphrase with mixed characters (for example, several random words and numbers)."
+    );
+  }
+  if (lower.includes("password") && (lower.includes("at least") || lower.includes("characters"))) {
+    throw new AuthValidationError(msg || "Password does not meet security requirements.");
+  }
+  if (lower.includes("rate limit") || lower.includes("too many requests") || code === "over_request_rate_limit") {
+    throw new AuthValidationError("Too many sign-up attempts. Please wait a minute and try again.");
+  }
+  if (lower.includes("invalid") && lower.includes("email")) {
+    throw new AuthValidationError("Please enter a valid email address.");
+  }
+  if (lower.includes("signups not allowed") || lower.includes("signup is disabled")) {
+    throw new AuthValidationError("New sign-ups are not available right now. Please try again later.");
+  }
+  if (msg) {
+    throw new AuthValidationError(msg);
+  }
+  throw new InvalidCredentialsError("Could not create account. Please check your details and try again.");
+}
+function assertNewSignUpUser(user) {
+  const identities = user?.identities;
+  if (identities && identities.length === 0) {
+    throw new UserConflictError(
+      "This email is already registered. Sign in, or check your inbox if you still need to verify your account."
+    );
+  }
+}
+var init_mapSupabaseSignUpError = __esm({
+  "utils/auth/mapSupabaseSignUpError.ts"() {
+    init_AuthError();
+  }
+});
+
 // services/AuthenticationService.ts
 function oauthProviderDisplayName(provider) {
   const key = provider.trim().toLowerCase();
@@ -15660,6 +15725,7 @@ var init_AuthenticationService = __esm({
     init_UserError();
     init_InfraError();
     init_email();
+    init_mapSupabaseSignUpError();
     init_Logger();
     init_GlobalConfig();
     AuthenticationService = class {
@@ -15718,12 +15784,14 @@ var init_AuthenticationService = __esm({
           options: { data: { full_name: fullName || "User" } }
         });
         if (error) {
-          const msg = error.message?.toLowerCase() ?? "";
-          if (msg.includes("already registered") || msg.includes("user already exists") || msg.includes("already been registered")) {
-            throw new UserConflictError("This email is already registered. Please sign in.");
-          }
-          throw new InvalidCredentialsError("Invalid credentials");
+          logger.warn({
+            msg: "Supabase signUp failed",
+            code: error.code,
+            message: error.message
+          });
+          throwMappedSupabaseSignUpError(error);
         }
+        assertNewSignUpUser(data.user);
         return {
           newUser: data.user,
           session: data.session

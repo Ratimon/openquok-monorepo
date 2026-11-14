@@ -385,9 +385,14 @@ export class AuthController {
             const { email: rawEmail, password, fullName, cloudTrialBrowserSignalId } = req.body;
             const email = normalizeEmail(rawEmail);
 
-            const isEmailVerified = await this.userRepository.checkIfEmailVerified(email);
-            if (isEmailVerified) {
+            const { userData: existingUser } = await this.userRepository.findFullUserByEmail(email);
+            if (existingUser?.is_email_verified) {
                 throw new UserConflictError("This email is already registered. Please sign in.");
+            }
+            if (existingUser && existingUser.is_email_verified === false) {
+                throw new UserConflictError(
+                    "This email is already registered but not verified. Check your inbox (and spam) or use resend confirmation on the sign-up page."
+                );
             }
 
             const { newUser, session } = await this.authenticationService.signUp(

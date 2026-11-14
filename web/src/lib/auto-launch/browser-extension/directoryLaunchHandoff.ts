@@ -6,8 +6,10 @@ import {
 
 import type { AutoLaunchSubmissionIntentDto } from '$lib/auto-launch/auto-launch.types';
 
-import { getBrowserExtensionId } from '$lib/integrations/browser-extension/extensionConfig';
-import { sendBrowserExtensionRequest } from '$lib/integrations/browser-extension/extensionClient';
+import {
+	resolveBrowserExtensionId,
+	sendBrowserExtensionRequest
+} from '$lib/integrations/browser-extension/extensionClient';
 
 export function buildAutoLaunchHandoffRequest(
 	intent: AutoLaunchSubmissionIntentDto
@@ -35,9 +37,12 @@ export async function sendDirectoryLaunchHandoff(
 	intent: AutoLaunchSubmissionIntentDto,
 	options?: DirectoryLaunchHandoffOptions
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-	const extensionId = getBrowserExtensionId();
+	const extensionId = await resolveBrowserExtensionId();
 	if (!extensionId) {
-		return { ok: false, error: 'OpenQuok browser extension is not configured for this site.' };
+		return {
+			ok: false,
+			error: 'OpenQuok browser extension is not configured for this site or is not installed.'
+		};
 	}
 	const request = {
 		type: BROWSER_EXTENSION_MESSAGE_TYPE.AUTO_LAUNCH_HANDOFF,

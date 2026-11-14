@@ -62,3 +62,9 @@ export {
 	HUMANIZE_MOCK_CHANNEL_ID_PREFIX
 } from '$lib/ai-humanize/utils/buildHumanizeMockChannels';
 export type { HumanizeMode } from '$lib/ai-humanize/constants/config';
+export {
+	coerceHumanizerPrefillText,
+	HUMANIZER_PREFILL_MAX_CHARS,
+	HUMANIZER_PREFILL_QUERY_PARAM,
+	parseHumanizerPrefillQuery
+} from '$lib/ai-humanize/utils/parseHumanizerPrefillQuery';

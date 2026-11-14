@@ -6,6 +6,7 @@ import {
 	getHumanizeChannelBySlug,
 	listHumanizeChannelsForHub
 } from '$lib/ai-humanize';
+import { parseHumanizerPrefillQuery } from '$lib/ai-humanize/utils/parseHumanizerPrefillQuery';
 import { buildHumanizeFaqSection } from '$lib/content/constants/channels/tools/humanizer/faq';
 import { publicHumanizePagePresenter } from '$lib/area-public';
 import { getRootPathPublicHumanizer, getRootPathPublicHumanizerChannel } from '$lib/area-public/constants/getRootPathPublicTools';
@@ -77,6 +78,7 @@ export async function load({ url, params, cookies, parent }) {
 		isLoggedIn,
 		schemaData,
 		humanizerChannelsVm: listHumanizeChannelsForHub(),
+		prefillText: parseHumanizerPrefillQuery(url.searchParams),
 		...toolVm
 	};
 }

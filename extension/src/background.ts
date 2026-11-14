@@ -2,7 +2,12 @@ import { isAutoLaunchMessageType } from 'openquok-common';
 
 import { handleAutoLaunchRuntimeMessage } from './background/directoryHandlers.js';
 import { handleDashboardBridgeRuntimeMessage } from './background/dashboardBridgeHandlers.js';
+import {
+	handlePageBridgeRelayMessage,
+	isPageBridgeRelayMessage,
+} from './background/pageBridgeHandlers.js';
 import { handleExternalMessage } from './background/externalHandlers.js';
+import { isFirefoxExtensionBuild } from './shared/extensionBuildTarget.js';
 import { handleRedditHandoffRuntimeMessage } from './social/reddit/handoffHandlers.js';
 import {
 	enableSidePanelOnActionClick,
@@ -29,10 +34,12 @@ function replyWhenDone(
 		});
 }
 
-chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
-	replyWhenDone(handleExternalMessage(message, sender), sendResponse);
-	return true;
-});
+if (!isFirefoxExtensionBuild()) {
+	chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
+		replyWhenDone(handleExternalMessage(message, sender), sendResponse);
+		return true;
+	});
+}
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 	if (!message || typeof message !== 'object') return;
@@ -40,6 +47,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 	const record = message as Record<string, unknown>;
 	const type = record.type;
 	if (typeof type !== 'string') return;
+
+	if (isPageBridgeRelayMessage(record)) {
+		replyWhenDone(handlePageBridgeRelayMessage(record), sendResponse);
+		return true;
+	}
 
 	const isAutoLaunch =
 		type.startsWith('OPENQUOK_AUTO_LAUNCH') ||

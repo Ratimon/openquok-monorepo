@@ -3,7 +3,9 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const extensionRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
-const distDir = join(extensionRoot, 'dist');
+const buildTarget = process.env.BUILD_TARGET === 'firefox' ? 'firefox' : 'chromium';
+const outDirName = process.env.EXTENSION_OUT_DIR?.trim() || 'dist';
+const distDir = join(extensionRoot, outDirName);
 const contentDir = join(distDir, 'content/directory-launch');
 const manifestPath = join(distDir, 'manifest.json');
 
@@ -70,9 +72,24 @@ if (manifest.action?.default_popup) {
 	);
 }
 
-const sidePanelPath = manifest.side_panel?.default_path;
-if (sidePanelPath !== 'sidepanel.html') {
-	fail(`manifest.side_panel.default_path must be "sidepanel.html" (got ${JSON.stringify(sidePanelPath)})`);
+if (buildTarget === 'firefox') {
+	const sidebarPanel = manifest.sidebar_action?.default_panel;
+	if (sidebarPanel !== 'sidepanel.html') {
+		fail(
+			`manifest.sidebar_action.default_panel must be "sidepanel.html" (got ${JSON.stringify(sidebarPanel)})`
+		);
+	}
+	if (manifest.externally_connectable) {
+		fail('Firefox manifest must not include externally_connectable.');
+	}
+	if (manifest.side_panel) {
+		fail('Firefox manifest must not include side_panel (use sidebar_action).');
+	}
+} else {
+	const sidePanelPath = manifest.side_panel?.default_path;
+	if (sidePanelPath !== 'sidepanel.html') {
+		fail(`manifest.side_panel.default_path must be "sidepanel.html" (got ${JSON.stringify(sidePanelPath)})`);
+	}
 }
 for (const required of [
 	'sidepanel.html',

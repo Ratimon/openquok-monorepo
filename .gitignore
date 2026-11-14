@@ -12,7 +12,9 @@
 /common/dist
 /orchestrator/dist
 /extension/dist
+/extension/dist-firefox
 /extension/openquok-browser-extension.zip
+/extension/openquok-browser-extension-firefox.zip
 
 # Dotenv / env (never commit secrets; keep example files)
 .env

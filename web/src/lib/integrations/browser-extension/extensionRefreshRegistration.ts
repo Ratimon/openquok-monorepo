@@ -1,11 +1,10 @@
 import { BROWSER_EXTENSION_MESSAGE_TYPE, isCookieSessionProviderId } from 'openquok-common';
 
-import { sendBrowserExtensionRequest } from '$lib/integrations/browser-extension/extensionClient';
 import {
-	getBrowserExtensionBackendUrl,
-	getBrowserExtensionId,
-	isBrowserExtensionConfigured
-} from '$lib/integrations/browser-extension/extensionConfig';
+	resolveBrowserExtensionId,
+	sendBrowserExtensionRequest
+} from '$lib/integrations/browser-extension/extensionClient';
+import { getBrowserExtensionBackendUrl, isBrowserExtensionConfigured } from '$lib/integrations/browser-extension/extensionConfig';
 
 export async function registerBrowserExtensionRefreshToken(params: {
 	providerId: string;
@@ -25,7 +24,13 @@ export async function registerBrowserExtensionRefreshToken(params: {
 	if (!backendUrl) {
 		return { ok: false, error: 'Could not resolve API URL for the browser extension.' };
 	}
-	const extensionId = getBrowserExtensionId();
+	const extensionId = await resolveBrowserExtensionId();
+	if (!extensionId) {
+		return {
+			ok: false,
+			error: 'Could not reach the OpenQuok browser extension. Install it and confirm the extension ID env vars.'
+		};
+	}
 	const response = await sendBrowserExtensionRequest(extensionId, {
 		type: BROWSER_EXTENSION_MESSAGE_TYPE.STORE_REFRESH_TOKEN,
 		providerId: params.providerId,
@@ -47,7 +52,10 @@ export async function removeBrowserExtensionRefreshToken(params: {
 	if (!isCookieSessionProviderId(params.providerId) || !isBrowserExtensionConfigured()) {
 		return;
 	}
-	const extensionId = getBrowserExtensionId();
+	const extensionId = await resolveBrowserExtensionId();
+	if (!extensionId) {
+		return;
+	}
 	try {
 		await sendBrowserExtensionRequest(extensionId, {
 			type: BROWSER_EXTENSION_MESSAGE_TYPE.REMOVE_REFRESH_TOKEN,

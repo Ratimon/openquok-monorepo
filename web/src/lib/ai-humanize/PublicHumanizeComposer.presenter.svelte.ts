@@ -32,6 +32,7 @@ import {
 	xMaxCharactersForChannel,
 	xWeightedLength
 } from '$lib/posts/utils/composer';
+import { plainTextToComposerHtml } from '$lib/ui/components/posts/composer-editor/plainTextToComposerHtml';
 import { toast } from '$lib/ui/sonner';
 import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 
@@ -48,6 +49,8 @@ const EMPTY_EXPORT_CANVAS: ExportCanvasToMediaFn = async () => ({
 export type PublicHumanizeComposerInit = {
 	focusedProviderIdentifier?: string | null;
 	composerMode?: HumanizeComposerMode;
+	/** Plain text from extension context menu (`?text=` query) before first editor mount. */
+	initialPlainText?: string | null;
 };
 
 /**
@@ -92,6 +95,10 @@ export class PublicHumanizeComposerPresenter {
 		this.baseSocialChannelsVm = channels;
 		this.selectedIds = channels.map((channel) => channel.id);
 		this.applyPageChannel(init);
+		const initialPlainText = init?.initialPlainText?.trim();
+		if (initialPlainText) {
+			this.prefillPlainTextBody(initialPlainText);
+		}
 	}
 
 	/** Preselect + focus the matching mock on channel SEO pages; Global Edit otherwise. */
@@ -167,6 +174,7 @@ export class PublicHumanizeComposerPresenter {
 	});
 
 	previewText = $derived(stripHtmlToPlainText(this.editorBody));
+
 	charCount = $derived.by(() => {
 		if ((this.focusedProviderIdentifier ?? '').toLowerCase() === 'x') {
 			return xWeightedLength(this.previewText);
@@ -332,6 +340,17 @@ export class PublicHumanizeComposerPresenter {
 
 	onRepeatChange(value: RepeatIntervalKey | null): void {
 		this.repeatInterval = value;
+	}
+
+	prefillPlainTextBody(text: string): void {
+		const html = plainTextToComposerHtml(text);
+		this.globalBody = html;
+		this.bodiesByIntegrationId = clearPerChannelBodies();
+		if (this.mode === 'custom') {
+			this.backToGlobalMode();
+		} else {
+			this.editorBody = html;
+		}
 	}
 
 	async copyPostText(): Promise<void> {

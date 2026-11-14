@@ -7,7 +7,14 @@ import {
 	type BrowserExtensionSessionCookie
 } from 'openquok-common';
 
-import { getBrowserExtensionId, isBrowserExtensionConfigured } from '$lib/integrations/browser-extension/extensionConfig';
+import {
+	getBrowserExtensionIdCandidates,
+	isBrowserExtensionConfigured
+} from '$lib/integrations/browser-extension/extensionConfig';
+import {
+	isFirefoxWebExtensionBridgeBrowser,
+	sendBrowserExtensionRequestViaPageBridge
+} from '$lib/integrations/browser-extension/pageRuntimeBridge';
 
 type ChromeRuntimeSendMessage = (
 	extensionId: string,
@@ -28,7 +35,11 @@ function getChromeRuntime(): ChromeRuntime | null {
 }
 
 export function isBrowserExtensionRuntimeAvailable(): boolean {
-	return isBrowserExtensionConfigured() && getChromeRuntime() !== null;
+	if (!isBrowserExtensionConfigured()) return false;
+	if (isFirefoxWebExtensionBridgeBrowser()) {
+		return typeof window !== 'undefined';
+	}
+	return getChromeRuntime() !== null;
 }
 
 function parseExtensionResponse(response: unknown): BrowserExtensionResponse {
@@ -42,6 +53,9 @@ export function sendBrowserExtensionRequest(
 	extensionId: string,
 	request: BrowserExtensionRequest
 ): Promise<BrowserExtensionResponse> {
+	if (isFirefoxWebExtensionBridgeBrowser()) {
+		return sendBrowserExtensionRequestViaPageBridge(request);
+	}
 	return new Promise((resolve, reject) => {
 		const runtime = getChromeRuntime();
 		if (!runtime) {
@@ -64,10 +78,45 @@ export function sendBrowserExtensionRequest(
 	});
 }
 
+/** Cleared in unit tests when env or mock runtime changes between examples. */
+let resolvedBrowserExtensionId: string | null = null;
+
+export function resetResolvedBrowserExtensionIdForTests(): void {
+	resolvedBrowserExtensionId = null;
+}
+
+async function pingExtensionId(extensionId: string): Promise<boolean> {
+	try {
+		const response = await sendBrowserExtensionRequest(extensionId, {
+			type: BROWSER_EXTENSION_MESSAGE_TYPE.PING
+		});
+		return response.ok && response.type === BROWSER_EXTENSION_MESSAGE_TYPE.PING;
+	} catch {
+		return false;
+	}
+}
+
+/**
+ * Pings configured extension IDs in order until one responds (cached for the page session).
+ */
+export async function resolveBrowserExtensionId(): Promise<string> {
+	if (resolvedBrowserExtensionId) {
+		return resolvedBrowserExtensionId;
+	}
+	const candidates = getBrowserExtensionIdCandidates();
+	for (const extensionId of candidates) {
+		if (await pingExtensionId(extensionId)) {
+			resolvedBrowserExtensionId = extensionId;
+			return extensionId;
+		}
+	}
+	return '';
+}
+
 async function sendToConfiguredExtension(
 	request: BrowserExtensionRequest
 ): Promise<BrowserExtensionResponse> {
-	const extensionId = getBrowserExtensionId();
+	const extensionId = await resolveBrowserExtensionId();
 	if (!extensionId) {
 		return { ok: false, error: 'OpenQuok browser extension is not configured for this site.' };
 	}

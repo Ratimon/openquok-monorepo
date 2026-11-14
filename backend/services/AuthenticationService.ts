@@ -26,6 +26,7 @@ import { UserAuthorizationError } from "../errors/UserError";
 import { UserNotFoundError } from "../errors/UserError";
 import { ValidationError, DatabaseEntityNotFoundError } from "../errors/InfraError";
 import { normalizeEmail } from "../utils/validation/email";
+import { assertNewSignUpUser, throwMappedSupabaseSignUpError } from "../utils/auth/mapSupabaseSignUpError";
 import { logger } from "../utils/Logger";
 import { config } from "../config/GlobalConfig";
 
@@ -126,12 +127,15 @@ export class AuthenticationService {
         });
 
         if (error) {
-            const msg = error.message?.toLowerCase() ?? "";
-            if (msg.includes("already registered") || msg.includes("user already exists") || msg.includes("already been registered")) {
-                throw new UserConflictError("This email is already registered. Please sign in.");
-            }
-            throw new InvalidCredentialsError("Invalid credentials");
+            logger.warn({
+                msg: "Supabase signUp failed",
+                code: (error as { code?: string }).code,
+                message: error.message,
+            });
+            throwMappedSupabaseSignUpError(error as { message?: string; code?: string; status?: number });
         }
+
+        assertNewSignUpUser(data.user as { identities?: unknown[] | null } | null);
 
         return {
             newUser: data.user as { id: string; email?: string } | null,

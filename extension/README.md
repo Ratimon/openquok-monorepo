@@ -1,6 +1,6 @@
 # @openquok/browser-extension
 
-Chrome Manifest V3 extension for **cookie-session** social channels (Skool first) and **directory launch** assist (Uneed destinations). The OpenQuok web app talks to this extension via `chrome.runtime.sendMessage` when adding a channel, registering periodic session refresh, or handing off an auto-launch submission intent.
+Manifest V3 extension for **cookie-session** social channels (Skool first) and **directory launch** assist. The OpenQuok web app talks to the Chromium build via `chrome.runtime.sendMessage` (`externally_connectable`). On **Firefox**, the dashboard content script relays the same API through a `window.postMessage` bridge (no `externally_connectable`).
 
 ## Build
 
@@ -11,15 +11,26 @@ pnpm common:build
 pnpm --filter @openquok/browser-extension build
 ```
 
-Output is in `extension/dist/`. Load **that folder** in Chrome via **Extensions → Developer mode → Load unpacked** (not `extension/` itself). After each build, click **Reload** on the extension card.
+Output is in `extension/dist/`. Load **that folder** in Chrome or Edge via **Extensions → Developer mode → Load unpacked** (not `extension/` itself). After each build, click **Reload** on the extension card.
+
+### Multi-browser builds
+
+| Target | Command | Output |
+| --- | --- | --- |
+| Chromium (Chrome + Edge) | `pnpm --filter @openquok/browser-extension build` | `extension/dist/` |
+| Firefox | `pnpm --filter @openquok/browser-extension build:firefox` | `extension/dist-firefox/` |
+
+Store zips: `zip` (Chromium) and `zip:firefox`. See [docs/store/README.md](./docs/store/README.md).
 
 **popup**, **background**, and **content scripts** are each built as a single self-contained ES module (no shared `dist/assets/` chunks). If you see `Cannot use import statement outside a module` or “Extension background is not running”, rebuild, reload `extension/dist` on `chrome://extensions`, and open **Service worker** to confirm there are no errors.
 
-Optional zip for manual distribution:
+Optional zip for store upload (Chrome Web Store and Microsoft Edge Add-ons — same artifact):
 
 ```bash
 pnpm --filter @openquok/browser-extension zip
 ```
+
+See [docs/store/README.md](./docs/store/README.md) and [docs/store/edge-addons.md](./docs/store/edge-addons.md) for Edge Partner Center steps and post-publish extension ID wiring.
 
 ## Self-host web origin
 

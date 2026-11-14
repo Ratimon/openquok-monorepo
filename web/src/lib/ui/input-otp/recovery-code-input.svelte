@@ -5,12 +5,13 @@
 	import Root from './input-otp.svelte';
 	import Separator from './input-otp-separator.svelte';
 	import Slot from './input-otp-slot.svelte';
+	import { recoveryCodeVisibleCellCount } from './recoveryCodeVisibleCellCount';
 
 	type Props = {
 		value?: string;
 		maxlength?: number;
-		/** Visible cell count (≤ maxlength). Use for variable-length OTP (e.g. 6 or 8 digits). */
-		displayLength?: number;
+		/** Minimum visible cells before expanding to `maxlength` (default 6). */
+		minDisplayLength?: number;
 		disabled?: boolean;
 		name?: string;
 		class?: string;
@@ -20,7 +21,7 @@
 	let {
 		value = $bindable(''),
 		maxlength = 8,
-		displayLength,
+		minDisplayLength = 6,
 		disabled = false,
 		name,
 		class: className,
@@ -28,9 +29,16 @@
 	}: Props = $props();
 
 	const visibleCells = $derived(
-		Math.min(maxlength, Math.max(1, displayLength ?? maxlength))
+		recoveryCodeVisibleCellCount(value.length, minDisplayLength, maxlength)
 	);
 	const firstGroupEnd = $derived(Math.ceil(visibleCells / 2));
+	const showOptionalTrailingCells = $derived(
+		visibleCells === maxlength && value.length <= minDisplayLength
+	);
+
+	function isOptionalCell(index: number): boolean {
+		return showOptionalTrailingCells && index >= minDisplayLength;
+	}
 </script>
 
 <Root
@@ -45,14 +53,14 @@
 >
 	{#snippet children({ cells })}
 		<Group>
-			{#each cells.slice(0, firstGroupEnd) as cell (cell)}
-				<Slot {cell} />
+			{#each cells.slice(0, firstGroupEnd) as cell, index (cell)}
+				<Slot {cell} optional={isOptionalCell(index)} />
 			{/each}
 		</Group>
 		<Separator />
 		<Group>
-			{#each cells.slice(firstGroupEnd, visibleCells) as cell (cell)}
-				<Slot {cell} />
+			{#each cells.slice(firstGroupEnd, visibleCells) as cell, index (cell)}
+				<Slot {cell} optional={isOptionalCell(firstGroupEnd + index)} />
 			{/each}
 		</Group>
 	{/snippet}

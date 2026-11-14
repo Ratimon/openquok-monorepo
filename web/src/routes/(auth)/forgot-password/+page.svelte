@@ -65,14 +65,6 @@
 		code.length >= RESET_PASSWORD_CODE_MIN_LENGTH && code.length <= RESET_PASSWORD_CODE_MAX_LENGTH
 	);
 
-	/** Show 6 cells until the user types or pastes a longer code (Supabase sends 6 or 8 digits). */
-	let pinCellCount = $derived(
-		Math.min(
-			RESET_PASSWORD_CODE_MAX_LENGTH,
-			Math.max(RESET_PASSWORD_CODE_MIN_LENGTH, code.length || RESET_PASSWORD_CODE_MIN_LENGTH)
-		)
-	);
-
 	$effect(() => {
 		if (waitTime > 0) {
 			const t = setInterval(() => (waitTime = waitTime - 1), 1000);
@@ -248,7 +240,9 @@
 						</h1>
 					</CardTitle>
 					<CardDescription>
-						Enter every digit from the email we sent to {email}. Codes are usually {RESET_PASSWORD_CODE_MIN_LENGTH} or {RESET_PASSWORD_CODE_MAX_LENGTH} digits.
+						Enter every digit from the email we sent to {email}. Codes are {RESET_PASSWORD_CODE_MIN_LENGTH}
+						or {RESET_PASSWORD_CODE_MAX_LENGTH} digits — if yours has {RESET_PASSWORD_CODE_MIN_LENGTH}, leave
+						the last two boxes empty after the sixth digit.
 					</CardDescription>
 				</CardHeader>
 				<CardContent class="grid gap-4">
@@ -258,7 +252,7 @@
 							name="code"
 							bind:value={code}
 							maxlength={RESET_PASSWORD_CODE_MAX_LENGTH}
-							displayLength={pinCellCount}
+							minDisplayLength={RESET_PASSWORD_CODE_MIN_LENGTH}
 							disabled={isVerifyCodeSubmitting}
 						/>
 					</div>

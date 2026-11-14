@@ -116,7 +116,7 @@ Draft, schedule, or use handoff tools
 ### howto_step 4 text
 
 ```
-<p>Compose in the side panel, or right-click the page for <strong>Schedule with OpenQuok</strong>. For Reddit due rows, use <strong>Autofill</strong> on reddit.com. For directories, use <strong>Fill</strong> after <strong>Launch to directory</strong> from <a href="/account/products">My Products</a>.</p>
+<p>Compose in the side panel, or right-click the page for <strong>Schedule with OpenQuok</strong>. For stiff AI copy, open <a href="/tools/humanizer">Humanizer</a> in a tab, rewrite on-device, then paste back into the side panel. For Reddit due rows, use <strong>Autofill</strong> on reddit.com. For directories, use <strong>Fill</strong> after <strong>Launch to directory</strong> from <a href="/account/products">My Products</a>.</p>
 ```
 
 ### howto_step 5 name
@@ -128,7 +128,7 @@ Open the full composer when you need AI or large media
 ### howto_step 5 text
 
 ```
-<p>Click <strong>Open full composer</strong> for the media library, very large video, and dashboard AI tools. See <a href="/docs/creating-posts/ai-generation">AI generation</a> and <a href="/tools/humanizer">Humanizer</a>.</p>
+<p>Click <strong>Open full composer</strong> for the media library, very large video, and dashboard AI tools. You can also open <a href="/tools/humanizer">Humanizer</a> in a tab and paste polished copy into the side panel. See <a href="/docs/creating-posts/ai-generation">AI generation</a> and <a href="/blog/how-openquok-humanizer-rewrites-a-draft-in-the-browser">How OpenQuok Humanizer rewrites a draft in the browser</a>.</p>
 ```
 
 ---
@@ -226,7 +226,7 @@ Where does AI fit—Humanizer, Gemini in Chrome, and MCP?
 ## faq — answer 8
 
 ```
-<p>Use <a href="/tools/humanizer">Humanizer</a> to rewrite AI drafts before scheduling. Gemini in Chrome is Google’s built-in browsing assistant. OpenQuok MCP and agents schedule through your API when channels are connected. The extension still handles browser-only steps. <a href="/blog/how-openquok-humanizer-rewrites-a-draft-in-the-browser">Humanizer walkthrough</a> · <a href="/docs/getting-started-for-mcp">MCP</a>.</p>
+<p>Use <a href="/tools/humanizer">Humanizer</a> in a browser tab to rewrite AI drafts before you paste into the side panel or dashboard composer. Gemini in Chrome is Google’s built-in browsing assistant. OpenQuok MCP and agents schedule through your API when channels are connected. The extension still handles browser-only steps. <a href="/blog/how-openquok-humanizer-rewrites-a-draft-in-the-browser">How OpenQuok Humanizer rewrites a draft in the browser</a> · <a href="/docs/getting-started-for-mcp">MCP</a>.</p>
 ```
 
 ## faq — question 9
@@ -357,7 +357,7 @@ What must self-host operators configure?
 <li><strong>Image</strong> uploads when possible; otherwise the image URL lands in the body with a warning.</li>
 </ul>
 
-<p>This pairs well with an AI drafting workflow: generate in ChatGPT or another tool, run the copy through <a href="/tools/humanizer">Humanizer</a>, select the paragraph on the page, and schedule. Read <a href="/blog/how-openquok-humanizer-rewrites-a-draft-in-the-browser">How OpenQuok Humanizer rewrites a draft in the browser</a> and <a href="/blog/platforms-are-adding-ai-labels-detectors-and-bans-your-draft-can-still-sound-like-a-machine">AI labels, detectors, and bans</a> when disclosure and voice are different problems.</p>
+<p>This pairs well with an AI drafting workflow: generate in ChatGPT or another tool, polish the paragraph in <a href="/tools/humanizer">Humanizer</a>, paste into the side panel, then schedule. Read <a href="/blog/how-openquok-humanizer-rewrites-a-draft-in-the-browser">How OpenQuok Humanizer rewrites a draft in the browser</a> and <a href="/blog/platforms-are-adding-ai-labels-detectors-and-bans-your-draft-can-still-sound-like-a-machine">AI labels, detectors, and bans</a> when disclosure and voice are different problems.</p>
 
 <h2>Skool post scheduler: extension connect in practice</h2>
 
@@ -435,7 +435,9 @@ What must self-host operators configure?
 
 <p>OpenQuok’s signed-in composer includes AI drafting options. The free <a href="/tools/humanizer">Humanizer</a> rewrites stiff AI copy in the browser before you schedule—no account required for the tool itself. That addresses <strong>voice</strong>, not <strong>channel permissions</strong>.</p>
 
-<p>After Humanizer, use the context menu or side panel to move the paragraph into a dated post on Skool, Threads, or other connected channels.</p>
+<p>Keep Humanizer in a tab while you work: rewrites stay on-device, then copy the result into the Social side panel or dashboard composer. See <a href="/blog/how-openquok-humanizer-rewrites-a-draft-in-the-browser">How OpenQuok Humanizer rewrites a draft in the browser</a> and the <a href="/docs/installation/chrome-extension">browser extension</a> guide for scheduling flows.</p>
+
+<p>After Humanizer, pick channels in the side panel and move the paragraph into a dated post on Skool, Threads, or other connected channels—or use <strong>Schedule with OpenQuok</strong> from a fresh selection.</p>
 
 <h3>Gemini in Chrome (built-in assistant)</h3>
 
@@ -465,7 +467,7 @@ What must self-host operators configure?
 
 <ol>
 <li>Morning research in Chrome. Optionally summarize long pages with Gemini in Chrome.</li>
-<li>Draft announcement copy with an AI tool. Run it through <a href="/tools/humanizer">Humanizer</a>.</li>
+<li>Draft announcement copy with an AI tool. Open <a href="/tools/humanizer">Humanizer</a> in a tab, rewrite, then paste into the side panel.</li>
 <li>Right-click a customer quote → <strong>Schedule with OpenQuok</strong>. Schedule Skool and LinkedIn from the side panel.</li>
 <li>Add a Reddit row with subreddit in Settings. Schedule for Tuesday 10:00.</li>
 <li>Afternoon: <strong>Launch to directory</strong> on Uneed. <strong>Fill</strong>, edit tagline, pay on site, save listing URL.</li>

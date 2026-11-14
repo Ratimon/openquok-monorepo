@@ -1,4 +1,4 @@
-/** Input OTP primitives (Root, Group, Slot, Separator) plus RecoveryCodeInput for auth recovery codes. */
+/** Input OTP primitives (Root, Group, Slot, Separator) plus RecoveryCodeInput for 6–8 digit auth codes. */
 import Group from './input-otp-group.svelte';
 import Root from './input-otp.svelte';
 import RecoveryCodeInput from './recovery-code-input.svelte';
