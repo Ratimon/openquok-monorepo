@@ -1,3 +1,5 @@
+import { replaceElementHtml } from '../../shared/domHtml.js';
+
 const ICONS = {
 	undo:
 		'<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6.69 3L3 13"/></svg>',
@@ -65,7 +67,7 @@ function toolbarButton(label: string, icon: string, onClick: () => void): HTMLBu
 	btn.className = 'composer-toolbar-btn';
 	btn.setAttribute('aria-label', label);
 	btn.title = label;
-	btn.innerHTML = icon;
+	replaceElementHtml(btn, icon);
 	btn.addEventListener('click', onClick);
 	return btn;
 }

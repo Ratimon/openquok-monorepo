@@ -9,6 +9,8 @@ import { POPUP_UI_MESSAGE } from '../auto-launch/popupMessages.js';
 import type { StoredAutoLaunchState } from '../auto-launch/sessionStorage.js';
 import { isReadyPage, pageMatchesConfig } from '../directory-launch/stepRail.js';
 
+import { firstElementFromHtml } from '../shared/domHtml.js';
+
 import './popup.css';
 
 const appRoot = document.getElementById('app');
@@ -22,9 +24,7 @@ let selectedChannelId =
 	directoryChannels[0]?.identifier ?? 'peerpush-standard-launch';
 
 function el(html: string): HTMLElement {
-	const template = document.createElement('template');
-	template.innerHTML = html.trim();
-	return template.content.firstElementChild as HTMLElement;
+	return firstElementFromHtml(html);
 }
 
 function statusForState(state: StoredAutoLaunchState | null): string {

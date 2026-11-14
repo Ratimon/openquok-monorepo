@@ -14,6 +14,7 @@ Firefox ships from a **separate build** (`extension/dist-firefox/`). Chromium st
 | Panel UI | `side_panel.default_path` | `sidebar_action.default_panel` (same `sidepanel.html` bundle) |
 | Dashboard connect | `externally_connectable` + `chrome.runtime.sendMessage` | Dashboard content script `postMessage` bridge (`pageRuntimeBridge`) |
 | Gecko ID | n/a | `manifest.firefox.json` → `browser_specific_settings.gecko.id` (update before public listing if AMO assigns another) |
+| AMO manifest | `name` ≤ 45 chars, `data_collection_permissions`, `strict_min_version` ≥ 140 | Set in `manifest.firefox.json` (overrides base `manifest.json` on Firefox builds) |
 | Permissions | includes `sidePanel` | `sidePanel` removed |
 
 After AMO assigns the listing extension ID, add `firefox:<amo-id>` to production `VITE_OPENQUOK_BROWSER_EXTENSION_IDS` (see [configuration-web](https://www.openquok.com/docs/configuration-web)).

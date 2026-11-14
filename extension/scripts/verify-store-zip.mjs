@@ -5,7 +5,12 @@ import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
 
 const extensionRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
-const zipPath = join(extensionRoot, 'openquok-browser-extension.zip');
+const outDirName = process.env.EXTENSION_OUT_DIR?.trim() || 'dist';
+const isFirefox = outDirName === 'dist-firefox';
+const zipPath = join(
+	extensionRoot,
+	isFirefox ? 'openquok-browser-extension-firefox.zip' : 'openquok-browser-extension.zip'
+);
 
 function fail(message) {
 	console.error(`[verify-store-zip] ${message}`);
@@ -13,7 +18,7 @@ function fail(message) {
 }
 
 if (!existsSync(zipPath)) {
-	fail('openquok-browser-extension.zip not found — run pnpm zip first.');
+	fail(`${zipPath} not found — run pnpm zip${isFirefox ? ':firefox' : ''} first.`);
 }
 
 const list = spawnSync('unzip', ['-Z1', zipPath], { encoding: 'utf8' });
@@ -35,7 +40,7 @@ const nestedManifest = entries.find(
 );
 if (nestedManifest) {
 	fail(
-		`manifest.json must be at the zip root (found "${nestedManifest}"). Rebuild with scripts/zip.mjs from dist/.`
+		`manifest.json must be at the zip root (found "${nestedManifest}"). Rebuild with scripts/zip.mjs from ${outDirName}/.`
 	);
 }
 
@@ -73,11 +78,34 @@ try {
 	const description = manifest.description ?? '';
 	if (/\bchrome\b/i.test(description)) {
 		fail(
-			`manifest description must be browser-neutral for Edge Add-ons (remove "Chrome"): ${JSON.stringify(description)}`
+			`manifest description must be browser-neutral (remove "Chrome"): ${JSON.stringify(description)}`
 		);
 	}
 
-	if (!manifest.side_panel?.default_path) {
+	if (isFirefox) {
+		const name = typeof manifest.name === 'string' ? manifest.name : '';
+		if (name.length > 45) {
+			fail(
+				`Firefox AMO limits manifest name to 45 characters (got ${name.length}): ${JSON.stringify(name)}. Override in manifest.firefox.json.`
+			);
+		}
+		const gecko = manifest.browser_specific_settings?.gecko;
+		const dataPerms = gecko?.data_collection_permissions;
+		if (!dataPerms || !Array.isArray(dataPerms.required) || dataPerms.required.length === 0) {
+			fail(
+				'Firefox manifest must set browser_specific_settings.gecko.data_collection_permissions.required (see manifest.firefox.json).'
+			);
+		}
+		if (manifest.sidebar_action?.default_panel !== 'sidepanel.html') {
+			fail('Firefox manifest must set sidebar_action.default_panel to "sidepanel.html".');
+		}
+		if (manifest.side_panel) {
+			fail('Firefox manifest must not include side_panel.');
+		}
+		if (manifest.background?.service_worker) {
+			fail('Firefox manifest must use background.scripts, not service_worker.');
+		}
+	} else if (!manifest.side_panel?.default_path) {
 		fail('manifest.side_panel.default_path is required for Chromium side panel builds.');
 	}
 } catch (err) {
@@ -92,17 +120,16 @@ try {
 	}
 }
 
-const distManifest = join(extensionRoot, 'dist', 'manifest.json');
+const distManifest = join(extensionRoot, outDirName, 'manifest.json');
 if (existsSync(distManifest)) {
 	const dist = JSON.parse(readFileSync(distManifest, 'utf8'));
 	const zipped = JSON.parse(extract.stdout);
 	if (dist.version !== zipped.version) {
 		fail(
-			`Zip manifest version ${zipped.version} does not match dist/manifest.json ${dist.version} — rebuild and re-zip.`
+			`Zip manifest version ${zipped.version} does not match ${outDirName}/manifest.json ${dist.version} — rebuild and re-zip.`
 		);
 	}
 }
 
-console.log(
-	`[verify-store-zip] OK (${entries.length} files; ready for Chrome Web Store and Microsoft Edge Add-ons)`
-);
+const storeLabel = isFirefox ? 'Mozilla AMO' : 'Chrome Web Store and Microsoft Edge Add-ons';
+console.log(`[verify-store-zip] OK (${entries.length} files; ready for ${storeLabel})`);

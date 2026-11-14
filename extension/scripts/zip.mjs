@@ -26,6 +26,7 @@ console.log(`[extension] Wrote ${zipPath}`);
 const verifyZip = spawnSync('node', ['./scripts/verify-store-zip.mjs'], {
 	cwd: extensionRoot,
 	stdio: 'inherit',
+	env: { ...process.env, EXTENSION_OUT_DIR: outDirName },
 });
 if (verifyZip.status !== 0) {
 	process.exit(verifyZip.status === null ? 1 : verifyZip.status);

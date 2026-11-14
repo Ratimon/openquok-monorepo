@@ -1,5 +1,7 @@
 import { directorySiteKeyFromProviderSlug } from 'openquok-common';
 
+import { replaceElementHtml } from '../../shared/domHtml.js';
+
 export type DirectoryChannelSummary = {
 	identifier: string;
 	name: string;
@@ -136,7 +138,7 @@ export function mountDirectoryChannelPicker(
 	addBtn.title = 'Add channel in dashboard';
 	const addAvatar = document.createElement('span');
 	addAvatar.className = 'channel-avatar channel-add-avatar';
-	addAvatar.innerHTML = CHANNEL_ADD_PLUS_SVG;
+	replaceElementHtml(addAvatar, CHANNEL_ADD_PLUS_SVG);
 	addBtn.appendChild(addAvatar);
 	const onAdd = () => onAddChannel();
 	addBtn.addEventListener('click', onAdd);

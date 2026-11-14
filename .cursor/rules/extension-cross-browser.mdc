@@ -1,0 +1,45 @@
+---
+description: OpenQuok browser extension — Chrome, Edge (Chromium), and Firefox from one codebase. Apply when editing extension/ or browser-extension configuration docs.
+globs:
+  - "extension/**"
+  - "web/src/content/docs/configuration-web/browser-extension-*.md"
+  - "web/src/content/docs/installation/chrome-extension.md"
+alwaysApply: false
+---
+
+# Browser extension (Chrome, Edge, Firefox)
+
+One TypeScript tree ships **two store artifacts**. **Chrome and Edge** share the Chromium build; only **Firefox** uses a separate manifest merge and output directory.
+
+| Target | Output | Zip | Manifest |
+| --- | --- | --- | --- |
+| Chrome, Edge | `extension/dist/` | `pnpm --filter @openquok/browser-extension zip` → `openquok-browser-extension.zip` | `manifest.json` (MV3 `side_panel`, `background.service_worker`) |
+| Firefox | `extension/dist-firefox/` | `pnpm --filter @openquok/browser-extension zip:firefox` → `openquok-browser-extension-firefox.zip` | Base manifest + `manifest.firefox.json` (`sidebar_action`, `background.scripts`, gecko AMO fields) |
+
+Firefox-only manifest and copy overrides belong in **`manifest.firefox.json`**, not Chromium-only branches scattered in shared `manifest.json`. `verify-store-zip.mjs` and `verify-extension-dist.mjs` encode non-negotiable differences (e.g. Firefox name ≤ 45 chars, `data_collection_permissions`, no `side_panel` on Firefox builds).
+
+## API and build-time branching
+
+- Prefer **`webextension-polyfill`** as `browser.*` in runtime code (background, side panel, content scripts).
+- Branch UI/background behavior with **`isFirefoxExtensionBuild()` / `isChromiumExtensionBuild()`** (`extension/src/shared/extensionBuildTarget.ts`), set at build time via `__OPENQUOK_BUILD_TARGET__` (`BUILD_TARGET=firefox` in `build:firefox`). Do not rely on user-agent sniffing for manifest-level features.
+- Chromium-only APIs (e.g. `chrome.sidePanel`) must be guarded so Firefox bundles still typecheck and run; follow patterns in `sidePanelBehavior.ts` (sidebar vs side panel).
+
+**Edge** is not a third build: it loads the same Chromium `dist/` (or store zip). Avoid Edge-only source forks unless a documented store policy requires it.
+
+## DOM and AMO lint
+
+Mozilla **`addons-linter`** flags dynamic **`element.innerHTML = …`** and similar unsafe HTML sinks in shipped bundles.
+
+- Build UI and content-script HTML with **`extension/src/shared/domHtml.ts`** (`htmlToFragment`, `replaceElementHtml`, `firstElementFromHtml`) — **DOMParser + `replaceChildren`**, not `innerHTML` or `createContextualFragment` with unsanitized strings.
+- Test files may still use `innerHTML` in jsdom/happy-dom; production `extension/src/**` should not add new `innerHTML` assignments without a linter exception plan.
+- Before Firefox store upload: `pnpm --filter @openquok/browser-extension zip:firefox`, then `npx addons-linter openquok-browser-extension-firefox.zip` (or rely on `verify:zip` after zip).
+
+## Shipping checklist (any non-trivial extension change)
+
+1. **`pnpm --filter @openquok/browser-extension build`** — smoke Chrome/Edge unpacked from `dist/`.
+2. **`pnpm --filter @openquok/browser-extension build:firefox`** — smoke from `dist-firefox/manifest.json` (about:debugging **This Firefox**).
+3. **`pnpm --filter @openquok/browser-extension test`** when touching shared helpers (e.g. `domHtml`, manifest merge).
+4. Update **`web/src/content/docs/configuration-web/browser-extension-*.md`** when install paths, zips, or per-browser caveats change; keep shared **`manifest.json` description** browser-neutral (no “Chrome-only” wording).
+5. Production **`VITE_OPENQUOK_BROWSER_EXTENSION_IDS`**: `chromium:…`, `edge:…`, `firefox:…` after store IDs are known.
+
+Deep AMO notes: `extension/docs/store/firefox-amo.md`.

@@ -8,7 +8,7 @@ import {
 import { isReadyPage, pageMatchesConfig } from '../../directory/directory-launch/stepRail.js';
 import type { StoredAutoLaunchState } from '../../directory/auto-launch/sessionStorage.js';
 
-import { escapeHtml, runtimeSendMessage } from './uiHelpers.js';
+import { escapeHtml, replaceElementHtml, runtimeSendMessage } from './uiHelpers.js';
 
 export type DirectoryProfilePoolsOptions = {
 	state: StoredAutoLaunchState;
@@ -235,7 +235,7 @@ export function mountDirectoryProfilePools(
 
 	const sectionsHost = document.createElement('div');
 	sectionsHost.className = 'profile-pools-sections';
-	sectionsHost.innerHTML = renderSections(sections);
+	replaceElementHtml(sectionsHost, renderSections(sections));
 	root.appendChild(sectionsHost);
 
 	const fillBtn = document.createElement('button');

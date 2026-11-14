@@ -80,7 +80,7 @@ Install the OpenQuok extension
 ### howto_step 1 text
 
 ```
-<p>Install from the Chrome Web Store or load an unpacked build from the monorepo. Pin the toolbar icon. Full steps: <a href="/docs/installation/chrome-extension">Browser extension</a> and <a href="/browser-extension">overview</a>.</p>
+<p>Install from the Chrome Web Store, Edge Add-ons, or Firefox AMO when listed—or load an unpacked build from the monorepo. Pin the toolbar icon. Overview: <a href="/docs/installation/chrome-extension">Browser extension</a> and <a href="/browser-extension">landing</a>. Self-host by browser: <a href="/docs/configuration-web/browser-extension-chrome">Chrome</a>, <a href="/docs/configuration-web/browser-extension-edge">Edge</a>, <a href="/docs/configuration-web/browser-extension-firefox">Firefox</a>.</p>
 ```
 
 ### howto_step 2 name
@@ -238,7 +238,7 @@ What must self-host operators configure?
 ## faq — answer 9
 
 ```
-<p>Set <code>VITE_OPENQUOK_BROWSER_EXTENSION_ID</code> on the web app. Add your dashboard HTTPS origin to <code>externally_connectable</code> in the extension manifest, rebuild, and distribute the new build. <a href="/docs/installation/chrome-extension">Browser extension</a> · <a href="/docs/configuration-web">Web configuration</a>.</p>
+<p>Set <code>VITE_OPENQUOK_BROWSER_EXTENSION_ID</code> or <code>VITE_OPENQUOK_BROWSER_EXTENSION_IDS</code> (chromium, edge, firefox) on the web app. Chromium builds need your dashboard HTTPS origin in <code>externally_connectable</code>; Firefox uses a separate package and a page bridge. Rebuild and redeploy after manifest or ID changes. <a href="/docs/configuration-web/browser-extension-chrome">Chrome</a> · <a href="/docs/configuration-web/browser-extension-edge">Edge</a> · <a href="/docs/configuration-web/browser-extension-firefox">Firefox</a> · <a href="/docs/configuration-web">Web configuration</a>.</p>
 ```
 
 ---
@@ -252,7 +252,7 @@ What must self-host operators configure?
 
 <p>It is also the <strong>browser session bridge</strong> OpenQuok uses when the server cannot finish alone: <strong>Skool</strong> cookie connect, <strong>Reddit</strong> member handoff at due time, and <strong>directory launch</strong> autofill for PeerPush and Uneed. You keep one calendar, one approval model, and one product profile store.</p>
 
-<p>Start here: <a href="/browser-extension">Browser extension landing</a> · Install and limits: <a href="/docs/installation/chrome-extension">Browser extension docs</a>.</p>
+<p>Start here: <a href="/browser-extension">Browser extension landing</a> · Install and limits: <a href="/docs/installation/chrome-extension">Browser extension docs</a>. <strong>Microsoft Edge</strong> ships the same Chromium package as Chrome; <strong>Firefox</strong> uses a separate build and sidebar UI. Self-host setup: <a href="/docs/configuration-web/browser-extension-chrome">Extension (Chrome)</a>, <a href="/docs/configuration-web/browser-extension-edge">Extension (Edge)</a>, <a href="/docs/configuration-web/browser-extension-firefox">Extension (Firefox)</a>.</p>
 
 <h2>Why Skool and Reddit use a Chrome extension—not OAuth</h2>
 
@@ -315,7 +315,7 @@ What must self-host operators configure?
 <tr><td>Skool community owner</td><td>Skool has no native feed scheduler—cookie connect plus workspace calendar closes the gap.</td></tr>
 <tr><td>Reddit marketer</td><td>Plan in OpenQuok; publish on reddit.com with Copy, Open submit, or Autofill when the row is due.</td></tr>
 <tr><td>Indie hacker launching on directories</td><td>Autofill listing forms from <a href="/account/products">My Products</a>; you click submit on the directory site.</td></tr>
-<tr><td>Self-host operator</td><td>Ship a custom extension build and wire <code>VITE_OPENQUOK_BROWSER_EXTENSION_ID</code> to your dashboard origin.</td></tr>
+<tr><td>Self-host operator</td><td>Build Chromium (<a href="/docs/configuration-web/browser-extension-chrome">Chrome</a>, <a href="/docs/configuration-web/browser-extension-edge">Edge</a>) or <a href="/docs/configuration-web/browser-extension-firefox">Firefox</a>; set <code>VITE_OPENQUOK_BROWSER_EXTENSION_IDS</code> on the web app.</td></tr>
 </tbody>
 </table>
 
@@ -478,11 +478,19 @@ What must self-host operators configure?
 
 <h2>Self-host: extension ID and trust boundary</h2>
 
-<p>Self-host teams build from the monorepo, load <code>extension/dist</code> unpacked, copy the extension ID into <code>VITE_OPENQUOK_BROWSER_EXTENSION_ID</code>, and add the dashboard HTTPS URL to <code>externally_connectable.matches</code>. Rebuild and redistribute after manifest changes.</p>
+<p>Self-host teams build from the monorepo and wire extension IDs on the web app so the dashboard can reach the install your users actually use.</p>
+
+<ul>
+<li><strong>Google Chrome</strong> — <code>extension/dist/</code>, side panel, <code>externally_connectable</code>. Guide: <a href="/docs/configuration-web/browser-extension-chrome">Extension (Chrome)</a>.</li>
+<li><strong>Microsoft Edge</strong> — same Chromium zip as Chrome; Edge assigns its own CRX ID. Add <code>edge:…</code> to <code>VITE_OPENQUOK_BROWSER_EXTENSION_IDS</code>. Guide: <a href="/docs/configuration-web/browser-extension-edge">Extension (Edge)</a>.</li>
+<li><strong>Firefox</strong> — <code>extension/dist-firefox/</code>, sidebar UI, page <code>postMessage</code> bridge (no <code>externally_connectable</code>). Add <code>firefox:…</code> to <code>VITE_OPENQUOK_BROWSER_EXTENSION_IDS</code>. Guide: <a href="/docs/configuration-web/browser-extension-firefox">Extension (Firefox)</a>.</li>
+</ul>
+
+<p>Use a single <code>VITE_OPENQUOK_BROWSER_EXTENSION_ID</code> for one Chromium install only, or <code>VITE_OPENQUOK_BROWSER_EXTENSION_IDS=chromium:…,edge:…,firefox:…</code> when you ship more than one store listing. See <a href="/docs/configuration-web">Web configuration</a>.</p>
 
 <p>Skool connect does not need Skool secrets on the server. Directory autofill reads profile data over the same dashboard link. Privacy: <a href="/privacy-policy">Privacy Policy</a>.</p>
 
-<p>After each build, run the Social and Directory verification steps in <a href="/docs/installation/chrome-extension">Browser extension</a>.</p>
+<p>After each build, run the Social and Directory verification steps in <a href="/docs/installation/chrome-extension">Browser extension</a> and the checklists on your browser’s configuration page.</p>
 
 <h2>Limits shipped today (read this before you expect magic)</h2>
 
@@ -498,6 +506,7 @@ What must self-host operators configure?
 <ul>
 <li><a href="/browser-extension">Install the browser extension</a></li>
 <li><a href="/docs/installation/chrome-extension">Documentation</a></li>
+<li><a href="/docs/configuration-web/browser-extension-chrome">Self-host: Chrome</a> · <a href="/docs/configuration-web/browser-extension-edge">Edge</a> · <a href="/docs/configuration-web/browser-extension-firefox">Firefox</a></li>
 <li><a href="/docs/platforms/connect-rules">Connect rules</a></li>
 <li><a href="/docs/social-integration/skool">Skool</a> · <a href="/docs/social-integration/reddit">Reddit</a> · <a href="/docs/directory-submission">Directories</a></li>
 <li><a href="/tools/humanizer">Humanizer</a> · <a href="/docs/getting-started-for-mcp">MCP onboarding</a></li>

@@ -993,10 +993,11 @@ export class DirectoryLaunchStepRail {
 			if (compareRows.length > 0) {
 				const tableHead = document.createElement('div');
 				tableHead.className = 'compare-table-head';
-				tableHead.innerHTML = `
-					<span>Profile</span>
-					<span>On page</span>
-				`;
+				const profileHead = document.createElement('span');
+				profileHead.textContent = 'Profile';
+				const onPageHead = document.createElement('span');
+				onPageHead.textContent = 'On page';
+				tableHead.append(profileHead, onPageHead);
 
 				const rowsWrap = document.createElement('div');
 				rowsWrap.className = 'compare-rows';
