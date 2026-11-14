@@ -73,6 +73,21 @@ if (manifest.action?.default_popup) {
 }
 
 if (buildTarget === 'firefox') {
+	if (manifest.background?.service_worker) {
+		fail(
+			'Firefox manifest must use background.scripts, not background.service_worker. Run pnpm --filter @openquok/browser-extension build:firefox and load dist-firefox/manifest.json.'
+		);
+	}
+	const bgScripts = manifest.background?.scripts;
+	if (!Array.isArray(bgScripts) || bgScripts.length === 0) {
+		fail('Firefox manifest must include background.scripts');
+	}
+	for (const scriptPath of bgScripts) {
+		const absolute = join(distDir, scriptPath);
+		if (!existsSync(absolute)) {
+			fail(`Firefox background script "${scriptPath}" is missing under ${outDirName}/`);
+		}
+	}
 	const sidebarPanel = manifest.sidebar_action?.default_panel;
 	if (sidebarPanel !== 'sidepanel.html') {
 		fail(
