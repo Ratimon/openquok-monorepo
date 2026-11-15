@@ -15,11 +15,20 @@ import { POPUP_UI_MESSAGE } from '../../directory/auto-launch/popupMessages.js';
 import type { StoredAutoLaunchState } from '../../directory/auto-launch/sessionStorage.js';
 import { isReadyPage, pageMatchesConfig } from '../../directory/directory-launch/stepRail.js';
 
-import { openDashboardAddChannel } from '../../shared/openDashboardUrl.js';
+import { isDashboardLoggedIn } from '../../shared/dashboardAuth.js';
 import { getPreferredDashboardOrigin } from '../../shared/dashboardOriginStorage.js';
+import {
+	dashboardOriginToSignInUrl,
+	openDashboardAddChannel,
+	openDashboardUrl,
+} from '../../shared/openDashboardUrl.js';
 
 import { mountDirectoryChannelPicker } from './directoryChannelPicker.js';
 import { mountDirectoryProfilePools } from './directoryProfilePools.js';
+import {
+	defaultSignInBannerMessage,
+	isOpenQuokSignInMessage,
+} from './openQuokSignInPrompt.js';
 import { el, escapeHtml, runtimeSendMessage } from './uiHelpers.js';
 
 type DirectoryTabRenderRef = {
@@ -120,12 +129,19 @@ export type DirectoryTabController = {
 export function mountDirectoryTab(root: HTMLElement): DirectoryTabController {
 	let destroyDirectoryPicker: (() => void) | null = null;
 	let destroyProfilePools: (() => void) | null = null;
+	let dashboardSignInUrl = dashboardOriginToSignInUrl(null);
+	let dashboardSessionMissing = false;
 	const renderRef: DirectoryTabRenderRef = {
 		current: (_state: StoredAutoLaunchState | null, _error?: string) => {},
 		refresh: async () => {},
 	};
 
 	function render(state: StoredAutoLaunchState | null, error?: string): void {
+		const signInError = error && isOpenQuokSignInMessage(error) ? error : undefined;
+		const showSignInBanner = dashboardSessionMissing || Boolean(signInError);
+		const signInBannerMessage = signInError ?? defaultSignInBannerMessage();
+		const footerError = error && !isOpenQuokSignInMessage(error) ? error : undefined;
+
 		const hasSession = Boolean(state);
 		const product = state?.session.profileSnapshot.name ?? '—';
 		const sessionSlug = state?.session.providerSlug ?? null;
@@ -152,6 +168,14 @@ export function mountDirectoryTab(root: HTMLElement): DirectoryTabController {
 		root.replaceChildren(
 			el(`
 			<div class="wrap tab-wrap">
+				${
+					showSignInBanner
+						? `<div class="sign-in-banner" role="alert">
+						<p class="sign-in-banner-text">${escapeHtml(signInBannerMessage)}</p>
+						<button type="button" class="primary sign-in-banner-action" id="directory-sign-in-open">Open OpenQuok</button>
+					</div>`
+						: ''
+				}
 				<p class="muted tab-lead">Human submits on the directory site — OpenQuok never clicks Submit.</p>
 				<label class="field-label">Directory channel</label>
 				<div id="directory-channel-picker" class="channel-picker-host"></div>
@@ -183,10 +207,14 @@ export function mountDirectoryTab(root: HTMLElement): DirectoryTabController {
 					<button id="clear" class="secondary" ${hasSession ? '' : 'disabled'}>Clear session</button>
 				</div>
 				${hasSession ? '<div id="directory-profile-pools" class="profile-pools-host"></div>' : ''}
-				${error ? `<p class="error">${escapeHtml(error)}</p>` : ''}
+				${footerError ? `<p class="error">${escapeHtml(footerError)}</p>` : ''}
 			</div>
 		`)
 		);
+
+		root.querySelector('#directory-sign-in-open')?.addEventListener('click', () => {
+			void openDashboardUrl(dashboardSignInUrl);
+		});
 
 		const pickerHost = root.querySelector<HTMLElement>('#directory-channel-picker');
 		if (pickerHost) {
@@ -278,7 +306,14 @@ export function mountDirectoryTab(root: HTMLElement): DirectoryTabController {
 	renderRef.current = render;
 
 	async function refresh(): Promise<void> {
-		const { state, backgroundUnreachable } = await fetchState();
+		const [fetchResult, origin, auth] = await Promise.all([
+			fetchState(),
+			getPreferredDashboardOrigin(),
+			isDashboardLoggedIn().catch(() => ({ ok: false as const, loginUrl: undefined })),
+		]);
+		dashboardSignInUrl = dashboardOriginToSignInUrl(origin);
+		dashboardSessionMissing = !auth.ok;
+		const { state, backgroundUnreachable } = fetchResult;
 		render(
 			state,
 			backgroundUnreachable

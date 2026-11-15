@@ -384,6 +384,25 @@ button:disabled {
 	margin-top: 8px;
 }
 
+.sign-in-banner {
+	margin-bottom: 12px;
+	padding: 10px 12px;
+	border-radius: var(--radius-field);
+	border: 1px solid color-mix(in oklab, var(--color-error) 40%, transparent);
+	background: color-mix(in oklab, var(--color-error) 10%, var(--color-base-200));
+}
+
+.sign-in-banner-text {
+	margin: 0 0 8px;
+	color: var(--color-error);
+	font-size: 12px;
+	line-height: 1.45;
+}
+
+.sign-in-banner-action {
+	width: 100%;
+}
+
 .footer {
 	margin-top: 10px;
 	font-size: 10px;
