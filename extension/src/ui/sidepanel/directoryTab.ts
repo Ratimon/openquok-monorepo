@@ -18,8 +18,10 @@ import { isReadyPage, pageMatchesConfig } from '../../directory/directory-launch
 import { isDashboardLoggedIn } from '../../shared/dashboardAuth.js';
 import { getPreferredDashboardOrigin } from '../../shared/dashboardOriginStorage.js';
 import {
+	buildDashboardDevelopersSettingsUrl,
 	dashboardOriginToSignInUrl,
 	openDashboardAddChannel,
+	openDashboardAppUrl,
 	openDashboardUrl,
 } from '../../shared/openDashboardUrl.js';
 
@@ -205,6 +207,7 @@ export function mountDirectoryTab(root: HTMLElement): DirectoryTabController {
 					<button id="open-start" class="secondary" title="Open the site for the selected channel chip above (starts a launch when it differs from the active one).">Open directory page</button>
 					<button id="mark-done" class="secondary" ${hasSession ? '' : 'disabled'}>Mark submitted in OpenQuok</button>
 					<button id="clear" class="secondary" ${hasSession ? '' : 'disabled'}>Clear session</button>
+					<button type="button" id="directory-mcp-cli" class="directory-mcp-cli" title="Open Developers settings for CLI install, MCP, and API access.">Submit via MCP or CLI</button>
 				</div>
 				${hasSession ? '<div id="directory-profile-pools" class="profile-pools-host"></div>' : ''}
 				${footerError ? `<p class="error">${escapeHtml(footerError)}</p>` : ''}
@@ -300,6 +303,12 @@ export function mountDirectoryTab(root: HTMLElement): DirectoryTabController {
 			await sendRuntime({ type: 'OPENQUOK_AUTO_LAUNCH_CLEAR' });
 			lastProgress = null;
 			await refresh();
+		});
+
+		root.querySelector('#directory-mcp-cli')?.addEventListener('click', () => {
+			void getPreferredDashboardOrigin().then((origin) => {
+				void openDashboardAppUrl(buildDashboardDevelopersSettingsUrl(origin));
+			});
 		});
 	}
 

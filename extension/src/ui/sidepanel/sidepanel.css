@@ -368,6 +368,12 @@ button.secondary {
 	color: var(--color-neutral-content);
 }
 
+button.directory-mcp-cli {
+	background: color-mix(in oklab, var(--color-secondary) 72%, var(--color-base-200));
+	color: var(--color-primary-content);
+	border: 1px solid color-mix(in oklab, var(--color-secondary) 55%, var(--color-base-300));
+}
+
 button:focus-visible {
 	outline: 2px solid var(--color-primary);
 	outline-offset: 2px;

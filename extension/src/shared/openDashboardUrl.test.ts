@@ -131,3 +131,19 @@ describe('buildDashboardAccountAddChannelUrl (Add Channel deep link)', () => {
 		);
 	});
 });
+
+describe('buildDashboardDevelopersSettingsUrl', () => {
+	it('opens Developers settings on production when origin is missing', async () => {
+		const { buildDashboardDevelopersSettingsUrl } = await import('./openDashboardUrl.js');
+		expect(buildDashboardDevelopersSettingsUrl(null)).toBe(
+			'https://www.openquok.com/account/settings?section=developers'
+		);
+	});
+
+	it('respects self-host dashboard origin', async () => {
+		const { buildDashboardDevelopersSettingsUrl } = await import('./openDashboardUrl.js');
+		expect(buildDashboardDevelopersSettingsUrl('https://localhost:5173')).toBe(
+			'https://localhost:5173/account/settings?section=developers'
+		);
+	});
+});

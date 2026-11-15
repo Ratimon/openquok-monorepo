@@ -253,6 +253,14 @@ async function openAddChannelOnExistingAccountTab(dashboardOrigin: string): Prom
 }
 
 /** Sign-in URL for a remembered dashboard origin (production when unknown). */
+const PRODUCTION_DASHBOARD_ORIGIN = 'https://www.openquok.com';
+
+/** Settings → Developers (CLI, MCP, API keys) on the signed-in dashboard. */
+export function buildDashboardDevelopersSettingsUrl(origin: string | null | undefined): string {
+	const base = (origin?.trim() || PRODUCTION_DASHBOARD_ORIGIN).replace(/\/+$/, '');
+	return `${base}/account/settings?section=developers`;
+}
+
 export function dashboardOriginToSignInUrl(origin: string | null | undefined): string {
 	if (!origin?.trim()) return PRODUCTION_DASHBOARD_SIGN_IN_URL;
 	try {
