@@ -219,6 +219,10 @@ Open **http://localhost:4007** (API **http://localhost:3000**). More env options
 
 ### Tech stack
 
+OpenQuok is one repo for the web app, the API, and workers. We design to be less opinionated than large frameworks, allowing high custiomizability.
+
+The design is congruent: each part supports self-host scheduling, agent tools, and the built-in docs site.
+
 - PNPM workspace
 - Supabase DB & Auth
 - Cloudflare R2
@@ -234,7 +238,7 @@ Open **http://localhost:4007** (API **http://localhost:3000**). More env options
 - Vercel
 - Railway
 
-Learn more at [Architecture](https://www.openquok.com/docs/getting-started-for-dev/architecture)
+Learn more at [Architecture](https://www.openquok.com/docs/getting-started-for-dev/architecture) (including [presenters and repositories](https://www.openquok.com/docs/getting-started-for-dev/architecture#presenters-repositories)). Comparing self-host stacks: [OpenQuok vs Postiz architecture](https://www.openquok.com/blog/how-to-choose-self-host-social-scheduler-stack-openquok-vs-postiz-architecture).
 
 ---
 

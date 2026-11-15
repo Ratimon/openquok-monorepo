@@ -2,7 +2,7 @@
 title: Project Architecture
 description: OpenQuok's architecture — project layout and key files for OpenQuok.
 order: 1
-lastUpdated: 2026-10-10
+lastUpdated: 2026-11-15
 ---
 
 <script>
@@ -84,15 +84,15 @@ OpenQuok has **three main services** (web, API, and workers), a **browser extens
 
 <Mermaid string={runtimeArchitecture} />
 
-- [Web](#web) — SvelteKit UI; talks to the backend API.
+- [Web](#web) — SvelteKit UI; talks to the backend API. Screen logic uses [presenters and repositories](#presenters-repositories), not HTTP calls inside templates.
 - [Backend API](#backend-api) — Express API, Supabase assets, and workflow enqueue.
 - [Orchestrator](#orchestrator) — BullMQ workers for posts, email, and token refresh.
 - [Programmatic clients](#programmatic-clients) — CLI, SDK, and MCP against the public API.
 - [Browser extension](#browser-extension) — Chrome add-on for networks like Skool; keeps your site sign-in in sync with OpenQuok.
-- **Supabase** — Postgres, Auth, and optional Storage buckets.
-- **Redis / BullMQ** — Job queues and shared cache between API and workers.
-- **Storage** — User media (Supabase Storage, R2, or local disk in self-host).
-- **Resend** — Transactional email when <Badge text="EMAIL_ENABLED" variant="envBackend" /> is enabled.
+- **Supabase** — Postgres, Auth, and optional Storage buckets. See <a href="/docs/configuration-backend/supabase">Supabase</a> and <a href="/docs/configuration-backend/database">Database &amp; migrations</a>.
+- **Redis / BullMQ** — Job queues and shared cache between API and workers. See <a href="/docs/configuration-backend/redis">Redis</a> and <a href="/docs/configuration-worker">Configuration - Worker</a>.
+- **Storage** — User media (Supabase Storage, R2, or local disk in self-host). See <a href="/docs/configuration-backend/cloudflare-r2">Cloudflare R2</a> for composer media; bucket setup lives with <a href="/docs/configuration-backend/supabase">Supabase</a>.
+- **Resend** — Transactional email when <Badge text="EMAIL_ENABLED" variant="envBackend" /> is enabled. See <a href="/docs/configuration-backend/resend">Email (Resend / local)</a>.
 
 **Maintenance mode** — When <Badge text="MAINTENANCE_MODE=freeze_writes" variant="envBackend" /> is set, mutations are blocked while public SEO pages stay live. See <a href="/docs/installation/maintenance-mode">Maintenance mode</a>.
 
@@ -412,25 +412,30 @@ Route-shaped catalogs also live under <Badge text="channels/api/" variant="path"
 
 **Related Cursor rules:** programmatic SEO (constants, templates, FAQ funnel, footer) — <Badge text=".cursor/rules/web-seo-pseo.mdc" variant="path" />; FAQ ids and append sets — <Badge text="web-landing-faqs.mdc" variant="path" />; adding channels / agents — <Badge text="add-social-provider-integration.mdc" variant="path" />, <Badge text="add-agent.mdc" variant="path" />.
 
-#### Presenters, repositories, and tests
+<h4 id="presenters-repositories">Presenters, repositories, and tests</h4>
 
-We keep **Svelte** focused on layout and inputs, and push behavior into layers you can test without the DOM or a real API:
+OpenQuok separates **UI templates** from **data and screen logic** so the SvelteKit app stays maintainable when marketing surfaces, the workspace, and admin tools grow together. Routes and shared <Badge text="$lib/ui/" variant="path" /> components render **view models**; they do not call <Badge text="HttpGateway" variant="param" /> or repositories directly.
+
+**Data flow:** API **DTO** (gateway) → **programmer model** (<Badge text="*Pm" variant="param" />, repository) → **view model** (<Badge text="*Vm" variant="param" />, presenter) → Svelte markup.
 
 | Layer | Role | Typical files |
 |-------|------|----------------|
-| **UI (Svelte)** | Render view models; forward user actions via callbacks. Parent routes own the **page presenter**. | <Badge text="*.svelte" variant="param" /> under <Badge text="routes/" variant="path" /> and <Badge text="$lib/ui/" variant="path" /> |
-| **Presenter** | View-specific state (status, toasts and etc), actions that call repositories. | <Badge text="*.presenter.svelte.ts" variant="param" /> |
-| **Repository** | Domain state as **programmer models**; maps DTOs ↔ domain; calls the gateway. | <Badge text="*.repository.svelte.ts" variant="param" /> |
-| **Gateway / infrastructure** | HTTP and other I/O; DTOs at the boundary. | <Badge text="$lib/core/" variant="path" /> (e.g. <Badge text="HttpGateway" variant="param" />) |
-
+| **UI (Svelte)** | Layout and inputs only; bind to <Badge text="*Vm" variant="param" /> fields; forward actions to the page or feature presenter. | <Badge text="+page.svelte" variant="param" />, <Badge text="$lib/ui/**" variant="path" /> |
+| **Page presenter** | One screen: loading, toasts, which feature presenters to call; wired from <Badge text="area-protected/" variant="path" />, <Badge text="area-public/" variant="path" />, <Badge text="area-admin/" variant="path" /> indexes. | <Badge text="*Page.presenter.svelte.ts" variant="param" /> under <Badge text="area-*/" variant="path" /> |
+| **Feature presenter** | Reusable slice (scheduler, blog upsert, settings); owns domain <Badge text="$state" variant="param" />; calls repositories. | <Badge text="*.presenter.svelte.ts" variant="param" /> under each <Badge text="$lib/" variant="path" /> feature module |
+| **Get presenter** | Stateless **PM → VM** mappers for reads and lists (<Badge text="loadXxxVm" variant="param" />). | <Badge text="Get*.presenter.svelte.ts" variant="param" /> |
+| **Repository** | HTTP via config endpoints; maps DTO → PM; returns PM only to presenters. | <Badge text="*.repository.svelte.ts" variant="param" /> |
+| **Gateway** | Fetch and transport errors at the wire boundary. | <Badge text="$lib/core/HttpGateway" variant="path" /> |
 
 #### Why separate repository and presenter?
 
-Repositories encode **business rules and data shape** (what the app believes is true). Presenters encode **how a screen behaves** (loading, errors, which <Badge text="*Vm" variant="param" /> the template sees). 
+**Separation of concerns:** repositories answer *what the backend returned and what the domain allows*; presenters answer *what this screen shows and does next*. Templates stay thin, so you can change API shapes in one repository file without rewriting every modal and table.
 
-Splitting them means you can **unit test** presenters with a stubbed repository and **unit test** repositories with a stubbed gateway—asserting on state and return values instead of rendering components or running end-to-end tests for every branch. That matches the goal: *test view-model and domain behavior, not the DOM*.
+**Maintainability:** the same pattern covers the signed-in workspace, <Badge text="secret-admin/blog-manager" variant="path" />, and public compare pages—business rules do not scatter across <Badge text="*.svelte" variant="param" /> files. That also helps AI-assisted edits: assistants can target a presenter or repository file instead of mixing fetch logic into markup.
 
-**Convention reference:** The full rules (page vs child components, toast wiring, <Badge text="*Pm" variant="param" /> / <Badge text="*Vm" variant="param" /> naming, <Badge text="Get*" variant="param" /> presenters) live in the repo at <Badge text=".cursor/rules/web-repository-presenter-architecture.mdc" variant="path" /> for contributors.
+**Testing:** stub the gateway to test repositories; stub repositories to test presenters—assert on <Badge text="*Pm" variant="param" /> / <Badge text="*Vm" variant="param" /> state instead of the DOM. Example: <Badge text="web/src/lib/user-auth/Authentication.test.ts" variant="path" />.
+
+**Convention reference:** layering rules, naming (<Badge text="*Pm" variant="param" /> / <Badge text="*Vm" variant="param" /> / <Badge text="*ViewModel" variant="param" />), page vs child routes, and toast patterns live in <Badge text=".cursor/rules/web-repository-presenter-architecture.mdc" variant="path" /> and <Badge text="web-page-presenter-conventions.mdc" variant="path" /> under <Badge text=".cursor/rules/" variant="path" />.
 
 ## Document Directories
 
