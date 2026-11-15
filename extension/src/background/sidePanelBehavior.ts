@@ -1,3 +1,6 @@
+import { browser } from '../shared/browserApi.js';
+import { isFirefoxExtensionBuild } from '../shared/extensionBuildTarget.js';
+
 const SIDE_PANEL_PATH = 'sidepanel.html';
 
 /**
@@ -5,6 +8,10 @@ const SIDE_PANEL_PATH = 'sidepanel.html';
  * Must run **synchronously** inside `contextMenus.onClicked` / `action.onClicked` — not inside an async IIFE.
  */
 export function openSidePanelInUserGesture(tab?: chrome.tabs.Tab): void {
+	if (isFirefoxExtensionBuild()) {
+		void browser.sidebarAction.open();
+		return;
+	}
 	try {
 		if (tab?.id !== undefined) {
 			void chrome.sidePanel.open({ tabId: tab.id });
@@ -26,6 +33,10 @@ export function openSidePanelInUserGesture(tab?: chrome.tabs.Tab): void {
 
 /** Open the extension side panel in the tab's window (or the current window). */
 export async function openSidePanelForTab(tab?: chrome.tabs.Tab): Promise<void> {
+	if (isFirefoxExtensionBuild()) {
+		await browser.sidebarAction.open();
+		return;
+	}
 	const windowId =
 		tab?.windowId !== undefined ? tab.windowId : (await chrome.windows.getCurrent()).id;
 	if (windowId === undefined) return;
@@ -37,7 +48,10 @@ export async function openSidePanelForTab(tab?: chrome.tabs.Tab): Promise<void> 
  * Clears any cached `default_popup` path so Chrome does not try to load removed popup.html.
  */
 export async function enableSidePanelOnActionClick(): Promise<void> {
-	await chrome.action.setPopup({ popup: '' });
+	await browser.action.setPopup({ popup: '' });
+	if (isFirefoxExtensionBuild()) {
+		return;
+	}
 	await chrome.sidePanel.setOptions({ path: SIDE_PANEL_PATH, enabled: true });
 	await chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
 }

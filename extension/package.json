@@ -7,16 +7,21 @@
   "scripts": {
     "prepare:icons": "node ./scripts/prepare-icons.mjs",
     "build": "pnpm run prepare:icons && node ./scripts/build-extension.mjs && node ./scripts/copy-static.mjs && node ./scripts/verify-extension-dist.mjs",
+    "build:firefox": "BUILD_TARGET=firefox EXTENSION_OUT_DIR=dist-firefox pnpm run build",
     "zip": "pnpm --filter openquok-common build && pnpm run build && node ./scripts/zip.mjs",
+    "zip:firefox": "pnpm --filter openquok-common build && pnpm run build:firefox && EXTENSION_OUT_DIR=dist-firefox node ./scripts/zip.mjs",
+    "verify:zip": "node ./scripts/verify-store-zip.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node ./run-vitest.mjs",
     "test:unit": "node ./run-vitest.mjs run src"
   },
   "dependencies": {
-    "openquok-common": "workspace:*"
+    "openquok-common": "workspace:*",
+    "webextension-polyfill": "^0.12.0"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.304",
+    "@types/webextension-polyfill": "^0.12.0",
     "sharp": "^0.34.5",
     "typescript": "^5.9.3",
     "vite": "^6.3.5"

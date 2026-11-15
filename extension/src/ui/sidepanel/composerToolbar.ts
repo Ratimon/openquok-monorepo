@@ -1,3 +1,5 @@
+import { replaceElementHtml } from '../../shared/domHtml.js';
+
 import { insertAtTextareaCursor, wrapTextareaSelection } from './composerTextarea.js';
 
 const TOOLBAR_ICON = {
@@ -31,7 +33,7 @@ function toolbarButton(label: string, iconSvg: string): HTMLButtonElement {
 	btn.className = 'composer-toolbar-btn';
 	btn.setAttribute('aria-label', label);
 	btn.title = label;
-	btn.innerHTML = iconSvg;
+	replaceElementHtml(btn, iconSvg);
 	return btn;
 }
 

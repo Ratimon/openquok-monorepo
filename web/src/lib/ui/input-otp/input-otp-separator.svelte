@@ -22,6 +22,6 @@
 	{#if children}
 		{@render children()}
 	{:else}
-		<div class="bg-base-content/25 h-0.5 w-3 rounded-full"></div>
+		<div class="bg-base-content/45 h-0.5 w-3 rounded-full"></div>
 	{/if}
 </div>

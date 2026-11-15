@@ -15,7 +15,7 @@ import {
 import type { SocialSessionContext } from '../../social/openquokSocialApi.js';
 import { formatRedditCommunityInput } from 'openquok-common';
 import { stripHtmlToPlainText } from '../../shared/stripHtmlToPlainText.js';
-import { escapeHtml } from './uiHelpers.js';
+import { escapeHtml, replaceElementHtml } from './uiHelpers.js';
 
 export type RedditActionNeededController = {
 	refresh: () => Promise<void>;
@@ -135,7 +135,9 @@ export function mountRedditActionNeeded(
 						})
 						.join('');
 
-		host.innerHTML = `
+		replaceElementHtml(
+			host,
+			`
 			<div class="reddit-action-needed card">
 				<strong>Reddit — action needed</strong>
 				<p class="muted">Due on reddit.com: copy caption, open submit (or autofill), download attached media if needed, post manually, then mark complete. Set subreddit in Reddit Settings for a direct community submit link; otherwise OpenQuok uses reddit.com/submit.</p>
@@ -144,7 +146,8 @@ export function mountRedditActionNeeded(
 				${actionMessage ? `<p class="status success" role="status">${escapeHtml(actionMessage)}</p>` : ''}
 				<ul class="reddit-action-list">${listHtml}</ul>
 			</div>
-		`;
+		`
+		);
 
 		host.querySelectorAll<HTMLButtonElement>('.reddit-copy').forEach((btn) => {
 			btn.addEventListener('click', () => {

@@ -4,6 +4,10 @@ import { build } from 'vite';
 
 const extensionRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
+const buildTarget = process.env.BUILD_TARGET === 'firefox' ? 'firefox' : 'chromium';
+const outDirName = process.env.EXTENSION_OUT_DIR?.trim() || 'dist';
+const outDir = resolve(extensionRoot, outDirName);
+
 const sharedBuild = {
 	target: 'es2022',
 	minify: false,
@@ -41,9 +45,12 @@ let emptyOutDir = true;
 for (const entry of bundleEntries) {
 	const cssName = entry.cssName ?? null;
 	await build({
+		define: {
+			__OPENQUOK_BUILD_TARGET__: JSON.stringify(buildTarget),
+		},
 		build: {
 			...sharedBuild,
-			outDir: resolve(extensionRoot, 'dist'),
+			outDir,
 			emptyOutDir,
 			rollupOptions: {
 				input: resolve(extensionRoot, entry.input),

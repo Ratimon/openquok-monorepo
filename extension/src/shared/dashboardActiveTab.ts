@@ -25,7 +25,7 @@ function isOpenQuokDashboardUrl(url: URL): boolean {
  * When the user has an OpenQuok dashboard tab focused (e.g. local Vite), pin that origin so
  * Social API calls match the environment they are testing — not a stale production remember.
  */
-function readDashboardOriginFromUrl(rawUrl: string): string | null {
+export function readDashboardOriginFromUrl(rawUrl: string): string | null {
 	try {
 		const parsed = new URL(rawUrl);
 		if (!isOpenQuokDashboardUrl(parsed)) return null;

@@ -1,4 +1,12 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+vi.mock('webextension-polyfill', () => ({
+	default: {
+		runtime: { sendMessage: vi.fn() },
+		storage: { session: { set: vi.fn() } },
+		sidebarAction: { open: vi.fn() },
+	},
+}));
 
 import {
 	buildSocialComposerDraftFromContextMenu,

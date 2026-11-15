@@ -35,6 +35,22 @@ describe('PublicHumanizeComposerPresenter.applyPageChannel', () => {
 		expect(composer.selectedIds.length).toBe(composer.baseSocialChannelsVm.length);
 	});
 
+	it('prefills from initialPlainText before first editor bind', () => {
+		const composer = new PublicHumanizeComposerPresenter({
+			initialPlainText: 'Line one\n\nLine two'
+		});
+		expect(composer.editorBody).toContain('Line one');
+		expect(composer.previewText).toContain('Line two');
+	});
+
+	it('prefills plain text as composer HTML', () => {
+		const composer = new PublicHumanizeComposerPresenter();
+		composer.prefillPlainTextBody('Line one\n\nLine two');
+		expect(composer.editorBody).toContain('Line one');
+		expect(composer.editorBody).toContain('Line two');
+		expect(composer.previewText).toContain('Line one');
+	});
+
 	it('returns to Global Edit when the page has no focused channel', () => {
 		const composer = new PublicHumanizeComposerPresenter({
 			composerMode: 'custom',

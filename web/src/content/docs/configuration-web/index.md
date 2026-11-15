@@ -2,7 +2,7 @@
 title: Configuration - Web
 description: Getting Started to web frontend configuration in OpenQuok.
 order: 0
-lastUpdated: 2026-09-19
+lastUpdated: 2026-11-13
 sidebar:
   label: Overview
 ---
@@ -47,11 +47,32 @@ Edit <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/m
 
 </Steps>
 
+## Browser extension IDs
+
+The dashboard talks to the OpenQuok browser extension with <Badge text="chrome.runtime.sendMessage" variant="param" />. Set at least one extension ID:
+
+| Variable | Purpose |
+| --- | --- |
+| <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_ID" variant="envWeb" /> | Single extension ID (self-host, unpacked dev builds, or one store listing). |
+| <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_IDS" variant="envWeb" /> | Optional. Use when you ship separate Chrome Web Store, Microsoft Edge Add-ons, and/or Firefox. |
+
+<Callout type="note">
+<p>Formats for <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_IDS" variant="envWeb" />: comma map <Badge text="chromium:id,edge:id" variant="param" />(<Badge text={"chromium"} variant="param" />, <Badge text={"edge"} variant="param" />, and so on). If both multi-ID and single-ID env vars are set, listed IDs are tried first; <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_ID" variant="envWeb" /> is appended when it is not already in the map.</p>
+</Callout>
+
+Product tour and checklists: <a href="/docs/installation/chrome-extension">Browser extension</a>. Self-host build and load per browser:
+
+<CardGrid>
+<LinkCard title="Extension (Chrome)" description="Build, install, and connect your dashboard host" href="/docs/configuration-web/browser-extension-chrome" />
+<LinkCard title="Extension (Edge)" description="Edge install and extension ID on the web app" href="/docs/configuration-web/browser-extension-edge" />
+<LinkCard title="Extension (Firefox)" description="Firefox build, test load, and web app setup" href="/docs/configuration-web/browser-extension-firefox" />
+</CardGrid>
+
 ## Guides
 
 <CardGrid>
 <LinkCard title="Vite (SvelteKit)" description="VITE_* variables, HTTPS dev server, and API proxy" href="/docs/configuration-web/vite" />
-<LinkCard title="Browser extension" description="Build the extension and set VITE_OPENQUOK_BROWSER_EXTENSION_ID" href="/docs/installation/chrome-extension" />
+<LinkCard title="Browser extension (features)" description="Side panel, context menu, verification checklists" href="/docs/installation/chrome-extension" />
 <LinkCard title="SEO & marketing defaults" description="Meta tags, keywords, and social links (CONFIG_SCHEMA_MARKETING)" href="/docs/configuration-web/seo" />
 <LinkCard title="AI crawlers & robots.txt" description="Cloudflare AI Crawl Control and Claude/Gemini visibility" href="/docs/configuration-web/ai-crawlers-and-robots" />
 <LinkCard title="Config defaults" description="Backend URL, company, landing, and navigation schema defaults" href="/docs/configuration-web/config-defaults" />

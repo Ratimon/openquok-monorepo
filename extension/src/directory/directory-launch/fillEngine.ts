@@ -20,6 +20,8 @@ import {
 	richHtmlToPlainText,
 } from 'openquok-common';
 
+import { replaceElementHtml } from '../../shared/domHtml.js';
+
 const LABEL_FALLBACK_MIN_TOKEN_LENGTH = 3;
 
 function escapeCssIdent(value: string): string {
@@ -1490,7 +1492,7 @@ function fillRichHtmlControl(element: Element, html: string): boolean {
 		} catch {
 			/* fall through to DOM assignment */
 		}
-		target.innerHTML = html;
+		replaceElementHtml(target, html);
 		target.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertFromPaste' }));
 		target.dispatchEvent(new Event('change', { bubbles: true }));
 		return true;

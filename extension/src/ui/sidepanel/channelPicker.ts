@@ -14,6 +14,8 @@ import {
 	retryIntegrationChannelAvatarSrc,
 	revokeAvatarObjectUrls,
 } from './integrationChannelAvatar.js';
+import { replaceElementHtml } from '../../shared/domHtml.js';
+
 import { getSocialProviderBadgeSvg } from './socialProviderBadgeSvg.js';
 
 /** 20×20 plus glyph — matches dashboard composer dashed add chip (Lucide Plus proportions). */
@@ -273,7 +275,7 @@ export function mountChannelPicker(host: HTMLElement, opts: ChannelPickerOptions
 
 	const chevronHost = groupBtn.lastElementChild as HTMLElement;
 	chevronHost.className = 'channel-group-trigger-chevron';
-	chevronHost.innerHTML = CHEVRON_DOWN_SVG;
+	replaceElementHtml(chevronHost, CHEVRON_DOWN_SVG);
 
 	const onDocClick = (e: MouseEvent) => {
 		if (!groupMenuOpen) return;
@@ -355,7 +357,7 @@ export function mountChannelPicker(host: HTMLElement, opts: ChannelPickerOptions
 
 		const badge = document.createElement('span');
 		badge.className = 'channel-badge';
-		badge.innerHTML = getSocialProviderBadgeSvg(channel.identifier);
+		replaceElementHtml(badge, getSocialProviderBadgeSvg(channel.identifier));
 		avatar.appendChild(badge);
 
 		btn.appendChild(avatar);
@@ -391,7 +393,7 @@ export function mountChannelPicker(host: HTMLElement, opts: ChannelPickerOptions
 	addBtn.title = 'Add channel in dashboard';
 	const addAvatar = document.createElement('span');
 	addAvatar.className = 'channel-avatar channel-add-avatar';
-	addAvatar.innerHTML = CHANNEL_ADD_PLUS_SVG;
+	replaceElementHtml(addAvatar, CHANNEL_ADD_PLUS_SVG);
 	addBtn.appendChild(addAvatar);
 	const onAdd = () => onAddChannel();
 	addBtn.addEventListener('click', onAdd);

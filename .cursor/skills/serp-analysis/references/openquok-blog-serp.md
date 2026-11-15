@@ -22,11 +22,12 @@ Use after [analysis-templates.md](analysis-templates.md) when the deliverable is
 
 1. `/browser-extension` — primary product URL for this topic  
 2. `/docs/installation/chrome-extension`  
-3. `/docs/platforms/connect-rules`  
-4. `/docs/social-integration/skool`, `/docs/social-integration/reddit`  
-5. `/docs/directory-submission`  
-6. `/tools/humanizer` — when AI copy is discussed  
-7. `/docs/getting-started-for-mcp` — agents vs extension boundary  
+3. Self-host per browser: `/docs/configuration-web/browser-extension-chrome`, `browser-extension-edge`, `browser-extension-firefox`  
+4. `/docs/platforms/connect-rules`  
+5. `/docs/social-integration/skool`, `/docs/social-integration/reddit`  
+6. `/docs/directory-submission`  
+7. `/tools/humanizer` — when AI copy is discussed  
+8. `/docs/getting-started-for-mcp` — agents vs extension boundary  
 
 ## Avoid
 

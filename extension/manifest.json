@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "OpenQuok: Social Media Scheduler & Directory Autofill",
-  "version": "0.1.19",
-  "description": "Schedule posts from a Chrome side panel. Right-click drafts, Skool connect, Reddit handoff, directory autofill for OpenQuok.",
+  "version": "0.2.0",
+  "description": "Schedule posts from the browser side panel. Right-click drafts, Skool connect, Reddit handoff, directory autofill for OpenQuok.",
   "icons": {
     "16": "icons/icon-16.png",
     "48": "icons/icon-48.png",

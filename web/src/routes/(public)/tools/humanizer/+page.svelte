@@ -17,6 +17,7 @@
 	let composerMode = $derived(data.composerMode);
 	let isLoggedIn = $derived(data.isLoggedIn);
 	let humanizerChannelsVm = $derived(data.humanizerChannelsVm);
+	let prefillText = $derived(data.prefillText ?? null);
 </script>
 
 <JsonLdHead schemaData={schemaData} />
@@ -31,5 +32,6 @@
 		{composerMode}
 		{isLoggedIn}
 		channelLinksVm={humanizerChannelsVm}
+		{prefillText}
 	/>
 {/key}

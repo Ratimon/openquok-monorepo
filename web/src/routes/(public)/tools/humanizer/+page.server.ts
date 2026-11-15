@@ -1,5 +1,6 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
+import { parseHumanizerPrefillQuery } from '$lib/ai-humanize/utils/parseHumanizerPrefillQuery';
 import {
 	listHumanizeChannelsForHub,
 	PUBLIC_HUMANIZE_GENERIC_CONFIG
@@ -60,6 +61,7 @@ export async function load({ url, cookies, parent }) {
 		isLoggedIn,
 		schemaData,
 		humanizerChannelsVm: listHumanizeChannelsForHub(),
+		prefillText: parseHumanizerPrefillQuery(url.searchParams),
 		...toolVm
 	};
 }

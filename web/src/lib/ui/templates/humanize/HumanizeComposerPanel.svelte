@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { RepeatIntervalKey } from '$lib/posts/Post.repository.svelte';
 
-	import { untrack } from 'svelte';
+	import { tick, untrack } from 'svelte';
 
 	import { PublicHumanizeComposerPresenter } from '$lib/ai-humanize';
 	import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
@@ -16,17 +16,26 @@
 		focusedProviderIdentifier?: string | null;
 		composerMode?: 'global' | 'custom';
 		isLoggedIn?: boolean;
+		prefillText?: string | null;
 	};
 
-	let { focusedProviderIdentifier = null, composerMode = 'global', isLoggedIn = false }: Props =
-		$props();
+	let {
+		focusedProviderIdentifier = null,
+		composerMode = 'global',
+		isLoggedIn = false,
+		prefillText = null
+	}: Props = $props();
 
-	const composer = new PublicHumanizeComposerPresenter({
-		focusedProviderIdentifier: untrack(() => focusedProviderIdentifier),
-		composerMode: untrack(() => composerMode)
-	});
+	let composer = $state(
+		new PublicHumanizeComposerPresenter({
+			focusedProviderIdentifier: untrack(() => focusedProviderIdentifier),
+			composerMode: untrack(() => composerMode),
+			initialPlainText: untrack(() => prefillText)
+		})
+	);
 
 	let addEditModalRef = $state<import('$lib/ui/components/posts/AddEditModal.svelte').default | undefined>();
+	let appliedPrefillKey = $state<string | null>(null);
 	const hasPostText = $derived(stripHtmlToPlainText(composer.editorBody).length > 0);
 
 	const repeatOptions: { value: RepeatIntervalKey; label: string }[] = [
@@ -43,6 +52,15 @@
 
 	$effect(() => {
 		return () => composer.teardown();
+	});
+
+	/** TipTap mounts after first paint; sync selection prefill when `prefillText` is set or changes. */
+	$effect(() => {
+		const text = prefillText?.trim();
+		if (!text || appliedPrefillKey === text) return;
+		appliedPrefillKey = text;
+		composer.prefillPlainTextBody(text);
+		void tick().then(() => addEditModalRef?.prefillComposerPlainText(text));
 	});
 </script>
 

@@ -18,6 +18,19 @@ export {
 	type AutoLaunchStartMessage,
 } from './autoLaunchMessages.js';
 export {
+	BROWSER_EXTENSION_PAGE_BRIDGE_MESSAGE,
+	BROWSER_EXTENSION_PAGE_BRIDGE_RUNTIME_MESSAGE,
+	BROWSER_EXTENSION_PAGE_BRIDGE_SOURCE,
+	isBrowserExtensionPageBridgeMessageType,
+	isBrowserExtensionPageBridgeRelay,
+	isBrowserExtensionPageBridgeRequest,
+	isBrowserExtensionPageBridgeResponse,
+	type BrowserExtensionPageBridgeMessageType,
+	type BrowserExtensionPageBridgeRelay,
+	type BrowserExtensionPageBridgeRequest,
+	type BrowserExtensionPageBridgeResponse,
+} from './pageRuntimeBridge.js';
+export {
 	BROWSER_EXTENSION_MESSAGE_TYPE,
 	isBrowserExtensionErrorResponse,
 	isBrowserExtensionMessageType,

@@ -3,12 +3,12 @@
 
 	import { cn } from '$lib/ui/helpers/common';
 
-	let {
-		ref = $bindable(null),
-		cell,
-		class: className,
-		...restProps
-	}: InputOTPPrimitive.CellProps = $props();
+	type Props = InputOTPPrimitive.CellProps & {
+		optional?: boolean;
+	};
+
+	let { ref = $bindable(null), cell, optional = false, class: className, ...restProps }: Props =
+		$props();
 </script>
 
 <InputOTPPrimitive.Cell
@@ -17,9 +17,11 @@
 	data-slot="input-otp-slot"
 	class={cn(
 		'focus-override relative flex h-12 w-9 items-center justify-center text-lg font-medium tabular-nums sm:h-14 sm:w-10 sm:text-xl',
-		'border-base-300 bg-base-100 text-base-content border-y border-r transition-colors outline-none',
+		'border-base-content/35 bg-base-100 text-base-content border-y border-r shadow-sm transition-colors outline-none',
 		'first:rounded-l-md first:border-l last:rounded-r-md',
 		'data-active:z-10 data-active:border-primary data-active:ring-2 data-active:ring-primary/40',
+		optional &&
+			'border-base-content/20 bg-base-200/40 border-dashed opacity-90 data-active:opacity-100',
 		className
 	)}
 	{...restProps}

@@ -1,5 +1,6 @@
 import { DASHBOARD_OPEN_ADD_CHANNEL_WINDOW_EVENT } from 'openquok-common';
 
+import { installBrowserExtensionPageRuntimeBridgeRelay } from './pageRuntimeBridgeRelay.js';
 import { DASHBOARD_BRIDGE_MESSAGE } from '../../shared/dashboardBridgeMessages.js';
 import {
 	dashboardApiV1Root,
@@ -173,6 +174,8 @@ function scheduleSync(): void {
 		});
 	}, 800);
 }
+
+installBrowserExtensionPageRuntimeBridgeRelay();
 
 void syncDashboardSessionToExtension();
 

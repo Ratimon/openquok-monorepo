@@ -15,5 +15,5 @@
       "vitest/*": ["../web/node_modules/vitest/*"]
     }
   },
-  "include": ["src/**/*.ts", "vite.config.ts"]
+  "include": ["src/**/*.ts", "src/global.d.ts", "vite.config.ts"]
 }

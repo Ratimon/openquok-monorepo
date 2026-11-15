@@ -65,9 +65,7 @@ describe("AuthController.signUp", () => {
             upsertUserFromAuth: jest.fn().mockResolvedValue({ error: null }),
             updateEmailVerification: jest.fn().mockResolvedValue({ updateError: null }),
             updateVerificationToken: jest.fn().mockResolvedValue({ updateError: null, rowsAffected: 1 }),
-            findFullUserByEmail: jest.fn().mockResolvedValue({
-                userData: userLike({ id: "user-1", email: "test@example.com", full_name: fullName }),
-            }),
+            findFullUserByEmail: jest.fn().mockResolvedValue({ userData: null }),
         };
         emailService = {
             isEnabled: true,
@@ -101,9 +99,11 @@ describe("AuthController.signUp", () => {
             newUser: { id: userId, email },
             session: null,
         });
-        userRepository.findFullUserByEmail.mockResolvedValue({
-            userData: userLike({ id: userId, email, full_name: fullName, is_email_verified: true }),
-        });
+        userRepository.findFullUserByEmail
+            .mockResolvedValueOnce({ userData: null })
+            .mockResolvedValueOnce({
+                userData: userLike({ id: userId, email, full_name: fullName, is_email_verified: true }),
+            });
 
         const req = { body: { email, password, fullName }, cookies: {} } as unknown as Request;
         const res = createMockResponse();
@@ -124,9 +124,11 @@ describe("AuthController.signUp", () => {
             newUser: { id: userId, email },
             session: null,
         });
-        userRepository.findFullUserByEmail.mockResolvedValue({
-            userData: userLike({ id: userId, email, full_name: fullName, is_email_verified: false }),
-        });
+        userRepository.findFullUserByEmail
+            .mockResolvedValueOnce({ userData: null })
+            .mockResolvedValueOnce({
+                userData: userLike({ id: userId, email, full_name: fullName, is_email_verified: false }),
+            });
 
         const req = { body: { email, password, fullName }, cookies: {} } as unknown as Request;
         const res = createMockResponse();
