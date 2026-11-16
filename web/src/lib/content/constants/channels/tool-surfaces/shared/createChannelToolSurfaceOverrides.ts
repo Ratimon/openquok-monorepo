@@ -84,17 +84,33 @@ export function createPhotoEditorContentOverrideFromMeta(
 	const { platformLabel, photoEditor } = meta;
 	const channelLinks = buildChannelFaqLinks(slug, meta.docsPath);
 	const photoEditorToolLinks = buildToolChannelFaqLinks('photo-editor', slug);
+	const humanizerToolLinks = buildToolChannelFaqLinks('humanizer', slug);
+
+	const presetSizeFaq: PublicFaqItem = {
+		title: photoEditor.faqTitle,
+		description: `${photoEditor.faqBodyLead} Design on the canvas, download a PNG, or save to your library, then attach when you schedule from ${faqLink(channelLinks.channelLanding, `${platformLabel} in OpenQuok`)} via ${faqLink(photoEditorToolLinks.toolChannel, 'this Photo Editor page')}.`
+	};
+
+	const channelExtraFaq = photoEditor.extraFaqItems ?? [];
+
+	const seoIntro =
+		photoEditor.seoIntroHeading && photoEditor.seoIntroParagraph
+			? {
+					heading: photoEditor.seoIntroHeading,
+					paragraphs: [photoEditor.seoIntroParagraph],
+					highlights: photoEditor.seoIntroHighlights,
+					closingHtml:
+						photoEditor.seoIntroClosingHtml ??
+						`Export a PNG from the canvas, or ${faqLink(publicFaqHref.signUp, 'sign up')} to save designs and schedule on ${faqLink(channelLinks.channelLanding, `${platformLabel} in OpenQuok`)}. Tighten captions in the ${faqLink(humanizerToolLinks.toolChannel, `${platformLabel} Humanizer`)} before you publish.`
+				}
+			: undefined;
 
 	return {
 		metaDescription: photoEditor.metaDescription,
 		hubDescription: photoEditor.hubDescription,
 		heroLead: photoEditor.heroLead,
-		extraFaqItems: [
-			{
-				title: photoEditor.faqTitle,
-				description: `${photoEditor.faqBodyLead} Design on the canvas, download a PNG, or save to your library, then attach when you schedule from ${faqLink(channelLinks.channelLanding, `${platformLabel} in OpenQuok`)} via ${faqLink(photoEditorToolLinks.toolChannel, 'this Photo Editor page')}.`
-			}
-		]
+		seoIntro,
+		extraFaqItems: [...channelExtraFaq, presetSizeFaq]
 	};
 }
 

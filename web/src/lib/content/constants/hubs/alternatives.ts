@@ -63,7 +63,7 @@ export const PUBLIC_ALTERNATIVES_HUB = {
 		titlePrefix: 'Social media scheduler ',
 		titleHighlight: 'alternatives',
 		description:
-			'Open ranked alternative pages for Buffer, Hootsuite, Later, and other schedulers. Each page lists OpenQuok first, then peer tools with links to compare pages.',
+			'Open ranked pages for Later, Buffer, Socialync, Postiz, Mixpost, and other schedulers. Start with Postiz or Mixpost when you want open-source picks; each page lists OpenQuok first, then peers with compare links.',
 		learnMoreHref: socialAutopilotLandingHref,
 		learnMoreLabel: 'Social media management →'
 	} satisfies PublicAlternativesHubSectionConfig,
@@ -94,7 +94,17 @@ export const PUBLIC_ALTERNATIVES_HUB_FAQ = {
 			{
 				title: 'Where should I start for Buffer alternatives?',
 				description:
-					`Open ${faqLink(route(getRootPathPublicAlternativesTarget('buffer')), 'Buffer alternatives')} for ranked picks. Read ${faqLink(publicFaqHref.compareOpenquokBuffer, 'OpenQuok vs Buffer')} when you want a full pricing and feature table.`
+					`Open ${faqLink(route(getRootPathPublicAlternativesTarget('buffer')), 'Buffer alternatives')} for ranked picks. Read ${faqLink(publicFaqHref.compareOpenquokBuffer, 'OpenQuok vs Buffer')} when you want a full pricing and feature table. For open-source stacks, see ${faqLink(route(getRootPathPublicAlternativesTarget('postiz')), 'Postiz alternatives')} and ${faqLink(publicFaqHref.compareOpenquokPostiz, 'OpenQuok vs Postiz')}.`
+			},
+			{
+				title: 'Where should I start for Later alternatives?',
+				description:
+					`Open ${faqLink(route(getRootPathPublicAlternativesTarget('later')), 'Later alternatives')} for ranked hosted picks. Compare ${faqLink(publicFaqHref.compareOpenquokPostiz, 'OpenQuok vs Postiz')} when you want AGPL or self-host options beside Later.`
+			},
+			{
+				title: 'Where should I start for Socialync alternatives?',
+				description:
+					`Open ${faqLink(route(getRootPathPublicAlternativesTarget('socialync')), 'Socialync alternatives')} for ranked picks. Read ${faqLink(publicFaqHref.compareOpenquokPostiz, 'OpenQuok vs Postiz')} and open ${faqLink(route(getRootPathPublicAlternativesTarget('postiz')), 'Postiz alternatives')} when open-source schedulers are on your shortlist.`
 			},
 			{
 				title: 'Where should I start for Hootsuite alternatives?',

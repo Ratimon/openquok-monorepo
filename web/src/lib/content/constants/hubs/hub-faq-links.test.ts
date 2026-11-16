@@ -99,6 +99,14 @@ describe('pSEO hub FAQ funnel links', () => {
 		expect(html).toContain('OpenQuok alternatives');
 	});
 
+	it('alternatives hub links Later, Socialync, and Buffer pages to Postiz winners', () => {
+		const html = PUBLIC_ALTERNATIVES_HUB_FAQ.faqItems.map((item) => item.description).join('\n');
+		expect(html).toContain('href="/alternatives/later"');
+		expect(html).toContain('href="/alternatives/socialync"');
+		expect(html).toContain(`href="${publicFaqHref.compareOpenquokPostiz}"`);
+		expect(html).toContain('href="/alternatives/postiz"');
+	});
+
 	it('compare hub links buffer compare and pricing from git-default copy', () => {
 		const html = PUBLIC_COMPARE_HUB_FAQ.faqItems.map((item) => item.description).join('\n');
 		expect(html).toContain(`href="${publicFaqHref.compareOpenquokBuffer}"`);
@@ -109,6 +117,14 @@ describe('pSEO hub FAQ funnel links', () => {
 		const html = PUBLIC_COMPARE_HUB_FAQ.faqItems.map((item) => item.description).join('\n');
 		expect(html).toContain(`href="${publicFaqHref.compareOpenquokPostiz}"`);
 		expect(html).toContain(`href="${publicFaqHref.blogOpenquokVsPostiz}"`);
+	});
+
+	it('compare hub links high-CTR peer pairs and RecurPost alternatives', () => {
+		const html = PUBLIC_COMPARE_HUB_FAQ.faqItems.map((item) => item.description).join('\n');
+		expect(html).toContain(`href="${publicFaqHref.compareMixpostPostiz}"`);
+		expect(html).toContain(`href="${publicFaqHref.compareRecurpostBuffer}"`);
+		expect(html).toContain(`href="${publicFaqHref.compareBlotatoBuffer}"`);
+		expect(html).toContain('href="/alternatives/recurpost"');
 	});
 
 	it('channels hub links connect guide and trial pricing', () => {

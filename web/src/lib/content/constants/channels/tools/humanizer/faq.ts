@@ -4,6 +4,7 @@ import {
 	PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS
 } from '$lib/content/constants/faq';
 
+import { getHumanizerChannelExtraFaqItems } from '$lib/content/constants/channels/tools/humanizer/humanizerChannelExtraFaqItems';
 import {
 	buildToolChannelFaqLinks,
 	faqHrefDocs,
@@ -126,7 +127,10 @@ function buildChannelHumanizeFaqItems(channelSlug: string, platformLabel: string
 	const slug = channelSlug.trim().toLowerCase();
 	const label = platformLabel.trim();
 
-	return GENERIC_HUMANIZE_FAQ_ITEMS.map((item) => tailorHumanizeFaqItem(item, slug, label));
+	const tailored = GENERIC_HUMANIZE_FAQ_ITEMS.map((item) => tailorHumanizeFaqItem(item, slug, label));
+	const extraItems = getHumanizerChannelExtraFaqItems(slug);
+
+	return [...extraItems, ...tailored];
 }
 
 export function buildHumanizeFaqSection(

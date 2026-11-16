@@ -55,7 +55,7 @@ export const tiktokChannel = {
 			subtitle: 'Post editor',
 			title: 'Schedule vertical videos and photo carousels, review before publish, from one draft',
 			description:
-				'Attach a single MP4 or one or more images for a carousel. Write your caption. Schedule onto the calendar. Review agent and human drafts on the kanban board before TikTok publishes from your connected account.',
+				`Attach a single MP4 or one or more images for a carousel. Write your caption. Size carousel frames in the ${faqLink(tiktokLinks.photoEditor.toolChannel, 'TikTok photo editor')} and tighten copy in the ${faqLink(tiktokLinks.humanizer.toolChannel, 'TikTok humanizer')} before you schedule. Review agent and human drafts on the kanban board before TikTok publishes from your connected account.`,
 			bentoId: 'tiktok-post-editor',
 			mediaOnRight: false
 		},

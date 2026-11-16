@@ -6,6 +6,7 @@
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
 	import VideoOrImage from '$lib/ui/media-files/VideoOrImage.svelte';
 	import { PUBLIC_LANDING_COMPACT_TRIAL_CTA } from '$lib/content/constants/landing/hero-copy';
+	import PublicLandingRichText from '$lib/ui/templates/landing-page/PublicLandingRichText.svelte';
 	import PublicLandingSectionHeading from '$lib/ui/templates/titles/PublicLandingSectionHeading.svelte';
 	import { landingTitleHasMultipleParts } from '$lib/ui/templates/titles/splitPublicLandingTitleParts';
 
@@ -128,9 +129,7 @@
 						{/if}
 
 						{#if landingDescription}
-							<p class={heroTheme.descriptionClass}>
-								{landingDescription}
-							</p>
+							<PublicLandingRichText html={landingDescription} class={heroTheme.descriptionClass} />
 						{/if}
 
 						{#if showCta}

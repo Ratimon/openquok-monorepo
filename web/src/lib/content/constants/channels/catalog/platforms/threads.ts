@@ -57,7 +57,7 @@ export const threadsChannel = {
 			subtitle: 'Post editor',
 			title: 'Attach media to Threads posts, queue follow-up replies with delays, before go-live',
 			description:
-				'Compose within the 500-character limit. Attach a single image, a carousel, or a video. Queue same-account follow-up replies before the main thread goes live. Preview the full thread from one draft.',
+				`Compose within the 500-character limit. Attach a single image, a carousel, or a video. Queue same-account follow-up replies before the main thread goes live. Size media in the ${faqLink(threadsLinks.photoEditor.toolChannel, 'Threads photo editor')} before the main thread goes live.`,
 			bentoId: 'threads-post-editor',
 			mediaOnRight: false
 		},

@@ -2,6 +2,7 @@
 	import type { Snippet } from 'svelte';
 
 	import LandingHeroHighlightedText from '$lib/ui/texts/LandingHeroHighlightedText.svelte';
+	import PublicLandingRichText from '$lib/ui/templates/landing-page/PublicLandingRichText.svelte';
 	import { cn } from '$lib/ui/helpers/common';
 	import { buildLandingHeroDictionaryTitleLines } from '$lib/ui/templates/titles/buildLandingHeroDictionaryTitleLines';
 
@@ -75,8 +76,9 @@
 		{/if}
 	</svelte:element>
 	{#if description}
-		<p class="text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg">
-			{description}
-		</p>
+		<PublicLandingRichText
+			html={description}
+			class="text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg"
+		/>
 	{/if}
 </div>

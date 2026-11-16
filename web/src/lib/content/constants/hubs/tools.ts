@@ -33,7 +33,7 @@ export const PUBLIC_TOOLS_HUB_FAQ = {
 		{
 			title: 'Can I open a tool for one social network?',
 			description:
-				`Yes. Skill Builder, Photo Editor, Humanizer, and Best Time to Post each list channel pages from the ${faqLink(publicFaqHref.tools, 'Tools')} hub — for example LinkedIn Humanizer or TikTok Best Time to Post. Pick a channel card to preselect formats, sample copy, and benchmark windows for that network.`
+				`Yes. Skill Builder, Photo Editor, Humanizer, and Best Time to Post each list channel pages from the ${faqLink(publicFaqHref.tools, 'Tools')} hub — for example the ${faqLink('/tools/photo-editor/threads', 'Threads photo editor')}, ${faqLink('/tools/humanizer/linkedin', 'LinkedIn Humanizer')}, or ${faqLink('/tools/photo-editor/tiktok', 'TikTok photo editor')}. Pick a channel card to preselect formats, sample copy, and benchmark windows for that network.`
 		},
 		{
 			title: 'How do I schedule a post after I use a tool?',

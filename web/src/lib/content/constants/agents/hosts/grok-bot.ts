@@ -2,7 +2,9 @@ import { icons } from '$data/icons';
 
 import { buildAgentHostPickerFaqDescription } from '$lib/content/constants/agents/decision-scenarios';
 import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/agents/types';
-import { faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+import { buildAgentFaqLinks, faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+
+const grokBotFaqLinks = buildAgentFaqLinks('grok-bot', '/docs/agent-setup-guides/grok-bot');
 import {
 	GROK_BOT_SKILL_INSTALL_OPTIONS,
 	OPENQUOK_CLI_COMMAND_REFERENCE
@@ -175,7 +177,7 @@ openquok posts:status <post-id> -s schedule`
 			subtitle: 'Analytics',
 			title: 'Ask what worked, see winners, and adapt from chat',
 			description:
-				'Message Grok Bot on desktop to pull impressions, likes, comments, and shares for any connected channel. Compare performance and schedule more of what already resonates — without opening the dashboard.',
+				`Message Grok Bot on desktop to pull impressions, likes, comments, and shares for any connected channel. Compare performance and schedule more of what already resonates — without opening the dashboard. High-volume teams often start on ${faqLink(grokBotFaqLinks.agentChannel('facebook'), 'Grok Bot for Facebook')} or ${faqLink(grokBotFaqLinks.agentChannel('tiktok'), 'Grok Bot for TikTok')}.`,
 			deviceMock: 'desktop',
 			deviceMockContent: 'agent-parallel-analytics',
 			imageAlt: 'Grok Bot desktop chat showing OpenQuok platform and post analytics',
@@ -312,7 +314,7 @@ openquok analytics:post <post-id> -d 30`
 		{
 			title: 'Which social media platforms are supported?',
 			description:
-				`Facebook, Instagram, Threads, YouTube, TikTok, LinkedIn, and X are supported today. Connect channels in the OpenQuok web app or follow the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}; see every network on ${faqLink(publicFaqHref.channels, 'Supported channels')}. Grok Bot uses integration UUIDs from openquok integrations:list to target the right accounts.`
+				`Facebook, Instagram, Threads, YouTube, TikTok, LinkedIn, and X are supported today. Start on ${faqLink(grokBotFaqLinks.agentChannel('facebook'), 'Grok Bot for Facebook')} or ${faqLink(grokBotFaqLinks.agentChannel('tiktok'), 'Grok Bot for TikTok')} when those networks drive your volume. Connect channels in the OpenQuok web app or follow the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}; see every network on ${faqLink(publicFaqHref.channels, 'Supported channels')}. Grok Bot uses integration UUIDs from openquok integrations:list to target the right accounts.`
 		},
 		{
 			title: 'Does Grok Bot publish immediately or wait for approval?',

@@ -56,7 +56,7 @@ export const linkedinChannel = {
 			subtitle: 'Post editor',
 			title: 'Build PDF carousels on LinkedIn, schedule follow-up comments, before publish goes live',
 			description:
-				'Attach two or more images. OpenQuok builds a document carousel when the post publishes. Queue follow-up comments on your profile or Page with delays. Review that same composer draft on the kanban board.',
+				`Attach two or more images. OpenQuok builds a document carousel when the post publishes. Queue follow-up comments on your profile or Page with delays. Size link-preview and feed art in the ${faqLink(linkedinLinks.photoEditor.toolChannel, 'LinkedIn photo editor')} before you publish. Review that same composer draft on the kanban board.`,
 			bentoId: 'linkedin-post-editor',
 			mediaOnRight: false
 		},

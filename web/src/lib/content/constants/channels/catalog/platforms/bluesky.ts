@@ -67,7 +67,7 @@ export const blueskyChannel = {
 			subtitle: 'Compose & links',
 			title: 'Write 300 graphemes, add @mentions, optional link cards, preview before you queue',
 			description:
-				'Stay inside the 300-grapheme limit. URLs in the caption become clickable facets; add an optional link-card embed in Settings when the post has no media. Use @handle autocomplete. Attach up to four images or one MP4 — never mixed. Preview letterboxed media before you queue the slot.',
+				`Stay inside the 300-grapheme limit. URLs in the caption become clickable facets; add an optional link-card embed in Settings when the post has no media. Use @handle autocomplete. Attach up to four images or one MP4 — never mixed. Size assets in the ${faqLink(blueskyLinks.photoEditor.toolChannel, 'Bluesky photo editor')} before you queue the slot.`,
 			bentoId: 'bluesky-media',
 			mediaOnRight: false
 		},

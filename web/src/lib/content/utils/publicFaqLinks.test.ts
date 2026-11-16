@@ -75,6 +75,10 @@ describe('publicFaqLinks', () => {
 		expect(publicFaqHref.cliSetupGuides).toBe('/docs/getting-started-for-cli');
 		expect(publicFaqHref.compareOpenquokBuffer).toBe('/compare/openquok/buffer');
 		expect(publicFaqHref.compareOpenquokHootsuite).toBe('/compare/openquok/hootsuite');
+		expect(publicFaqHref.compareBlotatoBuffer).toBe('/compare/blotato/buffer');
+		expect(publicFaqHref.compareRecurpostBuffer).toBe('/compare/buffer/recurpost');
+		expect(publicFaqHref.compareMixpostPostiz).toBe('/compare/mixpost/postiz');
+		expect(publicFaqHref.comparePostizPostBridge).toBe('/compare/post-bridge/postiz');
 		expect(publicFaqHref.humanizerTool).toBe('/tools/humanizer');
 		expect(publicFaqHref.skillBuilderTool).toBe('/tools/skill-builder');
 		expect(publicFaqHref.docsDirectoryAnalytics).toBe('/docs/insights/directory-analytics');

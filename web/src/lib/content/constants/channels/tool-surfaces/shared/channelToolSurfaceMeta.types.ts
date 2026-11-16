@@ -26,6 +26,14 @@ export type ToolSurfaceChannelMeta = {
 		faqTitle: string;
 		/** Plain sentence before internal links; factory appends tool + channel links. */
 		faqBodyLead: string;
+		/** Optional SEO intro below the hero on `/tools/photo-editor/{slug}` (does not change metaTitle). */
+		seoIntroHeading?: string;
+		seoIntroParagraph?: string;
+		seoIntroHighlights?: readonly ChannelToolSeoIntroHighlight[];
+		/** HTML with internal links; merged into `seoIntro.closingHtml`. */
+		seoIntroClosingHtml?: string;
+		/** Prepended before the preset-size FAQ row from the factory. */
+		extraFaqItems?: readonly PublicFaqItem[];
 	};
 	skillBuilder: {
 		metaDescription: string;

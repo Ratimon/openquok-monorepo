@@ -53,6 +53,52 @@ describe('buildAlternativesDetailFaqItems', () => {
 		expect(items[0]?.title).toBe('Custom Later switch headline');
 	});
 
+	it('cross-links Postiz alternatives and compare for Later, Socialync, and Buffer', () => {
+		for (const targetSlug of ['later', 'socialync', 'buffer'] as const) {
+			const items = buildAlternativesDetailFaqItems({
+				targetName: 'Test',
+				targetSlug,
+				isDirectoryTarget: false
+			});
+
+			expect(items[0]?.description).toContain(publicFaqHref.compareOpenquokPostiz);
+			expect(items[0]?.description).toContain('/alternatives/postiz');
+			expect(items[1]?.title).toContain('open-source schedulers');
+			expect(items[1]?.description).toContain('/alternatives/postiz');
+		}
+	});
+
+	it('links emphasized peer compare pages for Blotato, RecurPost, Postiz, and Mixpost', () => {
+		const blotato = buildAlternativesDetailFaqItems({
+			targetName: 'Blotato',
+			targetSlug: 'blotato',
+			isDirectoryTarget: false
+		});
+		expect(blotato[1]?.description).toContain(publicFaqHref.compareBlotatoBuffer);
+
+		const recurpost = buildAlternativesDetailFaqItems({
+			targetName: 'RecurPost',
+			targetSlug: 'recurpost',
+			isDirectoryTarget: false
+		});
+		expect(recurpost[1]?.description).toContain(publicFaqHref.compareRecurpostBuffer);
+
+		const postiz = buildAlternativesDetailFaqItems({
+			targetName: 'Postiz',
+			targetSlug: 'postiz',
+			isDirectoryTarget: false
+		});
+		expect(postiz[1]?.description).toContain(publicFaqHref.compareMixpostPostiz);
+		expect(postiz[1]?.description).toContain(publicFaqHref.comparePostizPostBridge);
+
+		const mixpost = buildAlternativesDetailFaqItems({
+			targetName: 'Mixpost',
+			targetSlug: 'mixpost',
+			isDirectoryTarget: false
+		});
+		expect(mixpost[1]?.description).toContain(publicFaqHref.compareMixpostPostiz);
+	});
+
 	it('uses an OpenQuok-specific lead question on the OpenQuok alternatives page', () => {
 		const items = buildAlternativesDetailFaqItems({
 			targetName: 'OpenQuok',

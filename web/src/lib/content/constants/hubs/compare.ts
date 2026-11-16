@@ -4,6 +4,7 @@ import {
 	PUBLIC_COMPARE_HUB_FAQ_ITEM_IDS
 } from '$lib/content/constants/faq';
 
+import { getRootPathPublicAlternativesTarget } from '$lib/area-public/constants/getRootPathPublicAlternatives';
 import { getRootPathPublicDirectorySubmissionTool } from '$lib/area-public/constants/getRootPathPublicDirectorySubmissionTool';
 import { getRootPathPublicSocialAutopilotLanding } from '$lib/area-public/constants/getRootPathPublicSocialAutopilotLanding';
 import { PUBLIC_COMPARE_HUB_SECTION_IDS } from '$lib/content/constants/landing/breadcrumbs';
@@ -56,7 +57,7 @@ export const PUBLIC_COMPARE_HUB = {
 		subtitle: 'Social scheduling',
 		title: 'Social media schedulers',
 		description:
-			'Compare OpenQuok to Buffer, Later, Hootsuite, and other schedulers. You review plan limits, connected channels, workspaces, and agent workflows in one place.',
+			'Compare OpenQuok to Buffer, Later, Postiz, and Mixpost first — then open peer pairs such as RecurPost vs Buffer or Mixpost vs Postiz from the hub cards or FAQ below.',
 		learnMoreHref: socialAutopilotLandingHref,
 		learnMoreLabel: 'Social media management →'
 	} satisfies PublicCompareHubSectionConfig,
@@ -102,6 +103,11 @@ export const PUBLIC_COMPARE_HUB_FAQ = {
 			title: 'Where should I start for OpenQuok vs Postiz?',
 			description:
 				`Read ${faqLink(publicFaqHref.compareOpenquokPostiz, 'OpenQuok vs Postiz')} for the feature matrix. The ${faqLink(publicFaqHref.blogOpenquokVsPostiz, 'OpenQuok vs Postiz blog')} covers AGPL vs MIT skills, channel tiers, kanban, directory autofill, and Reddit handoff. For Reddit-only workflow detail, see ${faqLink(publicFaqHref.blogRedditAgents, 'AI agents for Reddit without getting banned')}.`
+		},
+		{
+			title: 'Where should I compare two schedulers side by side?',
+			description:
+				`Open peer head-to-head pages when you already narrowed a short list. Read ${faqLink(publicFaqHref.compareMixpostPostiz, 'Mixpost vs Postiz')}, ${faqLink(publicFaqHref.comparePostizPostBridge, 'Post Bridge vs Postiz')}, ${faqLink(publicFaqHref.compareRecurpostBuffer, 'RecurPost vs Buffer')}, and ${faqLink(publicFaqHref.compareBlotatoBuffer, 'Blotato vs Buffer')}. Start from ${faqLink(route(getRootPathPublicAlternativesTarget('recurpost')), 'RecurPost alternatives')} or ${faqLink(route(getRootPathPublicAlternativesTarget('postiz')), 'Postiz alternatives')} when you need ranked picks first.`
 		},
 		{
 			title: 'How does OpenQuok pricing compare?',

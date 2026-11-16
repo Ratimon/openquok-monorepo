@@ -19,6 +19,7 @@ import {
 	getCompareProductCategory,
 	listComparePairsForCategory
 } from '$lib/content/constants/competitors/utils/compareProductCategories';
+import { sortCompareHubPairsWithEmphasis } from '$lib/content/constants/competitors/utils/compareHubPairEmphasis';
 import { blotatoCompareProduct } from '$lib/content/constants/competitors/scheduler/blotato';
 import { bufferCompareProduct } from '$lib/content/constants/competitors/scheduler/buffer';
 import { breakreachCompareProduct } from '$lib/content/constants/competitors/scheduler/breakreach';
@@ -146,8 +147,15 @@ export function listComparePairsForHub(
 	const baseProduct = getCompareProduct(baseSlug);
 	if (!baseProduct) return [];
 
-	return listComparePairsForCategory(PUBLIC_COMPARE_PRODUCTS, baseProduct, category);
+	const pairs = listComparePairsForCategory(PUBLIC_COMPARE_PRODUCTS, baseProduct, category);
+	return sortCompareHubPairsWithEmphasis(pairs, baseSlug);
 }
+
+export {
+	EMPHASIZED_PEER_COMPARE_BY_TARGET,
+	HIGH_CTR_PEER_COMPARE_PAIR_KEYS,
+	isHighCtrPeerComparePair
+} from '$lib/content/constants/competitors/utils/compareHubPairEmphasis';
 
 export function listCompareProductsForHubDropdown(
 	category: CompareProductCategory

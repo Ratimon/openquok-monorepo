@@ -1,5 +1,6 @@
 import { icons } from '$data/icons';
 
+import { getRootPathPublicBuildBacklinksSite } from '$lib/area-public/constants/getRootPathPublicBuildBacklinks';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/catalog/types';
 import {
 	buildChannelLandingFaqLinks,
@@ -15,6 +16,7 @@ import {
 	faqLinkSelfHostChannelSetup,
 	publicFaqHref
 } from '$lib/content/utils/publicFaqLinks';
+import { route } from '$lib/utils/path';
 
 const INSTAGRAM_DOCS_PATH = '/docs/social-integration/instagram';
 const instagramLinks = buildChannelLandingFaqLinks('instagram', INSTAGRAM_DOCS_PATH);
@@ -57,7 +59,7 @@ export const instagramChannel = {
 			subtitle: 'Post editor',
 			title: 'Compose feed posts and Reels, queue follow-up comments, before publish goes live',
 			description:
-				'Switch between feed, Reel, and Story in the composer. Attach photos, carousels, or MP4 Reels. Queue text-only follow-up comments with delays. Use the dashboard or provider Settings in the API.',
+				`Switch between feed, Reel, and Story in the composer. Attach photos, carousels, or MP4 Reels. Queue text-only follow-up comments with delays. Crop and letterbox in the ${faqLink(instagramLinks.photoEditor.toolChannel, 'Instagram photo editor')} before you schedule.`,
 			bentoId: 'instagram-post-editor',
 			mediaOnRight: false
 		},
@@ -164,6 +166,11 @@ export const instagramChannel = {
 			title: 'Can I cross-post from Instagram to Threads and other channels?',
 			description:
 				`Yes. Create & compose once in OpenQuok and publish the same idea to Instagram, Threads, X, LinkedIn, TikTok, YouTube, and other connected channels from one workflow. Per-platform captions, aspect ratios, and character limits are applied separately, so each destination gets tailored copy from a single schedule. See ${faqLink(publicFaqHref.channels, 'Supported channels')}.`
+		},
+		{
+			title: 'Where can I prep Instagram assets and browse backlink opportunities?',
+			description:
+				`Use the ${faqLink(instagramLinks.photoEditor.toolChannel, 'Instagram photo editor')} for aspect presets before you queue carousels, Reels, or Stories. When you pair scheduling with directory launch, open ${faqLink(route(getRootPathPublicBuildBacklinksSite('instagram')), 'Instagram on Build backlinks')} to review dofollow and profile context beside your calendar workflow.`
 		},
 		{
 			title: 'Does OpenQuok include an Instagram DM or comment inbox?',

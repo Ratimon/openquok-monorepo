@@ -13,6 +13,7 @@
 	import { ONBOARDING_INLINE_TERMINAL_CODE_CLASS } from '$lib/ui/components/onboarding/onboardingConstants';
 	import SkillInstallCommandTabs from '$lib/ui/templates/landing-page/SkillInstallCommandTabs.svelte';
 	import PublicHeroTitle from '$lib/ui/templates/titles/PublicHeroTitle.svelte';
+	import PublicLandingRichText from '$lib/ui/templates/landing-page/PublicLandingRichText.svelte';
 
 	type LandingHeroTitleSegment = { text: string; highlight: boolean };
 
@@ -108,11 +109,10 @@
 				class="mt-4 text-3xl sm:text-4xl lg:text-5xl"
 			/>
 
-			<p
+			<PublicLandingRichText
+				html={agentVm.heroDescription}
 				class="mt-6 w-full max-w-full break-words text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg"
-			>
-				{agentVm.heroDescription}
-			</p>
+			/>
 
 			<div class="{heroTheme.dualCtaRowClass} lg:justify-center">
 				{#if showDocsCta}
