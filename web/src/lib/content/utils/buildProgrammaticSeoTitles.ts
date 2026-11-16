@@ -1,4 +1,8 @@
-import type { ComparePairLayout, CompareProduct } from '$lib/content/constants/competitors/types';
+import type {
+	ComparePairLayout,
+	CompareProduct,
+	CompareProductCategory
+} from '$lib/content/constants/competitors/types';
 import { COMPARE_HUB_BASE_SLUG } from '$lib/content/constants/competitors/shared';
 
 /**
@@ -193,4 +197,124 @@ export function buildCompareHubMetaTitle(baseProductName: string, isOpenQuokHub:
 		return `Compare Social Media Schedulers: ${baseProductName} vs Alternatives`;
 	}
 	return `Best ${baseProductName} Alternatives`;
+}
+
+/** SERP `<title>` for `/alternatives/{slug}` — keep near ~60 characters before `| OpenQuok` from `createMetaData`. */
+export function buildAlternativesDetailMetaTitle(
+	targetName: string,
+	category: CompareProductCategory = 'social_scheduling'
+): string {
+	if (category === 'directory_submission') {
+		return `${targetName} Alternatives (2026): Directory Launch`;
+	}
+	return `${targetName} Alternatives (2026): Ranked Schedulers`;
+}
+
+function formatAlternativesPeerNameList(peerNames: readonly string[]): string {
+	const names = peerNames.filter(Boolean).slice(0, 4);
+	if (names.length === 0) return '';
+	if (names.length === 1) return names[0]!;
+	if (names.length === 2) return `${names[0]} and ${names[1]}`;
+	if (names.length === 3) return `${names[0]}, ${names[1]}, and ${names[2]}`;
+	return `${names[0]}, ${names[1]}, ${names[2]}, and ${names[3]}`;
+}
+
+/** Meta description for alternatives detail — trial/self-host hook first, then query match and named peers. */
+export function buildAlternativesDetailMetaDescription(
+	targetName: string,
+	peerNames: readonly string[]
+): string {
+	const peers = formatAlternativesPeerNameList(peerNames);
+	const hook =
+		'Start a 7-day free trial, self-host at $0, or schedule with MCP and the Public API on OpenQuok.';
+	if (!peers) {
+		return `${hook} Compare ranked ${targetName} alternatives with prices, channels, and agent tools.`;
+	}
+	return `${hook} Compare the best ${targetName} alternatives: ${peers}. See ranked prices, channels, and agent scheduling.`;
+}
+
+/** People-also-ask style headline for the first tailored alternatives FAQ row. */
+export function buildAlternativesSwitchFaqTitle(targetName: string): string {
+	return `What are the best ${targetName} alternatives?`;
+}
+
+export type SchedulingCommercialChannelMetaInput = {
+	platformLabel: string;
+	/** Short connect path — e.g. app-password or OAuth wording. */
+	connectClause: string;
+	/** Accurate limits and features for the second sentence. */
+	featureClause: string;
+	/** When true, title leads with free trial for commercial trial-intent queries. */
+	leadTitleWithTrial?: boolean;
+};
+
+/** SERP title for channel pages that target “schedule {platform}” and trial queries. */
+export function buildSchedulingCommercialChannelMetaTitle(
+	platformLabel: string,
+	leadTitleWithTrial = false
+): string {
+	if (leadTitleWithTrial) {
+		return `${platformLabel} Scheduler Free Trial — Schedule and Queue Posts`;
+	}
+	return `Schedule ${platformLabel} Posts — Free Trial Social Scheduler`;
+}
+
+/** Meta description — trial and connect in the first sentence so the snippet stays on commercial intent. */
+export function buildSchedulingCommercialChannelMetaDescription(
+	input: SchedulingCommercialChannelMetaInput
+): string {
+	const { platformLabel, connectClause, featureClause } = input;
+	return `Start a free trial and schedule ${platformLabel} posts with OpenQuok. ${connectClause} ${featureClause}`;
+}
+
+function buildCompareMetaDescriptionClosing(
+	left: CompareProduct,
+	right: CompareProduct,
+	layout: ComparePairLayout
+): string {
+	if (layout === 'directory_long_form') {
+		if (left.slug === COMPARE_HUB_BASE_SLUG) {
+			return `See how ${left.name} gives you control over every directory listing instead of a one-time ${right.name} campaign.`;
+		}
+		if (right.slug === COMPARE_HUB_BASE_SLUG) {
+			return `See how ${right.name} compares as a DIY alternative to ${left.name} for directory launch.`;
+		}
+		return 'See which directory path fits your launch.';
+	}
+
+	if (left.slug === COMPARE_HUB_BASE_SLUG) {
+		return `See why teams use ${left.name} instead of ${right.name}. You get agent workflows and separate workspaces.`;
+	}
+	if (right.slug === COMPARE_HUB_BASE_SLUG) {
+		return `See how ${right.name} compares as an alternative to ${left.name}. You can schedule posts and publish from agents.`;
+	}
+	return 'See which scheduler fits your work.';
+}
+
+/** Meta description for `/compare/{a}/{b}` — lead with prices, channels, and trial when OpenQuok is in the pair. */
+export function buildComparePairMetaDescription(
+	left: CompareProduct,
+	right: CompareProduct,
+	layout: ComparePairLayout
+): string {
+	if (layout === 'directory_long_form') {
+		return `Compare ${left.name} and ${right.name} for startup directory launch — done-for-you vs DIY profiles, extension autofill, and submission tracking. ${buildCompareMetaDescriptionClosing(left, right, layout)}`;
+	}
+
+	if (layout === 'cross_product_line') {
+		return `Compare ${left.name} and ${right.name} across product lines — social scheduling vs directory launch. See which job each tool covers, then open category compares for pricing and features.`;
+	}
+
+	const hasOpenQuok = left.slug === COMPARE_HUB_BASE_SLUG || right.slug === COMPARE_HUB_BASE_SLUG;
+	if (hasOpenQuok) {
+		const openQuok = left.slug === COMPARE_HUB_BASE_SLUG ? left : right;
+		const peer = left.slug === COMPARE_HUB_BASE_SLUG ? right : left;
+		const lead = `${openQuok.name} vs ${peer.name}: prices, channels, free trial.`;
+		const differentiators = `${openQuok.tagline}. ${peer.tagline}.`;
+		return `${lead} ${differentiators} ${buildCompareMetaDescriptionClosing(left, right, layout)}`;
+	}
+
+	const lead = `${left.name} vs ${right.name}: prices, channels, and scheduling features.`;
+	const differentiators = `${left.tagline}. ${right.tagline}.`;
+	return `${lead} ${differentiators} See which scheduler fits your work.`;
 }

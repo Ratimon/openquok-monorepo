@@ -69,10 +69,12 @@ export async function load({ url, params, cookies, parent }) {
 	const canonical = buildCanonicalUrl(url);
 	const webPageId = `${canonical}#webpage`;
 
+	const targetProduct = getCompareProduct(slug);
 	const faqItems = buildAlternativesDetailFaqItems({
 		targetName: detailVm.targetName,
 		targetSlug: detailVm.targetSlug,
-		isDirectoryTarget: detailVm.isDirectoryTarget
+		isDirectoryTarget: detailVm.isDirectoryTarget,
+		faqSwitchTitle: targetProduct?.alternativesSeo?.faqSwitchTitle
 	});
 
 	const onPageNavSections = buildAlternativesDetailNavSections(

@@ -51,6 +51,10 @@ import {
 } from '$lib/area-public/constants/getRootPathPublicAlternatives';
 import { getRootPathPublicComparePair } from '$lib/area-public/constants/getRootPathPublicCompare';
 import { publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+import {
+	buildAlternativesDetailMetaDescription,
+	buildAlternativesDetailMetaTitle
+} from '$lib/content/utils/buildProgrammaticSeoTitles';
 
 export type AlternativesHubEntryViewModel = {
 	slug: CompareProductSlug;
@@ -306,12 +310,19 @@ export class PublicAlternativesPagePresenter {
 		const alternativeCountLabel =
 			listings.length === 1 ? '1 top alternative' : `${listings.length} top alternatives`;
 
+		const peerNames = listings.slice(0, 4).map((listing) => listing.name);
+		const alternativesCategory = isDirectoryTarget
+			? ('directory_submission' as const)
+			: ('social_scheduling' as const);
+
 		const metaTitle = isOpenQuokTarget
 			? 'Best OpenQuok Alternatives'
-			: `Best ${targetProduct.name} Alternatives`;
+			: (targetProduct.alternativesSeo?.metaTitle ??
+				buildAlternativesDetailMetaTitle(targetProduct.name, alternativesCategory));
 		const metaDescription = isOpenQuokTarget
 			? `Compare alternatives to OpenQuok. See social schedulers and directory submission services. Compare prices, channels, and agent tools. See ${alternativeCountLabel}.`
-			: `Compare alternatives to ${targetProduct.name}. See ranked schedulers with prices, channels, and agent tools. OpenQuok is the open-source option with a $0 self-host software fee or a 7-day hosted trial. See ${alternativeCountLabel}.`;
+			: (targetProduct.alternativesSeo?.metaDescription ??
+				buildAlternativesDetailMetaDescription(targetProduct.name, peerNames));
 
 		return {
 			metaTitle,

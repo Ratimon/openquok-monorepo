@@ -21,6 +21,6 @@ export const blueskyPublicApiPostingPlatform: PublicApiPlatformPageViewModel =
 			'Publish Bluesky posts with text, images, video, link cards, and follow-up replies through POST /public/posts.',
 		metaTitle: 'Bluesky Posting API',
 		metaDescription:
-			'Post to Bluesky with OpenQuok POST /public/posts. Text, media, mentions, and threaded follow-ups from one JSON payload.',
+			'Start a free trial and post to Bluesky with OpenQuok POST /public/posts. Send text, media, mentions, and threaded follow-ups from one JSON payload.',
 		keywords: KEYWORDS
 	});

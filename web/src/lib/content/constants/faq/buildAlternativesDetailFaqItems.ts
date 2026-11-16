@@ -16,12 +16,26 @@ import {
 	publicFaqHref
 } from '$lib/content/utils/publicFaqLinks';
 import { route } from '$lib/utils/path';
+import { buildAlternativesSwitchFaqTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
 
 export type BuildAlternativesDetailFaqItemsParams = {
 	targetName: string;
 	targetSlug: CompareProductSlug;
 	isDirectoryTarget: boolean;
+	/** From `CompareProduct.alternativesSeo.faqSwitchTitle` when set. */
+	faqSwitchTitle?: string;
 };
+
+function resolveAlternativesSwitchFaqTitle(params: BuildAlternativesDetailFaqItemsParams): string {
+	if (params.faqSwitchTitle) return params.faqSwitchTitle;
+	if (params.targetSlug === COMPARE_HUB_BASE_SLUG) {
+		return 'What are common OpenQuok alternatives?';
+	}
+	if (params.isDirectoryTarget) {
+		return `Why switch from ${params.targetName} to OpenQuok?`;
+	}
+	return buildAlternativesSwitchFaqTitle(params.targetName);
+}
 
 function buildAlternativesSwitchFaqItem(
 	params: BuildAlternativesDetailFaqItemsParams
@@ -30,7 +44,7 @@ function buildAlternativesSwitchFaqItem(
 
 	if (targetSlug === COMPARE_HUB_BASE_SLUG) {
 		return {
-			title: 'What are common OpenQuok alternatives?',
+			title: resolveAlternativesSwitchFaqTitle(params),
 			description:
 				`Teams evaluate other social schedulers when they want a different pricing model, channel list, or hosted-only workflow. They also look at directory submission services when they prefer done-for-you listings over DIY launch in OpenQuok. Use the ranked list on this page and ${faqLink(publicFaqHref.compare, 'compare hub')} links for side-by-side matrices.`
 		};
@@ -41,7 +55,7 @@ function buildAlternativesSwitchFaqItem(
 
 	if (isDirectoryTarget) {
 		return {
-			title: `Why switch from ${targetName} to OpenQuok?`,
+			title: resolveAlternativesSwitchFaqTitle(params),
 			description:
 				`Done-for-you directory services charge per site and set the pace. OpenQuok DIY directory launch keeps listings in your workspace with profile reuse and the browser extension. You submit on each directory site yourself. Compare on ${faqLink(compareHref, compareLabel)} and see ranked picks on ${faqLink(route(getRootPathPublicAlternativesTarget(targetSlug)), `alternatives to ${targetName}`)}.`
 		};
@@ -49,14 +63,14 @@ function buildAlternativesSwitchFaqItem(
 
 	if (targetSlug === 'postiz') {
 		return {
-			title: `Why switch from ${targetName} to OpenQuok?`,
+			title: resolveAlternativesSwitchFaqTitle(params),
 			description:
 				`Teams leave ${targetName} when cloud channel caps, one workspace, or server-side Reddit publishing no longer fit. OpenQuok keeps Reddit as drafts you submit on reddit.com — see ${faqLink(publicFaqHref.blogRedditAgents, 'AI agents for Reddit: promote without getting banned')}. For a full open-source comparison (AGPL, MIT skills, kanban, directory autofill), read ${faqLink(publicFaqHref.blogOpenquokVsPostiz, 'OpenQuok vs Postiz: two open-source schedulers, different strengths')}. Compare on ${faqLink(compareHref, compareLabel)} or use the ranked list on this page.`
 		};
 	}
 
 	return {
-		title: `Why switch from ${targetName} to OpenQuok?`,
+		title: resolveAlternativesSwitchFaqTitle(params),
 		description:
 			`Many teams outgrow ${targetName} when they need separate workspaces, agent MCP and CLI scheduling, or a public API with approval before publish. OpenQuok is open source with the same calendar workflow when you post by hand. Compare on ${faqLink(compareHref, compareLabel)}, or use the ranked list on this page. Browse ${faqLink(publicFaqHref.compare, 'all comparisons')} for other schedulers.`
 	};

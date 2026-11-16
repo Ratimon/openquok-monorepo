@@ -7,6 +7,10 @@ import {
 	SHARED_CHANNEL_SEO_KEYWORDS
 } from '$lib/content/constants/channels/catalog/shared';
 import {
+	buildSchedulingCommercialChannelMetaDescription,
+	buildSchedulingCommercialChannelMetaTitle
+} from '$lib/content/utils/buildProgrammaticSeoTitles';
+import {
 	buildChannelFreeTrialFaqDescription,
 	buildChannelProgrammaticSchedulingFaqDescription,
 	buildChannelProgrammaticSchedulingFaqTitle,
@@ -27,9 +31,13 @@ export const blueskyChannel = {
 	heroTitle: 'Schedule Bluesky posts, links, media, and replies',
 	heroDescription:
 		'Connect Bluesky with an app password. Schedule posts and media on your calendar. @mentions and links in your caption work when the post goes live. Turn on link previews in post Settings for text-only posts. Add follow-up replies and approve each post before it publishes.',
-	metaTitle: 'Bluesky Post Scheduler — Text, Media, Links, and Replies',
-	metaDescription:
-		'Schedule Bluesky posts with OpenQuok. App-password connect (custom PDS supported). Queue 300-grapheme text, optional link cards and quotes, @mentions, up to four images or one MP4 (300 MB, 10 min), follow-up replies, and analytics. Dashboard, public API, CLI, or MCP.',
+	metaTitle: buildSchedulingCommercialChannelMetaTitle('Bluesky'),
+	metaDescription: buildSchedulingCommercialChannelMetaDescription({
+		platformLabel: 'Bluesky',
+		connectClause: 'Connect in Add Channel with an app password (custom PDS supported).',
+		featureClause:
+			'Queue 300-grapheme text, link cards, @mentions, up to four images or one MP4, follow-up replies, and analytics from the dashboard, public API, CLI, or MCP.'
+	}),
 	hubDescription:
 		'300-grapheme posts with @mentions, optional link cards, and up to four images or one MP4. Same-account reply chains and workspace analytics.',
 	keywords: [
@@ -169,7 +177,7 @@ export const blueskyChannel = {
 				`Yes. Open workspace ${faqLink(faqHrefDocs('insights/workspace-analytics'), 'Analytics')} to see likes, replies, reposts, and quotes summed by day for your connected account. Open ${faqLink(faqHrefDocs('insights/per-post-metrics'), 'Statistics')} on a published post for per-post engagement from the public App View API.`
 		},
 		{
-			title: 'Is there a free trial for Bluesky scheduling?',
+			title: 'Is there a Bluesky scheduler free trial?',
 			description: buildChannelFreeTrialFaqDescription({
 				connectPhrase: 'Connect Bluesky in our web dashboard with an app password',
 				activityPhrase: 'schedule posts, and explore API access'

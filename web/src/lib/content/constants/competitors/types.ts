@@ -152,6 +152,12 @@ export type CompareProduct = {
 	directoryLongForm?: CompareDirectoryLongFormContent;
 	/** Optional override for `/alternatives/{slug}` long-form (social schedulers). */
 	alternativesLongForm?: CompareDirectoryLongFormContent;
+	/** Optional SERP overrides for `/alternatives/{slug}` meta and first FAQ title. */
+	alternativesSeo?: {
+		metaTitle?: string;
+		metaDescription?: string;
+		faqSwitchTitle?: string;
+	};
 	/** Done-for-you directory vendors: bulk package copy when they do not publish a site list. */
 	directoryCoverageSummary?: string;
 };

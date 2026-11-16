@@ -19,9 +19,9 @@ export const blueskyPublicApiSchedulingPlatform: PublicApiPlatformPageViewModel 
 		formatExamples: PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM[SLUG].scheduling,
 		heroDescription:
 			'Schedule Bluesky posts for a future publish time. Send scheduledAt in UTC, queue media and reply chains, and let OpenQuok publish through your PDS.',
-		metaTitle: 'Bluesky Scheduling API — Queue Posts with POST /public/posts',
+		metaTitle: 'Bluesky Scheduling API — Free Trial, Queue with POST /public/posts',
 		metaDescription:
-			'Schedule Bluesky posts with OpenQuok POST /public/posts. Queue text, images, video, and follow-up replies with scheduledAt in UTC.',
+			'Start a free trial and schedule Bluesky posts with OpenQuok POST /public/posts. Queue text, images, video, and follow-up replies with scheduledAt in UTC.',
 		faqDescription:
 			'Connect your Bluesky account with your app password, set scheduledAt in UTC, and automate posts you approve — not a resale flow for unrelated users’ credentials.',
 		keywords: KEYWORDS

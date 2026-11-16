@@ -21,9 +21,9 @@ export const thinkrailAgent = {
 	agentLabel: 'ThinkRail',
 	icon: icons.ThinkRail.name,
 	available: true,
-	metaTitle: 'ThinkRail Social Scheduling — pi Agent, Git Worktrees & CLI',
+	metaTitle: 'ThinkRail — pi Agent, Git Worktrees & Social Scheduling',
 	metaDescription:
-		'ThinkRail is a worktree IDE for the pi coding agent. Install openquok-core in .pi/skills and schedule Facebook, X, Dev.to, and more from Monaco and worktree terminals. You approve on the calendar or kanban.',
+		'ThinkRail is a git worktree IDE for the pi coding agent. Install openquok-core in a worktree, run the CLI, and schedule Facebook, X, Dev.to, and more from Monaco or terminal chat. You approve posts on OpenQuok.',
 	hubDescription:
 		'ThinkRail scopes pi, terminals, and diffs per git worktree. Add openquok-core, run the CLI in that branch, and schedule social posts. You approve on OpenQuok.',
 	keywords: [

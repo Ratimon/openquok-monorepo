@@ -39,7 +39,7 @@ const directorySubmissionToolHref = route(getRootPathPublicDirectorySubmissionTo
 export const PUBLIC_ALTERNATIVES_HUB = {
 	metaTitle: 'Best Social Media Scheduler and Directory Alternatives in 2026',
 	metaDescription:
-		'Compare the best social media scheduler and directory submission alternatives in 2026. Ranked pages cover Buffer, Hootsuite, Later, BoringLaunch, and peers with list prices and compare links.',
+		'Later, Buffer, Socialync, and Recurpost alternatives — ranked scheduler pages with list prices and head-to-head compare links. Browse directory submission peers, sort by price or platform count, then open each target for detail.',
 	keywords: [
 		'social media scheduler alternatives',
 		'directory submission service alternatives',

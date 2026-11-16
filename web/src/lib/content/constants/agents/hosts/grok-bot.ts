@@ -23,9 +23,9 @@ export const grokBotAgent = {
 	agentLabel: 'Grok Bot',
 	icon: icons.GrokBot.name,
 	available: true,
-	metaTitle: 'Grok Bot Social Scheduling — Cloud Computer & xAI Teammate',
+	metaTitle: 'Grok Bot — Social Scheduling for X, YouTube & Cloud Teammates',
 	metaDescription:
-		'Install openquok-core on Grok Bot\'s shared cloud computer. Schedule Facebook, X, LinkedIn, and more from macOS, Windows, or iOS chat — Plugins, routines, and CLI. You approve on OpenQuok.',
+		'Grok Bot scheduling: install openquok-core on the shared cloud computer and queue X, YouTube, LinkedIn, and more from macOS, Windows, or iOS chat. Use Plugins, routines, and CLI — you approve every post on OpenQuok.',
 	hubDescription:
 		'Each Grok Bot keeps a persistent cloud computer. Message from desktop or iOS, load openquok-core via Plugins, and schedule social posts. You approve on OpenQuok.',
 	keywords: [

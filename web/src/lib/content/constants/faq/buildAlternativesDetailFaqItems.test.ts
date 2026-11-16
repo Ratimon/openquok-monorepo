@@ -11,7 +11,7 @@ describe('buildAlternativesDetailFaqItems', () => {
 			isDirectoryTarget: false
 		});
 
-		expect(items[0]?.title).toBe('Why switch from Hootsuite to OpenQuok?');
+		expect(items[0]?.title).toBe('What are the best Hootsuite alternatives?');
 		expect(items[0]?.description).toContain('Hootsuite');
 		expect(items[0]?.description).not.toContain('Buffer or Hootsuite');
 		expect(items[0]?.description).toContain(publicFaqHref.compareOpenquokHootsuite);
@@ -37,9 +37,20 @@ describe('buildAlternativesDetailFaqItems', () => {
 			isDirectoryTarget: false
 		});
 
-		expect(items[0]?.title).toBe('Why switch from Postiz to OpenQuok?');
+		expect(items[0]?.title).toBe('What are the best Postiz alternatives?');
 		expect(items[0]?.description).toContain(publicFaqHref.blogOpenquokVsPostiz);
 		expect(items[0]?.description).toContain(publicFaqHref.blogRedditAgents);
+	});
+
+	it('honors faqSwitchTitle override from alternativesSeo', () => {
+		const items = buildAlternativesDetailFaqItems({
+			targetName: 'Later',
+			targetSlug: 'later',
+			isDirectoryTarget: false,
+			faqSwitchTitle: 'Custom Later switch headline'
+		});
+
+		expect(items[0]?.title).toBe('Custom Later switch headline');
 	});
 
 	it('uses an OpenQuok-specific lead question on the OpenQuok alternatives page', () => {

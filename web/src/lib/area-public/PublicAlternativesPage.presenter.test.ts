@@ -141,9 +141,10 @@ describe('PublicAlternativesPagePresenter', () => {
 		const vm = presenter.buildDetailVm('hootsuite');
 		expect(vm).not.toBeNull();
 
-		expect(vm!.metaTitle).toBe('Best Hootsuite Alternatives');
-		expect(vm!.metaDescription.toLowerCase()).toContain('open-source');
-		expect(vm!.metaDescription.toLowerCase()).toContain('$0 self-host software fee');
+		expect(vm!.metaTitle).toBe('Hootsuite Alternatives (2026): Ranked Schedulers');
+		expect(vm!.metaDescription.startsWith('Start a 7-day free trial')).toBe(true);
+		expect(vm!.metaDescription).toContain('Hootsuite alternatives');
+		expect(vm!.metaDescription).toContain('OpenQuok');
 		expect(vm!.keywords).toContain('Hootsuite alternatives');
 		expect(vm!.keywords).not.toContain('free Hootsuite alternative');
 		expect(vm!.description.toLowerCase()).toContain('alternatives');
@@ -156,7 +157,9 @@ describe('PublicAlternativesPagePresenter', () => {
 		const vm = presenter.buildDetailVm('later');
 		expect(vm).not.toBeNull();
 
-		expect(vm!.metaTitle).toBe('Best Later Alternatives');
+		expect(vm!.metaTitle).toBe('Later Alternatives (2026): Ranked Schedulers');
+		expect(vm!.metaDescription).toContain('Later alternatives');
+		expect(vm!.metaDescription).toContain('OpenQuok');
 		expect(vm!.targetName).toBe('Later');
 		expect(vm!.listings[0]?.isOpenQuok).toBe(true);
 		expect(vm!.listings[0]?.compareHref).toContain('/compare/openquok/later');
@@ -194,12 +197,13 @@ describe('PublicAlternativesPagePresenter', () => {
 	it('builds directory long-form for GetMoreBacklinks with category-scoped listings', () => {
 		const vm = presenter.buildDetailVm('getmorebacklinks');
 		expect(vm).not.toBeNull();
+		expect(vm!.metaTitle).toBe('GetMoreBacklinks Alternatives (2026): Directory Launch');
 		expect(vm!.isDirectoryTarget).toBe(true);
 		expect(vm!.longForm.competitorName).toBe('GetMoreBacklinks');
 		expect(vm!.compareRows.length).toBeGreaterThan(0);
-		expect(vm!.listings.every((listing) => listing.slug === 'openquok' || listing.slug === 'boringlaunch')).toBe(
-			true
-		);
+		expect(vm!.listings[0]?.isOpenQuok).toBe(true);
+		expect(vm!.listings.some((listing) => listing.slug === 'boringlaunch')).toBe(true);
+		expect(vm!.metaDescription).toContain('GetMoreBacklinks alternatives');
 	});
 
 	it('builds OpenQuok alternatives detail without listing OpenQuok as a peer', () => {

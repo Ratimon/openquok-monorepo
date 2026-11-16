@@ -136,6 +136,16 @@ describe('compareProductCategories', () => {
 		);
 	});
 
+	it('buildComparePair emits SERP-oriented meta descriptions for social scheduler pairs', () => {
+		const openQuokPair = buildComparePair(openquokCompareProduct, bufferCompareProduct);
+		expect(openQuokPair.metaDescription).toMatch(
+			/^OpenQuok vs Buffer: prices, channels, free trial\./
+		);
+
+		const peerPair = buildComparePair(bufferCompareProduct, openquokCompareProduct);
+		expect(peerPair.metaDescription).toMatch(/^OpenQuok vs Buffer: prices, channels, free trial\./);
+	});
+
 	it('buildComparePair and buildDetailVm attach directory long-form data', () => {
 		const pair = buildComparePair(openquokCompareProduct, boringlaunchCompareProduct);
 		expect(pair.layout).toBe('directory_long_form');

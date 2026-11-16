@@ -12,7 +12,10 @@ import {
 	PUBLIC_COMPARE_DETAIL_DIRECTORY_FAQ_ITEM_IDS,
 	PUBLIC_COMPARE_DETAIL_SOCIAL_FAQ_ITEM_IDS
 } from '$lib/content/constants/faq';
-import { buildComparePairMetaTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
+import {
+	buildComparePairMetaDescription,
+	buildComparePairMetaTitle
+} from '$lib/content/utils/buildProgrammaticSeoTitles';
 
 export function buildComparePair(left: CompareProduct, right: CompareProduct): ComparePair {
 	const layout = resolveComparePairLayout(left, right);
@@ -25,7 +28,7 @@ export function buildComparePair(left: CompareProduct, right: CompareProduct): C
 		layout,
 		longForm: buildCompareLongFormForPair(left, right) ?? undefined,
 		metaTitle: buildComparePairMetaTitle(left, right, layout),
-		metaDescription: buildCompareMetaDescription(left, right, layout),
+		metaDescription: buildComparePairMetaDescription(left, right, layout),
 		keywords: buildCompareKeywords(left, right, layout),
 		heroTitle: buildHeroTitle(left, right, layout),
 		heroDescription: buildHeroDescription(left, right, layout),
@@ -38,23 +41,6 @@ export function buildComparePair(left: CompareProduct, right: CompareProduct): C
 				? [...PUBLIC_COMPARE_DETAIL_CROSS_PRODUCT_LINE_FAQ_ITEM_IDS]
 				: [...PUBLIC_COMPARE_DETAIL_SOCIAL_FAQ_ITEM_IDS]
 	};
-}
-
-function buildCompareMetaDescription(
-	left: CompareProduct,
-	right: CompareProduct,
-	layout: ComparePair['layout']
-): string {
-	if (layout === 'directory_long_form') {
-		return `Compare ${left.name} and ${right.name} for startup directory launch — done-for-you packages vs DIY profiles, extension autofill, and submission tracking. ${buildCompareAlternativeClosing(left, right, layout)}`;
-	}
-
-	if (layout === 'cross_product_line') {
-		return `Compare ${left.name} and ${right.name} across product lines — social scheduling vs directory launch. See which job each tool covers, then open category compares for pricing and features.`;
-	}
-
-	const comparisonCore = `Compare prices, channels, workspaces, agent tools, and scheduling features for ${left.name} and ${right.name}.`;
-	return `${comparisonCore} ${buildCompareAlternativeClosing(left, right, layout)}`;
 }
 
 function buildCompareAlternativeClosing(
