@@ -136,8 +136,8 @@ export const geminiAgent = {
 			title: 'MCP in Connected Apps, workspace token, tasks on web and mobile',
 			description:
 				'Paste the hosted OpenQuok MCP URL once in gemini.google.com. Gemini Task threads on phone and desktop can call the same tools. Rotate tokens from Developers → Access if you revoke access.',
-			deviceMock: 'desktop',
-			deviceMockContent: 'openquok-login',
+			deviceMock: 'safari',
+			deviceMockContent: 'gemini-docs-overview',
 			imageAlt: 'Gemini Connected Apps guiding OpenQuok MCP setup',
 			mediaOnRight: true,
 			cliCommandsTitle: 'MCP URL (from Developers → Access)',

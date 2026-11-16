@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import { AGENT_HOST_FIRST_CLASS_CHANNEL_BADGE } from '$lib/content/constants/agents/ecosystems';
-import { listPublicAgentChannelsForHub } from '$lib/content/constants/agents/channels';
+import {
+	getPublicAgentChannelBySlug,
+	listPublicAgentChannelsForHub
+} from '$lib/content/constants/agents/channels';
 
 describe('listPublicAgentChannelsForHub', () => {
 	it('sorts Meta Muse first-class channels first and sets badge labels', () => {
@@ -29,5 +32,17 @@ describe('listPublicAgentChannelsForHub', () => {
 		expect(slugs).toContain('peerpush');
 		expect(slugs).toContain('uneed');
 		expect(slugs).toContain('threads');
+	});
+
+	it('includes directory launch channels for Gemini Task', () => {
+		const links = listPublicAgentChannelsForHub('gemini');
+		const slugs = links.map((link) => link.slug);
+		expect(slugs).toContain('peerpush');
+		expect(slugs).toContain('open-launch');
+		expect(slugs).toContain('threads');
+	});
+
+	it('resolves Gemini Task × PeerPush channel page', () => {
+		expect(getPublicAgentChannelBySlug('gemini', 'peerpush')).toBeDefined();
 	});
 });
