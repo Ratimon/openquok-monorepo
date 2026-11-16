@@ -58,8 +58,11 @@ export * from '$lib/content/constants/competitors/utils/comparePricing';
 export {
 	canCompareProducts,
 	getCompareProductCategory,
+	isCrossProductLineComparePair,
 	isDirectoryOnlyCompareProduct,
-	resolveComparePairLayout
+	isSocialOnlyCompareProduct,
+	resolveComparePairLayout,
+	resolveSocialAndDirectoryProducts
 } from '$lib/content/constants/competitors/utils/compareProductCategories';
 export { openquokCompareProduct } from '$lib/content/constants/competitors/scheduler/openquok';
 export { hopperHqCompareProduct } from '$lib/content/constants/competitors/scheduler/hopper-hq';

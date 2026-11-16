@@ -38,6 +38,7 @@
 		directoryCoverageSection: CompareDirectoryCoverageViewModel | null;
 		withWithoutSection: PublicAgentComparisonSection;
 		isDirectoryCompare: boolean;
+		isCrossProductLine?: boolean;
 		compareNamePrimaryClass: string;
 		compareNameAccentClass: string;
 		iconStyleForProduct: (slug: CompareProductSlug) => {
@@ -61,6 +62,7 @@
 		directoryCoverageSection,
 		withWithoutSection,
 		isDirectoryCompare,
+		isCrossProductLine = false,
 		compareNamePrimaryClass,
 		compareNameAccentClass,
 		iconStyleForProduct,
@@ -86,12 +88,18 @@
 	);
 
 	const featureComparisonTitle = $derived(
-		isDirectoryCompare ? 'Directory launch features' : 'Feature comparison'
+		isCrossProductLine
+			? 'Shared product features'
+			: isDirectoryCompare
+				? 'Directory launch features'
+				: 'Feature comparison'
 	);
 	const featureComparisonDescription = $derived(
-		isDirectoryCompare
-			? 'See which directory tools each option includes.'
-			: 'See which features each product includes, limits, or omits.'
+		isCrossProductLine
+			? 'Only rows that apply to both product lines appear here. Use the social and directory sections for category-specific features.'
+			: isDirectoryCompare
+				? 'See which directory tools each option includes.'
+				: 'See which features each product includes, limits, or omits.'
 	);
 </script>
 

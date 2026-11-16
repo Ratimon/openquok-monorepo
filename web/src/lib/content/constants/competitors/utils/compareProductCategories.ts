@@ -12,9 +12,44 @@ export function categoriesOverlap(
 	return left.some((category) => right.includes(category));
 }
 
+export function isSocialOnlyCompareProduct(product: CompareProduct): boolean {
+	return (
+		product.categories.length === 1 && product.categories[0] === 'social_scheduling'
+	);
+}
+
+/** Social scheduler vs directory submission service (neither product is OpenQuok). */
+export function isCrossProductLineComparePair(
+	left: CompareProduct,
+	right: CompareProduct
+): boolean {
+	return (
+		(isSocialOnlyCompareProduct(left) && isDirectoryOnlyCompareProduct(right)) ||
+		(isDirectoryOnlyCompareProduct(left) && isSocialOnlyCompareProduct(right))
+	);
+}
+
+export function resolveSocialAndDirectoryProducts(
+	left: CompareProduct,
+	right: CompareProduct
+): { social: CompareProduct; directory: CompareProduct } | null {
+	const social = isSocialOnlyCompareProduct(left)
+		? left
+		: isSocialOnlyCompareProduct(right)
+			? right
+			: null;
+	const directory = isDirectoryOnlyCompareProduct(left)
+		? left
+		: isDirectoryOnlyCompareProduct(right)
+			? right
+			: null;
+	if (!social || !directory) return null;
+	return { social, directory };
+}
+
 export function canCompareProducts(left: CompareProduct, right: CompareProduct): boolean {
 	if (left.slug === right.slug) return false;
-	return categoriesOverlap(left.categories, right.categories);
+	return categoriesOverlap(left.categories, right.categories) || isCrossProductLineComparePair(left, right);
 }
 
 /** Primary category for SEO copy: directory-only products vs everything else. */
@@ -34,6 +69,10 @@ export function resolveComparePairLayout(
 	left: CompareProduct,
 	right: CompareProduct
 ): ComparePairLayout {
+	if (isCrossProductLineComparePair(left, right)) {
+		return 'cross_product_line';
+	}
+
 	const directoryPair =
 		isDirectoryOnlyCompareProduct(left) || isDirectoryOnlyCompareProduct(right);
 	if (!directoryPair) return 'social_matrix';

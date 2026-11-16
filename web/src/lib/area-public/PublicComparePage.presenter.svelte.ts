@@ -162,9 +162,12 @@ export class PublicComparePagePresenter {
 		if (!leftProduct || !rightProduct) return null;
 
 		const isDirectoryLongForm = pair.layout === 'directory_long_form';
+		const isCrossProductLine = pair.layout === 'cross_product_line';
 		const compareRowSource = isDirectoryLongForm
 			? PUBLIC_PRICING_COMPARE_ROWS.filter((row) => row.line === 'directory')
-			: PUBLIC_PRICING_COMPARE_ROWS;
+			: isCrossProductLine
+				? PUBLIC_PRICING_COMPARE_ROWS.filter((row) => row.line === 'shared')
+				: PUBLIC_PRICING_COMPARE_ROWS;
 
 		const compareRows = compareRowSource.map((row) => ({
 			id: row.id,
@@ -179,13 +182,26 @@ export class PublicComparePagePresenter {
 			? insertDirectoryLaunchDrGuaranteeFaqItems(
 					faqItemIds.length ? resolvePublicFaqItemsByIds(faqItemIds) : []
 				)
-			: buildCompareDetailSocialFaqItems(leftProduct.slug, rightProduct.slug, faqItemIds);
+			: isCrossProductLine
+				? resolvePublicFaqItemsByIds(faqItemIds)
+				: buildCompareDetailSocialFaqItems(leftProduct.slug, rightProduct.slug, faqItemIds);
 
 		const relatedCategory = isDirectoryLongForm
 			? ('directory_submission' as const)
-			: ('social_scheduling' as const);
-		const relatedPairs = listComparePairsForHub(COMPARE_HUB_BASE_SLUG, relatedCategory)
-			.filter((hubPair) => hubPair.productBSlug !== pair.productBSlug)
+			: isCrossProductLine
+				? undefined
+				: ('social_scheduling' as const);
+		const relatedPairs = (relatedCategory
+			? listComparePairsForHub(COMPARE_HUB_BASE_SLUG, relatedCategory)
+			: listComparePairsForHub(COMPARE_HUB_BASE_SLUG, 'social_scheduling')
+					.slice(0, 3)
+					.concat(listComparePairsForHub(COMPARE_HUB_BASE_SLUG, 'directory_submission').slice(0, 2))
+		)
+			.filter(
+				(hubPair) =>
+					hubPair.productBSlug !== pair.productBSlug &&
+					hubPair.productBSlug !== pair.productASlug
+			)
 			.map((hubPair) => {
 				const pairProduct = getCompareProduct(hubPair.productBSlug);
 				return {

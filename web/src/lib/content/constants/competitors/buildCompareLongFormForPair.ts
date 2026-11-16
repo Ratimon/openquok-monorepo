@@ -10,6 +10,7 @@ import {
 	buildDefaultSocialAlternativesLongFormContent
 } from '$lib/content/constants/competitors/buildCompareLongFormSections';
 import { COMPARE_HUB_BASE_SLUG } from '$lib/content/constants/competitors/shared';
+import { buildCrossProductLineLongFormViewModel } from '$lib/content/constants/competitors/buildCrossProductLineCompare';
 import { resolveComparePairLayout } from '$lib/content/constants/competitors/utils/compareProductCategories';
 
 function resolveOpenQuokAndFocus(
@@ -88,6 +89,10 @@ export function buildCompareLongFormForPair(
 ): CompareDetailLongFormViewModel | null {
 	const layout = resolveComparePairLayout(left, right);
 	const { openQuok, focus } = resolveOpenQuokAndFocus(left, right);
+
+	if (layout === 'cross_product_line') {
+		return buildCrossProductLineLongFormViewModel(left, right);
+	}
 
 	if (layout === 'directory_long_form' && focus.directoryLongForm && openQuok) {
 		return assembleDirectoryLongFormViewModel({

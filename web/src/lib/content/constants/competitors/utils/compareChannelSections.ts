@@ -8,6 +8,10 @@ import {
 	COMPARE_CHANNELS_SECTION,
 	buildCompareChannelPoints
 } from '$lib/content/constants/competitors/shared';
+import {
+	isCrossProductLineComparePair,
+	resolveSocialAndDirectoryProducts
+} from '$lib/content/constants/competitors/utils/compareProductCategories';
 
 export const COMPARE_SOCIAL_CHANNELS_SECTION = {
 	subtitle: 'Supported social channels',
@@ -91,6 +95,30 @@ export function buildCompareDirectoryCoverageSection(
 	};
 }
 
+function buildCrossProductLineDirectoryCoverageSection(
+	left: CompareProduct,
+	right: CompareProduct
+): CompareDirectoryCoverageViewModel | null {
+	const resolved = resolveSocialAndDirectoryProducts(left, right);
+	if (!resolved) return null;
+
+	const { social, directory } = resolved;
+	const directorySummary =
+		directory.directoryCoverageSummary ??
+		`${directory.name} sells directory submission packages. Verify package scope on the vendor site.`;
+
+	return {
+		...COMPARE_DIRECTORY_COVERAGE_SECTION,
+		description:
+			'Directory services submit or guide listings. Social schedulers publish recurring posts. See how each product maps to these jobs.',
+		withTitle: directory.name,
+		withoutTitle: social.name,
+		launchPlatforms: [],
+		competitorSummary: `${social.name} is a social scheduler. It focuses on ${social.comparison.builtFor}. It does not include done-for-you directory submissions.`,
+		openQuokFootnote: directorySummary
+	};
+}
+
 export function buildCompareChannelSectionsForPair(
 	left: CompareProduct,
 	right: CompareProduct
@@ -98,6 +126,13 @@ export function buildCompareChannelSectionsForPair(
 	socialChannelsSection: PublicAgentComparisonSection | null;
 	directoryCoverageSection: CompareDirectoryCoverageViewModel | null;
 } {
+	if (isCrossProductLineComparePair(left, right)) {
+		return {
+			socialChannelsSection: buildCompareSocialChannelsSection(left, right),
+			directoryCoverageSection: buildCrossProductLineDirectoryCoverageSection(left, right)
+		};
+	}
+
 	return {
 		socialChannelsSection: buildCompareSocialChannelsSection(left, right),
 		directoryCoverageSection: buildCompareDirectoryCoverageSection(left, right)

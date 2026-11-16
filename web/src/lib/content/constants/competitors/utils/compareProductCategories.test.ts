@@ -39,13 +39,21 @@ describe('compareProductCategories', () => {
 		).toBe(true);
 	});
 
-	it('canCompareProducts rejects same slug and cross-category pairs', () => {
+	it('canCompareProducts rejects same slug and allows cross product line pairs', () => {
 		expect(canCompareProducts(openquokCompareProduct, openquokCompareProduct)).toBe(false);
 		expect(canCompareProducts(openquokCompareProduct, bufferCompareProduct)).toBe(true);
 
-		const socialOnly = { ...directoryOnlyProduct, categories: ['social_scheduling'] as const };
-		const directoryOnly = { ...directoryOnlyProduct, categories: ['directory_submission'] as const };
-		expect(canCompareProducts(socialOnly, directoryOnly)).toBe(false);
+		const socialOnly = {
+			...directoryOnlyProduct,
+			slug: 'buffer' as const,
+			categories: ['social_scheduling'] as const
+		};
+		const directoryOnly = {
+			...directoryOnlyProduct,
+			slug: 'boringlaunch' as const,
+			categories: ['directory_submission'] as const
+		};
+		expect(canCompareProducts(socialOnly, directoryOnly)).toBe(true);
 	});
 
 	it('getCompareProductCategory prefers directory when that is the only category', () => {
@@ -85,9 +93,16 @@ describe('compareProductCategories', () => {
 		expect(directory.map((product) => product.slug)).toEqual(['openquok']);
 	});
 
-	it('getComparePair returns null for unknown or incompatible slugs', () => {
-		expect(getComparePair('buffer', 'boringlaunch')).toBeNull();
-		expect(canCompareProducts(bufferCompareProduct, directoryOnlyProduct)).toBe(false);
+	it('getComparePair returns null for unknown slugs and resolves cross product line pairs', () => {
+		const crossPair = getComparePair('buffer', 'boringlaunch');
+		expect(crossPair).not.toBeNull();
+		expect(crossPair!.layout).toBe('cross_product_line');
+
+		const postizLaunchrepo = getComparePair('postiz', 'launchrepo');
+		expect(postizLaunchrepo).not.toBeNull();
+		expect(postizLaunchrepo!.layout).toBe('cross_product_line');
+
+		expect(getComparePair('not-a-slug', 'buffer')).toBeNull();
 	});
 
 	it('listComparePairsForHub scopes directory_submission to directory peers only', () => {

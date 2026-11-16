@@ -16,8 +16,9 @@ describe('listSitemapCompareAndAgentChannelPaths', () => {
 		expect(compare).toContain('/compare/openquok/buffer');
 	});
 
-	it('does not emit cross-category or invalid compare pairs', () => {
-		expect(compare).not.toContain('/compare/buffer/boringlaunch');
+	it('includes cross product line compare pairs that resolve with getComparePair', () => {
+		expect(compare).toContain('/compare/boringlaunch/buffer');
+		expect(compare).toContain('/compare/launchrepo/postiz');
 	});
 
 	it('has no duplicate compare paths', () => {

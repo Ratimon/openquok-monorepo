@@ -165,6 +165,10 @@ export function buildComparePairMetaTitle(
 	right: CompareProduct,
 	layout: ComparePairLayout = 'social_matrix'
 ): string {
+	if (layout === 'cross_product_line') {
+		return `${left.name} vs ${right.name}: Scheduler vs Directory Service`;
+	}
+
 	if (layout === 'directory_long_form') {
 		if (left.slug === COMPARE_HUB_BASE_SLUG) {
 			return `${left.name} vs ${right.name}: Directory Launch Comparison`;

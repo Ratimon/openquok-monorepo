@@ -28,28 +28,34 @@
 	<div class="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-2">
 		<div class="rounded-2xl bg-success/15 p-6 text-success">
 			<h3 class="text-lg font-bold">{coverage.withTitle}</h3>
-			<p class="mt-2 text-sm text-success/90">Wired directory launch (extension autofill)</p>
-			<ul class="mt-4 space-y-3">
-				{#each coverage.launchPlatforms as platform (platform.label)}
-					<li class="flex items-center gap-2 text-base text-success">
-						<AbstractIcon
-							name={icons.Check.name}
-							width="16"
-							height="16"
-							class="shrink-0 opacity-80"
-							aria-hidden="true"
-						/>
-						<AbstractIcon
-							name={platform.icon}
-							width="20"
-							height="20"
-							class="shrink-0"
-							aria-hidden="true"
-						/>
-						<span>{platform.label}</span>
-					</li>
-				{/each}
-			</ul>
+			<p class="mt-2 text-sm text-success/90">
+				{coverage.launchPlatforms.length > 0
+					? 'Wired directory launch (extension autofill)'
+					: 'Directory submission focus'}
+			</p>
+			{#if coverage.launchPlatforms.length > 0}
+				<ul class="mt-4 space-y-3">
+					{#each coverage.launchPlatforms as platform (platform.label)}
+						<li class="flex items-center gap-2 text-base text-success">
+							<AbstractIcon
+								name={icons.Check.name}
+								width="16"
+								height="16"
+								class="shrink-0 opacity-80"
+								aria-hidden="true"
+							/>
+							<AbstractIcon
+								name={platform.icon}
+								width="20"
+								height="20"
+								class="shrink-0"
+								aria-hidden="true"
+							/>
+							<span>{platform.label}</span>
+						</li>
+					{/each}
+				</ul>
+			{/if}
 			<p class="mt-4 text-sm leading-relaxed text-success/85">{coverage.openQuokFootnote}</p>
 		</div>
 

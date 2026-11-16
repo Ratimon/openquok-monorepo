@@ -68,7 +68,7 @@ export type CompareDirectoryLongFormContent = {
 	whenTheyWin: CompareLongFormSection;
 };
 
-export type ComparePairLayout = 'social_matrix' | 'directory_long_form';
+export type ComparePairLayout = 'social_matrix' | 'directory_long_form' | 'cross_product_line';
 
 /** Sticky long-form compare detail (directory submission pairs). */
 export type CompareDetailLongFormViewModel = {

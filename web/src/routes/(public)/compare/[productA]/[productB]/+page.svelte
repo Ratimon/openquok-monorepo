@@ -52,6 +52,7 @@
 	let faqItems = $derived(detailVm.faqItems);
 	let relatedPairs = $derived(detailVm.relatedPairs);
 	let isDirectoryLongForm = $derived(detailVm.layout === 'directory_long_form');
+	let isCrossProductLine = $derived(detailVm.layout === 'cross_product_line');
 	let longForm = $derived(detailVm.longForm);
 	let navSections = $derived(
 		longForm
@@ -81,9 +82,11 @@
 			iconContainerClass:
 				'bg-linear-to-br from-violet-400/25 via-fuchsia-300/18 to-indigo-300/20 text-violet-100 ring-violet-300/30',
 			href: compareHubPath,
-			description: isDirectoryLongForm
-				? 'See all directory submission comparisons.'
-				: 'See all scheduler comparisons.',
+			description: isCrossProductLine
+				? 'See all social and directory comparisons on the compare hub.'
+				: isDirectoryLongForm
+					? 'See all directory submission comparisons.'
+					: 'See all scheduler comparisons.',
 			ctaLabel: 'Open'
 		},
 		...relatedPairs.map((pair) => ({
@@ -233,6 +236,7 @@
 						{directoryCoverageSection}
 						{withWithoutSection}
 						isDirectoryCompare={isDirectoryLongForm}
+						{isCrossProductLine}
 						{compareNamePrimaryClass}
 						{compareNameAccentClass}
 						iconStyleForProduct={(slug) => iconStyleForProduct(slug)}
@@ -247,9 +251,11 @@
 						headingId="compare-more-comparisons"
 						subtitle="next steps"
 						title="More comparisons"
-						description={isDirectoryLongForm
-							? 'Open more directory submission comparisons.'
-							: 'Open more product comparisons. Find a scheduler that fits your team.'}
+						description={isCrossProductLine
+							? 'Open category compares for schedulers and directory services.'
+							: isDirectoryLongForm
+								? 'Open more directory submission comparisons.'
+								: 'Open more product comparisons. Find a scheduler that fits your team.'}
 						items={moreComparisonItems}
 						getItemKey={(item) => item.id}
 						sectionClass="pt-20 pb-0 scroll-mt-24"

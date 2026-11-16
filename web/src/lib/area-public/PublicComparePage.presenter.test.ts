@@ -65,7 +65,20 @@ describe('PublicComparePagePresenter — directory compare smoke', () => {
 		);
 	});
 
-	it('does not build a detail VM for cross-category Buffer vs BoringLaunch', () => {
-		expect(getComparePair('buffer', 'boringlaunch')).toBeNull();
+	it('builds a cross product line detail VM for Buffer vs BoringLaunch', () => {
+		const pair = getComparePair('buffer', 'boringlaunch');
+		expect(pair).not.toBeNull();
+		expect(pair!.layout).toBe('cross_product_line');
+
+		const vm = presenter.buildDetailVm(pair!);
+		expect(vm).not.toBeNull();
+		expect(vm!.layout).toBe('cross_product_line');
+		expect(vm!.channelsSection).not.toBeNull();
+		expect(vm!.directoryCoverageSection).not.toBeNull();
+		expect(vm!.compareRows.length).toBeGreaterThan(0);
+		expect(vm!.compareRows.every((row) => !row.id.startsWith('directory_'))).toBe(true);
+		expect(vm!.faqItems.some((item) => item.id === 'compare-both-social-and-directory')).toBe(
+			true
+		);
 	});
 });

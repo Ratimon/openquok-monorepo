@@ -1,10 +1,14 @@
 import type { PublicAgentComparisonSection } from '$lib/content/constants/agents/types';
 import type { ComparePair, CompareProduct } from '$lib/content/constants/competitors/types';
 
+import {
+	buildCrossProductLineWithWithoutSection
+} from '$lib/content/constants/competitors/buildCrossProductLineCompare';
 import { buildCompareLongFormForPair } from '$lib/content/constants/competitors/buildCompareLongFormForPair';
 import { COMPARE_HUB_BASE_SLUG, COMPARE_TALKING_POINT_ORDER } from '$lib/content/constants/competitors/shared';
 import { resolveComparePairLayout } from '$lib/content/constants/competitors/utils/compareProductCategories';
 import {
+	PUBLIC_COMPARE_DETAIL_CROSS_PRODUCT_LINE_FAQ_ITEM_IDS,
 	PUBLIC_COMPARE_DETAIL_DIRECTORY_FAQ_ITEM_IDS,
 	PUBLIC_COMPARE_DETAIL_SOCIAL_FAQ_ITEM_IDS
 } from '$lib/content/constants/faq';
@@ -13,6 +17,7 @@ import { buildComparePairMetaTitle } from '$lib/content/utils/buildProgrammaticS
 export function buildComparePair(left: CompareProduct, right: CompareProduct): ComparePair {
 	const layout = resolveComparePairLayout(left, right);
 	const isDirectoryLongForm = layout === 'directory_long_form';
+	const isCrossProductLine = layout === 'cross_product_line';
 
 	return {
 		productASlug: left.slug,
@@ -24,10 +29,14 @@ export function buildComparePair(left: CompareProduct, right: CompareProduct): C
 		keywords: buildCompareKeywords(left, right, layout),
 		heroTitle: buildHeroTitle(left, right, layout),
 		heroDescription: buildHeroDescription(left, right, layout),
-		withWithoutSection: buildWithWithoutSection(left, right),
+		withWithoutSection: isCrossProductLine
+			? buildCrossProductLineWithWithoutSection(left, right)
+			: buildWithWithoutSection(left, right),
 		faqItemIds: isDirectoryLongForm
 			? [...PUBLIC_COMPARE_DETAIL_DIRECTORY_FAQ_ITEM_IDS]
-			: [...PUBLIC_COMPARE_DETAIL_SOCIAL_FAQ_ITEM_IDS]
+			: isCrossProductLine
+				? [...PUBLIC_COMPARE_DETAIL_CROSS_PRODUCT_LINE_FAQ_ITEM_IDS]
+				: [...PUBLIC_COMPARE_DETAIL_SOCIAL_FAQ_ITEM_IDS]
 	};
 }
 
@@ -38,6 +47,10 @@ function buildCompareMetaDescription(
 ): string {
 	if (layout === 'directory_long_form') {
 		return `Compare ${left.name} and ${right.name} for startup directory launch — done-for-you packages vs DIY profiles, extension autofill, and submission tracking. ${buildCompareAlternativeClosing(left, right, layout)}`;
+	}
+
+	if (layout === 'cross_product_line') {
+		return `Compare ${left.name} and ${right.name} across product lines — social scheduling vs directory launch. See which job each tool covers, then open category compares for pricing and features.`;
 	}
 
 	const comparisonCore = `Compare prices, channels, workspaces, agent tools, and scheduling features for ${left.name} and ${right.name}.`;
@@ -73,6 +86,17 @@ function buildCompareKeywords(
 	right: CompareProduct,
 	layout: ComparePair['layout']
 ): string[] {
+	if (layout === 'cross_product_line') {
+		return [
+			`${left.name} vs ${right.name}`,
+			'social scheduler vs directory submission',
+			'directory launch vs social media scheduling',
+			'startup launch tools compared',
+			`${left.name} pricing`,
+			`${right.name} pricing`
+		];
+	}
+
 	if (layout === 'directory_long_form') {
 		const keywords = [
 			`${left.name} vs ${right.name}`,
@@ -123,6 +147,9 @@ function buildHeroTitle(
 	if (layout === 'directory_long_form') {
 		return `${left.name} vs ${right.name}: Directory launch compared`;
 	}
+	if (layout === 'cross_product_line') {
+		return `${left.name} vs ${right.name}: Social scheduling vs directory launch`;
+	}
 	return `${left.name} vs ${right.name}: Compare Side by Side`;
 }
 
@@ -131,6 +158,10 @@ function buildHeroDescription(
 	right: CompareProduct,
 	layout: ComparePair['layout']
 ): string {
+	if (layout === 'cross_product_line') {
+		return `You compare ${left.name} and ${right.name} because launch searches mix schedulers and directory services. This page maps each product to its job so you open the right category compare next.`;
+	}
+
 	if (layout === 'directory_long_form') {
 		const base = `Compare directory launch options for ${left.name} and ${right.name} — pricing, control, and what you get after submissions go live.`;
 		const pitch =

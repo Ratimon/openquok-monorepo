@@ -31,7 +31,7 @@ Competitor data powers:
 | Surface | Route | Behavior |
 | --- | --- | --- |
 | Compare hub | `/compare` | Two sections — **Social media schedulers** and **Directory submission services** — each with OpenQuok as base and category-scoped dropdown + cards |
-| Compare detail | `/compare/{productA}/{productB}` | Head-to-head when `getComparePair` succeeds (same category overlap); **404** on cross-category pairs (e.g. Buffer vs BoringLaunch) |
+| Compare detail | `/compare/{productA}/{productB}` | Head-to-head when `getComparePair` succeeds (same-category overlap or **social-only vs directory-only** `cross_product_line` layout); hub cards still scope peers by category |
 | Alternatives hub | `/alternatives` | Social and directory sections; pinned **OpenQuok alternatives** card in the social section; competitor cards from `ALTERNATIVES_TARGET_SLUGS`; category, sort, and search query params (`alternativesHubFilters.ts`) |
 | Alternatives detail | `/alternatives/{slug}` | Long-form sections + sticky **On this page** nav when `directoryLongForm` or default social long-form applies; ranked listings; OpenQuok #1 on competitor targets; **`/alternatives/openquok`** lists comparable peers (schedulers + directory) without OpenQuok as a peer row |
 
@@ -83,7 +83,7 @@ Do **not** add `openquok` to **`ALTERNATIVES_TARGET_SLUGS`** — that array driv
 - `canCompareProducts(a, b)` — false for same slug; true when category sets **intersect** (OpenQuok vs any peer in a shared category).
 - `getComparePair` / `buildComparePair` return `null` when `!canCompareProducts` (invalid URLs 404).
 - `listComparePairsForHub(baseSlug, category)` and `listCompareProductsForHubDropdown(category)` scope hub sections.
-- `resolveComparePairLayout` → `directory_long_form` when the pair is directory-focused (directory-only competitor vs OpenQuok); else `social_matrix`.
+- `resolveComparePairLayout` → `cross_product_line` for social-only vs directory-only peers; `directory_long_form` when a directory-only competitor pairs with OpenQuok (or another directory-capable product); else `social_matrix`.
 
 ### 3. Competitor constant (new file)
 
@@ -188,7 +188,7 @@ Smoke-test URLs:
 
 - `/compare` — new product in the **correct hub section** dropdown and cards (social vs directory)
 - `/compare/openquok/{slug}` and `/compare/{slug}/openquok` — matrix layout for schedulers; **long-form + sticky nav (xl+)** for directory services
-- `/compare/{socialSlug}/{directorySlug}` — must **404** (cross-category)
+- `/compare/{socialSlug}/{directorySlug}` — renders `cross_product_line` (shared feature rows + social/directory sections; links to OpenQuok category compares)
 - `/alternatives` — new “{Name} alternatives” card in the correct section; hub filters (`?category=`, `?sort=`, `?search=`) and pinned **OpenQuok alternatives** card in the social section
 - `/alternatives/openquok` — peer schedulers and directory services; no OpenQuok listing row; optional `?sort=` matches hub sort semantics
 - `/alternatives/{slug}` — OpenQuok #1 on competitor targets, other competitors listed, compare + website links work
@@ -272,7 +272,7 @@ Update when the new competitor should appear in marketing prose (not required fo
 - [ ] `directoryLongForm` block complete; detail page uses `directory_long_form` layout and directory-only compare rows.
 - [ ] `official_api` set from evidence (typically **No Info** for managed submission services).
 - [ ] OpenQuok directory talking points updated in `scheduler/openquok.ts`.
-- [ ] `/compare/openquok/{slug}` and compare hub **Directory submission services** section verified; `/compare/{social}/{directory}` returns 404.
+- [ ] `/compare/openquok/{slug}` and compare hub **Directory submission services** section verified; `/compare/{social}/{directory}` returns 200 with `cross_product_line` layout.
 - [ ] Cross-link CTAs point at `/directory-submission-tool` and extension install docs where appropriate.
 
 ---

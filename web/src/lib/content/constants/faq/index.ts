@@ -437,6 +437,15 @@ export const PUBLIC_ALTERNATIVES_DETAIL_SOCIAL_FAQ_ITEM_IDS: readonly PublicFaqI
 	'compare-both-social-and-directory'
 ];
 
+/** `/compare/{social-scheduler}/{directory-service}` — cross product line pairs. */
+export const PUBLIC_COMPARE_DETAIL_CROSS_PRODUCT_LINE_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
+	'compare-both-social-and-directory',
+	'openquok-social-media-management',
+	'openquok-directory-submission-tool',
+	'try-free',
+	'schedule-posts'
+];
+
 /** `/compare/openquok/{directory-service}` — directory submission service pairs. */
 export const PUBLIC_COMPARE_DETAIL_DIRECTORY_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
 	'try-free',
