@@ -7,9 +7,9 @@ import {
 	getRootPathPublicPlaybooksTag
 } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 import {
-	getRootPathPublicBuildBacklinks,
-	getRootPathPublicBuildBacklinksTag
-} from '$lib/area-public/constants/getRootPathPublicBuildBacklinks';
+	resolveBuildBacklinksPreviewSeeAllPath,
+	resolveFeaturedBacklinkSiteSlugForPreview
+} from '$lib/opportunities/utils/resolveBuildBacklinksPreviewSeeAllPath';
 import {
 	getRootPathPublicSkillBuilder,
 	getRootPathPublicSkillBuilderChannel
@@ -75,9 +75,14 @@ export async function loadAgentOpportunitiesPreviewStateless(params: {
 		DEFAULT_OPPORTUNITIES_PREVIEW_ITEMS_PER_BLOCK;
 	const tagSlug = params.listingTagSlug?.trim() || null;
 	const tagSlugs = tagSlug ? [tagSlug] : null;
+	const channelSlug = params.skillBuilderChannelSlug?.trim() || null;
 
 	const featuredBacklinkSiteSlug = includeBacklinksBlock
-		? params.featuredBacklinkSiteSlug?.trim() || null
+		? resolveFeaturedBacklinkSiteSlugForPreview({
+				featuredBacklinkSiteSlug: params.featuredBacklinkSiteSlug,
+				channelSlug,
+				listingTagSlug: tagSlug
+			})
 		: null;
 
 	const [playbooksResult, buildingBlocksResult, backlinksResult, featuredBacklinkSite] =
@@ -97,8 +102,7 @@ export async function loadAgentOpportunitiesPreviewStateless(params: {
 				? linkDirectoryRepository.getPublishedSites({
 						fetch: params.fetch,
 						limit,
-						skip: 0,
-						tagSlugs
+						skip: 0
 					})
 				: Promise.resolve({ sites: [] }),
 			featuredBacklinkSiteSlug
@@ -114,7 +118,7 @@ export async function loadAgentOpportunitiesPreviewStateless(params: {
 		]);
 
 	const featuredOpportunityLimit =
-		includeBacklinksBlock && featuredBacklinkSiteSlug
+		includeBacklinksBlock && featuredBacklinkSiteSlug && featuredBacklinkSite
 			? (params.featuredBacklinkOpportunityLimit ?? DEFAULT_FEATURED_BACKLINK_OPPORTUNITIES_PREVIEW)
 			: 0;
 
@@ -133,12 +137,13 @@ export async function loadAgentOpportunitiesPreviewStateless(params: {
 	const buildingBlocksPath = tagSlug
 		? route(getRootPathPublicBuildingBlocksTag(tagSlug))
 		: route(getRootPathPublicBuildingBlocks());
-	const backlinksPath = tagSlug
-		? route(getRootPathPublicBuildBacklinksTag(tagSlug))
-		: route(getRootPathPublicBuildBacklinks());
-	const skillBuilderChannelSlug = params.skillBuilderChannelSlug?.trim() || null;
-	const skillBuilderPath = skillBuilderChannelSlug
-		? route(getRootPathPublicSkillBuilderChannel(skillBuilderChannelSlug))
+	const backlinksPath = resolveBuildBacklinksPreviewSeeAllPath({
+		listingTagSlug: tagSlug,
+		featuredBacklinkSiteSlug: params.featuredBacklinkSiteSlug,
+		channelSlug
+	});
+	const skillBuilderPath = channelSlug
+		? route(getRootPathPublicSkillBuilderChannel(channelSlug))
 		: route(getRootPathPublicSkillBuilder());
 	const previewCopy = params.previewSection;
 
