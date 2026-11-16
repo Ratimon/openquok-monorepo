@@ -172,7 +172,8 @@ export const postizCompareProduct: CompareProduct = {
 			},
 			pricing_model: {
 				strength: 'Channel-tiered cloud plans plus a free self-hosted path for operators who want full control',
-				weakness: 'Channel allowances (5–100) that force plan jumps as you connect more accounts'
+				weakness:
+					'Cloud tiers cap five to one hundred channels in one workspace — multi-brand teams share one pool unless you self-host'
 			},
 			workspace_isolation: {
 				strength: 'Customer groups on Team+ keep brands and clients organized inside one login',

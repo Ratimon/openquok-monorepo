@@ -25,7 +25,11 @@ describe('compareChannelSections', () => {
 			openquokCompareProduct,
 			getmorebacklinksCompareProduct
 		);
-		expect(coverage?.launchPlatforms.map((p) => p.label)).toEqual(['PeerPush', 'Uneed']);
+		expect(coverage?.launchPlatforms.map((p) => p.label)).toEqual([
+			'PeerPush',
+			'Uneed',
+			'Open Launch'
+		]);
 		expect(coverage?.competitorSummary).toMatch(/100/);
 	});
 
@@ -34,7 +38,11 @@ describe('compareChannelSections', () => {
 			openquokCompareProduct,
 			hootsuiteCompareProduct
 		);
-		expect(coverage?.launchPlatforms.map((p) => p.label)).toEqual(['PeerPush', 'Uneed']);
+		expect(coverage?.launchPlatforms.map((p) => p.label)).toEqual([
+			'PeerPush',
+			'Uneed',
+			'Open Launch'
+		]);
 		expect(coverage?.competitorSummary).toContain('social scheduler');
 	});
 

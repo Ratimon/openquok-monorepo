@@ -203,7 +203,16 @@ describe('PublicAlternativesPagePresenter', () => {
 		expect(vm!.compareRows.length).toBeGreaterThan(0);
 		expect(vm!.listings[0]?.isOpenQuok).toBe(true);
 		expect(vm!.listings.some((listing) => listing.slug === 'boringlaunch')).toBe(true);
+		expect(vm!.listings.some((listing) => listing.slug === 'buffer')).toBe(false);
 		expect(vm!.metaDescription).toContain('GetMoreBacklinks alternatives');
+	});
+
+	it('builds TryPost alternatives without directory submission peers', () => {
+		const vm = presenter.buildDetailVm('trypost');
+		expect(vm).not.toBeNull();
+		expect(vm!.listings[0]?.isOpenQuok).toBe(true);
+		expect(vm!.listings.some((listing) => listing.slug === 'boringlaunch')).toBe(false);
+		expect(vm!.listings.some((listing) => listing.slug === 'buffer')).toBe(true);
 	});
 
 	it('builds OpenQuok alternatives detail without listing OpenQuok as a peer', () => {

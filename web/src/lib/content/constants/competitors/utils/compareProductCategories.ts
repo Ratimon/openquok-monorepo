@@ -4,6 +4,7 @@ import type {
 	CompareProduct,
 	CompareProductCategory
 } from '$lib/content/constants/competitors/types';
+import { COMPARE_HUB_BASE_SLUG } from '$lib/content/constants/competitors/shared';
 
 export function categoriesOverlap(
 	left: readonly CompareProductCategory[],
@@ -89,6 +90,20 @@ export function filterCompareProductsForCategory(
 	category: CompareProductCategory
 ): CompareProduct[] {
 	return products.filter((product) => product.categories.includes(category));
+}
+
+/** Whether a peer belongs on `/alternatives/{target}` ranked listings (excludes cross product line). */
+export function peerMatchesAlternativesDetailCategory(
+	target: CompareProduct,
+	peer: CompareProduct
+): boolean {
+	if (target.slug === peer.slug) return false;
+	if (peer.slug === COMPARE_HUB_BASE_SLUG) return true;
+	if (target.slug === COMPARE_HUB_BASE_SLUG) {
+		return canCompareProducts(target, peer);
+	}
+	const targetCategory = getCompareProductCategory(target);
+	return peer.categories.includes(targetCategory) && canCompareProducts(target, peer);
 }
 
 export function listComparePairsForCategory(

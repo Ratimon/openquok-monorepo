@@ -19,7 +19,10 @@ import {
 	mergeAlternativePeerLinksBySlug
 } from '$lib/content/constants/competitors/buildAlternativesLongForm';
 import { countPublicOpenQuokHubPlatformTotal } from '$lib/content/constants/channels';
-import { getCompareProductCategory } from '$lib/content/constants/competitors/utils/compareProductCategories';
+import {
+	getCompareProductCategory,
+	peerMatchesAlternativesDetailCategory
+} from '$lib/content/constants/competitors/utils/compareProductCategories';
 import { formatAlternativesHubPriceRange } from '$lib/content/constants/competitors/utils/comparePricing';
 import { PUBLIC_ALTERNATIVES_HUB } from '$lib/content/constants/hubs/alternatives';
 import {
@@ -244,7 +247,7 @@ export class PublicAlternativesPagePresenter {
 		const otherTargets = ALTERNATIVES_TARGET_SLUGS.filter((slug) => {
 			if (slug === targetSlug) return false;
 			const peer = getCompareProduct(slug);
-			return peer != null && canCompareProducts(targetProduct, peer);
+			return peer != null && peerMatchesAlternativesDetailCategory(targetProduct, peer);
 		}).map((slug) => this.buildHubEntryVm(slug));
 
 		const openQuok = getCompareProduct(COMPARE_HUB_BASE_SLUG);

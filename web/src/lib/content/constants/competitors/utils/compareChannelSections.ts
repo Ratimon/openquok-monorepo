@@ -1,8 +1,8 @@
 import type { PublicAgentComparisonSection } from '$lib/content/constants/agents/types';
 import type { CompareProduct } from '$lib/content/constants/competitors/types';
 import type { IconName } from '$data/icons';
-import { icons } from '$data/icons';
 
+import { PUBLIC_DIRECTORY_CHANNEL_LANDING_PAGES } from '$lib/content/constants/channels/catalog/directory-seeds';
 import {
 	COMPARE_HUB_BASE_SLUG,
 	COMPARE_CHANNELS_SECTION,
@@ -31,10 +31,10 @@ export const COMPARE_DIRECTORY_COVERAGE_SECTION = {
 export const COMPARE_OPENQUOK_DIRECTORY_LAUNCH_PLATFORMS: readonly {
 	label: string;
 	icon: IconName;
-}[] = [
-	{ label: 'PeerPush', icon: icons.PeerPush.name },
-	{ label: 'Uneed', icon: icons.Uneed.name }
-];
+}[] = PUBLIC_DIRECTORY_CHANNEL_LANDING_PAGES.map((page) => ({
+	label: page.platformLabel,
+	icon: page.icon
+}));
 
 export type CompareDirectoryCoverageViewModel = {
 	subtitle: string;

@@ -15,8 +15,11 @@ import {
 	filterCompareProductsForCategory,
 	getCompareProductCategory,
 	listComparePairsForCategory,
+	peerMatchesAlternativesDetailCategory,
 	resolveComparePairLayout
 } from '$lib/content/constants/competitors/utils/compareProductCategories';
+import { listAlternativeProductsFor } from '$lib/content/constants/competitors/index';
+import { trypostCompareProduct } from '$lib/content/constants/competitors/scheduler/trypost';
 import { publicComparePagePresenter } from '$lib/area-public/index';
 
 const directoryOnlyProduct: CompareProduct = {
@@ -36,6 +39,30 @@ describe('compareProductCategories', () => {
 	it('categoriesOverlap is true when products share a category', () => {
 		expect(
 			categoriesOverlap(openquokCompareProduct.categories, bufferCompareProduct.categories)
+		).toBe(true);
+	});
+
+	it('listAlternativeProductsFor scopes social and directory detail pages to one product line', () => {
+		const trypostPeers = listAlternativeProductsFor('trypost');
+		expect(trypostPeers[0]?.slug).toBe('openquok');
+		expect(trypostPeers.some((product) => product.slug === 'boringlaunch')).toBe(false);
+		expect(trypostPeers.some((product) => product.slug === 'buffer')).toBe(true);
+
+		const directoryPeers = listAlternativeProductsFor('boringlaunch');
+		expect(directoryPeers[0]?.slug).toBe('openquok');
+		expect(directoryPeers.some((product) => product.slug === 'buffer')).toBe(false);
+		expect(directoryPeers.some((product) => product.slug === 'getmorebacklinks')).toBe(true);
+	});
+
+	it('peerMatchesAlternativesDetailCategory keeps OpenQuok on every target page', () => {
+		expect(
+			peerMatchesAlternativesDetailCategory(trypostCompareProduct, openquokCompareProduct)
+		).toBe(true);
+		expect(
+			peerMatchesAlternativesDetailCategory(
+				boringlaunchCompareProduct,
+				openquokCompareProduct
+			)
 		).toBe(true);
 	});
 

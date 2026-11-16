@@ -17,7 +17,8 @@ import {
 	canCompareProducts,
 	filterCompareProductsForCategory,
 	getCompareProductCategory,
-	listComparePairsForCategory
+	listComparePairsForCategory,
+	peerMatchesAlternativesDetailCategory
 } from '$lib/content/constants/competitors/utils/compareProductCategories';
 import { sortCompareHubPairsWithEmphasis } from '$lib/content/constants/competitors/utils/compareHubPairEmphasis';
 import { blotatoCompareProduct } from '$lib/content/constants/competitors/scheduler/blotato';
@@ -193,18 +194,15 @@ export function listAlternativeProductsFor(targetSlug: CompareProductSlug): Comp
 	const target = getCompareProduct(targetSlug);
 	if (!target) return [];
 
+	const peers = PUBLIC_COMPARE_PRODUCTS.filter((product) =>
+		peerMatchesAlternativesDetailCategory(target, product)
+	);
+
 	if (target.slug === COMPARE_HUB_BASE_SLUG) {
-		return PUBLIC_COMPARE_PRODUCTS.filter((product) => {
-			if (product.slug === target.slug) return false;
-			return canCompareProducts(target, product);
-		}).sort((left, right) => left.name.localeCompare(right.name));
+		return peers.sort((left, right) => left.name.localeCompare(right.name));
 	}
 
-	return PUBLIC_COMPARE_PRODUCTS.filter((product) => {
-		if (product.slug === target.slug) return false;
-		if (product.slug === COMPARE_HUB_BASE_SLUG) return true;
-		return canCompareProducts(target, product);
-	}).sort((left, right) => {
+	return peers.sort((left, right) => {
 		if (left.slug === COMPARE_HUB_BASE_SLUG) return -1;
 		if (right.slug === COMPARE_HUB_BASE_SLUG) return 1;
 		return left.name.localeCompare(right.name);
