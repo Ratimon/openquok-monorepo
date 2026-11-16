@@ -175,6 +175,12 @@ const BASE = {
 		cardContainerClass:
 			'bg-linear-to-br from-blue-500/20 via-indigo-400/16 to-sky-300/16 text-blue-100 ring-blue-400/28'
 	},
+	trypost: {
+		heroContainerClass:
+			'bg-linear-to-br from-sky-500/30 via-cyan-400/20 to-teal-300/20 text-sky-50 ring-cyan-400/35',
+		cardContainerClass:
+			'bg-linear-to-br from-sky-500/20 via-cyan-400/16 to-teal-300/16 text-sky-50 ring-cyan-400/28'
+	},
 	usebard: {
 		heroContainerClass:
 			'bg-linear-to-br from-purple-600/30 via-violet-500/20 to-fuchsia-400/20 text-purple-100 ring-purple-500/35',

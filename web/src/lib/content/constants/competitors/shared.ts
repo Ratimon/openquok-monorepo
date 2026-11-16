@@ -68,6 +68,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	socialync: 'https://www.socialync.io',
 	'sprout-social': 'https://sproutsocial.com',
 	typefully: 'https://typefully.com',
+	trypost: 'https://trypost.it/en',
 	usebard: 'https://usebard.com'
 } as const satisfies Record<
 	| typeof COMPARE_HUB_BASE_SLUG
@@ -97,6 +98,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	| 'socialync'
 	| 'sprout-social'
 	| 'typefully'
+	| 'trypost'
 	| 'usebard',
 	string
 >;

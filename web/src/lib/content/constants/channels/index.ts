@@ -206,3 +206,8 @@ export function listAvailablePublicChannelCompareLabels(): string[] {
 
 	return labels;
 }
+
+/** Social catalog seeds plus directory launch seeds — used for OpenQuok alternatives hub platform count. */
+export function countPublicOpenQuokHubPlatformTotal(): number {
+	return listPublicChannelsForHub().length + listPublicDirectoryChannelsForHub().length;
+}

@@ -18,6 +18,7 @@ import {
 	buildAlternativesPeerHubLinks,
 	mergeAlternativePeerLinksBySlug
 } from '$lib/content/constants/competitors/buildAlternativesLongForm';
+import { countPublicOpenQuokHubPlatformTotal } from '$lib/content/constants/channels';
 import { getCompareProductCategory } from '$lib/content/constants/competitors/utils/compareProductCategories';
 import { formatAlternativesHubPriceRange } from '$lib/content/constants/competitors/utils/comparePricing';
 import { PUBLIC_ALTERNATIVES_HUB } from '$lib/content/constants/hubs/alternatives';
@@ -475,6 +476,9 @@ export function resolveHubEntryLowestPrice(product: CompareProduct): number | nu
 }
 
 export function resolveHubEntryPlatformCount(product: CompareProduct): number {
+	if (product.slug === COMPARE_HUB_BASE_SLUG) {
+		return countPublicOpenQuokHubPlatformTotal();
+	}
 	return product.channels.length;
 }
 

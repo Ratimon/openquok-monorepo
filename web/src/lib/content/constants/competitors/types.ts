@@ -31,6 +31,7 @@ export type CompareProductSlug =
 	| 'socialync'
 	| 'sprout-social'
 	| 'typefully'
+	| 'trypost'
 	| 'usebard'
 	| 'boringlaunch'
 	| 'getmorebacklinks'

@@ -43,6 +43,7 @@ import { socialclawCompareProduct } from '$lib/content/constants/competitors/sch
 import { socialyncCompareProduct } from '$lib/content/constants/competitors/scheduler/socialync';
 import { sproutSocialCompareProduct } from '$lib/content/constants/competitors/scheduler/sprout-social';
 import { typefullyCompareProduct } from '$lib/content/constants/competitors/scheduler/typefully';
+import { trypostCompareProduct } from '$lib/content/constants/competitors/scheduler/trypost';
 import { usebardCompareProduct } from '$lib/content/constants/competitors/scheduler/usebard';
 import { boringlaunchCompareProduct } from '$lib/content/constants/competitors/submission/boringlaunch';
 import { getmorebacklinksCompareProduct } from '$lib/content/constants/competitors/submission/getmorebacklinks';
@@ -92,6 +93,7 @@ export { socialclawCompareProduct } from '$lib/content/constants/competitors/sch
 export { socialyncCompareProduct } from '$lib/content/constants/competitors/scheduler/socialync';
 export { sproutSocialCompareProduct } from '$lib/content/constants/competitors/scheduler/sprout-social';
 export { typefullyCompareProduct } from '$lib/content/constants/competitors/scheduler/typefully';
+export { trypostCompareProduct } from '$lib/content/constants/competitors/scheduler/trypost';
 export { usebardCompareProduct } from '$lib/content/constants/competitors/scheduler/usebard';
 
 export const PUBLIC_COMPARE_PRODUCTS: readonly CompareProduct[] = [
@@ -122,6 +124,7 @@ export const PUBLIC_COMPARE_PRODUCTS: readonly CompareProduct[] = [
 	sproutSocialCompareProduct,
 	submitatorCompareProduct,
 	typefullyCompareProduct,
+	trypostCompareProduct,
 	usebardCompareProduct
 ];
 
