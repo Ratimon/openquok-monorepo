@@ -30,8 +30,6 @@
     "backend:db:aggregate-migrations-all": "pnpm --filter ./backend db:aggregate-migrations-all",
     "backend:db:aggregate-migrations-single": "pnpm --filter ./backend db:aggregate-migrations-single",
     "backend:db:promote-platform-admin": "pnpm --filter ./backend db:local:promote-platform-admin",
-    "backend:db:backfill-blog-audience-cards": "pnpm --filter ./backend db:backfill-blog-audience-cards",
-    "backend:db:backfill-blog-audience-cards:prod": "pnpm --filter ./backend db:backfill-blog-audience-cards:prod",
     "backend:generate-routes-manifest": "node scripts/generate-routes-manifest.mjs",
     "backend:build": "pnpm --filter backend build",
     "backend:clean:stale-ts-shadow-js": "node scripts/cleanBackendStaleTsShadowJs.mjs",

@@ -89,9 +89,7 @@
     "db:production:migration-list": "npx supabase@latest migration list --remote",
     "db:production:push-db:dry-run": "npx supabase@latest db push --remote --dry-run",
     "db:production:push-db": "npx supabase@latest db push --remote --include-seed",
-    "db:local:promote-platform-admin": "node scripts/promote_platform_admin.mjs",
-    "db:backfill-blog-audience-cards": "node scripts/backfill_blog_audience_cards.mjs",
-    "db:backfill-blog-audience-cards:prod": "node scripts/backfill_blog_audience_cards.mjs --env-file .env.production.local"
+    "db:local:promote-platform-admin": "node scripts/promote_platform_admin.mjs"
   },
   "keywords": [],
   "author": "Rati Montreewat",
