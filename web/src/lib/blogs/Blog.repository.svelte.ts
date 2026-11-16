@@ -10,6 +10,7 @@ import {
 } from '$lib/public-cms';
 import type {
 	BlogPostFormSchemaType,
+	BlogSeoAudienceCard,
 	BlogSeoFaqItem,
 	BlogSeoHowtoStep,
 	BlogSeoProduct,
@@ -41,6 +42,7 @@ export interface BlogPostDto {
 	howtoName: string | null;
 	howtoSteps: BlogSeoHowtoStep[] | null;
 	product: BlogSeoProduct | null;
+	audienceCard: BlogSeoAudienceCard | null;
 	topic: { id: string; name: string; slug: string } | null;
 	author: {
 		id: string;
@@ -342,6 +344,7 @@ export interface BlogPostProgrammerModel {
 	howtoName: string | null;
 	howtoSteps: BlogSeoHowtoStep[] | null;
 	product: BlogSeoProduct | null;
+	audienceCard: BlogSeoAudienceCard | null;
 	topic: { id: string; name: string; slug: string } | null;
 	author: {
 		id: string;
@@ -981,6 +984,7 @@ export class BlogRepository {
 			howtoName: postDto.howtoName?.trim() || null,
 			howtoSteps: postDto.howtoSteps?.length ? [...postDto.howtoSteps] : null,
 			product: postDto.product ?? null,
+			audienceCard: postDto.audienceCard ?? null,
 			topic: postDto.topic ? { ...postDto.topic } : null,
 			author: postDto.author
 				? {

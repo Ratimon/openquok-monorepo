@@ -50,6 +50,7 @@ function productPost(overrides?: Partial<BlogPostBySlugPublicViewModel>): BlogPo
 			brand: 'OpenQuok',
 			url: 'https://www.openquok.com/tools/humanizer'
 		},
+		audienceCard: null,
 		...overrides
 	};
 }
@@ -497,6 +498,43 @@ ${tableHtml}`
 			{ '@id': `${POST_CANONICAL_URL}#code-block-1` },
 			{ '@id': `${POST_CANONICAL_URL}#blog-table-1` }
 		]);
+	});
+});
+
+describe('createBlogPostSEOSchema audience card', () => {
+	it('adds Audience on BlogPosting and ItemList at #audience', () => {
+		const canonical =
+			'https://www.openquok.com/blog/how-to-choose-self-host-social-scheduler-stack-openquok-vs-postiz-architecture';
+		const schema = createBlogPostSEOSchema({
+			post: productPost({
+				audienceCard: {
+					preset: 'developer',
+					title: 'Developers',
+					description: 'You self-host apps and compare scheduler stacks.',
+					audience_type: null
+				}
+			}),
+			canonicalUrl: canonical,
+			companyName: 'OpenQuok',
+			companySiteUrl: 'https://www.openquok.com',
+			requestUrl: new URL(canonical)
+		});
+
+		const posting = findBlogPosting(schema);
+		expect(posting?.audience).toEqual([
+			expect.objectContaining({
+				'@type': 'PeopleAudience',
+				name: 'Developers',
+				audienceType: 'Developers',
+				description: 'You self-host apps and compare scheduler stacks.'
+			})
+		]);
+
+		const itemList = schema['@graph'].find(
+			(node) => typeof node === 'object' && node !== null && '@type' in node && node['@type'] === 'ItemList'
+		) as Record<string, unknown> | undefined;
+		expect(itemList?.['@id']).toBe(`${canonical}#audience`);
+		expect(itemList?.numberOfItems).toBe(1);
 	});
 });
 

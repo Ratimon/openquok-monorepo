@@ -7432,6 +7432,19 @@ function normalizeProduct(value) {
     url: value.url ?? null
   };
 }
+function normalizeAudienceCard(value) {
+  if (value == null || typeof value !== "object") return null;
+  const title = value.title?.trim();
+  const description = value.description?.trim();
+  if (!title || !description) return null;
+  const audienceType = value.audience_type?.trim();
+  return {
+    preset: value.preset ?? "custom",
+    title,
+    description,
+    audience_type: audienceType ? audienceType : null
+  };
+}
 function normalizeAuthor(author) {
   if (!author) return null;
   const a = Array.isArray(author) ? author[0] : author;
@@ -7548,6 +7561,7 @@ var init_BlogDTO = __esm({
           howtoName: normalizeHowtoName(row.howto_name),
           howtoSteps: normalizeHowtoSteps(row.howto_steps),
           product: normalizeProduct(row.product),
+          audienceCard: normalizeAudienceCard(row.audience_card),
           topic: normalizeTopic(row.topic),
           author: normalizeAuthor(row.author)
         };
@@ -8817,6 +8831,19 @@ function normalizeHowtoName2(value) {
   const trimmed = value?.trim();
   return trimmed ? trimmed : null;
 }
+function normalizeAudienceCard2(value) {
+  if (value == null || typeof value !== "object") return null;
+  const title = value.title?.trim();
+  const description = value.description?.trim();
+  if (!title || !description) return null;
+  const audienceType = value.audience_type?.trim();
+  return {
+    preset: value.preset ?? "custom",
+    title,
+    description,
+    audience_type: audienceType ? audienceType : null
+  };
+}
 function resolveBlogReadingTimeMinutes(post) {
   if (post.reading_time_minutes != null && post.reading_time_minutes > 0) {
     return post.reading_time_minutes;
@@ -8908,6 +8935,7 @@ var init_BlogRepository = __esm({
   howto_name,
   howto_steps,
   product,
+  audience_card,
   topic:blog_topics(id, name, slug),
   author:users!user_id(id, full_name, user_profiles(avatar_url, website_url, tag_line))
 `;
@@ -9123,6 +9151,7 @@ var init_BlogRepository = __esm({
           howto_name: normalizeHowtoName2(post.howto_name),
           howto_steps: normalizeSeoJsonArray(post.howto_steps),
           product: post.product ?? null,
+          audience_card: normalizeAudienceCard2(post.audience_card),
           reading_time_minutes: resolveBlogReadingTimeMinutes(post)
         };
         const { data, error } = await this.supabase.from(TABLE_NAME_BLOG_POSTS).insert(row).select("id, title, slug").single();
@@ -9171,6 +9200,7 @@ var init_BlogRepository = __esm({
           howto_name: normalizeHowtoName2(post.howto_name),
           howto_steps: normalizeSeoJsonArray(post.howto_steps),
           product: post.product ?? null,
+          audience_card: normalizeAudienceCard2(post.audience_card),
           reading_time_minutes: resolveBlogReadingTimeMinutes(post)
         };
         const { data, error } = await this.supabase.from(TABLE_NAME_BLOG_POSTS).update(row).eq("id", id).select("id, title, slug").single();
@@ -50088,6 +50118,20 @@ var blogProductSchema = zod.z.object({
   brand: zod.z.string().optional().nullable(),
   url: blogProductUrlSchema
 });
+var blogAudienceCardPresetSchema = zod.z.enum([
+  "developer",
+  "team-social-managers",
+  "founders",
+  "marketers",
+  "self-host-operators",
+  "custom"
+]);
+var blogAudienceCardSchema = zod.z.object({
+  preset: blogAudienceCardPresetSchema.optional().nullable(),
+  title: zod.z.string().min(1, "Audience title is required"),
+  description: zod.z.string().min(1, "Audience description is required"),
+  audience_type: zod.z.string().max(200, "audienceType must be at most 200 characters").optional().nullable()
+});
 var blogPostFields = {
   id: zod.z.string().uuid("Invalid post id").optional(),
   title: zod.z.string().min(1, "Title is required"),
@@ -50107,6 +50151,8 @@ var blogPostFields = {
   howto_steps: zod.z.array(blogHowtoStepSchema).optional().nullable(),
   /** Optional product summary; null clears. */
   product: blogProductSchema.optional().nullable(),
+  /** Optional audience card; null clears. */
+  audience_card: blogAudienceCardSchema.optional().nullable(),
   /** Optional manual read time in minutes; omit or null to auto-calculate from content on save. */
   reading_time_minutes: zod.z.number().int().min(1, "Reading time must be at least 1 minute").max(999, "Reading time must be at most 999 minutes").optional().nullable()
 };

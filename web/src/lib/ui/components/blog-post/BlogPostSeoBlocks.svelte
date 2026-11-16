@@ -29,7 +29,6 @@
 			!!postVm.product?.name?.trim() &&
 			!!postVm.product?.description?.trim()
 	);
-
 	const howToHeading = $derived(postVm.howtoName?.trim() || postVm.title.trim());
 </script>
 

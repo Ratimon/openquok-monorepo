@@ -8,6 +8,7 @@ import type {
     BlogComment,
     AdminBlogComment,
     AdminBlogActivity,
+    BlogSeoAudienceCard,
     BlogSeoFaqItem,
     BlogSeoHowtoStep,
     BlogSeoProduct,
@@ -54,6 +55,7 @@ export interface BlogPostLike {
     howto_name?: string | null;
     howto_steps?: BlogSeoHowtoStep[] | null;
     product?: BlogSeoProduct | null;
+    audience_card?: BlogSeoAudienceCard | null;
     topic?: { id: string; name: string; slug: string } | { id: string; name: string; slug: string }[] | null;
     author?:
         | {
@@ -105,6 +107,7 @@ export interface BlogPostDTO {
     howtoName: string | null;
     howtoSteps: BlogSeoHowtoStep[] | null;
     product: BlogSeoProduct | null;
+    audienceCard: BlogSeoAudienceCard | null;
     topic: { id: string; name: string; slug: string } | null;
     author: {
         id: string;
@@ -204,6 +207,20 @@ function normalizeProduct(value: BlogPostLike["product"]): BlogSeoProduct | null
     };
 }
 
+function normalizeAudienceCard(value: BlogPostLike["audience_card"]): BlogSeoAudienceCard | null {
+    if (value == null || typeof value !== "object") return null;
+    const title = value.title?.trim();
+    const description = value.description?.trim();
+    if (!title || !description) return null;
+    const audienceType = value.audience_type?.trim();
+    return {
+        preset: value.preset ?? "custom",
+        title,
+        description,
+        audience_type: audienceType ? audienceType : null,
+    };
+}
+
 type AuthorProfileRow = { avatar_url?: string | null; website_url?: string | null; tag_line?: string | null };
 
 function normalizeAuthor(
@@ -250,6 +267,7 @@ export const BlogDTOMapper = {
             howtoName: normalizeHowtoName(row.howto_name),
             howtoSteps: normalizeHowtoSteps(row.howto_steps),
             product: normalizeProduct(row.product),
+            audienceCard: normalizeAudienceCard(row.audience_card),
             topic: normalizeTopic(row.topic),
             author: normalizeAuthor(row.author),
         };

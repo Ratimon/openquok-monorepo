@@ -11,6 +11,7 @@ import type {
     AdminBlogComment,
     AdminBlogActivity,
     BlogActivityType,
+    BlogSeoAudienceCard,
 } from "../data/types/blogTypes";
 import type {
     BlogPostCreateSchemaType,
@@ -36,6 +37,22 @@ function normalizeSeoJsonArray<T>(value: T[] | null | undefined): T[] | null {
 function normalizeHowtoName(value: string | null | undefined): string | null {
     const trimmed = value?.trim();
     return trimmed ? trimmed : null;
+}
+
+function normalizeAudienceCard(
+    value: BlogSeoAudienceCard | null | undefined
+): BlogSeoAudienceCard | null {
+    if (value == null || typeof value !== "object") return null;
+    const title = value.title?.trim();
+    const description = value.description?.trim();
+    if (!title || !description) return null;
+    const audienceType = value.audience_type?.trim();
+    return {
+        preset: value.preset ?? "custom",
+        title,
+        description,
+        audience_type: audienceType ? audienceType : null,
+    };
 }
 
 /** Uses explicit minutes when set; otherwise matches docs-style content estimate. */
@@ -146,6 +163,7 @@ const SELECT_BLOG_POST = `
   howto_name,
   howto_steps,
   product,
+  audience_card,
   topic:blog_topics(id, name, slug),
   author:users!user_id(id, full_name, user_profiles(avatar_url, website_url, tag_line))
 `;
@@ -423,6 +441,7 @@ export class BlogRepository {
             howto_name: normalizeHowtoName(post.howto_name),
             howto_steps: normalizeSeoJsonArray(post.howto_steps),
             product: post.product ?? null,
+            audience_card: normalizeAudienceCard(post.audience_card),
             reading_time_minutes: resolveBlogReadingTimeMinutes(post),
         };
         const { data, error } = await this.supabase
@@ -490,6 +509,7 @@ export class BlogRepository {
             howto_name: normalizeHowtoName(post.howto_name),
             howto_steps: normalizeSeoJsonArray(post.howto_steps),
             product: post.product ?? null,
+            audience_card: normalizeAudienceCard(post.audience_card),
             reading_time_minutes: resolveBlogReadingTimeMinutes(post),
         };
         const { data, error } = await this.supabase

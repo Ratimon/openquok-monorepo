@@ -191,6 +191,7 @@ export class AdminBlogEditorPagePresenter {
 				howto_name: null,
 				howto_steps: null,
 				product: null,
+				audience_card: null,
 				reading_time_minutes: null
 			};
 		}
@@ -209,6 +210,7 @@ export class AdminBlogEditorPagePresenter {
 			howto_name: p.howtoName?.trim() || null,
 			howto_steps: p.howtoSteps?.length ? [...p.howtoSteps] : null,
 			product: p.product ?? null,
+			audience_card: p.audienceCard ?? null,
 			reading_time_minutes: p.readingTimeMinutes ?? null
 		};
 	}

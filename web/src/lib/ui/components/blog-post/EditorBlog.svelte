@@ -30,6 +30,7 @@
 	import { UploadImagePresenter } from '$lib/core/UploadImage.presenter.svelte';
 	import FaqEditor from '$lib/ui/components/FaqEditor.svelte';
 	import BlogImageLibraryModal from '$lib/ui/components/blog-post/BlogImageLibraryModal.svelte';
+	import BlogAudienceCardEditor from '$lib/ui/components/blog-post/BlogAudienceCardEditor.svelte';
 	import BlogRichTextField from '$lib/ui/components/blog-post/BlogRichTextField.svelte';
 	import SupabaseImageUploadArea from '$lib/ui/supabase/SupabaseImageUploadArea.svelte';
 
@@ -79,6 +80,7 @@
 			howto_name: values.howto_name ?? null,
 			howto_steps: values.howto_steps?.map((step) => ({ ...step })) ?? null,
 			product: values.product ? { ...values.product } : null,
+			audience_card: values.audience_card ? { ...values.audience_card } : null,
 			reading_time_minutes: values.reading_time_minutes ?? null
 		};
 	}
@@ -107,7 +109,10 @@
 		value: BlogPostFormSchemaType,
 		topicSlug: string,
 		topicId: string
-	): Pick<BlogPostFormSchemaType, 'faq_items' | 'howto_name' | 'howto_steps' | 'product'> {
+	): Pick<
+		BlogPostFormSchemaType,
+		'faq_items' | 'howto_name' | 'howto_steps' | 'product' | 'audience_card'
+	> {
 		const faqItems =
 			value.faq_items?.filter(
 				(item) => item.question.trim() && stripHtmlToPlainText(item.answer).trim()
@@ -121,6 +126,10 @@
 			!!product?.name?.trim() && !!product?.description?.trim();
 
 		const howtoName = value.howto_name?.trim() || null;
+		const audienceRaw = value.audience_card;
+		const audienceTitle = audienceRaw?.title?.trim() ?? '';
+		const audienceDescription = audienceRaw?.description?.trim() ?? '';
+		const hasAudience = Boolean(audienceTitle && audienceDescription);
 
 		return {
 			faq_items: faqItems.length > 0 ? faqItems : null,
@@ -138,7 +147,15 @@
 							brand: product!.brand?.trim() || null,
 							url: product!.url?.trim() || null
 						}
-					: null
+					: null,
+			audience_card: hasAudience
+				? {
+						preset: audienceRaw?.preset ?? 'custom',
+						title: audienceTitle,
+						description: audienceDescription,
+						audience_type: audienceRaw?.audience_type?.trim() || null
+					}
+				: null
 		};
 	}
 
@@ -625,13 +642,29 @@
 								<Field.Error errors={field.state.meta.errors as unknown as Array<{ message?: string }>} />
 								{#if !field.state.value}
 									<p class="text-sm text-base-content/60">
-										Choose a topic to unlock Structured SEO. FAQ, How-to steps, and product summary are optional for every topic. Feature Walkthroughs by Use Case also adds Guide on the BlogPosting in JSON-LD automatically—no extra fields.
+										Choose a topic to unlock the audience card and Structured SEO fields below. FAQ, How-to steps, and product summary are optional for every topic. Feature Walkthroughs by Use Case also adds Guide on the BlogPosting in JSON-LD automatically—no extra fields.
 									</p>
 								{/if}
 							</div>
 						{/snippet}
 					</form.Field>
 				</div>
+
+				<form.Subscribe selector={(state) => (state.values.topic_id ?? '').trim()}>
+					{#snippet children(topicIdForAudience)}
+						{#if topicIdForAudience}
+							<form.Field name="audience_card">
+								{#snippet children(field)}
+									<BlogAudienceCardEditor
+										value={field.state.value ?? null}
+										onChange={(next) => field.handleChange(next)}
+									/>
+								{/snippet}
+							</form.Field>
+						{/if}
+					{/snippet}
+				</form.Subscribe>
+
 				<form.Field name="content">
 					{#snippet children(field)}
 						<div class="flex flex-col gap-2">
@@ -699,14 +732,14 @@
 				{@const showHowToSection = isBlogTopicEligibleForHowTo(topicSlug, selectedTopicId)}
 				{@const showProductSection = isBlogTopicEligibleForProduct(topicSlug, selectedTopicId)}
 				{@const showGuideTopic = isBlogTopicEligibleForGuide(topicSlug, selectedTopicId)}
-				{#if showFaqSection || showHowToSection || showProductSection}
+				{#if !!selectedTopicId.trim()}
 					<section class="space-y-4">
 				<div class="mb-4">
 					<h3 class="text-xl font-bold text-base-content">
 						Structured SEO
 					</h3>
 					<p class="text-sm font-medium text-base-content/70">
-						Optional FAQ, How-to steps, and product summary for any topic. Visible on the public post and included in JSON-LD when filled in. Feature Walkthroughs by Use Case posts add Guide on the BlogPosting automatically—no extra fields.
+						Optional audience card, FAQ, How-to steps, and product summary for any topic. Visible on the public post and included in JSON-LD when filled in. Feature Walkthroughs by Use Case posts add Guide on the BlogPosting automatically—no extra fields.
 					</p>
 					{#if showGuideTopic}
 						<p class="text-sm text-base-content/60">

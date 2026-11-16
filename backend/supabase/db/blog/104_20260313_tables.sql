@@ -39,15 +39,19 @@ CREATE TABLE IF NOT EXISTS public.blog_posts (
     like_count INTEGER NOT NULL DEFAULT 0,
     reading_time_minutes INTEGER,
     faq_items JSONB,
+    howto_name TEXT,
     howto_steps JSONB,
     product JSONB,
+    audience_card JSONB,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ,
     published_at TIMESTAMPTZ
 );
 COMMENT ON COLUMN public.blog_posts.faq_items IS 'Optional FAQ Q&A pairs for topic-eligible posts; drives FAQPage structured data and on-page FAQ block.';
+COMMENT ON COLUMN public.blog_posts.howto_name IS 'Optional HowTo title for structured data and on-page step summary; defaults to post title when empty.';
 COMMENT ON COLUMN public.blog_posts.howto_steps IS 'Optional HowTo steps for topic-eligible posts; drives HowTo structured data and on-page steps.';
 COMMENT ON COLUMN public.blog_posts.product IS 'Optional product summary for topic-eligible posts; drives Product structured data and on-page product summary.';
+COMMENT ON COLUMN public.blog_posts.audience_card IS 'Optional single audience persona for on-page card and Schema.org Audience JSON-LD (title, description, preset, optional audience_type).';
 
 -- ---------------------------
 -- Blog Comments Table

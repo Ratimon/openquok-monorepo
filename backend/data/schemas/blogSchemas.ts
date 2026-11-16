@@ -36,6 +36,26 @@ const blogProductSchema = z.object({
     url: blogProductUrlSchema,
 });
 
+const blogAudienceCardPresetSchema = z.enum([
+    "developer",
+    "team-social-managers",
+    "founders",
+    "marketers",
+    "self-host-operators",
+    "custom",
+]);
+
+const blogAudienceCardSchema = z.object({
+    preset: blogAudienceCardPresetSchema.optional().nullable(),
+    title: z.string().min(1, "Audience title is required"),
+    description: z.string().min(1, "Audience description is required"),
+    audience_type: z
+        .string()
+        .max(200, "audienceType must be at most 200 characters")
+        .optional()
+        .nullable(),
+});
+
 // --- Blog Post ---
 
 const blogPostFields = {
@@ -61,6 +81,8 @@ const blogPostFields = {
     howto_steps: z.array(blogHowtoStepSchema).optional().nullable(),
     /** Optional product summary; null clears. */
     product: blogProductSchema.optional().nullable(),
+    /** Optional audience card; null clears. */
+    audience_card: blogAudienceCardSchema.optional().nullable(),
     /** Optional manual read time in minutes; omit or null to auto-calculate from content on save. */
     reading_time_minutes: z
         .number()

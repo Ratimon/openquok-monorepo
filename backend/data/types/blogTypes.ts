@@ -57,6 +57,23 @@ export interface BlogSeoProduct {
     url?: string | null;
 }
 
+export type BlogAudienceCardPresetId =
+    | "developer"
+    | "team-social-managers"
+    | "founders"
+    | "marketers"
+    | "self-host-operators"
+    | "custom";
+
+/** Optional audience persona stored on blog_posts.audience_card. */
+export interface BlogSeoAudienceCard {
+    preset?: BlogAudienceCardPresetId | null;
+    title: string;
+    description: string;
+    /** Optional Schema.org audienceType override; defaults from title when empty. */
+    audience_type?: string | null;
+}
+
 export interface BlogPost {
     id: string;
     user_id: string;
@@ -81,6 +98,7 @@ export interface BlogPost {
     howto_name: string | null;
     howto_steps: BlogSeoHowtoStep[] | null;
     product: BlogSeoProduct | null;
+    audience_card: BlogSeoAudienceCard | null;
     topic: BlogTopic | null;
     author: BlogAuthor | null;
 }

@@ -12,7 +12,7 @@ alwaysApply: false
 
 Public posts at `/blog/[slug]` render CMS HTML through `BlogPost.svelte` after `normalizeBlogContentLinks`. Edit in secret-admin **HTML source** (or visual) — do not add a markdown file under `web/src/content` for blog articles.
 
-FAQ, HowTo, and Product blocks are **form fields** (`faq_items`, `howto_name`, `howto_steps`, `product`). They render in `BlogPostSeoBlocks` and JSON-LD (`createBlogPostSEOSchema`). Do not duplicate those Q&A / step lists as a second accordion in `content`.
+FAQ, HowTo, Product, and optional **Audience card** blocks are **form fields** (`faq_items`, `howto_name`, `howto_steps`, `product`, `audience_card`). They render in `BlogPostSeoBlocks` (audience card has no section title—one compact card) and JSON-LD (`createBlogPostSEOSchema` + `createPublicAudienceSectionSEOSchema` for `#audience`). Do not duplicate those Q&A / step lists as a second accordion in `content`.
 
 **How-to title** (`howto_name`) is optional plain text. When set, it is the on-page step-summary heading and `HowTo.name` in JSON-LD; when empty, both fall back to the post title.
 

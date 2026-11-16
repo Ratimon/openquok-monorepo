@@ -32,6 +32,7 @@ import type {
 	BlogTopicOverviewPublicViewModel
 } from '$lib/blogs/GetBlog.presenter.svelte';
 import type { BlogSeoFaqItem, BlogSeoHowtoStep, BlogSeoProduct } from '$lib/blogs/blog.types';
+import { buildBlogPostAudienceSchema } from '$lib/blogs/utils/blogPostAudienceSchema';
 import {
 	isBlogTopicEligibleForGuide,
 	isBlogTopicEligibleForHowTo,
@@ -808,6 +809,11 @@ export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): 
 		blogPosting.comment = commentNodes.map((n) => ({ '@id': n['@id'] }));
 	}
 
+	const blogAudienceSchema = buildBlogPostAudienceSchema(post.audienceCard, canonicalUrl);
+	if (blogAudienceSchema.audience.length > 0) {
+		blogPosting.audience = blogAudienceSchema.audience;
+	}
+
 	const breadcrumbList = createBlogChildPageBreadcrumbListSchema(post.title, origin);
 
 	const faqItems = post.faqItems ?? [];
@@ -815,6 +821,7 @@ export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): 
 	const product = post.product;
 
 	const extraNodes = filterNonEmptyJsonLdNodes([
+		blogAudienceSchema.itemList,
 		faqItems.length > 0
 			? createBlogPostFaqPageNode({
 					canonicalUrl,

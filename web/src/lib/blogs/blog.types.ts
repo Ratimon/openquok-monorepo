@@ -41,6 +41,31 @@ export type BlogSeoFaqItem = z.infer<typeof blogSeoFaqItemSchema>;
 export type BlogSeoHowtoStep = z.infer<typeof blogSeoHowtoStepSchema>;
 export type BlogSeoProduct = z.infer<typeof blogSeoProductSchema>;
 
+export const BLOG_AUDIENCE_CARD_PRESET_IDS = [
+	'developer',
+	'team-social-managers',
+	'founders',
+	'marketers',
+	'self-host-operators',
+	'custom'
+] as const;
+
+export type BlogAudienceCardPresetId = (typeof BLOG_AUDIENCE_CARD_PRESET_IDS)[number];
+
+/** Single audience persona for on-page card and Schema.org Audience JSON-LD. */
+export const blogSeoAudienceCardSchema = z.object({
+	preset: z.enum(BLOG_AUDIENCE_CARD_PRESET_IDS).default('custom'),
+	title: z.string().min(1, 'Audience title is required'),
+	description: z.string().min(1, 'Audience description is required'),
+	audience_type: z
+		.string()
+		.max(200, 'audienceType must be at most 200 characters')
+		.optional()
+		.nullable()
+});
+
+export type BlogSeoAudienceCard = z.infer<typeof blogSeoAudienceCardSchema>;
+
 /** Form schema for create/update blog post (aligned with backend blogPostCreateSchema / blogPostUpdateSchema). */
 export const blogPostFormSchema = z.object({
 	id: z.string().uuid().optional(),
@@ -61,6 +86,7 @@ export const blogPostFormSchema = z.object({
 		.nullable(),
 	howto_steps: z.array(blogSeoHowtoStepSchema).optional().nullable(),
 	product: blogSeoProductSchema.optional().nullable(),
+	audience_card: blogSeoAudienceCardSchema.optional().nullable(),
 	reading_time_minutes: z
 		.number()
 		.int()
