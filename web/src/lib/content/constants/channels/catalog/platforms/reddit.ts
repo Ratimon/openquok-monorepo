@@ -145,7 +145,7 @@ export const redditChannel = {
 		},
 		{
 			title: 'How do I promote on Reddit without bans or shadowbans while using AI agents?',
-			description: `Read ${faqLink(faqHrefBlogPost('ai-agents-for-reddit-promote-without-getting-banned'), 'AI agents for Reddit: promote without getting banned')} on the OpenQuok blog. It covers <strong>human</strong> submit on reddit.com, subreddit fit, ban vs <strong>shadowban</strong> risk, and ${faqLink(faqHrefDocs('creating-posts/global-vs-per-channel'), 'Global mode')} with Reddit and other channels. ${faqLink(publicFaqHref.signUp, 'Sign up for free')}, connect Reddit, and keep drafts in OpenQuok—you still click Post yourself.`
+			description: `Read ${faqLink(faqHrefBlogPost('ai-agents-for-reddit-promote-without-getting-banned'), 'AI agents for Reddit: promote without getting banned')} on the OpenQuok blog. It covers <strong>human</strong> submit on reddit.com, subreddit fit, ban vs <strong>shadowban</strong> risk, and ${faqLink(faqHrefDocs('creating-posts/global-vs-per-channel'), 'Global mode')} with Reddit and other channels. For a week-by-week SaaS launch rhythm with one calendar and browser extension handoff, read ${faqLink(faqHrefBlogPost('reddit-marketing-for-saas-startups-a-practical-playbook'), 'Reddit Marketing for SaaS Startups: A Practical Playbook')}. ${faqLink(publicFaqHref.signUp, 'Sign up for free')}, connect Reddit, and keep drafts in OpenQuok—you still click Post yourself.`
 		},
 		{
 			title: buildChannelProgrammaticSchedulingFaqTitle('Reddit posts'),

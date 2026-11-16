@@ -14,6 +14,8 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+import { resolveManifestRouteChangeFreq } from './sitemapRouteChangeFreq.mjs';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -174,7 +176,7 @@ function scanRoutes(dirPath, previousFolder = '') {
 					routes.push({
 						path: routePath,
 						priority: 0.7,
-						changeFreq: 'monthly',
+						changeFreq: resolveManifestRouteChangeFreq(routePath, 'static'),
 						type: 'static'
 					});
 				}
@@ -337,15 +339,16 @@ function buildPublicApiMarketingRoutes(constantsDir = WEB_CONSTANTS_DIR) {
 		routes.push({
 			path: hubPath,
 			priority: 0.8,
-			changeFreq: 'monthly',
+			changeFreq: resolveManifestRouteChangeFreq(hubPath, 'programmatic-api-marketing-hub'),
 			type: 'programmatic-api-marketing-hub'
 		});
 
 		for (const slug of platformSlugs) {
+			const path = `${hubPath}/${encodeURIComponent(slug)}`;
 			routes.push({
-				path: `${hubPath}/${encodeURIComponent(slug)}`,
+				path,
 				priority: 0.75,
-				changeFreq: 'monthly',
+				changeFreq: resolveManifestRouteChangeFreq(path, 'programmatic-api-marketing-platform'),
 				type: 'programmatic-api-marketing-platform'
 			});
 		}
@@ -365,17 +368,18 @@ function buildProgrammaticRoutes(constantsDir = WEB_CONSTANTS_DIR) {
 		routes.push({
 			path: comparePath,
 			priority: 0.75,
-			changeFreq: 'monthly',
+			changeFreq: resolveManifestRouteChangeFreq(comparePath, 'programmatic-compare'),
 			type: 'programmatic-compare'
 		});
 	}
 
 	for (const slug of compareSlugs) {
 		if (slug !== COMPARE_HUB_BASE_SLUG) {
+			const path = `/alternatives/${encodeURIComponent(slug)}`;
 			routes.push({
-				path: `/alternatives/${encodeURIComponent(slug)}`,
+				path,
 				priority: 0.75,
-				changeFreq: 'monthly',
+				changeFreq: resolveManifestRouteChangeFreq(path, 'programmatic-alternatives'),
 				type: 'programmatic-alternatives'
 			});
 		}
@@ -385,7 +389,7 @@ function buildProgrammaticRoutes(constantsDir = WEB_CONSTANTS_DIR) {
 		routes.push({
 			path: agentChannelPath,
 			priority: 0.7,
-			changeFreq: 'monthly',
+			changeFreq: resolveManifestRouteChangeFreq(agentChannelPath, 'programmatic-agent-channel'),
 			type: 'programmatic-agent-channel'
 		});
 	}
@@ -400,10 +404,11 @@ function buildProgrammaticRoutes(constantsDir = WEB_CONSTANTS_DIR) {
 					? apiPlatformSlugs
 					: catalog.channels;
 		for (const channelSlug of channelSlugs) {
+			const path = `${toolPrefix}/${encodeURIComponent(channelSlug)}`;
 			routes.push({
-				path: `${toolPrefix}/${encodeURIComponent(channelSlug)}`,
+				path,
 				priority: 0.7,
-				changeFreq: 'monthly',
+				changeFreq: resolveManifestRouteChangeFreq(path, 'programmatic-tool-channel'),
 				type: 'programmatic-tool-channel'
 			});
 		}
@@ -418,19 +423,21 @@ function publicCatalogSlugsToRoutes(catalog) {
 	const routes = [];
 
 	for (const slug of catalog.agents) {
+		const path = `/agents/${encodeURIComponent(slug)}`;
 		routes.push({
-			path: `/agents/${encodeURIComponent(slug)}`,
+			path,
 			priority: 0.8,
-			changeFreq: 'monthly',
+			changeFreq: resolveManifestRouteChangeFreq(path, 'public-catalog'),
 			type: 'public-catalog'
 		});
 	}
 
 	for (const slug of catalog.channels) {
+		const path = `/channels/${encodeURIComponent(slug)}`;
 		routes.push({
-			path: `/channels/${encodeURIComponent(slug)}`,
+			path,
 			priority: 0.8,
-			changeFreq: 'monthly',
+			changeFreq: resolveManifestRouteChangeFreq(path, 'public-catalog'),
 			type: 'public-catalog'
 		});
 	}

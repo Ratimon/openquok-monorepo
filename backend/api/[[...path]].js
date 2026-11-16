@@ -49082,6 +49082,48 @@ var EXCLUDED_PATHS = ["/robots.txt", "/sitemap.xml"];
 var CUSTOM_CHANGEFREQ = {
   "/blog": "daily"
 };
+var WEEKLY_MARKETING_HUB_PATHS = /* @__PURE__ */ new Set([
+  "/alternatives",
+  "/alternatives/categories",
+  "/compare",
+  "/agents",
+  "/channels",
+  "/tools",
+  "/pricing",
+  "/build-backlinks",
+  "/build-backlinks/categories",
+  "/build-backlinks/tags",
+  "/browser-extension",
+  "/building-blocks",
+  "/building-blocks/categories",
+  "/building-blocks/tags",
+  "/playbooks",
+  "/playbooks/categories",
+  "/playbooks/tags",
+  "/docs",
+  "/directory-submission-tool"
+]);
+function applySitemapChangefreqHints(url) {
+  const exact = CUSTOM_CHANGEFREQ[url.url];
+  if (exact) {
+    return { ...url, changeFreq: exact };
+  }
+  if (WEEKLY_MARKETING_HUB_PATHS.has(url.url)) {
+    return { ...url, changeFreq: "weekly" };
+  }
+  if (url.url.startsWith("/alternatives/") && url.url !== "/alternatives/categories") {
+    return { ...url, changeFreq: "weekly" };
+  }
+  if (/^\/agents\/[^/]+$/.test(url.url) || /^\/channels\/[^/]+$/.test(url.url)) {
+    return { ...url, changeFreq: "weekly" };
+  }
+  for (const hubPath of PUBLIC_API_MARKETING_HUB_PATHS) {
+    if (url.url === hubPath || url.url.startsWith(`${hubPath}/`)) {
+      return { ...url, changeFreq: "weekly" };
+    }
+  }
+  return url;
+}
 var MANIFEST_EXCLUDED = /* @__PURE__ */ new Set(["sitemap.xml", "robots.txt", "api", "favicon.ico"]);
 var COMPARE_HUB_BASE_SLUG = "openquok";
 var MANIFEST_NON_INDEXABLE_EXACT = /* @__PURE__ */ new Set([
@@ -49689,10 +49731,10 @@ async function generateSitemapUrls(options2) {
     if (catalog) {
       const { agents, channels } = publicCatalogSlugsToSitemapPaths(catalog);
       for (const agentUrl of agents) {
-        urls.push({ url: agentUrl, lastMod: staticLastMod, changeFreq: "monthly" });
+        urls.push({ url: agentUrl, lastMod: staticLastMod, changeFreq: "weekly" });
       }
       for (const channelUrl of channels) {
-        urls.push({ url: channelUrl, lastMod: staticLastMod, changeFreq: "monthly" });
+        urls.push({ url: channelUrl, lastMod: staticLastMod, changeFreq: "weekly" });
       }
       logger.info({
         msg: "Added public catalog URLs to sitemap",
@@ -49814,14 +49856,7 @@ async function generateSitemapUrls(options2) {
     );
     return !exclude;
   });
-  const withChangefreq = filtered.map((u) => {
-    for (const [pattern, changefreq] of Object.entries(CUSTOM_CHANGEFREQ)) {
-      if (u.url === pattern) {
-        return { ...u, changeFreq: changefreq };
-      }
-    }
-    return u;
-  });
+  const withChangefreq = filtered.map((u) => applySitemapChangefreqHints(u));
   return dedupeByUrl(withChangefreq);
 }
 function toSitemapXml(urls, baseURL) {

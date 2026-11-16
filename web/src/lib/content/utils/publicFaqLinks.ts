@@ -259,6 +259,7 @@ export const publicFaqHref = {
 		'team-collaboration-in-openquok-workspaces-clients-and-preview-links'
 	),
 	blogRedditAgents: faqHrefBlogPost('ai-agents-for-reddit-promote-without-getting-banned'),
+	blogRedditSaasPlaybook: faqHrefBlogPost('reddit-marketing-for-saas-startups-a-practical-playbook'),
 	blogOpenquokVsPostiz: faqHrefBlogPost(
 		'openquok-vs-postiz-two-open-source-schedulers-different-strengths'
 	)
