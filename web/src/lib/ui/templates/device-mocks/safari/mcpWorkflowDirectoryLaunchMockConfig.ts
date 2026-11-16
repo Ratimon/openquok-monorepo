@@ -17,7 +17,8 @@ export type McpWorkflowDirectoryLaunchMockContentId =
 	| 'mcp-directory-launch-android-studio'
 	| 'mcp-directory-launch-warp'
 	| 'mcp-directory-launch-muse-code'
-	| 'mcp-directory-launch-grok-build';
+	| 'mcp-directory-launch-grok-build'
+	| 'mcp-directory-launch-opencode';
 
 export const MCP_DIRECTORY_LAUNCH_USER_PROMPT =
 	'Prepare my PeerPush launch — list product profiles, ensure the peerpush variant, and show listing readiness before I open the browser extension.';

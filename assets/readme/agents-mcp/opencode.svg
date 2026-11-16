@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" role="img" aria-label="OpenCode">
+  <title>OpenCode</title>
+  <rect width="24" height="24" rx="6" fill="#131010"/>
+  <g transform="scale(0.046875)">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M384 416H128V96H384V416ZM320 160H192V352H320V160Z" fill="white"/>
+  </g>
+</svg>

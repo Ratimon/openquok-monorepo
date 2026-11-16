@@ -174,6 +174,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'Claude',
 	'Warp',
 	'Grok Build',
+	'OpenCode',
 	'Amp',
 	'dockerized',
 	// Social channels & networks

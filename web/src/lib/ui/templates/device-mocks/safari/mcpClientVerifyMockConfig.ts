@@ -17,7 +17,8 @@ export type McpVerifySafariMockContentId =
 	| 'mcp-verify-android-studio'
 	| 'mcp-verify-warp'
 	| 'mcp-verify-muse-code'
-	| 'mcp-verify-grok-build';
+	| 'mcp-verify-grok-build'
+	| 'mcp-verify-opencode';
 
 export type McpInstallSafariMockContentId =
 	| 'mcp-install-cursor'
@@ -32,7 +33,8 @@ export type McpInstallSafariMockContentId =
 	| 'mcp-install-android-studio'
 	| 'mcp-install-warp'
 	| 'mcp-install-muse-code'
-	| 'mcp-install-grok-build';
+	| 'mcp-install-grok-build'
+	| 'mcp-install-opencode';
 
 export type McpVerifyMockLayout = 'ide' | 'terminal' | 'cowork';
 
@@ -211,6 +213,18 @@ const THEMES: Record<McpClient, McpClientVerifyMockTheme> = {
 		accentSoftClass: 'bg-white/10 text-zinc-100',
 		borderClass: 'border-white/10',
 		configFileHint: 'config.toml'
+	},
+	OpenCode: {
+		layout: 'terminal',
+		mockUrl: 'opencode.ai',
+		productLabel: 'OpenCode',
+		panelLabel: 'opencode',
+		icon: icons.OpenCode.name,
+		surfaceClass: 'bg-[#131010]',
+		accentClass: 'text-zinc-200',
+		accentSoftClass: 'bg-white/10 text-zinc-100',
+		borderClass: 'border-white/10',
+		configFileHint: 'opencode.jsonc'
 	}
 };
 

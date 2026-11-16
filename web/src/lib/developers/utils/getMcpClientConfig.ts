@@ -14,7 +14,8 @@ export const MCP_CLIENTS = [
 	'Android Studio',
 	'Warp',
 	'Muse Code',
-	'Grok Build'
+	'Grok Build',
+	'OpenCode'
 ] as const;
 
 export type McpClient = (typeof MCP_CLIENTS)[number];
@@ -36,7 +37,8 @@ export const MCP_CLIENT_DOCS_SLUG: Record<McpClient, string> = {
 	'Android Studio': 'android-studio',
 	Warp: 'warp',
 	'Muse Code': 'muse-code',
-	'Grok Build': 'grok-build'
+	'Grok Build': 'grok-build',
+	OpenCode: 'opencode'
 };
 
 const json = (obj: object) => JSON.stringify(obj, null, 2);
@@ -152,6 +154,11 @@ export function getMcpClientConfig(
 				return {
 					config: `grok mcp add --transport http ${MCP_SERVER_NAME} "${urlWithKey}"`,
 					hint: 'Run this in your terminal. You can also set url in ~/.grok/config.toml under [[mcp.servers]].'
+				};
+			case 'OpenCode':
+				return {
+					config: `opencode mcp add ${MCP_SERVER_NAME} --global --url "${urlWithKey}"`,
+					hint: 'Run this in your terminal, or merge the JSON below into ~/.config/opencode/opencode.jsonc.'
 				};
 		}
 	}
@@ -277,6 +284,23 @@ export function getMcpClientConfig(
 			return {
 				config: `# ~/.grok/config.toml\n\n[[mcp.servers]]\nname = "${MCP_SERVER_NAME}"\ntype = "http"\nurl = "${urlBase}"\nheaders.Authorization = "${bearer}"`,
 				hint: 'Add to ~/.grok/config.toml, or run grok mcp add --transport http openquok with the MCP URL.'
+			};
+		case 'OpenCode':
+			return {
+				config: json({
+					$schema: 'https://opencode.ai/config.json',
+					mcp: {
+						servers: {
+							[MCP_SERVER_NAME]: {
+								type: 'remote',
+								url: urlBase,
+								oauth: false,
+								headers: { Authorization: bearer }
+							}
+						}
+					}
+				}),
+				hint: 'Add to ~/.config/opencode/opencode.jsonc, or run opencode mcp add openquok with --header Authorization=Bearer …'
 			};
 	}
 }

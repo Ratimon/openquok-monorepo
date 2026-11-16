@@ -17,7 +17,8 @@ export type McpWorkflowAnalyticsMockContentId =
 	| 'mcp-analytics-android-studio'
 	| 'mcp-analytics-warp'
 	| 'mcp-analytics-muse-code'
-	| 'mcp-analytics-grok-build';
+	| 'mcp-analytics-grok-build'
+	| 'mcp-analytics-opencode';
 
 export const MCP_ANALYTICS_USER_PROMPT =
 	'What performed best on my channels over the last 7 days? Break down impressions and engagement.';

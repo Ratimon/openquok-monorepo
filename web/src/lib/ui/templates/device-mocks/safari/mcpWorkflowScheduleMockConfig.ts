@@ -17,7 +17,8 @@ export type McpWorkflowScheduleMockContentId =
 	| 'mcp-workflow-android-studio'
 	| 'mcp-workflow-warp'
 	| 'mcp-workflow-muse-code'
-	| 'mcp-workflow-grok-build';
+	| 'mcp-workflow-grok-build'
+	| 'mcp-workflow-opencode';
 
 export const MCP_WORKFLOW_USER_PROMPT =
 	'Queue my launch announcement on Facebook, Instagram, and Threads — attach the hero image and set it for tomorrow at 9am.';

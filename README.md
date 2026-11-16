@@ -124,7 +124,7 @@ Directory site keys, variants, and extension handoff are in [Directory integrati
   <a href="https://www.openquok.com/agents/claude-duet"><img src="./assets/readme/agents-mcp/claude-duet.svg" alt="Claude Duet" width="32" height="32"></a>
 </p>
 
-- <img src="./assets/readme/features/automation.svg" alt="" width="24" height="24" align="top"> **MCP clients.** **Antigravity CLI**, **Android Studio**, **ChatGPT**, **Codex**, **Cursor**, **Claude Code**, **Claude Cowork**, **VS Code / Copilot**, **Devin Desktop**, **Amp**, **Warp**, **Muse Code**, and **Grok Build** connect OpenQuok over HTTP with a workspace programmatic token — see [MCP setup guides](https://www.openquok.com/docs/mcp-setup-guides) and [MCP getting started](https://www.openquok.com/docs/getting-started-for-mcp).
+- <img src="./assets/readme/features/automation.svg" alt="" width="24" height="24" align="top"> **MCP clients.** **Antigravity CLI**, **Android Studio**, **ChatGPT**, **Codex**, **Cursor**, **Claude Code**, **Claude Cowork**, **VS Code / Copilot**, **Devin Desktop**, **Amp**, **Warp**, **Muse Code**, **Grok Build**, and **OpenCode** connect OpenQuok over HTTP with a workspace programmatic token — see [MCP setup guides](https://www.openquok.com/docs/mcp-setup-guides) and [MCP getting started](https://www.openquok.com/docs/getting-started-for-mcp).
 
 <p>
   <a href="https://www.openquok.com/agents/antigravity-cli"><img src="./assets/readme/agents-mcp/antigravity-cli.svg" alt="Antigravity CLI" width="32" height="32"></a>
@@ -140,6 +140,7 @@ Directory site keys, variants, and extension handoff are in [Directory integrati
   <a href="https://www.openquok.com/agents/warp"><img src="./assets/readme/agents-mcp/warp.svg" alt="Warp" width="32" height="32"></a>
   <a href="https://www.openquok.com/agents/muse-code"><img src="./assets/readme/agents-mcp/muse-code.svg" alt="Muse Code" width="32" height="32"></a>
   <a href="https://www.openquok.com/agents/grok-build"><img src="./assets/readme/agents-mcp/grok-build.svg" alt="Grok Build" width="32" height="32"></a>
+  <a href="https://www.openquok.com/agents/opencode"><img src="./assets/readme/agents-mcp/opencode.svg" alt="OpenCode" width="32" height="32"></a>
 </p>
 
 Drafts from every path land in the same review queue on Home and the calendar.
@@ -304,10 +305,10 @@ Learn more at [Architecture](https://www.openquok.com/docs/getting-started-for-d
 
 **Featured Blogs**
 
-- [AI agents for Reddit: promote without getting banned](https://www.openquok.com/blog/ai-agents-for-reddit-promote-without-getting-banned) — draft with AI agents in OpenQuok, Global mode with other channels, human submit on reddit.com, and lower ban and shadowban risk
-- [Team collaboration in OpenQuok](https://www.openquok.com/blog/team-collaboration-in-openquok-workspaces-clients-and-preview-links) — workspaces, business profiles per client, invite links, templates, and preview links for sign-off
 - [Warm up a TikTok account](https://www.openquok.com/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience) — device setup and posting cadence before you scale carousels or agent-scheduled posts
 - [Meta Business verification for Facebook apps](https://www.openquok.com/blog/how-to-pass-meta-business-verification-for-a-facebook-app-or-skip-it-with-openquok) — pass Meta’s checks or connect Facebook through OpenQuok without a standalone app review path
+- [AI agents for Reddit: promote without getting banned](https://www.openquok.com/blog/ai-agents-for-reddit-promote-without-getting-banned) — draft with AI agents in OpenQuok, Global mode with other channels, human submit on reddit.com, and lower ban and shadowban risk
+- [Team collaboration in OpenQuok](https://www.openquok.com/blog/team-collaboration-in-openquok-workspaces-clients-and-preview-links) — workspaces, business profiles per client, invite links, templates, and preview links for sign-off
 - [How to build free backlinks for SEO with OpenQuok](https://www.openquok.com/blog/how-to-build-free-backlinks-for-seo-with-openquok) — use the [Build Backlinks](https://www.openquok.com/build-backlinks) hub, site playbooks, and the Humanizer for SEO and AEO
 
 **Contributing**

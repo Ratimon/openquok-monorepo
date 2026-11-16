@@ -13,6 +13,7 @@ import { ampMcpSeed } from '$lib/content/constants/mcps/hosts/amp';
 import { warpMcpSeed } from '$lib/content/constants/mcps/hosts/warp';
 import { muse_codeMcpSeed } from '$lib/content/constants/mcps/hosts/muse-code';
 import { grok_buildMcpSeed } from '$lib/content/constants/mcps/hosts/grok-build';
+import { opencodeMcpSeed } from '$lib/content/constants/mcps/hosts/opencode';
 
 /** Single registry for MCP landing seeds — order drives hub, nav, and footer columns. */
 export const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
@@ -28,7 +29,8 @@ export const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 	ampMcpSeed,
 	warpMcpSeed,
 	muse_codeMcpSeed,
-	grok_buildMcpSeed
+	grok_buildMcpSeed,
+	opencodeMcpSeed
 ];
 
 export type PublicMcpFooterEntry = { slug: string; label: string };

@@ -24,6 +24,7 @@ export { ampMcpSeed } from '$lib/content/constants/mcps/hosts/amp';
 export { warpMcpSeed } from '$lib/content/constants/mcps/hosts/warp';
 export { muse_codeMcpSeed } from '$lib/content/constants/mcps/hosts/muse-code';
 export { grok_buildMcpSeed } from '$lib/content/constants/mcps/hosts/grok-build';
+export { opencodeMcpSeed } from '$lib/content/constants/mcps/hosts/opencode';
 export { MCP_LANDING_SEEDS, listPublicMcpLandingSeedsForFooter } from '$lib/content/constants/mcps/seeds';
 export { buildMcpChannelLandingVm } from '$lib/content/constants/mcps/channels';
 

@@ -84,6 +84,7 @@ For step-by-step guides with troubleshooting, see <a href="/docs/mcp-setup-guide
 | <Badge text="Warp" variant="default" /> | Settings → MCP Servers | <a href="/docs/mcp-setup-guides/warp">Warp</a> |
 | <Badge text="Muse Code" variant="default" /> | <Badge text="~/.config/muse/settings.json" variant="path" /> | <a href="/docs/mcp-setup-guides/muse-code">Muse Code</a> |
 | <Badge text="Grok Build" variant="default" /> | Terminal <Badge text="grok mcp add" variant="default" /> or <Badge text="~/.grok/config.toml" variant="path" /> | <a href="/docs/mcp-setup-guides/grok-build">Grok Build</a> |
+| <Badge text="OpenCode" variant="default" /> | <Badge text="opencode mcp add" variant="default" /> or <Badge text="~/.config/opencode/opencode.jsonc" variant="path" /> | <a href="/docs/mcp-setup-guides/opencode">OpenCode</a> |
 
 ### Cursor (header auth)
 

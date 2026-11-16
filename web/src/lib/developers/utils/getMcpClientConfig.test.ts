@@ -148,6 +148,30 @@ describe('getMcpClientConfig', () => {
 		expect(config).toContain(`headers.Authorization = "Bearer ${API_KEY}"`);
 		expect(hint).toContain('~/.grok/config.toml');
 	});
+
+	it('generates OpenCode path auth as opencode mcp add with token in URL', () => {
+		const { config, hint } = getMcpClientConfig('OpenCode', 'path', MCP_BASE, API_KEY);
+		expect(config).toContain(`opencode mcp add ${MCP_SERVER_NAME} --global --url`);
+		expect(config).toContain(`${MCP_BASE}/mcp/${API_KEY}`);
+		expect(hint).toContain('opencode.jsonc');
+	});
+
+	it('generates OpenCode header auth as remote server in opencode.jsonc', () => {
+		const { config, hint } = getMcpClientConfig('OpenCode', 'header', MCP_BASE, API_KEY);
+		expect(hint).toContain('opencode.jsonc');
+		const parsed = JSON.parse(config) as {
+			mcp: {
+				servers: Record<
+					string,
+					{ type: string; url: string; oauth: boolean; headers: { Authorization: string } }
+				>;
+			};
+		};
+		expect(parsed.mcp.servers[MCP_SERVER_NAME].type).toBe('remote');
+		expect(parsed.mcp.servers[MCP_SERVER_NAME].url).toBe(`${MCP_BASE}/mcp`);
+		expect(parsed.mcp.servers[MCP_SERVER_NAME].oauth).toBe(false);
+		expect(parsed.mcp.servers[MCP_SERVER_NAME].headers.Authorization).toBe(`Bearer ${API_KEY}`);
+	});
 });
 
 describe('maskApiKeyInConfig', () => {
