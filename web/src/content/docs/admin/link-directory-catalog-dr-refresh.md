@@ -2,7 +2,7 @@
 title: Catalog DR refresh for Backlinks Hub Page
 description: Refresh domain rating on link directory sites from DataForSEO using the CLI or action from admin UI.
 order: 4
-lastUpdated: 2026-10-20
+lastUpdated: 2026-11-17
 ---
 
 <script>
@@ -34,19 +34,24 @@ Editors with the **editor** role can also run **Refresh catalog DR** on <a href=
 
 ## Run the CLI script
 
-From the repo root:
+From the repo root (local / dev env file):
 
 ```bash
-pnpm --filter ./backend run script:refresh-link-directory-catalog-dr
+pnpm backend:db:refresh-link-directory-catalog-dr
 ```
 
-Equivalent:
+Production Supabase and DataForSEO (same pattern as catalog backfill):
 
 ```bash
-pnpm --filter ./backend exec tsx scripts/refresh_link_directory_catalog_dr.ts
+pnpm backend:db:refresh-link-directory-catalog-dr:prod
 ```
 
-Load <Badge text="backend/.env.development.local" variant="envBackend" /> (or production env) so the script sees DataForSEO keys.
+The <Badge text=":prod" variant="param" /> alias passes <Badge text="--env-file .env.production.local" variant="param" /> and sets <Badge text="NODE_ENV=production" variant="envBackend" /> before the backend config loads.
+
+| Script | Env file |
+| --- | --- |
+| <Badge text="backend:db:refresh-link-directory-catalog-dr" variant="param" /> | <Badge text="backend/.env.development.local" variant="envBackend" /> |
+| <Badge text="backend:db:refresh-link-directory-catalog-dr:prod" variant="param" /> | <Badge text="backend/.env.production.local" variant="envBackend" /> |
 
 ## Command flags
 
@@ -57,12 +62,17 @@ Load <Badge text="backend/.env.development.local" variant="envBackend" /> (or pr
 | <Badge text="--slug=producthunt" variant="param" /> | Refresh one site by slug. |
 | <Badge text="--site-id=&lt;uuid&gt;" variant="param" /> | Refresh one site by id. |
 | <Badge text="--dry-run" variant="param" /> | Run lookups but do not write <Badge text="link_directory_sites" variant="path" />. Snapshots may still update. |
+| <Badge text="--env-file &lt;path&gt;" variant="param" /> | Env file relative to <Badge text="backend/" variant="path" /> (the <Badge text=":prod" variant="param" /> npm script sets this). |
 
 Combine flags as needed. Example:
 
 ```bash
-pnpm --filter ./backend run script:refresh-link-directory-catalog-dr -- --published-only --force
+pnpm backend:db:refresh-link-directory-catalog-dr:prod -- --published-only --force
 ```
+
+<Callout type="note">
+<p>After a successful refresh, site guide URLs under <code>/build-backlinks/&lt;slug&gt;</code> usually show the new DR immediately. The main <a href="/build-backlinks">Build Backlinks</a> hub can still show the old DR on a card for a few minutes because list HTML is edge-cached; hard refresh or wait for TTL. See <a href="/docs/configuration-backend/cache-design">Cache design</a> → Public content and caching.</p>
+</Callout>
 
 ## What the database stores
 
@@ -89,6 +99,7 @@ You can type DR on a site in secret-admin. That value stays until the next catal
 ## Related
 
 <CardGrid>
+<LinkCard title="Catalog backfill" description="Insert hub destinations from JSON when they are not in SQL seeds" href="/docs/admin/link-directory-catalog-backfill" />
 <LinkCard title="Directory SEO" description="Cache TTL, worker sweep, and API env vars" href="/docs/configuration-backend/directory-seo" />
 <LinkCard title="Directory analytics (product)" description="My Products grid DR vs workspace Directory tab" href="/docs/insights/directory-analytics" />
 <LinkCard title="Admin overview" description="Other operator setup guides" href="/docs/admin" />

@@ -8,6 +8,17 @@ import CacheInvalidationService from "./CacheInvalidationService";
 import MemoryCacheProvider from "./MemoryCacheProvider";
 import RedisCacheProvider from "./RedisCacheProvider";
 
+/** Set when the runtime cache uses Redis; lets one-shot CLI scripts disconnect cleanly. */
+let activeRedisProvider: RedisCacheProvider | null = null;
+
+/** Close the shared Redis client so short-lived Node processes can exit (catalog DR refresh, etc.). */
+export async function disconnectCacheConnection(): Promise<void> {
+    if (!activeRedisProvider) return;
+    const provider = activeRedisProvider;
+    activeRedisProvider = null;
+    await provider.disconnect();
+}
+
 function createCacheProvider(): CacheProvider {
     const cacheConfig = config.cache as {
         provider?: string;
@@ -61,6 +72,7 @@ function createCacheProvider(): CacheProvider {
             enableOfflineQueue: redisOpts.enableOfflineQueue,
             useScan: redisOpts.useScan,
         });
+        activeRedisProvider = redis;
         return {
             get: (k) => redis.get(k),
             set: (k, v, ttl) => redis.set(k, v, ttl),

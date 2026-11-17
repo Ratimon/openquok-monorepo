@@ -16,7 +16,7 @@ export const LINK_DIRECTORY_ADMIN_METRICS_COPY: LinkDirectoryAdminMetricsCopySec
 		'Domain rating on catalog sites can be refreshed from DataForSEO (secret-admin Sites → Refresh catalog DR, or the backend script). Domain authority and monthly visits stay editor-maintained until a traffic provider is wired.',
 	v1Bullets: [
 		'Use Refresh catalog DR on the Sites list to update published sites from each site URL hostname (respects the global snapshot cache unless you pass --force in the script).',
-		'CLI: pnpm --filter ./backend run script:refresh-link-directory-catalog-dr (add --force, --published-only, --slug=…). Requires DATAFORSEO_API_KEY on the API.',
+		'CLI: pnpm backend:db:refresh-link-directory-catalog-dr:prod (add --force, --published-only, --slug=…). Requires DATAFORSEO_API_KEY in backend/.env.production.local for prod runs.',
 		'Enter DA and traffic manually on the site editor when you have numbers from your metrics subscription or internal research.',
 		'Saving after you change a manual metric field stamps metrics updated at for the public directory.'
 	],
