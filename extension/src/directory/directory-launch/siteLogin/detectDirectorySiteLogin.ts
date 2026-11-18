@@ -1,5 +1,6 @@
 import { isOpenLaunchLoggedIn, OPEN_LAUNCH_LOGIN_URL } from './open-launch.js';
 import { isPeerPushLoggedIn, PEERPUSH_LOGIN_URL } from './peerpush.js';
+import { isTinylaunchLoggedIn, TINYLAUNCH_LOGIN_URL } from './tinylaunch.js';
 import type { DirectorySiteLoginAdapter, DirectorySiteLoginDetection } from './types.js';
 import { isUneedLoggedIn, UNEED_LOGIN_URL } from './uneed.js';
 
@@ -15,6 +16,10 @@ const adapters: Readonly<Record<string, DirectorySiteLoginAdapter>> = {
 	'open-launch': {
 		isLoggedIn: isOpenLaunchLoggedIn,
 		loginUrl: OPEN_LAUNCH_LOGIN_URL
+	},
+	tinylaunch: {
+		isLoggedIn: isTinylaunchLoggedIn,
+		loginUrl: TINYLAUNCH_LOGIN_URL
 	}
 };
 

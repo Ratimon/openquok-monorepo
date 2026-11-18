@@ -32,6 +32,10 @@ pnpm --filter @openquok/browser-extension zip
 
 See [docs/store/README.md](./docs/store/README.md) and [docs/store/edge-addons.md](./docs/store/edge-addons.md) for Edge Partner Center steps and post-publish extension ID wiring.
 
+## Side panel session
+
+The toolbar action opens **Social** and **Directory** tabs. **Dashboard sign-in** (OpenQuok.com, self-host URL, refresh, and disconnect) lives in a **shared session bar** between the tab strip and the tab panels — connect once for both tabs.
+
 ## Self-host web origin
 
 `manifest.json` `externally_connectable.matches` includes `localhost` and `https://*.openquok.com/*`. For other dashboard origins, add your HTTPS origin to `externally_connectable` and rebuild.

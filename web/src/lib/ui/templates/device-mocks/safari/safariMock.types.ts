@@ -3,6 +3,7 @@ export type SafariMockContentId =
 	| 'directory-site-peerpush'
 	| 'directory-site-uneed'
 	| 'directory-site-open-launch'
+	| 'directory-site-tinylaunch'
 	| 'external-site-placeholder'
 	| 'openclaw-docs-overview'
 	| 'hermes-docs-overview'

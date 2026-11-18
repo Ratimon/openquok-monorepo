@@ -39,6 +39,7 @@ describe('listPublicAgentChannelsForHub', () => {
 		const slugs = links.map((link) => link.slug);
 		expect(slugs).toContain('peerpush');
 		expect(slugs).toContain('open-launch');
+		expect(slugs).toContain('tinylaunch');
 		expect(slugs).toContain('threads');
 	});
 

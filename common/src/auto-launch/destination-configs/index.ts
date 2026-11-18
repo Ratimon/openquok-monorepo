@@ -8,6 +8,10 @@ import {
 	PEERPUSH_STANDARD_LAUNCH_EXTENSION_CONFIG,
 } from './peerpush.js';
 import {
+	TINYLAUNCH_PREMIUM_LAUNCH_EXTENSION_CONFIG,
+	TINYLAUNCH_STANDARD_LAUNCH_EXTENSION_CONFIG,
+} from './tinylaunch.js';
+import {
 	UNEED_JOIN_LINE_EXTENSION_CONFIG,
 	UNEED_MAKER_PROFILE_EXTENSION_CONFIG,
 	UNEED_PAID_LAUNCH_EXTENSION_CONFIG,
@@ -21,6 +25,10 @@ export {
 	PEERPUSH_FREE_QUEUE_EXTENSION_CONFIG,
 	PEERPUSH_STANDARD_LAUNCH_EXTENSION_CONFIG,
 } from './peerpush.js';
+export {
+	TINYLAUNCH_PREMIUM_LAUNCH_EXTENSION_CONFIG,
+	TINYLAUNCH_STANDARD_LAUNCH_EXTENSION_CONFIG,
+} from './tinylaunch.js';
 export {
 	UNEED_JOIN_LINE_EXTENSION_CONFIG,
 	UNEED_MAKER_PROFILE_EXTENSION_CONFIG,
@@ -36,6 +44,8 @@ export const DIRECTORY_EXTENSION_CONFIG_FIXTURES: Record<string, AutoLaunchExten
 	'uneed-maker-profile': UNEED_MAKER_PROFILE_EXTENSION_CONFIG,
 	'open-launch-premium-launch': OPEN_LAUNCH_PREMIUM_LAUNCH_EXTENSION_CONFIG,
 	'open-launch-free-launch': OPEN_LAUNCH_FREE_LAUNCH_EXTENSION_CONFIG,
+	'tinylaunch-premium-launch': TINYLAUNCH_PREMIUM_LAUNCH_EXTENSION_CONFIG,
+	'tinylaunch-standard-launch': TINYLAUNCH_STANDARD_LAUNCH_EXTENSION_CONFIG,
 };
 
 export const DIRECTORY_EXTENSION_CONFIG_PROVIDER_SLUGS = Object.keys(
@@ -49,9 +59,34 @@ export function getDirectoryExtensionConfigFixture(
 }
 
 export {
+	AUTO_LAUNCH_COMPOSITE_DESTINATION_SEED_SITE_KEYS,
+	AUTO_LAUNCH_EXTENSION_CONFIG_DERIVATIONS,
 	AUTO_LAUNCH_EXTENSION_CONFIGS_SQL,
+	AUTO_LAUNCH_DESTINATION_SEED_PRICING_START_URL_DERIVED,
 	AUTO_LAUNCH_EXTENSION_CONFIG_PRICING_READY_HINT_DERIVED,
+	AUTO_LAUNCH_PRICING_QUEUE_VARIANT_DERIVED,
+	type AutoLaunchCompositeDestinationSeedSiteKey,
+	type AutoLaunchPricingQueueVariantDerived,
+	UNEED_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
 } from './syncMetadata.js';
+
+export {
+	validateIndependentExtensionFixtureSlugs,
+	validatePricingQueueExtensionFixtures,
+	type ExtensionConfigDerivation,
+	type ExtensionConfigDerivationBySlug,
+} from './extensionConfigDerivation.js';
+
+export {
+	AUTO_LAUNCH_DESTINATION_SEED_MODULES,
+	AUTO_LAUNCH_DESTINATION_SEED_PROVIDER_SLUGS,
+	AUTO_LAUNCH_DESTINATION_SEED_ROWS,
+	AUTO_LAUNCH_DESTINATION_SEEDS_GENERATED_MARKER_END,
+	AUTO_LAUNCH_DESTINATION_SEEDS_GENERATED_MARKER_START,
+	type AutoLaunchDestinationSeedGenerationMode,
+	type AutoLaunchDestinationSeedModule,
+	type AutoLaunchDestinationSeedRow,
+} from './destinationSeeds.js';
 
 export {
 	directoryLaunchProviders,
@@ -74,6 +109,11 @@ export {
 	PEERPUSH_HOST_PERMISSION,
 } from './peerpush.js';
 export {
+	TINYLAUNCH_DIRECTORY_LAUNCH_PROVIDERS,
+	TINYLAUNCH_HOST_PATTERNS,
+	TINYLAUNCH_HOST_PERMISSION,
+} from './tinylaunch.js';
+export {
 	UNEED_DIRECTORY_LAUNCH_PROVIDERS,
 	UNEED_HOST_PATTERNS,
 	UNEED_HOST_PERMISSION,
@@ -93,6 +133,14 @@ export {
 	type LaunchFieldCatalogId,
 } from './fieldCatalogRegistry.js';
 
+export {
+	TINYLAUNCH_OFFICIAL_CATEGORY_LABELS,
+	coerceToTinylaunchOfficialCategory,
+	matchTinylaunchOfficialCategory,
+	normalizeTinylaunchCategoryLabel,
+	type TinylaunchOfficialCategoryLabel,
+	tinylaunchSelectCatalogOptions,
+} from './tinylaunch.js';
 export {
 	UNEED_OFFICIAL_CATEGORY_LABELS,
 	UNEED_OFFICIAL_TAG_LABELS,

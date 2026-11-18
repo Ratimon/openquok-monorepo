@@ -409,7 +409,7 @@ var init_directorySiteKey = __esm({
   }
 });
 
-// ../common/dist/auto-launch/destination-configs/openLaunch.js
+// ../common/dist/auto-launch/destination-configs/sites/open-launch/config.js
 function normalizeOpenLaunchChoiceLabel(raw) {
   return raw.trim().replace(/\s+/g, " ").toLowerCase();
 }
@@ -460,8 +460,8 @@ function invalidOpenLaunchProfileChoicesForField(items, field) {
   return [];
 }
 var OPEN_LAUNCH_PREMIUM_LAUNCH_EXTENSION_CONFIG, OPEN_LAUNCH_HOST_PATTERNS, OPEN_LAUNCH_HOST_PERMISSION, OPEN_LAUNCH_PREMIUM_LAUNCH, OPEN_LAUNCH_FREE_LAUNCH, OPEN_LAUNCH_DIRECTORY_LAUNCH_PROVIDERS, OPEN_LAUNCH_CATEGORY_SLUGS, OPEN_LAUNCH_CATEGORY_LABEL_BY_SLUG, OPEN_LAUNCH_OFFICIAL_CATEGORY_LABELS, OPEN_LAUNCH_OFFICIAL_PLATFORM_LABELS, OPEN_LAUNCH_CATEGORY_ALIASES, OPEN_LAUNCH_PLATFORM_ALIASES;
-var init_openLaunch = __esm({
-  "../common/dist/auto-launch/destination-configs/openLaunch.js"() {
+var init_config = __esm({
+  "../common/dist/auto-launch/destination-configs/sites/open-launch/config.js"() {
     OPEN_LAUNCH_PREMIUM_LAUNCH_EXTENSION_CONFIG = {
       "version": 1,
       "startUrlPatterns": [
@@ -725,10 +725,17 @@ var init_openLaunch = __esm({
   }
 });
 
-// ../common/dist/auto-launch/destination-configs/peerpush.js
+// ../common/dist/auto-launch/destination-configs/openLaunch.js
+var init_openLaunch = __esm({
+  "../common/dist/auto-launch/destination-configs/openLaunch.js"() {
+    init_config();
+  }
+});
+
+// ../common/dist/auto-launch/destination-configs/sites/peerpush/config.js
 var PEERPUSH_HOST_PATTERNS, PEERPUSH_HOST_PERMISSION, PEERPUSH_STANDARD_LAUNCH, PEERPUSH_FREE_QUEUE, PEERPUSH_DIRECTORY_LAUNCH_PROVIDERS, PEERPUSH_STANDARD_LAUNCH_EXTENSION_CONFIG;
-var init_peerpush = __esm({
-  "../common/dist/auto-launch/destination-configs/peerpush.js"() {
+var init_config2 = __esm({
+  "../common/dist/auto-launch/destination-configs/sites/peerpush/config.js"() {
     PEERPUSH_HOST_PATTERNS = [
       "https://peerpush.com/*",
       "https://www.peerpush.com/*"
@@ -915,6 +922,142 @@ var init_peerpush = __esm({
       ...PEERPUSH_STANDARD_LAUNCH_EXTENSION_CONFIG,
       readyUrlHint: "pricing"
     });
+  }
+});
+
+// ../common/dist/auto-launch/destination-configs/peerpush.js
+var init_peerpush = __esm({
+  "../common/dist/auto-launch/destination-configs/peerpush.js"() {
+    init_config2();
+  }
+});
+
+// ../common/dist/auto-launch/destination-configs/sites/tinylaunch/config.js
+var TINYLAUNCH_FORM_NAME_MAX, TINYLAUNCH_FORM_TAGLINE_MAX, TINYLAUNCH_FORM_GALLERY_MAX, TINYLAUNCH_HOST_PATTERNS, TINYLAUNCH_HOST_PERMISSION, TINYLAUNCH_PREMIUM_LAUNCH_EXTENSION_CONFIG, TINYLAUNCH_PREMIUM_LAUNCH, TINYLAUNCH_STANDARD_LAUNCH, TINYLAUNCH_DIRECTORY_LAUNCH_PROVIDERS;
+var init_config3 = __esm({
+  "../common/dist/auto-launch/destination-configs/sites/tinylaunch/config.js"() {
+    TINYLAUNCH_FORM_NAME_MAX = 30;
+    TINYLAUNCH_FORM_TAGLINE_MAX = 60;
+    TINYLAUNCH_FORM_GALLERY_MAX = 3;
+    TINYLAUNCH_HOST_PATTERNS = [
+      "https://tinylaunch.com/*",
+      "https://www.tinylaunch.com/*"
+    ];
+    TINYLAUNCH_HOST_PERMISSION = "*://*.tinylaunch.com/*";
+    TINYLAUNCH_PREMIUM_LAUNCH_EXTENSION_CONFIG = {
+      version: 1,
+      startUrlPatterns: [...TINYLAUNCH_HOST_PATTERNS],
+      readyUrlHint: "dashboard/startups",
+      steps: [
+        {
+          id: "create_startup",
+          label: "Create startup",
+          fields: [
+            {
+              key: "name",
+              label: "Startup Name",
+              labelAliases: ["Name"],
+              profilePath: "name",
+              fillMode: "text",
+              maxScalarLength: TINYLAUNCH_FORM_NAME_MAX,
+              required: true,
+              selectorHint: "input[name*='name' i], input[placeholder*='startup name' i], input[aria-label*='startup name' i]"
+            },
+            {
+              key: "tagline",
+              label: "Tagline",
+              profilePath: "tagline",
+              fillMode: "text",
+              maxScalarLength: TINYLAUNCH_FORM_TAGLINE_MAX,
+              required: true,
+              selectorHint: "input[name*='tagline' i], textarea[name*='tagline' i], input[placeholder*='tagline' i], textarea[placeholder*='tagline' i]"
+            },
+            {
+              key: "logo",
+              label: "Logo",
+              profilePath: "logo_url",
+              fillMode: "file",
+              fileInputIndex: 0,
+              required: true,
+              selectorHint: "input[type='file'][accept*='image']"
+            },
+            {
+              key: "gallery",
+              label: "Images",
+              labelAliases: ["Screenshots", "Gallery"],
+              profilePath: "profile_data.gallery_urls",
+              fillMode: "files",
+              fileInputIndex: 1,
+              maxItems: TINYLAUNCH_FORM_GALLERY_MAX,
+              selectorHint: "input[type='file'][accept*='image']"
+            },
+            {
+              key: "website",
+              label: "Website URL",
+              labelAliases: ["Website"],
+              profilePath: "website_url",
+              fillMode: "text",
+              required: true,
+              selectorHint: "input[type='url'], input[name*='website' i], input[name*='url' i], input[placeholder*='website' i]"
+            },
+            {
+              key: "description",
+              label: "Description",
+              profilePath: "description",
+              fillMode: "rich_html",
+              required: true,
+              selectorHint: "[contenteditable='true'], .ProseMirror, .tiptap, textarea[name*='description' i], textarea[placeholder*='description' i]"
+            },
+            {
+              key: "category",
+              label: "Category",
+              profilePath: "profile_data.category",
+              fillMode: "select",
+              selectCatalog: "tinylaunch",
+              required: true,
+              selectorHint: "select[name*='categor' i], [role='combobox'][aria-label*='categor' i], button[aria-label*='categor' i]"
+            }
+          ]
+        }
+      ],
+      proof: {
+        successPathRegex: "/dashboard/startups/",
+        listingUrlSelector: "a[href*='tinylaunch.com'][href*='/startups/']"
+      }
+    };
+    ({
+      ...TINYLAUNCH_PREMIUM_LAUNCH_EXTENSION_CONFIG,
+      readyUrlHint: "pricing"
+    });
+    TINYLAUNCH_PREMIUM_LAUNCH = {
+      identifier: "tinylaunch-premium-launch",
+      name: "TinyLaunch \u2014 Premium launch",
+      tierLabel: "Paid",
+      defaultStartUrl: "https://www.tinylaunch.com/dashboard/startups/new",
+      contentScriptEntry: "content/directory-launch/openquok-directory-tinylaunch.js",
+      hostPatterns: TINYLAUNCH_HOST_PATTERNS,
+      hostPermission: TINYLAUNCH_HOST_PERMISSION
+    };
+    TINYLAUNCH_STANDARD_LAUNCH = {
+      identifier: "tinylaunch-standard-launch",
+      name: "TinyLaunch \u2014 Standard launch",
+      tierLabel: "Free",
+      defaultStartUrl: "https://www.tinylaunch.com/pricing",
+      contentScriptEntry: "content/directory-launch/openquok-directory-tinylaunch.js",
+      hostPatterns: TINYLAUNCH_HOST_PATTERNS,
+      hostPermission: TINYLAUNCH_HOST_PERMISSION
+    };
+    TINYLAUNCH_DIRECTORY_LAUNCH_PROVIDERS = [
+      TINYLAUNCH_STANDARD_LAUNCH,
+      TINYLAUNCH_PREMIUM_LAUNCH
+    ];
+  }
+});
+
+// ../common/dist/auto-launch/destination-configs/tinylaunch.js
+var init_tinylaunch = __esm({
+  "../common/dist/auto-launch/destination-configs/tinylaunch.js"() {
+    init_config3();
   }
 });
 
@@ -1110,7 +1253,7 @@ var init_businessProfileData = __esm({
   }
 });
 
-// ../common/dist/auto-launch/destination-configs/uneed.js
+// ../common/dist/auto-launch/destination-configs/sites/uneed/config.js
 function normalizeUneedTagLabel(raw) {
   return raw.trim().replace(/^#/, "").replace(/\s+/g, " ").toLowerCase();
 }
@@ -1124,8 +1267,8 @@ function isUneedOfficialTag(raw) {
   return uneedOfficialTagLookupSet().has(normalizeUneedTagLabel(raw));
 }
 var UNEED_HOST_PATTERNS, UNEED_HOST_PERMISSION, UNEED_JOIN_LINE, UNEED_PAID_LAUNCH, UNEED_MAKER_PROFILE, UNEED_DIRECTORY_LAUNCH_PROVIDERS, UNEED_OFFICIAL_TAG_LABELS, uneedOfficialTagLookup;
-var init_uneed = __esm({
-  "../common/dist/auto-launch/destination-configs/uneed.js"() {
+var init_config4 = __esm({
+  "../common/dist/auto-launch/destination-configs/sites/uneed/config.js"() {
     init_businessProfileData();
     UNEED_HOST_PATTERNS = [
       "https://uneed.best/*",
@@ -1358,6 +1501,13 @@ var init_uneed = __esm({
   }
 });
 
+// ../common/dist/auto-launch/destination-configs/uneed.js
+var init_uneed = __esm({
+  "../common/dist/auto-launch/destination-configs/uneed.js"() {
+    init_config4();
+  }
+});
+
 // ../common/dist/auto-launch/destination-configs/directoryLaunchRegistry.js
 function listDirectoryLaunchProviderSummaries() {
   return directoryLaunchProviders.map(({ identifier, name, tierLabel }) => ({
@@ -1380,11 +1530,13 @@ var init_directoryLaunchRegistry = __esm({
     init_directorySiteKey();
     init_openLaunch();
     init_peerpush();
+    init_tinylaunch();
     init_uneed();
     directoryLaunchProviders = [
       ...UNEED_DIRECTORY_LAUNCH_PROVIDERS,
       ...PEERPUSH_DIRECTORY_LAUNCH_PROVIDERS,
-      ...OPEN_LAUNCH_DIRECTORY_LAUNCH_PROVIDERS
+      ...OPEN_LAUNCH_DIRECTORY_LAUNCH_PROVIDERS,
+      ...TINYLAUNCH_DIRECTORY_LAUNCH_PROVIDERS
     ];
     new Map(directoryLaunchProviders.map((provider) => [provider.identifier, provider]));
     (() => {
@@ -1974,9 +2126,262 @@ var init_directoryOpportunityProgress = __esm({
   }
 });
 
+// ../common/dist/auto-launch/destination-configs/extensionConfigDerivation.js
+function isPricingQueueDerivation(entry) {
+  return entry.kind === "pricing-queue";
+}
+function pricingQueueDerivations(derivations) {
+  const out = {};
+  for (const [slug, entry] of Object.entries(derivations)) {
+    if (isPricingQueueDerivation(entry)) {
+      out[slug] = { baseProviderSlug: entry.baseProviderSlug };
+    }
+  }
+  return out;
+}
+function mergeExtensionConfigDerivations(...parts) {
+  return Object.assign({}, ...parts);
+}
+var init_extensionConfigDerivation = __esm({
+  "../common/dist/auto-launch/destination-configs/extensionConfigDerivation.js"() {
+  }
+});
+
+// ../common/dist/auto-launch/destination-configs/sites/open-launch/sync.js
+var OPEN_LAUNCH_EXTENSION_CONFIG_DERIVATIONS;
+var init_sync = __esm({
+  "../common/dist/auto-launch/destination-configs/sites/open-launch/sync.js"() {
+    OPEN_LAUNCH_EXTENSION_CONFIG_DERIVATIONS = {
+      "open-launch-free-launch": { kind: "pricing-queue", baseProviderSlug: "open-launch-premium-launch" }
+    };
+  }
+});
+
+// ../common/dist/auto-launch/destination-configs/sites/peerpush/sync.js
+var PEERPUSH_EXTENSION_CONFIG_DERIVATIONS;
+var init_sync2 = __esm({
+  "../common/dist/auto-launch/destination-configs/sites/peerpush/sync.js"() {
+    PEERPUSH_EXTENSION_CONFIG_DERIVATIONS = {
+      "peerpush-free-queue": { kind: "pricing-queue", baseProviderSlug: "peerpush-standard-launch" }
+    };
+  }
+});
+
+// ../common/dist/auto-launch/destination-configs/sites/tinylaunch/sync.js
+var TINYLAUNCH_EXTENSION_CONFIG_DERIVATIONS;
+var init_sync3 = __esm({
+  "../common/dist/auto-launch/destination-configs/sites/tinylaunch/sync.js"() {
+    TINYLAUNCH_EXTENSION_CONFIG_DERIVATIONS = {
+      "tinylaunch-standard-launch": { kind: "pricing-queue", baseProviderSlug: "tinylaunch-premium-launch" }
+    };
+  }
+});
+
+// ../common/dist/auto-launch/destination-configs/sites/uneed/sync.js
+var UNEED_EXTENSION_CONFIG_DERIVATIONS;
+var init_sync4 = __esm({
+  "../common/dist/auto-launch/destination-configs/sites/uneed/sync.js"() {
+    UNEED_EXTENSION_CONFIG_DERIVATIONS = {
+      "uneed-join-line": { kind: "independent" },
+      "uneed-paid-launch": { kind: "independent" },
+      "uneed-maker-profile": { kind: "independent" }
+    };
+  }
+});
+
 // ../common/dist/auto-launch/destination-configs/syncMetadata.js
+var AUTO_LAUNCH_EXTENSION_CONFIG_DERIVATIONS;
 var init_syncMetadata = __esm({
   "../common/dist/auto-launch/destination-configs/syncMetadata.js"() {
+    init_extensionConfigDerivation();
+    init_sync();
+    init_sync2();
+    init_sync3();
+    init_sync4();
+    init_sync4();
+    AUTO_LAUNCH_EXTENSION_CONFIG_DERIVATIONS = mergeExtensionConfigDerivations(PEERPUSH_EXTENSION_CONFIG_DERIVATIONS, OPEN_LAUNCH_EXTENSION_CONFIG_DERIVATIONS, TINYLAUNCH_EXTENSION_CONFIG_DERIVATIONS, UNEED_EXTENSION_CONFIG_DERIVATIONS);
+    pricingQueueDerivations(AUTO_LAUNCH_EXTENSION_CONFIG_DERIVATIONS);
+  }
+});
+
+// ../common/dist/auto-launch/destination-configs/destinationSeeds.js
+var UNEED_DESTINATIONS, PEERPUSH_DESTINATIONS, OPEN_LAUNCH_DESTINATIONS, TINYLAUNCH_DESTINATIONS, AUTO_LAUNCH_DESTINATION_SEED_MODULES, AUTO_LAUNCH_DESTINATION_SEED_ROWS;
+var init_destinationSeeds = __esm({
+  "../common/dist/auto-launch/destination-configs/destinationSeeds.js"() {
+    UNEED_DESTINATIONS = [
+      {
+        destinationId: "d5f7d000-0030-4000-a000-000000000001",
+        providerSlug: "uneed-join-line",
+        siteSlug: "uneed",
+        name: "Uneed \u2014 Join the line",
+        shortDescription: "Free product queue on Uneed; extension fills the listing form on Your tools.",
+        startUrl: "https://www.uneed.best/your-tools",
+        sortOrder: 10,
+        pickerGroupKey: "uneed-product-listing",
+        pickerGroupTitle: "Product listing",
+        opportunitySlugPriority: [
+          "free-launch-join-the-line-",
+          "free-launch-join-the-line",
+          "free-launch"
+        ],
+        opportunitySlugInMultiline: true
+      },
+      {
+        destinationId: "d5f7d000-0030-4000-a000-000000000002",
+        providerSlug: "uneed-paid-launch",
+        siteSlug: "uneed",
+        name: "Uneed \u2014 Paid launch",
+        shortDescription: "Skip the line, fast-track, or relaunch tiers; same listing fields as the free queue.",
+        startUrl: "https://www.uneed.best/your-tools",
+        sortOrder: 20,
+        pickerGroupKey: "uneed-product-listing",
+        pickerGroupTitle: "Product listing",
+        opportunitySlug: "paid-launch"
+      },
+      {
+        destinationId: "d5f7d000-0030-4000-a000-000000000003",
+        providerSlug: "uneed-maker-profile",
+        siteSlug: "uneed",
+        name: "Uneed \u2014 Maker profile",
+        shortDescription: "Free maker profile with a website field (typically nofollow).",
+        startUrl: "https://uneed.best/",
+        sortOrder: 30,
+        pickerGroupKey: null,
+        pickerGroupTitle: null,
+        opportunitySlugPriority: ["-free-maker-profile", "free-maker-profile", "free-profile"],
+        opportunitySlugInList: ["free-profile", "free-maker-profile", "-free-maker-profile"]
+      }
+    ];
+    PEERPUSH_DESTINATIONS = [
+      {
+        destinationId: "d5f7d000-0030-4000-a000-000000000004",
+        providerSlug: "peerpush-standard-launch",
+        siteSlug: "peerpush",
+        name: "PeerPush \u2014 Standard launch",
+        shortDescription: "Instant publish on PeerPush; extension autofills the submit flow at peerpush.com/submit.",
+        startUrl: "https://peerpush.com/submit",
+        sortOrder: 40,
+        pickerGroupKey: null,
+        pickerGroupTitle: null,
+        opportunitySlug: "standard-launch"
+      },
+      {
+        destinationId: "d5f7d000-0030-4000-a000-000000000005",
+        providerSlug: "peerpush-free-queue",
+        siteSlug: "peerpush",
+        name: "PeerPush \u2014 Free queue",
+        shortDescription: "Free queue on PeerPush; extension autofills after you open pricing and start submit.",
+        startUrl: "https://peerpush.com/pricing",
+        sortOrder: 35,
+        pickerGroupKey: null,
+        pickerGroupTitle: null,
+        opportunitySlug: "free-queue"
+      }
+    ];
+    OPEN_LAUNCH_DESTINATIONS = [
+      {
+        destinationId: "d5f7d000-0030-4000-a000-000000000006",
+        providerSlug: "open-launch-premium-launch",
+        siteSlug: "open-launch",
+        name: "Open Launch \u2014 Premium launch",
+        shortDescription: "Premium slot on Open Launch; extension autofills the submit wizard at open-launch.com/projects/submit.",
+        startUrl: "https://open-launch.com/projects/submit",
+        sortOrder: 45,
+        pickerGroupKey: "open-launch",
+        pickerGroupTitle: "Open Launch",
+        opportunitySlug: "premium-launch"
+      },
+      {
+        destinationId: "d5f7d000-0030-4000-a000-000000000007",
+        providerSlug: "open-launch-free-launch",
+        siteSlug: "open-launch",
+        name: "Open Launch \u2014 Free launch",
+        shortDescription: "Free queue on Open Launch; extension autofills after you open pricing and start submit.",
+        startUrl: "https://open-launch.com/pricing",
+        sortOrder: 42,
+        pickerGroupKey: "open-launch",
+        pickerGroupTitle: "Open Launch",
+        opportunitySlug: "free-launch"
+      }
+    ];
+    TINYLAUNCH_DESTINATIONS = [
+      {
+        destinationId: "d5f7d000-0030-4000-a000-000000000008",
+        providerSlug: "tinylaunch-premium-launch",
+        siteSlug: "tinylaunch",
+        name: "TinyLaunch \u2014 Premium launch",
+        shortDescription: "Premium launch on TinyLaunch; extension autofills the create-startup form at tinylaunch.com/dashboard/startups/new.",
+        startUrl: "https://www.tinylaunch.com/dashboard/startups/new",
+        sortOrder: 48,
+        pickerGroupKey: "tinylaunch",
+        pickerGroupTitle: "TinyLaunch",
+        opportunitySlug: "premium-launch"
+      },
+      {
+        destinationId: "d5f7d000-0030-4000-a000-000000000009",
+        providerSlug: "tinylaunch-standard-launch",
+        siteSlug: "tinylaunch",
+        name: "TinyLaunch \u2014 Standard launch",
+        shortDescription: "Free Standard queue on TinyLaunch; extension autofills after you open pricing and create your startup.",
+        startUrl: "https://www.tinylaunch.com/pricing",
+        sortOrder: 46,
+        pickerGroupKey: "tinylaunch",
+        pickerGroupTitle: "TinyLaunch",
+        opportunitySlug: "standard-launch"
+      }
+    ];
+    AUTO_LAUNCH_DESTINATION_SEED_MODULES = [
+      {
+        siteKey: "uneed",
+        sqlFileName: "503_20261013_seed_uneed.sql",
+        generationMode: "composite",
+        moduleDate: "20261013",
+        moduleScopeLabel: "Seed (Uneed destinations + editorial opportunity flags)",
+        preambleComments: [
+          "-- Idempotent: matches opportunities on link_directory_sites.slug = 'uneed' + known opportunity",
+          "-- slugs (production CMS rows use random UUIDs; local exemplar uses fixed UUIDs)."
+        ],
+        destinations: UNEED_DESTINATIONS
+      },
+      {
+        siteKey: "peerpush",
+        sqlFileName: "504_20261016_seed_peerpush_destination.sql",
+        generationMode: "full",
+        moduleDate: "20261016",
+        moduleScopeLabel: "Seed (PeerPush free queue + Standard launch destinations)",
+        preambleComments: [
+          "-- PeerPush submit form: logo file upload uses extension file fill (no fillMode on file steps).",
+          '-- Tag-style discovery fields use fillMode "tags"; product description is plain text (profile HTML is stripped at fill/compare).'
+        ],
+        destinations: PEERPUSH_DESTINATIONS
+      },
+      {
+        siteKey: "open-launch",
+        sqlFileName: "505_20261109_seed_open_launch_destination.sql",
+        generationMode: "full",
+        moduleDate: "20261108",
+        moduleScopeLabel: "Seed (Open Launch premium + free queue destinations)",
+        preambleComments: [
+          "-- Joins link_directory_opportunities on site slug open-launch (CMS / listing manager in production).",
+          "-- Launch date and Review steps are user-completed in v1 (no autofilled fields)."
+        ],
+        destinations: OPEN_LAUNCH_DESTINATIONS
+      },
+      {
+        siteKey: "tinylaunch",
+        sqlFileName: "506_20261117_seed_tinylaunch_destination.sql",
+        generationMode: "full",
+        moduleDate: "20261117",
+        moduleScopeLabel: "Seed (TinyLaunch premium + Standard queue destinations)",
+        preambleComments: [
+          "-- Joins link_directory_opportunities on site slug tinylaunch (catalog backfill / listing manager).",
+          "-- Scheduling, payment, and upvote pledge stay manual after the create-startup form is filled."
+        ],
+        destinations: TINYLAUNCH_DESTINATIONS
+      }
+    ];
+    AUTO_LAUNCH_DESTINATION_SEED_ROWS = AUTO_LAUNCH_DESTINATION_SEED_MODULES.flatMap((module) => module.destinations);
+    AUTO_LAUNCH_DESTINATION_SEED_ROWS.map((row) => row.providerSlug);
   }
 });
 
@@ -1986,6 +2391,8 @@ function resolveLaunchFieldCatalogId(field) {
     return "uneed:tags";
   if (field.selectCatalog === "uneed")
     return "uneed:select";
+  if (field.selectCatalog === "tinylaunch")
+    return "tinylaunch:select";
   if (field.checkboxCatalog === "open_launch_categories")
     return "open_launch:categories";
   if (field.checkboxCatalog === "open_launch_platforms")
@@ -2009,6 +2416,7 @@ function invalidProfileChoicesForField(items, field) {
 var init_fieldCatalogRegistry = __esm({
   "../common/dist/auto-launch/destination-configs/fieldCatalogRegistry.js"() {
     init_openLaunch();
+    init_tinylaunch();
     init_uneed();
   }
 });
@@ -2016,16 +2424,22 @@ var init_destination_configs = __esm({
   "../common/dist/auto-launch/destination-configs/index.js"() {
     init_openLaunch();
     init_peerpush();
+    init_tinylaunch();
     init_uneed();
     init_openLaunch();
     init_peerpush();
+    init_tinylaunch();
     init_uneed();
     init_syncMetadata();
+    init_extensionConfigDerivation();
+    init_destinationSeeds();
     init_directoryLaunchRegistry();
     init_openLaunch();
     init_peerpush();
+    init_tinylaunch();
     init_uneed();
     init_fieldCatalogRegistry();
+    init_tinylaunch();
     init_uneed();
   }
 });

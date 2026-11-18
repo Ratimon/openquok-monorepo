@@ -74,6 +74,7 @@ describe('channelPageSeo', () => {
 		expect(socialSlugs.has('peerpush')).toBe(false);
 		expect(socialSlugs.has('uneed')).toBe(false);
 		expect(socialSlugs.has('open-launch')).toBe(false);
+		expect(socialSlugs.has('tinylaunch')).toBe(false);
 
 		const openLaunch = getPublicChannelBySlug('open-launch');
 		expect(openLaunch?.channelKind).toBe('directory');
@@ -82,10 +83,18 @@ describe('channelPageSeo', () => {
 			true
 		);
 
+		const tinylaunch = getPublicChannelBySlug('tinylaunch');
+		expect(tinylaunch?.channelKind).toBe('directory');
+		expect(tinylaunch?.icon).toBe('TinyLaunch');
+		expect(
+			tinylaunch?.processSection?.steps.some((s) => s.deviceMockContent === 'directory-site-tinylaunch')
+		).toBe(true);
+
 		expect(listPublicDirectoryChannelsForHub().map((c) => c.slug)).toEqual([
 			'peerpush',
 			'uneed',
-			'open-launch'
+			'open-launch',
+			'tinylaunch'
 		]);
 
 		const heroBadges = publicDirectoryChannelHeroStatBadges();

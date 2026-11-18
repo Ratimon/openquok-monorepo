@@ -28,7 +28,8 @@ describe('compareChannelSections', () => {
 		expect(coverage?.launchPlatforms.map((p) => p.label)).toEqual([
 			'PeerPush',
 			'Uneed',
-			'Open Launch'
+			'Open Launch',
+			'TinyLaunch'
 		]);
 		expect(coverage?.competitorSummary).toMatch(/100/);
 	});
@@ -41,7 +42,8 @@ describe('compareChannelSections', () => {
 		expect(coverage?.launchPlatforms.map((p) => p.label)).toEqual([
 			'PeerPush',
 			'Uneed',
-			'Open Launch'
+			'Open Launch',
+			'TinyLaunch'
 		]);
 		expect(coverage?.competitorSummary).toContain('social scheduler');
 	});

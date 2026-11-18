@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 
 import { normalizeForCompare } from './fieldCompare.js';
 import { richHtmlToPlainText, sanitizeRichHtmlBeforeCompare } from './richHtmlNormalize.js';

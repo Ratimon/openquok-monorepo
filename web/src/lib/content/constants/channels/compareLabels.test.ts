@@ -19,7 +19,7 @@ describe('listAvailablePublicChannelCompareLabels', () => {
 
 	it('counts OpenQuok hub platforms as social seeds plus directory launch seeds', () => {
 		const compareLabels = listAvailablePublicChannelCompareLabels();
-		expect(countPublicOpenQuokHubPlatformTotal()).toBe(14);
+		expect(countPublicOpenQuokHubPlatformTotal()).toBe(15);
 		expect(compareLabels.length).toBe(12);
 	});
 });

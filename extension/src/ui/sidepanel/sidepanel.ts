@@ -1,7 +1,9 @@
 import './sidepanel.css';
 
+import { mountDashboardSessionBar } from './dashboardSessionBar.js';
 import { mountDirectoryTab } from './directoryTab.js';
 import { mountSocialTab } from './socialTab.js';
+import { installDashboardSessionWatch } from '../../shared/dashboardSessionWatch.js';
 import {
 	SIDE_PANEL_PENDING_TAB_KEY,
 	SIDE_PANEL_UI_MESSAGE,
@@ -36,6 +38,7 @@ const shell = el(`
 				<button type="button" class="tab-btn" role="tab" id="tab-btn-directory" data-tab="directory" aria-selected="false" aria-controls="tab-panel-directory">Directory</button>
 			</nav>
 		</header>
+		<div id="dashboard-session-host" class="dashboard-session-host"></div>
 		<div id="tab-panel-social" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-social"></div>
 		<div id="tab-panel-directory" class="tab-panel hidden" role="tabpanel" aria-labelledby="tab-btn-directory" hidden></div>
 	</div>
@@ -43,12 +46,42 @@ const shell = el(`
 
 appRoot.replaceChildren(shell);
 
+const sessionHost = shell.querySelector('#dashboard-session-host') as HTMLElement;
 const socialPanel = shell.querySelector('#tab-panel-social') as HTMLElement;
 const directoryPanel = shell.querySelector('#tab-panel-directory') as HTMLElement;
 const tabButtons = [...shell.querySelectorAll<HTMLButtonElement>('.tab-btn')];
 
-const socialTab = mountSocialTab(socialPanel);
-const directoryTab = mountDirectoryTab(directoryPanel);
+let sessionBar!: ReturnType<typeof mountDashboardSessionBar>;
+const socialTab = mountSocialTab(socialPanel, {
+	getSessionSnapshot: () => sessionBar.getSnapshot(),
+});
+const directoryTab = mountDirectoryTab(directoryPanel, {
+	getSessionSnapshot: () => sessionBar.getSnapshot(),
+});
+
+sessionBar = mountDashboardSessionBar(sessionHost, {
+	onDisconnected: () => socialTab.onDashboardDisconnected(),
+});
+
+let sessionRefreshTimer: ReturnType<typeof setTimeout> | null = null;
+const scheduleTabsRefreshOnSessionChange = (): void => {
+	if (sessionRefreshTimer) clearTimeout(sessionRefreshTimer);
+	sessionRefreshTimer = setTimeout(() => {
+		sessionRefreshTimer = null;
+		void socialTab.refresh();
+		void directoryTab.refresh();
+	}, 50);
+};
+
+sessionBar.subscribe(() => {
+	scheduleTabsRefreshOnSessionChange();
+});
+
+installDashboardSessionWatch(() => {
+	void sessionBar.refresh({ requestDashboardSync: false });
+});
+
+void sessionBar.refresh({ requestDashboardSync: true });
 
 function setActiveTab(tab: ActiveTab): void {
 	activeTab = tab;

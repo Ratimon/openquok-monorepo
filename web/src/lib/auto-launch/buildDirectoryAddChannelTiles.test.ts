@@ -89,6 +89,15 @@ describe('buildDirectoryAddChannelTiles', () => {
 		expect(tiles[0]?.brandedIconName).toBe('PeerPush');
 	});
 
+	it('assigns bundled logo and branded icon for tinylaunch', () => {
+		const tiles = buildDirectoryAddChannelTiles(
+			[destination({ providerSlug: 'tinylaunch-premium-launch', siteTitle: 'TinyLaunch' })],
+			new Map([['tinylaunch', { title: 'TinyLaunch', logoUrl: null }]])
+		);
+		expect(tiles[0]?.logoUrl).toBe('/icons/link-directory/tinylaunch.svg');
+		expect(tiles[0]?.brandedIconName).toBe('TinyLaunch');
+	});
+
 	it('ignores non-extension destinations', () => {
 		const tiles = buildDirectoryAddChannelTiles(
 			[destination({ providerSlug: 'uneed-auto-only', submissionPath: 'auto' })],

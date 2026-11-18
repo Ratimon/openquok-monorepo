@@ -115,6 +115,106 @@
 					"auto_launch_provider_slug": null
 				}
 			]
+		},
+		"tinylaunch": {
+			"site": {
+				"id": "d5f7d000-0010-4000-a000-00000000000a",
+				"slug": "tinylaunch",
+				"title": "TinyLaunch",
+				"site_url": "https://www.tinylaunch.com",
+				"logo_url": "https://www.openquok.com/icons/link-directory/tinylaunch.svg",
+				"short_description": "Startup launch platform with free Standard queue slots and paid Premium launches.",
+				"long_description": "TinyLaunch lists startups with name, tagline, logo, and category. Makers create a startup profile, then schedule a free Monday Standard slot or pay for Premium placement. OpenQuok can autofill the create-startup form; you choose the queue and complete payment on TinyLaunch.",
+				"domain_rating": 72,
+				"monthly_visits": 11000,
+				"metrics_source": "editor_estimate",
+				"category_slug": "launch-platforms",
+				"tag_slugs": ["high-dr"],
+				"is_openquok_auth_supported": false,
+				"openquok_channel_slug": null,
+				"is_admin_published": true,
+				"sort_order": 0
+			},
+			"opportunities": [
+				{
+					"id": "d5f7d000-0020-4000-a000-000000000022",
+					"slug": "premium-launch",
+					"title": "Premium launch",
+					"opportunity_type_slug": "product_submission",
+					"effort": "medium",
+					"approval_mode": "manual_review",
+					"approval_time_hint": "Usually within a few business days after you schedule",
+					"dofollow": "unknown",
+					"cost_tier": "paid",
+					"cost_note": "$39 per launch on tinylaunch.com/pricing",
+					"description": "Premium launch ($39 on tinylaunch.com/pricing) schedules your startup on TinyLaunch after you create the listing. Confirm link treatment on your live startup page after publish.",
+					"steps": [
+						{
+							"order": 1,
+							"title": "Review pricing",
+							"body": "Compare Premium with the free Standard queue on https://www.tinylaunch.com/pricing."
+						},
+						{
+							"order": 2,
+							"title": "Create startup",
+							"body": "Sign in and complete the create-startup form at https://www.tinylaunch.com/dashboard/startups/new."
+						},
+						{
+							"order": 3,
+							"title": "Schedule Premium",
+							"body": "Pick a Premium slot and complete checkout. Confirm your live listing when TinyLaunch publishes it."
+						}
+					],
+					"openquok_cta_kind": "external_doc",
+					"openquok_channel_slug": null,
+					"openquok_plug_name": null,
+					"cta_href": "https://www.tinylaunch.com/dashboard/startups/new",
+					"cta_label": "Create startup on TinyLaunch",
+					"sort_order": 15,
+					"is_admin_published": true,
+					"auto_launch_enabled": true,
+					"auto_launch_provider_slug": "tinylaunch-premium-launch"
+				},
+				{
+					"id": "d5f7d000-0020-4000-a000-000000000023",
+					"slug": "standard-launch",
+					"title": "Standard launch",
+					"opportunity_type_slug": "product_submission",
+					"effort": "hard",
+					"approval_mode": "manual_review",
+					"approval_time_hint": "Free Monday slots; timing varies by queue volume",
+					"dofollow": "unknown",
+					"cost_tier": "free",
+					"cost_note": null,
+					"description": "Join the free Standard queue from tinylaunch.com/pricing, create your startup profile, then claim the next available Monday slot.",
+					"steps": [
+						{
+							"order": 1,
+							"title": "Open pricing",
+							"body": "Review Standard (free) vs Premium on https://www.tinylaunch.com/pricing."
+						},
+						{
+							"order": 2,
+							"title": "Create startup",
+							"body": "Sign in and fill the shared create form at https://www.tinylaunch.com/dashboard/startups/new."
+						},
+						{
+							"order": 3,
+							"title": "Schedule Standard",
+							"body": "Reserve a free Monday slot when the queue allows. Open your live startup URL after publish."
+						}
+					],
+					"openquok_cta_kind": "external_doc",
+					"openquok_channel_slug": null,
+					"openquok_plug_name": null,
+					"cta_href": "https://www.tinylaunch.com/pricing",
+					"cta_label": "TinyLaunch pricing",
+					"sort_order": 10,
+					"is_admin_published": true,
+					"auto_launch_enabled": true,
+					"auto_launch_provider_slug": "tinylaunch-standard-launch"
+				}
+			]
 		}
 	}
 }

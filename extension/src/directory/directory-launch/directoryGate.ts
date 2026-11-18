@@ -22,6 +22,7 @@ export const DIRECTORY_SITE_DISPLAY_NAME: Record<string, string> = {
 	peerpush: 'PeerPush',
 	uneed: 'Uneed',
 	'open-launch': 'Open Launch',
+	tinylaunch: 'TinyLaunch',
 };
 
 type CheckDirectoryGateResponse = {

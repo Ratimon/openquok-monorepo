@@ -12946,6 +12946,35 @@ ON CONFLICT (site_id, slug) DO UPDATE SET
     published_at = COALESCE(public.link_directory_opportunities.published_at, EXCLUDED.published_at);
 
 
+-- Module: auto-launch, File: 500_20261117_seed_auto_launch_profile_media_bucket.sql
+-- ---------------------------
+-- MODULE NAME: Auto Launch
+-- MODULE DATE: 20261117
+-- MODULE SCOPE: Seed (profile media storage bucket)
+-- ---------------------------
+-- Object keys: {organizationId}/{profileId}/{filename}
+-- Shared by directory launch destinations that upload logo + gallery via the API.
+
+BEGIN;
+
+INSERT INTO storage.buckets (
+    id,
+    name,
+    public,
+    avif_autodetection,
+    file_size_limit,
+    allowed_mime_types
+) VALUES (
+    'auto_launch_profile_media',
+    'auto_launch_profile_media',
+    TRUE,
+    FALSE,
+    4194304, -- 4MB limit (matches API upload cap)
+    ARRAY['image/jpeg', 'image/png', 'image/webp']::text[]
+)
+ON CONFLICT (id) DO NOTHING;
+
+
 -- Module: auto-launch, File: 501_20261109_seed_dev_openquok_business_profile.sql
 -- ---------------------------
 -- MODULE NAME: Auto Launch
@@ -12976,488 +13005,7 @@ SET config = public.module_configs.config || EXCLUDED.config,
 -- ---------------------------
 
 
--- Module: auto-launch, File: 502_20261013_seed_uneed_destinations.sql
--- ---------------------------
--- MODULE NAME: Auto Launch
--- MODULE DATE: 20261013
--- MODULE SCOPE: Seed (profile media bucket + Uneed destinations + editorial opportunity flags)
--- ---------------------------
--- extension_config: synced from destination-configs/*.ts via 505_*_extension_configs.sql
--- Idempotent: matches opportunities on link_directory_sites.slug = 'uneed' + known opportunity
--- slugs (production CMS rows use random UUIDs; local exemplar uses fixed UUIDs).
-
-BEGIN;
-
--- ---------------------------
--- Create Auto Launch profile media bucket (logo + gallery)
--- Object keys: {organizationId}/{profileId}/{filename}
--- ---------------------------
-INSERT INTO storage.buckets (
-    id,
-    name,
-    public,
-    avif_autodetection,
-    file_size_limit,
-    allowed_mime_types
-) VALUES (
-    'auto_launch_profile_media',
-    'auto_launch_profile_media',
-    TRUE,
-    FALSE,
-    4194304, -- 4MB limit (matches API upload cap)
-    ARRAY['image/jpeg', 'image/png', 'image/webp']::text[]
-)
-ON CONFLICT (id) DO NOTHING;
-
--- Local / exemplar gap only: no Join-the-line row yet (production uses slug free-launch-join-the-line-).
-INSERT INTO public.link_directory_opportunities (
-    id,
-    site_id,
-    published_at,
-    slug,
-    title,
-    opportunity_type_id,
-    effort,
-    approval_mode,
-    approval_time_hint,
-    dofollow,
-    cost_tier,
-    cost_note,
-    description,
-    steps,
-    openquok_cta_kind,
-    openquok_channel_slug,
-    openquok_plug_name,
-    cta_href,
-    cta_label,
-    sort_order,
-    is_admin_published
-)
-SELECT
-    'd5f7d000-0020-4000-a000-000000000015'::uuid,
-    u.id,
-    NOW(),
-    'free-launch',
-    'Free queue launch (Join the line)',
-    'd5f7d000-0004-4000-a000-000000000006'::uuid,
-    'hard',
-    'manual_review',
-    'Launch date assigned (up to about five months)',
-    'unknown',
-    'free',
-    NULL,
-    'Submit a new product on the free Join the line tier. Uneed assigns your launch date; upvote score 10 keeps the listing live and 20 earns a dofollow backlink per their pricing page.',
-    '[]'::jsonb,
-    'external_doc',
-    NULL,
-    NULL,
-    'https://uneed.best/pricing',
-    'Uneed pricing',
-    10,
-    true
-FROM public.link_directory_sites u
-WHERE u.slug = 'uneed'
-  AND NOT EXISTS (
-      SELECT 1
-      FROM public.link_directory_opportunities o
-      WHERE o.site_id = u.id
-        AND o.slug IN (
-            'free-launch',
-            'free-launch-join-the-line',
-            'free-launch-join-the-line-'
-        )
-  )
-ON CONFLICT (site_id, slug) DO UPDATE SET
-    title = EXCLUDED.title,
-    opportunity_type_id = EXCLUDED.opportunity_type_id,
-    effort = EXCLUDED.effort,
-    approval_mode = EXCLUDED.approval_mode,
-    approval_time_hint = EXCLUDED.approval_time_hint,
-    dofollow = EXCLUDED.dofollow,
-    cost_tier = EXCLUDED.cost_tier,
-    cost_note = EXCLUDED.cost_note,
-    description = EXCLUDED.description,
-    cta_href = EXCLUDED.cta_href,
-    cta_label = EXCLUDED.cta_label,
-    sort_order = EXCLUDED.sort_order,
-    is_admin_published = EXCLUDED.is_admin_published,
-    published_at = COALESCE(public.link_directory_opportunities.published_at, EXCLUDED.published_at);
-
-UPDATE public.link_directory_opportunities o
-SET sort_order = 15
-FROM public.link_directory_sites s
-WHERE o.site_id = s.id
-  AND s.slug = 'uneed'
-  AND o.slug = 'paid-launch';
-
-UPDATE public.link_directory_opportunities o
-SET
-    auto_launch_enabled = true,
-    auto_launch_provider_slug = 'uneed-join-line'
-FROM public.link_directory_sites s
-WHERE o.site_id = s.id
-  AND s.slug = 'uneed'
-  AND o.slug IN (
-      'free-launch-join-the-line-',
-      'free-launch-join-the-line',
-      'free-launch'
-  );
-
-UPDATE public.link_directory_opportunities o
-SET
-    auto_launch_enabled = true,
-    auto_launch_provider_slug = 'uneed-paid-launch'
-FROM public.link_directory_sites s
-WHERE o.site_id = s.id
-  AND s.slug = 'uneed'
-  AND o.slug = 'paid-launch';
-
-UPDATE public.link_directory_opportunities o
-SET
-    auto_launch_enabled = true,
-    auto_launch_provider_slug = 'uneed-maker-profile'
-FROM public.link_directory_sites s
-WHERE o.site_id = s.id
-  AND s.slug = 'uneed'
-  AND o.slug IN ('free-profile', 'free-maker-profile', '-free-maker-profile');
-
-INSERT INTO public.auto_launch_destinations (
-    id,
-    provider_slug,
-    link_directory_opportunity_id,
-    name,
-    short_description,
-    submission_path,
-    start_url,
-    extension_config,
-    is_published,
-    sort_order,
-    picker_group_key,
-    picker_group_title
-)
-SELECT
-    v.id,
-    v.provider_slug,
-    v.opportunity_id,
-    v.name,
-    v.short_description,
-    v.submission_path,
-    v.start_url,
-    v.extension_config,
-    v.is_published,
-    v.sort_order,
-    v.picker_group_key,
-    v.picker_group_title
-FROM (
-    VALUES
-        (
-            'd5f7d000-0030-4000-a000-000000000001'::uuid,
-            'uneed-join-line'::text,
-            (
-                SELECT o.id
-                FROM public.link_directory_opportunities o
-                INNER JOIN public.link_directory_sites s ON s.id = o.site_id
-                WHERE s.slug = 'uneed'
-                  AND o.slug IN (
-                      'free-launch-join-the-line-',
-                      'free-launch-join-the-line',
-                      'free-launch'
-                  )
-                ORDER BY
-                    CASE o.slug
-                        WHEN 'free-launch-join-the-line-' THEN 1
-                        WHEN 'free-launch-join-the-line' THEN 2
-                        WHEN 'free-launch' THEN 3
-                        ELSE 4
-                    END
-                LIMIT 1
-            ),
-            'Uneed — Join the line',
-            'Free product queue on Uneed; extension fills the listing form on Your tools.',
-            'extension',
-            'https://www.uneed.best/your-tools',
-            '{}'::jsonb,
-            true,
-            10,
-            'uneed-product-listing'::text,
-            'Product listing'::text
-        ),
-        (
-            'd5f7d000-0030-4000-a000-000000000002'::uuid,
-            'uneed-paid-launch'::text,
-            (
-                SELECT o.id
-                FROM public.link_directory_opportunities o
-                INNER JOIN public.link_directory_sites s ON s.id = o.site_id
-                WHERE s.slug = 'uneed'
-                  AND o.slug = 'paid-launch'
-                LIMIT 1
-            ),
-            'Uneed — Paid launch',
-            'Skip the line, fast-track, or relaunch tiers; same listing fields as the free queue.',
-            'extension',
-            'https://www.uneed.best/your-tools',
-            '{}'::jsonb,
-            true,
-            20,
-            'uneed-product-listing'::text,
-            'Product listing'::text
-        ),
-        (
-            'd5f7d000-0030-4000-a000-000000000003'::uuid,
-            'uneed-maker-profile'::text,
-            (
-                SELECT o.id
-                FROM public.link_directory_opportunities o
-                INNER JOIN public.link_directory_sites s ON s.id = o.site_id
-                WHERE s.slug = 'uneed'
-                  AND o.slug IN ('free-profile', 'free-maker-profile', '-free-maker-profile')
-                ORDER BY
-                    CASE o.slug
-                        WHEN '-free-maker-profile' THEN 1
-                        WHEN 'free-maker-profile' THEN 2
-                        WHEN 'free-profile' THEN 3
-                        ELSE 4
-                    END
-                LIMIT 1
-            ),
-            'Uneed — Maker profile',
-            'Free maker profile with a website field (typically nofollow).',
-            'extension',
-            'https://uneed.best/',
-            '{}'::jsonb,
-            true,
-            30,
-            NULL::text,
-            NULL::text
-        )
-) AS v (
-    id,
-    provider_slug,
-    opportunity_id,
-    name,
-    short_description,
-    submission_path,
-    start_url,
-    extension_config,
-    is_published,
-    sort_order,
-    picker_group_key,
-    picker_group_title
-)
-WHERE v.opportunity_id IS NOT NULL
-ON CONFLICT (provider_slug) DO UPDATE SET
-    link_directory_opportunity_id = EXCLUDED.link_directory_opportunity_id,
-    name = EXCLUDED.name,
-    short_description = EXCLUDED.short_description,
-    submission_path = EXCLUDED.submission_path,
-    start_url = EXCLUDED.start_url,
-    is_published = EXCLUDED.is_published,
-    sort_order = EXCLUDED.sort_order,
-    picker_group_key = EXCLUDED.picker_group_key,
-    picker_group_title = EXCLUDED.picker_group_title,
-    updated_at = NOW();
-
-
--- Module: auto-launch, File: 503_20261016_seed_peerpush_destination.sql
--- ---------------------------
--- MODULE NAME: Auto Launch
--- MODULE DATE: 20261016
--- MODULE SCOPE: Seed (PeerPush free queue + Standard launch destinations)
--- ---------------------------
--- extension_config: synced from destination-configs/*.ts via 505_*_extension_configs.sql
--- PeerPush submit form: logo file upload uses extension file fill (no fillMode on file steps).
--- Tag-style discovery fields use fillMode "tags"; product description is plain text (profile HTML is stripped at fill/compare).
-
-BEGIN;
-
-INSERT INTO public.auto_launch_destinations (
-    id,
-    provider_slug,
-    link_directory_opportunity_id,
-    name,
-    short_description,
-    submission_path,
-    start_url,
-    extension_config,
-    is_published,
-    sort_order,
-    picker_group_key,
-    picker_group_title
-)
-SELECT
-    'd5f7d000-0030-4000-a000-000000000004'::uuid,
-    'peerpush-standard-launch'::text,
-    o.id,
-    'PeerPush — Standard launch',
-    'Instant publish on PeerPush; extension autofills the submit flow at peerpush.com/submit.',
-    'extension',
-    'https://peerpush.com/submit',
-    '{}'::jsonb,
-    true,
-    40,
-    NULL::text,
-    NULL::text
-FROM public.link_directory_opportunities o
-INNER JOIN public.link_directory_sites s ON s.id = o.site_id
-WHERE s.slug = 'peerpush'
-  AND o.slug = 'standard-launch'
-ON CONFLICT (provider_slug) DO UPDATE SET
-    link_directory_opportunity_id = EXCLUDED.link_directory_opportunity_id,
-    name = EXCLUDED.name,
-    short_description = EXCLUDED.short_description,
-    submission_path = EXCLUDED.submission_path,
-    start_url = EXCLUDED.start_url,
-    is_published = EXCLUDED.is_published,
-    sort_order = EXCLUDED.sort_order,
-    picker_group_key = EXCLUDED.picker_group_key,
-    picker_group_title = EXCLUDED.picker_group_title,
-    updated_at = NOW();
-
-INSERT INTO public.auto_launch_destinations (
-    id,
-    provider_slug,
-    link_directory_opportunity_id,
-    name,
-    short_description,
-    submission_path,
-    start_url,
-    extension_config,
-    is_published,
-    sort_order,
-    picker_group_key,
-    picker_group_title
-)
-SELECT
-    'd5f7d000-0030-4000-a000-000000000005'::uuid,
-    'peerpush-free-queue'::text,
-    o.id,
-    'PeerPush — Free queue',
-    'Free queue on PeerPush; extension autofills after you open pricing and start submit.',
-    'extension',
-    'https://peerpush.com/pricing',
-    '{}'::jsonb,
-    true,
-    35,
-    NULL::text,
-    NULL::text
-FROM public.link_directory_opportunities o
-INNER JOIN public.link_directory_sites s ON s.id = o.site_id
-WHERE s.slug = 'peerpush'
-  AND o.slug = 'free-queue'
-ON CONFLICT (provider_slug) DO UPDATE SET
-    link_directory_opportunity_id = EXCLUDED.link_directory_opportunity_id,
-    name = EXCLUDED.name,
-    short_description = EXCLUDED.short_description,
-    submission_path = EXCLUDED.submission_path,
-    start_url = EXCLUDED.start_url,
-    is_published = EXCLUDED.is_published,
-    sort_order = EXCLUDED.sort_order,
-    picker_group_key = EXCLUDED.picker_group_key,
-    picker_group_title = EXCLUDED.picker_group_title,
-    updated_at = NOW();
-
-
--- Module: auto-launch, File: 504_20261109_seed_open_launch_destination.sql
--- ---------------------------
--- MODULE NAME: Auto Launch
--- MODULE DATE: 20261108
--- MODULE SCOPE: Seed (Open Launch premium + free queue destinations)
--- ---------------------------
--- extension_config: synced from destination-configs/*.ts via 505_*_extension_configs.sql
--- Joins link_directory_opportunities on site slug open-launch (CMS / listing manager in production).
--- Launch date and Review steps are user-completed in v1 (no autofilled fields).
-
-BEGIN;
-
-INSERT INTO public.auto_launch_destinations (
-    id,
-    provider_slug,
-    link_directory_opportunity_id,
-    name,
-    short_description,
-    submission_path,
-    start_url,
-    extension_config,
-    is_published,
-    sort_order,
-    picker_group_key,
-    picker_group_title
-)
-SELECT
-    'd5f7d000-0030-4000-a000-000000000006'::uuid,
-    'open-launch-premium-launch'::text,
-    o.id,
-    'Open Launch — Premium launch',
-    'Premium slot on Open Launch; extension autofills the submit wizard at open-launch.com/projects/submit.',
-    'extension',
-    'https://open-launch.com/projects/submit',
-    '{}'::jsonb,
-    true,
-    45,
-    'open-launch'::text,
-    'Open Launch'::text
-FROM public.link_directory_opportunities o
-INNER JOIN public.link_directory_sites s ON s.id = o.site_id
-WHERE s.slug = 'open-launch'
-  AND o.slug = 'premium-launch'
-ON CONFLICT (provider_slug) DO UPDATE SET
-    link_directory_opportunity_id = EXCLUDED.link_directory_opportunity_id,
-    name = EXCLUDED.name,
-    short_description = EXCLUDED.short_description,
-    submission_path = EXCLUDED.submission_path,
-    start_url = EXCLUDED.start_url,
-    is_published = EXCLUDED.is_published,
-    sort_order = EXCLUDED.sort_order,
-    picker_group_key = EXCLUDED.picker_group_key,
-    picker_group_title = EXCLUDED.picker_group_title,
-    updated_at = NOW();
-
-INSERT INTO public.auto_launch_destinations (
-    id,
-    provider_slug,
-    link_directory_opportunity_id,
-    name,
-    short_description,
-    submission_path,
-    start_url,
-    extension_config,
-    is_published,
-    sort_order,
-    picker_group_key,
-    picker_group_title
-)
-SELECT
-    'd5f7d000-0030-4000-a000-000000000007'::uuid,
-    'open-launch-free-launch'::text,
-    o.id,
-    'Open Launch — Free launch',
-    'Free queue on Open Launch; extension autofills after you open pricing and start submit.',
-    'extension',
-    'https://open-launch.com/pricing',
-    '{}'::jsonb,
-    true,
-    42,
-    'open-launch'::text,
-    'Open Launch'::text
-FROM public.link_directory_opportunities o
-INNER JOIN public.link_directory_sites s ON s.id = o.site_id
-WHERE s.slug = 'open-launch'
-  AND o.slug = 'free-launch'
-ON CONFLICT (provider_slug) DO UPDATE SET
-    link_directory_opportunity_id = EXCLUDED.link_directory_opportunity_id,
-    name = EXCLUDED.name,
-    short_description = EXCLUDED.short_description,
-    submission_path = EXCLUDED.submission_path,
-    start_url = EXCLUDED.start_url,
-    is_published = EXCLUDED.is_published,
-    sort_order = EXCLUDED.sort_order,
-    picker_group_key = EXCLUDED.picker_group_key,
-    picker_group_title = EXCLUDED.picker_group_title,
-    updated_at = NOW();
-
-
--- Module: auto-launch, File: 505_20261111_extension_configs.sql
+-- Module: auto-launch, File: 502_20261111_extension_configs.sql
 -- ---------------------------
 -- MODULE NAME: Auto Launch
 -- MODULE DATE: 20261111
@@ -14044,6 +13592,194 @@ SET extension_config = $json${
     }
 }$json$::jsonb
 WHERE provider_slug = 'peerpush-standard-launch';
+
+UPDATE public.auto_launch_destinations
+SET extension_config = $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://tinylaunch.com/*",
+        "https://www.tinylaunch.com/*"
+    ],
+    "readyUrlHint": "dashboard/startups",
+    "steps": [
+        {
+            "id": "create_startup",
+            "label": "Create startup",
+            "fields": [
+                {
+                    "key": "name",
+                    "label": "Startup Name",
+                    "labelAliases": [
+                        "Name"
+                    ],
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "maxScalarLength": 30,
+                    "required": true,
+                    "selectorHint": "input[name*='name' i], input[placeholder*='startup name' i], input[aria-label*='startup name' i]"
+                },
+                {
+                    "key": "tagline",
+                    "label": "Tagline",
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "maxScalarLength": 60,
+                    "required": true,
+                    "selectorHint": "input[name*='tagline' i], textarea[name*='tagline' i], input[placeholder*='tagline' i], textarea[placeholder*='tagline' i]"
+                },
+                {
+                    "key": "logo",
+                    "label": "Logo",
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "required": true,
+                    "selectorHint": "input[type='file'][accept*='image']"
+                },
+                {
+                    "key": "gallery",
+                    "label": "Images",
+                    "labelAliases": [
+                        "Screenshots",
+                        "Gallery"
+                    ],
+                    "profilePath": "profile_data.gallery_urls",
+                    "fillMode": "files",
+                    "fileInputIndex": 1,
+                    "maxItems": 3,
+                    "selectorHint": "input[type='file'][accept*='image']"
+                },
+                {
+                    "key": "website",
+                    "label": "Website URL",
+                    "labelAliases": [
+                        "Website"
+                    ],
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[type='url'], input[name*='website' i], input[name*='url' i], input[placeholder*='website' i]"
+                },
+                {
+                    "key": "description",
+                    "label": "Description",
+                    "profilePath": "description",
+                    "fillMode": "rich_html",
+                    "required": true,
+                    "selectorHint": "[contenteditable='true'], .ProseMirror, .tiptap, textarea[name*='description' i], textarea[placeholder*='description' i]"
+                },
+                {
+                    "key": "category",
+                    "label": "Category",
+                    "profilePath": "profile_data.category",
+                    "fillMode": "select",
+                    "selectCatalog": "tinylaunch",
+                    "required": true,
+                    "selectorHint": "select[name*='categor' i], [role='combobox'][aria-label*='categor' i], button[aria-label*='categor' i]"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/dashboard/startups/",
+        "listingUrlSelector": "a[href*='tinylaunch.com'][href*='/startups/']"
+    }
+}$json$::jsonb
+WHERE provider_slug = 'tinylaunch-premium-launch';
+
+UPDATE public.auto_launch_destinations
+SET extension_config = $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://tinylaunch.com/*",
+        "https://www.tinylaunch.com/*"
+    ],
+    "readyUrlHint": "pricing",
+    "steps": [
+        {
+            "id": "create_startup",
+            "label": "Create startup",
+            "fields": [
+                {
+                    "key": "name",
+                    "label": "Startup Name",
+                    "labelAliases": [
+                        "Name"
+                    ],
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "maxScalarLength": 30,
+                    "required": true,
+                    "selectorHint": "input[name*='name' i], input[placeholder*='startup name' i], input[aria-label*='startup name' i]"
+                },
+                {
+                    "key": "tagline",
+                    "label": "Tagline",
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "maxScalarLength": 60,
+                    "required": true,
+                    "selectorHint": "input[name*='tagline' i], textarea[name*='tagline' i], input[placeholder*='tagline' i], textarea[placeholder*='tagline' i]"
+                },
+                {
+                    "key": "logo",
+                    "label": "Logo",
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "required": true,
+                    "selectorHint": "input[type='file'][accept*='image']"
+                },
+                {
+                    "key": "gallery",
+                    "label": "Images",
+                    "labelAliases": [
+                        "Screenshots",
+                        "Gallery"
+                    ],
+                    "profilePath": "profile_data.gallery_urls",
+                    "fillMode": "files",
+                    "fileInputIndex": 1,
+                    "maxItems": 3,
+                    "selectorHint": "input[type='file'][accept*='image']"
+                },
+                {
+                    "key": "website",
+                    "label": "Website URL",
+                    "labelAliases": [
+                        "Website"
+                    ],
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[type='url'], input[name*='website' i], input[name*='url' i], input[placeholder*='website' i]"
+                },
+                {
+                    "key": "description",
+                    "label": "Description",
+                    "profilePath": "description",
+                    "fillMode": "rich_html",
+                    "required": true,
+                    "selectorHint": "[contenteditable='true'], .ProseMirror, .tiptap, textarea[name*='description' i], textarea[placeholder*='description' i]"
+                },
+                {
+                    "key": "category",
+                    "label": "Category",
+                    "profilePath": "profile_data.category",
+                    "fillMode": "select",
+                    "selectCatalog": "tinylaunch",
+                    "required": true,
+                    "selectorHint": "select[name*='categor' i], [role='combobox'][aria-label*='categor' i], button[aria-label*='categor' i]"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/dashboard/startups/",
+        "listingUrlSelector": "a[href*='tinylaunch.com'][href*='/startups/']"
+    }
+}$json$::jsonb
+WHERE provider_slug = 'tinylaunch-standard-launch';
 
 UPDATE public.auto_launch_destinations
 SET extension_config = $json${
@@ -14714,6 +14450,1992 @@ SET extension_config = $json${
     }
 }$json$::jsonb
 WHERE provider_slug = 'uneed-paid-launch';
+
+
+-- Module: auto-launch, File: 503_20261013_seed_uneed.sql
+-- ---------------------------
+-- MODULE NAME: Auto Launch
+-- MODULE DATE: 20261013
+-- MODULE SCOPE: Seed (Uneed destinations + editorial opportunity flags)
+-- ---------------------------
+-- extension_config: embedded on INSERT from destination-configs/*.ts; refreshed via 502_*_extension_configs.sql
+-- Idempotent: matches opportunities on link_directory_sites.slug = 'uneed' + known opportunity
+-- slugs (production CMS rows use random UUIDs; local exemplar uses fixed UUIDs).
+
+BEGIN;
+
+-- Local / exemplar gap only: no Join-the-line row yet (production uses slug free-launch-join-the-line-).
+INSERT INTO public.link_directory_opportunities (
+    id,
+    site_id,
+    published_at,
+    slug,
+    title,
+    opportunity_type_id,
+    effort,
+    approval_mode,
+    approval_time_hint,
+    dofollow,
+    cost_tier,
+    cost_note,
+    description,
+    steps,
+    openquok_cta_kind,
+    openquok_channel_slug,
+    openquok_plug_name,
+    cta_href,
+    cta_label,
+    sort_order,
+    is_admin_published
+)
+SELECT
+    'd5f7d000-0020-4000-a000-000000000015'::uuid,
+    u.id,
+    NOW(),
+    'free-launch',
+    'Free queue launch (Join the line)',
+    'd5f7d000-0004-4000-a000-000000000006'::uuid,
+    'hard',
+    'manual_review',
+    'Launch date assigned (up to about five months)',
+    'unknown',
+    'free',
+    NULL,
+    'Submit a new product on the free Join the line tier. Uneed assigns your launch date; upvote score 10 keeps the listing live and 20 earns a dofollow backlink per their pricing page.',
+    '[]'::jsonb,
+    'external_doc',
+    NULL,
+    NULL,
+    'https://uneed.best/pricing',
+    'Uneed pricing',
+    10,
+    true
+FROM public.link_directory_sites u
+WHERE u.slug = 'uneed'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM public.link_directory_opportunities o
+      WHERE o.site_id = u.id
+        AND o.slug IN (
+            'free-launch',
+            'free-launch-join-the-line',
+            'free-launch-join-the-line-'
+        )
+  )
+ON CONFLICT (site_id, slug) DO UPDATE SET
+    title = EXCLUDED.title,
+    opportunity_type_id = EXCLUDED.opportunity_type_id,
+    effort = EXCLUDED.effort,
+    approval_mode = EXCLUDED.approval_mode,
+    approval_time_hint = EXCLUDED.approval_time_hint,
+    dofollow = EXCLUDED.dofollow,
+    cost_tier = EXCLUDED.cost_tier,
+    cost_note = EXCLUDED.cost_note,
+    description = EXCLUDED.description,
+    cta_href = EXCLUDED.cta_href,
+    cta_label = EXCLUDED.cta_label,
+    sort_order = EXCLUDED.sort_order,
+    is_admin_published = EXCLUDED.is_admin_published,
+    published_at = COALESCE(public.link_directory_opportunities.published_at, EXCLUDED.published_at);
+
+UPDATE public.link_directory_opportunities o
+SET sort_order = 15
+FROM public.link_directory_sites s
+WHERE o.site_id = s.id
+  AND s.slug = 'uneed'
+  AND o.slug = 'paid-launch';
+
+UPDATE public.link_directory_opportunities o
+SET
+    auto_launch_enabled = true,
+    auto_launch_provider_slug = 'uneed-join-line'
+FROM public.link_directory_sites s
+WHERE o.site_id = s.id
+  AND s.slug = 'uneed'
+  AND o.slug IN (
+      'free-launch-join-the-line-',
+      'free-launch-join-the-line',
+      'free-launch'
+  );
+
+UPDATE public.link_directory_opportunities o
+SET
+    auto_launch_enabled = true,
+    auto_launch_provider_slug = 'uneed-paid-launch'
+FROM public.link_directory_sites s
+WHERE o.site_id = s.id
+  AND s.slug = 'uneed'
+  AND o.slug = 'paid-launch';
+
+UPDATE public.link_directory_opportunities o
+SET
+    auto_launch_enabled = true,
+    auto_launch_provider_slug = 'uneed-maker-profile'
+FROM public.link_directory_sites s
+WHERE o.site_id = s.id
+  AND s.slug = 'uneed'
+  AND o.slug IN ('free-profile', 'free-maker-profile', '-free-maker-profile');
+
+-- GENERATED:auto_launch_destinations — pnpm sync:auto-launch-destinations
+INSERT INTO public.auto_launch_destinations (
+    id,
+    provider_slug,
+    link_directory_opportunity_id,
+    name,
+    short_description,
+    submission_path,
+    start_url,
+    extension_config,
+    is_published,
+    sort_order,
+    picker_group_key,
+    picker_group_title
+)
+SELECT
+    v.id,
+    v.provider_slug,
+    v.opportunity_id,
+    v.name,
+    v.short_description,
+    v.submission_path,
+    v.start_url,
+    v.extension_config,
+    v.is_published,
+    v.sort_order,
+    v.picker_group_key,
+    v.picker_group_title
+FROM (
+    VALUES
+        (
+            'd5f7d000-0030-4000-a000-000000000001'::uuid,
+            'uneed-join-line'::text,
+            (
+                SELECT o.id
+                FROM public.link_directory_opportunities o
+                INNER JOIN public.link_directory_sites s ON s.id = o.site_id
+                WHERE s.slug = 'uneed'
+                  AND o.slug IN (
+                      'free-launch-join-the-line-',
+                      'free-launch-join-the-line',
+                      'free-launch'
+                  )
+                ORDER BY
+                    CASE o.slug
+                        WHEN 'free-launch-join-the-line-' THEN 1
+                        WHEN 'free-launch-join-the-line' THEN 2
+                        WHEN 'free-launch' THEN 3
+                        ELSE 4
+                    END
+                LIMIT 1
+            ),
+            'Uneed — Join the line',
+            'Free product queue on Uneed; extension fills the listing form on Your tools.',
+            'extension',
+            'https://www.uneed.best/your-tools',
+            $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://uneed.best/*",
+        "https://www.uneed.best/*"
+    ],
+    "readyUrlHint": "your-tools",
+    "steps": [
+        {
+            "id": "general",
+            "label": "General",
+            "fields": [
+                {
+                    "key": "name",
+                    "label": "Product name",
+                    "labelAliases": [
+                        "Name"
+                    ],
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "selectorHint": "input[name=\"name\"]"
+                },
+                {
+                    "key": "slug",
+                    "label": "Slug",
+                    "profilePath": "profile_data.slug",
+                    "fillMode": "text",
+                    "selectorHint": "input[name=\"slug\"]"
+                },
+                {
+                    "key": "website",
+                    "label": "Website",
+                    "labelAliases": [
+                        "Url"
+                    ],
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[name=\"url\"]"
+                },
+                {
+                    "key": "tagline",
+                    "label": "Tagline",
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "selectorHint": "textarea[name=\"description\"], input[name='tagline'], textarea[name='tagline'], textarea[maxlength='80'], input[maxlength='80'], input[aria-label*='tagline' i], textarea[aria-label*='tagline' i], input[placeholder*='tagline' i], textarea[placeholder*='tagline' i], input[id*='tagline' i], textarea[id*='tagline' i], input[name*='tagLine' i]",
+                    "maxScalarLength": 80,
+                    "required": true
+                },
+                {
+                    "key": "category",
+                    "label": "Category",
+                    "profilePath": "profile_data.category",
+                    "fillMode": "select",
+                    "selectCatalog": "uneed",
+                    "selectorHint": "select[name*='categor' i], [role='combobox'][aria-label*='categor' i], input[name*='categor' i]"
+                },
+                {
+                    "key": "pricing_type",
+                    "label": "Pricing",
+                    "profilePath": "profile_data.pricing_type",
+                    "fillMode": "select",
+                    "selectorHint": "select[name*='pricing' i], [role='combobox'][aria-label*='pricing' i]"
+                },
+                {
+                    "key": "tags",
+                    "label": "Tags",
+                    "labelAliases": [
+                        "Select tags"
+                    ],
+                    "profilePath": "profile_data.tags",
+                    "fillMode": "tags",
+                    "selectorHint": "button[aria-haspopup='listbox'][aria-label='Show popup'], button[aria-haspopup='listbox'][aria-label*='popup' i], input[name*='tags' i]:not([name*='tagline' i]), input[aria-label*='tags' i]:not([aria-label*='tagline' i]), [data-testid*='tag-input' i], [data-testid*='tags-input' i]",
+                    "required": true,
+                    "maxItems": 3,
+                    "tagsCatalog": "uneed",
+                    "profileSourcePaths": [
+                        "profile_data.use_cases",
+                        "profile_data.platforms",
+                        "profile_data.tech_stack",
+                        "profile_data.categories"
+                    ]
+                },
+                {
+                    "key": "is_open_source",
+                    "label": "Open source",
+                    "profilePath": "profile_data.is_open_source",
+                    "fillMode": "boolean",
+                    "selectorHint": "input[type='checkbox'][name*='open' i], [role='switch'][aria-label*='open source' i]"
+                },
+                {
+                    "key": "repository_url",
+                    "label": "Repository URL",
+                    "profilePath": "profile_data.repository_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[name=\"repo_url\"], input[placeholder*=\"github.com\" i]"
+                },
+                {
+                    "key": "description",
+                    "label": "Rich description",
+                    "profilePath": "description",
+                    "fillMode": "rich_html",
+                    "selectorHint": "label:has(+ .tiptap) + .tiptap .ProseMirror, label:has(+ div .tiptap) + div .tiptap .ProseMirror, .tiptap .ProseMirror[contenteditable='true'], [aria-label*='rich description' i] .ProseMirror"
+                }
+            ]
+        },
+        {
+            "id": "media",
+            "label": "Media",
+            "fields": [
+                {
+                    "key": "logo",
+                    "label": "Logo",
+                    "profilePath": "logo_url",
+                    "selectorHint": "input[type='file'][accept*='image']"
+                },
+                {
+                    "key": "launch_video_url",
+                    "label": "Launch video URL",
+                    "profilePath": "profile_data.launch_video_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[type='url'][aria-label*='launch video' i], input[type='url'][aria-label*='video url' i], input[type='url'][name*='launch_video' i], input[type='url'][name*='launchVideo' i], input[type='url'][name*='video_url' i]:not([name*='repo' i]):not([name*='repository' i]), input[type='url'][placeholder*='youtube' i], input[type='url'][placeholder*='vimeo' i]"
+                },
+                {
+                    "key": "gallery",
+                    "label": "Gallery images",
+                    "profilePath": "profile_data.gallery_urls",
+                    "selectorHint": "input[type='file'][accept*='image']:not(:first-of-type)"
+                }
+            ]
+        },
+        {
+            "id": "socials",
+            "label": "Socials",
+            "fields": [
+                {
+                    "key": "social_x",
+                    "label": "X (Twitter)",
+                    "labelAliases": [
+                        "Twitter"
+                    ],
+                    "profilePath": "profile_data.social_x",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='twitter' i]:not([name='name']):not([name='repo_url']), input[name*='x.com' i], input[placeholder*='twitter' i]:not([name='repo_url'])"
+                },
+                {
+                    "key": "social_github",
+                    "label": "GitHub",
+                    "profilePath": "profile_data.social_github",
+                    "profileSourcePaths": [
+                        "profile_data.repository_url"
+                    ],
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='github' i]:not([name='repo_url']):not([name='name']), input[aria-label*='github' i]"
+                },
+                {
+                    "key": "social_instagram",
+                    "label": "Instagram",
+                    "profilePath": "profile_data.social_instagram",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='instagram' i]:not([name='name']), input[placeholder*='instagram' i]"
+                },
+                {
+                    "key": "social_linkedin",
+                    "label": "LinkedIn",
+                    "profilePath": "profile_data.social_linkedin",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='linkedin' i]:not([name='name']), input[placeholder*='linkedin' i]"
+                },
+                {
+                    "key": "social_tiktok",
+                    "label": "TikTok",
+                    "profilePath": "profile_data.social_tiktok",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='tiktok' i]:not([name='name']), input[placeholder*='tiktok' i]"
+                },
+                {
+                    "key": "social_facebook",
+                    "label": "Facebook",
+                    "profilePath": "profile_data.social_facebook",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='facebook' i]:not([name='name']), input[placeholder*='facebook' i]"
+                },
+                {
+                    "key": "social_youtube",
+                    "label": "YouTube",
+                    "profilePath": "profile_data.social_youtube",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='youtube' i]:not([name='name']):not([name='description']):not([name='repo_url']), input[type='url'][name*='youtube' i], input[type='url'][placeholder*='youtube' i]:not([name='name'])"
+                },
+                {
+                    "key": "social_bluesky",
+                    "label": "Bluesky",
+                    "profilePath": "profile_data.social_bluesky",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='bluesky' i]:not([name='name']), input[name*='bsky' i]:not([name='name']), input[placeholder*='bluesky' i]"
+                }
+            ]
+        },
+        {
+            "id": "sell",
+            "label": "Sell",
+            "fields": [
+                {
+                    "key": "acquisition_listed",
+                    "label": "Listed for acquisition",
+                    "profilePath": "profile_data.acquisition_listed",
+                    "fillMode": "boolean",
+                    "selectorHint": "input[type='checkbox'][name*='acquisition' i], input[type='checkbox'][name*='sell' i], [role='switch'][aria-label*='acquisition' i]"
+                },
+                {
+                    "key": "asking_price_usd",
+                    "label": "Asking price (USD)",
+                    "profilePath": "profile_data.asking_price_usd",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='asking' i], input[name*='price' i][type='number'], input[placeholder*='asking' i]"
+                },
+                {
+                    "key": "ttm_revenue_usd",
+                    "label": "TTM revenue (USD)",
+                    "profilePath": "profile_data.ttm_revenue_usd",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='ttm' i][name*='revenue' i], input[name*='ttm_revenue' i], input[placeholder*='TTM revenue' i]"
+                },
+                {
+                    "key": "monthly_revenue_usd",
+                    "label": "Monthly revenue (USD)",
+                    "profilePath": "profile_data.monthly_revenue_usd",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='monthly' i][name*='revenue' i], input[name*='monthly_revenue' i]"
+                },
+                {
+                    "key": "ttm_profit_usd",
+                    "label": "TTM profit (USD)",
+                    "profilePath": "profile_data.ttm_profit_usd",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='ttm' i][name*='profit' i], input[name*='ttm_profit' i]"
+                },
+                {
+                    "key": "monthly_profit_usd",
+                    "label": "Monthly profit (USD)",
+                    "profilePath": "profile_data.monthly_profit_usd",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='monthly' i][name*='profit' i], input[name*='monthly_profit' i]"
+                },
+                {
+                    "key": "selling_reason",
+                    "label": "Selling reason",
+                    "profilePath": "profile_data.selling_reason",
+                    "fillMode": "text",
+                    "selectorHint": "textarea[name*='reason' i], textarea[name*='selling' i], textarea[placeholder*='reason' i]"
+                },
+                {
+                    "key": "included_assets",
+                    "label": "Included assets",
+                    "profilePath": "profile_data.included_assets",
+                    "fillMode": "tags",
+                    "selectorHint": "input[type='checkbox'][name*='asset' i], fieldset[name*='included' i] input[type='checkbox']"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/product/|/launch/",
+        "listingUrlSelector": "a[href*='uneed.best'][href*='/product']"
+    }
+}$json$::jsonb,
+            true,
+            10,
+            'uneed-product-listing'::text,
+            'Product listing'::text
+        ),
+        (
+            'd5f7d000-0030-4000-a000-000000000002'::uuid,
+            'uneed-paid-launch'::text,
+            (
+                SELECT o.id
+                FROM public.link_directory_opportunities o
+                INNER JOIN public.link_directory_sites s ON s.id = o.site_id
+                WHERE s.slug = 'uneed'
+                  AND o.slug = 'paid-launch'
+                LIMIT 1
+            ),
+            'Uneed — Paid launch',
+            'Skip the line, fast-track, or relaunch tiers; same listing fields as the free queue.',
+            'extension',
+            'https://www.uneed.best/your-tools',
+            $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://uneed.best/*",
+        "https://www.uneed.best/*"
+    ],
+    "readyUrlHint": "your-tools",
+    "steps": [
+        {
+            "id": "general",
+            "label": "General",
+            "fields": [
+                {
+                    "key": "name",
+                    "label": "Product name",
+                    "labelAliases": [
+                        "Name"
+                    ],
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "selectorHint": "input[name=\"name\"]"
+                },
+                {
+                    "key": "slug",
+                    "label": "Slug",
+                    "profilePath": "profile_data.slug",
+                    "fillMode": "text",
+                    "selectorHint": "input[name=\"slug\"]"
+                },
+                {
+                    "key": "website",
+                    "label": "Website",
+                    "labelAliases": [
+                        "Url"
+                    ],
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[name=\"url\"]"
+                },
+                {
+                    "key": "tagline",
+                    "label": "Tagline",
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "selectorHint": "textarea[name=\"description\"], input[name='tagline'], textarea[name='tagline'], textarea[maxlength='80'], input[maxlength='80'], input[aria-label*='tagline' i], textarea[aria-label*='tagline' i], input[placeholder*='tagline' i], textarea[placeholder*='tagline' i], input[id*='tagline' i], textarea[id*='tagline' i], input[name*='tagLine' i]",
+                    "maxScalarLength": 80,
+                    "required": true
+                },
+                {
+                    "key": "category",
+                    "label": "Category",
+                    "profilePath": "profile_data.category",
+                    "fillMode": "select",
+                    "selectCatalog": "uneed",
+                    "selectorHint": "select[name*='categor' i], [role='combobox'][aria-label*='categor' i], input[name*='categor' i]"
+                },
+                {
+                    "key": "pricing_type",
+                    "label": "Pricing",
+                    "profilePath": "profile_data.pricing_type",
+                    "fillMode": "select",
+                    "selectorHint": "select[name*='pricing' i], [role='combobox'][aria-label*='pricing' i]"
+                },
+                {
+                    "key": "tags",
+                    "label": "Tags",
+                    "labelAliases": [
+                        "Select tags"
+                    ],
+                    "profilePath": "profile_data.tags",
+                    "fillMode": "tags",
+                    "selectorHint": "button[aria-haspopup='listbox'][aria-label='Show popup'], button[aria-haspopup='listbox'][aria-label*='popup' i], input[name*='tags' i]:not([name*='tagline' i]), input[aria-label*='tags' i]:not([aria-label*='tagline' i]), [data-testid*='tag-input' i], [data-testid*='tags-input' i]",
+                    "required": true,
+                    "maxItems": 3,
+                    "tagsCatalog": "uneed",
+                    "profileSourcePaths": [
+                        "profile_data.use_cases",
+                        "profile_data.platforms",
+                        "profile_data.tech_stack",
+                        "profile_data.categories"
+                    ]
+                },
+                {
+                    "key": "is_open_source",
+                    "label": "Open source",
+                    "profilePath": "profile_data.is_open_source",
+                    "fillMode": "boolean",
+                    "selectorHint": "input[type='checkbox'][name*='open' i], [role='switch'][aria-label*='open source' i]"
+                },
+                {
+                    "key": "repository_url",
+                    "label": "Repository URL",
+                    "profilePath": "profile_data.repository_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[name=\"repo_url\"], input[placeholder*=\"github.com\" i]"
+                },
+                {
+                    "key": "description",
+                    "label": "Rich description",
+                    "profilePath": "description",
+                    "fillMode": "rich_html",
+                    "selectorHint": "label:has(+ .tiptap) + .tiptap .ProseMirror, label:has(+ div .tiptap) + div .tiptap .ProseMirror, .tiptap .ProseMirror[contenteditable='true'], [aria-label*='rich description' i] .ProseMirror"
+                }
+            ]
+        },
+        {
+            "id": "media",
+            "label": "Media",
+            "fields": [
+                {
+                    "key": "logo",
+                    "label": "Logo",
+                    "profilePath": "logo_url",
+                    "selectorHint": "input[type='file'][accept*='image']"
+                },
+                {
+                    "key": "launch_video_url",
+                    "label": "Launch video URL",
+                    "profilePath": "profile_data.launch_video_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[type='url'][aria-label*='launch video' i], input[type='url'][aria-label*='video url' i], input[type='url'][name*='launch_video' i], input[type='url'][name*='launchVideo' i], input[type='url'][name*='video_url' i]:not([name*='repo' i]):not([name*='repository' i]), input[type='url'][placeholder*='youtube' i], input[type='url'][placeholder*='vimeo' i]"
+                },
+                {
+                    "key": "gallery",
+                    "label": "Gallery images",
+                    "profilePath": "profile_data.gallery_urls",
+                    "selectorHint": "input[type='file'][accept*='image']:not(:first-of-type)"
+                }
+            ]
+        },
+        {
+            "id": "socials",
+            "label": "Socials",
+            "fields": [
+                {
+                    "key": "social_x",
+                    "label": "X (Twitter)",
+                    "labelAliases": [
+                        "Twitter"
+                    ],
+                    "profilePath": "profile_data.social_x",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='twitter' i]:not([name='name']):not([name='repo_url']), input[name*='x.com' i], input[placeholder*='twitter' i]:not([name='repo_url'])"
+                },
+                {
+                    "key": "social_github",
+                    "label": "GitHub",
+                    "profilePath": "profile_data.social_github",
+                    "profileSourcePaths": [
+                        "profile_data.repository_url"
+                    ],
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='github' i]:not([name='repo_url']):not([name='name']), input[aria-label*='github' i]"
+                },
+                {
+                    "key": "social_instagram",
+                    "label": "Instagram",
+                    "profilePath": "profile_data.social_instagram",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='instagram' i]:not([name='name']), input[placeholder*='instagram' i]"
+                },
+                {
+                    "key": "social_linkedin",
+                    "label": "LinkedIn",
+                    "profilePath": "profile_data.social_linkedin",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='linkedin' i]:not([name='name']), input[placeholder*='linkedin' i]"
+                },
+                {
+                    "key": "social_tiktok",
+                    "label": "TikTok",
+                    "profilePath": "profile_data.social_tiktok",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='tiktok' i]:not([name='name']), input[placeholder*='tiktok' i]"
+                },
+                {
+                    "key": "social_facebook",
+                    "label": "Facebook",
+                    "profilePath": "profile_data.social_facebook",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='facebook' i]:not([name='name']), input[placeholder*='facebook' i]"
+                },
+                {
+                    "key": "social_youtube",
+                    "label": "YouTube",
+                    "profilePath": "profile_data.social_youtube",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='youtube' i]:not([name='name']):not([name='description']):not([name='repo_url']), input[type='url'][name*='youtube' i], input[type='url'][placeholder*='youtube' i]:not([name='name'])"
+                },
+                {
+                    "key": "social_bluesky",
+                    "label": "Bluesky",
+                    "profilePath": "profile_data.social_bluesky",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='bluesky' i]:not([name='name']), input[name*='bsky' i]:not([name='name']), input[placeholder*='bluesky' i]"
+                }
+            ]
+        },
+        {
+            "id": "sell",
+            "label": "Sell",
+            "fields": [
+                {
+                    "key": "acquisition_listed",
+                    "label": "Listed for acquisition",
+                    "profilePath": "profile_data.acquisition_listed",
+                    "fillMode": "boolean",
+                    "selectorHint": "input[type='checkbox'][name*='acquisition' i], input[type='checkbox'][name*='sell' i], [role='switch'][aria-label*='acquisition' i]"
+                },
+                {
+                    "key": "asking_price_usd",
+                    "label": "Asking price (USD)",
+                    "profilePath": "profile_data.asking_price_usd",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='asking' i], input[name*='price' i][type='number'], input[placeholder*='asking' i]"
+                },
+                {
+                    "key": "ttm_revenue_usd",
+                    "label": "TTM revenue (USD)",
+                    "profilePath": "profile_data.ttm_revenue_usd",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='ttm' i][name*='revenue' i], input[name*='ttm_revenue' i], input[placeholder*='TTM revenue' i]"
+                },
+                {
+                    "key": "monthly_revenue_usd",
+                    "label": "Monthly revenue (USD)",
+                    "profilePath": "profile_data.monthly_revenue_usd",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='monthly' i][name*='revenue' i], input[name*='monthly_revenue' i]"
+                },
+                {
+                    "key": "ttm_profit_usd",
+                    "label": "TTM profit (USD)",
+                    "profilePath": "profile_data.ttm_profit_usd",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='ttm' i][name*='profit' i], input[name*='ttm_profit' i]"
+                },
+                {
+                    "key": "monthly_profit_usd",
+                    "label": "Monthly profit (USD)",
+                    "profilePath": "profile_data.monthly_profit_usd",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='monthly' i][name*='profit' i], input[name*='monthly_profit' i]"
+                },
+                {
+                    "key": "selling_reason",
+                    "label": "Selling reason",
+                    "profilePath": "profile_data.selling_reason",
+                    "fillMode": "text",
+                    "selectorHint": "textarea[name*='reason' i], textarea[name*='selling' i], textarea[placeholder*='reason' i]"
+                },
+                {
+                    "key": "included_assets",
+                    "label": "Included assets",
+                    "profilePath": "profile_data.included_assets",
+                    "fillMode": "tags",
+                    "selectorHint": "input[type='checkbox'][name*='asset' i], fieldset[name*='included' i] input[type='checkbox']"
+                }
+            ]
+        },
+        {
+            "id": "launch_notes",
+            "label": "Launch details",
+            "fields": [
+                {
+                    "key": "launch_date",
+                    "label": "Preferred launch date",
+                    "profilePath": "profile_data.launch_date",
+                    "fillMode": "text",
+                    "selectorHint": "input[type='date'], [data-test*='date' i]"
+                },
+                {
+                    "key": "tier_note",
+                    "label": "Tier or promo code",
+                    "profilePath": "profile_data.paid_tier_note",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='promo' i], input[name*='code' i]"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/product/|/launch/",
+        "listingUrlSelector": "a[href*='uneed.best'][href*='/product']"
+    }
+}$json$::jsonb,
+            true,
+            20,
+            'uneed-product-listing'::text,
+            'Product listing'::text
+        ),
+        (
+            'd5f7d000-0030-4000-a000-000000000003'::uuid,
+            'uneed-maker-profile'::text,
+            (
+                SELECT o.id
+                FROM public.link_directory_opportunities o
+                INNER JOIN public.link_directory_sites s ON s.id = o.site_id
+                WHERE s.slug = 'uneed'
+                  AND o.slug IN ('free-profile', 'free-maker-profile', '-free-maker-profile')
+                ORDER BY
+                    CASE o.slug
+                        WHEN '-free-maker-profile' THEN 1
+                        WHEN 'free-maker-profile' THEN 2
+                        WHEN 'free-profile' THEN 3
+                        ELSE 4
+                    END
+                LIMIT 1
+            ),
+            'Uneed — Maker profile',
+            'Free maker profile with a website field (typically nofollow).',
+            'extension',
+            'https://uneed.best/',
+            $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://uneed.best/*",
+        "https://www.uneed.best/*"
+    ],
+    "readyUrlHint": "profile",
+    "steps": [
+        {
+            "id": "profile_info",
+            "label": "Profile",
+            "fields": [
+                {
+                    "key": "name",
+                    "label": "Display name",
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "selectorHint": "input[name=\"name\"]"
+                },
+                {
+                    "key": "website",
+                    "label": "Website",
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[name=\"url\"]"
+                },
+                {
+                    "key": "tagline",
+                    "label": "Bio or tagline",
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "selectorHint": "textarea[name*='bio' i], textarea[name*='about' i], textarea[name*='tagline' i]"
+                }
+            ]
+        },
+        {
+            "id": "socials",
+            "label": "Socials",
+            "fields": [
+                {
+                    "key": "social_x",
+                    "label": "X (Twitter)",
+                    "labelAliases": [
+                        "Twitter"
+                    ],
+                    "profilePath": "profile_data.social_x",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='twitter' i]:not([name='name']):not([name='repo_url']), input[name*='x.com' i], input[placeholder*='twitter' i]:not([name='repo_url'])"
+                },
+                {
+                    "key": "social_github",
+                    "label": "GitHub",
+                    "profilePath": "profile_data.social_github",
+                    "profileSourcePaths": [
+                        "profile_data.repository_url"
+                    ],
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='github' i]:not([name='repo_url']):not([name='name']), input[aria-label*='github' i]"
+                },
+                {
+                    "key": "social_instagram",
+                    "label": "Instagram",
+                    "profilePath": "profile_data.social_instagram",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='instagram' i]:not([name='name']), input[placeholder*='instagram' i]"
+                },
+                {
+                    "key": "social_linkedin",
+                    "label": "LinkedIn",
+                    "profilePath": "profile_data.social_linkedin",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='linkedin' i]:not([name='name']), input[placeholder*='linkedin' i]"
+                },
+                {
+                    "key": "social_tiktok",
+                    "label": "TikTok",
+                    "profilePath": "profile_data.social_tiktok",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='tiktok' i]:not([name='name']), input[placeholder*='tiktok' i]"
+                },
+                {
+                    "key": "social_facebook",
+                    "label": "Facebook",
+                    "profilePath": "profile_data.social_facebook",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='facebook' i]:not([name='name']), input[placeholder*='facebook' i]"
+                },
+                {
+                    "key": "social_youtube",
+                    "label": "YouTube",
+                    "profilePath": "profile_data.social_youtube",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='youtube' i]:not([name='name']):not([name='description']):not([name='repo_url']), input[type='url'][name*='youtube' i], input[type='url'][placeholder*='youtube' i]:not([name='name'])"
+                },
+                {
+                    "key": "social_bluesky",
+                    "label": "Bluesky",
+                    "profilePath": "profile_data.social_bluesky",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='bluesky' i]:not([name='name']), input[name*='bsky' i]:not([name='name']), input[placeholder*='bluesky' i]"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/profile/",
+        "listingUrlSelector": "a[href*='uneed.best/profile']"
+    }
+}$json$::jsonb,
+            true,
+            30,
+            NULL::text,
+            NULL::text
+        )
+) AS v (
+    id,
+    provider_slug,
+    opportunity_id,
+    name,
+    short_description,
+    submission_path,
+    start_url,
+    extension_config,
+    is_published,
+    sort_order,
+    picker_group_key,
+    picker_group_title
+)
+WHERE v.opportunity_id IS NOT NULL
+ON CONFLICT (provider_slug) DO UPDATE SET
+    link_directory_opportunity_id = EXCLUDED.link_directory_opportunity_id,
+    name = EXCLUDED.name,
+    short_description = EXCLUDED.short_description,
+    submission_path = EXCLUDED.submission_path,
+    start_url = EXCLUDED.start_url,
+    extension_config = EXCLUDED.extension_config,
+    is_published = EXCLUDED.is_published,
+    sort_order = EXCLUDED.sort_order,
+    picker_group_key = EXCLUDED.picker_group_key,
+    picker_group_title = EXCLUDED.picker_group_title,
+    updated_at = NOW();
+-- END GENERATED:auto_launch_destinations
+
+
+-- Module: auto-launch, File: 504_20261016_seed_peerpush_destination.sql
+-- ---------------------------
+-- MODULE NAME: Auto Launch
+-- MODULE DATE: 20261016
+-- MODULE SCOPE: Seed (PeerPush free queue + Standard launch destinations)
+-- ---------------------------
+-- extension_config: embedded on INSERT from destination-configs/*.ts; refreshed via 502_*_extension_configs.sql
+-- PeerPush submit form: logo file upload uses extension file fill (no fillMode on file steps).
+-- Tag-style discovery fields use fillMode "tags"; product description is plain text (profile HTML is stripped at fill/compare).
+
+BEGIN;
+
+INSERT INTO public.auto_launch_destinations (
+    id,
+    provider_slug,
+    link_directory_opportunity_id,
+    name,
+    short_description,
+    submission_path,
+    start_url,
+    extension_config,
+    is_published,
+    sort_order,
+    picker_group_key,
+    picker_group_title
+)
+SELECT
+    'd5f7d000-0030-4000-a000-000000000004'::uuid,
+    'peerpush-standard-launch'::text,
+    (
+        SELECT o.id
+        FROM public.link_directory_opportunities o
+        INNER JOIN public.link_directory_sites s ON s.id = o.site_id
+        WHERE s.slug = 'peerpush'
+          AND o.slug = 'standard-launch'
+        LIMIT 1
+    ),
+    'PeerPush — Standard launch',
+    'Instant publish on PeerPush; extension autofills the submit flow at peerpush.com/submit.',
+    'extension',
+    'https://peerpush.com/submit',
+    $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://peerpush.com/*",
+        "https://www.peerpush.com/*"
+    ],
+    "readyUrlHint": "submit",
+    "steps": [
+        {
+            "id": "basic",
+            "label": "Basic",
+            "fields": [
+                {
+                    "key": "name",
+                    "label": "Product name",
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "selectorHint": "#name, input#name"
+                },
+                {
+                    "key": "tagline",
+                    "label": "Tagline",
+                    "labelAliases": [
+                        "One-line tagline"
+                    ],
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "selectorHint": "#tagline, input#tagline"
+                },
+                {
+                    "key": "description",
+                    "label": "Product description",
+                    "labelAliases": [
+                        "Description"
+                    ],
+                    "profilePath": "description",
+                    "fillMode": "text",
+                    "selectorHint": "#description, textarea#description"
+                },
+                {
+                    "key": "website",
+                    "label": "Website",
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "selectorHint": "#websiteUrl, input#websiteUrl, input[type='url'][id*='website' i]"
+                },
+                {
+                    "key": "logo",
+                    "label": "Logo",
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "selectorHint": "[data-field='logo'] input[type='file'], input[type='file'][accept*='image']"
+                }
+            ]
+        },
+        {
+            "id": "discovery",
+            "label": "Discovery",
+            "fields": [
+                {
+                    "key": "categories",
+                    "label": "Categories",
+                    "profilePath": "profile_data.categories",
+                    "fillMode": "tags",
+                    "labelMatch": "section",
+                    "tagsScope": "section",
+                    "maxItems": 3,
+                    "selectorHint": "[data-field='categories'] input[role='combobox'], [data-field='categories'] input[placeholder*='categor' i]"
+                },
+                {
+                    "key": "use_cases",
+                    "label": "Use Cases",
+                    "labelAliases": [
+                        "Use cases"
+                    ],
+                    "profilePath": "profile_data.use_cases",
+                    "fillMode": "tags",
+                    "labelMatch": "section",
+                    "tagsScope": "section",
+                    "selectorHint": "[data-field='useCases'] input[role='combobox'], [data-field='useCases'] input[placeholder*='use case' i]"
+                },
+                {
+                    "key": "target_audiences",
+                    "label": "Target Audience",
+                    "labelAliases": [
+                        "Target audience",
+                        "Audiences"
+                    ],
+                    "profilePath": "profile_data.target_audiences",
+                    "fillMode": "tags",
+                    "labelMatch": "section",
+                    "tagsScope": "section",
+                    "selectorHint": "[data-field='audiences'] input[role='combobox'], [data-field='audiences'] input[placeholder*='audience' i]"
+                },
+                {
+                    "key": "pricing_type",
+                    "label": "Pricing",
+                    "profilePath": "profile_data.pricing_type",
+                    "fillMode": "select",
+                    "selectorHint": "[data-field='pricingType'] select, select[aria-label='Pricing type']"
+                },
+                {
+                    "key": "platforms",
+                    "label": "Platforms",
+                    "profilePath": "profile_data.platforms",
+                    "fillMode": "tags",
+                    "labelMatch": "section",
+                    "tagsScope": "section",
+                    "maxItems": 5,
+                    "selectorHint": "[data-field='platforms'] input[role='combobox'], [data-field='platforms'] input[placeholder*='platform' i]"
+                }
+            ]
+        },
+        {
+            "id": "media",
+            "label": "Media",
+            "fields": [
+                {
+                    "key": "gallery",
+                    "label": "Screenshots",
+                    "profilePath": "profile_data.gallery_urls",
+                    "fillMode": "files",
+                    "fileInputIndex": 0,
+                    "selectorHint": "[data-field='screenshots'] input[type='file'], input[type='file'][accept*='image']"
+                }
+            ]
+        },
+        {
+            "id": "additional",
+            "label": "Additional Info",
+            "fields": [
+                {
+                    "key": "monthly_revenue_usd",
+                    "label": "Monthly recurring revenue (optional)",
+                    "labelAliases": [
+                        "MRR",
+                        "MRR - Monthly Recurring Revenue (optional)"
+                    ],
+                    "profilePath": "profile_data.monthly_revenue_usd",
+                    "fillMode": "text",
+                    "selectorHint": "#mrr, input#mrr, input[name='mrr'], input[placeholder='1000']"
+                },
+                {
+                    "key": "social_x",
+                    "label": "Twitter username",
+                    "labelAliases": [
+                        "X (Twitter)",
+                        "X username"
+                    ],
+                    "profilePath": "profile_data.social_x",
+                    "socialXScalar": "username",
+                    "fillMode": "text",
+                    "selectorHint": "#twitterUsername, input#twitterUsername, input[aria-label='X username']"
+                },
+                {
+                    "key": "social_linkedin",
+                    "label": "LinkedIn URL",
+                    "profilePath": "profile_data.social_linkedin",
+                    "fillMode": "text",
+                    "selectorHint": "#linkedinUrl, input#linkedinUrl, input[aria-label='LinkedIn URL'], input[type='url'][placeholder*='linkedin.com' i]"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/p/|/submit",
+        "listingUrlSelector": "a[href*='peerpush.com/p/']"
+    }
+}$json$::jsonb,
+    true,
+    40,
+    NULL::text,
+    NULL::text
+ON CONFLICT (provider_slug) DO UPDATE SET
+    link_directory_opportunity_id = EXCLUDED.link_directory_opportunity_id,
+    name = EXCLUDED.name,
+    short_description = EXCLUDED.short_description,
+    submission_path = EXCLUDED.submission_path,
+    start_url = EXCLUDED.start_url,
+    extension_config = EXCLUDED.extension_config,
+    is_published = EXCLUDED.is_published,
+    sort_order = EXCLUDED.sort_order,
+    picker_group_key = EXCLUDED.picker_group_key,
+    picker_group_title = EXCLUDED.picker_group_title,
+    updated_at = NOW();
+
+INSERT INTO public.auto_launch_destinations (
+    id,
+    provider_slug,
+    link_directory_opportunity_id,
+    name,
+    short_description,
+    submission_path,
+    start_url,
+    extension_config,
+    is_published,
+    sort_order,
+    picker_group_key,
+    picker_group_title
+)
+SELECT
+    'd5f7d000-0030-4000-a000-000000000005'::uuid,
+    'peerpush-free-queue'::text,
+    (
+        SELECT o.id
+        FROM public.link_directory_opportunities o
+        INNER JOIN public.link_directory_sites s ON s.id = o.site_id
+        WHERE s.slug = 'peerpush'
+          AND o.slug = 'free-queue'
+        LIMIT 1
+    ),
+    'PeerPush — Free queue',
+    'Free queue on PeerPush; extension autofills after you open pricing and start submit.',
+    'extension',
+    'https://peerpush.com/pricing',
+    $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://peerpush.com/*",
+        "https://www.peerpush.com/*"
+    ],
+    "readyUrlHint": "pricing",
+    "steps": [
+        {
+            "id": "basic",
+            "label": "Basic",
+            "fields": [
+                {
+                    "key": "name",
+                    "label": "Product name",
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "selectorHint": "#name, input#name"
+                },
+                {
+                    "key": "tagline",
+                    "label": "Tagline",
+                    "labelAliases": [
+                        "One-line tagline"
+                    ],
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "selectorHint": "#tagline, input#tagline"
+                },
+                {
+                    "key": "description",
+                    "label": "Product description",
+                    "labelAliases": [
+                        "Description"
+                    ],
+                    "profilePath": "description",
+                    "fillMode": "text",
+                    "selectorHint": "#description, textarea#description"
+                },
+                {
+                    "key": "website",
+                    "label": "Website",
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "selectorHint": "#websiteUrl, input#websiteUrl, input[type='url'][id*='website' i]"
+                },
+                {
+                    "key": "logo",
+                    "label": "Logo",
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "selectorHint": "[data-field='logo'] input[type='file'], input[type='file'][accept*='image']"
+                }
+            ]
+        },
+        {
+            "id": "discovery",
+            "label": "Discovery",
+            "fields": [
+                {
+                    "key": "categories",
+                    "label": "Categories",
+                    "profilePath": "profile_data.categories",
+                    "fillMode": "tags",
+                    "labelMatch": "section",
+                    "tagsScope": "section",
+                    "maxItems": 3,
+                    "selectorHint": "[data-field='categories'] input[role='combobox'], [data-field='categories'] input[placeholder*='categor' i]"
+                },
+                {
+                    "key": "use_cases",
+                    "label": "Use Cases",
+                    "labelAliases": [
+                        "Use cases"
+                    ],
+                    "profilePath": "profile_data.use_cases",
+                    "fillMode": "tags",
+                    "labelMatch": "section",
+                    "tagsScope": "section",
+                    "selectorHint": "[data-field='useCases'] input[role='combobox'], [data-field='useCases'] input[placeholder*='use case' i]"
+                },
+                {
+                    "key": "target_audiences",
+                    "label": "Target Audience",
+                    "labelAliases": [
+                        "Target audience",
+                        "Audiences"
+                    ],
+                    "profilePath": "profile_data.target_audiences",
+                    "fillMode": "tags",
+                    "labelMatch": "section",
+                    "tagsScope": "section",
+                    "selectorHint": "[data-field='audiences'] input[role='combobox'], [data-field='audiences'] input[placeholder*='audience' i]"
+                },
+                {
+                    "key": "pricing_type",
+                    "label": "Pricing",
+                    "profilePath": "profile_data.pricing_type",
+                    "fillMode": "select",
+                    "selectorHint": "[data-field='pricingType'] select, select[aria-label='Pricing type']"
+                },
+                {
+                    "key": "platforms",
+                    "label": "Platforms",
+                    "profilePath": "profile_data.platforms",
+                    "fillMode": "tags",
+                    "labelMatch": "section",
+                    "tagsScope": "section",
+                    "maxItems": 5,
+                    "selectorHint": "[data-field='platforms'] input[role='combobox'], [data-field='platforms'] input[placeholder*='platform' i]"
+                }
+            ]
+        },
+        {
+            "id": "media",
+            "label": "Media",
+            "fields": [
+                {
+                    "key": "gallery",
+                    "label": "Screenshots",
+                    "profilePath": "profile_data.gallery_urls",
+                    "fillMode": "files",
+                    "fileInputIndex": 0,
+                    "selectorHint": "[data-field='screenshots'] input[type='file'], input[type='file'][accept*='image']"
+                }
+            ]
+        },
+        {
+            "id": "additional",
+            "label": "Additional Info",
+            "fields": [
+                {
+                    "key": "monthly_revenue_usd",
+                    "label": "Monthly recurring revenue (optional)",
+                    "labelAliases": [
+                        "MRR",
+                        "MRR - Monthly Recurring Revenue (optional)"
+                    ],
+                    "profilePath": "profile_data.monthly_revenue_usd",
+                    "fillMode": "text",
+                    "selectorHint": "#mrr, input#mrr, input[name='mrr'], input[placeholder='1000']"
+                },
+                {
+                    "key": "social_x",
+                    "label": "Twitter username",
+                    "labelAliases": [
+                        "X (Twitter)",
+                        "X username"
+                    ],
+                    "profilePath": "profile_data.social_x",
+                    "socialXScalar": "username",
+                    "fillMode": "text",
+                    "selectorHint": "#twitterUsername, input#twitterUsername, input[aria-label='X username']"
+                },
+                {
+                    "key": "social_linkedin",
+                    "label": "LinkedIn URL",
+                    "profilePath": "profile_data.social_linkedin",
+                    "fillMode": "text",
+                    "selectorHint": "#linkedinUrl, input#linkedinUrl, input[aria-label='LinkedIn URL'], input[type='url'][placeholder*='linkedin.com' i]"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/p/|/submit",
+        "listingUrlSelector": "a[href*='peerpush.com/p/']"
+    }
+}$json$::jsonb,
+    true,
+    35,
+    NULL::text,
+    NULL::text
+ON CONFLICT (provider_slug) DO UPDATE SET
+    link_directory_opportunity_id = EXCLUDED.link_directory_opportunity_id,
+    name = EXCLUDED.name,
+    short_description = EXCLUDED.short_description,
+    submission_path = EXCLUDED.submission_path,
+    start_url = EXCLUDED.start_url,
+    extension_config = EXCLUDED.extension_config,
+    is_published = EXCLUDED.is_published,
+    sort_order = EXCLUDED.sort_order,
+    picker_group_key = EXCLUDED.picker_group_key,
+    picker_group_title = EXCLUDED.picker_group_title,
+    updated_at = NOW();
+
+
+-- Module: auto-launch, File: 505_20261109_seed_open_launch_destination.sql
+-- ---------------------------
+-- MODULE NAME: Auto Launch
+-- MODULE DATE: 20261108
+-- MODULE SCOPE: Seed (Open Launch premium + free queue destinations)
+-- ---------------------------
+-- extension_config: embedded on INSERT from destination-configs/*.ts; refreshed via 502_*_extension_configs.sql
+-- Joins link_directory_opportunities on site slug open-launch (CMS / listing manager in production).
+-- Launch date and Review steps are user-completed in v1 (no autofilled fields).
+
+BEGIN;
+
+INSERT INTO public.auto_launch_destinations (
+    id,
+    provider_slug,
+    link_directory_opportunity_id,
+    name,
+    short_description,
+    submission_path,
+    start_url,
+    extension_config,
+    is_published,
+    sort_order,
+    picker_group_key,
+    picker_group_title
+)
+SELECT
+    'd5f7d000-0030-4000-a000-000000000006'::uuid,
+    'open-launch-premium-launch'::text,
+    (
+        SELECT o.id
+        FROM public.link_directory_opportunities o
+        INNER JOIN public.link_directory_sites s ON s.id = o.site_id
+        WHERE s.slug = 'open-launch'
+          AND o.slug = 'premium-launch'
+        LIMIT 1
+    ),
+    'Open Launch — Premium launch',
+    'Premium slot on Open Launch; extension autofills the submit wizard at open-launch.com/projects/submit.',
+    'extension',
+    'https://open-launch.com/projects/submit',
+    $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://open-launch.com/*",
+        "https://www.open-launch.com/*"
+    ],
+    "readyUrlHint": "submit",
+    "steps": [
+        {
+            "id": "project_info",
+            "label": "Project Info",
+            "fields": [
+                {
+                    "key": "name",
+                    "label": "Project name",
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='name' i], input[placeholder*='project name' i], input[aria-label*='name' i]"
+                },
+                {
+                    "key": "website",
+                    "label": "Website URL",
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[type='url'], input[name*='website' i], input[name*='url' i], input[placeholder*='website' i]"
+                },
+                {
+                    "key": "description",
+                    "label": "Short description",
+                    "profilePath": "description",
+                    "fillMode": "rich_html",
+                    "selectorHint": "[contenteditable='true'], .ProseMirror, .tiptap, textarea[name*='description' i], textarea[placeholder*='description' i]"
+                },
+                {
+                    "key": "logo",
+                    "label": "Logo",
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "selectorHint": "input[type='file'][accept*='image']"
+                },
+                {
+                    "key": "product_image",
+                    "label": "Product image",
+                    "profilePath": "profile_data.gallery_urls",
+                    "fillMode": "files",
+                    "fileInputIndex": 1,
+                    "selectorHint": "input[type='file'][accept*='image']"
+                }
+            ]
+        },
+        {
+            "id": "details",
+            "label": "Details",
+            "fields": [
+                {
+                    "key": "categories",
+                    "label": "Categories",
+                    "profilePath": "profile_data.categories",
+                    "fillMode": "checkbox_group",
+                    "checkboxCatalog": "open_launch_categories",
+                    "labelMatch": "section",
+                    "maxItems": 3
+                },
+                {
+                    "key": "tech_stack",
+                    "label": "Tech stack",
+                    "profilePath": "profile_data.tech_stack",
+                    "fillMode": "tags",
+                    "maxItems": 5,
+                    "selectorHint": "input[name*='tech' i], input[placeholder*='technology' i], [placeholder*='tech' i], [aria-label*='tech stack' i], [aria-label*='stack' i]"
+                },
+                {
+                    "key": "platforms",
+                    "label": "Platforms",
+                    "profilePath": "profile_data.platforms",
+                    "fillMode": "checkbox_group",
+                    "checkboxCatalog": "open_launch_platforms",
+                    "labelMatch": "section"
+                },
+                {
+                    "key": "pricing_type",
+                    "label": "Pricing model",
+                    "profilePath": "profile_data.pricing_type",
+                    "fillMode": "select",
+                    "selectCatalog": "open_launch_pricing",
+                    "selectorHint": "input[type='radio'][name*='pricing' i], input[type='radio'][id*='pricing' i], select[name*='pricing' i], [role='combobox'][aria-label*='pricing' i]"
+                },
+                {
+                    "key": "social_github",
+                    "label": "GitHub",
+                    "profilePath": "profile_data.social_github",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='github' i], input[placeholder*='github' i], input[aria-label*='github' i]",
+                    "profileSourcePaths": [
+                        "profile_data.repository_url"
+                    ]
+                },
+                {
+                    "key": "social_x",
+                    "label": "X (Twitter)",
+                    "profilePath": "profile_data.social_x",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='twitter' i], input[name*='x.com' i], input[placeholder*='twitter' i], input[aria-label*='twitter' i]"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/projects/|/submit",
+        "listingUrlSelector": "a[href*='open-launch.com/projects/']"
+    }
+}$json$::jsonb,
+    true,
+    45,
+    'open-launch'::text,
+    'Open Launch'::text
+ON CONFLICT (provider_slug) DO UPDATE SET
+    link_directory_opportunity_id = EXCLUDED.link_directory_opportunity_id,
+    name = EXCLUDED.name,
+    short_description = EXCLUDED.short_description,
+    submission_path = EXCLUDED.submission_path,
+    start_url = EXCLUDED.start_url,
+    extension_config = EXCLUDED.extension_config,
+    is_published = EXCLUDED.is_published,
+    sort_order = EXCLUDED.sort_order,
+    picker_group_key = EXCLUDED.picker_group_key,
+    picker_group_title = EXCLUDED.picker_group_title,
+    updated_at = NOW();
+
+INSERT INTO public.auto_launch_destinations (
+    id,
+    provider_slug,
+    link_directory_opportunity_id,
+    name,
+    short_description,
+    submission_path,
+    start_url,
+    extension_config,
+    is_published,
+    sort_order,
+    picker_group_key,
+    picker_group_title
+)
+SELECT
+    'd5f7d000-0030-4000-a000-000000000007'::uuid,
+    'open-launch-free-launch'::text,
+    (
+        SELECT o.id
+        FROM public.link_directory_opportunities o
+        INNER JOIN public.link_directory_sites s ON s.id = o.site_id
+        WHERE s.slug = 'open-launch'
+          AND o.slug = 'free-launch'
+        LIMIT 1
+    ),
+    'Open Launch — Free launch',
+    'Free queue on Open Launch; extension autofills after you open pricing and start submit.',
+    'extension',
+    'https://open-launch.com/pricing',
+    $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://open-launch.com/*",
+        "https://www.open-launch.com/*"
+    ],
+    "readyUrlHint": "pricing",
+    "steps": [
+        {
+            "id": "project_info",
+            "label": "Project Info",
+            "fields": [
+                {
+                    "key": "name",
+                    "label": "Project name",
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='name' i], input[placeholder*='project name' i], input[aria-label*='name' i]"
+                },
+                {
+                    "key": "website",
+                    "label": "Website URL",
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[type='url'], input[name*='website' i], input[name*='url' i], input[placeholder*='website' i]"
+                },
+                {
+                    "key": "description",
+                    "label": "Short description",
+                    "profilePath": "description",
+                    "fillMode": "rich_html",
+                    "selectorHint": "[contenteditable='true'], .ProseMirror, .tiptap, textarea[name*='description' i], textarea[placeholder*='description' i]"
+                },
+                {
+                    "key": "logo",
+                    "label": "Logo",
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "selectorHint": "input[type='file'][accept*='image']"
+                },
+                {
+                    "key": "product_image",
+                    "label": "Product image",
+                    "profilePath": "profile_data.gallery_urls",
+                    "fillMode": "files",
+                    "fileInputIndex": 1,
+                    "selectorHint": "input[type='file'][accept*='image']"
+                }
+            ]
+        },
+        {
+            "id": "details",
+            "label": "Details",
+            "fields": [
+                {
+                    "key": "categories",
+                    "label": "Categories",
+                    "profilePath": "profile_data.categories",
+                    "fillMode": "checkbox_group",
+                    "checkboxCatalog": "open_launch_categories",
+                    "labelMatch": "section",
+                    "maxItems": 3
+                },
+                {
+                    "key": "tech_stack",
+                    "label": "Tech stack",
+                    "profilePath": "profile_data.tech_stack",
+                    "fillMode": "tags",
+                    "maxItems": 5,
+                    "selectorHint": "input[name*='tech' i], input[placeholder*='technology' i], [placeholder*='tech' i], [aria-label*='tech stack' i], [aria-label*='stack' i]"
+                },
+                {
+                    "key": "platforms",
+                    "label": "Platforms",
+                    "profilePath": "profile_data.platforms",
+                    "fillMode": "checkbox_group",
+                    "checkboxCatalog": "open_launch_platforms",
+                    "labelMatch": "section"
+                },
+                {
+                    "key": "pricing_type",
+                    "label": "Pricing model",
+                    "profilePath": "profile_data.pricing_type",
+                    "fillMode": "select",
+                    "selectCatalog": "open_launch_pricing",
+                    "selectorHint": "input[type='radio'][name*='pricing' i], input[type='radio'][id*='pricing' i], select[name*='pricing' i], [role='combobox'][aria-label*='pricing' i]"
+                },
+                {
+                    "key": "social_github",
+                    "label": "GitHub",
+                    "profilePath": "profile_data.social_github",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='github' i], input[placeholder*='github' i], input[aria-label*='github' i]",
+                    "profileSourcePaths": [
+                        "profile_data.repository_url"
+                    ]
+                },
+                {
+                    "key": "social_x",
+                    "label": "X (Twitter)",
+                    "profilePath": "profile_data.social_x",
+                    "fillMode": "text",
+                    "selectorHint": "input[name*='twitter' i], input[name*='x.com' i], input[placeholder*='twitter' i], input[aria-label*='twitter' i]"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/projects/|/submit",
+        "listingUrlSelector": "a[href*='open-launch.com/projects/']"
+    }
+}$json$::jsonb,
+    true,
+    42,
+    'open-launch'::text,
+    'Open Launch'::text
+ON CONFLICT (provider_slug) DO UPDATE SET
+    link_directory_opportunity_id = EXCLUDED.link_directory_opportunity_id,
+    name = EXCLUDED.name,
+    short_description = EXCLUDED.short_description,
+    submission_path = EXCLUDED.submission_path,
+    start_url = EXCLUDED.start_url,
+    extension_config = EXCLUDED.extension_config,
+    is_published = EXCLUDED.is_published,
+    sort_order = EXCLUDED.sort_order,
+    picker_group_key = EXCLUDED.picker_group_key,
+    picker_group_title = EXCLUDED.picker_group_title,
+    updated_at = NOW();
+
+
+-- Module: auto-launch, File: 506_20261117_seed_tinylaunch_destination.sql
+-- ---------------------------
+-- MODULE NAME: Auto Launch
+-- MODULE DATE: 20261117
+-- MODULE SCOPE: Seed (TinyLaunch premium + Standard queue destinations)
+-- ---------------------------
+-- extension_config: embedded on INSERT from destination-configs/*.ts; refreshed via 502_*_extension_configs.sql
+-- Joins link_directory_opportunities on site slug tinylaunch (catalog backfill / listing manager).
+-- Scheduling, payment, and upvote pledge stay manual after the create-startup form is filled.
+
+BEGIN;
+
+INSERT INTO public.auto_launch_destinations (
+    id,
+    provider_slug,
+    link_directory_opportunity_id,
+    name,
+    short_description,
+    submission_path,
+    start_url,
+    extension_config,
+    is_published,
+    sort_order,
+    picker_group_key,
+    picker_group_title
+)
+SELECT
+    'd5f7d000-0030-4000-a000-000000000008'::uuid,
+    'tinylaunch-premium-launch'::text,
+    (
+        SELECT o.id
+        FROM public.link_directory_opportunities o
+        INNER JOIN public.link_directory_sites s ON s.id = o.site_id
+        WHERE s.slug = 'tinylaunch'
+          AND o.slug = 'premium-launch'
+        LIMIT 1
+    ),
+    'TinyLaunch — Premium launch',
+    'Premium launch on TinyLaunch; extension autofills the create-startup form at tinylaunch.com/dashboard/startups/new.',
+    'extension',
+    'https://www.tinylaunch.com/dashboard/startups/new',
+    $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://tinylaunch.com/*",
+        "https://www.tinylaunch.com/*"
+    ],
+    "readyUrlHint": "dashboard/startups",
+    "steps": [
+        {
+            "id": "create_startup",
+            "label": "Create startup",
+            "fields": [
+                {
+                    "key": "name",
+                    "label": "Startup Name",
+                    "labelAliases": [
+                        "Name"
+                    ],
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "maxScalarLength": 30,
+                    "required": true,
+                    "selectorHint": "input[name*='name' i], input[placeholder*='startup name' i], input[aria-label*='startup name' i]"
+                },
+                {
+                    "key": "tagline",
+                    "label": "Tagline",
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "maxScalarLength": 60,
+                    "required": true,
+                    "selectorHint": "input[name*='tagline' i], textarea[name*='tagline' i], input[placeholder*='tagline' i], textarea[placeholder*='tagline' i]"
+                },
+                {
+                    "key": "logo",
+                    "label": "Logo",
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "required": true,
+                    "selectorHint": "input[type='file'][accept*='image']"
+                },
+                {
+                    "key": "gallery",
+                    "label": "Images",
+                    "labelAliases": [
+                        "Screenshots",
+                        "Gallery"
+                    ],
+                    "profilePath": "profile_data.gallery_urls",
+                    "fillMode": "files",
+                    "fileInputIndex": 1,
+                    "maxItems": 3,
+                    "selectorHint": "input[type='file'][accept*='image']"
+                },
+                {
+                    "key": "website",
+                    "label": "Website URL",
+                    "labelAliases": [
+                        "Website"
+                    ],
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[type='url'], input[name*='website' i], input[name*='url' i], input[placeholder*='website' i]"
+                },
+                {
+                    "key": "description",
+                    "label": "Description",
+                    "profilePath": "description",
+                    "fillMode": "rich_html",
+                    "required": true,
+                    "selectorHint": "[contenteditable='true'], .ProseMirror, .tiptap, textarea[name*='description' i], textarea[placeholder*='description' i]"
+                },
+                {
+                    "key": "category",
+                    "label": "Category",
+                    "profilePath": "profile_data.category",
+                    "fillMode": "select",
+                    "selectCatalog": "tinylaunch",
+                    "required": true,
+                    "selectorHint": "select[name*='categor' i], [role='combobox'][aria-label*='categor' i], button[aria-label*='categor' i]"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/dashboard/startups/",
+        "listingUrlSelector": "a[href*='tinylaunch.com'][href*='/startups/']"
+    }
+}$json$::jsonb,
+    true,
+    48,
+    'tinylaunch'::text,
+    'TinyLaunch'::text
+ON CONFLICT (provider_slug) DO UPDATE SET
+    link_directory_opportunity_id = EXCLUDED.link_directory_opportunity_id,
+    name = EXCLUDED.name,
+    short_description = EXCLUDED.short_description,
+    submission_path = EXCLUDED.submission_path,
+    start_url = EXCLUDED.start_url,
+    extension_config = EXCLUDED.extension_config,
+    is_published = EXCLUDED.is_published,
+    sort_order = EXCLUDED.sort_order,
+    picker_group_key = EXCLUDED.picker_group_key,
+    picker_group_title = EXCLUDED.picker_group_title,
+    updated_at = NOW();
+
+INSERT INTO public.auto_launch_destinations (
+    id,
+    provider_slug,
+    link_directory_opportunity_id,
+    name,
+    short_description,
+    submission_path,
+    start_url,
+    extension_config,
+    is_published,
+    sort_order,
+    picker_group_key,
+    picker_group_title
+)
+SELECT
+    'd5f7d000-0030-4000-a000-000000000009'::uuid,
+    'tinylaunch-standard-launch'::text,
+    (
+        SELECT o.id
+        FROM public.link_directory_opportunities o
+        INNER JOIN public.link_directory_sites s ON s.id = o.site_id
+        WHERE s.slug = 'tinylaunch'
+          AND o.slug = 'standard-launch'
+        LIMIT 1
+    ),
+    'TinyLaunch — Standard launch',
+    'Free Standard queue on TinyLaunch; extension autofills after you open pricing and create your startup.',
+    'extension',
+    'https://www.tinylaunch.com/pricing',
+    $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://tinylaunch.com/*",
+        "https://www.tinylaunch.com/*"
+    ],
+    "readyUrlHint": "pricing",
+    "steps": [
+        {
+            "id": "create_startup",
+            "label": "Create startup",
+            "fields": [
+                {
+                    "key": "name",
+                    "label": "Startup Name",
+                    "labelAliases": [
+                        "Name"
+                    ],
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "maxScalarLength": 30,
+                    "required": true,
+                    "selectorHint": "input[name*='name' i], input[placeholder*='startup name' i], input[aria-label*='startup name' i]"
+                },
+                {
+                    "key": "tagline",
+                    "label": "Tagline",
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "maxScalarLength": 60,
+                    "required": true,
+                    "selectorHint": "input[name*='tagline' i], textarea[name*='tagline' i], input[placeholder*='tagline' i], textarea[placeholder*='tagline' i]"
+                },
+                {
+                    "key": "logo",
+                    "label": "Logo",
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "required": true,
+                    "selectorHint": "input[type='file'][accept*='image']"
+                },
+                {
+                    "key": "gallery",
+                    "label": "Images",
+                    "labelAliases": [
+                        "Screenshots",
+                        "Gallery"
+                    ],
+                    "profilePath": "profile_data.gallery_urls",
+                    "fillMode": "files",
+                    "fileInputIndex": 1,
+                    "maxItems": 3,
+                    "selectorHint": "input[type='file'][accept*='image']"
+                },
+                {
+                    "key": "website",
+                    "label": "Website URL",
+                    "labelAliases": [
+                        "Website"
+                    ],
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[type='url'], input[name*='website' i], input[name*='url' i], input[placeholder*='website' i]"
+                },
+                {
+                    "key": "description",
+                    "label": "Description",
+                    "profilePath": "description",
+                    "fillMode": "rich_html",
+                    "required": true,
+                    "selectorHint": "[contenteditable='true'], .ProseMirror, .tiptap, textarea[name*='description' i], textarea[placeholder*='description' i]"
+                },
+                {
+                    "key": "category",
+                    "label": "Category",
+                    "profilePath": "profile_data.category",
+                    "fillMode": "select",
+                    "selectCatalog": "tinylaunch",
+                    "required": true,
+                    "selectorHint": "select[name*='categor' i], [role='combobox'][aria-label*='categor' i], button[aria-label*='categor' i]"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/dashboard/startups/",
+        "listingUrlSelector": "a[href*='tinylaunch.com'][href*='/startups/']"
+    }
+}$json$::jsonb,
+    true,
+    46,
+    'tinylaunch'::text,
+    'TinyLaunch'::text
+ON CONFLICT (provider_slug) DO UPDATE SET
+    link_directory_opportunity_id = EXCLUDED.link_directory_opportunity_id,
+    name = EXCLUDED.name,
+    short_description = EXCLUDED.short_description,
+    submission_path = EXCLUDED.submission_path,
+    start_url = EXCLUDED.start_url,
+    extension_config = EXCLUDED.extension_config,
+    is_published = EXCLUDED.is_published,
+    sort_order = EXCLUDED.sort_order,
+    picker_group_key = EXCLUDED.picker_group_key,
+    picker_group_title = EXCLUDED.picker_group_title,
+    updated_at = NOW();
 
 
 -- Module: user-auth, File: 602_20250310_cron.sql

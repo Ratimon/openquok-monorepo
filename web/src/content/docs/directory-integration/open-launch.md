@@ -95,6 +95,7 @@ Return to OpenQuok. Mark the launch complete and paste the live <strong>listing 
 <LinkCard title="Directory submission overview" description="Full launch workflow" href="/docs/directory-submission" />
 <LinkCard title="PeerPush integration" description="Standard launch and free queue" href="/docs/directory-integration/peerpush" />
 <LinkCard title="Uneed integration" description="Join the line, paid launch, and maker profile" href="/docs/directory-integration/uneed" />
+<LinkCard title="TinyLaunch integration" description="Premium and Standard create-startup autofill" href="/docs/directory-integration/tinylaunch" />
 <LinkCard title="Directory integration overview" description="Social vs directory channels" href="/docs/directory-integration" />
 <LinkCard title="Open Launch CLI examples" description="directory:* recipes before you hand off to the extension" href="/docs/cli-examples/open-launch" />
 <LinkCard title="Business profiles" description="Products tab and channel grouping" href="/docs/channels/channel-groups" />

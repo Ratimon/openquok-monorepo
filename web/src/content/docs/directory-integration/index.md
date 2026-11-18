@@ -33,7 +33,7 @@ Behind each guide path OpenQuok typically stores:
 - **Extension config** for profile → form field mapping
 - Optional **Build Backlinks** links for listing metadata
 
-New **social** networks follow <a href="/docs/contribution-opportunities/add-provider">Adding a provider</a>. New directory sites follow the auto-launch contribution path in engineering documentation.
+New **social** networks follow <a href="/docs/contribution-opportunities/add-provider">Adding a social provider</a>. New directory sites follow <a href="/docs/contribution-opportunities/add-directory">Adding a directory channel</a>.
 
 ## Guides
 
@@ -41,6 +41,7 @@ New **social** networks follow <a href="/docs/contribution-opportunities/add-pro
 <LinkCard title="PeerPush" description="Standard launch and free queue — profile fields and public landing" href="/docs/directory-integration/peerpush" />
 <LinkCard title="Uneed" description="Join the line, paid launch, and maker profile" href="/docs/directory-integration/uneed" />
 <LinkCard title="Open Launch" description="Premium launch and free queue — tech stack, extension wizard autofill" href="/docs/directory-integration/open-launch" />
+<LinkCard title="TinyLaunch" description="Premium and Standard create-startup — category catalog, pledge manual" href="/docs/directory-integration/tinylaunch" />
 </CardGrid>
 
 ## Related Section(s)

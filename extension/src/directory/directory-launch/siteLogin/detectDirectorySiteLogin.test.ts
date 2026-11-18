@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { detectDirectorySiteLogin } from './detectDirectorySiteLogin.js';
 import { OPEN_LAUNCH_LOGIN_URL } from './open-launch.js';
 import { PEERPUSH_LOGIN_URL } from './peerpush.js';
+import { TINYLAUNCH_LOGIN_URL } from './tinylaunch.js';
 import { UNEED_LOGIN_URL } from './uneed.js';
 
 describe('detectDirectorySiteLogin', () => {
@@ -35,6 +36,14 @@ describe('detectDirectorySiteLogin', () => {
 		expect(detectDirectorySiteLogin('open-launch')).toEqual({
 			loggedIn: false,
 			loginUrl: OPEN_LAUNCH_LOGIN_URL
+		});
+	});
+
+	it('dispatches to the tinylaunch adapter', () => {
+		document.body.innerHTML = `<a href="/login">Log in</a>`;
+		expect(detectDirectorySiteLogin('tinylaunch')).toEqual({
+			loggedIn: false,
+			loginUrl: TINYLAUNCH_LOGIN_URL
 		});
 	});
 

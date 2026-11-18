@@ -70,7 +70,7 @@ describe('PublicAlternativesPagePresenter', () => {
 		expect(entry.title).toBe('OpenQuok alternatives');
 		expect(entry.href).toContain('/alternatives/openquok');
 		expect(entry.priceRangeLabel).toMatch(/\$0/);
-		expect(entry.platformSupportLabel).toBe('14 platforms');
+		expect(entry.platformSupportLabel).toBe('15 platforms');
 	});
 
 	it('hub competitor cards include price range and platform support labels', () => {

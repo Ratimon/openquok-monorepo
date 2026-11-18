@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 
 import {
 	filterToOpenLaunchOfficialCategories,
@@ -6,7 +5,7 @@ import {
 	matchOpenLaunchOfficialCategory,
 	matchOpenLaunchOfficialPlatform,
 	coerceToOpenLaunchOfficialPricing,
-} from './openLaunch.js';
+} from './config.js';
 
 describe('Open Launch category catalog', () => {
 	it('maps discovery labels to submit-form checkbox text', () => {

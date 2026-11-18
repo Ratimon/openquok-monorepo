@@ -8,6 +8,11 @@ import {
 	openLaunchSelectCatalogOptions,
 } from './openLaunch.js';
 import {
+	coerceToTinylaunchOfficialCategory,
+	matchTinylaunchOfficialCategory,
+	tinylaunchSelectCatalogOptions,
+} from './tinylaunch.js';
+import {
 	coerceToUneedOfficialCategory,
 	coerceUneedPricingType,
 	filterToUneedOfficialTags,
@@ -20,6 +25,7 @@ import {
 export const LAUNCH_FIELD_CATALOG_IDS = {
 	'uneed:tags': 'uneed:tags',
 	'uneed:select': 'uneed:select',
+	'tinylaunch:select': 'tinylaunch:select',
 	'open_launch:categories': 'open_launch:categories',
 	'open_launch:platforms': 'open_launch:platforms',
 	'open_launch:pricing': 'open_launch:pricing',
@@ -30,6 +36,7 @@ export type LaunchFieldCatalogId = keyof typeof LAUNCH_FIELD_CATALOG_IDS;
 export function resolveLaunchFieldCatalogId(field: LaunchStepField): LaunchFieldCatalogId | null {
 	if (field.tagsCatalog === 'uneed') return 'uneed:tags';
 	if (field.selectCatalog === 'uneed') return 'uneed:select';
+	if (field.selectCatalog === 'tinylaunch') return 'tinylaunch:select';
 	if (field.checkboxCatalog === 'open_launch_categories') return 'open_launch:categories';
 	if (field.checkboxCatalog === 'open_launch_platforms') return 'open_launch:platforms';
 	if (field.selectCatalog === 'open_launch_pricing') return 'open_launch:pricing';
@@ -78,6 +85,9 @@ export function selectPresetsForField(field: LaunchStepField): readonly string[]
 	if (id === 'uneed:select') {
 		return uneedSelectCatalogOptions('uneed');
 	}
+	if (id === 'tinylaunch:select') {
+		return tinylaunchSelectCatalogOptions('tinylaunch');
+	}
 	const openLaunch = openLaunchSelectCatalogOptions(field.selectCatalog);
 	if (openLaunch.length > 0) return openLaunch;
 	return uneedSelectCatalogOptions(field.selectCatalog);
@@ -87,6 +97,9 @@ export function applySelectCoercionForField(scalar: string, field: LaunchStepFie
 	const id = resolveLaunchFieldCatalogId(field);
 	if (id === 'uneed:select') {
 		return coerceToUneedOfficialCategory(scalar);
+	}
+	if (id === 'tinylaunch:select') {
+		return coerceToTinylaunchOfficialCategory(scalar);
 	}
 	if (id === 'open_launch:pricing') {
 		return coerceToOpenLaunchOfficialPricing(scalar);
@@ -139,6 +152,9 @@ export function invalidSelectForField(scalar: string | undefined, field: LaunchS
 	const id = resolveLaunchFieldCatalogId(field);
 	if (id === 'uneed:select') {
 		return matchUneedOfficialCategory(scalar) === null;
+	}
+	if (id === 'tinylaunch:select') {
+		return matchTinylaunchOfficialCategory(scalar) === null;
 	}
 	if (id === 'open_launch:pricing') {
 		return (

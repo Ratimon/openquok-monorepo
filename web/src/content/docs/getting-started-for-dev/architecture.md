@@ -613,4 +613,5 @@ Documentation UI (layouts, MDX helpers, search, nav):
 <LinkCard title="Maintenance mode" description="Cross-stack write-freeze for cutover windows" href="/docs/installation/maintenance-mode" />
 <LinkCard title="Documentation contribution" description="Tabs, sidebar config, and how to author docs pages" href="/docs/documentation-contribution" />
 <LinkCard title="Adding a social provider" description="Channel catalog, pSEO routes, bento, and footer wiring" href="/docs/contribution-opportunities/add-provider" />
+<LinkCard title="Adding a directory channel" description="Auto-launch fixtures, extension autofill, and migration sync" href="/docs/contribution-opportunities/add-directory" />
 </CardGrid>

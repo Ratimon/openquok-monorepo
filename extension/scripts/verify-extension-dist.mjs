@@ -9,10 +9,13 @@ const distDir = join(extensionRoot, outDirName);
 const contentDir = join(distDir, 'content/directory-launch');
 const manifestPath = join(distDir, 'manifest.json');
 
+const shippedLinkDirectoryLogoSlugs = ['peerpush', 'uneed', 'open-launch', 'tinylaunch'];
+
 const allowedContentScripts = new Set([
 	'openquok-directory-peerpush.js',
 	'openquok-directory-uneed.js',
 	'openquok-directory-open-launch.js',
+	'openquok-directory-tinylaunch.js',
 	'openquok-dashboard-session.js',
 	'openquok-reddit-submit.js',
 ]);
@@ -114,6 +117,12 @@ for (const required of [
 ]) {
 	if (!existsSync(join(distDir, required))) {
 		fail(`Missing dist/${required} — rebuild the extension`);
+	}
+}
+for (const slug of shippedLinkDirectoryLogoSlugs) {
+	const iconPath = join(distDir, 'icons/link-directory', `${slug}.svg`);
+	if (!existsSync(iconPath)) {
+		fail(`Missing dist/icons/link-directory/${slug}.svg — copy from web/static (rebuild)`);
 	}
 }
 for (const removed of ['popup.html', 'popup.js', 'popup.css']) {

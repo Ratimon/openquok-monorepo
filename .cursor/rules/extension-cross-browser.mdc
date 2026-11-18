@@ -36,7 +36,7 @@ When adding or changing a directory site, start in **`destination-configs/<site>
 - Export the **`EXTENSION_CONFIG`** fixture (steps, fields, compare flags).
 - Export **`{SITE}_DIRECTORY_LAUNCH_PROVIDERS`** per `provider_slug` (`hostPatterns`, `contentScriptEntry`, `defaultStartUrl`).
 - Register in **`destination-configs/index.ts`** and **`directoryLaunchRegistry.ts`**; update **`destination-configs.test.ts`** for registry drift.
-- Run **`pnpm sync:auto-launch-configs`** (then aggregate migrations) — do not hand-edit `505_*_extension_configs.sql`.
+- Run **`pnpm sync:auto-launch-configs`** + **`pnpm sync:auto-launch-destinations`** (then aggregate migrations) — do not hand-edit `502_*_extension_configs.sql`.
 
 Extension wiring (same for Chromium and Firefox builds):
 
