@@ -15,22 +15,16 @@ import { POPUP_UI_MESSAGE } from '../../directory/auto-launch/popupMessages.js';
 import type { StoredAutoLaunchState } from '../../directory/auto-launch/sessionStorage.js';
 import { isReadyPage, pageMatchesConfig } from '../../directory/directory-launch/stepRail.js';
 
-import { isDashboardLoggedIn } from '../../shared/dashboardAuth.js';
 import { getPreferredDashboardOrigin } from '../../shared/dashboardOriginStorage.js';
 import {
 	buildDashboardDevelopersSettingsUrl,
-	dashboardOriginToSignInUrl,
 	openDashboardAddChannel,
 	openDashboardAppUrl,
-	openDashboardUrl,
 } from '../../shared/openDashboardUrl.js';
 
 import { mountDirectoryChannelPicker } from './directoryChannelPicker.js';
 import { mountDirectoryProfilePools } from './directoryProfilePools.js';
-import {
-	defaultSignInBannerMessage,
-	isOpenQuokSignInMessage,
-} from './openQuokSignInPrompt.js';
+import type { DashboardSessionSnapshot } from './dashboardSessionBar.js';
 import { el, escapeHtml, runtimeSendMessage } from './uiHelpers.js';
 
 type DirectoryTabRenderRef = {
@@ -78,7 +72,7 @@ let lastRenderedSessionSlug: string | null = null;
 
 function statusForState(state: StoredAutoLaunchState | null): string {
 	if (!state) {
-		return 'Pick a directory channel above to open that site and start filling (sign in to OpenQuok in this panel first). Or launch from My Products.';
+		return 'Pick a directory channel above to open that site and start filling (sign in above in this panel first). Or launch from My Products.';
 	}
 	const config = state.session.extensionConfig;
 	if (!pageMatchesConfig(config)) {
@@ -128,23 +122,29 @@ export type DirectoryTabController = {
 	destroy: () => void;
 };
 
-export function mountDirectoryTab(root: HTMLElement): DirectoryTabController {
+export type MountDirectoryTabOptions = {
+	getSessionSnapshot: () => DashboardSessionSnapshot;
+};
+
+export function mountDirectoryTab(
+	root: HTMLElement,
+	options: MountDirectoryTabOptions
+): DirectoryTabController {
+	const getSessionSnapshot = options.getSessionSnapshot;
 	let destroyDirectoryPicker: (() => void) | null = null;
 	let destroyProfilePools: (() => void) | null = null;
-	let dashboardSignInUrl = dashboardOriginToSignInUrl(null);
-	let dashboardSessionMissing = false;
 	const renderRef: DirectoryTabRenderRef = {
 		current: (_state: StoredAutoLaunchState | null, _error?: string) => {},
 		refresh: async () => {},
 	};
 
 	function render(state: StoredAutoLaunchState | null, error?: string): void {
-		const signInError = error && isOpenQuokSignInMessage(error) ? error : undefined;
-		const showSignInBanner = dashboardSessionMissing || Boolean(signInError);
-		const signInBannerMessage = signInError ?? defaultSignInBannerMessage();
-		const footerError = error && !isOpenQuokSignInMessage(error) ? error : undefined;
+		const footerError = error;
+		const dashboardSignedIn = getSessionSnapshot().status === 'signed_in';
 
 		const hasSession = Boolean(state);
+		const apiActionsEnabled = dashboardSignedIn;
+		const sessionActionsEnabled = apiActionsEnabled && hasSession;
 		const product = state?.session.profileSnapshot.name ?? '—';
 		const sessionSlug = state?.session.providerSlug ?? null;
 		if (sessionSlug !== lastRenderedSessionSlug) {
@@ -170,17 +170,10 @@ export function mountDirectoryTab(root: HTMLElement): DirectoryTabController {
 		root.replaceChildren(
 			el(`
 			<div class="wrap tab-wrap">
-				${
-					showSignInBanner
-						? `<div class="sign-in-banner" role="alert">
-						<p class="sign-in-banner-text">${escapeHtml(signInBannerMessage)}</p>
-						<button type="button" class="primary sign-in-banner-action" id="directory-sign-in-open">Open OpenQuok</button>
-					</div>`
-						: ''
-				}
 				<p class="muted tab-lead">Human submits on the directory site — OpenQuok never clicks Submit.</p>
 				<label class="field-label">Directory channel</label>
 				<div id="directory-channel-picker" class="channel-picker-host"></div>
+				${footerError ? `<p class="error directory-tab-error" role="alert">${escapeHtml(footerError)}</p>` : ''}
 				<div class="card">
 					<strong>${escapeHtml(product)}</strong>
 					<p class="status">${escapeHtml(statusForState(state))}</p>
@@ -200,24 +193,19 @@ export function mountDirectoryTab(root: HTMLElement): DirectoryTabController {
 					}
 				</div>
 				<div class="actions directory-actions">
-					<button id="refresh-profile" class="secondary" ${hasSession ? '' : 'disabled'}>Refresh profile from OpenQuok</button>
-					<button id="fill-all" ${hasSession ? '' : 'disabled'}>Fill all on directory tab</button>
-					<button id="focus-tab" class="secondary" title="Switch to the browser tab for the active launch (same channel as Active launch below)." ${hasSession ? '' : 'disabled'}>Focus directory tab</button>
-					<button id="reset-fill-panel" class="secondary" title="Move the on-page fill panel back to the top-left so it is not hidden behind this side panel." ${hasSession ? '' : 'disabled'}>Reset fill panel to left</button>
-					<button id="open-start" class="secondary" title="Open the site for the selected channel chip above (starts a launch when it differs from the active one).">Open directory page</button>
-					<button id="mark-done" class="secondary" ${hasSession ? '' : 'disabled'}>Mark submitted in OpenQuok</button>
-					<button id="clear" class="secondary" ${hasSession ? '' : 'disabled'}>Clear session</button>
-					<button type="button" id="directory-mcp-cli" class="directory-mcp-cli" title="Open Developers settings for CLI install, MCP, and API access.">Submit via MCP or CLI</button>
+					<button id="refresh-profile" class="secondary" ${sessionActionsEnabled ? '' : 'disabled'}>Refresh profile from OpenQuok</button>
+					<button id="fill-all" ${sessionActionsEnabled ? '' : 'disabled'}>Fill all on directory tab</button>
+					<button id="focus-tab" class="secondary" title="Switch to the browser tab for the active launch (same channel as Active launch below)." ${sessionActionsEnabled ? '' : 'disabled'}>Focus directory tab</button>
+					<button id="reset-fill-panel" class="secondary" title="Move the on-page fill panel back to the top-left so it is not hidden behind this side panel." ${sessionActionsEnabled ? '' : 'disabled'}>Reset fill panel to left</button>
+					<button id="open-start" class="secondary" title="Open the site for the selected channel chip above (starts a launch when it differs from the active one)." ${apiActionsEnabled ? '' : 'disabled'}>Open directory page</button>
+					<button id="mark-done" class="secondary" ${sessionActionsEnabled ? '' : 'disabled'}>Mark submitted in OpenQuok</button>
+					<button id="clear" class="secondary" ${sessionActionsEnabled ? '' : 'disabled'}>Clear session</button>
+					<button type="button" id="directory-mcp-cli" class="directory-mcp-cli" title="Open Developers settings for CLI install, MCP, and API access." ${apiActionsEnabled ? '' : 'disabled'}>Submit via MCP or CLI</button>
 				</div>
 				${hasSession ? '<div id="directory-profile-pools" class="profile-pools-host"></div>' : ''}
-				${footerError ? `<p class="error">${escapeHtml(footerError)}</p>` : ''}
 			</div>
 		`)
 		);
-
-		root.querySelector('#directory-sign-in-open')?.addEventListener('click', () => {
-			void openDashboardUrl(dashboardSignInUrl);
-		});
 
 		const pickerHost = root.querySelector<HTMLElement>('#directory-channel-picker');
 		if (pickerHost) {
@@ -315,13 +303,7 @@ export function mountDirectoryTab(root: HTMLElement): DirectoryTabController {
 	renderRef.current = render;
 
 	async function refresh(): Promise<void> {
-		const [fetchResult, origin, auth] = await Promise.all([
-			fetchState(),
-			getPreferredDashboardOrigin(),
-			isDashboardLoggedIn().catch(() => ({ ok: false as const, loginUrl: undefined })),
-		]);
-		dashboardSignInUrl = dashboardOriginToSignInUrl(origin);
-		dashboardSessionMissing = !auth.ok;
+		const fetchResult = await fetchState();
 		const { state, backgroundUnreachable } = fetchResult;
 		render(
 			state,

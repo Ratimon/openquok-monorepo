@@ -1,8 +1,8 @@
 ---
 title: Overview - Contribution opportunities
-description: Ways to contribute features to OpenQuok.
+description: Ways to contribute features to OpenQuok — social providers, directory channels, Humanizer locales, and docs translations.
 order: 0
-lastUpdated: 2026-09-12
+lastUpdated: 2026-11-18
 sidebar:
   label: Overview
 ---
@@ -19,6 +19,7 @@ Use the sidebar or jump to a guide below.
 
 <CardGrid>
 <LinkCard title="Adding a social provider" description="Contributor checklist for new social integrations" href="/docs/contribution-opportunities/add-provider" />
+<LinkCard title="Adding a directory channel" description="Auto-launch seeds, extension autofill, and catalog wiring for directory sites" href="/docs/contribution-opportunities/add-directory" />
 <LinkCard title="Adding a Humanizer language" description="Locale folders, catalogs, local rewrite, UI copy, and tests" href="/docs/contribution-opportunities/humanizer-languages" />
 <LinkCard title="Translating documentation" description="Locale folders, mirrored paths, Markdown authoring, and Spanish examples under docs-es" href="/docs/contribution-opportunities/translate-documentation" />
 </CardGrid>

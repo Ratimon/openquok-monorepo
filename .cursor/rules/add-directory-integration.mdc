@@ -18,6 +18,8 @@ globs:
   - extension/src/shared/**
   - extension/src/background/**
   - extension/scripts/build-extension.mjs
+  - extension/scripts/copy-static.mjs
+  - extension/scripts/verify-extension-dist.mjs
   - extension/manifest.json
   - web/src/lib/auto-launch/**
   - web/src/lib/ui/components/auto-launch/**
@@ -29,7 +31,8 @@ globs:
   - docs/auto-launch/**
   - backend/scripts/aggregate_migrations_all.mjs
   - backend/scripts/sync-auto-launch-extension-configs.mjs
-  - backend/supabase/db/auto-launch/505_*_extension_configs.sql
+  - backend/supabase/db/auto-launch/502_*_extension_configs.sql
+  - backend/scripts/sync-auto-launch-destination-seeds.mjs
 alwaysApply: false
 ---
 
@@ -43,11 +46,26 @@ alwaysApply: false
 
 | Concept | Format | Must match in |
 | --- | --- | --- |
-| **Site slug** | kebab-case (`peerpush`, `open-launch`) | `link_directory_sites.slug`, `buildDirectoryAddChannelTiles`, `/icons/link-directory/{slug}.svg` |
+| **Site slug** | kebab-case (`peerpush`, `open-launch`) | `link_directory_sites.slug`, bundled logo lists below, `web/static/icons/link-directory/{slug}.svg` |
 | **Opportunity slug** | per path (`standard-launch`, `free-queue`) | `link_directory_opportunities.slug` (per `site_id`) |
 | **Provider slug** | `{site}-{variant}` | `auto_launch_destinations`, `link_directory_opportunities.auto_launch_provider_slug`, `destination-configs/<site>.ts` provider rows + aggregated `directoryLaunchProviders`, content script registration, tests |
 
 Wire: `auto_launch_enabled` + `auto_launch_provider_slug` on opportunity; `auto_launch_destinations.link_directory_opportunity_id` → opportunity. Optional `picker_group_key` / `picker_group_title` for one Add Channel card with variant picker.
+
+### Directory site logo (web dashboard + extension side panel)
+
+One SVG per **site slug** under `web/static/icons/link-directory/{slug}.svg`. When adding a shipped directory site, update **all three** slug lists together (same site slug in each):
+
+| Surface | Path | Used by |
+| --- | --- | --- |
+| Asset | `web/static/icons/link-directory/<site-slug>.svg` | Web `/icons/link-directory/…`, extension build copies from here |
+| Web | `web/src/lib/auto-launch/buildDirectoryAddChannelTiles.ts` — `BUNDLED_DIRECTORY_LOGO_SLUGS`, `DIRECTORY_SITE_BRANDED_ICONS` | My Products Add Channel tiles |
+| Extension | `extension/scripts/copy-static.mjs` — `shippedLinkDirectoryLogoSlugs` | Copies SVGs into `dist/icons/link-directory/` at build |
+| Extension | `extension/scripts/verify-extension-dist.mjs` — `shippedLinkDirectoryLogoSlugs` | Fails build if any listed icon is missing from `dist/` |
+
+The extension side panel loads `chrome.runtime.getURL('icons/link-directory/{siteKey}.svg')` (`directoryChannelPicker.ts`). If the SVG is not copied into the extension package, the avatar falls back to **two-letter site initials** (e.g. TinyLaunch → `TI`), not the real logo.
+
+After edits: `pnpm --filter @openquok/browser-extension build` and confirm `dist/icons/link-directory/{slug}.svg` exists. See also `buildDirectoryAddChannelTiles.test.ts` for web tile logo URLs.
 
 ## Files to add or modify
 
@@ -56,23 +74,27 @@ Wire: `auto_launch_enabled` + `auto_launch_provider_slug` on opportunity; `auto_
 | Action | Path | Notes |
 | --- | --- | --- |
 | Add | `backend/supabase/db/link-directory/504_<date>_seed_<site>.sql` | `link_directory_sites` + `link_directory_opportunities` (`dofollow`, cost, `auto_launch_*`) |
-| Add | `backend/supabase/db/auto-launch/503_<date>_seed_<site>_destination.sql` | Destination **rows** only; `extension_config` = `'{}'::jsonb` on insert |
-| Regenerate | `backend/supabase/db/auto-launch/505_*_extension_configs.sql` | Via `pnpm sync:auto-launch-configs` — do not hand-edit |
-| Run | `pnpm backend:db:aggregate-migrations-all` | Never edit `backend/supabase/migrations/*_core_structure.sql` |
+| Add | `backend/supabase/db/auto-launch/<507+>_<date>_seed_<site>_destination.sql` | Destination rows; `extension_config` embedded on INSERT via `pnpm sync:auto-launch-destinations` |
+| Regenerate | `backend/supabase/db/auto-launch/502_*_extension_configs.sql` | Via `pnpm sync:auto-launch-configs` — do not hand-edit |
+| Run | `pnpm sync:auto-launch-destinations` then `pnpm backend:db:aggregate-migrations-all` | Never edit `backend/supabase/migrations/*_core_structure.sql` |
 
-Refs: Uneed `link-directory/502_*` + `auto-launch/502_*`; PeerPush `link-directory/504_*` + `auto-launch/503_*`; Open Launch `link-directory/505_*` + `auto-launch/504_*`. Storage bucket: `auto-launch/502_20261013_seed_uneed_destinations.sql` (reuse unless new bucket).
+**Tier 5xx order:** `502` extension_configs UPDATE (no-op on empty table) → `503`–`506` site `*_seed_*` files (`destinationSeeds.ts` manifest). Next site seed prefix: **507+** (do not add a second configs file).
+
+Refs: Uneed `link-directory/502_*` + `auto-launch/503_*`; PeerPush `link-directory/504_*` + `auto-launch/504_*`; Open Launch `link-directory/505_*` + `auto-launch/505_*`; TinyLaunch catalog backfill + `auto-launch/506_*`. Storage bucket: `auto-launch/500_*_seed_auto_launch_profile_media_bucket.sql` (reuse unless new bucket).
 
 ### `extension_config` (TypeScript → SQL)
 
 | Action | Path |
 | --- | --- |
-| Add or edit | `common/src/auto-launch/destination-configs/<site>.ts` — `EXTENSION_CONFIG` fixtures (steps, `profilePath`, `fillMode`, `proof`, compare flags), `{SITE}_DIRECTORY_LAUNCH_PROVIDERS` rows (`hostPatterns`, `contentScriptEntry`, `defaultStartUrl`) |
+| Add or edit | `common/src/auto-launch/destination-configs/sites/<site>/config.ts` — `EXTENSION_CONFIG` fixtures, `{SITE}_DIRECTORY_LAUNCH_PROVIDERS` (`hostPatterns`, `contentScriptEntry`, `defaultStartUrl`); thin re-export shims at `destination-configs/<site>.ts` may remain for imports |
+| Edit | `common/src/auto-launch/destination-configs/sites/<site>/sync.ts` — per-site `ExtensionConfigDerivation` map (`pricing-queue` or `independent`); merged in `syncMetadata.ts` as `AUTO_LAUNCH_EXTENSION_CONFIG_DERIVATIONS` |
 | Edit | `common/src/auto-launch/destination-configs/index.ts` — `DIRECTORY_EXTENSION_CONFIG_FIXTURES`, `DIRECTORY_EXTENSION_CONFIG_PROVIDER_SLUGS` |
 | Edit (new site module) | `common/src/auto-launch/destination-configs/directoryLaunchRegistry.ts` — spread the site’s `*_DIRECTORY_LAUNCH_PROVIDERS` into `directoryLaunchProviders` |
-| Edit (pricing-first variant) | `common/src/auto-launch/destination-configs/syncMetadata.ts` — `AUTO_LAUNCH_EXTENSION_CONFIG_PRICING_READY_HINT_DERIVED` + explicit TS export with `readyUrlHint: 'pricing'` (no SQL `jsonb_set`) |
+| Edit (pricing-first variant) | `sites/<site>/sync.ts` — `pricing-queue` + base slug; variant fixture = `{ ...base, readyUrlHint: 'pricing' }` and pricing `start_url` on the destination manifest (no SQL `jsonb_set`) |
+| Edit (multi-form site e.g. Uneed) | `independent` slugs in `sites/uneed/sync.ts`; `destinationSeeds.ts` `generationMode: 'composite'` when the SQL file needs a hand-written prelude |
 | Edit (official tag/category/select catalogs) | `common/src/auto-launch/destination-configs/fieldCatalogRegistry.ts` — register catalog ids + handlers; wire `tagsCatalog` / `checkboxCatalog` / `selectCatalog` on fields in the site fixture |
 | Edit | `common/src/auto-launch/destination-configs/destination-configs.test.ts` — provider slug list + registry drift vs fixtures when adding variants |
-| Run | `pnpm sync:auto-launch-configs` then aggregate migrations |
+| Run | `pnpm sync:auto-launch-configs` + `pnpm sync:auto-launch-destinations` then aggregate migrations |
 
 `DirectoryLaunchProvider` types and registry helpers are re-exported from `common/src/browser-extension/pageAssist.ts` for backward compatibility — **do not** add inline provider rows there.
 
@@ -82,8 +104,9 @@ New `profilePath` in config → update composer/validation only when members mus
 
 | Action | Path |
 | --- | --- |
-| **Add** | `extension/src/content/directory-launch/<slug>.ts` — `registerDirectoryLaunchProvider('<provider_slug>')` (`contentScriptEntry` must match the row in `destination-configs/<site>.ts`) |
+| **Add** | `extension/src/content/directory-launch/<slug>.ts` — `registerDirectoryLaunchProvider('<provider_slug>')` (`contentScriptEntry` must match the row in `sites/<site>/config.ts`) |
 | Edit | `extension/scripts/build-extension.mjs` — `contentScriptSpecs` |
+| Edit | `extension/scripts/copy-static.mjs` + `verify-extension-dist.mjs` — append **site slug** to `shippedLinkDirectoryLogoSlugs` (keep in sync with web `BUNDLED_DIRECTORY_LOGO_SLUGS`) |
 | Edit | `extension/manifest.json` — `content_scripts` `matches` + `js` |
 | **Add** | `extension/src/directory/directory-launch/siteLogin/<site-key>.ts` + test |
 | Edit | `extension/src/directory/directory-launch/siteLogin/detectDirectorySiteLogin.ts` — register adapter |
@@ -107,6 +130,7 @@ Backend API usually unchanged: `AutoLaunchRoute`, `AutoLaunchService`, `AutoLaun
 
 | Action | Path |
 | --- | --- |
+| **Add (contributors)** | `web/src/content/docs/contribution-opportunities/add-directory.md` — public contributor overview (update only when workflow changes) |
 | **Add** | `web/src/content/docs/directory-integration/{site}.md` — operator guide; wires `/self-hosting` via frontmatter |
 | Edit | `docs/auto-launch/extension-ui-patterns.md` — destination table, mapping section, smoke `N` sites |
 | Edit | `docs/auto-launch/launch-showcase.md` — only if showcase mentions the site |
@@ -131,16 +155,17 @@ No **public-api-surface-sync** unless new `/api/v1/public/*` routes.
 
 | Site | Provider slugs | Row seeds | Fixture module |
 | --- | --- | --- | --- |
-| Uneed | `uneed-join-line`, `uneed-paid-launch`, `uneed-maker-profile` | `502_*` | `uneed.ts` |
-| PeerPush | `peerpush-free-queue`, `peerpush-standard-launch` | `503_*` | `peerpush.ts` |
-| Open Launch | `open-launch-free-launch`, `open-launch-premium-launch` | `504_*` | `openLaunch.ts` |
+| Uneed | `uneed-join-line`, `uneed-paid-launch`, `uneed-maker-profile` | `503_*` | `uneed.ts` |
+| PeerPush | `peerpush-free-queue`, `peerpush-standard-launch` | `504_*` | `peerpush.ts` |
+| Open Launch | `open-launch-free-launch`, `open-launch-premium-launch` | `505_*` | `openLaunch.ts` |
+| TinyLaunch | `tinylaunch-standard-launch`, `tinylaunch-premium-launch` | `506_*` | `tinylaunch.ts` |
 
 ## PR checklist
 
 **Catalog & DB**
 
 - [ ] `link-directory` seed: site + opportunities (`dofollow`, cost, `auto_launch_*`)
-- [ ] `auto-launch` host seed: destination rows, FK to opportunity, `'{}'::jsonb` config stub
+- [ ] `auto-launch` destination seed (`503+`): rows in `destinationSeeds.ts`; `pnpm sync:auto-launch-destinations`
 - [ ] `destination-configs/*.ts` + registry; `pnpm sync:auto-launch-configs`; aggregate migrations
 
 **Extension**
@@ -151,7 +176,7 @@ No **public-api-surface-sync** unless new `/api/v1/public/*` routes.
 
 **Web & assets**
 
-- [ ] Logo SVG + `buildDirectoryAddChannelTiles` (+ test)
+- [ ] Logo SVG + `buildDirectoryAddChannelTiles` + extension `shippedLinkDirectoryLogoSlugs` in `copy-static.mjs` / `verify-extension-dist.mjs` (+ `buildDirectoryAddChannelTiles.test.ts`)
 - [ ] Composer / readiness cover required `profilePath`s
 
 **Docs & marketing**
@@ -166,9 +191,10 @@ No **public-api-surface-sync** unless new `/api/v1/public/*` routes.
 
 ## Do not
 
-- Edit aggregated `*_core_structure.sql` or hand-edit `505_*` / inline `$json$` `extension_config`
+- Edit aggregated `*_core_structure.sql` or hand-edit `502_*_extension_configs.sql` / inline `$json$` `extension_config`
 - Derive free-queue config in SQL with `jsonb_set` — explicit TS fixture
 - Register `provider_slug` only in DB without `destination-configs` provider rows + extension manifest/build
+- Ship `web/static/icons/link-directory/{slug}.svg` and web `BUNDLED_DIRECTORY_LOGO_SLUGS` without adding the same slug to extension `shippedLinkDirectoryLogoSlugs` (side panel will show initials only)
 - Add inline `directoryLaunchProviders` entries in `pageAssist.ts` (registry lives in `destination-configs/`)
 - Confuse **site slug** with **provider slug**
 - Add `backend/integrations/providers/*` or social composer tiles for directory-only launches

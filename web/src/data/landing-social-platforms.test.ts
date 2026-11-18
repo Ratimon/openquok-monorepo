@@ -18,23 +18,25 @@ describe('FEATURES_GRID_SOCIAL_ROWS', () => {
 		expect(HERO_DIRECTORY_PLATFORMS.map((platform) => platform.id)).toEqual([
 			'peerpush',
 			'uneed',
-			'open-launch'
+			'open-launch',
+			'tinylaunch'
 		]);
 		expect([...HERO_DRAFT_HANDOFF_PLATFORMS, ...HERO_DIRECTORY_PLATFORMS].map((p) => p.id)).toEqual(
-			['reddit', 'peerpush', 'uneed', 'open-launch']
+			['reddit', 'peerpush', 'uneed', 'open-launch', 'tinylaunch']
 		);
 		expect(HERO_BROWSER_EXTENSION_PLATFORMS.map((platform) => platform.id)).toEqual([
 			'skool',
 			'reddit',
 			'peerpush',
 			'uneed',
-			'open-launch'
+			'open-launch',
+			'tinylaunch'
 		]);
 	});
 
-	it('uses balanced row counts (4 + 4 + 3)', () => {
+	it('uses balanced row counts (4 + 4 + 4)', () => {
 		const counts = FEATURES_GRID_SOCIAL_ROWS.map((row) => row.platformIds.length);
-		expect(counts).toEqual([4, 4, 3]);
+		expect(counts).toEqual([4, 4, 4]);
 	});
 
 	it('maps instagram tile ids to the instagram channel slug', () => {
@@ -43,14 +45,15 @@ describe('FEATURES_GRID_SOCIAL_ROWS', () => {
 		expect(resolveLandingSocialPlatformChannelSlug(standalone!)).toBe('instagram');
 	});
 
-	it('balances home grid as 4 + 5 + 5 with directory tiles in the stack', () => {
+	it('balances home grid as 4 + 5 + 6 with directory tiles in the stack', () => {
 		const counts = FEATURES_GRID_HOME_ROWS.map((row) => row.platformIds.length);
-		expect(counts).toEqual([4, 5, 5]);
+		expect(counts).toEqual([4, 5, 6]);
 		const ids = FEATURES_GRID_HOME_ROWS.flatMap((row) => row.platformIds);
 		expect(ids).toContain('peerpush');
 		expect(ids).toContain('uneed');
 		expect(ids).toContain('open-launch');
+		expect(ids).toContain('tinylaunch');
 		expect(ids.filter((id) => id === 'peerpush').length).toBe(1);
-		expect(new Set(ids).size).toBe(14);
+		expect(new Set(ids).size).toBe(15);
 	});
 });

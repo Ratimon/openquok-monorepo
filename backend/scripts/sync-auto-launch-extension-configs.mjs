@@ -31,9 +31,17 @@ const commonDistSyncMetadata = path.join(
 	"destination-configs",
 	"syncMetadata.js"
 );
+const commonDistExtensionDerivation = path.join(
+	repoRoot,
+	"common",
+	"dist",
+	"auto-launch",
+	"destination-configs",
+	"extensionConfigDerivation.js"
+);
 
 /** Stable output module (tier 5xx seed). Bump date segment only when replacing the file. */
-export const AUTO_LAUNCH_EXTENSION_CONFIGS_SQL = "505_20261111_extension_configs.sql";
+export const AUTO_LAUNCH_EXTENSION_CONFIGS_SQL = "502_20261111_extension_configs.sql";
 
 const OUTPUT_PATH = path.join(
 	backendRoot,
@@ -61,26 +69,6 @@ function toJsonbDollarQuoted(config) {
 		throw new Error("extension_config JSON contains dollar-quote delimiter");
 	}
 	return `$${tag}$${json}$${tag}$::jsonb`;
-}
-
-/**
- * @param {Record<string, import('openquok-common').AutoLaunchExtensionConfig>} fixtures
- * @param {Record<string, { baseProviderSlug: string }>} pricingDerived
- */
-function validatePricingQueueFixtures(fixtures, pricingDerived) {
-	for (const [slug, meta] of Object.entries(pricingDerived)) {
-		const variant = fixtures[slug];
-		const base = fixtures[meta.baseProviderSlug];
-		if (!variant || !base) {
-			throw new Error(`pricing variant ${slug} missing fixture or base ${meta.baseProviderSlug}`);
-		}
-		const expected = { ...base, readyUrlHint: "pricing" };
-		if (JSON.stringify(expected) !== JSON.stringify(variant)) {
-			throw new Error(
-				`${slug} must equal { ...${meta.baseProviderSlug}, readyUrlHint: 'pricing' } in TS fixtures`
-			);
-		}
-	}
 }
 
 /**
@@ -119,12 +107,24 @@ async function loadFixtures() {
 
 	const { DIRECTORY_EXTENSION_CONFIG_FIXTURES, DIRECTORY_EXTENSION_CONFIG_PROVIDER_SLUGS } =
 		await import(commonDistIndex);
-	const { AUTO_LAUNCH_EXTENSION_CONFIG_PRICING_READY_HINT_DERIVED } =
-		await import(commonDistSyncMetadata);
+	const {
+		AUTO_LAUNCH_EXTENSION_CONFIG_DERIVATIONS,
+		AUTO_LAUNCH_PRICING_QUEUE_VARIANT_DERIVED,
+		UNEED_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
+	} = await import(commonDistSyncMetadata);
+	const {
+		validateIndependentExtensionFixtureSlugs,
+		validatePricingQueueExtensionFixtures,
+	} = await import(commonDistExtensionDerivation);
 
-	validatePricingQueueFixtures(
+	validatePricingQueueExtensionFixtures(
 		DIRECTORY_EXTENSION_CONFIG_FIXTURES,
-		AUTO_LAUNCH_EXTENSION_CONFIG_PRICING_READY_HINT_DERIVED
+		AUTO_LAUNCH_PRICING_QUEUE_VARIANT_DERIVED
+	);
+	validateIndependentExtensionFixtureSlugs(
+		DIRECTORY_EXTENSION_CONFIG_FIXTURES,
+		UNEED_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
+		AUTO_LAUNCH_EXTENSION_CONFIG_DERIVATIONS
 	);
 
 	const slugs = [...DIRECTORY_EXTENSION_CONFIG_PROVIDER_SLUGS].sort();

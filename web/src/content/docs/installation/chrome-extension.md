@@ -56,10 +56,12 @@ Click <strong>Go to Login</strong> to open <a href="/sign-in">sign in</a> on the
 
 Click the <strong>OpenQuok</strong> toolbar icon to open the Chrome <strong>side panel</strong>. You can also open it from the context menu (see below) — that opens the <strong>Social</strong> tab.
 
+<p>Dashboard sign-in appears <strong>once</strong> in a <strong>session bar</strong> above the Social and Directory tabs (OpenQuok.com, self-host URL, refresh, disconnect). Switch tabs without signing in again.</p>
+
 | Tab | Purpose |
 | --- | --- |
-| <strong>Social</strong> | Sign in to OpenQuok.com or enter a self-host URL (<Badge text="https://localhost:5173" variant="path" />). Keep a signed-in dashboard tab. Then pick channels, write a post, attach media, preview, and choose <strong>Publish now</strong>, <strong>Schedule</strong>, or <strong>Draft</strong>. Use <strong>web UI</strong> for the full feature (media library, AI tools, large uploads). |
-| <strong>Directory</strong> | Check sign-in, see profile status, and run <strong>Fill</strong> for PeerPush or Uneed on the active tab. |
+| <strong>Social</strong> | After you connect in the session bar, pick channels, write a post, attach media, preview, and choose <strong>Publish now</strong>, <strong>Schedule</strong>, or <strong>Draft</strong>. Keep a signed-in dashboard tab open. Use <strong>web UI</strong> for the full feature (media library, AI tools, large uploads). |
+| <strong>Directory</strong> | See profile status and run <strong>Fill</strong> for directory destinations on the active tab when the session bar shows you are signed in. |
 
 
 ### Composer media (Social tab)
@@ -165,7 +167,7 @@ Use this after you build or update the extension from source. Use a Chrome profi
 
 ### Session and channels
 
-<p>Open <strong>Social</strong> — the composer shows your dashboard session. <strong>Select all</strong> or <strong>Select grouped channels</strong>. Tap <strong>+</strong> — it opens Add Channel on the account page. Schedule a post. Optional: right-click text → <strong>Schedule with OpenQuok</strong> — text appears in the composer.</p>
+<p>Connect in the <strong>session bar</strong> above the tabs — the Social tab shows the composer and the connection label stays visible when you switch to <strong>Directory</strong> (no duplicate sign-in banner). <strong>Select all</strong> or <strong>Select grouped channels</strong>. Tap <strong>+</strong> — it opens Add Channel on the account page. Schedule a post. Optional: right-click text → <strong>Schedule with OpenQuok</strong> — text appears in the composer.</p>
 
 ### Media and preview
 

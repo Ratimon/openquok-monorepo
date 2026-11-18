@@ -20,7 +20,7 @@ This section collects **engineering guidelines** for contributing code to OpenQu
 Pick scoped product work, publish catalog listings, or author documentation for the docs site.
 
 <CardGrid>
-<LinkCard title="Contribution opportunities" description="Scoped product work — social providers, Humanizer locales, and docs translations" href="/docs/contribution-opportunities" />
+<LinkCard title="Contribution opportunities" description="Scoped product work — social providers, directory channels, Humanizer locales, and docs translations" href="/docs/contribution-opportunities" />
 <LinkCard title="Publish listings" description="Share building blocks and playbooks on the OpenQuok catalog" href="/docs/publish-listings" />
 <LinkCard title="Documentation contribution" description="Author docs pages, preview locally, and submit a PR" href="/docs/documentation-contribution" />
 </CardGrid>
@@ -45,7 +45,7 @@ More guides and operator setup on Self-hosting.
 <CardGrid>
 <LinkCard title="Publish listings" description="Share building blocks and playbooks on the OpenQuok catalog" href="/docs/publish-listings" />
 <LinkCard title="Documentation contribution" description="Author docs pages, preview locally, and submit a PR" href="/docs/documentation-contribution" />
-<LinkCard title="Contribution opportunities" description="Scoped product work — social providers, Humanizer locales, and docs translations" href="/docs/contribution-opportunities" />
+<LinkCard title="Contribution opportunities" description="Scoped product work — social providers, directory channels, Humanizer locales, and docs translations" href="/docs/contribution-opportunities" />
 <LinkCard title="Submit a pull request" description="Fork the repo, run checks locally, and open a code PR on GitHub" href="/docs/developer-guidelines/submit-a-pr" />
 <LinkCard title="Self-hosting overview" description="Architecture, quick start, and operator defaults" href="/docs/getting-started-for-dev" />
 <LinkCard title="Configuration - Backend" description="Supabase, env vars, and backend operational setup" href="/docs/configuration-backend" />

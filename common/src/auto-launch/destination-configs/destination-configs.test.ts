@@ -1,20 +1,36 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import {
 	LAUNCH_STEP_FIELD_FILL_MODES,
 	type AutoLaunchExtensionConfig,
 } from '../../browser-extension/pageAssist.js';
 import {
+	AUTO_LAUNCH_DESTINATION_SEED_PROVIDER_SLUGS,
+	AUTO_LAUNCH_DESTINATION_SEED_ROWS,
 	DIRECTORY_EXTENSION_CONFIG_FIXTURES,
 	DIRECTORY_EXTENSION_CONFIG_PROVIDER_SLUGS,
 	directoryLaunchProviders,
 } from './index.js';
 import { resolveDirectoryLaunchStartUrl } from './directoryLaunchRegistry.js';
-import { AUTO_LAUNCH_EXTENSION_CONFIG_PRICING_READY_HINT_DERIVED } from './syncMetadata.js';
+import { AUTO_LAUNCH_DESTINATION_SEED_MODULES } from './destinationSeeds.js';
+import {
+	validateIndependentExtensionFixtureSlugs,
+	validatePricingQueueExtensionFixtures,
+} from './extensionConfigDerivation.js';
+import {
+	AUTO_LAUNCH_EXTENSION_CONFIG_DERIVATIONS,
+	AUTO_LAUNCH_EXTENSION_CONFIGS_SQL,
+	AUTO_LAUNCH_PRICING_QUEUE_VARIANT_DERIVED,
+	UNEED_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
+} from './syncMetadata.js';
 
 const REPO_ROOT = join(__dirname, '../../../../');
-const SYNC_SCRIPT = join(REPO_ROOT, 'backend/scripts/sync-auto-launch-extension-configs.mjs');
+const SYNC_CONFIGS_SCRIPT = join(REPO_ROOT, 'backend/scripts/sync-auto-launch-extension-configs.mjs');
+const SYNC_DESTINATIONS_SCRIPT = join(
+	REPO_ROOT,
+	'backend/scripts/sync-auto-launch-destination-seeds.mjs'
+);
 const COMMON_DIST_INDEX = join(REPO_ROOT, 'common/dist/index.js');
 
 /** Mirrors `pageMatchesConfig` / `wildcardToRegExp` in the extension step rail. */
@@ -52,6 +68,8 @@ describe('DIRECTORY_EXTENSION_CONFIG_FIXTURES', () => {
 				'uneed-join-line',
 				'uneed-maker-profile',
 				'uneed-paid-launch',
+				'tinylaunch-premium-launch',
+				'tinylaunch-standard-launch',
 			].sort()
 		);
 	});
@@ -65,24 +83,98 @@ describe('DIRECTORY_EXTENSION_CONFIG_FIXTURES', () => {
 	);
 
 	it('documents pricing-queue variants as readyUrlHint overrides', () => {
-		for (const [slug, meta] of Object.entries(
-			AUTO_LAUNCH_EXTENSION_CONFIG_PRICING_READY_HINT_DERIVED
-		)) {
-			const base = DIRECTORY_EXTENSION_CONFIG_FIXTURES[meta.baseProviderSlug];
-			const variant = DIRECTORY_EXTENSION_CONFIG_FIXTURES[slug];
-			expect(variant?.readyUrlHint).toBe('pricing');
-			expect({ ...base, readyUrlHint: 'pricing' }).toEqual(variant);
-		}
+		validatePricingQueueExtensionFixtures(
+			DIRECTORY_EXTENSION_CONFIG_FIXTURES,
+			AUTO_LAUNCH_PRICING_QUEUE_VARIANT_DERIVED
+		);
 	});
 
-	it('generated 505_* extension_configs.sql matches fixtures (sync --check)', () => {
+	it('documents Uneed fixtures as independent (not pricing-queue)', () => {
+		validateIndependentExtensionFixtureSlugs(
+			DIRECTORY_EXTENSION_CONFIG_FIXTURES,
+			UNEED_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
+			AUTO_LAUNCH_EXTENSION_CONFIG_DERIVATIONS
+		);
+	});
+
+	it('generated 502_* extension_configs.sql matches fixtures (sync --check)', () => {
 		if (!existsSync(COMMON_DIST_INDEX)) {
 			throw new Error(
 				'common/dist missing. Run `pnpm common:build` before `pnpm --filter openquok-common test:unit`.'
 			);
 		}
 		expect(() => {
-			execFileSync(process.execPath, [SYNC_SCRIPT, '--check'], {
+			execFileSync(process.execPath, [SYNC_CONFIGS_SCRIPT, '--check'], {
+				cwd: REPO_ROOT,
+				encoding: 'utf8',
+			});
+		}).not.toThrow();
+	});
+});
+
+describe('AUTO_LAUNCH_DESTINATION_SEED_ROWS', () => {
+	it('lists every shipped extension fixture provider slug', () => {
+		const manifestSlugs = new Set(AUTO_LAUNCH_DESTINATION_SEED_PROVIDER_SLUGS);
+		for (const slug of DIRECTORY_EXTENSION_CONFIG_PROVIDER_SLUGS) {
+			expect(manifestSlugs.has(slug)).toBe(true);
+		}
+	});
+
+	it('uses unique destination ids and provider slugs', () => {
+		const ids = AUTO_LAUNCH_DESTINATION_SEED_ROWS.map((row) => row.destinationId);
+		const slugs = AUTO_LAUNCH_DESTINATION_SEED_ROWS.map((row) => row.providerSlug);
+		expect(new Set(ids).size).toBe(ids.length);
+		expect(new Set(slugs).size).toBe(slugs.length);
+	});
+
+	it('documents pricing-queue destinations with pricing start_url', () => {
+		const bySlug = new Map(
+			AUTO_LAUNCH_DESTINATION_SEED_ROWS.map((row) => [row.providerSlug, row])
+		);
+		for (const [slug, meta] of Object.entries(AUTO_LAUNCH_PRICING_QUEUE_VARIANT_DERIVED)) {
+			const variant = bySlug.get(slug);
+			const base = bySlug.get(meta.baseProviderSlug);
+			expect(variant?.startUrl).toMatch(/\/pricing\/?$/);
+			expect(base).toBeDefined();
+		}
+	});
+
+	it('extension_configs SQL filename sorts before every destination seed SQL module', () => {
+		const configPrefix = Number.parseInt(AUTO_LAUNCH_EXTENSION_CONFIGS_SQL.slice(0, 3), 10);
+		for (const module of AUTO_LAUNCH_DESTINATION_SEED_MODULES) {
+			const seedPrefix = Number.parseInt(module.sqlFileName.slice(0, 3), 10);
+			expect(configPrefix).toBeLessThan(seedPrefix);
+		}
+	});
+
+	it('aggregated core_structure applies auto-launch 502 before 503–506', () => {
+		const migrationsDir = join(REPO_ROOT, 'backend/supabase/migrations');
+		const coreFiles = readdirSync(migrationsDir)
+			.filter((name) => name.endsWith('_core_structure.sql'))
+			.sort();
+		expect(coreFiles.length).toBeGreaterThan(0);
+		const latestCore = coreFiles[coreFiles.length - 1]!;
+		const sql = readFileSync(join(migrationsDir, latestCore), 'utf8');
+		const autoLaunchFiles = [...sql.matchAll(/-- Module: auto-launch, File: (5\d{2}_[^\n]+)/g)]
+			.map((match) => match[1])
+			.filter((fileName) => /^50[2-6]_/.test(fileName ?? ''));
+		expect(autoLaunchFiles).toEqual([
+			'502_20261111_extension_configs.sql',
+			'503_20261013_seed_uneed.sql',
+			'504_20261016_seed_peerpush_destination.sql',
+			'505_20261109_seed_open_launch_destination.sql',
+			'506_20261117_seed_tinylaunch_destination.sql',
+		]);
+	});
+
+	it('generated 502–506 destination SQL matches manifest (sync --check)', () => {
+		if (!existsSync(COMMON_DIST_INDEX)) {
+			throw new Error(
+				'common/dist missing. Run `pnpm common:build` before `pnpm --filter openquok-common test:unit`.'
+			);
+		}
+		expect(() => {
+			execFileSync(process.execPath, [SYNC_DESTINATIONS_SCRIPT, '--check'], {
 				cwd: REPO_ROOT,
 				encoding: 'utf8',
 			});

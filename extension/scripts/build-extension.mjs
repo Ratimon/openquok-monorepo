@@ -31,6 +31,10 @@ const bundleEntries = [
 		out: 'content/directory-launch/openquok-directory-open-launch.js',
 	},
 	{
+		input: 'src/content/directory-launch/tinylaunch-host.ts',
+		out: 'content/directory-launch/openquok-directory-tinylaunch.js',
+	},
+	{
 		input: 'src/content/dashboard/openquok-dashboard-session.ts',
 		out: 'content/dashboard/openquok-dashboard-session.js',
 	},

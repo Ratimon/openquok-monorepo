@@ -1,7 +1,7 @@
 ---
 title: Translating documentation
 description: Translate OpenQuok docs into other languages.
-order: 3
+order: 4
 lastUpdated: 2026-09-12
 ---
 

@@ -19,6 +19,11 @@ describe('fieldCatalogRegistry', () => {
 					if (field.selectCatalog === 'uneed') {
 						expect(resolveLaunchFieldCatalogId(field)).toBe(LAUNCH_FIELD_CATALOG_IDS['uneed:select']);
 					}
+					if (field.selectCatalog === 'tinylaunch') {
+						expect(resolveLaunchFieldCatalogId(field)).toBe(
+							LAUNCH_FIELD_CATALOG_IDS['tinylaunch:select']
+						);
+					}
 					if (field.checkboxCatalog === 'open_launch_categories') {
 						expect(resolveLaunchFieldCatalogId(field)).toBe(
 							LAUNCH_FIELD_CATALOG_IDS['open_launch:categories']
@@ -77,5 +82,16 @@ describe('fieldCatalogRegistry', () => {
 			selectCatalog: 'uneed',
 		};
 		expect(applySelectCoercionForField('saas', field)).toBe('Business');
+	});
+
+	it('coerces TinyLaunch category select values', () => {
+		const field: LaunchStepField = {
+			key: 'category',
+			label: 'Category',
+			profilePath: 'profile_data.category',
+			fillMode: 'select',
+			selectCatalog: 'tinylaunch',
+		};
+		expect(applySelectCoercionForField('saas', field)).toBe('SaaS & Tools');
 	});
 });

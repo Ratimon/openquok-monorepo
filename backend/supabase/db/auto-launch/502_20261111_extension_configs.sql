@@ -589,6 +589,194 @@ UPDATE public.auto_launch_destinations
 SET extension_config = $json${
     "version": 1,
     "startUrlPatterns": [
+        "https://tinylaunch.com/*",
+        "https://www.tinylaunch.com/*"
+    ],
+    "readyUrlHint": "dashboard/startups",
+    "steps": [
+        {
+            "id": "create_startup",
+            "label": "Create startup",
+            "fields": [
+                {
+                    "key": "name",
+                    "label": "Startup Name",
+                    "labelAliases": [
+                        "Name"
+                    ],
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "maxScalarLength": 30,
+                    "required": true,
+                    "selectorHint": "input[name*='name' i], input[placeholder*='startup name' i], input[aria-label*='startup name' i]"
+                },
+                {
+                    "key": "tagline",
+                    "label": "Tagline",
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "maxScalarLength": 60,
+                    "required": true,
+                    "selectorHint": "input[name*='tagline' i], textarea[name*='tagline' i], input[placeholder*='tagline' i], textarea[placeholder*='tagline' i]"
+                },
+                {
+                    "key": "logo",
+                    "label": "Logo",
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "required": true,
+                    "selectorHint": "input[type='file'][accept*='image']"
+                },
+                {
+                    "key": "gallery",
+                    "label": "Images",
+                    "labelAliases": [
+                        "Screenshots",
+                        "Gallery"
+                    ],
+                    "profilePath": "profile_data.gallery_urls",
+                    "fillMode": "files",
+                    "fileInputIndex": 1,
+                    "maxItems": 3,
+                    "selectorHint": "input[type='file'][accept*='image']"
+                },
+                {
+                    "key": "website",
+                    "label": "Website URL",
+                    "labelAliases": [
+                        "Website"
+                    ],
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[type='url'], input[name*='website' i], input[name*='url' i], input[placeholder*='website' i]"
+                },
+                {
+                    "key": "description",
+                    "label": "Description",
+                    "profilePath": "description",
+                    "fillMode": "rich_html",
+                    "required": true,
+                    "selectorHint": "[contenteditable='true'], .ProseMirror, .tiptap, textarea[name*='description' i], textarea[placeholder*='description' i]"
+                },
+                {
+                    "key": "category",
+                    "label": "Category",
+                    "profilePath": "profile_data.category",
+                    "fillMode": "select",
+                    "selectCatalog": "tinylaunch",
+                    "required": true,
+                    "selectorHint": "select[name*='categor' i], [role='combobox'][aria-label*='categor' i], button[aria-label*='categor' i]"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/dashboard/startups/",
+        "listingUrlSelector": "a[href*='tinylaunch.com'][href*='/startups/']"
+    }
+}$json$::jsonb
+WHERE provider_slug = 'tinylaunch-premium-launch';
+
+UPDATE public.auto_launch_destinations
+SET extension_config = $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://tinylaunch.com/*",
+        "https://www.tinylaunch.com/*"
+    ],
+    "readyUrlHint": "pricing",
+    "steps": [
+        {
+            "id": "create_startup",
+            "label": "Create startup",
+            "fields": [
+                {
+                    "key": "name",
+                    "label": "Startup Name",
+                    "labelAliases": [
+                        "Name"
+                    ],
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "maxScalarLength": 30,
+                    "required": true,
+                    "selectorHint": "input[name*='name' i], input[placeholder*='startup name' i], input[aria-label*='startup name' i]"
+                },
+                {
+                    "key": "tagline",
+                    "label": "Tagline",
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "maxScalarLength": 60,
+                    "required": true,
+                    "selectorHint": "input[name*='tagline' i], textarea[name*='tagline' i], input[placeholder*='tagline' i], textarea[placeholder*='tagline' i]"
+                },
+                {
+                    "key": "logo",
+                    "label": "Logo",
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "required": true,
+                    "selectorHint": "input[type='file'][accept*='image']"
+                },
+                {
+                    "key": "gallery",
+                    "label": "Images",
+                    "labelAliases": [
+                        "Screenshots",
+                        "Gallery"
+                    ],
+                    "profilePath": "profile_data.gallery_urls",
+                    "fillMode": "files",
+                    "fileInputIndex": 1,
+                    "maxItems": 3,
+                    "selectorHint": "input[type='file'][accept*='image']"
+                },
+                {
+                    "key": "website",
+                    "label": "Website URL",
+                    "labelAliases": [
+                        "Website"
+                    ],
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[type='url'], input[name*='website' i], input[name*='url' i], input[placeholder*='website' i]"
+                },
+                {
+                    "key": "description",
+                    "label": "Description",
+                    "profilePath": "description",
+                    "fillMode": "rich_html",
+                    "required": true,
+                    "selectorHint": "[contenteditable='true'], .ProseMirror, .tiptap, textarea[name*='description' i], textarea[placeholder*='description' i]"
+                },
+                {
+                    "key": "category",
+                    "label": "Category",
+                    "profilePath": "profile_data.category",
+                    "fillMode": "select",
+                    "selectCatalog": "tinylaunch",
+                    "required": true,
+                    "selectorHint": "select[name*='categor' i], [role='combobox'][aria-label*='categor' i], button[aria-label*='categor' i]"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/dashboard/startups/",
+        "listingUrlSelector": "a[href*='tinylaunch.com'][href*='/startups/']"
+    }
+}$json$::jsonb
+WHERE provider_slug = 'tinylaunch-standard-launch';
+
+UPDATE public.auto_launch_destinations
+SET extension_config = $json${
+    "version": 1,
+    "startUrlPatterns": [
         "https://uneed.best/*",
         "https://www.uneed.best/*"
     ],

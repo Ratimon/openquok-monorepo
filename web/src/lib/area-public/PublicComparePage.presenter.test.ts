@@ -40,7 +40,8 @@ describe('PublicComparePagePresenter — directory compare smoke', () => {
 		expect(vm!.directoryCoverageSection?.launchPlatforms.map((p) => p.label)).toEqual([
 			'PeerPush',
 			'Uneed',
-			'Open Launch'
+			'Open Launch',
+			'TinyLaunch'
 		]);
 		expect(vm!.directoryCoverageSection?.competitorSummary).toContain('50');
 		expect(vm!.faqItems.length).toBeGreaterThan(3);

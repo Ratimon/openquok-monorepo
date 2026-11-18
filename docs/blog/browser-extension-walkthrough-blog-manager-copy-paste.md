@@ -5,6 +5,13 @@
 
 Paste each **plain-text** block into the matching field. Paste **content** HTML via HTML source in the editor.
 
+**Official store listings (external):**
+
+| Browser | URL |
+| --- | --- |
+| Google Chrome (also Chromium / Edge) | `https://chromewebstore.google.com/detail/openquok-social-media-sch/diloknijkhhggpfhenpoccnjbcjdoedn` |
+| Mozilla Firefox | `https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/` |
+
 ---
 
 ## title
@@ -80,7 +87,7 @@ Install the OpenQuok extension
 ### howto_step 1 text
 
 ```
-<p>Install from the Chrome Web Store, Edge Add-ons, or Firefox AMO when listed—or load an unpacked build from the monorepo. Pin the toolbar icon. Overview: <a href="/docs/installation/chrome-extension">Browser extension</a> and <a href="/browser-extension">landing</a>. Self-host by browser: <a href="/docs/configuration-web/browser-extension-chrome">Chrome</a>, <a href="/docs/configuration-web/browser-extension-edge">Edge</a>, <a href="/docs/configuration-web/browser-extension-firefox">Firefox</a>.</p>
+<p>Install from the <a href="https://chromewebstore.google.com/detail/openquok-social-media-sch/diloknijkhhggpfhenpoccnjbcjdoedn" rel="noopener noreferrer" target="_blank">Chrome Web Store</a> or <a href="https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/" rel="noopener noreferrer" target="_blank">Firefox Add-ons (AMO)</a>. Microsoft Edge can use the same Chromium listing. Or load an unpacked build when you self-host. Pin the toolbar icon. Overview: <a href="/docs/installation/chrome-extension">Browser extension</a> and <a href="/browser-extension">landing</a>. Self-host: <a href="/docs/configuration-web/browser-extension-chrome">Chrome</a>, <a href="/docs/configuration-web/browser-extension-edge">Edge</a>, <a href="/docs/configuration-web/browser-extension-firefox">Firefox</a>.</p>
 ```
 
 ### howto_step 2 name
@@ -154,7 +161,7 @@ How do you schedule social media from Chrome with OpenQuok?
 ## faq — answer 2
 
 ```
-<p>Install the extension, sign in on the <strong>Social</strong> tab, then pick channels and choose <strong>Publish now</strong>, <strong>Schedule</strong>, or <strong>Draft</strong>. You can also right-click text or an image and pick <strong>Schedule with OpenQuok</strong>. Guide: <a href="/docs/installation/chrome-extension">Browser extension</a>.</p>
+<p><a href="https://chromewebstore.google.com/detail/openquok-social-media-sch/diloknijkhhggpfhenpoccnjbcjdoedn" rel="noopener noreferrer" target="_blank">Add to Chrome</a> or <a href="https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/" rel="noopener noreferrer" target="_blank">Add to Firefox</a>, sign in on the <strong>Social</strong> tab, then pick channels and choose <strong>Publish now</strong>, <strong>Schedule</strong>, or <strong>Draft</strong>. You can also right-click text or an image and pick <strong>Schedule with OpenQuok</strong>. Guide: <a href="/docs/installation/chrome-extension">Browser extension</a>.</p>
 ```
 
 ## faq — question 3
@@ -254,6 +261,19 @@ What must self-host operators configure?
 
 <p>Start here: <a href="/browser-extension">Browser extension landing</a> · Install and limits: <a href="/docs/installation/chrome-extension">Browser extension docs</a>. <strong>Microsoft Edge</strong> ships the same Chromium package as Chrome; <strong>Firefox</strong> uses a separate build and sidebar UI. Self-host setup: <a href="/docs/configuration-web/browser-extension-chrome">Extension (Chrome)</a>, <a href="/docs/configuration-web/browser-extension-edge">Extension (Edge)</a>, <a href="/docs/configuration-web/browser-extension-firefox">Extension (Firefox)</a>.</p>
 
+<h2>Official install links</h2>
+
+<table>
+<thead>
+<tr><th>Browser</th><th>Listing</th><th>Notes</th></tr>
+</thead>
+<tbody>
+<tr><td>Google Chrome</td><td><a href="https://chromewebstore.google.com/detail/openquok-social-media-sch/diloknijkhhggpfhenpoccnjbcjdoedn" rel="noopener noreferrer" target="_blank">OpenQuok Social Media Scheduler — Chrome Web Store</a></td><td>Side panel UI; extension ID <code>diloknijkhhggpfhenpoccnjbcjdoedn</code> for self-host env.</td></tr>
+<tr><td>Mozilla Firefox</td><td><a href="https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/" rel="noopener noreferrer" target="_blank">OpenQuok Scheduler Directory — Firefox Add-ons</a></td><td>Sidebar UI; separate <code>dist-firefox</code> build.</td></tr>
+<tr><td>Microsoft Edge</td><td><a href="https://chromewebstore.google.com/detail/openquok-social-media-sch/diloknijkhhggpfhenpoccnjbcjdoedn" rel="noopener noreferrer" target="_blank">Same Chromium listing</a></td><td>Allow extensions from other stores when needed; Edge CRX ID differs—see <a href="/docs/configuration-web/browser-extension-edge">Extension (Edge)</a>.</td></tr>
+</tbody>
+</table>
+
 <h2>Why Skool and Reddit use a Chrome extension—not OAuth</h2>
 
 <p>For a long time, community builders asked for one thing: <strong>schedule Skool posts</strong> from the same calendar they use for Threads, LinkedIn, or TikTok. The blocker is not your scheduler. The blocker is the platform.</p>
@@ -293,7 +313,7 @@ What must self-host operators configure?
 <p><strong>How to schedule social media from Chrome</strong> with OpenQuok in five steps:</p>
 
 <ol>
-<li>Install the extension from the Chrome Web Store or an unpacked build.</li>
+<li>Install from the <a href="https://chromewebstore.google.com/detail/openquok-social-media-sch/diloknijkhhggpfhenpoccnjbcjdoedn" rel="noopener noreferrer" target="_blank">Chrome Web Store</a>, <a href="https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/" rel="noopener noreferrer" target="_blank">Firefox Add-ons</a>, or an unpacked self-host build.</li>
 <li>Pin the icon and open the <strong>side panel</strong> → <strong>Social</strong>.</li>
 <li>Sign in to OpenQuok (cloud or self-host) and keep a dashboard tab in the same window.</li>
 <li>Connect each network with <strong>Add Channel</strong> in the dashboard.</li>
@@ -504,7 +524,8 @@ What must self-host operators configure?
 <h2>Next steps</h2>
 
 <ul>
-<li><a href="/browser-extension">Install the browser extension</a></li>
+<li><a href="/browser-extension">Browser extension landing</a></li>
+<li><a href="https://chromewebstore.google.com/detail/openquok-social-media-sch/diloknijkhhggpfhenpoccnjbcjdoedn" rel="noopener noreferrer" target="_blank">Chrome Web Store</a> · <a href="https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/" rel="noopener noreferrer" target="_blank">Firefox Add-ons</a></li>
 <li><a href="/docs/installation/chrome-extension">Documentation</a></li>
 <li><a href="/docs/configuration-web/browser-extension-chrome">Self-host: Chrome</a> · <a href="/docs/configuration-web/browser-extension-edge">Edge</a> · <a href="/docs/configuration-web/browser-extension-firefox">Firefox</a></li>
 <li><a href="/docs/platforms/connect-rules">Connect rules</a></li>

@@ -24,12 +24,16 @@ if (existsSync(iconsSrc)) {
 
 const linkDirectorySrc = join(extensionRoot, '../web/static/icons/link-directory');
 const linkDirectoryDest = join(distDir, 'icons/link-directory');
+/** Shipped auto-launch directory sites — must match `BUNDLED_DIRECTORY_LOGO_SLUGS` in web. */
+const shippedLinkDirectoryLogoSlugs = ['peerpush', 'uneed', 'open-launch', 'tinylaunch'];
 if (existsSync(linkDirectorySrc)) {
 	mkdirSync(linkDirectoryDest, { recursive: true });
-	for (const slug of ['peerpush', 'uneed', 'open-launch']) {
+	for (const slug of shippedLinkDirectoryLogoSlugs) {
 		const file = join(linkDirectorySrc, `${slug}.svg`);
 		if (existsSync(file)) {
 			copyFileSync(file, join(linkDirectoryDest, `${slug}.svg`));
+		} else {
+			console.warn(`[copy-static] missing link-directory icon: ${slug}.svg`);
 		}
 	}
 }

@@ -1,7 +1,7 @@
 ---
 title: Adding a Humanizer language
 description: Contributor guide for adding a new language for OpenQuok's Humanizer tool  — detection, catalogs, local rewrite, UI copy, and tests.
-order: 2
+order: 3
 lastUpdated: 2026-08-30
 ---
 

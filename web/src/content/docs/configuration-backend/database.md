@@ -37,7 +37,7 @@ After the stack is up, print connection variables in shell-friendly form:
 supabase status -o env
 ```
 
-<Callout type="note" title="Supabase CLI 2.45+ required">
+<Callout type="note">
 Local <code>supabase start</code> emits the new key format (<strong>Publishable key</strong> / <strong>Secret key</strong>) from CLI <strong>2.45+</strong> only. Set them in <Badge text="backend/.env.development.local" variant="envBackend" /> as <Badge text="PUBLIC_SUPABASE_PUBLISHABLE_KEY" variant="envBackend" /> and <Badge text="SUPABASE_SECRET_KEY" variant="envBackend" />. If <code>supabase status</code> still prints <code>anon key</code> / <code>service&#95;role key</code>, upgrade the CLI (e.g. <code>brew upgrade supabase</code>). See <a href="/docs/configuration-backend/supabase">Supabase</a>.
 </Callout>
 
@@ -100,7 +100,7 @@ pnpm db:production:typegen
 pnpm db:production:push-db
 ```
 
-<Callout type="tip" title="SQL editor + migration repair">
+<Callout type="tip">
 <p>If you apply module SQL manually in the Supabase Dashboard instead of <code>db push</code>, run <code>npx supabase@latest migration repair &lt;YYYYMMDD&gt; --status applied --remote</code> from <Badge text="backend/" variant="path" /> afterward so CLI history matches the remote. See <a href="/docs/installation/production-deployment#supabase-production-migrations">Production — deployment → Supabase production migrations</a> for Option 1 vs Option 2 and when to use <code>applied</code> vs <code>reverted</code>.</p>
 </Callout>
 
