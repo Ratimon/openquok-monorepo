@@ -1,10 +1,10 @@
 ---
-title: OpenQuok browser extension
+title: OpenQuok Chrome extension
 description: Install the OpenQuok Chrome extension for side-panel scheduling, Skool connect, directory autofill, and context-menu drafts.
 order: 7
-lastUpdated: 2026-11-14
+lastUpdated: 2026-11-18
 sidebar:
-  label: Browser extension
+  label: Chrome Extension
 ---
 
 <script>
@@ -23,7 +23,7 @@ const chromeWebStoreLinkLabel = PUBLIC_BROWSER_EXTENSION_CHROME_STORE_DOCS_LINK_
 
 The <strong>OpenQuok Chrome extension</strong> helps when a network needs the browser — not only dashboard OAuth or pasted keys. For a short product tour, see the <a href="/browser-extension">browser extension</a> page.
 
-<p>On Google Chrome, install the published extension from the  <DocsExternalLink href={chromeWebStoreHref}>{chromeWebStoreLinkLabel}</DocsExternalLink>  listing. Self-host operators build and load the extension per browser — see <a href="#self-host-by-browser">Self-host by browser</a>.</p>
+<p>On Google Chrome, install the published extension from the  <DocsExternalLink href={chromeWebStoreHref}>{chromeWebStoreLinkLabel}</DocsExternalLink>  listing. Self-host operators build and load the extension per browser — see <a href="#self-host-chrome-build">Self-host (Chrome build)</a>.</p>
 
 See it in action:
 <VideoModal
@@ -38,7 +38,7 @@ See it in action:
 | **Skool** | When you connect Skool in <Badge text="Add Channel" variant="new" />, the extension reads cookies from skool.com while you stay signed in there. OpenQuok checks the session and stores it encrypted. |
 | **Directory launch** | Side panel → <strong>Directory</strong>: sign in, pick a directory channel chip to open that site and load your product profile, then <strong>Fill</strong> on the directory tab (on-page panel or side panel). Or start from <a href="/account/products">My Products</a> with <Badge text="Launch to directory" variant="new" />. You submit on the directory site yourself. |
 
-On directory sites, user are required to sign in to OpenQuok.
+On directory sites, users are required to sign in to OpenQuok.
 
 ![Add Directory Channel in Channels Tab](/docs/_assets/directory-submission/extension-banner.webp)
 
@@ -50,6 +50,18 @@ Click <strong>Go to Login</strong> to open <a href="/sign-in">sign in</a> on the
 
 <Callout type="warning">
 <p>Skool connect is not official OAuth. For directories, you must follow each site’s rules when you submit. OpenQuok may change extension behavior if a platform changes access.</p>
+</Callout>
+
+## Install on Google Chrome
+
+<p>For most users on Google Chrome, install OpenQuok from the Chrome Web Store:</p>
+
+<p><DocsExternalLink href={chromeWebStoreHref}>{chromeWebStoreLinkLabel}</DocsExternalLink></p>
+
+<p>After install, pin the toolbar icon and open the side panel to sign in.</p>
+
+<Callout type="note">
+<p><strong>Microsoft Edge</strong> and <strong>Firefox</strong> have separate store listings and install steps. See <a href="/docs/installation/edge-extension">Edge extension</a> and <a href="/docs/installation/firefox-extension">Firefox extension</a>.</p>
 </Callout>
 
 ## Side panel (Social and Directory)
@@ -112,7 +124,6 @@ Right-click on any page:
 </Callout>
 
 
-
 ## Who needs this
 
 | Audience | Action |
@@ -120,7 +131,7 @@ Right-click on any page:
 | <strong>Social scheduling</strong> | Install the extension, open <strong>Social</strong>, sign in, and schedule to channels you connected in the dashboard. |
 | <strong>Skool</strong> | Install in Chrome, stay signed in on Skool, then use <Badge text="Add Channel" variant="new" /> in the dashboard. |
 | <strong>Directory launch</strong> | Install the extension, complete a product profile on My Products, then launch to PeerPush, Uneed, or another supported directory. See <a href="/docs/directory-submission">Directory submission</a>. |
-| <strong>Self-host operators</strong> | Build the extension, set <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_ID" variant="envWeb" /> (or <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_IDS" variant="envWeb" />), and add your dashboard HTTPS URL to the manifest. See <a href="/docs/configuration-web/browser-extension-chrome">Chrome</a>, <a href="/docs/configuration-web/browser-extension-edge">Edge</a>, or <a href="/docs/configuration-web/browser-extension-firefox">Firefox</a>. |
+| <strong>Self-host operators</strong> | Build the extension, set <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_ID" variant="envWeb" /> (or <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_IDS" variant="envWeb" />), and add your dashboard HTTPS URL to the manifest. See <a href="/docs/configuration-web/browser-extension-chrome">Extension (Chrome)</a> for Chrome builds. <a href="/docs/installation/edge-extension">Edge</a> and <a href="/docs/installation/firefox-extension">Firefox</a> use their own install guides. |
 
 ## Environment variables (web)
 
@@ -136,23 +147,9 @@ Copy from <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/b
 <p>Skool connect does not need OAuth keys on the server. The extension can refresh Skool cookies while you stay signed in. Directory autofill reads profile data from OpenQuok over the same link. See <a href="/docs/channels/connect">Connect a channel</a> and our <a href="/privacy-policy">Privacy Policy</a>.</p>
 </Callout>
 
-## Install from Chrome Web Store
+<h2 id="self-host-chrome-build">Self-host (Chrome build)</h2>
 
-<p>For most users on Google Chrome, install OpenQuok from the Chrome Web Store:</p>
-
-<p><DocsExternalLink href={chromeWebStoreHref}>{chromeWebStoreLinkLabel}</DocsExternalLink></p>
-
-<p>After install, pin the toolbar icon and open the side panel to sign in. Self-hosters who build from source or ship Edge / Firefox builds should follow the configuration guides below.</p>
-
-<h2 id="self-host-by-browser">Self-host by browser</h2>
-
-<p>Build commands, unpacked load steps, extension IDs on the web app, and custom dashboard origins are documented under <strong>Configuration - Web</strong>:</p>
-
-<CardGrid>
-<LinkCard title="Extension (Chrome)" description="Build for Google Chrome, store install or load from source" href="/docs/configuration-web/browser-extension-chrome" />
-<LinkCard title="Extension (Edge)" description="Build for Microsoft Edge; use the same package as Chrome" href="/docs/configuration-web/browser-extension-edge" />
-<LinkCard title="Extension (Firefox)" description="Build for Firefox; load a temporary add-on for testing" href="/docs/configuration-web/browser-extension-firefox" />
-</CardGrid>
+<p>Operators who build from source: load unpacked from <Badge text="extension/dist/" variant="path" />, set extension IDs on the web app, and patch <Badge text="externally_connectable.matches" variant="param" /> for custom dashboard hosts. Full steps live in <a href="/docs/configuration-web/browser-extension-chrome">Extension (Chrome)</a> under <strong>Configuration - Web</strong> — not duplicated here.</p>
 
 ## Manual verification checklist for self-host
 
@@ -196,11 +193,12 @@ Use this after you build or update the extension from source. Use a Chrome profi
 
 <CardGrid>
 <LinkCard title="Browser extension (overview)" description="Post from any tab with the Chrome side panel" href="/browser-extension" />
+<LinkCard title="Edge extension" description="Install from Edge Add-ons" href="/docs/installation/edge-extension" />
+<LinkCard title="Firefox extension" description="Install from Firefox Add-ons" href="/docs/installation/firefox-extension" />
+<LinkCard title="Extension (Chrome) self-host" description="Build for Chrome and connect your dashboard" href="/docs/configuration-web/browser-extension-chrome" />
 <LinkCard title="Skool" description="Connect Skool with the extension" href="/docs/social-integration/skool" />
 <LinkCard title="Directory submission" description="My Products and extension handoff" href="/docs/directory-submission" />
 <LinkCard title="Connect rules" description="Which networks use OAuth, keys, or the extension" href="/docs/platforms/connect-rules" />
 <LinkCard title="Connect a channel" description="Add Channel in the dashboard" href="/docs/channels/connect" />
-<LinkCard title="AI generation" description="Dashboard AI tools and the free Humanizer" href="/docs/creating-posts/ai-generation" />
-<LinkCard title="Extension (Chrome) self-host" description="Build for Chrome and connect your dashboard" href="/docs/configuration-web/browser-extension-chrome" />
 <LinkCard title="Configuration - Web" description="VITE_* variables and extension IDs" href="/docs/configuration-web" />
 </CardGrid>

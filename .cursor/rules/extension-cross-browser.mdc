@@ -5,6 +5,8 @@ globs:
   - "common/src/auto-launch/destination-configs/**"
   - "web/src/content/docs/configuration-web/browser-extension-*.md"
   - "web/src/content/docs/installation/chrome-extension.md"
+  - "web/src/content/docs/installation/edge-extension.md"
+  - "web/src/content/docs/installation/firefox-extension.md"
 alwaysApply: false
 ---
 

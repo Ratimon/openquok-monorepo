@@ -89,6 +89,7 @@ Same as Chromium: update <Badge text="externally_connectable.matches" variant="p
 <CardGrid>
 <LinkCard title="Extension (Chrome)" description="Build for Google Chrome, store install or load from source" href="/docs/configuration-web/browser-extension-chrome" />
 <LinkCard title="Extension (Firefox)" description="Build for Firefox; load a temporary add-on for testing" href="/docs/configuration-web/browser-extension-firefox" />
-<LinkCard title="Browser extension (product)" description="Features and verification checklists" href="/docs/installation/chrome-extension" />
+<LinkCard title="Edge extension" description="Edge Add-ons install and feature pointers" href="/docs/installation/edge-extension" />
+<LinkCard title="Chrome extension" description="Side panel tour and verification checklists" href="/docs/installation/chrome-extension" />
 <LinkCard title="Configuration - Web" description="Browser extension ID env vars" href="/docs/configuration-web" />
 </CardGrid>

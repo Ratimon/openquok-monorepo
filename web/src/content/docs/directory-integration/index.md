@@ -17,7 +17,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 <p>These pages are for people who run OpenQuok and maintain <strong>directory launch</strong> destinations (catalog rows, extension field maps, and shipped seeds). End-user workflow lives under <a href="/docs/directory-submission">Directory submission</a>. Social OAuth and posting env vars live under <a href="/docs/social-integration">Social integrations</a>.</p>
 </Callout>
 
-A **directory integration** is a launch path on a product directory site. OpenQuok stores a **start URL** on that site and **extension config** that maps fields from a workspace business profile into the submit form. The user opens the directory in Chrome, reviews autofill from the <a href="/docs/installation/chrome-extension">browser extension</a>, and submits on the directory site.
+A **directory integration** is a launch path on a product directory site. OpenQuok stores a **start URL** on that site and **extension config** that maps fields from a workspace business profile into the submit form. The user opens the directory in a supported browser, reviews autofill from the <a href="/docs/installation/chrome-extension">Chrome</a>, <a href="/docs/installation/edge-extension">Edge</a>, or <a href="/docs/installation/firefox-extension">Firefox</a> extension, and submits on the directory site.
 
 Operators do not register OAuth apps per directory in the backend. Catalog data can come from database seeds, internal admin tools, and contributor migrations. Optional links tie each row to **Build Backlinks** editorial context (cost, dofollow, and similar).
 
@@ -52,5 +52,7 @@ New **social** networks follow <a href="/docs/contribution-opportunities/add-pro
 <LinkCard title="Directory analytics" description="Domain rating for your product site on paid plans" href="/docs/insights/directory-analytics" />
 <LinkCard title="Directory SEO" description="Optional domain rating cache for analytics" href="/docs/configuration-backend/directory-seo" />
 <LinkCard title="Social integrations" description="OAuth, API keys, and extension setup for posting channels" href="/docs/social-integration" />
-<LinkCard title="Browser extension" description="Build and install the OpenQuok Chrome extension" href="/docs/installation/chrome-extension" />
+<LinkCard title="Chrome extension" description="Install guide and feature walkthrough" href="/docs/installation/chrome-extension" />
+<LinkCard title="Edge extension" description="Edge Add-ons install" href="/docs/installation/edge-extension" />
+<LinkCard title="Firefox extension" description="Firefox Add-ons install" href="/docs/installation/firefox-extension" />
 </CardGrid>

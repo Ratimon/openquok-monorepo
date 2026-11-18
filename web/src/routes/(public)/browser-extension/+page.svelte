@@ -7,6 +7,7 @@
 		CENTERED_DARK_CTA_BANNER_TITLE,
 		PUBLIC_BANNER_CTA_TEXT
 	} from '$lib/config/constants/config';
+	import { PUBLIC_BROWSER_EXTENSION_STORE_LISTINGS } from '$lib/content/constants/landing/browser-extension-store-listings';
 	import { PUBLIC_BROWSER_EXTENSION_LANDING_CONFIG } from '$lib/content/constants/marketing/browser-extension-landing';
 	import { getPublicMarketingLandingFaqSection } from '$lib/content/constants/marketing/publicMarketingLandingFaqs';
 	import { buildBrowserExtensionChannelCrossLinkCardDescription } from '$lib/content/utils/buildBrowserExtensionLandingGridCopy';
@@ -26,6 +27,7 @@
 	import StripedPattern from '$lib/ui/patterns/StripedPattern.svelte';
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 	import PublicBrowserExtensionHero from '$lib/ui/templates/landing-page/PublicBrowserExtensionHero.svelte';
+	import PublicBrowserExtensionStoreChooser from '$lib/ui/templates/landing-page/PublicBrowserExtensionStoreChooser.svelte';
 	import HeroDemo from '$lib/ui/templates/landing-page/HeroDemo.svelte';
 	import PublicBrowserExtensionProductFeatureSections from '$lib/ui/templates/landing-page/PublicBrowserExtensionProductFeatureSections.svelte';
 	import PublicChannelAgentIntegrationsGrid from '$lib/ui/templates/landing-page/PublicChannelAgentIntegrationsGrid.svelte';
@@ -112,6 +114,13 @@
 		extensionPlatformsLabel={landing.hero.heroExtensionPlatformsLabel}
 		githubOwner="Ratimon"
 		githubRepo="openquok-monorepo"
+	/>
+
+	<PublicBrowserExtensionStoreChooser
+		subtitle={landing.storeChooserSection.subtitle}
+		title={landing.storeChooserSection.title}
+		description={landing.storeChooserSection.description}
+		listings={PUBLIC_BROWSER_EXTENSION_STORE_LISTINGS}
 	/>
 
 	<PublicLandingHeroStatBadges

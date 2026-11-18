@@ -115,8 +115,8 @@ If your dashboard runs on another HTTPS host, add that origin to <Badge text="ex
 ## Related
 
 <CardGrid>
-<LinkCard title="Browser extension (product)" description="Side panel, context menu, Skool, directories" href="/docs/installation/chrome-extension" />
-<LinkCard title="Extension (Edge)" description="Build for Microsoft Edge; use the same package as Chrome" href="/docs/configuration-web/browser-extension-edge" />
-<LinkCard title="Extension (Firefox)" description="Build for Firefox; separate package and store upload" href="/docs/configuration-web/browser-extension-firefox" />
+<LinkCard title="Chrome extension" description="Store install, side panel, context menu, checklists" href="/docs/installation/chrome-extension" />
+<LinkCard title="Edge extension" description="Edge Add-ons install guide" href="/docs/installation/edge-extension" />
+<LinkCard title="Firefox extension" description="Firefox Add-ons install guide" href="/docs/installation/firefox-extension" />
 <LinkCard title="Configuration - Web" description="VITE_* and extension ID overview" href="/docs/configuration-web" />
 </CardGrid>

@@ -97,6 +97,7 @@ Directory launch handoff from the web app must reach the extension via the **pag
 <CardGrid>
 <LinkCard title="Extension (Chrome)" description="Build for Google Chrome, store install or load from source" href="/docs/configuration-web/browser-extension-chrome" />
 <LinkCard title="Extension (Edge)" description="Build for Microsoft Edge; use the same package as Chrome" href="/docs/configuration-web/browser-extension-edge" />
-<LinkCard title="Browser extension (product)" description="Context menu, Humanizer, checklists" href="/docs/installation/chrome-extension" />
+<LinkCard title="Firefox extension" description="AMO install and sidebar notes" href="/docs/installation/firefox-extension" />
+<LinkCard title="Chrome extension" description="Feature tour and Chromium checklists" href="/docs/installation/chrome-extension" />
 <LinkCard title="Configuration - Web" description="Extension ID environment variables" href="/docs/configuration-web" />
 </CardGrid>

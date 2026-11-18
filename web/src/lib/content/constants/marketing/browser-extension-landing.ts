@@ -34,6 +34,8 @@ import { route } from '$lib/utils/path';
 
 const CARD_CONTAINER_CLASS = 'h-full min-h-[18rem]';
 const chromeExtensionDocsHref = faqHrefDocs('installation/chrome-extension');
+const edgeExtensionDocsHref = faqHrefDocs('installation/edge-extension');
+const firefoxExtensionDocsHref = faqHrefDocs('installation/firefox-extension');
 const connectChannelsHref = publicFaqHref.connectChannelsGuide;
 const connectRulesHref = faqHrefDocs('platforms/connect-rules');
 const directorySubmissionDocsHref = faqHrefDocs('directory-submission');
@@ -94,6 +96,7 @@ export type PublicBrowserExtensionLandingConfig = {
 		heroSocialPlatformsLabel: string;
 		heroExtensionPlatformsLabel: string;
 	};
+	storeChooserSection: PublicBrowserExtensionSectionHeader;
 	trustStats: readonly PublicLandingHeroStatBadge[];
 	whoIsFor: {
 		audienceSubtitle: string;
@@ -165,6 +168,12 @@ export const PUBLIC_BROWSER_EXTENSION_LANDING_CONFIG: PublicBrowserExtensionLand
 			label: 'How it works',
 			href: `${publicLandingPath}#browser-extension-process`
 		}
+	},
+	storeChooserSection: {
+		subtitle: 'Install',
+		title: 'Choose your browser',
+		description:
+			'Chrome, Edge, and Firefox each have a dedicated store listing. Pick your browser and add OpenQuok in one click.'
 	},
 	trustStats: [
 		{
@@ -353,10 +362,26 @@ export const PUBLIC_BROWSER_EXTENSION_LANDING_CONFIG: PublicBrowserExtensionLand
 		items: [
 			{
 				id: 'install-guide',
-				title: 'Install guide',
-				description: 'Chrome Web Store, unpacked builds, manifest origins, and side-panel QA checklist.',
+				title: 'Chrome extension',
+				description: 'Chrome Web Store install, side panel tour, context menu, and self-host checklist.',
 				href: chromeExtensionDocsHref,
-				ctaLabel: 'Open install docs →',
+				ctaLabel: 'Open Chrome install docs →',
+				iconName: icons.BookOpenCheck.name
+			},
+			{
+				id: 'edge-install',
+				title: 'Edge extension',
+				description: 'Edge Add-ons listing and the same Chromium build as Chrome.',
+				href: edgeExtensionDocsHref,
+				ctaLabel: 'Open Edge install docs →',
+				iconName: icons.BookOpenCheck.name
+			},
+			{
+				id: 'firefox-install',
+				title: 'Firefox extension',
+				description: 'Firefox Add-ons (AMO) install and sidebar workflow.',
+				href: firefoxExtensionDocsHref,
+				ctaLabel: 'Open Firefox install docs →',
 				iconName: icons.BookOpenCheck.name
 			},
 			{

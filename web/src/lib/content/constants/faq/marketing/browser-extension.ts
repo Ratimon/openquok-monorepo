@@ -13,6 +13,9 @@ import { faqHrefDocs, faqLink, faqLinkChromeWebStore, publicFaqHref } from '$lib
 import { route } from '$lib/utils/path';
 
 const chromeExtensionDocsHref = faqHrefDocs('installation/chrome-extension');
+const edgeExtensionDocsHref = faqHrefDocs('installation/edge-extension');
+const firefoxExtensionDocsHref = faqHrefDocs('installation/firefox-extension');
+const browserExtensionInstallGuides = `${faqLink(chromeExtensionDocsHref, 'Chrome extension')}, ${faqLink(edgeExtensionDocsHref, 'Edge extension')}, or ${faqLink(firefoxExtensionDocsHref, 'Firefox extension')} install guides`;
 const buildBacklinksHref = publicFaqHref.buildBacklinks;
 const connectChannelsHref = publicFaqHref.connectChannelsGuide;
 const connectRulesHref = faqHrefDocs('platforms/connect-rules');
@@ -34,15 +37,15 @@ const BROWSER_EXTENSION_TAILORED_FAQ_ITEMS: readonly PublicFaqItem[] = [
 	},
 	{
 		title: 'Can I start a post from text or images on a page?',
-		description: `Yes. Right-click selected text, a link, or an image and send it into the side panel — like drafting from whatever you are reading. OpenQuok opens the Social tab with your draft ready; publishing still runs on OpenQuok after you submit. See the ${faqLink(browserExtensionLandingHref, 'browser extension')} page and the ${faqLink(chromeExtensionDocsHref, 'install guide')}.`
+		description: `Yes. Right-click selected text, a link, or an image and send it into the side panel — like drafting from whatever you are reading. OpenQuok opens the Social tab with your draft ready; publishing still runs on OpenQuok after you submit. See the ${faqLink(browserExtensionLandingHref, 'browser extension')} page and the ${browserExtensionInstallGuides}.`
 	},
 	{
 		title: 'How does directory autofill work?',
-		description: `Research directories in ${faqLink(buildBacklinksHref, 'Build backlinks')}, then build a product profile on our dahsboard and click Launch to directory. The extension opens the directory site with mapped fields filled. You review and submit on the directory yourself. ${faqLinkChromeWebStore()} from the Chrome Web Store when you are ready. Step-by-step workflow: ${faqLink(directorySubmissionDocsHref, 'Directory submission')}. Product overview: ${faqLink(directorySubmissionToolHref, 'Directory submission tool')} and ${faqLink(publicFaqHref.channels, 'Channels')} directory cards.`
+		description: `Research directories in ${faqLink(buildBacklinksHref, 'Build backlinks')}, then build a product profile on our dahsboard and click Launch to directory. The extension opens the directory site with mapped fields filled. You review and submit on the directory yourself. Install on Chrome (${faqLinkChromeWebStore()}), Edge, or Firefox — see the ${browserExtensionInstallGuides}. Step-by-step workflow: ${faqLink(directorySubmissionDocsHref, 'Directory submission')}. Product overview: ${faqLink(directorySubmissionToolHref, 'Directory submission tool')} and ${faqLink(publicFaqHref.channels, 'Channels')} directory cards.`
 	},
 	{
 		title: 'Can I use the extension with self-hosted OpenQuok?',
-		description: `Yes. Sign in on your self-host dashboard origin from the side panel (or keep a signed-in tab on that host). Set ${faqLink(faqHrefDocs('configuration-web'), 'VITE_OPENQUOK_BROWSER_EXTENSION_ID')} on the web app and add your HTTPS origin to the extension manifest when you build from source. See ${faqLink(publicFaqHref.selfHostingLanding, 'self-host OpenQuok')}, the ${faqLink(browserExtensionLandingHref, 'browser extension')} page, and the ${faqLink(chromeExtensionDocsHref, 'install guide')}.`
+		description: `Yes. Sign in on your self-host dashboard origin from the side panel (or keep a signed-in tab on that host). Set ${faqLink(faqHrefDocs('configuration-web'), 'VITE_OPENQUOK_BROWSER_EXTENSION_ID')} on the web app and add your HTTPS origin to the extension manifest when you build from source. See ${faqLink(publicFaqHref.selfHostingLanding, 'self-host OpenQuok')}, the ${faqLink(browserExtensionLandingHref, 'browser extension')} page, and the ${browserExtensionInstallGuides}.`
 	},
 	{
 		title: 'Is Reddit posting automated through the extension?',

@@ -35,6 +35,7 @@ export type BrandedIconName =
     | "Github"
     | "Google"
     | "GoogleChat"
+    | "GoogleChrome"
     | "GrokBot"
     | "GrokBuild"
     | "HermesAgent"
@@ -60,8 +61,10 @@ export type BrandedIconName =
     | "Manus"
     | "MetaMuse"
     | "MuseCode"
+    | "MicrosoftEdge"
     | "MicrosoftTeams"
     | "Mixpost"
+    | "MozillaFirefox"
     | "Ntfy"
     | "OpenClaw"
     | "OpenCode"
@@ -360,6 +363,13 @@ export const brandedIcons = {
         fill: true,
         svg: `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 512 512"><path d="M129 0v122.7H6.4V32.5c.9-6.4 2.8-11.7 5.7-16.1C19.2 5.7 29.5.3 43 .3 71.5.1 100.2 0 129 0" style="fill:#0066da"/><path d="M129 0h252.6c.5 0 1 .2 1.5.5l.6.4c-.2.1-.3.1-.4.2-.2.1-.3.2-.3.4v121.2H129.1z" style="fill:#fbbc04"/><path d="m383.7.9 121.1 121.4-121.8.4V1.5c0-.2.1-.4.3-.4.1 0 .2-.1.4-.2" style="fill:#ea4335"/><path d="M6.5 122.7h122.6v169.6H6.5z" style="fill:#2684fc"/><path d="m504.7 122.4.8.5v259.8c-2.8 15.5-10.9 25.6-24.2 30.1-4.7 1.6-11.7 2.4-20.9 2.4l-181.2-.3c-8.9 0-17.8.1-27 .2-.5 0-.9.2-1.3.5-29.8 29.7-59.8 59.7-89.9 89.9-4.6 4.6-9.8 7.2-16.4 6.2-6.2-.9-10.7-4.1-13.6-9.5-1.2-2.3-1.9-6.5-1.9-12.6-.1-24.8-.1-49.7-.1-74.7v-61.4l60.6-60.6c.5-.5 1.3-.8 2-.8l189.8.1c.7 0 1.3-.6 1.3-1.3V122.8h.1z" style="fill:#00ac47"/><path d="M129.1 292.3v122.6c-25.6.1-51.1.2-76.3.1-10.5 0-18.1-.8-22.7-2.5-13-4.5-20.9-14.6-23.7-30.2v-90.2z" style="fill:#00832d"/></svg>`
     },
+    /** Google Chrome browser mark. Google Chrome is a trademark of Google LLC. */
+    GoogleChrome: {
+        name: "GoogleChrome",
+        box: 48,
+        fill: true,
+        svg: `<defs><linearGradient id="a" x1="3.2173" y1="15" x2="44.7812" y2="15" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#d93025"/><stop offset="1" stop-color="#ea4335"/></linearGradient><linearGradient id="b" x1="20.7219" y1="47.6791" x2="41.5039" y2="11.6837" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fcc934"/><stop offset="1" stop-color="#fbbc04"/></linearGradient><linearGradient id="c" x1="26.5981" y1="46.5015" x2="5.8161" y2="10.506" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1e8e3e"/><stop offset="1" stop-color="#34a853"/></linearGradient></defs><circle cx="24" cy="23.9947" r="12" fill="#fff"/><path d="M24,12H44.7812a23.9939,23.9939,0,0,0-41.5639.0029L13.6079,30l.0093-.0024A11.9852,11.9852,0,0,1,24,12Z" fill="url(#a)"/><circle cx="24" cy="24" r="9.5" fill="#1a73e8"/><path d="M34.3913,30.0029,24.0007,48A23.994,23.994,0,0,0,44.78,12.0031H23.9989l-.0025.0093A11.985,11.985,0,0,1,34.3913,30.0029Z" fill="url(#b)"/><path d="M13.6086,30.0031,3.218,12.006A23.994,23.994,0,0,0,24.0025,48L34.3931,30.0029l-.0067-.0068a11.9852,11.9852,0,0,1-20.7778.007Z" fill="url(#c)"/>`
+    },
     /** Grok Bot app icon (App Store artwork for Grok Bot). */
     GrokBot: {
         name: "GrokBot",
@@ -528,6 +538,13 @@ export const brandedIcons = {
         fill: true,
         svg: `<rect width="64" height="64" rx="10" fill="#0D131C"/><path d="M13 45V19h7l12 15 12-15h7v26h-8V31L32 44 21 31v14z" fill="#EEF4FA"/><path d="M46 13h7l-9 38h-7z" fill="#52D5FF"/>`
     },
+    /** Microsoft Edge browser mark. Microsoft Edge is a trademark of Microsoft Corporation. */
+    MicrosoftEdge: {
+        name: "MicrosoftEdge",
+        box: 256,
+        fill: true,
+        svg: `<image href="/icons/microsoft-edge.svg" width="256" height="256"/>`
+    },
     // from https://dashboardicons.com/
     /** Microsoft Teams mark. Microsoft Teams is a trademark of Microsoft Corporation. */
     MicrosoftTeams: {
@@ -543,6 +560,13 @@ export const brandedIcons = {
         boxHeight: 119,
         fill: true,
         svg: `<rect width="100" height="100" rx="20" fill="#84E9F5"/><rect x="18" y="19" width="100" height="100" rx="20" fill="#FFAB4C"/><rect x="9" y="11" width="100" height="100" rx="20" fill="#4F46BB"/>`
+    },
+    /** Mozilla Firefox browser mark. Firefox is a trademark of Mozilla Foundation. */
+    MozillaFirefox: {
+        name: "MozillaFirefox",
+        box: 512,
+        fill: true,
+        svg: `<image href="/icons/mozilla-firefox.svg" width="512" height="512"/>`
     },
     /** ntfy mark. ntfy is a trademark of its respective owner. */
     Ntfy: {

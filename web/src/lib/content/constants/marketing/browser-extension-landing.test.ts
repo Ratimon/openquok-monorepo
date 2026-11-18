@@ -45,6 +45,8 @@ describe('PUBLIC_BROWSER_EXTENSION_LANDING_CONFIG', () => {
 			.join(' ');
 
 		expect(html).toContain(`href="${faqHrefDocs('installation/chrome-extension')}"`);
+		expect(html).toContain(`href="${faqHrefDocs('installation/edge-extension')}"`);
+		expect(html).toContain(`href="${faqHrefDocs('installation/firefox-extension')}"`);
 		expect(html).toContain(`href="${publicFaqHref.connectChannelsGuide}"`);
 	});
 

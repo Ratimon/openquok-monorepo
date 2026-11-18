@@ -22,7 +22,9 @@ import { Callout, Tabs, TabItem, Steps, Card, CardGrid, LinkCard, Badge, FileTre
 <LinkCard title="Docker Compose (self-host)" description="Install, update, env, and bring-up from the monorepo" href="/docs/installation/docker-compose" />
 <LinkCard title="Docker (pre-built images)" description="Pull API and workers from GHCR or Docker Hub" href="/docs/installation/docker" />
 <LinkCard title="Production deployment" description="Vercel API and web, Redis, optional BullMQ workers" href="/docs/installation/production-deployment" />
-<LinkCard title="Browser extension" description="Chrome extension for Skool and other cookie-session channels" href="/docs/installation/chrome-extension" />
+<LinkCard title="Chrome extension" description="Install from the Chrome Web Store; side panel and autofill" href="/docs/installation/chrome-extension" />
+<LinkCard title="Edge extension" description="Install from Edge Add-ons; same Chromium build as Chrome" href="/docs/installation/edge-extension" />
+<LinkCard title="Firefox extension" description="Install from Firefox Add-ons; sidebar UI" href="/docs/installation/firefox-extension" />
 <LinkCard title="Maintenance mode" description="MAINTENANCE_MODE write-freeze across backend, web, and workers" href="/docs/installation/maintenance-mode" />
 <LinkCard title="Development environment" description="Local development commands" href="/docs/installation/development-environment" />
 <LinkCard title="Production Vercel" description="Vercel deployment detail for backend and web" href="/docs/installation/vercel" />

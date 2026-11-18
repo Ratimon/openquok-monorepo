@@ -60,7 +60,7 @@ The dashboard talks to the OpenQuok browser extension with <Badge text="chrome.r
 <p>Formats for <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_IDS" variant="envWeb" />: comma map <Badge text="chromium:id,edge:id" variant="param" />(<Badge text={"chromium"} variant="param" />, <Badge text={"edge"} variant="param" />, and so on). If both multi-ID and single-ID env vars are set, listed IDs are tried first; <Badge text="VITE_OPENQUOK_BROWSER_EXTENSION_ID" variant="envWeb" /> is appended when it is not already in the map.</p>
 </Callout>
 
-Product tour and checklists: <a href="/docs/installation/chrome-extension">Browser extension</a>. Self-host build and load per browser:
+Install guides: <a href="/docs/installation/chrome-extension">Chrome extension</a>, <a href="/docs/installation/edge-extension">Edge extension</a>, <a href="/docs/installation/firefox-extension">Firefox extension</a>. Self-host build and load per browser:
 
 <CardGrid>
 <LinkCard title="Extension (Chrome)" description="Build, install, and connect your dashboard host" href="/docs/configuration-web/browser-extension-chrome" />
@@ -72,7 +72,9 @@ Product tour and checklists: <a href="/docs/installation/chrome-extension">Brows
 
 <CardGrid>
 <LinkCard title="Vite (SvelteKit)" description="VITE_* variables, HTTPS dev server, and API proxy" href="/docs/configuration-web/vite" />
-<LinkCard title="Browser extension (features)" description="Side panel, context menu, verification checklists" href="/docs/installation/chrome-extension" />
+<LinkCard title="Chrome extension" description="Side panel, context menu, verification checklists" href="/docs/installation/chrome-extension" />
+<LinkCard title="Edge extension" description="Edge Add-ons install; same Chromium features" href="/docs/installation/edge-extension" />
+<LinkCard title="Firefox extension" description="Firefox Add-ons install; sidebar UI" href="/docs/installation/firefox-extension" />
 <LinkCard title="SEO & marketing defaults" description="Meta tags, keywords, and social links (CONFIG_SCHEMA_MARKETING)" href="/docs/configuration-web/seo" />
 <LinkCard title="AI crawlers & robots.txt" description="Cloudflare AI Crawl Control and Claude/Gemini visibility" href="/docs/configuration-web/ai-crawlers-and-robots" />
 <LinkCard title="Config defaults" description="Backend URL, company, landing, and navigation schema defaults" href="/docs/configuration-web/config-defaults" />

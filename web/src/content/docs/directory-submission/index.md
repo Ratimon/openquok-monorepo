@@ -66,7 +66,7 @@ Link social accounts to the same business profile when you want one client or br
 
 ### Install the browser extension
 
-<p>Install the OpenQuok Chrome extension —  <DocsExternalLink href={chromeWebStoreHref}>{chromeWebStoreLinkLabel}</DocsExternalLink>  on Chrome, or follow <a href="/docs/installation/chrome-extension">Browser extension</a> for unpacked builds. Directory launch uses the same extension as Skool connect and Reddit handoff.</p>
+<p>Install OpenQuok on <a href="/docs/installation/chrome-extension">Chrome</a> (<DocsExternalLink href={chromeWebStoreHref}>{chromeWebStoreLinkLabel}</DocsExternalLink>), <a href="/docs/installation/edge-extension">Edge</a>, or <a href="/docs/installation/firefox-extension">Firefox</a>. Directory launch uses the same extension as Skool connect and Reddit handoff.</p>
 
 ### Create a product profile
 
@@ -129,7 +129,9 @@ Compare directory sites on three surfaces:
 <LinkCard title="Directory submission tool" description="DIY autofill and tracking vs done-for-you bulk packages — marketing overview" href="/directory-submission-tool" />
 <LinkCard title="Glossary — Directory launch" description="Main profile, variants, listing readiness, and directory analytics" href="/docs/getting-started/glossary#directory-launch" />
 <LinkCard title="Directory integration" description="How directory destinations differ from OAuth social channels" href="/docs/directory-integration" />
-<LinkCard title="Browser extension" description="Install the OpenQuok Chrome extension for directory handoff" href="/docs/installation/chrome-extension" />
+<LinkCard title="Chrome extension" description="Install from the Chrome Web Store for directory handoff" href="/docs/installation/chrome-extension" />
+<LinkCard title="Edge extension" description="Install from Edge Add-ons" href="/docs/installation/edge-extension" />
+<LinkCard title="Firefox extension" description="Install from Firefox Add-ons" href="/docs/installation/firefox-extension" />
 <LinkCard title="Business profiles" description="Link social channels to a client or brand for calendar and kanban" href="/docs/channels/channel-groups" />
 <LinkCard title="Channels overview" description="Social vs directory channel families in OpenQuok" href="/docs/channels" />
 <LinkCard title="Connect a channel" description="Add Channel picker — social OAuth and directory launch tiles" href="/docs/channels/connect#directory-launch-in-add-channel" />
