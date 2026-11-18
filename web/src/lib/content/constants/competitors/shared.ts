@@ -42,6 +42,7 @@ export const COMPARE_PRODUCT_CATEGORIES_OPENQUOK: readonly CompareProductCategor
 /** Official marketing sites for compare / alternatives surfaces. */
 export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	openquok: 'https://www.openquok.com',
+	adaptlypost: 'https://adaptlypost.com',
 	hootsuite: 'https://www.hootsuite.com',
 	heropost: 'https://heropost.ai',
 	'hopper-hq': 'https://www.hopperhq.com',
@@ -72,6 +73,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	usebard: 'https://usebard.com'
 } as const satisfies Record<
 	| typeof COMPARE_HUB_BASE_SLUG
+	| 'adaptlypost'
 	| 'hootsuite'
 	| 'heropost'
 	| 'hopper-hq'

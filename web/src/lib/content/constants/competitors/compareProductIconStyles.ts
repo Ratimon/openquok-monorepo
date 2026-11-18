@@ -19,6 +19,12 @@ const BASE = {
 		cardContainerClass:
 			'bg-linear-to-br from-emerald-400/22 via-lime-300/16 to-amber-300/20 text-white ring-emerald-300/28'
 	},
+	adaptlypost: {
+		heroContainerClass:
+			'bg-linear-to-br from-rose-500/30 via-fuchsia-500/22 to-violet-600/25 text-rose-50 ring-fuchsia-400/35',
+		cardContainerClass:
+			'bg-linear-to-br from-rose-500/22 via-fuchsia-500/16 to-violet-600/18 text-rose-50 ring-fuchsia-400/28'
+	},
 	hootsuite: {
 		heroContainerClass:
 			'bg-linear-to-br from-orange-400/30 via-amber-300/20 to-yellow-300/20 text-orange-100 ring-orange-300/35',

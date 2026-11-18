@@ -3,6 +3,7 @@
 import type { IconEntry } from '$data/icons';
 
 export type BrandedIconName =
+    | "AdaptlyPost"
     | "Bloom"
     | "BlueBubbles"
     | "Bluesky"
@@ -302,6 +303,13 @@ export const brandedIcons = {
         box: 24,
         fill: true,
         svg: `<path fill="#F34E3F" d="M15.087 23.18L12.03 24l-2.097-7.823-5.738 5.738-2.251-2.251 5.718-5.719-7.769-2.082.82-3.057 11.294 3.08 3.08 11.295z"/><path fill="#F34E3F" d="M19.505 18.762l-3.057.82-2.564-9.573-9.572-2.564.819-3.057 11.295 3.079 3.08 11.295z"/><path fill="#F34E3F" d="M23.893 14.374l-3.057.82-2.565-9.572L8.7 3.057 9.52 0l11.295 3.08 3.079 11.294z"/>`
+    },
+    /** AdaptlyPost product mark. AdaptlyPost is a trademark of its respective owner. */
+    AdaptlyPost: {
+        name: "AdaptlyPost",
+        box: 24,
+        fill: true,
+        svg: `<rect width="24" height="24" rx="6" fill="#1E1033"/><image href="/icons/adaptlypost.png" x="2" y="2" width="20" height="20"/>`
     },
     /** Android Studio product mark (512×512). Android Studio is a trademark of Google. */
     AndroidStudio: {

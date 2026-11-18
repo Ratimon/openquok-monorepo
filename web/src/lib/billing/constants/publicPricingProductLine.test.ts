@@ -27,7 +27,7 @@ describe('publicPricingProductLine catalog', () => {
 		const socialIds = socialRows.map((row) => row.id);
 
 		expect(socialIds).toContain('posts_per_month');
-		expect(socialIds).toContain('chrome_extension');
+		expect(socialIds).toContain('browser_extension');
 		expect(socialIds).not.toContain('directory_analytics');
 		expect(socialIds).not.toContain('directory_competitor_domains');
 		expect(socialIds).toContain('workspaces');
@@ -135,7 +135,7 @@ describe('GetPublicPricingPresenter product-line filters', () => {
 		expect(allIds).toContain('posts_per_month');
 		expect(allIds).toContain('directory_analytics');
 		expect(socialIds).toContain('posts_per_month');
-		expect(socialIds).toContain('chrome_extension');
+		expect(socialIds).toContain('browser_extension');
 		expect(socialIds).not.toContain('directory_analytics');
 		expect(directoryIds).not.toContain('posts_per_month');
 		expect(directoryIds).toContain('directory_competitor_domains');
@@ -155,7 +155,7 @@ describe('GetPublicPricingPresenter product-line filters', () => {
 		expect(allPlan).toBeDefined();
 
 		expect(socialPlan!.features.some((f) => /calendar views/i.test(f))).toBe(true);
-		expect(socialPlan!.features.some((f) => /google chrome extension/i.test(f))).toBe(true);
+		expect(socialPlan!.features.some((f) => /^browser extension$/i.test(f.trim()))).toBe(true);
 		expect(socialPlan!.features.some((f) => /directory analytics/i.test(f))).toBe(false);
 		expect(socialPlan!.features.some((f) => /posts per month/i.test(f))).toBe(true);
 

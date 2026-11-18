@@ -9,6 +9,7 @@ export type CompareProductCategory = 'social_scheduling' | 'directory_submission
 
 export type CompareProductSlug =
 	| 'openquok'
+	| 'adaptlypost'
 	| 'hootsuite'
 	| 'heropost'
 	| 'hopper-hq'

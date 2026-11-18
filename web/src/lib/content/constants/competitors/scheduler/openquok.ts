@@ -91,6 +91,7 @@ function buildOpenQuokFeatureSupport(): Partial<Record<PublicPricingCompareRowId
 		public_api: { kind: 'included' },
 		oauth_apps: { kind: 'text', text: '1 per workspace' },
 		mcp_server: { kind: 'text', text: '1 per workspace' },
+		browser_extension: { kind: 'text', text: 'Chrome, Edge, and Firefox store listings' },
 		cloud_storage: {
 			kind: 'text',
 			text:

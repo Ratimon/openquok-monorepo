@@ -21,6 +21,7 @@ import {
 	peerMatchesAlternativesDetailCategory
 } from '$lib/content/constants/competitors/utils/compareProductCategories';
 import { sortCompareHubPairsWithEmphasis } from '$lib/content/constants/competitors/utils/compareHubPairEmphasis';
+import { adaptlypostCompareProduct } from '$lib/content/constants/competitors/scheduler/adaptlypost';
 import { blotatoCompareProduct } from '$lib/content/constants/competitors/scheduler/blotato';
 import { bufferCompareProduct } from '$lib/content/constants/competitors/scheduler/buffer';
 import { breakreachCompareProduct } from '$lib/content/constants/competitors/scheduler/breakreach';
@@ -67,6 +68,7 @@ export {
 	resolveComparePairLayout,
 	resolveSocialAndDirectoryProducts
 } from '$lib/content/constants/competitors/utils/compareProductCategories';
+export { adaptlypostCompareProduct } from '$lib/content/constants/competitors/scheduler/adaptlypost';
 export { openquokCompareProduct } from '$lib/content/constants/competitors/scheduler/openquok';
 export { hopperHqCompareProduct } from '$lib/content/constants/competitors/scheduler/hopper-hq';
 export { influenceCompareProduct } from '$lib/content/constants/competitors/scheduler/influence';
@@ -99,6 +101,7 @@ export { usebardCompareProduct } from '$lib/content/constants/competitors/schedu
 
 export const PUBLIC_COMPARE_PRODUCTS: readonly CompareProduct[] = [
 	openquokCompareProduct,
+	adaptlypostCompareProduct,
 	hootsuiteCompareProduct,
 	heropostCompareProduct,
 	hopperHqCompareProduct,
