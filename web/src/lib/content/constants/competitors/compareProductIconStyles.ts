@@ -61,6 +61,12 @@ const BASE = {
 		cardContainerClass:
 			'bg-linear-to-br from-sky-400/20 via-cyan-300/16 to-blue-300/16 text-sky-100 ring-sky-300/28'
 	},
+	blastra: {
+		heroContainerClass:
+			'bg-linear-to-br from-sky-500/35 via-indigo-500/28 to-violet-600/22 text-sky-50 ring-indigo-400/40',
+		cardContainerClass:
+			'bg-linear-to-br from-sky-500/22 via-indigo-500/18 to-violet-600/16 text-sky-50 ring-indigo-400/28'
+	},
 	blotato: {
 		heroContainerClass:
 			'bg-linear-to-br from-lime-500/35 via-amber-400/25 to-orange-400/20 text-lime-50 ring-lime-500/40',

@@ -47,6 +47,7 @@ import { sproutSocialCompareProduct } from '$lib/content/constants/competitors/s
 import { typefullyCompareProduct } from '$lib/content/constants/competitors/scheduler/typefully';
 import { trypostCompareProduct } from '$lib/content/constants/competitors/scheduler/trypost';
 import { usebardCompareProduct } from '$lib/content/constants/competitors/scheduler/usebard';
+import { blastraCompareProduct } from '$lib/content/constants/competitors/submission/blastra';
 import { boringlaunchCompareProduct } from '$lib/content/constants/competitors/submission/boringlaunch';
 import { getmorebacklinksCompareProduct } from '$lib/content/constants/competitors/submission/getmorebacklinks';
 import { launchrepoCompareProduct } from '$lib/content/constants/competitors/submission/launchrepo';
@@ -81,6 +82,7 @@ export { laterCompareProduct } from '$lib/content/constants/competitors/schedule
 export { mixpostCompareProduct } from '$lib/content/constants/competitors/scheduler/mixpost';
 export { openpostCompareProduct } from '$lib/content/constants/competitors/scheduler/openpost';
 export { blotatoCompareProduct } from '$lib/content/constants/competitors/scheduler/blotato';
+export { blastraCompareProduct } from '$lib/content/constants/competitors/submission/blastra';
 export { boringlaunchCompareProduct } from '$lib/content/constants/competitors/submission/boringlaunch';
 export { bufferCompareProduct } from '$lib/content/constants/competitors/scheduler/buffer';
 export { breakreachCompareProduct } from '$lib/content/constants/competitors/scheduler/breakreach';
@@ -109,6 +111,7 @@ export const PUBLIC_COMPARE_PRODUCTS: readonly CompareProduct[] = [
 	laterCompareProduct,
 	bufferCompareProduct,
 	blotatoCompareProduct,
+	blastraCompareProduct,
 	boringlaunchCompareProduct,
 	getmorebacklinksCompareProduct,
 	launchrepoCompareProduct,

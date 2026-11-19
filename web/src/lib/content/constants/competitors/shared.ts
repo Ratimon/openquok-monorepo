@@ -53,6 +53,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	getmorebacklinks: 'https://www.getmorebacklinks.org/',
 	launchrepo: 'https://launchrepo.dev/',
 	submitator: 'https://submitator.com/',
+	blastra: 'https://blastra.io/',
 	blotato: 'https://www.blotato.com',
 	breakreach: 'https://www.breakreach.com',
 	'claw-post': 'https://clawpost.net',
@@ -84,6 +85,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	| 'getmorebacklinks'
 	| 'launchrepo'
 	| 'submitator'
+	| 'blastra'
 	| 'blotato'
 	| 'breakreach'
 	| 'claw-post'

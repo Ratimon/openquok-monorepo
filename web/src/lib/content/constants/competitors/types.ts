@@ -16,6 +16,7 @@ export type CompareProductSlug =
 	| 'influence'
 	| 'later'
 	| 'buffer'
+	| 'blastra'
 	| 'blotato'
 	| 'breakreach'
 	| 'claw-post'

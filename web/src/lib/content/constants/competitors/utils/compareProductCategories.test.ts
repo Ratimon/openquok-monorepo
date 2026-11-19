@@ -135,6 +135,7 @@ describe('compareProductCategories', () => {
 	it('listComparePairsForHub scopes directory_submission to directory peers only', () => {
 		const directoryPairs = listComparePairsForHub('openquok', 'directory_submission');
 		expect(directoryPairs.map((pair) => pair.productBSlug).sort()).toEqual([
+			'blastra',
 			'boringlaunch',
 			'getmorebacklinks',
 			'launchrepo',
@@ -184,6 +185,7 @@ describe('compareProductCategories', () => {
 		expect(vm?.directoryCoverageSection).not.toBeNull();
 		expect(vm?.compareRows.every((row) => row.id.startsWith('directory_'))).toBe(true);
 		expect(vm?.longForm?.otherAlternativePeers.map((peer) => peer.slug).sort()).toEqual([
+			'blastra',
 			'getmorebacklinks',
 			'launchrepo',
 			'submitator'
