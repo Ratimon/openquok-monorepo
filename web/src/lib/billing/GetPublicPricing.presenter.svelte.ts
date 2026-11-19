@@ -1,3 +1,4 @@
+import type { IconName } from '$data/icons';
 import type { PaidSubscriptionTier, PlanLimits, SubscriptionPeriod } from 'openquok-common';
 import type { BillingPlanProgrammerModel } from '$lib/billing/Billing.repository.svelte';
 
@@ -18,6 +19,13 @@ import {
 	PUBLIC_PRICING_TIER_ORDER,
 	type PublicPricingCompareRowDefinition
 } from '$lib/billing/constants/publicPricingCatalog';
+import { publicPricingCompareRowLabelIcons } from '$lib/billing/constants/publicPricingCompareRowLabelIcons';
+import {
+	groupPublicPricingCompareRowsBySection,
+	PUBLIC_PRICING_COMPARE_SECTION_LABELS,
+	PUBLIC_PRICING_COMPARE_SECTION_ORDER,
+	type PublicPricingCompareSectionId
+} from '$lib/billing/constants/publicPricingCompareSections';
 import {
 	filterCompareRowsByProductLine,
 	publicPricingCardFeatureLabels,
@@ -41,6 +49,7 @@ export type PublicPricingCompareRowViewModel = {
 	id: string;
 	label: string;
 	tooltip?: string;
+	labelIcons?: readonly IconName[];
 	cells: Record<PaidSubscriptionTier, PublicPricingCompareCellViewModel>;
 };
 
@@ -59,8 +68,16 @@ export type PublicPricingPlanCardViewModel = {
 	tabHeadline?: string;
 };
 
+export type PublicPricingCompareSectionViewModel = {
+	id: PublicPricingCompareSectionId;
+	title: string;
+	rows: PublicPricingCompareRowViewModel[];
+};
+
 export type PublicPricingPageViewModel = {
 	plans: PublicPricingPlanCardViewModel[];
+	compareSections: PublicPricingCompareSectionViewModel[];
+	/** Flattened rows (section order → card-feature order within each section). */
 	compareRows: PublicPricingCompareRowViewModel[];
 	featuredTier: PaidSubscriptionTier;
 };
@@ -170,7 +187,7 @@ function compareCellForRow(
 		case 'ai_summarizer':
 			return { kind: 'text', text: 'Unlimited' };
 		case 'browser_extension':
-			return { kind: 'text', text: 'Chrome, Edge, and Firefox store listings' };
+			return { kind: 'text', text: 'Chrome, Edge, and Firefox' };
 		case 'multi_channel_publishing':
 		case 'agent_integrations':
 		case 'analytics':
@@ -192,6 +209,9 @@ function compareCellForRow(
 		case 'group_management':
 		case 'dark_light_mode':
 		case 'community':
+		case 'help_articles':
+		case 'email_support':
+		case 'discord_chat':
 			return { kind: 'included' };
 		case 'directory_business_profiles':
 		case 'directory_extension_autofill':
@@ -319,8 +339,7 @@ function buildCardFeatures(
 		productLine === 'all'
 			? [
 					...publicPricingCardFeatureLabels(PUBLIC_PRICING_CARD_FEATURE_DEFINITIONS, 'directory'),
-					...publicPricingCardFeatureLabels(PUBLIC_PRICING_CARD_FEATURE_DEFINITIONS, 'social'),
-					...publicPricingCardFeatureLabels(PUBLIC_PRICING_CARD_FEATURE_DEFINITIONS, 'shared')
+					...publicPricingCardFeatureLabels(PUBLIC_PRICING_CARD_FEATURE_DEFINITIONS, 'social')
 				]
 			: publicPricingCardFeatureLabels(PUBLIC_PRICING_CARD_FEATURE_DEFINITIONS, productLine)
 	).filter((label) => {
@@ -390,7 +409,10 @@ const COMPARE_ROW_CARD_FEATURE_MATCHERS: Partial<
 	directory_analytics: (feature) => /domain rating analytics/i.test(feature),
 	directory_profile_variants: (feature) => /profile variants/i.test(feature),
 	community: (feature) => /^community features$/i.test(feature.trim()),
-	dark_light_mode: (feature) => /^dark \/ light mode$/i.test(feature.trim())
+	dark_light_mode: (feature) => /^dark \/ light mode$/i.test(feature.trim()),
+	help_articles: (feature) => /^help articles$/i.test(feature.trim()),
+	email_support: (feature) => /^email support$/i.test(feature.trim()),
+	discord_chat: (feature) => /^discord chat$/i.test(feature.trim())
 };
 
 function compareRowCardFeatureIndex(
@@ -428,6 +450,44 @@ function sortCompareRowsByCardFeatures(
 	});
 }
 
+function mapCompareRowDefinitionToViewModel(
+	row: PublicPricingCompareRowDefinition
+): PublicPricingCompareRowViewModel {
+	const cells = {} as Record<PaidSubscriptionTier, PublicPricingCompareCellViewModel>;
+	for (const tier of PUBLIC_PRICING_TIER_ORDER) {
+		cells[tier] = compareCellForRow(row.id, planLimitsForTier(tier));
+	}
+	return {
+		id: row.id,
+		label: row.label,
+		tooltip: row.tooltip,
+		labelIcons: publicPricingCompareRowLabelIcons(row.id),
+		cells
+	};
+}
+
+function buildCompareSectionsViewModel(
+	visibleCompareRows: readonly PublicPricingCompareRowDefinition[],
+	referenceCardFeatures: readonly string[]
+): PublicPricingCompareSectionViewModel[] {
+	const grouped = groupPublicPricingCompareRowsBySection(visibleCompareRows);
+	const sections: PublicPricingCompareSectionViewModel[] = [];
+
+	for (const sectionId of PUBLIC_PRICING_COMPARE_SECTION_ORDER) {
+		const sectionRows = grouped.get(sectionId) ?? [];
+		if (sectionRows.length === 0) continue;
+
+		const orderedRows = sortCompareRowsByCardFeatures(sectionRows, referenceCardFeatures);
+		sections.push({
+			id: sectionId,
+			title: PUBLIC_PRICING_COMPARE_SECTION_LABELS[sectionId],
+			rows: orderedRows.map((row) => mapCompareRowDefinitionToViewModel(row))
+		});
+	}
+
+	return sections;
+}
+
 export class GetPublicPricingPresenter {
 	public buildPageVm(
 		period: SubscriptionPeriod,
@@ -458,25 +518,15 @@ export class GetPublicPricingPresenter {
 			planLimitsForTier(PUBLIC_PRICING_FEATURED_TIER),
 			productLine
 		);
-		const orderedCompareRows = sortCompareRowsByCardFeatures(
+		const compareSections = buildCompareSectionsViewModel(
 			visibleCompareRows,
 			referenceCardFeatures
 		);
-		const compareRows: PublicPricingCompareRowViewModel[] = orderedCompareRows.map((row) => {
-			const cells = {} as Record<PaidSubscriptionTier, PublicPricingCompareCellViewModel>;
-			for (const tier of PUBLIC_PRICING_TIER_ORDER) {
-				cells[tier] = compareCellForRow(row.id, planLimitsForTier(tier));
-			}
-			return {
-				id: row.id,
-				label: row.label,
-				tooltip: row.tooltip,
-				cells
-			};
-		});
+		const compareRows = compareSections.flatMap((section) => section.rows);
 
 		return {
 			plans,
+			compareSections,
 			compareRows,
 			featuredTier: PUBLIC_PRICING_FEATURED_TIER
 		};

@@ -91,7 +91,7 @@ function buildOpenQuokFeatureSupport(): Partial<Record<PublicPricingCompareRowId
 		public_api: { kind: 'included' },
 		oauth_apps: { kind: 'text', text: '1 per workspace' },
 		mcp_server: { kind: 'text', text: '1 per workspace' },
-		browser_extension: { kind: 'text', text: 'Chrome, Edge, and Firefox store listings' },
+		browser_extension: { kind: 'text', text: 'Chrome, Edge, and Firefox' },
 		cloud_storage: {
 			kind: 'text',
 			text:
@@ -130,7 +130,10 @@ function buildOpenQuokFeatureSupport(): Partial<Record<PublicPricingCompareRowId
 			kind: 'text',
 			text: buildOpenQuokDirectoryCompetitorDomainsCell()
 		},
-		community: { kind: 'included' }
+		community: { kind: 'included' },
+		help_articles: { kind: 'included' },
+		email_support: { kind: 'included' },
+		discord_chat: { kind: 'included' }
 	};
 
 	return support;

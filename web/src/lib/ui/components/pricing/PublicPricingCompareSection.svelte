@@ -1,16 +1,20 @@
 <script lang="ts">
 	import type {
 		PublicPricingCompareRowViewModel,
+		PublicPricingCompareSectionViewModel,
 		PublicPricingPlanCardViewModel
 	} from '$lib/billing/GetPublicPricing.presenter.svelte';
 	import type { PaidSubscriptionTier, SubscriptionPeriod } from 'openquok-common';
 
 	import { icons } from '$data/icons';
+	import type { PublicPricingCompareSectionTheme } from '$lib/billing/constants/publicPricingCompareSectionTheme';
+	import { publicPricingCompareSectionTheme } from '$lib/billing/constants/publicPricingCompareSectionTheme';
 	import { url } from '$lib/utils/path';
 	import { cn } from '$lib/ui/helpers/common';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import PublicPricingCompareRowIconStack from '$lib/ui/components/pricing/PublicPricingCompareRowIconStack.svelte';
 	import BillingPeriodToggle from '$lib/ui/components/billing/BillingPeriodToggle.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import FeaturesSectionHeader from '$lib/ui/templates/feature-grid/FeaturesSectionHeader.svelte';
@@ -19,16 +23,17 @@
 
 	type Props = {
 		plans: PublicPricingPlanCardViewModel[];
-		compareRows: PublicPricingCompareRowViewModel[];
+		compareSections: PublicPricingCompareSectionViewModel[];
 		featuredTier: PaidSubscriptionTier;
 		period: SubscriptionPeriod;
 		onPeriodChange: (period: SubscriptionPeriod) => void;
 		ctaHref: string;
 	};
 
-	let { plans, compareRows, featuredTier, period, onPeriodChange, ctaHref }: Props = $props();
+	let { plans, compareSections, featuredTier, period, onPeriodChange, ctaHref }: Props = $props();
 
 	const headingId = 'pricing-compare-heading';
+	const planColumnCount = $derived(plans.length + 1);
 
 	function isFeaturedColumn(tier: PaidSubscriptionTier): boolean {
 		return tier === featuredTier;
@@ -99,77 +104,118 @@
 			</Table.Header>
 			<Table.Body>
 				<Tooltip.Provider delayDuration={200}>
-					{#each compareRows as row (row.id)}
+					{#each compareSections as section, sectionIndex (section.id)}
+						{@const theme = publicPricingCompareSectionTheme(section.id)}
 						<Table.Row class="border-0 hover:bg-transparent">
-							<Table.Cell class="rounded-xl border-0 bg-base-200/80 p-4 align-middle font-medium">
-								<div class="flex items-center gap-1.5">
-									<span>{row.label}</span>
-									{#if row.tooltip}
-										<Tooltip.Root>
-											<Tooltip.Trigger>
-												{#snippet child({ props: triggerProps })}
-													{@const { class: tipClass, ...tipRest } = triggerProps}
-													<span
-														{...tipRest}
-														class={`inline-flex shrink-0 ${String(tipClass ?? '')} cursor-help text-base-content/50`}
-														aria-label="More info"
-													>
-														<AbstractIcon
-															name={icons.Info.name}
-															class="size-4"
-															width="16"
-															height="16"
-														/>
-													</span>
-												{/snippet}
-											</Tooltip.Trigger>
-											<Tooltip.Content
-												side="top"
-												sideOffset={8}
-												class="max-w-sm whitespace-pre-line"
-											>
-												{row.tooltip}
-											</Tooltip.Content>
-										</Tooltip.Root>
-									{/if}
+							<Table.Cell
+								colspan={planColumnCount}
+								class={cn(
+									'rounded-r-xl border-0 border-y-0 py-3 pl-3 pr-4 align-middle',
+									theme.headerCellClass,
+									sectionIndex > 0 ? 'pt-8' : 'pt-4'
+								)}
+							>
+								<div class="flex items-center gap-2.5">
+									<AbstractIcon
+										name={theme.icon}
+										class={cn('size-5 shrink-0', theme.headerIconClass)}
+										width="20"
+										height="20"
+										aria-hidden="true"
+									/>
+									<span
+										class={cn(
+											'text-xs font-bold tracking-[0.14em] uppercase',
+											theme.headerTitleClass
+										)}
+									>
+										{section.title}
+									</span>
 								</div>
 							</Table.Cell>
-							{#each plans as plan (plan.tier)}
-								{@const featured = isFeaturedColumn(plan.tier)}
-								{@const cell = row.cells[plan.tier]}
-								<Table.Cell
-									class={cn(
-										'rounded-xl border-0 p-4 text-center align-middle',
-										featured ? 'bg-primary/15 font-medium' : 'bg-base-200/60'
-									)}
-								>
-									{#if cell.kind === 'text'}
-										<span class="tabular-nums">{cell.text}</span>
-									{:else if cell.kind === 'included'}
-										<span class="mx-auto inline-flex" aria-label="Included">
-											<AbstractIcon
-												name={icons.CircleCheck.name}
-												class="size-5 text-success"
-												width="20"
-												height="20"
-											/>
-										</span>
-									{:else}
-										<span class="mx-auto inline-flex" aria-label="Not included">
-											<AbstractIcon
-												name={icons.CircleX.name}
-												class="size-5 text-error"
-												width="20"
-												height="20"
-											/>
-										</span>
-									{/if}
-								</Table.Cell>
-							{/each}
 						</Table.Row>
+						{#each section.rows as row (row.id)}
+							{@render compareFeatureRow(row, theme)}
+						{/each}
 					{/each}
 				</Tooltip.Provider>
 			</Table.Body>
 		</Table.Root>
 	</div>
 </section>
+
+{#snippet compareFeatureRow(row: PublicPricingCompareRowViewModel, theme: PublicPricingCompareSectionTheme)}
+	<Table.Row class="border-0 hover:bg-transparent">
+		<Table.Cell
+			class={cn(
+				'rounded-r-xl border-y-0 border-r-0 p-4 align-middle font-medium',
+				theme.labelCellClass
+			)}
+		>
+			<div class="flex items-center gap-2.5">
+				{#if row.labelIcons?.length}
+					<PublicPricingCompareRowIconStack icons={row.labelIcons} />
+				{/if}
+				<div class="flex min-w-0 items-center gap-1.5">
+				<span>{row.label}</span>
+				{#if row.tooltip}
+					<Tooltip.Root>
+						<Tooltip.Trigger>
+							{#snippet child({ props: triggerProps })}
+								{@const { class: tipClass, ...tipRest } = triggerProps}
+								<span
+									{...tipRest}
+									class={`inline-flex shrink-0 ${String(tipClass ?? '')} cursor-help text-base-content/50`}
+									aria-label="More info"
+								>
+									<AbstractIcon
+										name={icons.Info.name}
+										class="size-4"
+										width="16"
+										height="16"
+									/>
+								</span>
+							{/snippet}
+						</Tooltip.Trigger>
+						<Tooltip.Content side="top" sideOffset={8} class="max-w-sm whitespace-pre-line">
+							{row.tooltip}
+						</Tooltip.Content>
+					</Tooltip.Root>
+				{/if}
+				</div>
+			</div>
+		</Table.Cell>
+		{#each plans as plan (plan.tier)}
+			{@const featured = isFeaturedColumn(plan.tier)}
+			{@const cell = row.cells[plan.tier]}
+			<Table.Cell
+				class={cn(
+					'rounded-xl border-0 p-4 text-center align-middle',
+					featured ? 'bg-primary/15 font-medium' : cn('bg-base-200/50', theme.planCellClass)
+				)}
+			>
+				{#if cell.kind === 'text'}
+					<span class="tabular-nums">{cell.text}</span>
+				{:else if cell.kind === 'included'}
+					<span class="mx-auto inline-flex" aria-label="Included">
+						<AbstractIcon
+							name={icons.CircleCheck.name}
+							class="size-5 text-success"
+							width="20"
+							height="20"
+						/>
+					</span>
+				{:else}
+					<span class="mx-auto inline-flex" aria-label="Not included">
+						<AbstractIcon
+							name={icons.CircleX.name}
+							class="size-5 text-error"
+							width="20"
+							height="20"
+						/>
+					</span>
+				{/if}
+			</Table.Cell>
+		{/each}
+	</Table.Row>
+{/snippet}

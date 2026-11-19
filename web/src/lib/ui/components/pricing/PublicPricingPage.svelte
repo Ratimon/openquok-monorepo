@@ -96,7 +96,7 @@
 
 	<PublicPricingCompareSection
 		plans={pageVm.plans}
-		compareRows={pageVm.compareRows}
+		compareSections={pageVm.compareSections}
 		featuredTier={pageVm.featuredTier}
 		period={effectivePeriod}
 		onPeriodChange={(next) => {

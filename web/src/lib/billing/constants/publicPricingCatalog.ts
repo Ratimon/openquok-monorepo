@@ -146,7 +146,10 @@ export type PublicPricingCompareRowId =
 	| 'directory_analytics'
 	| 'directory_competitor_domains'
 	| 'directory_catalog_dr'
-	| 'community';
+	| 'community'
+	| 'help_articles'
+	| 'email_support'
+	| 'discord_chat';
 
 export type PublicPricingCompareRowDefinition = {
 	id: PublicPricingCompareRowId;
@@ -212,20 +215,20 @@ export const PUBLIC_PRICING_COMPARE_ROWS: readonly PublicPricingCompareRowDefini
 	},
 	{
 		id: 'public_api',
-		line: 'social',
+		line: 'shared',
 		label: 'Public API',
 		tooltip: 'Programmatic access to schedule and manage content via REST API from the terminal.'
 	},
 	{
 		id: 'oauth_apps',
-		line: 'social',
+		line: 'shared',
 		label: 'OAuth apps',
 		tooltip:
 			'One OAuth application per workspace for third-party integrations, client credentials, and programmatic access tokens.'
 	},
 	{
 		id: 'mcp_server',
-		line: 'social',
+		line: 'shared',
 		label: 'MCP server',
 		tooltip:
 			'One MCP endpoint per workspace for Cursor, Claude Code, Codex, and other agents.\nUses the same OAuth app and programmatic token as Public API access in that workspace.'
@@ -239,7 +242,7 @@ export const PUBLIC_PRICING_COMPARE_ROWS: readonly PublicPricingCompareRowDefini
 	},
 	{
 		id: 'browser_extension',
-		line: 'social',
+		line: 'shared',
 		label: 'Browser extension',
 		tooltip:
 			'Install OpenQuok from the Chrome Web Store, Microsoft Edge Add-ons, or Firefox Browser Add-ons. Schedule from the side panel, connect Skool in the browser, get Reddit due-time handoff helpers, and autofill directory forms from your business profile.'
@@ -407,6 +410,26 @@ export const PUBLIC_PRICING_COMPARE_ROWS: readonly PublicPricingCompareRowDefini
 		label: 'Directory catalog DR',
 		tooltip:
 			'Editorial domain rating metrics from the Build Backlinks catalog on My Products directory cards — compare directory opportunities before you launch.'
+	},
+	{
+		id: 'help_articles',
+		line: 'shared',
+		label: 'Help articles',
+		tooltip:
+			'Setup guides, social and directory docs, Public API reference, and troubleshooting articles at /docs.'
+	},
+	{
+		id: 'email_support',
+		line: 'shared',
+		label: 'Email support',
+		tooltip: 'Email the team for billing, account, and workspace questions on OpenQuok Cloud.'
+	},
+	{
+		id: 'discord_chat',
+		line: 'shared',
+		label: 'Discord chat',
+		tooltip:
+			'Community Discord for quick questions, screenshots, and self-host setup help. See /docs/help for the invite.'
 	},
 	{
 		id: 'community',

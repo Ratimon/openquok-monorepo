@@ -68,7 +68,7 @@ const ADAPTLYPOST_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Com
 	public_api: { kind: 'included' },
 	oauth_apps: { kind: 'excluded' },
 	mcp_server: { kind: 'included' },
-	browser_extension: { kind: 'text', text: 'Chrome, Edge, and Firefox store listings' },
+	browser_extension: { kind: 'text', text: 'Chrome, Edge, and Firefox' },
 	cloud_storage: { kind: 'text', text: 'Media library' },
 	multi_channel_publishing: { kind: 'included' },
 	agent_integrations: { kind: 'text', text: 'Hosted MCP (80 tools) + OpenClaw' },

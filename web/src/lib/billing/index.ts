@@ -61,6 +61,7 @@ export {
 	GetPublicPricingPresenter,
 	type PublicPricingCompareCellViewModel,
 	type PublicPricingCompareRowViewModel,
+	type PublicPricingCompareSectionViewModel,
 	type PublicPricingPageViewModel,
 	type PublicPricingPlanCardViewModel
 } from '$lib/billing/GetPublicPricing.presenter.svelte';

@@ -8,6 +8,7 @@ import {
 	PUBLIC_PRICING_LANDING_TAB_FEATURE_LIMIT,
 	PUBLIC_PRICING_LANDING_TAB_FEATURE_LIMIT_ALL
 } from '$lib/billing/constants/publicPricingCatalog';
+import { PUBLIC_PRICING_COMPARE_ROW_SECTION } from '$lib/billing/constants/publicPricingCompareSections';
 import {
 	filterCompareRowsByProductLine,
 	mergeLandingTabFeaturesForAllProductLines,
@@ -19,6 +20,12 @@ describe('publicPricingProductLine catalog', () => {
 	it('tags every compare row with a product line', () => {
 		for (const row of PUBLIC_PRICING_COMPARE_ROWS) {
 			expect(['social', 'directory', 'shared']).toContain(row.line);
+		}
+	});
+
+	it('tags every compare row with a compare-table section', () => {
+		for (const row of PUBLIC_PRICING_COMPARE_ROWS) {
+			expect(PUBLIC_PRICING_COMPARE_ROW_SECTION[row.id]).toBeTruthy();
 		}
 	});
 
@@ -94,6 +101,25 @@ describe('publicPricingProductLine catalog', () => {
 describe('GetPublicPricingPresenter product-line filters', () => {
 	const presenter = new GetPublicPricingPresenter();
 
+	it('groups compare rows into section headings for the pricing table', () => {
+		const allVm = presenter.buildPageVm('MONTHLY', 'all');
+		expect(allVm.compareSections.length).toBeGreaterThan(1);
+		expect(allVm.compareSections.map((s) => s.title)).toContain('Publish');
+		expect(allVm.compareSections.map((s) => s.title)).toContain('Automate');
+		expect(allVm.compareSections.map((s) => s.title)).toContain('Collaborate');
+		expect(allVm.compareSections.map((s) => s.title)).toContain('List');
+		expect(allVm.compareRows.length).toBe(allVm.compareSections.reduce((n, s) => n + s.rows.length, 0));
+
+		const socialVm = presenter.buildPageVm('MONTHLY', 'social');
+		expect(socialVm.compareSections.some((s) => s.id === 'list')).toBe(false);
+
+		const directoryVm = presenter.buildPageVm('MONTHLY', 'directory');
+		expect(directoryVm.compareSections.some((s) => s.id === 'list')).toBe(true);
+		expect(directoryVm.compareSections.some((s) => s.id === 'collaborate')).toBe(true);
+		expect(directoryVm.compareSections.some((s) => s.id === 'publish')).toBe(false);
+		expect(directoryVm.compareSections.some((s) => s.id === 'automate')).toBe(true);
+	});
+
 	it('orders directory compare rows to match featured plan card bullets', () => {
 		const directoryVm = presenter.buildPageVm('MONTHLY', 'directory');
 		const featuredPlan = directoryVm.plans.find((p) => p.tier === PUBLIC_PRICING_FEATURED_TIER);
@@ -111,16 +137,24 @@ describe('GetPublicPricingPresenter product-line filters', () => {
 
 		expect(businessRowIdx).toBeGreaterThanOrEqual(0);
 		expect(communityRowIdx).toBeGreaterThan(businessRowIdx);
-		expect(darkRowIdx).toBeGreaterThan(communityRowIdx);
+		expect(rowLabels).toContain('Help articles');
+		expect(rowLabels).toContain('Email support');
+		expect(rowLabels).toContain('Discord chat');
+		const helpRowIdx = rowLabels.findIndex((l) => /help articles/i.test(l));
+		const emailRowIdx = rowLabels.findIndex((l) => /email support/i.test(l));
+		const discordRowIdx = rowLabels.findIndex((l) => /discord chat/i.test(l));
+		expect(emailRowIdx).toBeGreaterThan(helpRowIdx);
+		expect(discordRowIdx).toBeGreaterThan(emailRowIdx);
 		expect(businessIdx).toBeGreaterThanOrEqual(0);
 		expect(communityIdx).toBeGreaterThan(businessIdx);
 		expect(darkIdx).toBeGreaterThan(communityIdx);
 
-		const agentRowIdx = rowLabels.findIndex((l) => l === 'Agent integrations');
-		const competitorRowIdx = rowLabels.findIndex((l) => l === 'Competitor domains');
-		expect(agentRowIdx).toBeGreaterThan(competitorRowIdx);
 		expect(rowLabels).toContain('Browser extension autofill');
 		expect(rowLabels).toContain('Directory submission tracking');
+		expect(rowLabels).toContain('Public API');
+		expect(rowLabels).toContain('MCP server');
+		expect(rowLabels).toContain('Browser extension');
+		expect(rowLabels).toContain('OAuth apps');
 	});
 
 	it('filters compare rows for social and directory modes', () => {
@@ -139,6 +173,10 @@ describe('GetPublicPricingPresenter product-line filters', () => {
 		expect(socialIds).not.toContain('directory_analytics');
 		expect(directoryIds).not.toContain('posts_per_month');
 		expect(directoryIds).toContain('directory_competitor_domains');
+		expect(directoryIds).toContain('public_api');
+		expect(directoryIds).toContain('oauth_apps');
+		expect(directoryIds).toContain('mcp_server');
+		expect(directoryIds).toContain('browser_extension');
 		expect(allIds.length).toBeGreaterThan(socialIds.length);
 		expect(allIds.length).toBeGreaterThan(directoryIds.length);
 	});
