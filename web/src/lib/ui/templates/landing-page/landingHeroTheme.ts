@@ -5,11 +5,15 @@ import { icons } from '$data/icons';
 export const PUBLIC_LANDING_MAIN_HERO_TITLE_CLASS =
 	'text-4xl font-black tracking-tight text-balance sm:text-5xl lg:text-6xl';
 
-/** Exactly two visual rows for `/social-media-management` (Postiz-style); children must not wrap. */
-export const PUBLIC_SOCIAL_AUTOPILOT_HERO_TITLE_CLASS = `${PUBLIC_LANDING_MAIN_HERO_TITLE_CLASS} flex flex-col items-center gap-y-2 sm:gap-y-3`;
+/**
+ * Two stacked title lines for `/social-media-management` (Postiz-style).
+ * Lines wrap on narrow viewports; `sm+` keeps each config line on one row when it fits.
+ */
+export const PUBLIC_SOCIAL_AUTOPILOT_HERO_TITLE_CLASS =
+	'text-3xl font-black tracking-tight text-balance sm:text-5xl lg:text-6xl flex flex-col items-center gap-y-2 sm:gap-y-3';
 
 export const PUBLIC_SOCIAL_AUTOPILOT_HERO_TITLE_LINE_CLASS =
-	'flex w-full max-w-[min(100%,42rem)] flex-nowrap items-baseline justify-center gap-x-1.5 sm:gap-x-2';
+	'flex w-full min-w-0 max-w-[min(100%,42rem)] flex-wrap items-baseline justify-center gap-x-1 gap-y-1.5 sm:flex-nowrap sm:gap-x-2 sm:gap-y-0';
 
 /** Rotating accent words for the main landing hero title ("Save ___"). */
 export const LANDING_HERO_HOURS_ROTATE_TEXTS = [
@@ -404,6 +408,9 @@ export const landingHeroTheme = {
 	/** Hero CTAs: stack full-width on small screens; row + wrap from `sm`. */
 	dualCtaRowClass:
 		'flex w-full max-w-md flex-col items-stretch gap-2 pt-2 sm:max-w-none sm:flex-row sm:flex-wrap sm:items-center sm:justify-center lg:justify-start',
+	/** Three hero CTAs (API hub): one centered row from `sm` (no orphan button on a second line). */
+	tripleCtaRowClass:
+		'flex w-full flex-col items-stretch gap-2 pt-2 sm:flex-row sm:flex-nowrap sm:items-center sm:justify-center',
 	compactCtaButtonClass:
 		'w-full max-w-full justify-center rounded-full px-5 text-sm sm:w-auto sm:max-w-none sm:shrink-0 sm:px-7 sm:text-base',
 	compactDocsCtaButtonClass:

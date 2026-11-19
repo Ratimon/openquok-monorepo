@@ -44,7 +44,7 @@
 </script>
 
 <section class="py-10 md:py-16">
-	<div class="container mx-auto max-w-3xl space-y-5 px-4 text-center">
+	<div class="container mx-auto max-w-5xl space-y-5 px-4 text-center">
 		<div class="flex justify-center">
 			<PublicApiMarketingHubBreadcrumb {capability} {platformLabel} />
 		</div>
@@ -68,7 +68,7 @@
 				{/each}
 			</ul>
 		{/if}
-		<div class="{landingHeroTheme.dualCtaRowClass} lg:justify-center">
+		<div class={landingHeroTheme.tripleCtaRowClass}>
 			<ButtonGlitchBrightness
 				class={landingHeroTheme.compactCtaButtonClass}
 				variant="primary"

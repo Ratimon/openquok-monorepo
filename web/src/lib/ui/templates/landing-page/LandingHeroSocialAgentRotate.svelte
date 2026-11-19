@@ -26,9 +26,9 @@
 	);
 </script>
 
-<span class="inline-flex shrink-0 items-center gap-2 align-middle {className}">
+<span class="inline-flex shrink-0 items-center gap-1.5 align-middle sm:gap-2 {className}">
 	<span
-		class="grid size-9 shrink-0 place-items-center rounded-xl bg-base-100 shadow-md ring-1 ring-base-content/10 sm:size-10"
+		class="grid size-8 shrink-0 place-items-center rounded-xl bg-base-100 shadow-md ring-1 ring-base-content/10 sm:size-10"
 		aria-hidden="true"
 	>
 		{#if activeIconName}

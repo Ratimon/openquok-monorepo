@@ -17,7 +17,7 @@
 <HighlightedText
 	class={cn('-rotate-1 rounded-md', className)}
 	backgroundClass="bg-white"
-	textClass="px-3 py-1 text-black"
+	textClass="px-2 py-0.5 text-black sm:px-3 sm:py-1"
 	{delay}
 	{triggerOnView}
 >
