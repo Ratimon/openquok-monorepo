@@ -113,6 +113,22 @@ export function publicPricingCompareSectionForRow(
 	return PUBLIC_PRICING_COMPARE_ROW_SECTION[row.id];
 }
 
+/** In-page fragment for the compare table (`PublicPricingCompareSection`). */
+export const PUBLIC_PRICING_COMPARE_TABLE_FRAGMENT_ID = 'pricing-compare';
+
+/** JSON-LD `@id` suffixes and DOM `id` prefix for segmented compare headers. */
+export const PUBLIC_PRICING_COMPARE_SCHEMA_FRAGMENT_SUFFIX = {
+	sectionsItemList: 'pricing-compare-sections',
+	tableOfContents: 'pricing-compare-toc',
+	featuresItemList: 'pricing-compare-features'
+} as const;
+
+export function publicPricingCompareSectionFragmentId(
+	sectionId: PublicPricingCompareSectionId
+): string {
+	return `pricing-compare-${sectionId}`;
+}
+
 export function groupPublicPricingCompareRowsBySection(
 	rows: readonly PublicPricingCompareRowDefinition[]
 ): Map<PublicPricingCompareSectionId, PublicPricingCompareRowDefinition[]> {

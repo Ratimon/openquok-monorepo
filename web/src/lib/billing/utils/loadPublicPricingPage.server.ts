@@ -12,6 +12,7 @@ import {
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { configRepository } from '$lib/config/Config.repository.svelte';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
+import { createPublicPricingCompareTableSeoSchema } from '$lib/content/utils/createPublicPricingCompareTableSeoSchema';
 import { createPublicPricingOffers } from '$lib/content/utils/createPublicPricingSEOSchema';
 import { getPublicPricingFaqItems } from '$lib/content/constants/faq';
 import { parsePublicFaqConfigModule } from '$lib/content/utils/parsePublicFaqConfig';
@@ -101,14 +102,37 @@ export async function loadPublicPricingPage({
 	const pricingOffers = createPublicPricingOffers({
 		pageUrl: canonical,
 		origin: url.origin,
+		period: monthlyPeriod,
+		productLine: seo.productLine,
+		applicationName: companyName
+	});
+
+	const webPageId = `${canonical}#webpage`;
+	const faqSchema = createPublicFaqSEOSchema({
+		pageUrl: `${canonical}#faq`,
+		name: publicFaqConfigPm.TITLE,
+		description: publicFaqConfigPm.DESCRIPTION,
+		items: publicFaqItemsVm
+	});
+	const compareTableSchema = createPublicPricingCompareTableSeoSchema({
+		canonical,
+		webPageId,
+		productLine: seo.productLine,
 		period: monthlyPeriod
 	});
+
+	const webPageHasPart = [
+		...(publicFaqItemsVm.length > 0 ? [{ '@id': `${canonical}#faq` as const }] : []),
+		...(compareTableSchema && 'hasPartRefs' in compareTableSchema
+			? compareTableSchema.hasPartRefs
+			: [])
+	];
 
 	const schemaData = createJsonLdGraph(
 		filterNonEmptyJsonLdNodes([
 			{
 				'@type': 'WebPage',
-				'@id': `${canonical}#webpage`,
+				'@id': webPageId,
 				name: seo.metaTitle,
 				description: seo.metaDescription,
 				url: canonical,
@@ -117,15 +141,12 @@ export async function loadPublicPricingPage({
 					name: companyName,
 					url: url.origin
 				},
-				offers: pricingOffers
+				offers: pricingOffers,
+				...(webPageHasPart.length > 0 ? { hasPart: webPageHasPart } : {})
 			},
-			createPublicFaqSEOSchema({
-				pageUrl: `${canonical}#faq`,
-				name: publicFaqConfigPm.TITLE,
-				description: publicFaqConfigPm.DESCRIPTION,
-				items: publicFaqItemsVm
-			}),
-			createBreadcrumbListSchema(buildPricingLandingBreadcrumbItems(), url.origin)
+			faqSchema,
+			...(compareTableSchema && 'nodes' in compareTableSchema ? compareTableSchema.nodes : []),
+			createBreadcrumbListSchema(buildPricingLandingBreadcrumbItems(routeId), url.origin)
 		])
 	);
 

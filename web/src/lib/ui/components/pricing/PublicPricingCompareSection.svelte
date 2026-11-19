@@ -7,6 +7,7 @@
 	import type { PaidSubscriptionTier, SubscriptionPeriod } from 'openquok-common';
 
 	import { icons } from '$data/icons';
+	import { publicPricingCompareSectionFragmentId } from '$lib/billing/constants/publicPricingCompareSections';
 	import type { PublicPricingCompareSectionTheme } from '$lib/billing/constants/publicPricingCompareSectionTheme';
 	import { publicPricingCompareSectionTheme } from '$lib/billing/constants/publicPricingCompareSectionTheme';
 	import { url } from '$lib/utils/path';
@@ -106,7 +107,10 @@
 				<Tooltip.Provider delayDuration={200}>
 					{#each compareSections as section, sectionIndex (section.id)}
 						{@const theme = publicPricingCompareSectionTheme(section.id)}
-						<Table.Row class="border-0 hover:bg-transparent">
+						<Table.Row
+							id={publicPricingCompareSectionFragmentId(section.id)}
+							class="scroll-mt-28 border-0 hover:bg-transparent"
+						>
 							<Table.Cell
 								colspan={planColumnCount}
 								class={cn(

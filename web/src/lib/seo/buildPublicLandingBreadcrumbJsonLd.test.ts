@@ -176,6 +176,14 @@ describe('buildPricingLandingBreadcrumbItems', () => {
 			{ label: 'Pricing' }
 		]);
 	});
+
+	it('builds a three-level trail for product-line pricing routes', () => {
+		expect(buildPricingLandingBreadcrumbItems('directory')).toEqual([
+			{ label: 'Home', href: '/' },
+			{ label: 'Pricing', href: '/pricing' },
+			{ label: 'Directory launch pricing' }
+		]);
+	});
 });
 
 describe('buildRoadmapLandingBreadcrumbItems', () => {

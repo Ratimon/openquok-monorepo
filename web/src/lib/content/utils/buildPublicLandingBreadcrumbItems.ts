@@ -36,6 +36,11 @@ import {
 	PUBLIC_LANDING_BREADCRUMB
 } from '$lib/content/constants/landing/breadcrumbs';
 import type { BreadcrumbCrumb } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
+import {
+	PUBLIC_PRICING_PAGE_SEO,
+	publicPricingPathForRouteId,
+	type PublicPricingRouteId
+} from '$lib/billing/constants/publicPricingPageSeo';
 import { route } from '$lib/utils/path';
 
 export type AgentsLandingBreadcrumbVariant = 'hub' | 'agent-host' | 'mcp-client';
@@ -356,10 +361,22 @@ export function buildApiMarketingLandingBreadcrumbItems(params: {
 	];
 }
 
-export function buildPricingLandingBreadcrumbItems(): BreadcrumbCrumb[] {
+export function buildPricingLandingBreadcrumbItems(
+	routeId: PublicPricingRouteId = 'all'
+): BreadcrumbCrumb[] {
+	if (routeId === 'all') {
+		return [
+			{ label: 'Home', href: '/' },
+			{ label: PUBLIC_LANDING_BREADCRUMB.pricing }
+		];
+	}
+
+	const { breadcrumbLabel } = PUBLIC_PRICING_PAGE_SEO[routeId];
+
 	return [
 		{ label: 'Home', href: '/' },
-		{ label: PUBLIC_LANDING_BREADCRUMB.pricing }
+		{ label: PUBLIC_LANDING_BREADCRUMB.pricing, href: route(publicPricingPathForRouteId('all')) },
+		{ label: breadcrumbLabel }
 	];
 }
 

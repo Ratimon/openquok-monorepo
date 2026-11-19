@@ -20,6 +20,28 @@ describe('createPublicPricingSEOSchema', () => {
 			category: 'subscription',
 			priceCurrency: 'USD'
 		});
+		expect(offers[0]?.itemOffered).toMatchObject({
+			'@type': 'SoftwareApplication',
+			applicationCategory: 'BusinessApplication'
+		});
+	});
+
+	it('tags directory offers and narrows featureList to directory product line', () => {
+		const directoryOffers = createPublicPaidPlanOffers({
+			pageUrl: 'https://www.openquok.com/pricing/directory',
+			productLine: 'directory',
+			applicationName: 'OpenQuok'
+		});
+
+		expect(directoryOffers[0]).toMatchObject({
+			category: 'directory-launch'
+		});
+		expect(String(directoryOffers[0]?.itemOffered?.name)).toContain('Directory Launch');
+		const socialOffers = createPublicPaidPlanOffers({
+			pageUrl: 'https://www.openquok.com/pricing/social-scheduler',
+			productLine: 'social'
+		});
+		expect(socialOffers[0]).toMatchObject({ category: 'social-scheduler' });
 	});
 
 	it('includes the self-host $0 offer from footnote config', () => {
