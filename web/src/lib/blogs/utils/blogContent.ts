@@ -120,6 +120,56 @@ function escapeHtml(text: string): string {
 		.replace(/"/g, '&quot;');
 }
 
+const BARE_URL_RE = /https?:\/\/[^\s<>"']+/g;
+
+/** Trim trailing punctuation that often wraps bare URLs in prose (e.g. `https://x.com/).`). */
+function trimUrlTrailPunctuation(url: string): { href: string; suffix: string } {
+	let href = url;
+	let suffix = '';
+	while (href.length > 0) {
+		const last = href.at(-1);
+		if (!last || !/[),.;:!?\]}]/.test(last)) break;
+		if (last === ')' && (href.match(/\(/g) ?? []).length >= (href.match(/\)/g) ?? []).length) {
+			break;
+		}
+		suffix = last + suffix;
+		href = href.slice(0, -1);
+	}
+	return { href, suffix };
+}
+
+function linkifyTextSegment(text: string): string {
+	return text.replace(BARE_URL_RE, (match) => {
+		const { href, suffix } = trimUrlTrailPunctuation(match);
+		if (!href) return match;
+		const safeHref = escapeHtml(href);
+		return `<a href="${safeHref}">${safeHref}</a>${suffix}`;
+	});
+}
+
+/**
+ * Turn bare `http(s)://` strings in text nodes into anchors without touching existing tags or
+ * text inside `<a>…</a>`.
+ */
+export function linkifyBareUrlsInHtml(html: string): string {
+	if (!html.trim()) return html;
+
+	const parts = html.split(/(<[^>]+>)/g);
+	let insideAnchor = 0;
+
+	return parts
+		.map((part) => {
+			if (part.startsWith('<')) {
+				if (/^<a\b/i.test(part)) insideAnchor += 1;
+				else if (/^<\/a\b/i.test(part)) insideAnchor = Math.max(0, insideAnchor - 1);
+				return part;
+			}
+			if (insideAnchor > 0) return part;
+			return linkifyTextSegment(part);
+		})
+		.join('');
+}
+
 /** Convert plain text (paragraphs separated by blank lines) into simple HTML. */
 export function plainTextToBlogHtml(text: string): string {
 	const blocks = text.split(/\n\n+/).map((block) => block.trim()).filter(Boolean);
@@ -228,6 +278,7 @@ export function prepareBlogRichTextForDisplay(content: string): string {
 	if (!looksLikeHtml(html)) {
 		html = plainTextToBlogHtml(html);
 	}
+	html = linkifyBareUrlsInHtml(html);
 	return normalizeBlogContentLinks(html);
 }
 

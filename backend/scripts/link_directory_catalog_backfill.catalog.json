@@ -215,6 +215,145 @@
 					"auto_launch_provider_slug": "tinylaunch-standard-launch"
 				}
 			]
+		},
+		"chrome-web-store": {
+			"site": {
+				"id": "d5f7d000-0010-4000-a000-00000000000b",
+				"slug": "chrome-web-store",
+				"title": "Chrome Web Store",
+				"site_url": "https://chromewebstore.google.com",
+				"logo_url": "https://www.openquok.com/icons/link-directory/chrome-web-store.svg",
+				"short_description": "List a Chrome extension on the Web Store. Point Official URL, homepage, and privacy fields at your site to earn backlinks on the live listing page.",
+				"long_description": "The store runs on google.com. Complete Store listing Additional fields and Privacy before you submit. After approval, open your public listing and confirm each outbound link.",
+				"domain_rating": 99,
+				"monthly_visits": 5000000000,
+				"metrics_source": "editor_estimate",
+				"category_slug": "maker-dev-directory",
+				"tag_slugs": ["high-dr"],
+				"is_openquok_auth_supported": false,
+				"openquok_channel_slug": null,
+				"is_admin_published": true,
+				"sort_order": 0
+			},
+			"opportunities": [
+				{
+					"id": "d5f7d000-0020-4000-a000-000000000024",
+					"slug": "official-url",
+					"title": "Official URL",
+					"opportunity_type_slug": "product_submission",
+					"effort": "hard",
+					"approval_mode": "manual_review",
+					"approval_time_hint": "After you submit the listing",
+					"dofollow": "dofollow",
+					"cost_tier": "paid",
+					"cost_note": "One-time Chrome Web Store developer fee",
+					"description": "Set Additional fields → Official URL to your root domain (for example https://www.openquok.com/). Check the link on the live store page after approval.",
+					"steps": [
+						{
+							"order": 1,
+							"title": "Open Developer Dashboard",
+							"body": "Sign in at https://chrome.google.com/webstore/devconsole and open your extension under Build."
+						},
+						{
+							"order": 2,
+							"title": "Set Official URL",
+							"body": "Under Additional fields, verify your domain if Google asks. Enter your site (for example openquok.com or https://www.openquok.com/)."
+						},
+						{
+							"order": 3,
+							"title": "Publish and verify",
+							"body": "Finish Store listing and Privacy, then submit. Open your public listing and confirm the official-site link."
+						}
+					],
+					"openquok_cta_kind": "external_doc",
+					"openquok_channel_slug": null,
+					"openquok_plug_name": null,
+					"cta_href": "https://www.openquok.com/browser-extension",
+					"cta_label": "OpenQuok browser extension",
+					"sort_order": 10,
+					"is_admin_published": true,
+					"auto_launch_enabled": false,
+					"auto_launch_provider_slug": null
+				},
+				{
+					"id": "d5f7d000-0020-4000-a000-000000000025",
+					"slug": "item-homepage-url",
+					"title": "Homepage URL",
+					"opportunity_type_slug": "product_submission",
+					"effort": "hard",
+					"approval_mode": "manual_review",
+					"approval_time_hint": "Same review as your extension package",
+					"dofollow": "dofollow",
+					"cost_tier": "paid",
+					"cost_note": "One-time Chrome Web Store developer fee",
+					"description": "Homepage URL in Store listing → Additional fields links buyers to your site. Examples: https://www.openquok.com/browser-extension or https://www.openquok.com/docs/installation/chrome-extension.",
+					"steps": [
+						{
+							"order": 1,
+							"title": "Open Store listing",
+							"body": "In the dashboard, go to Build → Store listing."
+						},
+						{
+							"order": 2,
+							"title": "Set Homepage URL",
+							"body": "In Additional fields, paste your landing or install page. Add Support URL if install docs live on another page."
+						},
+						{
+							"order": 3,
+							"title": "Check the live page",
+							"body": "After approval, open your listing on chromewebstore.google.com and confirm homepage and support links."
+						}
+					],
+					"openquok_cta_kind": "external_doc",
+					"openquok_channel_slug": null,
+					"openquok_plug_name": null,
+					"cta_href": "https://www.openquok.com/docs/installation/chrome-extension",
+					"cta_label": "Chrome extension install guide",
+					"sort_order": 20,
+					"is_admin_published": true,
+					"auto_launch_enabled": false,
+					"auto_launch_provider_slug": null
+				},
+				{
+					"id": "d5f7d000-0020-4000-a000-000000000026",
+					"slug": "privacy-policy-url",
+					"title": "Privacy policy URL",
+					"opportunity_type_slug": "product_submission",
+					"effort": "hard",
+					"approval_mode": "manual_review",
+					"approval_time_hint": "Required when the extension uses user data",
+					"dofollow": "dofollow",
+					"cost_tier": "free",
+					"cost_note": null,
+					"description": "Set Build → Privacy to your public policy URL. The store page can link out (for example https://www.openquok.com/privacy-policy). Match the text to your declared permissions.",
+					"steps": [
+						{
+							"order": 1,
+							"title": "Open Privacy",
+							"body": "In the dashboard, go to Build → Privacy."
+						},
+						{
+							"order": 2,
+							"title": "Add policy URL",
+							"body": "Paste your policy URL (for example https://www.openquok.com/privacy-policy)."
+						},
+						{
+							"order": 3,
+							"title": "Confirm on the listing",
+							"body": "After the listing is live, open the store page and confirm the privacy link works."
+						}
+					],
+					"openquok_cta_kind": "none",
+					"openquok_channel_slug": null,
+					"openquok_plug_name": null,
+					"cta_href": "/directory-submission-tool",
+					"cta_label": "Directory submission tool",
+					"sort_order": 30,
+					"is_admin_published": true,
+					"auto_launch_enabled": false,
+					"auto_launch_provider_slug": null
+				}
+			]
 		}
 	}
 }

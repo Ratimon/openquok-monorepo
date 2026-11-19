@@ -137,7 +137,7 @@
 					/>
 					{#if showSectionDescription}
 						<div
-							class="prose prose-sm max-w-none text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg dark:prose-invert"
+							class="prose prose-sm max-w-none text-base font-medium leading-relaxed text-pretty text-base-content/70 prose-a:link prose-a:underline sm:text-lg dark:prose-invert"
 						>
 							{@html sectionDescriptionHtml}
 						</div>
@@ -153,28 +153,29 @@
 				>
 					<ol class="list-none space-y-0 p-0">
 						{#each displaySteps as step, index (step.order)}
-							<li>
-								<button
-									type="button"
-									class="relative mb-8 flex w-full cursor-pointer items-center rounded-lg text-left transition-opacity last:mb-0 hover:opacity-100 {activeStepIndex ===
-									index
-										? 'opacity-100'
-										: 'opacity-60'}"
-									aria-current={activeStepIndex === index ? 'step' : undefined}
-									onclick={() => handleStepClick(index)}
+							<li
+								class="relative mb-8 transition-opacity last:mb-0 {activeStepIndex === index
+									? 'opacity-100'
+									: 'opacity-60'}"
+							>
+								<div
+									class="absolute inset-y-0 left-0 h-full w-0.5 overflow-hidden rounded-lg bg-base-content/20"
+									aria-hidden="true"
 								>
 									<div
-										class="absolute inset-y-0 left-0 h-full w-0.5 overflow-hidden rounded-lg bg-base-content/20"
-									>
-										<div
-											class="absolute top-0 left-0 w-full {activeStepIndex === index
-												? 'h-full'
-												: 'h-0'} origin-top bg-primary transition-all"
-										></div>
-									</div>
+										class="absolute top-0 left-0 w-full {activeStepIndex === index
+											? 'h-full'
+											: 'h-0'} origin-top bg-primary transition-all"
+									></div>
+								</div>
 
-									<div
-										class="mx-2 flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 sm:mx-6"
+								<div class="flex items-start">
+									<button
+										type="button"
+										class="mx-2 flex size-12 shrink-0 cursor-pointer items-center justify-center rounded-full bg-primary/10 transition hover:bg-primary/15 sm:mx-6"
+										aria-current={activeStepIndex === index ? 'step' : undefined}
+										aria-label={`Show step: ${step.stepTitle}`}
+										onclick={() => handleStepClick(index)}
 									>
 										<AbstractIcon
 											name={step.iconName}
@@ -182,20 +183,27 @@
 											width="24"
 											height="24"
 										/>
-									</div>
+									</button>
 
-									<div class="space-y-2">
-										<p class="text-xs font-semibold tracking-wide text-primary uppercase">
-											{step.displayTitle}
-										</p>
-										<h3 class="text-lg font-bold lg:text-2xl">{step.stepTitle}</h3>
+									<div class="min-w-0 flex-1 space-y-2 pb-1">
+										<button
+											type="button"
+											class="w-full cursor-pointer rounded-lg text-left transition hover:opacity-100"
+											aria-current={activeStepIndex === index ? 'step' : undefined}
+											onclick={() => handleStepClick(index)}
+										>
+											<p class="text-xs font-semibold tracking-wide text-primary uppercase">
+												{step.displayTitle}
+											</p>
+											<h3 class="text-lg font-bold lg:text-2xl">{step.stepTitle}</h3>
+										</button>
 										<div
-											class="prose prose-sm max-w-md text-base text-base-content/70 dark:prose-invert"
+											class="prose prose-sm max-w-md text-base text-base-content/70 prose-a:link prose-a:underline dark:prose-invert"
 										>
 											{@html stepBodyHtml(step.content)}
 										</div>
 									</div>
-								</button>
+								</div>
 							</li>
 						{/each}
 					</ol>

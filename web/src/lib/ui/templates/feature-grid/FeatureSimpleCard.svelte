@@ -16,6 +16,11 @@
 		eyebrow?: string;
 		title: string;
 		description: string;
+		/** When set, renders instead of plain `description` (e.g. link-directory overview cards). */
+		descriptionHtml?: string;
+		/** In-page jump when the card body includes its own anchors (`descriptionHtml`). */
+		anchorHref?: string;
+		anchorLabel?: string;
 		/** When set, the card navigates to this path (e.g. site guide or hub). */
 		href?: string;
 		icon: IconName;
@@ -70,6 +75,10 @@
 		)
 	);
 
+	const hasRichDescription = $derived(Boolean(item.descriptionHtml?.trim()));
+	const shellHref = $derived(hasRichDescription ? undefined : href);
+	const shellOnActivate = $derived(hasRichDescription ? undefined : onActivate);
+
 	const iconContainerClass = $derived(
 		item.containerClass ??
 			(backgroundVariant === 'striped'
@@ -115,12 +124,35 @@
 			<p class="text-xs font-semibold tracking-wide text-primary uppercase">{item.eyebrow}</p>
 		{/if}
 		<h3 class="text-base font-bold text-base-content">{item.title}</h3>
-		<p class="text-sm font-medium leading-relaxed text-pretty text-base-content/70">
-			{item.description}
-		</p>
+		{#if item.descriptionHtml?.trim()}
+			<div
+				class="prose prose-sm max-w-none text-sm font-medium leading-relaxed text-pretty text-base-content/70 prose-a:link prose-a:underline dark:prose-invert"
+			>
+				{@html item.descriptionHtml}
+			</div>
+			{#if item.anchorHref?.trim()}
+				<p class="pt-1">
+					<a
+						href={item.anchorHref}
+						class="text-sm font-semibold text-primary underline-offset-2 hover:underline"
+					>
+						{item.anchorLabel?.trim() || 'View playbook'}
+					</a>
+				</p>
+			{/if}
+		{:else}
+			<p class="text-sm font-medium leading-relaxed text-pretty text-base-content/70">
+				{item.description}
+			</p>
+		{/if}
 	</div>
 {/snippet}
 
-<PatternedCardShell class={cardClass} {href} {onActivate} aria-current={isActive ? 'page' : undefined}>
+<PatternedCardShell
+	class={cardClass}
+	href={shellHref}
+	onActivate={shellOnActivate}
+	aria-current={isActive ? 'page' : undefined}
+>
 	{@render cardBody()}
 </PatternedCardShell>

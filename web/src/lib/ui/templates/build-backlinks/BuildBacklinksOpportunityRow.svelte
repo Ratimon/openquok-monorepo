@@ -140,7 +140,9 @@
 {#snippet body()}
 	<div class="text-sm text-base-content/80">
 		{#if descriptionHtml}
-			<div class="prose prose-sm max-w-none leading-relaxed dark:prose-invert">
+			<div
+				class="prose prose-sm max-w-none leading-relaxed prose-a:link prose-a:underline dark:prose-invert"
+			>
 				{@html descriptionHtml}
 			</div>
 		{/if}
@@ -156,7 +158,9 @@
 				{#each sortedSteps as step (step.order)}
 					<li id={isExpanded ? opportunity.slug : undefined}>
 						<span class="font-medium text-base-content">{step.title}</span>
-						<div class="prose prose-sm max-w-none text-base-content/75 dark:prose-invert">
+						<div
+							class="prose prose-sm max-w-none text-base-content/75 prose-a:link prose-a:underline dark:prose-invert"
+						>
 							{@html stepBodyHtml(step.body)}
 						</div>
 					</li>

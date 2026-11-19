@@ -207,7 +207,9 @@
 				{/if}
 
 				{#if longDescriptionHtml}
-					<div class="prose prose-sm mt-6 max-w-none dark:prose-invert">
+					<div
+						class="prose prose-sm mt-6 max-w-none prose-a:link prose-a:underline dark:prose-invert"
+					>
 						{@html longDescriptionHtml}
 					</div>
 				{/if}

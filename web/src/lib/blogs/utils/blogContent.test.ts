@@ -76,6 +76,14 @@ describe('prepareBlogRichTextForDisplay', () => {
 		expect(html).toContain('rel="noopener noreferrer nofollow"');
 	});
 
+	it('linkifies bare URLs in plain text', () => {
+		const html = prepareBlogRichTextForDisplay(
+			'See https://www.openquok.com/privacy-policy for details.'
+		);
+		expect(html).toContain('href="https://www.openquok.com/privacy-policy"');
+		expect(html).not.toContain('nofollow');
+	});
+
 	it('wraps plain text without promoting headings', () => {
 		const html = prepareBlogRichTextForDisplay('Install the skill, then export SKILL.md.');
 		expect(html).toBe('<p>Install the skill, then export SKILL.md.</p>');

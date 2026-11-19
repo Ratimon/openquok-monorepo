@@ -39,6 +39,9 @@
 			eyebrow: card.eyebrow,
 			title: card.title,
 			description: card.description,
+			descriptionHtml: card.descriptionHtml,
+			anchorHref: `#${card.anchorId}`,
+			anchorLabel: 'View playbook',
 			icon: card.icon
 		};
 	}
@@ -66,7 +69,6 @@
 				{#each cards as card, index (card.slug)}
 					<FeatureSimpleCard
 						item={toFeatureCardItem(card)}
-						href={`#${card.anchorId}`}
 						pattern={cardPatternAtIndex(index)}
 						backgroundVariant="hexagon"
 					/>

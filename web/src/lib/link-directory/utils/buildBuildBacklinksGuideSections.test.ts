@@ -79,6 +79,7 @@ describe('buildBuildBacklinksGuideSections', () => {
 				eyebrow: '1st Backlink Opportunity',
 				title: 'Create Facebook Page, then add your backlink',
 				description: 'Add your site under Page About.',
+				descriptionHtml: '<p>Add your site under Page About.</p>',
 				anchorId: 'howto-page-about',
 				icon: 'Dice1'
 			},
@@ -87,6 +88,7 @@ describe('buildBuildBacklinksGuideSections', () => {
 				eyebrow: '2nd Backlink Opportunity',
 				title: 'Facebook Page post',
 				description: 'Add your site under Page About.',
+				descriptionHtml: '<p>Add your site under Page About.</p>',
 				anchorId: 'howto-page-post',
 				icon: 'Dice2'
 			}

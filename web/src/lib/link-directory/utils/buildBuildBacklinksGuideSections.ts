@@ -22,7 +22,10 @@ import {
 import { buildBacklinksGuideOrdinalIcon } from '$lib/link-directory/utils/buildBacklinksGuideOrdinalIcon';
 import { buildBacklinksDirectoryAutofillFooter } from '$lib/link-directory/utils/buildBacklinksDirectoryAutofillFooter';
 import { resolveOpportunityCta } from '$lib/link-directory/utils/resolveOpportunityCtaHref';
-import { linkDirectoryRichTextToPlainText } from '$lib/link-directory/utils/linkDirectoryRichText';
+import {
+	linkDirectoryRichTextToPlainText,
+	prepareLinkDirectoryRichTextForDisplay
+} from '$lib/link-directory/utils/linkDirectoryRichText';
 
 export type BuildBacklinksGuideOverviewCardVm = {
 	slug: string;
@@ -31,6 +34,8 @@ export type BuildBacklinksGuideOverviewCardVm = {
 	/** e.g. `1st Backlink Opportunity` */
 	eyebrow: string;
 	description: string;
+	/** Rich HTML for overview cards (clickable bare URLs in catalog copy). */
+	descriptionHtml: string;
 	anchorId: string;
 	icon: IconName;
 };
@@ -261,13 +266,14 @@ export function buildBuildBacklinksGuideSections(params: {
 			if (!name) {
 				return null;
 			}
+			const rawDescription =
+				opportunity.description?.trim() || opportunityStepFallbackText(name);
 			return {
 				slug: opportunity.slug,
 				eyebrow: formatOpportunityIndexTitle(index + 1),
 				title: name,
-				description:
-					linkDirectoryRichTextToPlainText(opportunity.description?.trim() || '') ||
-					opportunityStepFallbackText(name),
+				description: linkDirectoryRichTextToPlainText(rawDescription) || rawDescription,
+				descriptionHtml: prepareLinkDirectoryRichTextForDisplay(rawDescription),
 				anchorId: `howto-${opportunity.slug}`,
 				icon: buildBacklinksGuideOrdinalIcon(index + 1)
 			};
