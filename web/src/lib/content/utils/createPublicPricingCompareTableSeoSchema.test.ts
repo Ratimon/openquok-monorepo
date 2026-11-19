@@ -1,7 +1,9 @@
+import type { ItemList } from 'schema-dts';
 import { describe, expect, it } from 'vitest';
 
 import { PUBLIC_PRICING_COMPARE_SCHEMA_FRAGMENT_SUFFIX } from '$lib/billing/constants/publicPricingCompareSections';
 import { createPublicPricingCompareTableSeoSchema } from '$lib/content/utils/createPublicPricingCompareTableSeoSchema';
+import { getJsonLdNodeType } from '$lib/seo/jsonLdSchema';
 
 describe('createPublicPricingCompareTableSeoSchema', () => {
 	const canonical = 'https://www.openquok.com/pricing/social-scheduler';
@@ -17,9 +19,9 @@ describe('createPublicPricingCompareTableSeoSchema', () => {
 		expect(result).not.toEqual({});
 		if (!('nodes' in result)) return;
 
-		expect(result.nodes.some((node) => node['@type'] === 'WebPageElement')).toBe(true);
-		expect(result.nodes.some((node) => node['@type'] === 'TableOfContents')).toBe(true);
-		expect(result.nodes.filter((node) => node['@type'] === 'ItemList').length).toBeGreaterThanOrEqual(
+		expect(result.nodes.some((node) => getJsonLdNodeType(node) === 'WebPageElement')).toBe(true);
+		expect(result.nodes.some((node) => getJsonLdNodeType(node) === 'TableOfContents')).toBe(true);
+		expect(result.nodes.filter((node) => getJsonLdNodeType(node) === 'ItemList').length).toBeGreaterThanOrEqual(
 			2
 		);
 		expect(result.hasPartRefs.some((ref) => ref['@id'].includes('pricing-compare'))).toBe(true);
@@ -36,12 +38,14 @@ describe('createPublicPricingCompareTableSeoSchema', () => {
 		expect(directoryResult).not.toEqual({});
 		if (!('nodes' in directoryResult)) return;
 
-		const toc = directoryResult.nodes.find((node) => node['@type'] === 'TableOfContents');
-		const sectionsList = directoryResult.nodes.find(
-			(node) =>
-				node['@type'] === 'ItemList' &&
-				String(node['@id']).endsWith(PUBLIC_PRICING_COMPARE_SCHEMA_FRAGMENT_SUFFIX.sectionsItemList)
-		);
+		const toc = directoryResult.nodes.find((node) => getJsonLdNodeType(node) === 'TableOfContents');
+		const sectionsList = directoryResult.nodes.find((node) => {
+			if (typeof node !== 'object' || node === null) return false;
+			if (getJsonLdNodeType(node) !== 'ItemList' || !('@id' in node)) return false;
+			return String((node as { '@id'?: string })['@id']).endsWith(
+				PUBLIC_PRICING_COMPARE_SCHEMA_FRAGMENT_SUFFIX.sectionsItemList
+			);
+		}) as ItemList | undefined;
 
 		expect(toc).toBeTruthy();
 		expect(sectionsList).toBeTruthy();
