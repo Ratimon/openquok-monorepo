@@ -15,6 +15,7 @@ import {
     isBookmarkSavedMutationRoute,
     isIntegrationConnectPath,
     isPublicReadGet,
+    isPublicReadLinkDirectoryTaxonomyPath,
     isPublicWriteRoute,
     isUploadPath,
     isWebhookPath,
@@ -254,7 +255,14 @@ const buildRateLimiters = () => ({
             if (shouldSkipRateLimit()) return true;
             if (shouldSkipInfrastructurePaths(req)) return true;
             if (hasDedicatedRateLimiter(req, req.path)) return true;
-            return !isPublicReadGet(req, req.path);
+            if (!isPublicReadGet(req, req.path)) return true;
+            if (
+                tryResolveUserIdFromRequest(req) &&
+                isPublicReadLinkDirectoryTaxonomyPath(req.path)
+            ) {
+                return true;
+            }
+            return false;
         },
     } as RateLimitConfig),
     sessionLimiter: createRateLimiter({
