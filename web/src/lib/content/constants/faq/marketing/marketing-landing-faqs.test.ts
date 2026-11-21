@@ -19,7 +19,8 @@ describe('PUBLIC_SOCIAL_AUTOPILOT_LANDING_FAQ_SECTION', () => {
 		expect(items[0]?.id).toBe('switch-from-buffer-hootsuite');
 		expect(items.at(-1)?.title).toBe('Can I schedule from Chrome without opening the dashboard?');
 		expect(items.at(-2)?.title).toBe('Can I schedule from Grok Bot or other agent hosts?');
-		expect(items.at(-3)?.title).toBe('Do agents post without my approval?');
+		expect(items.at(-3)?.title).toBe('What is the best Postiz alternative with human approval?');
+		expect(items.at(-4)?.title).toBe('Do agents post without my approval?');
 	});
 
 	it('includes catalog and agent-host links without duplicate channel or MCP primers', () => {
@@ -28,6 +29,8 @@ describe('PUBLIC_SOCIAL_AUTOPILOT_LANDING_FAQ_SECTION', () => {
 		const titles = items.map((item) => item.title);
 
 		expect(html).toContain('/compare/openquok/buffer');
+		expect(html).toContain('/compare/openquok/postiz');
+		expect(html).toContain('/alternatives/postiz');
 		expect(html).toContain(`href="${publicFaqHref.grokBotLanding}"`);
 		expect(html).toContain(`href="${publicFaqHref.browserExtensionLanding}"`);
 		expect(html).toContain('chromewebstore.google.com');

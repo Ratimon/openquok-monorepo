@@ -1,9 +1,11 @@
 import type {
 	ComparePairLayout,
 	CompareProduct,
-	CompareProductCategory
+	CompareProductCategory,
+	CompareProductSlug
 } from '$lib/content/constants/competitors/types';
 import { COMPARE_HUB_BASE_SLUG } from '$lib/content/constants/competitors/shared';
+import { canonicalPeerComparePairKey } from '$lib/content/constants/competitors/utils/compareHubPairEmphasis';
 
 /**
  * Repeatable title templates for programmatic SEO (head term + modifier).
@@ -199,13 +201,33 @@ export function buildCompareHubMetaTitle(baseProductName: string, isOpenQuokHub:
 	return `Best ${baseProductName} Alternatives`;
 }
 
+/** GSC Track A slugs: query-shaped title suffixes (see docs/seo/research/2026-11-21-gsc-scheduler-hub.md). */
+const ALTERNATIVES_DETAIL_TRACK_A_TITLE_HOOK: Partial<
+	Record<CompareProductSlug, string>
+> = {
+	buffer: 'Free & Self-Hosted',
+	later: 'Free Trials & Pricing',
+	socialync: 'Free Trial & MCP'
+};
+
+const ALTERNATIVES_DETAIL_TRACK_A_SNIPPET_SLUGS = new Set<CompareProductSlug>([
+	'buffer',
+	'later',
+	'socialync'
+]);
+
 /** SERP `<title>` for `/alternatives/{slug}` — keep near ~60 characters before `| OpenQuok` from `createMetaData`. */
 export function buildAlternativesDetailMetaTitle(
 	targetName: string,
-	category: CompareProductCategory = 'social_scheduling'
+	category: CompareProductCategory = 'social_scheduling',
+	targetSlug?: CompareProductSlug
 ): string {
 	if (category === 'directory_submission') {
 		return `${targetName} Alternatives (2026): Directory Launch`;
+	}
+	const titleHook = targetSlug ? ALTERNATIVES_DETAIL_TRACK_A_TITLE_HOOK[targetSlug] : undefined;
+	if (titleHook) {
+		return `${targetName} Alternatives (2026): ${titleHook}`;
 	}
 	return `${targetName} Alternatives (2026): Ranked Schedulers`;
 }
@@ -219,14 +241,26 @@ function formatAlternativesPeerNameList(peerNames: readonly string[]): string {
 	return `${names[0]}, ${names[1]}, ${names[2]}, and ${names[3]}`;
 }
 
-/** Meta description for alternatives detail — trial/self-host hook first, then query match and named peers. */
+/** Meta description for alternatives detail — Track A leads with query echo + trial; default leads with trial hook. */
 export function buildAlternativesDetailMetaDescription(
 	targetName: string,
-	peerNames: readonly string[]
+	peerNames: readonly string[],
+	targetSlug?: CompareProductSlug
 ): string {
 	const peers = formatAlternativesPeerNameList(peerNames);
 	const hook =
 		'Start a 7-day free trial, self-host at $0, or schedule with MCP and the Public API on OpenQuok.';
+	const isTrackASnippet =
+		targetSlug != null && ALTERNATIVES_DETAIL_TRACK_A_SNIPPET_SLUGS.has(targetSlug);
+
+	if (isTrackASnippet) {
+		const lead = `Compare the best ${targetName} alternatives — ${hook}`;
+		if (!peers) {
+			return `${lead} See ranked prices, channels, and agent scheduling.`;
+		}
+		return `${lead} Top picks include ${peers}. See prices, channels, and agent tools.`;
+	}
+
 	if (!peers) {
 		return `${hook} Compare ranked ${targetName} alternatives with prices, channels, and agent tools.`;
 	}
@@ -267,6 +301,24 @@ export function buildSchedulingCommercialChannelMetaDescription(
 	return `Start a free trial and schedule ${platformLabel} posts with OpenQuok. ${connectClause} ${featureClause}`;
 }
 
+/**
+ * GSC WS4: richer snippet leads for measured high-impression, low-CTR compare URLs.
+ * Do not add winning peer pairs (e.g. mixpost/postiz) — hold their snippets.
+ */
+const COMPARE_PAIR_WS4_RICH_SNIPPET_LEAD: Partial<Record<string, string>> = {
+	'openquok/postiz':
+		'OpenQuok vs Postiz: prices from $0 self-host or a 7-day free trial. OpenQuok adds human approval, agent hosts, and directory launch. Postiz packs 30+ networks and OSS self-host.',
+	'buffer/recurpost':
+		'RecurPost vs Buffer: list prices, free trials, and supported channels. RecurPost recycles evergreen content for agencies. Buffer bundles publish and analytics per channel.',
+	'recurpost/typefully':
+		'Typefully vs RecurPost: list prices, free trials, and supported channels. Typefully is writing-first for creators and teams. RecurPost recycles evergreen posts for agencies.'
+};
+
+function resolveComparePairWs4RichSnippetLead(left: CompareProduct, right: CompareProduct): string | undefined {
+	const pairKey = canonicalPeerComparePairKey(left.slug, right.slug);
+	return COMPARE_PAIR_WS4_RICH_SNIPPET_LEAD[pairKey];
+}
+
 function buildCompareMetaDescriptionClosing(
 	left: CompareProduct,
 	right: CompareProduct,
@@ -303,6 +355,11 @@ export function buildComparePairMetaDescription(
 
 	if (layout === 'cross_product_line') {
 		return `Compare ${left.name} and ${right.name} across product lines — social scheduling vs directory launch. See which job each tool covers, then open category compares for pricing and features.`;
+	}
+
+	const ws4RichLead = resolveComparePairWs4RichSnippetLead(left, right);
+	if (ws4RichLead) {
+		return `${ws4RichLead} See side-by-side pricing, channels, and features.`;
 	}
 
 	const hasOpenQuok = left.slug === COMPARE_HUB_BASE_SLUG || right.slug === COMPARE_HUB_BASE_SLUG;

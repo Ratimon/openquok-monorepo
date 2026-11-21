@@ -15,9 +15,9 @@ export const publicApiSchedulingHubPage: PublicApiHubPageViewModel = {
 		'Use the same POST /public/posts endpoint for posting and scheduling',
 		'Track post rows from the public API, SDK, CLI, or MCP'
 	],
-	metaTitle: 'Social Media Scheduling API — Schedule Posts with OpenQuok',
+	metaTitle: buildPublicApiHubHeroTitle('scheduling'),
 	metaDescription:
-		'Social media scheduling API: POST /public/posts with scheduledAt in UTC for TikTok, Instagram, X, LinkedIn, Facebook, Threads, and YouTube. Start a 7-day free trial, connect channels, and explore per-platform JSON examples.',
+		'Social media scheduling API: sign up for a free trial, then POST /public/posts with scheduledAt in UTC for TikTok, Instagram, X, LinkedIn, Facebook, Threads, and YouTube. Connect channels and explore per-platform JSON examples.',
 	keywords: [
 		...SHARED_PUBLIC_API_SEO_KEYWORDS,
 		'social media scheduling API',

@@ -322,11 +322,19 @@ export class PublicAlternativesPagePresenter {
 		const metaTitle = isOpenQuokTarget
 			? 'Best OpenQuok Alternatives'
 			: (targetProduct.alternativesSeo?.metaTitle ??
-				buildAlternativesDetailMetaTitle(targetProduct.name, alternativesCategory));
+				buildAlternativesDetailMetaTitle(
+					targetProduct.name,
+					alternativesCategory,
+					targetProduct.slug
+				));
 		const metaDescription = isOpenQuokTarget
 			? `Compare alternatives to OpenQuok. See social schedulers and directory submission services. Compare prices, channels, and agent tools. See ${alternativeCountLabel}.`
 			: (targetProduct.alternativesSeo?.metaDescription ??
-				buildAlternativesDetailMetaDescription(targetProduct.name, peerNames));
+				buildAlternativesDetailMetaDescription(
+					targetProduct.name,
+					peerNames,
+					targetProduct.slug
+				));
 
 		return {
 			metaTitle,

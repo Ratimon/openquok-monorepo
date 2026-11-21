@@ -81,6 +81,11 @@ describe('publicApiCatalog', () => {
 		expect(publicApiPostingHubPage.heroBullets.length).toBe(4);
 		expect(publicApiSchedulingHubPage.heroTitle).toBe(buildPublicApiHubHeroTitle('scheduling'));
 		expect(publicApiSchedulingHubPage.heroTitle).toBe('Social Media Scheduling API');
+		expect(publicApiSchedulingHubPage.metaTitle).toBe('Social Media Scheduling API');
+		expect(publicApiSchedulingHubPage.metaDescription).toMatch(
+			/^Social media scheduling API: sign up for a free trial/i
+		);
+		expect(publicApiSchedulingHubPage.metaDescription).toContain('POST /public/posts');
 		expect(publicApiSchedulingHubPage.heroDescription).toContain('UTC');
 		expect(publicApiSchedulingHubPage.heroBullets.length).toBe(4);
 		expect(publicApiPostingHubPage.faqItems.length).toBeGreaterThan(0);

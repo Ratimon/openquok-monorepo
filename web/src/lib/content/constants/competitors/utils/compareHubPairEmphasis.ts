@@ -22,7 +22,8 @@ export const EMPHASIZED_PEER_COMPARE_BY_TARGET: Partial<
 	blotato: ['buffer'],
 	recurpost: ['buffer'],
 	postiz: ['mixpost', 'post-bridge'],
-	mixpost: ['postiz']
+	mixpost: ['postiz'],
+	'post-bridge': ['postiz']
 };
 
 /** OpenQuok hub cards to surface first on `/compare` (social section). */

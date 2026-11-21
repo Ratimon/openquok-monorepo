@@ -21,12 +21,15 @@
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import IconTileGrid from '$lib/ui/templates/feature-grid/IconTileGrid.svelte';
+	import SimpleCardGrid from '$lib/ui/templates/feature-grid/SimpleCardGrid.svelte';
+	import SimpleLinkCard from '$lib/ui/templates/feature-grid/SimpleLinkCard.svelte';
 	import HeroDemo from '$lib/ui/templates/landing-page/HeroDemo.svelte';
 	import PublicSocialAutopilotHero from '$lib/ui/templates/landing-page/PublicSocialAutopilotHero.svelte';
 	import PublicLandingHeroStatBadges from '$lib/ui/templates/landing-page/PublicLandingHeroStatBadges.svelte';
 	import PublicSocialAutopilotProductFeatureSections from '$lib/ui/templates/landing-page/PublicSocialAutopilotProductFeatureSections.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
+	import StripedPattern from '$lib/ui/patterns/StripedPattern.svelte';
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 	import PublicOpportunitiesPreviewGrid from '$lib/ui/templates/opportunities-preview/PublicOpportunitiesPreviewGrid.svelte';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
@@ -92,6 +95,17 @@
 	const gettingStartedDocsBanner = PUBLIC_HUB_DOCS_BANNERS.gettingStarted;
 	const landingDocsBanner = PUBLIC_HUB_DOCS_BANNERS.landing;
 	const billingDocsBanner = PUBLIC_HUB_DOCS_BANNERS.pricing;
+
+	const relatedLinkItems = $derived(
+		landing.relatedLinksSection.items.map((item) => ({
+			id: item.id,
+			title: item.title,
+			description: item.description,
+			href: hostedMarketingHref(item.href, page.url.origin),
+			ctaLabel: item.ctaLabel,
+			iconName: item.iconName
+		}))
+	);
 </script>
 
 <JsonLdHead schemaData={schemaData} />
@@ -151,6 +165,28 @@
 		linkTiles={true}
 		headingId="social-autopilot-features-grid-heading"
 	/>
+
+	<SimpleCardGrid
+		heroTheme={landingHeroTheme}
+		headingId="social-autopilot-related-links-heading"
+		subtitle={landing.relatedLinksSection.subtitle}
+		title={landing.relatedLinksSection.title}
+		description={landing.relatedLinksSection.description}
+		items={relatedLinkItems}
+		getItemKey={(item) => item.id}
+		sectionClass="container mx-auto mt-16 max-w-6xl scroll-mt-24 px-4"
+		patternComponent={StripedPattern}
+		patternClass="text-primary/12 stroke-[0.75]"
+	>
+		{#snippet card(item, context)}
+			<SimpleLinkCard
+				{item}
+				pattern={context.pattern}
+				patternComponent={context.patternComponent}
+				patternClass={context.patternClass}
+			/>
+		{/snippet}
+	</SimpleCardGrid>
 
 	<PublicMarketingPricingSection
 		presetId="social-scheduler"

@@ -341,7 +341,6 @@
 					<li>
 						<SimpleLinkCard
 							{item}
-							pattern={null}
 							patternComponent={StripedPattern}
 							patternClass="text-primary/12 stroke-[0.75]"
 						/>

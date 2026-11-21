@@ -157,12 +157,25 @@ describe('PublicAlternativesPagePresenter', () => {
 		const vm = presenter.buildDetailVm('later');
 		expect(vm).not.toBeNull();
 
-		expect(vm!.metaTitle).toBe('Later Alternatives (2026): Ranked Schedulers');
-		expect(vm!.metaDescription).toContain('Later alternatives');
+		expect(vm!.metaTitle).toBe('Later Alternatives (2026): Free Trials & Pricing');
+		expect(vm!.metaDescription).toMatch(/^Compare the best Later alternatives/);
+		expect(vm!.metaDescription).toContain('7-day free trial');
 		expect(vm!.metaDescription).toContain('OpenQuok');
 		expect(vm!.targetName).toBe('Later');
 		expect(vm!.listings[0]?.isOpenQuok).toBe(true);
 		expect(vm!.listings[0]?.compareHref).toContain('/compare/openquok/later');
+	});
+
+	it('builds Track A snippet SEO for Buffer and Socialync via centralized builders', () => {
+		const bufferVm = presenter.buildDetailVm('buffer');
+		expect(bufferVm?.metaTitle).toBe('Buffer Alternatives (2026): Free & Self-Hosted');
+		expect(bufferVm?.metaDescription).toMatch(/^Compare the best Buffer alternatives/);
+		expect(bufferVm?.metaDescription).toContain('self-host at $0');
+
+		const socialyncVm = presenter.buildDetailVm('socialync');
+		expect(socialyncVm?.metaTitle).toBe('Socialync Alternatives (2026): Free Trial & MCP');
+		expect(socialyncVm?.metaDescription).toMatch(/^Compare the best Socialync alternatives/);
+		expect(socialyncVm?.metaDescription).toContain('MCP');
 	});
 
 	it('highlights OpenQuok open-source positioning in the #1 listing description', () => {

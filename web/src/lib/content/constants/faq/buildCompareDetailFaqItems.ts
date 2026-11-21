@@ -11,12 +11,43 @@ import {
 	type PublicFaqItem,
 	type PublicFaqItemId
 } from '$lib/content/constants/faq';
+import { getRootPathPublicAlternativesTarget } from '$lib/area-public/constants/getRootPathPublicAlternatives';
 import { faqHrefComparePair, faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+import { route } from '$lib/utils/path';
 
 function buildOpenquokVsPostizCompareLeadFaqItem(): PublicFaqItem {
+	const postizAlternativesHref = route(getRootPathPublicAlternativesTarget('postiz'));
+
 	return {
 		title: 'Where can I read a longer OpenQuok vs Postiz guide?',
-		description: `This page is the side-by-side matrix. For open-source licenses, channel tiers, kanban review, directory autofill, and Reddit draft-and-handoff, read ${faqLink(publicFaqHref.blogOpenquokVsPostiz, 'OpenQuok vs Postiz: two open-source schedulers, different strengths')}. For Reddit-only workflow detail, see ${faqLink(publicFaqHref.blogRedditAgents, 'AI agents for Reddit: promote without getting banned')}.`
+		description: `This page is the side-by-side matrix. Start from ${faqLink(postizAlternativesHref, 'Postiz alternatives')} when you want ranked picks beside this table. For peer stacks with measured search demand, also read ${faqLink(publicFaqHref.compareMixpostPostiz, 'Mixpost vs Postiz')} and ${faqLink(publicFaqHref.comparePostizPostBridge, 'Post Bridge vs Postiz')}. For open-source licenses, channel tiers, kanban review, directory autofill, and Reddit draft-and-handoff, read ${faqLink(publicFaqHref.blogOpenquokVsPostiz, 'OpenQuok vs Postiz: two open-source schedulers, different strengths')}. For Reddit-only workflow detail, see ${faqLink(publicFaqHref.blogRedditAgents, 'AI agents for Reddit: promote without getting banned')}.`
+	};
+}
+
+function buildPostizClusterPeerCompareLeadFaqItem(
+	leftSlug: CompareProductSlug,
+	rightSlug: CompareProductSlug
+): PublicFaqItem | null {
+	const pairKey = canonicalPeerComparePairKey(leftSlug, rightSlug);
+	if (pairKey !== 'mixpost/postiz' && pairKey !== 'post-bridge/postiz') {
+		return null;
+	}
+
+	const left = getCompareProduct(leftSlug);
+	const right = getCompareProduct(rightSlug);
+	const leftName = left?.name ?? leftSlug;
+	const rightName = right?.name ?? rightSlug;
+	const postizAlternativesHref = route(getRootPathPublicAlternativesTarget('postiz'));
+	const siblingHref =
+		pairKey === 'mixpost/postiz'
+			? publicFaqHref.comparePostizPostBridge
+			: publicFaqHref.compareMixpostPostiz;
+	const siblingLabel =
+		pairKey === 'mixpost/postiz' ? 'Post Bridge vs Postiz' : 'Mixpost vs Postiz';
+
+	return {
+		title: `How does ${leftName} vs ${rightName} relate to OpenQuok?`,
+		description: `This table compares two schedulers on your shortlist. For OpenQuok beside Postiz — approval queue, agent MCP, and directory launch — read ${faqLink(publicFaqHref.compareOpenquokPostiz, 'OpenQuok vs Postiz')}. For ranked Postiz replacements, open ${faqLink(postizAlternativesHref, 'Postiz alternatives')}. When you also evaluate the other measured Postiz peer pair, read ${faqLink(siblingHref, siblingLabel)}.`
 	};
 }
 
@@ -51,8 +82,13 @@ export function buildCompareDetailSocialFaqItems(
 	const leadItems: PublicFaqItem[] = [];
 	if (isOpenquokPostizPair) {
 		leadItems.push(buildOpenquokVsPostizCompareLeadFaqItem());
-	} else if (isHighCtrPeerComparePair(leftSlug, rightSlug)) {
-		leadItems.push(buildPeerSchedulerCompareLeadFaqItem(leftSlug, rightSlug));
+	} else {
+		const postizClusterLead = buildPostizClusterPeerCompareLeadFaqItem(leftSlug, rightSlug);
+		if (postizClusterLead) {
+			leadItems.push(postizClusterLead);
+		} else if (isHighCtrPeerComparePair(leftSlug, rightSlug)) {
+			leadItems.push(buildPeerSchedulerCompareLeadFaqItem(leftSlug, rightSlug));
+		}
 	}
 
 	if (leadItems.length === 0) {

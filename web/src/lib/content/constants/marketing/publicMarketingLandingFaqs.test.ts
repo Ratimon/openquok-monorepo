@@ -10,7 +10,7 @@ import {
 describe('publicMarketingLandingFaqs', () => {
 	it('exposes tailored social-autopilot FAQ copy', () => {
 		const section = getPublicMarketingLandingFaqSection('social-autopilot');
-		expect(section.faqTitle.toLowerCase()).toContain('agent');
+		expect(section.faqTitle.toLowerCase()).toContain('scheduler');
 		expect(section.faqItems.some((item) => item.title.includes('approval'))).toBe(true);
 	});
 

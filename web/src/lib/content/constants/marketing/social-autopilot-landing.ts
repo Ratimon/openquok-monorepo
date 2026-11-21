@@ -4,15 +4,14 @@
  * Not the home page (`/`) — home feature copy lives in `CONFIG_SCHEMA_LANDING_PAGE` and CMS `landing_page`.
  */
 import { icons } from '$data/icons';
+import type { IconName } from '$data/icons';
 
+import { getRootPathPublicAlternativesTarget } from '$lib/area-public/constants/getRootPathPublicAlternatives';
 import { getRootPathPublicSocialAutopilotLanding } from '$lib/area-public/constants/getRootPathPublicSocialAutopilotLanding';
-import type { PublicFaqItem } from '$lib/content/constants/faq';
-import {
-	appendPublicGeneralFaqItems,
-	PUBLIC_SOCIAL_AUTOPILOT_FAQ_ITEM_IDS
-} from '$lib/content/constants/faq';
+import { PUBLIC_SOCIAL_AUTOPILOT_LANDING_FAQ_SECTION } from '$lib/content/constants/faq/marketing/social-autopilot';
+import type { PublicMarketingLandingFaqSection } from '$lib/content/constants/faq/marketing/types';
 import { PUBLIC_LANDING_HERO_TRIAL_CTA } from '$lib/content/constants/landing/hero-copy';
-import { faqHrefDocs, faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+import { faqHrefComparePair, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 import type { PublicLandingHeroStatBadge } from '$lib/content/constants/marketing/publicLandingHeroStatBadges';
 import { route } from '$lib/utils/path';
@@ -31,6 +30,15 @@ export type PublicSocialAutopilotSectionHeader = {
 	subtitle: string;
 	title: string;
 	description: string;
+};
+
+export type PublicSocialAutopilotLinkCardItem = {
+	id: string;
+	title: string;
+	description: string;
+	href: string;
+	ctaLabel: string;
+	iconName: IconName;
 };
 
 /** Mirrors home `FEATURE_9` parallel scale block (copy duplicated from landing schema defaults). */
@@ -71,12 +79,10 @@ export type PublicSocialAutopilotLandingConfig = {
 	};
 	productFeatureSections: PublicSocialAutopilotProductFeatureSections;
 	featuresGridSection: PublicSocialAutopilotSectionHeader;
-	faqSection: {
-		faqSubtitle: string;
-		faqTitle: string;
-		faqDescription: string;
-		faqItems: readonly PublicFaqItem[];
+	relatedLinksSection: PublicSocialAutopilotSectionHeader & {
+		items: readonly PublicSocialAutopilotLinkCardItem[];
 	};
+	faqSection: PublicMarketingLandingFaqSection;
 	docsBanner: {
 		title: string;
 		description: string;
@@ -89,29 +95,13 @@ export type PublicSocialAutopilotLandingConfig = {
 	};
 };
 
-/** Page-specific FAQs after {@link PUBLIC_SOCIAL_AUTOPILOT_FAQ_ITEM_IDS} (no overlap with catalog). */
-const tailoredFaqItems: readonly PublicFaqItem[] = [
-	{
-		title: 'Do agents post without my approval?',
-		description: `No. Agent hosts, MCP clients, and the CLI can draft and queue posts, but nothing goes live until you approve on the ${faqLink(publicFaqHref.docsCalendar, 'calendar')} or ${faqLink(publicFaqHref.docsKanban, 'kanban')}.`
-	},
-	{
-		title: 'Can I schedule from Grok Bot or other agent hosts?',
-		description: `Yes. Install openquok-core on ${faqLink(publicFaqHref.grokBotLanding, 'Grok Bot')}, OpenClaw, ThinkRail, or other hosts listed in the ${faqLink(agentsHubHref, 'Agents hub')}. Chat-to-schedule uses the same review queue as the dashboard — see ${faqLink(publicFaqHref.grokBotAgentGuide, 'Grok Bot setup')}.`
-	},
-	{
-		title: 'Can I schedule from Chrome without opening the dashboard?',
-		description: `Yes. Install the OpenQuok browser extension and use the side panel from any tab — same channels, drafts, and approval flow as the dashboard. See the ${faqLink(publicFaqHref.browserExtensionLanding, 'browser extension')} page and the ${faqLink(faqHrefDocs('installation/chrome-extension'), 'install guide')}.`
-	}
-];
-
 export const PUBLIC_SOCIAL_AUTOPILOT_LANDING_CONFIG: PublicSocialAutopilotLandingConfig = {
-	metaTitle: 'Agentic Social Media Scheduling Platform',
+	metaTitle: 'Agentic Social Media Scheduler',
 	metaDescription:
-		'OpenQuok is the agentic social media scheduler: AI agents plan, draft, and queue posts across your connected channels. Review everything on one visual calendar before you publish.',
+		'OpenQuok is the agentic social media scheduler: AI agents plan, draft, and queue posts across your connected channels. You approve every draft on one visual calendar before publish. Use MCP, CLI, and API like Postiz-class self-host stacks — with human review built in.',
 	keywords: [
-		'agentic social media scheduling platform',
 		'agentic social media scheduler',
+		'agentic social media scheduling platform',
 		'social media scheduling platform',
 		'social media management',
 		'social media scheduler',
@@ -126,9 +116,9 @@ export const PUBLIC_SOCIAL_AUTOPILOT_LANDING_CONFIG: PublicSocialAutopilotLandin
 		'social media calendar approval'
 	],
 	hero: {
-		subtitle: 'Social media management',
-		// Line 2: `agenthost` → icon + rotating labels (`LANDING_HERO_SOCIAL_AGENT_ROTATE_OPTIONS` in `landingHeroTheme.ts`).
-		title: 'Run your social media on\nautopilot with agenthost',
+		subtitle: 'Social media scheduler',
+		// Line 1: query-shaped H1. Line 2: `agenthost` → icon + rotating labels (`LANDING_HERO_SOCIAL_AGENT_ROTATE_OPTIONS`).
+		title: 'Agentic social media scheduler\nRun on autopilot with agenthost',
 		description:
 			'Agentic social media scheduler for your connected channels: AI agents plan, draft, and queue posts — you review every draft on one visual calendar before anything goes live. Grok Bot, OpenClaw, Hermes, Cursor, Claude. CLI, MCP, API.',
 		primaryCta: {
@@ -183,8 +173,8 @@ export const PUBLIC_SOCIAL_AUTOPILOT_LANDING_CONFIG: PublicSocialAutopilotLandin
 		}
 	],
 	whoIsFor: {
-		audienceSubtitle: 'Teams that want speed without losing control',
-		audienceTitle: 'Who runs social on autopilot with OpenQuok?',
+		audienceSubtitle: 'Teams that want agentic scheduling without losing control',
+		audienceTitle: 'Who uses an agentic social media scheduler with approval?',
 		audienceCards: [
 			{
 				iconName: icons.CustomizedDrawnLaptop.name,
@@ -214,8 +204,8 @@ export const PUBLIC_SOCIAL_AUTOPILOT_LANDING_CONFIG: PublicSocialAutopilotLandin
 	},
 	productFeatureSections: {
 		feature1: {
-			subtitle: 'Multi Agent Workspaces',
-			title: 'Connect once, automate social platforms, via chat, minimal hallucinations',
+			subtitle: 'Agent workspaces and MCP',
+			title: 'Can I schedule from Grok Bot and other agent hosts?',
 			description:
 				'Give each brand, client, or agent its own workspace with isolated channels. Reach your agents from Telegram or other chat apps (ChatGPT, Claude, Openclaw, etc.), then run dozens of social channels without one shared context — or your AI mixing up workflows.'
 		},
@@ -245,8 +235,8 @@ export const PUBLIC_SOCIAL_AUTOPILOT_LANDING_CONFIG: PublicSocialAutopilotLandin
 				'Day, week, month, and list views plus filters by platform, channel group, or colored tags. Switch to list for deep history or far-out dates, then schedule ahead without scrolling an endless AI queue.'
 		},
 		feature6: {
-			subtitle: 'Kanban + smart filters',
-			title: 'Review every AI draft, before it goes live',
+			subtitle: 'Kanban review',
+			title: 'Do agents post without your approval?',
 			description:
 				'Move/Drag draft cards to schedule or publish, filter by tag, channel group, platform, agent source, or review to-do. Approve quality at scale instead of trusting autopilot.'
 		},
@@ -278,20 +268,117 @@ openquok analytics:post <post-id> -d 30`
 		}
 	},
 	featuresGridSection: {
-		subtitle: 'Supported Channels',
-		title: 'Supported social media channels',
+		subtitle: 'Supported channels',
+		title: 'Which social networks can you schedule?',
 		description:
 			'Connect the networks you publish to and manage them from one workspace — no switching tools per platform.'
 	},
-	faqSection: {
-		faqSubtitle: 'Social autopilot',
-		faqTitle: 'Questions about agent-assisted scheduling',
-		faqDescription:
-			'How OpenQuok combines agents, MCP, CLI, and APIs with a human approval step.',
-		faqItems: appendPublicGeneralFaqItems(tailoredFaqItems, PUBLIC_SOCIAL_AUTOPILOT_FAQ_ITEM_IDS, {
-			generalFirst: true
-		})
+	relatedLinksSection: {
+		subtitle: 'Compare and self-host',
+		title: 'Postiz, Mixpost, Buffer, and scheduling APIs',
+		description:
+			'OpenQuok is an approval-first agentic scheduler. Open these guides when you compare Postiz-class self-host stacks, hosted Buffer-style plans, or wire agents through MCP and the public API.',
+		items: [
+			{
+				id: 'compare-openquok-postiz',
+				title: 'OpenQuok vs Postiz',
+				description:
+					'Cloud trial versus AGPL self-host, MCP tools, workspace limits, and human approval before publish.',
+				href: publicFaqHref.compareOpenquokPostiz,
+				ctaLabel: 'Read comparison →',
+				iconName: icons.Columns2.name
+			},
+			{
+				id: 'alternatives-postiz',
+				title: 'Postiz alternatives',
+				description: 'Ranked open-source and hosted schedulers when Postiz is on your shortlist.',
+				href: route(getRootPathPublicAlternativesTarget('postiz')),
+				ctaLabel: 'View alternatives →',
+				iconName: icons.Grid3x3.name
+			},
+			{
+				id: 'compare-mixpost-postiz',
+				title: 'Mixpost vs Postiz',
+				description: 'Two Laravel-based self-host stacks — pricing, channels, and operator trade-offs.',
+				href: publicFaqHref.compareMixpostPostiz,
+				ctaLabel: 'Read comparison →',
+				iconName: icons.Columns2.name
+			},
+			{
+				id: 'compare-postiz-mixpost',
+				title: 'Postiz vs Mixpost',
+				description: 'Same pairing from the Postiz side when you already run or evaluate Postiz.',
+				href: faqHrefComparePair('postiz', 'mixpost'),
+				ctaLabel: 'Read comparison →',
+				iconName: icons.Columns2.name
+			},
+			{
+				id: 'alternatives-buffer',
+				title: 'Buffer alternatives',
+				description: 'Hosted schedulers and self-host options when Buffer caps or pricing stall you.',
+				href: route(getRootPathPublicAlternativesTarget('buffer')),
+				ctaLabel: 'View alternatives →',
+				iconName: icons.Grid3x3.name
+			},
+			{
+				id: 'compare-openquok-buffer',
+				title: 'OpenQuok vs Buffer',
+				description: 'Approval queues, agent hosts, and plan limits beside Buffer’s hosted tiers.',
+				href: publicFaqHref.compareOpenquokBuffer,
+				ctaLabel: 'Read comparison →',
+				iconName: icons.Columns2.name
+			},
+			{
+				id: 'alternatives-recurpost',
+				title: 'RecurPost alternatives',
+				description: 'Ranked picks when you outgrow RecurPost or want more channels and agent tooling.',
+				href: route(getRootPathPublicAlternativesTarget('recurpost')),
+				ctaLabel: 'View alternatives →',
+				iconName: icons.Grid3x3.name
+			},
+			{
+				id: 'compare-hub',
+				title: 'Compare hub',
+				description: 'Side-by-side tables for schedulers, directory tools, and OpenQuok pairs.',
+				href: publicFaqHref.compare,
+				ctaLabel: 'Browse comparisons →',
+				iconName: icons.List.name
+			},
+			{
+				id: 'alternatives-openquok',
+				title: 'OpenQuok alternatives',
+				description: 'See how other schedulers and launch tools compare when OpenQuok is your baseline.',
+				href: route(getRootPathPublicAlternativesTarget('openquok')),
+				ctaLabel: 'View alternatives →',
+				iconName: icons.Grid3x3.name
+			},
+			{
+				id: 'scheduling-api',
+				title: 'Social Media Scheduling API',
+				description: 'Schedule posts with API keys, webhooks, and the Node SDK from your backend.',
+				href: publicFaqHref.socialMediaSchedulingApi,
+				ctaLabel: 'Open API hub →',
+				iconName: icons.Code.name
+			},
+			{
+				id: 'agents-hub',
+				title: 'Agent and MCP integrations',
+				description: 'Grok Bot, Cursor, Claude, and MCP clients that call schedulePostTool on your workspace.',
+				href: publicFaqHref.agents,
+				ctaLabel: 'Browse agents →',
+				iconName: icons.Bot.name
+			},
+			{
+				id: 'self-hosting',
+				title: 'Self-host OpenQuok',
+				description: 'Docker Compose, device login for agents, and workspace data on your own infrastructure.',
+				href: publicFaqHref.selfHostingLanding,
+				ctaLabel: 'View self-host guide →',
+				iconName: icons.BookOpenCheck.name
+			}
+		]
 	},
+	faqSection: PUBLIC_SOCIAL_AUTOPILOT_LANDING_FAQ_SECTION,
 	docsBanner: {
 		title: 'Connect channels and wire your first agent',
 		description:

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
 	bufferCompareProduct,
 	openquokCompareProduct,
+	postizCompareProduct,
 	recurpostCompareProduct,
 	typefullyCompareProduct
 } from '$lib/content/constants/competitors';
@@ -106,7 +107,15 @@ describe('buildProgrammaticSeoTitles — public tools', () => {
 
 describe('buildProgrammaticSeoTitles — alternatives and compare meta', () => {
 	it('builds alternatives detail meta titles within SERP length budget', () => {
-		expect(buildAlternativesDetailMetaTitle('Later')).toBe('Later Alternatives (2026): Ranked Schedulers');
+		expect(buildAlternativesDetailMetaTitle('Later', 'social_scheduling', 'later')).toBe(
+			'Later Alternatives (2026): Free Trials & Pricing'
+		);
+		expect(buildAlternativesDetailMetaTitle('Buffer', 'social_scheduling', 'buffer')).toBe(
+			'Buffer Alternatives (2026): Free & Self-Hosted'
+		);
+		expect(buildAlternativesDetailMetaTitle('Socialync', 'social_scheduling', 'socialync')).toBe(
+			'Socialync Alternatives (2026): Free Trial & MCP'
+		);
 		expect(buildAlternativesDetailMetaTitle('Hootsuite').length).toBeLessThanOrEqual(60);
 		expect(buildAlternativesDetailMetaTitle('Sprout Social').length).toBeLessThanOrEqual(60);
 		expect(buildAlternativesDetailMetaTitle('Boringlaunch', 'directory_submission')).toBe(
@@ -114,19 +123,32 @@ describe('buildProgrammaticSeoTitles — alternatives and compare meta', () => {
 		);
 	});
 
-	it('front-loads OpenQuok hook and names peers in alternatives meta descriptions', () => {
-		const description = buildAlternativesDetailMetaDescription('Later', [
-			'OpenQuok',
-			'Buffer',
-			'Hootsuite',
-			'Socialync'
-		]);
-		expect(description.startsWith('Start a 7-day free trial')).toBe(true);
-		expect(description).toContain('Later alternatives');
+	it('front-loads query echo and trial hook on Track A alternatives meta descriptions', () => {
+		const description = buildAlternativesDetailMetaDescription(
+			'Later',
+			['OpenQuok', 'Buffer', 'Hootsuite', 'Socialync'],
+			'later'
+		);
+		expect(description.startsWith('Compare the best Later alternatives')).toBe(true);
+		expect(description).toContain('7-day free trial');
+		expect(description).toContain('Top picks include');
 		expect(description).toContain('OpenQuok');
 		expect(description).toContain('Buffer');
 		expect(description).toContain('Hootsuite');
 		expect(description).toContain('Socialync');
+		expect(description).not.toMatch(/\s{2,}/);
+	});
+
+	it('front-loads OpenQuok hook and names peers on default alternatives meta descriptions', () => {
+		const description = buildAlternativesDetailMetaDescription('Hootsuite', [
+			'OpenQuok',
+			'Buffer',
+			'Later',
+			'Socialync'
+		]);
+		expect(description.startsWith('Start a 7-day free trial')).toBe(true);
+		expect(description).toContain('Hootsuite alternatives');
+		expect(description).toContain('OpenQuok');
 		expect(description).not.toMatch(/\s{2,}/);
 	});
 
@@ -158,26 +180,57 @@ describe('buildProgrammaticSeoTitles — alternatives and compare meta', () => {
 		expect(description).toMatch(/^OpenQuok vs Buffer: prices, channels, free trial\./);
 	});
 
-	it('leads competitor-only compare descriptions with vs phrasing', () => {
+	it('WS4 enriches openquok/postiz with trial, approval, and directory in the snippet lead', () => {
+		const description = buildComparePairMetaDescription(
+			openquokCompareProduct,
+			postizCompareProduct,
+			'social_matrix'
+		);
+		const snippetLead = description.slice(0, 155).toLowerCase();
+		expect(snippetLead).toContain('free trial');
+		expect(snippetLead).toContain('$0');
+		expect(snippetLead).toContain('approval');
+		expect(snippetLead).toContain('directory');
+		expect(snippetLead).toContain('postiz');
+		expect(description).toContain('See side-by-side pricing, channels, and features.');
+	});
+
+	it('WS4 front-loads pricing, trial, and differentiators on recurpost/buffer', () => {
 		const description = buildComparePairMetaDescription(
 			recurpostCompareProduct,
 			bufferCompareProduct,
 			'social_matrix'
 		);
-		expect(description).toMatch(/^RecurPost vs Buffer: prices, channels, and scheduling features\./);
-		expect(description).toContain('See which scheduler fits your work.');
+		expect(description).toMatch(/^RecurPost vs Buffer: list prices, free trials/);
+		const snippetLead = description.slice(0, 155).toLowerCase();
+		expect(snippetLead).toContain('prices');
+		expect(snippetLead).toContain('free trial');
+		expect(snippetLead).toContain('evergreen');
+		expect(snippetLead).toContain('buffer');
 	});
 
-	it('names both product taglines early on high-impression scheduler-only pairs', () => {
+	it('WS4 front-loads pricing, trial, and differentiators on typefully/recurpost', () => {
 		const description = buildComparePairMetaDescription(
 			typefullyCompareProduct,
 			recurpostCompareProduct,
 			'social_matrix'
 		);
-		expect(description).toMatch(/^Typefully vs RecurPost: prices, channels, and scheduling features\./);
-		expect(description.slice(0, 155).toLowerCase()).toContain('prices');
-		expect(description).toContain(typefullyCompareProduct.tagline);
-		expect(description).toContain(recurpostCompareProduct.tagline);
+		expect(description).toMatch(/^Typefully vs RecurPost: list prices, free trials/);
+		const snippetLead = description.slice(0, 155).toLowerCase();
+		expect(snippetLead).toContain('prices');
+		expect(snippetLead).toContain('free trial');
+		expect(snippetLead).toContain('writing-first');
+		expect(snippetLead).toContain('evergreen');
+	});
+
+	it('leads other competitor-only compare descriptions with vs phrasing', () => {
+		const description = buildComparePairMetaDescription(
+			bufferCompareProduct,
+			typefullyCompareProduct,
+			'social_matrix'
+		);
+		expect(description).toMatch(/^Buffer vs Typefully: prices, channels, and scheduling features\./);
+		expect(description).toContain('See which scheduler fits your work.');
 	});
 });
 

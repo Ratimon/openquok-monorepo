@@ -245,6 +245,9 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'Calendar',
 	// Product & workflow terms
 	'OpenQuok',
+	'Buffer',
+	'Postiz',
+	'Mixpost',
 	'Hootsuite',
 	'carousels',
 	'analytics',

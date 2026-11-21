@@ -31,7 +31,7 @@ export const blueskyChannel = {
 	heroTitle: 'Schedule Bluesky posts, links, media, and replies',
 	heroDescription:
 		'Connect Bluesky with an app password. Schedule posts and media on your calendar. @mentions and links in your caption work when the post goes live. Turn on link previews in post Settings for text-only posts. Add follow-up replies and approve each post before it publishes.',
-	metaTitle: buildSchedulingCommercialChannelMetaTitle('Bluesky'),
+	metaTitle: buildSchedulingCommercialChannelMetaTitle('Bluesky', true),
 	metaDescription: buildSchedulingCommercialChannelMetaDescription({
 		platformLabel: 'Bluesky',
 		connectClause: 'Connect in Add Channel with an app password (custom PDS supported).',

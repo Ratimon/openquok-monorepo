@@ -97,6 +97,13 @@ describe('buildAlternativesDetailFaqItems', () => {
 			isDirectoryTarget: false
 		});
 		expect(mixpost[1]?.description).toContain(publicFaqHref.compareMixpostPostiz);
+
+		const postBridge = buildAlternativesDetailFaqItems({
+			targetName: 'Post Bridge',
+			targetSlug: 'post-bridge',
+			isDirectoryTarget: false
+		});
+		expect(postBridge[1]?.description).toContain(publicFaqHref.comparePostizPostBridge);
 	});
 
 	it('uses an OpenQuok-specific lead question on the OpenQuok alternatives page', () => {
