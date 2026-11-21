@@ -90,11 +90,19 @@ describe('channelPageSeo', () => {
 			tinylaunch?.processSection?.steps.some((s) => s.deviceMockContent === 'directory-site-tinylaunch')
 		).toBe(true);
 
+		const fazier = getPublicChannelBySlug('fazier');
+		expect(fazier?.channelKind).toBe('directory');
+		expect(fazier?.icon).toBe('Fazier');
+		expect(
+			fazier?.processSection?.steps.some((s) => s.deviceMockContent === 'directory-site-fazier')
+		).toBe(true);
+
 		expect(listPublicDirectoryChannelsForHub().map((c) => c.slug)).toEqual([
 			'peerpush',
 			'uneed',
 			'open-launch',
-			'tinylaunch'
+			'tinylaunch',
+			'fazier'
 		]);
 
 		const heroBadges = publicDirectoryChannelHeroStatBadges();

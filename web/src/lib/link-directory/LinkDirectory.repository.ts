@@ -324,6 +324,10 @@ export class LinkDirectoryRepository {
 		return 'Request failed.';
 	}
 
+	private opportunityTypesAdminCache: LinkDirectoryOpportunityTypeDto[] | null = null;
+	private opportunityTypesAdminInflight: Promise<LinkDirectoryOpportunityTypeDto[]> | null = null;
+
+	/** Public hub / SSR reads (anonymous, public-read rate bucket). */
 	async getOpportunityTypes(fetch?: typeof globalThis.fetch): Promise<LinkDirectoryOpportunityTypeDto[]> {
 		const { data: typesDto, ok } = await this.httpGateway.get<OpportunityTypesResponseDto>(
 			this.config.endpoints.getOpportunityTypes,
@@ -332,6 +336,39 @@ export class LinkDirectoryRepository {
 		);
 		if (ok && typesDto?.success && Array.isArray(typesDto.data)) {
 			return typesDto.data;
+		}
+		return [];
+	}
+
+	/** Secret-admin editor: session auth, in-memory cache for the tab lifetime. */
+	async getOpportunityTypesForAdmin(
+		fetch?: typeof globalThis.fetch
+	): Promise<LinkDirectoryOpportunityTypeDto[]> {
+		if (this.opportunityTypesAdminCache?.length) {
+			return this.opportunityTypesAdminCache;
+		}
+		if (!this.opportunityTypesAdminInflight) {
+			this.opportunityTypesAdminInflight = this.fetchOpportunityTypesForAdmin(fetch).finally(() => {
+				this.opportunityTypesAdminInflight = null;
+			});
+		}
+		return this.opportunityTypesAdminInflight;
+	}
+
+	private async fetchOpportunityTypesForAdmin(
+		fetch?: typeof globalThis.fetch
+	): Promise<LinkDirectoryOpportunityTypeDto[]> {
+		const { data: typesDto, ok } = await this.httpGateway.get<OpportunityTypesResponseDto>(
+			this.config.endpoints.getOpportunityTypes,
+			undefined,
+			this.adminOpts(fetch)
+		);
+		if (ok && typesDto?.success && Array.isArray(typesDto.data)) {
+			this.opportunityTypesAdminCache = typesDto.data;
+			return typesDto.data;
+		}
+		if (this.opportunityTypesAdminCache?.length) {
+			return this.opportunityTypesAdminCache;
 		}
 		return [];
 	}

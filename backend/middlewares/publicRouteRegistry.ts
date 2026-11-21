@@ -61,6 +61,19 @@ export const PUBLIC_PATH_EXACT = [
 /** Non-API auth paths that bypass auth middleware entirely. */
 export const BYPASS_PATHS = ["/health", "/sitemap.xml"] as const;
 
+/**
+ * Small link-directory taxonomy GETs on the public-read allowlist. Authenticated callers
+ * skip the shared public-read IP bucket and rely on the session limiter instead.
+ */
+export const PUBLIC_READ_LINK_DIRECTORY_TAXONOMY_PATHS = [
+    "/link-directory/opportunity-types",
+    "/link-directory/categories/active",
+    "/link-directory/tags/active",
+] as const;
+
+export const isPublicReadLinkDirectoryTaxonomyPath = (routePath: string): boolean =>
+    PUBLIC_READ_LINK_DIRECTORY_TAXONOMY_PATHS.some((path) => routePath === path);
+
 const matchesPublicPathPrefix = (routePath: string): boolean =>
     PUBLIC_PATH_PREFIXES.some((p) => routePath === p || routePath.startsWith(`${p}/`));
 

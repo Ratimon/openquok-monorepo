@@ -100,9 +100,10 @@ Posting formats, follow-up comments, and social analytics vary by network. Some 
   <a href="https://www.openquok.com/channels/uneed"><img src="./web/static/icons/link-directory/uneed.svg" alt="Uneed" width="32" height="32"></a>
   <a href="https://www.openquok.com/channels/open-launch"><img src="./web/static/icons/link-directory/open-launch.svg" alt="Open Launch" width="32" height="32"></a>
   <a href="https://www.openquok.com/channels/tinylaunch"><img src="./web/static/icons/link-directory/tinylaunch.svg" alt="TinyLaunch" width="32" height="32"></a>
+  <a href="https://www.openquok.com/channels/fazier"><img src="./web/static/icons/link-directory/fazier.svg" alt="Fazier" width="32" height="32"></a>
 </p>
 
-**PeerPush**, **Uneed**, **Open Launch**, and **TinyLaunch** use a product profile on [My Products](https://www.openquok.com/account/products) and the same [browser extension](https://www.openquok.com/browser-extension) ([Chrome Web Store](https://chromewebstore.google.com/detail/openquok/diloknijkhhggpfhenpoccnjbcjdoedn)) as Skool — for directory autofill, not OAuth to the directory site. You submit on the directory site yourself.
+**PeerPush**, **Uneed**, **Open Launch**, **TinyLaunch**, and **Fazier** use a product profile on [My Products](https://www.openquok.com/account/products) and the same [browser extension](https://www.openquok.com/browser-extension) ([Chrome Web Store](https://chromewebstore.google.com/detail/openquok/diloknijkhhggpfhenpoccnjbcjdoedn)) as Skool — for directory autofill, not OAuth to the directory site. You submit on the directory site yourself.
 
 Directory site keys, variants, and extension handoff are in [Directory integration](https://www.openquok.com/docs/directory-integration) and [Connect rules → Directory launch](https://www.openquok.com/docs/platforms/connect-rules#directory-launch-platforms).
 
@@ -167,7 +168,7 @@ Create a programmatic token under **Account → Settings → Developers → Acce
 Let AI agents handle volume — drafting and scheduling at scale. You handle quality: review and approve what goes live across your channels.
 
 <p align="center">
-  <strong>Terminal</strong> (<code>openquok</code> CLI · schedule posts · upload media · flip draft ↔ scheduled) · <strong>Chat</strong> (Grok Bot · Hermes · Claude · Cursor) · <strong>Web UI</strong> (calendar · kanban review · analytics · approve before publish) · <strong>Browser extension</strong> (<a href="https://chromewebstore.google.com/detail/openquok/diloknijkhhggpfhenpoccnjbcjdoedn">Chrome</a> side panel · schedule from any tab · Skool · Reddit · directory autofill)
+  <strong>CLI</strong> · <strong>AI agents</strong> · <strong>Web app</strong> · <strong><a href="https://chromewebstore.google.com/detail/openquok/diloknijkhhggpfhenpoccnjbcjdoedn">Chrome extension</a></strong> — schedule and approve from whichever surface you use.
 </p>
 
 <p align="center">

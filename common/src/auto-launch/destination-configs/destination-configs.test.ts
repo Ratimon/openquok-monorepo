@@ -22,6 +22,7 @@ import {
 	AUTO_LAUNCH_EXTENSION_CONFIG_DERIVATIONS,
 	AUTO_LAUNCH_EXTENSION_CONFIGS_SQL,
 	AUTO_LAUNCH_PRICING_QUEUE_VARIANT_DERIVED,
+	FAZIER_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
 	UNEED_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
 } from './syncMetadata.js';
 
@@ -70,6 +71,9 @@ describe('DIRECTORY_EXTENSION_CONFIG_FIXTURES', () => {
 				'uneed-paid-launch',
 				'tinylaunch-premium-launch',
 				'tinylaunch-standard-launch',
+				'fazier-page',
+				'fazier-free-product-listing',
+				'fazier-paid-product-listing',
 			].sort()
 		);
 	});
@@ -93,6 +97,14 @@ describe('DIRECTORY_EXTENSION_CONFIG_FIXTURES', () => {
 		validateIndependentExtensionFixtureSlugs(
 			DIRECTORY_EXTENSION_CONFIG_FIXTURES,
 			UNEED_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
+			AUTO_LAUNCH_EXTENSION_CONFIG_DERIVATIONS
+		);
+	});
+
+	it('documents Fazier fixtures as independent (not pricing-queue)', () => {
+		validateIndependentExtensionFixtureSlugs(
+			DIRECTORY_EXTENSION_CONFIG_FIXTURES,
+			FAZIER_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
 			AUTO_LAUNCH_EXTENSION_CONFIG_DERIVATIONS
 		);
 	});
@@ -147,7 +159,7 @@ describe('AUTO_LAUNCH_DESTINATION_SEED_ROWS', () => {
 		}
 	});
 
-	it('aggregated core_structure applies auto-launch 502 before 503–506', () => {
+	it('aggregated core_structure applies auto-launch 502 before 503–507', () => {
 		const migrationsDir = join(REPO_ROOT, 'backend/supabase/migrations');
 		const coreFiles = readdirSync(migrationsDir)
 			.filter((name) => name.endsWith('_core_structure.sql'))
@@ -157,17 +169,18 @@ describe('AUTO_LAUNCH_DESTINATION_SEED_ROWS', () => {
 		const sql = readFileSync(join(migrationsDir, latestCore), 'utf8');
 		const autoLaunchFiles = [...sql.matchAll(/-- Module: auto-launch, File: (5\d{2}_[^\n]+)/g)]
 			.map((match) => match[1])
-			.filter((fileName) => /^50[2-6]_/.test(fileName ?? ''));
+			.filter((fileName) => /^50[2-7]_/.test(fileName ?? ''));
 		expect(autoLaunchFiles).toEqual([
 			'502_20261111_extension_configs.sql',
 			'503_20261013_seed_uneed.sql',
 			'504_20261016_seed_peerpush_destination.sql',
 			'505_20261109_seed_open_launch_destination.sql',
 			'506_20261117_seed_tinylaunch_destination.sql',
+			'507_20261120_seed_fazier_destination.sql',
 		]);
 	});
 
-	it('generated 502–506 destination SQL matches manifest (sync --check)', () => {
+	it('generated 502–507 destination SQL matches manifest (sync --check)', () => {
 		if (!existsSync(COMMON_DIST_INDEX)) {
 			throw new Error(
 				'common/dist missing. Run `pnpm common:build` before `pnpm --filter openquok-common test:unit`.'

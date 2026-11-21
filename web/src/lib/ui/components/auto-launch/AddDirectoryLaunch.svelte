@@ -17,6 +17,7 @@
 	import { linkDirectoryRepository } from '$lib/link-directory';
 	import { protectedHomePagePresenter } from '$lib/area-protected';
 	import { sendDirectoryLaunchHandoff } from '$lib/auto-launch/browser-extension/directoryLaunchHandoff';
+	import { directorySiteKeyFromProviderSlug } from '$lib/auto-launch/buildDirectoryAddChannelTiles';
 	import { route, absoluteUrl } from '$lib/utils/path';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 	import { toast } from '$lib/ui/sonner';
@@ -39,9 +40,11 @@
 		returnToPath?: string;
 		buttonVariant?: 'primary' | 'secondary' | 'outline';
 		buttonClass?: string;
-		/** When false, trigger sends guests to sign-up instead of opening the flow. */
+		/** When false, trigger navigates to the channel hub or sign-up instead of opening the flow. */
 		isLoggedIn?: boolean;
 		signUpHref?: string;
+		/** Guest CTA destination (e.g. `/channels/tinylaunch`). Falls back from provider slug when omitted. */
+		guestChannelHref?: string;
 		/** When set, only destinations whose provider slug starts with this prefix are listed. */
 		providerSlugPrefix?: string;
 		/** Override destinations dialog title (e.g. Uneed-only picker from Add Channel). */
@@ -63,6 +66,7 @@
 		buttonClass,
 		isLoggedIn = true,
 		signUpHref,
+		guestChannelHref,
 		providerSlugPrefix,
 		destinationsDialogTitle = 'Launch to directory',
 		showTrigger = true,
@@ -216,10 +220,25 @@
 		return Boolean(tile.logoUrl) && !directoryLogoFailedBySiteKey[tile.siteKey];
 	}
 
+	function resolveGuestLaunchHref(): string {
+		const explicit = guestChannelHref?.trim();
+		if (explicit) return explicit;
+
+		const providerSlug = destinationProviderSlug?.trim();
+		if (providerSlug) {
+			const siteKey = directorySiteKeyFromProviderSlug(providerSlug);
+			if (siteKey) return route(`channels/${siteKey}`);
+		}
+
+		const prefix = providerSlugPrefix?.trim();
+		if (prefix) return route(`channels/${prefix}`);
+
+		return signUpHref ?? absoluteUrl('sign-up');
+	}
+
 	async function openLaunchFlow() {
 		if (!isLoggedIn) {
-			const href = signUpHref ?? absoluteUrl('sign-up');
-			window.location.assign(href);
+			window.location.assign(resolveGuestLaunchHref());
 			return;
 		}
 		pickedSitePrefix = null;

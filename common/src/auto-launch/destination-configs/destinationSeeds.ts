@@ -2,7 +2,7 @@
  * Source of truth for `auto_launch_destinations` row seeds (502–506 SQL).
  * Consumed by `backend/scripts/sync-auto-launch-destination-seeds.mjs`.
  *
- * Next stable destination id suffix after TinyLaunch: …010
+ * Next stable destination id suffix after Fazier: …013
  */
 
 export type AutoLaunchDestinationSeedGenerationMode = 'full' | 'composite';
@@ -177,6 +177,48 @@ const TINYLAUNCH_DESTINATIONS: readonly AutoLaunchDestinationSeedRow[] = [
 	},
 ];
 
+const FAZIER_DESTINATIONS: readonly AutoLaunchDestinationSeedRow[] = [
+	{
+		destinationId: 'd5f7d000-0030-4000-a000-000000000010',
+		providerSlug: 'fazier-page',
+		siteSlug: 'fazier',
+		name: 'Fazier — Page',
+		shortDescription:
+			'Company page on Fazier; extension autofills the three-step wizard at fazier.com/page/new.',
+		startUrl: 'https://fazier.com/page/new',
+		sortOrder: 50,
+		pickerGroupKey: null,
+		pickerGroupTitle: null,
+		opportunitySlug: 'company-page',
+	},
+	{
+		destinationId: 'd5f7d000-0030-4000-a000-000000000011',
+		providerSlug: 'fazier-free-product-listing',
+		siteSlug: 'fazier',
+		name: 'Fazier — Free product listing',
+		shortDescription:
+			'Basic (free) product launch on Fazier; extension autofills fazier.com/submit — badge, comments, and moderation stay manual.',
+		startUrl: 'https://fazier.com/submit',
+		sortOrder: 51,
+		pickerGroupKey: 'fazier-product-listing',
+		pickerGroupTitle: 'Product listing',
+		opportunitySlug: 'free-product-listing',
+	},
+	{
+		destinationId: 'd5f7d000-0030-4000-a000-000000000012',
+		providerSlug: 'fazier-paid-product-listing',
+		siteSlug: 'fazier',
+		name: 'Fazier — Paid product listing',
+		shortDescription:
+			'Lite Plan or higher on Fazier; same product form at fazier.com/submit — checkout stays manual on Fazier.',
+		startUrl: 'https://fazier.com/submit',
+		sortOrder: 52,
+		pickerGroupKey: 'fazier-product-listing',
+		pickerGroupTitle: 'Product listing',
+		opportunitySlug: 'paid-product-listing',
+	},
+];
+
 export const AUTO_LAUNCH_DESTINATION_SEED_MODULES: readonly AutoLaunchDestinationSeedModule[] = [
 	{
 		siteKey: 'uneed',
@@ -225,6 +267,20 @@ export const AUTO_LAUNCH_DESTINATION_SEED_MODULES: readonly AutoLaunchDestinatio
 			'-- Scheduling, payment, and upvote pledge stay manual after the create-startup form is filled.',
 		],
 		destinations: TINYLAUNCH_DESTINATIONS,
+	},
+	{
+		siteKey: 'fazier',
+		sqlFileName: '507_20261120_seed_fazier_destination.sql',
+		generationMode: 'full',
+		moduleDate: '20261120',
+		moduleScopeLabel: 'Seed (Fazier page + free/paid product listing destinations)',
+		preambleComments: [
+			'-- Joins link_directory_opportunities on site slug fazier (catalog backfill / listing manager).',
+			'-- Post-submit badge, comments, homepage link, and Lite Plan checkout stay manual in v1.',
+			"-- Upgrade fazier-launch → free product listing (preserve destination id for submissions FK).",
+			"UPDATE public.auto_launch_destinations SET provider_slug = 'fazier-free-product-listing' WHERE provider_slug = 'fazier-launch';",
+		],
+		destinations: FAZIER_DESTINATIONS,
 	},
 ];
 

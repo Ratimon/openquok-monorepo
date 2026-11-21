@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 
+	import { toast } from '$lib/ui/sonner';
 	import { adminLinkDirectorySiteEditorPagePresenter } from '$lib/area-admin';
 	import EditorLinkDirectorySite from '$lib/ui/components/link-directory-manager/EditorLinkDirectorySite.svelte';
 
@@ -13,6 +14,17 @@
 
 	onMount(async () => {
 		await adminLinkDirectorySiteEditorPagePresenter.loadNewEditor();
+	});
+
+	$effect(() => {
+		if (!adminLinkDirectorySiteEditorPagePresenter.showToastMessage) return;
+		const msg = adminLinkDirectorySiteEditorPagePresenter.toastMessage;
+		if (adminLinkDirectorySiteEditorPagePresenter.toastIsError) {
+			toast.error(msg);
+		} else if (msg) {
+			toast.success(msg);
+		}
+		adminLinkDirectorySiteEditorPagePresenter.showToastMessage = false;
 	});
 </script>
 

@@ -5,7 +5,9 @@ const EXCLUSIVE_OPPORTUNITY_GROUP_BY_PROVIDER_SLUG: Record<string, string> = {
 	'uneed-join-line': 'uneed-product-listing',
 	'uneed-paid-launch': 'uneed-product-listing',
 	'peerpush-standard-launch': 'peerpush-product-listing',
-	'peerpush-free-queue': 'peerpush-product-listing'
+	'peerpush-free-queue': 'peerpush-product-listing',
+	'fazier-free-product-listing': 'fazier-product-listing',
+	'fazier-paid-product-listing': 'fazier-product-listing',
 };
 
 export function directoryExclusiveOpportunityGroupKey(providerSlug: string): string | null {

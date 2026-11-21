@@ -295,7 +295,16 @@ export class DirectoryLaunchStepRail {
 	}
 
 	mount(): void {
-		if (document.getElementById(PANEL_HOST_ID)) return;
+		const existingHost = document.getElementById(PANEL_HOST_ID);
+		if (existingHost) {
+			this.host = existingHost;
+			if (!this.shadow && existingHost.shadowRoot) {
+				this.shadow = existingHost.shadowRoot;
+				this.bodyEl =
+					(existingHost.shadowRoot.querySelector('.body') as HTMLElement | null) ?? null;
+			}
+			return;
+		}
 
 		const host = document.createElement('div');
 		host.id = PANEL_HOST_ID;
@@ -1610,11 +1619,15 @@ export function pageMatchesConfig(config: AutoLaunchExtensionConfig): boolean {
 }
 
 export function buildStatusLine(config: AutoLaunchExtensionConfig, onReadyPage: boolean): string {
+	const statusHint = config.readyStatusHint?.trim();
 	if (!onReadyPage && config.readyUrlHint) {
 		return `Open your product edit or submission page (the URL should include “${config.readyUrlHint}”). Then use Fill all steps or Fill each field below.`;
 	}
 	if (!onReadyPage) {
 		return 'Open the directory listing or submission form in this tab. When the fields are visible, use Fill all steps or Fill on each field row below.';
+	}
+	if (statusHint) {
+		return statusHint;
 	}
 	return 'You’re on the right page. Use Fill all steps or Fill on each field row—then review every field before you submit on this site.';
 }
@@ -1625,18 +1638,20 @@ function wildcardToRegExp(pattern: string): RegExp {
 }
 
 export function isReadyPage(config: AutoLaunchExtensionConfig): boolean {
-	const hint = config.readyUrlHint?.toLowerCase();
+	const hint = config.readyUrlHint?.toLowerCase().trim();
 	if (!hint) return pageMatchesConfig(config);
-	const href = window.location.href.toLowerCase();
-	if (hint === 'submit') {
-		try {
-			const path = new URL(window.location.href).pathname.replace(/\/+$/, '') || '/';
-			if (path !== '/submit' && href.includes('submit')) {
-				return true;
-			}
-		} catch {
-			/* ignore */
+	try {
+		const path = new URL(window.location.href).pathname.replace(/\/+$/, '') || '/';
+		const pathLower = path.toLowerCase();
+		if (hint.includes('/')) {
+			const readyPath = hint.startsWith('/') ? hint : `/${hint}`;
+			return pathLower === readyPath || pathLower.startsWith(`${readyPath}/`);
 		}
+		if (hint === 'submit') {
+			return pathLower === '/submit';
+		}
+	} catch {
+		return window.location.href.toLowerCase().includes(hint);
 	}
-	return href.includes(hint);
+	return window.location.href.toLowerCase().includes(hint);
 }

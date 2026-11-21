@@ -4,6 +4,7 @@ import {
     isAuthExemptRoute,
     isEditorManagedPublicDetailRoute,
     isPublicReadGet,
+    isPublicReadLinkDirectoryTaxonomyPath,
     isPublicWriteRoute,
     normalizeApiRoutePath,
 } from "./publicRouteRegistry";
@@ -137,6 +138,16 @@ describe("publicRouteRegistry", () => {
         it("requires auth for protected dashboard routes", () => {
             expect(isAuthExemptRoute(asReq({ method: "GET" }), "/users/me")).toBe(false);
             expect(isAuthExemptRoute(asReq({ method: "GET" }), "/posts")).toBe(false);
+        });
+    });
+
+    describe("isPublicReadLinkDirectoryTaxonomyPath", () => {
+        it("matches link-directory taxonomy GET paths only", () => {
+            expect(isPublicReadLinkDirectoryTaxonomyPath("/link-directory/opportunity-types")).toBe(true);
+            expect(isPublicReadLinkDirectoryTaxonomyPath("/link-directory/categories/active")).toBe(true);
+            expect(isPublicReadLinkDirectoryTaxonomyPath("/link-directory/tags/active")).toBe(true);
+            expect(isPublicReadLinkDirectoryTaxonomyPath("/link-directory/published")).toBe(false);
+            expect(isPublicReadLinkDirectoryTaxonomyPath("/link-directory/categories/all-full")).toBe(false);
         });
     });
 

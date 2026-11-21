@@ -11,6 +11,441 @@ UPDATE public.auto_launch_destinations
 SET extension_config = $json${
     "version": 1,
     "startUrlPatterns": [
+        "https://fazier.com/*",
+        "https://www.fazier.com/*"
+    ],
+    "readyUrlHint": "submit",
+    "steps": [
+        {
+            "id": "product_info",
+            "label": "Product info",
+            "fields": [
+                {
+                    "key": "name",
+                    "label": "Product name",
+                    "labelAliases": [
+                        "Name"
+                    ],
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='name']",
+                    "required": true
+                },
+                {
+                    "key": "tagline",
+                    "label": "Tagline",
+                    "labelAliases": [
+                        "Describe your product in few words only"
+                    ],
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='tagline'], textarea[name='tagline']",
+                    "maxScalarLength": 80,
+                    "required": true
+                },
+                {
+                    "key": "website",
+                    "label": "Website",
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='website'], input[type='url'][placeholder*='https' i]",
+                    "required": true
+                },
+                {
+                    "key": "description",
+                    "label": "Description",
+                    "labelAliases": [
+                        "Brief description of the product"
+                    ],
+                    "profilePath": "description",
+                    "fillMode": "text",
+                    "selectorHint": "textarea[name='description'], textarea[placeholder*='description' i]"
+                },
+                {
+                    "key": "features",
+                    "label": "Features",
+                    "profilePath": "profile_data.use_cases",
+                    "fillMode": "text",
+                    "selectorHint": "textarea[name='features'], input[name='features']"
+                },
+                {
+                    "key": "use_cases",
+                    "label": "Use cases",
+                    "profilePath": "profile_data.use_cases",
+                    "fillMode": "text",
+                    "selectorHint": "textarea[name='useCases'], input[name='useCases']"
+                },
+                {
+                    "key": "logo",
+                    "label": "Square logo",
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "selectorHint": "input[type='file'][name='logo'], input[type='file'][accept*='image']"
+                },
+                {
+                    "key": "gallery",
+                    "label": "Product images",
+                    "profilePath": "profile_data.gallery_urls",
+                    "fillMode": "files",
+                    "fileInputIndex": 1,
+                    "selectorHint": "input[type='file'][accept*='image']:not([name='logo']):not(:first-of-type)"
+                }
+            ]
+        },
+        {
+            "id": "classification",
+            "label": "Classification",
+            "fields": [
+                {
+                    "key": "category",
+                    "label": "Category",
+                    "profilePath": "profile_data.categories",
+                    "fillMode": "select",
+                    "selectorHint": "select[name='category'], [role='combobox'][aria-label*='categor' i]"
+                },
+                {
+                    "key": "pricing_type",
+                    "label": "Pricing",
+                    "profilePath": "profile_data.pricing_type",
+                    "fillMode": "select",
+                    "selectorHint": "input[type='radio'][name='planType'], input[name='planType'], input[type='radio'][name='paymentPlan'], input[name='paymentPlan']"
+                }
+            ]
+        },
+        {
+            "id": "socials",
+            "label": "Social links",
+            "fields": [
+                {
+                    "key": "social_linkedin",
+                    "label": "LinkedIn",
+                    "profilePath": "profile_data.social_linkedin",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='linkdinUrl'], input[name='linkedin']"
+                },
+                {
+                    "key": "social_x",
+                    "label": "Twitter",
+                    "labelAliases": [
+                        "X (Twitter)"
+                    ],
+                    "profilePath": "profile_data.social_x",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='twitterUrl'], input[name='twitter']"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/launches/|/p/",
+        "listingUrlSelector": "a[href*='fazier.com/launches/'], a[href*='fazier.com/p/']"
+    },
+    "readyStatusHint": "On fazier.com/submit, choose Product launch (not Company page). Pick Basic (free) when Fazier shows plan tiers. When product fields are visible, use Fill all steps or Fill on each row—then complete badge, comments, and moderation on Fazier."
+}$json$::jsonb
+WHERE provider_slug = 'fazier-free-product-listing';
+
+UPDATE public.auto_launch_destinations
+SET extension_config = $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://fazier.com/*",
+        "https://www.fazier.com/*"
+    ],
+    "readyUrlHint": "page/new",
+    "readyStatusHint": "On fazier.com/page/new, complete any listing-type or sign-in gate Fazier shows, then open the company wizard (Basic info → Overview → Social links). Use Fill all steps or Fill on each row—review every field before you submit on Fazier.",
+    "steps": [
+        {
+            "id": "basic",
+            "label": "Basic info",
+            "fields": [
+                {
+                    "key": "name",
+                    "label": "Name",
+                    "labelAliases": [
+                        "Organization name"
+                    ],
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='name']",
+                    "required": true
+                },
+                {
+                    "key": "company_slug",
+                    "label": "Page URL",
+                    "labelAliases": [
+                        "company-slug"
+                    ],
+                    "profilePath": "profile_data.slug",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='company']"
+                },
+                {
+                    "key": "website",
+                    "label": "Website",
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='website'], input[type='url'][placeholder*='https' i]",
+                    "required": true
+                },
+                {
+                    "key": "logo",
+                    "label": "Logo",
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "selectorHint": "input[type='file'][name='logo'], input[type='file'][accept*='image']",
+                    "required": true
+                },
+                {
+                    "key": "tagline",
+                    "label": "Tagline",
+                    "labelAliases": [
+                        "One-line description of your organization"
+                    ],
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='tagline'], textarea[name='tagline']",
+                    "maxScalarLength": 120,
+                    "required": true
+                }
+            ]
+        },
+        {
+            "id": "overview",
+            "label": "Overview",
+            "fields": [
+                {
+                    "key": "industry",
+                    "label": "Industry",
+                    "profilePath": "profile_data.categories",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='industry']"
+                },
+                {
+                    "key": "company_size",
+                    "label": "Company size",
+                    "profilePath": "profile_data.target_audiences",
+                    "fillMode": "select",
+                    "selectorHint": "select[name='companySize'], [role='combobox'][aria-label*='size' i]"
+                },
+                {
+                    "key": "company_type",
+                    "label": "Organization type",
+                    "profilePath": "profile_data.use_cases",
+                    "fillMode": "select",
+                    "selectorHint": "select[name='companyType'], [role='combobox'][aria-label*='type' i]"
+                },
+                {
+                    "key": "country",
+                    "label": "Country",
+                    "profilePath": "profile_data.platforms",
+                    "fillMode": "select",
+                    "selectorHint": "select[name='country'], [role='combobox'][aria-label*='country' i]"
+                },
+                {
+                    "key": "city",
+                    "label": "City",
+                    "profilePath": "profile_data.tech_stack",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='city']"
+                },
+                {
+                    "key": "founded_month",
+                    "label": "Founded month",
+                    "profilePath": "profile_data.launch_date",
+                    "fillMode": "select",
+                    "selectorHint": "select[name='month'], [role='combobox'][aria-label*='month' i]"
+                },
+                {
+                    "key": "founded_year",
+                    "label": "Founded year",
+                    "profilePath": "profile_data.launch_date",
+                    "fillMode": "select",
+                    "selectorHint": "select[name='year'], [role='combobox'][aria-label*='year' i]"
+                },
+                {
+                    "key": "about",
+                    "label": "About",
+                    "profilePath": "description",
+                    "fillMode": "text",
+                    "selectorHint": "textarea[name='about']"
+                }
+            ]
+        },
+        {
+            "id": "social_links",
+            "label": "Social links",
+            "fields": [
+                {
+                    "key": "social_linkedin",
+                    "label": "LinkedIn",
+                    "profilePath": "profile_data.social_linkedin",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='linkedin']"
+                },
+                {
+                    "key": "social_x",
+                    "label": "Twitter",
+                    "labelAliases": [
+                        "X (Twitter)"
+                    ],
+                    "profilePath": "profile_data.social_x",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='twitter']"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/company/",
+        "listingUrlSelector": "a[href*='fazier.com/company/']"
+    }
+}$json$::jsonb
+WHERE provider_slug = 'fazier-page';
+
+UPDATE public.auto_launch_destinations
+SET extension_config = $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://fazier.com/*",
+        "https://www.fazier.com/*"
+    ],
+    "readyUrlHint": "submit",
+    "steps": [
+        {
+            "id": "product_info",
+            "label": "Product info",
+            "fields": [
+                {
+                    "key": "name",
+                    "label": "Product name",
+                    "labelAliases": [
+                        "Name"
+                    ],
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='name']",
+                    "required": true
+                },
+                {
+                    "key": "tagline",
+                    "label": "Tagline",
+                    "labelAliases": [
+                        "Describe your product in few words only"
+                    ],
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='tagline'], textarea[name='tagline']",
+                    "maxScalarLength": 80,
+                    "required": true
+                },
+                {
+                    "key": "website",
+                    "label": "Website",
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='website'], input[type='url'][placeholder*='https' i]",
+                    "required": true
+                },
+                {
+                    "key": "description",
+                    "label": "Description",
+                    "labelAliases": [
+                        "Brief description of the product"
+                    ],
+                    "profilePath": "description",
+                    "fillMode": "text",
+                    "selectorHint": "textarea[name='description'], textarea[placeholder*='description' i]"
+                },
+                {
+                    "key": "features",
+                    "label": "Features",
+                    "profilePath": "profile_data.use_cases",
+                    "fillMode": "text",
+                    "selectorHint": "textarea[name='features'], input[name='features']"
+                },
+                {
+                    "key": "use_cases",
+                    "label": "Use cases",
+                    "profilePath": "profile_data.use_cases",
+                    "fillMode": "text",
+                    "selectorHint": "textarea[name='useCases'], input[name='useCases']"
+                },
+                {
+                    "key": "logo",
+                    "label": "Square logo",
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "selectorHint": "input[type='file'][name='logo'], input[type='file'][accept*='image']"
+                },
+                {
+                    "key": "gallery",
+                    "label": "Product images",
+                    "profilePath": "profile_data.gallery_urls",
+                    "fillMode": "files",
+                    "fileInputIndex": 1,
+                    "selectorHint": "input[type='file'][accept*='image']:not([name='logo']):not(:first-of-type)"
+                }
+            ]
+        },
+        {
+            "id": "classification",
+            "label": "Classification",
+            "fields": [
+                {
+                    "key": "category",
+                    "label": "Category",
+                    "profilePath": "profile_data.categories",
+                    "fillMode": "select",
+                    "selectorHint": "select[name='category'], [role='combobox'][aria-label*='categor' i]"
+                },
+                {
+                    "key": "pricing_type",
+                    "label": "Pricing",
+                    "profilePath": "profile_data.pricing_type",
+                    "fillMode": "select",
+                    "selectorHint": "input[type='radio'][name='planType'], input[name='planType'], input[type='radio'][name='paymentPlan'], input[name='paymentPlan']"
+                }
+            ]
+        },
+        {
+            "id": "socials",
+            "label": "Social links",
+            "fields": [
+                {
+                    "key": "social_linkedin",
+                    "label": "LinkedIn",
+                    "profilePath": "profile_data.social_linkedin",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='linkdinUrl'], input[name='linkedin']"
+                },
+                {
+                    "key": "social_x",
+                    "label": "Twitter",
+                    "labelAliases": [
+                        "X (Twitter)"
+                    ],
+                    "profilePath": "profile_data.social_x",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='twitterUrl'], input[name='twitter']"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/launches/|/p/",
+        "listingUrlSelector": "a[href*='fazier.com/launches/'], a[href*='fazier.com/p/']"
+    },
+    "readyStatusHint": "On fazier.com/submit, choose Product launch (not Company page). Pick Lite Plan or higher when Fazier shows plan tiers. When product fields are visible, use Fill all steps or Fill on each row—then finish checkout on Fazier."
+}$json$::jsonb
+WHERE provider_slug = 'fazier-paid-product-listing';
+
+UPDATE public.auto_launch_destinations
+SET extension_config = $json${
+    "version": 1,
+    "startUrlPatterns": [
         "https://open-launch.com/*",
         "https://www.open-launch.com/*"
     ],

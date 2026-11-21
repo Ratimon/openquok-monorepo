@@ -9,13 +9,14 @@ const distDir = join(extensionRoot, outDirName);
 const contentDir = join(distDir, 'content/directory-launch');
 const manifestPath = join(distDir, 'manifest.json');
 
-const shippedLinkDirectoryLogoSlugs = ['peerpush', 'uneed', 'open-launch', 'tinylaunch'];
+const shippedLinkDirectoryLogoSlugs = ['peerpush', 'uneed', 'open-launch', 'tinylaunch', 'fazier'];
 
 const allowedContentScripts = new Set([
 	'openquok-directory-peerpush.js',
 	'openquok-directory-uneed.js',
 	'openquok-directory-open-launch.js',
 	'openquok-directory-tinylaunch.js',
+	'openquok-directory-fazier.js',
 	'openquok-dashboard-session.js',
 	'openquok-reddit-submit.js',
 ]);

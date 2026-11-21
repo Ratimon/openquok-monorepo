@@ -1,3 +1,4 @@
+import { isFazierLoggedIn, FAZIER_LOGIN_URL } from './fazier.js';
 import { isOpenLaunchLoggedIn, OPEN_LAUNCH_LOGIN_URL } from './open-launch.js';
 import { isPeerPushLoggedIn, PEERPUSH_LOGIN_URL } from './peerpush.js';
 import { isTinylaunchLoggedIn, TINYLAUNCH_LOGIN_URL } from './tinylaunch.js';
@@ -20,6 +21,10 @@ const adapters: Readonly<Record<string, DirectorySiteLoginAdapter>> = {
 	tinylaunch: {
 		isLoggedIn: isTinylaunchLoggedIn,
 		loginUrl: TINYLAUNCH_LOGIN_URL
+	},
+	fazier: {
+		isLoggedIn: isFazierLoggedIn,
+		loginUrl: FAZIER_LOGIN_URL
 	}
 };
 
