@@ -33,6 +33,8 @@ globs:
   - backend/scripts/sync-auto-launch-extension-configs.mjs
   - backend/supabase/db/auto-launch/502_*_extension_configs.sql
   - backend/scripts/sync-auto-launch-destination-seeds.mjs
+  - backend/scripts/link_directory_catalog_backfill.catalog.json
+  - backend/scripts/backfill_link_directory_catalog.mjs
 alwaysApply: false
 ---
 
@@ -74,13 +76,30 @@ After edits: `pnpm --filter @openquok/browser-extension build` and confirm `dist
 | Action | Path | Notes |
 | --- | --- | --- |
 | Add | `backend/supabase/db/link-directory/504_<date>_seed_<site>.sql` | `link_directory_sites` + `link_directory_opportunities` (`dofollow`, cost, `auto_launch_*`) |
-| Add | `backend/supabase/db/auto-launch/<507+>_<date>_seed_<site>_destination.sql` | Destination rows; `extension_config` embedded on INSERT via `pnpm sync:auto-launch-destinations` |
+| Add | `backend/supabase/db/auto-launch/<prefix>_<date>_seed_<site>_destination.sql` | Destination rows; `extension_config` embedded on INSERT via `pnpm sync:auto-launch-destinations` (next prefix: **508+**; see tier note below) |
 | Regenerate | `backend/supabase/db/auto-launch/502_*_extension_configs.sql` | Via `pnpm sync:auto-launch-configs` — do not hand-edit |
 | Run | `pnpm sync:auto-launch-destinations` then `pnpm backend:db:aggregate-migrations-all` | Never edit `backend/supabase/migrations/*_core_structure.sql` |
 
-**Tier 5xx order:** `502` extension_configs UPDATE (no-op on empty table) → `503`–`506` site `*_seed_*` files (`destinationSeeds.ts` manifest). Next site seed prefix: **507+** (do not add a second configs file).
+**Tier 5xx order:** `502` extension_configs UPDATE (no-op on empty table) → `503`–`507` site `*_seed_*` files (`destinationSeeds.ts` manifest). **`507` = Fazier**; next site destination seed prefix: **508+** (do not add a second configs file).
 
-Refs: Uneed `link-directory/502_*` + `auto-launch/503_*`; PeerPush `link-directory/504_*` + `auto-launch/504_*`; Open Launch `link-directory/505_*` + `auto-launch/505_*`; TinyLaunch catalog backfill + `auto-launch/506_*`. Storage bucket: `auto-launch/500_*_seed_auto_launch_profile_media_bucket.sql` (reuse unless new bucket).
+Refs: Uneed `link-directory/502_*` + `auto-launch/503_*`; PeerPush `link-directory/504_*` + `auto-launch/504_*`; Open Launch `link-directory/505_*` + `auto-launch/505_*`; TinyLaunch catalog backfill + `auto-launch/506_*`; Fazier catalog backfill + `auto-launch/507_*`. Storage bucket: `auto-launch/500_*_seed_auto_launch_profile_media_bucket.sql` (reuse unless new bucket).
+
+### Build Backlinks catalog backfill (JSON-only sites)
+
+Some shipped directory sites exist only in the **Build Backlinks hub** catalog, not in a dedicated `link-directory/504_*_seed_<site>.sql` migration.
+
+| Approach | When | Hub site + opportunities | Auto-launch destinations |
+| --- | --- | --- | --- |
+| **SQL seed** | Default for new sites | `backend/supabase/db/link-directory/504_<date>_seed_<site>.sql` | `auto-launch/<prefix>_<date>_seed_<site>_destination.sql` |
+| **Catalog JSON only** | Hub catalog is the source of truth (e.g. **TinyLaunch**, **Fazier**) | Append to `backend/scripts/link_directory_catalog_backfill.catalog.json` | Same `auto-launch/*_seed_*_destination.sql` via `destinationSeeds.ts` — **no** `link-directory/504_*` file |
+
+For JSON-only sites:
+
+1. Add a versioned `entries.<site-slug>` block in `link_directory_catalog_backfill.catalog.json` — stable UUIDs per site and opportunity rows; `auto_launch_enabled` + `auto_launch_provider_slug` on each opportunity; editorial copy (`dofollow`, cost, steps, `cta_href`, `openquok_cta_kind` as needed).
+2. After deploy or local `supabase db reset`, run `pnpm backend:db:backfill-link-directory-catalog` (optional filter: `-- --slug <site-slug>`; use `--dry-run` first). Production: `pnpm backend:db:backfill-link-directory-catalog:prod`.
+3. Operator notes: `web/src/content/docs/admin/link-directory-catalog-backfill.md`.
+
+**Opportunity copy on `/build-backlinks/{site}`:** `description`, `cost_note`, and step `body` strings render through `prepareLinkDirectoryRichTextForDisplay`, which linkifies only full `https://…` (or `http://…`) URLs. Use the same pattern as TinyLaunch step bodies (for example `https://www.tinylaunch.com/pricing`), not bare hosts like `fazier.com/page/new;` — punctuation stays on the host and the text is not clickable. Keep blurbs short: one idea per sentence, active voice.
 
 ### `extension_config` (TypeScript → SQL)
 
@@ -141,8 +160,10 @@ No **public-api-surface-sync** unless new `/api/v1/public/*` routes.
 
 | Action | Path |
 | --- | --- |
+| Edit | `web/src/lib/content/constants/channels/catalog/directory-platforms/<site>.ts` + register in `directory-seeds.ts` and `directory-channel-slugs.ts` — **required** for `/channels` and agent hub grids (not landing icons alone) |
 | Edit | `web/src/data/landing-directory-platforms.ts` — hero + directory grids |
 | Edit | `web/src/data/landing-home-features-grid.ts` — home grid `platformIds` |
+| Edit | `web/src/lib/ui/templates/landing-page/landingHeroTheme.ts` — append the public **platform label** to `LANDING_HERO_TITLE_HIGHLIGHT_WORDS` (directory block near `Open Launch`, `PeerPush`, …) so `/channels/{slug}` and marketing heroes highlight the name |
 | Edit | `web/src/content/docs/getting-started/index.md`, `platforms/index.md`, `README.md` — icon + `/channels/{slug}` |
 | Edit | `web/src/data/landing-social-platforms.test.ts` when grid ids change |
 | Optional | `web/src/lib/landing/landingAddChannelDialogMock.ts` |
@@ -159,12 +180,14 @@ No **public-api-surface-sync** unless new `/api/v1/public/*` routes.
 | PeerPush | `peerpush-free-queue`, `peerpush-standard-launch` | `504_*` | `peerpush.ts` |
 | Open Launch | `open-launch-free-launch`, `open-launch-premium-launch` | `505_*` | `openLaunch.ts` |
 | TinyLaunch | `tinylaunch-standard-launch`, `tinylaunch-premium-launch` | `506_*` | `tinylaunch.ts` |
+| Fazier | `fazier-page`, `fazier-free-product-listing`, `fazier-paid-product-listing` | `507_*` | `fazier.ts` |
 
 ## PR checklist
 
 **Catalog & DB**
 
-- [ ] `link-directory` seed: site + opportunities (`dofollow`, cost, `auto_launch_*`)
+- [ ] `link-directory` seed **or** catalog JSON entry: site + opportunities (`dofollow`, cost, `auto_launch_*`) — SQL `504_*` **or** `link_directory_catalog_backfill.catalog.json` + backfill when hub-only (TinyLaunch / Fazier pattern)
+- [ ] Catalog JSON entry + local/prod backfill when site is hub-only like TinyLaunch (`pnpm backend:db:backfill-link-directory-catalog`)
 - [ ] `auto-launch` destination seed (`503+`): rows in `destinationSeeds.ts`; `pnpm sync:auto-launch-destinations`
 - [ ] `destination-configs/*.ts` + registry; `pnpm sync:auto-launch-configs`; aggregate migrations
 
@@ -183,6 +206,7 @@ No **public-api-surface-sync** unless new `/api/v1/public/*` routes.
 
 - [ ] `directory-integration/{site}.md`, `extension-ui-patterns.md` updates
 - [ ] Landing/README/docs icon rows when channel is public
+- [ ] `landingHeroTheme.ts` — `LANDING_HERO_TITLE_HIGHLIGHT_WORDS` includes the platform’s marketing label (match `platformLabel` on the channel page, e.g. `TinyLaunch`, `Fazier`)
 
 **Verification**
 

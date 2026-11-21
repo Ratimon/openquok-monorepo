@@ -16,6 +16,7 @@ export function mergeExtensionConfigWithShippedFixture(
 		version: fixture.version ?? fromHandoff.version,
 		startUrlPatterns: fixture.startUrlPatterns ?? fromHandoff.startUrlPatterns,
 		readyUrlHint: fixture.readyUrlHint ?? fromHandoff.readyUrlHint,
+		readyStatusHint: fixture.readyStatusHint ?? fromHandoff.readyStatusHint,
 		proof: fixture.proof ?? fromHandoff.proof,
 		steps: fixture.steps ?? fromHandoff.steps,
 	};

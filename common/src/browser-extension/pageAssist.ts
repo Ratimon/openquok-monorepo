@@ -8,6 +8,8 @@ export type AutoLaunchExtensionConfig = {
 	version?: number;
 	startUrlPatterns?: readonly string[];
 	readyUrlHint?: string;
+	/** When set, replaces the default “You’re on the right page…” copy on the on-page panel (e.g. manual listing-type pickers). */
+	readyStatusHint?: string;
 	steps?: LaunchStep[];
 	proof?: Record<string, unknown>;
 };

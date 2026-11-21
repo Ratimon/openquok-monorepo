@@ -75,12 +75,28 @@ type ContentCommandMessage = {
 	profilePath?: string;
 };
 
+const REGISTERED_DIRECTORY_LAUNCH_PROVIDERS_KEY = '__openquokRegisteredDirectoryLaunchProviders';
+
+function registeredDirectoryLaunchProviders(): Set<string> {
+	const scope = globalThis as typeof globalThis & {
+		[REGISTERED_DIRECTORY_LAUNCH_PROVIDERS_KEY]?: Set<string>;
+	};
+	if (!scope[REGISTERED_DIRECTORY_LAUNCH_PROVIDERS_KEY]) {
+		scope[REGISTERED_DIRECTORY_LAUNCH_PROVIDERS_KEY] = new Set();
+	}
+	return scope[REGISTERED_DIRECTORY_LAUNCH_PROVIDERS_KEY];
+}
+
 export function registerDirectoryLaunchProvider(providerSlug: string): void {
+	if (registeredDirectoryLaunchProviders().has(providerSlug)) {
+		return;
+	}
 	const providerMeta = getDirectoryLaunchProvider(providerSlug);
 	if (!providerMeta) {
 		console.warn(`[OpenQuok] Unknown directory launch provider "${providerSlug}".`);
 		return;
 	}
+	registeredDirectoryLaunchProviders().add(providerSlug);
 	const provider = providerMeta;
 
 	let activeSession: AutoLaunchHandoffSession | null = null;
@@ -721,6 +737,7 @@ export function registerDirectoryLaunchProvider(providerSlug: string): void {
 					wireFormWatchersForSession(session.extensionConfig);
 				}
 				renderRail();
+				rail.revealPanel();
 				scheduleInitialCompareDomSync();
 				void loadProfileSourceOptions().then(() => renderRail());
 			}

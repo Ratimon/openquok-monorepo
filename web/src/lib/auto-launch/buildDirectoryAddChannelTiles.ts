@@ -7,13 +7,20 @@ import { resolveLinkDirectorySiteLogoDisplayUrl } from '$lib/link-directory/util
 export { directorySiteKeyFromProviderSlug };
 
 /** Static logos under `web/static/icons/link-directory/{slug}.svg` (dev + prod). */
-const BUNDLED_DIRECTORY_LOGO_SLUGS = new Set<string>(['peerpush', 'uneed', 'open-launch', 'tinylaunch']);
+const BUNDLED_DIRECTORY_LOGO_SLUGS = new Set<string>([
+	'peerpush',
+	'uneed',
+	'open-launch',
+	'tinylaunch',
+	'fazier'
+]);
 
 const DIRECTORY_SITE_BRANDED_ICONS: Record<string, BrandedIconName> = {
 	peerpush: 'PeerPush',
 	uneed: 'Uneed',
 	'open-launch': 'OpenLaunch',
-	tinylaunch: 'TinyLaunch'
+	tinylaunch: 'TinyLaunch',
+	fazier: 'Fazier'
 };
 
 export type LinkDirectorySiteBranding = {

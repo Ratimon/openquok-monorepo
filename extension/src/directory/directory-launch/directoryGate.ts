@@ -23,6 +23,7 @@ export const DIRECTORY_SITE_DISPLAY_NAME: Record<string, string> = {
 	uneed: 'Uneed',
 	'open-launch': 'Open Launch',
 	tinylaunch: 'TinyLaunch',
+	fazier: 'Fazier',
 };
 
 type CheckDirectoryGateResponse = {

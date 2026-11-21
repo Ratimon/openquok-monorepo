@@ -1,5 +1,11 @@
 /** `/channels/{slug}` directory launch slugs — keep aligned with `directory-seeds.ts`. */
-export const PUBLIC_DIRECTORY_CHANNEL_SLUGS = ['peerpush', 'uneed', 'open-launch', 'tinylaunch'] as const;
+export const PUBLIC_DIRECTORY_CHANNEL_SLUGS = [
+	'peerpush',
+	'uneed',
+	'open-launch',
+	'tinylaunch',
+	'fazier'
+] as const;
 
 export type PublicDirectoryChannelSlug = (typeof PUBLIC_DIRECTORY_CHANNEL_SLUGS)[number];
 

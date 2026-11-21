@@ -82,6 +82,11 @@ describe('buildStatusLine', () => {
 		expect(line).toContain('waiting-line');
 		expect(line).toContain('Fill');
 	});
+
+	it('uses readyStatusHint when on the ready URL', () => {
+		const hint = 'Pick Product launch before you fill.';
+		expect(buildStatusLine({ readyStatusHint: hint }, true)).toBe(hint);
+	});
 });
 
 describe('profileSourcePathLabel', () => {

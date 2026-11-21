@@ -26,7 +26,11 @@ function variantLabel(name: string): string {
 	return name.trim();
 }
 
-function variantInitials(name: string): string {
+function variantInitials(name: string, identifier: string): string {
+	const slugTail = identifier.split('-').pop()?.toLowerCase() ?? '';
+	if (slugTail === 'page') return 'Pg';
+	if (identifier.includes('free')) return 'Fr';
+	if (identifier.includes('paid')) return 'Pd';
 	const label = variantLabel(name);
 	return label.slice(0, 2);
 }
@@ -105,7 +109,7 @@ export function mountDirectoryChannelPicker(
 
 		const badge = document.createElement('span');
 		badge.className = 'channel-badge directory-channel-variant-badge';
-		badge.textContent = variantInitials(channel.name);
+		badge.textContent = variantInitials(channel.name, channel.identifier);
 		avatar.appendChild(badge);
 
 		chip.appendChild(avatar);

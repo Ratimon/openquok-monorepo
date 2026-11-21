@@ -2,7 +2,7 @@
 title: Adding a directory channel
 description: Contributor guide for shipping a new directory launch destination with extension autofill in OpenQuok
 order: 2
-lastUpdated: 2026-11-18
+lastUpdated: 2026-11-21
 ---
 
 <script>
@@ -83,7 +83,9 @@ pnpm backend:db:aggregate-migrations-all
 
 Apply migrations on your local Supabase so <Badge text="provider_slug" variant="param" /> resolves (extension side panel “destination not found” usually means the row is missing locally).
 
-**Tier order:** <Badge text="502_*_extension_configs.sql" variant="path" /> (UPDATE configs) before <Badge text="503" variant="path" />–<Badge text="506" variant="path" /> destination INSERT modules.
+**Catalog-only sites** (TinyLaunch, Fazier, …): opportunities are not re-inserted on <Badge text="supabase db reset" variant="default" /> — run the local backfill **after** reset (see <a href="#rollout-local-and-production">Rollout</a>).
+
+**Tier order:** <Badge text="502_*_extension_configs.sql" variant="path" /> (UPDATE configs) before <Badge text="503" variant="path" />–<Badge text="507+" variant="path" /> destination INSERT modules.
 
 ### 2. TypeScript fixtures (`destination-configs`)
 
@@ -128,12 +130,94 @@ Backend API surface is usually unchanged (<Badge text="AutoLaunchRoute" variant=
 
 </Steps>
 
+<h2 id="rollout-local-and-production">Rollout: local and production</h2>
+
+Run these **in order** after your PR merges (or on a branch-linked staging DB). Full production context: <a href="/docs/installation/production-deployment#supabase-production-migrations">Production — Supabase migrations</a>. Catalog CLI details: <a href="/docs/admin/link-directory-catalog-backfill">Catalog backfill</a>.
+
+<Callout type="note">
+<p><strong>Catalog-only vs SQL seed:</strong> If the site lives in <Badge text="link_directory_catalog_backfill.catalog.json" variant="path" /> only, run <strong>catalog backfill before</strong> the <Badge text="auto-launch/*_seed_*_destination.sql" variant="path" /> module — destination INSERTs join <Badge text="link_directory_opportunities" variant="param" /> by site and opportunity slug. If you used <Badge text="link-directory/504_*_seed_<site>.sql" variant="path" />, hub rows ship in migrations; local reset applies them automatically — production still uses backfill only when you later edit JSON copy without a migration.</p>
+</Callout>
+
+### Local (after `supabase db reset` or fresh clone)
+
+From the **repo root**:
+
+```bash
+pnpm common:build
+pnpm sync:auto-launch-configs
+pnpm sync:auto-launch-destinations
+pnpm backend:db:aggregate-migrations-all
+```
+
+From <Badge text="backend/" variant="path" />:
+
+```bash
+supabase db reset
+```
+
+**Catalog-only site** — restore hub rows (replace <Badge text="<site-slug>" variant="param" />):
+
+```bash
+pnpm backend:db:backfill-link-directory-catalog -- --dry-run --slug <site-slug>
+pnpm backend:db:backfill-link-directory-catalog -- --slug <site-slug>
+```
+
+Optional dev user (skip browser signup): <Badge text="pnpm backend:db:bootstrap-local-dev-user" variant="default" /> — see <a href="/docs/admin/super-admin">First setup as super admin</a>.
+
+Build and load the extension, then manual smoke per <Badge text="extension-ui-patterns.md" variant="path" />.
+
+### Production — apply database changes
+
+Use <Badge text="&lt;YYYYMMDD&gt;" variant="param" /> from the current <Badge text="backend/supabase/migrations/*_core_structure.sql" variant="path" /> filename (date segment only).
+
+**A. Catalog-only or JSON copy change** — run **first** when the site is JSON-backed or you changed hub opportunities:
+
+```bash
+pnpm backend:db:backfill-link-directory-catalog:prod -- --dry-run --slug <site-slug>
+pnpm backend:db:backfill-link-directory-catalog:prod -- --slug <site-slug> --force
+```
+
+Use <Badge text="--force" variant="param" /> when rows already exist (editorial updates). Requires <Badge text="backend/.env.production.local" variant="path" />.
+
+**B. Destination rows + `extension_config`** — apply your site’s module, for example <Badge text="backend/supabase/db/auto-launch/507_20261120_seed_fazier_destination.sql" variant="path" /> (run the **entire file** in Supabase **SQL Editor**), **or** CLI push:
+
+```bash
+cd backend
+pnpm db:production:push-db:dry-run
+pnpm db:production:push-db
+```
+
+<Callout type="tip">
+<p>After a manual SQL delta (Option 2), you do not need the Fazier-only block from <Badge text="502_*_extension_configs.sql" variant="path" /> if the destination seed already embedded <Badge text="extension_config" variant="param" />. Run <Badge text="pnpm sync:auto-launch-configs" variant="default" /> only when fixtures changed and you need standalone UPDATEs later.</p>
+</Callout>
+
+**C. Sync migration history** — after Option 2 (SQL Editor) or when history lags schema:
+
+```bash
+cd backend
+npx supabase@latest migration repair <YYYYMMDD> --status applied --remote
+pnpm db:production:migration-list
+```
+
+**D. Deploy app surfaces** when code changed (from repo root):
+
+```bash
+pnpm vercel:deploy:backend:prod
+pnpm vercel:deploy:web:prod
+```
+
+Publish the <a href="/docs/installation/chrome-extension">Chrome extension</a> when content scripts or manifest hosts changed — API/DB alone does not update members’ browsers.
+
+Hub/API cache may lag a few minutes after catalog backfill when caching is enabled; see <a href="/docs/admin/link-directory-catalog-backfill">Catalog backfill</a>.
+
 ## Sync scripts (when to run what)
 
 | Script | Updates | Run when |
 | --- | --- | --- |
 | <Badge text="pnpm sync:auto-launch-configs" variant="default" /> | <Badge text="502_*_extension_configs.sql" variant="path" /> (UPDATE <Badge text="extension_config" variant="param" />) | Fixture step JSON changed |
-| <Badge text="pnpm sync:auto-launch-destinations" variant="default" /> | <Badge text="503" variant="path" />–<Badge text="506" variant="path" /> INSERT modules | <Badge text="destinationSeeds.ts" variant="path" /> or embedded config on INSERT changed |
+| <Badge text="pnpm sync:auto-launch-destinations" variant="default" /> | <Badge text="503" variant="path" />–<Badge text="507+" variant="path" /> INSERT modules | <Badge text="destinationSeeds.ts" variant="path" /> or embedded config on INSERT changed |
+| <Badge text="pnpm backend:db:backfill-link-directory-catalog" variant="default" /> | Hub <Badge text="link_directory_*" variant="param" /> rows from JSON | Local after reset; catalog-only sites |
+| <Badge text="pnpm backend:db:backfill-link-directory-catalog:prod" variant="default" /> | Same against production | **Before** destination SQL when opportunities must exist |
 | <Badge text="pnpm sync:auto-launch-*:check" variant="default" /> | CI / pre-PR | Ensures SQL matches TS |
 
 Source of truth for destination **rows** is <Badge text="destinationSeeds.ts" variant="path" />; for **extension_config** shape is <Badge text="sites/*/config.ts" variant="path" />.
@@ -145,6 +229,7 @@ Source of truth for destination **rows** is <Badge text="destinationSeeds.ts" va
 <LinkCard title="Uneed" description="Join line, paid launch, maker profile" href="/docs/directory-integration/uneed" />
 <LinkCard title="Open Launch" description="Premium wizard + free queue" href="/docs/directory-integration/open-launch" />
 <LinkCard title="TinyLaunch" description="Premium create-startup + Standard pricing queue" href="/docs/directory-integration/tinylaunch" />
+<LinkCard title="Fazier" description="Company page + free/paid product listing (catalog backfill + 507 seed)" href="/docs/directory-integration/fazier" />
 </CardGrid>
 
 ## Verification before PR
@@ -162,4 +247,6 @@ Source of truth for destination **rows** is <Badge text="destinationSeeds.ts" va
 <LinkCard title="Directory integration (operators)" description="Per-site operator guides for self-host" href="/docs/directory-integration" />
 <LinkCard title="Adding a social provider" description="OAuth / credentials / extension social channels — different path" href="/docs/contribution-opportunities/add-provider" />
 <LinkCard title="Submit a pull request" description="Fork, checks, and GitHub PR workflow" href="/docs/developer-guidelines/submit-a-pr" />
+<LinkCard title="Catalog backfill (operators)" description="JSON hub destinations and prod flags" href="/docs/admin/link-directory-catalog-backfill" />
+<LinkCard title="Production deployment" description="Vercel, workers, Supabase push vs SQL Editor" href="/docs/installation/production-deployment" />
 </CardGrid>

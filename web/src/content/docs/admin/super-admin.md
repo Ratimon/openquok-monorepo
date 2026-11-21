@@ -2,7 +2,7 @@
 title: First setup as super admin
 description: Create the first platform admin after your first OpenQuok deployment.
 order: 1
-lastUpdated: 2026-11-02
+lastUpdated: 2026-11-21
 ---
 
 <script>
@@ -57,7 +57,22 @@ WHERE email = 'admin@example.com';
 Replace `admin@example.com` in the statement with your signup email. Run the query.
 
 <Callout type="note">
-After you sign up again, run from the repo root: <Badge text="pnpm backend:db:promote-platform-admin -- your@email.com" variant="default" />.In local development, the command uses <Badge text="SUPABASE_SECRET_KEY" variant="envBackend" /> from <Badge text="backend/.env.development.local" variant="path" /> (same as the API). You do not need SQL Editor for each reset.
+<p>From the repo root, use the CLI instead of SQL Editor after each local reset. Commands read <Badge text="SUPABASE_SECRET_KEY" variant="envBackend" /> from <Badge text="backend/.env.development.local" variant="path" /> (same as the API).</p>
+</Callout>
+
+```bash
+# Promote an existing signup (replace email)
+pnpm backend:db:promote-platform-admin -- your@email.com
+
+# After supabase db reset: user, verified email, workspace, super admin
+pnpm backend:db:bootstrap-local-dev-user
+
+# Older bootstrap user still on verify-email
+pnpm backend:db:verify-local-dev-user-email -- your@email.com
+```
+
+<Callout type="tip">
+<p><Badge text="bootstrap-local-dev-user" variant="default" /> uses the service role only — app auth code is unchanged. Optional flags: <Badge text="--email" variant="param" />, <Badge text="--password" variant="param" />, <Badge text="--no-super-admin" variant="param" />.</p>
 </Callout>
 
 <Callout type="warning">

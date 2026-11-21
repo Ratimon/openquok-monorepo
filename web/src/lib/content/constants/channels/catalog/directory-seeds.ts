@@ -1,6 +1,7 @@
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/catalog/types';
 
 import {
+	fazierDirectoryChannel,
 	openLaunchDirectoryChannel,
 	peerpushDirectoryChannel,
 	tinylaunchDirectoryChannel,
@@ -9,7 +10,13 @@ import {
 
 /** Directory launch landings on `/channels/{slug}` — not included in social hub tool derivations. */
 export const PUBLIC_DIRECTORY_CHANNEL_LANDING_PAGES: readonly PublicChannelLandingPageViewModel[] =
-	[peerpushDirectoryChannel, uneedDirectoryChannel, openLaunchDirectoryChannel, tinylaunchDirectoryChannel];
+	[
+		peerpushDirectoryChannel,
+		uneedDirectoryChannel,
+		openLaunchDirectoryChannel,
+		tinylaunchDirectoryChannel,
+		fazierDirectoryChannel
+	];
 
 export type PublicDirectoryChannelFooterEntry = { slug: string; label: string };
 

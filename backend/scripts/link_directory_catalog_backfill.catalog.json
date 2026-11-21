@@ -354,6 +354,160 @@
 					"auto_launch_provider_slug": null
 				}
 			]
+		},
+		"fazier": {
+			"site": {
+				"id": "d5f7d000-0010-4000-a000-00000000000c",
+				"slug": "fazier",
+				"title": "Fazier",
+				"site_url": "https://fazier.com",
+				"logo_url": "https://www.openquok.com/icons/link-directory/fazier.svg",
+				"short_description": "Product launch and company pages for startups. OpenQuok fills the forms. You sign in and finish badges, comments, or payment on Fazier.",
+				"long_description": "Fazier publishes launches and company pages. Launch pages link to your website. The free Basic plan asks for a Fazier badge or a link to Fazier on your site. Paid plans offer stronger backlink promises. See plans on https://fazier.com/submit. OpenQuok fills the forms. You approve and submit on Fazier.",
+				"domain_rating": 85,
+				"monthly_visits": 253,
+				"metrics_source": "editor_estimate",
+				"category_slug": "launch-platforms",
+				"tag_slugs": ["high-dr"],
+				"is_openquok_auth_supported": false,
+				"openquok_channel_slug": null,
+				"is_admin_published": true,
+				"sort_order": 0
+			},
+			"opportunities": [
+				{
+					"id": "d5f7d000-0020-4000-a000-000000000027",
+					"slug": "company-page",
+					"title": "Page",
+					"opportunity_type_slug": "product_submission",
+					"effort": "medium",
+					"approval_mode": "manual_review",
+					"approval_time_hint": "Usually within a few business days after you submit",
+					"dofollow": "unknown",
+					"cost_tier": "free",
+					"cost_note": null,
+					"description": "OpenQuok fills the company form at https://fazier.com/page/new. Add your name, website, and company story. Launch pages are the main path for links to your site. Check your live page after Fazier approves it.",
+					"steps": [
+						{
+							"order": 1,
+							"title": "Sign in",
+							"body": "Open https://fazier.com and sign in with Google or email."
+						},
+						{
+							"order": 2,
+							"title": "Basic info",
+							"body": "Open https://fazier.com/page/new. In step 1, add company name, page address, website, logo, and tagline."
+						},
+						{
+							"order": 3,
+							"title": "Overview and socials",
+							"body": "Add industry, size, type, country, city, founded date, about text, and social links. Fill any extra fields Fazier shows."
+						},
+						{
+							"order": 4,
+							"title": "Publish and verify",
+							"body": "Submit the page. Open your live company page. Check any link to your website. Launches use separate rules on https://fazier.com/submit."
+						}
+					],
+					"openquok_cta_kind": "external_doc",
+					"openquok_channel_slug": null,
+					"openquok_plug_name": null,
+					"cta_href": "https://fazier.com/page/new",
+					"cta_label": "Create company page on Fazier",
+					"sort_order": 10,
+					"is_admin_published": true,
+					"auto_launch_enabled": true,
+					"auto_launch_provider_slug": "fazier-page"
+				},
+				{
+					"id": "d5f7d000-0020-4000-a000-000000000028",
+					"slug": "free-product-listing",
+					"title": "Free product listing",
+					"opportunity_type_slug": "product_submission",
+					"effort": "medium",
+					"approval_mode": "manual_review",
+					"approval_time_hint": "Basic tier: reviewed within about 30 days",
+					"dofollow": "dofollow",
+					"cost_tier": "free",
+					"cost_note": "Add a Fazier badge or a link to Fazier on your site.",
+					"description": "OpenQuok fills the product form at https://fazier.com/submit. Choose the free Basic plan. Add the badge or site link Fazier asks for. Launch pages usually link to your product site.",
+					"steps": [
+						{
+							"order": 1,
+							"title": "Pick Basic (free)",
+							"body": "Compare tiers on https://fazier.com/launch, then open https://fazier.com/submit and choose Product launch and the Basic plan."
+						},
+						{
+							"order": 2,
+							"title": "Fill and review",
+							"body": "Use the OpenQuok extension to fill the form. Check each field before you submit on Fazier."
+						},
+						{
+							"order": 3,
+							"title": "Finish manual requirements",
+							"body": "Leave maker comments, add the Fazier embed badge or homepage/footer link, and wait for approval."
+						},
+						{
+							"order": 4,
+							"title": "Save your listing",
+							"body": "When Fazier publishes, open your launch page. Save the URL in OpenQuok."
+						}
+					],
+					"openquok_cta_kind": "external_doc",
+					"openquok_channel_slug": null,
+					"openquok_plug_name": null,
+					"cta_href": "https://fazier.com/submit",
+					"cta_label": "Submit product on Fazier",
+					"sort_order": 15,
+					"is_admin_published": true,
+					"auto_launch_enabled": true,
+					"auto_launch_provider_slug": "fazier-free-product-listing"
+				},
+				{
+					"id": "d5f7d000-0020-4000-a000-000000000029",
+					"slug": "paid-product-listing",
+					"title": "Paid product listing",
+					"opportunity_type_slug": "product_submission",
+					"effort": "medium",
+					"approval_mode": "manual_review",
+					"approval_time_hint": "Lite Plan and higher can publish or schedule sooner",
+					"dofollow": "dofollow",
+					"cost_tier": "paid",
+					"cost_note": "Lite about $29. Premium about $49. Super about $99. Fazier lists a different backlink promise for each tier.",
+					"description": "OpenQuok fills the product form at https://fazier.com/submit. Choose Lite, Premium, or Super. You do not need the free Basic badge or site link. Read each tier on Fazier before you pay.",
+					"steps": [
+						{
+							"order": 1,
+							"title": "Pick a paid tier",
+							"body": "Compare Lite, Premium, and Super on https://fazier.com/launch, then open https://fazier.com/submit and choose Product launch with your paid plan."
+						},
+						{
+							"order": 2,
+							"title": "Fill and review",
+							"body": "Use the OpenQuok extension to fill the form. Check each field before you continue on Fazier."
+						},
+						{
+							"order": 3,
+							"title": "Checkout on Fazier",
+							"body": "Pay on Fazier. Paid plans do not need the free Basic badge or homepage link."
+						},
+						{
+							"order": 4,
+							"title": "Save your listing",
+							"body": "When Fazier publishes, open your launch page. Save the URL in OpenQuok. Check the link matches the tier you bought."
+						}
+					],
+					"openquok_cta_kind": "external_doc",
+					"openquok_channel_slug": null,
+					"openquok_plug_name": null,
+					"cta_href": "https://fazier.com/submit",
+					"cta_label": "Fazier launch pricing",
+					"sort_order": 16,
+					"is_admin_published": true,
+					"auto_launch_enabled": true,
+					"auto_launch_provider_slug": "fazier-paid-product-listing"
+				}
+			]
 		}
 	}
 }

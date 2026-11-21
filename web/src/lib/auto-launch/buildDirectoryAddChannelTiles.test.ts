@@ -98,6 +98,20 @@ describe('buildDirectoryAddChannelTiles', () => {
 		expect(tiles[0]?.brandedIconName).toBe('TinyLaunch');
 	});
 
+	it('assigns bundled logo and branded icon for fazier', () => {
+		const tiles = buildDirectoryAddChannelTiles(
+			[
+				destination({ providerSlug: 'fazier-page', siteTitle: 'Fazier' }),
+				destination({ providerSlug: 'fazier-free-product-listing', sortOrder: 1 }),
+				destination({ providerSlug: 'fazier-paid-product-listing', sortOrder: 2 })
+			],
+			new Map([['fazier', { title: 'Fazier', logoUrl: null }]])
+		);
+		expect(tiles).toHaveLength(1);
+		expect(tiles[0]?.logoUrl).toBe('/icons/link-directory/fazier.svg');
+		expect(tiles[0]?.brandedIconName).toBe('Fazier');
+	});
+
 	it('ignores non-extension destinations', () => {
 		const tiles = buildDirectoryAddChannelTiles(
 			[destination({ providerSlug: 'uneed-auto-only', submissionPath: 'auto' })],

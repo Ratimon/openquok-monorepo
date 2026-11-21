@@ -298,6 +298,13 @@ export const brandedIcons = {
         fill: true,
         svg: `<rect width="32" height="32" rx="7" fill="#1877F2"/><path fill="#fff" d="M21.95 5.005l-3.306-.004c-3.206 0-5.277 2.124-5.277 5.415v2.495H10.05v4.515h3.317l-.004 9.575h4.641l.004-9.575h3.806l-.003-4.514h-3.803v-2.117c0-1.018.241-1.533 1.566-1.533l2.366-.001.01-4.256z"/>`
     },
+    /** Fazier product mark (from fazier.com). Fazier is a trademark of its respective owner. */
+    Fazier: {
+        name: "Fazier",
+        box: 280,
+        fill: true,
+        svg: `<path d="M139.928 279.855C217.208 279.855 279.855 217.208 279.855 139.928C279.855 62.6478 217.208 0 139.928 0C62.6478 0 0 62.6478 0 139.928C0 217.208 62.6478 279.855 139.928 279.855Z" fill="#0048FF"/><path d="M209.293 56.519H112.406V90.2262H209.293V56.519Z" fill="white"/><path d="M170.313 125.314H112.406V159.021H170.313V125.314Z" fill="white"/><path d="M112.504 90.583H75.0806V125.414H112.504V90.583Z" fill="white"/><path d="M112.504 159.105H75.0806V223.408H112.504V159.105Z" fill="white"/>`
+    },
     /** Feishu / Lark mark. Feishu and Lark are trademarks of ByteDance. */
     Feishu: {
         name: "Feishu",

@@ -1,16 +1,8 @@
-import { openLaunchDirectoryChannel } from '$lib/content/constants/channels/catalog/directory-platforms/open-launch';
-import { peerpushDirectoryChannel } from '$lib/content/constants/channels/catalog/directory-platforms/peerpush';
-import { uneedDirectoryChannel } from '$lib/content/constants/channels/catalog/directory-platforms/uneed';
 import {
 	isPublicDirectoryChannelSlug,
 	type PublicDirectoryChannelSlug
 } from '$lib/content/constants/channels/catalog/directory-channel-slugs';
-
-const DIRECTORY_CHANNELS = [
-	peerpushDirectoryChannel,
-	uneedDirectoryChannel,
-	openLaunchDirectoryChannel
-] as const;
+import { PUBLIC_DIRECTORY_CHANNEL_LANDING_PAGES } from '$lib/content/constants/channels/catalog/directory-seeds';
 
 export type PublicDirectoryChannelOption = {
 	slug: PublicDirectoryChannelSlug;
@@ -18,7 +10,7 @@ export type PublicDirectoryChannelOption = {
 };
 
 export function listPublicDirectoryChannelOptions(): PublicDirectoryChannelOption[] {
-	return DIRECTORY_CHANNELS.map((channel) => ({
+	return PUBLIC_DIRECTORY_CHANNEL_LANDING_PAGES.map((channel) => ({
 		slug: channel.slug as PublicDirectoryChannelSlug,
 		label: channel.platformLabel
 	}));
@@ -26,7 +18,7 @@ export function listPublicDirectoryChannelOptions(): PublicDirectoryChannelOptio
 
 export function publicDirectoryChannelLabel(slug: string): string {
 	const key = slug.trim().toLowerCase();
-	const match = DIRECTORY_CHANNELS.find((channel) => channel.slug === key);
+	const match = PUBLIC_DIRECTORY_CHANNEL_LANDING_PAGES.find((channel) => channel.slug === key);
 	if (match) {
 		return match.platformLabel;
 	}

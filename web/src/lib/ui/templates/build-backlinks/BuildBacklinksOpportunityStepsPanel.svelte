@@ -14,8 +14,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import AddDirectoryLaunch from '$lib/ui/components/auto-launch/AddDirectoryLaunch.svelte';
-	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
-	import { absoluteUrl, route } from '$lib/utils/path';
+	import { route } from '$lib/utils/path';
 	import FeaturesSectionHeader from '$lib/ui/templates/feature-grid/FeaturesSectionHeader.svelte';
 	import BentoPublicChannelFeature from '$lib/ui/templates/bento/minor-templates/BentoPublicChannelFeature.svelte';
 	import SafariMock from '$lib/ui/templates/device-mocks/safari/SafariMock.svelte';
@@ -84,7 +83,10 @@
 		Boolean((page.data as { isLoggedIn?: boolean } | undefined)?.isLoggedIn)
 	);
 
-	const signUpHref = $derived(absoluteUrl(route(getRootPathSignup())));
+	const directoryLaunchGuestChannelHref = $derived.by(() => {
+		const slug = opportunity?.openquokChannelSlug?.trim();
+		return slug ? route(`channels/${slug}`) : undefined;
+	});
 
 	const directoryLaunchCta = $derived.by(() => {
 		const footer = section.footer;
@@ -244,8 +246,8 @@
 						<AddDirectoryLaunch
 							buttonLabel={directoryLaunchCta.label}
 							destinationProviderSlug={directoryLaunchCta.providerSlug}
+							guestChannelHref={directoryLaunchGuestChannelHref}
 							{isLoggedIn}
-							{signUpHref}
 							buttonVariant="primary"
 						/>
 					</div>

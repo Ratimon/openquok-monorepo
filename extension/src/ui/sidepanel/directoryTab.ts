@@ -1,6 +1,7 @@
 import {
 	AUTO_LAUNCH_MESSAGE_TYPE,
 	getDirectoryLaunchProvider,
+	isDirectoryLaunchProviderId,
 	listDirectoryLaunchProviderSummaries,
 } from 'openquok-common';
 
@@ -56,6 +57,13 @@ async function handleDirectoryChannelSelect(
 	state: StoredAutoLaunchState | null,
 	renderRef: DirectoryTabRenderRef
 ): Promise<void> {
+	if (!isDirectoryLaunchProviderId(identifier)) {
+		renderRef.current(
+			state,
+			`Unknown directory channel (${identifier}). Reload the extension at chrome://extensions — the side panel and background bundle may be out of sync.`
+		);
+		return;
+	}
 	selectedChannelId = identifier;
 	directoryPickerUserSelection = identifier;
 	await showFillPanelForChannel(identifier, state, renderRef);
@@ -78,10 +86,13 @@ function statusForState(state: StoredAutoLaunchState | null): string {
 	if (!pageMatchesConfig(config)) {
 		return `Open ${state.session.startUrl} and continue on the directory site.`;
 	}
-	if (!isReadyPage(config)) {
-		return config.readyUrlHint
-			? `Open your edit or submission page (URL includes “${config.readyUrlHint}”), then use Fill on the on-page OpenQuok panel.`
-			: 'Open the directory listing or submission form, then use Fill on the on-page OpenQuok panel.';
+	const onReady = isReadyPage(config);
+	const panelLine = buildStatusLine(config, onReady);
+	if (!onReady) {
+		return `${panelLine} Use Fill on the on-page OpenQuok panel when you arrive.`;
+	}
+	if (config.readyStatusHint?.trim()) {
+		return panelLine;
 	}
 	return 'On the right page — use Fill on the on-page panel (each section or Fill all steps), then submit yourself on this site.';
 }

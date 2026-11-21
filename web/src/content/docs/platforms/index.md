@@ -66,6 +66,7 @@ Directory destinations are not social integrations. The API and MCP use <Badge t
 | **Uneed** | <Badge text="uneed" variant="param" /> |
 | **Open Launch** | <Badge text="open-launch" variant="param" /> |
 | **TinyLaunch** | <Badge text="tinylaunch" variant="param" /> |
+| **Fazier** | <Badge text="fazier" variant="param" /> |
 
 New directory catalog rows follow the same pattern. Slugs and connect steps are in <a href="/docs/platforms/connect-rules#directory-launch-platforms">Connect rules → Directory launch platforms</a>.
 
@@ -118,6 +119,7 @@ OpenQuok stores your pitch, shows **listing readiness**, and the **browser exten
 <a href="/channels/uneed" title="Uneed"><img src="/icons/link-directory/uneed.svg" alt="Uneed" width="32" height="32" /></a>
 <a href="/channels/open-launch" title="Open Launch"><img src="/icons/link-directory/open-launch.svg" alt="Open Launch" width="32" height="32" /></a>
 <a href="/channels/tinylaunch" title="TinyLaunch"><img src="/icons/link-directory/tinylaunch.svg" alt="TinyLaunch" width="32" height="32" /></a>
+<a href="/channels/fazier" title="Fazier"><img src="/icons/link-directory/fazier.svg" alt="Fazier" width="32" height="32" /></a>
 </p>
 
 | Topic | Social posting | Directory launch |

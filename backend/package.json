@@ -91,6 +91,8 @@
     "db:production:push-db:dry-run": "npx supabase@latest db push --remote --dry-run",
     "db:production:push-db": "npx supabase@latest db push --remote --include-seed",
     "db:local:promote-platform-admin": "node scripts/promote_platform_admin.mjs",
+    "db:local:bootstrap-dev-user": "node scripts/bootstrap_local_dev_user.mjs",
+    "db:local:verify-dev-user-email": "node scripts/verify_local_dev_user_email.mjs",
     "db:backfill-link-directory-catalog": "node scripts/backfill_link_directory_catalog.mjs",
     "db:backfill-link-directory-catalog:prod": "node scripts/backfill_link_directory_catalog.mjs --env-file .env.production.local"
   },

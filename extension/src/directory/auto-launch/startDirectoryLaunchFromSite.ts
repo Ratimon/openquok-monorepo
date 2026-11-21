@@ -88,7 +88,11 @@ export async function buildDirectoryLaunchHandoffFromSite(
 > {
 	const provider = getDirectoryLaunchProvider(providerSlug);
 	if (!provider) {
-		return { ok: false, error: 'Unknown directory channel.' };
+		const slug = providerSlug.trim() || '(empty)';
+		return {
+			ok: false,
+			error: `Unknown directory channel (${slug}). Reload the extension after rebuilding @openquok/browser-extension.`,
+		};
 	}
 
 	const sessionResult = await resolveSocialSession();

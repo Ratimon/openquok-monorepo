@@ -124,8 +124,24 @@ async function findTabIdForHostPatterns(patterns: readonly string[]): Promise<nu
  */
 async function resolveDirectoryTabForLaunch(
 	startUrl: string,
-	hostPatterns: readonly string[]
+	hostPatterns: readonly string[],
+	preferredTabId?: number | null
 ): Promise<{ tabId: number; created: boolean } | null> {
+	if (preferredTabId != null) {
+		try {
+			const tab = await chrome.tabs.get(preferredTabId);
+			if (
+				typeof tab.url === 'string' &&
+				tab.url.length > 0 &&
+				tabUrlMatchesHostPatterns(tab.url, hostPatterns)
+			) {
+				return { tabId: preferredTabId, created: false };
+			}
+		} catch {
+			/* tab closed */
+		}
+	}
+
 	const existing =
 		(await findTabIdForStartUrlWithRetry(startUrl, 4, 80)) ??
 		(await findTabIdForHostPatterns(hostPatterns));
@@ -137,19 +153,47 @@ async function resolveDirectoryTabForLaunch(
 	return { tabId: tab.id, created: true };
 }
 
+async function ensureDirectoryLaunchContentScript(
+	tabId: number,
+	providerSlug: string
+): Promise<void> {
+	const provider = getDirectoryLaunchProvider(providerSlug);
+	const scriptFile = provider?.contentScriptEntry;
+	if (!scriptFile) return;
+	try {
+		await chrome.scripting.executeScript({
+			target: { tabId },
+			files: [scriptFile],
+		});
+	} catch {
+		/* manifest may have already injected the bundle */
+	}
+}
+
 async function sendStartToTab(
 	tabId: number,
 	session: AutoLaunchHandoffSession,
 	dashboardOrigin?: string
 ): Promise<void> {
-	try {
-		await chrome.tabs.sendMessage(tabId, {
-			type: AUTO_LAUNCH_MESSAGE_TYPE.START,
-			session,
-			...(dashboardOrigin ? { dashboardOrigin } : {}),
-		});
-	} catch {
-		/* content script loads after navigation — attach listener will retry */
+	const payload = {
+		type: AUTO_LAUNCH_MESSAGE_TYPE.START,
+		session,
+		...(dashboardOrigin ? { dashboardOrigin } : {}),
+	};
+	const delaysMs = [0, 120, 280, 500, 900];
+	for (let attempt = 0; attempt < delaysMs.length; attempt += 1) {
+		if (delaysMs[attempt] > 0) {
+			await new Promise((resolve) => setTimeout(resolve, delaysMs[attempt]));
+		}
+		if (attempt === 2) {
+			await ensureDirectoryLaunchContentScript(tabId, session.providerSlug);
+		}
+		try {
+			await chrome.tabs.sendMessage(tabId, payload);
+			return;
+		} catch {
+			/* content script may still be loading — retry before attach watcher */
+		}
 	}
 }
 
@@ -375,12 +419,17 @@ async function focusStoredLaunchTab(
 	return { ok: true };
 }
 
+function unknownDirectoryChannelMessage(providerSlug: string): string {
+	const slug = providerSlug.trim() || '(empty)';
+	return `Unknown directory channel (${slug}). Reload the extension at chrome://extensions (OpenQuok → Reload) after pnpm common:build && pnpm --filter @openquok/browser-extension build.`;
+}
+
 async function startDirectoryChannelFromSidePanel(
 	providerSlugHint: string
 ): Promise<{ ok: true } | { ok: false; error: string }> {
 	const provider = getDirectoryLaunchProvider(providerSlugHint);
 	if (!provider) {
-		return { ok: false, error: 'Unknown directory channel.' };
+		return { ok: false, error: unknownDirectoryChannelMessage(providerSlugHint) };
 	}
 
 	const handoff = await buildDirectoryLaunchHandoffFromSite(providerSlugHint);
@@ -394,7 +443,12 @@ async function startDirectoryChannelFromSidePanel(
 	const startUrl =
 		resolveDirectoryLaunchStartUrl(providerSlugHint, handoff.fields.startUrl) ||
 		provider.defaultStartUrl;
-	const tabResolution = await resolveDirectoryTabForLaunch(startUrl, provider.hostPatterns);
+	const preferredTabId = await activeTabId();
+	const tabResolution = await resolveDirectoryTabForLaunch(
+		startUrl,
+		provider.hostPatterns,
+		preferredTabId
+	);
 	if (!tabResolution) {
 		return { ok: false, error: 'Could not open a directory tab for this launch.' };
 	}
@@ -416,7 +470,9 @@ async function startDirectoryChannelFromSidePanel(
 	try {
 		const session = toAutoLaunchHandoffSession(handoff.fields);
 		await persistHandoffForTab(handoff.fields, handoff.dashboardOrigin, tabId);
+		await dismissLaunchPanelOnTab(tabId);
 		attachAutoLaunchStartWhenTabReady(tabId, session);
+		await sendStartToTab(tabId, session, handoff.dashboardOrigin);
 	} catch (error) {
 		const message =
 			error instanceof Error ? error.message : 'Could not start directory launch on this tab.';
@@ -444,6 +500,10 @@ async function openDirectoryPageFromSidePanel(
 	}
 
 	const provider = getDirectoryLaunchProvider(slug);
+	if (!provider) {
+		return { ok: false, error: unknownDirectoryChannelMessage(slug) };
+	}
+
 	const state = await loadAutoLaunchState();
 	if (state?.session.providerSlug === slug) {
 		const openUrl = resolveDirectoryLaunchStartUrl(slug, state.session.startUrl);

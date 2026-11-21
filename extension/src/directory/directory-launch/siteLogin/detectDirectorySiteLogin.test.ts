@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { detectDirectorySiteLogin } from './detectDirectorySiteLogin.js';
+import { FAZIER_LOGIN_URL } from './fazier.js';
 import { OPEN_LAUNCH_LOGIN_URL } from './open-launch.js';
 import { PEERPUSH_LOGIN_URL } from './peerpush.js';
 import { TINYLAUNCH_LOGIN_URL } from './tinylaunch.js';
@@ -44,6 +45,14 @@ describe('detectDirectorySiteLogin', () => {
 		expect(detectDirectorySiteLogin('tinylaunch')).toEqual({
 			loggedIn: false,
 			loginUrl: TINYLAUNCH_LOGIN_URL
+		});
+	});
+
+	it('dispatches to the fazier adapter', () => {
+		document.body.innerHTML = `<a href="/login">Sign In</a>`;
+		expect(detectDirectorySiteLogin('fazier')).toEqual({
+			loggedIn: false,
+			loginUrl: FAZIER_LOGIN_URL
 		});
 	});
 

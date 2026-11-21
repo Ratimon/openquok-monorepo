@@ -12,10 +12,11 @@ Reference for **extension-assisted directory launches**: step rail, compare pane
 | `peerpush` | `peerpush-free-queue`, `peerpush-standard-launch` | peerpush.com submit flows | `openquok-directory-peerpush.js` |
 | `open-launch` | `open-launch-free-launch`, `open-launch-premium-launch` | Premium wizard; free queue via pricing | `openquok-directory-open-launch.js` |
 | `tinylaunch` | `tinylaunch-standard-launch`, `tinylaunch-premium-launch` | Premium → create form; Standard → pricing | `openquok-directory-tinylaunch.js` |
+| `fazier` | `fazier-page`, `fazier-free-product-listing`, `fazier-paid-product-listing` | Page wizard; product submit (free vs paid tier) | `openquok-directory-fazier.js` |
 
-**Site count for smoke:** **4** directory sites (8 provider variants total).
+**Site count for smoke:** **5** directory sites (10 provider variants total).
 
-Picker groups: TinyLaunch and Open Launch group variants under one Add Channel tile per site (`picker_group_key` = site slug).
+Picker groups: TinyLaunch, Open Launch, and Fazier group variants under one Add Channel tile per site (`picker_group_key` = site slug).
 
 ---
 
@@ -51,6 +52,45 @@ Login: `extension/src/directory/directory-launch/siteLogin/tinylaunch.ts` → `h
 
 ---
 
+## Fazier field mapping
+
+Module: `common/src/auto-launch/destination-configs/sites/fazier/config.ts`
+
+### Company page (`fazier-page`)
+
+| Step / label | `profilePath` | `fillMode` | Notes |
+| --- | --- | --- | --- |
+| Name | `name` | `text` | Basic info |
+| Page URL (slug) | `profile_data.slug` | `text` | `company` input |
+| Website | `website_url` | `text` | |
+| Logo | `logo_url` | `file` | |
+| Tagline | `tagline` | `text` | max 120 on page flow |
+| Industry | `profile_data.categories` | `text` | Overview |
+| Company size / type | `profile_data.target_audiences`, `profile_data.use_cases` | `select` | combobox hints |
+| Country / city / founded | `profile_data.platforms`, `profile_data.tech_stack`, `profile_data.launch_date` | `select` / `text` | review labels on live site |
+| About | `description` | `text` | |
+| LinkedIn / Twitter | `profile_data.social_linkedin`, `profile_data.social_x` | `text` | extra platform rows **manual** |
+
+`readyUrlHint`: `page/new`. Login: `extension/src/directory/directory-launch/siteLogin/fazier.ts` → `https://fazier.com/login`.
+
+### Product listing (`fazier-free-product-listing`, `fazier-paid-product-listing`)
+
+| Form label | `profilePath` | `fillMode` | Notes |
+| --- | --- | --- | --- |
+| Product name | `name` | `text` | |
+| Tagline | `tagline` | `text` | directory tagline max |
+| Website | `website_url` | `text` | |
+| Description | `description` | `text` | |
+| Features / use cases | `profile_data.use_cases` | `text` | |
+| Logo / images | `logo_url`, `profile_data.gallery_urls` | `file` / `files` | |
+| Category / pricing | `profile_data.categories`, `profile_data.pricing_type` | `select` | |
+| LinkedIn / Twitter | `profile_data.social_*` | `text` | |
+| Comments, badge embed, Lite Plan | — | — | **Manual** after submit |
+
+`readyUrlHint`: `submit` (`https://fazier.com/submit` product form; marketing tiers live at `/launch`). Sign in before handoff so the form loads.
+
+---
+
 ## Open Launch field mapping (summary)
 
 | Area | `profilePath` | Notes |
@@ -76,12 +116,22 @@ See operator guides under `web/src/content/docs/directory-integration/`.
 
 Run after changing fixtures, extension manifests, or marketing tiles. Use a dev workspace with the extension loaded from `extension/dist`.
 
-### All sites (4)
+### All sites (5)
 
 - [ ] `pnpm --filter openquok-common test:unit` (includes destination config drift tests)
 - [ ] `pnpm sync:auto-launch-configs:check` and `pnpm sync:auto-launch-destinations:check`
 - [ ] Add Channel shows one tile per site with bundled logo under `/icons/link-directory/{slug}.svg`
 - [ ] Side panel **session bar** (above Social / Directory tabs): sign in from the bar on Social → Directory shows the same connection label and channel picker (no red sign-in banner); **Disconnect** in the bar clears the Social composer; self-host connect from the bar works without opening Social first
+
+### Fazier
+
+- [ ] Sign in on fazier.com; **Company page** handoff opens `page/new` with non-empty `extension_config`
+- [ ] Step rail shows **Basic info** → **Overview** → **Social links**; compare lists mapped profile fields
+- [ ] Extra social platform rows on the page wizard are documented as manual in `directory-integration/fazier.md`
+- [ ] **Free product listing** and **Paid product listing** handoffs open `https://fazier.com/submit` when signed in
+- [ ] After publish, listing URL matches proof hints (`/company/` or `/launches/` / `/p/`)
+- [ ] Badge, comments, and Lite Plan checkout stay manual per operator doc
+- [ ] `directory-integration/fazier.md` loads; Build Backlinks lists Fazier with PeerPush, Uneed, Open Launch, TinyLaunch
 
 ### TinyLaunch
 

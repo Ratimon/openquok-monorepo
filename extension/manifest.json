@@ -39,6 +39,7 @@
     "*://*.uneed.best/*",
     "*://*.open-launch.com/*",
     "*://*.tinylaunch.com/*",
+    "*://*.fazier.com/*",
     "https://*.openquok.com/*",
     "http://localhost/*",
     "http://127.0.0.1/*",
@@ -64,6 +65,11 @@
     {
       "matches": ["https://tinylaunch.com/*", "https://www.tinylaunch.com/*"],
       "js": ["content/directory-launch/openquok-directory-tinylaunch.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://fazier.com/*", "https://www.fazier.com/*"],
+      "js": ["content/directory-launch/openquok-directory-fazier.js"],
       "run_at": "document_idle"
     },
     {

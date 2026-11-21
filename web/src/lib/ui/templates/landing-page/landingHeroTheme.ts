@@ -229,6 +229,8 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'PeerPush',
 	'Uneed',
 	'Open Launch',
+	'TinyLaunch',
+	'Fazier',
 	'GetMoreBacklinks',
 	'BoringLaunch',
 	// Protected account app heroes

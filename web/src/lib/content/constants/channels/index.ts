@@ -56,6 +56,7 @@ export {
 } from '$lib/content/constants/channels/catalog/seeds';
 export { PUBLIC_DIRECTORY_CHANNEL_LANDING_PAGES } from '$lib/content/constants/channels/catalog/directory-seeds';
 export {
+	fazierDirectoryChannel,
 	peerpushDirectoryChannel,
 	uneedDirectoryChannel
 } from '$lib/content/constants/channels/catalog/directory-platforms/index';
