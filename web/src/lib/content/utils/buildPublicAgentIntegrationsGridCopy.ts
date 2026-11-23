@@ -33,9 +33,9 @@ export function buildPublicAgentIntegrationsGridDescription(
 	}
 
 	if (agent.length > 0) {
-		return `Open the landing page for another autonomous agent or MCP client. Compare setup steps, supported channels, and scheduling workflows beside ${agent}.`;
+		return `See another autonomous agent or MCP client. Compare setup steps, supported channels, and scheduling workflows beside ${agent}.`;
 	}
-	return 'Open the landing page for another autonomous agent or MCP client. Compare setup steps and scheduling workflows.';
+	return 'See another autonomous agent or MCP client. Compare setup steps and scheduling workflows.';
 }
 
 export function buildPublicAgentIntegrationsGridCoreLabel(): string {

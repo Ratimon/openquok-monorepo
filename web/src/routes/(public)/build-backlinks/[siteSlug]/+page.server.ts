@@ -27,6 +27,7 @@ import {
 	formatBuildBacklinksSiteMetaTitle,
 	formatBuildBacklinksSiteSeoKeywords
 } from '$lib/link-directory/utils/formatBuildBacklinksSiteSeoCopy';
+import { buildBuildBacklinksCategorySiblingGridItems } from '$lib/link-directory/utils/buildBuildBacklinksCategorySiblingGridItems';
 import { buildBuildBacklinksSiteFaqSection } from '$lib/link-directory/utils/buildBuildBacklinksSiteFaqSection';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
@@ -122,6 +123,24 @@ export async function load({ params, url, fetch, cookies, parent }) {
 	const guideSections = buildBuildBacklinksGuideSections({ canonical, site });
 	const siteFaqSection = buildBuildBacklinksSiteFaqSection({ site, canonical });
 
+	const categorySlug = site.category?.slug?.trim() ?? '';
+	const categoryName = site.category?.name?.trim() ?? '';
+	let categorySiblingGridItems: ReturnType<typeof buildBuildBacklinksCategorySiblingGridItems> = [];
+
+	if (categorySlug.length > 0) {
+		const { sites: categorySites } = await linkDirectoryRepository.getPublishedSites({
+			limit: 48,
+			skip: 0,
+			categorySlug,
+			sortByKey: 'title',
+			sortByOrder: true,
+			fetch
+		});
+		if (categorySites.length >= 2) {
+			categorySiblingGridItems = buildBuildBacklinksCategorySiblingGridItems(categorySites);
+		}
+	}
+
 	let schemaData = createJsonLdGraph([]);
 	try {
 		const guideHowToSections = [
@@ -166,6 +185,8 @@ export async function load({ params, url, fetch, cookies, parent }) {
 		heroTitle,
 		metaTitle: customTitle,
 		metaDescription: customDescription,
-		listingsBreadcrumb
+		listingsBreadcrumb,
+		categorySiblingGridItems,
+		categorySiblingGridCategoryName: categoryName.length > 0 ? categoryName : null
 	};
 }

@@ -7,6 +7,11 @@
 
 	import { planLimitsForTier } from 'openquok-common';
 
+	import {
+		buildBuildBacklinksCategorySiblingGridCardDescription,
+		buildBuildBacklinksCategorySiblingGridDescription,
+		buildBuildBacklinksCategorySiblingGridTitle
+	} from '$lib/link-directory/utils/buildBuildBacklinksCategorySiblingGridCopy';
 	import { prepareLinkDirectoryRichTextForDisplay } from '$lib/link-directory/utils/linkDirectoryRichText';
 	import { getBillingPresenter } from '$lib/billing';
 	import {
@@ -38,6 +43,7 @@
 	import PublicListingDetailHeroTitle from '$lib/ui/templates/titles/PublicListingDetailHeroTitle.svelte';
 	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
+	import PublicChannelSiblingGrid from '$lib/ui/templates/landing-page/PublicChannelSiblingGrid.svelte';
 
 	type Props = { data: PageData };
 
@@ -50,6 +56,8 @@
 	let heroTitle = $derived(data.heroTitle);
 	let guideSections = $derived(data.guideSections);
 	let siteFaqSection = $derived(data.siteFaqSection);
+	let categorySiblingGridItems = $derived(data.categorySiblingGridItems ?? []);
+	let categorySiblingGridCategoryName = $derived(data.categorySiblingGridCategoryName);
 	let isLoggedIn = $derived(authenticationRepository.isAuthenticated() || data.isLoggedIn === true);
 
 	const bookmarksPresenter = publicBuildBacklinksBookmarksPresenter;
@@ -111,6 +119,29 @@
 	const isSiteBookmarked = $derived(bookmarksPresenter.isBookmarked(siteVm.slug));
 
 	const signUpPath = $derived(route(getRootPathSignup()));
+
+	const showCategorySiblingGrid = $derived(
+		categorySiblingGridItems.length >= 2 && categorySiblingGridCategoryName != null
+	);
+
+	const categorySiblingGridSectionTitle = $derived(
+		buildBuildBacklinksCategorySiblingGridTitle(categorySiblingGridCategoryName ?? '')
+	);
+
+	const categorySiblingGridSectionDescription = $derived(
+		buildBuildBacklinksCategorySiblingGridDescription(
+			siteVm.title,
+			categorySiblingGridCategoryName ?? ''
+		)
+	);
+
+	function categorySiblingGridCardDescription(
+		platformLabel: string,
+		_available: boolean,
+		_siteSlug: string
+	): string {
+		return buildBuildBacklinksCategorySiblingGridCardDescription(platformLabel);
+	}
 
 	async function handleToggleBookmark(params: { siteId: string; siteSlug: string }) {
 		const result = await bookmarksPresenter.toggleBookmark({ ...params, title: siteVm.title });
@@ -229,44 +260,6 @@
 							<BuildBacklinksOpportunityGuideSection {section} />
 						{/if}
 					{/each}
-
-					<PublicFaq
-						heroTheme={landingHeroTheme}
-						faqSubtitle={siteFaqSection.faqSubtitle}
-						faqTitle={siteFaqSection.faqTitle}
-						faqDescription={siteFaqSection.faqDescription}
-						faqItems={siteFaqSection.faqItems}
-						sectionClass="mt-16 pt-10 border-t border-base-content/10"
-					/>
-
-					<section class="border-t border-base-content/10 py-10">
-						<SubjectComments
-							{commentsVm}
-							subjectId={siteVm.id}
-							{isLoggedIn}
-							submitComment={(params) =>
-								siteBySlugPresenter.submitSiteComment({
-									siteId: params.subjectId,
-									content: params.content,
-									parentId: params.parentId
-								})}
-							submittingComment={siteBySlugPresenter.submittingComment}
-							communityCommentsEnabled={communityEnabled}
-							onUpgradeRequired={() => {
-								showUpgradeModal = true;
-							}}
-						/>
-					</section>
-
-					<div class="pt-6">
-						<CenteredDarkCtaBanner
-							title={CENTERED_DARK_CTA_BANNER_TITLE}
-							description={CENTERED_DARK_CTA_BANNER_DESCRIPTION}
-							ctaText={PUBLIC_BANNER_CTA_TEXT}
-							ctaHref={signUpPath}
-							sectionClass="pb-4 sm:pb-6"
-						/>
-					</div>
 				</div>
 			</div>
 
@@ -277,6 +270,57 @@
 					<BuildBacklinksSiteDetailSidebar {...siteSidebarProps} />
 				</div>
 			</aside>
+		</div>
+
+		{#if showCategorySiblingGrid}
+			<PublicChannelSiblingGrid
+				channelsVm={categorySiblingGridItems}
+				activeChannelSlug={siteVm.slug}
+				activePlatformLabel={siteVm.title}
+				sectionTitleOverride={categorySiblingGridSectionTitle}
+				sectionDescriptionOverride={categorySiblingGridSectionDescription}
+				cardDescriptionOverride={categorySiblingGridCardDescription}
+			/>
+		{/if}
+
+		<div class="min-w-0 space-y-6">
+			<PublicFaq
+				heroTheme={landingHeroTheme}
+				faqSubtitle={siteFaqSection.faqSubtitle}
+				faqTitle={siteFaqSection.faqTitle}
+				faqDescription={siteFaqSection.faqDescription}
+				faqItems={siteFaqSection.faqItems}
+				sectionClass="mt-16 pt-10 border-t border-base-content/10"
+			/>
+
+			<section class="border-t border-base-content/10 py-10">
+				<SubjectComments
+					{commentsVm}
+					subjectId={siteVm.id}
+					{isLoggedIn}
+					submitComment={(params) =>
+						siteBySlugPresenter.submitSiteComment({
+							siteId: params.subjectId,
+							content: params.content,
+							parentId: params.parentId
+						})}
+					submittingComment={siteBySlugPresenter.submittingComment}
+					communityCommentsEnabled={communityEnabled}
+					onUpgradeRequired={() => {
+						showUpgradeModal = true;
+					}}
+				/>
+			</section>
+
+			<div class="pt-6">
+				<CenteredDarkCtaBanner
+					title={CENTERED_DARK_CTA_BANNER_TITLE}
+					description={CENTERED_DARK_CTA_BANNER_DESCRIPTION}
+					ctaText={PUBLIC_BANNER_CTA_TEXT}
+					ctaHref={signUpPath}
+					sectionClass="pb-4 sm:pb-6"
+				/>
+			</div>
 		</div>
 	</div>
 </SectionOuterContainer>

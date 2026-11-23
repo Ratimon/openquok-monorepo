@@ -21,6 +21,36 @@ export function buildPublicChannelSiblingGridTitle(platformLabel: string): strin
 		: 'Every Supported Platform';
 }
 
+export function buildPublicDirectoryChannelSiblingGridTitle(platformLabel: string): string {
+	const label = platformLabel.trim();
+	return label.length > 0
+		? `Beyond ${label}: Every Supported Launch Platform`
+		: 'Every Supported Launch Platform';
+}
+
+export function buildPublicDirectoryChannelSiblingGridDescription(platformLabel: string): string {
+	const label = platformLabel.trim();
+	return label.length > 0
+		? `Start with ${label}, then list on every other supported launch platform from one workspace. Reuse one main business profile — dashboard, browser extension, public API, or an agent host.`
+		: 'List on every supported launch platform from one business profile.';
+}
+
+export function buildPublicDirectoryChannelSiblingGridCardDescription(
+	platformLabel: string,
+	available: boolean
+): string {
+	const label = platformLabel.trim();
+	if (label.length === 0) {
+		return available
+			? 'List from one business profile.'
+			: 'Directory launch preview — coming soon.';
+	}
+
+	return available
+		? `List on ${label} from one business profile.`
+		: `Preview the ${label} listing flow — coming soon.`;
+}
+
 export function buildPublicAgentChannelSiblingGridTitle(
 	platformLabel: string,
 	agentLabel: string
@@ -55,6 +85,9 @@ export function buildPublicChannelSiblingGridDescription(
 ): string {
 	const label = platformLabel.trim();
 	const slug = channelSlug?.trim().toLowerCase() ?? '';
+	if (slug.length > 0 && isPublicDirectoryChannelSlug(slug)) {
+		return buildPublicDirectoryChannelSiblingGridDescription(label);
+	}
 	const ecosystemId = slug ? getChannelPageEcosystemId(slug) : undefined;
 
 	if (label.length > 0 && ecosystemId === 'xai-grok') {
@@ -72,8 +105,14 @@ export function buildPublicChannelSiblingGridDescription(
 
 export function buildPublicChannelSiblingGridCardDescription(
 	platformLabel: string,
-	available: boolean
+	available: boolean,
+	channelSlug?: string
 ): string {
+	const slug = channelSlug?.trim().toLowerCase() ?? '';
+	if (slug.length > 0 && isPublicDirectoryChannelSlug(slug)) {
+		return buildPublicDirectoryChannelSiblingGridCardDescription(platformLabel, available);
+	}
+
 	const label = platformLabel.trim();
 	if (label.length === 0) {
 		return available ? 'Schedule posts from one workspace.' : 'Scheduler preview — coming soon.';

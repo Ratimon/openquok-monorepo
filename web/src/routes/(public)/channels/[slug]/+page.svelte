@@ -262,6 +262,7 @@
 		channelsVm={siblingChannels}
 		activeChannelSlug={channelVm.slug}
 		activePlatformLabel={channelVm.platformLabel}
+		channelKind={isDirectoryChannel ? 'directory' : 'social'}
 	/>
 
 	<div class="container mx-auto px-4">

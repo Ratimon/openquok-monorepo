@@ -12,7 +12,10 @@ import {
 	buildPublicAgentChannelSiblingGridTitle,
 	buildPublicChannelSiblingGridCardDescription,
 	buildPublicChannelSiblingGridDescription,
-	buildPublicChannelSiblingGridTitle
+	buildPublicChannelSiblingGridTitle,
+	buildPublicDirectoryChannelSiblingGridCardDescription,
+	buildPublicDirectoryChannelSiblingGridDescription,
+	buildPublicDirectoryChannelSiblingGridTitle
 } from '$lib/content/utils/buildPublicChannelSiblingGridCopy';
 
 describe('buildPublicChannelSiblingGridCopy', () => {
@@ -24,6 +27,25 @@ describe('buildPublicChannelSiblingGridCopy', () => {
 			'Start with TikTok, then add Instagram, Threads, and every other supported network from one workspace. Schedule each network from the dashboard, public API, or an agent host.'
 		);
 		expect(buildPublicChannelSiblingGridDescription('X', 'x')).toContain('Grok Bot');
+	});
+
+	it('builds directory launch grid copy for /channels directory slugs', () => {
+		expect(buildPublicDirectoryChannelSiblingGridTitle('PeerPush')).toBe(
+			'Beyond PeerPush: Every Supported Launch Platform'
+		);
+		expect(buildPublicDirectoryChannelSiblingGridDescription('PeerPush')).toContain(
+			'one main business profile'
+		);
+		expect(buildPublicDirectoryChannelSiblingGridDescription('PeerPush')).not.toContain('Schedule');
+		expect(buildPublicChannelSiblingGridDescription('PeerPush', 'peerpush')).toBe(
+			buildPublicDirectoryChannelSiblingGridDescription('PeerPush')
+		);
+		expect(buildPublicDirectoryChannelSiblingGridCardDescription('Uneed', true)).toBe(
+			'List on Uneed from one business profile.'
+		);
+		expect(buildPublicChannelSiblingGridCardDescription('Uneed', true, 'uneed')).toBe(
+			'List on Uneed from one business profile.'
+		);
 	});
 
 	it('builds card descriptions for live and coming-soon channels', () => {

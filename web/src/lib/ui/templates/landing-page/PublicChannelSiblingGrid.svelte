@@ -5,6 +5,7 @@
 		buildAgentHostEcosystemChannelSiblingGridHubDescription,
 		buildAgentHostEcosystemChannelSiblingGridHubTitle
 	} from '$lib/content/constants/agents/ecosystems';
+	import { isPublicDirectoryChannelSlug } from '$lib/content/constants/channels/catalog/channelCatalogLookup';
 	import {
 		buildPublicAgentChannelSiblingGridCardDescription,
 		buildPublicAgentChannelSiblingGridDescription,
@@ -13,7 +14,8 @@
 		buildPublicAgentChannelSiblingGridTitle,
 		buildPublicChannelSiblingGridCardDescription,
 		buildPublicChannelSiblingGridDescription,
-		buildPublicChannelSiblingGridTitle
+		buildPublicChannelSiblingGridTitle,
+		buildPublicDirectoryChannelSiblingGridTitle
 	} from '$lib/content/utils/buildPublicChannelSiblingGridCopy';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import { url } from '$lib/utils/path';
@@ -39,6 +41,8 @@
 			available: boolean,
 			channelSlug: string
 		) => string;
+		/** Directory launch landings reuse product profile listing copy instead of social scheduling. */
+		channelKind?: 'social' | 'directory';
 	};
 
 	let {
@@ -49,13 +53,21 @@
 		hostSlug = null,
 		sectionTitleOverride,
 		sectionDescriptionOverride,
-		cardDescriptionOverride
+		cardDescriptionOverride,
+		channelKind
 	}: Props = $props();
 
 	const headingId = 'public-channel-sibling-grid-heading';
 
 	const resolvedAgentLabel = $derived(agentLabel?.trim() ?? '');
 	const resolvedHostSlug = $derived(hostSlug?.trim() ?? '');
+
+	const activeSlug = $derived(activeChannelSlug?.trim().toLowerCase() ?? '');
+	const resolvedChannelKind = $derived(
+		channelKind ??
+			(activeSlug.length > 0 && isPublicDirectoryChannelSlug(activeSlug) ? 'directory' : 'social')
+	);
+	const isDirectoryChannelGrid = $derived(resolvedChannelKind === 'directory');
 
 	const sectionTitle = $derived(
 		sectionTitleOverride?.trim() ||
@@ -68,7 +80,9 @@
 								resolvedHostSlug
 							)
 						: buildPublicAgentChannelSiblingGridHubTitle(resolvedAgentLabel)
-				: buildPublicChannelSiblingGridTitle(activePlatformLabel))
+				: isDirectoryChannelGrid
+					? buildPublicDirectoryChannelSiblingGridTitle(activePlatformLabel)
+					: buildPublicChannelSiblingGridTitle(activePlatformLabel))
 	);
 
 	const sectionDescription = $derived(
@@ -101,7 +115,7 @@
 				channelSlug
 			);
 		}
-		return buildPublicChannelSiblingGridCardDescription(platformLabel, available);
+		return buildPublicChannelSiblingGridCardDescription(platformLabel, available, channelSlug);
 	}
 </script>
 
@@ -132,7 +146,9 @@
 
 			<ul
 				class="relative grid grid-cols-1 divide-y divide-base-content/10 sm:grid-cols-2 sm:divide-x lg:grid-cols-3"
-				aria-label="Supported social and directory channels"
+				aria-label={isDirectoryChannelGrid
+					? 'Supported directory launch platforms'
+					: 'Supported social and directory channels'}
 			>
 				{#each channelsVm as channelVm (channelVm.slug)}
 					{@const isActive = activeChannelSlug === channelVm.slug}

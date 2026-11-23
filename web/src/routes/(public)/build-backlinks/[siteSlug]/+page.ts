@@ -9,6 +9,7 @@ import type { ListingCommentViewModel } from '$lib/listings/GetListing.presenter
 import type { LinkDirectorySiteDto } from '$lib/link-directory/index';
 import type { BuildBacklinksGuideSectionVm } from '$lib/link-directory/utils/buildBuildBacklinksGuideSections';
 import type { BuildBacklinksSiteFaqSection } from '$lib/link-directory/utils/buildBuildBacklinksSiteFaqSection';
+import type { PublicChannelSiblingGridItem } from '$lib/content/utils/buildPublicChannelSiblingGridCopy';
 
 import type { PageLoad } from './$types';
 
@@ -33,6 +34,8 @@ export const load: PageLoad = async ({ parent, data }) => {
 				variant: ListingsHubBreadcrumbVariant;
 				siteLabel?: string | null;
 			};
+			categorySiblingGridItems: PublicChannelSiblingGridItem[];
+			categorySiblingGridCategoryName: string | null;
 		};
 
 		return {
@@ -47,7 +50,9 @@ export const load: PageLoad = async ({ parent, data }) => {
 			heroTitle: serverData.heroTitle,
 			metaTitle: serverData.metaTitle,
 			metaDescription: serverData.metaDescription,
-			listingsBreadcrumb: serverData.listingsBreadcrumb
+			listingsBreadcrumb: serverData.listingsBreadcrumb,
+			categorySiblingGridItems: serverData.categorySiblingGridItems,
+			categorySiblingGridCategoryName: serverData.categorySiblingGridCategoryName
 		};
 	}
 

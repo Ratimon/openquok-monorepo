@@ -4,6 +4,11 @@
 	import { icons } from '$data/icons';
 
 	import { getRootPathPublicBuildBacklinksCategory } from '$lib/area-public/constants/getRootPathPublicBuildBacklinks';
+	import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
+	import {
+		resolveDirectoryChannelPlatformLabelForBuildBacklinksSite,
+		resolveDirectoryChannelSlugForBuildBacklinksSite
+	} from '$lib/link-directory/utils/resolveDirectoryChannelSlugForBuildBacklinksSite';
 	import { route, url } from '$lib/utils/path';
 	import {
 		formatMetricsUpdatedLabel,
@@ -108,6 +113,26 @@
 
 	const siteHostname = $derived(
 		site.siteUrl.replace(/^https?:\/\//, '').replace(/\/$/, '')
+	);
+
+	const directoryChannelSlug = $derived(resolveDirectoryChannelSlugForBuildBacklinksSite(site));
+	const directoryChannelPlatformLabel = $derived(
+		resolveDirectoryChannelPlatformLabelForBuildBacklinksSite(site)
+	);
+	const directoryChannelHref = $derived(
+		directoryChannelSlug
+			? url(route(getRootPathPublicChannel(directoryChannelSlug)))
+			: null
+	);
+	const primaryOutboundLabel = $derived(
+		directoryChannelPlatformLabel
+			? `Open ${directoryChannelPlatformLabel} channel`
+			: 'Go to site'
+	);
+	const primaryOutboundAriaLabel = $derived(
+		directoryChannelHref
+			? `Open ${directoryChannelPlatformLabel ?? site.title} on OpenQuok`
+			: `Go to ${site.title} (${siteHostname})`
 	);
 
 	const opportunityJumpLinks = $derived.by((): OpportunityJumpLink[] => {
@@ -234,13 +259,24 @@
 			{siteHostname}
 		</p>
 
-		<ExternalLink
-			href={site.siteUrl}
-			class="btn btn-primary btn-block gap-2 rounded-xl font-semibold"
-			ariaLabel={`Go to ${site.title} (${siteHostname})`}
-		>
-			Go to site
-			<AbstractIcon name={icons.ArrowRight.name} class="size-4" width="16" height="16" />
-		</ExternalLink>
+		{#if directoryChannelHref}
+			<InternalLink
+				href={directoryChannelHref}
+				class="btn btn-primary btn-block gap-2 rounded-xl font-semibold"
+				ariaLabel={primaryOutboundAriaLabel}
+			>
+				{primaryOutboundLabel}
+				<AbstractIcon name={icons.ArrowRight.name} class="size-4" width="16" height="16" />
+			</InternalLink>
+		{:else}
+			<ExternalLink
+				href={site.siteUrl}
+				class="btn btn-primary btn-block gap-2 rounded-xl font-semibold"
+				ariaLabel={primaryOutboundAriaLabel}
+			>
+				{primaryOutboundLabel}
+				<AbstractIcon name={icons.ArrowRight.name} class="size-4" width="16" height="16" />
+			</ExternalLink>
+		{/if}
 	</div>
 </aside>
