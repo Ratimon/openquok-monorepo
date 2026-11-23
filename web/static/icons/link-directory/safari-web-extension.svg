@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 56 56" role="img" aria-label="Safari Web Extension">
+	<title>Safari Web Extension</title>
+	<defs>
+		<linearGradient id="safari-ld-ring" x1="8" y1="8" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#0fb5ff" />
+			<stop offset="1" stop-color="#006cff" />
+		</linearGradient>
+	</defs>
+	<circle cx="28" cy="28" r="24" fill="url(#safari-ld-ring)" />
+	<circle cx="28" cy="28" r="20" fill="#fff" />
+	<path
+		fill="#fc3f3f"
+		d="M28 10c10.5 0 18 7.5 18 18 0 5.2-2.4 9.6-6.3 12.5L28 10z"
+	/>
+	<path
+		fill="#1d1d1f"
+		d="M28 47.5c-1.4 0-2.5-1.1-2.5-2.5V28h2.5l12.5 17c-3.5 1.5-7.3 2.5-12.5 2.5z"
+		opacity="0.85"
+	/>
+	<circle cx="28" cy="28" r="3.5" fill="#1d1d1f" />
+</svg>

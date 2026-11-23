@@ -109,7 +109,7 @@ For JSON-only sites:
 | Paid checkout + typical submit wizard | **`medium`** | PeerPush Standard, DevHunt paid launch, Fazier paid tiers, Open Launch Premium |
 | Chrome Web Store listing fields (package review, compliance copy, multi-tab listing editor) | **`hard`** | `official-url`, `item-homepage-url`, `privacy-policy-url` — **even when `cost_tier` is `free`** for a single field |
 
-Put queue timing and approval delays in `approval_time_hint`, not in `effort`. Do not use **`hard`** on free-tier **launch-platform** opportunities. **Exception:** `chrome-web-store` in catalog backfill — all opportunities stay **`hard`**; that site is not a launch-platform row above.
+Put queue timing and approval delays in `approval_time_hint`, not in `effort`. Do not use **`hard`** on free-tier **launch-platform** opportunities. **Exception:** browser extension store rows in catalog backfill (`chrome-web-store`, `microsoft-edge-addons`, `safari-web-extension`, `firefox-add-ons`) — all opportunities stay **`hard`**; set `dofollow` per store (Edge/App Store often dofollow; Chrome Web Store and AMO often nofollow — verify live `rel`).
 
 ### `extension_config` (TypeScript → SQL)
 
