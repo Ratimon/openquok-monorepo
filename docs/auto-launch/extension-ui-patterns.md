@@ -13,10 +13,11 @@ Reference for **extension-assisted directory launches**: step rail, compare pane
 | `open-launch` | `open-launch-free-launch`, `open-launch-premium-launch` | Premium wizard; free queue via pricing | `openquok-directory-open-launch.js` |
 | `tinylaunch` | `tinylaunch-standard-launch`, `tinylaunch-premium-launch` | Premium → create form; Standard → pricing | `openquok-directory-tinylaunch.js` |
 | `fazier` | `fazier-page`, `fazier-free-product-listing`, `fazier-paid-product-listing` | Page wizard; product submit (free vs paid tier) | `openquok-directory-fazier.js` |
+| `devhunt` | `devhunt-standard-launch`, `devhunt-paid-launch` | Paid → new-tool form; Standard → launch guide then form | `openquok-directory-devhunt.js` |
 
-**Site count for smoke:** **5** directory sites (10 provider variants total).
+**Site count for smoke:** **6** directory sites (12 provider variants total).
 
-Picker groups: TinyLaunch, Open Launch, and Fazier group variants under one Add Channel tile per site (`picker_group_key` = site slug).
+Picker groups: TinyLaunch, Open Launch, Fazier, and DevHunt group variants under one Add Channel tile per site (`picker_group_key` = site slug).
 
 ---
 
@@ -40,7 +41,7 @@ Module: `common/src/auto-launch/destination-configs/tinylaunch.ts`
 | Startup Name | `name` | `text` | max 30 |
 | Tagline | `tagline` | `text` | max 60 |
 | Logo | `logo_url` | `file` | `fileInputIndex` 0 |
-| Images (gallery) | `profile_data.gallery_urls` | `files` | max 3; second file input |
+| Images (gallery) | `profile_data.gallery_urls` | `files` | max 3 on TinyLaunch (`TINYLAUNCH_FORM_GALLERY_MAX`); profile holds up to 10; second file input |
 | Website URL | `website_url` | `text` | |
 | Description | `description` | `rich_html` | |
 | Category | `profile_data.category` | `select` | `selectCatalog: 'tinylaunch'` |
@@ -106,9 +107,39 @@ Standard free queue spreads Premium config with `readyUrlHint: 'pricing'`.
 ## PeerPush & Uneed (summary)
 
 - **PeerPush:** name, tagline, description, website, logo, PeerPush-specific discovery fields; Standard vs free queue destinations.
-- **Uneed:** join line, paid launch, maker profile variants; category and tag catalogs via `fieldCatalogRegistry`.
+- **Uneed:** join line, paid launch, maker profile variants; category and tag catalogs via `fieldCatalogRegistry`. Media tab gallery is the `Images` block (1–3 `product_medias` previews; logo uses `#single` separately). Autofill uses the first three profile screenshots in Media tab order; when 3/3, remove a slot before fill.
 
 See operator guides under `web/src/content/docs/directory-integration/`.
+
+---
+
+## DevHunt field mapping
+
+Module: `common/src/auto-launch/destination-configs/sites/devhunt/config.ts`
+
+| Form label (DevHunt) | `profilePath` | `fillMode` | Notes |
+| --- | --- | --- | --- |
+| Tool name | `name` | `text` | required |
+| Catchy slogan | `tagline` | `text` | required |
+| Tool website URL | `website_url` | `text` | required |
+| Quick Description | `description` | `rich_html` | required |
+| Logo | `logo_url` | `file` | `fileInputIndex` 0; required |
+| Tool screenshots | `profile_data.gallery_urls` | `files` | Single `#image-upload`; fill one file at a time and wait for CDN preview; min 3 on DevHunt; autofill uses first 3 in web UI order (`DEVHUNT_FORM_GALLERY_MAX`); profile holds up to 10; required |
+| GitHub repo URL | `profile_data.social_github` | `text` | optional; falls back to `profile_data.repository_url` |
+| Tool pricing type | `profile_data.pricing_type` | `select` | `selectCatalog: 'devhunt_pricing'` (Free, Subscription, One-time fee) |
+| Tool categories | `profile_data.categories` | `tags` | optional free text |
+| Demo video | `profile_data.launch_video_url` | `text` | optional |
+| Maker comment | — | — | **Manual** (DevHunt may auto-draft from name + slogan) |
+| Launch week + $49 | — | — | **Manual** on `#pricing-container` / `#submit-btn` |
+| Maker name | — | — | **Manual** (`#maker-name`) |
+
+`readyUrlHint`: Paid uses `account/tools/new`; Standard derives from Paid with `readyUrlHint: 'blog/tools-developers-guide-launches-on-devhunt'` via `syncMetadata` (`devhunt-standard-launch` → base `devhunt-paid-launch`, `pricing-queue` — no `/pricing` path; DevHunt returns 404).
+
+`readyStatusHint`: tells members to sign in, skip or review any AI website draft, then fill when `#form-container` is visible.
+
+Login: `extension/src/directory/directory-launch/siteLogin/devhunt.ts` → `https://devhunt.org/login`; logged-in when on `account/tools` without the auth gate.
+
+Proof: `successPathRegex` `/tool/` or `/account/tools`; listing URL `a[href*='devhunt.org/tool/']`.
 
 ---
 
@@ -116,7 +147,7 @@ See operator guides under `web/src/content/docs/directory-integration/`.
 
 Run after changing fixtures, extension manifests, or marketing tiles. Use a dev workspace with the extension loaded from `extension/dist`.
 
-### All sites (5)
+### All sites (6)
 
 - [ ] `pnpm --filter openquok-common test:unit` (includes destination config drift tests)
 - [ ] `pnpm sync:auto-launch-configs:check` and `pnpm sync:auto-launch-destinations:check`
@@ -132,6 +163,17 @@ Run after changing fixtures, extension manifests, or marketing tiles. Use a dev 
 - [ ] After publish, listing URL matches proof hints (`/company/` or `/launches/` / `/p/`)
 - [ ] Badge, comments, and Lite Plan checkout stay manual per operator doc
 - [ ] `directory-integration/fazier.md` loads; Build Backlinks lists Fazier with PeerPush, Uneed, Open Launch, TinyLaunch
+
+### DevHunt
+
+- [ ] Sign in on devhunt.org; **Paid launch** handoff opens `account/tools/new` with non-empty `extension_config`
+- [ ] Step rail shows **Submit tool**; compare lists name, tagline, logo, gallery, website, description, and optional GitHub, pricing, categories, demo video
+- [ ] Pricing select options match `devhunt_pricing` catalog labels
+- [ ] **Standard launch** opens the launch guide URL; member navigates to the new-tool form; compare config matches Paid minus `readyUrlHint`
+- [ ] Do not complete $49 checkout in automation; confirm ready hints cover launch week and payment
+- [ ] After publish, proof regex and listing URL selector match a live `devhunt.org/tool/` link
+- [ ] `/channels/devhunt` and `directory-integration/devhunt.md` docs load; hub lists DevHunt with PeerPush, Uneed, Open Launch, TinyLaunch, Fazier
+- [ ] `dist/icons/link-directory/devhunt.svg` exists after extension build
 
 ### TinyLaunch
 

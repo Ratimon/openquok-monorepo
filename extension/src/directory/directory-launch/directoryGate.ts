@@ -24,6 +24,7 @@ export const DIRECTORY_SITE_DISPLAY_NAME: Record<string, string> = {
 	'open-launch': 'Open Launch',
 	tinylaunch: 'TinyLaunch',
 	fazier: 'Fazier',
+	devhunt: 'DevHunt',
 };
 
 type CheckDirectoryGateResponse = {

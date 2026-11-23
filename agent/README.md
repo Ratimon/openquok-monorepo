@@ -164,7 +164,7 @@ openquok directory:analytics:competitors:update --domain rival.example [--label 
 - SEO responses are cached: inspect `checkedAt` on domain metrics and `manualRefreshAvailableAt` after refresh.
 - `directory:profiles:list --main-only` filters client-side (main profiles have no `parentProfileId`).
 - `directory:variants:ensure` is idempotent — existing variants return HTTP 200 with the same profile row.
-- Logo and screenshots: `--logo-url` and `profileData.gallery_urls` (max 3) on `directory:profiles:create` / `update`. CLI does not upload into the My Products profile-media bucket — use public https URLs or the web composer; optional `upload` / `upload-from-url` only add workspace media for posts. Details: [Directory launch CLI — logo and screenshots](https://www.openquok.com/docs/cli-usages/directory-launch#logo-and-screenshots).
+- Logo and screenshots: `--logo-url` and `profileData.gallery_urls` (max 10) on `directory:profiles:create` / `update`. CLI does not upload into the My Products profile-media bucket — use public https URLs or the web composer; optional `upload` / `upload-from-url` only add workspace media for posts. Details: [Directory launch CLI — logo and screenshots](https://www.openquok.com/docs/cli-usages/directory-launch#logo-and-screenshots).
 
 ### Media upload
 

@@ -4,6 +4,9 @@ import type {
 } from '../../../../browser-extension/pageAssist.js';
 import { BUSINESS_PROFILE_DIRECTORY_TAGLINE_MAX } from '../../../businessProfileData.js';
 
+/** Fazier product images file input (separate from square logo). */
+export const FAZIER_FORM_GALLERY_MAX = 5;
+
 /** Fazier React Hook Form `name` attributes (verified from shipped page bundles). */
 const FAZIER_NAME_SELECTOR = "input[name='name']";
 const FAZIER_COMPANY_SLUG_SELECTOR = "input[name='company']";
@@ -264,6 +267,7 @@ const FAZIER_PRODUCT_LISTING_EXTENSION_BASE = {
 					profilePath: 'profile_data.gallery_urls',
 					fillMode: 'files',
 					fileInputIndex: 1,
+					maxItems: FAZIER_FORM_GALLERY_MAX,
 					selectorHint:
 						"input[type='file'][accept*='image']:not([name='logo']):not(:first-of-type)",
 				},

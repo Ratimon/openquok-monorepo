@@ -128,7 +128,7 @@ SELECT
     'free-launch',
     'Free launch',
     'd5f7d000-0004-4000-a000-000000000006'::uuid,
-    'hard',
+    'medium',
     'manual_review',
     'Free queue; timing varies by slot availability',
     'unknown',

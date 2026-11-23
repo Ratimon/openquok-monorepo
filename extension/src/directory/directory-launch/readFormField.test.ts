@@ -274,7 +274,42 @@ describe('readFormFieldValue', () => {
 		expect(result).toEqual({
 			kind: 'file',
 			present: true,
+			items: ['logo.png'],
 		});
+	});
+
+	it('reads multiple gallery file inputs inside DevHunt screenshots container', () => {
+		document.body.innerHTML = `
+			<div id="tool-screenshots-container">
+				<input id="shot-a" type="file" accept="image/*" />
+				<input id="shot-b" type="file" accept="image/*" />
+			</div>
+		`;
+		const shotA = document.getElementById('shot-a') as HTMLInputElement;
+		const shotB = document.getElementById('shot-b') as HTMLInputElement;
+		const fileA = new File(['a'], '0.6739143119534297.png', { type: 'image/png' });
+		const fileB = new File(['b'], 'dashboard.png', { type: 'image/png' });
+		Object.defineProperty(shotA, 'files', {
+			configurable: true,
+			value: { length: 1, item: (i: number) => (i === 0 ? fileA : null) },
+		});
+		Object.defineProperty(shotB, 'files', {
+			configurable: true,
+			value: { length: 1, item: (i: number) => (i === 0 ? fileB : null) },
+		});
+
+		const result = readFormFieldValue(
+			field({
+				key: 'gallery',
+				label: 'Tool screenshots',
+				profilePath: 'profile_data.gallery_urls',
+				selectorHint: "#tool-screenshots-container input[type='file']",
+				fillMode: 'files',
+			})
+		);
+		expect(result?.kind).toBe('files');
+		expect(result?.present).toBe(true);
+		expect(result?.items).toEqual(['0.6739143119534297.png', 'dashboard.png']);
 	});
 
 	it('reads multiple Uneed tag pills when Category sharea the same form card', () => {

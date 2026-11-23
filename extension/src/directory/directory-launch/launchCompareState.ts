@@ -14,17 +14,33 @@ import {
 	invalidProfileSelectForField,
 	invalidProfileTagsForField,
 	LAUNCH_FIELD_CATALOG_IDS,
+	mediaFileDisplayName,
 	normalizeForCompare,
 	profileSelectPresetsForField,
 	normalizeProfileValue,
 	profileScalarExceedsCap,
 	resolveProfilePathArray,
 	resolveLaunchFieldCatalogId,
+	formatOnPageMediaDisplayForField,
+	resolveGalleryDisplayNames,
+	resolveLaunchFieldFillMode,
+	resolveLogoDisplayName,
 	richHtmlToPlainText,
 } from 'openquok-common';
 
 import { readFormFieldValue } from './readFormField.js';
-import { mergeMainProfileSocialData, resolveLaunchProfileScalar } from './profileValues.js';
+import {
+	mergeMainProfileSocialData,
+	resolveLaunchProfileScalar,
+	resolveProfileStoragePathList,
+} from './profileValues.js';
+
+/** Compare rows whose directory controls exist in the current DOM (hide wrong-tab / unmapped fields). */
+export function compareRowsVisibleOnPage(
+	rows: readonly StepRailCompareFieldRow[]
+): StepRailCompareFieldRow[] {
+	return rows.filter((row) => row.controlOnPage);
+}
 
 /** One compare row passed to the step rail (profile vs on-page). */
 export type StepRailCompareFieldRow = DirectoryFieldCompareRow & {
@@ -54,18 +70,23 @@ const EMPTY_FORM_NORM: NormalizedFieldValue = {
 };
 
 function effectiveFillMode(field: LaunchStepField): NormalizedFieldValue['kind'] {
-	return field.fillMode ?? 'text';
+	return resolveLaunchFieldFillMode(field);
 }
 
 export function formatNormalizedDisplay(norm: NormalizedFieldValue): string {
 	if (!norm.present) return '';
 	const kind = norm.kind;
-	if (kind === 'tags' || kind === 'files' || kind === 'checkbox_group') {
+	if (kind === 'tags' || kind === 'checkbox_group') {
 		const items = norm.items ?? [];
 		return items.length > 0 ? items.join(', ') : '';
 	}
+	if (kind === 'files') {
+		const labels = (norm.items ?? []).map(mediaFileDisplayName).filter(Boolean);
+		return labels.length > 0 ? labels.join(', ') : '';
+	}
 	if (kind === 'file') {
-		return norm.present ? 'File selected' : '';
+		const label = norm.items?.[0] ? mediaFileDisplayName(norm.items[0]) : '';
+		return label || (norm.present ? 'File selected' : '');
 	}
 	if (kind === 'boolean') {
 		return norm.scalar === 'true' ? 'Yes' : norm.scalar === 'false' ? 'No' : '';
@@ -74,6 +95,50 @@ export function formatNormalizedDisplay(norm: NormalizedFieldValue): string {
 		return richHtmlToPlainText(norm.scalar);
 	}
 	return norm.scalar ?? '';
+}
+
+function formatProfileDisplayForField(
+	snapshot: AutoLaunchProfileSnapshot,
+	field: LaunchStepField,
+	profileNorm: NormalizedFieldValue,
+	mainProfileSnapshot?: AutoLaunchProfileSnapshot | null
+): string {
+	if (!profileNorm.present) return 'Not in profile';
+
+	const merged = mergeMainProfileSocialData(snapshot, mainProfileSnapshot);
+	const profilePath = field.profilePath?.trim() ?? '';
+
+	if (profilePath === 'logo_url') {
+		const label = resolveLogoDisplayName(merged);
+		if (label) return label;
+		if (resolveLaunchFieldFillMode(field) === 'file' && profileNorm.kind === 'file') {
+			return formatNormalizedDisplay(profileNorm) || 'Not in profile';
+		}
+	}
+
+	if (profilePath === 'profile_data.gallery_urls') {
+		const labels = resolveGalleryDisplayNames(merged);
+		if (labels.length > 0) return labels.join(', ');
+		if (resolveLaunchFieldFillMode(field) === 'files' && profileNorm.kind === 'files') {
+			return formatNormalizedDisplay(profileNorm) || 'Not in profile';
+		}
+	}
+
+	return formatNormalizedDisplay(profileNorm) || 'Not in profile';
+}
+
+function formatFormDisplayForField(
+	field: LaunchStepField,
+	formNorm: NormalizedFieldValue
+): string {
+	const profilePath = field.profilePath?.trim() ?? '';
+	if (profilePath === 'profile_data.gallery_urls') {
+		return formatOnPageMediaDisplayForField(field, formNorm.items, formNorm.present);
+	}
+	if (profilePath === 'logo_url') {
+		return formatOnPageMediaDisplayForField(field, formNorm.items, formNorm.present);
+	}
+	return formatNormalizedDisplay(formNorm) || '—';
 }
 
 /** Profile paths for tag compare/fill when the member has not toggled source chips. */
@@ -175,10 +240,16 @@ export function resolveEffectiveProfileNorm(
 			return normalizedFromTagItems(items);
 		}
 	}
-	const norm = normalizeProfileValue(
-		mergeMainProfileSocialData(snapshot, mainProfileSnapshot),
-		field
-	);
+	const merged = mergeMainProfileSocialData(snapshot, mainProfileSnapshot);
+	const norm = normalizeProfileValue(merged, field);
+	const mediaFillMode = resolveLaunchFieldFillMode(field);
+	if (!norm.present && (mediaFillMode === 'file' || mediaFillMode === 'files')) {
+		const paths = resolveProfileStoragePathList(merged, field.profilePath);
+		if (paths.length > 0) {
+			const kind = mediaFillMode === 'files' ? 'files' : 'file';
+			return { kind, items: paths, present: true };
+		}
+	}
 	if (
 		!norm.present &&
 		(field.fillMode === 'text' || field.fillMode === undefined) &&
@@ -266,9 +337,14 @@ export function buildCompareRowsForSteps(
 				label: field.label,
 				touched,
 				controlOnPage,
-				profileDisplay: formatNormalizedDisplay(profileNorm) || 'Not in profile',
+				profileDisplay: formatProfileDisplayForField(
+					snapshot,
+					field,
+					profileNorm,
+					options.mainProfileSnapshot
+				),
 				formDisplay: controlOnPage
-					? formatNormalizedDisplay(formNorm) || '—'
+					? formatFormDisplayForField(field, formNorm)
 					: 'Control not on page',
 				hasSourcePicker:
 					Boolean(field.profileSourcePaths?.length) || profilePresets.length > 0,
@@ -320,7 +396,7 @@ export function refreshCompareRowFromDom(
 		touched,
 		controlOnPage,
 		formDisplay: controlOnPage
-			? formatNormalizedDisplay(formNorm) || '—'
+			? formatFormDisplayForField(field, formNorm)
 			: 'Control not on page',
 		formNorm,
 	};

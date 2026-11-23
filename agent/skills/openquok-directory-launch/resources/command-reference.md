@@ -28,7 +28,7 @@ All commands print JSON `{ success, data, … }` to stdout unless noted.
 
 `--json` bodies omit `organizationId` (org comes from the API key).
 
-**Logo and screenshots:** `--logo-url` and `profileData.gallery_urls` (max 3) on create/update. No CLI upload into My Products profile media — use public https URLs or the web composer; optional `openquok upload` / `upload-from-url` only add workspace media for posts. Recipe: [directory-launch-examples.md](./directory-launch-examples.md#logo-and-screenshots).
+**Logo and screenshots:** `--logo-url` and `profileData.gallery_urls` (max 10) on create/update. Directory autofill uses each site's `maxItems` (first N in profile order). No CLI upload into My Products profile media — use public https URLs or the web composer; optional `openquok upload` / `upload-from-url` only add workspace media for posts. Recipe: [directory-launch-examples.md](./directory-launch-examples.md#logo-and-screenshots).
 
 ## Variants, listings, submissions
 

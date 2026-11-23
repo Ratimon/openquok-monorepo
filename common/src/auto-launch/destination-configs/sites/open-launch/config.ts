@@ -4,6 +4,9 @@ import type {
 	LaunchStepField,
 } from '../../../../browser-extension/pageAssist.js';
 
+/** Open Launch “Product image” maps to the first profile screenshot only. */
+export const OPEN_LAUNCH_FORM_PRODUCT_IMAGE_MAX = 1;
+
 /** Open Launch directory launch — open-launch.com wizard. */
 /** Readable mirror of `auto_launch_destinations.extension_config` for SQL seed parity (drift-tested). */
 export const OPEN_LAUNCH_PREMIUM_LAUNCH_EXTENSION_CONFIG = {
@@ -53,6 +56,7 @@ export const OPEN_LAUNCH_PREMIUM_LAUNCH_EXTENSION_CONFIG = {
 					"profilePath": "profile_data.gallery_urls",
 					"fillMode": "files",
 					"fileInputIndex": 1,
+					"maxItems": OPEN_LAUNCH_FORM_PRODUCT_IMAGE_MAX,
 					"selectorHint": "input[type='file'][accept*='image']",
 				},
 			],

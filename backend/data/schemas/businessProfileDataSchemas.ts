@@ -2,7 +2,9 @@ import {
     BUSINESS_PROFILE_INCLUDED_ASSET_SLUGS,
     BUSINESS_PROFILE_MAX_ALTERNATIVES,
     BUSINESS_PROFILE_MAX_CATEGORIES,
+    BUSINESS_PROFILE_MAX_GALLERY_LABEL_LENGTH,
     BUSINESS_PROFILE_MAX_GALLERY_URLS,
+    BUSINESS_PROFILE_MAX_LOGO_LABEL_LENGTH,
     BUSINESS_PROFILE_MAX_PLATFORMS,
     BUSINESS_PROFILE_MAX_TECH_STACK,
     BUSINESS_PROFILE_MAX_TAGS,
@@ -114,6 +116,12 @@ export const businessProfileDataSchema = z
             .max(BUSINESS_PROFILE_MAX_GALLERY_URLS)
             .nullable()
             .optional(),
+        gallery_labels: z
+            .array(z.string().trim().max(BUSINESS_PROFILE_MAX_GALLERY_LABEL_LENGTH))
+            .max(BUSINESS_PROFILE_MAX_GALLERY_URLS)
+            .nullable()
+            .optional(),
+        logo_label: nullableTrimmedString(BUSINESS_PROFILE_MAX_LOGO_LABEL_LENGTH),
         social_x: optionalHttpUrl,
         social_github: optionalHttpUrl,
         social_instagram: optionalHttpUrl,

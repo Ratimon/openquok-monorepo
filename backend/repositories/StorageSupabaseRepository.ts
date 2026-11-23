@@ -1,4 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+    resolveUniqueAutoLaunchProfileMediaFileName,
+    sanitizeAutoLaunchProfileMediaFileName,
+} from "openquok-common";
 
 import { DatabaseError } from "../errors/InfraError";
 
@@ -98,7 +102,7 @@ export class StorageSupabaseRepository {
     }
 
     /**
-     * Upload under `{prefix}/{random}.{ext}` (e.g. `{organizationId}/{profileId}/…` in `auto_launch_profile_media`).
+     * Upload under `{prefix}/{sanitized-original-name}` (e.g. `{organizationId}/{profileId}/…` in `auto_launch_profile_media`).
      */
     async uploadImageUnderPrefix(
         databaseName: DatabaseName,
@@ -113,8 +117,10 @@ export class StorageSupabaseRepository {
             });
         }
 
-        const fileExt = file.originalname.split(".").pop() || "bin";
-        const filePath = `${normalizedPrefix}/${Math.random()}.${fileExt}`;
+        const sanitizedName = sanitizeAutoLaunchProfileMediaFileName(file.originalname);
+        const existingNames = await this.listObjectNamesUnderPrefix(databaseName, normalizedPrefix);
+        const fileName = resolveUniqueAutoLaunchProfileMediaFileName(sanitizedName, existingNames);
+        const filePath = `${normalizedPrefix}/${fileName}`;
 
         const { error: uploadError } = await this.supabaseServiceClient.storage
             .from(databaseName)
@@ -135,6 +141,45 @@ export class StorageSupabaseRepository {
         }
 
         return filePath;
+    }
+
+    private async listObjectNamesUnderPrefix(databaseName: DatabaseName, prefix: string): Promise<string[]> {
+        const names: string[] = [];
+        const batchSize = 100;
+        let offset = 0;
+
+        while (true) {
+            const { data, error } = await this.supabaseServiceClient.storage.from(databaseName).list(prefix, {
+                limit: batchSize,
+                offset,
+            });
+
+            if (error) {
+                throw new DatabaseError(
+                    `Error in listObjectNamesUnderPrefix: ${databaseName} with message ${error.message}`,
+                    {
+                        cause: error,
+                        operation: "list",
+                        resource: { type: "storage", name: databaseName },
+                    }
+                );
+            }
+
+            const batch = data ?? [];
+            for (const row of batch) {
+                const name = row.name?.trim();
+                if (name) {
+                    names.push(name);
+                }
+            }
+
+            if (batch.length < batchSize) {
+                break;
+            }
+            offset += batchSize;
+        }
+
+        return names;
     }
 
     /** Upsert mirrored integration profile photo (`integration-profiles/...` in avatars bucket). */

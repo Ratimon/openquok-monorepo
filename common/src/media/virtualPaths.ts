@@ -106,7 +106,7 @@ export function mediaVirtualPathFromFileManagerTarget(targetId: string): string 
 	return normalizeMediaVirtualPath(targetId);
 }
 
-function sanitizeMediaDisplayName(name: string): string {
+export function sanitizeMediaDisplayName(name: string): string {
 	const base = String(name ?? "file")
 		.trim()
 		.replace(/[/\\?%*:|"<>]/g, "-")

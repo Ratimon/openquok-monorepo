@@ -67,6 +67,10 @@ import {
     parseBusinessProfileDataInput,
     parseBusinessProfileDataPatch,
 } from "../data/schemas/businessProfileDataSchemas";
+import {
+    normalizeAutoLaunchProfileLogoUrl,
+    normalizeBusinessProfileDataGallery,
+} from "../utils/images/normalizeAutoLaunchProfileMediaFields";
 
 function launchTokenSecret(): string {
     return (config.auth as { securitySecret?: string })?.securitySecret?.trim() ?? "";
@@ -270,6 +274,9 @@ export class AutoLaunchService {
             input.name,
             input.integrationCustomerId ?? null
         );
+        const parsedProfileData = normalizeBusinessProfileDataGallery(
+            parseBusinessProfileDataInput(input.profileData as Record<string, unknown> | undefined)
+        );
         const row = await this.autoLaunchRepository.insertProfile({
             organizationId: input.organizationId,
             integrationCustomerId,
@@ -277,10 +284,8 @@ export class AutoLaunchService {
             tagline: input.tagline ?? null,
             description: input.description ?? null,
             websiteUrl: input.websiteUrl ?? null,
-            logoUrl: input.logoUrl ?? null,
-            profileData: parseBusinessProfileDataInput(
-                input.profileData as Record<string, unknown> | undefined
-            ),
+            logoUrl: normalizeAutoLaunchProfileLogoUrl(input.logoUrl ?? null) ?? null,
+            profileData: parsedProfileData,
             createdByUserId: authUserId,
         });
         const [dto] = await this.enrichProfileDtos(input.organizationId, [row]);
@@ -357,7 +362,10 @@ export class AutoLaunchService {
         await this.integrationConnectionService.assertOrganizationMember(authUserId, existing.organization_id);
         await this.assertDirectoryLaunchEnabled(existing.organization_id, authUserId);
 
-        if (patch.integrationCustomerId === null) {
+        if (
+            patch.integrationCustomerId === null &&
+            existing.integration_customer_id != null
+        ) {
             throw new UserValidationError("Business profile must stay linked to a channel group");
         }
 
@@ -382,9 +390,11 @@ export class AutoLaunchService {
 
         const nextProfileData =
             patch.profileData !== undefined
-                ? mergeBusinessProfileData(
-                      existing.profile_data,
-                      parseBusinessProfileDataPatch(patch.profileData as Record<string, unknown>)
+                ? normalizeBusinessProfileDataGallery(
+                      mergeBusinessProfileData(
+                          existing.profile_data,
+                          parseBusinessProfileDataPatch(patch.profileData as Record<string, unknown>)
+                      )
                   )
                 : undefined;
 
@@ -396,7 +406,10 @@ export class AutoLaunchService {
                 tagline: patch.tagline,
                 description: patch.description,
                 websiteUrl: patch.websiteUrl,
-                logoUrl: patch.logoUrl,
+                logoUrl:
+                    patch.logoUrl !== undefined
+                        ? normalizeAutoLaunchProfileLogoUrl(patch.logoUrl)
+                        : undefined,
                 integrationCustomerId: patch.integrationCustomerId,
                 profileData: nextProfileData,
             },
@@ -1103,7 +1116,10 @@ export class AutoLaunchService {
             throw new AutoLaunchProfileNotFoundError(profileId);
         }
 
-        if (patch.integrationCustomerId === null) {
+        if (
+            patch.integrationCustomerId === null &&
+            existing.integration_customer_id != null
+        ) {
             throw new UserValidationError("Business profile must stay linked to a channel group");
         }
 
@@ -1128,9 +1144,11 @@ export class AutoLaunchService {
 
         const nextProfileData =
             patch.profileData !== undefined
-                ? mergeBusinessProfileData(
-                      existing.profile_data,
-                      parseBusinessProfileDataPatch(patch.profileData as Record<string, unknown>)
+                ? normalizeBusinessProfileDataGallery(
+                      mergeBusinessProfileData(
+                          existing.profile_data,
+                          parseBusinessProfileDataPatch(patch.profileData as Record<string, unknown>)
+                      )
                   )
                 : undefined;
 
@@ -1142,7 +1160,10 @@ export class AutoLaunchService {
                 tagline: patch.tagline,
                 description: patch.description,
                 websiteUrl: patch.websiteUrl,
-                logoUrl: patch.logoUrl,
+                logoUrl:
+                    patch.logoUrl !== undefined
+                        ? normalizeAutoLaunchProfileLogoUrl(patch.logoUrl)
+                        : undefined,
                 integrationCustomerId: patch.integrationCustomerId,
                 profileData: nextProfileData,
             },

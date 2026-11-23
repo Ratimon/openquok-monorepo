@@ -43,6 +43,7 @@ New **social** networks follow <a href="/docs/contribution-opportunities/add-pro
 <LinkCard title="Open Launch" description="Premium launch and free queue — tech stack, extension wizard autofill" href="/docs/directory-integration/open-launch" />
 <LinkCard title="TinyLaunch" description="Premium and Standard create-startup — category catalog, pledge manual" href="/docs/directory-integration/tinylaunch" />
 <LinkCard title="Fazier" description="Company page wizard and product launch — badge and tier steps manual" href="/docs/directory-integration/fazier" />
+<LinkCard title="DevHunt" description="Free listing and $49 paid launch week — developer tools, screenshots, manual checkout" href="/docs/directory-integration/devhunt" />
 </CardGrid>
 
 ## Related Section(s)

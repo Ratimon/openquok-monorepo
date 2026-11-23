@@ -12,6 +12,8 @@ import {
 	type BusinessProfileLaunchCardVm
 } from '$lib/auto-launch/utils/buildProfileLaunchCardVm';
 import type { DirectoryLaunchSiteSummaryRow } from '$lib/auto-launch/groupDirectoryLaunchSiteSummaryRows';
+import { requestDirectoryLaunchProfileRefresh } from '$lib/auto-launch/browser-extension/directoryLaunchHandoff';
+import { resolveAutoLaunchProfileMediaStorageKey } from '$lib/auto-launch/utils/autoLaunchProfileMediaImages';
 import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings.presenter.svelte';
 export type AutoLaunchProductsComposerTab = 'general' | 'discovery';
 
@@ -23,15 +25,20 @@ export type AutoLaunchProfileSavePayload = {
 	logoUrl: string | null;
 	profileData: BusinessProfileDataFormValues;
 	integrationCustomerId?: string | null;
+	/** Client-only; not sent to the API — drives success toast after save. */
+	saveToastHints?: {
+		uploadedScreenshotLabels?: string[];
+	};
 };
 
 export type AutoLaunchProfileMediaPatch = {
 	logoUrl?: string | null;
 	galleryUrls?: string[];
+	uploadFailed?: boolean;
 };
 
 export type AutoLaunchProfileMutationResultViewModel =
-	| { ok: true; created: boolean; shouldRefreshChannelGroups: boolean }
+	| { ok: true; created: boolean; shouldRefreshChannelGroups: boolean; successToast?: string }
 	| { ok: false; error: string };
 
 export type DirectoryProfileVariantRowViewModel = {
@@ -225,16 +232,65 @@ export class AutoLaunchProductsPresenter {
 		this.composerOpen = true;
 	}
 
-	private withUploadedMedia(
+	private normalizeGalleryStoragePaths(paths: string[]): string[] {
+		return paths
+			.map((entry) => resolveAutoLaunchProfileMediaStorageKey(entry) ?? entry.trim())
+			.filter((entry) => entry.length > 0);
+	}
+
+	private screenshotUploadSuccessToast(labels: string[] | undefined): string | undefined {
+		const names = (labels ?? []).map((entry) => entry.trim()).filter((entry) => entry.length > 0);
+		if (!names.length) return undefined;
+		const list = names.join(', ');
+		return `${list} screenshot${names.length === 1 ? '' : 's'} uploaded`;
+	}
+
+	private resolveSaveSuccessToast(
+		values: AutoLaunchProfileSavePayload,
+		created: boolean
+	): string | undefined {
+		const screenshotToast = this.screenshotUploadSuccessToast(
+			values.saveToastHints?.uploadedScreenshotLabels
+		);
+		if (screenshotToast) return screenshotToast;
+		return created ? 'Business profile created.' : 'Business profile updated.';
+	}
+
+	/** PATCH: omit `integrationCustomerId` when unset — do not send JSON `null` (reads as unlink). */
+	private buildProfileUpdatePayload(values: AutoLaunchProfileSavePayload) {
+		const { integrationCustomerId, saveToastHints: _saveToastHints, ...rest } = values;
+		return {
+			...rest,
+			...(integrationCustomerId != null ? { integrationCustomerId } : {})
+		};
+	}
+
+	private buildProfileCreatePayload(
+		organizationId: string,
+		values: AutoLaunchProfileSavePayload
+	) {
+		const { saveToastHints: _saveToastHints, integrationCustomerId, ...rest } = values;
+		return {
+			organizationId,
+			...rest,
+			integrationCustomerId: integrationCustomerId ?? null
+		};
+	}
+
+	withUploadedMedia(
 		values: AutoLaunchProfileSavePayload,
 		media: AutoLaunchProfileMediaPatch
 	): AutoLaunchProfileSavePayload {
+		const galleryFromUpload =
+			media.galleryUrls !== undefined
+				? this.normalizeGalleryStoragePaths(media.galleryUrls)
+				: undefined;
 		return {
 			...values,
 			logoUrl: media.logoUrl !== undefined ? media.logoUrl : values.logoUrl,
 			profileData: {
 				...values.profileData,
-				gallery_urls: media.galleryUrls ?? values.profileData.gallery_urls
+				gallery_urls: galleryFromUpload ?? values.profileData.gallery_urls
 			}
 		};
 	}
@@ -251,37 +307,61 @@ export class AutoLaunchProductsPresenter {
 		this.composerSubmitting = true;
 		try {
 			if (this.editingProfileId) {
-				const media = uploadMediaForProfile
-					? await uploadMediaForProfile(this.editingProfileId)
-					: undefined;
-				const payload = this.withUploadedMedia(values, media ?? {});
-				const resultPm = await this.autoLaunchRepository.updateProfile(this.editingProfileId, payload);
+				let payload = values;
+				if (uploadMediaForProfile) {
+					const media = await uploadMediaForProfile(this.editingProfileId);
+					if (media?.uploadFailed) {
+						return {
+							ok: false,
+							error: 'Media upload failed. Check image size (max 4 MB) and try again.'
+						};
+					}
+					if (media?.logoUrl !== undefined || media?.galleryUrls !== undefined) {
+						payload = this.withUploadedMedia(values, media);
+					}
+				}
+				const resultPm = await this.autoLaunchRepository.updateProfile(
+					this.editingProfileId,
+					this.buildProfileUpdatePayload(payload)
+				);
 				if (!resultPm.ok) {
 					return { ok: false, error: resultPm.error };
 				}
 				this.composerOpen = false;
 				this.closeComposer();
 				await this.loadProductsTab();
-				return { ok: true, created: false, shouldRefreshChannelGroups: true };
+				void requestDirectoryLaunchProfileRefresh();
+				return {
+					ok: true,
+					created: false,
+					shouldRefreshChannelGroups: true,
+					successToast: this.resolveSaveSuccessToast(payload, false)
+				};
 			}
 
-			const resultPm = await this.autoLaunchRepository.createProfile({
-				organizationId,
-				...values,
-				integrationCustomerId: values.integrationCustomerId ?? null
-			});
+			const resultPm = await this.autoLaunchRepository.createProfile(
+				this.buildProfileCreatePayload(organizationId, values)
+			);
 			if (!resultPm.ok) {
 				return { ok: false, error: resultPm.error };
 			}
 			const newId = resultPm.profile.id;
 			const media = uploadMediaForProfile ? await uploadMediaForProfile(newId) : undefined;
+			if (media?.uploadFailed) {
+				return {
+					ok: false,
+					error: 'Profile created, but media upload failed. Edit the profile and save again.'
+				};
+			}
 			const hasMediaPatch =
 				media &&
-				(media.logoUrl !== undefined ||
-					(media.galleryUrls !== undefined && media.galleryUrls.length > 0));
+				(media.logoUrl !== undefined || media.galleryUrls !== undefined);
 			if (hasMediaPatch) {
 				const patch = this.withUploadedMedia(values, media);
-				const patchPm = await this.autoLaunchRepository.updateProfile(newId, patch);
+				const patchPm = await this.autoLaunchRepository.updateProfile(
+					newId,
+					this.buildProfileUpdatePayload(patch)
+				);
 				if (!patchPm.ok) {
 					return { ok: false, error: patchPm.error };
 				}
@@ -289,7 +369,12 @@ export class AutoLaunchProductsPresenter {
 			this.composerOpen = false;
 			this.closeComposer();
 			await this.loadProductsTab();
-			return { ok: true, created: true, shouldRefreshChannelGroups: true };
+			return {
+				ok: true,
+				created: true,
+				shouldRefreshChannelGroups: true,
+				successToast: this.resolveSaveSuccessToast(values, true)
+			};
 		} finally {
 			this.composerSubmitting = false;
 		}

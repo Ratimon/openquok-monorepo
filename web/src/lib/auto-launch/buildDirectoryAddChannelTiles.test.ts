@@ -98,6 +98,19 @@ describe('buildDirectoryAddChannelTiles', () => {
 		expect(tiles[0]?.brandedIconName).toBe('TinyLaunch');
 	});
 
+	it('assigns bundled logo and branded icon for devhunt', () => {
+		const tiles = buildDirectoryAddChannelTiles(
+			[
+				destination({ providerSlug: 'devhunt-paid-launch', siteTitle: 'DevHunt' }),
+				destination({ providerSlug: 'devhunt-standard-launch', sortOrder: 1 })
+			],
+			new Map([['devhunt', { title: 'DevHunt', logoUrl: null }]])
+		);
+		expect(tiles).toHaveLength(1);
+		expect(tiles[0]?.logoUrl).toBe('/icons/link-directory/devhunt.svg');
+		expect(tiles[0]?.brandedIconName).toBe('DevHunt');
+	});
+
 	it('assigns bundled logo and branded icon for fazier', () => {
 		const tiles = buildDirectoryAddChannelTiles(
 			[

@@ -5,6 +5,13 @@ import type {
 } from '../../../../browser-extension/pageAssist.js';
 import { BUSINESS_PROFILE_DIRECTORY_TAGLINE_MAX } from '../../../businessProfileData.js';
 
+/** Uneed product gallery on the Media tab (1–3 `product_medias` images). */
+export const UNEED_FORM_GALLERY_MAX = 3;
+
+/** Gallery fills via the `Images` block; extension scopes file inputs there (not logo `#single`). */
+export const UNEED_PRODUCT_GALLERY_SELECTOR_HINT =
+	"div:has(> h3:first-child), input[type='file'][accept*='image']";
+
 /** Native controls on `edit/waiting-line/*` (Reka / Nuxt form). */
 const UNEED_PRODUCT_NAME_SELECTOR_HINT = 'input[name="name"]';
 const UNEED_PRODUCT_SLUG_SELECTOR_HINT = 'input[name="slug"]';
@@ -160,7 +167,9 @@ export const UNEED_JOIN_LINE_EXTENSION_CONFIG = {
 					"key": "logo",
 					"label": "Logo",
 					"profilePath": "logo_url",
-					"selectorHint": "input[type='file'][accept*='image']",
+					"fillMode": "file",
+					"fileInputIndex": 0,
+					"selectorHint": "input#single[type='file']",
 				},
 				{
 					"key": "launch_video_url",
@@ -172,8 +181,12 @@ export const UNEED_JOIN_LINE_EXTENSION_CONFIG = {
 				{
 					"key": "gallery",
 					"label": "Gallery images",
+					"labelAliases": ["Images", "Product images"],
 					"profilePath": "profile_data.gallery_urls",
-					"selectorHint": "input[type='file'][accept*='image']:not(:first-of-type)",
+					"fillMode": "files",
+					"fileInputIndex": 0,
+					"maxItems": UNEED_FORM_GALLERY_MAX,
+					"selectorHint": UNEED_PRODUCT_GALLERY_SELECTOR_HINT,
 				},
 			],
 		},
@@ -402,7 +415,9 @@ export const UNEED_PAID_LAUNCH_EXTENSION_CONFIG = {
 					"key": "logo",
 					"label": "Logo",
 					"profilePath": "logo_url",
-					"selectorHint": "input[type='file'][accept*='image']",
+					"fillMode": "file",
+					"fileInputIndex": 0,
+					"selectorHint": "input#single[type='file']",
 				},
 				{
 					"key": "launch_video_url",
@@ -414,8 +429,12 @@ export const UNEED_PAID_LAUNCH_EXTENSION_CONFIG = {
 				{
 					"key": "gallery",
 					"label": "Gallery images",
+					"labelAliases": ["Images", "Product images"],
 					"profilePath": "profile_data.gallery_urls",
-					"selectorHint": "input[type='file'][accept*='image']:not(:first-of-type)",
+					"fillMode": "files",
+					"fileInputIndex": 0,
+					"maxItems": UNEED_FORM_GALLERY_MAX,
+					"selectorHint": UNEED_PRODUCT_GALLERY_SELECTOR_HINT,
 				},
 			],
 		},

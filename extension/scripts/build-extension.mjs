@@ -39,6 +39,10 @@ const bundleEntries = [
 		out: 'content/directory-launch/openquok-directory-fazier.js',
 	},
 	{
+		input: 'src/content/directory-launch/devhunt-host.ts',
+		out: 'content/directory-launch/openquok-directory-devhunt.js',
+	},
+	{
 		input: 'src/content/dashboard/openquok-dashboard-session.ts',
 		out: 'content/dashboard/openquok-dashboard-session.js',
 	},

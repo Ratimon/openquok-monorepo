@@ -2,6 +2,8 @@
 /**
  * Local-only: create or refresh a dev login (Supabase Auth + public.users + default workspace).
  * Optional platform super admin — same RPC as promote_platform_admin.mjs.
+ * Ensures the exemplar OpenQuok **main** business profile (My Products) on each workspace,
+ * matching backend/supabase/seeds/local_dev_openquok_business_profile.sql after db reset.
  *
  * Does not change app auth routes; uses service_role admin APIs only.
  *
@@ -95,6 +97,72 @@ function isLocalSupabaseUrl(url) {
         );
     } catch {
         return false;
+    }
+}
+
+async function enableLocalOpenQuokProfileSeedFlag(admin) {
+    const { data: existing, error: readErr } = await admin
+        .from("module_configs")
+        .select("config")
+        .eq("module_name", "auto_launch")
+        .maybeSingle();
+    if (readErr) {
+        throw new Error(`Failed to read auto_launch module config: ${readErr.message}`);
+    }
+    const merged = {
+        ...(existing?.config && typeof existing.config === "object" ? existing.config : {}),
+        SEED_OPENQUOK_BUSINESS_PROFILE_ON_ORG_CREATE: true,
+    };
+    const { error: upsertErr } = await admin.from("module_configs").upsert(
+        {
+            module_name: "auto_launch",
+            config: merged,
+            updated_at: new Date().toISOString(),
+        },
+        { onConflict: "module_name" }
+    );
+    if (upsertErr) {
+        throw new Error(`Failed to enable local OpenQuok profile seed flag: ${upsertErr.message}`);
+    }
+}
+
+async function ensureOpenQuokMainBusinessProfilesForUser(admin, authUserId) {
+    await enableLocalOpenQuokProfileSeedFlag(admin);
+
+    const { data: memberships, error: membErr } = await admin
+        .from("user_organizations")
+        .select("organization_id")
+        .eq("user_id", authUserId);
+    if (membErr) {
+        throw new Error(`Failed to list workspaces for profile seed: ${membErr.message}`);
+    }
+    const orgIds = [
+        ...new Set(
+            (memberships ?? [])
+                .map((row) => row.organization_id)
+                .filter((id) => typeof id === "string" && id.length > 0)
+        ),
+    ];
+    if (orgIds.length === 0) {
+        console.warn("No workspace membership; skipped OpenQuok business profile seed.");
+        return;
+    }
+
+    for (const orgId of orgIds) {
+        const { data: profileId, error: seedErr } = await admin.rpc(
+            "auto_launch_ensure_openquok_business_profile",
+            { p_organization_id: orgId }
+        );
+        if (seedErr) {
+            throw new Error(
+                `Failed to ensure OpenQuok business profile for org ${orgId}: ${seedErr.message}`
+            );
+        }
+        if (profileId) {
+            console.log(`OpenQuok main business profile ready (${profileId}) for workspace ${orgId}.`);
+        } else {
+            console.log(`Workspace ${orgId}: main business profile unchanged or unavailable.`);
+        }
     }
 }
 
@@ -262,6 +330,13 @@ if (args.superAdmin) {
         process.exit(1);
     }
     console.log("Platform super admin enabled.");
+}
+
+try {
+    await ensureOpenQuokMainBusinessProfilesForUser(admin, authUserId);
+} catch (err) {
+    console.error(err instanceof Error ? err.message : String(err));
+    process.exit(1);
 }
 
 console.log("");

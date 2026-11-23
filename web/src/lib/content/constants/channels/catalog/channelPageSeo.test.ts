@@ -97,12 +97,20 @@ describe('channelPageSeo', () => {
 			fazier?.processSection?.steps.some((s) => s.deviceMockContent === 'directory-site-fazier')
 		).toBe(true);
 
+		const devhunt = getPublicChannelBySlug('devhunt');
+		expect(devhunt?.channelKind).toBe('directory');
+		expect(devhunt?.icon).toBe('DevHunt');
+		expect(
+			devhunt?.processSection?.steps.some((s) => s.deviceMockContent === 'directory-site-devhunt')
+		).toBe(true);
+
 		expect(listPublicDirectoryChannelsForHub().map((c) => c.slug)).toEqual([
 			'peerpush',
 			'uneed',
 			'open-launch',
 			'tinylaunch',
-			'fazier'
+			'fazier',
+			'devhunt'
 		]);
 
 		const heroBadges = publicDirectoryChannelHeroStatBadges();

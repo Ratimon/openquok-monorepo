@@ -51,16 +51,17 @@ const socialPanel = shell.querySelector('#tab-panel-social') as HTMLElement;
 const directoryPanel = shell.querySelector('#tab-panel-directory') as HTMLElement;
 const tabButtons = [...shell.querySelectorAll<HTMLButtonElement>('.tab-btn')];
 
-let sessionBar!: ReturnType<typeof mountDashboardSessionBar>;
-const socialTab = mountSocialTab(socialPanel, {
+let socialTab!: ReturnType<typeof mountSocialTab>;
+
+const sessionBar = mountDashboardSessionBar(sessionHost, {
+	onDisconnected: () => socialTab.onDashboardDisconnected(),
+});
+
+socialTab = mountSocialTab(socialPanel, {
 	getSessionSnapshot: () => sessionBar.getSnapshot(),
 });
 const directoryTab = mountDirectoryTab(directoryPanel, {
 	getSessionSnapshot: () => sessionBar.getSnapshot(),
-});
-
-sessionBar = mountDashboardSessionBar(sessionHost, {
-	onDisconnected: () => socialTab.onDashboardDisconnected(),
 });
 
 let sessionRefreshTimer: ReturnType<typeof setTimeout> | null = null;

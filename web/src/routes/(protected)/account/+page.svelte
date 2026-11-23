@@ -1020,7 +1020,8 @@
 			return;
 		}
 		toast.success(
-			resultVm.created ? 'Business profile created.' : 'Business profile updated.'
+			resultVm.successToast ??
+				(resultVm.created ? 'Business profile created.' : 'Business profile updated.')
 		);
 		if (resultVm.shouldRefreshChannelGroups) {
 			void pagePresenter.loadChannelGroups();

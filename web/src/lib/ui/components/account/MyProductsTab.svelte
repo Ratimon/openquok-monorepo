@@ -16,6 +16,8 @@
 
 	import { icons } from '$data/icons';
 
+	import { tick } from 'svelte';
+
 	import ProductProfileComposer from '$lib/ui/components/auto-launch/ProductProfileComposer.svelte';
 	import BusinessProfileCard from '$lib/ui/components/auto-launch/BusinessProfileCard.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -143,7 +145,15 @@
 	submitting={composerSubmitting}
 	title={composerTitle}
 	onSubmit={(values) =>
-		void onSaveProfile(values, async (profileId) => composerRef?.uploadMediaForProfile(profileId))}
+		void onSaveProfile(
+			values,
+			editingProfile
+				? async () => undefined
+				: async (profileId) => {
+						await tick();
+						return (await composerRef?.uploadMediaForProfile(profileId)) ?? {};
+					}
+		)}
 	onCancel={onComposerCancel}
 	{deleteBusinessProfileForModal}
 />

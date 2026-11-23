@@ -76,9 +76,9 @@ Call <Badge text="directoryProfilesUpdate" variant="default" /> with the variant
 
 ## Logo and screenshots
 
-> Set my PeerPush profile logo and up to three screenshot URLs before I open peerpush.com.
+> Set my PeerPush profile logo and up to ten screenshot URLs (reorder in the web Media tab so the best shots are first) before I open peerpush.com.
 
-The agent should call <Badge text="directoryProfilesUpdate" variant="default" /> on the main or variant <Badge text="productProfileId" variant="param" /> with <Badge text="logoUrl" variant="param" /> and <Badge text="profileData.gallery_urls" variant="param" /> (max **3** entries). Use public <Badge text="https://" variant="param" /> URLs directories and the extension can fetch.
+The agent should call <Badge text="directoryProfilesUpdate" variant="default" /> on the main or variant <Badge text="productProfileId" variant="param" /> with <Badge text="logoUrl" variant="param" /> and <Badge text="profileData.gallery_urls" variant="param" /> (max **10** entries on the main profile; PeerPush autofill uses up to **10** in Media tab order). Use public <Badge text="https://" variant="param" /> URLs directories and the extension can fetch.
 
 Optional: <Badge text="uploadFromUrl" variant="default" /> imports a remote image into the **workspace media library** (same idea as CLI <Badge text="upload-from-url" variant="default" />). That does **not** attach the file to the product profile automatically — still patch <Badge text="logoUrl" variant="param" /> / <Badge text="gallery_urls" variant="param" /> with the public URLs you want on the listing. Local files need CLI <Badge text="openquok upload" variant="default" /> when the agent can run shell commands.
 

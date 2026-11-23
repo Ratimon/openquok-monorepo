@@ -82,7 +82,7 @@ After edits: `pnpm --filter @openquok/browser-extension build` and confirm `dist
 
 **Tier 5xx order:** `502` extension_configs UPDATE (no-op on empty table) → `503`–`507` site `*_seed_*` files (`destinationSeeds.ts` manifest). **`507` = Fazier**; next site destination seed prefix: **508+** (do not add a second configs file).
 
-Refs: Uneed `link-directory/502_*` + `auto-launch/503_*`; PeerPush `link-directory/504_*` + `auto-launch/504_*`; Open Launch `link-directory/505_*` + `auto-launch/505_*`; TinyLaunch catalog backfill + `auto-launch/506_*`; Fazier catalog backfill + `auto-launch/507_*`. Storage bucket: `auto-launch/500_*_seed_auto_launch_profile_media_bucket.sql` (reuse unless new bucket).
+Refs: Uneed `link-directory/502_*` + `auto-launch/503_*`; PeerPush `link-directory/504_*` + `auto-launch/504_*`; Open Launch `link-directory/505_*` + `auto-launch/505_*`; TinyLaunch catalog backfill + `auto-launch/506_*`; Fazier catalog backfill + `auto-launch/507_*`; DevHunt catalog backfill + `auto-launch/508_*`. Storage bucket: `auto-launch/500_*_seed_auto_launch_profile_media_bucket.sql` (reuse unless new bucket).
 
 ### Build Backlinks catalog backfill (JSON-only sites)
 
@@ -100,6 +100,16 @@ For JSON-only sites:
 3. Operator notes: `web/src/content/docs/admin/link-directory-catalog-backfill.md`.
 
 **Opportunity copy on `/build-backlinks/{site}`:** `description`, `cost_note`, and step `body` strings render through `prepareLinkDirectoryRichTextForDisplay`, which linkifies only full `https://…` (or `http://…`) URLs. Use the same pattern as TinyLaunch step bodies (for example `https://www.tinylaunch.com/pricing`), not bare hosts like `fazier.com/page/new;` — punctuation stays on the host and the text is not clickable. Keep blurbs short: one idea per sentence, active voice.
+
+**Opportunity `effort` (Build Backlinks badges + site effort range):** set on each opportunity in SQL seeds or catalog JSON (`easy` | `medium` | `hard`).
+
+| Pattern | Use `effort` | Reference opportunities |
+| --- | --- | --- |
+| **`cost_tier: free`** on shipped **directory / launch platforms** (free queue, free listing, free product path) | **`medium`** | PeerPush free queue, Open Launch free launch, TinyLaunch Standard, Fazier free product listing, DevHunt free listing |
+| Paid checkout + typical submit wizard | **`medium`** | PeerPush Standard, DevHunt paid launch, Fazier paid tiers, Open Launch Premium |
+| Chrome Web Store listing fields (package review, compliance copy, multi-tab listing editor) | **`hard`** | `official-url`, `item-homepage-url`, `privacy-policy-url` — **even when `cost_tier` is `free`** for a single field |
+
+Put queue timing and approval delays in `approval_time_hint`, not in `effort`. Do not use **`hard`** on free-tier **launch-platform** opportunities. **Exception:** `chrome-web-store` in catalog backfill — all opportunities stay **`hard`**; that site is not a launch-platform row above.
 
 ### `extension_config` (TypeScript → SQL)
 
@@ -129,7 +139,11 @@ New `profilePath` in config → update composer/validation only when members mus
 | Edit | `extension/manifest.json` — `content_scripts` `matches` + `js` |
 | **Add** | `extension/src/directory/directory-launch/siteLogin/<site-key>.ts` + test |
 | Edit | `extension/src/directory/directory-launch/siteLogin/detectDirectorySiteLogin.ts` — register adapter |
-| Edit (if DOM read fails) | `extension/src/directory/directory-launch/readFormField.ts`, `fillEngine.ts` + tests |
+| **Add** (site-specific media DOM) | `extension/src/directory/directory-launch/siteMedia/<adapter>.ts` — implement `SiteMediaAdapter`; register in `siteMedia/registry.ts` |
+| Edit (if DOM read fails) | `readFormField.ts`, `fillEngine.test.ts`, `readFormField.test.ts`, and a focused `*FormSelectors.test.ts` — **not** inline site branches in `fillEngine.ts` (see below) |
+| Edit (generic DOM helpers) | `formFieldDom.ts` — neutral label/choice/url guards shared by fill + compare; **no** site slugs or brand names in identifiers or comments |
+
+**`fillEngine.ts` stays generic.** Do not add directory-site logic there (no per-site hostnames or CDN URL heuristics, no site-named selectors, no site-specific gallery/logo upload loops). Use `extension_config` field hints (`selectorHint`, `maxItems`, catalogs) plus a `siteMedia/` adapter for DOM that generic fill cannot cover (multi-slot galleries, non-standard file inputs, preview image filtering). `fillEngine` delegates file resolution and multi-file fill through `getActiveSiteMediaAdapter()`; `readFormField` uses `getSiteMediaAdapterForGalleryPreview()` for gallery previews. Shared label/choice/promo-video DOM rules live in `formFieldDom.ts`. Catalog-driven fill (e.g. `tagsCatalog`) in `fillEngine` / `catalogTagsFill.ts` is fine — that is config, not page shape.
 
 Build: `pnpm common:build` && `pnpm --filter @openquok/browser-extension build`.
 
@@ -181,6 +195,7 @@ No **public-api-surface-sync** unless new `/api/v1/public/*` routes.
 | Open Launch | `open-launch-free-launch`, `open-launch-premium-launch` | `505_*` | `openLaunch.ts` |
 | TinyLaunch | `tinylaunch-standard-launch`, `tinylaunch-premium-launch` | `506_*` | `tinylaunch.ts` |
 | Fazier | `fazier-page`, `fazier-free-product-listing`, `fazier-paid-product-listing` | `507_*` | `fazier.ts` |
+| DevHunt | `devhunt-standard-launch`, `devhunt-paid-launch` | `508_*` + catalog JSON | `devhunt/config.ts` |
 
 ## PR checklist
 
@@ -195,6 +210,7 @@ No **public-api-surface-sync** unless new `/api/v1/public/*` routes.
 
 - [ ] `destination-configs` fixtures + `{site}` provider rows + `directoryLaunchRegistry.ts`; content script, `build-extension.mjs`, `manifest.json`
 - [ ] `siteLogin` adapter + `detectDirectorySiteLogin.ts`
+- [ ] Site-specific media DOM (if any) in `siteMedia/` + `registry.ts`; **no** new site branches in `fillEngine.ts`
 - [ ] Handoff opens `start_url`; fill + complete on live site
 
 **Web & assets**
@@ -222,4 +238,5 @@ No **public-api-surface-sync** unless new `/api/v1/public/*` routes.
 - Add inline `directoryLaunchProviders` entries in `pageAssist.ts` (registry lives in `destination-configs/`)
 - Confuse **site slug** with **provider slug**
 - Add `backend/integrations/providers/*` or social composer tiles for directory-only launches
+- Add site-specific DOM, hostnames, or upload/read logic to `extension/src/directory/directory-launch/fillEngine.ts` — use `siteMedia/` adapters and field config instead
 - Add or extend compare/alternatives competitor tests (e.g. `web/src/lib/content/constants/competitors/submission/*.compareProduct.test.ts`) — use **add-competitors.mdc** instead

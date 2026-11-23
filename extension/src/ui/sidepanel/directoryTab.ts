@@ -57,6 +57,7 @@ async function handleDirectoryChannelSelect(
 	state: StoredAutoLaunchState | null,
 	renderRef: DirectoryTabRenderRef
 ): Promise<void> {
+	if (directoryChannelLaunchInFlight) return;
 	if (!isDirectoryLaunchProviderId(identifier)) {
 		renderRef.current(
 			state,
@@ -64,9 +65,14 @@ async function handleDirectoryChannelSelect(
 		);
 		return;
 	}
+	directoryChannelLaunchInFlight = true;
 	selectedChannelId = identifier;
 	directoryPickerUserSelection = identifier;
-	await showFillPanelForChannel(identifier, state, renderRef);
+	try {
+		await showFillPanelForChannel(identifier, state, renderRef);
+	} finally {
+		directoryChannelLaunchInFlight = false;
+	}
 }
 
 const directoryChannels = listDirectoryLaunchProviderSummaries();
@@ -77,6 +83,7 @@ let selectedChannelId =
 /** User-picked chip while a different launch may still be active. */
 let directoryPickerUserSelection: string | null = null;
 let lastRenderedSessionSlug: string | null = null;
+let directoryChannelLaunchInFlight = false;
 
 function statusForState(state: StoredAutoLaunchState | null): string {
 	if (!state) {

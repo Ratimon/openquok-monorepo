@@ -337,7 +337,7 @@ function extractLegacyCompositeDestinationBlock(fileContent) {
 
 /**
  * @param {import('openquok-common').AutoLaunchDestinationSeedRow[]} rows
- * @param {Record<string, { baseProviderSlug: string }>} pricingDerived
+ * @param {Record<string, { baseProviderSlug: string; readyUrlHint: string }>} pricingDerived
  */
 function validatePricingStartUrlDerived(rows, pricingDerived) {
 	const bySlug = new Map(rows.map((row) => [row.providerSlug, row]));
@@ -347,9 +347,17 @@ function validatePricingStartUrlDerived(rows, pricingDerived) {
 		if (!variant || !base) {
 			throw new Error(`pricing destination ${slug} missing row or base ${meta.baseProviderSlug}`);
 		}
-		const pricingPatterns = ["/pricing", "/pricing/"];
-		if (!pricingPatterns.some((suffix) => variant.startUrl.endsWith(suffix))) {
-			throw new Error(`${slug} startUrl must point at pricing (derived from ${meta.baseProviderSlug})`);
+		if (meta.readyUrlHint === "pricing") {
+			const pricingPatterns = ["/pricing", "/pricing/"];
+			if (!pricingPatterns.some((suffix) => variant.startUrl.endsWith(suffix))) {
+				throw new Error(
+					`${slug} startUrl must point at pricing (derived from ${meta.baseProviderSlug})`
+				);
+			}
+		} else if (!variant.startUrl.includes(meta.readyUrlHint)) {
+			throw new Error(
+				`${slug} startUrl must include queue landing path "${meta.readyUrlHint}" (derived from ${meta.baseProviderSlug})`
+			);
 		}
 	}
 }

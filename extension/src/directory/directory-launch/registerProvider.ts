@@ -31,6 +31,7 @@ import {
 	OPENQUOK_AUTO_LAUNCH_SHOW_IDLE_PANEL,
 	OPENQUOK_AUTO_LAUNCH_PEEK_PROFILE_SNAPSHOT,
 	OPENQUOK_AUTO_LAUNCH_SWITCH_PROFILE_SOURCE,
+	OPENQUOK_DIRECTORY_CONTENT_SCRIPT_PING,
 } from '../auto-launch/constants.js';
 import type { DirectoryProfileSourceOption } from '../auto-launch/profileSourceOptions.js';
 import { executeFillFocused } from './fillFocused.js';
@@ -421,6 +422,7 @@ export function registerDirectoryLaunchProvider(providerSlug: string): void {
 		const config = activeSession.extensionConfig;
 		const steps = config.steps ?? [];
 		const gate = fillGateBlocked();
+		const onReadyPage = isReadyPage(config);
 		const compareRowsByStep = buildCompareRowsForSteps(activeSession.profileSnapshot, steps, {
 			fillBaselinesByField,
 			selectedSourcePathsByField,
@@ -430,7 +432,7 @@ export function registerDirectoryLaunchProvider(providerSlug: string): void {
 		rail.render({
 			providerName: provider.name,
 			productName: activeSession.profileSnapshot.name || 'Product profile',
-			statusLine: buildStatusLine(config, isReadyPage(config)),
+			statusLine: buildStatusLine(config, onReadyPage),
 			steps,
 			fieldResultsByStep,
 			compareRowsByStep,
@@ -443,6 +445,7 @@ export function registerDirectoryLaunchProvider(providerSlug: string): void {
 			profileSourceOptions,
 			activeProfileSourceId,
 			fillProgress,
+			compareRowsFilterToVisibleControls: onReadyPage,
 		});
 	}
 
@@ -658,6 +661,7 @@ export function registerDirectoryLaunchProvider(providerSlug: string): void {
 		wireFormWatchersForSession(session.extensionConfig);
 		activeProfileSourceId = session.productProfileId;
 		renderRail();
+		scheduleInitialCompareDomSync();
 		rail.revealPanel();
 		void loadProfileSourceOptions().then(() => renderRail());
 	}
@@ -680,6 +684,11 @@ export function registerDirectoryLaunchProvider(providerSlug: string): void {
 			return false;
 		}
 		if (!message || typeof message !== 'object') return false;
+
+		if (message.type === OPENQUOK_DIRECTORY_CONTENT_SCRIPT_PING) {
+			sendResponse({ ok: true });
+			return false;
+		}
 
 		const session = message.session;
 		if (session && session.providerSlug !== providerSlug) {

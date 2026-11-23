@@ -409,6 +409,604 @@ var init_directorySiteKey = __esm({
   }
 });
 
+// ../common/dist/auto-launch/destination-configs/sites/devhunt/config.js
+var DEVHUNT_FORM_GALLERY_MAX, DEVHUNT_HOST_PATTERNS, DEVHUNT_HOST_PERMISSION, DEVHUNT_TOOL_FORM_EXTENSION_CONFIG, DEVHUNT_PAID_LAUNCH, DEVHUNT_STANDARD_LAUNCH, DEVHUNT_DIRECTORY_LAUNCH_PROVIDERS;
+var init_config = __esm({
+  "../common/dist/auto-launch/destination-configs/sites/devhunt/config.js"() {
+    DEVHUNT_FORM_GALLERY_MAX = 3;
+    DEVHUNT_HOST_PATTERNS = ["https://devhunt.org/*"];
+    DEVHUNT_HOST_PERMISSION = "*://devhunt.org/*";
+    DEVHUNT_TOOL_FORM_EXTENSION_CONFIG = {
+      version: 1,
+      startUrlPatterns: [...DEVHUNT_HOST_PATTERNS],
+      readyUrlHint: "account/tools/new",
+      readyStatusHint: "Sign in on DevHunt (GitHub, Google, or email), then open the new-tool form. If DevHunt offers an AI draft from your website URL, skip or review it, then use OpenQuok when the tool form is visible. Maker comment and other optional fields stay manual on DevHunt.",
+      steps: [
+        {
+          id: "submit_tool",
+          label: "Submit tool",
+          fields: [
+            {
+              key: "logo",
+              label: "Tool logo",
+              labelAliases: ["Logo"],
+              profilePath: "logo_url",
+              fillMode: "file",
+              fileInputIndex: 0,
+              required: true,
+              selectorHint: "input[type='file'][accept*='image'], input[type='file'][accept*='png' i]"
+            },
+            {
+              key: "gallery",
+              label: "Tool screenshots",
+              labelAliases: ["Screenshots", "Gallery"],
+              profilePath: "profile_data.gallery_urls",
+              fillMode: "files",
+              fileInputIndex: 0,
+              maxItems: DEVHUNT_FORM_GALLERY_MAX,
+              required: true,
+              selectorHint: "#tool-screenshots-container input[type='file']"
+            },
+            {
+              key: "name",
+              label: "Tool name",
+              profilePath: "name",
+              fillMode: "text",
+              required: true,
+              selectorHint: "input[placeholder*='My Awesome Dev Tool' i], input[name*='tool_name' i], input[aria-label*='tool name' i]"
+            },
+            {
+              key: "tagline",
+              label: "Catchy slogan",
+              labelAliases: ["Slogan", "Tagline"],
+              profilePath: "tagline",
+              fillMode: "text",
+              required: true,
+              selectorHint: "input[placeholder*='Supercharge Your Development Workflow' i], input[name*='slogan' i], textarea[name*='slogan' i]"
+            },
+            {
+              key: "website",
+              label: "Tool website URL",
+              labelAliases: ["Website URL", "Website"],
+              profilePath: "website_url",
+              fillMode: "text",
+              required: true,
+              selectorHint: "input[placeholder*='myawesomedevtool' i], input[type='url'], input[name*='tool_website' i], input[name*='website' i]"
+            },
+            {
+              key: "description",
+              label: "Quick Description",
+              labelAliases: ["Description"],
+              profilePath: "description",
+              fillMode: "rich_html",
+              required: true,
+              selectorHint: "textarea[placeholder*='Briefly explain what your tool does' i], [contenteditable='true'], .ProseMirror, .tiptap, textarea[name*='tool_description' i]"
+            },
+            {
+              key: "social_github",
+              label: "GitHub repo URL",
+              labelAliases: ["GitHub repo URL (optional)", "GitHub"],
+              profilePath: "profile_data.social_github",
+              fillMode: "text",
+              selectorHint: "input[placeholder*='github.com/username' i], input[name*='github' i], input[name*='github_repo' i]",
+              profileSourcePaths: ["profile_data.repository_url"]
+            },
+            {
+              key: "pricing_type",
+              label: "Tool pricing type",
+              labelAliases: ["Pricing type", "Pricing"],
+              profilePath: "profile_data.pricing_type",
+              fillMode: "select",
+              selectCatalog: "devhunt_pricing",
+              selectorHint: "#pricing-container input[type='radio'][name='pricing_type'], input[type='radio'][name='pricing_type'], input[type='radio'][name*='pricing_type' i]"
+            },
+            {
+              key: "categories",
+              label: "Tool categories",
+              labelAliases: ["Categories"],
+              profilePath: "profile_data.categories",
+              fillMode: "tags",
+              selectorHint: "input[name*='categor' i], input[placeholder*='categor' i], [aria-label*='categor' i]"
+            },
+            {
+              key: "demo_video",
+              label: "Demo video",
+              labelAliases: ["Demo video (optional)"],
+              profilePath: "profile_data.launch_video_url",
+              fillMode: "text",
+              selectorHint: "input[placeholder*='Demo video (optional)' i], input[name*='demo_video' i], input[type='url'][placeholder*='video' i]"
+            }
+          ]
+        }
+      ],
+      proof: {
+        successPathRegex: "/tool/|/account/tools",
+        listingUrlSelector: "a[href*='devhunt.org/tool/']"
+      }
+    };
+    ({
+      ...DEVHUNT_TOOL_FORM_EXTENSION_CONFIG,
+      readyStatusHint: "Sign in on DevHunt, then open the new-tool form. Skip or review any AI draft from your website URL, then use OpenQuok on the tool form. Launch week and $49 checkout stay manual on DevHunt."
+    });
+    ({
+      ...DEVHUNT_TOOL_FORM_EXTENSION_CONFIG,
+      readyStatusHint: "Sign in on DevHunt and open the new-tool form for a free listing. Skip or review any AI draft from your website URL, then use OpenQuok on the tool form. Free listings use a nofollow link on the tool page."
+    });
+    DEVHUNT_PAID_LAUNCH = {
+      identifier: "devhunt-paid-launch",
+      name: "DevHunt \u2014 Paid launch",
+      tierLabel: "Paid",
+      defaultStartUrl: "https://devhunt.org/account/tools/new",
+      contentScriptEntry: "content/directory-launch/openquok-directory-devhunt.js",
+      hostPatterns: DEVHUNT_HOST_PATTERNS,
+      hostPermission: DEVHUNT_HOST_PERMISSION
+    };
+    DEVHUNT_STANDARD_LAUNCH = {
+      identifier: "devhunt-standard-launch",
+      name: "DevHunt \u2014 Free listing",
+      tierLabel: "Free",
+      defaultStartUrl: "https://devhunt.org/account/tools/new",
+      contentScriptEntry: "content/directory-launch/openquok-directory-devhunt.js",
+      hostPatterns: DEVHUNT_HOST_PATTERNS,
+      hostPermission: DEVHUNT_HOST_PERMISSION
+    };
+    DEVHUNT_DIRECTORY_LAUNCH_PROVIDERS = [
+      DEVHUNT_STANDARD_LAUNCH,
+      DEVHUNT_PAID_LAUNCH
+    ];
+  }
+});
+
+// ../common/dist/auto-launch/destination-configs/devhunt.js
+var init_devhunt = __esm({
+  "../common/dist/auto-launch/destination-configs/devhunt.js"() {
+    init_config();
+  }
+});
+
+// ../common/dist/auto-launch/businessProfileData.js
+function isPlainObject(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function mergeBusinessProfileData(existing, patch) {
+  const base = isPlainObject(existing) ? { ...existing } : {};
+  const next = { ...base, ...patch };
+  return normalizeBusinessProfileData(next);
+}
+function normalizeBusinessProfileData(value) {
+  const out = {};
+  const slug = trimToNull(value.slug);
+  if (slug !== void 0)
+    out.slug = slug;
+  const category = trimToNull(value.category);
+  if (category !== void 0)
+    out.category = category;
+  if (value.categories !== void 0) {
+    out.categories = normalizeStringArray(value.categories);
+  }
+  if (value.use_cases !== void 0) {
+    out.use_cases = normalizeStringArray(value.use_cases);
+  }
+  if (value.target_audiences !== void 0) {
+    out.target_audiences = normalizeStringArray(value.target_audiences);
+  }
+  if (value.platforms !== void 0) {
+    out.platforms = normalizeStringArray(value.platforms);
+  }
+  if (value.tech_stack !== void 0) {
+    out.tech_stack = normalizeStringArray(value.tech_stack);
+  }
+  if (value.alternatives !== void 0) {
+    out.alternatives = normalizeStringArray(value.alternatives);
+  }
+  if (value.pricing_type !== void 0) {
+    const pt = value.pricing_type;
+    if (pt === null)
+      out.pricing_type = null;
+    else if (typeof pt === "string" && BUSINESS_PROFILE_PRICING_TYPES.includes(pt)) {
+      out.pricing_type = pt;
+    }
+  }
+  if (value.tags !== void 0) {
+    out.tags = normalizeStringArray(value.tags);
+  }
+  if (value.is_open_source !== void 0) {
+    out.is_open_source = value.is_open_source === null ? null : Boolean(value.is_open_source);
+  }
+  const repositoryUrl = trimToNull(value.repository_url);
+  if (repositoryUrl !== void 0)
+    out.repository_url = repositoryUrl;
+  const launchVideoUrl = trimToNull(value.launch_video_url);
+  if (launchVideoUrl !== void 0)
+    out.launch_video_url = launchVideoUrl;
+  if (value.gallery_urls !== void 0) {
+    out.gallery_urls = normalizeStringArray(value.gallery_urls);
+  }
+  if (value.gallery_labels !== void 0) {
+    let labels = normalizeGalleryLabelEntries(value.gallery_labels);
+    if (out.gallery_urls !== void 0 && out.gallery_urls !== null) {
+      labels = alignGalleryLabelsToUrlCount(out.gallery_urls, labels);
+    }
+    if (labels !== null) {
+      out.gallery_labels = labels;
+    }
+  }
+  if (value.logo_label !== void 0) {
+    const logoLabel = trimToNull(value.logo_label);
+    if (logoLabel === void 0) ; else if (logoLabel === null) {
+      out.logo_label = null;
+    } else {
+      out.logo_label = logoLabel.slice(0, BUSINESS_PROFILE_MAX_LOGO_LABEL_LENGTH);
+    }
+  }
+  for (const key of [
+    "social_x",
+    "social_github",
+    "social_instagram",
+    "social_linkedin",
+    "social_tiktok",
+    "social_facebook",
+    "social_youtube",
+    "social_bluesky"
+  ]) {
+    if (value[key] !== void 0) {
+      out[key] = trimToNull(value[key]) ?? null;
+    }
+  }
+  if (value.acquisition_listed !== void 0) {
+    out.acquisition_listed = value.acquisition_listed === null ? null : Boolean(value.acquisition_listed);
+  }
+  for (const key of [
+    "asking_price_usd",
+    "ttm_revenue_usd",
+    "monthly_revenue_usd",
+    "ttm_profit_usd",
+    "monthly_profit_usd"
+  ]) {
+    if (value[key] !== void 0) {
+      out[key] = normalizeUsdAmount(value[key]);
+    }
+  }
+  const sellingReason = trimToNull(value.selling_reason);
+  if (sellingReason !== void 0)
+    out.selling_reason = sellingReason;
+  if (value.included_assets !== void 0) {
+    out.included_assets = normalizeIncludedAssets(value.included_assets);
+  }
+  return out;
+}
+function trimToNull(value) {
+  if (value === void 0)
+    return void 0;
+  if (value === null)
+    return null;
+  if (typeof value !== "string")
+    return void 0;
+  const trimmed = value.trim();
+  return trimmed.length === 0 ? null : trimmed;
+}
+function normalizeStringArray(value) {
+  if (value === null)
+    return null;
+  if (!Array.isArray(value))
+    return [];
+  return value.filter((item) => typeof item === "string").map((item) => item.trim()).filter((item) => item.length > 0);
+}
+function normalizeGalleryLabelEntries(value) {
+  if (value === null)
+    return null;
+  if (!Array.isArray(value))
+    return [];
+  const out = [];
+  for (const item of value) {
+    if (out.length >= BUSINESS_PROFILE_MAX_GALLERY_URLS)
+      break;
+    if (typeof item !== "string") {
+      out.push("");
+      continue;
+    }
+    const trimmed = item.trim();
+    out.push(trimmed.length > 0 ? trimmed.slice(0, BUSINESS_PROFILE_MAX_GALLERY_LABEL_LENGTH) : "");
+  }
+  return out;
+}
+function alignGalleryLabelsToUrlCount(urls, labels) {
+  if (urls.length === 0) {
+    const normalized = labels ?? null;
+    if (!normalized || normalized.length === 0)
+      return null;
+    return normalized.every((entry) => entry.length === 0) ? null : normalized;
+  }
+  const aligned = urls.map((_, index) => {
+    const entry = labels?.[index];
+    if (typeof entry !== "string")
+      return "";
+    const trimmed = entry.trim();
+    return trimmed.length > 0 ? trimmed.slice(0, BUSINESS_PROFILE_MAX_GALLERY_LABEL_LENGTH) : "";
+  });
+  return aligned.some((entry) => entry.length > 0) ? aligned : null;
+}
+function normalizeUsdAmount(value) {
+  if (value === null)
+    return null;
+  if (typeof value !== "number" || !Number.isFinite(value))
+    return null;
+  if (value < 0)
+    return null;
+  return value;
+}
+function normalizeIncludedAssets(value) {
+  if (value === null)
+    return null;
+  if (!Array.isArray(value))
+    return [];
+  const slugs = [];
+  for (const item of value) {
+    if (typeof item !== "string")
+      continue;
+    const slug = item.trim();
+    if (!INCLUDED_ASSET_SET.has(slug))
+      continue;
+    if (!slugs.includes(slug)) {
+      slugs.push(slug);
+    }
+  }
+  return slugs;
+}
+function deriveListingTags(profileData) {
+  if (!profileData || typeof profileData !== "object")
+    return [];
+  const seen = /* @__PURE__ */ new Set();
+  const out = [];
+  for (const key of DERIVE_LISTING_TAG_KEYS) {
+    const items = normalizeStringArray(profileData[key]);
+    if (!items || items.length === 0)
+      continue;
+    for (const item of items) {
+      if (seen.has(item))
+        continue;
+      seen.add(item);
+      out.push(item);
+      if (out.length >= BUSINESS_PROFILE_MAX_TAGS)
+        return out;
+    }
+  }
+  return out;
+}
+var BUSINESS_PROFILE_MAX_TAGS, BUSINESS_PROFILE_DIRECTORY_TAGLINE_MAX, DERIVE_LISTING_TAG_KEYS, BUSINESS_PROFILE_MAX_CATEGORIES, BUSINESS_PROFILE_MAX_USE_CASES, BUSINESS_PROFILE_MAX_TARGET_AUDIENCES, BUSINESS_PROFILE_MAX_PLATFORMS, BUSINESS_PROFILE_MAX_TECH_STACK, BUSINESS_PROFILE_MAX_ALTERNATIVES, BUSINESS_PROFILE_MAX_GALLERY_URLS, BUSINESS_PROFILE_MAX_GALLERY_LABEL_LENGTH, BUSINESS_PROFILE_MAX_LOGO_LABEL_LENGTH, BUSINESS_PROFILE_SELLING_REASON_MIN_LENGTH, BUSINESS_PROFILE_PRICING_TYPES, BUSINESS_PROFILE_INCLUDED_ASSET_SLUGS, INCLUDED_ASSET_SET;
+var init_businessProfileData = __esm({
+  "../common/dist/auto-launch/businessProfileData.js"() {
+    BUSINESS_PROFILE_MAX_TAGS = 32;
+    BUSINESS_PROFILE_DIRECTORY_TAGLINE_MAX = 80;
+    DERIVE_LISTING_TAG_KEYS = [
+      "categories",
+      "use_cases",
+      "target_audiences",
+      "platforms",
+      "tech_stack"
+    ];
+    BUSINESS_PROFILE_MAX_CATEGORIES = 3;
+    BUSINESS_PROFILE_MAX_USE_CASES = 3;
+    BUSINESS_PROFILE_MAX_TARGET_AUDIENCES = 3;
+    BUSINESS_PROFILE_MAX_PLATFORMS = 5;
+    BUSINESS_PROFILE_MAX_TECH_STACK = 5;
+    BUSINESS_PROFILE_MAX_ALTERNATIVES = 5;
+    BUSINESS_PROFILE_MAX_GALLERY_URLS = 10;
+    BUSINESS_PROFILE_MAX_GALLERY_LABEL_LENGTH = 200;
+    BUSINESS_PROFILE_MAX_LOGO_LABEL_LENGTH = 200;
+    BUSINESS_PROFILE_SELLING_REASON_MIN_LENGTH = 20;
+    BUSINESS_PROFILE_PRICING_TYPES = ["free", "freemium", "paid"];
+    BUSINESS_PROFILE_INCLUDED_ASSET_SLUGS = [
+      "domain",
+      "source_code",
+      "social_accounts",
+      "customer_list",
+      "brand_assets",
+      "intellectual_property",
+      "contracts",
+      "inventory"
+    ];
+    INCLUDED_ASSET_SET = new Set(BUSINESS_PROFILE_INCLUDED_ASSET_SLUGS);
+  }
+});
+
+// ../common/dist/auto-launch/destination-configs/sites/fazier/config.js
+var FAZIER_FORM_GALLERY_MAX, FAZIER_NAME_SELECTOR, FAZIER_WEBSITE_SELECTOR, FAZIER_TAGLINE_SELECTOR, FAZIER_LOGO_FILE_SELECTOR, FAZIER_LAUNCH_LINKEDIN_SELECTOR, FAZIER_LAUNCH_TWITTER_SELECTOR, FAZIER_LAUNCH_DESCRIPTION_SELECTOR, FAZIER_LAUNCH_FEATURES_SELECTOR, FAZIER_LAUNCH_USE_CASES_SELECTOR, FAZIER_LAUNCH_CATEGORY_SELECTOR, FAZIER_LAUNCH_PLAN_TYPE_SELECTOR, FAZIER_LAUNCH_PAYMENT_PLAN_SELECTOR, FAZIER_PRODUCT_LISTING_EXTENSION_BASE, FAZIER_HOST_PATTERNS, FAZIER_HOST_PERMISSION, FAZIER_PAGE, FAZIER_FREE_PRODUCT_LISTING, FAZIER_PAID_PRODUCT_LISTING, FAZIER_DIRECTORY_LAUNCH_PROVIDERS;
+var init_config2 = __esm({
+  "../common/dist/auto-launch/destination-configs/sites/fazier/config.js"() {
+    init_businessProfileData();
+    FAZIER_FORM_GALLERY_MAX = 5;
+    FAZIER_NAME_SELECTOR = "input[name='name']";
+    FAZIER_WEBSITE_SELECTOR = "input[name='website'], input[type='url'][placeholder*='https' i]";
+    FAZIER_TAGLINE_SELECTOR = "input[name='tagline'], textarea[name='tagline']";
+    FAZIER_LOGO_FILE_SELECTOR = "input[type='file'][name='logo'], input[type='file'][accept*='image']";
+    FAZIER_LAUNCH_LINKEDIN_SELECTOR = "input[name='linkdinUrl'], input[name='linkedin']";
+    FAZIER_LAUNCH_TWITTER_SELECTOR = "input[name='twitterUrl'], input[name='twitter']";
+    FAZIER_LAUNCH_DESCRIPTION_SELECTOR = "textarea[name='description'], textarea[placeholder*='description' i]";
+    FAZIER_LAUNCH_FEATURES_SELECTOR = "textarea[name='features'], input[name='features']";
+    FAZIER_LAUNCH_USE_CASES_SELECTOR = "textarea[name='useCases'], input[name='useCases']";
+    FAZIER_LAUNCH_CATEGORY_SELECTOR = "select[name='category'], [role='combobox'][aria-label*='categor' i]";
+    FAZIER_LAUNCH_PLAN_TYPE_SELECTOR = "input[type='radio'][name='planType'], input[name='planType']";
+    FAZIER_LAUNCH_PAYMENT_PLAN_SELECTOR = "input[type='radio'][name='paymentPlan'], input[name='paymentPlan']";
+    FAZIER_PRODUCT_LISTING_EXTENSION_BASE = {
+      version: 1,
+      startUrlPatterns: ["https://fazier.com/*", "https://www.fazier.com/*"],
+      readyUrlHint: "submit",
+      steps: [
+        {
+          id: "product_info",
+          label: "Product info",
+          fields: [
+            {
+              key: "name",
+              label: "Product name",
+              labelAliases: ["Name"],
+              profilePath: "name",
+              fillMode: "text",
+              selectorHint: FAZIER_NAME_SELECTOR,
+              required: true
+            },
+            {
+              key: "tagline",
+              label: "Tagline",
+              labelAliases: ["Describe your product in few words only"],
+              profilePath: "tagline",
+              fillMode: "text",
+              selectorHint: FAZIER_TAGLINE_SELECTOR,
+              maxScalarLength: BUSINESS_PROFILE_DIRECTORY_TAGLINE_MAX,
+              required: true
+            },
+            {
+              key: "website",
+              label: "Website",
+              profilePath: "website_url",
+              fillMode: "text",
+              selectorHint: FAZIER_WEBSITE_SELECTOR,
+              required: true
+            },
+            {
+              key: "description",
+              label: "Description",
+              labelAliases: ["Brief description of the product"],
+              profilePath: "description",
+              fillMode: "text",
+              selectorHint: FAZIER_LAUNCH_DESCRIPTION_SELECTOR
+            },
+            {
+              key: "features",
+              label: "Features",
+              profilePath: "profile_data.use_cases",
+              fillMode: "text",
+              selectorHint: FAZIER_LAUNCH_FEATURES_SELECTOR
+            },
+            {
+              key: "use_cases",
+              label: "Use cases",
+              profilePath: "profile_data.use_cases",
+              fillMode: "text",
+              selectorHint: FAZIER_LAUNCH_USE_CASES_SELECTOR
+            },
+            {
+              key: "logo",
+              label: "Square logo",
+              profilePath: "logo_url",
+              fillMode: "file",
+              fileInputIndex: 0,
+              selectorHint: FAZIER_LOGO_FILE_SELECTOR
+            },
+            {
+              key: "gallery",
+              label: "Product images",
+              profilePath: "profile_data.gallery_urls",
+              fillMode: "files",
+              fileInputIndex: 1,
+              maxItems: FAZIER_FORM_GALLERY_MAX,
+              selectorHint: "input[type='file'][accept*='image']:not([name='logo']):not(:first-of-type)"
+            }
+          ]
+        },
+        {
+          id: "classification",
+          label: "Classification",
+          fields: [
+            {
+              key: "category",
+              label: "Category",
+              profilePath: "profile_data.categories",
+              fillMode: "select",
+              selectorHint: FAZIER_LAUNCH_CATEGORY_SELECTOR
+            },
+            {
+              key: "pricing_type",
+              label: "Pricing",
+              profilePath: "profile_data.pricing_type",
+              fillMode: "select",
+              selectorHint: `${FAZIER_LAUNCH_PLAN_TYPE_SELECTOR}, ${FAZIER_LAUNCH_PAYMENT_PLAN_SELECTOR}`
+            }
+          ]
+        },
+        {
+          id: "socials",
+          label: "Social links",
+          fields: [
+            {
+              key: "social_linkedin",
+              label: "LinkedIn",
+              profilePath: "profile_data.social_linkedin",
+              fillMode: "text",
+              selectorHint: FAZIER_LAUNCH_LINKEDIN_SELECTOR
+            },
+            {
+              key: "social_x",
+              label: "Twitter",
+              labelAliases: ["X (Twitter)"],
+              profilePath: "profile_data.social_x",
+              fillMode: "text",
+              selectorHint: FAZIER_LAUNCH_TWITTER_SELECTOR
+            }
+          ]
+        }
+      ],
+      proof: {
+        successPathRegex: "/launches/|/p/",
+        listingUrlSelector: "a[href*='fazier.com/launches/'], a[href*='fazier.com/p/']"
+      }
+    };
+    ({
+      ...FAZIER_PRODUCT_LISTING_EXTENSION_BASE,
+      readyStatusHint: "On fazier.com/submit, choose Product launch (not Company page). Pick Basic (free) when Fazier shows plan tiers. When product fields are visible, use Fill all steps or Fill on each row\u2014then complete badge, comments, and moderation on Fazier."
+    });
+    ({
+      ...FAZIER_PRODUCT_LISTING_EXTENSION_BASE,
+      readyStatusHint: "On fazier.com/submit, choose Product launch (not Company page). Pick Lite Plan or higher when Fazier shows plan tiers. When product fields are visible, use Fill all steps or Fill on each row\u2014then finish checkout on Fazier."
+    });
+    FAZIER_HOST_PATTERNS = [
+      "https://fazier.com/*",
+      "https://www.fazier.com/*"
+    ];
+    FAZIER_HOST_PERMISSION = "*://*.fazier.com/*";
+    FAZIER_PAGE = {
+      identifier: "fazier-page",
+      name: "Fazier \u2014 Page",
+      tierLabel: "Free",
+      defaultStartUrl: "https://fazier.com/page/new",
+      contentScriptEntry: "content/directory-launch/openquok-directory-fazier.js",
+      hostPatterns: FAZIER_HOST_PATTERNS,
+      hostPermission: FAZIER_HOST_PERMISSION
+    };
+    FAZIER_FREE_PRODUCT_LISTING = {
+      identifier: "fazier-free-product-listing",
+      name: "Fazier \u2014 Free product listing",
+      tierLabel: "Free",
+      defaultStartUrl: "https://fazier.com/submit",
+      contentScriptEntry: "content/directory-launch/openquok-directory-fazier.js",
+      hostPatterns: FAZIER_HOST_PATTERNS,
+      hostPermission: FAZIER_HOST_PERMISSION
+    };
+    FAZIER_PAID_PRODUCT_LISTING = {
+      identifier: "fazier-paid-product-listing",
+      name: "Fazier \u2014 Paid product listing",
+      tierLabel: "Paid",
+      defaultStartUrl: "https://fazier.com/submit",
+      contentScriptEntry: "content/directory-launch/openquok-directory-fazier.js",
+      hostPatterns: FAZIER_HOST_PATTERNS,
+      hostPermission: FAZIER_HOST_PERMISSION
+    };
+    FAZIER_DIRECTORY_LAUNCH_PROVIDERS = [
+      FAZIER_PAGE,
+      FAZIER_FREE_PRODUCT_LISTING,
+      FAZIER_PAID_PRODUCT_LISTING
+    ];
+  }
+});
+
+// ../common/dist/auto-launch/destination-configs/fazier.js
+var init_fazier = __esm({
+  "../common/dist/auto-launch/destination-configs/fazier.js"() {
+    init_config2();
+  }
+});
+
 // ../common/dist/auto-launch/destination-configs/sites/open-launch/config.js
 function normalizeOpenLaunchChoiceLabel(raw) {
   return raw.trim().replace(/\s+/g, " ").toLowerCase();
@@ -459,9 +1057,10 @@ function invalidOpenLaunchProfileChoicesForField(items, field) {
   }
   return [];
 }
-var OPEN_LAUNCH_PREMIUM_LAUNCH_EXTENSION_CONFIG, OPEN_LAUNCH_HOST_PATTERNS, OPEN_LAUNCH_HOST_PERMISSION, OPEN_LAUNCH_PREMIUM_LAUNCH, OPEN_LAUNCH_FREE_LAUNCH, OPEN_LAUNCH_DIRECTORY_LAUNCH_PROVIDERS, OPEN_LAUNCH_CATEGORY_SLUGS, OPEN_LAUNCH_CATEGORY_LABEL_BY_SLUG, OPEN_LAUNCH_OFFICIAL_CATEGORY_LABELS, OPEN_LAUNCH_OFFICIAL_PLATFORM_LABELS, OPEN_LAUNCH_CATEGORY_ALIASES, OPEN_LAUNCH_PLATFORM_ALIASES;
-var init_config = __esm({
+var OPEN_LAUNCH_FORM_PRODUCT_IMAGE_MAX, OPEN_LAUNCH_PREMIUM_LAUNCH_EXTENSION_CONFIG, OPEN_LAUNCH_HOST_PATTERNS, OPEN_LAUNCH_HOST_PERMISSION, OPEN_LAUNCH_PREMIUM_LAUNCH, OPEN_LAUNCH_FREE_LAUNCH, OPEN_LAUNCH_DIRECTORY_LAUNCH_PROVIDERS, OPEN_LAUNCH_CATEGORY_SLUGS, OPEN_LAUNCH_CATEGORY_LABEL_BY_SLUG, OPEN_LAUNCH_OFFICIAL_CATEGORY_LABELS, OPEN_LAUNCH_OFFICIAL_PLATFORM_LABELS, OPEN_LAUNCH_CATEGORY_ALIASES, OPEN_LAUNCH_PLATFORM_ALIASES;
+var init_config3 = __esm({
   "../common/dist/auto-launch/destination-configs/sites/open-launch/config.js"() {
+    OPEN_LAUNCH_FORM_PRODUCT_IMAGE_MAX = 1;
     OPEN_LAUNCH_PREMIUM_LAUNCH_EXTENSION_CONFIG = {
       "version": 1,
       "startUrlPatterns": [
@@ -509,6 +1108,7 @@ var init_config = __esm({
               "profilePath": "profile_data.gallery_urls",
               "fillMode": "files",
               "fileInputIndex": 1,
+              "maxItems": OPEN_LAUNCH_FORM_PRODUCT_IMAGE_MAX,
               "selectorHint": "input[type='file'][accept*='image']"
             }
           ]
@@ -728,19 +1328,20 @@ var init_config = __esm({
 // ../common/dist/auto-launch/destination-configs/openLaunch.js
 var init_openLaunch = __esm({
   "../common/dist/auto-launch/destination-configs/openLaunch.js"() {
-    init_config();
+    init_config3();
   }
 });
 
 // ../common/dist/auto-launch/destination-configs/sites/peerpush/config.js
-var PEERPUSH_HOST_PATTERNS, PEERPUSH_HOST_PERMISSION, PEERPUSH_STANDARD_LAUNCH, PEERPUSH_FREE_QUEUE, PEERPUSH_DIRECTORY_LAUNCH_PROVIDERS, PEERPUSH_STANDARD_LAUNCH_EXTENSION_CONFIG;
-var init_config2 = __esm({
+var PEERPUSH_HOST_PATTERNS, PEERPUSH_HOST_PERMISSION, PEERPUSH_FORM_GALLERY_MAX, PEERPUSH_STANDARD_LAUNCH, PEERPUSH_FREE_QUEUE, PEERPUSH_DIRECTORY_LAUNCH_PROVIDERS, PEERPUSH_STANDARD_LAUNCH_EXTENSION_CONFIG;
+var init_config4 = __esm({
   "../common/dist/auto-launch/destination-configs/sites/peerpush/config.js"() {
     PEERPUSH_HOST_PATTERNS = [
       "https://peerpush.com/*",
       "https://www.peerpush.com/*"
     ];
     PEERPUSH_HOST_PERMISSION = "*://*.peerpush.com/*";
+    PEERPUSH_FORM_GALLERY_MAX = 10;
     PEERPUSH_STANDARD_LAUNCH = {
       identifier: "peerpush-standard-launch",
       name: "PeerPush \u2014 Standard launch",
@@ -878,6 +1479,7 @@ var init_config2 = __esm({
               "profilePath": "profile_data.gallery_urls",
               "fillMode": "files",
               "fileInputIndex": 0,
+              "maxItems": PEERPUSH_FORM_GALLERY_MAX,
               "selectorHint": "[data-field='screenshots'] input[type='file'], input[type='file'][accept*='image']"
             }
           ]
@@ -928,13 +1530,13 @@ var init_config2 = __esm({
 // ../common/dist/auto-launch/destination-configs/peerpush.js
 var init_peerpush = __esm({
   "../common/dist/auto-launch/destination-configs/peerpush.js"() {
-    init_config2();
+    init_config4();
   }
 });
 
 // ../common/dist/auto-launch/destination-configs/sites/tinylaunch/config.js
 var TINYLAUNCH_FORM_NAME_MAX, TINYLAUNCH_FORM_TAGLINE_MAX, TINYLAUNCH_FORM_GALLERY_MAX, TINYLAUNCH_HOST_PATTERNS, TINYLAUNCH_HOST_PERMISSION, TINYLAUNCH_PREMIUM_LAUNCH_EXTENSION_CONFIG, TINYLAUNCH_PREMIUM_LAUNCH, TINYLAUNCH_STANDARD_LAUNCH, TINYLAUNCH_DIRECTORY_LAUNCH_PROVIDERS;
-var init_config3 = __esm({
+var init_config5 = __esm({
   "../common/dist/auto-launch/destination-configs/sites/tinylaunch/config.js"() {
     TINYLAUNCH_FORM_NAME_MAX = 30;
     TINYLAUNCH_FORM_TAGLINE_MAX = 60;
@@ -1057,199 +1659,7 @@ var init_config3 = __esm({
 // ../common/dist/auto-launch/destination-configs/tinylaunch.js
 var init_tinylaunch = __esm({
   "../common/dist/auto-launch/destination-configs/tinylaunch.js"() {
-    init_config3();
-  }
-});
-
-// ../common/dist/auto-launch/businessProfileData.js
-function isPlainObject(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-function mergeBusinessProfileData(existing, patch) {
-  const base = isPlainObject(existing) ? { ...existing } : {};
-  const next = { ...base, ...patch };
-  return normalizeBusinessProfileData(next);
-}
-function normalizeBusinessProfileData(value) {
-  const out = {};
-  const slug = trimToNull(value.slug);
-  if (slug !== void 0)
-    out.slug = slug;
-  const category = trimToNull(value.category);
-  if (category !== void 0)
-    out.category = category;
-  if (value.categories !== void 0) {
-    out.categories = normalizeStringArray(value.categories);
-  }
-  if (value.use_cases !== void 0) {
-    out.use_cases = normalizeStringArray(value.use_cases);
-  }
-  if (value.target_audiences !== void 0) {
-    out.target_audiences = normalizeStringArray(value.target_audiences);
-  }
-  if (value.platforms !== void 0) {
-    out.platforms = normalizeStringArray(value.platforms);
-  }
-  if (value.tech_stack !== void 0) {
-    out.tech_stack = normalizeStringArray(value.tech_stack);
-  }
-  if (value.alternatives !== void 0) {
-    out.alternatives = normalizeStringArray(value.alternatives);
-  }
-  if (value.pricing_type !== void 0) {
-    const pt = value.pricing_type;
-    if (pt === null)
-      out.pricing_type = null;
-    else if (typeof pt === "string" && BUSINESS_PROFILE_PRICING_TYPES.includes(pt)) {
-      out.pricing_type = pt;
-    }
-  }
-  if (value.tags !== void 0) {
-    out.tags = normalizeStringArray(value.tags);
-  }
-  if (value.is_open_source !== void 0) {
-    out.is_open_source = value.is_open_source === null ? null : Boolean(value.is_open_source);
-  }
-  const repositoryUrl = trimToNull(value.repository_url);
-  if (repositoryUrl !== void 0)
-    out.repository_url = repositoryUrl;
-  const launchVideoUrl = trimToNull(value.launch_video_url);
-  if (launchVideoUrl !== void 0)
-    out.launch_video_url = launchVideoUrl;
-  if (value.gallery_urls !== void 0) {
-    out.gallery_urls = normalizeStringArray(value.gallery_urls);
-  }
-  for (const key of [
-    "social_x",
-    "social_github",
-    "social_instagram",
-    "social_linkedin",
-    "social_tiktok",
-    "social_facebook",
-    "social_youtube",
-    "social_bluesky"
-  ]) {
-    if (value[key] !== void 0) {
-      out[key] = trimToNull(value[key]) ?? null;
-    }
-  }
-  if (value.acquisition_listed !== void 0) {
-    out.acquisition_listed = value.acquisition_listed === null ? null : Boolean(value.acquisition_listed);
-  }
-  for (const key of [
-    "asking_price_usd",
-    "ttm_revenue_usd",
-    "monthly_revenue_usd",
-    "ttm_profit_usd",
-    "monthly_profit_usd"
-  ]) {
-    if (value[key] !== void 0) {
-      out[key] = normalizeUsdAmount(value[key]);
-    }
-  }
-  const sellingReason = trimToNull(value.selling_reason);
-  if (sellingReason !== void 0)
-    out.selling_reason = sellingReason;
-  if (value.included_assets !== void 0) {
-    out.included_assets = normalizeIncludedAssets(value.included_assets);
-  }
-  return out;
-}
-function trimToNull(value) {
-  if (value === void 0)
-    return void 0;
-  if (value === null)
-    return null;
-  if (typeof value !== "string")
-    return void 0;
-  const trimmed = value.trim();
-  return trimmed.length === 0 ? null : trimmed;
-}
-function normalizeStringArray(value) {
-  if (value === null)
-    return null;
-  if (!Array.isArray(value))
-    return [];
-  return value.filter((item) => typeof item === "string").map((item) => item.trim()).filter((item) => item.length > 0);
-}
-function normalizeUsdAmount(value) {
-  if (value === null)
-    return null;
-  if (typeof value !== "number" || !Number.isFinite(value))
-    return null;
-  if (value < 0)
-    return null;
-  return value;
-}
-function normalizeIncludedAssets(value) {
-  if (value === null)
-    return null;
-  if (!Array.isArray(value))
-    return [];
-  const slugs = [];
-  for (const item of value) {
-    if (typeof item !== "string")
-      continue;
-    const slug = item.trim();
-    if (!INCLUDED_ASSET_SET.has(slug))
-      continue;
-    if (!slugs.includes(slug)) {
-      slugs.push(slug);
-    }
-  }
-  return slugs;
-}
-function deriveListingTags(profileData) {
-  if (!profileData || typeof profileData !== "object")
-    return [];
-  const seen = /* @__PURE__ */ new Set();
-  const out = [];
-  for (const key of DERIVE_LISTING_TAG_KEYS) {
-    const items = normalizeStringArray(profileData[key]);
-    if (!items || items.length === 0)
-      continue;
-    for (const item of items) {
-      if (seen.has(item))
-        continue;
-      seen.add(item);
-      out.push(item);
-      if (out.length >= BUSINESS_PROFILE_MAX_TAGS)
-        return out;
-    }
-  }
-  return out;
-}
-var BUSINESS_PROFILE_MAX_TAGS, DERIVE_LISTING_TAG_KEYS, BUSINESS_PROFILE_MAX_CATEGORIES, BUSINESS_PROFILE_MAX_USE_CASES, BUSINESS_PROFILE_MAX_TARGET_AUDIENCES, BUSINESS_PROFILE_MAX_PLATFORMS, BUSINESS_PROFILE_MAX_TECH_STACK, BUSINESS_PROFILE_MAX_ALTERNATIVES, BUSINESS_PROFILE_MAX_GALLERY_URLS, BUSINESS_PROFILE_SELLING_REASON_MIN_LENGTH, BUSINESS_PROFILE_PRICING_TYPES, BUSINESS_PROFILE_INCLUDED_ASSET_SLUGS, INCLUDED_ASSET_SET;
-var init_businessProfileData = __esm({
-  "../common/dist/auto-launch/businessProfileData.js"() {
-    BUSINESS_PROFILE_MAX_TAGS = 32;
-    DERIVE_LISTING_TAG_KEYS = [
-      "categories",
-      "use_cases",
-      "target_audiences",
-      "platforms",
-      "tech_stack"
-    ];
-    BUSINESS_PROFILE_MAX_CATEGORIES = 3;
-    BUSINESS_PROFILE_MAX_USE_CASES = 3;
-    BUSINESS_PROFILE_MAX_TARGET_AUDIENCES = 3;
-    BUSINESS_PROFILE_MAX_PLATFORMS = 5;
-    BUSINESS_PROFILE_MAX_TECH_STACK = 5;
-    BUSINESS_PROFILE_MAX_ALTERNATIVES = 5;
-    BUSINESS_PROFILE_MAX_GALLERY_URLS = 3;
-    BUSINESS_PROFILE_SELLING_REASON_MIN_LENGTH = 20;
-    BUSINESS_PROFILE_PRICING_TYPES = ["free", "freemium", "paid"];
-    BUSINESS_PROFILE_INCLUDED_ASSET_SLUGS = [
-      "domain",
-      "source_code",
-      "social_accounts",
-      "customer_list",
-      "brand_assets",
-      "intellectual_property",
-      "contracts",
-      "inventory"
-    ];
-    INCLUDED_ASSET_SET = new Set(BUSINESS_PROFILE_INCLUDED_ASSET_SLUGS);
+    init_config5();
   }
 });
 
@@ -1267,7 +1677,7 @@ function isUneedOfficialTag(raw) {
   return uneedOfficialTagLookupSet().has(normalizeUneedTagLabel(raw));
 }
 var UNEED_HOST_PATTERNS, UNEED_HOST_PERMISSION, UNEED_JOIN_LINE, UNEED_PAID_LAUNCH, UNEED_MAKER_PROFILE, UNEED_DIRECTORY_LAUNCH_PROVIDERS, UNEED_OFFICIAL_TAG_LABELS, uneedOfficialTagLookup;
-var init_config4 = __esm({
+var init_config6 = __esm({
   "../common/dist/auto-launch/destination-configs/sites/uneed/config.js"() {
     init_businessProfileData();
     UNEED_HOST_PATTERNS = [
@@ -1504,7 +1914,7 @@ var init_config4 = __esm({
 // ../common/dist/auto-launch/destination-configs/uneed.js
 var init_uneed = __esm({
   "../common/dist/auto-launch/destination-configs/uneed.js"() {
-    init_config4();
+    init_config6();
   }
 });
 
@@ -1528,6 +1938,8 @@ var directoryLaunchProviders;
 var init_directoryLaunchRegistry = __esm({
   "../common/dist/auto-launch/destination-configs/directoryLaunchRegistry.js"() {
     init_directorySiteKey();
+    init_devhunt();
+    init_fazier();
     init_openLaunch();
     init_peerpush();
     init_tinylaunch();
@@ -1536,7 +1948,9 @@ var init_directoryLaunchRegistry = __esm({
       ...UNEED_DIRECTORY_LAUNCH_PROVIDERS,
       ...PEERPUSH_DIRECTORY_LAUNCH_PROVIDERS,
       ...OPEN_LAUNCH_DIRECTORY_LAUNCH_PROVIDERS,
-      ...TINYLAUNCH_DIRECTORY_LAUNCH_PROVIDERS
+      ...TINYLAUNCH_DIRECTORY_LAUNCH_PROVIDERS,
+      ...FAZIER_DIRECTORY_LAUNCH_PROVIDERS,
+      ...DEVHUNT_DIRECTORY_LAUNCH_PROVIDERS
     ];
     new Map(directoryLaunchProviders.map((provider) => [provider.identifier, provider]));
     (() => {
@@ -1605,7 +2019,9 @@ var init_messages = __esm({
       GET_COOKIES: "GET_COOKIES",
       STORE_REFRESH_TOKEN: "STORE_REFRESH_TOKEN",
       REMOVE_REFRESH_TOKEN: "REMOVE_REFRESH_TOKEN",
-      AUTO_LAUNCH_HANDOFF: AUTO_LAUNCH_MESSAGE_TYPE.HANDOFF
+      AUTO_LAUNCH_HANDOFF: AUTO_LAUNCH_MESSAGE_TYPE.HANDOFF,
+      /** Reload active directory-launch profile snapshot after dashboard edits (e.g. gallery upload). */
+      AUTO_LAUNCH_REFRESH_PROFILE: "AUTO_LAUNCH_REFRESH_PROFILE"
     };
     new Set(Object.values(BROWSER_EXTENSION_MESSAGE_TYPE));
   }
@@ -2134,7 +2550,10 @@ function pricingQueueDerivations(derivations) {
   const out = {};
   for (const [slug, entry] of Object.entries(derivations)) {
     if (isPricingQueueDerivation(entry)) {
-      out[slug] = { baseProviderSlug: entry.baseProviderSlug };
+      out[slug] = {
+        baseProviderSlug: entry.baseProviderSlug,
+        readyUrlHint: entry.readyUrlHint ?? "pricing"
+      };
     }
   }
   return out;
@@ -2147,9 +2566,29 @@ var init_extensionConfigDerivation = __esm({
   }
 });
 
+// ../common/dist/auto-launch/destination-configs/sites/devhunt/sync.js
+var DEVHUNT_EXTENSION_CONFIG_DERIVATIONS;
+var init_sync = __esm({
+  "../common/dist/auto-launch/destination-configs/sites/devhunt/sync.js"() {
+    DEVHUNT_EXTENSION_CONFIG_DERIVATIONS = {};
+  }
+});
+
+// ../common/dist/auto-launch/destination-configs/sites/fazier/sync.js
+var FAZIER_EXTENSION_CONFIG_DERIVATIONS;
+var init_sync2 = __esm({
+  "../common/dist/auto-launch/destination-configs/sites/fazier/sync.js"() {
+    FAZIER_EXTENSION_CONFIG_DERIVATIONS = {
+      "fazier-page": { kind: "independent" },
+      "fazier-free-product-listing": { kind: "independent" },
+      "fazier-paid-product-listing": { kind: "independent" }
+    };
+  }
+});
+
 // ../common/dist/auto-launch/destination-configs/sites/open-launch/sync.js
 var OPEN_LAUNCH_EXTENSION_CONFIG_DERIVATIONS;
-var init_sync = __esm({
+var init_sync3 = __esm({
   "../common/dist/auto-launch/destination-configs/sites/open-launch/sync.js"() {
     OPEN_LAUNCH_EXTENSION_CONFIG_DERIVATIONS = {
       "open-launch-free-launch": { kind: "pricing-queue", baseProviderSlug: "open-launch-premium-launch" }
@@ -2159,7 +2598,7 @@ var init_sync = __esm({
 
 // ../common/dist/auto-launch/destination-configs/sites/peerpush/sync.js
 var PEERPUSH_EXTENSION_CONFIG_DERIVATIONS;
-var init_sync2 = __esm({
+var init_sync4 = __esm({
   "../common/dist/auto-launch/destination-configs/sites/peerpush/sync.js"() {
     PEERPUSH_EXTENSION_CONFIG_DERIVATIONS = {
       "peerpush-free-queue": { kind: "pricing-queue", baseProviderSlug: "peerpush-standard-launch" }
@@ -2169,7 +2608,7 @@ var init_sync2 = __esm({
 
 // ../common/dist/auto-launch/destination-configs/sites/tinylaunch/sync.js
 var TINYLAUNCH_EXTENSION_CONFIG_DERIVATIONS;
-var init_sync3 = __esm({
+var init_sync5 = __esm({
   "../common/dist/auto-launch/destination-configs/sites/tinylaunch/sync.js"() {
     TINYLAUNCH_EXTENSION_CONFIG_DERIVATIONS = {
       "tinylaunch-standard-launch": { kind: "pricing-queue", baseProviderSlug: "tinylaunch-premium-launch" }
@@ -2179,7 +2618,7 @@ var init_sync3 = __esm({
 
 // ../common/dist/auto-launch/destination-configs/sites/uneed/sync.js
 var UNEED_EXTENSION_CONFIG_DERIVATIONS;
-var init_sync4 = __esm({
+var init_sync6 = __esm({
   "../common/dist/auto-launch/destination-configs/sites/uneed/sync.js"() {
     UNEED_EXTENSION_CONFIG_DERIVATIONS = {
       "uneed-join-line": { kind: "independent" },
@@ -2198,14 +2637,17 @@ var init_syncMetadata = __esm({
     init_sync2();
     init_sync3();
     init_sync4();
-    init_sync4();
-    AUTO_LAUNCH_EXTENSION_CONFIG_DERIVATIONS = mergeExtensionConfigDerivations(PEERPUSH_EXTENSION_CONFIG_DERIVATIONS, OPEN_LAUNCH_EXTENSION_CONFIG_DERIVATIONS, TINYLAUNCH_EXTENSION_CONFIG_DERIVATIONS, UNEED_EXTENSION_CONFIG_DERIVATIONS);
+    init_sync5();
+    init_sync6();
+    init_sync2();
+    init_sync6();
+    AUTO_LAUNCH_EXTENSION_CONFIG_DERIVATIONS = mergeExtensionConfigDerivations(PEERPUSH_EXTENSION_CONFIG_DERIVATIONS, OPEN_LAUNCH_EXTENSION_CONFIG_DERIVATIONS, TINYLAUNCH_EXTENSION_CONFIG_DERIVATIONS, UNEED_EXTENSION_CONFIG_DERIVATIONS, FAZIER_EXTENSION_CONFIG_DERIVATIONS, DEVHUNT_EXTENSION_CONFIG_DERIVATIONS);
     pricingQueueDerivations(AUTO_LAUNCH_EXTENSION_CONFIG_DERIVATIONS);
   }
 });
 
 // ../common/dist/auto-launch/destination-configs/destinationSeeds.js
-var UNEED_DESTINATIONS, PEERPUSH_DESTINATIONS, OPEN_LAUNCH_DESTINATIONS, TINYLAUNCH_DESTINATIONS, AUTO_LAUNCH_DESTINATION_SEED_MODULES, AUTO_LAUNCH_DESTINATION_SEED_ROWS;
+var UNEED_DESTINATIONS, PEERPUSH_DESTINATIONS, OPEN_LAUNCH_DESTINATIONS, TINYLAUNCH_DESTINATIONS, FAZIER_DESTINATIONS, DEVHUNT_DESTINATIONS, AUTO_LAUNCH_DESTINATION_SEED_MODULES, AUTO_LAUNCH_DESTINATION_SEED_ROWS;
 var init_destinationSeeds = __esm({
   "../common/dist/auto-launch/destination-configs/destinationSeeds.js"() {
     UNEED_DESTINATIONS = [
@@ -2330,6 +2772,70 @@ var init_destinationSeeds = __esm({
         opportunitySlug: "standard-launch"
       }
     ];
+    FAZIER_DESTINATIONS = [
+      {
+        destinationId: "d5f7d000-0030-4000-a000-000000000010",
+        providerSlug: "fazier-page",
+        siteSlug: "fazier",
+        name: "Fazier \u2014 Page",
+        shortDescription: "Company page on Fazier; extension autofills the three-step wizard at fazier.com/page/new.",
+        startUrl: "https://fazier.com/page/new",
+        sortOrder: 50,
+        pickerGroupKey: null,
+        pickerGroupTitle: null,
+        opportunitySlug: "company-page"
+      },
+      {
+        destinationId: "d5f7d000-0030-4000-a000-000000000011",
+        providerSlug: "fazier-free-product-listing",
+        siteSlug: "fazier",
+        name: "Fazier \u2014 Free product listing",
+        shortDescription: "Basic (free) product launch on Fazier; extension autofills fazier.com/submit \u2014 badge, comments, and moderation stay manual.",
+        startUrl: "https://fazier.com/submit",
+        sortOrder: 51,
+        pickerGroupKey: "fazier-product-listing",
+        pickerGroupTitle: "Product listing",
+        opportunitySlug: "free-product-listing"
+      },
+      {
+        destinationId: "d5f7d000-0030-4000-a000-000000000012",
+        providerSlug: "fazier-paid-product-listing",
+        siteSlug: "fazier",
+        name: "Fazier \u2014 Paid product listing",
+        shortDescription: "Lite Plan or higher on Fazier; same product form at fazier.com/submit \u2014 checkout stays manual on Fazier.",
+        startUrl: "https://fazier.com/submit",
+        sortOrder: 52,
+        pickerGroupKey: "fazier-product-listing",
+        pickerGroupTitle: "Product listing",
+        opportunitySlug: "paid-product-listing"
+      }
+    ];
+    DEVHUNT_DESTINATIONS = [
+      {
+        destinationId: "d5f7d000-0030-4000-a000-000000000014",
+        providerSlug: "devhunt-standard-launch",
+        siteSlug: "devhunt",
+        name: "DevHunt \u2014 Free listing",
+        shortDescription: "Free listing on DevHunt with a nofollow tool-page link; extension autofills after you sign in.",
+        startUrl: "https://devhunt.org/account/tools/new",
+        sortOrder: 53,
+        pickerGroupKey: "devhunt",
+        pickerGroupTitle: "DevHunt",
+        opportunitySlug: "standard-launch"
+      },
+      {
+        destinationId: "d5f7d000-0030-4000-a000-000000000013",
+        providerSlug: "devhunt-paid-launch",
+        siteSlug: "devhunt",
+        name: "DevHunt \u2014 Paid launch",
+        shortDescription: "$49 launch week on DevHunt for a dofollow link; extension autofills account/tools/new after you sign in.",
+        startUrl: "https://devhunt.org/account/tools/new",
+        sortOrder: 55,
+        pickerGroupKey: "devhunt",
+        pickerGroupTitle: "DevHunt",
+        opportunitySlug: "paid-launch"
+      }
+    ];
     AUTO_LAUNCH_DESTINATION_SEED_MODULES = [
       {
         siteKey: "uneed",
@@ -2378,6 +2884,32 @@ var init_destinationSeeds = __esm({
           "-- Scheduling, payment, and upvote pledge stay manual after the create-startup form is filled."
         ],
         destinations: TINYLAUNCH_DESTINATIONS
+      },
+      {
+        siteKey: "fazier",
+        sqlFileName: "507_20261120_seed_fazier_destination.sql",
+        generationMode: "full",
+        moduleDate: "20261120",
+        moduleScopeLabel: "Seed (Fazier page + free/paid product listing destinations)",
+        preambleComments: [
+          "-- Joins link_directory_opportunities on site slug fazier (catalog backfill / listing manager).",
+          "-- Post-submit badge, comments, homepage link, and Lite Plan checkout stay manual in v1.",
+          "-- Upgrade fazier-launch \u2192 free product listing (preserve destination id for submissions FK).",
+          "UPDATE public.auto_launch_destinations SET provider_slug = 'fazier-free-product-listing' WHERE provider_slug = 'fazier-launch';"
+        ],
+        destinations: FAZIER_DESTINATIONS
+      },
+      {
+        siteKey: "devhunt",
+        sqlFileName: "508_20261121_seed_devhunt_destination.sql",
+        generationMode: "full",
+        moduleDate: "20261121",
+        moduleScopeLabel: "Seed (DevHunt free listing + paid launch destinations)",
+        preambleComments: [
+          "-- Joins link_directory_opportunities on site slug devhunt (catalog backfill / listing manager).",
+          "-- Launch week, $49 checkout, and maker comment stay manual after the tool form is filled."
+        ],
+        destinations: DEVHUNT_DESTINATIONS
       }
     ];
     AUTO_LAUNCH_DESTINATION_SEED_ROWS = AUTO_LAUNCH_DESTINATION_SEED_MODULES.flatMap((module) => module.destinations);
@@ -2399,6 +2931,8 @@ function resolveLaunchFieldCatalogId(field) {
     return "open_launch:platforms";
   if (field.selectCatalog === "open_launch_pricing")
     return "open_launch:pricing";
+  if (field.selectCatalog === "devhunt_pricing")
+    return "devhunt:pricing";
   return null;
 }
 function invalidProfileChoicesForField(items, field) {
@@ -2415,6 +2949,7 @@ function invalidProfileChoicesForField(items, field) {
 }
 var init_fieldCatalogRegistry = __esm({
   "../common/dist/auto-launch/destination-configs/fieldCatalogRegistry.js"() {
+    init_devhunt();
     init_openLaunch();
     init_tinylaunch();
     init_uneed();
@@ -2424,10 +2959,14 @@ var init_destination_configs = __esm({
   "../common/dist/auto-launch/destination-configs/index.js"() {
     init_openLaunch();
     init_peerpush();
+    init_devhunt();
+    init_fazier();
     init_tinylaunch();
     init_uneed();
     init_openLaunch();
     init_peerpush();
+    init_devhunt();
+    init_fazier();
     init_tinylaunch();
     init_uneed();
     init_syncMetadata();
@@ -2436,9 +2975,12 @@ var init_destination_configs = __esm({
     init_directoryLaunchRegistry();
     init_openLaunch();
     init_peerpush();
+    init_devhunt();
+    init_fazier();
     init_tinylaunch();
     init_uneed();
     init_fieldCatalogRegistry();
+    init_devhunt();
     init_tinylaunch();
     init_uneed();
   }
@@ -2639,24 +3181,6 @@ var init_richHtmlNormalize = __esm({
   }
 });
 
-// ../common/dist/auto-launch/fieldCompare.js
-var init_fieldCompare = __esm({
-  "../common/dist/auto-launch/fieldCompare.js"() {
-    init_listingProfileFingerprint();
-    init_profileFieldCatalog();
-    init_richHtmlNormalize();
-  }
-});
-
-// ../common/dist/auto-launch/normalizeBusinessProfileSlug.js
-function normalizeBusinessProfileSlug(raw) {
-  return raw.trim().toLowerCase().replace(/-+/g, "-").replace(/^-+|-+$/g, "").slice(0, 120);
-}
-var init_normalizeBusinessProfileSlug = __esm({
-  "../common/dist/auto-launch/normalizeBusinessProfileSlug.js"() {
-  }
-});
-
 // ../common/dist/media/virtualPaths.js
 function normalizeMediaVirtualPath(path7) {
   const raw = String(path7 ?? "").trim().replace(/\\/g, "/");
@@ -2717,6 +3241,65 @@ var init_virtualPaths = __esm({
   }
 });
 
+// ../common/dist/auto-launch/profileMediaFileName.js
+function sanitizeAutoLaunchProfileMediaFileName(originalname) {
+  const trimmed = String(originalname ?? "").trim();
+  if (!trimmed) {
+    return "file.bin";
+  }
+  const lastDot = trimmed.lastIndexOf(".");
+  const hasExt = lastDot > 0 && lastDot < trimmed.length - 1;
+  const basePart = hasExt ? trimmed.slice(0, lastDot) : trimmed;
+  const rawExt = hasExt ? trimmed.slice(lastDot + 1) : "";
+  const ext = (rawExt.replace(/[^a-zA-Z0-9]/g, "").slice(0, 16) || (hasExt ? "bin" : "")).toLowerCase();
+  const safeBase = sanitizeMediaDisplayName(basePart);
+  if (ext) {
+    return `${safeBase}.${ext}`;
+  }
+  return safeBase.length > 0 ? safeBase : "file";
+}
+function resolveUniqueAutoLaunchProfileMediaFileName(sanitizedFileName, existingNames) {
+  const taken = new Set(existingNames);
+  if (!taken.has(sanitizedFileName)) {
+    return sanitizedFileName;
+  }
+  const lastDot = sanitizedFileName.lastIndexOf(".");
+  const hasExt = lastDot > 0;
+  const base = hasExt ? sanitizedFileName.slice(0, lastDot) : sanitizedFileName;
+  const extWithDot = hasExt ? sanitizedFileName.slice(lastDot) : "";
+  for (let suffix = 2; suffix < 1e4; suffix += 1) {
+    const candidate = `${base}-${suffix}${extWithDot}`;
+    if (!taken.has(candidate)) {
+      return candidate;
+    }
+  }
+  return `${base}-${Date.now()}${extWithDot}`;
+}
+var init_profileMediaFileName = __esm({
+  "../common/dist/auto-launch/profileMediaFileName.js"() {
+    init_virtualPaths();
+  }
+});
+
+// ../common/dist/auto-launch/fieldCompare.js
+var init_fieldCompare = __esm({
+  "../common/dist/auto-launch/fieldCompare.js"() {
+    init_listingProfileFingerprint();
+    init_profileFieldCatalog();
+    init_richHtmlNormalize();
+    init_profileMediaFileName();
+  }
+});
+
+// ../common/dist/auto-launch/normalizeBusinessProfileSlug.js
+function normalizeBusinessProfileSlug(raw) {
+  return raw.trim().toLowerCase().replace(/-+/g, "-").replace(/^-+|-+$/g, "").slice(0, 120);
+}
+var init_normalizeBusinessProfileSlug = __esm({
+  "../common/dist/auto-launch/normalizeBusinessProfileSlug.js"() {
+  }
+});
+
 // ../common/dist/index.js
 var init_dist = __esm({
   "../common/dist/index.js"() {
@@ -2735,6 +3318,7 @@ var init_dist = __esm({
     init_fieldCompare();
     init_richHtmlNormalize();
     init_businessProfileData();
+    init_profileMediaFileName();
     init_launchFieldConstraints();
     init_fieldCatalogRegistry();
     init_normalizeBusinessProfileSlug();
@@ -12727,6 +13311,7 @@ function isSupabaseImageBucketName(name) {
 var DATABASE_NAMES, StorageSupabaseRepository;
 var init_StorageSupabaseRepository = __esm({
   "repositories/StorageSupabaseRepository.ts"() {
+    init_dist();
     init_InfraError();
     DATABASE_NAMES = {
       AVATARS: "avatars",
@@ -12775,7 +13360,7 @@ var init_StorageSupabaseRepository = __esm({
         return filePath;
       }
       /**
-       * Upload under `{prefix}/{random}.{ext}` (e.g. `{organizationId}/{profileId}/…` in `auto_launch_profile_media`).
+       * Upload under `{prefix}/{sanitized-original-name}` (e.g. `{organizationId}/{profileId}/…` in `auto_launch_profile_media`).
        */
       async uploadImageUnderPrefix(databaseName, file, prefix) {
         const normalizedPrefix = prefix.replace(/^\/+|\/+$/g, "");
@@ -12785,8 +13370,10 @@ var init_StorageSupabaseRepository = __esm({
             resource: { type: "storage", name: databaseName }
           });
         }
-        const fileExt = file.originalname.split(".").pop() || "bin";
-        const filePath = `${normalizedPrefix}/${Math.random()}.${fileExt}`;
+        const sanitizedName = sanitizeAutoLaunchProfileMediaFileName(file.originalname);
+        const existingNames = await this.listObjectNamesUnderPrefix(databaseName, normalizedPrefix);
+        const fileName = resolveUniqueAutoLaunchProfileMediaFileName(sanitizedName, existingNames);
+        const filePath = `${normalizedPrefix}/${fileName}`;
         const { error: uploadError } = await this.supabaseServiceClient.storage.from(databaseName).upload(filePath, file.buffer, {
           contentType: file.mimetype,
           upsert: false
@@ -12802,6 +13389,39 @@ var init_StorageSupabaseRepository = __esm({
           );
         }
         return filePath;
+      }
+      async listObjectNamesUnderPrefix(databaseName, prefix) {
+        const names = [];
+        const batchSize = 100;
+        let offset = 0;
+        while (true) {
+          const { data, error } = await this.supabaseServiceClient.storage.from(databaseName).list(prefix, {
+            limit: batchSize,
+            offset
+          });
+          if (error) {
+            throw new DatabaseError(
+              `Error in listObjectNamesUnderPrefix: ${databaseName} with message ${error.message}`,
+              {
+                cause: error,
+                operation: "list",
+                resource: { type: "storage", name: databaseName }
+              }
+            );
+          }
+          const batch = data ?? [];
+          for (const row of batch) {
+            const name = row.name?.trim();
+            if (name) {
+              names.push(name);
+            }
+          }
+          if (batch.length < batchSize) {
+            break;
+          }
+          offset += batchSize;
+        }
+        return names;
       }
       /** Upsert mirrored integration profile photo (`integration-profiles/...` in avatars bucket). */
       async uploadIntegrationProfilePicture(objectPath, buffer, contentType) {
@@ -37165,6 +37785,8 @@ var init_businessProfileDataSchemas = __esm({
       repository_url: optionalHttpUrl,
       launch_video_url: optionalHttpUrl,
       gallery_urls: zod.z.array(zod.z.string().max(2e3).trim().min(1)).max(BUSINESS_PROFILE_MAX_GALLERY_URLS).nullable().optional(),
+      gallery_labels: zod.z.array(zod.z.string().trim().max(BUSINESS_PROFILE_MAX_GALLERY_LABEL_LENGTH)).max(BUSINESS_PROFILE_MAX_GALLERY_URLS).nullable().optional(),
+      logo_label: nullableTrimmedString(BUSINESS_PROFILE_MAX_LOGO_LABEL_LENGTH),
       social_x: optionalHttpUrl,
       social_github: optionalHttpUrl,
       social_instagram: optionalHttpUrl,
@@ -37202,6 +37824,38 @@ var init_businessProfileDataSchemas = __esm({
   }
 });
 
+// utils/images/normalizeAutoLaunchProfileMediaFields.ts
+function normalizeBusinessProfileGalleryUrls(gallery) {
+  if (gallery === void 0) return void 0;
+  if (!Array.isArray(gallery) || gallery.length === 0) return [];
+  const keys = gallery.map((entry) => {
+    const trimmed = String(entry ?? "").trim();
+    if (!trimmed || trimmed.startsWith("blob:")) return "";
+    return resolveAutoLaunchProfileMediaStorageKey(trimmed) ?? trimmed;
+  }).filter((entry) => entry.length > 0).slice(0, BUSINESS_PROFILE_MAX_GALLERY_URLS);
+  return keys;
+}
+function normalizeBusinessProfileDataGallery(profileData) {
+  if (!Array.isArray(profileData.gallery_urls)) return profileData;
+  return {
+    ...profileData,
+    gallery_urls: normalizeBusinessProfileGalleryUrls(profileData.gallery_urls) ?? []
+  };
+}
+function normalizeAutoLaunchProfileLogoUrl(raw) {
+  if (raw === void 0) return void 0;
+  if (raw === null) return null;
+  const trimmed = raw.trim();
+  if (!trimmed || trimmed.startsWith("blob:")) return null;
+  return resolveAutoLaunchProfileMediaStorageKey(trimmed) ?? trimmed;
+}
+var init_normalizeAutoLaunchProfileMediaFields = __esm({
+  "utils/images/normalizeAutoLaunchProfileMediaFields.ts"() {
+    init_dist();
+    init_autoLaunchProfileMediaImages();
+  }
+});
+
 // services/AutoLaunchService.ts
 function launchTokenSecret() {
   return config.auth?.securitySecret?.trim() ?? "";
@@ -37223,6 +37877,7 @@ var init_AutoLaunchService = __esm({
     init_AutoLaunchDTO();
     init_launchToken();
     init_businessProfileDataSchemas();
+    init_normalizeAutoLaunchProfileMediaFields();
     AutoLaunchService = class {
       constructor(autoLaunchRepository2, integrationConnectionService2, subscriptionGuard2) {
         this.autoLaunchRepository = autoLaunchRepository2;
@@ -37376,6 +38031,9 @@ var init_AutoLaunchService = __esm({
           input.name,
           input.integrationCustomerId ?? null
         );
+        const parsedProfileData = normalizeBusinessProfileDataGallery(
+          parseBusinessProfileDataInput(input.profileData)
+        );
         const row = await this.autoLaunchRepository.insertProfile({
           organizationId: input.organizationId,
           integrationCustomerId,
@@ -37383,10 +38041,8 @@ var init_AutoLaunchService = __esm({
           tagline: input.tagline ?? null,
           description: input.description ?? null,
           websiteUrl: input.websiteUrl ?? null,
-          logoUrl: input.logoUrl ?? null,
-          profileData: parseBusinessProfileDataInput(
-            input.profileData
-          ),
+          logoUrl: normalizeAutoLaunchProfileLogoUrl(input.logoUrl ?? null) ?? null,
+          profileData: parsedProfileData,
           createdByUserId: authUserId
         });
         const [dto] = await this.enrichProfileDtos(input.organizationId, [row]);
@@ -37437,7 +38093,7 @@ var init_AutoLaunchService = __esm({
         }
         await this.integrationConnectionService.assertOrganizationMember(authUserId, existing.organization_id);
         await this.assertDirectoryLaunchEnabled(existing.organization_id, authUserId);
-        if (patch.integrationCustomerId === null) {
+        if (patch.integrationCustomerId === null && existing.integration_customer_id != null) {
           throw new UserValidationError("Business profile must stay linked to a channel group");
         }
         const nextCustomerId = patch.integrationCustomerId ?? existing.integration_customer_id;
@@ -37458,9 +38114,11 @@ var init_AutoLaunchService = __esm({
             throw new UserValidationError("Another business profile is already linked to this channel group");
           }
         }
-        const nextProfileData = patch.profileData !== void 0 ? mergeBusinessProfileData(
-          existing.profile_data,
-          parseBusinessProfileDataPatch(patch.profileData)
+        const nextProfileData = patch.profileData !== void 0 ? normalizeBusinessProfileDataGallery(
+          mergeBusinessProfileData(
+            existing.profile_data,
+            parseBusinessProfileDataPatch(patch.profileData)
+          )
         ) : void 0;
         const updated = await this.autoLaunchRepository.updateProfile({
           profileId,
@@ -37470,7 +38128,7 @@ var init_AutoLaunchService = __esm({
             tagline: patch.tagline,
             description: patch.description,
             websiteUrl: patch.websiteUrl,
-            logoUrl: patch.logoUrl,
+            logoUrl: patch.logoUrl !== void 0 ? normalizeAutoLaunchProfileLogoUrl(patch.logoUrl) : void 0,
             integrationCustomerId: patch.integrationCustomerId,
             profileData: nextProfileData
           }
@@ -38014,7 +38672,7 @@ var init_AutoLaunchService = __esm({
         if (!existing || existing.organization_id !== organizationId) {
           throw new AutoLaunchProfileNotFoundError(profileId);
         }
-        if (patch.integrationCustomerId === null) {
+        if (patch.integrationCustomerId === null && existing.integration_customer_id != null) {
           throw new UserValidationError("Business profile must stay linked to a channel group");
         }
         const nextCustomerId = patch.integrationCustomerId ?? existing.integration_customer_id;
@@ -38035,9 +38693,11 @@ var init_AutoLaunchService = __esm({
             throw new UserValidationError("Another business profile is already linked to this channel group");
           }
         }
-        const nextProfileData = patch.profileData !== void 0 ? mergeBusinessProfileData(
-          existing.profile_data,
-          parseBusinessProfileDataPatch(patch.profileData)
+        const nextProfileData = patch.profileData !== void 0 ? normalizeBusinessProfileDataGallery(
+          mergeBusinessProfileData(
+            existing.profile_data,
+            parseBusinessProfileDataPatch(patch.profileData)
+          )
         ) : void 0;
         const updated = await this.autoLaunchRepository.updateProfile({
           profileId,
@@ -38047,7 +38707,7 @@ var init_AutoLaunchService = __esm({
             tagline: patch.tagline,
             description: patch.description,
             websiteUrl: patch.websiteUrl,
-            logoUrl: patch.logoUrl,
+            logoUrl: patch.logoUrl !== void 0 ? normalizeAutoLaunchProfileLogoUrl(patch.logoUrl) : void 0,
             integrationCustomerId: patch.integrationCustomerId,
             profileData: nextProfileData
           }
@@ -39264,7 +39924,7 @@ var init_generateBlogRSSFeed = __esm({
 });
 
 // middlewares/publicRouteRegistry.ts
-var BLOG_POSTS_PREFIX, BLOG_POST_ACTIVITY_PATH, LISTINGS_PUBLISHED_PREFIX, LISTINGS_STACKS_PUBLISHED_PREFIX, LINK_DIRECTORY_PUBLISHED_PREFIX, LISTING_STAT_PATH, LISTING_COMMENTS_PATH, LINK_DIRECTORY_SITE_STAT_PATH, LINK_DIRECTORY_SITE_COMMENTS_PATH, EDITOR_MANAGED_PUBLIC_DETAIL_CACHE_CONTROL, PUBLIC_PATH_PREFIXES, PUBLIC_PATH_EXACT, BYPASS_PATHS, matchesPublicPathPrefix, matchesPublicPathExact, isPublicImageDownloadGet, isAuthExemptRoute, isPublicReadGet, isEditorManagedPublicDetailRoute, isPublicWriteRoute, isPublicApiPath, isUploadPath, isIntegrationConnectPath, LISTING_BOOKMARK_MUTATION_PATH, isBookmarkSavedMutationRoute, isWebhookPath, hasDedicatedRateLimiter, normalizeApiRoutePath;
+var BLOG_POSTS_PREFIX, BLOG_POST_ACTIVITY_PATH, LISTINGS_PUBLISHED_PREFIX, LISTINGS_STACKS_PUBLISHED_PREFIX, LINK_DIRECTORY_PUBLISHED_PREFIX, LISTING_STAT_PATH, LISTING_COMMENTS_PATH, LINK_DIRECTORY_SITE_STAT_PATH, LINK_DIRECTORY_SITE_COMMENTS_PATH, EDITOR_MANAGED_PUBLIC_DETAIL_CACHE_CONTROL, PUBLIC_PATH_PREFIXES, PUBLIC_PATH_EXACT, BYPASS_PATHS, PUBLIC_READ_LINK_DIRECTORY_TAXONOMY_PATHS, isPublicReadLinkDirectoryTaxonomyPath, matchesPublicPathPrefix, matchesPublicPathExact, isPublicImageDownloadGet, isAuthExemptRoute, isPublicReadGet, isEditorManagedPublicDetailRoute, isPublicWriteRoute, isPublicApiPath, isUploadPath, isIntegrationConnectPath, LISTING_BOOKMARK_MUTATION_PATH, isBookmarkSavedMutationRoute, isWebhookPath, hasDedicatedRateLimiter, normalizeApiRoutePath;
 var init_publicRouteRegistry = __esm({
   "middlewares/publicRouteRegistry.ts"() {
     BLOG_POSTS_PREFIX = "/blog-system/posts/";
@@ -39315,6 +39975,12 @@ var init_publicRouteRegistry = __esm({
       "/settings/invite/validate"
     ];
     BYPASS_PATHS = ["/health", "/sitemap.xml"];
+    PUBLIC_READ_LINK_DIRECTORY_TAXONOMY_PATHS = [
+      "/link-directory/opportunity-types",
+      "/link-directory/categories/active",
+      "/link-directory/tags/active"
+    ];
+    isPublicReadLinkDirectoryTaxonomyPath = (routePath) => PUBLIC_READ_LINK_DIRECTORY_TAXONOMY_PATHS.some((path7) => routePath === path7);
     matchesPublicPathPrefix = (routePath) => PUBLIC_PATH_PREFIXES.some((p) => routePath === p || routePath.startsWith(`${p}/`));
     matchesPublicPathExact = (routePath) => PUBLIC_PATH_EXACT.some((p) => routePath === p);
     isPublicImageDownloadGet = (req, routePath) => {
@@ -54917,7 +55583,11 @@ var buildRateLimiters = () => ({
       if (shouldSkipRateLimit()) return true;
       if (shouldSkipInfrastructurePaths(req)) return true;
       if (hasDedicatedRateLimiter(req, req.path)) return true;
-      return !isPublicReadGet(req, req.path);
+      if (!isPublicReadGet(req, req.path)) return true;
+      if (tryResolveUserIdFromRequest(req) && isPublicReadLinkDirectoryTaxonomyPath(req.path)) {
+        return true;
+      }
+      return false;
     }
   }),
   sessionLimiter: createRateLimiter({

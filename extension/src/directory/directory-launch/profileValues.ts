@@ -24,27 +24,61 @@ export function resolveProfileValue(
 	return resolveProfilePathValue(snapshot, profilePath);
 }
 
-/** Fill empty social URLs on a directory variant from the main product profile. */
+function hasNonEmptyGalleryUrls(profileData: AutoLaunchProfileSnapshot['profile_data']): boolean {
+	if (!profileData?.gallery_urls || !Array.isArray(profileData.gallery_urls)) return false;
+	return profileData.gallery_urls.some(
+		(entry) => typeof entry === 'string' && entry.trim().length > 0
+	);
+}
+
+/**
+ * Merge main-profile fallbacks for directory variants: social URLs, logo, and gallery screenshots.
+ */
 export function mergeMainProfileSocialData(
 	active: AutoLaunchProfileSnapshot,
 	main: AutoLaunchProfileSnapshot | null | undefined
 ): AutoLaunchProfileSnapshot {
-	if (!main?.profile_data) return active;
+	if (!main) return active;
+
+	let next: AutoLaunchProfileSnapshot = active;
+	let changed = false;
+
 	const activePd = active.profile_data ?? {};
 	const mainPd = main.profile_data ?? {};
-	const mergedPd: Record<string, unknown> = { ...activePd };
-	let changed = false;
-	for (const key of SOCIAL_PROFILE_DATA_KEYS) {
-		const activeVal = activePd[key as keyof typeof activePd];
-		if (typeof activeVal === 'string' && activeVal.trim()) continue;
-		const mainVal = mainPd[key as keyof typeof mainPd];
-		if (typeof mainVal === 'string' && mainVal.trim()) {
-			mergedPd[key] = mainVal;
-			changed = true;
+	const mergedPd: Record<string, unknown> = { ...(active.profile_data ?? {}) };
+
+	if (!active.logo_url?.trim() && main.logo_url?.trim()) {
+		next = { ...next, logo_url: main.logo_url };
+		changed = true;
+		const mainLogoLabel =
+			typeof mainPd.logo_label === 'string' ? mainPd.logo_label.trim() : '';
+		if (mainLogoLabel) {
+			mergedPd.logo_label = mainPd.logo_label;
 		}
 	}
+
+	if (!hasNonEmptyGalleryUrls(activePd) && hasNonEmptyGalleryUrls(mainPd)) {
+		mergedPd.gallery_urls = mainPd.gallery_urls;
+		if (mainPd.gallery_labels !== undefined) {
+			mergedPd.gallery_labels = mainPd.gallery_labels;
+		}
+		changed = true;
+	}
+
+	if (main.profile_data) {
+		for (const key of SOCIAL_PROFILE_DATA_KEYS) {
+			const activeVal = activePd[key as keyof typeof activePd];
+			if (typeof activeVal === 'string' && activeVal.trim()) continue;
+			const mainVal = mainPd[key as keyof typeof mainPd];
+			if (typeof mainVal === 'string' && mainVal.trim()) {
+				mergedPd[key] = mainVal;
+				changed = true;
+			}
+		}
+	}
+
 	if (!changed) return active;
-	return { ...active, profile_data: mergedPd as AutoLaunchProfileSnapshot['profile_data'] };
+	return { ...next, profile_data: mergedPd as AutoLaunchProfileSnapshot['profile_data'] };
 }
 
 /** Scalar profile value for fill/compare, including main-profile social fallbacks and `profileSourcePaths`. */

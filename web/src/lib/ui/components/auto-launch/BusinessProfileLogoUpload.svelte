@@ -1,8 +1,12 @@
 <script lang="ts">
 	import type { DatabaseName } from '$lib/core/Image.repository.svelte';
 
+	import { BUSINESS_PROFILE_MAX_LOGO_LABEL_LENGTH } from 'openquok-common';
+
 	import { AUTO_LAUNCH_PROFILE_MEDIA_BUCKET } from '$lib/auto-launch/constants/config';
-	import { resolveAutoLaunchProfileImageUrl } from '$lib/auto-launch/utils/autoLaunchProfileMediaImages';
+	import {
+		resolveAutoLaunchProfileImageUrl
+	} from '$lib/auto-launch/utils/autoLaunchProfileMediaImages';
 	import { imageRepository } from '$lib/core/index';
 	import { DeleteImagePresenter } from '$lib/core/DeleteImage.presenter.svelte';
 	import { DownloadImagePresenter } from '$lib/core/DownloadImage.presenter.svelte';
@@ -19,10 +23,13 @@
 	type Props = {
 		value: string | null;
 		onChange: (storagePath: string | null) => void;
+		/** Display name for compare / directory autofill (saved in `profile_data.logo_label`). */
+		logoLabel: string;
+		onLogoLabelChange: (label: string) => void;
 		disabled?: boolean;
 	};
 
-	let { value, onChange, disabled = false }: Props = $props();
+	let { value, onChange, logoLabel, onLogoLabelChange, disabled = false }: Props = $props();
 
 	const databaseName: DatabaseName = AUTO_LAUNCH_PROFILE_MEDIA_BUCKET;
 
@@ -36,6 +43,8 @@
 	let localPreviewUrl = $state<string | null>(null);
 	let selectedPreview = $state<string | null>(null);
 	let loadedStorageKey = $state('');
+	/** Restores `logoLabel` when the member cancels a pending file pick (see gallery clear-slot). */
+	let logoLabelBeforePendingPick = $state<string | null>(null);
 
 	function resolvedStoredPreview(
 		blobOrUrl: string | null | undefined,
@@ -75,17 +84,23 @@
 		const files = (event.target as HTMLInputElement).files;
 		if (!files?.length) return;
 		const file = files[0];
+		logoLabelBeforePendingPick = logoLabel;
 		localFile = file;
 		if (localPreviewUrl) URL.revokeObjectURL(localPreviewUrl);
 		localPreviewUrl = URL.createObjectURL(file);
+		onLogoLabelChange(file.name.trim().slice(0, BUSINESS_PROFILE_MAX_LOGO_LABEL_LENGTH));
 	}
 
-	function clearLocalSelection() {
+	function clearLocalSelection(options?: { restoreLogoLabel?: boolean }) {
 		if (localPreviewUrl) URL.revokeObjectURL(localPreviewUrl);
 		localFile = null;
 		localPreviewUrl = null;
 		const input = document.getElementById('business-profile-logo-file') as HTMLInputElement | null;
 		if (input) input.value = '';
+		if (options?.restoreLogoLabel !== false && logoLabelBeforePendingPick !== null) {
+			onLogoLabelChange(logoLabelBeforePendingPick);
+		}
+		logoLabelBeforePendingPick = null;
 	}
 
 	export function hasPendingUpload(): boolean {
@@ -104,7 +119,7 @@
 				return value;
 			}
 			onChange(filePath);
-			clearLocalSelection();
+			clearLocalSelection({ restoreLogoLabel: false });
 			return filePath;
 		} catch {
 			toast.error('Logo upload failed. Check file size and format.');
@@ -118,8 +133,9 @@
 		try {
 			await uploadAreaPresenter.deleteImage(databaseName, value);
 			onChange(null);
+			onLogoLabelChange('');
 			uploadAreaPresenter.reset();
-			clearLocalSelection();
+			clearLocalSelection({ restoreLogoLabel: false });
 		} catch {
 			toast.error('Could not remove logo.');
 		}
@@ -171,6 +187,39 @@
 		>
 			Remove logo
 		</Button>
+	{/if}
+
+	{#if displayUrl}
+		<div class="grid w-full max-w-md items-center gap-1">
+			<Label class="text-xs text-base-content/70" for="business-profile-logo-label">
+				Logo name
+			</Label>
+			<input
+				id="business-profile-logo-label"
+				type="text"
+				class="input input-bordered input-sm w-full"
+				value={logoLabel}
+				placeholder="Logo"
+				maxlength={BUSINESS_PROFILE_MAX_LOGO_LABEL_LENGTH}
+				disabled={disabled || isUploading}
+				oninput={(event) =>
+					onLogoLabelChange(
+						(event.currentTarget as HTMLInputElement).value.slice(
+							0,
+							BUSINESS_PROFILE_MAX_LOGO_LABEL_LENGTH
+						)
+					)}
+			/>
+			<p class="text-xs text-base-content/55">
+				{#if localFile}
+					Pending upload on save
+				{:else if value}
+					Saved to profile
+				{:else}
+					Preview only — save the profile to upload
+				{/if}
+			</p>
+		</div>
 	{/if}
 
 	<div class="grid w-full max-w-md items-center gap-1.5">

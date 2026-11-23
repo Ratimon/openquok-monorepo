@@ -8,6 +8,7 @@ import {
 	fillLaunchStep,
 	resolveFieldElement,
 } from './fillEngine.js';
+import { readFormFieldValue } from './readFormField.js';
 
 function snapshot(
 	overrides: Partial<AutoLaunchProfileSnapshot> = {}
@@ -150,6 +151,87 @@ describe('fillLaunchField', () => {
 
 		expect(result.status).toBe('found');
 		expect(toggle.getAttribute('aria-checked')).toBe('true');
+	});
+
+	it('does not read the launch video input as Tagline or Socials compare targets', () => {
+		const launchVideo =
+			'https://www.youtube.com/watch?v=iKNimZ9FBu8';
+		document.body.innerHTML = `
+			<form class="uneed-wizard">
+				<div class="tab-general">
+					<label for="tagline-input">Tagline</label>
+					<textarea id="tagline-input" maxlength="80">Save hours: agentic Social scheduling</textarea>
+				</div>
+				<div class="tab-media">
+					<label for="launch-video">Launch video URL</label>
+					<input id="launch-video" type="url" name="launch_video_url" placeholder="YouTube or Vimeo link" value="${launchVideo}" />
+				</div>
+				<div class="tab-socials">
+					<div data-slot="form-item">
+						<label for="launch-video">Launch video URL</label>
+						<input id="launch-video" type="url" name="launch_video_url" placeholder="YouTube or Vimeo link" value="${launchVideo}" />
+					</div>
+					<div data-slot="form-item">
+						<label for="github">GitHub</label>
+						<input id="github" type="url" name="social_github" placeholder="https://github.com/..." value="https://github.com/Ratimon/openquok-monorepo" />
+					</div>
+					<div data-slot="form-item">
+						<label for="instagram">Instagram</label>
+						<input id="instagram" type="url" name="social_instagram" placeholder="https://instagram.com/..." value="" />
+					</div>
+					<div data-slot="form-item">
+						<label for="linkedin">LinkedIn</label>
+						<input id="linkedin" type="url" name="social_linkedin" placeholder="https://linkedin.com/..." value="" />
+					</div>
+					<div data-slot="form-item">
+						<label for="tiktok">TikTok</label>
+						<input id="tiktok" type="url" name="social_tiktok" placeholder="https://tiktok.com/..." value="" />
+					</div>
+				</div>
+			</form>`;
+
+		const taglineField = field({
+			key: 'tagline',
+			label: 'Tagline',
+			profilePath: 'tagline',
+			selectorHint: '#missing-tagline',
+		});
+		const taglineEl = resolveFieldElement(taglineField);
+		expect(taglineEl).not.toBeNull();
+		expect((taglineEl as HTMLTextAreaElement).id).toBe('tagline-input');
+		expect(readFormFieldValue(taglineField)?.scalar).toBe(
+			'Save hours: agentic Social scheduling'
+		);
+
+		const githubField = field({
+			key: 'social_github',
+			label: 'GitHub',
+			profilePath: 'profile_data.social_github',
+			selectorHint: '#missing',
+		});
+		const githubEl = resolveFieldElement(githubField);
+		expect(githubEl).not.toBeNull();
+		expect((githubEl as HTMLInputElement).value).toBe('https://github.com/Ratimon/openquok-monorepo');
+		expect(readFormFieldValue(githubField)?.scalar).toBe(
+			'https://github.com/Ratimon/openquok-monorepo'
+		);
+
+		for (const social of [
+			{ key: 'social_instagram', label: 'Instagram' },
+			{ key: 'social_linkedin', label: 'LinkedIn' },
+			{ key: 'social_tiktok', label: 'TikTok' },
+		] as const) {
+			const socialField = field({
+				key: social.key,
+				label: social.label,
+				profilePath: `profile_data.${social.key}`,
+				selectorHint: '#missing',
+			});
+			const control = resolveFieldElement(socialField);
+			expect(control).not.toBeNull();
+			expect((control as HTMLInputElement).value).toBe('');
+			expect((control as HTMLInputElement).value).not.toContain('youtube.com');
+		}
 	});
 
 	it('does not pair Launch video URL with a bare URL label (repository field)', () => {
@@ -966,6 +1048,118 @@ describe('fillLaunchField', () => {
 
 		expect(result.status).toBe('found');
 		expect(fileInput.files?.length).toBe(1);
+		vi.unstubAllGlobals();
+	});
+
+	it('fills gallery file inputs from the main profile when the variant snapshot has none', async () => {
+		const logoInput = document.createElement('input');
+		logoInput.type = 'file';
+		logoInput.id = 'logo-file';
+		const galleryInput = document.createElement('input');
+		galleryInput.type = 'file';
+		galleryInput.id = 'gallery-file';
+		galleryInput.multiple = true;
+		document.body.append(logoInput, galleryInput);
+
+		vi.stubGlobal(
+			'fetch',
+			vi.fn().mockResolvedValue({
+				ok: true,
+				blob: async () => new Blob(['png'], { type: 'image/png' }),
+			})
+		);
+
+		const variant: AutoLaunchProfileSnapshot = {
+			name: 'OpenQuok',
+			profile_data: { gallery_urls: [] },
+		};
+		const main: AutoLaunchProfileSnapshot = {
+			name: 'OpenQuok',
+			profile_data: {
+				gallery_urls: ['org/profile/shot-1.png', 'org/profile/shot-2.png'],
+			},
+		};
+
+		const result = await fillLaunchField(
+			variant,
+			field({
+				key: 'gallery',
+				label: 'Tool screenshots',
+				profilePath: 'profile_data.gallery_urls',
+				fillMode: 'files',
+				selectorHint: '#gallery-file',
+			}),
+			{
+				dashboardOrigin: 'https://app.openquok.com',
+				mainProfileSnapshot: main,
+			}
+		);
+
+		expect(result.status).toBe('found');
+		expect(galleryInput.files?.length).toBe(2);
+		vi.unstubAllGlobals();
+	});
+
+	it('fills each DevHunt screenshot via the shared image-upload control', async () => {
+		document.body.innerHTML = `
+			<div id="tool-screenshots-container">
+				<div id="devhunt-images-uploader">
+					<label for="image-upload" id="devhunt-upload-label">Upload</label>
+					<input id="image-upload" type="file" accept="image/*" />
+				</div>
+			</div>
+		`;
+		const container = document.getElementById('tool-screenshots-container');
+		const uploaderRoot = document.getElementById('devhunt-images-uploader');
+		const uploadLabel = document.getElementById('devhunt-upload-label');
+		const sharedInput = document.getElementById('image-upload') as HTMLInputElement;
+		let previewCount = 0;
+		sharedInput.addEventListener('change', () => {
+			uploadLabel?.classList.add('pointer-events-none');
+			previewCount += 1;
+			const item = document.createElement('div');
+			item.innerHTML = `<img src="https://mars-images.imgix.net/p-${previewCount}.png" class="object-cover" />`;
+			uploaderRoot?.insertBefore(item, uploadLabel);
+			uploadLabel?.classList.remove('pointer-events-none');
+			sharedInput.value = '';
+		});
+
+		vi.stubGlobal(
+			'fetch',
+			vi
+				.fn()
+				.mockResolvedValueOnce({
+					ok: true,
+					blob: async () => new Blob(['a'], { type: 'image/png' }),
+				})
+				.mockResolvedValueOnce({
+					ok: true,
+					blob: async () => new Blob(['b'], { type: 'image/png' }),
+				})
+		);
+
+		const profile = snapshot({
+			profile_data: {
+				gallery_urls: ['org/profile/a.png', 'org/profile/b.png'],
+				gallery_labels: ['Screenshot 1', 'install-extension.png'],
+			},
+		});
+
+		const result = await fillLaunchField(
+			profile,
+			field({
+				key: 'gallery',
+				label: 'Tool screenshots',
+				profilePath: 'profile_data.gallery_urls',
+				fillMode: 'files',
+				maxItems: 3,
+				selectorHint: "#tool-screenshots-container input[type='file']",
+			}),
+			{ dashboardOrigin: 'https://app.openquok.com' }
+		);
+
+		expect(result.status).toBe('found');
+		expect(container?.querySelectorAll('img[src]').length).toBe(2);
 		vi.unstubAllGlobals();
 	});
 });

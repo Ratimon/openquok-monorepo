@@ -122,6 +122,21 @@ function escapeHtml(text: string): string {
 
 const BARE_URL_RE = /https?:\/\/[^\s<>"']+/g;
 
+/** Visible label for autolinked bare URLs — full href, shorthand host + path (no scheme). */
+export function formatBareUrlAnchorLabel(href: string): string {
+	try {
+		const url = new URL(href);
+		const host = url.hostname.replace(/^www\./i, '');
+		if (!host) {
+			return href.replace(/^https?:\/\//i, '');
+		}
+		const path = url.pathname === '/' ? '' : url.pathname;
+		return `${host}${path}${url.search}`;
+	} catch {
+		return href.replace(/^https?:\/\//i, '').replace(/^www\./i, '');
+	}
+}
+
 /** Trim trailing punctuation that often wraps bare URLs in prose (e.g. `https://x.com/).`). */
 function trimUrlTrailPunctuation(url: string): { href: string; suffix: string } {
 	let href = url;
@@ -138,13 +153,16 @@ function trimUrlTrailPunctuation(url: string): { href: string; suffix: string } 
 	return { href, suffix };
 }
 
+function linkifyAbsoluteUrlMatch(match: string): string {
+	const { href, suffix } = trimUrlTrailPunctuation(match);
+	if (!href) return match;
+	const safeHref = escapeHtml(href);
+	const label = escapeHtml(formatBareUrlAnchorLabel(href));
+	return `<a href="${safeHref}">${label}</a>${suffix}`;
+}
+
 function linkifyTextSegment(text: string): string {
-	return text.replace(BARE_URL_RE, (match) => {
-		const { href, suffix } = trimUrlTrailPunctuation(match);
-		if (!href) return match;
-		const safeHref = escapeHtml(href);
-		return `<a href="${safeHref}">${safeHref}</a>${suffix}`;
-	});
+	return text.replace(BARE_URL_RE, linkifyAbsoluteUrlMatch);
 }
 
 /**

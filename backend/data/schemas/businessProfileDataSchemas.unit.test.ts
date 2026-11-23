@@ -48,9 +48,9 @@ describe("businessProfileDataSchema", () => {
         expect(result.success).toBe(true);
     });
 
-    it("rejects more than three gallery paths", () => {
+    it(`rejects more than ${BUSINESS_PROFILE_MAX_GALLERY_URLS} gallery paths`, () => {
         const result = businessProfileDataSchema.safeParse({
-            gallery_urls: ["org/p/1.png", "org/p/2.png", "org/p/3.png", "org/p/4.png"],
+            gallery_urls: Array.from({ length: BUSINESS_PROFILE_MAX_GALLERY_URLS + 1 }, (_, i) => `org/p/${i}.png`),
         });
         expect(result.success).toBe(false);
     });
@@ -82,7 +82,7 @@ describe("businessProfileDataSchema", () => {
     it(`accepts up to ${BUSINESS_PROFILE_MAX_TAGS} tags and ${BUSINESS_PROFILE_MAX_GALLERY_URLS} gallery paths`, () => {
         const result = businessProfileDataSchema.safeParse({
             tags: Array.from({ length: BUSINESS_PROFILE_MAX_TAGS }, (_, i) => `tag-${i}`),
-            gallery_urls: ["org/p/1.png", "org/p/2.png", "org/p/3.png"],
+            gallery_urls: Array.from({ length: BUSINESS_PROFILE_MAX_GALLERY_URLS }, (_, i) => `org/p/${i}.png`),
             pricing_type: "freemium",
         });
         expect(result.success).toBe(true);
@@ -129,6 +129,20 @@ describe("parseBusinessProfileDataInput", () => {
         ).toEqual({
             social_x: "https://x.com/acme",
             included_assets: ["domain", "source_code"],
+        });
+    });
+
+    it("accepts gallery_urls with gallery_labels and logo_label", () => {
+        expect(
+            parseBusinessProfileDataPatch({
+                gallery_urls: ["org/profile/screenshot.png"],
+                gallery_labels: ["Screenshot 1"],
+                logo_label: "App icon",
+            })
+        ).toEqual({
+            gallery_urls: ["org/profile/screenshot.png"],
+            gallery_labels: ["Screenshot 1"],
+            logo_label: "App icon",
         });
     });
 });

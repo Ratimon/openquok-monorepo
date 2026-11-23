@@ -126,7 +126,7 @@
 		<h3 class="text-base font-bold text-base-content">{item.title}</h3>
 		{#if item.descriptionHtml?.trim()}
 			<div
-				class="prose prose-sm max-w-none text-sm font-medium leading-relaxed text-pretty text-base-content/70 prose-a:link prose-a:underline dark:prose-invert"
+				class="prose prose-sm max-w-none min-w-0 break-words text-sm font-medium leading-relaxed text-pretty text-base-content/70 prose-a:link prose-a:break-words prose-a:underline dark:prose-invert"
 			>
 				{@html item.descriptionHtml}
 			</div>
