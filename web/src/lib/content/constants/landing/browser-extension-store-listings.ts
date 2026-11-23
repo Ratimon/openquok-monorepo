@@ -11,7 +11,7 @@ export const OPENQUOK_BROWSER_EXTENSION_FIREFOX_ADDONS_URL =
 
 /** Microsoft Edge Add-ons listing for the OpenQuok extension (Chromium package). */
 export const OPENQUOK_BROWSER_EXTENSION_EDGE_ADDONS_URL =
-	'https://microsoftedge.microsoft.com/addons/detail/jgcefbibloanooalkjkgafakgkpbcdmn';
+	'https://microsoftedge.microsoft.com/addons/detail/openquok-social-media-sc/jgcefbibloanooalkjkgafakgkpbcdmn';
 
 export type PublicBrowserExtensionStoreListing = {
 	id: 'chrome' | 'firefox' | 'edge';

@@ -224,7 +224,7 @@
 				"site_url": "https://chromewebstore.google.com",
 				"logo_url": "https://www.openquok.com/icons/link-directory/chrome-web-store.svg",
 				"short_description": "List a Chrome extension on the Web Store. Point Official URL, homepage, and privacy fields at your site to earn backlinks on the live listing page.",
-				"long_description": "The store runs on google.com. Complete Store listing Additional fields and Privacy before you submit. After approval, open your public listing and confirm each outbound link.",
+				"long_description": "The store runs on google.com. Complete Store listing Additional fields and Privacy before you submit. After approval, open your public listing and confirm each outbound link and rel. Live example: <a href=\"https://chromewebstore.google.com/detail/openquok-social-media-sch/diloknijkhhggpfhenpoccnjbcjdoedn\">sample Chrome Web Store listing</a>.",
 				"domain_rating": 99,
 				"monthly_visits": 5000000000,
 				"metrics_source": "editor_estimate",
@@ -247,7 +247,7 @@
 					"dofollow": "dofollow",
 					"cost_tier": "paid",
 					"cost_note": "One-time Chrome Web Store developer fee",
-					"description": "Set Additional fields → Official URL to your root domain (for example <a href=\"https://www.openquok.com/\">openquok.com</a>). Check the link on the live store page after approval.",
+					"description": "Set Additional fields → Official URL to your root domain (your marketing site or company homepage). Do not paste your store listing URL into this field. After approval, check the link on your live store page (see <a href=\"https://chromewebstore.google.com/detail/openquok-social-media-sch/diloknijkhhggpfhenpoccnjbcjdoedn\">sample Chrome Web Store listing</a>) and confirm rel.",
 					"steps": [
 						{
 							"order": 1,
@@ -257,19 +257,19 @@
 						{
 							"order": 2,
 							"title": "Set Official URL",
-							"body": "Under Additional fields, verify your domain if Google asks. Enter your site (for example <a href=\"https://www.openquok.com/\">openquok.com</a>)."
+							"body": "Under Additional fields, verify your domain if Google asks. Enter your root site URL on your own domain."
 						},
 						{
 							"order": 3,
 							"title": "Publish and verify",
-							"body": "Finish Store listing and Privacy, then submit. Open your public listing and confirm the official-site link."
+							"body": "Finish Store listing and Privacy, then submit. Open your public listing (for example <a href=\"https://chromewebstore.google.com/detail/openquok-social-media-sch/diloknijkhhggpfhenpoccnjbcjdoedn\">sample Chrome Web Store listing</a>) and confirm the official-site link and rel."
 						}
 					],
 					"openquok_cta_kind": "external_doc",
 					"openquok_channel_slug": null,
 					"openquok_plug_name": null,
-					"cta_href": "https://www.openquok.com/browser-extension",
-					"cta_label": "OpenQuok browser extension",
+					"cta_href": "https://chromewebstore.google.com/detail/openquok-social-media-sch/diloknijkhhggpfhenpoccnjbcjdoedn",
+					"cta_label": "Sample Chrome Web Store listing",
 					"sort_order": 10,
 					"is_admin_published": true,
 					"auto_launch_enabled": false,
@@ -286,7 +286,7 @@
 					"dofollow": "dofollow",
 					"cost_tier": "paid",
 					"cost_note": "One-time Chrome Web Store developer fee",
-					"description": "Homepage URL in Store listing → Additional fields links buyers to your site. Examples: <a href=\"https://www.openquok.com/browser-extension\">browser extension landing</a> or <a href=\"https://www.openquok.com/docs/installation/chrome-extension\">Chrome install guide</a>.",
+					"description": "Homepage URL in Store listing → Additional fields links buyers to a page on your own domain (your product landing or install page). Do not point this field at your Chrome Web Store listing. After approval, confirm on your live page (see <a href=\"https://chromewebstore.google.com/detail/openquok-social-media-sch/diloknijkhhggpfhenpoccnjbcjdoedn\">sample Chrome Web Store listing</a>).",
 					"steps": [
 						{
 							"order": 1,
@@ -301,14 +301,14 @@
 						{
 							"order": 3,
 							"title": "Check the live page",
-							"body": "After approval, open your listing on <a href=\"https://chromewebstore.google.com\">Chrome Web Store</a> and confirm homepage and support links."
+							"body": "After approval, open your public listing (for example <a href=\"https://chromewebstore.google.com/detail/openquok-social-media-sch/diloknijkhhggpfhenpoccnjbcjdoedn\">sample Chrome Web Store listing</a>) and confirm homepage and support links."
 						}
 					],
 					"openquok_cta_kind": "external_doc",
 					"openquok_channel_slug": null,
 					"openquok_plug_name": null,
-					"cta_href": "https://www.openquok.com/docs/installation/chrome-extension",
-					"cta_label": "Chrome extension install guide",
+					"cta_href": "https://chromewebstore.google.com/detail/openquok-social-media-sch/diloknijkhhggpfhenpoccnjbcjdoedn",
+					"cta_label": "Sample Chrome Web Store listing",
 					"sort_order": 20,
 					"is_admin_published": true,
 					"auto_launch_enabled": false,
@@ -325,7 +325,7 @@
 					"dofollow": "dofollow",
 					"cost_tier": "free",
 					"cost_note": null,
-					"description": "Set Build → Privacy to your public policy URL. The store page can link out (for example <a href=\"https://www.openquok.com/privacy-policy\">privacy policy</a>). Match the text to your declared permissions.",
+					"description": "Set Build → Privacy to your public privacy policy URL on your own domain. The store page can link out. Match the policy text to your declared permissions.",
 					"steps": [
 						{
 							"order": 1,
@@ -335,12 +335,12 @@
 						{
 							"order": 2,
 							"title": "Add policy URL",
-							"body": "Paste your policy URL (for example <a href=\"https://www.openquok.com/privacy-policy\">privacy policy</a>)."
+							"body": "Paste your public privacy policy URL on your domain."
 						},
 						{
 							"order": 3,
 							"title": "Confirm on the listing",
-							"body": "After the listing is live, open the store page and confirm the privacy link works."
+							"body": "After the listing is live, open your store page (for example <a href=\"https://chromewebstore.google.com/detail/openquok-social-media-sch/diloknijkhhggpfhenpoccnjbcjdoedn\">sample Chrome Web Store listing</a>) and confirm the privacy link works."
 						}
 					],
 					"openquok_cta_kind": "none",
@@ -363,7 +363,7 @@
 				"site_url": "https://microsoftedge.microsoft.com/addons",
 				"logo_url": "https://www.openquok.com/icons/link-directory/microsoft-edge-addons.svg",
 				"short_description": "Publish an extension on Edge Add-ons through Partner Center. Set Website and Support contact on Properties. Set Privacy Policy URL on Privacy.",
-				"long_description": "You submit extensions at <a href=\"https://partner.microsoft.com/dashboard\">Partner Center</a> in the Edge workspace. Upload the zip package, then complete Availability, Properties, Privacy, Store listings, and Publish. Certification can take up to seven business days; there is no separate Edge Add-ons listing fee. See <a href=\"https://www.openquok.com/docs/installation/edge-extension\">Edge extension install guide</a> and <a href=\"https://www.openquok.com/docs/configuration-web/browser-extension-edge\">Extension (Edge)</a> for OpenQuok packaging. After the listing is in the store, open your page on <a href=\"https://microsoftedge.microsoft.com/addons\">Edge Add-ons</a> and confirm each outbound link and rel.",
+				"long_description": "You submit extensions at <a href=\"https://partner.microsoft.com/dashboard\">Partner Center</a> in the Edge workspace. Upload the zip package, then complete Availability, Properties, Privacy, Store listings, and Publish. Certification can take up to seven business days; there is no separate Edge Add-ons listing fee. After the listing is in the store, confirm each outbound link and rel on your live page. Live example: <a href=\"https://microsoftedge.microsoft.com/addons/detail/openquok-social-media-sc/jgcefbibloanooalkjkgafakgkpbcdmn\">sample Edge Add-ons listing</a>.",
 				"domain_rating": 99,
 				"monthly_visits": 5000000000,
 				"metrics_source": "editor_estimate",
@@ -386,7 +386,7 @@
 					"dofollow": "dofollow",
 					"cost_tier": "free",
 					"cost_note": null,
-					"description": "On the Properties page, set Website to a page on your own domain (for example <a href=\"https://www.openquok.com/\">openquok.com</a>). The URL must not point to your Add-ons listing. Users see this link on the live store page after certification.",
+					"description": "On the Properties page, set Website to a page on your own domain (your homepage or product landing). Do not paste your Edge Add-ons listing URL into this field. Users see this link on your live store page after certification (see <a href=\"https://microsoftedge.microsoft.com/addons/detail/openquok-social-media-sc/jgcefbibloanooalkjkgafakgkpbcdmn\">sample Edge Add-ons listing</a>).",
 					"steps": [
 						{
 							"order": 1,
@@ -396,19 +396,19 @@
 						{
 							"order": 2,
 							"title": "Open Properties",
-							"body": "On the left, click Properties. In Website, enter a page on your site (for example <a href=\"https://www.openquok.com/\">openquok.com</a> or <a href=\"https://www.openquok.com/browser-extension\">browser extension landing</a>). Do not use your listing URL on <a href=\"https://microsoftedge.microsoft.com/addons\">Edge Add-ons</a>."
+							"body": "On the left, click Properties. In Website, enter a page on your site (homepage or product landing). Do not use your listing URL (for example <a href=\"https://microsoftedge.microsoft.com/addons/detail/openquok-social-media-sc/jgcefbibloanooalkjkgafakgkpbcdmn\">sample Edge Add-ons listing</a>)."
 						},
 						{
 							"order": 3,
 							"title": "Publish and verify",
-							"body": "Click Save & Continue. Complete Privacy and Store listings, then click Publish on the Submit your extension page. When status is In the Store, open your listing and confirm the Website link."
+							"body": "Click Save & Continue. Complete Privacy and Store listings, then click Publish on the Submit your extension page. When status is In the Store, open your listing (for example <a href=\"https://microsoftedge.microsoft.com/addons/detail/openquok-social-media-sc/jgcefbibloanooalkjkgafakgkpbcdmn\">sample Edge Add-ons listing</a>) and confirm the Website link."
 						}
 					],
 					"openquok_cta_kind": "external_doc",
 					"openquok_channel_slug": null,
 					"openquok_plug_name": null,
-					"cta_href": "https://www.openquok.com/browser-extension",
-					"cta_label": "OpenQuok browser extension",
+					"cta_href": "https://microsoftedge.microsoft.com/addons/detail/openquok-social-media-sc/jgcefbibloanooalkjkgafakgkpbcdmn",
+					"cta_label": "Sample Edge Add-ons listing",
 					"sort_order": 10,
 					"is_admin_published": true,
 					"auto_launch_enabled": false,
@@ -425,7 +425,7 @@
 					"dofollow": "dofollow",
 					"cost_tier": "free",
 					"cost_note": null,
-					"description": "On Properties, Support contact detail can be a support page URL or an email. Use a https URL on your domain for a backlink (for example <a href=\"https://www.openquok.com/docs/installation/edge-extension\">Edge install guide</a>). Registration values can also show on the store page.",
+					"description": "On Properties, Support contact detail can be a support page URL or an email. Use a https URL on your domain for a backlink (install docs or help center). Registration values can also show on the store page.",
 					"steps": [
 						{
 							"order": 1,
@@ -435,19 +435,19 @@
 						{
 							"order": 2,
 							"title": "Set Support contact detail",
-							"body": "In Support contact detail, paste a support page URL (for example <a href=\"https://www.openquok.com/docs/installation/edge-extension\">Edge install guide</a>). You can use an email instead, but email does not give a backlink."
+							"body": "In Support contact detail, paste a support page URL on your domain. You can use an email instead, but email does not give a backlink."
 						},
 						{
 							"order": 3,
 							"title": "Check the live listing",
-							"body": "Click Save & Continue and finish the remaining Partner Center sections. After certification, open your listing on <a href=\"https://microsoftedge.microsoft.com/addons\">Edge Add-ons</a> and confirm the support link."
+							"body": "Click Save & Continue and finish the remaining Partner Center sections. After certification, open your listing (for example <a href=\"https://microsoftedge.microsoft.com/addons/detail/openquok-social-media-sc/jgcefbibloanooalkjkgafakgkpbcdmn\">sample Edge Add-ons listing</a>) and confirm the support link."
 						}
 					],
 					"openquok_cta_kind": "external_doc",
 					"openquok_channel_slug": null,
 					"openquok_plug_name": null,
-					"cta_href": "https://www.openquok.com/docs/installation/edge-extension",
-					"cta_label": "Edge extension install guide",
+					"cta_href": "https://microsoftedge.microsoft.com/addons/detail/openquok-social-media-sc/jgcefbibloanooalkjkgafakgkpbcdmn",
+					"cta_label": "Sample Edge Add-ons listing",
 					"sort_order": 20,
 					"is_admin_published": true,
 					"auto_launch_enabled": false,
@@ -464,7 +464,7 @@
 					"dofollow": "dofollow",
 					"cost_tier": "free",
 					"cost_note": null,
-					"description": "On the Privacy page, set Privacy Policy URL to your public policy (for example <a href=\"https://www.openquok.com/privacy-policy\">privacy policy</a>). The URL must work. Policy text must match the Data usage checkboxes and your extension behavior.",
+					"description": "On the Privacy page, set Privacy Policy URL to your public privacy policy on your own domain. The URL must work. Policy text must match the Data usage checkboxes and your extension behavior.",
 					"steps": [
 						{
 							"order": 1,
@@ -479,12 +479,12 @@
 						{
 							"order": 3,
 							"title": "Set Privacy Policy URL",
-							"body": "In Privacy Policy URL, paste your policy (for example <a href=\"https://www.openquok.com/privacy-policy\">privacy policy</a>). Click Save & Continue, finish Store listings, and Publish."
+							"body": "In Privacy Policy URL, paste your public privacy policy URL. Click Save & Continue, finish Store listings, and Publish."
 						},
 						{
 							"order": 4,
 							"title": "Confirm on the listing",
-							"body": "After the extension is In the Store, open the listing page and confirm the privacy link loads."
+							"body": "After the extension is In the Store, open your listing (for example <a href=\"https://microsoftedge.microsoft.com/addons/detail/openquok-social-media-sc/jgcefbibloanooalkjkgafakgkpbcdmn\">sample Edge Add-ons listing</a>) and confirm the privacy link loads."
 						}
 					],
 					"openquok_cta_kind": "none",
@@ -507,7 +507,7 @@
 				"site_url": "https://addons.mozilla.org",
 				"logo_url": "https://www.openquok.com/icons/link-directory/firefox-add-ons.svg",
 				"short_description": "Publish a Firefox add-on on addons.mozilla.org (AMO). Set Homepage and Support site on the developer hub. Add links in About this extension. Add a privacy policy when you collect user data.",
-				"long_description": "Submit a signed build through the <a href=\"https://addons.mozilla.org\">Firefox Add-ons</a> developer hub. AMO review can take days. Homepage and Support site appear under Add-on Links. You can also paste https links in About this extension — Mozilla routes them through outgoing and usually marks them nofollow. Check rel on the live page. OpenQuok ships a separate Gecko build; see <a href=\"https://www.openquok.com/docs/installation/firefox-extension\">Firefox extension install guide</a> and <a href=\"https://www.openquok.com/docs/configuration-web/browser-extension-firefox\">Extension (Firefox)</a> for build and ID wiring.",
+				"long_description": "Submit a signed build through the <a href=\"https://addons.mozilla.org\">Firefox Add-ons</a> developer hub. AMO review can take days. Homepage and Support site appear under Add-on Links. You can also paste https links to your own domain in About this extension — Mozilla routes them through outgoing and usually marks them nofollow. Check rel on your live listing. Live example: <a href=\"https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/\">sample AMO listing</a>.",
 				"domain_rating": 99,
 				"monthly_visits": 5000000000,
 				"metrics_source": "editor_estimate",
@@ -530,7 +530,7 @@
 					"dofollow": "nofollow",
 					"cost_tier": "free",
 					"cost_note": null,
-					"description": "On the AMO listing edit page, set Homepage to your site (for example <a href=\"https://www.openquok.com/\">openquok.com</a>). It appears under Add-on Links on the public page. OpenQuok’s live listing links Homepage — verify rel on the rendered anchor.",
+					"description": "On the AMO listing edit page, set Homepage to a page on your own domain (homepage or product landing). Do not paste your AMO listing URL into this field. It appears under Add-on Links on the public page. Verify rel on your live listing (see <a href=\"https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/\">sample AMO listing</a>).",
 					"steps": [
 						{
 							"order": 1,
@@ -540,19 +540,19 @@
 						{
 							"order": 2,
 							"title": "Set Homepage",
-							"body": "In Edit, set Homepage (for example <a href=\"https://www.openquok.com/browser-extension\">browser extension landing</a>)."
+							"body": "In Edit, set Homepage to your product landing or marketing site on your domain."
 						},
 						{
 							"order": 3,
 							"title": "Publish and verify",
-							"body": "Submit a new version or update metadata and wait for review. Open your public listing (for example <a href=\"https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/\">OpenQuok on AMO</a>) and confirm the Homepage link and rel."
+							"body": "Submit a new version or update metadata and wait for review. Open your public listing (for example <a href=\"https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/\">sample AMO listing</a>) and confirm the Homepage link and rel."
 						}
 					],
 					"openquok_cta_kind": "external_doc",
 					"openquok_channel_slug": null,
 					"openquok_plug_name": null,
-					"cta_href": "https://www.openquok.com/browser-extension",
-					"cta_label": "OpenQuok browser extension",
+					"cta_href": "https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/",
+					"cta_label": "Sample AMO listing",
 					"sort_order": 10,
 					"is_admin_published": true,
 					"auto_launch_enabled": false,
@@ -569,7 +569,7 @@
 					"dofollow": "nofollow",
 					"cost_tier": "free",
 					"cost_note": null,
-					"description": "The About this extension body on AMO supports rich text and markdown. Add https links to your site (for example <a href=\"https://www.openquok.com/docs/installation/firefox-extension\">Firefox install guide</a>, <a href=\"https://www.openquok.com/browser-extension\">browser extension landing</a>, <a href=\"https://www.openquok.com/privacy-policy\">privacy policy</a>). Mozilla wraps external URLs through outgoing and usually sets rel=\"nofollow\" — verify on the live listing.",
+					"description": "The About this extension body on AMO supports rich text and markdown. Add https links to pages on your own domain (not your AMO listing URL). Mozilla wraps external URLs through outgoing and usually sets rel=\"nofollow\". Verify href and rel on your live listing (see <a href=\"https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/\">sample AMO listing</a>).",
 					"steps": [
 						{
 							"order": 1,
@@ -579,19 +579,19 @@
 						{
 							"order": 2,
 							"title": "Edit About this extension",
-							"body": "In the description or summary field, add markdown links or bare https URLs to pages on your domain (for example <a href=\"https://www.openquok.com/\">openquok.com</a> and docs)."
+							"body": "In the description or summary field, add markdown links or bare https URLs to pages on your own domain."
 						},
 						{
 							"order": 3,
 							"title": "Publish and verify rel",
-							"body": "Submit a new version or update metadata and wait for review. Open your public listing (for example <a href=\"https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/\">OpenQuok on AMO</a>). In About this extension, confirm each link href and rel."
+							"body": "Submit a new version or update metadata and wait for review. Open your public listing (for example <a href=\"https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/\">sample AMO listing</a>). In About this extension, confirm each link href and rel."
 						}
 					],
 					"openquok_cta_kind": "external_doc",
 					"openquok_channel_slug": null,
 					"openquok_plug_name": null,
-					"cta_href": "https://www.openquok.com/docs/installation/firefox-extension",
-					"cta_label": "Firefox extension install guide",
+					"cta_href": "https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/",
+					"cta_label": "Sample AMO listing",
 					"sort_order": 15,
 					"is_admin_published": true,
 					"auto_launch_enabled": false,
@@ -608,7 +608,7 @@
 					"dofollow": "nofollow",
 					"cost_tier": "free",
 					"cost_note": null,
-					"description": "Set Support site in the developer hub (for example <a href=\"https://www.openquok.com/docs/installation/firefox-extension\">Firefox install guide</a>). Support email alone does not give a URL backlink. See <a href=\"https://www.openquok.com/docs/configuration-web/browser-extension-firefox\">Extension (Firefox)</a> for self-host build notes.",
+					"description": "Set Support site in the developer hub to a https page on your own domain (install docs or help center). Support email alone does not give a URL backlink. Confirm under Add-on Links on your live listing (see <a href=\"https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/\">sample AMO listing</a>).",
 					"steps": [
 						{
 							"order": 1,
@@ -618,19 +618,19 @@
 						{
 							"order": 2,
 							"title": "Set Support site",
-							"body": "Enter Support site (for example <a href=\"https://www.openquok.com/docs/installation/firefox-extension\">Firefox install guide</a>)."
+							"body": "Enter Support site URL on your domain."
 						},
 						{
 							"order": 3,
 							"title": "Check Add-on Links",
-							"body": "After approval, open the public AMO page. Under Add-on Links, confirm Support site href and rel."
+							"body": "After approval, open your public listing (for example <a href=\"https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/\">sample AMO listing</a>). Under Add-on Links, confirm Support site href and rel."
 						}
 					],
 					"openquok_cta_kind": "external_doc",
 					"openquok_channel_slug": null,
 					"openquok_plug_name": null,
-					"cta_href": "https://www.openquok.com/docs/installation/firefox-extension",
-					"cta_label": "Firefox extension install guide",
+					"cta_href": "https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/",
+					"cta_label": "Sample AMO listing",
 					"sort_order": 20,
 					"is_admin_published": true,
 					"auto_launch_enabled": false,
@@ -647,7 +647,7 @@
 					"dofollow": "nofollow",
 					"cost_tier": "free",
 					"cost_note": null,
-					"description": "AMO shows Read the privacy policy when you declare data collection. Host the policy on your site (for example <a href=\"https://www.openquok.com/privacy-policy\">privacy policy</a>). Match the text to permission and data declarations in the add-on submission.",
+					"description": "AMO shows Read the privacy policy when you declare data collection. Host the policy on your own domain. Match the text to permission and data declarations in the add-on submission.",
 					"steps": [
 						{
 							"order": 1,
@@ -657,12 +657,12 @@
 						{
 							"order": 2,
 							"title": "Set policy URL",
-							"body": "Enter your policy URL (for example <a href=\"https://www.openquok.com/privacy-policy\">privacy policy</a>) and complete data-collection disclosures."
+							"body": "Enter your public privacy policy URL and complete data-collection disclosures."
 						},
 						{
 							"order": 3,
 							"title": "Confirm on AMO",
-							"body": "After approval, open the public listing. Confirm the privacy policy link under More information."
+							"body": "After approval, open your public listing (for example <a href=\"https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/\">sample AMO listing</a>). Confirm the privacy policy link under More information."
 						}
 					],
 					"openquok_cta_kind": "none",
