@@ -16,19 +16,19 @@ import { buildPublicFeaturesOrderedHowToSchemas } from '$lib/seo/featuresOrdered
 import {
 	buildBuildBacklinksGuideSections,
 	listBuildBacklinksGuideOpportunityHowToSections
-} from '$lib/link-directory/utils/buildBuildBacklinksGuideSections';
+} from '$lib/link-directory/utils/site/buildBuildBacklinksGuideSections';
 import {
 	createBuildBacklinksSiteGuidePlatformOrganizationSchema,
 	createBuildBacklinksSiteGuideWebPageSchema
-} from '$lib/link-directory/utils/createBuildBacklinksSiteGuideSeoSchema';
+} from '$lib/link-directory/utils/seo/createBuildBacklinksSiteGuideSeoSchema';
 import {
 	formatBuildBacklinksSiteHeroTitle,
 	formatBuildBacklinksSiteMetaDescription,
 	formatBuildBacklinksSiteMetaTitle,
 	formatBuildBacklinksSiteSeoKeywords
-} from '$lib/link-directory/utils/formatBuildBacklinksSiteSeoCopy';
-import { buildBuildBacklinksCategorySiblingGridItems } from '$lib/link-directory/utils/buildBuildBacklinksCategorySiblingGridItems';
-import { buildBuildBacklinksSiteFaqSection } from '$lib/link-directory/utils/buildBuildBacklinksSiteFaqSection';
+} from '$lib/link-directory/utils/format/formatBuildBacklinksSiteSeoCopy';
+import { buildBuildBacklinksCategorySiblingGridItems } from '$lib/link-directory/utils/site/buildBuildBacklinksCategorySiblingGridItems';
+import { buildBuildBacklinksSiteFaqSection } from '$lib/link-directory/utils/site/buildBuildBacklinksSiteFaqSection';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';

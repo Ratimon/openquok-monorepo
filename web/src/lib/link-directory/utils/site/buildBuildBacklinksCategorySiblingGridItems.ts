@@ -7,7 +7,7 @@ import { icons } from '$data/icons';
 
 import { getRootPathPublicBuildBacklinksSite } from '$lib/area-public/constants/getRootPathPublicBuildBacklinks';
 import { getChannelSeedBySlug } from '$lib/content/constants/channels/catalog/channelCatalogLookup';
-import { resolveDirectoryChannelSlugForBuildBacklinksSite } from '$lib/link-directory/utils/resolveDirectoryChannelSlugForBuildBacklinksSite';
+import { resolveDirectoryChannelSlugForBuildBacklinksSite } from '$lib/link-directory/utils/site/resolveDirectoryChannelSlugForBuildBacklinksSite';
 import { route } from '$lib/utils/path';
 
 function resolveSiblingGridIcon(site: LinkDirectorySiteDto): IconName {

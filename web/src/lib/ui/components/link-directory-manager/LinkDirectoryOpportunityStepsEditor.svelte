@@ -10,7 +10,7 @@
 	import * as Field from '$lib/ui/field';
 	import LinkDirectoryRichHtmlField from '$lib/ui/components/link-directory-manager/LinkDirectoryRichHtmlField.svelte';
 	import { Input } from '$lib/ui/input';
-	import { sortLinkDirectoryOpportunitySteps } from '$lib/link-directory/utils/normalizeLinkDirectoryOpportunityStepsForSave';
+	import { sortLinkDirectoryOpportunitySteps } from '$lib/link-directory/utils/admin/normalizeLinkDirectoryOpportunityStepsForSave';
 
 	type LocalStepRow = LinkDirectoryOpportunityStepDto & { id: string };
 

@@ -5,7 +5,7 @@ import type { LinkDirectorySiteDto } from '$lib/link-directory/link-directory.ty
 import {
 	resolveDirectoryChannelPlatformLabelForBuildBacklinksSite,
 	resolveDirectoryChannelSlugForBuildBacklinksSite
-} from '$lib/link-directory/utils/resolveDirectoryChannelSlugForBuildBacklinksSite';
+} from '$lib/link-directory/utils/site/resolveDirectoryChannelSlugForBuildBacklinksSite';
 
 function makeSite(
 	overrides: Partial<Pick<LinkDirectorySiteDto, 'slug' | 'openquokChannelSlug'>>

@@ -8,18 +8,18 @@
 	import {
 		resolveDirectoryChannelPlatformLabelForBuildBacklinksSite,
 		resolveDirectoryChannelSlugForBuildBacklinksSite
-	} from '$lib/link-directory/utils/resolveDirectoryChannelSlugForBuildBacklinksSite';
+	} from '$lib/link-directory/utils/site/resolveDirectoryChannelSlugForBuildBacklinksSite';
 	import { route, url } from '$lib/utils/path';
 	import {
 		formatMetricsUpdatedLabel,
 		formatMonthlyVisitsLabel
-	} from '$lib/link-directory/utils/formatLinkDirectoryMetrics';
-	import { formatOpportunityIndexTitle } from '$lib/link-directory/utils/formatBuildBacklinksGuideDisplayTitle';
-	import { buildBuildBacklinksSiteDetailSidebarMetrics } from '$lib/link-directory/utils/buildBuildBacklinksSiteDetailSidebarMetrics';
+	} from '$lib/link-directory/utils/format/formatLinkDirectoryMetrics';
+	import { formatOpportunityIndexTitle } from '$lib/link-directory/utils/format/formatBuildBacklinksGuideDisplayTitle';
+	import { buildBuildBacklinksSiteDetailSidebarMetrics } from '$lib/link-directory/utils/site/buildBuildBacklinksSiteDetailSidebarMetrics';
 	import {
 		buildBacklinksSiteEffortSidebarMetricLabel,
 		formatBuildBacklinksSiteEffortSidebarValue
-	} from '$lib/link-directory/utils/formatBuildBacklinksSiteEffortSummary';
+	} from '$lib/link-directory/utils/format/formatBuildBacklinksSiteEffortSummary';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import SubjectRating from '$lib/ui/components/community/SubjectRating.svelte';

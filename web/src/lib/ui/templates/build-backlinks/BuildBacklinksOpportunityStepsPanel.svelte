@@ -4,9 +4,9 @@
 	import {
 		PUBLIC_SETUP_STEPS_FOOTER_PROMPT
 	} from '$lib/content/constants/landing/setup-steps-footer';
-	import type { BuildBacklinksGuideSectionVm } from '$lib/link-directory/utils/buildBuildBacklinksGuideSections';
-	import { prepareLinkDirectoryRichTextForDisplay } from '$lib/link-directory/utils/linkDirectoryRichText';
-	import { resolveOpportunityCta } from '$lib/link-directory/utils/resolveOpportunityCtaHref';
+	import type { BuildBacklinksGuideSectionVm } from '$lib/link-directory/utils/site/buildBuildBacklinksGuideSections';
+	import { prepareLinkDirectoryRichTextForDisplay } from '$lib/link-directory/utils/content/linkDirectoryRichText';
+	import { resolveOpportunityCta } from '$lib/link-directory/utils/site/resolveOpportunityCtaHref';
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import type { SafariMockContentId } from '$lib/ui/templates/device-mocks/safari/safariMock.types';

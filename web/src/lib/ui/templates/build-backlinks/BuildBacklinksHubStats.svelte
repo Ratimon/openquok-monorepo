@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { BuildBacklinksHubStatsViewModel } from '$lib/link-directory/utils/buildBuildBacklinksHubStats';
+	import type { BuildBacklinksHubStatsViewModel } from '$lib/link-directory/utils/hub/buildBuildBacklinksHubStats';
 
 	import { cn } from '$lib/ui/helpers/common';
 

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { LINK_DIRECTORY_ADMIN_METRICS_COPY } from '$lib/link-directory/constants/linkDirectoryAdminMetricsCopy';
-	import { formatMetricsUpdatedLabel } from '$lib/link-directory/utils/formatLinkDirectoryMetrics';
+	import { formatMetricsUpdatedLabel } from '$lib/link-directory/utils/format/formatLinkDirectoryMetrics';
 
 	type Props = {
 		metricsUpdatedAt?: string | null;

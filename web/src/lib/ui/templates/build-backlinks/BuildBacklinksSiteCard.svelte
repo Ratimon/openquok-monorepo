@@ -4,8 +4,8 @@
 		LinkDirectorySiteDto,
 		LinkDirectoryTagDto
 	} from '$lib/link-directory/index';
-	import type { BuildBacklinksFacetClick } from '$lib/link-directory/utils/buildBacklinksFacetActions';
-	import { buildBacklinksSiteElementId } from '$lib/link-directory/utils/buildBacklinksSiteElementId';
+	import type { BuildBacklinksFacetClick } from '$lib/link-directory/utils/hub/buildBacklinksFacetActions';
+	import { buildBacklinksSiteElementId } from '$lib/link-directory/utils/hub/buildBacklinksSiteElementId';
 
 	import { icons } from '$data/icons';
 
@@ -14,7 +14,7 @@
 	import {
 		formatMetricsUpdatedLabel,
 		formatMonthlyVisitsLabel
-	} from '$lib/link-directory/utils/formatLinkDirectoryMetrics';
+	} from '$lib/link-directory/utils/format/formatLinkDirectoryMetrics';
 	import { route, url } from '$lib/utils/path';
 
 	import { cn } from '$lib/ui/helpers/common';

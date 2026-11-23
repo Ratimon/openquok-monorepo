@@ -14,18 +14,18 @@ import {
 	buildBuildBacklinksOpportunityBentoStep,
 	buildBuildBacklinksOpportunityStepMedia,
 	type BuildBacklinksOpportunityBentoFields
-} from '$lib/link-directory/utils/buildBuildBacklinksOpportunityBentoStep';
+} from '$lib/link-directory/utils/site/buildBuildBacklinksOpportunityBentoStep';
 import {
 	formatOpportunityIndexTitle,
 	formatSubStepTitle
-} from '$lib/link-directory/utils/formatBuildBacklinksGuideDisplayTitle';
-import { buildBacklinksGuideOrdinalIcon } from '$lib/link-directory/utils/buildBacklinksGuideOrdinalIcon';
-import { buildBacklinksDirectoryAutofillFooter } from '$lib/link-directory/utils/buildBacklinksDirectoryAutofillFooter';
-import { resolveOpportunityCta } from '$lib/link-directory/utils/resolveOpportunityCtaHref';
+} from '$lib/link-directory/utils/format/formatBuildBacklinksGuideDisplayTitle';
+import { buildBacklinksGuideOrdinalIcon } from '$lib/link-directory/utils/site/buildBacklinksGuideOrdinalIcon';
+import { buildBacklinksDirectoryAutofillFooter } from '$lib/link-directory/utils/site/buildBacklinksDirectoryAutofillFooter';
+import { resolveOpportunityCta } from '$lib/link-directory/utils/site/resolveOpportunityCtaHref';
 import {
 	linkDirectoryRichTextToPlainText,
 	prepareLinkDirectoryRichTextForDisplay
-} from '$lib/link-directory/utils/linkDirectoryRichText';
+} from '$lib/link-directory/utils/content/linkDirectoryRichText';
 
 export type BuildBacklinksGuideOverviewCardVm = {
 	slug: string;

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { BuildBacklinksHubFilters, LinkDirectoryOpportunityDto } from '$lib/link-directory/index';
-	import type { BuildBacklinksFacetClick } from '$lib/link-directory/utils/buildBacklinksFacetActions';
+	import type { BuildBacklinksFacetClick } from '$lib/link-directory/utils/hub/buildBacklinksFacetActions';
 
 	import { icons } from '$data/icons';
 
@@ -11,7 +11,7 @@
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import InternalLink from '$lib/ui/links/InternalLink.svelte';
-	import { linkDirectoryRichTextToPlainText } from '$lib/link-directory/utils/linkDirectoryRichText';
+	import { linkDirectoryRichTextToPlainText } from '$lib/link-directory/utils/content/linkDirectoryRichText';
 	import { buildBacklinksFilterBadgeClass } from '$lib/ui/templates/build-backlinks/buildBacklinksFilterBadgeClass';
 
 	type Props = {

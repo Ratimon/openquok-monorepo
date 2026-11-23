@@ -2,7 +2,7 @@ import { directorySiteKeyFromProviderSlug } from 'openquok-common';
 
 import type { AutoLaunchDestinationDto } from '$lib/auto-launch/auto-launch.types';
 import type { BrandedIconName } from '$data/icons';
-import { resolveLinkDirectorySiteLogoDisplayUrl } from '$lib/link-directory/utils/linkDirectoryLogoImages';
+import { resolveLinkDirectorySiteLogoDisplayUrl } from '$lib/link-directory/utils/content/linkDirectoryLogoImages';
 
 export { directorySiteKeyFromProviderSlug };
 

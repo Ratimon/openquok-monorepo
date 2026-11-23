@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/catalog/types';
 
-import { publicChannelSelectLabel } from '$lib/link-directory/utils/publicChannelSelectLabel';
+import { publicChannelSelectLabel } from '$lib/link-directory/utils/admin/publicChannelSelectLabel';
 
 function minimalChannel(overrides: Partial<PublicChannelLandingPageViewModel>): PublicChannelLandingPageViewModel {
 	return {

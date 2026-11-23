@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
 	shouldSyncSlugFromTitle,
 	slugFromTitle
-} from '$lib/link-directory/utils/linkDirectoryAdminSlugSync';
+} from '$lib/link-directory/utils/admin/linkDirectoryAdminSlugSync';
 
 describe('slugFromTitle', () => {
 	it('slugifies titles with the shared stringToSlug rules', () => {

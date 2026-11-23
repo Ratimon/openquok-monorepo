@@ -11,11 +11,11 @@ import type {
 	LinkDirectorySiteDto,
 	LinkDirectoryTagDto
 } from '$lib/link-directory/link-directory.types';
-import { mapBuildBacklinksSortToApi } from '$lib/link-directory/utils/buildBuildBacklinksHubNavigationUrl';
+import { mapBuildBacklinksSortToApi } from '$lib/link-directory/utils/hub/buildBuildBacklinksHubNavigationUrl';
 import {
 	toBuildBacklinksHubStatsViewModel,
 	type BuildBacklinksHubStatsViewModel
-} from '$lib/link-directory/utils/buildBuildBacklinksHubStats';
+} from '$lib/link-directory/utils/hub/buildBuildBacklinksHubStats';
 import {
 	HUB_LIST_FETCH_LIMIT,
 	paginateHubList,

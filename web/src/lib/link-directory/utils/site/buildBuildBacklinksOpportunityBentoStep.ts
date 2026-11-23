@@ -5,7 +5,7 @@ import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPath
 import type { FeaturesOrderedStep } from '$lib/content/constants/agents/types';
 import type { PublicChannelFeatureBentoId } from '$lib/content/constants/channels/catalog/feature-bento';
 import type { LinkDirectoryOpportunityDto } from '$lib/link-directory/link-directory.types';
-import { resolveSchedulePostComposerBentoId } from '$lib/link-directory/utils/resolveSchedulePostComposerBentoId';
+import { resolveSchedulePostComposerBentoId } from '$lib/link-directory/utils/site/resolveSchedulePostComposerBentoId';
 import { route } from '$lib/utils/path';
 
 const CONNECT_CHANNELS_DOC = '/docs/channels/connect';

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { resolveLinkDirectoryManualMetricsOnSave } from '$lib/link-directory/utils/resolveLinkDirectoryManualMetricsOnSave';
+import { resolveLinkDirectoryManualMetricsOnSave } from '$lib/link-directory/utils/admin/resolveLinkDirectoryManualMetricsOnSave';
 
 describe('resolveLinkDirectoryManualMetricsOnSave', () => {
 	it('stamps updated-at and default source when DR changes on an existing site', () => {

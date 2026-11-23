@@ -8,15 +8,15 @@
 	import type { DirectoryLaunchProviderSummary } from '$lib/auto-launch/auto-launch.types';
 	import { linkDirectoryOpportunityFormSchema } from '$lib/link-directory/link-directory-admin.types';
 	import { linkDirectoryRepository } from '$lib/link-directory/index';
-	import { defaultLinkDirectoryOpportunitySortOrder } from '$lib/link-directory/utils/defaultLinkDirectoryOpportunitySortOrder';
+	import { defaultLinkDirectoryOpportunitySortOrder } from '$lib/link-directory/utils/admin/defaultLinkDirectoryOpportunitySortOrder';
 	import {
 		shouldSyncSlugFromTitle,
 		slugFromTitle
-	} from '$lib/link-directory/utils/linkDirectoryAdminSlugSync';
+	} from '$lib/link-directory/utils/admin/linkDirectoryAdminSlugSync';
 	import {
 		normalizeLinkDirectoryOpportunityStepsForSave,
 		sortLinkDirectoryOpportunitySteps
-	} from '$lib/link-directory/utils/normalizeLinkDirectoryOpportunityStepsForSave';
+	} from '$lib/link-directory/utils/admin/normalizeLinkDirectoryOpportunityStepsForSave';
 
 	import { normalizeHttpUrlInputIfLikely } from '$lib/utils/normalizeHttpUrlInput';
 	import { toast } from '$lib/ui/sonner';

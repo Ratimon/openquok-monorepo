@@ -13,9 +13,9 @@ import {
 	createBuildBacklinksCollectionPageSchema,
 	createBuildBacklinksItemListSchema,
 	createBuildBacklinksTagAboutSchema
-} from '$lib/link-directory/utils/createBuildBacklinksSeoSchema';
-import { parseBuildBacklinksHubQueryFiltersFromUrl } from '$lib/link-directory/utils/buildBuildBacklinksHubNavigationUrl';
-import { resolveBuildBacklinksHubCatalog } from '$lib/link-directory/utils/resolveBuildBacklinksHubCatalog';
+} from '$lib/link-directory/utils/seo/createBuildBacklinksSeoSchema';
+import { parseBuildBacklinksHubQueryFiltersFromUrl } from '$lib/link-directory/utils/hub/buildBuildBacklinksHubNavigationUrl';
+import { resolveBuildBacklinksHubCatalog } from '$lib/link-directory/utils/hub/resolveBuildBacklinksHubCatalog';
 import {
 	buildListingsHubBreadcrumbItems,
 	deriveListingsHubBreadcrumbVariant
@@ -25,8 +25,8 @@ import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonica
 import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 import { parseHubListPagination } from '$lib/listings/utils/hubListPagination';
-import { formatBuildBacklinksHubHeroDescription } from '$lib/link-directory/utils/buildBuildBacklinksHubStats';
-import { shouldNoindexBuildBacklinksHubListing } from '$lib/link-directory/utils/shouldNoindexBuildBacklinksHubListing';
+import { formatBuildBacklinksHubHeroDescription } from '$lib/link-directory/utils/hub/buildBuildBacklinksHubStats';
+import { shouldNoindexBuildBacklinksHubListing } from '$lib/link-directory/utils/hub/shouldNoindexBuildBacklinksHubListing';
 
 type BuildBacklinksHubLoadOverrides = {
 	fixedCategorySlug?: string;

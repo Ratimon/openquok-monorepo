@@ -7,8 +7,8 @@ import type {
 } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import type { ListingCommentViewModel } from '$lib/listings/GetListing.presenter.svelte';
 import type { LinkDirectorySiteDto } from '$lib/link-directory/index';
-import type { BuildBacklinksGuideSectionVm } from '$lib/link-directory/utils/buildBuildBacklinksGuideSections';
-import type { BuildBacklinksSiteFaqSection } from '$lib/link-directory/utils/buildBuildBacklinksSiteFaqSection';
+import type { BuildBacklinksGuideSectionVm } from '$lib/link-directory/utils/site/buildBuildBacklinksGuideSections';
+import type { BuildBacklinksSiteFaqSection } from '$lib/link-directory/utils/site/buildBuildBacklinksSiteFaqSection';
 import type { PublicChannelSiblingGridItem } from '$lib/content/utils/buildPublicChannelSiblingGridCopy';
 
 import type { PageLoad } from './$types';

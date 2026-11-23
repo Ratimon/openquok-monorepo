@@ -11,7 +11,7 @@ import type {
 	LinkDirectorySiteDto,
 	LinkDirectoryTagDto
 } from '$lib/link-directory/index';
-import type { BuildBacklinksHubStatsViewModel } from '$lib/link-directory/utils/buildBuildBacklinksHubStats';
+import type { BuildBacklinksHubStatsViewModel } from '$lib/link-directory/utils/hub/buildBuildBacklinksHubStats';
 
 import type { PageLoad } from './$types';
 

@@ -6,7 +6,7 @@
 	} from '$lib/link-directory/index';
 
 	import { BUILD_BACKLINKS_SORT_OPTIONS } from '$lib/link-directory/constants/buildBacklinksSortOptions';
-	import { buildBuildBacklinksActiveFilterChips } from '$lib/link-directory/utils/buildBuildBacklinksActiveFilters';
+	import { buildBuildBacklinksActiveFilterChips } from '$lib/link-directory/utils/hub/buildBuildBacklinksActiveFilters';
 	import { cn } from '$lib/ui/helpers/common';
 
 	type Props = {

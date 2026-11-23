@@ -5,11 +5,11 @@ import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { PUBLIC_BUILD_BACKLINKS_HUB } from '$lib/content/constants/hubs/build-backlinks';
 import { buildListingsHubBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { linkDirectoryRepository } from '$lib/link-directory/index';
-import { buildBuildBacklinksCategoryOverview } from '$lib/link-directory/utils/buildBuildBacklinksOverviewCounts';
+import { buildBuildBacklinksCategoryOverview } from '$lib/link-directory/utils/hub/buildBuildBacklinksOverviewCounts';
 import {
 	createBuildBacklinksCategoryTermSetSchema,
 	createBuildBacklinksCollectionPageSchema
-} from '$lib/link-directory/utils/createBuildBacklinksSeoSchema';
+} from '$lib/link-directory/utils/seo/createBuildBacklinksSeoSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
 import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';

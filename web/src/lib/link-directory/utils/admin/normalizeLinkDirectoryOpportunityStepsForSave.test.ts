@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { normalizeLinkDirectoryOpportunityStepsForSave } from '$lib/link-directory/utils/normalizeLinkDirectoryOpportunityStepsForSave';
+import { normalizeLinkDirectoryOpportunityStepsForSave } from '$lib/link-directory/utils/admin/normalizeLinkDirectoryOpportunityStepsForSave';
 
 describe('normalizeLinkDirectoryOpportunityStepsForSave', () => {
 	it('sorts, trims, drops empty rows, and renumbers order', () => {

@@ -7,7 +7,7 @@ import type {
 	WebSite
 } from 'schema-dts';
 
-import { sortPublishedOpportunities } from '$lib/link-directory/utils/createBuildBacklinksSiteGuideHowToSchema';
+import { sortPublishedOpportunities } from '$lib/link-directory/utils/seo/createBuildBacklinksSiteGuideHowToSchema';
 
 import {
 	getRootPathPublicBuildBacklinks,
@@ -21,7 +21,7 @@ import type { LinkDirectorySiteDto } from '$lib/link-directory/link-directory.ty
 import type {
 	BuildBacklinksCategoryOverviewItem,
 	BuildBacklinksTagOverviewItem
-} from '$lib/link-directory/utils/buildBuildBacklinksOverviewCounts';
+} from '$lib/link-directory/utils/hub/buildBuildBacklinksOverviewCounts';
 
 type DefinedTermInput = {
 	slug: string;

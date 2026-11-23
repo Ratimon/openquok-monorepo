@@ -1,12 +1,12 @@
 <script lang="ts">
 	import type { BuildBacklinksHubFilters, LinkDirectoryOpportunityDto } from '$lib/link-directory/index';
-	import type { BuildBacklinksFacetClick } from '$lib/link-directory/utils/buildBacklinksFacetActions';
+	import type { BuildBacklinksFacetClick } from '$lib/link-directory/utils/hub/buildBacklinksFacetActions';
 
 	import { page } from '$app/state';
 
-	import { resolveOpportunityCta } from '$lib/link-directory/utils/resolveOpportunityCtaHref';
+	import { resolveOpportunityCta } from '$lib/link-directory/utils/site/resolveOpportunityCtaHref';
 	import { hostedMarketingAnchorAttrs } from '$lib/utils/hostedMarketingHref';
-	import { prepareLinkDirectoryRichTextForDisplay } from '$lib/link-directory/utils/linkDirectoryRichText';
+	import { prepareLinkDirectoryRichTextForDisplay } from '$lib/link-directory/utils/content/linkDirectoryRichText';
 
 	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
 	import InternalLink from '$lib/ui/links/InternalLink.svelte';

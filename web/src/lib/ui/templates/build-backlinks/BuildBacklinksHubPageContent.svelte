@@ -11,7 +11,7 @@
 
 	import { PUBLIC_BUILD_BACKLINKS_HUB } from '$lib/content/constants/hubs/build-backlinks';
 	import { publicBuildBacklinksBookmarksPresenter } from '$lib/link-directory/index';
-	import { resolveBuildBacklinksHubCatalog } from '$lib/link-directory/utils/resolveBuildBacklinksHubCatalog';
+	import { resolveBuildBacklinksHubCatalog } from '$lib/link-directory/utils/hub/resolveBuildBacklinksHubCatalog';
 	import { parseHubListPagination } from '$lib/listings/utils/hubListPagination';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 

@@ -15,7 +15,7 @@
 	import { autoLaunchRepository } from '$lib/auto-launch';
 	import { directorySiteKeyFromProviderSlug } from '$lib/auto-launch/buildDirectoryAddChannelTiles';
 	import { publicBuildBacklinksBookmarksPresenter, linkDirectoryRepository } from '$lib/link-directory/index';
-	import { resolveBuildBacklinksHubCatalog } from '$lib/link-directory/utils/resolveBuildBacklinksHubCatalog';
+	import { resolveBuildBacklinksHubCatalog } from '$lib/link-directory/utils/hub/resolveBuildBacklinksHubCatalog';
 	import { route, url } from '$lib/utils/path';
 	import { icons } from '$data/icons';
 

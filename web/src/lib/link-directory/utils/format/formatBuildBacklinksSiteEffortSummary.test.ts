@@ -5,7 +5,7 @@ import {
 	buildBacklinksSiteEffortSidebarMetricLabel,
 	formatBuildBacklinksSiteEffortSidebarValue,
 	summarizeEasiestPublishedEffort
-} from '$lib/link-directory/utils/formatBuildBacklinksSiteEffortSummary';
+} from '$lib/link-directory/utils/format/formatBuildBacklinksSiteEffortSummary';
 
 function opp(effort: LinkDirectoryOpportunityDto['effort']): LinkDirectoryOpportunityDto {
 	return {

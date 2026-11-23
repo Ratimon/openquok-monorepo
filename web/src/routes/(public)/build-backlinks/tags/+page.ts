@@ -5,7 +5,7 @@ import type {
 	ListingsHubBreadcrumbKind,
 	ListingsHubBreadcrumbVariant
 } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
-import type { BuildBacklinksTagOverviewItem } from '$lib/link-directory/utils/buildBuildBacklinksOverviewCounts';
+import type { BuildBacklinksTagOverviewItem } from '$lib/link-directory/utils/hub/buildBuildBacklinksOverviewCounts';
 
 import type { PageLoad } from './$types';
 

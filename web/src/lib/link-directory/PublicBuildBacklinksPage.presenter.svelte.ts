@@ -3,7 +3,7 @@ import type { BuildBacklinksHubFilters } from '$lib/link-directory/link-director
 import {
 	buildBuildBacklinksHubNavigationUrl,
 	parseBuildBacklinksHubQueryFiltersFromUrl
-} from '$lib/link-directory/utils/buildBuildBacklinksHubNavigationUrl';
+} from '$lib/link-directory/utils/hub/buildBuildBacklinksHubNavigationUrl';
 
 export class PublicBuildBacklinksPagePresenter {
 	constructor(private readonly linkDirectoryRepository: LinkDirectoryRepository) {}

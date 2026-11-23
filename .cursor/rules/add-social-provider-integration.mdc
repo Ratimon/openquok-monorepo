@@ -42,7 +42,7 @@ globs:
   - web/src/lib/canvas-editor/utils/aspectRatioPresets.ts
   - web/src/lib/skill-builder/**
   - web/src/lib/ai-humanize/**
-  - web/src/lib/link-directory/utils/resolveSchedulePostComposerBentoId.ts
+  - web/src/lib/link-directory/utils/site/resolveSchedulePostComposerBentoId.ts
   - web/src/data/landing-social-platforms.ts
   - backend/swagger/jsdoc/**
 alwaysApply: false

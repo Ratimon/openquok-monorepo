@@ -3,7 +3,7 @@ import type { LinkDirectoryRepository } from '$lib/link-directory/LinkDirectory.
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { PublicBuildBacklinksBookmarksPresenter } from '$lib/link-directory/PublicBuildBacklinksBookmarks.presenter.svelte';
-import { mergeBuildBacklinksBookmarkSlugs } from '$lib/link-directory/utils/mergeBuildBacklinksBookmarkSlugs';
+import { mergeBuildBacklinksBookmarkSlugs } from '$lib/link-directory/utils/hub/mergeBuildBacklinksBookmarkSlugs';
 
 describe('mergeBuildBacklinksBookmarkSlugs', () => {
 	it('keeps server order and appends local-only slugs', () => {

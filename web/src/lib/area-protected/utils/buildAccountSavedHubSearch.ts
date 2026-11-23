@@ -1,6 +1,6 @@
 import { DEFAULT_BUILD_BACKLINKS_SORT } from '$lib/link-directory/constants/buildBacklinksSortOptions';
 import type { BuildBacklinksHubFilters } from '$lib/link-directory/link-directory.types';
-import { parseBuildBacklinksHubQueryFiltersFromUrl } from '$lib/link-directory/utils/buildBuildBacklinksHubNavigationUrl';
+import { parseBuildBacklinksHubQueryFiltersFromUrl } from '$lib/link-directory/utils/hub/buildBuildBacklinksHubNavigationUrl';
 import type { ExtensionSort, ExtensionTypeFilter } from '$lib/listings/listing.types';
 import {
 	HUB_LIST_DEFAULT_PAGE_SIZE,

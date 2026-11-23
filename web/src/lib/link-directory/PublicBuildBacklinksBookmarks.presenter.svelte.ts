@@ -5,8 +5,8 @@ import {
 	clearBuildBacklinksLocalBookmarks,
 	readBuildBacklinksLocalBookmarks,
 	writeBuildBacklinksLocalBookmarks
-} from '$lib/link-directory/utils/buildBacklinksBookmarksLocalStorage';
-import { mergeBuildBacklinksBookmarkSlugs } from '$lib/link-directory/utils/mergeBuildBacklinksBookmarkSlugs';
+} from '$lib/link-directory/utils/hub/buildBacklinksBookmarksLocalStorage';
+import { mergeBuildBacklinksBookmarkSlugs } from '$lib/link-directory/utils/hub/mergeBuildBacklinksBookmarkSlugs';
 
 export type BuildBacklinksBookmarkToggleResult =
 	| { ok: true; bookmarked: boolean }

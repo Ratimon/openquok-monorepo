@@ -1,6 +1,6 @@
 import type { LinkDirectoryCtaKind } from '$lib/link-directory/link-directory.types';
 import { publicDirectoryChannelLabel } from '$lib/content/constants/channels/catalog/publicDirectoryChannelOptions';
-import { buildBacklinksDirectoryAutofillFooter } from '$lib/link-directory/utils/buildBacklinksDirectoryAutofillFooter';
+import { buildBacklinksDirectoryAutofillFooter } from '$lib/link-directory/utils/site/buildBacklinksDirectoryAutofillFooter';
 import { route } from '$lib/utils/path';
 
 const CONNECT_CHANNELS_DOC = '/docs/channels/connect';

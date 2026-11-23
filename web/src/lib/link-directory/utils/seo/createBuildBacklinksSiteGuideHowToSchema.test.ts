@@ -4,7 +4,7 @@ import type { LinkDirectoryOpportunityDto } from '$lib/link-directory/link-direc
 
 import { buildPublicFeaturesOrderedHowToSchemas } from '$lib/seo/featuresOrderedHowToSchema';
 
-import { buildBuildBacklinksGuideSections } from './buildBuildBacklinksGuideSections';
+import { buildBuildBacklinksGuideSections } from '$lib/link-directory/utils/site/buildBuildBacklinksGuideSections';
 import {
 	createBuildBacklinksOpportunityHowToSchemas,
 	createBuildBacklinksSiteGuideHowToSchema

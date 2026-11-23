@@ -56,7 +56,7 @@ Public programmatic routes render in `+page.svelte` — **no** thin `*Page.svelt
 | --- | --- | --- | --- |
 | Tools, agents, MCP, API, compare | `hubs/*.ts`, channel/agent/API catalogs | `$lib/content/utils/buildProgrammaticSeoTitles.ts` (meta vs hero split) | `$lib/seo/tools/*`, `createPublicFaqSEOSchema`, domain loads |
 | Playbooks, building-blocks hubs + filters | `$lib/listings/constants/publicListingsHubConfig.ts` | `formatPlaybooksFilterHeroTitle` / `formatBuildingBlocksFilterHeroTitle` → shared `formatHubFilterHeroTitle` | `$lib/listings/utils/createPlaybooksSeoSchema.ts`, `createBuildingBlocksSeoSchema.ts`, `listingSchema.ts` |
-| Build-backlinks hub + filters | `$lib/content/constants/hubs/build-backlinks.ts` | `formatBuildBacklinksFilterHeroTitle` → `formatHubFilterHeroTitle`; site detail → `formatBuildBacklinksSiteSeoCopy.ts` | `$lib/link-directory/utils/createBuildBacklinks*SeoSchema.ts` |
+| Build-backlinks hub + filters | `$lib/content/constants/hubs/build-backlinks.ts` | `formatBuildBacklinksFilterHeroTitle` → `formatHubFilterHeroTitle`; site detail → `format/formatBuildBacklinksSiteSeoCopy.ts` | `$lib/link-directory/utils/seo/createBuildBacklinks*SeoSchema.ts` |
 | Marketing keyword landings | `marketing/social-autopilot-landing.ts`, `marketing/directory-submission-landing.ts` | Hero, compare, FAQ, and meta strings in the landing config module | `+page.server.ts` (`WebPage`, `SoftwareApplication`, `createPublicFaqSEOSchema`, breadcrumb JSON-LD) |
 | Channel detail | `channels/catalog/platforms/{slug}.ts` | `metaTitle` / `heroTitle` on the platform VM | Channel `+page.server.ts` + FAQ/setup JSON-LD helpers |
 

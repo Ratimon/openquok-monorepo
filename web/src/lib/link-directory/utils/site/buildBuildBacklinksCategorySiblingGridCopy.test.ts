@@ -4,7 +4,7 @@ import {
 	buildBuildBacklinksCategorySiblingGridCardDescription,
 	buildBuildBacklinksCategorySiblingGridDescription,
 	buildBuildBacklinksCategorySiblingGridTitle
-} from '$lib/link-directory/utils/buildBuildBacklinksCategorySiblingGridCopy';
+} from '$lib/link-directory/utils/site/buildBuildBacklinksCategorySiblingGridCopy';
 
 describe('buildBuildBacklinksCategorySiblingGridCopy', () => {
 	it('builds category-aware section title', () => {

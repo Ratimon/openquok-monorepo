@@ -6,7 +6,7 @@ import {
 	buildBuildBacklinksGuideSections,
 	listBuildBacklinksGuideOpportunityHowToSections,
 	sortPublishedOpportunities
-} from '$lib/link-directory/utils/buildBuildBacklinksGuideSections';
+} from '$lib/link-directory/utils/site/buildBuildBacklinksGuideSections';
 
 export { sortPublishedOpportunities };
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { BuildBacklinksGuideOverviewCardVm } from '$lib/link-directory/utils/buildBuildBacklinksGuideSections';
+	import type { BuildBacklinksGuideOverviewCardVm } from '$lib/link-directory/utils/site/buildBuildBacklinksGuideSections';
 	import { cardPatternAtIndex } from '$lib/ui/patterns';
 
 	import FeaturesSectionHeader from '$lib/ui/templates/feature-grid/FeaturesSectionHeader.svelte';

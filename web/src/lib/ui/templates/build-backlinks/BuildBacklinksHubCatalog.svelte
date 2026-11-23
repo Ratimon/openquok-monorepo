@@ -9,8 +9,8 @@
 
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import type { BuildBacklinksFacetClick } from '$lib/link-directory/utils/buildBacklinksFacetActions';
-	import { applyBuildBacklinksFacetClick } from '$lib/link-directory/utils/buildBacklinksFacetActions';
+	import type { BuildBacklinksFacetClick } from '$lib/link-directory/utils/hub/buildBacklinksFacetActions';
+	import { applyBuildBacklinksFacetClick } from '$lib/link-directory/utils/hub/buildBacklinksFacetActions';
 	import {
 		buildHubListUrl,
 		HUB_LIST_PAGE_SIZE_OPTIONS

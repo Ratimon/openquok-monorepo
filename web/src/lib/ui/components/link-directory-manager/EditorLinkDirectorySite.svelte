@@ -11,16 +11,16 @@
 	import { isBuildBacklinksEditorialTagSlug } from '$lib/link-directory/constants/buildBacklinksTagTaxonomy';
 	import { linkDirectorySiteFormSchema } from '$lib/link-directory/link-directory-admin.types';
 	import { linkDirectoryRepository } from '$lib/link-directory/index';
-	import { resolveLinkDirectoryManualMetricsOnSave } from '$lib/link-directory/utils/resolveLinkDirectoryManualMetricsOnSave';
+	import { resolveLinkDirectoryManualMetricsOnSave } from '$lib/link-directory/utils/admin/resolveLinkDirectoryManualMetricsOnSave';
 	import {
 		buildLinkDirectoryLogoPublicUrl,
 		resolveLinkDirectoryLogoStorageKey
-	} from '$lib/link-directory/utils/linkDirectoryLogoImages';
-	import { sortLinkDirectoryOpportunitySteps } from '$lib/link-directory/utils/normalizeLinkDirectoryOpportunityStepsForSave';
+	} from '$lib/link-directory/utils/content/linkDirectoryLogoImages';
+	import { sortLinkDirectoryOpportunitySteps } from '$lib/link-directory/utils/admin/normalizeLinkDirectoryOpportunityStepsForSave';
 	import {
 		shouldSyncSlugFromTitle,
 		slugFromTitle
-	} from '$lib/link-directory/utils/linkDirectoryAdminSlugSync';
+	} from '$lib/link-directory/utils/admin/linkDirectoryAdminSlugSync';
 	import { listAvailablePublicChannels } from '$lib/content/constants/channels';
 	import { imageRepository } from '$lib/core/index';
 	import { DeleteImagePresenter } from '$lib/core/DeleteImage.presenter.svelte';
@@ -40,7 +40,7 @@
 		formatMonthlyVisitsEditorDisplay,
 		formatMonthlyVisitsEditorExactHint,
 		parseMonthlyVisitsFormField
-	} from '$lib/link-directory/utils/monthlyVisitsFormField';
+	} from '$lib/link-directory/utils/admin/monthlyVisitsFormField';
 	import { parseOptionalIntFormField, trimFormField } from '$lib/utils/trimFormField';
 	import { route, url } from '$lib/utils/path';
 
@@ -58,7 +58,7 @@
 	import LinkDirectoryAutoLaunchDestinationModal from '$lib/ui/components/link-directory-manager/LinkDirectoryAutoLaunchDestinationModal.svelte';
 	import { autoLaunchRepository } from '$lib/auto-launch/index';
 	import type { DirectoryLaunchProviderSummary } from '$lib/auto-launch/auto-launch.types';
-	import { linkDirectoryRichTextToPlainText } from '$lib/link-directory/utils/linkDirectoryRichText';
+	import { linkDirectoryRichTextToPlainText } from '$lib/link-directory/utils/content/linkDirectoryRichText';
 	import SupabaseImageUploadArea from '$lib/ui/supabase/SupabaseImageUploadArea.svelte';
 
 	type Props = {

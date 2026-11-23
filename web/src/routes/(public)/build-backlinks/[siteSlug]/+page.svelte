@@ -11,8 +11,8 @@
 		buildBuildBacklinksCategorySiblingGridCardDescription,
 		buildBuildBacklinksCategorySiblingGridDescription,
 		buildBuildBacklinksCategorySiblingGridTitle
-	} from '$lib/link-directory/utils/buildBuildBacklinksCategorySiblingGridCopy';
-	import { prepareLinkDirectoryRichTextForDisplay } from '$lib/link-directory/utils/linkDirectoryRichText';
+	} from '$lib/link-directory/utils/site/buildBuildBacklinksCategorySiblingGridCopy';
+	import { prepareLinkDirectoryRichTextForDisplay } from '$lib/link-directory/utils/content/linkDirectoryRichText';
 	import { getBillingPresenter } from '$lib/billing';
 	import {
 		publicBuildBacklinksBookmarksPresenter,

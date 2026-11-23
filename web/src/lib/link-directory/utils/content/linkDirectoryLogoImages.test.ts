@@ -5,7 +5,7 @@ import {
 	extractLinkDirectoryLogoStoragePathFromImageSrc,
 	resolveLinkDirectorySiteLogoDisplayUrl,
 	resolveLinkDirectoryLogoStorageKey
-} from '$lib/link-directory/utils/linkDirectoryLogoImages';
+} from '$lib/link-directory/utils/content/linkDirectoryLogoImages';
 
 describe('extractLinkDirectoryLogoStoragePathFromImageSrc', () => {
 	it('derives storage keys from Supabase public object URLs', () => {

@@ -6,12 +6,12 @@ import type {
 	LinkDirectoryOpportunityDto,
 	LinkDirectorySiteDto
 } from '$lib/link-directory/link-directory.types';
-import { formatMonthlyVisitsLabel } from '$lib/link-directory/utils/formatLinkDirectoryMetrics';
-import { summarizePublishedOpportunityDofollow } from '$lib/link-directory/utils/formatBuildBacklinksSiteSeoCopy';
+import { formatMonthlyVisitsLabel } from '$lib/link-directory/utils/format/formatLinkDirectoryMetrics';
+import { summarizePublishedOpportunityDofollow } from '$lib/link-directory/utils/format/formatBuildBacklinksSiteSeoCopy';
 import {
 	formatLinkDirectoryEffortLabel,
 	summarizeEasiestPublishedEffort
-} from '$lib/link-directory/utils/formatBuildBacklinksSiteEffortSummary';
+} from '$lib/link-directory/utils/format/formatBuildBacklinksSiteEffortSummary';
 
 export type BuildBacklinksSiteFaqSection = {
 	faqSubtitle: string;

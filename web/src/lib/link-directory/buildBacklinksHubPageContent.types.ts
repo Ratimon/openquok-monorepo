@@ -8,7 +8,7 @@ import type {
 	LinkDirectorySiteDto,
 	LinkDirectoryTagDto
 } from '$lib/link-directory/link-directory.types';
-import type { BuildBacklinksHubStatsViewModel } from '$lib/link-directory/utils/buildBuildBacklinksHubStats';
+import type { BuildBacklinksHubStatsViewModel } from '$lib/link-directory/utils/hub/buildBuildBacklinksHubStats';
 
 export type BuildBacklinksHubPageContentData = {
 	sitesVm: LinkDirectorySiteDto[];

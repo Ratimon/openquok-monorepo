@@ -3,7 +3,7 @@
 	import {
 		publicChannelSelectLabel,
 		type PublicChannelSelectLabelContext
-	} from '$lib/link-directory/utils/publicChannelSelectLabel';
+	} from '$lib/link-directory/utils/admin/publicChannelSelectLabel';
 	import { trimFormField } from '$lib/utils/trimFormField';
 
 	const helperText =
