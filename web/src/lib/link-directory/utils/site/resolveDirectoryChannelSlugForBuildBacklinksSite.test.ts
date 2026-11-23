@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { LinkDirectorySiteDto } from '$lib/link-directory/link-directory.types';
 
 import {
+	resolveChannelCatalogSlugForBuildBacklinksSite,
 	resolveDirectoryChannelPlatformLabelForBuildBacklinksSite,
 	resolveDirectoryChannelSlugForBuildBacklinksSite
 } from '$lib/link-directory/utils/site/resolveDirectoryChannelSlugForBuildBacklinksSite';
@@ -35,6 +36,19 @@ describe('resolveDirectoryChannelSlugForBuildBacklinksSite', () => {
 	it('returns null when no directory channel matches', () => {
 		expect(
 			resolveDirectoryChannelSlugForBuildBacklinksSite(makeSite({ slug: 'reddit', openquokChannelSlug: null }))
+		).toBeNull();
+	});
+
+	it('resolves social channel catalog slug separately from directory channel slug', () => {
+		expect(
+			resolveChannelCatalogSlugForBuildBacklinksSite(
+				makeSite({ slug: 'threads', openquokChannelSlug: 'threads' })
+			)
+		).toBe('threads');
+		expect(
+			resolveDirectoryChannelSlugForBuildBacklinksSite(
+				makeSite({ slug: 'threads', openquokChannelSlug: 'threads' })
+			)
 		).toBeNull();
 	});
 

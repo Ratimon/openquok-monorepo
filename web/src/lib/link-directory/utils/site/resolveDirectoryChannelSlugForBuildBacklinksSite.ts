@@ -8,20 +8,20 @@ import { PUBLIC_DIRECTORY_CHANNEL_LANDING_PAGES } from '$lib/content/constants/c
 
 type BuildBacklinksSiteChannelRef = Pick<LinkDirectorySiteDto, 'slug' | 'openquokChannelSlug'>;
 
-/** Directory channel slug for `/channels/{slug}` when this build-backlinks site has a catalog landing. */
-export function resolveDirectoryChannelSlugForBuildBacklinksSite(
+/** OpenQuok channel catalog slug when this build-backlinks site maps to a public channel (social or directory). */
+export function resolveChannelCatalogSlugForBuildBacklinksSite(
 	site: BuildBacklinksSiteChannelRef
 ): string | null {
 	const channelFromSite = site.openquokChannelSlug?.trim().toLowerCase() ?? '';
-	if (
-		channelFromSite.length > 0 &&
-		isPublicDirectoryChannelSlug(channelFromSite) &&
-		getChannelSeedBySlug(channelFromSite)
-	) {
+	if (channelFromSite.length > 0 && getChannelSeedBySlug(channelFromSite)) {
 		return channelFromSite;
 	}
 
 	const siteSlug = site.slug.trim().toLowerCase();
+	if (siteSlug.length > 0 && getChannelSeedBySlug(siteSlug)) {
+		return siteSlug;
+	}
+
 	if (!siteSlug) return null;
 
 	for (const page of PUBLIC_DIRECTORY_CHANNEL_LANDING_PAGES) {
@@ -32,6 +32,15 @@ export function resolveDirectoryChannelSlugForBuildBacklinksSite(
 	}
 
 	return null;
+}
+
+/** Directory channel slug for `/channels/{slug}` when this build-backlinks site has a catalog landing. */
+export function resolveDirectoryChannelSlugForBuildBacklinksSite(
+	site: BuildBacklinksSiteChannelRef
+): string | null {
+	const channelSlug = resolveChannelCatalogSlugForBuildBacklinksSite(site);
+	if (!channelSlug || !isPublicDirectoryChannelSlug(channelSlug)) return null;
+	return channelSlug;
 }
 
 export function resolveDirectoryChannelPlatformLabelForBuildBacklinksSite(
