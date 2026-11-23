@@ -47,7 +47,19 @@ describe('PUBLIC_BROWSER_EXTENSION_LANDING_CONFIG', () => {
 		expect(html).toContain(`href="${faqHrefDocs('installation/chrome-extension')}"`);
 		expect(html).toContain(`href="${faqHrefDocs('installation/edge-extension')}"`);
 		expect(html).toContain(`href="${faqHrefDocs('installation/firefox-extension')}"`);
+		expect(html).toContain(`href="${faqHrefDocs('configuration-web/browser-extension-chrome')}"`);
+		expect(html).toContain(`href="${faqHrefDocs('configuration-web/browser-extension-edge')}"`);
+		expect(html).toContain(`href="${faqHrefDocs('configuration-web/browser-extension-firefox')}"`);
 		expect(html).toContain(`href="${publicFaqHref.connectChannelsGuide}"`);
+	});
+
+	it('links configuration docs from the related links grid', () => {
+		const hrefs = PUBLIC_BROWSER_EXTENSION_LANDING_CONFIG.relatedLinksSection.items.map(
+			(item) => item.href
+		);
+		expect(hrefs).toContain(faqHrefDocs('configuration-web/browser-extension-chrome'));
+		expect(hrefs).toContain(faqHrefDocs('configuration-web/browser-extension-edge'));
+		expect(hrefs).toContain(faqHrefDocs('configuration-web/browser-extension-firefox'));
 	});
 
 	it('defines a four-step setup process', () => {

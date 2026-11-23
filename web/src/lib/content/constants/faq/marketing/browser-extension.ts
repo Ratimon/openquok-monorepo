@@ -8,14 +8,25 @@ import { getRootPathPublicAgentChannel } from '$lib/area-public/constants/getRoo
 import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
 import { getRootPathPublicDirectorySubmissionTool } from '$lib/area-public/constants/getRootPathPublicDirectorySubmissionTool';
 import { getRootPathPublicSocialAutopilotLanding } from '$lib/area-public/constants/getRootPathPublicSocialAutopilotLanding';
-import { faqHrefDocs, faqLink, faqLinkChromeWebStore, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+import {
+	faqExternalLink,
+	faqHrefDocs,
+	faqLink,
+	faqLinkChromeWebStore,
+	OPENQUOK_GITHUB_REPO_HREF,
+	publicFaqHref
+} from '$lib/content/utils/publicFaqLinks';
 
 import { route } from '$lib/utils/path';
 
 const chromeExtensionDocsHref = faqHrefDocs('installation/chrome-extension');
 const edgeExtensionDocsHref = faqHrefDocs('installation/edge-extension');
 const firefoxExtensionDocsHref = faqHrefDocs('installation/firefox-extension');
-const browserExtensionInstallGuides = `${faqLink(chromeExtensionDocsHref, 'Chrome extension')}, ${faqLink(edgeExtensionDocsHref, 'Edge extension')}, or ${faqLink(firefoxExtensionDocsHref, 'Firefox extension')} install guides`;
+const chromeExtensionConfigHref = faqHrefDocs('configuration-web/browser-extension-chrome');
+const edgeExtensionConfigHref = faqHrefDocs('configuration-web/browser-extension-edge');
+const firefoxExtensionConfigHref = faqHrefDocs('configuration-web/browser-extension-firefox');
+const browserExtensionInstallGuides = `${faqLink(chromeExtensionDocsHref, 'Chrome')}, ${faqLink(edgeExtensionDocsHref, 'Edge')}, and ${faqLink(firefoxExtensionDocsHref, 'Firefox')} install guides`;
+const browserExtensionConfigGuides = `${faqLink(chromeExtensionConfigHref, 'Chrome configuration')}, ${faqLink(edgeExtensionConfigHref, 'Edge configuration')}, and ${faqLink(firefoxExtensionConfigHref, 'Firefox configuration')}`;
 const buildBacklinksHref = publicFaqHref.buildBacklinks;
 const connectChannelsHref = publicFaqHref.connectChannelsGuide;
 const connectRulesHref = faqHrefDocs('platforms/connect-rules');
@@ -25,8 +36,21 @@ const socialAutopilotLandingHref = route(getRootPathPublicSocialAutopilotLanding
 const directorySubmissionToolHref = route(getRootPathPublicDirectorySubmissionTool());
 const redditChannelHref = route(getRootPathPublicChannel('reddit'));
 const cursorRedditAgentHref = route(getRootPathPublicAgentChannel('cursor', 'reddit'));
+const extensionSourceHref = `${OPENQUOK_GITHUB_REPO_HREF}/tree/main/extension`;
 
 const BROWSER_EXTENSION_TAILORED_FAQ_ITEMS: readonly PublicFaqItem[] = [
+	{
+		title: 'How many browser add-ons does OpenQuok support?',
+		description: `OpenQuok ships three store add-ons: ${faqLink(chromeExtensionDocsHref, 'Chrome')}, ${faqLink(edgeExtensionDocsHref, 'Edge')}, and ${faqLink(firefoxExtensionDocsHref, 'Firefox')}. Chrome and Edge use the same Chromium package; Firefox has its own Mozilla add-on build. Use the install chooser on this page or the ${browserExtensionInstallGuides}.`
+	},
+	{
+		title: 'Can we self-host the extension?',
+		description: `Yes. Build the add-on from the monorepo and load it unpacked in Chrome or Edge, or as a temporary Firefox add-on — follow the ${browserExtensionInstallGuides}. On your web app, set extension store IDs per browser (${browserExtensionConfigGuides}). Add your HTTPS dashboard origin to the manifest when you build from source. Sign in from the side panel on that host. See ${faqLink(publicFaqHref.selfHostingLanding, 'self-host OpenQuok')} and ${faqLink(faqHrefDocs('configuration-web'), 'web configuration')}.`
+	},
+	{
+		title: 'Is the extension open source?',
+		description: `Yes. The browser extension ships in the same AGPL monorepo as OpenQuok. Source and build scripts live in ${faqExternalLink(extensionSourceHref, 'extension/ on GitHub')}. You can read, build, and ship your own copy for self-host without a separate license. Store builds for Chrome, Edge, and Firefox come from that tree — see the ${browserExtensionInstallGuides}.`
+	},
 	{
 		title: 'Does the extension replace Add Channel in the dashboard?',
 		description: `No. OAuth and credential networks still connect in the dashboard with ${faqLink(connectChannelsHref, 'Add Channel')}. The extension adds a Chrome side panel to schedule or draft to channels you already connected, plus in-browser connect and directory autofill when a live browser session is required. Product overview: ${faqLink(browserExtensionLandingHref, 'browser extension')}. See ${faqLink(connectRulesHref, 'connect rules')} for which flows use the extension.`
@@ -41,11 +65,7 @@ const BROWSER_EXTENSION_TAILORED_FAQ_ITEMS: readonly PublicFaqItem[] = [
 	},
 	{
 		title: 'How does directory autofill work?',
-		description: `Research directories in ${faqLink(buildBacklinksHref, 'Build backlinks')}, then build a product profile on our dahsboard and click Launch to directory. The extension opens the directory site with mapped fields filled. You review and submit on the directory yourself. Install on Chrome (${faqLinkChromeWebStore()}), Edge, or Firefox — see the ${browserExtensionInstallGuides}. Step-by-step workflow: ${faqLink(directorySubmissionDocsHref, 'Directory submission')}. Product overview: ${faqLink(directorySubmissionToolHref, 'Directory submission tool')} and ${faqLink(publicFaqHref.channels, 'Channels')} directory cards.`
-	},
-	{
-		title: 'Can I use the extension with self-hosted OpenQuok?',
-		description: `Yes. Sign in on your self-host dashboard origin from the side panel (or keep a signed-in tab on that host). Set ${faqLink(faqHrefDocs('configuration-web'), 'VITE_OPENQUOK_BROWSER_EXTENSION_ID')} on the web app and add your HTTPS origin to the extension manifest when you build from source. See ${faqLink(publicFaqHref.selfHostingLanding, 'self-host OpenQuok')}, the ${faqLink(browserExtensionLandingHref, 'browser extension')} page, and the ${browserExtensionInstallGuides}.`
+		description: `Research directories in ${faqLink(buildBacklinksHref, 'Build backlinks')}, then build a product profile on our dashboard and click Launch to directory. The extension opens the directory site with mapped fields filled. You review and submit on the directory yourself. Install on Chrome (${faqLinkChromeWebStore()}), Edge, or Firefox — see the ${browserExtensionInstallGuides}. Step-by-step workflow: ${faqLink(directorySubmissionDocsHref, 'Directory submission')}. Product overview: ${faqLink(directorySubmissionToolHref, 'Directory submission tool')} and ${faqLink(publicFaqHref.channels, 'Channels')} directory cards.`
 	},
 	{
 		title: 'Is Reddit posting automated through the extension?',
@@ -57,7 +77,7 @@ export const PUBLIC_BROWSER_EXTENSION_LANDING_FAQ_SECTION: PublicMarketingLandin
 	faqSubtitle: 'Browser extension',
 	faqTitle: 'Questions about the social media scheduler browser extension',
 	faqDescription:
-		'Schedule from any tab, start posts from page selections, directory form fill, Reddit copy-and-post helpers, and how the extension works with dashboard connect.',
+		'Self-host and open-source extension builds, Chrome Edge and Firefox add-ons, scheduling from any tab, directory autofill, Reddit handoff, and dashboard connect.',
 	faqItems: appendPublicGeneralFaqItems(
 		BROWSER_EXTENSION_TAILORED_FAQ_ITEMS,
 		PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS

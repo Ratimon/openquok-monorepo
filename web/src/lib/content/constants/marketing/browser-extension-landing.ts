@@ -36,6 +36,9 @@ const CARD_CONTAINER_CLASS = 'h-full min-h-[18rem]';
 const chromeExtensionDocsHref = faqHrefDocs('installation/chrome-extension');
 const edgeExtensionDocsHref = faqHrefDocs('installation/edge-extension');
 const firefoxExtensionDocsHref = faqHrefDocs('installation/firefox-extension');
+const chromeExtensionConfigHref = faqHrefDocs('configuration-web/browser-extension-chrome');
+const edgeExtensionConfigHref = faqHrefDocs('configuration-web/browser-extension-edge');
+const firefoxExtensionConfigHref = faqHrefDocs('configuration-web/browser-extension-firefox');
 const connectChannelsHref = publicFaqHref.connectChannelsGuide;
 const connectRulesHref = faqHrefDocs('platforms/connect-rules');
 const directorySubmissionDocsHref = faqHrefDocs('directory-submission');
@@ -358,7 +361,7 @@ export const PUBLIC_BROWSER_EXTENSION_LANDING_CONFIG: PublicBrowserExtensionLand
 		subtitle: 'Go deeper',
 		title: 'Channels, agents, and docs',
 		description:
-			'Install steps, Reddit and Skool channel pages, and related product pages.',
+			'Install and configuration guides for Chrome, Edge, and Firefox, plus channel and product pages.',
 		items: [
 			{
 				id: 'install-guide',
@@ -383,6 +386,30 @@ export const PUBLIC_BROWSER_EXTENSION_LANDING_CONFIG: PublicBrowserExtensionLand
 				href: firefoxExtensionDocsHref,
 				ctaLabel: 'Open Firefox install docs →',
 				iconName: icons.BookOpenCheck.name
+			},
+			{
+				id: 'chrome-config',
+				title: 'Chrome extension config',
+				description: 'VITE_OPENQUOK_BROWSER_EXTENSION_ID and Chromium store IDs for self-host.',
+				href: chromeExtensionConfigHref,
+				ctaLabel: 'Open Chrome config docs →',
+				iconName: icons.Settings.name
+			},
+			{
+				id: 'edge-config',
+				title: 'Edge extension config',
+				description: 'Edge Add-ons extension ID alongside the shared Chromium build.',
+				href: edgeExtensionConfigHref,
+				ctaLabel: 'Open Edge config docs →',
+				iconName: icons.Settings.name
+			},
+			{
+				id: 'firefox-config',
+				title: 'Firefox extension config',
+				description: 'Firefox AMO extension ID and web-app wiring for self-host.',
+				href: firefoxExtensionConfigHref,
+				ctaLabel: 'Open Firefox config docs →',
+				iconName: icons.Settings.name
 			},
 			{
 				id: 'reddit-channel',
