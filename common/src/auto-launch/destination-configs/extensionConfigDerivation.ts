@@ -2,7 +2,7 @@ import type { AutoLaunchExtensionConfig } from '../../browser-extension/pageAssi
 
 /** How a provider slug’s extension fixture relates to another shipped slug. */
 export type ExtensionConfigDerivation =
-	| { kind: 'pricing-queue'; baseProviderSlug: string }
+	| { kind: 'pricing-queue'; baseProviderSlug: string; /** Defaults to `pricing`. */ readyUrlHint?: string }
 	| { kind: 'independent' };
 
 export type ExtensionConfigDerivationBySlug = Record<string, ExtensionConfigDerivation>;
@@ -13,22 +13,30 @@ export function isPricingQueueDerivation(
 	return entry.kind === 'pricing-queue';
 }
 
+export type PricingQueueVariantMeta = {
+	baseProviderSlug: string;
+	readyUrlHint: string;
+};
+
 export function pricingQueueDerivations(
 	derivations: ExtensionConfigDerivationBySlug
-): Record<string, { baseProviderSlug: string }> {
-	const out: Record<string, { baseProviderSlug: string }> = {};
+): Record<string, PricingQueueVariantMeta> {
+	const out: Record<string, PricingQueueVariantMeta> = {};
 	for (const [slug, entry] of Object.entries(derivations)) {
 		if (isPricingQueueDerivation(entry)) {
-			out[slug] = { baseProviderSlug: entry.baseProviderSlug };
+			out[slug] = {
+				baseProviderSlug: entry.baseProviderSlug,
+				readyUrlHint: entry.readyUrlHint ?? 'pricing',
+			};
 		}
 	}
 	return out;
 }
 
-/** Sync scripts: pricing-queue variants must spread base + `readyUrlHint: 'pricing'`. */
+/** Sync scripts: pricing-queue variants must spread base + derived `readyUrlHint`. */
 export function validatePricingQueueExtensionFixtures(
 	fixtures: Record<string, AutoLaunchExtensionConfig>,
-	pricingDerived: Record<string, { baseProviderSlug: string }>
+	pricingDerived: Record<string, PricingQueueVariantMeta>
 ): void {
 	for (const [slug, meta] of Object.entries(pricingDerived)) {
 		const variant = fixtures[slug];
@@ -38,10 +46,18 @@ export function validatePricingQueueExtensionFixtures(
 				`pricing-queue variant ${slug} missing fixture or base ${meta.baseProviderSlug}`
 			);
 		}
-		const expected = { ...base, readyUrlHint: 'pricing' as const };
-		if (JSON.stringify(expected) !== JSON.stringify(variant)) {
+		if (variant.readyUrlHint !== meta.readyUrlHint) {
 			throw new Error(
-				`${slug} must equal { ...${meta.baseProviderSlug}, readyUrlHint: 'pricing' } in TS fixtures`
+				`${slug} readyUrlHint must be '${meta.readyUrlHint}' (pricing-queue from ${meta.baseProviderSlug})`
+			);
+		}
+		const coreFixture = (config: AutoLaunchExtensionConfig) => {
+			const { readyUrlHint: _ready, readyStatusHint: _status, ...rest } = config;
+			return rest;
+		};
+		if (JSON.stringify(coreFixture(base)) !== JSON.stringify(coreFixture(variant))) {
+			throw new Error(
+				`${slug} must match ${meta.baseProviderSlug} except readyUrlHint / readyStatusHint`
 			);
 		}
 	}

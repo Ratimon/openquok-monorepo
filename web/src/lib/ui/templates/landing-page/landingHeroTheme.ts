@@ -231,6 +231,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'Open Launch',
 	'TinyLaunch',
 	'Fazier',
+	'DevHunt',
 	'GetMoreBacklinks',
 	'BoringLaunch',
 	// Protected account app heroes

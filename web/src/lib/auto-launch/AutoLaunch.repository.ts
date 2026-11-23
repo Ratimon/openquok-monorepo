@@ -1,5 +1,5 @@
 import type { HttpGateway } from '$lib/core/HttpGateway';
-import { HttpMethod } from '$lib/core/HttpGateway';
+import { HttpMethod, messageFromApiError } from '$lib/core/HttpGateway';
 
 import type { AutoLaunchConfig } from '$lib/auto-launch/constants/config';
 import type {
@@ -112,16 +112,23 @@ export class AutoLaunchRepository {
 			profileData?: BusinessProfileData;
 		}
 	): Promise<{ ok: true; profile: AutoLaunchProductProfileDto } | { ok: false; error: string }> {
-		const { data: updateDto, ok } = await this.httpGateway.request<ProfileMutationResponseDto>({
-			method: HttpMethod.PATCH,
-			url: this.config.endpoints.profileById(id),
-			data: payload,
-			withCredentials: true
-		});
-		if (ok && updateDto?.data) {
-			return { ok: true, profile: updateDto.data };
+		try {
+			const { data: updateDto, ok } = await this.httpGateway.request<ProfileMutationResponseDto>({
+				method: HttpMethod.PATCH,
+				url: this.config.endpoints.profileById(id),
+				data: payload,
+				withCredentials: true
+			});
+			if (ok && updateDto?.data) {
+				return { ok: true, profile: updateDto.data };
+			}
+			return { ok: false, error: 'Could not update product profile.' };
+		} catch (error) {
+			return {
+				ok: false,
+				error: messageFromApiError(error, 'Could not update product profile.')
+			};
 		}
-		return { ok: false, error: 'Could not update product profile.' };
 	}
 
 	async createDirectoryVariant(

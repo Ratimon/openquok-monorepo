@@ -323,6 +323,7 @@ SELECT
                     "profilePath": "profile_data.gallery_urls",
                     "fillMode": "files",
                     "fileInputIndex": 1,
+                    "maxItems": 5,
                     "selectorHint": "input[type='file'][accept*='image']:not([name='logo']):not(:first-of-type)"
                 }
             ]
@@ -504,6 +505,7 @@ SELECT
                     "profilePath": "profile_data.gallery_urls",
                     "fillMode": "files",
                     "fileInputIndex": 1,
+                    "maxItems": 5,
                     "selectorHint": "input[type='file'][accept*='image']:not([name='logo']):not(:first-of-type)"
                 }
             ]

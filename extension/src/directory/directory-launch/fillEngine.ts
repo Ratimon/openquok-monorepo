@@ -48,20 +48,42 @@ import {
 	tryPickListChoice,
 	waitForListboxPanel,
 } from './fillListboxDom.js';
-import { fetchProfileMediaFile } from './profileMediaFetch.js';
+import { fetchProfileMediaFile, profileMediaDownloadFileName } from './profileMediaFetch.js';
 import {
 	collectRawItemsFromProfilePaths,
 	defaultTagProfilePathsForField,
 } from './launchCompareState.js';
 import {
+	mergeMainProfileSocialData,
 	resolveLaunchProfileScalar,
 	resolveProfileStoragePathList,
 	resolveProfileValue,
 } from './profileValues.js';
+import { assignFilesToInput } from './fileInputAssign.js';
+import {
+	fieldExpectsUrlControl,
+	fieldRequiresLabelScopedResolution,
+	isChoiceGroupOptionLabel,
+	isExcludedFieldLabelAnchor,
+	isInlineChoiceRowLabel,
+	isPromoVideoUrlInput,
+	isSocialLinkProfileField,
+	listingFormIdentityInput,
+	listingProductNameInputAttrAllowed,
+	pickControlNearestLabel,
+	socialFieldControlMatchesInput,
+} from './formFieldDom.js';
+import {
+	getActiveSiteMediaAdapter,
+	isGalleryProfileField,
+	isLogoProfileField,
+	type SiteMediaFileInputContext,
+	type SiteMediaFileInputOptions,
+} from './siteMedia/index.js';
 
 export type FillLaunchContext = {
 	dashboardOrigin?: string;
-	/** Main product profile — supplies social URLs when the active handoff is a directory variant. */
+	/** Main product profile — logo, gallery, and social URLs when the handoff uses a directory variant. */
 	mainProfileSnapshot?: AutoLaunchProfileSnapshot | null;
 };
 
@@ -200,7 +222,9 @@ function queryFieldElement(field: LaunchStepField): Element | null {
 	const sectionBlock =
 		field.tagsScope === 'section' ? sectionBlockForField(field) : null;
 	for (const candidate of candidates) {
-		if (!isFieldElementVisible(candidate)) continue;
+		const fileInput =
+			candidate instanceof HTMLInputElement && candidate.type === 'file';
+		if (!fileInput && !isFieldElementVisible(candidate)) continue;
 		if (!elementPassesFieldGuard(field, candidate)) continue;
 		if (sectionBlock && !sectionBlock.contains(candidate)) continue;
 		let score = scoreCandidateForFillMode(candidate, fillMode);
@@ -242,41 +266,6 @@ function labelTextMatchesFieldExact(visibleText: string, fieldLabel: string): bo
 	if (haystack === needle) return true;
 	if (haystack === `${needle} *` || haystack === `${needle}*`) return true;
 	return false;
-}
-
-function isOpenLaunchStyleChoiceRowLabel(el: Element): boolean {
-	if (!(el instanceof HTMLLabelElement)) return false;
-	return (
-		el.querySelectorAll(
-			':scope > input[type="checkbox"], :scope input[type="checkbox"], :scope > input[type="radio"], :scope input[type="radio"], :scope > [role="checkbox"], :scope > [data-slot="checkbox"]'
-		).length === 1
-	);
-}
-
-/** Site chrome (nav/footer links) must not anchor form field resolution. */
-function isExcludedFieldLabelAnchor(el: Element): boolean {
-	if (el.closest('nav, footer, header, [role="navigation"], [role="contentinfo"], [role="banner"]')) {
-		return true;
-	}
-	if (el.closest('a[href]')) return true;
-	return false;
-}
-
-/** Option text in a checkbox/radio row — not the wizard section title (`data-slot="label"`). */
-function isChoiceGroupOptionLabel(el: Element): boolean {
-	if (el.getAttribute('data-slot') === 'label' || el.getAttribute('data-slot') === 'form-label') {
-		return false;
-	}
-	if (el instanceof HTMLLabelElement && isOpenLaunchStyleChoiceRowLabel(el)) return true;
-	const parent = el.parentElement;
-	if (!parent) return false;
-	if (parent.querySelector(':scope > [role="switch"]')) return false;
-	const choice = parent.querySelector(
-		':scope > [role="checkbox"], :scope > [data-slot="checkbox"], :scope > input[type="checkbox"], :scope > input[type="radio"]'
-	);
-	if (!choice) return false;
-	if (choice instanceof HTMLInputElement && choice.classList.contains('sr-only')) return false;
-	return choice !== el && !el.contains(choice);
 }
 
 function countCheckboxesInScope(scope: Element): number {
@@ -328,7 +317,7 @@ function resolveChoiceGroupContainerNearFieldLabel(
 		'label, legend, h3, h4, h5, p, span, [data-slot="label"], [data-slot="form-label"], [class*="form-label" i]';
 
 	for (const anchor of document.querySelectorAll(headingSelectors)) {
-		if (isOpenLaunchStyleChoiceRowLabel(anchor) || isChoiceGroupOptionLabel(anchor)) continue;
+		if (isInlineChoiceRowLabel(anchor) || isChoiceGroupOptionLabel(anchor)) continue;
 		if (isExcludedFieldLabelAnchor(anchor)) continue;
 		const text = anchor.textContent ?? '';
 		if (!labelMatchesForField(text, labelNeedle, field)) continue;
@@ -343,32 +332,13 @@ function resolveChoiceGroupContainerNearFieldLabel(
 	return null;
 }
 
-/** Open Launch and shadcn forms often use a field heading (`div`/`p`) instead of `<legend>`. */
+/** Listing forms often use a field heading (`div`/`p`) instead of `<legend>` for choice groups. */
 function resolveCheckboxGroupContainerNearFieldLabel(field: LaunchStepField): Element | null {
 	return resolveChoiceGroupContainerNearFieldLabel(field, 'checkbox_group');
 }
 
 function resolveSelectContainerNearFieldLabel(field: LaunchStepField): Element | null {
 	return resolveChoiceGroupContainerNearFieldLabel(field, 'select');
-}
-
-function isSocialLinkProfileField(field: LaunchStepField): boolean {
-	return (
-		field.key.startsWith('social_') ||
-		Boolean(field.profilePath?.includes('profile_data.social_'))
-	);
-}
-
-function isListingFormIdentityInput(element: HTMLInputElement): boolean {
-	const attrName = (element.getAttribute('name') ?? '').toLowerCase();
-	return (
-		attrName === 'name' ||
-		attrName === 'slug' ||
-		attrName === 'url' ||
-		attrName === 'description' ||
-		attrName === 'repo_url' ||
-		attrName === 'tagline'
-	);
 }
 
 function isShortMaxLengthFieldControl(element: Element): boolean {
@@ -381,10 +351,14 @@ function isShortMaxLengthFieldControl(element: Element): boolean {
 function elementPassesFieldGuard(field: LaunchStepField, element: Element): boolean {
 	const fillMode = resolveFillMode(field);
 
-	if (field.key === 'name' && element instanceof HTMLInputElement) {
-		const attrName = (element.getAttribute('name') ?? '').toLowerCase();
-		if (attrName && attrName !== 'name') return false;
-		if (element.type === 'url' || element.type === 'email' || element.type === 'tel') return false;
+	if (field.key === 'name' || field.profilePath === 'name') {
+		if (isRichTextControl(element)) return false;
+		if (element instanceof HTMLTextAreaElement) return false;
+		if (element instanceof HTMLInputElement) {
+			const attrName = (element.getAttribute('name') ?? '').toLowerCase();
+			if (!listingProductNameInputAttrAllowed(attrName)) return false;
+			if (element.type === 'url' || element.type === 'email' || element.type === 'tel') return false;
+		}
 	}
 
 	if (field.key === 'website' && element instanceof HTMLInputElement) {
@@ -411,7 +385,7 @@ function elementPassesFieldGuard(field: LaunchStepField, element: Element): bool
 	}
 
 	if (isSocialLinkProfileField(field) && element instanceof HTMLInputElement) {
-		if (isListingFormIdentityInput(element)) return false;
+		if (listingFormIdentityInput(element)) return false;
 		if (element.type === 'checkbox' || element.type === 'radio' || element.type === 'hidden') {
 			return false;
 		}
@@ -421,13 +395,36 @@ function elementPassesFieldGuard(field: LaunchStepField, element: Element): bool
 		) {
 			return false;
 		}
+		if (!socialFieldControlMatchesInput(field, element)) return false;
 	}
 
 	if (field.key === 'tagline' || field.profilePath === 'tagline') {
 		if (isRichTextControl(element)) return false;
+		if (element instanceof HTMLInputElement) {
+			if (element.type === 'url' || isPromoVideoUrlInput(element)) return false;
+		}
 		if (element.closest('.tiptap, .ProseMirror[contenteditable="true"]')) {
 			return isShortMaxLengthFieldControl(element);
 		}
+	}
+
+	if (
+		fillMode === 'text' &&
+		!fieldExpectsUrlControl(field) &&
+		element instanceof HTMLInputElement &&
+		element.type === 'url'
+	) {
+		return false;
+	}
+
+	if (
+		isSocialLinkProfileField(field) &&
+		field.key !== 'social_youtube' &&
+		field.key !== 'launch_video_url' &&
+		element instanceof HTMLInputElement &&
+		isPromoVideoUrlInput(element)
+	) {
+		return false;
 	}
 
 	if (field.profilePath === 'description' && fillMode === 'rich_html') {
@@ -575,7 +572,7 @@ function hasTagChipsInScope(scope: Element): boolean {
 	return false;
 }
 
-/** Walk ancestor blocks (Uneed / shadcn often split label and control across sibling divs). */
+/** Walk ancestor blocks when label and control live in sibling layout nodes. */
 const FIELD_HEADING_SELECTORS =
 	'label, legend, h2, h3, h4, h5, p, span, [data-slot="label"], [data-slot="form-label"], [class*="form-label" i]';
 
@@ -607,7 +604,7 @@ function sectionBlockForField(field: LaunchStepField): Element | null {
 function findFieldLabelAnchor(field: LaunchStepField): Element | null {
 	if (fieldLabelNeedles(field).length === 0) return null;
 	for (const anchor of document.querySelectorAll(FIELD_HEADING_SELECTORS)) {
-		if (isOpenLaunchStyleChoiceRowLabel(anchor) || isChoiceGroupOptionLabel(anchor)) continue;
+		if (isInlineChoiceRowLabel(anchor) || isChoiceGroupOptionLabel(anchor)) continue;
 		if (isExcludedFieldLabelAnchor(anchor)) continue;
 		const text = anchor.textContent ?? '';
 		if (!labelMatchesAnyFieldLabel(text, field)) continue;
@@ -616,8 +613,8 @@ function findFieldLabelAnchor(field: LaunchStepField): Element | null {
 	return null;
 }
 
-/** Label-first resolution for fields that share combobox patterns (Uneed Tags vs Category). */
-/** Reka / Nuxt forms wire `<label for="…">` to stable control ids (Uneed General tab). */
+/** Label-first resolution when combobox fields share similar DOM patterns (e.g. tags vs category). */
+/** Many listing forms wire `<label for="…">` to stable control ids. */
 function resolveControlByLabelForAttribute(field: LaunchStepField): Element | null {
 	const fillMode = resolveFillMode(field);
 	if (fieldLabelNeedles(field).length === 0) return null;
@@ -629,7 +626,8 @@ function resolveControlByLabelForAttribute(field: LaunchStepField): Element | nu
 		const htmlFor = labelEl.getAttribute('for')?.trim();
 		if (!htmlFor) continue;
 		const target = document.getElementById(htmlFor);
-		if (!target || !isFieldElementVisible(target)) continue;
+		const fileInput = target instanceof HTMLInputElement && target.type === 'file';
+		if (!fileInput && !isFieldElementVisible(target)) continue;
 		if (!elementAcceptableForFillMode(target, fillMode)) continue;
 		if (!elementPassesFieldGuard(field, target)) continue;
 		return target;
@@ -642,7 +640,7 @@ function resolveControlByExactFieldLabel(field: LaunchStepField): Element | null
 	if (fieldLabelNeedles(field).length === 0) return null;
 
 	for (const labelEl of document.querySelectorAll(FIELD_HEADING_SELECTORS)) {
-		if (isOpenLaunchStyleChoiceRowLabel(labelEl) || isChoiceGroupOptionLabel(labelEl)) continue;
+		if (isInlineChoiceRowLabel(labelEl) || isChoiceGroupOptionLabel(labelEl)) continue;
 		if (isExcludedFieldLabelAnchor(labelEl)) continue;
 		const text = labelEl.textContent ?? '';
 		if (!labelMatchesAnyFieldLabel(text, field)) continue;
@@ -655,9 +653,10 @@ function resolveControlByExactFieldLabel(field: LaunchStepField): Element | null
 function controlWithinExactLabelBlock(control: Element, field: LaunchStepField): boolean {
 	const labelNeedle = field.label.trim();
 	if (!labelNeedle) return true;
-	const needsLabelScopedHint = field.key === 'tags';
-	const isCategory = field.key === 'category' && resolveFillMode(field) === 'select';
-	if (!needsLabelScopedHint && !isCategory) return true;
+	const needsLabelScopedHint =
+		fieldRequiresLabelScopedResolution(field) ||
+		(field.key === 'category' && resolveFillMode(field) === 'select');
+	if (!needsLabelScopedHint) return true;
 
 	let hasExactLabelOnPage = false;
 	for (const labelEl of document.querySelectorAll('label')) {
@@ -683,6 +682,22 @@ function findControlInLabelBlock(
 	let block: Element | null =
 		labelEl.closest('div, fieldset, li, section, form') ?? labelEl.parentElement;
 	for (let depth = 0; depth < 8 && block; depth++) {
+		if (field && fieldRequiresLabelScopedResolution(field)) {
+			const rowScoped =
+				labelEl.closest(
+					'[data-slot="form-item"], [data-field], [class*="FormItem" i], [class*="form-item" i]'
+				) ?? block;
+			if (rowScoped.contains(labelEl)) {
+				const rowControls = Array.from(
+					rowScoped.querySelectorAll(controlSelectorForFillMode(fillMode))
+				).filter((el) => {
+					if (!elementAcceptableForFillMode(el, fillMode)) return false;
+					return elementPassesFieldGuard(field, el);
+				});
+				const rowPick = pickControlNearestLabel(labelEl, rowControls);
+				if (rowPick) return rowPick;
+			}
+		}
 		if (fillMode === 'rich_html') {
 			const editors = block.querySelectorAll(
 				'.ProseMirror, .tiptap .ProseMirror, .tiptap [contenteditable="true"], [contenteditable="true"]'
@@ -734,6 +749,18 @@ function findControlInLabelBlock(
 			}
 		}
 
+		if (fillMode === 'file' || fillMode === 'files') {
+			for (const candidate of block.querySelectorAll('input[type="file"]')) {
+				if (
+					candidate instanceof HTMLInputElement &&
+					elementAcceptableForFillMode(candidate, fillMode) &&
+					(!field || elementPassesFieldGuard(field, candidate))
+				) {
+					return candidate;
+				}
+			}
+		}
+
 		if (
 			fillMode === 'checkbox_group' &&
 			countCheckboxesInScope(block) >= 2 &&
@@ -748,7 +775,9 @@ function findControlInLabelBlock(
 			if (!elementAcceptableForFillMode(el, fillMode)) return false;
 			return !field || elementPassesFieldGuard(field, el);
 		});
-		const nested = pickVisibleControl(acceptable);
+		const nested = field
+			? pickControlNearestLabel(labelEl, acceptable)
+			: pickVisibleControl(acceptable);
 		if (nested) return nested;
 		const first = acceptable[0];
 		if (first) return first;
@@ -790,7 +819,7 @@ function controlSelectorForFillMode(fillMode: LaunchStepFieldFillMode): string {
 	}
 }
 
-/** Fallback when `selectorHint` misses (common on label-driven React forms such as Uneed). */
+/** Fallback when `selectorHint` misses (label-driven listing forms). */
 function queryFieldElementByLabel(
 	fieldLabel: string,
 	fillMode: LaunchStepFieldFillMode = 'text',
@@ -815,6 +844,18 @@ function queryFieldElementByLabelNeedle(
 ): Element | null {
 	const needle = labelNeedle.trim();
 	if (!needle) return null;
+
+	if (field && fieldRequiresLabelScopedResolution(field)) {
+		for (const labelEl of document.querySelectorAll(FIELD_HEADING_SELECTORS)) {
+			if (isInlineChoiceRowLabel(labelEl) || isChoiceGroupOptionLabel(labelEl)) continue;
+			if (isExcludedFieldLabelAnchor(labelEl)) continue;
+			const text = labelEl.textContent ?? '';
+			if (!labelMatchesAnyFieldLabel(text, field)) continue;
+			const control = findControlInLabelBlock(labelEl, fillMode, field);
+			if (control && elementPassesFieldGuard(field, control)) return control;
+		}
+		return null;
+	}
 
 	for (const control of document.querySelectorAll('input, textarea, select')) {
 		const ariaLabel = control.getAttribute('aria-label');
@@ -849,7 +890,7 @@ function queryFieldElementByLabelNeedle(
 	}
 
 	for (const labelEl of document.querySelectorAll(FIELD_HEADING_SELECTORS)) {
-		if (isOpenLaunchStyleChoiceRowLabel(labelEl) || isChoiceGroupOptionLabel(labelEl)) continue;
+		if (isInlineChoiceRowLabel(labelEl) || isChoiceGroupOptionLabel(labelEl)) continue;
 		if (isExcludedFieldLabelAnchor(labelEl)) continue;
 		const text = labelEl.textContent ?? '';
 		if (field) {
@@ -878,8 +919,38 @@ function queryFieldElementByLabelNeedle(
 	return null;
 }
 
+/** DOM root for reading logo / gallery state (inputs plus preview thumbnails). */
+export function resolveFileFieldReadRoot(field: LaunchStepField): Element | null {
+	const fillMode = resolveFillMode(field);
+	const siteMedia = getActiveSiteMediaAdapter();
+	if (siteMedia) {
+		if (isGalleryProfileField(field)) {
+			const root = siteMedia.resolveGalleryReadRoot(field);
+			if (root) return root;
+		}
+		if (isLogoProfileField(field)) {
+			const root = siteMedia.resolveLogoReadRoot(field);
+			if (root) return root;
+		}
+	}
+	const input = resolveFileInput(field, fillMode, { prime: false });
+	if (!input && !isGalleryProfileField(field)) return null;
+	if (isLogoProfileField(field) && input) {
+		return input.closest('section, fieldset, form, div') ?? input.parentElement ?? input;
+	}
+	return input;
+}
+
 export function resolveFieldElement(field: LaunchStepField): Element | null {
 	const fillMode = resolveFillMode(field);
+
+	if (isFileFillMode(fillMode)) {
+		const byFor = resolveControlByLabelForAttribute(field);
+		if (byFor) return byFor;
+		const readRoot = resolveFileFieldReadRoot(field);
+		if (readRoot) return readRoot;
+		return null;
+	}
 
 	if (
 		field.key === 'name' ||
@@ -1072,7 +1143,21 @@ function defaultFileInputIndex(field: LaunchStepField, fillMode: LaunchStepField
 	return 0;
 }
 
-function resolveFileInput(field: LaunchStepField, fillMode: LaunchStepFieldFillMode): HTMLInputElement | null {
+function resolveFileInput(
+	field: LaunchStepField,
+	fillMode: LaunchStepFieldFillMode,
+	options?: SiteMediaFileInputOptions
+): HTMLInputElement | null {
+	const ctx: SiteMediaFileInputContext = {
+		queryFileInputs,
+		defaultFileInputIndex,
+	};
+	const adapter = getActiveSiteMediaAdapter();
+	if (adapter) {
+		const fromAdapter = adapter.resolveFileInput(field, fillMode, options, ctx);
+		if (fromAdapter !== undefined) return fromAdapter;
+	}
+
 	const index = defaultFileInputIndex(field, fillMode);
 	const fromHint = queryFileInputs(field.selectorHint);
 	if (fromHint[index]) return fromHint[index];
@@ -1081,38 +1166,6 @@ function resolveFileInput(field: LaunchStepField, fillMode: LaunchStepFieldFillM
 		(el): el is HTMLInputElement => el instanceof HTMLInputElement
 	);
 	return all[index] ?? null;
-}
-
-function asFileList(files: File[]): FileList {
-	const list = {
-		length: files.length,
-		item(index: number) {
-			return files[index] ?? null;
-		},
-		*[Symbol.iterator]() {
-			for (const file of files) yield file;
-		},
-	} as FileList;
-	return list;
-}
-
-function assignFilesToInput(input: HTMLInputElement, files: File[]): boolean {
-	if (files.length === 0) return false;
-	if (typeof DataTransfer !== 'undefined') {
-		const transfer = new DataTransfer();
-		for (const file of files) {
-			transfer.items.add(file);
-		}
-		input.files = transfer.files;
-	} else {
-		Object.defineProperty(input, 'files', {
-			configurable: true,
-			value: asFileList(files),
-		});
-	}
-	input.dispatchEvent(new Event('input', { bubbles: true }));
-	input.dispatchEvent(new Event('change', { bubbles: true }));
-	return true;
 }
 
 function isFileFillMode(fillMode: LaunchStepFieldFillMode | undefined): boolean {
@@ -1698,12 +1751,43 @@ async function fillFileLaunchField(
 	field: LaunchStepField,
 	context: FillLaunchContext
 ): Promise<FieldFillResult> {
-	const paths = resolveProfileStoragePathList(snapshot, field.profilePath);
+	const effectiveSnapshot = mergeMainProfileSocialData(snapshot, context.mainProfileSnapshot);
+	const paths = resolveProfileStoragePathList(effectiveSnapshot, field.profilePath);
 	if (paths.length === 0) {
 		return { key: field.key, label: field.label, status: 'not_in_profile' };
 	}
 
 	const fillMode = resolveFillMode(field);
+
+	const maxItems =
+		typeof field.maxItems === 'number' && field.maxItems > 0 ? field.maxItems : undefined;
+	const selectedPaths = fillMode === 'files' ? paths : [paths[0]];
+	const pathsToLoad = maxItems ? selectedPaths.slice(0, maxItems) : selectedPaths;
+	const files: File[] = [];
+
+	for (let index = 0; index < pathsToLoad.length; index += 1) {
+		const path = pathsToLoad[index];
+		const file = await fetchProfileMediaFile(context.dashboardOrigin, path);
+		if (!file) continue;
+		const downloadName = profileMediaDownloadFileName(path, index, field, effectiveSnapshot);
+		files.push(new File([file], downloadName, { type: file.type }));
+	}
+
+	if (files.length === 0) {
+		return {
+			key: field.key,
+			label: field.label,
+			status: 'error',
+			message: 'Could not download image from OpenQuok.',
+		};
+	}
+
+	const siteMedia = getActiveSiteMediaAdapter();
+	if (siteMedia?.fillGalleryFiles && isGalleryProfileField(field) && fillMode === 'files') {
+		const adapterResult = await siteMedia.fillGalleryFiles(field, files);
+		if (adapterResult) return adapterResult;
+	}
+
 	const input = resolveFileInput(field, fillMode);
 	if (!input) {
 		return {
@@ -1714,21 +1798,32 @@ async function fillFileLaunchField(
 		};
 	}
 
-	const pathsToLoad = fillMode === 'files' ? paths : [paths[0]];
-	const files: File[] = [];
+	const useSequentialUpload = fillMode === 'files' && files.length > 1 && !input.multiple;
 
-	for (const path of pathsToLoad) {
-		const file = await fetchProfileMediaFile(context.dashboardOrigin, path);
-		if (file) files.push(file);
-	}
-
-	if (files.length === 0) {
-		return {
-			key: field.key,
-			label: field.label,
-			status: 'error',
-			message: 'Could not download image from OpenQuok.',
-		};
+	if (useSequentialUpload) {
+		let attached = 0;
+		for (let fileIndex = 0; fileIndex < files.length; fileIndex += 1) {
+			const file = files[fileIndex];
+			let target = resolveFileInput(field, fillMode, {
+				prime: fileIndex === 0,
+				sequentialIndex: fileIndex,
+				preferEmpty: true,
+			});
+			if (!target) break;
+			if (assignFilesToInput(target, [file])) attached += 1;
+			await new Promise((resolve) => setTimeout(resolve, 280));
+		}
+		if (attached === files.length) {
+			return { key: field.key, label: field.label, status: 'found' };
+		}
+		if (attached > 0) {
+			return {
+				key: field.key,
+				label: field.label,
+				status: 'error',
+				message: `Only ${attached} of ${files.length} screenshots attached.`,
+			};
+		}
 	}
 
 	const assigned = assignFilesToInput(input, files);
@@ -1845,6 +1940,7 @@ export async function fillLaunchField(
 		}
 		return fillFileLaunchField(snapshot, field, {
 			dashboardOrigin: context.dashboardOrigin.trim(),
+			mainProfileSnapshot: context.mainProfileSnapshot,
 		});
 	}
 

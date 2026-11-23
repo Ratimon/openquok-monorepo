@@ -181,7 +181,7 @@ SELECT
     'free-queue',
     'Free submission queue',
     'd5f7d000-0004-4000-a000-000000000006'::uuid,
-    'hard',
+    'medium',
     'manual_review',
     'Waits behind paid Standard Launch submissions',
     'unknown',

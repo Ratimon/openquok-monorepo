@@ -33,6 +33,31 @@ export type DirectoryLaunchHandoffOptions = {
 	skipStartUrlTabOpen?: boolean;
 };
 
+/** Pull the latest product profile into an active directory launch (after Media tab saves). */
+export async function requestDirectoryLaunchProfileRefresh(): Promise<
+	{ ok: true } | { ok: false; error: string }
+> {
+	const extensionId = await resolveBrowserExtensionId();
+	if (!extensionId) {
+		return { ok: false, error: 'OpenQuok browser extension is not installed.' };
+	}
+	try {
+		const response = await sendBrowserExtensionRequest(extensionId, {
+			type: BROWSER_EXTENSION_MESSAGE_TYPE.AUTO_LAUNCH_REFRESH_PROFILE
+		});
+		if (!response.ok) {
+			return { ok: false, error: response.error };
+		}
+		if (response.type !== BROWSER_EXTENSION_MESSAGE_TYPE.AUTO_LAUNCH_REFRESH_PROFILE) {
+			return { ok: false, error: 'Unexpected extension response.' };
+		}
+		return { ok: true };
+	} catch (error) {
+		const message = error instanceof Error ? error.message : 'Could not reach the browser extension.';
+		return { ok: false, error: message };
+	}
+}
+
 export async function sendDirectoryLaunchHandoff(
 	intent: AutoLaunchSubmissionIntentDto,
 	options?: DirectoryLaunchHandoffOptions

@@ -115,7 +115,9 @@ export function mountDirectoryChannelPicker(
 		chip.appendChild(avatar);
 		btn.appendChild(chip);
 
-		const onClick = () => {
+		const onClick = (event: MouseEvent) => {
+			event.preventDefault();
+			event.stopPropagation();
 			selectedId = channel.identifier;
 			for (const option of row.querySelectorAll<HTMLButtonElement>('.channel-picker-btn')) {
 				const id = option.dataset.channelId;

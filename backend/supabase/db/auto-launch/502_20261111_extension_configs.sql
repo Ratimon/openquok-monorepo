@@ -11,6 +11,282 @@ UPDATE public.auto_launch_destinations
 SET extension_config = $json${
     "version": 1,
     "startUrlPatterns": [
+        "https://devhunt.org/*"
+    ],
+    "readyUrlHint": "account/tools/new",
+    "readyStatusHint": "Sign in on DevHunt, then open the new-tool form. Skip or review any AI draft from your website URL, then use OpenQuok on the tool form. Launch week and $49 checkout stay manual on DevHunt.",
+    "steps": [
+        {
+            "id": "submit_tool",
+            "label": "Submit tool",
+            "fields": [
+                {
+                    "key": "logo",
+                    "label": "Tool logo",
+                    "labelAliases": [
+                        "Logo"
+                    ],
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "required": true,
+                    "selectorHint": "input[type='file'][accept*='image'], input[type='file'][accept*='png' i]"
+                },
+                {
+                    "key": "gallery",
+                    "label": "Tool screenshots",
+                    "labelAliases": [
+                        "Screenshots",
+                        "Gallery"
+                    ],
+                    "profilePath": "profile_data.gallery_urls",
+                    "fillMode": "files",
+                    "fileInputIndex": 0,
+                    "maxItems": 3,
+                    "required": true,
+                    "selectorHint": "#tool-screenshots-container input[type='file']"
+                },
+                {
+                    "key": "name",
+                    "label": "Tool name",
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[placeholder*='My Awesome Dev Tool' i], input[name*='tool_name' i], input[aria-label*='tool name' i]"
+                },
+                {
+                    "key": "tagline",
+                    "label": "Catchy slogan",
+                    "labelAliases": [
+                        "Slogan",
+                        "Tagline"
+                    ],
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[placeholder*='Supercharge Your Development Workflow' i], input[name*='slogan' i], textarea[name*='slogan' i]"
+                },
+                {
+                    "key": "website",
+                    "label": "Tool website URL",
+                    "labelAliases": [
+                        "Website URL",
+                        "Website"
+                    ],
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[placeholder*='myawesomedevtool' i], input[type='url'], input[name*='tool_website' i], input[name*='website' i]"
+                },
+                {
+                    "key": "description",
+                    "label": "Quick Description",
+                    "labelAliases": [
+                        "Description"
+                    ],
+                    "profilePath": "description",
+                    "fillMode": "rich_html",
+                    "required": true,
+                    "selectorHint": "textarea[placeholder*='Briefly explain what your tool does' i], [contenteditable='true'], .ProseMirror, .tiptap, textarea[name*='tool_description' i]"
+                },
+                {
+                    "key": "social_github",
+                    "label": "GitHub repo URL",
+                    "labelAliases": [
+                        "GitHub repo URL (optional)",
+                        "GitHub"
+                    ],
+                    "profilePath": "profile_data.social_github",
+                    "fillMode": "text",
+                    "selectorHint": "input[placeholder*='github.com/username' i], input[name*='github' i], input[name*='github_repo' i]",
+                    "profileSourcePaths": [
+                        "profile_data.repository_url"
+                    ]
+                },
+                {
+                    "key": "pricing_type",
+                    "label": "Tool pricing type",
+                    "labelAliases": [
+                        "Pricing type",
+                        "Pricing"
+                    ],
+                    "profilePath": "profile_data.pricing_type",
+                    "fillMode": "select",
+                    "selectCatalog": "devhunt_pricing",
+                    "selectorHint": "#pricing-container input[type='radio'][name='pricing_type'], input[type='radio'][name='pricing_type'], input[type='radio'][name*='pricing_type' i]"
+                },
+                {
+                    "key": "categories",
+                    "label": "Tool categories",
+                    "labelAliases": [
+                        "Categories"
+                    ],
+                    "profilePath": "profile_data.categories",
+                    "fillMode": "tags",
+                    "selectorHint": "input[name*='categor' i], input[placeholder*='categor' i], [aria-label*='categor' i]"
+                },
+                {
+                    "key": "demo_video",
+                    "label": "Demo video",
+                    "labelAliases": [
+                        "Demo video (optional)"
+                    ],
+                    "profilePath": "profile_data.launch_video_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[placeholder*='Demo video (optional)' i], input[name*='demo_video' i], input[type='url'][placeholder*='video' i]"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/tool/|/account/tools",
+        "listingUrlSelector": "a[href*='devhunt.org/tool/']"
+    }
+}$json$::jsonb
+WHERE provider_slug = 'devhunt-paid-launch';
+
+UPDATE public.auto_launch_destinations
+SET extension_config = $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://devhunt.org/*"
+    ],
+    "readyUrlHint": "account/tools/new",
+    "readyStatusHint": "Sign in on DevHunt and open the new-tool form for a free listing. Skip or review any AI draft from your website URL, then use OpenQuok on the tool form. Free listings use a nofollow link on the tool page.",
+    "steps": [
+        {
+            "id": "submit_tool",
+            "label": "Submit tool",
+            "fields": [
+                {
+                    "key": "logo",
+                    "label": "Tool logo",
+                    "labelAliases": [
+                        "Logo"
+                    ],
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "required": true,
+                    "selectorHint": "input[type='file'][accept*='image'], input[type='file'][accept*='png' i]"
+                },
+                {
+                    "key": "gallery",
+                    "label": "Tool screenshots",
+                    "labelAliases": [
+                        "Screenshots",
+                        "Gallery"
+                    ],
+                    "profilePath": "profile_data.gallery_urls",
+                    "fillMode": "files",
+                    "fileInputIndex": 0,
+                    "maxItems": 3,
+                    "required": true,
+                    "selectorHint": "#tool-screenshots-container input[type='file']"
+                },
+                {
+                    "key": "name",
+                    "label": "Tool name",
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[placeholder*='My Awesome Dev Tool' i], input[name*='tool_name' i], input[aria-label*='tool name' i]"
+                },
+                {
+                    "key": "tagline",
+                    "label": "Catchy slogan",
+                    "labelAliases": [
+                        "Slogan",
+                        "Tagline"
+                    ],
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[placeholder*='Supercharge Your Development Workflow' i], input[name*='slogan' i], textarea[name*='slogan' i]"
+                },
+                {
+                    "key": "website",
+                    "label": "Tool website URL",
+                    "labelAliases": [
+                        "Website URL",
+                        "Website"
+                    ],
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[placeholder*='myawesomedevtool' i], input[type='url'], input[name*='tool_website' i], input[name*='website' i]"
+                },
+                {
+                    "key": "description",
+                    "label": "Quick Description",
+                    "labelAliases": [
+                        "Description"
+                    ],
+                    "profilePath": "description",
+                    "fillMode": "rich_html",
+                    "required": true,
+                    "selectorHint": "textarea[placeholder*='Briefly explain what your tool does' i], [contenteditable='true'], .ProseMirror, .tiptap, textarea[name*='tool_description' i]"
+                },
+                {
+                    "key": "social_github",
+                    "label": "GitHub repo URL",
+                    "labelAliases": [
+                        "GitHub repo URL (optional)",
+                        "GitHub"
+                    ],
+                    "profilePath": "profile_data.social_github",
+                    "fillMode": "text",
+                    "selectorHint": "input[placeholder*='github.com/username' i], input[name*='github' i], input[name*='github_repo' i]",
+                    "profileSourcePaths": [
+                        "profile_data.repository_url"
+                    ]
+                },
+                {
+                    "key": "pricing_type",
+                    "label": "Tool pricing type",
+                    "labelAliases": [
+                        "Pricing type",
+                        "Pricing"
+                    ],
+                    "profilePath": "profile_data.pricing_type",
+                    "fillMode": "select",
+                    "selectCatalog": "devhunt_pricing",
+                    "selectorHint": "#pricing-container input[type='radio'][name='pricing_type'], input[type='radio'][name='pricing_type'], input[type='radio'][name*='pricing_type' i]"
+                },
+                {
+                    "key": "categories",
+                    "label": "Tool categories",
+                    "labelAliases": [
+                        "Categories"
+                    ],
+                    "profilePath": "profile_data.categories",
+                    "fillMode": "tags",
+                    "selectorHint": "input[name*='categor' i], input[placeholder*='categor' i], [aria-label*='categor' i]"
+                },
+                {
+                    "key": "demo_video",
+                    "label": "Demo video",
+                    "labelAliases": [
+                        "Demo video (optional)"
+                    ],
+                    "profilePath": "profile_data.launch_video_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[placeholder*='Demo video (optional)' i], input[name*='demo_video' i], input[type='url'][placeholder*='video' i]"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/tool/|/account/tools",
+        "listingUrlSelector": "a[href*='devhunt.org/tool/']"
+    }
+}$json$::jsonb
+WHERE provider_slug = 'devhunt-standard-launch';
+
+UPDATE public.auto_launch_destinations
+SET extension_config = $json${
+    "version": 1,
+    "startUrlPatterns": [
         "https://fazier.com/*",
         "https://www.fazier.com/*"
     ],
@@ -89,6 +365,7 @@ SET extension_config = $json${
                     "profilePath": "profile_data.gallery_urls",
                     "fillMode": "files",
                     "fileInputIndex": 1,
+                    "maxItems": 5,
                     "selectorHint": "input[type='file'][accept*='image']:not([name='logo']):not(:first-of-type)"
                 }
             ]
@@ -386,6 +663,7 @@ SET extension_config = $json${
                     "profilePath": "profile_data.gallery_urls",
                     "fillMode": "files",
                     "fileInputIndex": 1,
+                    "maxItems": 5,
                     "selectorHint": "input[type='file'][accept*='image']:not([name='logo']):not(:first-of-type)"
                 }
             ]
@@ -490,6 +768,7 @@ SET extension_config = $json${
                     "profilePath": "profile_data.gallery_urls",
                     "fillMode": "files",
                     "fileInputIndex": 1,
+                    "maxItems": 1,
                     "selectorHint": "input[type='file'][accept*='image']"
                 }
             ]
@@ -606,6 +885,7 @@ SET extension_config = $json${
                     "profilePath": "profile_data.gallery_urls",
                     "fillMode": "files",
                     "fileInputIndex": 1,
+                    "maxItems": 1,
                     "selectorHint": "input[type='file'][accept*='image']"
                 }
             ]
@@ -799,6 +1079,7 @@ SET extension_config = $json${
                     "profilePath": "profile_data.gallery_urls",
                     "fillMode": "files",
                     "fileInputIndex": 0,
+                    "maxItems": 10,
                     "selectorHint": "[data-field='screenshots'] input[type='file'], input[type='file'][accept*='image']"
                 }
             ]
@@ -972,6 +1253,7 @@ SET extension_config = $json${
                     "profilePath": "profile_data.gallery_urls",
                     "fillMode": "files",
                     "fileInputIndex": 0,
+                    "maxItems": 10,
                     "selectorHint": "[data-field='screenshots'] input[type='file'], input[type='file'][accept*='image']"
                 }
             ]
@@ -1322,7 +1604,9 @@ SET extension_config = $json${
                     "key": "logo",
                     "label": "Logo",
                     "profilePath": "logo_url",
-                    "selectorHint": "input[type='file'][accept*='image']"
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "selectorHint": "input#single[type='file']"
                 },
                 {
                     "key": "launch_video_url",
@@ -1334,8 +1618,15 @@ SET extension_config = $json${
                 {
                     "key": "gallery",
                     "label": "Gallery images",
+                    "labelAliases": [
+                        "Images",
+                        "Product images"
+                    ],
                     "profilePath": "profile_data.gallery_urls",
-                    "selectorHint": "input[type='file'][accept*='image']:not(:first-of-type)"
+                    "fillMode": "files",
+                    "fileInputIndex": 0,
+                    "maxItems": 3,
+                    "selectorHint": "div:has(> h3:first-child), input[type='file'][accept*='image']"
                 }
             ]
         },
@@ -1703,7 +1994,9 @@ SET extension_config = $json${
                     "key": "logo",
                     "label": "Logo",
                     "profilePath": "logo_url",
-                    "selectorHint": "input[type='file'][accept*='image']"
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "selectorHint": "input#single[type='file']"
                 },
                 {
                     "key": "launch_video_url",
@@ -1715,8 +2008,15 @@ SET extension_config = $json${
                 {
                     "key": "gallery",
                     "label": "Gallery images",
+                    "labelAliases": [
+                        "Images",
+                        "Product images"
+                    ],
                     "profilePath": "profile_data.gallery_urls",
-                    "selectorHint": "input[type='file'][accept*='image']:not(:first-of-type)"
+                    "fillMode": "files",
+                    "fileInputIndex": 0,
+                    "maxItems": 3,
+                    "selectorHint": "div:has(> h3:first-child), input[type='file'][accept*='image']"
                 }
             ]
         },

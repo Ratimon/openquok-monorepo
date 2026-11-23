@@ -39,6 +39,7 @@ import {
 	OPENQUOK_AUTO_LAUNCH_RESET_PANEL_POSITION,
 	OPENQUOK_AUTO_LAUNCH_SHOW_PANEL,
 	OPENQUOK_AUTO_LAUNCH_SWITCH_PROFILE_SOURCE,
+	OPENQUOK_DIRECTORY_CONTENT_SCRIPT_PING,
 } from '../directory/auto-launch/constants.js';
 import {
 	clearAutoLaunchState,
@@ -148,15 +149,36 @@ async function resolveDirectoryTabForLaunch(
 	if (existing !== null) {
 		return { tabId: existing, created: false };
 	}
+	// Re-check after other in-flight launches may have opened a matching tab.
+	const existingAfterWait =
+		(await findTabIdForStartUrlWithRetry(startUrl, 1, 0)) ??
+		(await findTabIdForHostPatterns(hostPatterns));
+	if (existingAfterWait !== null) {
+		return { tabId: existingAfterWait, created: false };
+	}
 	const tab = await chrome.tabs.create({ url: startUrl, active: true });
 	if (typeof tab.id !== 'number') return null;
 	return { tabId: tab.id, created: true };
+}
+
+async function isDirectoryContentScriptAlive(tabId: number): Promise<boolean> {
+	try {
+		const response = (await chrome.tabs.sendMessage(tabId, {
+			type: OPENQUOK_DIRECTORY_CONTENT_SCRIPT_PING,
+		})) as { ok?: boolean } | undefined;
+		return response?.ok === true;
+	} catch {
+		return false;
+	}
 }
 
 async function ensureDirectoryLaunchContentScript(
 	tabId: number,
 	providerSlug: string
 ): Promise<void> {
+	if (await isDirectoryContentScriptAlive(tabId)) {
+		return;
+	}
 	const provider = getDirectoryLaunchProvider(providerSlug);
 	const scriptFile = provider?.contentScriptEntry;
 	if (!scriptFile) return;
@@ -387,6 +409,39 @@ async function activeTabId(): Promise<number | null> {
 	return typeof tab?.id === 'number' ? tab.id : null;
 }
 
+/** Serialize side-panel channel starts so rapid clicks do not open multiple tabs. */
+let sidePanelChannelLaunchTail: Promise<unknown> = Promise.resolve();
+
+function enqueueSidePanelChannelLaunch<T>(run: () => Promise<T>): Promise<T> {
+	const next = sidePanelChannelLaunchTail.then(run, run);
+	sidePanelChannelLaunchTail = next.then(
+		() => undefined,
+		() => undefined
+	);
+	return next;
+}
+
+async function preferredHandoffTabForHostPatterns(
+	state: StoredAutoLaunchState | null,
+	hostPatterns: readonly string[]
+): Promise<number | null> {
+	const candidate = state?.handoffTabId;
+	if (candidate == null) return null;
+	try {
+		const tab = await chrome.tabs.get(candidate);
+		if (
+			typeof tab.url === 'string' &&
+			tab.url.length > 0 &&
+			tabUrlMatchesHostPatterns(tab.url, hostPatterns)
+		) {
+			return candidate;
+		}
+	} catch {
+		/* tab closed */
+	}
+	return null;
+}
+
 async function focusStoredLaunchTab(
 	state: StoredAutoLaunchState
 ): Promise<{ ok: true } | { ok: false; error: string }> {
@@ -424,7 +479,15 @@ function unknownDirectoryChannelMessage(providerSlug: string): string {
 	return `Unknown directory channel (${slug}). Reload the extension at chrome://extensions (OpenQuok → Reload) after pnpm common:build && pnpm --filter @openquok/browser-extension build.`;
 }
 
-async function startDirectoryChannelFromSidePanel(
+export async function startDirectoryChannelFromSidePanel(
+	providerSlugHint: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+	return enqueueSidePanelChannelLaunch(() =>
+		startDirectoryChannelFromSidePanelInner(providerSlugHint)
+	);
+}
+
+async function startDirectoryChannelFromSidePanelInner(
 	providerSlugHint: string
 ): Promise<{ ok: true } | { ok: false; error: string }> {
 	const provider = getDirectoryLaunchProvider(providerSlugHint);
@@ -443,7 +506,10 @@ async function startDirectoryChannelFromSidePanel(
 	const startUrl =
 		resolveDirectoryLaunchStartUrl(providerSlugHint, handoff.fields.startUrl) ||
 		provider.defaultStartUrl;
-	const preferredTabId = await activeTabId();
+	const preferredTabId = await preferredHandoffTabForHostPatterns(
+		priorState,
+		provider.hostPatterns
+	);
 	const tabResolution = await resolveDirectoryTabForLaunch(
 		startUrl,
 		provider.hostPatterns,

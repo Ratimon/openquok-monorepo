@@ -85,6 +85,7 @@ SELECT
                     "profilePath": "profile_data.gallery_urls",
                     "fillMode": "files",
                     "fileInputIndex": 1,
+                    "maxItems": 1,
                     "selectorHint": "input[type='file'][accept*='image']"
                 }
             ]
@@ -244,6 +245,7 @@ SELECT
                     "profilePath": "profile_data.gallery_urls",
                     "fillMode": "files",
                     "fileInputIndex": 1,
+                    "maxItems": 1,
                     "selectorHint": "input[type='file'][accept*='image']"
                 }
             ]

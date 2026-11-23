@@ -74,6 +74,8 @@ describe('DIRECTORY_EXTENSION_CONFIG_FIXTURES', () => {
 				'fazier-page',
 				'fazier-free-product-listing',
 				'fazier-paid-product-listing',
+				'devhunt-paid-launch',
+				'devhunt-standard-launch',
 			].sort()
 		);
 	});
@@ -146,7 +148,11 @@ describe('AUTO_LAUNCH_DESTINATION_SEED_ROWS', () => {
 		for (const [slug, meta] of Object.entries(AUTO_LAUNCH_PRICING_QUEUE_VARIANT_DERIVED)) {
 			const variant = bySlug.get(slug);
 			const base = bySlug.get(meta.baseProviderSlug);
-			expect(variant?.startUrl).toMatch(/\/pricing\/?$/);
+			if (meta.readyUrlHint === 'pricing') {
+				expect(variant?.startUrl).toMatch(/\/pricing\/?$/);
+			} else {
+				expect(variant?.startUrl).toContain(meta.readyUrlHint);
+			}
 			expect(base).toBeDefined();
 		}
 	});
@@ -159,7 +165,7 @@ describe('AUTO_LAUNCH_DESTINATION_SEED_ROWS', () => {
 		}
 	});
 
-	it('aggregated core_structure applies auto-launch 502 before 503–507', () => {
+	it('aggregated core_structure applies auto-launch 502 before 503–508', () => {
 		const migrationsDir = join(REPO_ROOT, 'backend/supabase/migrations');
 		const coreFiles = readdirSync(migrationsDir)
 			.filter((name) => name.endsWith('_core_structure.sql'))
@@ -169,7 +175,7 @@ describe('AUTO_LAUNCH_DESTINATION_SEED_ROWS', () => {
 		const sql = readFileSync(join(migrationsDir, latestCore), 'utf8');
 		const autoLaunchFiles = [...sql.matchAll(/-- Module: auto-launch, File: (5\d{2}_[^\n]+)/g)]
 			.map((match) => match[1])
-			.filter((fileName) => /^50[2-7]_/.test(fileName ?? ''));
+			.filter((fileName) => /^50[2-8]_/.test(fileName ?? ''));
 		expect(autoLaunchFiles).toEqual([
 			'502_20261111_extension_configs.sql',
 			'503_20261013_seed_uneed.sql',
@@ -177,10 +183,11 @@ describe('AUTO_LAUNCH_DESTINATION_SEED_ROWS', () => {
 			'505_20261109_seed_open_launch_destination.sql',
 			'506_20261117_seed_tinylaunch_destination.sql',
 			'507_20261120_seed_fazier_destination.sql',
+			'508_20261121_seed_devhunt_destination.sql',
 		]);
 	});
 
-	it('generated 502–507 destination SQL matches manifest (sync --check)', () => {
+	it('generated 502–508 destination SQL matches manifest (sync --check)', () => {
 		if (!existsSync(COMMON_DIST_INDEX)) {
 			throw new Error(
 				'common/dist missing. Run `pnpm common:build` before `pnpm --filter openquok-common test:unit`.'

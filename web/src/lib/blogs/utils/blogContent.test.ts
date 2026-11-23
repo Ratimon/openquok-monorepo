@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+	formatBareUrlAnchorLabel,
 	isExternalBlogHref,
 	normalizeBlogContentLinks,
 	prepareBlogContentForDisplay,
@@ -81,7 +82,19 @@ describe('prepareBlogRichTextForDisplay', () => {
 			'See https://www.openquok.com/privacy-policy for details.'
 		);
 		expect(html).toContain('href="https://www.openquok.com/privacy-policy"');
+		expect(html).toContain('>openquok.com/privacy-policy<');
 		expect(html).not.toContain('nofollow');
+	});
+
+	it('shortens autolink anchor text to host plus path', () => {
+		expect(formatBareUrlAnchorLabel('https://devhunt.org/account/tools/new')).toBe(
+			'devhunt.org/account/tools/new'
+		);
+		const html = prepareBlogRichTextForDisplay(
+			'OpenQuok fills https://devhunt.org/account/tools/new after you sign in.'
+		);
+		expect(html).toContain('href="https://devhunt.org/account/tools/new"');
+		expect(html).toContain('>devhunt.org/account/tools/new<');
 	});
 
 	it('wraps plain text without promoting headings', () => {

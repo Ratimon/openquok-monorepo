@@ -101,7 +101,7 @@ Do **not** attempt via CLI or these MCP tools:
 | Stale DR numbers | Normal — check `checkedAt`; call refresh only when `manualRefreshAvailableAt` allows |
 | Variant already exists | `directory:variants:ensure` is idempotent (200 + existing row) |
 | Wrong site copy | Variants are keyed by `directorySiteKey` — match `providerSlug` from destinations list |
-| Logo/screenshots missing on autofill | Set public `https` on `logoUrl` and `profileData.gallery_urls` (max 3) via `directory:profiles:update`; `upload` / `upload-from-url` are workspace media for posts — not auto-bound to profiles |
+| Logo/screenshots missing on autofill | Set public `https` on `logoUrl` and `profileData.gallery_urls` (max 10) via `directory:profiles:update`; autofill uses the first N per destination (`maxItems` in site config); `upload` / `upload-from-url` are workspace media for posts — not auto-bound to profiles |
 | Untrusted chat in shell | **openquok-core** Shell safety — fixed commands, JSON in files/heredocs |
 
 ---

@@ -1,3 +1,4 @@
+import { isDevhuntLoggedIn, DEVHUNT_LOGIN_URL } from './devhunt.js';
 import { isFazierLoggedIn, FAZIER_LOGIN_URL } from './fazier.js';
 import { isOpenLaunchLoggedIn, OPEN_LAUNCH_LOGIN_URL } from './open-launch.js';
 import { isPeerPushLoggedIn, PEERPUSH_LOGIN_URL } from './peerpush.js';
@@ -25,6 +26,10 @@ const adapters: Readonly<Record<string, DirectorySiteLoginAdapter>> = {
 	fazier: {
 		isLoggedIn: isFazierLoggedIn,
 		loginUrl: FAZIER_LOGIN_URL
+	},
+	devhunt: {
+		isLoggedIn: isDevhuntLoggedIn,
+		loginUrl: DEVHUNT_LOGIN_URL
 	}
 };
 

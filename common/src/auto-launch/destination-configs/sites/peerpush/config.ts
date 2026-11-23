@@ -10,6 +10,9 @@ export const PEERPUSH_HOST_PATTERNS = [
 
 export const PEERPUSH_HOST_PERMISSION = '*://*.peerpush.com/*';
 
+/** PeerPush screenshots control on the product submit form (up to ten). */
+export const PEERPUSH_FORM_GALLERY_MAX = 10;
+
 const PEERPUSH_STANDARD_LAUNCH: DirectoryLaunchProvider = {
 	identifier: 'peerpush-standard-launch',
 	name: 'PeerPush — Standard launch',
@@ -152,6 +155,7 @@ export const PEERPUSH_STANDARD_LAUNCH_EXTENSION_CONFIG = {
 					"profilePath": "profile_data.gallery_urls",
 					"fillMode": "files",
 					"fileInputIndex": 0,
+					"maxItems": PEERPUSH_FORM_GALLERY_MAX,
 					"selectorHint": "[data-field='screenshots'] input[type='file'], input[type='file'][accept*='image']",
 				},
 			],

@@ -64,6 +64,22 @@ describe('launchFieldConstraints', () => {
 		expect(filtered).toEqual(['AI Agents', 'Marketing']);
 	});
 
+	it('keeps the first maxItems gallery paths in profile order (directory caps)', () => {
+		const galleryField: LaunchStepField = {
+			key: 'gallery',
+			label: 'Tool screenshots',
+			profilePath: 'profile_data.gallery_urls',
+			fillMode: 'files',
+			maxItems: 3,
+		};
+		const paths = ['org/a.png', 'org/b.png', 'org/c.png', 'org/d.png', 'org/e.png'];
+		expect(filterTagsForLaunchField(paths, galleryField)).toEqual([
+			'org/a.png',
+			'org/b.png',
+			'org/c.png',
+		]);
+	});
+
 	it('flags profile tags outside the Uneed catalog', () => {
 		expect(invalidProfileTagsForField(['SaaS', 'Developer Tools', 'AI'], uneedTagsField)).toEqual([
 			'SaaS',

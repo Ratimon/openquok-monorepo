@@ -9,6 +9,8 @@
 	import { autoLaunchProductProfileFormSchema } from '$lib/auto-launch';
 	import { parseBusinessProfileFormIssues } from '$lib/auto-launch/businessProfileFormValidation';
 	import {
+		alignGalleryLabelsToUrlCount,
+		inferGalleryDisplayLabelsForUrls,
 		BUSINESS_PROFILE_MAX_CATEGORIES,
 		BUSINESS_PROFILE_MAX_PLATFORMS,
 		BUSINESS_PROFILE_MAX_TECH_STACK,
@@ -17,6 +19,7 @@
 		BUSINESS_PROFILE_PRICING_TYPES
 	} from 'openquok-common';
 	import { BUSINESS_PROFILE_INCLUDED_ASSET_OPTIONS } from '$lib/auto-launch/utils/businessProfileIncludedAssetLabels';
+	import { resolveAutoLaunchProfileMediaStorageKey } from '$lib/auto-launch/utils/autoLaunchProfileMediaImages';
 	import { suggestBusinessProfileSlug } from '$lib/auto-launch/utils/suggestBusinessProfileSlug';
 	import { icons } from '$data/icons';
 	import { toast } from '$lib/ui/sonner';
@@ -40,6 +43,7 @@
 	} from '$lib/auto-launch/deleteBusinessProfileModal.types';
 	import { destructiveGhostButtonClass } from '$lib/ui/constants/destructiveButtonClasses';
 	import ActionVerificationModal from '$lib/ui/modals/ActionVerificationModal.svelte';
+	import { tick } from 'svelte';
 
 	type ComposerTab = 'general' | 'discovery' | 'media' | 'socials' | 'sell';
 
@@ -106,6 +110,7 @@
 	let description = $state('');
 	let websiteUrl = $state('');
 	let logoUrl = $state<string | null>(null);
+	let logoLabel = $state('');
 
 	let categories = $state<string[]>([]);
 	let useCases = $state<string[]>([]);
@@ -122,6 +127,9 @@
 	let repositoryUrl = $state('');
 	let launchVideoUrl = $state('');
 	let galleryUrls = $state<string[]>([]);
+	let galleryLabels = $state<string[]>([]);
+	/** Last-known `gallery_urls` from the server when the composer hydrated (for gallery status copy). */
+	let persistedGalleryPaths = $state<string[]>([]);
 
 	let socialX = $state('');
 	let socialInstagram = $state('');
@@ -184,6 +192,8 @@
 			repository_url: emptyToUndefined(repositoryUrl),
 			launch_video_url: emptyToUndefined(launchVideoUrl),
 			gallery_urls: galleryUrls,
+			gallery_labels: galleryLabels,
+			logo_label: logoLabel,
 			social_x: emptyToUndefined(socialX),
 			social_github: emptyToUndefined(repositoryUrl),
 			social_instagram: emptyToUndefined(socialInstagram),
@@ -209,7 +219,12 @@
 		tagline = source?.tagline ?? '';
 		description = source?.description ?? '';
 		websiteUrl = source?.websiteUrl ?? '';
-		logoUrl = source?.logoUrl ?? null;
+		const initialLogo = source?.logoUrl ?? null;
+		logoUrl =
+			initialLogo != null
+				? resolveAutoLaunchProfileMediaStorageKey(initialLogo) ?? initialLogo
+				: null;
+		logoLabel = typeof pd.logo_label === 'string' ? pd.logo_label.trim() : '';
 
 		categories =
 			pd.categories && pd.categories.length > 0
@@ -230,7 +245,19 @@
 		isOpenSource = Boolean(pd.is_open_source);
 		repositoryUrl = pd.repository_url ?? pd.social_github ?? '';
 		launchVideoUrl = pd.launch_video_url ?? '';
-		galleryUrls = pd.gallery_urls ? [...pd.gallery_urls] : [];
+		galleryUrls = pd.gallery_urls
+			? pd.gallery_urls
+					.map(
+						(entry) => resolveAutoLaunchProfileMediaStorageKey(entry) ?? entry.trim()
+					)
+					.filter((entry) => entry.length > 0)
+			: [];
+		const alignedGalleryLabels = alignGalleryLabelsToUrlCount(galleryUrls, pd.gallery_labels);
+		galleryLabels =
+			alignedGalleryLabels && alignedGalleryLabels.some((entry) => entry.trim())
+				? alignedGalleryLabels
+				: inferGalleryDisplayLabelsForUrls(galleryUrls, alignedGalleryLabels ?? pd.gallery_labels);
+		persistedGalleryPaths = galleryUrls.map((entry) => entry.trim()).filter((entry) => entry.length > 0);
 
 		socialX = pd.social_x ?? '';
 		socialInstagram = pd.social_instagram ?? '';
@@ -252,13 +279,21 @@
 		activeTab = initialTab ?? 'general';
 	}
 
+	let hydratedComposerSessionKey = $state<string | null>(null);
+
 	$effect(() => {
-		if (!open) return;
+		if (!open) {
+			hydratedComposerSessionKey = null;
+			return;
+		}
+		const sessionKey = `${initial?.id ?? 'new'}|${initialTab ?? ''}`;
+		if (hydratedComposerSessionKey === sessionKey) return;
 		formFieldErrors = {};
 		hydrateFromInitial(initial);
 		if (initialTab) {
 			activeTab = initialTab;
 		}
+		hydratedComposerSessionKey = sessionKey;
 	});
 
 	function normalizeWebsiteUrlOnBlur() {
@@ -389,14 +424,68 @@
 		}
 	}
 
+	function normalizeGalleryStoragePaths(paths: string[]): string[] {
+		return paths
+			.map((entry) => resolveAutoLaunchProfileMediaStorageKey(entry) ?? entry.trim())
+			.filter((entry) => entry.length > 0);
+	}
+
+	function galleryPathKey(path: string): string {
+		return resolveAutoLaunchProfileMediaStorageKey(path) ?? path.trim();
+	}
+
+	function labelsForNewlyUploadedScreenshots(
+		normalizedUrls: string[],
+		labelList: string[],
+		priorPersisted: string[]
+	): string[] {
+		const prior = new Set(priorPersisted.map((entry) => galleryPathKey(entry)));
+		const aligned = alignGalleryLabelsToUrlCount(normalizedUrls, labelList) ?? [];
+		const names: string[] = [];
+		normalizedUrls.forEach((path, index) => {
+			if (prior.has(galleryPathKey(path))) return;
+			const label = aligned[index]?.trim() || `Screenshot ${index + 1}`;
+			names.push(label);
+		});
+		return names;
+	}
+
 	export async function uploadMediaForProfile(targetProfileId: string): Promise<{
 		logoUrl?: string | null;
 		galleryUrls?: string[];
+		uploadFailed?: boolean;
 	}> {
-		if (!organizationId) return {};
+		if (!organizationId) {
+			toast.error('Select a workspace before uploading profile media.');
+			return { uploadFailed: true };
+		}
+		await tick();
+		await tick();
 		const uploadUid = `${organizationId}/${targetProfileId}`;
-		const nextLogo = await logoUploadRef?.uploadPending(uploadUid);
-		const nextGallery = await galleryUploadRef?.uploadPending(uploadUid);
+		const gallery = galleryUploadRef;
+		const logo = logoUploadRef;
+		const logoPending = logo?.hasPendingUpload() ?? false;
+		const galleryPending = gallery?.hasPendingUpload() ?? false;
+		if (galleryPending && !gallery) {
+			toast.error('Gallery is still loading. Wait a moment, stay on the Media tab, and save again.');
+			return { uploadFailed: true };
+		}
+		if (logoPending && !logo) {
+			toast.error('Logo upload is not ready. Wait a moment and save again.');
+			return { uploadFailed: true };
+		}
+		const nextLogo = await logo?.uploadPending(uploadUid);
+		const nextGallery = await gallery?.uploadPending(uploadUid);
+
+		if (logoPending && nextLogo === undefined) {
+			toast.error('Logo upload failed. Check file size (max 4 MB) and try again.');
+			return { uploadFailed: true };
+		}
+		if (galleryPending && (!nextGallery || nextGallery.length === 0)) {
+			toast.error('Screenshot upload failed. Check file size (max 4 MB) and try again.');
+			return { uploadFailed: true };
+		}
+
 		return {
 			...(nextLogo !== undefined ? { logoUrl: nextLogo } : {}),
 			...(nextGallery !== undefined ? { galleryUrls: nextGallery } : {})
@@ -426,15 +515,74 @@
 			return;
 		}
 
-		await onSubmit({
-			name: result.data.name,
-			tagline: result.data.tagline,
-			description: result.data.description,
-			websiteUrl: result.data.websiteUrl,
-			logoUrl: result.data.logoUrl,
-			profileData: result.data.profileData,
-			integrationCustomerId: result.data.integrationCustomerId ?? null
-		});
+		let logoUrlForSave = result.data.logoUrl;
+		let profileDataForSave = result.data.profileData;
+
+		const hadPendingGallery = galleryUploadRef?.hasPendingUpload() ?? false;
+		const hadPendingLogo = logoUploadRef?.hasPendingUpload() ?? false;
+
+		if (initial?.id) {
+			const media = await uploadMediaForProfile(initial.id);
+			if (media.uploadFailed) return;
+			if (media.logoUrl !== undefined) logoUrl = media.logoUrl;
+			if (media.galleryUrls !== undefined) galleryUrls = media.galleryUrls;
+		} else if (hadPendingGallery || hadPendingLogo) {
+			toast.error('Save the profile once so we can upload media, then add screenshots and save again.');
+			return;
+		}
+
+		logoUrlForSave = logoUrl
+			? resolveAutoLaunchProfileMediaStorageKey(logoUrl) ?? logoUrl
+			: logoUrl;
+		const normalizedGalleryUrls = normalizeGalleryStoragePaths(galleryUrls);
+		const trimmedLogoLabel = logoLabel.trim();
+		profileDataForSave = {
+			...profileDataForSave,
+			gallery_urls: normalizedGalleryUrls,
+			gallery_labels: alignGalleryLabelsToUrlCount(normalizedGalleryUrls, galleryLabels) ?? [],
+			logo_label: logoUrlForSave
+				? trimmedLogoLabel.length > 0
+					? trimmedLogoLabel
+					: null
+				: null
+		};
+
+		if (hadPendingGallery && normalizedGalleryUrls.length === 0) {
+			toast.error(
+				'Screenshots did not upload. Stay on the Media tab, save again, or use an image under 4 MB.'
+			);
+			return;
+		}
+
+		const uploadedScreenshotLabels =
+			hadPendingGallery && normalizedGalleryUrls.length > 0
+				? labelsForNewlyUploadedScreenshots(
+						normalizedGalleryUrls,
+						galleryLabels,
+						persistedGalleryPaths
+					)
+				: [];
+
+		try {
+			await onSubmit({
+				name: result.data.name,
+				tagline: result.data.tagline,
+				description: result.data.description,
+				websiteUrl: result.data.websiteUrl,
+				logoUrl: logoUrlForSave,
+				profileData: profileDataForSave,
+				...(uploadedScreenshotLabels.length > 0
+					? { saveToastHints: { uploadedScreenshotLabels } }
+					: {}),
+				...(result.data.integrationCustomerId != null
+					? { integrationCustomerId: result.data.integrationCustomerId }
+					: initial?.integrationCustomerId != null
+						? { integrationCustomerId: initial.integrationCustomerId }
+						: {})
+			});
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Could not save profile.');
+		}
 	}
 
 	function handleCancel() {
@@ -515,7 +663,7 @@
 				</Tabs.List>
 
 				<div class="mt-4 max-h-[min(60vh,28rem)] overflow-y-auto pr-1">
-					{#if activeTab === 'general'}
+					<div hidden={activeTab !== 'general'}>
 						<div class="grid gap-3 sm:grid-cols-2">
 							<label class="form-control w-full gap-1">
 								<span class="text-sm font-medium text-base-content">Product name</span>
@@ -648,7 +796,8 @@
 								{/if}
 							</div>
 						</div>
-					{:else if activeTab === 'discovery'}
+					</div>
+					<div hidden={activeTab !== 'discovery'}>
 						<div class="grid gap-4 sm:grid-cols-2">
 							<p class="text-sm text-base-content/70 sm:col-span-2">
 								Discovery dimensions power directory search and filters. Sites that ask for generic keyword tags
@@ -791,7 +940,8 @@
 								{/each}
 							</datalist>
 						</div>
-					{:else if activeTab === 'media'}
+					</div>
+					<div hidden={activeTab !== 'media'}>
 						<div class="grid gap-4 sm:grid-cols-2">
 							<div class="sm:col-span-2">
 								<p class="text-sm font-medium text-base-content">Logo</p>
@@ -803,6 +953,10 @@
 									value={logoUrl}
 									onChange={(path) => {
 										logoUrl = path;
+									}}
+									logoLabel={logoLabel}
+									onLogoLabelChange={(next) => {
+										logoLabel = next;
 									}}
 									disabled={submitting}
 								/>
@@ -826,14 +980,20 @@
 								<BusinessProfileGalleryUpload
 									bind:this={galleryUploadRef}
 									urls={galleryUrls}
+									persistedPaths={persistedGalleryPaths}
+									labels={galleryLabels}
 									onChange={(paths) => {
 										galleryUrls = paths;
+									}}
+									onLabelsChange={(nextLabels) => {
+										galleryLabels = nextLabels;
 									}}
 									disabled={submitting}
 								/>
 							</div>
 						</div>
-					{:else if activeTab === 'socials'}
+					</div>
+					<div hidden={activeTab !== 'socials'}>
 						<div class="space-y-3">
 							<p class="text-xs text-base-content/60">
 								Optional profile links for directory autofill. Adds https:// on blur when a value looks
@@ -899,7 +1059,8 @@
 								/>
 							</div>
 						</div>
-					{:else}
+					</div>
+					<div hidden={activeTab !== 'sell'}>
 						<div class="space-y-4">
 							<div class="flex items-center justify-between gap-3 rounded-lg border border-base-300/80 px-3 py-2">
 								<div>
@@ -997,7 +1158,7 @@
 								</div>
 							</div>
 						</div>
-					{/if}
+					</div>
 				</div>
 			</Tabs.Root>
 		</form>

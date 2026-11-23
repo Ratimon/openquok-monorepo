@@ -26,6 +26,7 @@ describe('prepareLinkDirectoryRichTextForDisplay', () => {
 			'Open https://chrome.google.com/webstore/devconsole and publish.'
 		);
 		expect(html).toContain('href="https://chrome.google.com/webstore/devconsole"');
+		expect(html).toContain('>chrome.google.com/webstore/devconsole<');
 		expect(html).toContain('rel="noopener noreferrer nofollow"');
 		expect(html).toContain('target="_blank"');
 	});

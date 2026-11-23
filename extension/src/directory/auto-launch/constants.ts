@@ -34,6 +34,9 @@ export const OPENQUOK_AUTO_LAUNCH_REFRESH_PROFILE = 'OPENQUOK_AUTO_LAUNCH_REFRES
 /** Content script: show step rail without a launch session (Fill actions disabled). */
 export const OPENQUOK_AUTO_LAUNCH_SHOW_IDLE_PANEL = 'OPENQUOK_AUTO_LAUNCH_SHOW_IDLE_PANEL';
 
+/** Background → content: manifest may have injected the bundle; skip duplicate `executeScript`. */
+export const OPENQUOK_DIRECTORY_CONTENT_SCRIPT_PING = 'OPENQUOK_DIRECTORY_CONTENT_SCRIPT_PING';
+
 /** Background: list main + variant profiles for the active launch product. */
 export const OPENQUOK_AUTO_LAUNCH_PROFILE_SOURCES = 'OPENQUOK_AUTO_LAUNCH_PROFILE_SOURCES';
 

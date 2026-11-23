@@ -1,10 +1,16 @@
 <script lang="ts">
 	import type { DatabaseName } from '$lib/core/Image.repository.svelte';
 
-	import { BUSINESS_PROFILE_MAX_GALLERY_URLS } from 'openquok-common';
+	import {
+		BUSINESS_PROFILE_MAX_GALLERY_LABEL_LENGTH,
+		BUSINESS_PROFILE_MAX_GALLERY_URLS
+	} from 'openquok-common';
 
 	import { AUTO_LAUNCH_PROFILE_MEDIA_BUCKET } from '$lib/auto-launch/constants/config';
-	import { resolveAutoLaunchProfileImageUrl } from '$lib/auto-launch/utils/autoLaunchProfileMediaImages';
+	import {
+		resolveAutoLaunchProfileImageUrl,
+		resolveAutoLaunchProfileMediaStorageKey
+	} from '$lib/auto-launch/utils/autoLaunchProfileMediaImages';
 	import { imageRepository } from '$lib/core/index';
 	import { DeleteImagePresenter } from '$lib/core/DeleteImage.presenter.svelte';
 	import { DownloadImagePresenter } from '$lib/core/DownloadImage.presenter.svelte';
@@ -23,11 +29,23 @@
 
 	type Props = {
 		urls: string[];
+		/** Storage keys last loaded from the server (used for “Saved to profile” vs in-session upload). */
+		persistedPaths?: string[];
+		/** Display names parallel to filled screenshot rows (aligned to `gallery_urls` on save). */
+		labels: string[];
 		onChange: (paths: string[]) => void;
+		onLabelsChange: (labels: string[]) => void;
 		disabled?: boolean;
 	};
 
-	let { urls, onChange, disabled = false }: Props = $props();
+	let {
+		urls,
+		persistedPaths = [],
+		labels,
+		onChange,
+		onLabelsChange,
+		disabled = false
+	}: Props = $props();
 
 	const databaseName: DatabaseName = AUTO_LAUNCH_PROFILE_MEDIA_BUCKET;
 
@@ -58,6 +76,7 @@
 	);
 
 	let dragRowIndex = $state<number | null>(null);
+	let externalUrlsKey = $state('');
 
 	const reorderButtonClass =
 		'h-7 w-7 shrink-0 border-base-content/25 bg-base-100 p-0 text-base-content shadow-sm hover:bg-base-200';
@@ -66,6 +85,11 @@
 
 	$effect(() => {
 		const paths = urls;
+		const pathsKey = paths.join('\u0001');
+		if (pathsKey !== externalUrlsKey) {
+			externalUrlsKey = pathsKey;
+			loadedStorageKeys = Array.from({ length: BUSINESS_PROFILE_MAX_GALLERY_URLS }, () => '');
+		}
 		for (let i = 0; i < BUSINESS_PROFILE_MAX_GALLERY_URLS; i++) {
 			const storageKey = (paths[i] ?? '').trim();
 			const slot = untrack(() => slots[i]);
@@ -90,19 +114,44 @@
 		return urls[index]?.trim() ? urls[index] : undefined;
 	}
 
+	function isPersistedStoragePath(path: string | undefined): boolean {
+		const trimmed = path?.trim();
+		if (!trimmed || trimmed.startsWith('blob:')) return false;
+		return Boolean(resolveAutoLaunchProfileMediaStorageKey(trimmed));
+	}
+
+	function normalizePathKey(path: string): string {
+		return resolveAutoLaunchProfileMediaStorageKey(path) ?? path.trim();
+	}
+
+	function pathSavedOnServer(path: string | undefined): boolean {
+		const key = path?.trim();
+		if (!key) return false;
+		const normalized = normalizePathKey(key);
+		return persistedPaths.some((entry) => normalizePathKey(entry) === normalized);
+	}
+
 	function rowIsFilled(index: number): boolean {
 		return Boolean(pathAt(index) || slots[index]?.localFile);
 	}
 
 	function filledRows(): FilledRow[] {
 		const rows: FilledRow[] = [];
+		for (let i = 0; i < urls.length; i++) {
+			if (urls[i]?.trim()) rows.push({ storageIndex: i });
+		}
 		for (let i = 0; i < BUSINESS_PROFILE_MAX_GALLERY_URLS; i++) {
-			if (rowIsFilled(i)) rows.push({ storageIndex: i });
+			if (slots[i]?.localFile && !rows.some((row) => row.storageIndex === i)) {
+				rows.push({ storageIndex: i });
+			}
 		}
 		return rows;
 	}
 
 	function nextEmptyStorageIndex(): number | null {
+		if (urls.length < BUSINESS_PROFILE_MAX_GALLERY_URLS) {
+			return urls.length;
+		}
 		for (let i = 0; i < BUSINESS_PROFILE_MAX_GALLERY_URLS; i++) {
 			if (!rowIsFilled(i)) return i;
 		}
@@ -134,19 +183,58 @@
 		return slots[storageIndex]?.presenter.uploadAreaVm.uploadStatus === FileUploadStatus.UPLOADING;
 	}
 
-	function handleFileChange(storageIndex: number, event: Event) {
+	function defaultScreenshotLabel(rowIndex: number): string {
+		return `Screenshot ${rowIndex + 1}`;
+	}
+
+	function labelForRow(rowIndex: number): string {
+		return labels[rowIndex]?.trim() ?? '';
+	}
+
+	function updateLabel(rowIndex: number, value: string) {
+		const next = [...labels];
+		while (next.length <= rowIndex) next.push('');
+		next[rowIndex] = value.slice(0, BUSINESS_PROFILE_MAX_GALLERY_LABEL_LENGTH);
+		onLabelsChange(next);
+	}
+
+	function removeLabelAtRow(rowIndex: number) {
+		if (rowIndex < 0 || rowIndex >= labels.length) return;
+		onLabelsChange(labels.filter((_, i) => i !== rowIndex));
+	}
+
+	function applyDefaultLabelForFile(storageIndex: number, file: File) {
+		const rows = filledRows();
+		const rowIdx = rows.findIndex((row) => row.storageIndex === storageIndex);
+		if (rowIdx < 0) return;
+		const next = [...labels];
+		while (next.length <= rowIdx) next.push('');
+		next[rowIdx] = file.name.trim().slice(0, BUSINESS_PROFILE_MAX_GALLERY_LABEL_LENGTH);
+		onLabelsChange(next);
+	}
+
+	async function handleFileChange(storageIndex: number, event: Event) {
 		const files = (event.target as HTMLInputElement).files;
-		if (!files?.length) return;
+		if (!files?.length || disabled) return;
 		const file = files[0];
 		const slot = slots[storageIndex];
 		if (!slot) return;
+
+		if (filledRows().length >= BUSINESS_PROFILE_MAX_GALLERY_URLS) {
+			toast.error(`You can add up to ${BUSINESS_PROFILE_MAX_GALLERY_URLS} screenshots.`);
+			return;
+		}
+
 		if (slot.localPreviewUrl) URL.revokeObjectURL(slot.localPreviewUrl);
 		slot.localFile = file;
 		slot.localPreviewUrl = URL.createObjectURL(file);
 		slots = [...slots];
+		applyDefaultLabelForFile(storageIndex, file);
 	}
 
-	function clearSlotLocal(storageIndex: number) {
+	function clearSlotLocal(storageIndex: number, options?: { removeLabel?: boolean }) {
+		const rows = filledRows();
+		const rowIdx = rows.findIndex((row) => row.storageIndex === storageIndex);
 		const slot = slots[storageIndex];
 		if (!slot) return;
 		if (slot.localPreviewUrl) URL.revokeObjectURL(slot.localPreviewUrl);
@@ -157,21 +245,35 @@
 		) as HTMLInputElement | null;
 		if (input) input.value = '';
 		slots = [...slots];
+		if (options?.removeLabel !== false && rowIdx >= 0) removeLabelAtRow(rowIdx);
 	}
 
 	function removeAtStorageIndex(storageIndex: number) {
+		const rows = filledRows();
+		const rowIdx = rows.findIndex((row) => row.storageIndex === storageIndex);
 		const slot = slots[storageIndex];
 		if (slot) {
 			slot.presenter.reset();
-			clearSlotLocal(storageIndex);
+			if (slot.localFile) {
+				if (slot.localPreviewUrl) URL.revokeObjectURL(slot.localPreviewUrl);
+				slot.localFile = null;
+				slot.localPreviewUrl = null;
+			}
+		}
+		const path = pathAt(storageIndex);
+		if (path && storageIndex < urls.length) {
+			onChange(urls.filter((_, i) => i !== storageIndex));
+			if (rowIdx >= 0) removeLabelAtRow(rowIdx);
+			return;
 		}
 		const nextPaths: string[] = [];
 		for (let i = 0; i < BUSINESS_PROFILE_MAX_GALLERY_URLS; i++) {
 			if (i === storageIndex) continue;
-			const path = pathAt(i);
-			if (path) nextPaths.push(path);
+			const stored = pathAt(i);
+			if (stored) nextPaths.push(stored);
 		}
 		onChange(nextPaths);
+		if (rowIdx >= 0) removeLabelAtRow(rowIdx);
 	}
 
 	function reorderFilledRows(fromRow: number, toRow: number) {
@@ -179,9 +281,10 @@
 		const rows = filledRows();
 		if (fromRow < 0 || toRow < 0 || fromRow >= rows.length || toRow >= rows.length) return;
 
-		const rowData = rows.map(({ storageIndex }) => ({
+		const rowData = rows.map(({ storageIndex }, rowIdx) => ({
 			path: pathAt(storageIndex) ?? '',
-			slot: slots[storageIndex] ?? createSlot()
+			slot: slots[storageIndex] ?? createSlot(),
+			label: labels[rowIdx] ?? ''
 		}));
 
 		const [moved] = rowData.splice(fromRow, 1);
@@ -195,6 +298,7 @@
 		slots = newSlots;
 		const orderedPaths = rowData.map((row) => row.path).filter((p) => p.trim().length > 0);
 		onChange(orderedPaths);
+		onLabelsChange(rowData.map((row) => row.label));
 	}
 
 	function moveRow(rowIndex: number, direction: 'up' | 'down') {
@@ -230,6 +334,7 @@
 	}
 
 	export async function uploadPending(uploadUid: string): Promise<string[]> {
+		const labelsBeforeUpload = [...labels];
 		const result = [...urls];
 		for (let i = 0; i < BUSINESS_PROFILE_MAX_GALLERY_URLS; i++) {
 			const slot = slots[i];
@@ -245,13 +350,14 @@
 					result.push('');
 				}
 				result[i] = filePath;
-				clearSlotLocal(i);
+				clearSlotLocal(i, { removeLabel: false });
 			} catch {
 				toast.error(`Gallery image ${i + 1} failed to upload.`);
 			}
 		}
 		const trimmed = result.filter((p) => p.trim().length > 0).slice(0, BUSINESS_PROFILE_MAX_GALLERY_URLS);
 		onChange(trimmed);
+		onLabelsChange(labelsBeforeUpload.slice(0, trimmed.length));
 		return trimmed;
 	}
 
@@ -259,6 +365,10 @@
 		const path = pathAt(storageIndex);
 		if (!path || disabled) return;
 		const slot = slots[storageIndex];
+		const nextPaths =
+			storageIndex < urls.length
+				? urls.filter((_, i) => i !== storageIndex)
+				: urls.filter((entry) => entry.trim() !== path.trim());
 		try {
 			if (slot) {
 				await slot.presenter.deleteImage(databaseName, path);
@@ -334,13 +444,30 @@
 									—
 								</div>
 							{/if}
-							<div class="min-w-0">
-								<p class="text-sm font-medium text-base-content">Screenshot {rowIndex + 1}</p>
+							<div class="min-w-0 flex-1 space-y-1">
+								<Label class="sr-only" for="business-profile-gallery-label-{rowIndex}">
+									Screenshot {rowIndex + 1} label
+								</Label>
+								<input
+									id="business-profile-gallery-label-{rowIndex}"
+									type="text"
+									class="input input-bordered input-sm w-full max-w-md"
+									value={labelForRow(rowIndex)}
+									placeholder={defaultScreenshotLabel(rowIndex)}
+									maxlength={BUSINESS_PROFILE_MAX_GALLERY_LABEL_LENGTH}
+									disabled={disabled}
+									oninput={(event) =>
+										updateLabel(rowIndex, (event.currentTarget as HTMLInputElement).value)}
+								/>
 								<p class="text-xs text-base-content/55">
 									{#if pending}
 										Pending upload on save
+									{:else if path && pathSavedOnServer(path)}
+										Saved to profile
+									{:else if path && isPersistedStoragePath(path)}
+										Uploaded — included when you save the profile
 									{:else}
-										Uploaded
+										Preview only — save the profile to upload
 									{/if}
 								</p>
 							</div>
@@ -429,7 +556,7 @@
 						type="file"
 						accept="image/*"
 						disabled={disabled || slotUploading(addIndex)}
-						onchange={(e) => handleFileChange(addIndex, e)}
+						onchange={(e) => void handleFileChange(addIndex, e)}
 						class={cn(
 							'file-input file-input-bordered file-input-sm w-full',
 							(disabled || slotUploading(addIndex)) && 'pointer-events-none opacity-50'

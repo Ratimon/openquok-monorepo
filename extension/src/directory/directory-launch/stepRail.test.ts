@@ -11,6 +11,8 @@ import {
 	DirectoryLaunchStepRail,
 	isCompareRowManualAttention,
 	profileSourcePathLabel,
+	resolveDisplayCompareRowsForStep,
+	resolveVisibleCompareRowsForStep,
 	syncRichCompareHeights,
 } from './stepRail.js';
 import type { StepRailViewState } from './stepRail.js';
@@ -97,11 +99,49 @@ describe('profileSourcePathLabel', () => {
 });
 
 describe('compare issue banner', () => {
+	it('keeps all compare rows in preview mode (before the form URL)', () => {
+		const state: StepRailViewState = {
+			providerName: 'Uneed',
+			productName: 'Acme',
+			statusLine: 'Ready',
+			steps: [{ id: 'general', label: 'General', fields: [{ key: 'name', label: 'Name', profilePath: 'name' }] }],
+			fieldResultsByStep: {},
+			compareRowsFilterToVisibleControls: false,
+			compareRowsByStep: {
+				general: [
+					mockCompareRow({ fieldKey: 'name', label: 'Name', controlOnPage: false }),
+				],
+			},
+		};
+		expect(resolveDisplayCompareRowsForStep(state, state.steps[0]!)).toHaveLength(1);
+		expect(countCompareIssueFields(state)).toBe(0);
+	});
+
+	it('ignores off-page compare rows when counting issues', () => {
+		const state: StepRailViewState = {
+			providerName: 'Uneed',
+			productName: 'Acme',
+			statusLine: 'Ready',
+			compareRowsFilterToVisibleControls: true,
+			steps: [{ id: 'media', label: 'Media', fields: [] }],
+			fieldResultsByStep: {},
+			compareRowsByStep: {
+				media: [
+					mockCompareRow({ fieldKey: 'logo', syncStatus: 'diff', controlOnPage: false }),
+					mockCompareRow({ fieldKey: 'gallery', syncStatus: 'match', controlOnPage: true }),
+				],
+			},
+		};
+		expect(resolveVisibleCompareRowsForStep(state, state.steps[0]!)).toHaveLength(1);
+		expect(countCompareIssueFields(state)).toBe(0);
+	});
+
 	it('counts out-of-sync rows for the warning banner', () => {
 		const state: StepRailViewState = {
 			providerName: 'Uneed',
 			productName: 'Acme',
 			statusLine: 'Ready',
+			compareRowsFilterToVisibleControls: true,
 			steps: [{ id: 'general', label: 'General', fields: [] }],
 			fieldResultsByStep: {},
 			compareRowsByStep: {
@@ -123,6 +163,7 @@ describe('compare issue banner', () => {
 			providerName: 'Uneed',
 			productName: 'Acme',
 			statusLine: 'Ready',
+			compareRowsFilterToVisibleControls: true,
 			steps: [{ id: 'general', label: 'General', fields: [] }],
 			fieldResultsByStep: {
 				general: [{ key: 'category', status: 'not_found', label: 'Category' }],
@@ -248,6 +289,7 @@ describe('DirectoryLaunchStepRail compare UI', () => {
 			providerName: 'Uneed',
 			productName: 'Acme',
 			statusLine: 'Ready',
+			compareRowsFilterToVisibleControls: true,
 			steps: [
 				{
 					id: 'general',
@@ -282,12 +324,12 @@ describe('DirectoryLaunchStepRail compare UI', () => {
 		expect(onPageInput?.value).toContain('Acme Co');
 		expect(shadow?.querySelector('.compare-warning-banner')).not.toBeNull();
 		expect(shadow?.querySelector('.cell-input')).not.toBeNull();
-		const profileCol = shadow?.querySelector('.compare-col--profile');
-		const formCol = shadow?.querySelector('.compare-col--form');
-		const fillBtn = profileCol?.querySelector('button.fill-field-btn');
+		const fillBtn = shadow?.querySelector('.compare-row-action--fill button.fill-field-btn');
 		expect(fillBtn?.textContent).toContain('Fill');
 		expect(fillBtn?.querySelector('.fill-field-btn__arrow')?.textContent).toBe('→');
-		expect(formCol?.querySelector('button.secondary')?.textContent).toBe('Update');
+		expect(shadow?.querySelector('.compare-row-action--update button.secondary')?.textContent).toBe(
+			'Update'
+		);
 
 		rail.unmount();
 	});
@@ -308,6 +350,7 @@ describe('DirectoryLaunchStepRail compare UI', () => {
 			providerName: 'Uneed',
 			productName: 'Acme',
 			statusLine: 'Ready',
+			compareRowsFilterToVisibleControls: true,
 			steps: [
 				{
 					id: 'general',
@@ -325,6 +368,108 @@ describe('DirectoryLaunchStepRail compare UI', () => {
 		const formCol = shadow?.querySelector('.compare-col--form');
 		expect(formCol?.querySelector('.chips .chip')?.textContent).toBe('AI');
 		expect(formCol?.querySelector('.cell-input')).toBeNull();
+
+		rail.unmount();
+	});
+
+	it('omits compare rows when the directory control is not on the page', () => {
+		document.body.replaceChildren();
+
+		const rail = new DirectoryLaunchStepRail({
+			onFillStep: () => {},
+			onFillAll: () => {},
+			onResetPosition: () => {},
+			onFillField: () => {},
+			onApplyFormValue: () => {},
+		});
+		rail.mount();
+
+		rail.render({
+			providerName: 'Uneed',
+			productName: 'Acme',
+			statusLine: 'Ready',
+			steps: [
+				{
+					id: 'media',
+					label: 'Media',
+					fields: [
+						{ key: 'logo', label: 'Logo', profilePath: 'logo_url' },
+						{ key: 'gallery', label: 'Gallery images', profilePath: 'profile_data.gallery_urls' },
+					],
+				},
+			],
+			fieldResultsByStep: {},
+			compareRowsFilterToVisibleControls: true,
+			compareRowsByStep: {
+				media: [
+					mockCompareRow({
+						fieldKey: 'logo',
+						label: 'Logo',
+						controlOnPage: false,
+						profileDisplay: 'logo.png',
+						formDisplay: 'Control not on page',
+					}),
+					mockCompareRow({
+						fieldKey: 'gallery',
+						label: 'Gallery images',
+						controlOnPage: true,
+						profileDisplay: 'Screenshot 1',
+						formDisplay: '—',
+					}),
+				],
+			},
+		});
+
+		const shadow = document.getElementById('openquok-directory-launch-host')?.shadowRoot;
+		expect(shadow?.textContent).not.toContain('Control not on page');
+		expect(shadow?.textContent).toContain('Gallery images');
+		expect(shadow?.textContent).toContain('Media (1/1 in sync)');
+
+		rail.unmount();
+	});
+
+	it('renders profile compare rows in preview mode before the form is open', () => {
+		document.body.replaceChildren();
+
+		const rail = new DirectoryLaunchStepRail({
+			onFillStep: () => {},
+			onFillAll: () => {},
+			onResetPosition: () => {},
+			onFillField: () => {},
+			onApplyFormValue: () => {},
+		});
+		rail.mount();
+
+		rail.render({
+			providerName: 'Uneed',
+			productName: 'Acme',
+			statusLine: 'Open your product edit page',
+			compareRowsFilterToVisibleControls: false,
+			steps: [
+				{
+					id: 'general',
+					label: 'General',
+					fields: [{ key: 'name', label: 'Name', profilePath: 'name' }],
+				},
+			],
+			fieldResultsByStep: {},
+			compareRowsByStep: {
+				general: [
+					mockCompareRow({
+						fieldKey: 'name',
+						label: 'Name',
+						controlOnPage: false,
+						profileDisplay: 'Acme',
+						formDisplay: 'Control not on page',
+					}),
+				],
+			},
+		});
+
+		const shadow = document.getElementById('openquok-directory-launch-host')?.shadowRoot;
+		expect(shadow?.textContent).toContain('Profile');
+		expect(shadow?.textContent).toContain('Acme');
+		expect(shadow?.querySelector('.compare-rows')).not.toBeNull();
 
 		rail.unmount();
 	});

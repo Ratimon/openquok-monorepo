@@ -1,4 +1,7 @@
 import {
+	alignGalleryLabelsToUrlCount,
+	BUSINESS_PROFILE_MAX_GALLERY_URLS,
+	BUSINESS_PROFILE_MAX_LOGO_LABEL_LENGTH,
 	BUSINESS_PROFILE_MAX_TAGS,
 	deriveListingTags,
 	mergeBusinessProfileData,
@@ -21,6 +24,24 @@ describe('mergeBusinessProfileData', () => {
 	it('treats missing existing as empty object', () => {
 		expect(mergeBusinessProfileData(null, { category: 'devtools' })).toEqual({
 			category: 'devtools',
+		});
+	});
+
+	it('keeps gallery_labels aligned after gallery_urls patch', () => {
+		expect(
+			mergeBusinessProfileData(
+				{
+					gallery_urls: ['org/old.png'],
+					gallery_labels: ['Old name'],
+				},
+				{
+					gallery_urls: ['org/a.png', 'org/b.png'],
+					gallery_labels: ['Renamed'],
+				}
+			)
+		).toEqual({
+			gallery_urls: ['org/a.png', 'org/b.png'],
+			gallery_labels: ['Renamed', ''],
 		});
 	});
 });
@@ -60,6 +81,58 @@ describe('normalizeBusinessProfileData', () => {
 				pricing_type: 'enterprise',
 			})
 		).toEqual({});
+	});
+
+	it('normalizes gallery_labels and aligns length to gallery_urls', () => {
+		expect(
+			normalizeBusinessProfileData({
+				gallery_urls: ['org/a.png', 'org/b.png'],
+				gallery_labels: ['  Hero shot ', ''],
+			})
+		).toEqual({
+			gallery_urls: ['org/a.png', 'org/b.png'],
+			gallery_labels: ['Hero shot', ''],
+		});
+	});
+
+	it('caps gallery_urls and gallery_labels at BUSINESS_PROFILE_MAX_GALLERY_URLS', () => {
+		expect(
+			normalizeBusinessProfileData({
+				gallery_urls: Array.from({ length: BUSINESS_PROFILE_MAX_GALLERY_URLS + 1 }, (_, i) => `org/${i}.png`),
+				gallery_labels: Array.from({ length: BUSINESS_PROFILE_MAX_GALLERY_URLS + 1 }, (_, i) => `label-${i}`),
+			})
+		).toEqual({
+			gallery_urls: Array.from({ length: BUSINESS_PROFILE_MAX_GALLERY_URLS }, (_, i) => `org/${i}.png`),
+			gallery_labels: Array.from({ length: BUSINESS_PROFILE_MAX_GALLERY_URLS }, (_, i) => `label-${i}`),
+		});
+	});
+
+	it('omits gallery_labels when every aligned label is empty', () => {
+		expect(
+			normalizeBusinessProfileData({
+				gallery_urls: ['org/a.png'],
+				gallery_labels: [''],
+			})
+		).toEqual({ gallery_urls: ['org/a.png'] });
+	});
+
+	it('trims and caps logo_label', () => {
+		const long = 'L'.repeat(BUSINESS_PROFILE_MAX_LOGO_LABEL_LENGTH + 10);
+		expect(
+			normalizeBusinessProfileData({
+				logo_label: `  ${long}  `,
+			})
+		).toEqual({
+			logo_label: 'L'.repeat(BUSINESS_PROFILE_MAX_LOGO_LABEL_LENGTH),
+		});
+		expect(normalizeBusinessProfileData({ logo_label: null })).toEqual({ logo_label: null });
+	});
+});
+
+describe('alignGalleryLabelsToUrlCount', () => {
+	it('pads and truncates to match url count', () => {
+		expect(alignGalleryLabelsToUrlCount(['a', 'b', 'c'], ['one'])).toEqual(['one', '', '']);
+		expect(alignGalleryLabelsToUrlCount(['a'], ['one', 'two'])).toEqual(['one']);
 	});
 });
 

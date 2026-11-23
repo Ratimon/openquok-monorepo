@@ -4,6 +4,7 @@ import type { AutoLaunchProfileSnapshot, LaunchStepField } from 'openquok-common
 
 import {
 	buildCompareRowsForSteps,
+	compareRowsVisibleOnPage,
 	collectItemsFromProfilePaths,
 	defaultTagProfilePathsForField,
 	formatNormalizedDisplay,
@@ -134,6 +135,147 @@ describe('launchCompareState', () => {
 		const form = normalizedFromTagItems(['Automation']);
 		expect(isFieldTouched(form, baseline, 'tags')).toBe(true);
 		expect(isFieldTouched(baseline, baseline, 'tags')).toBe(false);
+	});
+
+	it('buildCompareRowsForSteps prefers persisted media labels in the profile column', () => {
+		const snap: AutoLaunchProfileSnapshot = {
+			...snapshot,
+			logo_url: 'org/profile/0.6739.png',
+			profile_data: {
+				logo_label: 'App icon',
+				gallery_urls: ['org/profile/0.1111.png', 'org/profile/shot-b.png'],
+				gallery_labels: ['Dashboard', 'Settings view'],
+			},
+		};
+		const fields: LaunchStepField[] = [
+			{
+				key: 'logo',
+				label: 'Tool logo',
+				profilePath: 'logo_url',
+				fillMode: 'file',
+			},
+			{
+				key: 'gallery',
+				label: 'Tool screenshots',
+				profilePath: 'profile_data.gallery_urls',
+				fillMode: 'files',
+			},
+		];
+		const rows = buildCompareRowsForSteps(
+			snap,
+			[{ id: 'submit', label: 'Submit', fields }],
+			{ fillBaselinesByField: new Map(), selectedSourcePathsByField: new Map() }
+		);
+		expect(rows.submit[0]?.profileDisplay).toBe('App icon');
+		expect(rows.submit[1]?.profileDisplay).toBe('Dashboard, Settings view');
+	});
+
+	it('buildCompareRowsForSteps falls back to storage basenames when labels are unset', () => {
+		const snap: AutoLaunchProfileSnapshot = {
+			...snapshot,
+			logo_url: 'org/profile/logo.webp',
+			profile_data: {
+				gallery_urls: ['org/profile/shot-a.png', 'org/profile/shot-b.png'],
+			},
+		};
+		const fields: LaunchStepField[] = [
+			{
+				key: 'logo',
+				label: 'Tool logo',
+				profilePath: 'logo_url',
+				fillMode: 'file',
+			},
+			{
+				key: 'gallery',
+				label: 'Tool screenshots',
+				profilePath: 'profile_data.gallery_urls',
+				fillMode: 'files',
+			},
+		];
+		const rows = buildCompareRowsForSteps(
+			snap,
+			[{ id: 'submit', label: 'Submit', fields }],
+			{ fillBaselinesByField: new Map(), selectedSourcePathsByField: new Map() }
+		);
+		expect(rows.submit[0]?.profileDisplay).toBe('logo.webp');
+		expect(rows.submit[1]?.profileDisplay).toBe('shot-a.png, shot-b.png');
+	});
+
+	it('buildCompareRowsForSteps maps legacy random gallery keys to Screenshot n', () => {
+		const snap: AutoLaunchProfileSnapshot = {
+			...snapshot,
+			profile_data: {
+				gallery_urls: ['org/profile/0.6739143119534297.png'],
+			},
+		};
+		const fields: LaunchStepField[] = [
+			{
+				key: 'gallery',
+				label: 'Tool screenshots',
+				profilePath: 'profile_data.gallery_urls',
+				fillMode: 'files',
+			},
+		];
+		const rows = buildCompareRowsForSteps(
+			snap,
+			[{ id: 'submit', label: 'Submit', fields }],
+			{ fillBaselinesByField: new Map(), selectedSourcePathsByField: new Map() }
+		);
+		expect(rows.submit[0]?.profileDisplay).toBe('Screenshot 1');
+	});
+
+	it('buildCompareRowsForSteps uses main-profile media labels when the variant inherits assets', () => {
+		const variant: AutoLaunchProfileSnapshot = {
+			...snapshot,
+			logo_url: null,
+			profile_data: { gallery_urls: [] },
+		};
+		const main: AutoLaunchProfileSnapshot = {
+			...snapshot,
+			logo_url: 'org/profile/random-logo.webp',
+			profile_data: {
+				logo_label: 'Brand mark',
+				gallery_urls: ['org/profile/a.png', 'org/profile/b.png'],
+				gallery_labels: ['Hero', 'Pricing'],
+			},
+		};
+		const fields: LaunchStepField[] = [
+			{
+				key: 'logo',
+				label: 'Tool logo',
+				profilePath: 'logo_url',
+				fillMode: 'file',
+			},
+			{
+				key: 'gallery',
+				label: 'Tool screenshots',
+				profilePath: 'profile_data.gallery_urls',
+				fillMode: 'files',
+			},
+		];
+		const rows = buildCompareRowsForSteps(
+			variant,
+			[{ id: 'submit', label: 'Submit', fields }],
+			{
+				fillBaselinesByField: new Map(),
+				selectedSourcePathsByField: new Map(),
+				mainProfileSnapshot: main,
+			}
+		);
+		expect(rows.submit[0]?.profileDisplay).toBe('Brand mark');
+		expect(rows.submit[1]?.profileDisplay).toBe('Hero, Pricing');
+	});
+
+	it('compareRowsVisibleOnPage drops rows without a resolved control', () => {
+		const row = buildCompareRowsForSteps(
+			snapshot,
+			[{ id: 'general', label: 'General', fields: [{ key: 'name', label: 'Name', profilePath: 'name' }] }],
+			{ fillBaselinesByField: new Map(), selectedSourcePathsByField: new Map() }
+		).general[0]!;
+		const onPage = { ...row, controlOnPage: true };
+		const offPage = { ...row, controlOnPage: false };
+		expect(compareRowsVisibleOnPage([onPage, offPage])).toHaveLength(1);
+		expect(compareRowsVisibleOnPage([onPage, offPage])[0]?.controlOnPage).toBe(true);
 	});
 
 	it('buildCompareRowsForSteps marks missing controls', () => {

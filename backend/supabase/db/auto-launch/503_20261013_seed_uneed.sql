@@ -290,7 +290,9 @@ FROM (
                     "key": "logo",
                     "label": "Logo",
                     "profilePath": "logo_url",
-                    "selectorHint": "input[type='file'][accept*='image']"
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "selectorHint": "input#single[type='file']"
                 },
                 {
                     "key": "launch_video_url",
@@ -302,8 +304,15 @@ FROM (
                 {
                     "key": "gallery",
                     "label": "Gallery images",
+                    "labelAliases": [
+                        "Images",
+                        "Product images"
+                    ],
                     "profilePath": "profile_data.gallery_urls",
-                    "selectorHint": "input[type='file'][accept*='image']:not(:first-of-type)"
+                    "fillMode": "files",
+                    "fileInputIndex": 0,
+                    "maxItems": 3,
+                    "selectorHint": "div:has(> h3:first-child), input[type='file'][accept*='image']"
                 }
             ]
         },
@@ -576,7 +585,9 @@ FROM (
                     "key": "logo",
                     "label": "Logo",
                     "profilePath": "logo_url",
-                    "selectorHint": "input[type='file'][accept*='image']"
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "selectorHint": "input#single[type='file']"
                 },
                 {
                     "key": "launch_video_url",
@@ -588,8 +599,15 @@ FROM (
                 {
                     "key": "gallery",
                     "label": "Gallery images",
+                    "labelAliases": [
+                        "Images",
+                        "Product images"
+                    ],
                     "profilePath": "profile_data.gallery_urls",
-                    "selectorHint": "input[type='file'][accept*='image']:not(:first-of-type)"
+                    "fillMode": "files",
+                    "fileInputIndex": 0,
+                    "maxItems": 3,
+                    "selectorHint": "div:has(> h3:first-child), input[type='file'][accept*='image']"
                 }
             ]
         },

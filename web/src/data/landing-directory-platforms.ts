@@ -53,6 +53,16 @@ export const FEATURES_GRID_DIRECTORY_PLATFORMS: LandingSocialPlatform[] = [
 		iconClass: 'size-8',
 		iconWidth: '32',
 		iconHeight: '32'
+	},
+	{
+		id: 'devhunt',
+		channelSlug: 'devhunt',
+		icon: icons.DevHunt.name,
+		label: 'DevHunt',
+		containerClass: 'bg-transparent p-0',
+		iconClass: 'size-8',
+		iconWidth: '32',
+		iconHeight: '32'
 	}
 ];
 
@@ -62,7 +72,7 @@ export const HERO_DIRECTORY_PLATFORMS = FEATURES_GRID_DIRECTORY_PLATFORMS;
 export const FEATURES_GRID_DIRECTORY_ROWS: FeaturesGridRowConfig[] = [
 	{
 		offsetClass: 'translate-x-0',
-		platformIds: ['peerpush', 'uneed', 'open-launch', 'tinylaunch', 'fazier']
+		platformIds: ['peerpush', 'uneed', 'open-launch', 'tinylaunch', 'fazier', 'devhunt']
 	}
 ];
 

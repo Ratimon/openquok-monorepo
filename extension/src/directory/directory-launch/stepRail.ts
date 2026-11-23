@@ -5,6 +5,7 @@ import {
 	type LaunchStep,
 	type LaunchStepFieldFillMode,
 	type NormalizedFieldValue,
+	resolveLaunchFieldFillMode,
 	richHtmlToPlainText,
 	sanitizeRichHtmlBeforeCompare,
 } from 'openquok-common';
@@ -14,6 +15,7 @@ import type { DirectoryProfileSourceOption } from '../auto-launch/profileSourceO
 import { isFormFieldUserEditable } from './fillEngine.js';
 import {
 	buildCompareRowsForSteps,
+	compareRowsVisibleOnPage,
 	refreshCompareRowFromDom,
 	type StepRailCompareFieldRow,
 } from './launchCompareState.js';
@@ -114,6 +116,11 @@ export type StepRailViewState = {
 	profileSourceOptions?: DirectoryProfileSourceOption[];
 	activeProfileSourceId?: string;
 	fillProgress?: StepRailFillProgress | null;
+	/**
+	 * When true, hide compare rows whose controls are not in the DOM (multi-tab forms).
+	 * When false, show every configured field from the profile (e.g. before the member opens the edit URL).
+	 */
+	compareRowsFilterToVisibleControls?: boolean;
 };
 
 const FILL_FAILURE_STATUSES = new Set<FieldFillResult['status']>([
@@ -137,9 +144,10 @@ export function isCompareRowManualAttention(
 
 /** Rows that are not in sync (matches step headers like “7/10 in sync”). */
 export function countOutOfSyncCompareFields(state: StepRailViewState): number {
+	if (!state.compareRowsFilterToVisibleControls) return 0;
 	let count = 0;
 	for (const step of state.steps) {
-		for (const row of resolveCompareRowsForStep(state, step)) {
+		for (const row of resolveDisplayCompareRowsForStep(state, step)) {
 			if (row.syncStatus !== 'match') count += 1;
 		}
 	}
@@ -156,7 +164,7 @@ export function countCompareManualAttentionFields(state: StepRailViewState): num
 	const seen = new Set<string>();
 	let count = 0;
 	for (const step of state.steps) {
-		const compareRows = resolveCompareRowsForStep(state, step);
+		const compareRows = resolveDisplayCompareRowsForStep(state, step);
 		const results = state.fieldResultsByStep[step.id] ?? [];
 		for (const row of compareRows) {
 			if (seen.has(row.fieldKey)) continue;
@@ -201,6 +209,42 @@ export function resolveCompareRowsForStep(
 			selectedSourcePathsByField: state.selectedSourcePathsByField ?? new Map(),
 		})[step.id] ?? []
 	);
+}
+
+/** Live DOM refresh for every compare row in a step. */
+export function refreshCompareRowsForStep(
+	state: StepRailViewState,
+	step: LaunchStep
+): StepRailCompareFieldRow[] {
+	const baselines = state.fillBaselinesByField ?? new Map();
+	return resolveCompareRowsForStep(state, step).map((row) => {
+		const fieldDef = step.fields?.find((entry) => entry.key === row.fieldKey);
+		if (!fieldDef) return row;
+		return refreshCompareRowFromDom(row, fieldDef, baselines.get(row.fieldKey));
+	});
+}
+
+/** Rows shown in the rail — preview (all fields) vs live form (on-page controls only). */
+export function resolveDisplayCompareRowsForStep(
+	state: StepRailViewState,
+	step: LaunchStep
+): StepRailCompareFieldRow[] {
+	const refreshed = refreshCompareRowsForStep(state, step);
+	if (state.compareRowsFilterToVisibleControls) {
+		return compareRowsVisibleOnPage(refreshed);
+	}
+	return refreshed;
+}
+
+/** @deprecated Use resolveDisplayCompareRowsForStep with compareRowsFilterToVisibleControls set. */
+export function resolveVisibleCompareRowsForStep(
+	state: StepRailViewState,
+	step: LaunchStep
+): StepRailCompareFieldRow[] {
+	return resolveDisplayCompareRowsForStep({
+		...state,
+		compareRowsFilterToVisibleControls: true,
+	}, step);
 }
 
 type PanelPosition = { top: number; left: number };
@@ -410,6 +454,10 @@ export class DirectoryLaunchStepRail {
 				gap: 8px;
 				margin-bottom: 6px;
 			}
+			.step-fill-btn {
+				flex-shrink: 0;
+				white-space: nowrap;
+			}
 			.profile-source-bar {
 				display: flex;
 				flex-direction: column;
@@ -579,15 +627,23 @@ export class DirectoryLaunchStepRail {
 			.fill-dot--warn { color: #fbbf24; }
 			.compare-row-grid {
 				display: grid;
-				grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-				gap: 8px;
-				align-items: stretch;
+				grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto;
+				gap: 6px 8px;
+				align-items: center;
 			}
 			.compare-col {
 				display: flex;
 				flex-direction: column;
 				gap: 4px;
 				min-width: 0;
+			}
+			.compare-row-action {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				gap: 4px;
+				align-self: center;
 			}
 			.compare-col-actions {
 				display: flex;
@@ -943,9 +999,25 @@ export class DirectoryLaunchStepRail {
 		stepsWrap.className = 'steps';
 		const firstStepId = state.steps[0]?.id;
 
+		const compareRailActive = Boolean(
+			state.profileSnapshot ||
+				(state.compareRowsByStep &&
+					Object.values(state.compareRowsByStep).some((rows) => rows.length > 0))
+		);
+
+		const filterToVisible = Boolean(state.compareRowsFilterToVisibleControls);
+
 		for (const step of state.steps) {
 			const results = state.fieldResultsByStep[step.id] ?? [];
-			const compareRows = resolveCompareRowsForStep(state, step);
+			const compareRows = resolveDisplayCompareRowsForStep(state, step);
+			if (
+				filterToVisible &&
+				compareRailActive &&
+				(step.fields?.length ?? 0) > 0 &&
+				compareRows.length === 0
+			) {
+				continue;
+			}
 			const fieldCount = compareRows.length || step.fields?.length || results.length;
 
 			const stepEl = document.createElement('section');
@@ -964,7 +1036,14 @@ export class DirectoryLaunchStepRail {
 				label.textContent = `${step.label} (${filled}/${fieldCount || 0} fields)`;
 			}
 
-			head.append(label);
+			const fillStepBtn = document.createElement('button');
+			fillStepBtn.type = 'button';
+			fillStepBtn.className = 'compact step-fill-btn';
+			fillStepBtn.textContent = 'Fill step';
+			fillStepBtn.disabled = Boolean(state.fillDisabled);
+			fillStepBtn.title = `Fill every field in ${step.label}`;
+			fillStepBtn.addEventListener('click', () => this.callbacks.onFillStep(step.id));
+			head.append(label, fillStepBtn);
 
 			const stepBlocks: HTMLElement[] = [head];
 
@@ -1013,14 +1092,10 @@ export class DirectoryLaunchStepRail {
 
 				for (const row of compareRows) {
 					const fieldDef = step.fields?.find((entry) => entry.key === row.fieldKey);
-					const baseline = state.fillBaselinesByField?.get(row.fieldKey);
-					const liveRow = fieldDef
-						? refreshCompareRowFromDom(row, fieldDef, baseline)
-						: row;
 					rowsWrap.appendChild(
 						this.buildCompareRow(
 							step.id,
-							liveRow,
+							row,
 							results,
 							Boolean(state.fillDisabled),
 							fieldDef
@@ -1190,7 +1265,9 @@ export class DirectoryLaunchStepRail {
 			profileCell.title =
 				'No profile tags match the Uneed catalog. Use the form to add official tags manually.';
 		}
-		const fieldFillMode = fieldDef?.fillMode;
+		const fieldFillMode: LaunchStepFieldFillMode | undefined = fieldDef
+			? resolveLaunchFieldFillMode(fieldDef)
+			: row.formNorm.kind;
 		populateCompareCell(profileCell, row, 'profile', undefined, richView, fieldFillMode);
 
 		const formCell = document.createElement('div');
@@ -1227,36 +1304,10 @@ export class DirectoryLaunchStepRail {
 
 		const profileCol = document.createElement('div');
 		profileCol.className = 'compare-col compare-col--profile';
+		profileCol.append(profileCell);
 
-		const profileActions = document.createElement('div');
-		profileActions.className = 'compare-col-actions';
-
-		if (row.hasSourcePicker) {
-			const expandBtn = document.createElement('button');
-			expandBtn.type = 'button';
-			expandBtn.className = 'icon-btn';
-			const expanded = this.expandedFieldKeys.has(row.fieldKey);
-			if (expanded) expandBtn.classList.add('icon-btn--open');
-			expandBtn.textContent = expanded ? '▾' : '▸';
-			expandBtn.title = 'Profile sources and destination presets';
-			expandBtn.addEventListener('click', () => {
-				if (this.expandedFieldKeys.has(row.fieldKey)) {
-					this.expandedFieldKeys.delete(row.fieldKey);
-				} else {
-					this.expandedFieldKeys.add(row.fieldKey);
-				}
-				// Expand/collapse without a full re-render from the parent.
-				expandBtn.textContent = this.expandedFieldKeys.has(row.fieldKey) ? '▾' : '▸';
-				expandBtn.classList.toggle('icon-btn--open', this.expandedFieldKeys.has(row.fieldKey));
-				for (const picker of wrap.querySelectorAll('.source-picker')) {
-					picker.remove();
-				}
-				if (this.expandedFieldKeys.has(row.fieldKey)) {
-					this.appendCompareFieldExpandRows(wrap, row);
-				}
-			});
-			profileActions.append(expandBtn);
-		}
+		const fillActionCol = document.createElement('div');
+		fillActionCol.className = 'compare-row-action compare-row-action--fill';
 
 		const fillFieldBtn = document.createElement('button');
 		fillFieldBtn.type = 'button';
@@ -1273,15 +1324,40 @@ export class DirectoryLaunchStepRail {
 		fillFieldBtn.addEventListener('click', () => {
 			this.callbacks.onFillField?.(stepId, row.fieldKey);
 		});
-		profileActions.append(fillFieldBtn);
+		fillActionCol.append(fillFieldBtn);
 
-		profileCol.append(profileCell, profileActions);
+		if (row.hasSourcePicker) {
+			const expandBtn = document.createElement('button');
+			expandBtn.type = 'button';
+			expandBtn.className = 'icon-btn';
+			const expanded = this.expandedFieldKeys.has(row.fieldKey);
+			if (expanded) expandBtn.classList.add('icon-btn--open');
+			expandBtn.textContent = expanded ? '▾' : '▸';
+			expandBtn.title = 'Profile sources and destination presets';
+			expandBtn.addEventListener('click', () => {
+				if (this.expandedFieldKeys.has(row.fieldKey)) {
+					this.expandedFieldKeys.delete(row.fieldKey);
+				} else {
+					this.expandedFieldKeys.add(row.fieldKey);
+				}
+				expandBtn.textContent = this.expandedFieldKeys.has(row.fieldKey) ? '▾' : '▸';
+				expandBtn.classList.toggle('icon-btn--open', this.expandedFieldKeys.has(row.fieldKey));
+				for (const picker of wrap.querySelectorAll('.source-picker')) {
+					picker.remove();
+				}
+				if (this.expandedFieldKeys.has(row.fieldKey)) {
+					this.appendCompareFieldExpandRows(wrap, row);
+				}
+			});
+			fillActionCol.append(expandBtn);
+		}
 
 		const formCol = document.createElement('div');
 		formCol.className = 'compare-col compare-col--form';
+		formCol.append(formCell);
 
-		const formActions = document.createElement('div');
-		formActions.className = 'compare-col-actions';
+		const updateActionCol = document.createElement('div');
+		updateActionCol.className = 'compare-row-action compare-row-action--update';
 
 		const updateBtn = document.createElement('button');
 		updateBtn.type = 'button';
@@ -1296,11 +1372,9 @@ export class DirectoryLaunchStepRail {
 				richAsHtml: richView === 'html',
 			});
 		});
-		formActions.append(updateBtn);
+		updateActionCol.append(updateBtn);
 
-		formCol.append(formCell, formActions);
-
-		grid.append(profileCol, formCol);
+		grid.append(profileCol, fillActionCol, formCol, updateActionCol);
 		wrap.append(rowLabel, grid);
 
 		if (row.hasSourcePicker && this.expandedFieldKeys.has(row.fieldKey)) {
@@ -1510,6 +1584,38 @@ function populateCompareCell(
 
 	if (side === 'form' && !row.controlOnPage) {
 		cell.textContent = row.formDisplay;
+		return;
+	}
+
+	const mediaKind =
+		norm.kind === 'files' ||
+		norm.kind === 'file' ||
+		fieldFillMode === 'file' ||
+		fieldFillMode === 'files';
+	if (mediaKind) {
+		const labels =
+			side === 'profile'
+				? (row.profileDisplay === 'Not in profile'
+						? []
+						: row.profileDisplay.split(',').map((part) => part.trim()).filter(Boolean))
+				: row.formDisplay === '—' ||
+					  row.formDisplay === 'Control not on page' ||
+					  row.formDisplay === 'Not in profile'
+					? []
+					: row.formDisplay.split(',').map((part) => part.trim()).filter(Boolean);
+		if (labels.length === 0) {
+			cell.textContent = display;
+			return;
+		}
+		const chips = document.createElement('div');
+		chips.className = 'chips';
+		for (const item of labels) {
+			const chip = document.createElement('span');
+			chip.className = 'chip';
+			chip.textContent = item;
+			chips.appendChild(chip);
+		}
+		cell.append(chips);
 		return;
 	}
 

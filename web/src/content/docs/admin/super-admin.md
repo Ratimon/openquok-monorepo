@@ -72,7 +72,7 @@ pnpm backend:db:verify-local-dev-user-email -- your@email.com
 ```
 
 <Callout type="tip">
-<p><Badge text="bootstrap-local-dev-user" variant="default" /> uses the service role only — app auth code is unchanged. Optional flags: <Badge text="--email" variant="param" />, <Badge text="--password" variant="param" />, <Badge text="--no-super-admin" variant="param" />.</p>
+<p><Badge text="bootstrap-local-dev-user" variant="default" /> uses the service role only — app auth code is unchanged. It also idempotently creates the exemplar <strong>OpenQuok</strong> main business profile on My Products when the workspace has none (same RPC as the post-reset local seed). Optional flags: <Badge text="--email" variant="param" />, <Badge text="--password" variant="param" />, <Badge text="--no-super-admin" variant="param" />.</p>
 </Callout>
 
 <Callout type="warning">

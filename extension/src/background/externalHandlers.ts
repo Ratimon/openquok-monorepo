@@ -10,6 +10,7 @@ import {
 } from 'openquok-common';
 
 import { persistHandoff } from './directoryHandlers.js';
+import { refreshStoredDirectoryLaunchProfile } from '../directory/auto-launch/refreshDirectoryLaunchProfile.js';
 import { rememberDashboardOrigin } from '../shared/dashboardOriginStorage.js';
 import { EXTENSION_VERSION } from '../constants.js';
 import { extractCookies } from '../cookies/extractCookies.js';
@@ -80,6 +81,14 @@ export async function handleBrowserExtensionRequest(
 
 		case BROWSER_EXTENSION_MESSAGE_TYPE.AUTO_LAUNCH_HANDOFF:
 			return errorResponse('Handoff must be sent from the OpenQuok dashboard.', 'AUTO_LAUNCH_HANDOFF_FAILED');
+
+		case BROWSER_EXTENSION_MESSAGE_TYPE.AUTO_LAUNCH_REFRESH_PROFILE: {
+			const refreshed = await refreshStoredDirectoryLaunchProfile();
+			if (!refreshed.ok) {
+				return errorResponse(refreshed.error, 'AUTO_LAUNCH_REFRESH_PROFILE_FAILED');
+			}
+			return { ok: true, type: BROWSER_EXTENSION_MESSAGE_TYPE.AUTO_LAUNCH_REFRESH_PROFILE };
+		}
 
 		default:
 			return errorResponse('Unsupported message type.');

@@ -11,6 +11,7 @@ import {
 	type ExtensionConfigDerivation,
 	type ExtensionConfigDerivationBySlug,
 } from './extensionConfigDerivation.js';
+import { DEVHUNT_EXTENSION_CONFIG_DERIVATIONS } from './sites/devhunt/sync.js';
 import { FAZIER_EXTENSION_CONFIG_DERIVATIONS } from './sites/fazier/sync.js';
 import { OPEN_LAUNCH_EXTENSION_CONFIG_DERIVATIONS } from './sites/open-launch/sync.js';
 import { PEERPUSH_EXTENSION_CONFIG_DERIVATIONS } from './sites/peerpush/sync.js';
@@ -43,7 +44,8 @@ export const AUTO_LAUNCH_EXTENSION_CONFIG_DERIVATIONS: ExtensionConfigDerivation
 		OPEN_LAUNCH_EXTENSION_CONFIG_DERIVATIONS,
 		TINYLAUNCH_EXTENSION_CONFIG_DERIVATIONS,
 		UNEED_EXTENSION_CONFIG_DERIVATIONS,
-		FAZIER_EXTENSION_CONFIG_DERIVATIONS
+		FAZIER_EXTENSION_CONFIG_DERIVATIONS,
+		DEVHUNT_EXTENSION_CONFIG_DERIVATIONS
 	);
 
 /** Subset used by extension + destination sync pricing-queue checks. */

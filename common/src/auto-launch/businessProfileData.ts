@@ -30,8 +30,14 @@ export const BUSINESS_PROFILE_MAX_TECH_STACK = 5;
 /** Max similar products in `profile_data.alternatives`. */
 export const BUSINESS_PROFILE_MAX_ALTERNATIVES = 5;
 
-/** Max gallery image storage paths in `profile_data.gallery_urls`. */
-export const BUSINESS_PROFILE_MAX_GALLERY_URLS = 3;
+/** Max gallery image storage paths in `profile_data.gallery_urls` (OpenQuok profile / web UI). */
+export const BUSINESS_PROFILE_MAX_GALLERY_URLS = 10;
+
+/** Max characters per entry in `profile_data.gallery_labels` (parallel to `gallery_urls`). */
+export const BUSINESS_PROFILE_MAX_GALLERY_LABEL_LENGTH = 200;
+
+/** Max characters for `profile_data.logo_label`. */
+export const BUSINESS_PROFILE_MAX_LOGO_LABEL_LENGTH = 200;
 
 /** Minimum characters for `profile_data.selling_reason` when provided or when listed for acquisition. */
 export const BUSINESS_PROFILE_SELLING_REASON_MIN_LENGTH = 20;
@@ -71,6 +77,10 @@ export type BusinessProfileData = {
 	repository_url?: string | null;
 	launch_video_url?: string | null;
 	gallery_urls?: string[] | null;
+	/** Display names aligned by index with `gallery_urls` (directory compare / Media tab). */
+	gallery_labels?: string[] | null;
+	/** Display name for `logo_url` when set on the product profile. */
+	logo_label?: string | null;
 	social_x?: string | null;
 	social_github?: string | null;
 	social_instagram?: string | null;
@@ -170,6 +180,27 @@ export function normalizeBusinessProfileData(
 		out.gallery_urls = normalizeStringArray(value.gallery_urls);
 	}
 
+	if (value.gallery_labels !== undefined) {
+		let labels = normalizeGalleryLabelEntries(value.gallery_labels);
+		if (out.gallery_urls !== undefined && out.gallery_urls !== null) {
+			labels = alignGalleryLabelsToUrlCount(out.gallery_urls, labels);
+		}
+		if (labels !== null) {
+			out.gallery_labels = labels;
+		}
+	}
+
+	if (value.logo_label !== undefined) {
+		const logoLabel = trimToNull(value.logo_label);
+		if (logoLabel === undefined) {
+			/* non-string ignored */
+		} else if (logoLabel === null) {
+			out.logo_label = null;
+		} else {
+			out.logo_label = logoLabel.slice(0, BUSINESS_PROFILE_MAX_LOGO_LABEL_LENGTH);
+		}
+	}
+
 	for (const key of [
 		'social_x',
 		'social_github',
@@ -227,6 +258,49 @@ function normalizeStringArray(value: unknown): string[] | null {
 		.filter((item): item is string => typeof item === 'string')
 		.map((item) => item.trim())
 		.filter((item) => item.length > 0);
+}
+
+function normalizeGalleryLabelEntries(value: unknown): string[] | null {
+	if (value === null) return null;
+	if (!Array.isArray(value)) return [];
+	const out: string[] = [];
+	for (const item of value) {
+		if (out.length >= BUSINESS_PROFILE_MAX_GALLERY_URLS) break;
+		if (typeof item !== 'string') {
+			out.push('');
+			continue;
+		}
+		const trimmed = item.trim();
+		out.push(
+			trimmed.length > 0
+				? trimmed.slice(0, BUSINESS_PROFILE_MAX_GALLERY_LABEL_LENGTH)
+				: ''
+		);
+	}
+	return out;
+}
+
+/** Pad or truncate `gallery_labels` so its length matches `gallery_urls` (index-stable). */
+export function alignGalleryLabelsToUrlCount(
+	urls: string[],
+	labels: string[] | null | undefined
+): string[] | null {
+	if (urls.length === 0) {
+		const normalized = labels ?? null;
+		if (!normalized || normalized.length === 0) return null;
+		return normalized.every((entry) => entry.length === 0) ? null : normalized;
+	}
+
+	const aligned = urls.map((_, index) => {
+		const entry = labels?.[index];
+		if (typeof entry !== 'string') return '';
+		const trimmed = entry.trim();
+		return trimmed.length > 0
+			? trimmed.slice(0, BUSINESS_PROFILE_MAX_GALLERY_LABEL_LENGTH)
+			: '';
+	});
+
+	return aligned.some((entry) => entry.length > 0) ? aligned : null;
 }
 
 function normalizeUsdAmount(value: unknown): number | null {

@@ -1,12 +1,9 @@
 import type { LaunchStepField, LaunchStepFieldFillMode, NormalizedFieldValue } from 'openquok-common';
-import { richHtmlToPlainText } from 'openquok-common';
+import { mediaFileDisplayName, richHtmlToPlainText } from 'openquok-common';
 
-import {
-	choiceLabelForControl,
-	isChoiceControlChecked,
-	resolveFieldElement,
-	resolveTagsFieldRoot,
-} from './fillEngine.js';
+import { choiceLabelForControl, isChoiceControlChecked, resolveFieldElement, resolveTagsFieldRoot } from './fillEngine.js';
+import { formScalarMisassignedToField } from './formFieldDom.js';
+import { getSiteMediaAdapterForGalleryPreview } from './siteMedia/index.js';
 
 function resolveFillMode(field: LaunchStepField): LaunchStepFieldFillMode {
 	if (field.fillMode) return field.fillMode;
@@ -660,17 +657,78 @@ function resolveFileInputsInScope(element: Element): HTMLInputElement[] {
 	);
 }
 
-function readFileValue(element: Element, kind: 'file' | 'files'): NormalizedFieldValue {
+function fileLabelFromImgSrc(src: string): string | null {
+	const trimmed = src.trim();
+	if (!trimmed || trimmed.startsWith('data:image/svg')) return null;
+	if (trimmed.startsWith('blob:')) return 'uploaded-image';
+	return mediaFileDisplayName(trimmed) || 'uploaded-image';
+}
+
+function collectOnPageFileLabels(element: Element, field?: LaunchStepField): string[] {
+	const labels: string[] = [];
 	const inputs = resolveFileInputsInScope(element);
-	let count = 0;
 	for (const input of inputs) {
-		count += input.files?.length ?? 0;
+		const list = input.files;
+		if (!list) continue;
+		for (let i = 0; i < list.length; i++) {
+			const file = list.item(i);
+			if (file?.name?.trim()) labels.push(file.name.trim());
+		}
 	}
+	if (labels.length > 0) return labels;
+
+	const scope =
+		element instanceof HTMLInputElement
+			? (element.closest('#tool-screenshots-container') ??
+				element.closest('section, fieldset, form, div') ??
+				element.parentElement ??
+				element)
+			: element;
+	const galleryPreviewAdapter =
+		field?.key === 'gallery' ? getSiteMediaAdapterForGalleryPreview(field, scope) : null;
+	for (const img of scope.querySelectorAll('img[src]')) {
+		if (!(img instanceof HTMLImageElement)) continue;
+		if (
+			galleryPreviewAdapter &&
+			!galleryPreviewAdapter.isGalleryPreviewImage(
+				img,
+				galleryPreviewAdapter.resolveGalleryReadRoot(field)
+			)
+		) {
+			continue;
+		}
+		const label = fileLabelFromImgSrc(img.getAttribute('src') ?? '');
+		if (label) labels.push(label);
+	}
+	if (
+		labels.length === 0 &&
+		field &&
+		(field.key === 'logo' || field.profilePath === 'logo_url') &&
+		scope.querySelector('[class*="avatar" i], [class*="rounded-full" i] img[src]')
+	) {
+		labels.push('uploaded-image');
+	}
+	return labels;
+}
+
+function readFileValue(
+	element: Element,
+	kind: 'file' | 'files',
+	field?: LaunchStepField
+): NormalizedFieldValue {
+	const labels = collectOnPageFileLabels(element, field);
 	if (kind === 'file') {
-		return { kind, present: count > 0 };
+		return {
+			kind,
+			items: labels[0] ? [labels[0]] : undefined,
+			present: labels.length > 0,
+		};
 	}
-	const items = count > 0 ? Array.from({ length: count }, (_, i) => `file-${i + 1}`) : undefined;
-	return { kind, items, present: count > 0 };
+	return {
+		kind,
+		items: labels.length > 0 ? labels : undefined,
+		present: labels.length > 0,
+	};
 }
 
 function readTextValue(element: Element): NormalizedFieldValue {
@@ -708,9 +766,9 @@ function readNormalizedFromElement(
 		case 'rich_html':
 			return readRichHtmlValue(element);
 		case 'file':
-			return readFileValue(element, 'file');
+			return readFileValue(element, 'file', field);
 		case 'files':
-			return readFileValue(element, 'files');
+			return readFileValue(element, 'files', field);
 		default:
 			return readTextValue(element);
 	}
@@ -735,6 +793,9 @@ export function readFormFieldValue(field: LaunchStepField): NormalizedFieldValue
 			...result,
 			scalar: richHtmlToPlainText(result.scalar),
 		};
+	}
+	if (formScalarMisassignedToField(field, result.scalar)) {
+		return null;
 	}
 	return result;
 }

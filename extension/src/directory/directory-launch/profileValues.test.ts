@@ -20,6 +20,47 @@ describe('mergeMainProfileSocialData', () => {
 		expect(merged.profile_data?.social_x).toBe('https://x.com/openquok');
 		expect(merged.profile_data?.social_github).toBe('https://github.com/openquok');
 	});
+
+	it('inherits logo and gallery_urls from the main profile when the variant is empty', () => {
+		const variant: AutoLaunchProfileSnapshot = {
+			name: 'OpenQuok',
+			logo_url: null,
+			profile_data: { gallery_urls: [] },
+		};
+		const main: AutoLaunchProfileSnapshot = {
+			name: 'OpenQuok',
+			logo_url: 'https://www.openquok.com/logo.png',
+			profile_data: {
+				gallery_urls: ['https://www.openquok.com/a.png', 'https://www.openquok.com/b.png'],
+			},
+		};
+		const merged = mergeMainProfileSocialData(variant, main);
+		expect(merged.logo_url).toBe('https://www.openquok.com/logo.png');
+		expect(merged.profile_data?.gallery_urls).toEqual([
+			'https://www.openquok.com/a.png',
+			'https://www.openquok.com/b.png',
+		]);
+	});
+
+	it('inherits logo_label and gallery_labels with logo and gallery_urls from the main profile', () => {
+		const variant: AutoLaunchProfileSnapshot = {
+			name: 'OpenQuok',
+			logo_url: null,
+			profile_data: { gallery_urls: [] },
+		};
+		const main: AutoLaunchProfileSnapshot = {
+			name: 'OpenQuok',
+			logo_url: 'org/profile/logo.webp',
+			profile_data: {
+				logo_label: 'Square logo',
+				gallery_urls: ['org/profile/one.png', 'org/profile/two.png'],
+				gallery_labels: ['Screen one', 'Screen two'],
+			},
+		};
+		const merged = mergeMainProfileSocialData(variant, main);
+		expect(merged.profile_data?.logo_label).toBe('Square logo');
+		expect(merged.profile_data?.gallery_labels).toEqual(['Screen one', 'Screen two']);
+	});
 });
 
 describe('resolveLaunchProfileScalar', () => {

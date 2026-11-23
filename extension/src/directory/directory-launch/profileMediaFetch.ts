@@ -1,3 +1,9 @@
+import type { AutoLaunchProfileSnapshot, LaunchStepField } from 'openquok-common';
+import {
+	resolveGalleryDisplayLabelForSlot,
+	resolveLogoDisplayName,
+} from 'openquok-common';
+
 import { resolveApiOriginForDashboard } from '../../shared/dashboardApiOrigin.js';
 
 const AUTO_LAUNCH_PROFILE_MEDIA_BUCKET = 'auto_launch_profile_media';
@@ -10,6 +16,44 @@ function fileNameFromStoragePath(storagePath: string): string {
 	const segment = storagePath.split('/').pop()?.trim() ?? 'image';
 	if (/\.[a-z0-9]+$/i.test(segment)) return segment;
 	return `${segment}.webp`;
+}
+
+function attachStorageExtension(displayLabel: string, storageFileName: string): string {
+	const trimmed = displayLabel.trim();
+	if (/\.[a-z0-9]+$/i.test(trimmed)) return trimmed;
+	const ext = storageFileName.match(/\.[a-z0-9]+$/i)?.[0] ?? '.png';
+	const safeBase = trimmed.replace(/[/\\?%*:|"<>]/g, '-').trim() || 'image';
+	return `${safeBase}${ext}`;
+}
+
+/** File input `name` for directory uploads (gallery labels or sensible defaults, not raw storage keys). */
+export function profileMediaDownloadFileName(
+	storagePath: string,
+	index: number,
+	field: LaunchStepField,
+	snapshot: AutoLaunchProfileSnapshot
+): string {
+	const storageFileName = fileNameFromStoragePath(storagePath);
+	const profilePath = field.profilePath?.trim() ?? '';
+	const profileData = snapshot.profile_data ?? {};
+
+	if (field.fillMode === 'files' && profilePath === 'profile_data.gallery_urls') {
+		const galleryLabels = Array.isArray(profileData.gallery_labels)
+			? profileData.gallery_labels
+			: undefined;
+		const display = resolveGalleryDisplayLabelForSlot(
+			storagePath,
+			index,
+			galleryLabels?.[index]
+		);
+		return attachStorageExtension(display, storageFileName);
+	}
+
+	if (field.fillMode === 'file' && profilePath === 'logo_url') {
+		return attachStorageExtension(resolveLogoDisplayName(snapshot), storageFileName);
+	}
+
+	return storageFileName;
 }
 
 function guessMimeFromName(name: string): string {

@@ -180,7 +180,7 @@
 					"slug": "standard-launch",
 					"title": "Standard launch",
 					"opportunity_type_slug": "product_submission",
-					"effort": "hard",
+					"effort": "medium",
 					"approval_mode": "manual_review",
 					"approval_time_hint": "Free Monday slots; timing varies by queue volume",
 					"dofollow": "unknown",
@@ -506,6 +506,126 @@
 					"is_admin_published": true,
 					"auto_launch_enabled": true,
 					"auto_launch_provider_slug": "fazier-paid-product-listing"
+				}
+			]
+		},
+		"devhunt": {
+			"site": {
+				"id": "d5f7d000-0010-4000-a000-00000000000d",
+				"slug": "devhunt",
+				"title": "DevHunt",
+				"site_url": "https://devhunt.org",
+				"logo_url": "https://www.openquok.com/icons/link-directory/devhunt.svg",
+				"short_description": "Launch platform for developer tools. Free listing with a permanent page, or a $49 launch week for a dofollow link. No badge required.",
+				"long_description": "DevHunt lists APIs, SDKs, libraries, and other tools for developers. Sign in at https://devhunt.org/account/tools/new and complete the tool form. A free listing gives a permanent page with a nofollow link to your site. A paid launch week costs $49 on DevHunt and adds a dofollow link, homepage placement, and newsletter exposure. DevHunt removes listings that are not developer tools. OpenQuok autofills the form. You pick the listing or launch path and submit on DevHunt.",
+				"domain_rating": 71,
+				"monthly_visits": 2000,
+				"metrics_source": "editor_estimate",
+				"category_slug": "launch-platforms",
+				"tag_slugs": ["high-dr"],
+				"is_openquok_auth_supported": false,
+				"openquok_channel_slug": null,
+				"is_admin_published": true,
+				"sort_order": 0
+			},
+			"opportunities": [
+				{
+					"id": "d5f7d000-0020-4000-a000-000000000030",
+					"slug": "standard-launch",
+					"title": "Free listing",
+					"opportunity_type_slug": "product_submission",
+					"effort": "medium",
+					"approval_mode": "manual_review",
+					"approval_time_hint": "Permanent tool page after DevHunt publishes",
+					"dofollow": "nofollow",
+					"cost_tier": "free",
+					"cost_note": "Free listing links use nofollow. No DevHunt badge is required on your site.",
+					"description": "List a developer tool on DevHunt at no cost. You get a permanent tool page with a nofollow link to your site. OpenQuok fills https://devhunt.org/account/tools/new after you sign in.",
+					"steps": [
+						{
+							"order": 1,
+							"title": "Confirm developer focus",
+							"body": "Use this path only for developer tools. DevHunt removes consumer apps and general marketing tools."
+						},
+						{
+							"order": 2,
+							"title": "Read the launch guide",
+							"body": "Review listing vs launch rules on https://devhunt.org."
+						},
+						{
+							"order": 3,
+							"title": "Sign in",
+							"body": "Open https://devhunt.org/login and sign in with GitHub, Google, or email."
+						},
+						{
+							"order": 4,
+							"title": "Submit your tool",
+							"body": "Open https://devhunt.org/account/tools/new. Use OpenQuok to fill name, slogan, website, description, logo (about 220 by 220 pixels), and at least three screenshots. Put your product in the first screenshot. Submit the free listing on DevHunt."
+						},
+						{
+							"order": 5,
+							"title": "Verify after publish",
+							"body": "When DevHunt publishes your tool, open the live page. Confirm the website link works. Save the URL in OpenQuok."
+						}
+					],
+					"openquok_cta_kind": "external_doc",
+					"openquok_channel_slug": null,
+					"openquok_plug_name": null,
+					"cta_href": "https://devhunt.org/account/tools/new",
+					"cta_label": "Submit on DevHunt",
+					"sort_order": 10,
+					"is_admin_published": true,
+					"auto_launch_enabled": true,
+					"auto_launch_provider_slug": "devhunt-standard-launch"
+				},
+				{
+					"id": "d5f7d000-0020-4000-a000-000000000031",
+					"slug": "paid-launch",
+					"title": "Paid launch",
+					"opportunity_type_slug": "product_submission",
+					"effort": "medium",
+					"approval_mode": "manual_review",
+					"approval_time_hint": "You pick the launch week after $49 checkout on DevHunt",
+					"dofollow": "dofollow",
+					"cost_tier": "paid",
+					"cost_note": "$49 one-time launch week on DevHunt: dofollow link, homepage spot, and newsletter slot.",
+					"description": "Pay $49 on DevHunt for a launch week. You choose the week and get a permanent dofollow link, homepage placement, and newsletter exposure. OpenQuok fills the form first. Checkout and launch week stay on DevHunt.",
+					"steps": [
+						{
+							"order": 1,
+							"title": "Confirm developer focus",
+							"body": "Use this path only for developer tools. DevHunt removes consumer apps and general marketing tools."
+						},
+						{
+							"order": 2,
+							"title": "Compare listing and launch",
+							"body": "Read what the $49 launch includes vs a free listing on https://devhunt.org."
+						},
+						{
+							"order": 3,
+							"title": "Sign in and open the form",
+							"body": "Sign in at https://devhunt.org/login. Open https://devhunt.org/account/tools/new."
+						},
+						{
+							"order": 4,
+							"title": "Fill and submit",
+							"body": "Use OpenQuok to complete the tool form. Add logo (about 220 by 220 pixels) and at least three screenshots. Submit on DevHunt."
+						},
+						{
+							"order": 5,
+							"title": "Pay and pick launch week",
+							"body": "On DevHunt, pay $49 and pick your launch week. After publish, open your live tool page and confirm the dofollow website link. Save the URL in OpenQuok."
+						}
+					],
+					"openquok_cta_kind": "external_doc",
+					"openquok_channel_slug": null,
+					"openquok_plug_name": null,
+					"cta_href": "https://devhunt.org/account/tools/new",
+					"cta_label": "Launch on DevHunt",
+					"sort_order": 15,
+					"is_admin_published": true,
+					"auto_launch_enabled": true,
+					"auto_launch_provider_slug": "devhunt-paid-launch"
 				}
 			]
 		}

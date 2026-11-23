@@ -12,6 +12,8 @@ export const BROWSER_EXTENSION_MESSAGE_TYPE = {
 	STORE_REFRESH_TOKEN: 'STORE_REFRESH_TOKEN',
 	REMOVE_REFRESH_TOKEN: 'REMOVE_REFRESH_TOKEN',
 	AUTO_LAUNCH_HANDOFF: AUTO_LAUNCH_MESSAGE_TYPE.HANDOFF,
+	/** Reload active directory-launch profile snapshot after dashboard edits (e.g. gallery upload). */
+	AUTO_LAUNCH_REFRESH_PROFILE: 'AUTO_LAUNCH_REFRESH_PROFILE',
 } as const;
 
 export { AUTO_LAUNCH_MESSAGE_TYPE } from './autoLaunchMessages.js';
@@ -55,7 +57,8 @@ export type BrowserExtensionRequest =
 	  }
 	| ({
 			type: typeof BROWSER_EXTENSION_MESSAGE_TYPE.AUTO_LAUNCH_HANDOFF;
-	  } & AutoLaunchHandoffRequestFields);
+	  } & AutoLaunchHandoffRequestFields)
+	| { type: typeof BROWSER_EXTENSION_MESSAGE_TYPE.AUTO_LAUNCH_REFRESH_PROFILE };
 
 export type BrowserExtensionProviderSummary = {
 	identifier: string;
@@ -81,7 +84,8 @@ export type BrowserExtensionSuccessResponse =
 			ok: true;
 			type: typeof BROWSER_EXTENSION_MESSAGE_TYPE.AUTO_LAUNCH_HANDOFF;
 			submissionId: string;
-	  };
+	  }
+	| { ok: true; type: typeof BROWSER_EXTENSION_MESSAGE_TYPE.AUTO_LAUNCH_REFRESH_PROFILE };
 
 export type BrowserExtensionErrorResponse = {
 	ok: false;
@@ -124,6 +128,8 @@ export function isBrowserExtensionRequest(value: unknown): value is BrowserExten
 			return isNonEmptyString(record.providerId) && isNonEmptyString(record.integrationId);
 		case BROWSER_EXTENSION_MESSAGE_TYPE.AUTO_LAUNCH_HANDOFF:
 			return isAutoLaunchHandoffRequestFields(record);
+		case BROWSER_EXTENSION_MESSAGE_TYPE.AUTO_LAUNCH_REFRESH_PROFILE:
+			return true;
 		default:
 			return false;
 	}

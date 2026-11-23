@@ -1,5 +1,10 @@
 import type { LaunchStepField } from '../../browser-extension/pageAssist.js';
 import {
+	coerceToDevhuntOfficialPricing,
+	devhuntSelectCatalogOptions,
+	matchDevhuntOfficialPricing,
+} from './devhunt.js';
+import {
 	coerceToOpenLaunchOfficialPricing,
 	filterToOpenLaunchOfficialCategories,
 	filterToOpenLaunchOfficialPlatforms,
@@ -29,6 +34,7 @@ export const LAUNCH_FIELD_CATALOG_IDS = {
 	'open_launch:categories': 'open_launch:categories',
 	'open_launch:platforms': 'open_launch:platforms',
 	'open_launch:pricing': 'open_launch:pricing',
+	'devhunt:pricing': 'devhunt:pricing',
 } as const;
 
 export type LaunchFieldCatalogId = keyof typeof LAUNCH_FIELD_CATALOG_IDS;
@@ -40,6 +46,7 @@ export function resolveLaunchFieldCatalogId(field: LaunchStepField): LaunchField
 	if (field.checkboxCatalog === 'open_launch_categories') return 'open_launch:categories';
 	if (field.checkboxCatalog === 'open_launch_platforms') return 'open_launch:platforms';
 	if (field.selectCatalog === 'open_launch_pricing') return 'open_launch:pricing';
+	if (field.selectCatalog === 'devhunt_pricing') return 'devhunt:pricing';
 	return null;
 }
 
@@ -82,6 +89,9 @@ export function selectPresetsForField(field: LaunchStepField): readonly string[]
 	if (id === 'open_launch:pricing') {
 		return openLaunchSelectCatalogOptions('open_launch_pricing');
 	}
+	if (id === 'devhunt:pricing') {
+		return devhuntSelectCatalogOptions('devhunt_pricing');
+	}
 	if (id === 'uneed:select') {
 		return uneedSelectCatalogOptions('uneed');
 	}
@@ -103,6 +113,9 @@ export function applySelectCoercionForField(scalar: string, field: LaunchStepFie
 	}
 	if (id === 'open_launch:pricing') {
 		return coerceToOpenLaunchOfficialPricing(scalar);
+	}
+	if (id === 'devhunt:pricing') {
+		return coerceToDevhuntOfficialPricing(scalar);
 	}
 	if (field.selectCatalog === 'uneed' && field.key === 'pricing_type') {
 		return coerceUneedPricingType(scalar);
@@ -160,6 +173,12 @@ export function invalidSelectForField(scalar: string | undefined, field: LaunchS
 		return (
 			matchOpenLaunchOfficialPricing(scalar) === null &&
 			coerceToOpenLaunchOfficialPricing(scalar) === scalar.trim()
+		);
+	}
+	if (id === 'devhunt:pricing') {
+		return (
+			matchDevhuntOfficialPricing(scalar) === null &&
+			coerceToDevhuntOfficialPricing(scalar) === scalar.trim()
 		);
 	}
 	return false;

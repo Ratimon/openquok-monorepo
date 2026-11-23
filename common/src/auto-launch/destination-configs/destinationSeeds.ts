@@ -2,7 +2,7 @@
  * Source of truth for `auto_launch_destinations` row seeds (502–506 SQL).
  * Consumed by `backend/scripts/sync-auto-launch-destination-seeds.mjs`.
  *
- * Next stable destination id suffix after Fazier: …013
+ * Next stable destination id suffix after DevHunt: …015
  */
 
 export type AutoLaunchDestinationSeedGenerationMode = 'full' | 'composite';
@@ -219,6 +219,35 @@ const FAZIER_DESTINATIONS: readonly AutoLaunchDestinationSeedRow[] = [
 	},
 ];
 
+const DEVHUNT_DESTINATIONS: readonly AutoLaunchDestinationSeedRow[] = [
+	{
+		destinationId: 'd5f7d000-0030-4000-a000-000000000014',
+		providerSlug: 'devhunt-standard-launch',
+		siteSlug: 'devhunt',
+		name: 'DevHunt — Free listing',
+		shortDescription:
+			'Free listing on DevHunt with a nofollow tool-page link; extension autofills after you sign in.',
+		startUrl: 'https://devhunt.org/account/tools/new',
+		sortOrder: 53,
+		pickerGroupKey: 'devhunt',
+		pickerGroupTitle: 'DevHunt',
+		opportunitySlug: 'standard-launch',
+	},
+	{
+		destinationId: 'd5f7d000-0030-4000-a000-000000000013',
+		providerSlug: 'devhunt-paid-launch',
+		siteSlug: 'devhunt',
+		name: 'DevHunt — Paid launch',
+		shortDescription:
+			'$49 launch week on DevHunt for a dofollow link; extension autofills account/tools/new after you sign in.',
+		startUrl: 'https://devhunt.org/account/tools/new',
+		sortOrder: 55,
+		pickerGroupKey: 'devhunt',
+		pickerGroupTitle: 'DevHunt',
+		opportunitySlug: 'paid-launch',
+	},
+];
+
 export const AUTO_LAUNCH_DESTINATION_SEED_MODULES: readonly AutoLaunchDestinationSeedModule[] = [
 	{
 		siteKey: 'uneed',
@@ -281,6 +310,18 @@ export const AUTO_LAUNCH_DESTINATION_SEED_MODULES: readonly AutoLaunchDestinatio
 			"UPDATE public.auto_launch_destinations SET provider_slug = 'fazier-free-product-listing' WHERE provider_slug = 'fazier-launch';",
 		],
 		destinations: FAZIER_DESTINATIONS,
+	},
+	{
+		siteKey: 'devhunt',
+		sqlFileName: '508_20261121_seed_devhunt_destination.sql',
+		generationMode: 'full',
+		moduleDate: '20261121',
+		moduleScopeLabel: 'Seed (DevHunt free listing + paid launch destinations)',
+		preambleComments: [
+			'-- Joins link_directory_opportunities on site slug devhunt (catalog backfill / listing manager).',
+			'-- Launch week, $49 checkout, and maker comment stay manual after the tool form is filled.',
+		],
+		destinations: DEVHUNT_DESTINATIONS,
 	},
 ];
 

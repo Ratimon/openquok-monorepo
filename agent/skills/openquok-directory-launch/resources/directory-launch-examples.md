@@ -68,7 +68,7 @@ openquok directory:profiles:update <main-profile-id> --json ./profile-patch.json
 
 ## Logo and screenshots
 
-Patch **main** or **variant** profile ids. Screenshots live in `profileData.gallery_urls` (max **3**). `directory:variants:ensure` does not set images — update the variant id after ensure.
+Patch **main** or **variant** profile ids. Screenshots live in `profileData.gallery_urls` (max **10** on the main profile; each directory autofill uses that site's `maxItems`). `directory:variants:ensure` does not set images — update the variant id after ensure.
 
 **Public https URLs:**
 

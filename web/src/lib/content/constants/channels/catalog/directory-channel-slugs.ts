@@ -4,7 +4,8 @@ export const PUBLIC_DIRECTORY_CHANNEL_SLUGS = [
 	'uneed',
 	'open-launch',
 	'tinylaunch',
-	'fazier'
+	'fazier',
+	'devhunt'
 ] as const;
 
 export type PublicDirectoryChannelSlug = (typeof PUBLIC_DIRECTORY_CHANNEL_SLUGS)[number];

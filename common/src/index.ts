@@ -187,6 +187,9 @@ export {
 	getDirectoryExtensionConfigFixture,
 	OPEN_LAUNCH_FREE_LAUNCH_EXTENSION_CONFIG,
 	OPEN_LAUNCH_PREMIUM_LAUNCH_EXTENSION_CONFIG,
+	DEVHUNT_PAID_LAUNCH_EXTENSION_CONFIG,
+	DEVHUNT_STANDARD_LAUNCH_EXTENSION_CONFIG,
+	DEVHUNT_TOOL_FORM_EXTENSION_CONFIG,
 	PEERPUSH_FREE_QUEUE_EXTENSION_CONFIG,
 	PEERPUSH_STANDARD_LAUNCH_EXTENSION_CONFIG,
 	TINYLAUNCH_PREMIUM_LAUNCH_EXTENSION_CONFIG,
@@ -215,8 +218,15 @@ export {
 } from './auto-launch/profileLaunchReadiness.js';
 export {
 	compareFieldRow,
+	mediaFileDisplayName,
 	normalizeForCompare,
 	normalizeProfileValue,
+	formatOnPageMediaDisplayForField,
+	inferGalleryDisplayLabelsForUrls,
+	resolveGalleryDisplayLabelForSlot,
+	resolveGalleryDisplayNames,
+	resolveLaunchFieldFillMode,
+	resolveLogoDisplayName,
 	type CompareFieldRowOptions,
 	type DirectoryFieldCompareRow,
 	type FieldSyncStatus,
@@ -233,7 +243,10 @@ export {
 	BUSINESS_PROFILE_INCLUDED_ASSET_SLUGS,
 	BUSINESS_PROFILE_MAX_ALTERNATIVES,
 	BUSINESS_PROFILE_MAX_CATEGORIES,
+	BUSINESS_PROFILE_MAX_GALLERY_LABEL_LENGTH,
 	BUSINESS_PROFILE_MAX_GALLERY_URLS,
+	BUSINESS_PROFILE_MAX_LOGO_LABEL_LENGTH,
+	alignGalleryLabelsToUrlCount,
 	BUSINESS_PROFILE_MAX_PLATFORMS,
 	BUSINESS_PROFILE_MAX_TECH_STACK,
 	BUSINESS_PROFILE_MAX_TAGS,
@@ -250,6 +263,11 @@ export {
 	type BusinessProfileIncludedAssetSlug,
 	type BusinessProfilePricingType,
 } from './auto-launch/businessProfileData.js';
+export {
+	isLegacyRandomAutoLaunchMediaBasename,
+	resolveUniqueAutoLaunchProfileMediaFileName,
+	sanitizeAutoLaunchProfileMediaFileName,
+} from './auto-launch/profileMediaFileName.js';
 export {
 	applyLaunchFieldScalarCap,
 	applyLaunchFieldScalarCoercion,
@@ -291,4 +309,5 @@ export {
 	isMediaFileManagerFolderId,
 	isProtectedMediaVirtualFolder,
 	mediaVirtualPathFromFileManagerTarget,
+	sanitizeMediaDisplayName,
 } from './media/virtualPaths.js';

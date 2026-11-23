@@ -162,6 +162,7 @@ SELECT
                     "profilePath": "profile_data.gallery_urls",
                     "fillMode": "files",
                     "fileInputIndex": 0,
+                    "maxItems": 10,
                     "selectorHint": "[data-field='screenshots'] input[type='file'], input[type='file'][accept*='image']"
                 }
             ]
@@ -378,6 +379,7 @@ SELECT
                     "profilePath": "profile_data.gallery_urls",
                     "fillMode": "files",
                     "fileInputIndex": 0,
+                    "maxItems": 10,
                     "selectorHint": "[data-field='screenshots'] input[type='file'], input[type='file'][accept*='image']"
                 }
             ]

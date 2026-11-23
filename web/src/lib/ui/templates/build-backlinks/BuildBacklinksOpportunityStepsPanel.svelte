@@ -139,7 +139,7 @@
 					/>
 					{#if showSectionDescription}
 						<div
-							class="prose prose-sm max-w-none text-base font-medium leading-relaxed text-pretty text-base-content/70 prose-a:link prose-a:underline sm:text-lg dark:prose-invert"
+							class="prose prose-sm max-w-none min-w-0 break-words text-base font-medium leading-relaxed text-pretty text-base-content/70 prose-a:link prose-a:break-words prose-a:underline sm:text-lg dark:prose-invert"
 						>
 							{@html sectionDescriptionHtml}
 						</div>

@@ -97,7 +97,7 @@
 	const placeCtaBelowTwoColumnGrid = $derived(Boolean(rightMedia && showCta));
 	const dualCtaRowPlacementClass = $derived(
 		placeCtaBelowTwoColumnGrid
-			? `${heroTheme.dualCtaRowClass} lg:col-span-2`
+			? `${heroTheme.dualCtaRowClass} lg:col-span-2 lg:justify-center`
 			: heroTheme.dualCtaRowClass
 	);
 </script>
