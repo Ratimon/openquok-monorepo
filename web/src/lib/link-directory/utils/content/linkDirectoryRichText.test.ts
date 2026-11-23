@@ -31,6 +31,15 @@ describe('prepareLinkDirectoryRichTextForDisplay', () => {
 		expect(html).toContain('target="_blank"');
 	});
 
+	it('preserves custom anchor text on explicit catalog links', () => {
+		const html = prepareLinkDirectoryRichTextForDisplay(
+			'See <a href="https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/publish-extension">Microsoft Edge publish guide</a>.'
+		);
+		expect(html).toContain('>Microsoft Edge publish guide<');
+		expect(html).not.toContain('>learn.microsoft.com/en-us/microsoft-edge/extensions/publish/publish-extension<');
+		expect(html).toContain('rel="noopener noreferrer nofollow"');
+	});
+
 	it('nofollows Chrome Web Store listing URLs but keeps openquok.com followable', () => {
 		const html = prepareLinkDirectoryRichTextForDisplay(
 			'Listing https://chromewebstore.google.com/detail/example/test and docs https://www.openquok.com/docs/installation/chrome-extension.'

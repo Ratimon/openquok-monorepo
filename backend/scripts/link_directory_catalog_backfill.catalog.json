@@ -247,17 +247,17 @@
 					"dofollow": "dofollow",
 					"cost_tier": "paid",
 					"cost_note": "One-time Chrome Web Store developer fee",
-					"description": "Set Additional fields → Official URL to your root domain (for example https://www.openquok.com/). Check the link on the live store page after approval.",
+					"description": "Set Additional fields → Official URL to your root domain (for example <a href=\"https://www.openquok.com/\">openquok.com</a>). Check the link on the live store page after approval.",
 					"steps": [
 						{
 							"order": 1,
 							"title": "Open Developer Dashboard",
-							"body": "Sign in at https://chrome.google.com/webstore/devconsole and open your extension under Build."
+							"body": "Sign in at <a href=\"https://chrome.google.com/webstore/devconsole\">Chrome Web Store Dev Console</a> and open your extension under Build."
 						},
 						{
 							"order": 2,
 							"title": "Set Official URL",
-							"body": "Under Additional fields, verify your domain if Google asks. Enter your site (for example openquok.com or https://www.openquok.com/)."
+							"body": "Under Additional fields, verify your domain if Google asks. Enter your site (for example <a href=\"https://www.openquok.com/\">openquok.com</a>)."
 						},
 						{
 							"order": 3,
@@ -286,7 +286,7 @@
 					"dofollow": "dofollow",
 					"cost_tier": "paid",
 					"cost_note": "One-time Chrome Web Store developer fee",
-					"description": "Homepage URL in Store listing → Additional fields links buyers to your site. Examples: https://www.openquok.com/browser-extension or https://www.openquok.com/docs/installation/chrome-extension.",
+					"description": "Homepage URL in Store listing → Additional fields links buyers to your site. Examples: <a href=\"https://www.openquok.com/browser-extension\">browser extension landing</a> or <a href=\"https://www.openquok.com/docs/installation/chrome-extension\">Chrome install guide</a>.",
 					"steps": [
 						{
 							"order": 1,
@@ -301,7 +301,7 @@
 						{
 							"order": 3,
 							"title": "Check the live page",
-							"body": "After approval, open your listing on chromewebstore.google.com and confirm homepage and support links."
+							"body": "After approval, open your listing on <a href=\"https://chromewebstore.google.com\">Chrome Web Store</a> and confirm homepage and support links."
 						}
 					],
 					"openquok_cta_kind": "external_doc",
@@ -325,7 +325,7 @@
 					"dofollow": "dofollow",
 					"cost_tier": "free",
 					"cost_note": null,
-					"description": "Set Build → Privacy to your public policy URL. The store page can link out (for example https://www.openquok.com/privacy-policy). Match the text to your declared permissions.",
+					"description": "Set Build → Privacy to your public policy URL. The store page can link out (for example <a href=\"https://www.openquok.com/privacy-policy\">privacy policy</a>). Match the text to your declared permissions.",
 					"steps": [
 						{
 							"order": 1,
@@ -335,12 +335,156 @@
 						{
 							"order": 2,
 							"title": "Add policy URL",
-							"body": "Paste your policy URL (for example https://www.openquok.com/privacy-policy)."
+							"body": "Paste your policy URL (for example <a href=\"https://www.openquok.com/privacy-policy\">privacy policy</a>)."
 						},
 						{
 							"order": 3,
 							"title": "Confirm on the listing",
 							"body": "After the listing is live, open the store page and confirm the privacy link works."
+						}
+					],
+					"openquok_cta_kind": "none",
+					"openquok_channel_slug": null,
+					"openquok_plug_name": null,
+					"cta_href": "/directory-submission-tool",
+					"cta_label": "Directory submission tool",
+					"sort_order": 30,
+					"is_admin_published": true,
+					"auto_launch_enabled": false,
+					"auto_launch_provider_slug": null
+				}
+			]
+		},
+		"microsoft-edge-addons": {
+			"site": {
+				"id": "d5f7d000-0010-4000-a000-00000000000e",
+				"slug": "microsoft-edge-addons",
+				"title": "Microsoft Edge Add-ons",
+				"site_url": "https://microsoftedge.microsoft.com/addons",
+				"logo_url": "https://www.openquok.com/icons/link-directory/microsoft-edge-addons.svg",
+				"short_description": "Publish an extension on Edge Add-ons through Partner Center. Set Website and Support contact on Properties. Set Privacy Policy URL on Privacy.",
+				"long_description": "You submit extensions at <a href=\"https://partner.microsoft.com/dashboard\">Partner Center</a> in the Edge workspace. Upload the zip package, then complete Availability, Properties, Privacy, Store listings, and Publish. Certification can take up to seven business days. After the listing is in the store, open your page on <a href=\"https://microsoftedge.microsoft.com/addons\">Edge Add-ons</a> and confirm each outbound link.",
+				"domain_rating": 99,
+				"monthly_visits": 5000000000,
+				"metrics_source": "editor_estimate",
+				"category_slug": "maker-dev-directory",
+				"tag_slugs": ["high-dr"],
+				"is_openquok_auth_supported": false,
+				"openquok_channel_slug": null,
+				"is_admin_published": true,
+				"sort_order": 0
+			},
+			"opportunities": [
+				{
+					"id": "d5f7d000-0020-4000-a000-000000000032",
+					"slug": "website-url",
+					"title": "Website",
+					"opportunity_type_slug": "product_submission",
+					"effort": "hard",
+					"approval_mode": "manual_review",
+					"approval_time_hint": "After certification, usually within seven business days",
+					"dofollow": "dofollow",
+					"cost_tier": "free",
+					"cost_note": null,
+					"description": "On the Properties page, set Website to a page on your own domain (for example <a href=\"https://www.openquok.com/\">openquok.com</a>). The URL must not point to your Add-ons listing. Users see this link on the live store page after certification.",
+					"steps": [
+						{
+							"order": 1,
+							"title": "Open Partner Center",
+							"body": "Sign in at <a href=\"https://partner.microsoft.com/dashboard\">Partner Center</a>. Open the Edge workspace and select your extension, or create a new extension and upload your zip package. See <a href=\"https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/publish-extension\">Microsoft Edge publish guide</a> for the full flow."
+						},
+						{
+							"order": 2,
+							"title": "Open Properties",
+							"body": "On the left, click Properties. In Website, enter a page on your site (for example <a href=\"https://www.openquok.com/\">openquok.com</a> or <a href=\"https://www.openquok.com/browser-extension\">browser extension landing</a>). Do not use your listing URL on <a href=\"https://microsoftedge.microsoft.com/addons\">Edge Add-ons</a>."
+						},
+						{
+							"order": 3,
+							"title": "Publish and verify",
+							"body": "Click Save & Continue. Complete Privacy and Store listings, then click Publish on the Submit your extension page. When status is In the Store, open your listing and confirm the Website link."
+						}
+					],
+					"openquok_cta_kind": "external_doc",
+					"openquok_channel_slug": null,
+					"openquok_plug_name": null,
+					"cta_href": "https://www.openquok.com/browser-extension",
+					"cta_label": "OpenQuok browser extension",
+					"sort_order": 10,
+					"is_admin_published": true,
+					"auto_launch_enabled": false,
+					"auto_launch_provider_slug": null
+				},
+				{
+					"id": "d5f7d000-0020-4000-a000-000000000033",
+					"slug": "support-contact-url",
+					"title": "Support contact URL",
+					"opportunity_type_slug": "product_submission",
+					"effort": "hard",
+					"approval_mode": "manual_review",
+					"approval_time_hint": "Same certification pass as your extension package",
+					"dofollow": "dofollow",
+					"cost_tier": "free",
+					"cost_note": null,
+					"description": "On Properties, Support contact detail can be a support page URL or an email. Use a https URL on your domain for a backlink (for example <a href=\"https://www.openquok.com/docs/installation/edge-extension\">Edge install guide</a>). Registration values can also show on the store page.",
+					"steps": [
+						{
+							"order": 1,
+							"title": "Open Properties",
+							"body": "In Partner Center, open your extension. On the left, click Properties."
+						},
+						{
+							"order": 2,
+							"title": "Set Support contact detail",
+							"body": "In Support contact detail, paste a support page URL (for example <a href=\"https://www.openquok.com/docs/installation/edge-extension\">Edge install guide</a>). You can use an email instead, but email does not give a backlink."
+						},
+						{
+							"order": 3,
+							"title": "Check the live listing",
+							"body": "Click Save & Continue and finish the remaining Partner Center sections. After certification, open your listing on <a href=\"https://microsoftedge.microsoft.com/addons\">Edge Add-ons</a> and confirm the support link."
+						}
+					],
+					"openquok_cta_kind": "external_doc",
+					"openquok_channel_slug": null,
+					"openquok_plug_name": null,
+					"cta_href": "https://www.openquok.com/docs/installation/edge-extension",
+					"cta_label": "Edge extension install guide",
+					"sort_order": 20,
+					"is_admin_published": true,
+					"auto_launch_enabled": false,
+					"auto_launch_provider_slug": null
+				},
+				{
+					"id": "d5f7d000-0020-4000-a000-000000000034",
+					"slug": "privacy-policy-url",
+					"title": "Privacy policy URL",
+					"opportunity_type_slug": "product_submission",
+					"effort": "hard",
+					"approval_mode": "manual_review",
+					"approval_time_hint": "Required when the extension collects user data",
+					"dofollow": "dofollow",
+					"cost_tier": "free",
+					"cost_note": null,
+					"description": "On the Privacy page, set Privacy Policy URL to your public policy (for example <a href=\"https://www.openquok.com/privacy-policy\">privacy policy</a>). The URL must work. Policy text must match the Data usage checkboxes and your extension behavior.",
+					"steps": [
+						{
+							"order": 1,
+							"title": "Open Privacy",
+							"body": "In Partner Center, open your extension. On the left, click Privacy."
+						},
+						{
+							"order": 2,
+							"title": "Complete privacy sections",
+							"body": "Fill Single purpose, Permission justification, and Data usage. These fields must match your manifest and your policy."
+						},
+						{
+							"order": 3,
+							"title": "Set Privacy Policy URL",
+							"body": "In Privacy Policy URL, paste your policy (for example <a href=\"https://www.openquok.com/privacy-policy\">privacy policy</a>). Click Save & Continue, finish Store listings, and Publish."
+						},
+						{
+							"order": 4,
+							"title": "Confirm on the listing",
+							"body": "After the extension is In the Store, open the listing page and confirm the privacy link loads."
 						}
 					],
 					"openquok_cta_kind": "none",

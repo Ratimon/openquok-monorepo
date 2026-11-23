@@ -99,7 +99,7 @@ For JSON-only sites:
 2. After deploy or local `supabase db reset`, run `pnpm backend:db:backfill-link-directory-catalog` (optional filter: `-- --slug <site-slug>`; use `--dry-run` first). Production: `pnpm backend:db:backfill-link-directory-catalog:prod`.
 3. Operator notes: `web/src/content/docs/admin/link-directory-catalog-backfill.md`.
 
-**Opportunity copy on `/build-backlinks/{site}`:** `description`, `cost_note`, and step `body` strings render through `prepareLinkDirectoryRichTextForDisplay`, which linkifies only full `https://…` (or `http://…`) URLs. Use the same pattern as TinyLaunch step bodies (for example `https://www.tinylaunch.com/pricing`), not bare hosts like `fazier.com/page/new;` — punctuation stays on the host and the text is not clickable. Keep blurbs short: one idea per sentence, active voice.
+**Opportunity copy on `/build-backlinks/{site}`:** `description`, `cost_note`, and step `body` strings render through `prepareLinkDirectoryRichTextForDisplay`, which linkifies bare full `https://…` (or `http://…`) URLs to `host/path` anchor text. Use bare URLs for short destinations (for example `https://www.tinylaunch.com/pricing`). For long doc or store URLs, use `<a href="https://…">short label</a>` so the UI does not show a long path. Do not use bare hosts without a scheme (for example `fazier.com/page/new;`) — punctuation stays on the host and the text is not clickable. Keep blurbs short: one idea per sentence, active voice.
 
 **Opportunity `effort` (Build Backlinks badges + site effort range):** set on each opportunity in SQL seeds or catalog JSON (`easy` | `medium` | `hard`).
 
