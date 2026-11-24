@@ -29,6 +29,8 @@ export {
 	prepareBlogContentForDisplay,
 	prepareBlogRichTextForDisplay,
 	repairDoubleEncodedBlogHtml,
+	blogBlockquoteCopyText,
+	enhanceBlogBlockquotesForCopy,
 	syncBlogHeadingIds,
 	type ParsedHtmlHeader
 } from '$lib/blogs/utils/blogContent';

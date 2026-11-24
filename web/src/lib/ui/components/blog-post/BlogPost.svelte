@@ -5,7 +5,7 @@
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 
-	import { syncBlogHeadingIds } from '$lib/blogs/utils';
+	import { enhanceBlogBlockquotesForCopy, syncBlogHeadingIds } from '$lib/blogs/utils';
 	import { buildBlogInlineImageSrc } from '$lib/blogs/utils/blogImages';
 	import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
 	import { getBlogAuthorProfilePath } from '$lib/blogs/utils/blogAuthorPaths';
@@ -94,6 +94,7 @@
 		const raw = contentHtml ?? '';
 		if (!raw) return;
 		syncBlogHeadingIds(proseEl, raw);
+		enhanceBlogBlockquotesForCopy(proseEl);
 	});
 </script>
 
@@ -281,5 +282,37 @@
 	:global(.blog-post-prose th) {
 		background: oklch(var(--b2));
 		font-weight: 600;
+	}
+
+	:global(.blog-post-prose blockquote.blog-blockquote-copy-host) {
+		position: relative;
+		padding-right: 4.5rem;
+	}
+
+	:global(.blog-post-prose .blog-blockquote-copy-btn) {
+		position: absolute;
+		top: 0.5rem;
+		right: 0.5rem;
+		z-index: 1;
+		border-radius: 0.375rem;
+		border: 1px solid oklch(var(--bc) / 0.2);
+		background: oklch(var(--b1) / 0.8);
+		padding: 0.25rem 0.5rem;
+		font-size: 0.75rem;
+		line-height: 1rem;
+		color: oklch(var(--bc) / 0.7);
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity 0.15s ease, color 0.15s ease;
+	}
+
+	:global(.blog-post-prose blockquote.blog-blockquote-copy-host:hover .blog-blockquote-copy-btn),
+	:global(.blog-post-prose blockquote.blog-blockquote-copy-host:focus-within .blog-blockquote-copy-btn) {
+		opacity: 1;
+		pointer-events: auto;
+	}
+
+	:global(.blog-post-prose .blog-blockquote-copy-btn:hover) {
+		color: oklch(var(--bc));
 	}
 </style>

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+	blogBlockquoteCopyText,
 	formatBareUrlAnchorLabel,
 	isExternalBlogHref,
 	normalizeBlogContentLinks,
@@ -153,6 +154,14 @@ describe('wrapBlogHtmlTablesForScroll', () => {
 	it('does not nest an existing scroll wrap', () => {
 		const already = `<div class="blog-table-scroll" id="blog-table-1">${table}</div>`;
 		expect(wrapBlogHtmlTablesForScroll(already)).toBe(already);
+	});
+});
+
+describe('blogBlockquoteCopyText', () => {
+	it('strips markup for prompt lines', () => {
+		expect(blogBlockquoteCopyText('<p>List my connected social media accounts.</p>')).toBe(
+			'List my connected social media accounts.'
+		);
 	});
 });
 

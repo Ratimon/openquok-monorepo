@@ -208,6 +208,10 @@ Google Product snippets require **`offers`**, **`review`**, or **`aggregateRatin
 
 CMS comparison grids (`<table>` in the post body) emit Schema.org [`Table`](https://schema.org/Table) nodes (`WebPageElement`). Each node uses `@id` `{canonical}#blog-table-N`, `cssSelector` `#blog-table-N` (stamped on the public scroll wrapper), `name` from the nearest preceding `h2`/`h3`, and plain-text `text` of header/body cells. `BlogPosting.hasPart` lists table `@id`s after `SoftwareSourceCode` `@id`s when both exist. Public HTML wrapping: `wrapBlogHtmlTablesForScroll` in `blogTables.ts`.
 
+### Blog blockquote agent prompts (`createBlogPostSEOSchema`)
+
+Short chat / verify lines in `<blockquote>` emit [`CreativeWork`](https://schema.org/CreativeWork) nodes: `@id` `{canonical}#blog-prompt-N`, `cssSelector` `#blog-prompt-N`, `name` from the nearest preceding `h2`/`h3`, plain-text `text` (`stripHtmlToPlainText`), `learningResourceType`: `agent prompt`, `encodingFormat`: `text/plain`. Linked from `BlogPosting.hasPart` after tables. Public HTML: `stampBlogPromptBlockquoteIds` in `prepareBlogContentForDisplay` (`blogPromptBlockquotes.ts`). Long multi-line routines stay in `<pre><code>` → `SoftwareSourceCode`, not blockquote JSON-LD.
+
 ## Canonical alignment
 
 JSON-LD `url` / `canonicalUrl` must match `<link rel="canonical">` — use the same `buildCanonicalUrl(url)` value (see **web-seo-canonical**). Do not duplicate title/description in `+page.svelte` when they already exist in the server load.

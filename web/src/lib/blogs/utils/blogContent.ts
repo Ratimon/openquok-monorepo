@@ -1,6 +1,9 @@
+import { stampBlogPromptBlockquoteIds } from '$lib/blogs/utils/blogPromptBlockquotes';
 import { wrapBlogHtmlTablesForScroll } from '$lib/blogs/utils/blogTables';
 import { buildExternalLinkRel, resolveExternalLinkPolicy } from '$lib/utils/externalLinkRel';
 import { stringToSlug } from '$lib/ui/helpers/common';
+import { copyToClipboard } from '$lib/utils/clipboard';
+import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 
 /**
  * Align blog-body `<a>` tags with ExternalLink / outbound-link policy.
@@ -265,6 +268,7 @@ function promoteLikelyBlockquotes(html: string): string {
  * - Promotes likely plain-text section titles to h2.
  * - Aligns `<a>` rel/target with ExternalLink defaults (external nofollow; internal followable).
  * - Wraps HTML tables so wide comparison grids can scroll on small screens.
+ * - Stamps `id="blog-prompt-N"` on blockquotes for agent-prompt JSON-LD selectors.
  */
 export function prepareBlogContentForDisplay(content: string): string {
 	const trimmed = content.trim();
@@ -278,6 +282,7 @@ export function prepareBlogContentForDisplay(content: string): string {
 	html = promoteLikelyBlockquotes(html);
 	html = normalizeBlogContentLinks(html);
 	html = wrapBlogHtmlTablesForScroll(html);
+	html = stampBlogPromptBlockquoteIds(html);
 	return html;
 }
 
@@ -365,4 +370,48 @@ export function syncBlogHeadingIds(container: HTMLElement, htmlContent: string):
 		const h = headers[i];
 		if (h) el.id = h.slug;
 	});
+}
+
+const BLOG_BLOCKQUOTE_COPY_HOST_CLASS = 'blog-blockquote-copy-host';
+const BLOG_BLOCKQUOTE_COPY_BTN_CLASS = 'blog-blockquote-copy-btn';
+
+/** Plain text copied from a blockquote body (prompt lines, chat snippets). */
+export function blogBlockquoteCopyText(blockquoteInnerHtml: string): string {
+	return stripHtmlToPlainText(blockquoteInnerHtml).trim();
+}
+
+/**
+ * Adds a Copy control to each blockquote in public blog prose (same UX as docs code blocks / CopyBlock).
+ */
+export function enhanceBlogBlockquotesForCopy(container: HTMLElement): void {
+	const blockquotes = container.querySelectorAll<HTMLElement>('blockquote');
+	for (const bq of blockquotes) {
+		if (bq.dataset.blogCopyEnhanced === 'true') continue;
+		if (bq.querySelector(`.${BLOG_BLOCKQUOTE_COPY_BTN_CLASS}`)) continue;
+
+		const copyText = blogBlockquoteCopyText(bq.innerHTML) || bq.textContent?.trim() || '';
+		if (!copyText) continue;
+
+		bq.dataset.blogCopyEnhanced = 'true';
+		bq.classList.add(BLOG_BLOCKQUOTE_COPY_HOST_CLASS);
+
+		const btn = document.createElement('button');
+		btn.type = 'button';
+		btn.className = BLOG_BLOCKQUOTE_COPY_BTN_CLASS;
+		btn.textContent = 'Copy';
+		btn.setAttribute('aria-label', 'Copy to clipboard');
+
+		btn.addEventListener('click', async (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			const ok = await copyToClipboard(copyText);
+			if (!ok) return;
+			btn.textContent = 'Copied!';
+			setTimeout(() => {
+				btn.textContent = 'Copy';
+			}, 2000);
+		});
+
+		bq.appendChild(btn);
+	}
 }

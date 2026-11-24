@@ -452,6 +452,43 @@ describe('createBlogPostSEOSchema code blocks', () => {
 	});
 });
 
+describe('createBlogPostSEOSchema blockquote prompts', () => {
+	it('emits CreativeWork nodes linked from BlogPosting.hasPart', () => {
+		const schema = createPostSchema({
+			content: `<h2>Verify in a new chat</h2>
+<blockquote><p>List my connected social media accounts.</p></blockquote>`
+		});
+
+		const blogPosting = findBlogPosting(schema);
+		expect(blogPosting?.hasPart).toEqual({
+			'@id': `${POST_CANONICAL_URL}#blog-prompt-1`
+		});
+
+		const promptNode = schema['@graph'].find(
+			(node) =>
+				typeof node === 'object' && node !== null && '@type' in node && node['@type'] === 'CreativeWork'
+		) as Record<string, unknown> | undefined;
+
+		expect(promptNode).toMatchObject({
+			'@type': 'CreativeWork',
+			'@id': `${POST_CANONICAL_URL}#blog-prompt-1`,
+			name: 'Verify in a new chat',
+			text: 'List my connected social media accounts.',
+			encodingFormat: 'text/plain',
+			learningResourceType: 'agent prompt',
+			cssSelector: '#blog-prompt-1',
+			isPartOf: {
+				'@id': `${POST_CANONICAL_URL}#blogposting`
+			}
+		});
+	});
+
+	it('omits CreativeWork when the post has no blockquotes', () => {
+		const schema = createPostSchema({ content: '<p>No prompts.</p>' });
+		expect(graphNodeTypes(schema)).not.toContain('CreativeWork');
+	});
+});
+
 describe('createBlogPostSEOSchema tables', () => {
 	const tableHtml = `<h2>Decision table: Claude vs OpenAI for OpenQuok</h2>
 <table><thead><tr><th>Your priority</th><th>Lean toward</th></tr></thead><tbody><tr><td>Swap models</td><td><a href="/agents/codex">Codex</a></td></tr></tbody></table>`;

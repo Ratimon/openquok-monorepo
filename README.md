@@ -309,6 +309,7 @@ Learn more at [Architecture](https://www.openquok.com/docs/getting-started-for-d
 **Featured Blogs**
 
 - [Warm up a TikTok account](https://www.openquok.com/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience) — device setup and posting cadence before you scale carousels or agent-scheduled posts
+- [Grokbot second brain: OpenQuok + full prompts](https://www.openquok.com/blog/grokbot-second-brain-full-guide-openquok-ai-social-media-manager-full-prompts) — Grok Bot, Virlo, Notion or Obsidian, and four paste prompts that draft into OpenQuok for calendar approval
 - [Meta Business verification for Facebook apps](https://www.openquok.com/blog/how-to-pass-meta-business-verification-for-a-facebook-app-or-skip-it-with-openquok) — pass Meta’s checks or connect Facebook through OpenQuok without a standalone app review path
 - [AI agents for Reddit: promote without getting banned](https://www.openquok.com/blog/ai-agents-for-reddit-promote-without-getting-banned) — draft with AI agents in OpenQuok, Global mode with other channels, human submit on reddit.com, and lower ban and shadowban risk
 - [Team collaboration in OpenQuok](https://www.openquok.com/blog/team-collaboration-in-openquok-workspaces-clients-and-preview-links) — workspaces, business profiles per client, invite links, templates, and preview links for sign-off

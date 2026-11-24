@@ -22,6 +22,26 @@ FAQ, HowTo, Product, and optional **Audience card** blocks are **form fields** (
 
 **FAQ answers and How-to step text** use the same Visual / HTML source editor as Content (`BlogRichTextField`). Questions and step **names** stay plain text. Paste root-relative `<a href="/tools/skill-builder">Skill Builder</a>` (or use Visual → link; the prompt keeps `/…` paths). Visible HTML is normalized with `prepareBlogRichTextForDisplay`; JSON-LD `Answer.text` / `HowToStep.text` is **plain text** (`stripHtmlToPlainText`) so schema stays valid.
 
+## Audience card (`audience_card`)
+
+Optional **admin form block** (unlocked after **Topic** is selected). Renders **below the hero** as one compact card (“This blog is for …”). Emits `Audience` JSON-LD via `createPublicAudienceSectionSEOSchema` (`#blog-post-audience`). **Do not** repeat the same persona paragraph in `content` HTML.
+
+| Field | Format | Notes |
+| --- | --- | --- |
+| **preset** | One of `developer`, `team-social-managers`, `founders`, `marketers`, `self-host-operators`, `custom` | Chooses preset icon and colors (`blogAudienceCardPresets.ts`) |
+| **title** | Plain text (card headline) | Shown after “This blog is for” — keep short (e.g. `Founders shipping with Grok Bot`) |
+| **description** | Plain text | 1–3 ASD-STE100 sentences: who should read and why **this** post |
+| **audience_type** | Optional plain text | Schema.org `audienceType`; when empty, JSON-LD falls back to **title** |
+
+**When to fill it in**
+
+- How-to tutorials, educational guides, and long agent/skill posts with a clear reader (founders, social leads, developers).
+- Competitive or keyword posts where persona clarity helps CTR—without pasting a second “who is this for” section in the body.
+
+**Handoffs and AI copy-paste packs** (`docs/blog/*-blog-manager-copy-paste.md`) must include an **Audience card** section with all four fields so operators do not skip the block.
+
+Presets are a starting point only—**edit title and description** to match the article; use `custom` when no preset fits.
+
 ## Pick the tool page, not the hub
 
 Do **not** send most equity to `/tools`. Link the **specific** tool the article is about.
@@ -38,6 +58,20 @@ Do **not** send most equity to `/tools`. Link the **specific** tool the article 
 Skills / MCP / CLI how-tos (ChatGPT, Codex, OpenClaw, CapCut + OpenQuok Core) → **Skill Builder is the primary internal tool link**. Mention `/tools` only if you truly mean the whole catalog.
 
 Prefer **one or two** links per destination. Repeat the tool name in prose without linking every mention.
+
+## Agent chat prompts and paste blocks in `content`
+
+Match the UX of agent posts such as [Schedule Social Posts from Grok Bot with OpenQuok](/blog/schedule-social-posts-from-grok-bot-with-openquok) and MCP docs (`> List my connected social media accounts.` as rendered from blockquotes).
+
+| Kind | HTML pattern | Use for |
+| --- | --- | --- |
+| **Short verify / ad-hoc chat** | Lead-in sentence, then `<blockquote><p>One imperative sentence.</p></blockquote>` | Channel list checks, single draft requests, rewrite-one-network asks. Public posts show a hover **Copy** button on each blockquote. SSR adds `id="blog-prompt-N"` and JSON-LD `CreativeWork` (`learningResourceType`: agent prompt) via `BlogPosting.hasPart`. |
+| **Shell on the Bot computer** | `<pre><code>npm install …</code></pre>` plain text, no escaped HTML inside | `openquok` install, curl skill fetch |
+| **Long routine / foundation prompts** | `<pre><code>…</code></pre>` multi-line plain text | House rules, daily scan, weekly fill, viral watch—anything the reader pastes into Grok Bot or saves as a routine |
+
+**Do not** put multi-paragraph routine prompts inside `<blockquote>` with `<br>` chains—copy is awkward and layout is hard to read. **Do not** wrap prompt text in escaped HTML inside `<pre><code>` (no `&lt;p&gt;` soup); the blog pipeline may unwrap it, but plain text is the source of truth.
+
+When a post compares length to competitor articles, count **non-prompt prose** separately: strip `<pre><code>…</code></pre>` (and optional blockquote verify lines) before word-count targets.
 
 ## Internal links (pass equity)
 
@@ -72,3 +106,5 @@ Before a long Feature Walkthrough or competitive keyword post, run `.cursor/skil
 - [ ] Comparison grids use HTML `<table>` (Visual toolbar **Insert table**, or paste `<table>` in HTML source then switch to Visual) — the editor schema keeps table markup; public posts wrap tables for horizontal scroll and emit Schema.org `Table` JSON-LD (`#blog-table-N`)
 - [ ] FAQ answers and How-to steps can include the same internal `<a href="/tools/skill-builder">` links (admin Visual / HTML source)
 - [ ] FAQ / HowTo stay in the admin SEO fields, not copied into `content`
+- [ ] **Audience card** filled when the post targets a clear persona (recommended for how-tos); title + description in admin only—not duplicated in `content`
+- [ ] **Agent prompts**: short asks in `<blockquote><p>…</p></blockquote>`; long paste/routine text in `<pre><code>…</code></pre>` (not blockquotes full of `<br>`)

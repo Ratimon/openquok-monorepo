@@ -142,13 +142,14 @@
 
 <Dialog.Root bind:open>
 	<Dialog.Content
-		class="max-h-[90vh] max-w-xl gap-4 overflow-y-auto"
+		class="flex max-h-[min(94vh,58rem)] w-full max-w-[calc(100%-1rem)] flex-col gap-4 overflow-hidden sm:max-w-6xl lg:max-w-7xl xl:max-w-[min(100%-2rem,88rem)]"
 		onOpenAutoFocus={(e) => e.preventDefault()}
 	>
 		<Dialog.Header>
 			<Dialog.Title>Blog image library</Dialog.Title>
 			<Dialog.Description class="text-base-content/75 text-sm">
-				Search by file name, then click a thumbnail to insert an image from the blog CMS bucket.
+				Search by file name. Each card shows a larger preview and the storage file name—click to
+				insert from the blog CMS bucket.
 			</Dialog.Description>
 		</Dialog.Header>
 
@@ -225,22 +226,31 @@
 						/>
 					</div>
 				{/if}
-				<div class="grid max-h-[min(48vh,20rem)] grid-cols-3 gap-2 overflow-y-auto sm:grid-cols-4">
+				<div
+					class="grid min-h-[16rem] max-h-[min(72vh,44rem)] grid-cols-1 gap-4 overflow-y-auto pr-1 sm:grid-cols-2 2xl:grid-cols-3"
+				>
 					{#each items as item (item.storagePath)}
 						<button
 							type="button"
-							class="relative overflow-hidden rounded-lg border border-base-300 bg-base-100 transition-shadow hover:ring-2 hover:ring-primary disabled:cursor-not-allowed disabled:opacity-45"
+							class="flex flex-col overflow-hidden rounded-lg border border-base-300 bg-base-100 text-left transition-shadow hover:ring-2 hover:ring-primary disabled:cursor-not-allowed disabled:opacity-45"
 							disabled={pickerDisabled}
 							title={item.name}
 							aria-label={`Select ${item.name}`}
 							onclick={() => selectItem(item)}
 						>
-							<img
-								src={thumbSrc(item)}
-								alt=""
-								class="aspect-square w-full object-cover"
-								loading="lazy"
-							/>
+							<div
+								class="relative flex h-44 w-full items-center justify-center bg-base-200 sm:h-52 lg:h-60 xl:h-64"
+							>
+								<img
+									src={thumbSrc(item)}
+									alt=""
+									class="max-h-full max-w-full object-contain p-1"
+									loading="lazy"
+								/>
+							</div>
+							<p class="truncate border-t border-base-300 px-2 py-1.5 text-xs text-base-content/80">
+								{item.name}
+							</p>
 						</button>
 					{/each}
 				</div>

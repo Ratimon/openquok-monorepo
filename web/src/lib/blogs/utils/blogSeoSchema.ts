@@ -3,6 +3,7 @@ import { base } from '$app/paths';
 import type {
 	Blog,
 	CollectionPage,
+	CreativeWork,
 	FAQPage,
 	HowTo,
 	ImageObject,
@@ -45,6 +46,11 @@ import {
 	blogCodeEncodingFormat,
 	parseBlogCodeBlocksFromHtml
 } from '$lib/blogs/utils/blogCodeHighlight';
+import {
+	blogPostPromptAnchorId,
+	blogPostPromptNodeId,
+	parseBlogPromptBlockquotesFromHtml
+} from '$lib/blogs/utils/blogPromptBlockquotes';
 import {
 	blogPostTableAnchorId,
 	blogPostTableNodeId,
@@ -550,6 +556,33 @@ function createBlogSoftwareSourceCodeNodes(params: {
 	});
 }
 
+function createBlogPromptBlockquoteNodes(params: {
+	html: string;
+	canonicalUrl: string;
+	blogPostingId: string;
+	author: Person;
+}): CreativeWork[] {
+	const { html, canonicalUrl, blogPostingId, author } = params;
+
+	return parseBlogPromptBlockquotesFromHtml(html).map((block) => {
+		const nodeId = blogPostPromptNodeId(canonicalUrl, block.index);
+		const cssSelector = `#${blogPostPromptAnchorId(block.index)}`;
+
+		return {
+			'@type': 'CreativeWork',
+			'@id': nodeId,
+			name: block.name,
+			text: block.text,
+			url: nodeId,
+			encodingFormat: 'text/plain',
+			learningResourceType: 'agent prompt',
+			cssSelector,
+			author,
+			isPartOf: jsonLdNodeRef(blogPostingId)
+		} satisfies CreativeWork;
+	});
+}
+
 function createBlogTableNodes(params: {
 	html: string;
 	canonicalUrl: string;
@@ -625,7 +658,7 @@ export type CreateBlogPostSEOSchemaParams = {
 
 /**
  * JSON-LD for a public blog post: `BlogPosting` + `BreadcrumbList` in a single `@graph`.
- * Optional `SoftwareSourceCode` and `Table` nodes are linked from `BlogPosting.hasPart`.
+ * Optional `SoftwareSourceCode`, `Table`, and agent-prompt `CreativeWork` (from blockquotes) nodes link from `BlogPosting.hasPart`.
  */
 export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): JsonLdGraphSchema {
 	const { post, comments = [], canonicalUrl, companyName, companySiteUrl, companyLogoUrl, requestUrl } = params;
@@ -713,6 +746,13 @@ export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): 
 		author
 	});
 
+	const promptBlockquoteNodes = createBlogPromptBlockquoteNodes({
+		html: post.content ?? '',
+		canonicalUrl,
+		blogPostingId,
+		author
+	});
+
 	const interactionStatistic: Record<string, unknown>[] = [];
 	if (post.likeCount != null && post.likeCount > 0) {
 		interactionStatistic.push({
@@ -778,7 +818,8 @@ export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): 
 	}
 	const hasPartIds = [
 		...softwareSourceCodeNodes.map((node) => String(node['@id'])),
-		...tableNodes.map((node) => String(node['@id']))
+		...tableNodes.map((node) => String(node['@id'])),
+		...promptBlockquoteNodes.map((node) => String(node['@id']))
 	];
 	if (hasPartIds.length > 0) {
 		blogPosting.hasPart = jsonLdNodeRefs(hasPartIds);
@@ -860,6 +901,7 @@ export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): 
 		...imageGraphNodes,
 		...softwareSourceCodeNodes,
 		...tableNodes,
+		...promptBlockquoteNodes,
 		...commentNodes,
 		...extraNodes
 	] as Thing[]);
