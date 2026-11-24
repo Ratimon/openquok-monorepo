@@ -306,6 +306,15 @@ Update `agent/skills/openquok-core/` (`SKILL.md` metadata JSON for the host when
 - Skill install: **`MANUS_SKILL_INSTALL_OPTIONS`** — GitHub folder URL, curl + upload, CLI on Cloud Computer. Official Skills docs: Manus Help Center article on sharing and using Skills.
 - Reference implementation: **`hosts/manus.ts`**, **`manus-messaging-channels.ts`**, **`MANUS_SKILL_INSTALL_OPTIONS`**, **`channels/manus.ts`**, **`manus-docs-overview`** / **`openquok-skill-install-manus`** mocks. Desktop-first workflow mocks (Grok Bot pattern), not OpenClaw Telegram fallback.
 
+### OpenBot specifics (`openbot`)
+
+- **Not** an MCP client — no `mcps/openbot.ts`, no `MCP_CLIENTS`, no `mcp-setup-guides/openbot.md`.
+- **Not** Rakazo — Rakazo is a self-hosted teammate API with per-bot sandboxes; OpenBot personal edition runs on **your computer** with BYO AI subscriptions (Claude, ChatGPT/Codex, Gemini, Grok) and optional custom OpenAI-compatible providers. Cross-link **`/agents/rakazo`** in FAQ and docs when readers pick hosts.
+- Primary connect: install **`@openquok/auto-cli`** on the OpenBot computer, register **openquok-core** via Marketplace **Skills** or local **SKILL.md** + agent `create_skill`. Optional skill-authored MCP when native app connectors are missing.
+- Product facts for landing copy: strong **macOS** desktop UX, capable **mobile** clients, **Agent settings** overview (memory, skills, files, tables/db, publish agent), **multi-agent** shared channels for brainstorms (e.g. QA + SecOp + Dev), **PolyForm Noncommercial** license (read before commercial use), **OpenBot for Teams** = vendor-managed servers only (no self-hosted team server SKU). Do **not** name third-party competitors in repo copy.
+- Skill install: **`OPENBOT_SKILL_INSTALL_OPTIONS`** — global CLI + curl SKILL.md. Official: [openbot.run](https://openbot.run/) guides and Marketplace docs.
+- Reference implementation: **`hosts/openbot.ts`**, **`openbot-messaging-channels.ts`**, **`OPENBOT_SKILL_INSTALL_OPTIONS`**, **`channels/hosts/openbot.ts`**, **`openbot-docs-overview`** / **`openquok-skill-install-openbot`** mocks. Desktop-first workflow mocks (Grok Bot pattern), not OpenClaw Telegram fallback.
+
 ### Agent host PR checklist
 
 - [ ] Icon + agent seed registered; hub lists the host

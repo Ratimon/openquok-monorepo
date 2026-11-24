@@ -36,6 +36,10 @@ import {
 	openclawAgentChannelHost
 } from '$lib/content/constants/agents/channels/hosts/openclaw';
 import { rakazoAgentChannelConfigs, rakazoAgentChannelHost } from '$lib/content/constants/agents/channels/hosts/rakazo';
+import {
+	openbotAgentChannelConfigs,
+	openbotAgentChannelHost
+} from '$lib/content/constants/agents/channels/hosts/openbot';
 
 export * from '$lib/content/constants/agents/channels/types';
 export {
@@ -64,6 +68,7 @@ export {
 	claudeDuetAgentChannelConfigs
 } from '$lib/content/constants/agents/channels/hosts/claude-duet';
 export { rakazoAgentChannelHost, rakazoAgentChannelConfigs } from '$lib/content/constants/agents/channels/hosts/rakazo';
+export { openbotAgentChannelHost, openbotAgentChannelConfigs } from '$lib/content/constants/agents/channels/hosts/openbot';
 
 /** Agent host slugs that support `/agents/{agentSlug}/{channelSlug}` SEO pages. */
 export const PUBLIC_AGENT_CHANNEL_HOST_SLUGS = [
@@ -76,7 +81,8 @@ export const PUBLIC_AGENT_CHANNEL_HOST_SLUGS = [
 	'manus',
 	'gemini',
 	'claude-duet',
-	'rakazo'
+	'rakazo',
+	'openbot'
 ] as const;
 
 export type PublicAgentChannelHostSlug = (typeof PUBLIC_AGENT_CHANNEL_HOST_SLUGS)[number];
@@ -94,7 +100,8 @@ const channelConfigsByHostSlug: Record<
 	manus: manusAgentChannelConfigs,
 	gemini: geminiAgentChannelConfigs,
 	'claude-duet': claudeDuetAgentChannelConfigs,
-	rakazo: rakazoAgentChannelConfigs
+	rakazo: rakazoAgentChannelConfigs,
+	openbot: openbotAgentChannelConfigs
 };
 
 const channelConfigByHostAndSlug = new Map<string, PublicAgentChannelPageConfig>();
@@ -200,5 +207,6 @@ export const AGENT_CHANNEL_HOSTS = [
 	manusAgentChannelHost,
 	geminiAgentChannelHost,
 	claudeDuetAgentChannelHost,
-	rakazoAgentChannelHost
+	rakazoAgentChannelHost,
+	openbotAgentChannelHost
 ] as const;

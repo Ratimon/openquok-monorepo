@@ -43,6 +43,10 @@
 		RAKAZO_CORE_MESSAGING_CHANNELS,
 		RAKAZO_EXTENSION_MESSAGING_CHANNELS
 	} from '$data/rakazo-messaging-channels';
+	import {
+		OPENBOT_CORE_MESSAGING_CHANNELS,
+		OPENBOT_EXTENSION_MESSAGING_CHANNELS
+	} from '$data/openbot-messaging-channels';
 
 	import { page } from '$app/state';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
@@ -164,6 +168,10 @@
 		rakazo: {
 			core: RAKAZO_CORE_MESSAGING_CHANNELS,
 			extension: RAKAZO_EXTENSION_MESSAGING_CHANNELS
+		},
+		openbot: {
+			core: OPENBOT_CORE_MESSAGING_CHANNELS,
+			extension: OPENBOT_EXTENSION_MESSAGING_CHANNELS
 		}
 	} as const;
 

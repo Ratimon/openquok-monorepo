@@ -97,6 +97,12 @@ const HOST_GLOBAL_SEO_EXTRAS: Readonly<Record<string, readonly string[]>> = {
 		'self-hosted agent OpenQuok',
 		'Rakazo sandbox openquok-core'
 	],
+	openbot: [
+		'OpenBot BYO AI social scheduling',
+		'OpenBot multi-agent OpenQuok',
+		'model agnostic OpenBot scheduler',
+		'OpenBot macOS openquok-core'
+	],
 	dots: [
 		'OpenAI Dots social scheduler',
 		'ChatGPT dot OpenQuok',

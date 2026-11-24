@@ -94,6 +94,13 @@ export const AGENT_HOST_PROFILES: readonly AgentHostProfile[] = [
 		scenarioIds: ['self-hosted-data-control', 'messaging-gateway-ui', 'model-agnostic'],
 		traits: ['self-host', 'sandbox-per-bot', 'slack-desktop-mobile', 'mcp-optional'],
 		featureHighlights: []
+	},
+	{
+		slug: 'openbot',
+		uiArchetype: 'desktop-skill-ide',
+		scenarioIds: ['model-agnostic', 'self-hosted-data-control'],
+		traits: ['desktop-mobile', 'multi-agent-rooms', 'byo-subscription', 'marketplace-skills'],
+		featureHighlights: []
 	}
 ];
 

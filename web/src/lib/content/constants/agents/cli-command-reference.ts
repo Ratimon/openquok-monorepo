@@ -73,6 +73,19 @@ export const RAKAZO_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
 	{ id: 'curl', label: 'curl + skill', command: OPENQUOK_CORE_SKILL_INSTALL_RAKAZO_CURL }
 ];
 
+/** OpenBot: install the global CLI on the computer that runs OpenBot. */
+export const OPENQUOK_CORE_SKILL_INSTALL_OPENBOT_ASK = `npm install -g @openquok/auto-cli@latest`;
+
+/** OpenBot: fetch SKILL.md locally, then register it on the agent via Marketplace or create_skill. */
+export const OPENQUOK_CORE_SKILL_INSTALL_OPENBOT_CURL = `mkdir -p ~/openquok-core
+curl -fsSL "${OPENQUOK_CORE_SKILL_RAW_URL}" \\
+  -o ~/openquok-core/SKILL.md`;
+
+export const OPENBOT_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
+	{ id: 'ask-agent', label: 'Ask the agent', command: OPENQUOK_CORE_SKILL_INSTALL_OPENBOT_ASK },
+	{ id: 'curl', label: 'curl + skill', command: OPENQUOK_CORE_SKILL_INSTALL_OPENBOT_CURL }
+];
+
 /** Dots: ask your dot to install the global CLI on its cloud computer. */
 export const OPENQUOK_CORE_SKILL_INSTALL_DOTS_ASK = `npm install -g @openquok/auto-cli@latest`;
 

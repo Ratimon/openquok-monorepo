@@ -32,7 +32,7 @@ export const AGENT_HOST_DECISION_SCENARIOS: readonly AgentHostDecisionScenario[]
 	{
 		id: 'self-hosted-data-control',
 		title: 'Credentials on infrastructure you control',
-		hostSlugs: ['openclaw', 'hermes', 'rakazo']
+		hostSlugs: ['openclaw', 'hermes', 'rakazo', 'openbot']
 	},
 	{
 		id: 'messaging-gateway-ui',
@@ -47,7 +47,7 @@ export const AGENT_HOST_DECISION_SCENARIOS: readonly AgentHostDecisionScenario[]
 	{
 		id: 'model-agnostic',
 		title: 'Any LLM vendor or self-hosted model',
-		hostSlugs: ['openclaw', 'hermes', 'thinkrail', 'rakazo']
+		hostSlugs: ['openclaw', 'hermes', 'thinkrail', 'rakazo', 'openbot']
 	},
 	{
 		id: 'editor-mcp-sessions',
@@ -92,6 +92,10 @@ export function buildAgentHostPickerFaqDescription(forHostSlug: string): string 
 
 	if (slug === 'rakazo') {
 		return `Choose Rakazo when you want self-hosted persistent bots with sandboxed computers and your own model keys. Choose ${faqLink(publicFaqHref.grokBotLanding, 'Grok Bot')} when you prefer a managed xAI cloud desktop without operating a server. Choose ${faqLink(publicFaqHref.openclawLanding, 'OpenClaw')} or ${faqLink(faqHrefAgent('hermes'), 'Hermes Agent')} for gateway-first Telegram or WhatsApp setups. See the ${blog}.`;
+	}
+
+	if (slug === 'openbot') {
+		return `Choose OpenBot when you want a polished macOS-first desktop with many model-agnostic agents on your own computer. Choose ${faqLink(publicFaqHref.rakazoLanding, 'Rakazo')} when you need a self-hosted API and per-bot sandboxes on your infrastructure. Choose ${faqLink(publicFaqHref.openclawLanding, 'OpenClaw')} or ${faqLink(faqHrefAgent('hermes'), 'Hermes Agent')} when Telegram or WhatsApp is the daily UI. See the ${blog}.`;
 	}
 
 	if (slug === 'openclaw' || slug === 'hermes') {

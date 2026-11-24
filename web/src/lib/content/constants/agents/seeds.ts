@@ -10,7 +10,8 @@ import {
 	metaMuseAgent,
 	openclawAgent,
 	thinkrailAgent,
-	rakazoAgent
+	rakazoAgent,
+	openbotAgent
 } from '$lib/content/constants/agents/hosts';
 
 /** Single registry for agent-host landings — order drives hub, nav, and footer columns. */
@@ -24,7 +25,8 @@ export const PUBLIC_AGENT_HOST_LANDING_PAGES: readonly PublicAgentHostLandingPag
 	metaMuseAgent,
 	manusAgent,
 	thinkrailAgent,
-	rakazoAgent
+	rakazoAgent,
+	openbotAgent
 ];
 
 export type PublicAgentHostFooterEntry = { slug: string; label: string };
