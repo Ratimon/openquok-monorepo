@@ -42,12 +42,18 @@
 		onAfterNavigate
 	}: Props = $props();
 
-	const agentHosts = listPublicAgentsForHub();
-	const mcpClients = listPublicMcpLandingPages();
+	const agentHosts = sortByAgentLabel(listPublicAgentsForHub());
+	const mcpClients = sortByAgentLabel(listPublicMcpLandingPages());
 	const agentColumns = splitIntoColumns(agentHosts.map(toNavEntry), 2);
 	const mcpColumns = splitIntoColumns(mcpClients.map(toNavEntry), 3);
 
 	let isActive = $derived(isParentRoute(page.url.pathname, agentsPath));
+
+	function sortByAgentLabel<T extends { agentLabel: string }>(items: readonly T[]): T[] {
+		return [...items].sort((a, b) =>
+			a.agentLabel.localeCompare(b.agentLabel, undefined, { sensitivity: 'base' })
+		);
+	}
 
 	function toNavEntry(
 		landingPage: PublicAgentLandingPageViewModel | PublicMcpLandingPageViewModel
