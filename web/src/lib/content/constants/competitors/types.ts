@@ -27,6 +27,7 @@ export type CompareProductSlug =
 	| 'postpeer'
 	| 'post2all'
 	| 'postiz'
+	| 'postpone'
 	| 'publer'
 	| 'recurpost'
 	| 'socialclaw'

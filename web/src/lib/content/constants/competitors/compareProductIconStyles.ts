@@ -157,6 +157,12 @@ const BASE = {
 		cardContainerClass:
 			'bg-linear-to-br from-violet-400/20 via-purple-300/16 to-fuchsia-300/16 text-violet-100 ring-violet-300/28'
 	},
+	postpone: {
+		heroContainerClass:
+			'bg-linear-to-br from-blue-600/30 via-blue-500/20 to-sky-400/20 text-blue-50 ring-blue-500/35',
+		cardContainerClass:
+			'bg-linear-to-br from-blue-600/20 via-blue-500/16 to-sky-400/16 text-blue-50 ring-blue-500/28'
+	},
 	publer: {
 		heroContainerClass:
 			'bg-linear-to-br from-teal-400/35 via-cyan-300/25 to-emerald-300/20 text-teal-50 ring-teal-300/40',

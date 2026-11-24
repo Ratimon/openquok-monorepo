@@ -120,6 +120,13 @@ describe('compareProductCategories', () => {
 		expect(directory.map((product) => product.slug)).toEqual(['openquok']);
 	});
 
+	it('getComparePair resolves OpenQuok vs Postpone for social matrix compare', () => {
+		const pair = getComparePair('openquok', 'postpone');
+		expect(pair).not.toBeNull();
+		expect(pair!.layout).toBe('social_matrix');
+		expect(pair!.productBSlug).toBe('postpone');
+	});
+
 	it('getComparePair returns null for unknown slugs and resolves cross product line pairs', () => {
 		const crossPair = getComparePair('buffer', 'boringlaunch');
 		expect(crossPair).not.toBeNull();

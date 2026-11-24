@@ -39,6 +39,7 @@ import { postfastCompareProduct } from '$lib/content/constants/competitors/sched
 import { post2allCompareProduct } from '$lib/content/constants/competitors/scheduler/post2all';
 import { postpeerCompareProduct } from '$lib/content/constants/competitors/scheduler/postpeer';
 import { postizCompareProduct } from '$lib/content/constants/competitors/scheduler/postiz';
+import { postponeCompareProduct } from '$lib/content/constants/competitors/scheduler/postpone';
 import { publerCompareProduct } from '$lib/content/constants/competitors/scheduler/publer';
 import { recurpostCompareProduct } from '$lib/content/constants/competitors/scheduler/recurpost';
 import { socialclawCompareProduct } from '$lib/content/constants/competitors/scheduler/socialclaw';
@@ -92,6 +93,7 @@ export { postfastCompareProduct } from '$lib/content/constants/competitors/sched
 export { post2allCompareProduct } from '$lib/content/constants/competitors/scheduler/post2all';
 export { postpeerCompareProduct } from '$lib/content/constants/competitors/scheduler/postpeer';
 export { postizCompareProduct } from '$lib/content/constants/competitors/scheduler/postiz';
+export { postponeCompareProduct } from '$lib/content/constants/competitors/scheduler/postpone';
 export { publerCompareProduct } from '$lib/content/constants/competitors/scheduler/publer';
 export { recurpostCompareProduct } from '$lib/content/constants/competitors/scheduler/recurpost';
 export { socialclawCompareProduct } from '$lib/content/constants/competitors/scheduler/socialclaw';
@@ -125,6 +127,7 @@ export const PUBLIC_COMPARE_PRODUCTS: readonly CompareProduct[] = [
 	postpeerCompareProduct,
 	post2allCompareProduct,
 	postizCompareProduct,
+	postponeCompareProduct,
 	publerCompareProduct,
 	socialclawCompareProduct,
 	socialyncCompareProduct,
