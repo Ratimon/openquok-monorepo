@@ -39,7 +39,7 @@
 	const socialChannels = listPublicChannelsForHub();
 	const directoryChannels = listPublicDirectoryChannelsForHub();
 	const socialColumns = splitIntoColumns(socialChannels, 3);
-	const directoryColumns = splitIntoColumns(directoryChannels, 2);
+	const directoryColumns = splitIntoColumns(directoryChannels, 3);
 
 	let isActive = $derived(isParentRoute(page.url.pathname, channelsPath));
 
@@ -114,7 +114,7 @@
 			Directory Launch
 		</p>
 		<div
-			class="grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-2"
+			class="grid grid-cols-2 gap-x-6 gap-y-1 sm:grid-cols-3"
 			aria-label="Directory launch platforms"
 		>
 			{#each directoryColumns as column (column.map((channel) => channel.slug).join('-'))}
