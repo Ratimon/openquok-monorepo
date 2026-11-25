@@ -32,7 +32,7 @@ export const AGENT_HOST_DECISION_SCENARIOS: readonly AgentHostDecisionScenario[]
 	{
 		id: 'self-hosted-data-control',
 		title: 'Credentials on infrastructure you control',
-		hostSlugs: ['openclaw', 'hermes', 'rakazo', 'openbot', 'mausbot']
+		hostSlugs: ['openclaw', 'hermes', 'rakazo', 'openbot', 'mausbot', 'tucano']
 	},
 	{
 		id: 'messaging-gateway-ui',
@@ -47,7 +47,7 @@ export const AGENT_HOST_DECISION_SCENARIOS: readonly AgentHostDecisionScenario[]
 	{
 		id: 'model-agnostic',
 		title: 'Any LLM vendor or self-hosted model',
-		hostSlugs: ['openclaw', 'hermes', 'thinkrail', 'rakazo', 'openbot', 'mausbot']
+		hostSlugs: ['openclaw', 'hermes', 'thinkrail', 'rakazo', 'openbot', 'mausbot', 'tucano']
 	},
 	{
 		id: 'editor-mcp-sessions',
@@ -100,6 +100,10 @@ export function buildAgentHostPickerFaqDescription(forHostSlug: string): string 
 
 	if (slug === 'mausbot') {
 		return `Choose ${faqLink(publicFaqHref.mausbotLanding, 'MausBot')} when you want a free open-source desktop chat app with many bots and native Claude, Codex, or Grok CLIs on your machine. Choose ${faqLink(publicFaqHref.grokBotLanding, 'Grok Bot')} when you prefer a managed xAI cloud teammate without running desktop software. Choose ${faqLink(publicFaqHref.openbotLanding, 'OpenBot')} or ${faqLink(publicFaqHref.rakazoLanding, 'Rakazo')} for other BYO desktop or self-hosted patterns. See the ${blog}.`;
+	}
+
+	if (slug === 'tucano') {
+		return `Choose ${faqLink(publicFaqHref.tucanoLanding, 'Tucano')} when you want channel-based agent teams, routines, and per-agent harness choice on your desktop. Choose ${faqLink(publicFaqHref.mausbotLanding, 'MausBot')} for open-source multi-bot chat with a bot list and skill recorder. Choose ${faqLink(publicFaqHref.openbotLanding, 'OpenBot')} for macOS-first multi-agent rooms. See the ${blog}.`;
 	}
 
 	if (slug === 'openclaw' || slug === 'hermes') {

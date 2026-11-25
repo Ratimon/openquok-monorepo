@@ -9,6 +9,7 @@
 	import OpenquokSkillInstallRakazoMock from '$lib/ui/templates/device-mocks/terminal/content/OpenquokSkillInstallRakazoMock.svelte';
 	import OpenquokSkillInstallOpenbotMock from '$lib/ui/templates/device-mocks/terminal/content/OpenquokSkillInstallOpenbotMock.svelte';
 	import OpenquokSkillInstallMausbotMock from '$lib/ui/templates/device-mocks/terminal/content/OpenquokSkillInstallMausbotMock.svelte';
+	import OpenquokSkillInstallTucanoMock from '$lib/ui/templates/device-mocks/terminal/content/OpenquokSkillInstallTucanoMock.svelte';
 	import OpenquokSkillInstallThinkrailMock from '$lib/ui/templates/device-mocks/terminal/content/OpenquokSkillInstallThinkrailMock.svelte';
 	import OpenquokSkillInstallHermesMock from '$lib/ui/templates/device-mocks/terminal/content/OpenquokSkillInstallHermesMock.svelte';
 	import OpenquokSkillInstallMock from '$lib/ui/templates/device-mocks/terminal/content/OpenquokSkillInstallMock.svelte';
@@ -42,4 +43,6 @@
 	<OpenquokSkillInstallOpenbotMock />
 {:else if content === 'openquok-skill-install-mausbot'}
 	<OpenquokSkillInstallMausbotMock />
+{:else if content === 'openquok-skill-install-tucano'}
+	<OpenquokSkillInstallTucanoMock />
 {/if}

@@ -115,6 +115,7 @@ export type BrandedIconName =
     | "TinyLaunch"
     | "Typefully"
     | "TryPost"
+    | "Tucano"
     | "UseBard"
     | "Uneed"
     | "Warp"
@@ -946,6 +947,13 @@ export const brandedIcons = {
         box: 24,
         fill: true,
         svg: `<rect width="24" height="24" rx="6" fill="#0F172A"/><image href="/icons/trypost.png" x="3" y="3" width="18" height="18"/>`
+    },
+    /** Tucano product mark. Tucano is a trademark of its respective owner. */
+    Tucano: {
+        name: "Tucano",
+        box: 512,
+        fill: true,
+        svg: `<image href="/icons/tucano.png" width="512" height="512"/>`
     },
     /** UseBard product mark. UseBard is a trademark of its respective owner. */
     UseBard: {

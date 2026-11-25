@@ -27,6 +27,7 @@
 	import RakazoDocsOverviewMock from '$lib/ui/templates/device-mocks/safari/content/RakazoDocsOverviewMock.svelte';
 	import OpenbotDocsOverviewMock from '$lib/ui/templates/device-mocks/safari/content/OpenbotDocsOverviewMock.svelte';
 	import MausbotDocsOverviewMock from '$lib/ui/templates/device-mocks/safari/content/MausbotDocsOverviewMock.svelte';
+	import TucanoDocsOverviewMock from '$lib/ui/templates/device-mocks/safari/content/TucanoDocsOverviewMock.svelte';
 	import ChromeWebStoreOpenQuokSafariMock from '$lib/ui/templates/device-mocks/safari/content/ChromeWebStoreOpenQuokSafariMock.svelte';
 
 	type Props = {
@@ -94,6 +95,8 @@
 	<OpenbotDocsOverviewMock />
 {:else if content === 'mausbot-docs-overview'}
 	<MausbotDocsOverviewMock />
+{:else if content === 'tucano-docs-overview'}
+	<TucanoDocsOverviewMock />
 {:else if isMcpInstallContent(content)}
 	<McpClientInstallMock content={content} />
 {:else if isMcpVerifyContent(content)}

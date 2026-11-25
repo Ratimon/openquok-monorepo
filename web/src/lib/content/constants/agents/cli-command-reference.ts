@@ -99,6 +99,19 @@ export const MAUSBOT_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
 	{ id: 'curl', label: 'curl + working folder', command: OPENQUOK_CORE_SKILL_INSTALL_MAUSBOT_CURL }
 ];
 
+/** Tucano: ask the scheduling agent to install the global CLI on its computer or Linux box. */
+export const OPENQUOK_CORE_SKILL_INSTALL_TUCANO_ASK = `npm install -g @openquok/auto-cli@latest`;
+
+/** Tucano: fetch SKILL.md into a folder the agent can read. */
+export const OPENQUOK_CORE_SKILL_INSTALL_TUCANO_CURL = `mkdir -p ~/openquok-core
+curl -fsSL "${OPENQUOK_CORE_SKILL_RAW_URL}" \\
+  -o ~/openquok-core/SKILL.md`;
+
+export const TUCANO_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
+	{ id: 'ask-agent', label: 'Ask your agent', command: OPENQUOK_CORE_SKILL_INSTALL_TUCANO_ASK },
+	{ id: 'curl', label: 'curl + folder', command: OPENQUOK_CORE_SKILL_INSTALL_TUCANO_CURL }
+];
+
 /** Dots: ask your dot to install the global CLI on its cloud computer. */
 export const OPENQUOK_CORE_SKILL_INSTALL_DOTS_ASK = `npm install -g @openquok/auto-cli@latest`;
 

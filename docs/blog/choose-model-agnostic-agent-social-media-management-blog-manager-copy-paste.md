@@ -22,7 +22,7 @@ choose-model-agnostic-agent-social-media-management
 ## description
 
 ```
-Buyer framework for model-agnostic agents: MausBot, OpenBot, Rakazo, OpenClaw, Hermes, Cursor, and Codex paths for social media management—includes legacy vs new Cursor plans before you unify.
+Buyer framework for model-agnostic agents: MausBot, Tucano, OpenBot, Rakazo, OpenClaw, Hermes, Cursor, and Codex paths for social media management—includes legacy vs new Cursor plans before you unify.
 ```
 
 ## topic
@@ -118,7 +118,7 @@ Decide who runs the computer
 ### howto_step 2 text
 
 ```html
-<p>Pick vendor cloud, your laptop, or your own server. Self-hosted paths include <a href="/agents/openclaw">OpenClaw</a>, <a href="/agents/hermes">Hermes Agent</a>, <a href="/agents/rakazo">Rakazo</a>, <a href="/agents/mausbot">MausBot</a>, and personal <a href="/agents/openbot">OpenBot</a>. Managed clouds include Grok Bot and Dots—see <a href="/blog/grok-bot-vs-openclaw-pick-your-openquok-social-scheduler-agent">Grok Bot vs OpenClaw</a> when you want a shorter compare.</p>
+<p>Pick vendor cloud, your laptop, or your own server. Self-hosted paths include <a href="/agents/openclaw">OpenClaw</a>, <a href="/agents/hermes">Hermes Agent</a>, <a href="/agents/rakazo">Rakazo</a>, <a href="/agents/mausbot">MausBot</a>, <a href="/agents/tucano">Tucano</a>, and personal <a href="/agents/openbot">OpenBot</a>. Managed clouds include Grok Bot and Dots—see <a href="/blog/grok-bot-vs-openclaw-pick-your-openquok-social-scheduler-agent">Grok Bot vs OpenClaw</a> when you want a shorter compare.</p>
 ```
 
 ### howto_step 3 name
@@ -218,7 +218,7 @@ Does OpenQuok lock me to one LLM for social media management?
 ### FAQ 5 answer
 
 ```html
-<p>No. OpenQuok does not choose your model. Your harness does. You can run Claude on one machine and ChatGPT on another workspace, or failover inside MausBot or OpenBot—OpenQuok still lists the same integrations for each approved workspace.</p>
+<p>No. OpenQuok does not choose your model. Your harness does. You can run Claude on one machine and ChatGPT on another workspace, or failover inside MausBot, Tucano, or OpenBot—OpenQuok still lists the same integrations for each approved workspace.</p>
 ```
 
 ### FAQ 6 question
@@ -244,7 +244,7 @@ Paste into **Content → HTML source**.
 
 <p>Model-agnostic also means you read the billing fine print. Cursor’s move from legacy two-pool plans to The X Subscription is a recent example: the editor still runs many models, but included third-party usage is not the same on every plan.</p>
 
-<p>This article is a buyer decision framework. It does not crown a single winner. It helps you match MausBot, OpenBot, Rakazo, OpenClaw, Hermes Agent, Cursor, and Codex-style ChatGPT flows to how you already work. For sibling reads, use <a href="/blog/pick-your-openquok-harness-openai-claude-microsoft-or-google">pick your OpenQuok harness by ecosystem</a>, <a href="/blog/best-grok-bot-alternatives-in-2026-for-openquok-social-scheduling">Grok Bot alternatives for OpenQuok</a>, and <a href="/blog/grok-bot-vs-openclaw-pick-your-openquok-social-scheduler-agent">Grok Bot vs OpenClaw</a>. The <a href="/agents">Agents hub</a> lists every host and MCP client with setup guides.</p>
+<p>This article is a buyer decision framework. It does not crown a single winner. It helps you match MausBot, Tucano, OpenBot, Rakazo, OpenClaw, Hermes Agent, Cursor, and Codex-style ChatGPT flows to how you already work. For sibling reads, use <a href="/blog/pick-your-openquok-harness-openai-claude-microsoft-or-google">pick your OpenQuok harness by ecosystem</a>, <a href="/blog/best-grok-bot-alternatives-in-2026-for-openquok-social-scheduling">Grok Bot alternatives for OpenQuok</a>, and <a href="/blog/grok-bot-vs-openclaw-pick-your-openquok-social-scheduler-agent">Grok Bot vs OpenClaw</a>. The <a href="/agents">Agents hub</a> lists every host and MCP client with setup guides.</p>
 
 <h2>What model-agnostic means for social media management</h2>
 
@@ -260,7 +260,7 @@ Paste into **Content → HTML source**.
 
 <h3>1. Where do you want to manage social work each day?</h3>
 
-<p>Desktop app, phone, Telegram, WhatsApp, Slack, or inside your repository editor—pick one primary surface. Messaging-first gateways favor <a href="/agents/openclaw">OpenClaw</a> and <a href="/agents/hermes">Hermes Agent</a>. Open-source multi-bot desktop chat favors <a href="/agents/mausbot">MausBot</a>. Polished desktop multi-agent rooms favor <a href="/agents/openbot">OpenBot</a>. In-editor tool calls favor <a href="/agents/cursor">Cursor</a>. Codex-style coding plus chat often flows through <a href="/agents/chatgpt">ChatGPT MCP</a> or a desktop host with a ChatGPT provider.</p>
+<p>Desktop app, phone, Telegram, WhatsApp, Slack, or inside your repository editor—pick one primary surface. Messaging-first gateways favor <a href="/agents/openclaw">OpenClaw</a> and <a href="/agents/hermes">Hermes Agent</a>. Open-source multi-bot desktop chat favors <a href="/agents/mausbot">MausBot</a>. Channel-based agent teams with routines favor <a href="/agents/tucano">Tucano</a>. Polished desktop multi-agent rooms favor <a href="/agents/openbot">OpenBot</a>. In-editor tool calls favor <a href="/agents/cursor">Cursor</a>. Codex-style coding plus chat often flows through <a href="/agents/chatgpt">ChatGPT MCP</a> or a desktop host with a ChatGPT provider.</p>
 
 <h3>2. Who runs the computer?</h3>
 
@@ -268,7 +268,7 @@ Paste into **Content → HTML source**.
 
 <h3>3. How many agents do you need in one room?</h3>
 
-<p>A single scheduling agent may be enough for steady publishing. Campaigns often need QA, brand, and subject-matter agents to brainstorm before a scheduling agent queues drafts and media. MausBot and OpenBot emphasize many agents in parallel on desktop. OpenClaw and Hermes emphasize gateway sessions you message from phones. Rakazo emphasizes one bot per sandbox with your model keys.</p>
+<p>A single scheduling agent may be enough for steady publishing. Campaigns often need QA, brand, and subject-matter agents to brainstorm before a scheduling agent queues drafts and media. MausBot, Tucano, and OpenBot emphasize many agents in parallel on desktop. OpenClaw and Hermes emphasize gateway sessions you message from phones. Rakazo emphasizes one bot per sandbox with your model keys.</p>
 
 <h3>4. How will the agent call OpenQuok?</h3>
 
@@ -303,6 +303,13 @@ Paste into **Content → HTML source**.
 <td>Desktop + phone companion; bot list + automations</td>
 <td>Bot computer or cloud desktop</td>
 <td>You want open-source multi-bot desktop chat without Grok Bot’s managed cloud</td>
+</tr>
+<tr>
+<td><a href="/agents/tucano">Tucano</a></td>
+<td>BYO harness per agent; Claude Code, Codex, Cursor, Grok, and more</td>
+<td>Desktop channels + routines; Telegram for approvals</td>
+<td>Your computer or isolated Linux per agent</td>
+<td>You want channel-based agent teams with routines and explicit approval gates</td>
 </tr>
 <tr>
 <td><a href="/agents/openbot">OpenBot</a></td>
@@ -355,6 +362,12 @@ Paste into **Content → HTML source**.
 
 <p>Social workflows pair well with SEO or launch bots in parallel: specialists finish briefs; a scheduling bot with <code>openquok-core</code> queues drafts. Use the skill recorder after a good openquok run to reuse the recipe. Read <a href="/docs/agent-setup-guides/mausbot">MausBot setup</a> and the <a href="/agents/mausbot">MausBot integration page</a>. For managed xAI teammates, compare <a href="/agents/grok-bot">Grok Bot</a> first.</p>
 
+<h2>Tucano: channel-based agent teams</h2>
+
+<p>Tucano fits operators who organize work in channels and want each agent on its own harness. You sign in to Claude Code, Codex, Cursor, Gemini, Grok, OpenCode, or Pi once. Tuca can propose specialists; you edit tools and limits before they run. Routines keep weekday social drafting on a calendar while sensitive actions wait for your yes.</p>
+
+<p>Pair a brand or launch agent in one channel with a scheduling agent that runs <code>openquok-core</code> on your computer or an isolated Linux box. Optional Tucano Pro keeps the team in the cloud when your laptop sleeps. Read <a href="/docs/agent-setup-guides/tucano">Tucano setup</a> and the <a href="/agents/tucano">Tucano integration page</a>. For open-source bot-list chat, compare <a href="/agents/mausbot">MausBot</a>.</p>
+
 <h2>OpenBot: desktop team, BYO AI</h2>
 
 <p>OpenBot targets operators who want a capable macOS-first client and mobile companions for ongoing social operations. Agent settings show memory, skills, files, and tables in one overview. You connect ChatGPT, Claude, Grok, Gemini, or custom OpenAI-compatible endpoints—including routers some teams use for failover.</p>
@@ -379,7 +392,7 @@ Paste into **Content → HTML source**.
 
 <p><strong>Legacy Cursor plans</strong> (Pro, Pro+, Ultra, and Teams Standard or Premium) split usage into two monthly pools: <strong>Cursor Models</strong> and <strong>Other Models</strong>. Pro and above include third-party usage in Other Models. Many teams on legacy Pro ($20/mo) keep routing Agent to Claude or GPT without a separate API prepay line. If you schedule with <a href="/agents/cursor">OpenQuok MCP</a> and you want cheap third-party routing inside Cursor, staying on legacy can matter. Switching to The X Subscription is optional—and <strong>permanent</strong> once you unify. Compare plan details on the <a href="/agents/cursor">Cursor integration</a> and <a href="/docs/mcp-setup-guides/cursor">Cursor MCP setup</a> before you move.</p>
 
-<p>OpenQuok does not depend on which side you pick. You still add <code>openquok</code> in <code>.cursor/mcp.json</code>, verify integrations, and approve on the calendar or kanban. If Cursor’s third-party economics push you away from the editor, <a href="/agents/mausbot">MausBot</a>, <a href="/agents/openbot">OpenBot</a>, and <a href="/agents/rakazo">Rakazo</a> stay on the model-agnostic host side with BYO keys you control outside Cursor pools.</p>
+<p>OpenQuok does not depend on which side you pick. You still add <code>openquok</code> in <code>.cursor/mcp.json</code>, verify integrations, and approve on the calendar or kanban. If Cursor’s third-party economics push you away from the editor, <a href="/agents/mausbot">MausBot</a>, <a href="/agents/tucano">Tucano</a>, <a href="/agents/openbot">OpenBot</a>, and <a href="/agents/rakazo">Rakazo</a> stay on the model-agnostic host side with BYO keys you control outside Cursor pools.</p>
 
 <h2>Codex-style flows through ChatGPT</h2>
 
@@ -393,7 +406,7 @@ Paste into **Content → HTML source**.
 
 <p>Operational checklist:</p>
 <ul>
-<li>One OAuth or device login per MausBot bot computer, OpenBot machine, gateway, or sandbox.</li>
+<li>One OAuth or device login per MausBot bot computer, Tucano agent computer, OpenBot machine, gateway, or sandbox.</li>
 <li>Store programmatic tokens only on that machine—not in shared chat logs.</li>
 <li>Default agent recipes to draft status; require explicit schedule or approval notes.</li>
 <li>Use <a href="/channels">supported channels</a> when you add a new network mid-quarter.</li>
@@ -407,7 +420,7 @@ Paste into **Content → HTML source**.
 
 <h3>You want failover across Claude, ChatGPT, and Grok subscriptions</h3>
 
-<p>Shortlist MausBot or OpenBot. Map each subscription to bots or providers; use a scheduling agent with stable OpenQuok instructions. Confirm license terms for commercial use before production.</p>
+<p>Shortlist MausBot, Tucano, or OpenBot. Map each subscription to agents or harnesses; use a scheduling agent with stable OpenQuok instructions. Confirm license terms for commercial use before production.</p>
 
 <h3>You run bots as isolated tenants for clients</h3>
 
@@ -415,7 +428,7 @@ Paste into **Content → HTML source**.
 
 <h3>You already live in Cursor for product work</h3>
 
-<p>Wire MCP first for quick wins with <a href="/docs/mcp-setup-guides/cursor">Cursor MCP setup</a>. Confirm whether you still have legacy Other Models or you are on Premium with prepaid third-party usage. If third-party routing gets costly, add <a href="/agents/mausbot">MausBot</a> or <a href="/agents/openbot">OpenBot</a> for marketing-heavy drafting while you keep Cursor for repo-tied posts. Add a gateway host later if non-developers must schedule without the IDE.</p>
+<p>Wire MCP first for quick wins with <a href="/docs/mcp-setup-guides/cursor">Cursor MCP setup</a>. Confirm whether you still have legacy Other Models or you are on Premium with prepaid third-party usage. If third-party routing gets costly, add <a href="/agents/mausbot">MausBot</a>, <a href="/agents/tucano">Tucano</a>, or <a href="/agents/openbot">OpenBot</a> for marketing-heavy drafting while you keep Cursor for repo-tied posts. Add a gateway host later if non-developers must schedule without the IDE.</p>
 
 <h3>You are standardizing on one vendor ecosystem</h3>
 

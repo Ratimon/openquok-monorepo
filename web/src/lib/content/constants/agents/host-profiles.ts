@@ -108,6 +108,13 @@ export const AGENT_HOST_PROFILES: readonly AgentHostProfile[] = [
 		scenarioIds: ['model-agnostic', 'self-hosted-data-control'],
 		traits: ['desktop-mobile', 'multi-bot-chat', 'byo-cli-engines', 'open-source', 'automations'],
 		featureHighlights: []
+	},
+	{
+		slug: 'tucano',
+		uiArchetype: 'desktop-skill-ide',
+		scenarioIds: ['model-agnostic', 'self-hosted-data-control'],
+		traits: ['desktop', 'multi-agent-channels', 'byo-harness', 'routines', 'approvals'],
+		featureHighlights: []
 	}
 ];
 

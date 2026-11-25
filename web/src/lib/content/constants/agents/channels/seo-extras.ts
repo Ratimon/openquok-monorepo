@@ -109,6 +109,12 @@ const HOST_GLOBAL_SEO_EXTRAS: Readonly<Record<string, readonly string[]>> = {
 		'BYO Claude Codex Grok MausBot',
 		'MausBot vs Grok Bot scheduling'
 	],
+	tucano: [
+		'Tucano multi-agent social scheduling',
+		'Tucano channels OpenQuok',
+		'BYO harness Tucano scheduler',
+		'Tucano vs MausBot scheduling'
+	],
 	dots: [
 		'OpenAI Dots social scheduler',
 		'ChatGPT dot OpenQuok',

@@ -51,6 +51,10 @@
 		MAUSBOT_CORE_MESSAGING_CHANNELS,
 		MAUSBOT_EXTENSION_MESSAGING_CHANNELS
 	} from '$data/mausbot-messaging-channels';
+	import {
+		TUCANO_CORE_MESSAGING_CHANNELS,
+		TUCANO_EXTENSION_MESSAGING_CHANNELS
+	} from '$data/tucano-messaging-channels';
 
 	import { page } from '$app/state';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
@@ -180,6 +184,10 @@
 		mausbot: {
 			core: MAUSBOT_CORE_MESSAGING_CHANNELS,
 			extension: MAUSBOT_EXTENSION_MESSAGING_CHANNELS
+		},
+		tucano: {
+			core: TUCANO_CORE_MESSAGING_CHANNELS,
+			extension: TUCANO_EXTENSION_MESSAGING_CHANNELS
 		}
 	} as const;
 

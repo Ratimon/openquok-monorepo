@@ -65,7 +65,8 @@ export const LANDING_HERO_SOCIAL_AGENT_ROTATE_OPTIONS: readonly LandingHeroSocia
 		{ label: 'Manus', iconName: icons.Manus.name },
 		{ label: 'Rakazo', iconName: icons.Rakazo.name },
 		{ label: 'OpenBot', iconName: icons.OpenBot.name },
-		{ label: 'MausBot', iconName: icons.MausBot.name }
+		{ label: 'MausBot', iconName: icons.MausBot.name },
+		{ label: 'Tucano', iconName: icons.Tucano.name }
 	];
 
 /** @deprecated Use `LANDING_HERO_SOCIAL_AGENT_ROTATE_OPTIONS` — labels only for `TextRotate` fallbacks. */
@@ -160,6 +161,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'Rakazo',
 	'OpenBot',
 	'MausBot',
+	'Tucano',
 	'openclaw',
 	'hermes',
 	'agent hosts',

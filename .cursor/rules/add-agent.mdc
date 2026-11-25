@@ -31,7 +31,7 @@ Ship **constants + developer config + docs + public landing/hub wiring** in the 
 
 | Kind | Examples | Landing seed | Docs section | Developer Access |
 | --- | --- | --- | --- | --- |
-| **Agent host** | OpenClaw, Hermes, Grok Bot, MausBot, Manus | `agents/hosts/{slug}.ts` | `agent-setup-guides/` | openquok-core / CLI skill (not `MCP_CLIENTS`) |
+| **Agent host** | OpenClaw, Hermes, Grok Bot, MausBot, Tucano, Manus | `agents/hosts/{slug}.ts` | `agent-setup-guides/` | openquok-core / CLI skill (not `MCP_CLIENTS`) |
 | **MCP client** | Cursor, ChatGPT, Grok Build, OpenCode | `mcps/hosts/{slug}.ts` | `mcp-setup-guides/` | `getMcpClientConfig` + `MCP_CLIENTS` |
 
 Follow **source-project-neutrality** and **company-brand-icons**. **Reference implementations:** MCP — `mcps/hosts/chatgpt.ts`, `cursor.ts`, `warp.ts`; agent host — `agents/hosts/openclaw.ts`, `grok-bot.ts`, `mausbot.ts`; agent × channel pSEO — `agents/channels/hosts/grok-bot.ts` + `agents/channels/index.ts` (kinds: `social.ts`, `directory.ts`; router `channels/general.ts`).
@@ -114,7 +114,7 @@ MCP clients use `mcps/channels/index.ts` — no per-host channel file. Deeper be
 | Pattern | Mocks / channels | Examples |
 | --- | --- | --- |
 | Messaging gateway | `iphone-15-pro` + `agent-chat-schedule`; archetype FAQ | OpenClaw, Hermes |
-| Desktop / cloud teammate | `desktop` workflow; `{slug}-messaging-channels.ts` | Grok Bot, Manus, MausBot, OpenBot, ThinkRail, Dots |
+| Desktop / cloud teammate | `desktop` workflow; `{slug}-messaging-channels.ts` | Grok Bot, Manus, MausBot, Tucano, OpenBot, ThinkRail, Dots |
 | Mobile-first consumer | `iphone-15-pro`; custom messaging data | Meta Muse, Claude Duet |
 | Vendor ecosystem | Fourth WhoIsFor + channel grid pins — **web-seo-agent-ecosystems** | gemini, grok-bot, meta-muse, claude-duet, … |
 
@@ -147,7 +147,8 @@ MCP clients use `mcps/channels/index.ts` — no per-host channel file. Deeper be
 | `gemini` | host | `android-studio`, `antigravity-cli` (MCP) | use slug **`gemini`** (not `gemini-spark`) |
 | `opencode` | MCP | — | not `agents/hosts/opencode.ts` |
 | `thinkrail` | host | — | no `/agents/pi`; ThinkRail is the host slug |
-| `mausbot` | host | `grok-bot`, `openbot`, `rakazo` | BYO desktop multi-bot pattern → copy `mausbot.ts` |
+| `mausbot` | host | `grok-bot`, `openbot`, `rakazo`, `tucano` | BYO desktop multi-bot pattern → copy `mausbot.ts` |
+| `tucano` | host | `mausbot`, `openbot`, `rakazo` | BYO channel-based agent team → copy `tucano.ts` / `mausbot.ts` |
 
 **Auth / config gotchas (MCP):** Android Studio `mcp.json` uses **`httpUrl`**; Antigravity CLI uses **`serverUrl`** in `mcp_config.json` — cross-link each other in FAQ. Grok Build: `grok mcp add --transport http`, not the Grok web connector UI. OpenCode: `opencode mcp add` or `opencode.jsonc` headers.
 
@@ -175,4 +176,4 @@ Ship code in the PR; tag + launch blog in secret-admin (or paste-ready handoff).
 - Ship agent host without channel host config + `PUBLIC_AGENT_CHANNEL_HOST_SLUGS`.
 - Hand-edit footer slug lists — use `mcps/seeds.ts` / `agents/seeds.ts`.
 - SQL seeds for tags/blogs; hardcoded icon strings; third-party repo names (**source-project-neutrality**).
-- Classify skill/desktop teammates as MCP (Grok Bot, ThinkRail, Manus, MausBot → agent host).
+- Classify skill/desktop teammates as MCP (Grok Bot, ThinkRail, Manus, MausBot, Tucano → agent host).

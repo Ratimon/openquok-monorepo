@@ -10,3 +10,4 @@ export { claudeDuetAgent } from './claude-duet';
 export { rakazoAgent } from './rakazo';
 export { openbotAgent } from './openbot';
 export { mausbotAgent } from './mausbot';
+export { tucanoAgent } from './tucano';
