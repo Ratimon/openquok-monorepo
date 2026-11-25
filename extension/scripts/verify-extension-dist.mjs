@@ -18,6 +18,7 @@ const shippedLinkDirectoryLogoSlugs = [
 	'devhunt',
 	'nick-launches',
 	'indiehub',
+	'alternativeto',
 ];
 
 const allowedContentScripts = new Set([
@@ -29,6 +30,7 @@ const allowedContentScripts = new Set([
 	'openquok-directory-devhunt.js',
 	'openquok-directory-nick-launches.js',
 	'openquok-directory-indiehub.js',
+	'openquok-directory-alternativeto.js',
 	'openquok-dashboard-session.js',
 	'openquok-reddit-submit.js',
 ]);

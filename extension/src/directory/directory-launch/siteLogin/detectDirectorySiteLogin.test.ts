@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { detectDirectorySiteLogin } from './detectDirectorySiteLogin.js';
 import { DEVHUNT_LOGIN_URL } from './devhunt.js';
 import { FAZIER_LOGIN_URL } from './fazier.js';
+import { ALTERNATIVETO_LOGIN_URL } from './alternativeto.js';
 import { INDIEHUB_LOGIN_URL } from './indiehub.js';
 import { NICK_LAUNCHES_LOGIN_URL } from './nick-launches.js';
 import { OPEN_LAUNCH_LOGIN_URL } from './open-launch.js';
@@ -80,6 +81,14 @@ describe('detectDirectorySiteLogin', () => {
 		expect(detectDirectorySiteLogin('indiehub')).toEqual({
 			loggedIn: false,
 			loginUrl: INDIEHUB_LOGIN_URL
+		});
+	});
+
+	it('dispatches to the alternativeto adapter', () => {
+		document.body.innerHTML = `<nav><a href="/login/">Sign in</a></nav>`;
+		expect(detectDirectorySiteLogin('alternativeto')).toEqual({
+			loggedIn: false,
+			loginUrl: ALTERNATIVETO_LOGIN_URL
 		});
 	});
 

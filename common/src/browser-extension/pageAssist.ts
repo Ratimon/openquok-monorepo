@@ -66,8 +66,8 @@ export type LaunchStepField = {
 	checkboxCatalog?: string;
 	/** Official single-select labels for compare presets + fill coercion. */
 	selectCatalog?: string;
-	/** PeerPush uses `username`; Uneed and Open Launch use `url` (default). */
-	socialXScalar?: 'username' | 'url';
+	/** Coerce profile social values to handle vs full URL before fill (default: url for X only). */
+	socialScalar?: 'username' | 'url';
 };
 
 export type LaunchStep = {

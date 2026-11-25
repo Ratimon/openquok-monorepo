@@ -73,6 +73,24 @@ function normalizeStorageKey(storagePath: string): string {
 	return key;
 }
 
+/** Absolute URL a third-party form can fetch (pass-through https or public image/download). */
+export async function resolveProfileMediaPublicUrl(
+	dashboardOrigin: string,
+	storagePathOrUrl: string
+): Promise<string | null> {
+	const trimmed = storagePathOrUrl.trim();
+	if (!trimmed) return null;
+	if (/^https?:\/\//i.test(trimmed)) return trimmed;
+	const key = normalizeStorageKey(trimmed);
+	if (!key) return null;
+	const params = new URLSearchParams({
+		databaseName: AUTO_LAUNCH_PROFILE_MEDIA_BUCKET,
+		imageUrl: key,
+	});
+	const apiOrigin = await resolveApiOriginForDashboard(dashboardOrigin);
+	return `${apiRoot(apiOrigin)}/image/download?${params.toString()}`;
+}
+
 /** Download a logo or gallery object for directory file inputs (public image download route). */
 export async function fetchProfileMediaFile(
 	dashboardOrigin: string,
@@ -81,19 +99,8 @@ export async function fetchProfileMediaFile(
 	const trimmed = storagePathOrUrl.trim();
 	if (!trimmed) return null;
 
-	let downloadUrl: string;
-	if (/^https?:\/\//i.test(trimmed)) {
-		downloadUrl = trimmed;
-	} else {
-		const key = normalizeStorageKey(trimmed);
-		if (!key) return null;
-		const params = new URLSearchParams({
-			databaseName: AUTO_LAUNCH_PROFILE_MEDIA_BUCKET,
-			imageUrl: key,
-		});
-		const apiOrigin = await resolveApiOriginForDashboard(dashboardOrigin);
-		downloadUrl = `${apiRoot(apiOrigin)}/image/download?${params.toString()}`;
-	}
+	const downloadUrl = await resolveProfileMediaPublicUrl(dashboardOrigin, trimmed);
+	if (!downloadUrl) return null;
 
 	const response = await fetch(downloadUrl);
 	if (!response.ok) return null;

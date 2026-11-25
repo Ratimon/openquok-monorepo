@@ -16,10 +16,11 @@ Reference for **extension-assisted directory launches**: step rail, compare pane
 | `devhunt` | `devhunt-standard-launch`, `devhunt-paid-launch` | Paid → new-tool form; Standard → launch guide then form | `openquok-directory-devhunt.js` |
 | `nick-launches` | `nick-launches-free-launch`, `nick-launches-paid-launch`, `nick-launches-maker-profile` | Listing → `submit/new`; maker → `profile` | `openquok-directory-nick-launches.js` |
 | `indiehub` | `indiehub-basic-launch`, `indiehub-pro-launch` | Submit wizard step 1 → `submit` | `openquok-directory-indiehub.js` |
+| `alternativeto` | `alternativeto-free-listing`, `alternativeto-priority-review`, `alternativeto-finish-listing`, `alternativeto-user-profile` | Listing → `manage-item`; profile → `user/edit` | `openquok-directory-alternativeto.js` |
 
-**Site count for smoke:** **8** directory sites (17 provider variants total).
+**Site count for smoke:** **9** directory sites (23 provider variants total).
 
-Picker groups: TinyLaunch, Open Launch, Fazier, DevHunt, Nick Launches, and IndieHub group variants under one Add Channel tile per site (`picker_group_key` = site slug).
+Picker groups: TinyLaunch, Open Launch, Fazier, DevHunt, Nick Launches, IndieHub, and AlternativeTo group variants under one Add Channel tile per site (`picker_group_key` = site slug).
 
 ---
 
@@ -211,11 +212,55 @@ Proof: `successPathRegex` `/product/` or `/submit`; listing URL `a[href*='indieh
 
 ---
 
+## AlternativeTo field mapping
+
+Module: `common/src/auto-launch/destination-configs/sites/alternativeto/config.ts`
+
+### Listing (`manage-item`)
+
+| Step / label | `profilePath` | `fillMode` | Notes |
+| --- | --- | --- | --- |
+| Name | `name` | `text` | required |
+| Short description | `tagline` | `text` | required; inherits main `tagline` on variants when empty; manage-item resolves via **Short Description** label / “keep it short…” helper |
+| Full description | `description` | `rich_html` | manage-item: **Full Description** label / “longer description…” helper; strip promo links per FAQ |
+| Website | `website_url` | `text` | required |
+| Tags | `profile_data.tags` (+ categories, use_cases, platforms) | `tags` | required |
+| Platforms | `profile_data.platforms` | `checkbox_group` | `checkboxCatalog: alternativeto_platforms`; required |
+| Company / Author | `name` | `text` | required; tweak when legal entity ≠ product name |
+| X (Twitter) | `profile_data.social_x` | `text` | `socialScalar: username` on product form when present |
+| Pricing / license | `profile_data.pricing_type` | `select` | `selectCatalog: alternativeto_license` |
+| Open source | `profile_data.is_open_source` | `boolean` | |
+| Application icon | `logo_url` | `file` | Prefer **Upload icon by URL** (public https from profile); file dropzone fallback; min ~280px; required |
+| Screenshots | `profile_data.gallery_urls` | `files` | Profile storage paths use **file** upload (download from OpenQuok then dropzone); **Upload screenshot by URL** only when gallery entries are already public `https://` (not `image/download`); max 5 (`ALTERNATIVETO_FORM_GALLERY_MAX`) |
+| Add a new video URL (Videos) | `profile_data.launch_video_url` | `text` | YouTube URL; inherited from main profile on variants when empty |
+| Features, languages, alternatives, upsell, Submit | — | — | **Manual** v1 |
+
+Free listing, Priority review, and We finish it share one fixture; `readyStatusHint` differs per provider slug (`alternativeto-free-listing`, `alternativeto-priority-review`, `alternativeto-finish-listing`).
+
+### User profile (`user/edit`)
+
+| Form label | `profilePath` | Notes |
+| --- | --- | --- |
+| Twitter / X | `profile_data.social_x` | `socialScalar: username` |
+| GitHub | `profile_data.social_github` (+ `repository_url`) | username |
+| Instagram | `profile_data.social_instagram` | username |
+| YouTube | `profile_data.social_youtube` | username |
+| LinkedIn | `profile_data.social_linkedin` | full URL (default scalar) |
+| Reddit | — | **Manual** v1 |
+
+`readyUrlHint`: `manage-item` for listing tiers; `user/edit` for `alternativeto-user-profile`.
+
+Login: `extension/src/directory/directory-launch/siteLogin/alternativeto.ts` → `https://alternativeto.net/login/?returnUrl=/manage-item/`; logged-in when manage-item or user/edit forms are visible.
+
+Proof: `successPathRegex` `/software/` or `/manage-item/` (listing); listing URL `a[href*='alternativeto.net/software/']`.
+
+---
+
 ## Manual smoke checklist
 
 Run after changing fixtures, extension manifests, or marketing tiles. Use a dev workspace with the extension loaded from `extension/dist`.
 
-### All sites (8)
+### All sites (9)
 
 - [ ] `pnpm --filter openquok-common test:unit` (includes destination config drift tests)
 - [ ] `pnpm sync:auto-launch-configs:check` and `pnpm sync:auto-launch-destinations:check`
@@ -263,6 +308,18 @@ Run after changing fixtures, extension manifests, or marketing tiles. Use a dev 
 - [ ] After publish, listing URL matches proof hints on the live product page
 - [ ] `/channels/indiehub` and `directory-integration/indiehub.md` docs load; hub lists IndieHub with PeerPush, Uneed, Open Launch, TinyLaunch, Fazier, DevHunt, Nick Launches
 - [ ] `dist/icons/link-directory/indiehub.svg` exists after extension build
+
+### AlternativeTo
+
+- [ ] Sign in on alternativeto.net with verified email; **Free listing** handoff opens `manage-item` with non-empty `extension_config`
+- [ ] Step rail shows **Main info** → **Tags** → **Platforms** → **Company / Author** → **Pricing / license** → **Media**; compare lists mapped profile fields
+- [ ] Platform checkboxes match `alternativeto_platforms` catalog; license select matches `alternativeto_license`
+- [ ] **Priority review** and **We finish it** destinations share the same form; ready hints mention $15 / $29 upsell after submit (checkout manual)
+- [ ] **User profile** handoff opens `user/edit`; X, GitHub, Instagram, and YouTube fill as handles; LinkedIn keeps full URL
+- [ ] Do not complete Stripe upsell or final Submit in automation; confirm manual fields in ready hints
+- [ ] After publish, proof regex and listing URL selector match a live `alternativeto.net/software/` link
+- [ ] `/channels/alternativeto` and `directory-integration/alternativeto.md` docs load; hub lists AlternativeTo with PeerPush, Uneed, Open Launch, TinyLaunch, Fazier, DevHunt, Nick Launches, IndieHub
+- [ ] `dist/icons/link-directory/alternativeto.svg` exists after extension build
 
 ### TinyLaunch
 

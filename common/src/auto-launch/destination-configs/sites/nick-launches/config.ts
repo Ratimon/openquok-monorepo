@@ -167,7 +167,7 @@ export const NICK_LAUNCHES_LISTING_FORM_EXTENSION_CONFIG = {
 					labelAliases: ['Twitter', 'Twitter username'],
 					profilePath: 'profile_data.social_x',
 					fillMode: 'text',
-					socialXScalar: 'username',
+					socialScalar: 'username',
 					selectorHint:
 						"input[name='twitterUsername'], input[name*='twitter' i], input[placeholder*='twitter' i], input[aria-label*='twitter' i]",
 				},
@@ -266,7 +266,7 @@ export const NICK_LAUNCHES_MAKER_PROFILE_EXTENSION_CONFIG = {
 					labelAliases: ['Twitter', 'X'],
 					profilePath: 'profile_data.social_x',
 					fillMode: 'text',
-					socialXScalar: 'username',
+					socialScalar: 'username',
 					selectorHint:
 						"input[name='socials.x'], input[name*='twitter' i], input[aria-label*='twitter' i], input[placeholder*='x.com' i]",
 				},

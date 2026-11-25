@@ -27,6 +27,7 @@ export const DIRECTORY_SITE_DISPLAY_NAME: Record<string, string> = {
 	devhunt: 'DevHunt',
 	'nick-launches': 'Nick Launches',
 	indiehub: 'IndieHub',
+	alternativeto: 'AlternativeTo',
 };
 
 type CheckDirectoryGateResponse = {

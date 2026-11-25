@@ -3,6 +3,7 @@ import type { DirectoryLaunchProvider } from '../../browser-extension/pageAssist
 import { DEVHUNT_DIRECTORY_LAUNCH_PROVIDERS } from './devhunt.js';
 import { NICK_LAUNCHES_DIRECTORY_LAUNCH_PROVIDERS } from './nick-launches.js';
 import { INDIEHUB_DIRECTORY_LAUNCH_PROVIDERS } from './indiehub.js';
+import { ALTERNATIVETO_DIRECTORY_LAUNCH_PROVIDERS } from './alternativeto.js';
 import { FAZIER_DIRECTORY_LAUNCH_PROVIDERS } from './fazier.js';
 import { OPEN_LAUNCH_DIRECTORY_LAUNCH_PROVIDERS } from './openLaunch.js';
 import { PEERPUSH_DIRECTORY_LAUNCH_PROVIDERS } from './peerpush.js';
@@ -19,6 +20,7 @@ export const directoryLaunchProviders = [
 	...DEVHUNT_DIRECTORY_LAUNCH_PROVIDERS,
 	...NICK_LAUNCHES_DIRECTORY_LAUNCH_PROVIDERS,
 	...INDIEHUB_DIRECTORY_LAUNCH_PROVIDERS,
+	...ALTERNATIVETO_DIRECTORY_LAUNCH_PROVIDERS,
 ] as const satisfies readonly DirectoryLaunchProvider[];
 
 const providersById = new Map<string, DirectoryLaunchProvider>(

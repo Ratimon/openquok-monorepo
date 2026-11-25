@@ -83,6 +83,16 @@ export const FEATURES_GRID_DIRECTORY_PLATFORMS: LandingSocialPlatform[] = [
 		iconClass: 'size-8',
 		iconWidth: '32',
 		iconHeight: '32'
+	},
+	{
+		id: 'alternativeto',
+		channelSlug: 'alternativeto',
+		icon: icons.AlternativeTo.name,
+		label: 'AlternativeTo',
+		containerClass: 'bg-transparent p-0',
+		iconClass: 'size-8',
+		iconWidth: '32',
+		iconHeight: '32'
 	}
 ];
 
@@ -100,7 +110,8 @@ export const FEATURES_GRID_DIRECTORY_ROWS: FeaturesGridRowConfig[] = [
 			'fazier',
 			'devhunt',
 			'nick-launches',
-			'indiehub'
+			'indiehub',
+			'alternativeto'
 		]
 	}
 ];

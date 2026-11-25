@@ -76,13 +76,13 @@ After edits: `pnpm --filter @openquok/browser-extension build` and confirm `dist
 | Action | Path | Notes |
 | --- | --- | --- |
 | Add | `backend/supabase/db/link-directory/504_<date>_seed_<site>.sql` | `link_directory_sites` + `link_directory_opportunities` (`dofollow`, cost, `auto_launch_*`) |
-| Add | `backend/supabase/db/auto-launch/<prefix>_<date>_seed_<site>_destination.sql` | Destination rows; `extension_config` embedded on INSERT via `pnpm sync:auto-launch-destinations` (next prefix: **508+**; see tier note below) |
+| Add | `backend/supabase/db/auto-launch/<prefix>_<date>_seed_<site>_destination.sql` | Destination rows; `extension_config` embedded on INSERT via `pnpm sync:auto-launch-destinations` (next prefix: **512+**; see tier note below) |
 | Regenerate | `backend/supabase/db/auto-launch/502_*_extension_configs.sql` | Via `pnpm sync:auto-launch-configs` — do not hand-edit |
 | Run | `pnpm sync:auto-launch-destinations` then `pnpm backend:db:aggregate-migrations-all` | Never edit `backend/supabase/migrations/*_core_structure.sql` |
 
-**Tier 5xx order:** `502` extension_configs UPDATE (no-op on empty table) → `503`–`507` site `*_seed_*` files (`destinationSeeds.ts` manifest). **`507` = Fazier**; next site destination seed prefix: **508+** (do not add a second configs file).
+**Tier 5xx order:** `502` extension_configs UPDATE (no-op on empty table) → `503`–`511` site `*_seed_*` files (`destinationSeeds.ts` manifest). **`511` = AlternativeTo**; next site destination seed prefix: **512+** (do not add a second configs file).
 
-Refs: Uneed `link-directory/502_*` + `auto-launch/503_*`; PeerPush `link-directory/504_*` + `auto-launch/504_*`; Open Launch `link-directory/505_*` + `auto-launch/505_*`; TinyLaunch catalog backfill + `auto-launch/506_*`; Fazier catalog backfill + `auto-launch/507_*`; DevHunt catalog backfill + `auto-launch/508_*`. Storage bucket: `auto-launch/500_*_seed_auto_launch_profile_media_bucket.sql` (reuse unless new bucket).
+Refs: Uneed `link-directory/502_*` + `auto-launch/503_*`; PeerPush `link-directory/504_*` + `auto-launch/504_*`; Open Launch `link-directory/505_*` + `auto-launch/505_*`; TinyLaunch catalog backfill + `auto-launch/506_*`; Fazier catalog backfill + `auto-launch/507_*`; DevHunt catalog backfill + `auto-launch/508_*`; Nick Launches catalog backfill + `auto-launch/509_*`; IndieHub catalog backfill + `auto-launch/510_*`; AlternativeTo catalog backfill + `auto-launch/511_*`. Storage bucket: `auto-launch/500_*_seed_auto_launch_profile_media_bucket.sql` (reuse unless new bucket).
 
 ### Build Backlinks catalog backfill (JSON-only sites)
 
@@ -196,6 +196,9 @@ No **public-api-surface-sync** unless new `/api/v1/public/*` routes.
 | TinyLaunch | `tinylaunch-standard-launch`, `tinylaunch-premium-launch` | `506_*` | `tinylaunch.ts` |
 | Fazier | `fazier-page`, `fazier-free-product-listing`, `fazier-paid-product-listing` | `507_*` | `fazier.ts` |
 | DevHunt | `devhunt-standard-launch`, `devhunt-paid-launch` | `508_*` + catalog JSON | `devhunt/config.ts` |
+| Nick Launches | `nick-launches-free-launch`, `nick-launches-paid-launch`, `nick-launches-maker-profile` | `509_*` + catalog JSON | `nick-launches/config.ts` |
+| IndieHub | `indiehub-basic-launch`, `indiehub-pro-launch` | `510_*` + catalog JSON | `indiehub/config.ts` |
+| AlternativeTo | `alternativeto-free-listing`, `alternativeto-priority-review`, `alternativeto-finish-listing`, `alternativeto-user-profile` | `511_*` + catalog JSON | `alternativeto/config.ts` |
 
 ## PR checklist
 

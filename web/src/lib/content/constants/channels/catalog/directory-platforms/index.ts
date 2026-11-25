@@ -1,3 +1,4 @@
+export { alternativetoDirectoryChannel } from '$lib/content/constants/channels/catalog/directory-platforms/alternativeto';
 export { devhuntDirectoryChannel } from '$lib/content/constants/channels/catalog/directory-platforms/devhunt';
 export { indiehubDirectoryChannel } from '$lib/content/constants/channels/catalog/directory-platforms/indiehub';
 export { nickLaunchesDirectoryChannel } from '$lib/content/constants/channels/catalog/directory-platforms/nick-launches';

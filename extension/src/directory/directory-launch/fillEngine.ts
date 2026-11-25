@@ -55,6 +55,7 @@ import {
 	defaultTagProfilePathsForField,
 } from './launchCompareState.js';
 import {
+	galleryPathsExcludingLogo,
 	mergeMainProfileSocialData,
 	resolveLaunchProfileScalar,
 	resolveProfileStoragePathList,
@@ -74,6 +75,8 @@ import {
 	listingFormIdentityInput,
 	listingProductNameInputAttrAllowed,
 	pickControlNearestLabel,
+	isFullDescriptionTextControl,
+	isShortDescriptionControl,
 	socialFieldControlMatchesInput,
 } from './formFieldDom.js';
 import {
@@ -83,6 +86,7 @@ import {
 	type SiteMediaFileInputContext,
 	type SiteMediaFileInputOptions,
 } from './siteMedia/index.js';
+import { resolveAlternativetoFieldElement } from './siteMedia/alternativetoMainInfo.js';
 
 export type FillLaunchContext = {
 	dashboardOrigin?: string;
@@ -232,6 +236,15 @@ function queryFieldElement(field: LaunchStepField): Element | null {
 		if (sectionBlock && !sectionBlock.contains(candidate)) continue;
 		let score = scoreCandidateForFillMode(candidate, fillMode);
 		if (sectionBlock?.contains(candidate)) score += 1_000;
+		if (field.key === 'tagline' || field.profilePath === 'tagline') {
+			if (isShortDescriptionControl(candidate)) score += 500;
+			if (isFullDescriptionTextControl(candidate)) score -= 5_000;
+		}
+		if (field.key === 'description' || field.profilePath === 'description') {
+			if (isShortDescriptionControl(candidate)) score -= 5_000;
+			if (isFullDescriptionTextControl(candidate)) score += 400;
+			if (isRichTextControl(candidate)) score += 300;
+		}
 		if (score > bestScore) {
 			bestScore = score;
 			best = candidate;
@@ -407,6 +420,9 @@ function elementPassesFieldGuard(field: LaunchStepField, element: Element): bool
 		if (element instanceof HTMLInputElement) {
 			if (element.type === 'url' || isPromoVideoUrlInput(element)) return false;
 		}
+		if (element instanceof HTMLTextAreaElement && isFullDescriptionTextControl(element)) {
+			return false;
+		}
 		if (element.closest('.tiptap, .ProseMirror[contenteditable="true"]')) {
 			return isShortMaxLengthFieldControl(element);
 		}
@@ -433,10 +449,12 @@ function elementPassesFieldGuard(field: LaunchStepField, element: Element): bool
 
 	if (field.profilePath === 'description' && fillMode === 'rich_html') {
 		if (element instanceof HTMLTextAreaElement) {
+			if (isShortDescriptionControl(element)) return false;
 			if (isShortMaxLengthFieldControl(element)) return false;
 			return true;
 		}
 		if (element instanceof HTMLInputElement) {
+			if (isShortDescriptionControl(element)) return false;
 			if (isShortMaxLengthFieldControl(element)) return false;
 			if (!isRichTextControl(element)) return false;
 		}
@@ -721,13 +739,19 @@ function findControlInLabelBlock(
 			const picked = pickVisibleControl(acceptable);
 			if (picked) return picked;
 			const textareas = block.querySelectorAll('textarea');
-			const textareaCandidates = Array.from(textareas).filter(
+			let textareaCandidates = Array.from(textareas).filter(
 				(el) =>
 					isFieldElementVisible(el) &&
 					elementAcceptableForFillMode(el, fillMode) &&
 					(!field || elementPassesFieldGuard(field, el))
 			);
-			const textarea = pickVisibleControl(textareaCandidates);
+			if (field?.key === 'description' || field?.profilePath === 'description') {
+				textareaCandidates = textareaCandidates.filter((el) => isFullDescriptionTextControl(el));
+			}
+			const textarea =
+				textareaCandidates.length > 1
+					? pickControlNearestLabel(labelEl, textareaCandidates)
+					: pickVisibleControl(textareaCandidates);
 			if (textarea) return textarea;
 		}
 
@@ -942,6 +966,11 @@ export function resolveFileFieldReadRoot(field: LaunchStepField): Element | null
 export function resolveFieldElement(field: LaunchStepField): Element | null {
 	const fillMode = resolveFillMode(field);
 
+	const alternativetoField = resolveAlternativetoFieldElement(field);
+	if (alternativetoField && elementPassesFieldGuard(field, alternativetoField)) {
+		return alternativetoField;
+	}
+
 	if (isFileFillMode(fillMode)) {
 		const byLabel = resolveFileInputFromFieldLabels(field);
 		if (byLabel) return byLabel;
@@ -959,6 +988,23 @@ export function resolveFieldElement(field: LaunchStepField): Element | null {
 	) {
 		const byFor = resolveControlByLabelForAttribute(field);
 		if (byFor) return byFor;
+	}
+
+	if (field.key === 'tagline' || field.profilePath === 'tagline') {
+		const byExactLabel = resolveControlByExactFieldLabel(field);
+		if (byExactLabel && elementPassesFieldGuard(field, byExactLabel)) {
+			return byExactLabel;
+		}
+	}
+
+	if (
+		(field.key === 'description' || field.profilePath === 'description') &&
+		fillMode === 'rich_html'
+	) {
+		const byExactLabel = resolveControlByExactFieldLabel(field);
+		if (byExactLabel && elementPassesFieldGuard(field, byExactLabel)) {
+			return byExactLabel;
+		}
 	}
 
 	const labelFirst =
@@ -1766,12 +1812,30 @@ async function fillFileLaunchField(
 	context: FillLaunchContext & { dashboardOrigin: string }
 ): Promise<FieldFillResult> {
 	const effectiveSnapshot = mergeMainProfileSocialData(snapshot, context.mainProfileSnapshot);
-	const paths = resolveProfileStoragePathList(effectiveSnapshot, field.profilePath);
+	const paths = isGalleryProfileField(field)
+		? galleryPathsExcludingLogo(effectiveSnapshot)
+		: resolveProfileStoragePathList(effectiveSnapshot, field.profilePath);
 	if (paths.length === 0) {
 		return { key: field.key, label: field.label, status: 'not_in_profile' };
 	}
 
 	const fillMode = resolveFillMode(field);
+
+	const siteMedia = getActiveSiteMediaAdapter();
+	if (siteMedia?.fillLogoMedia && isLogoProfileField(field) && fillMode === 'file') {
+		const urlResult = await siteMedia.fillLogoMedia(effectiveSnapshot, field, {
+			dashboardOrigin: context.dashboardOrigin,
+			mainProfileSnapshot: context.mainProfileSnapshot,
+		});
+		if (urlResult?.status === 'found') return urlResult;
+	}
+	if (siteMedia?.fillGalleryMedia && isGalleryProfileField(field) && fillMode === 'files') {
+		const urlResult = await siteMedia.fillGalleryMedia(effectiveSnapshot, field, {
+			dashboardOrigin: context.dashboardOrigin,
+			mainProfileSnapshot: context.mainProfileSnapshot,
+		});
+		if (urlResult?.status === 'found') return urlResult;
+	}
 
 	const maxItems =
 		typeof field.maxItems === 'number' && field.maxItems > 0 ? field.maxItems : undefined;
@@ -1797,7 +1861,6 @@ async function fillFileLaunchField(
 		};
 	}
 
-	const siteMedia = getActiveSiteMediaAdapter();
 	if (siteMedia?.fillLogoFile && isLogoProfileField(field) && fillMode === 'file' && files[0]) {
 		const adapterResult = await siteMedia.fillLogoFile(field, files[0]);
 		if (adapterResult) return adapterResult;

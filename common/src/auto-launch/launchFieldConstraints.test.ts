@@ -4,6 +4,9 @@ import {
 	applyLaunchFieldScalarCap,
 	applyLaunchFieldScalarCoercion,
 	applyLaunchFieldSelectCoercion,
+	coerceSocialGithubToUsername,
+	coerceSocialInstagramToUsername,
+	coerceSocialYoutubeToUsername,
 	filterTagsForLaunchField,
 	invalidProfileSelectForField,
 	invalidProfileTagsForField,
@@ -33,17 +36,57 @@ describe('launchFieldConstraints', () => {
 		expect(applyLaunchFieldScalarCoercion('@acme', field)).toBe('https://x.com/acme');
 	});
 
-	it('coerces social_x to username when socialXScalar is username (PeerPush)', () => {
+	it('coerces social_x to username when socialScalar is username (PeerPush)', () => {
 		const field: LaunchStepField = {
 			key: 'social_x',
 			label: 'Twitter username',
 			profilePath: 'profile_data.social_x',
-			socialXScalar: 'username',
+			socialScalar: 'username',
 		};
 		expect(
 			applyLaunchFieldScalarCoercion('https://x.com/openquok', field)
 		).toBe('openquok');
 		expect(applyLaunchFieldScalarCoercion('@acme', field)).toBe('acme');
+	});
+
+	it('coerces GitHub and Instagram to usernames when socialScalar is username', () => {
+		const github: LaunchStepField = {
+			key: 'social_github',
+			label: 'GitHub',
+			profilePath: 'profile_data.social_github',
+			socialScalar: 'username',
+		};
+		expect(applyLaunchFieldScalarCoercion('https://github.com/openquok', github)).toBe('openquok');
+		const instagram: LaunchStepField = {
+			key: 'social_instagram',
+			label: 'Instagram',
+			profilePath: 'profile_data.social_instagram',
+			socialScalar: 'username',
+		};
+		expect(applyLaunchFieldScalarCoercion('https://instagram.com/acme', instagram)).toBe('acme');
+	});
+
+	it('coerces YouTube to username when socialScalar is username', () => {
+		const youtube: LaunchStepField = {
+			key: 'social_youtube',
+			label: 'YouTube',
+			profilePath: 'profile_data.social_youtube',
+			socialScalar: 'username',
+		};
+		expect(applyLaunchFieldScalarCoercion('https://www.youtube.com/@openquok', youtube)).toBe(
+			'openquok'
+		);
+		expect(applyLaunchFieldScalarCoercion('https://youtu.be/abc123', youtube)).toBe('abc123');
+		expect(applyLaunchFieldScalarCoercion('@openquok', youtube)).toBe('openquok');
+	});
+
+	it('strips host paths from social profile URLs (helpers)', () => {
+		expect(coerceSocialGithubToUsername('https://github.com/openquok/repo')).toBe('openquok');
+		expect(coerceSocialGithubToUsername('@openquok')).toBe('openquok');
+		expect(coerceSocialInstagramToUsername('https://www.instagram.com/acme/')).toBe('acme');
+		expect(coerceSocialYoutubeToUsername('https://www.youtube.com/channel/UCtest123')).toBe(
+			'UCtest123'
+		);
 	});
 
 	it('truncates scalar values for maxScalarLength', () => {

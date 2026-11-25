@@ -1,3 +1,4 @@
+import { isAlternativetoLoggedIn, ALTERNATIVETO_LOGIN_URL } from './alternativeto.js';
 import { isDevhuntLoggedIn, DEVHUNT_LOGIN_URL } from './devhunt.js';
 import { isFazierLoggedIn, FAZIER_LOGIN_URL } from './fazier.js';
 import { isIndiehubLoggedIn, INDIEHUB_LOGIN_URL } from './indiehub.js';
@@ -40,6 +41,10 @@ const adapters: Readonly<Record<string, DirectorySiteLoginAdapter>> = {
 	indiehub: {
 		isLoggedIn: isIndiehubLoggedIn,
 		loginUrl: INDIEHUB_LOGIN_URL
+	},
+	alternativeto: {
+		isLoggedIn: isAlternativetoLoggedIn,
+		loginUrl: ALTERNATIVETO_LOGIN_URL
 	}
 };
 

@@ -34,6 +34,7 @@ const shippedLinkDirectoryLogoSlugs = [
 	'devhunt',
 	'nick-launches',
 	'indiehub',
+	'alternativeto',
 ];
 if (existsSync(linkDirectorySrc)) {
 	mkdirSync(linkDirectoryDest, { recursive: true });

@@ -172,7 +172,7 @@ SELECT
                     ],
                     "profilePath": "profile_data.social_x",
                     "fillMode": "text",
-                    "socialXScalar": "username",
+                    "socialScalar": "username",
                     "selectorHint": "input[name='twitterUsername'], input[name*='twitter' i], input[placeholder*='twitter' i], input[aria-label*='twitter' i]"
                 },
                 {
@@ -373,7 +373,7 @@ SELECT
                     ],
                     "profilePath": "profile_data.social_x",
                     "fillMode": "text",
-                    "socialXScalar": "username",
+                    "socialScalar": "username",
                     "selectorHint": "input[name='twitterUsername'], input[name*='twitter' i], input[placeholder*='twitter' i], input[aria-label*='twitter' i]"
                 },
                 {
@@ -497,7 +497,7 @@ SELECT
                     ],
                     "profilePath": "profile_data.social_x",
                     "fillMode": "text",
-                    "socialXScalar": "username",
+                    "socialScalar": "username",
                     "selectorHint": "input[name='socials.x'], input[name*='twitter' i], input[aria-label*='twitter' i], input[placeholder*='x.com' i]"
                 },
                 {

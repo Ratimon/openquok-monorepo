@@ -1,4 +1,4 @@
-import type { FieldFillResult, LaunchStepField } from 'openquok-common';
+import type { AutoLaunchProfileSnapshot, FieldFillResult, LaunchStepField } from 'openquok-common';
 
 export type SiteMediaFileInputOptions = {
 	prime?: boolean;
@@ -42,4 +42,15 @@ export interface SiteMediaAdapter {
 		files: File[]
 	): Promise<FieldFillResult | null>;
 	fillLogoFile?(field: LaunchStepField, file: File): Promise<FieldFillResult | null>;
+	/** When the site accepts https URLs (e.g. “upload by URL”) instead of blob file picks. */
+	fillLogoMedia?(
+		snapshot: AutoLaunchProfileSnapshot,
+		field: LaunchStepField,
+		context: { dashboardOrigin: string; mainProfileSnapshot?: AutoLaunchProfileSnapshot | null }
+	): Promise<FieldFillResult | null>;
+	fillGalleryMedia?(
+		snapshot: AutoLaunchProfileSnapshot,
+		field: LaunchStepField,
+		context: { dashboardOrigin: string; mainProfileSnapshot?: AutoLaunchProfileSnapshot | null }
+	): Promise<FieldFillResult | null>;
 }

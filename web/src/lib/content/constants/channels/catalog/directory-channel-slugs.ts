@@ -7,7 +7,8 @@ export const PUBLIC_DIRECTORY_CHANNEL_SLUGS = [
 	'fazier',
 	'devhunt',
 	'nick-launches',
-	'indiehub'
+	'indiehub',
+	'alternativeto'
 ] as const;
 
 export type PublicDirectoryChannelSlug = (typeof PUBLIC_DIRECTORY_CHANNEL_SLUGS)[number];

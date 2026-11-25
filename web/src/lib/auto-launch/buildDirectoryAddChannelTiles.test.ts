@@ -51,6 +51,11 @@ describe('directorySiteKeyFromProviderSlug', () => {
 		expect(directorySiteKeyFromProviderSlug('indiehub-pro-launch')).toBe('indiehub');
 	});
 
+	it('resolves alternativeto provider slugs to the alternativeto site key', () => {
+		expect(directorySiteKeyFromProviderSlug('alternativeto-free-listing')).toBe('alternativeto');
+		expect(directorySiteKeyFromProviderSlug('alternativeto-user-profile')).toBe('alternativeto');
+	});
+
 	it('matches multi-segment published site slugs', () => {
 		expect(directorySiteKeyFromProviderSlug('other-site-launch', ['other-site', 'other'])).toBe(
 			'other-site'
@@ -132,6 +137,19 @@ describe('buildDirectoryAddChannelTiles', () => {
 		expect(tiles).toHaveLength(1);
 		expect(tiles[0]?.logoUrl).toBe('/icons/link-directory/indiehub.svg');
 		expect(tiles[0]?.brandedIconName).toBe('IndieHub');
+	});
+
+	it('assigns bundled logo and branded icon for alternativeto', () => {
+		const tiles = buildDirectoryAddChannelTiles(
+			[
+				destination({ providerSlug: 'alternativeto-free-listing', siteTitle: 'AlternativeTo' }),
+				destination({ providerSlug: 'alternativeto-priority-review', sortOrder: 1 })
+			],
+			new Map([['alternativeto', { title: 'AlternativeTo', logoUrl: null }]])
+		);
+		expect(tiles).toHaveLength(1);
+		expect(tiles[0]?.logoUrl).toBe('/icons/link-directory/alternativeto.svg');
+		expect(tiles[0]?.brandedIconName).toBe('AlternativeTo');
 	});
 
 	it('assigns bundled logo and branded icon for devhunt', () => {

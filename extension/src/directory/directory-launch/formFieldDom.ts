@@ -202,6 +202,61 @@ export function isListingSiteAiPrefillUrlInput(element: HTMLInputElement): boole
 	return false;
 }
 
+export function isShortMaxLengthFieldControl(element: Element, cap = 320): boolean {
+	if (element instanceof HTMLTextAreaElement || element instanceof HTMLInputElement) {
+		return element.maxLength > 0 && element.maxLength <= cap;
+	}
+	return false;
+}
+
+function controlLabelHaystack(element: Element): string {
+	if (!(element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement)) {
+		return '';
+	}
+	return [
+		element.getAttribute('name'),
+		element.getAttribute('id'),
+		element.getAttribute('aria-label'),
+		element.getAttribute('placeholder'),
+	]
+		.filter(Boolean)
+		.join(' ')
+		.toLowerCase();
+}
+
+/** Listing **Short description** row — not the long-body / rich editor control. */
+export function isShortDescriptionControl(element: Element): boolean {
+	if (!(element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement)) {
+		return false;
+	}
+	const hay = controlLabelHaystack(element);
+	if (hay.includes('short description') || hay.includes('short desc')) return true;
+	if (/\bshort\b/.test(hay) && hay.includes('desc')) return true;
+	if (isShortMaxLengthFieldControl(element)) return true;
+	const name = (element.getAttribute('name') ?? '').toLowerCase();
+	if (
+		name.includes('short') &&
+		(name.includes('desc') || name.includes('slogan') || name.includes('tagline'))
+	) {
+		return true;
+	}
+	return false;
+}
+
+/** Plain **Full description** textarea — not Short description (manage-item uses stacked textareas). */
+export function isFullDescriptionTextControl(element: Element): boolean {
+	if (!(element instanceof HTMLTextAreaElement)) return false;
+	if (isShortDescriptionControl(element)) return false;
+	const hay = controlLabelHaystack(element);
+	if (hay.includes('full description') || hay.includes('long description')) return true;
+	const name = (element.getAttribute('name') ?? '').toLowerCase();
+	if (name.includes('full') && name.includes('desc')) return true;
+	if (name === 'description' || name.endsWith('_description') || name.includes('longdescription')) {
+		return true;
+	}
+	return hay.includes('description') && !hay.includes('short');
+}
+
 /** Multi-tab wizards keep every tab in the DOM — scope compare/fill to the labeled row. */
 export function fieldRequiresLabelScopedResolution(field: LaunchStepField): boolean {
 	return (

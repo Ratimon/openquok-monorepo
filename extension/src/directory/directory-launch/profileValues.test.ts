@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { AutoLaunchProfileSnapshot, LaunchStepField } from 'openquok-common';
 
-import { mergeMainProfileSocialData, resolveLaunchProfileScalar } from './profileValues.js';
+import {
+	galleryPathsExcludingLogo,
+	mergeMainProfileSocialData,
+	resolveLaunchProfileScalar,
+} from './profileValues.js';
 
 describe('mergeMainProfileSocialData', () => {
 	it('inherits empty social URLs from the main profile', () => {
@@ -40,6 +44,101 @@ describe('mergeMainProfileSocialData', () => {
 			'https://www.openquok.com/a.png',
 			'https://www.openquok.com/b.png',
 		]);
+	});
+
+	it('inherits tagline from the main profile when the variant is empty', () => {
+		const variant: AutoLaunchProfileSnapshot = {
+			name: 'OpenQuok',
+			tagline: null,
+			profile_data: {},
+		};
+		const main: AutoLaunchProfileSnapshot = {
+			name: 'OpenQuok',
+			tagline: 'Save hours: agentic Social scheduling + Directory launch.',
+			profile_data: {},
+		};
+		const merged = mergeMainProfileSocialData(variant, main);
+		expect(merged.tagline).toBe('Save hours: agentic Social scheduling + Directory launch.');
+	});
+
+	it('strips logo image/download URLs from gallery_urls', () => {
+		const snapshot: AutoLaunchProfileSnapshot = {
+			name: 'OpenQuok',
+			logo_url: 'org/p/logo.webp',
+			profile_data: {
+				gallery_urls: [
+					'https://app.openquok.com/api/v1/image/download?databaseName=auto_launch_profile_media&imageUrl=org%2Fp%2Flogo.webp',
+					'https://app.openquok.com/api/v1/image/download?databaseName=auto_launch_profile_media&imageUrl=org%2Fp%2Flogo.webp',
+				],
+			},
+		};
+		expect(galleryPathsExcludingLogo(snapshot)).toEqual([]);
+	});
+
+	it('inherits main gallery when the variant only lists logo download URLs', () => {
+		const variant: AutoLaunchProfileSnapshot = {
+			name: 'OpenQuok',
+			logo_url: 'org/profile/logo.png',
+			profile_data: {
+				gallery_urls: [
+					'https://app.example.com/api/v1/image/download?imageUrl=org%2Fprofile%2Flogo.png',
+					'https://app.example.com/api/v1/image/download?imageUrl=org%2Fprofile%2Flogo.png',
+				],
+			},
+		};
+		const main: AutoLaunchProfileSnapshot = {
+			name: 'OpenQuok',
+			logo_url: 'org/profile/logo.png',
+			profile_data: {
+				gallery_urls: [
+					'org/profile/logo.png',
+					'org/profile/screen-1.png',
+					'org/profile/screen-2.png',
+				],
+				gallery_labels: ['Logo wrongly in gallery', 'Screen one', 'Screen two'],
+			},
+		};
+		const merged = mergeMainProfileSocialData(variant, main);
+		expect(merged.profile_data?.gallery_urls).toEqual([
+			'org/profile/screen-1.png',
+			'org/profile/screen-2.png',
+		]);
+		expect(merged.profile_data?.gallery_labels).toEqual(['Screen one', 'Screen two']);
+	});
+
+	it('inherits main gallery when the variant only lists the logo in gallery_urls', () => {
+		const variant: AutoLaunchProfileSnapshot = {
+			name: 'OpenQuok',
+			logo_url: 'org/profile/logo.png',
+			profile_data: { gallery_urls: ['org/profile/logo.png'] },
+		};
+		const main: AutoLaunchProfileSnapshot = {
+			name: 'OpenQuok',
+			logo_url: 'org/profile/logo.png',
+			profile_data: {
+				gallery_urls: ['org/profile/logo.png', 'org/profile/screen-1.png', 'org/profile/screen-2.png'],
+			},
+		};
+		const merged = mergeMainProfileSocialData(variant, main);
+		expect(merged.profile_data?.gallery_urls).toEqual([
+			'org/profile/screen-1.png',
+			'org/profile/screen-2.png',
+		]);
+	});
+
+	it('inherits launch_video_url from the main profile when the variant is empty', () => {
+		const variant: AutoLaunchProfileSnapshot = {
+			name: 'OpenQuok',
+			profile_data: {},
+		};
+		const main: AutoLaunchProfileSnapshot = {
+			name: 'OpenQuok',
+			profile_data: {
+				launch_video_url: 'https://www.youtube.com/watch?v=demo',
+			},
+		};
+		const merged = mergeMainProfileSocialData(variant, main);
+		expect(merged.profile_data?.launch_video_url).toBe('https://www.youtube.com/watch?v=demo');
 	});
 
 	it('inherits logo_label and gallery_labels with logo and gallery_urls from the main profile', () => {

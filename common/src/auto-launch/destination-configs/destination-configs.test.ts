@@ -28,6 +28,7 @@ import {
 	FAZIER_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
 	NICK_LAUNCHES_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
 	INDIEHUB_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
+	ALTERNATIVETO_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
 	UNEED_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
 } from './syncMetadata.js';
 import { directorySiteKeyFromProviderSlug } from '../directorySiteKey.js';
@@ -87,6 +88,10 @@ describe('DIRECTORY_EXTENSION_CONFIG_FIXTURES', () => {
 				'nick-launches-maker-profile',
 				'indiehub-basic-launch',
 				'indiehub-pro-launch',
+				'alternativeto-free-listing',
+				'alternativeto-priority-review',
+				'alternativeto-finish-listing',
+				'alternativeto-user-profile',
 			].sort()
 		);
 	});
@@ -134,6 +139,14 @@ describe('DIRECTORY_EXTENSION_CONFIG_FIXTURES', () => {
 		validateIndependentExtensionFixtureSlugs(
 			DIRECTORY_EXTENSION_CONFIG_FIXTURES,
 			INDIEHUB_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
+			AUTO_LAUNCH_EXTENSION_CONFIG_DERIVATIONS
+		);
+	});
+
+	it('documents AlternativeTo fixtures as independent (not pricing-queue)', () => {
+		validateIndependentExtensionFixtureSlugs(
+			DIRECTORY_EXTENSION_CONFIG_FIXTURES,
+			ALTERNATIVETO_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
 			AUTO_LAUNCH_EXTENSION_CONFIG_DERIVATIONS
 		);
 	});
@@ -192,7 +205,7 @@ describe('AUTO_LAUNCH_DESTINATION_SEED_ROWS', () => {
 		}
 	});
 
-	it('aggregated core_structure applies auto-launch 502 before 503–510', () => {
+	it('aggregated core_structure applies auto-launch 502 before 503–511', () => {
 		const migrationsDir = join(REPO_ROOT, 'backend/supabase/migrations');
 		const coreFiles = readdirSync(migrationsDir)
 			.filter((name) => name.endsWith('_core_structure.sql'))
@@ -202,7 +215,7 @@ describe('AUTO_LAUNCH_DESTINATION_SEED_ROWS', () => {
 		const sql = readFileSync(join(migrationsDir, latestCore), 'utf8');
 		const autoLaunchFiles = [...sql.matchAll(/-- Module: auto-launch, File: (5\d{2}_[^\n]+)/g)]
 			.map((match) => match[1])
-			.filter((fileName) => /^50[2-9]_/.test(fileName ?? '') || /^510_/.test(fileName ?? ''));
+			.filter((fileName) => /^50[2-9]_/.test(fileName ?? '') || /^51[01]_/.test(fileName ?? ''));
 		expect(autoLaunchFiles).toEqual([
 			'502_20261111_extension_configs.sql',
 			'503_20261013_seed_uneed.sql',
@@ -213,10 +226,11 @@ describe('AUTO_LAUNCH_DESTINATION_SEED_ROWS', () => {
 			'508_20261121_seed_devhunt_destination.sql',
 			'509_20261124_seed_nick_launches_destination.sql',
 			'510_20261125_seed_indiehub_destination.sql',
+			'511_20261125_seed_alternativeto_destination.sql',
 		]);
 	});
 
-	it('generated 502–510 destination SQL matches manifest (sync --check)', () => {
+	it('generated 502–511 destination SQL matches manifest (sync --check)', () => {
 		if (!existsSync(COMMON_DIST_INDEX)) {
 			throw new Error(
 				'common/dist missing. Run `pnpm common:build` before `pnpm --filter openquok-common test:unit`.'
@@ -266,6 +280,32 @@ describe('IndieHub site key', () => {
 		expect(directorySiteKeyFromProviderSlug('indiehub-basic-launch')).toBe('indiehub');
 		expect(directorySiteKeyFromProviderSlug('indiehub-pro-launch')).toBe('indiehub');
 		expect(getDirectoryLaunchSiteKeyFromLocation('indiehub.best')).toBe('indiehub');
+	});
+});
+
+describe('AlternativeTo site key', () => {
+	it('maps provider slugs and the host to alternativeto', () => {
+		expect(directorySiteKeyFromProviderSlug('alternativeto-free-listing')).toBe('alternativeto');
+		expect(directorySiteKeyFromProviderSlug('alternativeto-user-profile')).toBe('alternativeto');
+		expect(getDirectoryLaunchSiteKeyFromLocation('alternativeto.net')).toBe('alternativeto');
+	});
+});
+
+describe('AlternativeTo extension fixtures', () => {
+	it('caps gallery screenshots on manage-item', () => {
+		const listing = DIRECTORY_EXTENSION_CONFIG_FIXTURES['alternativeto-free-listing'];
+		const mediaStep = listing?.steps?.find((step) => step.id === 'media');
+		const fields = mediaStep?.fields ?? [];
+		expect(fields.find((f) => f.key === 'gallery')?.maxItems).toBe(5);
+	});
+
+	it('uses manage-item and user/edit readyUrlHints per destination', () => {
+		expect(DIRECTORY_EXTENSION_CONFIG_FIXTURES['alternativeto-free-listing']?.readyUrlHint).toBe(
+			'manage-item'
+		);
+		expect(DIRECTORY_EXTENSION_CONFIG_FIXTURES['alternativeto-user-profile']?.readyUrlHint).toBe(
+			'user/edit'
+		);
 	});
 });
 

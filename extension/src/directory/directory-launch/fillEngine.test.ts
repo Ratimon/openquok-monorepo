@@ -971,13 +971,33 @@ describe('fillLaunchField', () => {
 				key: 'social_x',
 				label: 'Twitter username',
 				profilePath: 'profile_data.social_x',
-				socialXScalar: 'username',
+				socialScalar: 'username',
 				selectorHint: '#twitterUsername, input[aria-label="X username"]',
 			})
 		);
 
 		expect(result.status).toBe('found');
 		expect((document.getElementById('twitterUsername') as HTMLInputElement).value).toBe('openquok');
+	});
+
+	it('fills GitHub handle from profile URL when socialScalar is username', async () => {
+		document.body.innerHTML = `
+			<label for="githubHandle">GitHub</label>
+			<input id="githubHandle" aria-label="GitHub username" placeholder="username" />`;
+
+		const result = await fillLaunchField(
+			snapshot({ profile_data: { social_github: 'https://github.com/openquok' } }),
+			field({
+				key: 'social_github',
+				label: 'GitHub',
+				profilePath: 'profile_data.social_github',
+				socialScalar: 'username',
+				selectorHint: '#githubHandle, input[aria-label="GitHub username"]',
+			})
+		);
+
+		expect(result.status).toBe('found');
+		expect((document.getElementById('githubHandle') as HTMLInputElement).value).toBe('openquok');
 	});
 
 	it('fills PeerPush LinkedIn URL from profile_data.social_linkedin', async () => {
