@@ -73,7 +73,7 @@ export const PUBLIC_AGENTS_HUB = {
 			{
 				title: 'How do I pay for agent hosts vs MCP clients?',
 				description:
-					'OpenQuok bills workspaces, channels, and scheduling. Your LLM and agent app bill separately. OpenClaw, Hermes, and ThinkRail are open source. Grok Bot is included with paid Cursor plans or linked SuperGrok. Dots need eligible ChatGPT Pro or Business Premium. Cursor, Claude Code, and Codex use their own plans. OpenQuok MCP needs only your programmatic token.'
+					'OpenQuok bills workspaces, channels, and scheduling. Your LLM and agent app bill separately. OpenClaw, Hermes, and ThinkRail are open source. <a href="/agents/grok-bot">Grok Bot</a> bills through xAI (Cursor overlap is separate—see the Grok Bot guide). Dots need eligible ChatGPT Pro or Business Premium. <a href="/agents/cursor">Cursor</a> bills through The X Subscription or a legacy plan—legacy Pro still includes a monthly Other Models pool for third-party LLMs; new Premium bills third-party models at API price from prepaid credit. Claude Code and Codex use their own plans. OpenQuok MCP needs only your programmatic token.'
 			},
 			{
 				title: 'What is the MCP host vs MCP client?',

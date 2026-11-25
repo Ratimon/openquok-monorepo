@@ -245,6 +245,14 @@ describe('buildMcpClientEcosystemFaqItems', () => {
 		expect(cursor?.faqItems.find((item) => item.title.includes('Grok Bot'))?.description).toContain(
 			publicFaqHref.grokBuildLanding
 		);
+		expect(cursor?.faqItems.map((item) => item.title)).toContain(
+			'How do legacy Cursor plans affect Claude and GPT in Agent?'
+		);
+		const legacyPlanFaq = cursor?.faqItems.find(
+			(item) => item.title === 'How do legacy Cursor plans affect Claude and GPT in Agent?'
+		);
+		expect(legacyPlanFaq?.description).toContain('legacy-cursor-plans');
+		expect(legacyPlanFaq?.description).toContain('models-and-pricing');
 	});
 });
 

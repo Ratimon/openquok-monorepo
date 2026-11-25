@@ -242,6 +242,12 @@ Update `agent/skills/openquok-core/` (`SKILL.md` metadata JSON for the host when
 - Primary connect: **`opencode mcp add openquok --global --url …`** (path auth: token in URL) or **`headers.Authorization`** in **`~/.config/opencode/opencode.jsonc`** (header auth). Cross-link **`/agents/cursor`** and **`/agents/claude-code`** in FAQ when readers pick IDE vs terminal agents.
 - Reference implementation: **`mcps/hosts/opencode.ts`**, **`getMcpClientConfig`** `'OpenCode'` cases, MCP mock theme unions (`mcp-verify-opencode`, `mcp-install-opencode`). Terminal layout mocks (`opencode.ai`). Icon: **`OpenCode`** (frame mark from product favicon).
 
+### Cursor specifics (`cursor`)
+
+- **MCP client** — `MCP_CLIENTS` + `mcps/hosts/cursor.ts` + `mcp-setup-guides/cursor.md`.
+- **Pricing:** New accounts use **The X Subscription** (e.g. Premium $30/mo). Third-party models (Claude, GPT, Gemini) bill at API list price from prepaid credit—not included in the weekly Cursor-model pool. **Legacy** Pro, Pro+, Ultra, and Teams seats keep **Cursor Models** + **Other Models** monthly pools; legacy Pro still includes third-party usage in Other Models (model-agnostic Agent). Switching legacy → The X Subscription is optional and **permanent**. Keep landing FAQ + `mcp-setup-guides/cursor.md` callout aligned with [legacy Cursor plans](https://cursor.com/docs/account/pricing/legacy-cursor-plans) and [models and pricing](https://cursor.com/docs/models-and-pricing). Do **not** conflate Grok Bot billing with Cursor plan choice on the agents hub.
+- Reference: **`mcps/hosts/cursor.ts`**, **`hubs/agents.ts`** billing FAQ, **`getMcpClientConfig`** `'Cursor'` cases.
+
 ### Grok Build specifics (`grok-build`)
 
 - **MCP client**, not an agent host — `MCP_CLIENTS` + `mcps/hosts/grok-build.ts` + `mcp-setup-guides/grok-build.md`. Do **not** add `agents/hosts/grok-build.ts` or `agent-setup-guides/grok-build.md`.

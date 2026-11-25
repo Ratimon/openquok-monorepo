@@ -2,7 +2,7 @@
 title: Cursor
 description: Connect OpenQuok MCP to Cursor via .cursor/mcp.json for Agent, Composer, and inline chat tools.
 order: 1
-lastUpdated: 2026-07-23
+lastUpdated: 2026-11-25
 ---
 
 <script>
@@ -14,6 +14,10 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps, TabItem, T
 - <DocsExternalLink href="https://cursor.com">Cursor</DocsExternalLink> with MCP support enabled (recent stable builds).
 - An OpenQuok programmatic token (<Badge text="opo_" variant="default" />) from <Badge text="Account" variant="default" /> → <Badge text="Settings" variant="default" /> → <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />.
 - At least one connected social channel in your OpenQuok workspace (for verification).
+
+<Callout type="note" title="Legacy vs new Cursor plans">
+<p>New Cursor accounts use <strong>The X Subscription</strong> (for example Premium at $30/mo). Third-party models (Claude, GPT, Gemini) are billed at API list price from prepaid credit—they are not in the included weekly pool. <strong>Legacy</strong> Pro, Pro+, Ultra, and Teams seats keep two monthly pools: Cursor Models and <strong>Other Models</strong>. Legacy Pro still includes third-party usage in Other Models, which helps model-agnostic Agent work. Switching from legacy to The X Subscription is optional and permanent. OpenQuok MCP only needs your <Badge text="opo_" variant="default" /> token either way. See <DocsExternalLink href="https://cursor.com/docs/account/pricing/legacy-cursor-plans">legacy Cursor plans</DocsExternalLink> and <DocsExternalLink href="https://cursor.com/docs/models-and-pricing">models and pricing</DocsExternalLink> before you unify.</p>
+</Callout>
 
 ## Configuration file
 
