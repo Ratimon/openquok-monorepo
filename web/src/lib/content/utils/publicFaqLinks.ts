@@ -240,6 +240,8 @@ export const publicFaqHref = {
 	claudeDuetLanding: faqHrefAgent('claude-duet'),
 	rakazoLanding: faqHrefAgent('rakazo'),
 	openbotLanding: faqHrefAgent('openbot'),
+	mausbotLanding: faqHrefAgent('mausbot'),
+	mausbotAgentGuide: faqHrefDocs('agent-setup-guides/mausbot'),
 	claudeDuetAgentGuide: faqHrefDocs('agent-setup-guides/claude-duet'),
 	claudeCodeLanding: faqHrefAgent('claude-code'),
 	claudeCoworkLanding: faqHrefAgent('claude-cowork'),

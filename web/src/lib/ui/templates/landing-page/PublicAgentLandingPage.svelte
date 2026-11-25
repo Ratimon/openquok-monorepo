@@ -47,6 +47,10 @@
 		OPENBOT_CORE_MESSAGING_CHANNELS,
 		OPENBOT_EXTENSION_MESSAGING_CHANNELS
 	} from '$data/openbot-messaging-channels';
+	import {
+		MAUSBOT_CORE_MESSAGING_CHANNELS,
+		MAUSBOT_EXTENSION_MESSAGING_CHANNELS
+	} from '$data/mausbot-messaging-channels';
 
 	import { page } from '$app/state';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
@@ -172,6 +176,10 @@
 		openbot: {
 			core: OPENBOT_CORE_MESSAGING_CHANNELS,
 			extension: OPENBOT_EXTENSION_MESSAGING_CHANNELS
+		},
+		mausbot: {
+			core: MAUSBOT_CORE_MESSAGING_CHANNELS,
+			extension: MAUSBOT_EXTENSION_MESSAGING_CHANNELS
 		}
 	} as const;
 

@@ -86,6 +86,19 @@ export const OPENBOT_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
 	{ id: 'curl', label: 'curl + skill', command: OPENQUOK_CORE_SKILL_INSTALL_OPENBOT_CURL }
 ];
 
+/** MausBot: install the global CLI on the computer where the bot runs commands. */
+export const OPENQUOK_CORE_SKILL_INSTALL_MAUSBOT_ASK = `npm install -g @openquok/auto-cli@latest`;
+
+/** MausBot: fetch SKILL.md into a folder the bot can read (working folder or cloud computer). */
+export const OPENQUOK_CORE_SKILL_INSTALL_MAUSBOT_CURL = `mkdir -p ~/openquok-core
+curl -fsSL "${OPENQUOK_CORE_SKILL_RAW_URL}" \\
+  -o ~/openquok-core/SKILL.md`;
+
+export const MAUSBOT_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
+	{ id: 'ask-bot', label: 'Ask your bot', command: OPENQUOK_CORE_SKILL_INSTALL_MAUSBOT_ASK },
+	{ id: 'curl', label: 'curl + working folder', command: OPENQUOK_CORE_SKILL_INSTALL_MAUSBOT_CURL }
+];
+
 /** Dots: ask your dot to install the global CLI on its cloud computer. */
 export const OPENQUOK_CORE_SKILL_INSTALL_DOTS_ASK = `npm install -g @openquok/auto-cli@latest`;
 

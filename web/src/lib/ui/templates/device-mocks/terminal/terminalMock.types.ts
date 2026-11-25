@@ -8,4 +8,5 @@ export type TerminalMockContentId =
 	| 'openquok-skill-install-manus'
 	| 'openquok-skill-install-claude-duet'
 	| 'openquok-skill-install-rakazo'
-	| 'openquok-skill-install-openbot';
+	| 'openquok-skill-install-openbot'
+	| 'openquok-skill-install-mausbot';

@@ -21,5 +21,6 @@ export type SafariMockContentId =
 	| 'claude-duet-docs-overview'
 	| 'rakazo-docs-overview'
 	| 'openbot-docs-overview'
+	| 'mausbot-docs-overview'
 	| import('$lib/ui/templates/device-mocks/safari/mcpClientVerifyMockConfig').McpVerifySafariMockContentId
 	| import('$lib/ui/templates/device-mocks/safari/mcpClientVerifyMockConfig').McpInstallSafariMockContentId;

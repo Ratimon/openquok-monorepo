@@ -65,6 +65,7 @@ export type BrandedIconName =
     | "Matrix"
     | "Mattermost"
     | "Manus"
+    | "MausBot"
     | "MetaMuse"
     | "MuseCode"
     | "MicrosoftEdge"
@@ -567,6 +568,13 @@ export const brandedIcons = {
         box: 32,
         fill: true,
         svg: `<image href="/icons/manus.svg" width="32" height="32"/>`
+    },
+    /** MausBot product mark. MausBot is a trademark of its respective owner. */
+    MausBot: {
+        name: "MausBot",
+        box: 64,
+        fill: true,
+        svg: `<image href="/icons/mausbot.svg" width="64" height="64"/>`
     },
     /** Meta Muse consumer agent tile mark. Meta Muse is a trademark of Meta. */
     MetaMuse: {

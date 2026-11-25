@@ -101,6 +101,13 @@ export const AGENT_HOST_PROFILES: readonly AgentHostProfile[] = [
 		scenarioIds: ['model-agnostic', 'self-hosted-data-control'],
 		traits: ['desktop-mobile', 'multi-agent-rooms', 'byo-subscription', 'marketplace-skills'],
 		featureHighlights: []
+	},
+	{
+		slug: 'mausbot',
+		uiArchetype: 'desktop-skill-ide',
+		scenarioIds: ['model-agnostic', 'self-hosted-data-control'],
+		traits: ['desktop-mobile', 'multi-bot-chat', 'byo-cli-engines', 'open-source', 'automations'],
+		featureHighlights: []
 	}
 ];
 

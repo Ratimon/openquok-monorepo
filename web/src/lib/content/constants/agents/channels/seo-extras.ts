@@ -103,6 +103,12 @@ const HOST_GLOBAL_SEO_EXTRAS: Readonly<Record<string, readonly string[]>> = {
 		'model agnostic OpenBot scheduler',
 		'OpenBot macOS openquok-core'
 	],
+	mausbot: [
+		'MausBot open source social scheduling',
+		'MausBot multi-bot OpenQuok',
+		'BYO Claude Codex Grok MausBot',
+		'MausBot vs Grok Bot scheduling'
+	],
 	dots: [
 		'OpenAI Dots social scheduler',
 		'ChatGPT dot OpenQuok',

@@ -245,7 +245,7 @@ Update `agent/skills/openquok-core/` (`SKILL.md` metadata JSON for the host when
 ### Cursor specifics (`cursor`)
 
 - **MCP client** — `MCP_CLIENTS` + `mcps/hosts/cursor.ts` + `mcp-setup-guides/cursor.md`.
-- **Pricing:** New accounts use **The X Subscription** (e.g. Premium $30/mo). Third-party models (Claude, GPT, Gemini) bill at API list price from prepaid credit—not included in the weekly Cursor-model pool. **Legacy** Pro, Pro+, Ultra, and Teams seats keep **Cursor Models** + **Other Models** monthly pools; legacy Pro still includes third-party usage in Other Models (model-agnostic Agent). Switching legacy → The X Subscription is optional and **permanent**. Keep landing FAQ + `mcp-setup-guides/cursor.md` callout aligned with [legacy Cursor plans](https://cursor.com/docs/account/pricing/legacy-cursor-plans) and [models and pricing](https://cursor.com/docs/models-and-pricing). Do **not** conflate Grok Bot billing with Cursor plan choice on the agents hub.
+- **Pricing:** New accounts use **The X Subscription** (e.g. Premium $30/mo). Third-party models (Claude, GPT, Gemini) bill at API list price from prepaid credit—not included in the weekly Cursor-model pool. **Legacy** Pro, Pro+, Ultra, and Teams seats keep **Cursor Models** + **Other Models** monthly pools; legacy Pro still includes third-party usage in Other Models (model-agnostic Agent). Switching legacy → The X Subscription is optional and **permanent**. Keep landing FAQ + `mcp-setup-guides/cursor.md` callout aligned with [legacy Cursor plans](https://cursor.com/docs/account/pricing/legacy-cursor-plans) and [models and pricing](https://cursor.com/docs/models-and-pricing).
 - Reference: **`mcps/hosts/cursor.ts`**, **`hubs/agents.ts`** billing FAQ, **`getMcpClientConfig`** `'Cursor'` cases.
 
 ### Grok Build specifics (`grok-build`)
@@ -312,6 +312,15 @@ Update `agent/skills/openquok-core/` (`SKILL.md` metadata JSON for the host when
 - Skill install: **`MANUS_SKILL_INSTALL_OPTIONS`** — GitHub folder URL, curl + upload, CLI on Cloud Computer. Official Skills docs: Manus Help Center article on sharing and using Skills.
 - Reference implementation: **`hosts/manus.ts`**, **`manus-messaging-channels.ts`**, **`MANUS_SKILL_INSTALL_OPTIONS`**, **`channels/manus.ts`**, **`manus-docs-overview`** / **`openquok-skill-install-manus`** mocks. Desktop-first workflow mocks (Grok Bot pattern), not OpenClaw Telegram fallback.
 
+### MausBot specifics (`mausbot`)
+
+- **Not** an MCP client — no `mcps/mausbot.ts`, no `MCP_CLIENTS`, no `mcp-setup-guides/mausbot.md`.
+- **Not** Grok Bot — Grok Bot is xAI’s managed cloud teammate (`hosts/grok-bot.ts`). MausBot is separate free open-source desktop software (Apache 2.0) with many bots, native Claude/Codex/Grok CLIs, optional always-on cloud, Composio connected apps, and a skill recorder. Cross-link **`/agents/grok-bot`** in FAQ and docs.
+- **Not** OpenBot — different vendor desktop multi-agent workspace. Cross-link **`/agents/openbot`** and **`/agents/rakazo`** when readers pick BYO hosts.
+- Primary connect: install **`@openquok/auto-cli`** on the computer where the bot runs shell commands (local Mac, bot cloud desktop, or always-on host). Add **openquok-core** via working-folder **`SKILL.md`**, ask-the-bot install, or skill recorder after a successful scheduling run. Official site: [mausbot.com](https://mausbot.com/).
+- Skill install: **`MAUSBOT_SKILL_INSTALL_OPTIONS`** — global CLI + curl into working folder. Desktop-first workflow mocks (Grok Bot pattern), not OpenClaw Telegram fallback.
+- Reference implementation: **`hosts/mausbot.ts`**, **`mausbot-messaging-channels.ts`**, **`MAUSBOT_SKILL_INSTALL_OPTIONS`**, **`channels/hosts/mausbot.ts`**, **`mausbot-docs-overview`** / **`openquok-skill-install-mausbot`** mocks. Icon: **`icons.MausBot.name`**.
+
 ### OpenBot specifics (`openbot`)
 
 - **Not** an MCP client — no `mcps/openbot.ts`, no `MCP_CLIENTS`, no `mcp-setup-guides/openbot.md`.
@@ -347,7 +356,7 @@ Ship code + docs in the PR; add **catalog tag** and **launch blog** yourself in 
 2. **Name:** must slug correctly (e.g. `Grok Bot` → `grok-bot` via `stringToSlug`)
 3. **Description:** one neutral sentence on skills/CLI for that host
 4. **Tag groups:** check the groups that match the product surface in the tag modal (seeded catalog groups include **Autonomous agents**, **CLI**, **IDE**). Use the **Tag groups** tab on the same page to create or rename groups when needed — do not seed groups via SQL.
-   - Agent hosts (OpenClaw, Hermes, Grok Bot, ThinkRail, Meta Muse, Manus) → **Autonomous agents**
+   - Agent hosts (OpenClaw, Hermes, Grok Bot, ThinkRail, Meta Muse, Manus, MausBot, OpenBot, Rakazo) → **Autonomous agents**
    - Terminal-first MCP clients → **CLI**
    - Editor / desktop MCP clients → **IDE**
 5. Optional: edit **openquok-core** playbook/building-block → tags picker → add the new tag
