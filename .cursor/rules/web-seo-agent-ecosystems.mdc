@@ -2,6 +2,8 @@
 description: Agent-host vendor ecosystems — first-class channels, WhoIsFor/FAQ/grid copy on host and /channels/{slug} landings (Meta Muse, OpenAI-aligned hosts, Grok Bot/xAI)
 globs:
   - web/src/lib/content/constants/agents/ecosystems/**
+  - web/src/lib/content/constants/agents/officialApiAudience.ts
+  - web/src/lib/content/constants/agents/channels/general.ts
   - web/src/lib/content/constants/agents/index.ts
   - web/src/lib/content/constants/channels/index.ts
   - web/src/lib/content/constants/channels/catalog/channelPageSeo.ts
@@ -32,7 +34,7 @@ Host picker scenarios stay in **`agents/decision-scenarios.ts`**. UI archetypes 
 | `google-gemini` | `gemini` | `youtube` | `android-studio`, `antigravity-cli` |
 | `anthropic-claude` | `claude-duet` | — (sibling MCP on host landings) | `claude-code`, `claude-cowork` |
 
-Extend **`ECOSYSTEM_PROFILES`**, **`AGENT_HOST_ECOSYSTEM_BY_SLUG`**, and **`audienceTailoredCardByHostSlug`** together when adding a mapped host. Mapped MCP clients go in **`MCP_CLIENT_ECOSYSTEM_BY_SLUG`** + **`audienceTailoredCardByMcpSlug`** (`grok-build` → X home network, `muse-code` → Meta-owned channels first, `android-studio` / `antigravity-cli` → Gemini-first in Google’s toolchain, with YouTube as the video example). **`meta-consumer`** pins **`meta-muse`** in **`relatedAgentSlugs`** for integration grid order.
+Extend **`ECOSYSTEM_PROFILES`**, **`AGENT_HOST_ECOSYSTEM_BY_SLUG`**, and **`audienceTailoredCardByHostSlug`** together when adding a mapped host. Mapped MCP clients go in **`MCP_CLIENT_ECOSYSTEM_BY_SLUG`** + **`audienceTailoredCardByMcpSlug`** (`grok-build` → X home network, `muse-code` → Meta-owned channels first, `android-studio` / `antigravity-cli` → Gemini-first; **`cursor` → `xai-grok`** for hub grid copy). **`meta-consumer`** pins **`meta-muse`** in **`relatedAgentSlugs`** for integration grid order.
 
 ## Where copy runs
 
@@ -40,12 +42,23 @@ Extend **`ECOSYSTEM_PROFILES`**, **`AGENT_HOST_ECOSYSTEM_BY_SLUG`**, and **`audi
 | --- | --- | --- |
 | **`/agents/{host}`** | `getPublicAgentHostBySlug` → `withAgentHostEcosystem` (`agents/index.ts`) | Fourth WhoIsFor card; `buildAgentHostEcosystemFaqItems`; hub channel grid sort + badges via `sortAgentChannelHubLinks` |
 | **`/agents/{mcp}`** | `getPublicMcpLandingBySlug` → `buildMcpClientEcosystemFaqItems` + `resolveMcpClientAudienceCards` | Fourth WhoIsFor card for mapped MCP clients (`grok-build`, `muse-code`); Muse Code ↔ Meta Muse FAQs; Grok Build/Cursor ↔ Grok Bot compare FAQs; hub channel grid sort + first-class badges |
-| **`/agents/{host}/{channel}`** | `buildAgentChannelLandingVm` | Seed WhoIsFor + `resolveAgentChannelAudienceCards` (host card, not `/channels/{slug}` inverse card), `buildAgentChannelEcosystemHeroDescription`, `buildAgentChannelEcosystemFaqItems` |
-| **`/agents/{mcp}/{channel}`** | `buildMcpChannelLandingVm` | Seed WhoIsFor + `resolveMcpChannelAudienceCards` (MCP card such as Grok Build **X as your home network**). Do **not** also append `buildPublicChannelEcosystemAudienceTailoredCard` (Grok Bot cloud-desktop / Meta Muse first-class) — that copy is `/channels/{slug}` only |
+| **`/agents/{host}/{channel}`** | `buildAgentChannelLandingVm` | **`buildAgentsChannelAudienceSection`** → **`resolveAgentChannelAudienceCards`**; not `/channels/{slug}` inverse card. See **WhoIsFor assembly** below |
+| **`/agents/{mcp}/{channel}`** | `buildMcpChannelLandingVm` | Same pattern with **`resolveMcpChannelAudienceCards`**. Do **not** append `buildPublicChannelEcosystemAudienceTailoredCard` — `/channels/{slug}` only |
 | **`/channels/{slug}`** | `getPublicChannelBySlug` → `withChannelPageSeoCopy` (`channels/index.ts`) | **Inverse** emphasis: ecosystem fourth card (`buildPublicChannelEcosystemAudienceTailoredCard`), first-card hook (`applyPublicChannelPageAudienceFirstCardHook`), prepended FAQs (`buildPublicChannelEcosystemFaqItems`, dedupe by title), then `PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS` |
 | **`/channels/{slug}` grids** | `channelPageSeo.ts`, grid copy utils, `listPublicAgentIntegrationsForChannel` | Pinned agent hosts (`CHANNEL_PAGE_PINNED_AGENT_SLUGS`); MCP sort via `sortAgentIntegrationsForEcosystem` + primary host from `getPrimaryAgentHostSlugForChannelPage`; sibling badges (`enrichPublicChannelSiblingGridItems`) |
 
-Channel seeds keep **three** base `audienceCards` + optional seed-only **`audienceTailoredCard`** (e.g. LinkedIn). Do **not** duplicate ecosystem fourth cards in `catalog/platforms/{slug}.ts` — runtime getters merge them.
+**`/channels/{slug}`:** three base `audienceCards` + optional seed **`audienceTailoredCard`** (e.g. Reddit moderators) + runtime fourth — see `resolvePublicChannelAudienceCards`. Do **not** paste ecosystem fourth cards into catalog seeds.
+
+**`/agents/{host|mcp}/{channel}` — WhoIsFor assembly (max `MAX_AGENT_CHANNEL_AUDIENCE_CARDS` = 6):**
+
+1. **Three** social seed personas — `buildAgentsChannelAudienceSection` slices longer channel seeds (Developers / Agent operators stay on `/channels/{slug}` only).
+2. Optional seed **`audienceTailoredCard`** — must not repeat a seed **title** (merge overlapping B2B angles into an existing card instead).
+3. Ecosystem card — `appendEcosystemAudienceCardForAgentChannel`; on **non–first-class** channels, description pairs **this channel + vendor first-class networks** (e.g. TikTok + Meta). First-class pages keep static host/MCP card + API line on card 0 hook only.
+4. Official-API / ban safety — **`agents/officialApiAudience.ts`** via `resolveAgentChannelAudienceCards`. Skipped when **first-class** for host, when **`shouldSkipOfficialApiAgentChannelCard`** (TikTok — ban copy on seed card 1), or directory. **Reddit:** human handoff, not OAuth publish.
+
+**`/agents/{host}`:** `resolveAgentHostAudienceCards` appends shared **Creators who fear platform bans** — do **not** duplicate in host seed `audienceCards`.
+
+**Hub grid** (`PublicChannelSiblingGrid`): `buildAgentHostEcosystemChannelSiblingGridHubTitle` / `Description` use **`getLandingEcosystemId`** (host + MCP slugs).
 
 Generic fallback when no ecosystem: **`buildPublicChannelAgentAudienceTailoredCard`** in `channelPageSeo.ts`.
 
@@ -72,12 +85,18 @@ Generic fallback when no ecosystem: **`buildPublicChannelAgentAudienceTailoredCa
 
 Mock hub links in tests: use **`PublicAgentChannelHubLinkViewModel`** and **`icons.*.name`** (`TikTok`, not `Tiktok`).
 
+## Do not (WhoIsFor)
+
+- Duplicate official-API / ban safety in host seeds or a second channel card when `officialApiAudience.ts` or seed tailoring already covers it.
+- Add **`audienceTailoredCard`** that overlaps a seed persona title or ecosystem card theme.
+- Ship **more than six** WhoIsFor cards on agent × channel landings.
+
 ## PR checklist (ecosystem touch)
 
-- [ ] Host slug registered in **`AGENT_HOST_ECOSYSTEM_BY_SLUG`** only when product claims a first-class or sibling relationship
-- [ ] **`/channels/{slug}`** and **`/agents/{host}`** smoke: fourth WhoIsFor card, integration grid order, no duplicate FAQ titles
+- [ ] Host slug registered in **`AGENT_HOST_ECOSYSTEM_BY_SLUG`** only when product claims a first-class or sibling relationship; MCP slugs in **`MCP_CLIENT_ECOSYSTEM_BY_SLUG`** when hub grid / fourth card applies
+- [ ] **`/channels/{slug}`**, **`/agents/{host}`**, one **`/agents/{host}/{channel}`** smoke: WhoIsFor count ≤ 6 on agent × channel, no duplicate FAQ titles, integration grid order
 - [ ] **`pnpm exec vitest run`** on `ecosystems.test.ts` and channel grid copy tests
-- [ ] Neutral vendor copy (**source-project-neutrality**)
+- [ ] Neutral vendor copy (**source-project-neutrality**); short sentences, no semicolon chains (**web-seo-pseo** ASD-STE100)
 
 ## Related rules
 

@@ -142,7 +142,7 @@ Shared chrome: `PublicArea.svelte`, `Footer.svelte` (`PUBLIC_FOOTER_LINKS` — f
 
 **`/channels/{slug}`:** Hero → **WhoIsFor** (`getPublicChannelBySlug`) → team/feature rows → **`PublicChannelAgentIntegrationsGrid`** → **`PublicChannelSiblingGrid`** → FAQ → docs/sign-up banners. Vendor ecosystem copy: **web-seo-agent-ecosystems**.
 
-**`/agents/{host}/{channel}`:** Hero → feature rows → **WhoIsFor** (catalog + agent hooks + ecosystem cards) → listings preview (when live) → CLI or MCP reference → FAQ. VM: **`buildAgentChannelLandingVm`** / **`buildMcpChannelLandingVm`**.
+**`/agents/{host}/{channel}`:** Hero → feature rows → **WhoIsFor** (three seed personas + optional seed fourth + ecosystem + optional official-API safety; **max 6 cards**) → listings preview (when live) → CLI or MCP reference → FAQ. VM: **`buildAgentChannelLandingVm`** / **`buildMcpChannelLandingVm`**. Assembly and dedupe: **web-seo-agent-ecosystems**.
 
 Both: `<PublicFaq>` from server VM; no extra bottom CTA block beyond hero/feature rows (**add-social-provider-integration**).
 

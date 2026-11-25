@@ -116,7 +116,7 @@ MCP clients use `mcps/channels/index.ts` — no per-host channel file. Deeper be
 | Messaging gateway | `iphone-15-pro` + `agent-chat-schedule`; archetype FAQ | OpenClaw, Hermes |
 | Desktop / cloud teammate | `desktop` workflow; `{slug}-messaging-channels.ts` | Grok Bot, Manus, MausBot, Tucano, OpenBot, ThinkRail, Dots |
 | Mobile-first consumer | `iphone-15-pro`; custom messaging data | Meta Muse, Claude Duet |
-| Vendor ecosystem | Fourth WhoIsFor + channel grid pins — **web-seo-agent-ecosystems** | gemini, grok-bot, meta-muse, claude-duet, … |
+| Vendor ecosystem | WhoIsFor + hub channel grid — **web-seo-agent-ecosystems** (shared ban/API card; agent×channel ≤ 6 cards) | gemini, grok-bot, meta-muse, claude-duet, … |
 
 ### Agent checklist
 
@@ -175,6 +175,7 @@ Ship code in the PR; tag + launch blog in secret-admin (or paste-ready handoff).
 - Put MCP setup under `agent-setup-guides/` or host skill install under `mcp-setup-guides/`.
 - Add `MCP_CLIENTS` without mock unions + docs.
 - Ship agent host without channel host config + `PUBLIC_AGENT_CHANNEL_HOST_SLUGS`.
+- Duplicate WhoIsFor ban/API rows on host seeds or agent×channel when **`officialApiAudience.ts`** / **`resolveAgent*AudienceCards`** already appends them (**web-seo-agent-ecosystems**).
 - Hand-edit footer slug lists — use `mcps/seeds.ts` / `agents/seeds.ts`.
 - SQL seeds for tags/blogs; hardcoded icon strings; third-party repo names (**source-project-neutrality**).
 - Classify skill/desktop teammates as MCP (Grok Bot, ThinkRail, Manus, MausBot, Tucano → agent host).
