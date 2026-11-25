@@ -33,7 +33,6 @@
 	} from '$lib/config/constants/config';
 	import PublicChannelHero from '$lib/ui/templates/landing-page/PublicChannelHero.svelte';
 	import PublicDirectoryMarketingMainHero from '$lib/ui/templates/landing-page/PublicDirectoryMarketingMainHero.svelte';
-	import PublicChannelsLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicChannelsLandingBreadcrumb.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
@@ -136,13 +135,10 @@
 {#if channelVm}
 	{#if channelVm.available}
 		{#if isDirectoryChannel}
-			<div class="container mx-auto flex justify-center px-4 pt-8 md:pt-10">
-				<PublicChannelsLandingBreadcrumb
-					platformLabel={channelVm.platformLabel}
-					channelKind={channelVm.channelKind ?? 'directory'}
-				/>
-			</div>
 			<PublicDirectoryMarketingMainHero
+				iconName={channelVm.icon}
+				platformLabel={channelVm.platformLabel}
+				channelKind={channelVm.channelKind ?? 'directory'}
 				title={channelVm.heroTitle}
 				description={channelVm.heroDescription}
 				primaryCtaLabel={heroCtaText}

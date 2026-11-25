@@ -68,6 +68,8 @@ Directory destinations are not social integrations. The API and MCP use <Badge t
 | **TinyLaunch** | <Badge text="tinylaunch" variant="param" /> |
 | **Fazier** | <Badge text="fazier" variant="param" /> |
 | **DevHunt** | <Badge text="devhunt" variant="param" /> |
+| **Nick Launches** | <Badge text="nick-launches" variant="param" /> |
+| **IndieHub** | <Badge text="indiehub" variant="param" /> |
 
 New directory catalog rows follow the same pattern. Slugs and connect steps are in <a href="/docs/platforms/connect-rules#directory-launch-platforms">Connect rules → Directory launch platforms</a>.
 
@@ -122,6 +124,8 @@ OpenQuok stores your pitch, shows **listing readiness**, and the **browser exten
 <a href="/channels/tinylaunch" title="TinyLaunch"><img src="/icons/link-directory/tinylaunch.svg" alt="TinyLaunch" width="32" height="32" /></a>
 <a href="/channels/fazier" title="Fazier"><img src="/icons/link-directory/fazier.svg" alt="Fazier" width="32" height="32" /></a>
 <a href="/channels/devhunt" title="DevHunt"><img src="/icons/link-directory/devhunt.svg" alt="DevHunt" width="32" height="32" /></a>
+<a href="/channels/nick-launches" title="Nick Launches"><img src="/icons/link-directory/nick-launches.svg" alt="Nick Launches" width="32" height="32" /></a>
+<a href="/channels/indiehub" title="IndieHub"><img src="/icons/link-directory/indiehub.svg" alt="IndieHub" width="32" height="32" /></a>
 </p>
 
 | Topic | Social posting | Directory launch |

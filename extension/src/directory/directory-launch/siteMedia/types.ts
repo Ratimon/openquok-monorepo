@@ -1,4 +1,4 @@
-import type { FieldFillResult, LaunchStepField } from 'openquok-common';
+import type { AutoLaunchProfileSnapshot, FieldFillResult, LaunchStepField } from 'openquok-common';
 
 export type SiteMediaFileInputOptions = {
 	prime?: boolean;
@@ -31,8 +31,26 @@ export interface SiteMediaAdapter {
 		options: SiteMediaFileInputOptions | undefined,
 		ctx: SiteMediaFileInputContext
 	): HTMLInputElement | null | undefined;
+	/** When generic label/hint resolution fails on this site (e.g. twin icon + banner dropzones). */
+	resolveFileInputAfterLabel?(
+		field: LaunchStepField,
+		fillMode: import('openquok-common').LaunchStepFieldFillMode,
+		ctx: SiteMediaFileInputContext
+	): HTMLInputElement | null;
 	fillGalleryFiles?(
 		field: LaunchStepField,
 		files: File[]
+	): Promise<FieldFillResult | null>;
+	fillLogoFile?(field: LaunchStepField, file: File): Promise<FieldFillResult | null>;
+	/** When the site accepts https URLs (e.g. “upload by URL”) instead of blob file picks. */
+	fillLogoMedia?(
+		snapshot: AutoLaunchProfileSnapshot,
+		field: LaunchStepField,
+		context: { dashboardOrigin: string; mainProfileSnapshot?: AutoLaunchProfileSnapshot | null }
+	): Promise<FieldFillResult | null>;
+	fillGalleryMedia?(
+		snapshot: AutoLaunchProfileSnapshot,
+		field: LaunchStepField,
+		context: { dashboardOrigin: string; mainProfileSnapshot?: AutoLaunchProfileSnapshot | null }
 	): Promise<FieldFillResult | null>;
 }

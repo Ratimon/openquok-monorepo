@@ -1,8 +1,8 @@
 /**
- * Source of truth for `auto_launch_destinations` row seeds (502–506 SQL).
+ * Source of truth for `auto_launch_destinations` row seeds (503–509 SQL).
  * Consumed by `backend/scripts/sync-auto-launch-destination-seeds.mjs`.
  *
- * Next stable destination id suffix after DevHunt: …015
+ * Next stable destination id suffix after IndieHub: …021
  */
 
 export type AutoLaunchDestinationSeedGenerationMode = 'full' | 'composite';
@@ -248,6 +248,132 @@ const DEVHUNT_DESTINATIONS: readonly AutoLaunchDestinationSeedRow[] = [
 	},
 ];
 
+const NICK_LAUNCHES_DESTINATIONS: readonly AutoLaunchDestinationSeedRow[] = [
+	{
+		destinationId: 'd5f7d000-0030-4000-a000-000000000016',
+		providerSlug: 'nick-launches-free-launch',
+		siteSlug: 'nick-launches',
+		name: 'Nick Launches — Free launch',
+		shortDescription:
+			'Free listing on Nick Launches; weekly upvotes and a live Featured badge are required for a dofollow link. Extension autofills the listing form after you sign in.',
+		startUrl: 'https://nicklaunches.com/submit/new/',
+		sortOrder: 56,
+		pickerGroupKey: 'nick-launches',
+		pickerGroupTitle: 'Nick Launches',
+		opportunitySlug: 'free-launch',
+	},
+	{
+		destinationId: 'd5f7d000-0030-4000-a000-000000000017',
+		providerSlug: 'nick-launches-paid-launch',
+		siteSlug: 'nick-launches',
+		name: 'Nick Launches — Paid launch',
+		shortDescription:
+			'Paid launch tiers on Nick Launches ($19, $39, $99, or $199). Extension autofills the listing form; plan checkout stays manual.',
+		startUrl: 'https://nicklaunches.com/submit/new/',
+		sortOrder: 58,
+		pickerGroupKey: 'nick-launches',
+		pickerGroupTitle: 'Nick Launches',
+		opportunitySlug: 'paid-launch',
+	},
+	{
+		destinationId: 'd5f7d000-0030-4000-a000-000000000018',
+		providerSlug: 'nick-launches-maker-profile',
+		siteSlug: 'nick-launches',
+		name: 'Nick Launches — Maker profile',
+		shortDescription:
+			'Maker profile on Nick Launches. Extension autofills headline, bio, website, avatar, and known socials.',
+		startUrl: 'https://nicklaunches.com/profile/',
+		sortOrder: 60,
+		pickerGroupKey: null,
+		pickerGroupTitle: null,
+		opportunitySlug: 'maker-profile',
+	},
+];
+
+const INDIEHUB_DESTINATIONS: readonly AutoLaunchDestinationSeedRow[] = [
+	{
+		destinationId: 'd5f7d000-0030-4000-a000-000000000019',
+		providerSlug: 'indiehub-basic-launch',
+		siteSlug: 'indiehub',
+		name: 'IndieHub — Basic launch',
+		shortDescription:
+			'Basic listing ($4.9) on IndieHub with dofollow links and no badge requirement. Extension autofills submit step 1 (Details) after you sign in.',
+		startUrl: 'https://indiehub.best/submit',
+		sortOrder: 62,
+		pickerGroupKey: 'indiehub',
+		pickerGroupTitle: 'IndieHub',
+		opportunitySlug: 'basic-launch',
+	},
+	{
+		destinationId: 'd5f7d000-0030-4000-a000-000000000020',
+		providerSlug: 'indiehub-pro-launch',
+		siteSlug: 'indiehub',
+		name: 'IndieHub — Pro launch',
+		shortDescription:
+			'Pro listing ($9.9) on IndieHub with stronger placement and more dofollow links than Basic. Extension autofills step 1; payment and publish stay manual.',
+		startUrl: 'https://indiehub.best/submit',
+		sortOrder: 64,
+		pickerGroupKey: 'indiehub',
+		pickerGroupTitle: 'IndieHub',
+		opportunitySlug: 'pro-launch',
+	},
+];
+
+const ALTERNATIVETO_DESTINATIONS: readonly AutoLaunchDestinationSeedRow[] = [
+	{
+		destinationId: 'd5f7d000-0030-4000-a000-000000000021',
+		providerSlug: 'alternativeto-free-listing',
+		siteSlug: 'alternativeto',
+		name: 'AlternativeTo — Free listing',
+		shortDescription:
+			'Free listing queue on AlternativeTo; extension autofills manage-item after you sign in with a verified email.',
+		startUrl: 'https://alternativeto.net/manage-item/',
+		sortOrder: 66,
+		pickerGroupKey: 'alternativeto',
+		pickerGroupTitle: 'AlternativeTo',
+		opportunitySlug: 'free-listing',
+	},
+	{
+		destinationId: 'd5f7d000-0030-4000-a000-000000000022',
+		providerSlug: 'alternativeto-priority-review',
+		siteSlug: 'alternativeto',
+		name: 'AlternativeTo — Priority review',
+		shortDescription:
+			'Priority Review ($15) on AlternativeTo after manage-item submit; extension autofills the listing form.',
+		startUrl: 'https://alternativeto.net/manage-item/',
+		sortOrder: 68,
+		pickerGroupKey: 'alternativeto',
+		pickerGroupTitle: 'AlternativeTo',
+		opportunitySlug: 'priority-review',
+	},
+	{
+		destinationId: 'd5f7d000-0030-4000-a000-000000000023',
+		providerSlug: 'alternativeto-finish-listing',
+		siteSlug: 'alternativeto',
+		name: 'AlternativeTo — We finish it',
+		shortDescription:
+			'We finish it ($29) concierge tier on AlternativeTo; extension prefills manage-item before checkout.',
+		startUrl: 'https://alternativeto.net/manage-item/',
+		sortOrder: 70,
+		pickerGroupKey: 'alternativeto',
+		pickerGroupTitle: 'AlternativeTo',
+		opportunitySlug: 'finish-listing',
+	},
+	{
+		destinationId: 'd5f7d000-0030-4000-a000-000000000024',
+		providerSlug: 'alternativeto-user-profile',
+		siteSlug: 'alternativeto',
+		name: 'AlternativeTo — User profile',
+		shortDescription:
+			'Public profile social handles and LinkedIn on AlternativeTo; extension autofills user edit.',
+		startUrl: 'https://alternativeto.net/user/edit/',
+		sortOrder: 72,
+		pickerGroupKey: null,
+		pickerGroupTitle: null,
+		opportunitySlug: 'user-profile',
+	},
+];
+
 export const AUTO_LAUNCH_DESTINATION_SEED_MODULES: readonly AutoLaunchDestinationSeedModule[] = [
 	{
 		siteKey: 'uneed',
@@ -322,6 +448,43 @@ export const AUTO_LAUNCH_DESTINATION_SEED_MODULES: readonly AutoLaunchDestinatio
 			'-- Launch week, $49 checkout, and maker comment stay manual after the tool form is filled.',
 		],
 		destinations: DEVHUNT_DESTINATIONS,
+	},
+	{
+		siteKey: 'nick-launches',
+		sqlFileName: '509_20261124_seed_nick_launches_destination.sql',
+		generationMode: 'full',
+		moduleDate: '20261124',
+		moduleScopeLabel: 'Seed (Nick Launches free launch, paid launch, and maker profile destinations)',
+		preambleComments: [
+			'-- Joins link_directory_opportunities on site slug nick-launches (catalog backfill / listing manager).',
+			'-- Plan selection, checkout, weekly upvotes, Featured badge, and admin review stay manual after the listing form is filled.',
+		],
+		destinations: NICK_LAUNCHES_DESTINATIONS,
+	},
+	{
+		siteKey: 'indiehub',
+		sqlFileName: '510_20261125_seed_indiehub_destination.sql',
+		generationMode: 'full',
+		moduleDate: '20261125',
+		moduleScopeLabel: 'Seed (IndieHub Basic and Pro launch destinations)',
+		preambleComments: [
+			'-- Joins link_directory_opportunities on site slug indiehub (catalog backfill / listing manager).',
+			'-- Payment (step 2) and Publish (step 3) stay manual after OpenQuok fills submit step 1 (Details).',
+		],
+		destinations: INDIEHUB_DESTINATIONS,
+	},
+	{
+		siteKey: 'alternativeto',
+		sqlFileName: '511_20261125_seed_alternativeto_destination.sql',
+		generationMode: 'full',
+		moduleDate: '20261125',
+		moduleScopeLabel:
+			'Seed (AlternativeTo free listing, Priority review, We finish it, and user profile destinations)',
+		preambleComments: [
+			'-- Joins link_directory_opportunities on site slug alternativeto (catalog backfill / listing manager).',
+			'-- Post-submit Stripe upsell, features, languages, and final Submit stay manual after OpenQuok fills manage-item.',
+		],
+		destinations: ALTERNATIVETO_DESTINATIONS,
 	},
 ];
 

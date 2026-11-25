@@ -1,10 +1,14 @@
+import { alternativetoUploadsAdapter } from './alternativetoUploads.js';
 import { devhuntScreenshotsAdapter } from './devhuntScreenshots.js';
 import { headingSectionGalleryAdapter } from './headingSectionGallery.js';
+import { indiehubUploadsAdapter } from './indiehubUploads.js';
 import type { SiteMediaAdapter } from './types.js';
 
 const SITE_MEDIA_ADAPTERS: readonly SiteMediaAdapter[] = [
+	alternativetoUploadsAdapter,
 	devhuntScreenshotsAdapter,
 	headingSectionGalleryAdapter,
+	indiehubUploadsAdapter,
 ];
 
 export function getActiveSiteMediaAdapter(): SiteMediaAdapter | null {

@@ -1,5 +1,8 @@
+import { isAlternativetoLoggedIn, ALTERNATIVETO_LOGIN_URL } from './alternativeto.js';
 import { isDevhuntLoggedIn, DEVHUNT_LOGIN_URL } from './devhunt.js';
 import { isFazierLoggedIn, FAZIER_LOGIN_URL } from './fazier.js';
+import { isIndiehubLoggedIn, INDIEHUB_LOGIN_URL } from './indiehub.js';
+import { isNickLaunchesLoggedIn, NICK_LAUNCHES_LOGIN_URL } from './nick-launches.js';
 import { isOpenLaunchLoggedIn, OPEN_LAUNCH_LOGIN_URL } from './open-launch.js';
 import { isPeerPushLoggedIn, PEERPUSH_LOGIN_URL } from './peerpush.js';
 import { isTinylaunchLoggedIn, TINYLAUNCH_LOGIN_URL } from './tinylaunch.js';
@@ -30,6 +33,18 @@ const adapters: Readonly<Record<string, DirectorySiteLoginAdapter>> = {
 	devhunt: {
 		isLoggedIn: isDevhuntLoggedIn,
 		loginUrl: DEVHUNT_LOGIN_URL
+	},
+	'nick-launches': {
+		isLoggedIn: isNickLaunchesLoggedIn,
+		loginUrl: NICK_LAUNCHES_LOGIN_URL
+	},
+	indiehub: {
+		isLoggedIn: isIndiehubLoggedIn,
+		loginUrl: INDIEHUB_LOGIN_URL
+	},
+	alternativeto: {
+		isLoggedIn: isAlternativetoLoggedIn,
+		loginUrl: ALTERNATIVETO_LOGIN_URL
 	}
 };
 

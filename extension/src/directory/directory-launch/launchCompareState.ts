@@ -30,6 +30,7 @@ import {
 
 import { readFormFieldValue } from './readFormField.js';
 import {
+	galleryPathsExcludingLogo,
 	mergeMainProfileSocialData,
 	resolveLaunchProfileScalar,
 	resolveProfileStoragePathList,
@@ -244,7 +245,10 @@ export function resolveEffectiveProfileNorm(
 	const norm = normalizeProfileValue(merged, field);
 	const mediaFillMode = resolveLaunchFieldFillMode(field);
 	if (!norm.present && (mediaFillMode === 'file' || mediaFillMode === 'files')) {
-		const paths = resolveProfileStoragePathList(merged, field.profilePath);
+		const paths =
+			field.profilePath === 'profile_data.gallery_urls'
+				? galleryPathsExcludingLogo(merged)
+				: resolveProfileStoragePathList(merged, field.profilePath);
 		if (paths.length > 0) {
 			const kind = mediaFillMode === 'files' ? 'files' : 'file';
 			return { kind, items: paths, present: true };

@@ -1,9 +1,16 @@
 import type { LaunchStepField, LaunchStepFieldFillMode, NormalizedFieldValue } from 'openquok-common';
 import { mediaFileDisplayName, richHtmlToPlainText } from 'openquok-common';
 
-import { choiceLabelForControl, isChoiceControlChecked, resolveFieldElement, resolveTagsFieldRoot } from './fillEngine.js';
+import {
+	choiceLabelForControl,
+	isChoiceControlChecked,
+	resolveFieldElement,
+	resolveFileFieldReadRoot,
+	resolveTagsFieldRoot,
+} from './fillEngine.js';
 import { formScalarMisassignedToField } from './formFieldDom.js';
 import { getSiteMediaAdapterForGalleryPreview } from './siteMedia/index.js';
+import { isGalleryProfileField, isLogoProfileField } from './siteMedia/profileMediaFields.js';
 
 function resolveFillMode(field: LaunchStepField): LaunchStepFieldFillMode {
 	if (field.fillMode) return field.fillMode;
@@ -780,8 +787,15 @@ function readNormalizedFromElement(
  */
 export function readFormFieldValue(field: LaunchStepField): NormalizedFieldValue | null {
 	const fillMode = resolveFillMode(field);
-	const element = resolveFieldElement(field);
+	let element = resolveFieldElement(field);
 	if (!element) return null;
+	if (fillMode === 'files' && isGalleryProfileField(field)) {
+		const readRoot = resolveFileFieldReadRoot(field);
+		if (readRoot) element = readRoot;
+	} else if (fillMode === 'file' && isLogoProfileField(field)) {
+		const readRoot = resolveFileFieldReadRoot(field);
+		if (readRoot) element = readRoot;
+	}
 	const result = readNormalizedFromElement(element, fillMode, field);
 	if (
 		fillMode === 'text' &&

@@ -3,6 +3,10 @@ import type {
 	AutoLaunchProfileSnapshot,
 } from '../browser-extension/pageAssist.js';
 import {
+	NICK_LAUNCHES_LISTING_FORM_EXTENSION_CONFIG,
+	NICK_LAUNCHES_MAKER_PROFILE_EXTENSION_CONFIG,
+} from './destination-configs/nick-launches.js';
+import {
 	collectProfileFieldsFromExtensionConfig,
 	getDestinationReadiness,
 	getProfileLaunchSummary,
@@ -89,6 +93,71 @@ const openLaunchPremiumConfig: AutoLaunchExtensionConfig = {
 		},
 	],
 };
+
+describe('nick-launches destination readiness', () => {
+	const listingSnapshot = (): AutoLaunchProfileSnapshot =>
+		snapshot({
+			logo_url: 'org/logo.webp',
+			profile_data: {
+				gallery_urls: ['org/shot-1.webp'],
+				categories: ['Developer Tools'],
+				use_cases: ['Social Media Automation', 'Content Creation'],
+				pricing_type: 'freemium',
+				is_open_source: false,
+				social_x: 'openquok',
+				launch_video_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+			},
+		});
+
+	it('lists gallery, categories, and pricing among required listing paths', () => {
+		const paths = collectProfileFieldsFromExtensionConfig(
+			NICK_LAUNCHES_LISTING_FORM_EXTENSION_CONFIG
+		).map((field) => field.path);
+		expect(paths).toEqual(
+			expect.arrayContaining([
+				'profile_data.gallery_urls',
+				'profile_data.categories',
+				'profile_data.use_cases',
+				'profile_data.pricing_type',
+			])
+		);
+	});
+
+	it('is ready when listing paths from the fixture are filled', () => {
+		const readiness = getDestinationReadiness(
+			listingSnapshot(),
+			NICK_LAUNCHES_LISTING_FORM_EXTENSION_CONFIG
+		);
+		expect(readiness.isReady).toBe(true);
+		expect(readiness.missingFields).toEqual([]);
+	});
+
+	it('reports missing screenshots when gallery_urls is empty', () => {
+		const readiness = getDestinationReadiness(
+			snapshot({
+				logo_url: 'org/logo.webp',
+				profile_data: {
+					categories: ['AI'],
+					pricing_type: 'free',
+				},
+			}),
+			NICK_LAUNCHES_LISTING_FORM_EXTENSION_CONFIG
+		);
+		expect(readiness.missingFields).toEqual(
+			expect.arrayContaining([{ path: 'profile_data.gallery_urls', label: 'Screenshots' }])
+		);
+		expect(readiness.isReady).toBe(false);
+	});
+
+	it('counts maker profile compare paths without first/last name fields', () => {
+		const paths = collectProfileFieldsFromExtensionConfig(NICK_LAUNCHES_MAKER_PROFILE_EXTENSION_CONFIG).map(
+			(field) => field.path
+		);
+		expect(paths).toContain('tagline');
+		expect(paths).toContain('profile_data.social_github');
+		expect(paths).not.toContain('profile_data.maker_first_name');
+	});
+});
 
 describe('open-launch destination readiness', () => {
 	it('reports missing tech stack when extension config requires it', () => {

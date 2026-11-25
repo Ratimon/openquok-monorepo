@@ -190,7 +190,7 @@ SELECT
                         "X username"
                     ],
                     "profilePath": "profile_data.social_x",
-                    "socialXScalar": "username",
+                    "socialScalar": "username",
                     "fillMode": "text",
                     "selectorHint": "#twitterUsername, input#twitterUsername, input[aria-label='X username']"
                 },
@@ -407,7 +407,7 @@ SELECT
                         "X username"
                     ],
                     "profilePath": "profile_data.social_x",
-                    "socialXScalar": "username",
+                    "socialScalar": "username",
                     "fillMode": "text",
                     "selectorHint": "#twitterUsername, input#twitterUsername, input[aria-label='X username']"
                 },

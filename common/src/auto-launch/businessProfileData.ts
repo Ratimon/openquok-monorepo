@@ -177,7 +177,11 @@ export function normalizeBusinessProfileData(
 	if (launchVideoUrl !== undefined) out.launch_video_url = launchVideoUrl;
 
 	if (value.gallery_urls !== undefined) {
-		out.gallery_urls = normalizeStringArray(value.gallery_urls);
+		const urls = normalizeStringArray(value.gallery_urls);
+		out.gallery_urls =
+			urls === null
+				? null
+				: urls.slice(0, BUSINESS_PROFILE_MAX_GALLERY_URLS);
 	}
 
 	if (value.gallery_labels !== undefined) {

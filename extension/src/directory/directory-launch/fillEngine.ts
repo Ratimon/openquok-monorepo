@@ -37,6 +37,7 @@ const GENERIC_SHORT_FIELD_LABELS = new Set(['url', 'link', 'name', 'text', 'id']
 import {
 	comboboxAriaControlsHost,
 	comboboxInteractionTarget,
+	commitListboxChoice,
 	delay,
 	dispatchEnterKey,
 	isFieldElementVisible,
@@ -54,23 +55,28 @@ import {
 	defaultTagProfilePathsForField,
 } from './launchCompareState.js';
 import {
+	galleryPathsExcludingLogo,
 	mergeMainProfileSocialData,
 	resolveLaunchProfileScalar,
 	resolveProfileStoragePathList,
 	resolveProfileValue,
 } from './profileValues.js';
 import { assignFilesToInput } from './fileInputAssign.js';
+import { resolveFileInputInLabelScope } from './fileInputByLabel.js';
 import {
 	fieldExpectsUrlControl,
 	fieldRequiresLabelScopedResolution,
 	isChoiceGroupOptionLabel,
 	isExcludedFieldLabelAnchor,
 	isInlineChoiceRowLabel,
+	isListingSiteAiPrefillUrlInput,
 	isPromoVideoUrlInput,
 	isSocialLinkProfileField,
 	listingFormIdentityInput,
 	listingProductNameInputAttrAllowed,
 	pickControlNearestLabel,
+	isFullDescriptionTextControl,
+	isShortDescriptionControl,
 	socialFieldControlMatchesInput,
 } from './formFieldDom.js';
 import {
@@ -80,6 +86,7 @@ import {
 	type SiteMediaFileInputContext,
 	type SiteMediaFileInputOptions,
 } from './siteMedia/index.js';
+import { resolveAlternativetoFieldElement } from './siteMedia/alternativetoMainInfo.js';
 
 export type FillLaunchContext = {
 	dashboardOrigin?: string;
@@ -229,6 +236,15 @@ function queryFieldElement(field: LaunchStepField): Element | null {
 		if (sectionBlock && !sectionBlock.contains(candidate)) continue;
 		let score = scoreCandidateForFillMode(candidate, fillMode);
 		if (sectionBlock?.contains(candidate)) score += 1_000;
+		if (field.key === 'tagline' || field.profilePath === 'tagline') {
+			if (isShortDescriptionControl(candidate)) score += 500;
+			if (isFullDescriptionTextControl(candidate)) score -= 5_000;
+		}
+		if (field.key === 'description' || field.profilePath === 'description') {
+			if (isShortDescriptionControl(candidate)) score -= 5_000;
+			if (isFullDescriptionTextControl(candidate)) score += 400;
+			if (isRichTextControl(candidate)) score += 300;
+		}
 		if (score > bestScore) {
 			bestScore = score;
 			best = candidate;
@@ -364,6 +380,7 @@ function elementPassesFieldGuard(field: LaunchStepField, element: Element): bool
 	if (field.key === 'website' && element instanceof HTMLInputElement) {
 		const attrName = (element.getAttribute('name') ?? '').toLowerCase();
 		if (attrName === 'repo_url' || attrName === 'name' || attrName === 'slug') return false;
+		if (isListingSiteAiPrefillUrlInput(element)) return false;
 	}
 
 	if (
@@ -403,6 +420,9 @@ function elementPassesFieldGuard(field: LaunchStepField, element: Element): bool
 		if (element instanceof HTMLInputElement) {
 			if (element.type === 'url' || isPromoVideoUrlInput(element)) return false;
 		}
+		if (element instanceof HTMLTextAreaElement && isFullDescriptionTextControl(element)) {
+			return false;
+		}
 		if (element.closest('.tiptap, .ProseMirror[contenteditable="true"]')) {
 			return isShortMaxLengthFieldControl(element);
 		}
@@ -429,10 +449,12 @@ function elementPassesFieldGuard(field: LaunchStepField, element: Element): bool
 
 	if (field.profilePath === 'description' && fillMode === 'rich_html') {
 		if (element instanceof HTMLTextAreaElement) {
+			if (isShortDescriptionControl(element)) return false;
 			if (isShortMaxLengthFieldControl(element)) return false;
 			return true;
 		}
 		if (element instanceof HTMLInputElement) {
+			if (isShortDescriptionControl(element)) return false;
 			if (isShortMaxLengthFieldControl(element)) return false;
 			if (!isRichTextControl(element)) return false;
 		}
@@ -440,6 +462,7 @@ function elementPassesFieldGuard(field: LaunchStepField, element: Element): bool
 
 	if (field.fillMode === 'tags' || field.key === 'tags') {
 		if (isShortMaxLengthFieldControl(element)) return false;
+		if (element instanceof HTMLInputElement && isListingSiteAiPrefillUrlInput(element)) return false;
 	}
 
 	if (fillMode === 'checkbox_group') {
@@ -626,6 +649,7 @@ function resolveControlByLabelForAttribute(field: LaunchStepField): Element | nu
 		const htmlFor = labelEl.getAttribute('for')?.trim();
 		if (!htmlFor) continue;
 		const target = document.getElementById(htmlFor);
+		if (!target) continue;
 		const fileInput = target instanceof HTMLInputElement && target.type === 'file';
 		if (!fileInput && !isFieldElementVisible(target)) continue;
 		if (!elementAcceptableForFillMode(target, fillMode)) continue;
@@ -679,6 +703,10 @@ function findControlInLabelBlock(
 	fillMode: LaunchStepFieldFillMode,
 	field?: LaunchStepField
 ): Element | null {
+	if (fillMode === 'file' || fillMode === 'files') {
+		return resolveFileInputInLabelScope(labelEl);
+	}
+
 	let block: Element | null =
 		labelEl.closest('div, fieldset, li, section, form') ?? labelEl.parentElement;
 	for (let depth = 0; depth < 8 && block; depth++) {
@@ -711,13 +739,19 @@ function findControlInLabelBlock(
 			const picked = pickVisibleControl(acceptable);
 			if (picked) return picked;
 			const textareas = block.querySelectorAll('textarea');
-			const textareaCandidates = Array.from(textareas).filter(
+			let textareaCandidates = Array.from(textareas).filter(
 				(el) =>
 					isFieldElementVisible(el) &&
 					elementAcceptableForFillMode(el, fillMode) &&
 					(!field || elementPassesFieldGuard(field, el))
 			);
-			const textarea = pickVisibleControl(textareaCandidates);
+			if (field?.key === 'description' || field?.profilePath === 'description') {
+				textareaCandidates = textareaCandidates.filter((el) => isFullDescriptionTextControl(el));
+			}
+			const textarea =
+				textareaCandidates.length > 1
+					? pickControlNearestLabel(labelEl, textareaCandidates)
+					: pickVisibleControl(textareaCandidates);
 			if (textarea) return textarea;
 		}
 
@@ -741,18 +775,6 @@ function findControlInLabelBlock(
 			for (const candidate of switches) {
 				if (
 					isFieldElementVisible(candidate) &&
-					elementAcceptableForFillMode(candidate, fillMode) &&
-					(!field || elementPassesFieldGuard(field, candidate))
-				) {
-					return candidate;
-				}
-			}
-		}
-
-		if (fillMode === 'file' || fillMode === 'files') {
-			for (const candidate of block.querySelectorAll('input[type="file"]')) {
-				if (
-					candidate instanceof HTMLInputElement &&
 					elementAcceptableForFillMode(candidate, fillMode) &&
 					(!field || elementPassesFieldGuard(field, candidate))
 				) {
@@ -944,9 +966,14 @@ export function resolveFileFieldReadRoot(field: LaunchStepField): Element | null
 export function resolveFieldElement(field: LaunchStepField): Element | null {
 	const fillMode = resolveFillMode(field);
 
+	const alternativetoField = resolveAlternativetoFieldElement(field);
+	if (alternativetoField && elementPassesFieldGuard(field, alternativetoField)) {
+		return alternativetoField;
+	}
+
 	if (isFileFillMode(fillMode)) {
-		const byFor = resolveControlByLabelForAttribute(field);
-		if (byFor) return byFor;
+		const byLabel = resolveFileInputFromFieldLabels(field);
+		if (byLabel) return byLabel;
 		const readRoot = resolveFileFieldReadRoot(field);
 		if (readRoot) return readRoot;
 		return null;
@@ -961,6 +988,23 @@ export function resolveFieldElement(field: LaunchStepField): Element | null {
 	) {
 		const byFor = resolveControlByLabelForAttribute(field);
 		if (byFor) return byFor;
+	}
+
+	if (field.key === 'tagline' || field.profilePath === 'tagline') {
+		const byExactLabel = resolveControlByExactFieldLabel(field);
+		if (byExactLabel && elementPassesFieldGuard(field, byExactLabel)) {
+			return byExactLabel;
+		}
+	}
+
+	if (
+		(field.key === 'description' || field.profilePath === 'description') &&
+		fillMode === 'rich_html'
+	) {
+		const byExactLabel = resolveControlByExactFieldLabel(field);
+		if (byExactLabel && elementPassesFieldGuard(field, byExactLabel)) {
+			return byExactLabel;
+		}
 	}
 
 	const labelFirst =
@@ -1143,6 +1187,14 @@ function defaultFileInputIndex(field: LaunchStepField, fillMode: LaunchStepField
 	return 0;
 }
 
+function resolveFileInputFromFieldLabels(field: LaunchStepField): HTMLInputElement | null {
+	const byFor = resolveControlByLabelForAttribute(field);
+	if (byFor instanceof HTMLInputElement && byFor.type === 'file') return byFor;
+	const byLabel = resolveControlByExactFieldLabel(field);
+	if (byLabel instanceof HTMLInputElement && byLabel.type === 'file') return byLabel;
+	return null;
+}
+
 function resolveFileInput(
 	field: LaunchStepField,
 	fillMode: LaunchStepFieldFillMode,
@@ -1156,6 +1208,14 @@ function resolveFileInput(
 	if (adapter) {
 		const fromAdapter = adapter.resolveFileInput(field, fillMode, options, ctx);
 		if (fromAdapter !== undefined) return fromAdapter;
+	}
+
+	const byLabel = resolveFileInputFromFieldLabels(field);
+	if (byLabel) return byLabel;
+
+	if (adapter?.resolveFileInputAfterLabel) {
+		const afterLabel = adapter.resolveFileInputAfterLabel(field, fillMode, ctx);
+		if (afterLabel) return afterLabel;
 	}
 
 	const index = defaultFileInputIndex(field, fillMode);
@@ -1749,15 +1809,33 @@ export function fillableTagListForField(
 async function fillFileLaunchField(
 	snapshot: AutoLaunchProfileSnapshot,
 	field: LaunchStepField,
-	context: FillLaunchContext
+	context: FillLaunchContext & { dashboardOrigin: string }
 ): Promise<FieldFillResult> {
 	const effectiveSnapshot = mergeMainProfileSocialData(snapshot, context.mainProfileSnapshot);
-	const paths = resolveProfileStoragePathList(effectiveSnapshot, field.profilePath);
+	const paths = isGalleryProfileField(field)
+		? galleryPathsExcludingLogo(effectiveSnapshot)
+		: resolveProfileStoragePathList(effectiveSnapshot, field.profilePath);
 	if (paths.length === 0) {
 		return { key: field.key, label: field.label, status: 'not_in_profile' };
 	}
 
 	const fillMode = resolveFillMode(field);
+
+	const siteMedia = getActiveSiteMediaAdapter();
+	if (siteMedia?.fillLogoMedia && isLogoProfileField(field) && fillMode === 'file') {
+		const urlResult = await siteMedia.fillLogoMedia(effectiveSnapshot, field, {
+			dashboardOrigin: context.dashboardOrigin,
+			mainProfileSnapshot: context.mainProfileSnapshot,
+		});
+		if (urlResult?.status === 'found') return urlResult;
+	}
+	if (siteMedia?.fillGalleryMedia && isGalleryProfileField(field) && fillMode === 'files') {
+		const urlResult = await siteMedia.fillGalleryMedia(effectiveSnapshot, field, {
+			dashboardOrigin: context.dashboardOrigin,
+			mainProfileSnapshot: context.mainProfileSnapshot,
+		});
+		if (urlResult?.status === 'found') return urlResult;
+	}
 
 	const maxItems =
 		typeof field.maxItems === 'number' && field.maxItems > 0 ? field.maxItems : undefined;
@@ -1767,6 +1845,7 @@ async function fillFileLaunchField(
 
 	for (let index = 0; index < pathsToLoad.length; index += 1) {
 		const path = pathsToLoad[index];
+		if (!path) continue;
 		const file = await fetchProfileMediaFile(context.dashboardOrigin, path);
 		if (!file) continue;
 		const downloadName = profileMediaDownloadFileName(path, index, field, effectiveSnapshot);
@@ -1782,7 +1861,10 @@ async function fillFileLaunchField(
 		};
 	}
 
-	const siteMedia = getActiveSiteMediaAdapter();
+	if (siteMedia?.fillLogoFile && isLogoProfileField(field) && fillMode === 'file' && files[0]) {
+		const adapterResult = await siteMedia.fillLogoFile(field, files[0]);
+		if (adapterResult) return adapterResult;
+	}
 	if (siteMedia?.fillGalleryFiles && isGalleryProfileField(field) && fillMode === 'files') {
 		const adapterResult = await siteMedia.fillGalleryFiles(field, files);
 		if (adapterResult) return adapterResult;
@@ -1938,8 +2020,9 @@ export async function fillLaunchField(
 				message: 'OpenQuok dashboard origin missing — restart launch from OpenQuok.',
 			};
 		}
+		const dashboardOrigin = context.dashboardOrigin.trim();
 		return fillFileLaunchField(snapshot, field, {
-			dashboardOrigin: context.dashboardOrigin.trim(),
+			dashboardOrigin,
 			mainProfileSnapshot: context.mainProfileSnapshot,
 		});
 	}

@@ -41,6 +41,21 @@ describe('directorySiteKeyFromProviderSlug', () => {
 		expect(directorySiteKeyFromProviderSlug('open-launch-free-launch')).toBe('open-launch');
 	});
 
+	it('resolves nick-launches provider slugs to the nick-launches site key', () => {
+		expect(directorySiteKeyFromProviderSlug('nick-launches-free-launch')).toBe('nick-launches');
+		expect(directorySiteKeyFromProviderSlug('nick-launches-maker-profile')).toBe('nick-launches');
+	});
+
+	it('resolves indiehub provider slugs to the indiehub site key', () => {
+		expect(directorySiteKeyFromProviderSlug('indiehub-basic-launch')).toBe('indiehub');
+		expect(directorySiteKeyFromProviderSlug('indiehub-pro-launch')).toBe('indiehub');
+	});
+
+	it('resolves alternativeto provider slugs to the alternativeto site key', () => {
+		expect(directorySiteKeyFromProviderSlug('alternativeto-free-listing')).toBe('alternativeto');
+		expect(directorySiteKeyFromProviderSlug('alternativeto-user-profile')).toBe('alternativeto');
+	});
+
 	it('matches multi-segment published site slugs', () => {
 		expect(directorySiteKeyFromProviderSlug('other-site-launch', ['other-site', 'other'])).toBe(
 			'other-site'
@@ -96,6 +111,45 @@ describe('buildDirectoryAddChannelTiles', () => {
 		);
 		expect(tiles[0]?.logoUrl).toBe('/icons/link-directory/tinylaunch.svg');
 		expect(tiles[0]?.brandedIconName).toBe('TinyLaunch');
+	});
+
+	it('assigns bundled logo and branded icon for nick-launches', () => {
+		const tiles = buildDirectoryAddChannelTiles(
+			[
+				destination({ providerSlug: 'nick-launches-free-launch', siteTitle: 'Nick Launches' }),
+				destination({ providerSlug: 'nick-launches-maker-profile', sortOrder: 1 })
+			],
+			new Map([['nick-launches', { title: 'Nick Launches', logoUrl: null }]])
+		);
+		expect(tiles).toHaveLength(1);
+		expect(tiles[0]?.logoUrl).toBe('/icons/link-directory/nick-launches.svg');
+		expect(tiles[0]?.brandedIconName).toBe('NickLaunches');
+	});
+
+	it('assigns bundled logo and branded icon for indiehub', () => {
+		const tiles = buildDirectoryAddChannelTiles(
+			[
+				destination({ providerSlug: 'indiehub-basic-launch', siteTitle: 'IndieHub' }),
+				destination({ providerSlug: 'indiehub-pro-launch', sortOrder: 1 })
+			],
+			new Map([['indiehub', { title: 'IndieHub', logoUrl: null }]])
+		);
+		expect(tiles).toHaveLength(1);
+		expect(tiles[0]?.logoUrl).toBe('/icons/link-directory/indiehub.svg');
+		expect(tiles[0]?.brandedIconName).toBe('IndieHub');
+	});
+
+	it('assigns bundled logo and branded icon for alternativeto', () => {
+		const tiles = buildDirectoryAddChannelTiles(
+			[
+				destination({ providerSlug: 'alternativeto-free-listing', siteTitle: 'AlternativeTo' }),
+				destination({ providerSlug: 'alternativeto-priority-review', sortOrder: 1 })
+			],
+			new Map([['alternativeto', { title: 'AlternativeTo', logoUrl: null }]])
+		);
+		expect(tiles).toHaveLength(1);
+		expect(tiles[0]?.logoUrl).toBe('/icons/link-directory/alternativeto.svg');
+		expect(tiles[0]?.brandedIconName).toBe('AlternativeTo');
 	});
 
 	it('assigns bundled logo and branded icon for devhunt', () => {

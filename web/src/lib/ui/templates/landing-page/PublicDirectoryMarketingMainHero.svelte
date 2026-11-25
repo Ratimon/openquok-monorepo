@@ -1,12 +1,22 @@
 <script lang="ts">
+	import type { IconName } from '$data/icons';
+
+	import type { PublicChannelKind } from '$lib/content/constants/channels/catalog/types';
+
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
 	import BentoLandingDirectoryAnalyticsPreview from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingDirectoryAnalyticsPreview.svelte';
+	import PublicChannelsLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicChannelsLandingBreadcrumb.svelte';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	type Props = {
 		subtitle?: string;
 		title: string;
 		description: string;
+		/** Branded mark above the hero title (directory channel landings). */
+		iconName?: IconName;
+		platformLabel?: string;
+		channelKind?: PublicChannelKind;
 		primaryCtaLabel: string;
 		primaryCtaHref: string;
 		secondaryCtaLabel?: string;
@@ -21,6 +31,9 @@
 		subtitle = '',
 		title,
 		description,
+		iconName,
+		platformLabel,
+		channelKind = 'directory',
 		primaryCtaLabel,
 		primaryCtaHref,
 		secondaryCtaLabel,
@@ -34,10 +47,29 @@
 	const showDualCta = $derived(Boolean(secondaryCtaLabel?.trim() && secondaryCtaHref?.trim()));
 	const showTertiaryCta = $derived(Boolean(tertiaryCtaLabel?.trim() && tertiaryCtaHref?.trim()));
 	const heroSubtitle = $derived(subtitle.trim());
+
+	const showChannelHeroHeader = $derived(Boolean(iconName && platformLabel?.trim()));
 </script>
+
+{#snippet directoryChannelHeaderAboveGrid()}
+	{#if iconName}
+		<div
+			class="flex size-16 items-center justify-center rounded-2xl border border-base-content/10 bg-base-100 shadow-lg"
+			aria-hidden="true"
+		>
+			<AbstractIcon name={iconName} width="36" height="36" class="size-9" focusable="false" />
+		</div>
+	{/if}
+	{#if platformLabel}
+		<div class="flex w-full min-w-0 justify-center">
+			<PublicChannelsLandingBreadcrumb {platformLabel} {channelKind} />
+		</div>
+	{/if}
+{/snippet}
 
 <HeroWithRightMedia
 	heroTheme={landingHeroTheme}
+	headerAboveGrid={showChannelHeroHeader ? directoryChannelHeaderAboveGrid : undefined}
 	landingSubtitle={heroSubtitle}
 	landingTitle={title}
 	landingTitleScale="main"

@@ -13,6 +13,21 @@ import {
 	DEVHUNT_TOOL_FORM_EXTENSION_CONFIG,
 } from './devhunt.js';
 import {
+	NICK_LAUNCHES_FREE_LAUNCH_EXTENSION_CONFIG,
+	NICK_LAUNCHES_MAKER_PROFILE_EXTENSION_CONFIG,
+	NICK_LAUNCHES_PAID_LAUNCH_EXTENSION_CONFIG,
+} from './nick-launches.js';
+import {
+	INDIEHUB_BASIC_LAUNCH_EXTENSION_CONFIG,
+	INDIEHUB_PRO_LAUNCH_EXTENSION_CONFIG,
+} from './indiehub.js';
+import {
+	ALTERNATIVETO_FINISH_LISTING_EXTENSION_CONFIG,
+	ALTERNATIVETO_FREE_LISTING_EXTENSION_CONFIG,
+	ALTERNATIVETO_PRIORITY_REVIEW_EXTENSION_CONFIG,
+	ALTERNATIVETO_USER_PROFILE_EXTENSION_CONFIG,
+} from './alternativeto.js';
+import {
 	FAZIER_FREE_PRODUCT_LISTING_EXTENSION_CONFIG,
 	FAZIER_PAID_PRODUCT_LISTING_EXTENSION_CONFIG,
 	FAZIER_PAGE_EXTENSION_CONFIG,
@@ -40,6 +55,24 @@ export {
 	DEVHUNT_STANDARD_LAUNCH_EXTENSION_CONFIG,
 	DEVHUNT_TOOL_FORM_EXTENSION_CONFIG,
 } from './devhunt.js';
+export {
+	NICK_LAUNCHES_FREE_LAUNCH_EXTENSION_CONFIG,
+	NICK_LAUNCHES_LISTING_FORM_EXTENSION_CONFIG,
+	NICK_LAUNCHES_MAKER_PROFILE_EXTENSION_CONFIG,
+	NICK_LAUNCHES_PAID_LAUNCH_EXTENSION_CONFIG,
+} from './nick-launches.js';
+export {
+	INDIEHUB_BASIC_LAUNCH_EXTENSION_CONFIG,
+	INDIEHUB_DETAILS_FORM_EXTENSION_CONFIG,
+	INDIEHUB_PRO_LAUNCH_EXTENSION_CONFIG,
+} from './indiehub.js';
+export {
+	ALTERNATIVETO_FINISH_LISTING_EXTENSION_CONFIG,
+	ALTERNATIVETO_FREE_LISTING_EXTENSION_CONFIG,
+	ALTERNATIVETO_LISTING_FORM_EXTENSION_CONFIG,
+	ALTERNATIVETO_PRIORITY_REVIEW_EXTENSION_CONFIG,
+	ALTERNATIVETO_USER_PROFILE_EXTENSION_CONFIG,
+} from './alternativeto.js';
 export {
 	FAZIER_FREE_PRODUCT_LISTING_EXTENSION_CONFIG,
 	FAZIER_PAID_PRODUCT_LISTING_EXTENSION_CONFIG,
@@ -71,6 +104,15 @@ export const DIRECTORY_EXTENSION_CONFIG_FIXTURES: Record<string, AutoLaunchExten
 	'fazier-paid-product-listing': FAZIER_PAID_PRODUCT_LISTING_EXTENSION_CONFIG,
 	'devhunt-paid-launch': DEVHUNT_PAID_LAUNCH_EXTENSION_CONFIG,
 	'devhunt-standard-launch': DEVHUNT_STANDARD_LAUNCH_EXTENSION_CONFIG,
+	'nick-launches-free-launch': NICK_LAUNCHES_FREE_LAUNCH_EXTENSION_CONFIG,
+	'nick-launches-paid-launch': NICK_LAUNCHES_PAID_LAUNCH_EXTENSION_CONFIG,
+	'nick-launches-maker-profile': NICK_LAUNCHES_MAKER_PROFILE_EXTENSION_CONFIG,
+	'indiehub-basic-launch': INDIEHUB_BASIC_LAUNCH_EXTENSION_CONFIG,
+	'indiehub-pro-launch': INDIEHUB_PRO_LAUNCH_EXTENSION_CONFIG,
+	'alternativeto-free-listing': ALTERNATIVETO_FREE_LISTING_EXTENSION_CONFIG,
+	'alternativeto-priority-review': ALTERNATIVETO_PRIORITY_REVIEW_EXTENSION_CONFIG,
+	'alternativeto-finish-listing': ALTERNATIVETO_FINISH_LISTING_EXTENSION_CONFIG,
+	'alternativeto-user-profile': ALTERNATIVETO_USER_PROFILE_EXTENSION_CONFIG,
 };
 
 export const DIRECTORY_EXTENSION_CONFIG_PROVIDER_SLUGS = Object.keys(
@@ -93,6 +135,9 @@ export {
 	type AutoLaunchCompositeDestinationSeedSiteKey,
 	type AutoLaunchPricingQueueVariantDerived,
 	UNEED_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
+	NICK_LAUNCHES_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
+	INDIEHUB_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
+	ALTERNATIVETO_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
 } from './syncMetadata.js';
 
 export {
@@ -139,6 +184,21 @@ export {
 	DEVHUNT_HOST_PERMISSION,
 } from './devhunt.js';
 export {
+	NICK_LAUNCHES_DIRECTORY_LAUNCH_PROVIDERS,
+	NICK_LAUNCHES_HOST_PATTERNS,
+	NICK_LAUNCHES_HOST_PERMISSION,
+} from './nick-launches.js';
+export {
+	INDIEHUB_DIRECTORY_LAUNCH_PROVIDERS,
+	INDIEHUB_HOST_PATTERNS,
+	INDIEHUB_HOST_PERMISSION,
+} from './indiehub.js';
+export {
+	ALTERNATIVETO_DIRECTORY_LAUNCH_PROVIDERS,
+	ALTERNATIVETO_HOST_PATTERNS,
+	ALTERNATIVETO_HOST_PERMISSION,
+} from './alternativeto.js';
+export {
 	FAZIER_DIRECTORY_LAUNCH_PROVIDERS,
 	FAZIER_HOST_PATTERNS,
 	FAZIER_HOST_PERMISSION,
@@ -175,6 +235,35 @@ export {
 	matchDevhuntOfficialPricing,
 	type DevhuntOfficialPricingLabel,
 } from './devhunt.js';
+export {
+	NICK_LAUNCHES_OFFICIAL_CATEGORY_LABELS,
+	NICK_LAUNCHES_OFFICIAL_PRICING_VALUES,
+	coerceToNickLaunchesOfficialPricing,
+	filterToNickLaunchesOfficialCategories,
+	matchNickLaunchesOfficialCategory,
+	matchNickLaunchesOfficialPricing,
+	nickLaunchesSelectCatalogOptions,
+	type NickLaunchesOfficialCategoryLabel,
+	type NickLaunchesOfficialPricingValue,
+} from './nick-launches.js';
+export {
+	INDIEHUB_OFFICIAL_CATEGORY_LABELS,
+	filterToIndiehubOfficialCategories,
+	matchIndiehubOfficialCategory,
+	type IndiehubOfficialCategoryLabel,
+} from './indiehub.js';
+export {
+	ALTERNATIVETO_OFFICIAL_LICENSE_LABELS,
+	ALTERNATIVETO_OFFICIAL_PLATFORM_LABELS,
+	alternativetoSelectCatalogOptions,
+	coerceToAlternativetoOfficialLicense,
+	filterToAlternativetoOfficialPlatforms,
+	mapBusinessProfilePricingToAlternativetoLicense,
+	matchAlternativetoOfficialLicense,
+	matchAlternativetoOfficialPlatform,
+	type AlternativetoOfficialLicenseLabel,
+	type AlternativetoOfficialPlatformLabel,
+} from './alternativeto.js';
 export {
 	TINYLAUNCH_OFFICIAL_CATEGORY_LABELS,
 	coerceToTinylaunchOfficialCategory,

@@ -13,7 +13,10 @@ const BUNDLED_DIRECTORY_LOGO_SLUGS = new Set<string>([
 	'open-launch',
 	'tinylaunch',
 	'fazier',
-	'devhunt'
+	'devhunt',
+	'nick-launches',
+	'indiehub',
+	'alternativeto'
 ]);
 
 const DIRECTORY_SITE_BRANDED_ICONS: Record<string, BrandedIconName> = {
@@ -22,7 +25,10 @@ const DIRECTORY_SITE_BRANDED_ICONS: Record<string, BrandedIconName> = {
 	'open-launch': 'OpenLaunch',
 	tinylaunch: 'TinyLaunch',
 	fazier: 'Fazier',
-	devhunt: 'DevHunt'
+	devhunt: 'DevHunt',
+	'nick-launches': 'NickLaunches',
+	indiehub: 'IndieHub',
+	alternativeto: 'AlternativeTo'
 };
 
 export type LinkDirectorySiteBranding = {

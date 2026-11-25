@@ -41,6 +41,9 @@
     "*://*.tinylaunch.com/*",
     "*://*.fazier.com/*",
     "*://devhunt.org/*",
+    "*://nicklaunches.com/*",
+    "*://indiehub.best/*",
+    "*://alternativeto.net/*",
     "https://*.openquok.com/*",
     "http://localhost/*",
     "http://127.0.0.1/*",
@@ -76,6 +79,21 @@
     {
       "matches": ["https://devhunt.org/*"],
       "js": ["content/directory-launch/openquok-directory-devhunt.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://nicklaunches.com/*"],
+      "js": ["content/directory-launch/openquok-directory-nick-launches.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://indiehub.best/*"],
+      "js": ["content/directory-launch/openquok-directory-indiehub.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://alternativeto.net/*"],
+      "js": ["content/directory-launch/openquok-directory-alternativeto.js"],
       "run_at": "document_idle"
     },
     {

@@ -25,6 +25,9 @@ export const DIRECTORY_SITE_DISPLAY_NAME: Record<string, string> = {
 	tinylaunch: 'TinyLaunch',
 	fazier: 'Fazier',
 	devhunt: 'DevHunt',
+	'nick-launches': 'Nick Launches',
+	indiehub: 'IndieHub',
+	alternativeto: 'AlternativeTo',
 };
 
 type CheckDirectoryGateResponse = {

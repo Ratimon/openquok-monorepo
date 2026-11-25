@@ -25,7 +25,17 @@ if (existsSync(iconsSrc)) {
 const linkDirectorySrc = join(extensionRoot, '../web/static/icons/link-directory');
 const linkDirectoryDest = join(distDir, 'icons/link-directory');
 /** Shipped auto-launch directory sites — must match `BUNDLED_DIRECTORY_LOGO_SLUGS` in web. */
-const shippedLinkDirectoryLogoSlugs = ['peerpush', 'uneed', 'open-launch', 'tinylaunch', 'fazier', 'devhunt'];
+const shippedLinkDirectoryLogoSlugs = [
+	'peerpush',
+	'uneed',
+	'open-launch',
+	'tinylaunch',
+	'fazier',
+	'devhunt',
+	'nick-launches',
+	'indiehub',
+	'alternativeto',
+];
 if (existsSync(linkDirectorySrc)) {
 	mkdirSync(linkDirectoryDest, { recursive: true });
 	for (const slug of shippedLinkDirectoryLogoSlugs) {

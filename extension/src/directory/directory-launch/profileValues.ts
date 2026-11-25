@@ -24,15 +24,81 @@ export function resolveProfileValue(
 	return resolveProfilePathValue(snapshot, profilePath);
 }
 
-function hasNonEmptyGalleryUrls(profileData: AutoLaunchProfileSnapshot['profile_data']): boolean {
-	if (!profileData?.gallery_urls || !Array.isArray(profileData.gallery_urls)) return false;
-	return profileData.gallery_urls.some(
-		(entry) => typeof entry === 'string' && entry.trim().length > 0
-	);
+const AUTO_LAUNCH_PROFILE_MEDIA_BUCKET = 'auto_launch_profile_media';
+
+function normalizeObjectStorageKey(key: string): string {
+	let trimmed = key.trim().replace(/^\/+/, '');
+	if (trimmed.startsWith(`${AUTO_LAUNCH_PROFILE_MEDIA_BUCKET}/`)) {
+		trimmed = trimmed.slice(AUTO_LAUNCH_PROFILE_MEDIA_BUCKET.length + 1);
+	}
+	return trimmed.split('?')[0]?.toLowerCase() ?? trimmed.toLowerCase();
+}
+
+/** Canonical object key for a profile media ref (storage path, https URL, or image/download link). */
+export function mediaRefCanonicalKey(path: string): string {
+	const trimmed = path.trim();
+	if (!trimmed) return '';
+	try {
+		const parsed = new URL(trimmed);
+		const imageUrl = parsed.searchParams.get('imageUrl')?.trim();
+		if (imageUrl) return normalizeObjectStorageKey(decodeURIComponent(imageUrl));
+		return `${parsed.hostname.toLowerCase()}${parsed.pathname.toLowerCase()}`;
+	} catch {
+		return normalizeObjectStorageKey(trimmed);
+	}
+}
+
+function mediaRefsEquivalent(a: string, b: string): boolean {
+	const ka = mediaRefCanonicalKey(a);
+	const kb = mediaRefCanonicalKey(b);
+	if (!ka || !kb) return false;
+	if (ka === kb) return true;
+	const ba = ka.split('/').pop() ?? '';
+	const bb = kb.split('/').pop() ?? '';
+	return ba.length > 0 && ba === bb;
+}
+
+function dedupeMediaPaths(paths: readonly string[]): string[] {
+	const seen = new Set<string>();
+	const out: string[] = [];
+	for (const path of paths) {
+		const key = mediaRefCanonicalKey(path);
+		if (!key || seen.has(key)) continue;
+		seen.add(key);
+		out.push(path);
+	}
+	return out;
+}
+
+function collectGalleryEntriesExcludingLogo(snapshot: AutoLaunchProfileSnapshot): {
+	paths: string[];
+	indices: number[];
+} {
+	const paths = resolveProfileStoragePathList(snapshot, 'profile_data.gallery_urls');
+	const logoRefs = resolveProfileStoragePathList(snapshot, 'logo_url');
+	const kept: string[] = [];
+	const indices: number[] = [];
+	for (let index = 0; index < paths.length; index += 1) {
+		const entry = paths[index];
+		if (!entry) continue;
+		if (logoRefs.some((logo) => mediaRefsEquivalent(entry, logo))) continue;
+		kept.push(entry);
+		indices.push(index);
+	}
+	return { paths: dedupeMediaPaths(kept), indices };
+}
+
+/** Gallery paths that are not the same asset as `logo_url` (avoid screenshot fills with the icon). */
+export function galleryPathsExcludingLogo(snapshot: AutoLaunchProfileSnapshot): string[] {
+	return collectGalleryEntriesExcludingLogo(snapshot).paths;
+}
+
+function hasMeaningfulGalleryUrls(snapshot: AutoLaunchProfileSnapshot): boolean {
+	return galleryPathsExcludingLogo(snapshot).length > 0;
 }
 
 /**
- * Merge main-profile fallbacks for directory variants: social URLs, logo, and gallery screenshots.
+ * Merge main-profile fallbacks for directory variants: tagline, social URLs, logo, and gallery screenshots.
  */
 export function mergeMainProfileSocialData(
 	active: AutoLaunchProfileSnapshot,
@@ -47,6 +113,11 @@ export function mergeMainProfileSocialData(
 	const mainPd = main.profile_data ?? {};
 	const mergedPd: Record<string, unknown> = { ...(active.profile_data ?? {}) };
 
+	if (!active.tagline?.trim() && main.tagline?.trim()) {
+		next = { ...next, tagline: main.tagline };
+		changed = true;
+	}
+
 	if (!active.logo_url?.trim() && main.logo_url?.trim()) {
 		next = { ...next, logo_url: main.logo_url };
 		changed = true;
@@ -57,10 +128,26 @@ export function mergeMainProfileSocialData(
 		}
 	}
 
-	if (!hasNonEmptyGalleryUrls(activePd) && hasNonEmptyGalleryUrls(mainPd)) {
-		mergedPd.gallery_urls = mainPd.gallery_urls;
-		if (mainPd.gallery_labels !== undefined) {
-			mergedPd.gallery_labels = mainPd.gallery_labels;
+	const activeSnapshotForGallery: AutoLaunchProfileSnapshot = {
+		...active,
+		profile_data: activePd as AutoLaunchProfileSnapshot['profile_data'],
+	};
+	const mainSnapshotForGallery: AutoLaunchProfileSnapshot = {
+		...main,
+		logo_url: next.logo_url ?? main.logo_url,
+		profile_data: mainPd as AutoLaunchProfileSnapshot['profile_data'],
+	};
+	if (
+		!hasMeaningfulGalleryUrls(activeSnapshotForGallery) &&
+		hasMeaningfulGalleryUrls(mainSnapshotForGallery)
+	) {
+		const mainGallery = collectGalleryEntriesExcludingLogo(mainSnapshotForGallery);
+		mergedPd.gallery_urls = mainGallery.paths;
+		const mainLabels = mainPd.gallery_labels;
+		if (Array.isArray(mainLabels) && mainGallery.paths.length > 0) {
+			mergedPd.gallery_labels = mainGallery.indices
+				.map((slot) => mainLabels[slot])
+				.filter((label): label is string => typeof label === 'string' && label.trim().length > 0);
 		}
 		changed = true;
 	}
@@ -74,6 +161,16 @@ export function mergeMainProfileSocialData(
 				mergedPd[key] = mainVal;
 				changed = true;
 			}
+		}
+		const activeLaunchVideo = activePd.launch_video_url;
+		const mainLaunchVideo = mainPd.launch_video_url;
+		if (
+			(typeof activeLaunchVideo !== 'string' || !activeLaunchVideo.trim()) &&
+			typeof mainLaunchVideo === 'string' &&
+			mainLaunchVideo.trim()
+		) {
+			mergedPd.launch_video_url = mainLaunchVideo;
+			changed = true;
 		}
 	}
 
