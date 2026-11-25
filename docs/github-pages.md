@@ -4,6 +4,8 @@ Static landing page: `index.html` in this folder. Outbound links to `openquok.co
 
 ## One-time repo setup (required)
 
+If **Deploy GitHub Pages** fails with `No artifacts named "github-pages" were found`, expand the **build** job in the workflow run: **Upload Pages artifact** must succeed before **deploy** runs. The workflow grants `actions: write` (upload) and `actions: read` (deploy) on `GITHUB_TOKEN`. If upload failed, fix that step first, then re-run all jobs.
+
 If **Deploy GitHub Pages** fails with `Failed to create deployment (status: 404)`, Pages is not enabled yet:
 
 1. Open [Repository Settings → Pages](https://github.com/Ratimon/openquok-monorepo/settings/pages).
