@@ -105,7 +105,7 @@ export const redditChannel = {
 		iconClass: 'text-orange-500',
 		title: 'Subreddit moderators',
 		description:
-			'Schedule announcements and recurring threads from one calendar. The extension can autofill the submit form — you still click Post.',
+			'One calendar for mod announcements and recurring threads. The extension autofills the form. You click Post.',
 		containerClass: 'h-full min-h-[18rem]'
 	},
 	faqSubtitle: 'Frequently asked questions',

@@ -35,6 +35,19 @@ export type AgentsChannelAudienceSection = {
 	audienceCards: AudienceCard[];
 };
 
+/** Social agent × channel pages use three seed personas; ecosystem + safety cards append later (max six total). */
+const AGENT_SOCIAL_CHANNEL_AUDIENCE_SEED_LIMIT = 3;
+
+function limitAgentChannelSeedAudienceCards(
+	cards: readonly AudienceCard[],
+	isDirectory: boolean
+): AudienceCard[] {
+	if (isDirectory || cards.length <= AGENT_SOCIAL_CHANNEL_AUDIENCE_SEED_LIMIT) {
+		return [...cards];
+	}
+	return cards.slice(0, AGENT_SOCIAL_CHANNEL_AUDIENCE_SEED_LIMIT);
+}
+
 function buildDirectoryAgentAudienceCardDescription(
 	cardIndex: number,
 	platformLabel: string,
@@ -84,11 +97,11 @@ function buildAgentAudienceCardHook(
 
 	switch (cardIndex) {
 		case 0:
-			return `Message ${agentLabel} to draft ${platformLabel} posts. Approve on OpenQuok.`;
+			return `Message ${agentLabel} to draft. Approve on OpenQuok.`;
 		case 1:
-			return `Schedule ${platformLabel} at volume through ${agentLabel}. Your team approves on OpenQuok.`;
+			return `Batch through ${agentLabel}. Team approves on OpenQuok.`;
 		default:
-			return `Run ${agentLabel} per client. ${platformLabel} workspaces stay separate.`;
+			return `One ${agentLabel} workspace per client.`;
 	}
 }
 
@@ -109,6 +122,12 @@ function tailorAudienceCardDescription(
 			mode,
 			siteKey
 		);
+	}
+
+	if (siteKey === 'tiktok' && cardIndex === 1) {
+		return mode === 'mcp-client'
+			? `TikTok Content Posting API. Less ban risk than browser logins. Ask ${agentLabel} to draft. Approve on OpenQuok.`
+			: `TikTok Content Posting API. Less ban risk than browser logins. Message ${agentLabel} to draft. Approve on OpenQuok.`;
 	}
 
 	const base = description.trim().replace(/\.$/, '');
@@ -139,8 +158,8 @@ function appendChannelSeedAudienceTailoredCard(
 	const description =
 		channel.slug === 'reddit'
 			? mode === 'mcp-client'
-				? `${base}. Ask ${agentLabel} to draft markdown; you submit on reddit.com.`
-				: `${base}. Message ${agentLabel} to draft markdown; you submit on reddit.com.`
+				? `${base}. Ask ${agentLabel} to draft. You post on reddit.com when it is due.`
+				: `${base}. Message ${agentLabel} to draft. You post on reddit.com when it is due.`
 			: tailored.description;
 
 	return [...cards, { ...tailored, description }];
@@ -163,7 +182,8 @@ export function buildAgentsChannelAudienceSection(params: {
 	const siteKey = channel.slug;
 
 	const seedCards = getPublicChannelSeedAudienceCards(channel.slug);
-	const audienceCards = seedCards.length > 0 ? seedCards : [...channel.audienceCards];
+	const baseAudienceCards = seedCards.length > 0 ? seedCards : [...channel.audienceCards];
+	const audienceCards = limitAgentChannelSeedAudienceCards(baseAudienceCards, isDirectory);
 
 	return {
 		audienceSubtitle: isDirectory

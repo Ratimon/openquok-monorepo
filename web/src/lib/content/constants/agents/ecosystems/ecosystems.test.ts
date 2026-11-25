@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import { PUBLIC_AGENT_HOST_LANDING_PAGES } from '$lib/content/constants/agents/seeds';
 import { getPublicAgentHostBySlug } from '$lib/content/constants/agents';
+import { buildAgentsChannelAudienceSection } from '$lib/content/constants/agents/channels/general';
+import { getPublicChannelBySlug } from '$lib/content/constants/channels';
 import { getPublicMcpLandingBySlug } from '$lib/content/constants/mcps';
 import {
 	AGENT_HOST_ECOSYSTEM_BY_SLUG,
@@ -257,11 +259,18 @@ describe('buildMcpClientEcosystemFaqItems', () => {
 });
 
 describe('resolveAgentHostAudienceCards', () => {
-	it('appends a fourth card for ecosystem hosts only', () => {
+	it('appends official-API card for every agent host and ecosystem card when mapped', () => {
 		const withMeta = resolveAgentHostAudienceCards([BASE_AUDIENCE_CARD], 'meta-muse');
-		expect(withMeta).toHaveLength(2);
-		const without = resolveAgentHostAudienceCards([BASE_AUDIENCE_CARD], 'hermes');
-		expect(without).toHaveLength(1);
+		expect(withMeta.map((card) => card.title)).toEqual([
+			'Base',
+			'Creators who fear platform bans',
+			'Meta-owned channels first'
+		]);
+		const withoutEcosystem = resolveAgentHostAudienceCards([BASE_AUDIENCE_CARD], 'hermes');
+		expect(withoutEcosystem.map((card) => card.title)).toEqual([
+			'Base',
+			'Creators who fear platform bans'
+		]);
 	});
 });
 
@@ -279,10 +288,100 @@ describe('resolveMcpChannelAudienceCards', () => {
 
 describe('resolveAgentChannelAudienceCards', () => {
 	it('uses Grok Bot X-home-network instead of the channel-page cloud-desktop card', () => {
-		const cards = resolveAgentChannelAudienceCards([BASE_AUDIENCE_CARD], 'grok-bot', 'x', 'X');
+		const cards = resolveAgentChannelAudienceCards([BASE_AUDIENCE_CARD], 'grok-bot', 'x', 'X', {
+			agentLabel: 'Grok Bot'
+		});
 		expect(cards.map((card) => card.title)).toEqual(['Base', 'X as your home network']);
 		expect(cards[0]?.description).toContain('first-class for Grok Bot');
+		expect(cards[0]?.description).toContain('Official X APIs');
 		expect(cards.at(-1)?.description).toContain('cloud computer');
+	});
+
+	it('tailors Meta ecosystem card for multi-channel agent × TikTok landings', () => {
+		const cards = resolveAgentChannelAudienceCards(
+			[BASE_AUDIENCE_CARD],
+			'meta-muse',
+			'tiktok',
+			'TikTok',
+			{ agentLabel: 'Meta Muse' }
+		);
+		const ecosystem = cards.find((card) => card.title === 'Meta-owned channels first');
+		expect(ecosystem?.description).toContain('Queue TikTok and Meta in one workspace');
+	});
+
+	it('keeps Meta Muse TikTok WhoIsFor at most six cards without duplicate safety rows', () => {
+		const channel = getPublicChannelBySlug('tiktok');
+		expect(channel).toBeDefined();
+		const section = buildAgentsChannelAudienceSection({
+			channel: channel!,
+			agentLabel: 'Meta Muse',
+			mode: 'agent-host'
+		});
+		expect(section.audienceCards).toHaveLength(3);
+		const cards = resolveAgentChannelAudienceCards(
+			section.audienceCards,
+			'meta-muse',
+			'tiktok',
+			'TikTok',
+			{ agentLabel: 'Meta Muse' }
+		);
+		expect(cards.length).toBeLessThanOrEqual(6);
+		expect(cards.length).toBe(4);
+		expect(cards.some((card) => card.title === 'TikTok creators who skip risky automation')).toBe(
+			false
+		);
+		expect(cards.some((card) => card.title === 'TikTok creators')).toBe(true);
+	});
+
+	it('merges official-API copy into card 0 for Meta Muse Instagram (no duplicate card)', () => {
+		const cards = resolveAgentChannelAudienceCards(
+			[
+				{
+					iconName: 'house',
+					title: 'Brands & creators',
+					description: 'Feed posts, Reels, and Stories on one calendar.'
+				}
+			],
+			'meta-muse',
+			'instagram',
+			'Instagram',
+			{ agentLabel: 'Meta Muse' }
+		);
+		expect(cards.map((card) => card.title)).toEqual([
+			'Brands & creators',
+			'Meta-owned channels first'
+		]);
+		expect(cards[0]?.description).toContain('Official Meta APIs');
+		expect(cards.some((card) => card.title.includes('who avoid restrictions'))).toBe(
+			false
+		);
+	});
+
+	it('tailors Facebook official-API copy on agent × channel landings', () => {
+		const cards = resolveAgentChannelAudienceCards(
+			[BASE_AUDIENCE_CARD],
+			'cue',
+			'facebook',
+			'Facebook',
+			{ agentLabel: 'Cue' }
+		);
+		expect(cards.at(-1)?.title).toBe('Facebook creators who avoid policy strikes');
+		expect(cards.at(-1)?.description).toContain('Graph API');
+		expect(cards.at(-1)?.description).toContain('Message Cue');
+	});
+
+	it('uses Reddit extension autofill copy, not official API publish', () => {
+		const cards = resolveAgentChannelAudienceCards(
+			[BASE_AUDIENCE_CARD],
+			'cue',
+			'reddit',
+			'Reddit',
+			{ agentLabel: 'Cue' }
+		);
+		expect(cards.at(-1)?.title).toBe('Reddit posters who avoid ban risk');
+		expect(cards.at(-1)?.description).toContain('autofill');
+		expect(cards.at(-1)?.description).toContain('click Post');
+		expect(cards.at(-1)?.description).not.toContain('official APIs with OAuth');
 	});
 });
 
@@ -338,7 +437,20 @@ describe('ecosystem grid copy', () => {
 		);
 		expect(
 			buildAgentHostEcosystemChannelSiblingGridHubDescription('Grok Bot', 'grok-bot')
-		).toContain('Start with X');
+		).toContain('SpaceXSI');
+	});
+
+	it('uses xAI ecosystem hub copy on Grok Build and Cursor MCP landings', () => {
+		for (const slug of ['grok-build', 'cursor'] as const) {
+			const label = slug === 'grok-build' ? 'Grok Build' : 'Cursor';
+			expect(buildAgentHostEcosystemChannelSiblingGridHubTitle(label, slug)).toContain(
+				'X first'
+			);
+			expect(
+				buildAgentHostEcosystemChannelSiblingGridHubDescription(label, slug)
+			).toContain('Start with X');
+		}
+		expect(getMcpClientEcosystemId('cursor')).toBe('xai-grok');
 	});
 });
 

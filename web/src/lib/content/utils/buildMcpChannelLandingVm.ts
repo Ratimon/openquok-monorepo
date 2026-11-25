@@ -57,7 +57,8 @@ export function buildMcpChannelLandingVm(params: {
 		audienceSection.audienceCards,
 		baseMcp.slug,
 		channel.slug,
-		platformLabel
+		platformLabel,
+		clientLabel
 	);
 	const channelKeywords = channel.keywords
 		.filter((keyword) => !SHARED_CHANNEL_KEYWORD_SET.has(keyword))

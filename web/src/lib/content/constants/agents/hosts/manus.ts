@@ -294,7 +294,7 @@ openquok analytics:post <post-id> -d 30`
 		{
 			title: 'How do Manus Automations work with OpenQuok?',
 			description:
-				`Automations start Manus work when something happens in a connected service — not only on a clock. Tell Manus what to watch and what to do; include openquok-core when the workflow should draft or schedule social posts. Posts land in your OpenQuok workspace — ${WORKFLOW_PUBLISH_CHOICE_SENTENCE}`
+				`Automations trigger Manus on events, not just cron. Add openquok-core when a run should draft or schedule posts. ${WORKFLOW_PUBLISH_CHOICE_SENTENCE}`
 		},
 		{
 			title: 'How do I install the openquok-core skill in Manus?',

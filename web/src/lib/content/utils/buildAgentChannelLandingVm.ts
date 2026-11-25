@@ -70,7 +70,11 @@ export function buildAgentChannelLandingVm(params: {
 		audienceSection.audienceCards,
 		baseAgent.slug,
 		channel.slug,
-		platformLabel
+		platformLabel,
+		{
+			agentLabel,
+			skipOfficialApi: isPublicDirectoryChannel(channel)
+		}
 	);
 	const hostProfile = getAgentHostProfile(baseAgent.slug);
 	const channelLinks = buildChannelFaqLinks(channel.slug, channel.docsPath);

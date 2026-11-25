@@ -88,7 +88,7 @@ export const instagramChannel = {
 			iconClass: 'text-rose-400',
 			title: 'Brands & creators',
 			description:
-				'Queue feed posts, Reels, and Stories from one calendar. Connect via Business or Standalone login.',
+				'Feed posts, Reels, and Stories on one calendar. Business or Standalone login.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -96,7 +96,7 @@ export const instagramChannel = {
 			iconClass: 'text-lime-400',
 			title: 'E-commerce teams',
 			description:
-				'Batch carousels and launch Reels ahead of time. Separate client accounts per workspace. Set post type and collaborators before publish.',
+				'Batch carousels and Reels ahead of time. One workspace per client account.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -104,15 +104,14 @@ export const instagramChannel = {
 			iconClass: 'text-emerald-400',
 			title: 'Developers',
 			description:
-				'Pipe Instagram drafts from your backend via the public API or CLI. Set post type and collaborators in provider settings.',
+				'Pipe drafts via public API or CLI. Set post type and collaborators in provider settings.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
 			iconName: icons.Rocket.name,
 			iconClass: 'text-violet-400',
 			title: 'Agent operators',
-			description:
-				'Schedule Instagram feed posts, Reels, and Stories from your agent through MCP.',
+			description: 'Schedule feed, Reels, and Stories from your agent through MCP.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],

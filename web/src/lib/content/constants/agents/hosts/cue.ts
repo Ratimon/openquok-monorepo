@@ -71,14 +71,6 @@ export const cueAgent = {
 			description:
 				'Pair your Mac, Linux, or WSL computer. Install skills once — every agent on that machine can call openquok.',
 			containerClass: 'h-full min-h-[18rem]'
-		},
-		{
-			iconName: icons.ShieldCheck.name,
-			iconClass: 'text-stone-400',
-			title: 'Creators who fear platform bans',
-			description:
-				'Official APIs and human approval reduce shadowbans and account locks that come from unofficial posting.',
-			containerClass: 'h-full min-h-[18rem]'
 		}
 	],
 	setupStepsSubtitle: 'How it works',

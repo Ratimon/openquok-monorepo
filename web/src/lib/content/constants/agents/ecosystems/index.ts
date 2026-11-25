@@ -9,6 +9,11 @@ import {
 	audienceTailoredCardByMcpSlug
 } from '$lib/content/constants/agents/ecosystems/audienceTailoredCards';
 import {
+	appendOfficialApiAgentChannelAudienceCard,
+	appendOfficialApiAgentHostAudienceCard,
+	getAgentLabelForHostSlug
+} from '$lib/content/constants/agents/officialApiAudience';
+import {
 	buildPublicAgentChannelSiblingGridHubDescription,
 	buildPublicAgentChannelSiblingGridHubTitle
 } from '$lib/content/utils/buildPublicChannelSiblingGridCopy';
@@ -85,6 +90,7 @@ export const AGENT_HOST_ECOSYSTEM_BY_SLUG: Readonly<Record<string, AgentHostEcos
 export const MCP_CLIENT_ECOSYSTEM_BY_SLUG: Readonly<Record<string, AgentHostEcosystemId>> = {
 	'muse-code': 'meta-consumer',
 	'grok-build': 'xai-grok',
+	cursor: 'xai-grok',
 	'antigravity-cli': 'google-gemini',
 	'android-studio': 'google-gemini',
 	'claude-code': 'anthropic-claude',
@@ -122,14 +128,95 @@ function appendAudienceTailoredCard(
 	return [...baseCards, tailored];
 }
 
-/** Append optional fourth WhoIsFor card when the host maps to an ecosystem profile. */
+function customizeEcosystemAudienceCardForAgentChannel(
+	base: AudienceCard,
+	surfaceSlug: string,
+	channelSlug: string,
+	platformLabel: string,
+	agentLabel: string
+): AudienceCard {
+	if (isFirstClassChannelForHost(surfaceSlug, channelSlug)) {
+		return base;
+	}
+	const label = platformLabel.trim();
+	const agent = agentLabel.trim();
+	if (label.length === 0 || agent.length === 0) {
+		return base;
+	}
+	const ecosystemId = getLandingEcosystemId(surfaceSlug);
+	if (ecosystemId === 'meta-consumer') {
+		return {
+			...base,
+			description: `Facebook, Instagram, and Threads are first-class. Queue ${label} and Meta in one workspace. Message ${agent} to draft.`
+		};
+	}
+	if (ecosystemId === 'xai-grok') {
+		return {
+			...base,
+			description: `X is first-class. Queue ${label} and X in one workspace. Message ${agent} to draft.`
+		};
+	}
+	if (ecosystemId === 'google-gemini') {
+		return {
+			...base,
+			description: `YouTube is Gemini-first. Queue ${label} and YouTube in one workspace. Message ${agent} to draft.`
+		};
+	}
+	return base;
+}
+
+function buildEcosystemAudienceCardForAgentChannel(
+	surfaceSlug: string,
+	channelSlug: string,
+	platformLabel: string,
+	agentLabel: string,
+	tailoredBySlug: Readonly<Record<string, AudienceCard>>
+): AudienceCard | undefined {
+	const base = tailoredBySlug[normalizeHostSlug(surfaceSlug)];
+	if (!base) return undefined;
+	return customizeEcosystemAudienceCardForAgentChannel(
+		base,
+		surfaceSlug,
+		channelSlug,
+		platformLabel,
+		agentLabel
+	);
+}
+
+function appendEcosystemAudienceCardForAgentChannel(
+	baseCards: readonly AudienceCard[],
+	surfaceSlug: string,
+	channelSlug: string,
+	platformLabel: string,
+	agentLabel: string,
+	tailoredBySlug: Readonly<Record<string, AudienceCard>>
+): AudienceCard[] {
+	return appendAudienceTailoredCard(
+		baseCards,
+		buildEcosystemAudienceCardForAgentChannel(
+			surfaceSlug,
+			channelSlug,
+			platformLabel,
+			agentLabel,
+			tailoredBySlug
+		)
+	);
+}
+
+/** Ecosystem fourth card, then shared official-API safety card for registered agent hosts. */
 export function resolveAgentHostAudienceCards(
 	baseCards: readonly AudienceCard[],
 	hostSlug: string
 ): AudienceCard[] {
-	return appendAudienceTailoredCard(
+	const slug = normalizeHostSlug(hostSlug);
+	const withOfficialApi = appendOfficialApiAgentHostAudienceCard(
 		baseCards,
-		audienceTailoredCardByHostSlug[normalizeHostSlug(hostSlug)]
+		slug,
+		getAgentLabelForHostSlug(slug)
+	);
+	return appendAudienceTailoredCard(
+		withOfficialApi,
+		audienceTailoredCardByHostSlug[slug]
 	);
 }
 
@@ -388,26 +475,26 @@ function firstClassChannelAudienceHook(hostSlug: string, platformLabel: string):
 	const ecosystemId = getLandingEcosystemId(slug);
 	if (ecosystemId === 'meta-consumer') {
 		if (slug === 'muse-code') {
-			return `${platformLabel} is a first-class Muse Code channel on OpenQuok.`;
+			return `${platformLabel} is first-class for Muse Code. Official Meta APIs after connect.`;
 		}
-		return `${platformLabel} is a first-class Meta Muse channel on OpenQuok.`;
+		return `${platformLabel} is first-class for Meta Muse. Official Meta APIs after connect.`;
 	}
 	if (ecosystemId === 'xai-grok') {
 		if (slug === 'grok-build') {
-			return `${platformLabel} is first-class for Grok Build on OpenQuok.`;
+			return `${platformLabel} is first-class for Grok Build. Official X APIs on OpenQuok.`;
 		}
-		return `${platformLabel} is first-class for Grok Bot on OpenQuok.`;
+		return `${platformLabel} is first-class for Grok Bot. Official X APIs on OpenQuok.`;
 	}
 	if (ecosystemId === 'google-gemini') {
-		if (slug === 'gemini') {
-			return `${platformLabel} is a Gemini-first example for Gemini Task on OpenQuok.`;
-		}
-		if (slug === 'antigravity-cli') {
-			return `${platformLabel} is a Gemini-first example for Antigravity CLI on OpenQuok.`;
-		}
-		return `${platformLabel} is a Gemini-first example for Android Studio on OpenQuok.`;
+		const lead =
+			slug === 'gemini'
+				? 'Gemini-first for Gemini Task'
+				: slug === 'antigravity-cli'
+					? 'Gemini-first for Antigravity CLI'
+					: 'Gemini-first for Android Studio';
+		return `${platformLabel} is ${lead}. Official YouTube APIs after connect.`;
 	}
-	return `${platformLabel} is a first-class channel for this host on OpenQuok.`;
+	return `${platformLabel} is first-class here. Official APIs after connect.`;
 }
 
 function applyFirstClassAudienceHook(
@@ -431,19 +518,48 @@ function applyFirstClassAudienceHook(
 	];
 }
 
-/** WhoIsFor on agent × channel pages: host ecosystem card plus first-class hook on card 0. */
+export const MAX_AGENT_CHANNEL_AUDIENCE_CARDS = 6;
+
+export type ResolveAgentChannelAudienceCardsOptions = {
+	agentLabel?: string;
+	/** Skip official-API card on directory / non-API channel landings. */
+	skipOfficialApi?: boolean;
+};
+
+/** WhoIsFor on agent × channel pages: channel official-API card, ecosystem card, first-class hook on card 0. */
 export function resolveAgentChannelAudienceCards(
 	baseCards: readonly AudienceCard[],
 	hostSlug: string,
 	channelSlug: string,
-	platformLabel: string
+	platformLabel: string,
+	options?: ResolveAgentChannelAudienceCardsOptions
 ): AudienceCard[] {
-	return applyFirstClassAudienceHook(
-		resolveAgentHostAudienceCards(baseCards, hostSlug),
+	const slug = normalizeHostSlug(hostSlug);
+	const agentLabel = options?.agentLabel ?? getAgentLabelForHostSlug(slug) ?? 'your agent';
+	let cards = appendEcosystemAudienceCardForAgentChannel(
+		baseCards,
 		hostSlug,
 		channelSlug,
-		platformLabel
+		platformLabel,
+		agentLabel,
+		audienceTailoredCardByHostSlug
 	);
+	if (
+		!options?.skipOfficialApi &&
+		!isFirstClassChannelForHost(hostSlug, channelSlug)
+	) {
+		cards = appendOfficialApiAgentChannelAudienceCard(
+			cards,
+			channelSlug,
+			platformLabel,
+			agentLabel
+		);
+	}
+	const withFirstClass = applyFirstClassAudienceHook(cards, hostSlug, channelSlug, platformLabel);
+	if (withFirstClass.length <= MAX_AGENT_CHANNEL_AUDIENCE_CARDS) {
+		return withFirstClass;
+	}
+	return withFirstClass.slice(0, MAX_AGENT_CHANNEL_AUDIENCE_CARDS);
 }
 
 /** WhoIsFor on MCP × channel pages: client ecosystem card plus first-class hook on card 0. */
@@ -451,14 +567,24 @@ export function resolveMcpChannelAudienceCards(
 	baseCards: readonly AudienceCard[],
 	mcpSlug: string,
 	channelSlug: string,
-	platformLabel: string
+	platformLabel: string,
+	agentLabel?: string
 ): AudienceCard[] {
-	return applyFirstClassAudienceHook(
-		resolveMcpClientAudienceCards(baseCards, mcpSlug),
+	const slug = normalizeHostSlug(mcpSlug);
+	const label = agentLabel?.trim() || getAgentLabelForHostSlug(slug) || 'your agent';
+	const cards = appendEcosystemAudienceCardForAgentChannel(
+		baseCards,
 		mcpSlug,
 		channelSlug,
-		platformLabel
+		platformLabel,
+		label,
+		audienceTailoredCardByMcpSlug
 	);
+	const withFirstClass = applyFirstClassAudienceHook(cards, mcpSlug, channelSlug, platformLabel);
+	if (withFirstClass.length <= MAX_AGENT_CHANNEL_AUDIENCE_CARDS) {
+		return withFirstClass;
+	}
+	return withFirstClass.slice(0, MAX_AGENT_CHANNEL_AUDIENCE_CARDS);
 }
 
 /** Up to one channel-tailored ecosystem FAQ (host landing FAQs are merged separately on the base VM). */
@@ -575,7 +701,7 @@ export function buildAgentHostEcosystemChannelSiblingGridHubTitle(
 	agentLabel: string,
 	hostSlug: string
 ): string {
-	const ecosystemId = getAgentHostEcosystemId(hostSlug);
+	const ecosystemId = getLandingEcosystemId(hostSlug);
 	const agent = agentLabel.trim();
 
 	if (ecosystemId === 'meta-consumer' && agent.length > 0) {
@@ -761,7 +887,7 @@ export function buildAgentHostEcosystemChannelSiblingGridHubDescription(
 	agentLabel: string,
 	hostSlug: string
 ): string {
-	const ecosystemId = getAgentHostEcosystemId(hostSlug);
+	const ecosystemId = getLandingEcosystemId(hostSlug);
 	const agent = agentLabel.trim();
 
 	if (ecosystemId === 'meta-consumer' && agent.length > 0) {
@@ -773,7 +899,7 @@ export function buildAgentHostEcosystemChannelSiblingGridHubDescription(
 	}
 
 	if (ecosystemId === 'xai-grok' && agent.length > 0) {
-		return `Start with X for ${agent}, then add every other supported network from the same cloud-desktop teammate.`;
+		return `Start with X for ${agent}. Same workspace fits xAI today and SpaceXSI as it rolls out. Then open every other supported channel for workflows, CLI examples, and FAQs.`;
 	}
 
 	if (ecosystemId === 'google-gemini' && agent.length > 0) {

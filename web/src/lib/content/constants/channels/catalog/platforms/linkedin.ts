@@ -93,7 +93,7 @@ export const linkedinChannel = {
 			iconClass: 'text-lime-400',
 			title: 'B2B marketing teams',
 			description:
-				'Batch announcements, carousels, and exec posts. Review drafts on the kanban before publish.',
+				'Founder-led and company Page programs on one calendar. Batch launches, carousels, and exec posts. Review on the kanban before publish.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -105,14 +105,6 @@ export const linkedinChannel = {
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],
-	audienceTailoredCard: {
-		iconName: icons.CustomizedDrawnLaptop.name,
-		iconClass: 'text-sky-400',
-		title: 'B2B go-to-market teams',
-		description:
-			'Run founder-led and company Page programs from one calendar. Batch thought leadership, launches, and exec amplification without spreadsheet handoffs.',
-		containerClass: 'h-full min-h-[18rem]'
-	},
 	faqSubtitle: 'Frequently asked questions',
 	faqTitle: 'LinkedIn scheduling for B2B, answered',
 	faqDescription:
