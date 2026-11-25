@@ -1,8 +1,8 @@
 /**
- * Source of truth for `auto_launch_destinations` row seeds (502–506 SQL).
+ * Source of truth for `auto_launch_destinations` row seeds (503–509 SQL).
  * Consumed by `backend/scripts/sync-auto-launch-destination-seeds.mjs`.
  *
- * Next stable destination id suffix after DevHunt: …015
+ * Next stable destination id suffix after Nick Launches: …019
  */
 
 export type AutoLaunchDestinationSeedGenerationMode = 'full' | 'composite';
@@ -248,6 +248,48 @@ const DEVHUNT_DESTINATIONS: readonly AutoLaunchDestinationSeedRow[] = [
 	},
 ];
 
+const NICK_LAUNCHES_DESTINATIONS: readonly AutoLaunchDestinationSeedRow[] = [
+	{
+		destinationId: 'd5f7d000-0030-4000-a000-000000000016',
+		providerSlug: 'nick-launches-free-launch',
+		siteSlug: 'nick-launches',
+		name: 'Nick Launches — Free launch',
+		shortDescription:
+			'Free listing on Nick Launches; weekly upvotes and a live Featured badge are required for a dofollow link. Extension autofills the listing form after you sign in.',
+		startUrl: 'https://nicklaunches.com/submit/new/',
+		sortOrder: 56,
+		pickerGroupKey: 'nick-launches',
+		pickerGroupTitle: 'Nick Launches',
+		opportunitySlug: 'free-launch',
+	},
+	{
+		destinationId: 'd5f7d000-0030-4000-a000-000000000017',
+		providerSlug: 'nick-launches-paid-launch',
+		siteSlug: 'nick-launches',
+		name: 'Nick Launches — Paid launch',
+		shortDescription:
+			'Paid launch tiers on Nick Launches ($19, $39, $99, or $199). Extension autofills the listing form; plan checkout stays manual.',
+		startUrl: 'https://nicklaunches.com/submit/new/',
+		sortOrder: 58,
+		pickerGroupKey: 'nick-launches',
+		pickerGroupTitle: 'Nick Launches',
+		opportunitySlug: 'paid-launch',
+	},
+	{
+		destinationId: 'd5f7d000-0030-4000-a000-000000000018',
+		providerSlug: 'nick-launches-maker-profile',
+		siteSlug: 'nick-launches',
+		name: 'Nick Launches — Maker profile',
+		shortDescription:
+			'Maker profile on Nick Launches. Extension autofills headline, bio, website, avatar, and known socials.',
+		startUrl: 'https://nicklaunches.com/profile/',
+		sortOrder: 60,
+		pickerGroupKey: null,
+		pickerGroupTitle: null,
+		opportunitySlug: 'maker-profile',
+	},
+];
+
 export const AUTO_LAUNCH_DESTINATION_SEED_MODULES: readonly AutoLaunchDestinationSeedModule[] = [
 	{
 		siteKey: 'uneed',
@@ -322,6 +364,18 @@ export const AUTO_LAUNCH_DESTINATION_SEED_MODULES: readonly AutoLaunchDestinatio
 			'-- Launch week, $49 checkout, and maker comment stay manual after the tool form is filled.',
 		],
 		destinations: DEVHUNT_DESTINATIONS,
+	},
+	{
+		siteKey: 'nick-launches',
+		sqlFileName: '509_20261124_seed_nick_launches_destination.sql',
+		generationMode: 'full',
+		moduleDate: '20261124',
+		moduleScopeLabel: 'Seed (Nick Launches free launch, paid launch, and maker profile destinations)',
+		preambleComments: [
+			'-- Joins link_directory_opportunities on site slug nick-launches (catalog backfill / listing manager).',
+			'-- Plan selection, checkout, weekly upvotes, Featured badge, and admin review stay manual after the listing form is filled.',
+		],
+		destinations: NICK_LAUNCHES_DESTINATIONS,
 	},
 ];
 

@@ -12,7 +12,10 @@ import {
 	DIRECTORY_EXTENSION_CONFIG_PROVIDER_SLUGS,
 	directoryLaunchProviders,
 } from './index.js';
-import { resolveDirectoryLaunchStartUrl } from './directoryLaunchRegistry.js';
+import {
+	getDirectoryLaunchSiteKeyFromLocation,
+	resolveDirectoryLaunchStartUrl,
+} from './directoryLaunchRegistry.js';
 import { AUTO_LAUNCH_DESTINATION_SEED_MODULES } from './destinationSeeds.js';
 import {
 	validateIndependentExtensionFixtureSlugs,
@@ -23,8 +26,10 @@ import {
 	AUTO_LAUNCH_EXTENSION_CONFIGS_SQL,
 	AUTO_LAUNCH_PRICING_QUEUE_VARIANT_DERIVED,
 	FAZIER_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
+	NICK_LAUNCHES_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
 	UNEED_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
 } from './syncMetadata.js';
+import { directorySiteKeyFromProviderSlug } from '../directorySiteKey.js';
 
 const REPO_ROOT = join(__dirname, '../../../../');
 const SYNC_CONFIGS_SCRIPT = join(REPO_ROOT, 'backend/scripts/sync-auto-launch-extension-configs.mjs');
@@ -76,6 +81,9 @@ describe('DIRECTORY_EXTENSION_CONFIG_FIXTURES', () => {
 				'fazier-paid-product-listing',
 				'devhunt-paid-launch',
 				'devhunt-standard-launch',
+				'nick-launches-free-launch',
+				'nick-launches-paid-launch',
+				'nick-launches-maker-profile',
 			].sort()
 		);
 	});
@@ -107,6 +115,14 @@ describe('DIRECTORY_EXTENSION_CONFIG_FIXTURES', () => {
 		validateIndependentExtensionFixtureSlugs(
 			DIRECTORY_EXTENSION_CONFIG_FIXTURES,
 			FAZIER_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
+			AUTO_LAUNCH_EXTENSION_CONFIG_DERIVATIONS
+		);
+	});
+
+	it('documents Nick Launches fixtures as independent (not pricing-queue)', () => {
+		validateIndependentExtensionFixtureSlugs(
+			DIRECTORY_EXTENSION_CONFIG_FIXTURES,
+			NICK_LAUNCHES_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
 			AUTO_LAUNCH_EXTENSION_CONFIG_DERIVATIONS
 		);
 	});
@@ -165,7 +181,7 @@ describe('AUTO_LAUNCH_DESTINATION_SEED_ROWS', () => {
 		}
 	});
 
-	it('aggregated core_structure applies auto-launch 502 before 503–508', () => {
+	it('aggregated core_structure applies auto-launch 502 before 503–509', () => {
 		const migrationsDir = join(REPO_ROOT, 'backend/supabase/migrations');
 		const coreFiles = readdirSync(migrationsDir)
 			.filter((name) => name.endsWith('_core_structure.sql'))
@@ -175,7 +191,7 @@ describe('AUTO_LAUNCH_DESTINATION_SEED_ROWS', () => {
 		const sql = readFileSync(join(migrationsDir, latestCore), 'utf8');
 		const autoLaunchFiles = [...sql.matchAll(/-- Module: auto-launch, File: (5\d{2}_[^\n]+)/g)]
 			.map((match) => match[1])
-			.filter((fileName) => /^50[2-8]_/.test(fileName ?? ''));
+			.filter((fileName) => /^50[2-9]_/.test(fileName ?? ''));
 		expect(autoLaunchFiles).toEqual([
 			'502_20261111_extension_configs.sql',
 			'503_20261013_seed_uneed.sql',
@@ -184,10 +200,11 @@ describe('AUTO_LAUNCH_DESTINATION_SEED_ROWS', () => {
 			'506_20261117_seed_tinylaunch_destination.sql',
 			'507_20261120_seed_fazier_destination.sql',
 			'508_20261121_seed_devhunt_destination.sql',
+			'509_20261124_seed_nick_launches_destination.sql',
 		]);
 	});
 
-	it('generated 502–508 destination SQL matches manifest (sync --check)', () => {
+	it('generated 502–509 destination SQL matches manifest (sync --check)', () => {
 		if (!existsSync(COMMON_DIST_INDEX)) {
 			throw new Error(
 				'common/dist missing. Run `pnpm common:build` before `pnpm --filter openquok-common test:unit`.'
@@ -222,6 +239,32 @@ describe('directoryLaunchProviders registry drift', () => {
 			expect(matches).toBe(true);
 		}
 	);
+});
+
+describe('Nick Launches site key', () => {
+	it('maps provider slugs and the host to nick-launches', () => {
+		expect(directorySiteKeyFromProviderSlug('nick-launches-free-launch')).toBe('nick-launches');
+		expect(directorySiteKeyFromProviderSlug('nick-launches-maker-profile')).toBe('nick-launches');
+		expect(getDirectoryLaunchSiteKeyFromLocation('nicklaunches.com')).toBe('nick-launches');
+	});
+});
+
+describe('Nick Launches extension fixtures', () => {
+	it('caps gallery and category fields per listing form rules', () => {
+		const listing = DIRECTORY_EXTENSION_CONFIG_FIXTURES['nick-launches-free-launch'];
+		const fields = listing?.steps?.[0]?.fields ?? [];
+		expect(fields.find((f) => f.key === 'gallery')?.maxItems).toBe(5);
+		expect(fields.find((f) => f.key === 'categories')?.maxItems).toBe(3);
+	});
+
+	it('uses submit/new and profile readyUrlHints per destination', () => {
+		expect(DIRECTORY_EXTENSION_CONFIG_FIXTURES['nick-launches-free-launch']?.readyUrlHint).toBe(
+			'submit/new'
+		);
+		expect(DIRECTORY_EXTENSION_CONFIG_FIXTURES['nick-launches-maker-profile']?.readyUrlHint).toBe(
+			'profile'
+		);
+	});
 });
 
 describe('resolveDirectoryLaunchStartUrl', () => {

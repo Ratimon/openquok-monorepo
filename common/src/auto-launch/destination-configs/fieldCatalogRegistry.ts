@@ -5,6 +5,13 @@ import {
 	matchDevhuntOfficialPricing,
 } from './devhunt.js';
 import {
+	coerceToNickLaunchesOfficialPricing,
+	filterToNickLaunchesOfficialCategories,
+	matchNickLaunchesOfficialCategory,
+	matchNickLaunchesOfficialPricing,
+	nickLaunchesSelectCatalogOptions,
+} from './nick-launches.js';
+import {
 	coerceToOpenLaunchOfficialPricing,
 	filterToOpenLaunchOfficialCategories,
 	filterToOpenLaunchOfficialPlatforms,
@@ -35,6 +42,8 @@ export const LAUNCH_FIELD_CATALOG_IDS = {
 	'open_launch:platforms': 'open_launch:platforms',
 	'open_launch:pricing': 'open_launch:pricing',
 	'devhunt:pricing': 'devhunt:pricing',
+	'nick_launches:categories': 'nick_launches:categories',
+	'nick_launches:pricing': 'nick_launches:pricing',
 } as const;
 
 export type LaunchFieldCatalogId = keyof typeof LAUNCH_FIELD_CATALOG_IDS;
@@ -47,6 +56,8 @@ export function resolveLaunchFieldCatalogId(field: LaunchStepField): LaunchField
 	if (field.checkboxCatalog === 'open_launch_platforms') return 'open_launch:platforms';
 	if (field.selectCatalog === 'open_launch_pricing') return 'open_launch:pricing';
 	if (field.selectCatalog === 'devhunt_pricing') return 'devhunt:pricing';
+	if (field.tagsCatalog === 'nick_launches_categories') return 'nick_launches:categories';
+	if (field.selectCatalog === 'nick_launches_pricing') return 'nick_launches:pricing';
 	return null;
 }
 
@@ -64,6 +75,8 @@ export function filterItemsForLaunchField(items: readonly string[], field: Launc
 			return filterToOpenLaunchOfficialCategories(items);
 		case 'open_launch:platforms':
 			return filterToOpenLaunchOfficialPlatforms(items);
+		case 'nick_launches:categories':
+			return filterToNickLaunchesOfficialCategories(items);
 		default:
 			return [...items];
 	}
@@ -81,6 +94,9 @@ export function invalidProfileChoicesForField(
 	if (id === 'open_launch:categories' || id === 'open_launch:platforms') {
 		return invalidOpenLaunchProfileChoicesForField(items, field);
 	}
+	if (id === 'nick_launches:categories') {
+		return items.filter((item) => matchNickLaunchesOfficialCategory(item) === null);
+	}
 	return [];
 }
 
@@ -91,6 +107,9 @@ export function selectPresetsForField(field: LaunchStepField): readonly string[]
 	}
 	if (id === 'devhunt:pricing') {
 		return devhuntSelectCatalogOptions('devhunt_pricing');
+	}
+	if (id === 'nick_launches:pricing') {
+		return nickLaunchesSelectCatalogOptions('nick_launches_pricing');
 	}
 	if (id === 'uneed:select') {
 		return uneedSelectCatalogOptions('uneed');
@@ -117,6 +136,9 @@ export function applySelectCoercionForField(scalar: string, field: LaunchStepFie
 	if (id === 'devhunt:pricing') {
 		return coerceToDevhuntOfficialPricing(scalar);
 	}
+	if (id === 'nick_launches:pricing') {
+		return coerceToNickLaunchesOfficialPricing(scalar);
+	}
 	if (field.selectCatalog === 'uneed' && field.key === 'pricing_type') {
 		return coerceUneedPricingType(scalar);
 	}
@@ -132,6 +154,8 @@ export function catalogListFillSkipMessage(field: LaunchStepField): string | nul
 		case 'open_launch:categories':
 		case 'open_launch:platforms':
 			return 'No profile values match the Open Launch catalog (red chips). Pick categories on the form yourself.';
+		case 'nick_launches:categories':
+			return 'No profile categories match the Nick Launches catalog (red chips). Pick categories on the form yourself.';
 		default:
 			return null;
 	}
@@ -179,6 +203,12 @@ export function invalidSelectForField(scalar: string | undefined, field: LaunchS
 		return (
 			matchDevhuntOfficialPricing(scalar) === null &&
 			coerceToDevhuntOfficialPricing(scalar) === scalar.trim()
+		);
+	}
+	if (id === 'nick_launches:pricing') {
+		return (
+			matchNickLaunchesOfficialPricing(scalar) === null &&
+			coerceToNickLaunchesOfficialPricing(scalar) === scalar.trim()
 		);
 	}
 	return false;

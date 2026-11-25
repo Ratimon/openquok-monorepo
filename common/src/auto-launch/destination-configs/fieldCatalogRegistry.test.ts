@@ -37,6 +37,16 @@ describe('fieldCatalogRegistry', () => {
 					if (field.selectCatalog === 'open_launch_pricing') {
 						expect(resolveLaunchFieldCatalogId(field)).toBe(LAUNCH_FIELD_CATALOG_IDS['open_launch:pricing']);
 					}
+					if (field.tagsCatalog === 'nick_launches_categories') {
+						expect(resolveLaunchFieldCatalogId(field)).toBe(
+							LAUNCH_FIELD_CATALOG_IDS['nick_launches:categories']
+						);
+					}
+					if (field.selectCatalog === 'nick_launches_pricing') {
+						expect(resolveLaunchFieldCatalogId(field)).toBe(
+							LAUNCH_FIELD_CATALOG_IDS['nick_launches:pricing']
+						);
+					}
 				}
 			}
 		}
@@ -93,5 +103,32 @@ describe('fieldCatalogRegistry', () => {
 			selectCatalog: 'tinylaunch',
 		};
 		expect(applySelectCoercionForField('saas', field)).toBe('SaaS & Tools');
+	});
+
+	it('coerces Nick Launches pricing select values', () => {
+		const field: LaunchStepField = {
+			key: 'pricing_type',
+			label: 'Pricing',
+			profilePath: 'profile_data.pricing_type',
+			fillMode: 'select',
+			selectCatalog: 'nick_launches_pricing',
+		};
+		expect(applySelectCoercionForField('One-time fee', field)).toBe('one_time');
+		expect(applySelectCoercionForField('subscription', field)).toBe('subscription');
+	});
+
+	it('filters Nick Launches category tags through the official catalog', () => {
+		const field: LaunchStepField = {
+			key: 'categories',
+			label: 'Categories',
+			profilePath: 'profile_data.categories',
+			fillMode: 'tags',
+			tagsCatalog: 'nick_launches_categories',
+			maxItems: 3,
+		};
+		expect(filterItemsForLaunchField(['developer-tools', 'Video', 'Video'], field)).toEqual([
+			'Developer Tools',
+			'Video',
+		]);
 	});
 });

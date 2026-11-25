@@ -41,6 +41,11 @@ describe('directorySiteKeyFromProviderSlug', () => {
 		expect(directorySiteKeyFromProviderSlug('open-launch-free-launch')).toBe('open-launch');
 	});
 
+	it('resolves nick-launches provider slugs to the nick-launches site key', () => {
+		expect(directorySiteKeyFromProviderSlug('nick-launches-free-launch')).toBe('nick-launches');
+		expect(directorySiteKeyFromProviderSlug('nick-launches-maker-profile')).toBe('nick-launches');
+	});
+
 	it('matches multi-segment published site slugs', () => {
 		expect(directorySiteKeyFromProviderSlug('other-site-launch', ['other-site', 'other'])).toBe(
 			'other-site'
@@ -96,6 +101,19 @@ describe('buildDirectoryAddChannelTiles', () => {
 		);
 		expect(tiles[0]?.logoUrl).toBe('/icons/link-directory/tinylaunch.svg');
 		expect(tiles[0]?.brandedIconName).toBe('TinyLaunch');
+	});
+
+	it('assigns bundled logo and branded icon for nick-launches', () => {
+		const tiles = buildDirectoryAddChannelTiles(
+			[
+				destination({ providerSlug: 'nick-launches-free-launch', siteTitle: 'Nick Launches' }),
+				destination({ providerSlug: 'nick-launches-maker-profile', sortOrder: 1 })
+			],
+			new Map([['nick-launches', { title: 'Nick Launches', logoUrl: null }]])
+		);
+		expect(tiles).toHaveLength(1);
+		expect(tiles[0]?.logoUrl).toBe('/icons/link-directory/nick-launches.svg');
+		expect(tiles[0]?.brandedIconName).toBe('NickLaunches');
 	});
 
 	it('assigns bundled logo and branded icon for devhunt', () => {

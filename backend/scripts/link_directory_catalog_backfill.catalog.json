@@ -965,6 +965,167 @@
 				}
 			]
 		},
+		"nick-launches": {
+			"site": {
+				"id": "d5f7d000-0010-4000-a000-00000000000f",
+				"slug": "nick-launches",
+				"title": "Nick Launches",
+				"site_url": "https://nicklaunches.com",
+				"logo_url": "https://www.openquok.com/icons/link-directory/nick-launches.svg",
+				"short_description": "Product launch directory with a free listing path and paid featured launches. OpenQuok fills the submit form; you verify the badge, pick a plan, and finish review on Nick Launches.",
+				"long_description": "Nick Launches lists products with taglines, media, and categories. Free listings need weekly upvotes and a live <a href=\"https://nicklaunches.com/badge/\">Featured badge</a> on your site for a dofollow link. Paid tiers ($19, $39, $99, or $199 one-time) skip the badge requirement and include a featured window — choose the plan on <a href=\"https://nicklaunches.com/submit/plan/\">Nick Launches submit plan</a> after the listing form. All submissions go through admin review.",
+				"domain_rating": 75,
+				"monthly_visits": 15000,
+				"metrics_source": "ahrefs",
+				"category_slug": "launch-platforms",
+				"tag_slugs": [
+					"high-dr"
+				],
+				"is_openquok_auth_supported": false,
+				"openquok_channel_slug": null,
+				"is_admin_published": true,
+				"sort_order": 0
+			},
+			"opportunities": [
+				{
+					"id": "d5f7d000-0020-4000-a000-000000000042",
+					"slug": "free-launch",
+					"title": "Free launch",
+					"opportunity_type_slug": "product_submission",
+					"effort": "medium",
+					"approval_mode": "manual_review",
+					"approval_time_hint": "Admin review after you submit; dofollow needs weekly upvotes plus a live Featured badge",
+					"dofollow": "dofollow",
+					"cost_tier": "free",
+					"cost_note": "Free listing is $0. Add the live Featured badge from nicklaunches.com/badge/ on your site for dofollow; earn weekly upvotes to stay featured.",
+					"description": "List your product at no cost on <a href=\"https://nicklaunches.com/submit/new/\">Nick Launches submit</a>. OpenQuok fills the listing form after you sign in. Finish on Nick Launches: pick the free path on <a href=\"https://nicklaunches.com/submit/plan/\">submit plan</a>, add the <a href=\"https://nicklaunches.com/badge/\">Featured badge</a> for dofollow, and wait for admin approval.",
+					"steps": [
+						{
+							"order": 1,
+							"title": "Read launch rules",
+							"body": "Review free vs paid paths on Nick Launches. Free listings need the Featured badge on your site and ongoing weekly upvotes for dofollow."
+						},
+						{
+							"order": 2,
+							"title": "Sign in",
+							"body": "Open <a href=\"https://nicklaunches.com/signin/\">Nick Launches sign in</a> and sign in. Skip or review any website URL prefill before OpenQuok fills the form."
+						},
+						{
+							"order": 3,
+							"title": "Submit listing",
+							"body": "Open <a href=\"https://nicklaunches.com/submit/new/\">Nick Launches submit</a>. Use OpenQuok to fill name, tagline, description, logo, screenshots, categories, and links. Submit the listing on Nick Launches."
+						},
+						{
+							"order": 4,
+							"title": "Pick free plan and badge",
+							"body": "On <a href=\"https://nicklaunches.com/submit/plan/\">submit plan</a>, choose the free option. Install the live <a href=\"https://nicklaunches.com/badge/\">Featured badge</a> on your product site. Earn weekly upvotes after Nick Launches approves the listing."
+						},
+						{
+							"order": 5,
+							"title": "Verify after publish",
+							"body": "When Nick Launches publishes your product, open the live page. Confirm the website link and rel match the free-tier rules. Save your live listing URL."
+						}
+					],
+					"openquok_cta_kind": "external_doc",
+					"openquok_channel_slug": null,
+					"openquok_plug_name": null,
+					"cta_href": "https://nicklaunches.com/submit/new/",
+					"cta_label": "Submit on Nick Launches",
+					"sort_order": 10,
+					"is_admin_published": true,
+					"auto_launch_enabled": true,
+					"auto_launch_provider_slug": "nick-launches-free-launch"
+				},
+				{
+					"id": "d5f7d000-0020-4000-a000-000000000043",
+					"slug": "paid-launch",
+					"title": "Paid launch",
+					"opportunity_type_slug": "product_submission",
+					"effort": "medium",
+					"approval_mode": "manual_review",
+					"approval_time_hint": "Admin review after checkout; featured window starts after Nick Launches approves",
+					"dofollow": "dofollow",
+					"cost_tier": "paid",
+					"cost_note": "One-time tiers on submit plan: $19, $39, $99, or $199. Paid plans make the Featured badge optional and include a featured launch window.",
+					"description": "OpenQuok fills <a href=\"https://nicklaunches.com/submit/new/\">Nick Launches submit</a> after you sign in. Pay on <a href=\"https://nicklaunches.com/submit/plan/\">submit plan</a> ($19, $39, $99, or $199 one-time). Paid tiers skip the badge requirement and add a featured window — checkout and launch timing stay on Nick Launches.",
+					"steps": [
+						{
+							"order": 1,
+							"title": "Compare free and paid",
+							"body": "Read what paid tiers include vs the free badge path on Nick Launches before you checkout."
+						},
+						{
+							"order": 2,
+							"title": "Sign in and open the form",
+							"body": "Sign in at <a href=\"https://nicklaunches.com/signin/\">Nick Launches sign in</a>. Open <a href=\"https://nicklaunches.com/submit/new/\">submit new</a>. Skip or review URL prefill before OpenQuok fills fields."
+						},
+						{
+							"order": 3,
+							"title": "Fill and submit listing",
+							"body": "Use OpenQuok to complete the product form. Submit the listing on Nick Launches."
+						},
+						{
+							"order": 4,
+							"title": "Pay and pick plan",
+							"body": "On <a href=\"https://nicklaunches.com/submit/plan/\">submit plan</a>, choose a paid tier and complete checkout ($19, $39, $99, or $199). The Featured badge is optional on paid plans."
+						},
+						{
+							"order": 5,
+							"title": "Verify after publish",
+							"body": "After admin approval, open your live product page. Confirm the dofollow website link and featured placement. Save your live listing URL."
+						}
+					],
+					"openquok_cta_kind": "external_doc",
+					"openquok_channel_slug": null,
+					"openquok_plug_name": null,
+					"cta_href": "https://nicklaunches.com/submit/new/",
+					"cta_label": "Submit on Nick Launches",
+					"sort_order": 15,
+					"is_admin_published": true,
+					"auto_launch_enabled": true,
+					"auto_launch_provider_slug": "nick-launches-paid-launch"
+				},
+				{
+					"id": "d5f7d000-0020-4000-a000-000000000044",
+					"slug": "maker-profile",
+					"title": "Maker profile",
+					"opportunity_type_slug": "profile_link",
+					"effort": "medium",
+					"approval_mode": "manual_review",
+					"approval_time_hint": "Usually within a few business days after you save your profile",
+					"dofollow": "unknown",
+					"cost_tier": "free",
+					"cost_note": null,
+					"description": "Create a maker profile with your website and social links at no cost. OpenQuok fills <a href=\"https://nicklaunches.com/profile/\">Nick Launches profile</a> after you sign in. Confirm link treatment on your public profile URL after Nick Launches publishes it.",
+					"steps": [
+						{
+							"order": 1,
+							"title": "Sign in",
+							"body": "Open <a href=\"https://nicklaunches.com/signin/?callbackUrl=/profile/\">Nick Launches sign in</a> and sign in."
+						},
+						{
+							"order": 2,
+							"title": "Open profile",
+							"body": "Go to <a href=\"https://nicklaunches.com/profile/\">Nick Launches profile</a>. Use OpenQuok to fill headline, bio, website, avatar, and social links where shown."
+						},
+						{
+							"order": 3,
+							"title": "Save and verify",
+							"body": "Save your profile on Nick Launches. Open your public profile URL, inspect the website link rel, and save the live profile link."
+						}
+					],
+					"openquok_cta_kind": "external_doc",
+					"openquok_channel_slug": null,
+					"openquok_plug_name": null,
+					"cta_href": "https://nicklaunches.com/profile/",
+					"cta_label": "Edit maker profile",
+					"sort_order": 20,
+					"is_admin_published": true,
+					"auto_launch_enabled": true,
+					"auto_launch_provider_slug": "nick-launches-maker-profile"
+				}
+			]
+		},
 		"uneed": {
 			"site": {
 				"id": "d5f7d000-0010-4000-a000-000000000004",

@@ -10,7 +10,7 @@ import type { FeaturesGridRowConfig } from '$data/landing-features-grid-types';
  * - `/social-media-management` grid only: `FEATURES_GRID_SOCIAL_ROWS` in `landing-social-platforms.ts`.
  * - `/directory-submission-tool` grid only: `FEATURES_GRID_DIRECTORY_ROWS` in `landing-directory-platforms.ts`.
  *
- * 11 social + 6 directory tiles in a 4 + 5 + 8 stagger (PeerPush row 2; Uneed, Open Launch, TinyLaunch, Fazier, DevHunt row 3).
+ * 11 social + 7 directory tiles in a 4 + 5 + 9 stagger (PeerPush row 2; Uneed, Open Launch, TinyLaunch, Fazier, DevHunt, Nick Launches row 3).
  */
 export const FEATURES_GRID_HOME_ROWS: FeaturesGridRowConfig[] = [
 	{
@@ -31,7 +31,8 @@ export const FEATURES_GRID_HOME_ROWS: FeaturesGridRowConfig[] = [
 			'open-launch',
 			'tinylaunch',
 			'fazier',
-			'devhunt'
+			'devhunt',
+			'nick-launches'
 		]
 	}
 ];

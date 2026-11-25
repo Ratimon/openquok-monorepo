@@ -15,6 +15,7 @@
 	import McpClientVerifyMock from '$lib/ui/templates/device-mocks/safari/content/McpClientVerifyMock.svelte';
 	import DirectoryOpenLaunchSiteSafariMock from '$lib/ui/templates/device-mocks/safari/content/DirectoryOpenLaunchSiteSafariMock.svelte';
 	import DirectoryDevhuntSiteSafariMock from '$lib/ui/templates/device-mocks/safari/content/DirectoryDevhuntSiteSafariMock.svelte';
+	import DirectoryNickLaunchesSiteSafariMock from '$lib/ui/templates/device-mocks/safari/content/DirectoryNickLaunchesSiteSafariMock.svelte';
 	import DirectoryFazierSiteSafariMock from '$lib/ui/templates/device-mocks/safari/content/DirectoryFazierSiteSafariMock.svelte';
 	import DirectoryTinyLaunchSiteSafariMock from '$lib/ui/templates/device-mocks/safari/content/DirectoryTinyLaunchSiteSafariMock.svelte';
 	import DirectoryPeerPushSiteSafariMock from '$lib/ui/templates/device-mocks/safari/content/DirectoryPeerPushSiteSafariMock.svelte';
@@ -58,6 +59,8 @@
 	<DirectoryFazierSiteSafariMock />
 {:else if content === 'directory-site-devhunt'}
 	<DirectoryDevhuntSiteSafariMock />
+{:else if content === 'directory-site-nick-launches'}
+	<DirectoryNickLaunchesSiteSafariMock />
 {:else if content === 'external-site-placeholder'}
 	<ExternalSitePlaceholderSafariMock />
 {:else if content === 'openclaw-docs-overview'}

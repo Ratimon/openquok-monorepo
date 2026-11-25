@@ -106,4 +106,37 @@ describe('launchFieldConstraints', () => {
 		expect(invalidProfileSelectForField('SaaS', categoryField)).toBe(true);
 		expect(invalidProfileSelectForField('Business', categoryField)).toBe(false);
 	});
+
+	it('filters Nick Launches categories to the official catalog with maxItems 3', () => {
+		const categoriesField: LaunchStepField = {
+			key: 'categories',
+			label: 'Categories',
+			profilePath: 'profile_data.categories',
+			fillMode: 'tags',
+			tagsCatalog: 'nick_launches_categories',
+			maxItems: 3,
+		};
+		const filtered = filterTagsForLaunchField(
+			['developer-tools', 'AI', 'Not A Real Category', 'SEO', 'Marketing'],
+			categoriesField
+		);
+		expect(filtered).toEqual(['Developer Tools', 'AI', 'SEO']);
+		expect(
+			invalidProfileTagsForField(['Developer Tools', 'Imaginary'], categoriesField)
+		).toEqual(['Imaginary']);
+	});
+
+	it('coerces Nick Launches pricing_type to the listing enum', () => {
+		const pricingField: LaunchStepField = {
+			key: 'pricing_type',
+			label: 'Pricing',
+			profilePath: 'profile_data.pricing_type',
+			fillMode: 'select',
+			selectCatalog: 'nick_launches_pricing',
+		};
+		expect(applyLaunchFieldSelectCoercion('Freemium', pricingField)).toBe('freemium');
+		expect(applyLaunchFieldSelectCoercion('one_time', pricingField)).toBe('one_time');
+		expect(invalidProfileSelectForField('custom-tier', pricingField)).toBe(true);
+		expect(invalidProfileSelectForField('subscription', pricingField)).toBe(false);
+	});
 });

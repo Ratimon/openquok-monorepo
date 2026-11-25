@@ -57,6 +57,7 @@ Build a **product profile** on [My Products](/account/products). Pick a director
 <a href="/channels/tinylaunch" title="TinyLaunch"><img src="/icons/link-directory/tinylaunch.svg" alt="TinyLaunch" width="32" height="32" /></a>
 <a href="/channels/fazier" title="Fazier"><img src="/icons/link-directory/fazier.svg" alt="Fazier" width="32" height="32" /></a>
 <a href="/channels/devhunt" title="DevHunt"><img src="/icons/link-directory/devhunt.svg" alt="DevHunt" width="32" height="32" /></a>
+<a href="/channels/nick-launches" title="Nick Launches"><img src="/icons/link-directory/nick-launches.svg" alt="Nick Launches" width="32" height="32" /></a>
 </p>
 
 

@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { detectDirectorySiteLogin } from './detectDirectorySiteLogin.js';
 import { DEVHUNT_LOGIN_URL } from './devhunt.js';
 import { FAZIER_LOGIN_URL } from './fazier.js';
+import { NICK_LAUNCHES_LOGIN_URL } from './nick-launches.js';
 import { OPEN_LAUNCH_LOGIN_URL } from './open-launch.js';
 import { PEERPUSH_LOGIN_URL } from './peerpush.js';
 import { TINYLAUNCH_LOGIN_URL } from './tinylaunch.js';
@@ -62,6 +63,14 @@ describe('detectDirectorySiteLogin', () => {
 		expect(detectDirectorySiteLogin('devhunt')).toEqual({
 			loggedIn: false,
 			loginUrl: DEVHUNT_LOGIN_URL
+		});
+	});
+
+	it('dispatches to the nick-launches adapter', () => {
+		document.body.innerHTML = `<nav><a data-cta="nav_sign_in" href="/signin/">Sign in</a></nav>`;
+		expect(detectDirectorySiteLogin('nick-launches')).toEqual({
+			loggedIn: false,
+			loginUrl: NICK_LAUNCHES_LOGIN_URL
 		});
 	});
 

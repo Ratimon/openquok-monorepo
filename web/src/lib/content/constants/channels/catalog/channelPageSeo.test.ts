@@ -104,13 +104,23 @@ describe('channelPageSeo', () => {
 			devhunt?.processSection?.steps.some((s) => s.deviceMockContent === 'directory-site-devhunt')
 		).toBe(true);
 
+		const nickLaunches = getPublicChannelBySlug('nick-launches');
+		expect(nickLaunches?.channelKind).toBe('directory');
+		expect(nickLaunches?.icon).toBe('NickLaunches');
+		expect(
+			nickLaunches?.processSection?.steps.some(
+				(s) => s.deviceMockContent === 'directory-site-nick-launches'
+			)
+		).toBe(true);
+
 		expect(listPublicDirectoryChannelsForHub().map((c) => c.slug)).toEqual([
 			'peerpush',
 			'uneed',
 			'open-launch',
 			'tinylaunch',
 			'fazier',
-			'devhunt'
+			'devhunt',
+			'nick-launches'
 		]);
 
 		const heroBadges = publicDirectoryChannelHeroStatBadges();

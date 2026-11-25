@@ -13,6 +13,11 @@ import {
 	DEVHUNT_TOOL_FORM_EXTENSION_CONFIG,
 } from './devhunt.js';
 import {
+	NICK_LAUNCHES_FREE_LAUNCH_EXTENSION_CONFIG,
+	NICK_LAUNCHES_MAKER_PROFILE_EXTENSION_CONFIG,
+	NICK_LAUNCHES_PAID_LAUNCH_EXTENSION_CONFIG,
+} from './nick-launches.js';
+import {
 	FAZIER_FREE_PRODUCT_LISTING_EXTENSION_CONFIG,
 	FAZIER_PAID_PRODUCT_LISTING_EXTENSION_CONFIG,
 	FAZIER_PAGE_EXTENSION_CONFIG,
@@ -40,6 +45,12 @@ export {
 	DEVHUNT_STANDARD_LAUNCH_EXTENSION_CONFIG,
 	DEVHUNT_TOOL_FORM_EXTENSION_CONFIG,
 } from './devhunt.js';
+export {
+	NICK_LAUNCHES_FREE_LAUNCH_EXTENSION_CONFIG,
+	NICK_LAUNCHES_LISTING_FORM_EXTENSION_CONFIG,
+	NICK_LAUNCHES_MAKER_PROFILE_EXTENSION_CONFIG,
+	NICK_LAUNCHES_PAID_LAUNCH_EXTENSION_CONFIG,
+} from './nick-launches.js';
 export {
 	FAZIER_FREE_PRODUCT_LISTING_EXTENSION_CONFIG,
 	FAZIER_PAID_PRODUCT_LISTING_EXTENSION_CONFIG,
@@ -71,6 +82,9 @@ export const DIRECTORY_EXTENSION_CONFIG_FIXTURES: Record<string, AutoLaunchExten
 	'fazier-paid-product-listing': FAZIER_PAID_PRODUCT_LISTING_EXTENSION_CONFIG,
 	'devhunt-paid-launch': DEVHUNT_PAID_LAUNCH_EXTENSION_CONFIG,
 	'devhunt-standard-launch': DEVHUNT_STANDARD_LAUNCH_EXTENSION_CONFIG,
+	'nick-launches-free-launch': NICK_LAUNCHES_FREE_LAUNCH_EXTENSION_CONFIG,
+	'nick-launches-paid-launch': NICK_LAUNCHES_PAID_LAUNCH_EXTENSION_CONFIG,
+	'nick-launches-maker-profile': NICK_LAUNCHES_MAKER_PROFILE_EXTENSION_CONFIG,
 };
 
 export const DIRECTORY_EXTENSION_CONFIG_PROVIDER_SLUGS = Object.keys(
@@ -93,6 +107,7 @@ export {
 	type AutoLaunchCompositeDestinationSeedSiteKey,
 	type AutoLaunchPricingQueueVariantDerived,
 	UNEED_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
+	NICK_LAUNCHES_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
 } from './syncMetadata.js';
 
 export {
@@ -139,6 +154,11 @@ export {
 	DEVHUNT_HOST_PERMISSION,
 } from './devhunt.js';
 export {
+	NICK_LAUNCHES_DIRECTORY_LAUNCH_PROVIDERS,
+	NICK_LAUNCHES_HOST_PATTERNS,
+	NICK_LAUNCHES_HOST_PERMISSION,
+} from './nick-launches.js';
+export {
 	FAZIER_DIRECTORY_LAUNCH_PROVIDERS,
 	FAZIER_HOST_PATTERNS,
 	FAZIER_HOST_PERMISSION,
@@ -175,6 +195,17 @@ export {
 	matchDevhuntOfficialPricing,
 	type DevhuntOfficialPricingLabel,
 } from './devhunt.js';
+export {
+	NICK_LAUNCHES_OFFICIAL_CATEGORY_LABELS,
+	NICK_LAUNCHES_OFFICIAL_PRICING_VALUES,
+	coerceToNickLaunchesOfficialPricing,
+	filterToNickLaunchesOfficialCategories,
+	matchNickLaunchesOfficialCategory,
+	matchNickLaunchesOfficialPricing,
+	nickLaunchesSelectCatalogOptions,
+	type NickLaunchesOfficialCategoryLabel,
+	type NickLaunchesOfficialPricingValue,
+} from './nick-launches.js';
 export {
 	TINYLAUNCH_OFFICIAL_CATEGORY_LABELS,
 	coerceToTinylaunchOfficialCategory,

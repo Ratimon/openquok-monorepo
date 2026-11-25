@@ -5,6 +5,7 @@ import type { LaunchStepField } from 'openquok-common';
 import {
 	formScalarMisassignedToField,
 	isInlineChoiceRowLabel,
+	isListingSiteAiPrefillUrlInput,
 	isPromoVideoUrlInput,
 	listingProductNameInputAttrAllowed,
 	socialFieldControlMatchesInput,
@@ -19,6 +20,20 @@ describe('formFieldDom', () => {
 			</label>`;
 		const label = document.querySelector('label')!;
 		expect(isInlineChoiceRowLabel(label)).toBe(true);
+	});
+
+	it('classifies host AI listing prefill url inputs separately from product website url', () => {
+		const ai = document.createElement('input');
+		ai.type = 'url';
+		ai.placeholder = 'https://example.com';
+		ai.setAttribute('aria-label', 'Paste your URL');
+		expect(isListingSiteAiPrefillUrlInput(ai)).toBe(true);
+
+		const product = document.createElement('input');
+		product.type = 'url';
+		product.name = 'url';
+		product.placeholder = 'https://';
+		expect(isListingSiteAiPrefillUrlInput(product)).toBe(false);
 	});
 
 	it('classifies promo video url inputs separately from social channel fields', () => {

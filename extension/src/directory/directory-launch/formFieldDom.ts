@@ -173,6 +173,35 @@ export function isPromoVideoUrlInput(element: HTMLInputElement): boolean {
 	return true;
 }
 
+/**
+ * Host-owned “paste your URL” crawlers sit beside the real listing URL row and often use https placeholders.
+ */
+export function isListingSiteAiPrefillUrlInput(element: HTMLInputElement): boolean {
+	const attrName = (element.getAttribute('name') ?? '').toLowerCase();
+	if (attrName === 'url' || attrName === 'website' || attrName === 'websiteurl') return false;
+
+	const placeholder = (element.getAttribute('placeholder') ?? '').toLowerCase();
+	const aria = (element.getAttribute('aria-label') ?? '').toLowerCase();
+	if (
+		aria.includes('paste your url') ||
+		placeholder.includes('paste your url') ||
+		placeholder.includes('paste url')
+	) {
+		return true;
+	}
+
+	let section: Element | null = element;
+	for (let depth = 0; depth < 8 && section; depth += 1) {
+		const text = (section.textContent ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
+		if (text.includes('ai-powered form prefill') || text.includes('fill the form automatically')) {
+			return true;
+		}
+		section = section.parentElement;
+	}
+
+	return false;
+}
+
 /** Multi-tab wizards keep every tab in the DOM — scope compare/fill to the labeled row. */
 export function fieldRequiresLabelScopedResolution(field: LaunchStepField): boolean {
 	return (

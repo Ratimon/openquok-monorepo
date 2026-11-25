@@ -14,10 +14,11 @@ Reference for **extension-assisted directory launches**: step rail, compare pane
 | `tinylaunch` | `tinylaunch-standard-launch`, `tinylaunch-premium-launch` | Premium → create form; Standard → pricing | `openquok-directory-tinylaunch.js` |
 | `fazier` | `fazier-page`, `fazier-free-product-listing`, `fazier-paid-product-listing` | Page wizard; product submit (free vs paid tier) | `openquok-directory-fazier.js` |
 | `devhunt` | `devhunt-standard-launch`, `devhunt-paid-launch` | Paid → new-tool form; Standard → launch guide then form | `openquok-directory-devhunt.js` |
+| `nick-launches` | `nick-launches-free-launch`, `nick-launches-paid-launch`, `nick-launches-maker-profile` | Listing → `submit/new`; maker → `profile` | `openquok-directory-nick-launches.js` |
 
-**Site count for smoke:** **6** directory sites (12 provider variants total).
+**Site count for smoke:** **7** directory sites (15 provider variants total).
 
-Picker groups: TinyLaunch, Open Launch, Fazier, and DevHunt group variants under one Add Channel tile per site (`picker_group_key` = site slug).
+Picker groups: TinyLaunch, Open Launch, Fazier, DevHunt, and Nick Launches group variants under one Add Channel tile per site (`picker_group_key` = site slug).
 
 ---
 
@@ -143,11 +144,52 @@ Proof: `successPathRegex` `/tool/` or `/account/tools`; listing URL `a[href*='de
 
 ---
 
+## Nick Launches field mapping
+
+Module: `common/src/auto-launch/destination-configs/sites/nick-launches/config.ts`
+
+### Product listing (`submit/new`)
+
+| Form label (Nick Launches) | `profilePath` | `fillMode` | Notes |
+| --- | --- | --- | --- |
+| Name | `name` | `text` | required |
+| Tagline | `tagline` | `text` | required |
+| Description | `description` | `rich_html` | required |
+| Website URL | `website_url` | `text` | required |
+| Logo | `logo_url` | `file` | required |
+| Screenshots | `profile_data.gallery_urls` | `files` | max 5 (`NICK_LAUNCHES_FORM_GALLERY_MAX`) |
+| Categories | `profile_data.categories` | `tags` | max 3; `tagsCatalog: 'nick_launches_categories'` |
+| Pricing type | `profile_data.pricing_type` | `select` | `selectCatalog: 'nick_launches_pricing'` |
+| Open source | `profile_data.is_open_source` | `checkbox` | optional |
+| X username | `profile_data.social_x` | `text` | strip `@` if present |
+| Demo video | `profile_data.launch_video_url` | `text` | optional |
+| Target keyword, discount, first comment, launch date, slug | — | — | **Manual** v1 |
+| Plan checkout | — | — | **Manual** on `/submit/plan/` |
+
+Free and paid listing destinations share one fixture; `readyStatusHint` differs per provider slug (`nick-launches-free-launch` vs `nick-launches-paid-launch`).
+
+### Maker profile (`profile`)
+
+| Form label | `profilePath` | Notes |
+| --- | --- | --- |
+| Headline | `tagline` | |
+| Bio | `description` | plain text fill |
+| Website | `website_url` | |
+| Avatar | `logo_url` | file |
+| Social X / GitHub / LinkedIn / YouTube | `profile_data.social_*` | known keys only |
+| First name, last name, handle, banner, city, country, calendar | — | **Manual** v1 |
+
+`readyUrlHint`: `profile` for maker profile; `submit/new` for listing variants.
+
+Login: `extension/src/directory/directory-launch/siteLogin/nick-launches.ts` → `https://nicklaunches.com/signin/` with path-aware callback.
+
+---
+
 ## Manual smoke checklist
 
 Run after changing fixtures, extension manifests, or marketing tiles. Use a dev workspace with the extension loaded from `extension/dist`.
 
-### All sites (6)
+### All sites (7)
 
 - [ ] `pnpm --filter openquok-common test:unit` (includes destination config drift tests)
 - [ ] `pnpm sync:auto-launch-configs:check` and `pnpm sync:auto-launch-destinations:check`
@@ -174,6 +216,17 @@ Run after changing fixtures, extension manifests, or marketing tiles. Use a dev 
 - [ ] After publish, proof regex and listing URL selector match a live `devhunt.org/tool/` link
 - [ ] `/channels/devhunt` and `directory-integration/devhunt.md` docs load; hub lists DevHunt with PeerPush, Uneed, Open Launch, TinyLaunch, Fazier
 - [ ] `dist/icons/link-directory/devhunt.svg` exists after extension build
+
+### Nick Launches
+
+- [ ] Sign in on nicklaunches.com; **Free launch** or **Paid launch** handoff opens `submit/new` with non-empty `extension_config`
+- [ ] Step rail shows **Submit listing**; compare lists name, tagline, logo, gallery, website, description, categories, and pricing type
+- [ ] Category chips match `nick_launches_categories` catalog; pricing select matches `nick_launches_pricing`
+- [ ] **Maker profile** handoff opens `/profile/`; headline, bio, website, avatar, and mapped socials fill
+- [ ] Do not complete `/submit/plan/` checkout in automation; confirm ready hints cover badge and plan steps
+- [ ] After publish, listing URL matches proof hints on the live site
+- [ ] `/channels/nick-launches` and `directory-integration/nick-launches.md` docs load; hub lists Nick Launches with PeerPush, Uneed, Open Launch, TinyLaunch, Fazier, DevHunt
+- [ ] `dist/icons/link-directory/nick-launches.svg` exists after extension build
 
 ### TinyLaunch
 

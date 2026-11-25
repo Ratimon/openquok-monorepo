@@ -66,6 +66,7 @@ import {
 	isChoiceGroupOptionLabel,
 	isExcludedFieldLabelAnchor,
 	isInlineChoiceRowLabel,
+	isListingSiteAiPrefillUrlInput,
 	isPromoVideoUrlInput,
 	isSocialLinkProfileField,
 	listingFormIdentityInput,
@@ -364,6 +365,7 @@ function elementPassesFieldGuard(field: LaunchStepField, element: Element): bool
 	if (field.key === 'website' && element instanceof HTMLInputElement) {
 		const attrName = (element.getAttribute('name') ?? '').toLowerCase();
 		if (attrName === 'repo_url' || attrName === 'name' || attrName === 'slug') return false;
+		if (isListingSiteAiPrefillUrlInput(element)) return false;
 	}
 
 	if (
@@ -440,6 +442,7 @@ function elementPassesFieldGuard(field: LaunchStepField, element: Element): bool
 
 	if (field.fillMode === 'tags' || field.key === 'tags') {
 		if (isShortMaxLengthFieldControl(element)) return false;
+		if (element instanceof HTMLInputElement && isListingSiteAiPrefillUrlInput(element)) return false;
 	}
 
 	if (fillMode === 'checkbox_group') {

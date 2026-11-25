@@ -1,5 +1,5 @@
 /** Multi-segment `link_directory_sites.slug` values without passing a live catalog. */
-export const KNOWN_MULTI_SEGMENT_DIRECTORY_SITE_SLUGS = ['open-launch'] as const;
+export const KNOWN_MULTI_SEGMENT_DIRECTORY_SITE_SLUGS = ['open-launch', 'nick-launches'] as const;
 
 /**
  * Site key for grouping auto-launch destinations with `link_directory_sites.slug`.

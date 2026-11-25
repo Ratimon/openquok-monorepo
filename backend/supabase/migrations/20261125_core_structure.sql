@@ -12706,7 +12706,7 @@ SELECT
     'free-queue',
     'Free submission queue',
     'd5f7d000-0004-4000-a000-000000000006'::uuid,
-    'hard',
+    'medium',
     'manual_review',
     'Waits behind paid Standard Launch submissions',
     'unknown',
@@ -12900,7 +12900,7 @@ SELECT
     'free-launch',
     'Free launch',
     'd5f7d000-0004-4000-a000-000000000006'::uuid,
-    'hard',
+    'medium',
     'manual_review',
     'Free queue; timing varies by slot availability',
     'unknown',
@@ -13022,7 +13022,7 @@ SET extension_config = $json${
         "https://devhunt.org/*"
     ],
     "readyUrlHint": "account/tools/new",
-    "readyStatusHint": "Sign in on DevHunt (GitHub or Google), then open the new-tool form. If DevHunt offers an AI draft from your website URL, skip or review it, then use OpenQuok when the tool form is visible. Launch week and $49 checkout stay manual on DevHunt.",
+    "readyStatusHint": "Sign in on DevHunt, then open the new-tool form. Skip or review any AI draft from your website URL, then use OpenQuok on the tool form. Launch week and $49 checkout stay manual on DevHunt.",
     "steps": [
         {
             "id": "submit_tool",
@@ -13159,8 +13159,8 @@ SET extension_config = $json${
     "startUrlPatterns": [
         "https://devhunt.org/*"
     ],
-    "readyUrlHint": "blog/tools-developers-guide-launches-on-devhunt",
-    "readyStatusHint": "Read the launch guide, then sign in and open https://devhunt.org/account/tools/new when you are ready to submit. Skip or review any AI draft from your website URL, then use OpenQuok on the tool form. The free queue can take about six months; do not complete $49 checkout unless you chose the paid launch path.",
+    "readyUrlHint": "account/tools/new",
+    "readyStatusHint": "Sign in on DevHunt and open the new-tool form for a free listing. Skip or review any AI draft from your website URL, then use OpenQuok on the tool form. Free listings use a nofollow link on the tool page.",
     "steps": [
         {
             "id": "submit_tool",
@@ -13727,6 +13727,365 @@ SET extension_config = $json${
     "readyStatusHint": "On fazier.com/submit, choose Product launch (not Company page). Pick Lite Plan or higher when Fazier shows plan tiers. When product fields are visible, use Fill all steps or Fill on each row—then finish checkout on Fazier."
 }$json$::jsonb
 WHERE provider_slug = 'fazier-paid-product-listing';
+
+UPDATE public.auto_launch_destinations
+SET extension_config = $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://nicklaunches.com/*"
+    ],
+    "readyUrlHint": "submit/new",
+    "readyStatusHint": "Sign in on Nick Launches, then open the new listing form for a free launch. If Nick Launches prefills a draft from your website URL, skip or review it before OpenQuok fills the form. Weekly upvotes and a live Featured badge are required for the free dofollow path. Launch week and admin review stay manual. Target keyword, discount, first comment, launch date, and slug stay manual. Plan selection happens after this form.",
+    "steps": [
+        {
+            "id": "submit_listing",
+            "label": "Submit listing",
+            "fields": [
+                {
+                    "key": "logo",
+                    "label": "Logo",
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "required": true,
+                    "selectorHint": "input[type='file'][name*='logo' i], input[type='file'][accept*='image']"
+                },
+                {
+                    "key": "gallery",
+                    "label": "Screenshots",
+                    "labelAliases": [
+                        "Gallery"
+                    ],
+                    "profilePath": "profile_data.gallery_urls",
+                    "fillMode": "files",
+                    "fileInputIndex": 0,
+                    "maxItems": 5,
+                    "required": true,
+                    "selectorHint": "input[type='file'][name*='screenshot' i], input[type='file'][multiple]"
+                },
+                {
+                    "key": "name",
+                    "label": "Name",
+                    "labelAliases": [
+                        "Product name"
+                    ],
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[name='name'], input[aria-label*='name' i], input[placeholder*='name' i]"
+                },
+                {
+                    "key": "tagline",
+                    "label": "Tagline",
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[name='tagline'], textarea[name='tagline'], input[placeholder*='tagline' i]"
+                },
+                {
+                    "key": "description",
+                    "label": "Description",
+                    "profilePath": "description",
+                    "fillMode": "rich_html",
+                    "required": true,
+                    "selectorHint": "textarea[name='description'], [contenteditable='true'], .ProseMirror, .tiptap"
+                },
+                {
+                    "key": "website",
+                    "label": "Website URL",
+                    "labelAliases": [
+                        "URL",
+                        "Website"
+                    ],
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[name='url'], input[type='url'], input[name*='website' i], input[placeholder*='https' i]"
+                },
+                {
+                    "key": "categories",
+                    "label": "Categories",
+                    "profilePath": "profile_data.categories",
+                    "fillMode": "tags",
+                    "tagsCatalog": "nick_launches_categories",
+                    "maxItems": 3,
+                    "required": true,
+                    "selectorHint": "input[name*='categor' i], input[placeholder*='categor' i], [aria-label*='categor' i]"
+                },
+                {
+                    "key": "pricing_type",
+                    "label": "Pricing",
+                    "profilePath": "profile_data.pricing_type",
+                    "fillMode": "select",
+                    "selectCatalog": "nick_launches_pricing",
+                    "required": true,
+                    "selectorHint": "select[name='pricing'], select[name*='pricing' i], [role='combobox'][aria-label*='pricing' i], input[name='pricing']"
+                },
+                {
+                    "key": "is_open_source",
+                    "label": "Open source",
+                    "profilePath": "profile_data.is_open_source",
+                    "fillMode": "boolean",
+                    "selectorHint": "input[type='checkbox'][name*='openSource' i], input[type='checkbox'][name*='open' i], [role='switch'][aria-label*='open source' i], [role='checkbox'][aria-label*='open source' i]"
+                },
+                {
+                    "key": "social_x",
+                    "label": "X (Twitter)",
+                    "labelAliases": [
+                        "Twitter",
+                        "Twitter username"
+                    ],
+                    "profilePath": "profile_data.social_x",
+                    "fillMode": "text",
+                    "socialXScalar": "username",
+                    "selectorHint": "input[name='twitterUsername'], input[name*='twitter' i], input[placeholder*='twitter' i], input[aria-label*='twitter' i]"
+                },
+                {
+                    "key": "demo_video",
+                    "label": "Demo video URL",
+                    "labelAliases": [
+                        "Demo video"
+                    ],
+                    "profilePath": "profile_data.launch_video_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='demoVideoUrl'], input[name*='demo' i], input[placeholder*='video' i], input[type='url'][name*='video' i]"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/products/",
+        "listingUrlSelector": "a[href*='nicklaunches.com/products/']"
+    }
+}$json$::jsonb
+WHERE provider_slug = 'nick-launches-free-launch';
+
+UPDATE public.auto_launch_destinations
+SET extension_config = $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://nicklaunches.com/*"
+    ],
+    "readyUrlHint": "profile",
+    "readyStatusHint": "Sign in on Nick Launches and open your maker profile. OpenQuok fills headline, bio, website, avatar, and X, GitHub, LinkedIn, and YouTube when those profile fields are set. First name, last name, handle, banner, city, country, calendar, Twitch, and Product Hunt stay manual.",
+    "steps": [
+        {
+            "id": "profile_info",
+            "label": "Profile",
+            "fields": [
+                {
+                    "key": "name",
+                    "label": "Display name",
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='name'], input[aria-label*='display name' i], input[placeholder*='display name' i]"
+                },
+                {
+                    "key": "headline",
+                    "label": "Headline",
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='headline'], textarea[name='headline'], input[aria-label*='headline' i]"
+                },
+                {
+                    "key": "bio",
+                    "label": "Bio",
+                    "profilePath": "description",
+                    "fillMode": "text",
+                    "selectorHint": "textarea[name='bio'], textarea[aria-label*='bio' i]"
+                },
+                {
+                    "key": "website",
+                    "label": "Website",
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='website'], input[type='url'], input[aria-label*='website' i]"
+                },
+                {
+                    "key": "avatar",
+                    "label": "Avatar",
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "selectorHint": "input[type='file'][name*='avatar' i], input[type='file'][accept*='image']"
+                },
+                {
+                    "key": "social_x",
+                    "label": "X (Twitter)",
+                    "labelAliases": [
+                        "Twitter",
+                        "X"
+                    ],
+                    "profilePath": "profile_data.social_x",
+                    "fillMode": "text",
+                    "socialXScalar": "username",
+                    "selectorHint": "input[name='socials.x'], input[name*='twitter' i], input[aria-label*='twitter' i], input[placeholder*='x.com' i]"
+                },
+                {
+                    "key": "social_github",
+                    "label": "GitHub",
+                    "profilePath": "profile_data.social_github",
+                    "profileSourcePaths": [
+                        "profile_data.repository_url"
+                    ],
+                    "fillMode": "text",
+                    "selectorHint": "input[name='socials.github'], input[name*='github' i]"
+                },
+                {
+                    "key": "social_linkedin",
+                    "label": "LinkedIn",
+                    "profilePath": "profile_data.social_linkedin",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='socials.linkedin'], input[name*='linkedin' i]"
+                },
+                {
+                    "key": "social_youtube",
+                    "label": "YouTube",
+                    "profilePath": "profile_data.social_youtube",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='socials.youtube'], input[name*='youtube' i]"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/profile|/builders/",
+        "listingUrlSelector": "a[href*='nicklaunches.com/builders/'], a[href*='nicklaunches.com/profile']"
+    }
+}$json$::jsonb
+WHERE provider_slug = 'nick-launches-maker-profile';
+
+UPDATE public.auto_launch_destinations
+SET extension_config = $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://nicklaunches.com/*"
+    ],
+    "readyUrlHint": "submit/new",
+    "readyStatusHint": "Sign in on Nick Launches, then open the new listing form. If Nick Launches prefills a draft from your website URL, skip or review it before OpenQuok fills the form. Paid tiers are a one-time charge ($19, $39, $99, or $199) chosen on the plan step after this form; checkout stays manual. The Featured badge is optional on paid tiers. Admin review is always required. Target keyword, discount, first comment, launch date, and slug stay manual.",
+    "steps": [
+        {
+            "id": "submit_listing",
+            "label": "Submit listing",
+            "fields": [
+                {
+                    "key": "logo",
+                    "label": "Logo",
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "required": true,
+                    "selectorHint": "input[type='file'][name*='logo' i], input[type='file'][accept*='image']"
+                },
+                {
+                    "key": "gallery",
+                    "label": "Screenshots",
+                    "labelAliases": [
+                        "Gallery"
+                    ],
+                    "profilePath": "profile_data.gallery_urls",
+                    "fillMode": "files",
+                    "fileInputIndex": 0,
+                    "maxItems": 5,
+                    "required": true,
+                    "selectorHint": "input[type='file'][name*='screenshot' i], input[type='file'][multiple]"
+                },
+                {
+                    "key": "name",
+                    "label": "Name",
+                    "labelAliases": [
+                        "Product name"
+                    ],
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[name='name'], input[aria-label*='name' i], input[placeholder*='name' i]"
+                },
+                {
+                    "key": "tagline",
+                    "label": "Tagline",
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[name='tagline'], textarea[name='tagline'], input[placeholder*='tagline' i]"
+                },
+                {
+                    "key": "description",
+                    "label": "Description",
+                    "profilePath": "description",
+                    "fillMode": "rich_html",
+                    "required": true,
+                    "selectorHint": "textarea[name='description'], [contenteditable='true'], .ProseMirror, .tiptap"
+                },
+                {
+                    "key": "website",
+                    "label": "Website URL",
+                    "labelAliases": [
+                        "URL",
+                        "Website"
+                    ],
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[name='url'], input[type='url'], input[name*='website' i], input[placeholder*='https' i]"
+                },
+                {
+                    "key": "categories",
+                    "label": "Categories",
+                    "profilePath": "profile_data.categories",
+                    "fillMode": "tags",
+                    "tagsCatalog": "nick_launches_categories",
+                    "maxItems": 3,
+                    "required": true,
+                    "selectorHint": "input[name*='categor' i], input[placeholder*='categor' i], [aria-label*='categor' i]"
+                },
+                {
+                    "key": "pricing_type",
+                    "label": "Pricing",
+                    "profilePath": "profile_data.pricing_type",
+                    "fillMode": "select",
+                    "selectCatalog": "nick_launches_pricing",
+                    "required": true,
+                    "selectorHint": "select[name='pricing'], select[name*='pricing' i], [role='combobox'][aria-label*='pricing' i], input[name='pricing']"
+                },
+                {
+                    "key": "is_open_source",
+                    "label": "Open source",
+                    "profilePath": "profile_data.is_open_source",
+                    "fillMode": "boolean",
+                    "selectorHint": "input[type='checkbox'][name*='openSource' i], input[type='checkbox'][name*='open' i], [role='switch'][aria-label*='open source' i], [role='checkbox'][aria-label*='open source' i]"
+                },
+                {
+                    "key": "social_x",
+                    "label": "X (Twitter)",
+                    "labelAliases": [
+                        "Twitter",
+                        "Twitter username"
+                    ],
+                    "profilePath": "profile_data.social_x",
+                    "fillMode": "text",
+                    "socialXScalar": "username",
+                    "selectorHint": "input[name='twitterUsername'], input[name*='twitter' i], input[placeholder*='twitter' i], input[aria-label*='twitter' i]"
+                },
+                {
+                    "key": "demo_video",
+                    "label": "Demo video URL",
+                    "labelAliases": [
+                        "Demo video"
+                    ],
+                    "profilePath": "profile_data.launch_video_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='demoVideoUrl'], input[name*='demo' i], input[placeholder*='video' i], input[type='url'][name*='video' i]"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/products/",
+        "listingUrlSelector": "a[href*='nicklaunches.com/products/']"
+    }
+}$json$::jsonb
+WHERE provider_slug = 'nick-launches-paid-launch';
 
 UPDATE public.auto_launch_destinations
 SET extension_config = $json${
@@ -14612,7 +14971,9 @@ SET extension_config = $json${
                     "key": "logo",
                     "label": "Logo",
                     "profilePath": "logo_url",
-                    "selectorHint": "input[type='file'][accept*='image']"
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "selectorHint": "input#single[type='file']"
                 },
                 {
                     "key": "launch_video_url",
@@ -14624,10 +14985,15 @@ SET extension_config = $json${
                 {
                     "key": "gallery",
                     "label": "Gallery images",
+                    "labelAliases": [
+                        "Images",
+                        "Product images"
+                    ],
                     "profilePath": "profile_data.gallery_urls",
                     "fillMode": "files",
+                    "fileInputIndex": 0,
                     "maxItems": 3,
-                    "selectorHint": "input[type='file'][accept*='image']:not(:first-of-type)"
+                    "selectorHint": "div:has(> h3:first-child), input[type='file'][accept*='image']"
                 }
             ]
         },
@@ -14995,7 +15361,9 @@ SET extension_config = $json${
                     "key": "logo",
                     "label": "Logo",
                     "profilePath": "logo_url",
-                    "selectorHint": "input[type='file'][accept*='image']"
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "selectorHint": "input#single[type='file']"
                 },
                 {
                     "key": "launch_video_url",
@@ -15007,10 +15375,15 @@ SET extension_config = $json${
                 {
                     "key": "gallery",
                     "label": "Gallery images",
+                    "labelAliases": [
+                        "Images",
+                        "Product images"
+                    ],
                     "profilePath": "profile_data.gallery_urls",
                     "fillMode": "files",
+                    "fileInputIndex": 0,
                     "maxItems": 3,
-                    "selectorHint": "input[type='file'][accept*='image']:not(:first-of-type)"
+                    "selectorHint": "div:has(> h3:first-child), input[type='file'][accept*='image']"
                 }
             ]
         },
@@ -15466,7 +15839,9 @@ FROM (
                     "key": "logo",
                     "label": "Logo",
                     "profilePath": "logo_url",
-                    "selectorHint": "input[type='file'][accept*='image']"
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "selectorHint": "input#single[type='file']"
                 },
                 {
                     "key": "launch_video_url",
@@ -15478,10 +15853,15 @@ FROM (
                 {
                     "key": "gallery",
                     "label": "Gallery images",
+                    "labelAliases": [
+                        "Images",
+                        "Product images"
+                    ],
                     "profilePath": "profile_data.gallery_urls",
                     "fillMode": "files",
+                    "fileInputIndex": 0,
                     "maxItems": 3,
-                    "selectorHint": "input[type='file'][accept*='image']:not(:first-of-type)"
+                    "selectorHint": "div:has(> h3:first-child), input[type='file'][accept*='image']"
                 }
             ]
         },
@@ -15754,7 +16134,9 @@ FROM (
                     "key": "logo",
                     "label": "Logo",
                     "profilePath": "logo_url",
-                    "selectorHint": "input[type='file'][accept*='image']"
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "selectorHint": "input#single[type='file']"
                 },
                 {
                     "key": "launch_video_url",
@@ -15766,10 +16148,15 @@ FROM (
                 {
                     "key": "gallery",
                     "label": "Gallery images",
+                    "labelAliases": [
+                        "Images",
+                        "Product images"
+                    ],
                     "profilePath": "profile_data.gallery_urls",
                     "fillMode": "files",
+                    "fileInputIndex": 0,
                     "maxItems": 3,
-                    "selectorHint": "input[type='file'][accept*='image']:not(:first-of-type)"
+                    "selectorHint": "div:has(> h3:first-child), input[type='file'][accept*='image']"
                 }
             ]
         },
@@ -17752,13 +18139,194 @@ ON CONFLICT (provider_slug) DO UPDATE SET
 -- ---------------------------
 -- MODULE NAME: Auto Launch
 -- MODULE DATE: 20261121
--- MODULE SCOPE: Seed (DevHunt standard + paid launch destinations)
+-- MODULE SCOPE: Seed (DevHunt free listing + paid launch destinations)
 -- ---------------------------
 -- extension_config: embedded on INSERT from destination-configs/*.ts; refreshed via 502_*_extension_configs.sql
 -- Joins link_directory_opportunities on site slug devhunt (catalog backfill / listing manager).
 -- Launch week, $49 checkout, and maker comment stay manual after the tool form is filled.
 
 BEGIN;
+
+INSERT INTO public.auto_launch_destinations (
+    id,
+    provider_slug,
+    link_directory_opportunity_id,
+    name,
+    short_description,
+    submission_path,
+    start_url,
+    extension_config,
+    is_published,
+    sort_order,
+    picker_group_key,
+    picker_group_title
+)
+SELECT
+    'd5f7d000-0030-4000-a000-000000000014'::uuid,
+    'devhunt-standard-launch'::text,
+    (
+        SELECT o.id
+        FROM public.link_directory_opportunities o
+        INNER JOIN public.link_directory_sites s ON s.id = o.site_id
+        WHERE s.slug = 'devhunt'
+          AND o.slug = 'standard-launch'
+        LIMIT 1
+    ),
+    'DevHunt — Free listing',
+    'Free listing on DevHunt with a nofollow tool-page link; extension autofills after you sign in.',
+    'extension',
+    'https://devhunt.org/account/tools/new',
+    $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://devhunt.org/*"
+    ],
+    "readyUrlHint": "account/tools/new",
+    "readyStatusHint": "Sign in on DevHunt and open the new-tool form for a free listing. Skip or review any AI draft from your website URL, then use OpenQuok on the tool form. Free listings use a nofollow link on the tool page.",
+    "steps": [
+        {
+            "id": "submit_tool",
+            "label": "Submit tool",
+            "fields": [
+                {
+                    "key": "logo",
+                    "label": "Tool logo",
+                    "labelAliases": [
+                        "Logo"
+                    ],
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "required": true,
+                    "selectorHint": "input[type='file'][accept*='image'], input[type='file'][accept*='png' i]"
+                },
+                {
+                    "key": "gallery",
+                    "label": "Tool screenshots",
+                    "labelAliases": [
+                        "Screenshots",
+                        "Gallery"
+                    ],
+                    "profilePath": "profile_data.gallery_urls",
+                    "fillMode": "files",
+                    "fileInputIndex": 0,
+                    "maxItems": 3,
+                    "required": true,
+                    "selectorHint": "#tool-screenshots-container input[type='file']"
+                },
+                {
+                    "key": "name",
+                    "label": "Tool name",
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[placeholder*='My Awesome Dev Tool' i], input[name*='tool_name' i], input[aria-label*='tool name' i]"
+                },
+                {
+                    "key": "tagline",
+                    "label": "Catchy slogan",
+                    "labelAliases": [
+                        "Slogan",
+                        "Tagline"
+                    ],
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[placeholder*='Supercharge Your Development Workflow' i], input[name*='slogan' i], textarea[name*='slogan' i]"
+                },
+                {
+                    "key": "website",
+                    "label": "Tool website URL",
+                    "labelAliases": [
+                        "Website URL",
+                        "Website"
+                    ],
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[placeholder*='myawesomedevtool' i], input[type='url'], input[name*='tool_website' i], input[name*='website' i]"
+                },
+                {
+                    "key": "description",
+                    "label": "Quick Description",
+                    "labelAliases": [
+                        "Description"
+                    ],
+                    "profilePath": "description",
+                    "fillMode": "rich_html",
+                    "required": true,
+                    "selectorHint": "textarea[placeholder*='Briefly explain what your tool does' i], [contenteditable='true'], .ProseMirror, .tiptap, textarea[name*='tool_description' i]"
+                },
+                {
+                    "key": "social_github",
+                    "label": "GitHub repo URL",
+                    "labelAliases": [
+                        "GitHub repo URL (optional)",
+                        "GitHub"
+                    ],
+                    "profilePath": "profile_data.social_github",
+                    "fillMode": "text",
+                    "selectorHint": "input[placeholder*='github.com/username' i], input[name*='github' i], input[name*='github_repo' i]",
+                    "profileSourcePaths": [
+                        "profile_data.repository_url"
+                    ]
+                },
+                {
+                    "key": "pricing_type",
+                    "label": "Tool pricing type",
+                    "labelAliases": [
+                        "Pricing type",
+                        "Pricing"
+                    ],
+                    "profilePath": "profile_data.pricing_type",
+                    "fillMode": "select",
+                    "selectCatalog": "devhunt_pricing",
+                    "selectorHint": "#pricing-container input[type='radio'][name='pricing_type'], input[type='radio'][name='pricing_type'], input[type='radio'][name*='pricing_type' i]"
+                },
+                {
+                    "key": "categories",
+                    "label": "Tool categories",
+                    "labelAliases": [
+                        "Categories"
+                    ],
+                    "profilePath": "profile_data.categories",
+                    "fillMode": "tags",
+                    "selectorHint": "input[name*='categor' i], input[placeholder*='categor' i], [aria-label*='categor' i]"
+                },
+                {
+                    "key": "demo_video",
+                    "label": "Demo video",
+                    "labelAliases": [
+                        "Demo video (optional)"
+                    ],
+                    "profilePath": "profile_data.launch_video_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[placeholder*='Demo video (optional)' i], input[name*='demo_video' i], input[type='url'][placeholder*='video' i]"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/tool/|/account/tools",
+        "listingUrlSelector": "a[href*='devhunt.org/tool/']"
+    }
+}$json$::jsonb,
+    true,
+    53,
+    'devhunt'::text,
+    'DevHunt'::text
+ON CONFLICT (provider_slug) DO UPDATE SET
+    link_directory_opportunity_id = EXCLUDED.link_directory_opportunity_id,
+    name = EXCLUDED.name,
+    short_description = EXCLUDED.short_description,
+    submission_path = EXCLUDED.submission_path,
+    start_url = EXCLUDED.start_url,
+    extension_config = EXCLUDED.extension_config,
+    is_published = EXCLUDED.is_published,
+    sort_order = EXCLUDED.sort_order,
+    picker_group_key = EXCLUDED.picker_group_key,
+    picker_group_title = EXCLUDED.picker_group_title,
+    updated_at = NOW();
 
 INSERT INTO public.auto_launch_destinations (
     id,
@@ -17786,7 +18354,7 @@ SELECT
         LIMIT 1
     ),
     'DevHunt — Paid launch',
-    'Pay $49 on DevHunt to pick a launch week; extension autofills account/tools/new after you sign in.',
+    '$49 launch week on DevHunt for a dofollow link; extension autofills account/tools/new after you sign in.',
     'extension',
     'https://devhunt.org/account/tools/new',
     $json${
@@ -17795,7 +18363,7 @@ SELECT
         "https://devhunt.org/*"
     ],
     "readyUrlHint": "account/tools/new",
-    "readyStatusHint": "Sign in on DevHunt (GitHub or Google), then open the new-tool form. If DevHunt offers an AI draft from your website URL, skip or review it, then use OpenQuok when the tool form is visible. Launch week and $49 checkout stay manual on DevHunt.",
+    "readyStatusHint": "Sign in on DevHunt, then open the new-tool form. Skip or review any AI draft from your website URL, then use OpenQuok on the tool form. Launch week and $49 checkout stay manual on DevHunt.",
     "steps": [
         {
             "id": "submit_tool",
@@ -17941,6 +18509,19 @@ ON CONFLICT (provider_slug) DO UPDATE SET
     picker_group_title = EXCLUDED.picker_group_title,
     updated_at = NOW();
 
+
+-- Module: auto-launch, File: 509_20261124_seed_nick_launches_destination.sql
+-- ---------------------------
+-- MODULE NAME: Auto Launch
+-- MODULE DATE: 20261124
+-- MODULE SCOPE: Seed (Nick Launches free launch, paid launch, and maker profile destinations)
+-- ---------------------------
+-- extension_config: embedded on INSERT from destination-configs/*.ts; refreshed via 502_*_extension_configs.sql
+-- Joins link_directory_opportunities on site slug nick-launches (catalog backfill / listing manager).
+-- Plan selection, checkout, weekly upvotes, Featured badge, and admin review stay manual after the listing form is filled.
+
+BEGIN;
+
 INSERT INTO public.auto_launch_destinations (
     id,
     provider_slug,
@@ -17956,159 +18537,466 @@ INSERT INTO public.auto_launch_destinations (
     picker_group_title
 )
 SELECT
-    'd5f7d000-0030-4000-a000-000000000014'::uuid,
-    'devhunt-standard-launch'::text,
+    'd5f7d000-0030-4000-a000-000000000016'::uuid,
+    'nick-launches-free-launch'::text,
     (
         SELECT o.id
         FROM public.link_directory_opportunities o
         INNER JOIN public.link_directory_sites s ON s.id = o.site_id
-        WHERE s.slug = 'devhunt'
-          AND o.slug = 'standard-launch'
+        WHERE s.slug = 'nick-launches'
+          AND o.slug = 'free-launch'
         LIMIT 1
     ),
-    'DevHunt — Standard launch',
-    'Free launch queue on DevHunt; extension autofills after you sign in and open the new-tool form.',
+    'Nick Launches — Free launch',
+    'Free listing on Nick Launches; weekly upvotes and a live Featured badge are required for a dofollow link. Extension autofills the listing form after you sign in.',
     'extension',
-    'https://devhunt.org/blog/tools-developers-guide-launches-on-devhunt',
+    'https://nicklaunches.com/submit/new/',
     $json${
     "version": 1,
     "startUrlPatterns": [
-        "https://devhunt.org/*"
+        "https://nicklaunches.com/*"
     ],
-    "readyUrlHint": "blog/tools-developers-guide-launches-on-devhunt",
-    "readyStatusHint": "Read the launch guide, then sign in and open https://devhunt.org/account/tools/new when you are ready to submit. Skip or review any AI draft from your website URL, then use OpenQuok on the tool form. The free queue can take about six months; do not complete $49 checkout unless you chose the paid launch path.",
+    "readyUrlHint": "submit/new",
+    "readyStatusHint": "Sign in on Nick Launches, then open the new listing form for a free launch. If Nick Launches prefills a draft from your website URL, skip or review it before OpenQuok fills the form. Weekly upvotes and a live Featured badge are required for the free dofollow path. Launch week and admin review stay manual. Target keyword, discount, first comment, launch date, and slug stay manual. Plan selection happens after this form.",
     "steps": [
         {
-            "id": "submit_tool",
-            "label": "Submit tool",
+            "id": "submit_listing",
+            "label": "Submit listing",
             "fields": [
                 {
                     "key": "logo",
-                    "label": "Tool logo",
-                    "labelAliases": [
-                        "Logo"
-                    ],
+                    "label": "Logo",
                     "profilePath": "logo_url",
                     "fillMode": "file",
                     "fileInputIndex": 0,
                     "required": true,
-                    "selectorHint": "input[type='file'][accept*='image'], input[type='file'][accept*='png' i]"
+                    "selectorHint": "input[type='file'][name*='logo' i], input[type='file'][accept*='image']"
                 },
                 {
                     "key": "gallery",
-                    "label": "Tool screenshots",
+                    "label": "Screenshots",
                     "labelAliases": [
-                        "Screenshots",
                         "Gallery"
                     ],
                     "profilePath": "profile_data.gallery_urls",
                     "fillMode": "files",
                     "fileInputIndex": 0,
-                    "maxItems": 3,
+                    "maxItems": 5,
                     "required": true,
-                    "selectorHint": "#tool-screenshots-container input[type='file']"
+                    "selectorHint": "input[type='file'][name*='screenshot' i], input[type='file'][multiple]"
                 },
                 {
                     "key": "name",
-                    "label": "Tool name",
+                    "label": "Name",
+                    "labelAliases": [
+                        "Product name"
+                    ],
                     "profilePath": "name",
                     "fillMode": "text",
                     "required": true,
-                    "selectorHint": "input[placeholder*='My Awesome Dev Tool' i], input[name*='tool_name' i], input[aria-label*='tool name' i]"
+                    "selectorHint": "input[name='name'], input[aria-label*='name' i], input[placeholder*='name' i]"
                 },
                 {
                     "key": "tagline",
-                    "label": "Catchy slogan",
-                    "labelAliases": [
-                        "Slogan",
-                        "Tagline"
-                    ],
+                    "label": "Tagline",
                     "profilePath": "tagline",
                     "fillMode": "text",
                     "required": true,
-                    "selectorHint": "input[placeholder*='Supercharge Your Development Workflow' i], input[name*='slogan' i], textarea[name*='slogan' i]"
+                    "selectorHint": "input[name='tagline'], textarea[name='tagline'], input[placeholder*='tagline' i]"
+                },
+                {
+                    "key": "description",
+                    "label": "Description",
+                    "profilePath": "description",
+                    "fillMode": "rich_html",
+                    "required": true,
+                    "selectorHint": "textarea[name='description'], [contenteditable='true'], .ProseMirror, .tiptap"
                 },
                 {
                     "key": "website",
-                    "label": "Tool website URL",
+                    "label": "Website URL",
                     "labelAliases": [
-                        "Website URL",
+                        "URL",
                         "Website"
                     ],
                     "profilePath": "website_url",
                     "fillMode": "text",
                     "required": true,
-                    "selectorHint": "input[placeholder*='myawesomedevtool' i], input[type='url'], input[name*='tool_website' i], input[name*='website' i]"
-                },
-                {
-                    "key": "description",
-                    "label": "Quick Description",
-                    "labelAliases": [
-                        "Description"
-                    ],
-                    "profilePath": "description",
-                    "fillMode": "rich_html",
-                    "required": true,
-                    "selectorHint": "textarea[placeholder*='Briefly explain what your tool does' i], [contenteditable='true'], .ProseMirror, .tiptap, textarea[name*='tool_description' i]"
-                },
-                {
-                    "key": "social_github",
-                    "label": "GitHub repo URL",
-                    "labelAliases": [
-                        "GitHub repo URL (optional)",
-                        "GitHub"
-                    ],
-                    "profilePath": "profile_data.social_github",
-                    "fillMode": "text",
-                    "selectorHint": "input[placeholder*='github.com/username' i], input[name*='github' i], input[name*='github_repo' i]",
-                    "profileSourcePaths": [
-                        "profile_data.repository_url"
-                    ]
-                },
-                {
-                    "key": "pricing_type",
-                    "label": "Tool pricing type",
-                    "labelAliases": [
-                        "Pricing type",
-                        "Pricing"
-                    ],
-                    "profilePath": "profile_data.pricing_type",
-                    "fillMode": "select",
-                    "selectCatalog": "devhunt_pricing",
-                    "selectorHint": "#pricing-container input[type='radio'][name='pricing_type'], input[type='radio'][name='pricing_type'], input[type='radio'][name*='pricing_type' i]"
+                    "selectorHint": "input[name='url'], input[type='url'], input[name*='website' i], input[placeholder*='https' i]"
                 },
                 {
                     "key": "categories",
-                    "label": "Tool categories",
-                    "labelAliases": [
-                        "Categories"
-                    ],
+                    "label": "Categories",
                     "profilePath": "profile_data.categories",
                     "fillMode": "tags",
+                    "tagsCatalog": "nick_launches_categories",
+                    "maxItems": 3,
+                    "required": true,
                     "selectorHint": "input[name*='categor' i], input[placeholder*='categor' i], [aria-label*='categor' i]"
                 },
                 {
-                    "key": "demo_video",
-                    "label": "Demo video",
+                    "key": "pricing_type",
+                    "label": "Pricing",
+                    "profilePath": "profile_data.pricing_type",
+                    "fillMode": "select",
+                    "selectCatalog": "nick_launches_pricing",
+                    "required": true,
+                    "selectorHint": "select[name='pricing'], select[name*='pricing' i], [role='combobox'][aria-label*='pricing' i], input[name='pricing']"
+                },
+                {
+                    "key": "is_open_source",
+                    "label": "Open source",
+                    "profilePath": "profile_data.is_open_source",
+                    "fillMode": "boolean",
+                    "selectorHint": "input[type='checkbox'][name*='openSource' i], input[type='checkbox'][name*='open' i], [role='switch'][aria-label*='open source' i], [role='checkbox'][aria-label*='open source' i]"
+                },
+                {
+                    "key": "social_x",
+                    "label": "X (Twitter)",
                     "labelAliases": [
-                        "Demo video (optional)"
+                        "Twitter",
+                        "Twitter username"
+                    ],
+                    "profilePath": "profile_data.social_x",
+                    "fillMode": "text",
+                    "socialXScalar": "username",
+                    "selectorHint": "input[name='twitterUsername'], input[name*='twitter' i], input[placeholder*='twitter' i], input[aria-label*='twitter' i]"
+                },
+                {
+                    "key": "demo_video",
+                    "label": "Demo video URL",
+                    "labelAliases": [
+                        "Demo video"
                     ],
                     "profilePath": "profile_data.launch_video_url",
                     "fillMode": "text",
-                    "selectorHint": "input[placeholder*='Demo video (optional)' i], input[name*='demo_video' i], input[type='url'][placeholder*='video' i]"
+                    "selectorHint": "input[name='demoVideoUrl'], input[name*='demo' i], input[placeholder*='video' i], input[type='url'][name*='video' i]"
                 }
             ]
         }
     ],
     "proof": {
-        "successPathRegex": "/tool/|/account/tools",
-        "listingUrlSelector": "a[href*='devhunt.org/tool/']"
+        "successPathRegex": "/products/",
+        "listingUrlSelector": "a[href*='nicklaunches.com/products/']"
     }
 }$json$::jsonb,
     true,
-    53,
-    'devhunt'::text,
-    'DevHunt'::text
+    56,
+    'nick-launches'::text,
+    'Nick Launches'::text
+ON CONFLICT (provider_slug) DO UPDATE SET
+    link_directory_opportunity_id = EXCLUDED.link_directory_opportunity_id,
+    name = EXCLUDED.name,
+    short_description = EXCLUDED.short_description,
+    submission_path = EXCLUDED.submission_path,
+    start_url = EXCLUDED.start_url,
+    extension_config = EXCLUDED.extension_config,
+    is_published = EXCLUDED.is_published,
+    sort_order = EXCLUDED.sort_order,
+    picker_group_key = EXCLUDED.picker_group_key,
+    picker_group_title = EXCLUDED.picker_group_title,
+    updated_at = NOW();
+
+INSERT INTO public.auto_launch_destinations (
+    id,
+    provider_slug,
+    link_directory_opportunity_id,
+    name,
+    short_description,
+    submission_path,
+    start_url,
+    extension_config,
+    is_published,
+    sort_order,
+    picker_group_key,
+    picker_group_title
+)
+SELECT
+    'd5f7d000-0030-4000-a000-000000000017'::uuid,
+    'nick-launches-paid-launch'::text,
+    (
+        SELECT o.id
+        FROM public.link_directory_opportunities o
+        INNER JOIN public.link_directory_sites s ON s.id = o.site_id
+        WHERE s.slug = 'nick-launches'
+          AND o.slug = 'paid-launch'
+        LIMIT 1
+    ),
+    'Nick Launches — Paid launch',
+    'Paid launch tiers on Nick Launches ($19, $39, $99, or $199). Extension autofills the listing form; plan checkout stays manual.',
+    'extension',
+    'https://nicklaunches.com/submit/new/',
+    $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://nicklaunches.com/*"
+    ],
+    "readyUrlHint": "submit/new",
+    "readyStatusHint": "Sign in on Nick Launches, then open the new listing form. If Nick Launches prefills a draft from your website URL, skip or review it before OpenQuok fills the form. Paid tiers are a one-time charge ($19, $39, $99, or $199) chosen on the plan step after this form; checkout stays manual. The Featured badge is optional on paid tiers. Admin review is always required. Target keyword, discount, first comment, launch date, and slug stay manual.",
+    "steps": [
+        {
+            "id": "submit_listing",
+            "label": "Submit listing",
+            "fields": [
+                {
+                    "key": "logo",
+                    "label": "Logo",
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "required": true,
+                    "selectorHint": "input[type='file'][name*='logo' i], input[type='file'][accept*='image']"
+                },
+                {
+                    "key": "gallery",
+                    "label": "Screenshots",
+                    "labelAliases": [
+                        "Gallery"
+                    ],
+                    "profilePath": "profile_data.gallery_urls",
+                    "fillMode": "files",
+                    "fileInputIndex": 0,
+                    "maxItems": 5,
+                    "required": true,
+                    "selectorHint": "input[type='file'][name*='screenshot' i], input[type='file'][multiple]"
+                },
+                {
+                    "key": "name",
+                    "label": "Name",
+                    "labelAliases": [
+                        "Product name"
+                    ],
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[name='name'], input[aria-label*='name' i], input[placeholder*='name' i]"
+                },
+                {
+                    "key": "tagline",
+                    "label": "Tagline",
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[name='tagline'], textarea[name='tagline'], input[placeholder*='tagline' i]"
+                },
+                {
+                    "key": "description",
+                    "label": "Description",
+                    "profilePath": "description",
+                    "fillMode": "rich_html",
+                    "required": true,
+                    "selectorHint": "textarea[name='description'], [contenteditable='true'], .ProseMirror, .tiptap"
+                },
+                {
+                    "key": "website",
+                    "label": "Website URL",
+                    "labelAliases": [
+                        "URL",
+                        "Website"
+                    ],
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[name='url'], input[type='url'], input[name*='website' i], input[placeholder*='https' i]"
+                },
+                {
+                    "key": "categories",
+                    "label": "Categories",
+                    "profilePath": "profile_data.categories",
+                    "fillMode": "tags",
+                    "tagsCatalog": "nick_launches_categories",
+                    "maxItems": 3,
+                    "required": true,
+                    "selectorHint": "input[name*='categor' i], input[placeholder*='categor' i], [aria-label*='categor' i]"
+                },
+                {
+                    "key": "pricing_type",
+                    "label": "Pricing",
+                    "profilePath": "profile_data.pricing_type",
+                    "fillMode": "select",
+                    "selectCatalog": "nick_launches_pricing",
+                    "required": true,
+                    "selectorHint": "select[name='pricing'], select[name*='pricing' i], [role='combobox'][aria-label*='pricing' i], input[name='pricing']"
+                },
+                {
+                    "key": "is_open_source",
+                    "label": "Open source",
+                    "profilePath": "profile_data.is_open_source",
+                    "fillMode": "boolean",
+                    "selectorHint": "input[type='checkbox'][name*='openSource' i], input[type='checkbox'][name*='open' i], [role='switch'][aria-label*='open source' i], [role='checkbox'][aria-label*='open source' i]"
+                },
+                {
+                    "key": "social_x",
+                    "label": "X (Twitter)",
+                    "labelAliases": [
+                        "Twitter",
+                        "Twitter username"
+                    ],
+                    "profilePath": "profile_data.social_x",
+                    "fillMode": "text",
+                    "socialXScalar": "username",
+                    "selectorHint": "input[name='twitterUsername'], input[name*='twitter' i], input[placeholder*='twitter' i], input[aria-label*='twitter' i]"
+                },
+                {
+                    "key": "demo_video",
+                    "label": "Demo video URL",
+                    "labelAliases": [
+                        "Demo video"
+                    ],
+                    "profilePath": "profile_data.launch_video_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='demoVideoUrl'], input[name*='demo' i], input[placeholder*='video' i], input[type='url'][name*='video' i]"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/products/",
+        "listingUrlSelector": "a[href*='nicklaunches.com/products/']"
+    }
+}$json$::jsonb,
+    true,
+    58,
+    'nick-launches'::text,
+    'Nick Launches'::text
+ON CONFLICT (provider_slug) DO UPDATE SET
+    link_directory_opportunity_id = EXCLUDED.link_directory_opportunity_id,
+    name = EXCLUDED.name,
+    short_description = EXCLUDED.short_description,
+    submission_path = EXCLUDED.submission_path,
+    start_url = EXCLUDED.start_url,
+    extension_config = EXCLUDED.extension_config,
+    is_published = EXCLUDED.is_published,
+    sort_order = EXCLUDED.sort_order,
+    picker_group_key = EXCLUDED.picker_group_key,
+    picker_group_title = EXCLUDED.picker_group_title,
+    updated_at = NOW();
+
+INSERT INTO public.auto_launch_destinations (
+    id,
+    provider_slug,
+    link_directory_opportunity_id,
+    name,
+    short_description,
+    submission_path,
+    start_url,
+    extension_config,
+    is_published,
+    sort_order,
+    picker_group_key,
+    picker_group_title
+)
+SELECT
+    'd5f7d000-0030-4000-a000-000000000018'::uuid,
+    'nick-launches-maker-profile'::text,
+    (
+        SELECT o.id
+        FROM public.link_directory_opportunities o
+        INNER JOIN public.link_directory_sites s ON s.id = o.site_id
+        WHERE s.slug = 'nick-launches'
+          AND o.slug = 'maker-profile'
+        LIMIT 1
+    ),
+    'Nick Launches — Maker profile',
+    'Maker profile on Nick Launches. Extension autofills headline, bio, website, avatar, and known socials.',
+    'extension',
+    'https://nicklaunches.com/profile/',
+    $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://nicklaunches.com/*"
+    ],
+    "readyUrlHint": "profile",
+    "readyStatusHint": "Sign in on Nick Launches and open your maker profile. OpenQuok fills headline, bio, website, avatar, and X, GitHub, LinkedIn, and YouTube when those profile fields are set. First name, last name, handle, banner, city, country, calendar, Twitch, and Product Hunt stay manual.",
+    "steps": [
+        {
+            "id": "profile_info",
+            "label": "Profile",
+            "fields": [
+                {
+                    "key": "name",
+                    "label": "Display name",
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='name'], input[aria-label*='display name' i], input[placeholder*='display name' i]"
+                },
+                {
+                    "key": "headline",
+                    "label": "Headline",
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='headline'], textarea[name='headline'], input[aria-label*='headline' i]"
+                },
+                {
+                    "key": "bio",
+                    "label": "Bio",
+                    "profilePath": "description",
+                    "fillMode": "text",
+                    "selectorHint": "textarea[name='bio'], textarea[aria-label*='bio' i]"
+                },
+                {
+                    "key": "website",
+                    "label": "Website",
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='website'], input[type='url'], input[aria-label*='website' i]"
+                },
+                {
+                    "key": "avatar",
+                    "label": "Avatar",
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "selectorHint": "input[type='file'][name*='avatar' i], input[type='file'][accept*='image']"
+                },
+                {
+                    "key": "social_x",
+                    "label": "X (Twitter)",
+                    "labelAliases": [
+                        "Twitter",
+                        "X"
+                    ],
+                    "profilePath": "profile_data.social_x",
+                    "fillMode": "text",
+                    "socialXScalar": "username",
+                    "selectorHint": "input[name='socials.x'], input[name*='twitter' i], input[aria-label*='twitter' i], input[placeholder*='x.com' i]"
+                },
+                {
+                    "key": "social_github",
+                    "label": "GitHub",
+                    "profilePath": "profile_data.social_github",
+                    "profileSourcePaths": [
+                        "profile_data.repository_url"
+                    ],
+                    "fillMode": "text",
+                    "selectorHint": "input[name='socials.github'], input[name*='github' i]"
+                },
+                {
+                    "key": "social_linkedin",
+                    "label": "LinkedIn",
+                    "profilePath": "profile_data.social_linkedin",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='socials.linkedin'], input[name*='linkedin' i]"
+                },
+                {
+                    "key": "social_youtube",
+                    "label": "YouTube",
+                    "profilePath": "profile_data.social_youtube",
+                    "fillMode": "text",
+                    "selectorHint": "input[name='socials.youtube'], input[name*='youtube' i]"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/profile|/builders/",
+        "listingUrlSelector": "a[href*='nicklaunches.com/builders/'], a[href*='nicklaunches.com/profile']"
+    }
+}$json$::jsonb,
+    true,
+    60,
+    NULL::text,
+    NULL::text
 ON CONFLICT (provider_slug) DO UPDATE SET
     link_directory_opportunity_id = EXCLUDED.link_directory_opportunity_id,
     name = EXCLUDED.name,
