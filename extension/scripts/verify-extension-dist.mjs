@@ -17,6 +17,7 @@ const shippedLinkDirectoryLogoSlugs = [
 	'fazier',
 	'devhunt',
 	'nick-launches',
+	'indiehub',
 ];
 
 const allowedContentScripts = new Set([
@@ -27,6 +28,7 @@ const allowedContentScripts = new Set([
 	'openquok-directory-fazier.js',
 	'openquok-directory-devhunt.js',
 	'openquok-directory-nick-launches.js',
+	'openquok-directory-indiehub.js',
 	'openquok-dashboard-session.js',
 	'openquok-reddit-submit.js',
 ]);

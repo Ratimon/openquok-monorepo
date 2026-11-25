@@ -42,6 +42,7 @@
     "*://*.fazier.com/*",
     "*://devhunt.org/*",
     "*://nicklaunches.com/*",
+    "*://indiehub.best/*",
     "https://*.openquok.com/*",
     "http://localhost/*",
     "http://127.0.0.1/*",
@@ -82,6 +83,11 @@
     {
       "matches": ["https://nicklaunches.com/*"],
       "js": ["content/directory-launch/openquok-directory-nick-launches.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://indiehub.best/*"],
+      "js": ["content/directory-launch/openquok-directory-indiehub.js"],
       "run_at": "document_idle"
     },
     {

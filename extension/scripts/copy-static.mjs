@@ -33,6 +33,7 @@ const shippedLinkDirectoryLogoSlugs = [
 	'fazier',
 	'devhunt',
 	'nick-launches',
+	'indiehub',
 ];
 if (existsSync(linkDirectorySrc)) {
 	mkdirSync(linkDirectoryDest, { recursive: true });

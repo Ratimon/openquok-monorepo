@@ -31,8 +31,15 @@ export interface SiteMediaAdapter {
 		options: SiteMediaFileInputOptions | undefined,
 		ctx: SiteMediaFileInputContext
 	): HTMLInputElement | null | undefined;
+	/** When generic label/hint resolution fails on this site (e.g. twin icon + banner dropzones). */
+	resolveFileInputAfterLabel?(
+		field: LaunchStepField,
+		fillMode: import('openquok-common').LaunchStepFieldFillMode,
+		ctx: SiteMediaFileInputContext
+	): HTMLInputElement | null;
 	fillGalleryFiles?(
 		field: LaunchStepField,
 		files: File[]
 	): Promise<FieldFillResult | null>;
+	fillLogoFile?(field: LaunchStepField, file: File): Promise<FieldFillResult | null>;
 }

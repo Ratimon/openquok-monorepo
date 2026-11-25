@@ -7,6 +7,7 @@ export type SafariMockContentId =
 	| 'directory-site-fazier'
 	| 'directory-site-devhunt'
 	| 'directory-site-nick-launches'
+	| 'directory-site-indiehub'
 	| 'external-site-placeholder'
 	| 'openclaw-docs-overview'
 	| 'hermes-docs-overview'

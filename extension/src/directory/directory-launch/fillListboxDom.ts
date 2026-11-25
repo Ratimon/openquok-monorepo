@@ -116,7 +116,7 @@ function collectListboxChoices(scope: Element): HTMLElement[] {
 }
 
 /** Reka UI Select/Combobox commits on Enter when the option row is focused (click alone is not enough). */
-async function commitListboxChoice(option: HTMLElement): Promise<void> {
+export async function commitListboxChoice(option: HTMLElement): Promise<void> {
 	option.focus();
 	option.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
 	option.click();

@@ -30,6 +30,7 @@ export type BrandedIconName =
     | "Dots"
     | "Facebook"
     | "FacebookGlyph"
+    | "Fazier"
     | "Feishu"
     | "Antigravity"
     | "Amp"
@@ -47,6 +48,7 @@ export type BrandedIconName =
     | "HopperHQ"
     | "IMessage"
     | "Influence"
+    | "IndieHub"
     | "Instagram"
     | "InstagramActionBookmark"
     | "InstagramActionComment"
@@ -602,13 +604,19 @@ export const brandedIcons = {
         fill: true,
         svg: `<image href="/icons/mozilla-firefox.svg" width="512" height="512"/>`
     },
-    /** ntfy mark. ntfy is a trademark of its respective owner. */
+    /** IndieHub product mark (from indiehub.best). IndieHub is a trademark of its respective owner. */
+    IndieHub: {
+        name: "IndieHub",
+        box: 100,
+        fill: true,
+        svg: `<image href="/icons/link-directory/indiehub.svg" width="100" height="100"/>`
+    },
     /** Nick Launches product mark. Nick Launches is a trademark of its respective owner. */
     NickLaunches: {
         name: "NickLaunches",
         box: 100,
         fill: true,
-        svg: `<rect width="100" height="100" rx="20" fill="#0B0F19"/><circle cx="50" cy="36" r="17" fill="none" stroke="#8B5CF6" stroke-width="3.5"/><ellipse cx="50" cy="38" rx="11" ry="9" fill="#C4B5FD"/><path d="M34 70c4-12 32-12 36 0l-6 18H40L34 70Z" fill="#6366F1"/><circle cx="50" cy="28" r="3" fill="#E0E7FF"/>`
+        svg: `<image href="/icons/link-directory/nick-launches.svg" width="100" height="100"/>`
     },
     Ntfy: {
         name: "Ntfy",

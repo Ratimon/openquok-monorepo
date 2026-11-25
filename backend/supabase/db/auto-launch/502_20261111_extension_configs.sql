@@ -724,6 +724,234 @@ UPDATE public.auto_launch_destinations
 SET extension_config = $json${
     "version": 1,
     "startUrlPatterns": [
+        "https://indiehub.best/*"
+    ],
+    "readyUrlHint": "submit",
+    "readyStatusHint": "Sign in on IndieHub and open submit step 1 (Details) for a Basic listing ($4.9). If IndieHub AI AutoFill prefills from your website link, skip or review it before OpenQuok fills the form. On step 2 (Payment), choose Basic and checkout on IndieHub. Payment (step 2) and Publish (step 3) stay manual on IndieHub.",
+    "steps": [
+        {
+            "id": "submit_details",
+            "label": "Details",
+            "fields": [
+                {
+                    "key": "website",
+                    "label": "Link",
+                    "labelAliases": [
+                        "Website",
+                        "Website URL",
+                        "URL"
+                    ],
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[name='link'], input[type='url'][name='link'], form input[name*='link' i]:not([aria-label*='autofill' i])"
+                },
+                {
+                    "key": "name",
+                    "label": "Name",
+                    "labelAliases": [
+                        "Product name"
+                    ],
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[name='name'], input[aria-label*='name' i], input[placeholder*='name' i]"
+                },
+                {
+                    "key": "categories",
+                    "label": "Categories",
+                    "profilePath": "profile_data.categories",
+                    "fillMode": "tags",
+                    "tagsCatalog": "indiehub_categories",
+                    "labelMatch": "section",
+                    "tagsScope": "section",
+                    "required": true,
+                    "selectorHint": "input[role='combobox'], input[name*='categor' i], input[placeholder*='categor' i], [aria-label*='categor' i]"
+                },
+                {
+                    "key": "tags",
+                    "label": "Tags",
+                    "profilePath": "profile_data.tags",
+                    "fillMode": "tags",
+                    "labelMatch": "section",
+                    "tagsScope": "section",
+                    "selectorHint": "input[role='combobox'], input[name*='tag' i], input[placeholder*='tag' i], [aria-label*='tag' i]"
+                },
+                {
+                    "key": "tagline",
+                    "label": "Description",
+                    "labelAliases": [
+                        "Short description"
+                    ],
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "textarea[name*='description' i]:not([name*='intro' i]), input[name*='tagline' i], input[placeholder*='short' i]"
+                },
+                {
+                    "key": "description",
+                    "label": "Introduction",
+                    "labelAliases": [
+                        "Introduction (Markdown supported)",
+                        "Markdown"
+                    ],
+                    "profilePath": "description",
+                    "fillMode": "rich_html",
+                    "required": true,
+                    "selectorHint": "[contenteditable='true'], .ProseMirror, .tiptap, textarea[name*='intro' i], textarea[name*='markdown' i]"
+                },
+                {
+                    "key": "logo",
+                    "label": "Icon",
+                    "labelAliases": [
+                        "Logo"
+                    ],
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "required": true,
+                    "selectorHint": "input[type='file'][name*='icon' i], input[type='file'][name*='logo' i]"
+                },
+                {
+                    "key": "cover",
+                    "label": "Image",
+                    "labelAliases": [
+                        "Cover",
+                        "Banner"
+                    ],
+                    "profilePath": "profile_data.gallery_urls",
+                    "fillMode": "files",
+                    "maxItems": 1,
+                    "required": true,
+                    "selectorHint": "input[type='file'][name*='banner' i], input[type='file'][name*='cover' i], input[type='file'][name*='image' i]:not([name*='icon' i]):not([name*='logo' i])"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/product/|/submit",
+        "listingUrlSelector": "a[href*='indiehub.best/product/'], a[href*='indiehub.best/products/']"
+    }
+}$json$::jsonb
+WHERE provider_slug = 'indiehub-basic-launch';
+
+UPDATE public.auto_launch_destinations
+SET extension_config = $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://indiehub.best/*"
+    ],
+    "readyUrlHint": "submit",
+    "readyStatusHint": "Sign in on IndieHub and open submit step 1 (Details) for a Pro listing ($9.9). If IndieHub AI AutoFill prefills from your website link, skip or review it before OpenQuok fills the form. On step 2 (Payment), choose Pro and checkout on IndieHub. Payment (step 2) and Publish (step 3) stay manual on IndieHub.",
+    "steps": [
+        {
+            "id": "submit_details",
+            "label": "Details",
+            "fields": [
+                {
+                    "key": "website",
+                    "label": "Link",
+                    "labelAliases": [
+                        "Website",
+                        "Website URL",
+                        "URL"
+                    ],
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[name='link'], input[type='url'][name='link'], form input[name*='link' i]:not([aria-label*='autofill' i])"
+                },
+                {
+                    "key": "name",
+                    "label": "Name",
+                    "labelAliases": [
+                        "Product name"
+                    ],
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[name='name'], input[aria-label*='name' i], input[placeholder*='name' i]"
+                },
+                {
+                    "key": "categories",
+                    "label": "Categories",
+                    "profilePath": "profile_data.categories",
+                    "fillMode": "tags",
+                    "tagsCatalog": "indiehub_categories",
+                    "labelMatch": "section",
+                    "tagsScope": "section",
+                    "required": true,
+                    "selectorHint": "input[role='combobox'], input[name*='categor' i], input[placeholder*='categor' i], [aria-label*='categor' i]"
+                },
+                {
+                    "key": "tags",
+                    "label": "Tags",
+                    "profilePath": "profile_data.tags",
+                    "fillMode": "tags",
+                    "labelMatch": "section",
+                    "tagsScope": "section",
+                    "selectorHint": "input[role='combobox'], input[name*='tag' i], input[placeholder*='tag' i], [aria-label*='tag' i]"
+                },
+                {
+                    "key": "tagline",
+                    "label": "Description",
+                    "labelAliases": [
+                        "Short description"
+                    ],
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "textarea[name*='description' i]:not([name*='intro' i]), input[name*='tagline' i], input[placeholder*='short' i]"
+                },
+                {
+                    "key": "description",
+                    "label": "Introduction",
+                    "labelAliases": [
+                        "Introduction (Markdown supported)",
+                        "Markdown"
+                    ],
+                    "profilePath": "description",
+                    "fillMode": "rich_html",
+                    "required": true,
+                    "selectorHint": "[contenteditable='true'], .ProseMirror, .tiptap, textarea[name*='intro' i], textarea[name*='markdown' i]"
+                },
+                {
+                    "key": "logo",
+                    "label": "Icon",
+                    "labelAliases": [
+                        "Logo"
+                    ],
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "required": true,
+                    "selectorHint": "input[type='file'][name*='icon' i], input[type='file'][name*='logo' i]"
+                },
+                {
+                    "key": "cover",
+                    "label": "Image",
+                    "labelAliases": [
+                        "Cover",
+                        "Banner"
+                    ],
+                    "profilePath": "profile_data.gallery_urls",
+                    "fillMode": "files",
+                    "maxItems": 1,
+                    "required": true,
+                    "selectorHint": "input[type='file'][name*='banner' i], input[type='file'][name*='cover' i], input[type='file'][name*='image' i]:not([name*='icon' i]):not([name*='logo' i])"
+                }
+            ]
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/product/|/submit",
+        "listingUrlSelector": "a[href*='indiehub.best/product/'], a[href*='indiehub.best/products/']"
+    }
+}$json$::jsonb
+WHERE provider_slug = 'indiehub-pro-launch';
+
+UPDATE public.auto_launch_destinations
+SET extension_config = $json${
+    "version": 1,
+    "startUrlPatterns": [
         "https://nicklaunches.com/*"
     ],
     "readyUrlHint": "submit/new",

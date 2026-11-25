@@ -31,6 +31,8 @@
 		mediaContainerClass?: string;
 		/** Overrides default flex alignment on the media column. */
 		mediaColumnClass?: string;
+		/** Icon, breadcrumb, or other chrome centered above the two-column hero grid. */
+		headerAboveGrid?: Snippet;
 
 		ctaText?: string;
 		ctaHref?: string;
@@ -61,6 +63,7 @@
 		rightMedia,
 		mediaContainerClass,
 		mediaColumnClass,
+		headerAboveGrid,
 
 		ctaText = PUBLIC_LANDING_COMPACT_TRIAL_CTA,
 		ctaHref = '/pricing',
@@ -152,6 +155,11 @@
 	<div class="relative isolate z-10 w-full overflow-hidden">
 		<div class="relative z-10 w-full px-6 py-16 sm:py-20">
 			<div class="mx-auto max-w-7xl">
+				{#if headerAboveGrid}
+					<div class="mb-8 flex flex-col items-center gap-6 sm:mb-10">
+						{@render headerAboveGrid()}
+					</div>
+				{/if}
 				<div
 					class="grid gap-10 lg:grid-cols-2 lg:gap-x-16 {placeCtaBelowTwoColumnGrid
 						? 'items-start lg:gap-y-8'

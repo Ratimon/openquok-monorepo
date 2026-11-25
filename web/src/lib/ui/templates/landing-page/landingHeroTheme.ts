@@ -239,6 +239,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'Fazier',
 	'DevHunt',
 	'Nick Launches',
+	'IndieHub',
 	'GetMoreBacklinks',
 	'BoringLaunch',
 	// Protected account app heroes

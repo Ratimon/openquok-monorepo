@@ -290,6 +290,35 @@ const NICK_LAUNCHES_DESTINATIONS: readonly AutoLaunchDestinationSeedRow[] = [
 	},
 ];
 
+const INDIEHUB_DESTINATIONS: readonly AutoLaunchDestinationSeedRow[] = [
+	{
+		destinationId: 'd5f7d000-0030-4000-a000-000000000019',
+		providerSlug: 'indiehub-basic-launch',
+		siteSlug: 'indiehub',
+		name: 'IndieHub — Basic launch',
+		shortDescription:
+			'Basic listing ($4.9) on IndieHub with dofollow links and no badge requirement. Extension autofills submit step 1 (Details) after you sign in.',
+		startUrl: 'https://indiehub.best/submit',
+		sortOrder: 62,
+		pickerGroupKey: 'indiehub',
+		pickerGroupTitle: 'IndieHub',
+		opportunitySlug: 'basic-launch',
+	},
+	{
+		destinationId: 'd5f7d000-0030-4000-a000-000000000020',
+		providerSlug: 'indiehub-pro-launch',
+		siteSlug: 'indiehub',
+		name: 'IndieHub — Pro launch',
+		shortDescription:
+			'Pro listing ($9.9) on IndieHub with stronger placement and more dofollow links than Basic. Extension autofills step 1; payment and publish stay manual.',
+		startUrl: 'https://indiehub.best/submit',
+		sortOrder: 64,
+		pickerGroupKey: 'indiehub',
+		pickerGroupTitle: 'IndieHub',
+		opportunitySlug: 'pro-launch',
+	},
+];
+
 export const AUTO_LAUNCH_DESTINATION_SEED_MODULES: readonly AutoLaunchDestinationSeedModule[] = [
 	{
 		siteKey: 'uneed',
@@ -376,6 +405,18 @@ export const AUTO_LAUNCH_DESTINATION_SEED_MODULES: readonly AutoLaunchDestinatio
 			'-- Plan selection, checkout, weekly upvotes, Featured badge, and admin review stay manual after the listing form is filled.',
 		],
 		destinations: NICK_LAUNCHES_DESTINATIONS,
+	},
+	{
+		siteKey: 'indiehub',
+		sqlFileName: '510_20261125_seed_indiehub_destination.sql',
+		generationMode: 'full',
+		moduleDate: '20261125',
+		moduleScopeLabel: 'Seed (IndieHub Basic and Pro launch destinations)',
+		preambleComments: [
+			'-- Joins link_directory_opportunities on site slug indiehub (catalog backfill / listing manager).',
+			'-- Payment (step 2) and Publish (step 3) stay manual after OpenQuok fills submit step 1 (Details).',
+		],
+		destinations: INDIEHUB_DESTINATIONS,
 	},
 ];
 

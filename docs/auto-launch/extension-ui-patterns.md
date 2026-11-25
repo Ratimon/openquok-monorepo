@@ -15,10 +15,11 @@ Reference for **extension-assisted directory launches**: step rail, compare pane
 | `fazier` | `fazier-page`, `fazier-free-product-listing`, `fazier-paid-product-listing` | Page wizard; product submit (free vs paid tier) | `openquok-directory-fazier.js` |
 | `devhunt` | `devhunt-standard-launch`, `devhunt-paid-launch` | Paid → new-tool form; Standard → launch guide then form | `openquok-directory-devhunt.js` |
 | `nick-launches` | `nick-launches-free-launch`, `nick-launches-paid-launch`, `nick-launches-maker-profile` | Listing → `submit/new`; maker → `profile` | `openquok-directory-nick-launches.js` |
+| `indiehub` | `indiehub-basic-launch`, `indiehub-pro-launch` | Submit wizard step 1 → `submit` | `openquok-directory-indiehub.js` |
 
-**Site count for smoke:** **7** directory sites (15 provider variants total).
+**Site count for smoke:** **8** directory sites (17 provider variants total).
 
-Picker groups: TinyLaunch, Open Launch, Fazier, DevHunt, and Nick Launches group variants under one Add Channel tile per site (`picker_group_key` = site slug).
+Picker groups: TinyLaunch, Open Launch, Fazier, DevHunt, Nick Launches, and IndieHub group variants under one Add Channel tile per site (`picker_group_key` = site slug).
 
 ---
 
@@ -185,11 +186,36 @@ Login: `extension/src/directory/directory-launch/siteLogin/nick-launches.ts` →
 
 ---
 
+## IndieHub field mapping
+
+Module: `common/src/auto-launch/destination-configs/sites/indiehub/config.ts`
+
+| Form label (IndieHub) | `profilePath` | `fillMode` | Notes |
+| --- | --- | --- | --- |
+| Link | `website_url` | `text` | required; skip or review IndieHub AI AutoFill from URL |
+| Name | `name` | `text` | required |
+| Categories | `profile_data.categories` | `tags` | `tagsCatalog: indiehub_categories`; required |
+| Tags | `profile_data.tags` | `tags` | optional |
+| Description (short) | `tagline` | `text` | required — not the long introduction |
+| Introduction | `description` | `rich_html` | markdown editor; required |
+| Icon | `logo_url` | `file` | `fileInputIndex` 0; 1:1, max 1 MB on site |
+| Image (cover) | `profile_data.gallery_urls` | `files` | `maxItems: 1` (`INDIEHUB_FORM_COVER_MAX`); 16:9 banner |
+| Payment / Publish | — | — | **Manual** on wizard steps 2–3 |
+| Basic vs Pro checkout | — | — | **Manual** on step 2 (Stripe) |
+
+`readyUrlHint`: `submit`. Basic and Pro destinations share one fixture; `readyStatusHint` differs per provider slug (`indiehub-basic-launch` vs `indiehub-pro-launch`).
+
+Login: `extension/src/directory/directory-launch/siteLogin/indiehub.ts` → `https://indiehub.best/auth/login?callbackUrl=/submit`.
+
+Proof: `successPathRegex` `/product/` or `/submit`; listing URL `a[href*='indiehub.best/product/'], a[href*='indiehub.best/products/']`.
+
+---
+
 ## Manual smoke checklist
 
 Run after changing fixtures, extension manifests, or marketing tiles. Use a dev workspace with the extension loaded from `extension/dist`.
 
-### All sites (7)
+### All sites (8)
 
 - [ ] `pnpm --filter openquok-common test:unit` (includes destination config drift tests)
 - [ ] `pnpm sync:auto-launch-configs:check` and `pnpm sync:auto-launch-destinations:check`
@@ -227,6 +253,16 @@ Run after changing fixtures, extension manifests, or marketing tiles. Use a dev 
 - [ ] After publish, listing URL matches proof hints on the live site
 - [ ] `/channels/nick-launches` and `directory-integration/nick-launches.md` docs load; hub lists Nick Launches with PeerPush, Uneed, Open Launch, TinyLaunch, Fazier, DevHunt
 - [ ] `dist/icons/link-directory/nick-launches.svg` exists after extension build
+
+### IndieHub
+
+- [ ] Sign in on indiehub.best; **Basic launch** or **Pro launch** handoff opens `submit` step 1 with non-empty `extension_config`
+- [ ] Step rail shows **Details**; compare lists link, name, categories, tags, tagline, introduction, icon, and cover image
+- [ ] Category chips match `indiehub_categories` catalog
+- [ ] Do not complete Payment or Publish in automation; confirm ready hints cover steps 2–3
+- [ ] After publish, listing URL matches proof hints on the live product page
+- [ ] `/channels/indiehub` and `directory-integration/indiehub.md` docs load; hub lists IndieHub with PeerPush, Uneed, Open Launch, TinyLaunch, Fazier, DevHunt, Nick Launches
+- [ ] `dist/icons/link-directory/indiehub.svg` exists after extension build
 
 ### TinyLaunch
 

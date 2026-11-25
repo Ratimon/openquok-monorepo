@@ -2,6 +2,7 @@ import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/c
 
 import {
 	devhuntDirectoryChannel,
+	indiehubDirectoryChannel,
 	nickLaunchesDirectoryChannel,
 	fazierDirectoryChannel,
 	openLaunchDirectoryChannel,
@@ -19,7 +20,8 @@ export const PUBLIC_DIRECTORY_CHANNEL_LANDING_PAGES: readonly PublicChannelLandi
 		tinylaunchDirectoryChannel,
 		fazierDirectoryChannel,
 		devhuntDirectoryChannel,
-		nickLaunchesDirectoryChannel
+		nickLaunchesDirectoryChannel,
+		indiehubDirectoryChannel
 	];
 
 export type PublicDirectoryChannelFooterEntry = { slug: string; label: string };

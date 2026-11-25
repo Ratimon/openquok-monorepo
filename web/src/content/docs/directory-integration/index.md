@@ -45,6 +45,7 @@ New **social** networks follow <a href="/docs/contribution-opportunities/add-pro
 <LinkCard title="Fazier" description="Company page wizard and product launch — badge and tier steps manual" href="/docs/directory-integration/fazier" />
 <LinkCard title="DevHunt" description="Free listing and $49 paid launch week — developer tools, screenshots, manual checkout" href="/docs/directory-integration/devhunt" />
 <LinkCard title="Nick Launches" description="Free launch, paid tiers, and maker profile — categories, badge, manual plan checkout" href="/docs/directory-integration/nick-launches" />
+<LinkCard title="IndieHub" description="Basic and Pro paid listings — submit wizard step 1 autofill, manual payment and publish" href="/docs/directory-integration/indiehub" />
 </CardGrid>
 
 ## Related Section(s)

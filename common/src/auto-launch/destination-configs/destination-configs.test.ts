@@ -27,6 +27,7 @@ import {
 	AUTO_LAUNCH_PRICING_QUEUE_VARIANT_DERIVED,
 	FAZIER_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
 	NICK_LAUNCHES_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
+	INDIEHUB_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
 	UNEED_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
 } from './syncMetadata.js';
 import { directorySiteKeyFromProviderSlug } from '../directorySiteKey.js';
@@ -84,6 +85,8 @@ describe('DIRECTORY_EXTENSION_CONFIG_FIXTURES', () => {
 				'nick-launches-free-launch',
 				'nick-launches-paid-launch',
 				'nick-launches-maker-profile',
+				'indiehub-basic-launch',
+				'indiehub-pro-launch',
 			].sort()
 		);
 	});
@@ -123,6 +126,14 @@ describe('DIRECTORY_EXTENSION_CONFIG_FIXTURES', () => {
 		validateIndependentExtensionFixtureSlugs(
 			DIRECTORY_EXTENSION_CONFIG_FIXTURES,
 			NICK_LAUNCHES_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
+			AUTO_LAUNCH_EXTENSION_CONFIG_DERIVATIONS
+		);
+	});
+
+	it('documents IndieHub fixtures as independent (not pricing-queue)', () => {
+		validateIndependentExtensionFixtureSlugs(
+			DIRECTORY_EXTENSION_CONFIG_FIXTURES,
+			INDIEHUB_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
 			AUTO_LAUNCH_EXTENSION_CONFIG_DERIVATIONS
 		);
 	});
@@ -181,7 +192,7 @@ describe('AUTO_LAUNCH_DESTINATION_SEED_ROWS', () => {
 		}
 	});
 
-	it('aggregated core_structure applies auto-launch 502 before 503–509', () => {
+	it('aggregated core_structure applies auto-launch 502 before 503–510', () => {
 		const migrationsDir = join(REPO_ROOT, 'backend/supabase/migrations');
 		const coreFiles = readdirSync(migrationsDir)
 			.filter((name) => name.endsWith('_core_structure.sql'))
@@ -191,7 +202,7 @@ describe('AUTO_LAUNCH_DESTINATION_SEED_ROWS', () => {
 		const sql = readFileSync(join(migrationsDir, latestCore), 'utf8');
 		const autoLaunchFiles = [...sql.matchAll(/-- Module: auto-launch, File: (5\d{2}_[^\n]+)/g)]
 			.map((match) => match[1])
-			.filter((fileName) => /^50[2-9]_/.test(fileName ?? ''));
+			.filter((fileName) => /^50[2-9]_/.test(fileName ?? '') || /^510_/.test(fileName ?? ''));
 		expect(autoLaunchFiles).toEqual([
 			'502_20261111_extension_configs.sql',
 			'503_20261013_seed_uneed.sql',
@@ -201,10 +212,11 @@ describe('AUTO_LAUNCH_DESTINATION_SEED_ROWS', () => {
 			'507_20261120_seed_fazier_destination.sql',
 			'508_20261121_seed_devhunt_destination.sql',
 			'509_20261124_seed_nick_launches_destination.sql',
+			'510_20261125_seed_indiehub_destination.sql',
 		]);
 	});
 
-	it('generated 502–509 destination SQL matches manifest (sync --check)', () => {
+	it('generated 502–510 destination SQL matches manifest (sync --check)', () => {
 		if (!existsSync(COMMON_DIST_INDEX)) {
 			throw new Error(
 				'common/dist missing. Run `pnpm common:build` before `pnpm --filter openquok-common test:unit`.'
@@ -246,6 +258,27 @@ describe('Nick Launches site key', () => {
 		expect(directorySiteKeyFromProviderSlug('nick-launches-free-launch')).toBe('nick-launches');
 		expect(directorySiteKeyFromProviderSlug('nick-launches-maker-profile')).toBe('nick-launches');
 		expect(getDirectoryLaunchSiteKeyFromLocation('nicklaunches.com')).toBe('nick-launches');
+	});
+});
+
+describe('IndieHub site key', () => {
+	it('maps provider slugs and the host to indiehub', () => {
+		expect(directorySiteKeyFromProviderSlug('indiehub-basic-launch')).toBe('indiehub');
+		expect(directorySiteKeyFromProviderSlug('indiehub-pro-launch')).toBe('indiehub');
+		expect(getDirectoryLaunchSiteKeyFromLocation('indiehub.best')).toBe('indiehub');
+	});
+});
+
+describe('IndieHub extension fixtures', () => {
+	it('caps cover image to a single file on Details', () => {
+		const basic = DIRECTORY_EXTENSION_CONFIG_FIXTURES['indiehub-basic-launch'];
+		const fields = basic?.steps?.[0]?.fields ?? [];
+		expect(fields.find((f) => f.key === 'cover')?.maxItems).toBe(1);
+	});
+
+	it('uses submit readyUrlHint for both tiers', () => {
+		expect(DIRECTORY_EXTENSION_CONFIG_FIXTURES['indiehub-basic-launch']?.readyUrlHint).toBe('submit');
+		expect(DIRECTORY_EXTENSION_CONFIG_FIXTURES['indiehub-pro-launch']?.readyUrlHint).toBe('submit');
 	});
 });
 

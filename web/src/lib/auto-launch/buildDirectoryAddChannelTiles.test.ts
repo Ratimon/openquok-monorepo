@@ -46,6 +46,11 @@ describe('directorySiteKeyFromProviderSlug', () => {
 		expect(directorySiteKeyFromProviderSlug('nick-launches-maker-profile')).toBe('nick-launches');
 	});
 
+	it('resolves indiehub provider slugs to the indiehub site key', () => {
+		expect(directorySiteKeyFromProviderSlug('indiehub-basic-launch')).toBe('indiehub');
+		expect(directorySiteKeyFromProviderSlug('indiehub-pro-launch')).toBe('indiehub');
+	});
+
 	it('matches multi-segment published site slugs', () => {
 		expect(directorySiteKeyFromProviderSlug('other-site-launch', ['other-site', 'other'])).toBe(
 			'other-site'
@@ -114,6 +119,19 @@ describe('buildDirectoryAddChannelTiles', () => {
 		expect(tiles).toHaveLength(1);
 		expect(tiles[0]?.logoUrl).toBe('/icons/link-directory/nick-launches.svg');
 		expect(tiles[0]?.brandedIconName).toBe('NickLaunches');
+	});
+
+	it('assigns bundled logo and branded icon for indiehub', () => {
+		const tiles = buildDirectoryAddChannelTiles(
+			[
+				destination({ providerSlug: 'indiehub-basic-launch', siteTitle: 'IndieHub' }),
+				destination({ providerSlug: 'indiehub-pro-launch', sortOrder: 1 })
+			],
+			new Map([['indiehub', { title: 'IndieHub', logoUrl: null }]])
+		);
+		expect(tiles).toHaveLength(1);
+		expect(tiles[0]?.logoUrl).toBe('/icons/link-directory/indiehub.svg');
+		expect(tiles[0]?.brandedIconName).toBe('IndieHub');
 	});
 
 	it('assigns bundled logo and branded icon for devhunt', () => {

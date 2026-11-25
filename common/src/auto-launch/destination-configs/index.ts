@@ -18,6 +18,10 @@ import {
 	NICK_LAUNCHES_PAID_LAUNCH_EXTENSION_CONFIG,
 } from './nick-launches.js';
 import {
+	INDIEHUB_BASIC_LAUNCH_EXTENSION_CONFIG,
+	INDIEHUB_PRO_LAUNCH_EXTENSION_CONFIG,
+} from './indiehub.js';
+import {
 	FAZIER_FREE_PRODUCT_LISTING_EXTENSION_CONFIG,
 	FAZIER_PAID_PRODUCT_LISTING_EXTENSION_CONFIG,
 	FAZIER_PAGE_EXTENSION_CONFIG,
@@ -52,6 +56,11 @@ export {
 	NICK_LAUNCHES_PAID_LAUNCH_EXTENSION_CONFIG,
 } from './nick-launches.js';
 export {
+	INDIEHUB_BASIC_LAUNCH_EXTENSION_CONFIG,
+	INDIEHUB_DETAILS_FORM_EXTENSION_CONFIG,
+	INDIEHUB_PRO_LAUNCH_EXTENSION_CONFIG,
+} from './indiehub.js';
+export {
 	FAZIER_FREE_PRODUCT_LISTING_EXTENSION_CONFIG,
 	FAZIER_PAID_PRODUCT_LISTING_EXTENSION_CONFIG,
 	FAZIER_PAGE_EXTENSION_CONFIG,
@@ -85,6 +94,8 @@ export const DIRECTORY_EXTENSION_CONFIG_FIXTURES: Record<string, AutoLaunchExten
 	'nick-launches-free-launch': NICK_LAUNCHES_FREE_LAUNCH_EXTENSION_CONFIG,
 	'nick-launches-paid-launch': NICK_LAUNCHES_PAID_LAUNCH_EXTENSION_CONFIG,
 	'nick-launches-maker-profile': NICK_LAUNCHES_MAKER_PROFILE_EXTENSION_CONFIG,
+	'indiehub-basic-launch': INDIEHUB_BASIC_LAUNCH_EXTENSION_CONFIG,
+	'indiehub-pro-launch': INDIEHUB_PRO_LAUNCH_EXTENSION_CONFIG,
 };
 
 export const DIRECTORY_EXTENSION_CONFIG_PROVIDER_SLUGS = Object.keys(
@@ -108,6 +119,7 @@ export {
 	type AutoLaunchPricingQueueVariantDerived,
 	UNEED_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
 	NICK_LAUNCHES_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
+	INDIEHUB_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
 } from './syncMetadata.js';
 
 export {
@@ -159,6 +171,11 @@ export {
 	NICK_LAUNCHES_HOST_PERMISSION,
 } from './nick-launches.js';
 export {
+	INDIEHUB_DIRECTORY_LAUNCH_PROVIDERS,
+	INDIEHUB_HOST_PATTERNS,
+	INDIEHUB_HOST_PERMISSION,
+} from './indiehub.js';
+export {
 	FAZIER_DIRECTORY_LAUNCH_PROVIDERS,
 	FAZIER_HOST_PATTERNS,
 	FAZIER_HOST_PERMISSION,
@@ -206,6 +223,12 @@ export {
 	type NickLaunchesOfficialCategoryLabel,
 	type NickLaunchesOfficialPricingValue,
 } from './nick-launches.js';
+export {
+	INDIEHUB_OFFICIAL_CATEGORY_LABELS,
+	filterToIndiehubOfficialCategories,
+	matchIndiehubOfficialCategory,
+	type IndiehubOfficialCategoryLabel,
+} from './indiehub.js';
 export {
 	TINYLAUNCH_OFFICIAL_CATEGORY_LABELS,
 	coerceToTinylaunchOfficialCategory,

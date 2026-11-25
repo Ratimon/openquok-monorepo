@@ -47,6 +47,10 @@ const bundleEntries = [
 		out: 'content/directory-launch/openquok-directory-nick-launches.js',
 	},
 	{
+		input: 'src/content/directory-launch/indiehub-host.ts',
+		out: 'content/directory-launch/openquok-directory-indiehub.js',
+	},
+	{
 		input: 'src/content/dashboard/openquok-dashboard-session.ts',
 		out: 'content/dashboard/openquok-dashboard-session.js',
 	},

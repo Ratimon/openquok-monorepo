@@ -12,6 +12,10 @@ import {
 	nickLaunchesSelectCatalogOptions,
 } from './nick-launches.js';
 import {
+	filterToIndiehubOfficialCategories,
+	matchIndiehubOfficialCategory,
+} from './indiehub.js';
+import {
 	coerceToOpenLaunchOfficialPricing,
 	filterToOpenLaunchOfficialCategories,
 	filterToOpenLaunchOfficialPlatforms,
@@ -44,6 +48,7 @@ export const LAUNCH_FIELD_CATALOG_IDS = {
 	'devhunt:pricing': 'devhunt:pricing',
 	'nick_launches:categories': 'nick_launches:categories',
 	'nick_launches:pricing': 'nick_launches:pricing',
+	'indiehub:categories': 'indiehub:categories',
 } as const;
 
 export type LaunchFieldCatalogId = keyof typeof LAUNCH_FIELD_CATALOG_IDS;
@@ -58,6 +63,7 @@ export function resolveLaunchFieldCatalogId(field: LaunchStepField): LaunchField
 	if (field.selectCatalog === 'devhunt_pricing') return 'devhunt:pricing';
 	if (field.tagsCatalog === 'nick_launches_categories') return 'nick_launches:categories';
 	if (field.selectCatalog === 'nick_launches_pricing') return 'nick_launches:pricing';
+	if (field.tagsCatalog === 'indiehub_categories') return 'indiehub:categories';
 	return null;
 }
 
@@ -77,6 +83,8 @@ export function filterItemsForLaunchField(items: readonly string[], field: Launc
 			return filterToOpenLaunchOfficialPlatforms(items);
 		case 'nick_launches:categories':
 			return filterToNickLaunchesOfficialCategories(items);
+		case 'indiehub:categories':
+			return filterToIndiehubOfficialCategories(items);
 		default:
 			return [...items];
 	}
@@ -96,6 +104,9 @@ export function invalidProfileChoicesForField(
 	}
 	if (id === 'nick_launches:categories') {
 		return items.filter((item) => matchNickLaunchesOfficialCategory(item) === null);
+	}
+	if (id === 'indiehub:categories') {
+		return items.filter((item) => matchIndiehubOfficialCategory(item) === null);
 	}
 	return [];
 }
@@ -156,6 +167,8 @@ export function catalogListFillSkipMessage(field: LaunchStepField): string | nul
 			return 'No profile values match the Open Launch catalog (red chips). Pick categories on the form yourself.';
 		case 'nick_launches:categories':
 			return 'No profile categories match the Nick Launches catalog (red chips). Pick categories on the form yourself.';
+		case 'indiehub:categories':
+			return 'No profile categories match the IndieHub catalog (red chips). Pick categories on the form yourself.';
 		default:
 			return null;
 	}

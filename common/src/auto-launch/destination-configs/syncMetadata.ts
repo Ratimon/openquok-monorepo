@@ -13,6 +13,7 @@ import {
 } from './extensionConfigDerivation.js';
 import { DEVHUNT_EXTENSION_CONFIG_DERIVATIONS } from './sites/devhunt/sync.js';
 import { NICK_LAUNCHES_EXTENSION_CONFIG_DERIVATIONS } from './sites/nick-launches/sync.js';
+import { INDIEHUB_EXTENSION_CONFIG_DERIVATIONS } from './sites/indiehub/sync.js';
 import { FAZIER_EXTENSION_CONFIG_DERIVATIONS } from './sites/fazier/sync.js';
 import { OPEN_LAUNCH_EXTENSION_CONFIG_DERIVATIONS } from './sites/open-launch/sync.js';
 import { PEERPUSH_EXTENSION_CONFIG_DERIVATIONS } from './sites/peerpush/sync.js';
@@ -35,6 +36,11 @@ export {
 	NICK_LAUNCHES_SITE_KEY,
 } from './sites/nick-launches/sync.js';
 export {
+	INDIEHUB_EXTENSION_CONFIG_DERIVATIONS,
+	INDIEHUB_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
+	INDIEHUB_SITE_KEY,
+} from './sites/indiehub/sync.js';
+export {
 	UNEED_EXTENSION_CONFIG_DERIVATIONS,
 	UNEED_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
 	UNEED_SITE_KEY,
@@ -52,7 +58,8 @@ export const AUTO_LAUNCH_EXTENSION_CONFIG_DERIVATIONS: ExtensionConfigDerivation
 		UNEED_EXTENSION_CONFIG_DERIVATIONS,
 		FAZIER_EXTENSION_CONFIG_DERIVATIONS,
 		DEVHUNT_EXTENSION_CONFIG_DERIVATIONS,
-		NICK_LAUNCHES_EXTENSION_CONFIG_DERIVATIONS
+		NICK_LAUNCHES_EXTENSION_CONFIG_DERIVATIONS,
+		INDIEHUB_EXTENSION_CONFIG_DERIVATIONS
 	);
 
 /** Subset used by extension + destination sync pricing-queue checks. */

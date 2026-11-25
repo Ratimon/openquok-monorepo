@@ -37,6 +37,7 @@ const GENERIC_SHORT_FIELD_LABELS = new Set(['url', 'link', 'name', 'text', 'id']
 import {
 	comboboxAriaControlsHost,
 	comboboxInteractionTarget,
+	commitListboxChoice,
 	delay,
 	dispatchEnterKey,
 	isFieldElementVisible,
@@ -60,6 +61,7 @@ import {
 	resolveProfileValue,
 } from './profileValues.js';
 import { assignFilesToInput } from './fileInputAssign.js';
+import { resolveFileInputInLabelScope } from './fileInputByLabel.js';
 import {
 	fieldExpectsUrlControl,
 	fieldRequiresLabelScopedResolution,
@@ -629,6 +631,7 @@ function resolveControlByLabelForAttribute(field: LaunchStepField): Element | nu
 		const htmlFor = labelEl.getAttribute('for')?.trim();
 		if (!htmlFor) continue;
 		const target = document.getElementById(htmlFor);
+		if (!target) continue;
 		const fileInput = target instanceof HTMLInputElement && target.type === 'file';
 		if (!fileInput && !isFieldElementVisible(target)) continue;
 		if (!elementAcceptableForFillMode(target, fillMode)) continue;
@@ -682,6 +685,10 @@ function findControlInLabelBlock(
 	fillMode: LaunchStepFieldFillMode,
 	field?: LaunchStepField
 ): Element | null {
+	if (fillMode === 'file' || fillMode === 'files') {
+		return resolveFileInputInLabelScope(labelEl);
+	}
+
 	let block: Element | null =
 		labelEl.closest('div, fieldset, li, section, form') ?? labelEl.parentElement;
 	for (let depth = 0; depth < 8 && block; depth++) {
@@ -744,18 +751,6 @@ function findControlInLabelBlock(
 			for (const candidate of switches) {
 				if (
 					isFieldElementVisible(candidate) &&
-					elementAcceptableForFillMode(candidate, fillMode) &&
-					(!field || elementPassesFieldGuard(field, candidate))
-				) {
-					return candidate;
-				}
-			}
-		}
-
-		if (fillMode === 'file' || fillMode === 'files') {
-			for (const candidate of block.querySelectorAll('input[type="file"]')) {
-				if (
-					candidate instanceof HTMLInputElement &&
 					elementAcceptableForFillMode(candidate, fillMode) &&
 					(!field || elementPassesFieldGuard(field, candidate))
 				) {
@@ -948,8 +943,8 @@ export function resolveFieldElement(field: LaunchStepField): Element | null {
 	const fillMode = resolveFillMode(field);
 
 	if (isFileFillMode(fillMode)) {
-		const byFor = resolveControlByLabelForAttribute(field);
-		if (byFor) return byFor;
+		const byLabel = resolveFileInputFromFieldLabels(field);
+		if (byLabel) return byLabel;
 		const readRoot = resolveFileFieldReadRoot(field);
 		if (readRoot) return readRoot;
 		return null;
@@ -1146,6 +1141,14 @@ function defaultFileInputIndex(field: LaunchStepField, fillMode: LaunchStepField
 	return 0;
 }
 
+function resolveFileInputFromFieldLabels(field: LaunchStepField): HTMLInputElement | null {
+	const byFor = resolveControlByLabelForAttribute(field);
+	if (byFor instanceof HTMLInputElement && byFor.type === 'file') return byFor;
+	const byLabel = resolveControlByExactFieldLabel(field);
+	if (byLabel instanceof HTMLInputElement && byLabel.type === 'file') return byLabel;
+	return null;
+}
+
 function resolveFileInput(
 	field: LaunchStepField,
 	fillMode: LaunchStepFieldFillMode,
@@ -1159,6 +1162,14 @@ function resolveFileInput(
 	if (adapter) {
 		const fromAdapter = adapter.resolveFileInput(field, fillMode, options, ctx);
 		if (fromAdapter !== undefined) return fromAdapter;
+	}
+
+	const byLabel = resolveFileInputFromFieldLabels(field);
+	if (byLabel) return byLabel;
+
+	if (adapter?.resolveFileInputAfterLabel) {
+		const afterLabel = adapter.resolveFileInputAfterLabel(field, fillMode, ctx);
+		if (afterLabel) return afterLabel;
 	}
 
 	const index = defaultFileInputIndex(field, fillMode);
@@ -1752,7 +1763,7 @@ export function fillableTagListForField(
 async function fillFileLaunchField(
 	snapshot: AutoLaunchProfileSnapshot,
 	field: LaunchStepField,
-	context: FillLaunchContext
+	context: FillLaunchContext & { dashboardOrigin: string }
 ): Promise<FieldFillResult> {
 	const effectiveSnapshot = mergeMainProfileSocialData(snapshot, context.mainProfileSnapshot);
 	const paths = resolveProfileStoragePathList(effectiveSnapshot, field.profilePath);
@@ -1770,6 +1781,7 @@ async function fillFileLaunchField(
 
 	for (let index = 0; index < pathsToLoad.length; index += 1) {
 		const path = pathsToLoad[index];
+		if (!path) continue;
 		const file = await fetchProfileMediaFile(context.dashboardOrigin, path);
 		if (!file) continue;
 		const downloadName = profileMediaDownloadFileName(path, index, field, effectiveSnapshot);
@@ -1786,6 +1798,10 @@ async function fillFileLaunchField(
 	}
 
 	const siteMedia = getActiveSiteMediaAdapter();
+	if (siteMedia?.fillLogoFile && isLogoProfileField(field) && fillMode === 'file' && files[0]) {
+		const adapterResult = await siteMedia.fillLogoFile(field, files[0]);
+		if (adapterResult) return adapterResult;
+	}
 	if (siteMedia?.fillGalleryFiles && isGalleryProfileField(field) && fillMode === 'files') {
 		const adapterResult = await siteMedia.fillGalleryFiles(field, files);
 		if (adapterResult) return adapterResult;
@@ -1941,8 +1957,9 @@ export async function fillLaunchField(
 				message: 'OpenQuok dashboard origin missing — restart launch from OpenQuok.',
 			};
 		}
+		const dashboardOrigin = context.dashboardOrigin.trim();
 		return fillFileLaunchField(snapshot, field, {
-			dashboardOrigin: context.dashboardOrigin.trim(),
+			dashboardOrigin,
 			mainProfileSnapshot: context.mainProfileSnapshot,
 		});
 	}

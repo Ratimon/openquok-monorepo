@@ -7,12 +7,9 @@ import type { SafariMockContentId } from '$lib/ui/templates/device-mocks/safari/
 import { getPublicBrowserExtensionChromeStoreCtaHref } from '$lib/content/constants/landing/browser-extension-chrome-cta';
 import { route } from '$lib/utils/path';
 
-export type PublicDirectoryChannelSlug =
-	| 'peerpush'
-	| 'uneed'
-	| 'open-launch'
-	| 'tinylaunch'
-	| 'fazier';
+import type { PublicDirectoryChannelSlug } from '$lib/content/constants/channels/catalog/directory-channel-slugs';
+
+export type { PublicDirectoryChannelSlug };
 
 export type DirectoryChannelProcessSection = PublicDirectorySubmissionSectionHeader & {
 	steps: readonly FeaturesOrderedStep[];

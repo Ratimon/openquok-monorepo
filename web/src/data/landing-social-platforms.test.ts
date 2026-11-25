@@ -22,7 +22,8 @@ describe('FEATURES_GRID_SOCIAL_ROWS', () => {
 			'tinylaunch',
 			'fazier',
 			'devhunt',
-			'nick-launches'
+			'nick-launches',
+			'indiehub'
 		]);
 		expect([...HERO_DRAFT_HANDOFF_PLATFORMS, ...HERO_DIRECTORY_PLATFORMS].map((p) => p.id)).toEqual(
 			[
@@ -33,7 +34,8 @@ describe('FEATURES_GRID_SOCIAL_ROWS', () => {
 				'tinylaunch',
 				'fazier',
 				'devhunt',
-				'nick-launches'
+				'nick-launches',
+				'indiehub'
 			]
 		);
 		expect(HERO_BROWSER_EXTENSION_PLATFORMS.map((platform) => platform.id)).toEqual([
@@ -45,7 +47,8 @@ describe('FEATURES_GRID_SOCIAL_ROWS', () => {
 			'tinylaunch',
 			'fazier',
 			'devhunt',
-			'nick-launches'
+			'nick-launches',
+			'indiehub'
 		]);
 	});
 
@@ -60,9 +63,9 @@ describe('FEATURES_GRID_SOCIAL_ROWS', () => {
 		expect(resolveLandingSocialPlatformChannelSlug(standalone!)).toBe('instagram');
 	});
 
-	it('balances home grid as 4 + 5 + 9 with directory tiles in the stack', () => {
+	it('balances home grid as 4 + 5 + 10 with directory tiles in the stack', () => {
 		const counts = FEATURES_GRID_HOME_ROWS.map((row) => row.platformIds.length);
-		expect(counts).toEqual([4, 5, 9]);
+		expect(counts).toEqual([4, 5, 10]);
 		const ids = FEATURES_GRID_HOME_ROWS.flatMap((row) => row.platformIds);
 		expect(ids).toContain('peerpush');
 		expect(ids).toContain('uneed');
@@ -71,7 +74,8 @@ describe('FEATURES_GRID_SOCIAL_ROWS', () => {
 		expect(ids).toContain('fazier');
 		expect(ids).toContain('devhunt');
 		expect(ids).toContain('nick-launches');
+		expect(ids).toContain('indiehub');
 		expect(ids.filter((id) => id === 'peerpush').length).toBe(1);
-		expect(new Set(ids).size).toBe(18);
+		expect(new Set(ids).size).toBe(19);
 	});
 });
