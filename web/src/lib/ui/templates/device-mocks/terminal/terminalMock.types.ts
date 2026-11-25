@@ -6,6 +6,7 @@ export type TerminalMockContentId =
 	| 'openquok-skill-install-meta-muse'
 	| 'openquok-skill-install-thinkrail'
 	| 'openquok-skill-install-manus'
+	| 'openquok-skill-install-cue'
 	| 'openquok-skill-install-claude-duet'
 	| 'openquok-skill-install-rakazo'
 	| 'openquok-skill-install-openbot'

@@ -17,6 +17,7 @@ export type SafariMockContentId =
 	| 'meta-muse-docs-overview'
 	| 'thinkrail-docs-overview'
 	| 'manus-docs-overview'
+	| 'cue-docs-overview'
 	| 'gemini-docs-overview'
 	| 'claude-duet-docs-overview'
 	| 'rakazo-docs-overview'

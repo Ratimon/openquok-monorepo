@@ -142,7 +142,8 @@ MCP clients use `mcps/channels/index.ts` — no per-host channel file. Deeper be
 | `grok-build` | MCP | `grok-bot` (host) | `/agents/grok-bot` |
 | `meta-muse` | host | `muse-code` (MCP) | `/agents/muse-code` |
 | `muse-code` | MCP | `meta-muse` (host) | `/agents/meta-muse` |
-| `manus` | host | Cue (separate product; no `/agents/cue` unless launched) | Manus vs Cue in copy |
+| `manus` | host | `cue` (personal agent on Cue OS) | Manus vs Cue in copy |
+| `cue` | host | `manus` (Studio / Skills platform) | Cue agent social vs official APIs |
 | `dots` | host | ChatGPT MCP (`/agents/chatgpt`) | chatgpt, grok-bot |
 | `gemini` | host | `android-studio`, `antigravity-cli` (MCP) | use slug **`gemini`** (not `gemini-spark`) |
 | `opencode` | MCP | — | not `agents/hosts/opencode.ts` |

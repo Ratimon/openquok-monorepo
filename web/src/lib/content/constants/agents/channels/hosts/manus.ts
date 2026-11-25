@@ -10,7 +10,7 @@ export const manusAgentChannelHost: PublicAgentChannelHostConfig = {
 	agentLabel: 'Manus',
 	metaTitle: (platformLabel) => buildAgentChannelMetaTitle(platformLabel, 'Manus'),
 	metaDescription: (platformLabel) =>
-		`Use the openquok-core Skill in Manus 2.0 Studio or chat to draft and schedule ${platformLabel} posts — after Video Editor, Game Dev, or Automations. Not the Cue app — Manus Skills path. Run the CLI on a Cloud Computer. ${CHANNEL_QUEUE_PUBLISH_CHOICE_SUFFIX}`,
+		`Use the openquok-core Skill in Manus 2.0 Studio or chat to draft and schedule ${platformLabel} posts — after Video Editor, Game Dev, or Automations. Manus Skills path — for Cue, use the Cue agent guide. Run the CLI on a Cloud Computer. ${CHANNEL_QUEUE_PUBLISH_CHOICE_SUFFIX}`,
 	extraKeywords: (platformLabel) => [
 		`Manus ${platformLabel}`,
 		`Manus ${platformLabel} scheduler`,

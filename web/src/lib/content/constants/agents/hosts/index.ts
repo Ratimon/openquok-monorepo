@@ -5,6 +5,7 @@ export { dotsAgent } from './dots';
 export { metaMuseAgent } from './meta-muse';
 export { thinkrailAgent } from './thinkrail';
 export { manusAgent } from './manus';
+export { cueAgent } from './cue';
 export { geminiAgent } from './gemini';
 export { claudeDuetAgent } from './claude-duet';
 export { rakazoAgent } from './rakazo';

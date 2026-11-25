@@ -6,6 +6,7 @@
 	import GrokBotDocsOverviewMock from '$lib/ui/templates/device-mocks/safari/content/GrokBotDocsOverviewMock.svelte';
 	import DotsDocsOverviewMock from '$lib/ui/templates/device-mocks/safari/content/DotsDocsOverviewMock.svelte';
 	import ManusDocsOverviewMock from '$lib/ui/templates/device-mocks/safari/content/ManusDocsOverviewMock.svelte';
+	import CueDocsOverviewMock from '$lib/ui/templates/device-mocks/safari/content/CueDocsOverviewMock.svelte';
 	import GeminiDocsOverviewMock from '$lib/ui/templates/device-mocks/safari/content/GeminiDocsOverviewMock.svelte';
 	import ClaudeDuetDocsOverviewMock from '$lib/ui/templates/device-mocks/safari/content/ClaudeDuetDocsOverviewMock.svelte';
 	import MetaMuseDocsOverviewMock from '$lib/ui/templates/device-mocks/safari/content/MetaMuseDocsOverviewMock.svelte';
@@ -85,6 +86,8 @@
 	<ThinkRailDocsOverviewMock />
 {:else if content === 'manus-docs-overview'}
 	<ManusDocsOverviewMock />
+{:else if content === 'cue-docs-overview'}
+	<CueDocsOverviewMock />
 {:else if content === 'gemini-docs-overview'}
 	<GeminiDocsOverviewMock />
 {:else if content === 'claude-duet-docs-overview'}

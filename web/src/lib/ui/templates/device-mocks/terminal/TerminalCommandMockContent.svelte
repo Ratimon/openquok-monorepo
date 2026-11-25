@@ -5,6 +5,7 @@
 	import OpenquokSkillInstallDotsMock from '$lib/ui/templates/device-mocks/terminal/content/OpenquokSkillInstallDotsMock.svelte';
 	import OpenquokSkillInstallMetaMuseMock from '$lib/ui/templates/device-mocks/terminal/content/OpenquokSkillInstallMetaMuseMock.svelte';
 	import OpenquokSkillInstallManusMock from '$lib/ui/templates/device-mocks/terminal/content/OpenquokSkillInstallManusMock.svelte';
+	import OpenquokSkillInstallCueMock from '$lib/ui/templates/device-mocks/terminal/content/OpenquokSkillInstallCueMock.svelte';
 	import OpenquokSkillInstallClaudeDuetMock from '$lib/ui/templates/device-mocks/terminal/content/OpenquokSkillInstallClaudeDuetMock.svelte';
 	import OpenquokSkillInstallRakazoMock from '$lib/ui/templates/device-mocks/terminal/content/OpenquokSkillInstallRakazoMock.svelte';
 	import OpenquokSkillInstallOpenbotMock from '$lib/ui/templates/device-mocks/terminal/content/OpenquokSkillInstallOpenbotMock.svelte';
@@ -35,6 +36,8 @@
 	<OpenquokSkillInstallThinkrailMock />
 {:else if content === 'openquok-skill-install-manus'}
 	<OpenquokSkillInstallManusMock />
+{:else if content === 'openquok-skill-install-cue'}
+	<OpenquokSkillInstallCueMock />
 {:else if content === 'openquok-skill-install-claude-duet'}
 	<OpenquokSkillInstallClaudeDuetMock />
 {:else if content === 'openquok-skill-install-rakazo'}

@@ -68,10 +68,16 @@ const HOST_GLOBAL_SEO_EXTRAS: Readonly<Record<string, readonly string[]>> = {
 	],
 	manus: [
 		'Manus vs Cue social media',
-		'Cue app Manus scheduling',
 		'Manus 2.0 openquok-core',
 		'Manus Skills social posts',
 		'Manus Cloud Computer CLI'
+	],
+	cue: [
+		'Cue vs Manus social media',
+		'Cue agent social graph OpenQuok',
+		'Cue official API scheduling',
+		'Cue openquok-core skill',
+		'Cue CLI social posts'
 	],
 	openclaw: [
 		'OpenClaw Telegram scheduler',

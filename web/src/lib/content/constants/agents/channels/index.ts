@@ -25,6 +25,7 @@ import {
 	metaMuseAgentChannelHost
 } from '$lib/content/constants/agents/channels/hosts/meta-muse';
 import { manusAgentChannelConfigs, manusAgentChannelHost } from '$lib/content/constants/agents/channels/hosts/manus';
+import { cueAgentChannelConfigs, cueAgentChannelHost } from '$lib/content/constants/agents/channels/hosts/cue';
 import { geminiAgentChannelConfigs, geminiAgentChannelHost } from '$lib/content/constants/agents/channels/gemini';
 import {
 	claudeDuetAgentChannelConfigs,
@@ -70,6 +71,7 @@ export {
 	metaMuseAgentChannelConfigs
 } from '$lib/content/constants/agents/channels/hosts/meta-muse';
 export { manusAgentChannelHost, manusAgentChannelConfigs } from '$lib/content/constants/agents/channels/hosts/manus';
+export { cueAgentChannelHost, cueAgentChannelConfigs } from '$lib/content/constants/agents/channels/hosts/cue';
 export { geminiAgentChannelHost, geminiAgentChannelConfigs } from '$lib/content/constants/agents/channels/gemini';
 export {
 	claudeDuetAgentChannelHost,
@@ -89,6 +91,7 @@ export const PUBLIC_AGENT_CHANNEL_HOST_SLUGS = [
 	'thinkrail',
 	'meta-muse',
 	'manus',
+	'cue',
 	'gemini',
 	'claude-duet',
 	'rakazo',
@@ -110,6 +113,7 @@ const channelConfigsByHostSlug: Record<
 	thinkrail: thinkrailAgentChannelConfigs,
 	'meta-muse': metaMuseAgentChannelConfigs,
 	manus: manusAgentChannelConfigs,
+	cue: cueAgentChannelConfigs,
 	gemini: geminiAgentChannelConfigs,
 	'claude-duet': claudeDuetAgentChannelConfigs,
 	rakazo: rakazoAgentChannelConfigs,
@@ -219,6 +223,7 @@ export const AGENT_CHANNEL_HOSTS = [
 	thinkrailAgentChannelHost,
 	metaMuseAgentChannelHost,
 	manusAgentChannelHost,
+	cueAgentChannelHost,
 	geminiAgentChannelHost,
 	claudeDuetAgentChannelHost,
 	rakazoAgentChannelHost,

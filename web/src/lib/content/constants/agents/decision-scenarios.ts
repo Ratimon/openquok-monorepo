@@ -42,7 +42,7 @@ export const AGENT_HOST_DECISION_SCENARIOS: readonly AgentHostDecisionScenario[]
 	{
 		id: 'no-server-ops-cloud-browser',
 		title: 'Persistent cloud browser without running a server',
-		hostSlugs: ['grok-bot', 'dots', 'manus', 'claude-duet']
+		hostSlugs: ['grok-bot', 'dots', 'manus', 'cue', 'claude-duet']
 	},
 	{
 		id: 'model-agnostic',

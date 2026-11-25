@@ -4,6 +4,7 @@
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import FeaturesSectionHeader from '$lib/ui/templates/feature-grid/FeaturesSectionHeader.svelte';
+	import PublicLandingRichText from '$lib/ui/templates/landing-page/PublicLandingRichText.svelte';
 
 	export type ComparisonPointIcon = 'x' | 'check' | 'hourglass';
 
@@ -99,7 +100,7 @@
 					/>
 				</span>
 			{/if}
-			{text}
+			<PublicLandingRichText html={text} tag="span" class="inline [&_a]:text-inherit" />
 		</span>
 	</div>
 {/snippet}

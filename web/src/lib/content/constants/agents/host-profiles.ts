@@ -61,6 +61,13 @@ export const AGENT_HOST_PROFILES: readonly AgentHostProfile[] = [
 		featureHighlights: []
 	},
 	{
+		slug: 'cue',
+		uiArchetype: 'vendor-cloud-computer',
+		scenarioIds: ['no-server-ops-cloud-browser'],
+		traits: ['personal-agent', 'cue-cli', 'skills'],
+		featureHighlights: []
+	},
+	{
 		slug: 'meta-muse',
 		uiArchetype: 'connector-personal-agent',
 		scenarioIds: [],

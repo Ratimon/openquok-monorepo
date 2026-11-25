@@ -20,6 +20,10 @@
 		MANUS_EXTENSION_MESSAGING_CHANNELS
 	} from '$data/manus-messaging-channels';
 	import {
+		CUE_CORE_MESSAGING_CHANNELS,
+		CUE_EXTENSION_MESSAGING_CHANNELS
+	} from '$data/cue-messaging-channels';
+	import {
 		GEMINI_CORE_MESSAGING_CHANNELS,
 		GEMINI_EXTENSION_MESSAGING_CHANNELS
 	} from '$data/gemini-messaging-channels';
@@ -164,6 +168,10 @@
 		manus: {
 			core: MANUS_CORE_MESSAGING_CHANNELS,
 			extension: MANUS_EXTENSION_MESSAGING_CHANNELS
+		},
+		cue: {
+			core: CUE_CORE_MESSAGING_CHANNELS,
+			extension: CUE_EXTENSION_MESSAGING_CHANNELS
 		},
 		gemini: {
 			core: GEMINI_CORE_MESSAGING_CHANNELS,

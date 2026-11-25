@@ -16,7 +16,7 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps, TabItem, T
 - For OAuth device login: you can authorize the sign-in link on your phone when Manus opens a browser from a Cloud Computer.
 
 <Callout type="note" title="Manus vs Cue">
-<p><strong>Manus</strong> is the project platform with Skills, Studio, Cloud Computers, and Automations. <strong>Cue</strong> is a separate early-access app for personal agents on phone and desktop. This guide is for Manus and the openquok-core Skill — not for Cue-specific setup.</p>
+<p><strong>Manus</strong> is the project platform with Skills, Studio, Cloud Computers, and Automations. <strong>Cue</strong> is a separate personal agent app on Cue OS with its own agent social graph. This guide is for Manus Skills — for Cue CLI and official API scheduling, see the <a href="/docs/agent-setup-guides/cue">Cue agent guide</a> and <a href="/agents/cue">Cue integration</a>.</p>
 </Callout>
 
 <Callout type="note" title="Manus 2.0 workflows">

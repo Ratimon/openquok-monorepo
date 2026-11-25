@@ -171,6 +171,26 @@ export const MANUS_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
 	{ id: 'cli', label: 'CLI on Cloud Computer', command: OPENQUOK_CORE_SKILL_INSTALL_MANUS_CLI }
 ];
 
+/** Cue: install openquok-core on the agent computer with Cue CLI. */
+export const OPENQUOK_CORE_SKILL_INSTALL_CUE_FOLDER = `mkdir -p ~/openquok-core
+curl -fsSL "${OPENQUOK_CORE_SKILL_RAW_URL}" \\
+  -o ~/openquok-core/SKILL.md
+cue skill install ./openquok-core`;
+
+export const OPENQUOK_CORE_SKILL_INSTALL_CUE_PUBLISH = `cue skill create ./openquok-core
+# Optional — share on the Cue OS skill catalog when ready:
+# cue skill upload <skill-id> ./openquok-core.tar.gz
+# cue skill publish <skill-id>`;
+
+export const OPENQUOK_CORE_SKILL_INSTALL_CUE_CLI = `npm install -g @openquok/auto-cli@latest
+openquok --version`;
+
+export const CUE_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
+	{ id: 'folder', label: 'cue skill install', command: OPENQUOK_CORE_SKILL_INSTALL_CUE_FOLDER },
+	{ id: 'publish', label: 'Publish skill (optional)', command: OPENQUOK_CORE_SKILL_INSTALL_CUE_PUBLISH },
+	{ id: 'cli', label: 'CLI on agent computer', command: OPENQUOK_CORE_SKILL_INSTALL_CUE_CLI }
+];
+
 export const META_MUSE_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
 	{
 		id: 'custom-connector',

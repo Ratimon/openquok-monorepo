@@ -19,6 +19,7 @@ export type BrandedIconName =
     | "ChatGPT"
     | 'Cursor'
     | 'Copilot'
+    | "Cue"
     | "Claude"
     | "ClaudeDuet"
     | "ClaudeGlyph"
@@ -569,6 +570,13 @@ export const brandedIcons = {
         box: 32,
         fill: true,
         svg: `<image href="/icons/manus.svg" width="32" height="32"/>`
+    },
+    /** Cue OS product mark. Cue is a trademark of its respective owner. */
+    Cue: {
+        name: "Cue",
+        box: 32,
+        fill: true,
+        svg: `<image href="/icons/cue.png" width="32" height="32"/>`
     },
     /** MausBot product mark. MausBot is a trademark of its respective owner. */
     MausBot: {

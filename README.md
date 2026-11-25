@@ -114,7 +114,7 @@ Directory site keys, variants, and extension handoff are in [Directory integrati
 
 ## Supported Agents & MCP
 
-- <img src="./assets/readme/features/ai.svg" alt="" width="24" height="24" align="top"> **Autonomous agent hosts.** **OpenClaw**, **Hermes Agent**, **Grok Bot**, **Rakazo**, **OpenBot**, **MausBot**, **Tucano**, **Dots**, **Meta Muse**, **ThinkRail**, **Manus**, **Gemini Task**, and **Claude Duet** install [OpenQuok Core](https://www.openquok.com/creators/openquok/building-blocks/openquok-core) (`@openquok/auto-cli` skill) or **Connected Apps (MCP)** and schedule from chat or a terminal — see [Agent setup guides](https://www.openquok.com/docs/agent-setup-guides) and the [agents catalog](https://www.openquok.com/agents).
+- <img src="./assets/readme/features/ai.svg" alt="" width="24" height="24" align="top"> **Autonomous agent hosts.** **OpenClaw**, **Hermes Agent**, **Grok Bot**, **Rakazo**, **OpenBot**, **MausBot**, **Tucano**, **Dots**, **Meta Muse**, **ThinkRail**, **Manus**, **Cue**, **Gemini Task**, and **Claude Duet** install [OpenQuok Core](https://www.openquok.com/creators/openquok/building-blocks/openquok-core) (`@openquok/auto-cli` skill) or **Connected Apps (MCP)** and schedule from chat or a terminal — see [Agent setup guides](https://www.openquok.com/docs/agent-setup-guides) and the [agents catalog](https://www.openquok.com/agents).
 
 <p>
   <a href="https://www.openquok.com/agents/openclaw"><img src="./assets/readme/agents-mcp/openclaw.svg" alt="OpenClaw" width="32" height="32"></a>
@@ -128,6 +128,7 @@ Directory site keys, variants, and extension handoff are in [Directory integrati
   <a href="https://www.openquok.com/agents/meta-muse"><img src="./assets/readme/agents-mcp/meta-muse.svg" alt="Meta Muse" width="32" height="32"></a>
   <a href="https://www.openquok.com/agents/thinkrail"><img src="./assets/readme/agents-mcp/thinkrail.svg" alt="ThinkRail" width="32" height="32"></a>
   <a href="https://www.openquok.com/agents/manus"><img src="./assets/readme/agents-mcp/manus.svg" alt="Manus" width="32" height="32"></a>
+  <a href="https://www.openquok.com/agents/cue"><img src="./assets/readme/agents-mcp/cue.svg" alt="Cue" width="32" height="32"></a>
   <a href="https://www.openquok.com/agents/gemini"><img src="./assets/readme/agents-mcp/gemini.svg" alt="Gemini Task" width="32" height="32"></a>
   <a href="https://www.openquok.com/agents/claude-duet"><img src="./assets/readme/agents-mcp/claude-duet.svg" alt="Claude Duet" width="32" height="32"></a>
 </p>
