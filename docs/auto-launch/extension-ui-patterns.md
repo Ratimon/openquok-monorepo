@@ -17,8 +17,9 @@ Reference for **extension-assisted directory launches**: step rail, compare pane
 | `nick-launches` | `nick-launches-free-launch`, `nick-launches-paid-launch`, `nick-launches-maker-profile` | Listing → `submit/new`; maker → `profile` | `openquok-directory-nick-launches.js` |
 | `indiehub` | `indiehub-basic-launch`, `indiehub-pro-launch` | Submit wizard step 1 → `submit` | `openquok-directory-indiehub.js` |
 | `alternativeto` | `alternativeto-free-listing`, `alternativeto-priority-review`, `alternativeto-finish-listing`, `alternativeto-user-profile` | Listing → `manage-item`; profile → `user/edit` | `openquok-directory-alternativeto.js` |
+| `trustpilot` | `trustpilot-company-profile` | `businessapp.b2b.trustpilot.com/company-settings/` | `openquok-directory-trustpilot.js` |
 
-**Site count for smoke:** **9** directory sites (23 provider variants total).
+**Site count for smoke:** **10** directory sites (24 provider variants total).
 
 Picker groups: TinyLaunch, Open Launch, Fazier, DevHunt, Nick Launches, IndieHub, and AlternativeTo group variants under one Add Channel tile per site (`picker_group_key` = site slug).
 
@@ -256,11 +257,34 @@ Proof: `successPathRegex` `/software/` or `/manage-item/` (listing); listing URL
 
 ---
 
+## Trustpilot field mapping
+
+Module: `common/src/auto-launch/destination-configs/sites/trustpilot/config.ts`
+
+| Step / label | `profilePath` | `fillMode` | Notes |
+| --- | --- | --- | --- |
+| Company name | `name` | `text` | required |
+| Company domain | `website_url` | `text` | required |
+| Logo / Upload logo | `logo_url` | `file` | JPG/PNG ~400×300, ~1 MB on site; required |
+| Describe your company | `description` | `text` | required |
+| Contact info (email, phone, address) | — | — | **Manual** v1 (empty step in fixture) |
+| Save and publish, homepage screenshot, domain / business-email verification | — | — | **Manual** on Trustpilot |
+
+`readyUrlHint`: `company-settings`.
+
+Login: `extension/src/directory/directory-launch/siteLogin/trustpilot.ts` → `https://businessapp.b2b.trustpilot.com/`; logged-in when `company-settings` pathname is visible and company name/domain/description fields are present.
+
+**Accordions:** Expand **About your business** before name/domain/logo fill and **Company description** before description fill. Fill is blocked with a panel warning when a section is collapsed (`siteMedia/trustpilotCompanySettings.ts`).
+
+Proof: `successPathRegex` `trustpilot.com/review/`; listing URL `a[href*='trustpilot.com/review']`. Public website links on published profiles are typically **nofollow** — confirm `rel` after publish (`directory-integration/trustpilot.md`, Build backlinks catalog).
+
+---
+
 ## Manual smoke checklist
 
 Run after changing fixtures, extension manifests, or marketing tiles. Use a dev workspace with the extension loaded from `extension/dist`.
 
-### All sites (9)
+### All sites (10)
 
 - [ ] `pnpm --filter openquok-common test:unit` (includes destination config drift tests)
 - [ ] `pnpm sync:auto-launch-configs:check` and `pnpm sync:auto-launch-destinations:check`
@@ -308,6 +332,17 @@ Run after changing fixtures, extension manifests, or marketing tiles. Use a dev 
 - [ ] After publish, listing URL matches proof hints on the live product page
 - [ ] `/channels/indiehub` and `directory-integration/indiehub.md` docs load; hub lists IndieHub with PeerPush, Uneed, Open Launch, TinyLaunch, Fazier, DevHunt, Nick Launches
 - [ ] `dist/icons/link-directory/indiehub.svg` exists after extension build
+
+### Trustpilot
+
+- [ ] Sign in on Trustpilot Business; **Company profile** handoff opens `company-settings` with non-empty `extension_config`
+- [ ] Step rail shows **Company settings** → **Company description** → **Contact info** (empty fields); compare lists name, domain, description, and logo
+- [ ] Logo file input resolves (native `input[type=file]` or siteMedia adapter if Upload logo hides the input)
+- [ ] Do not complete Save and publish or domain/business-email verification in automation; confirm ready hints cover manual steps and nofollow expectation
+- [ ] After publish, proof regex and listing URL selector match a live `trustpilot.com/review/` link; confirm `rel` on website link
+- [ ] `/channels/trustpilot` and `directory-integration/trustpilot.md` docs load; hub lists Trustpilot with PeerPush, Uneed, Open Launch, TinyLaunch, Fazier, DevHunt, Nick Launches, IndieHub, AlternativeTo
+- [ ] `dist/icons/link-directory/trustpilot.svg` exists after extension build
+- [ ] `pnpm --filter @openquok/browser-extension test` — `trustpilotFormSelectors.test.ts` passes
 
 ### AlternativeTo
 

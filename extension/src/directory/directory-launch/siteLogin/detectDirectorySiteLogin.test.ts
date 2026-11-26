@@ -4,6 +4,7 @@ import { detectDirectorySiteLogin } from './detectDirectorySiteLogin.js';
 import { DEVHUNT_LOGIN_URL } from './devhunt.js';
 import { FAZIER_LOGIN_URL } from './fazier.js';
 import { ALTERNATIVETO_LOGIN_URL } from './alternativeto.js';
+import { TRUSTPILOT_LOGIN_URL } from './trustpilot.js';
 import { INDIEHUB_LOGIN_URL } from './indiehub.js';
 import { NICK_LAUNCHES_LOGIN_URL } from './nick-launches.js';
 import { OPEN_LAUNCH_LOGIN_URL } from './open-launch.js';
@@ -89,6 +90,22 @@ describe('detectDirectorySiteLogin', () => {
 		expect(detectDirectorySiteLogin('alternativeto')).toEqual({
 			loggedIn: false,
 			loginUrl: ALTERNATIVETO_LOGIN_URL
+		});
+	});
+
+	it('dispatches to the trustpilot adapter', () => {
+		Object.defineProperty(document, 'defaultView', {
+			value: { location: { pathname: '/company-settings/' } },
+			configurable: true,
+		});
+		document.body.innerHTML = `
+			<p>Log in to Trustpilot</p>
+			<input type="email" />
+			<input type="password" />
+		`;
+		expect(detectDirectorySiteLogin('trustpilot')).toEqual({
+			loggedIn: false,
+			loginUrl: TRUSTPILOT_LOGIN_URL
 		});
 	});
 

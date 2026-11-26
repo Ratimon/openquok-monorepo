@@ -116,6 +116,7 @@ export type BrandedIconName =
     | "TinyLaunch"
     | "Typefully"
     | "TryPost"
+    | "Trustpilot"
     | "Tucano"
     | "UseBard"
     | "Uneed"
@@ -955,6 +956,13 @@ export const brandedIcons = {
         box: 24,
         fill: true,
         svg: `<rect width="24" height="24" rx="6" fill="#0F172A"/><image href="/icons/trypost.png" x="3" y="3" width="18" height="18"/>`
+    },
+    /** Trustpilot product mark. Trustpilot is a trademark of its respective owner. */
+    Trustpilot: {
+        name: "Trustpilot",
+        box: 100,
+        fill: true,
+        svg: `<image href="/icons/link-directory/trustpilot.svg" width="100" height="100"/>`
     },
     /** Tucano product mark. Tucano is a trademark of its respective owner. */
     Tucano: {

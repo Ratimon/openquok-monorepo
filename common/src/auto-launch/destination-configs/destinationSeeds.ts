@@ -2,7 +2,7 @@
  * Source of truth for `auto_launch_destinations` row seeds (503–509 SQL).
  * Consumed by `backend/scripts/sync-auto-launch-destination-seeds.mjs`.
  *
- * Next stable destination id suffix after IndieHub: …021
+ * Next stable destination id suffix after AlternativeTo: …025
  */
 
 export type AutoLaunchDestinationSeedGenerationMode = 'full' | 'composite';
@@ -374,6 +374,22 @@ const ALTERNATIVETO_DESTINATIONS: readonly AutoLaunchDestinationSeedRow[] = [
 	},
 ];
 
+const TRUSTPILOT_DESTINATIONS: readonly AutoLaunchDestinationSeedRow[] = [
+	{
+		destinationId: 'd5f7d000-0030-4000-a000-000000000025',
+		providerSlug: 'trustpilot-company-profile',
+		siteSlug: 'trustpilot',
+		name: 'Trustpilot — Company profile',
+		shortDescription:
+			'Free Trustpilot Business company profile; extension autofills company settings and description after you sign in.',
+		startUrl: 'https://businessapp.b2b.trustpilot.com/company-settings/',
+		sortOrder: 74,
+		pickerGroupKey: 'trustpilot',
+		pickerGroupTitle: 'Trustpilot',
+		opportunitySlug: 'company-profile',
+	},
+];
+
 export const AUTO_LAUNCH_DESTINATION_SEED_MODULES: readonly AutoLaunchDestinationSeedModule[] = [
 	{
 		siteKey: 'uneed',
@@ -485,6 +501,18 @@ export const AUTO_LAUNCH_DESTINATION_SEED_MODULES: readonly AutoLaunchDestinatio
 			'-- Post-submit Stripe upsell, features, languages, and final Submit stay manual after OpenQuok fills manage-item.',
 		],
 		destinations: ALTERNATIVETO_DESTINATIONS,
+	},
+	{
+		siteKey: 'trustpilot',
+		sqlFileName: '512_20261126_seed_trustpilot_destination.sql',
+		generationMode: 'full',
+		moduleDate: '20261126',
+		moduleScopeLabel: 'Seed (Trustpilot company profile destination)',
+		preambleComments: [
+			'-- Joins link_directory_opportunities on site slug trustpilot (catalog backfill / listing manager).',
+			'-- Contact info, Save and publish, domain/business-email verification, and homepage screenshot stay manual.',
+		],
+		destinations: TRUSTPILOT_DESTINATIONS,
 	},
 ];
 

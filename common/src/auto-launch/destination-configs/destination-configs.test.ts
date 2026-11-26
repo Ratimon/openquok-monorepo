@@ -29,6 +29,7 @@ import {
 	NICK_LAUNCHES_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
 	INDIEHUB_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
 	ALTERNATIVETO_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
+	TRUSTPILOT_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
 	UNEED_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
 } from './syncMetadata.js';
 import { directorySiteKeyFromProviderSlug } from '../directorySiteKey.js';
@@ -92,6 +93,7 @@ describe('DIRECTORY_EXTENSION_CONFIG_FIXTURES', () => {
 				'alternativeto-priority-review',
 				'alternativeto-finish-listing',
 				'alternativeto-user-profile',
+				'trustpilot-company-profile',
 			].sort()
 		);
 	});
@@ -151,6 +153,14 @@ describe('DIRECTORY_EXTENSION_CONFIG_FIXTURES', () => {
 		);
 	});
 
+	it('documents Trustpilot fixtures as independent (not pricing-queue)', () => {
+		validateIndependentExtensionFixtureSlugs(
+			DIRECTORY_EXTENSION_CONFIG_FIXTURES,
+			TRUSTPILOT_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
+			AUTO_LAUNCH_EXTENSION_CONFIG_DERIVATIONS
+		);
+	});
+
 	it('generated 502_* extension_configs.sql matches fixtures (sync --check)', () => {
 		if (!existsSync(COMMON_DIST_INDEX)) {
 			throw new Error(
@@ -205,7 +215,7 @@ describe('AUTO_LAUNCH_DESTINATION_SEED_ROWS', () => {
 		}
 	});
 
-	it('aggregated core_structure applies auto-launch 502 before 503–511', () => {
+	it('aggregated core_structure applies auto-launch 502 before 503–512', () => {
 		const migrationsDir = join(REPO_ROOT, 'backend/supabase/migrations');
 		const coreFiles = readdirSync(migrationsDir)
 			.filter((name) => name.endsWith('_core_structure.sql'))
@@ -215,7 +225,9 @@ describe('AUTO_LAUNCH_DESTINATION_SEED_ROWS', () => {
 		const sql = readFileSync(join(migrationsDir, latestCore), 'utf8');
 		const autoLaunchFiles = [...sql.matchAll(/-- Module: auto-launch, File: (5\d{2}_[^\n]+)/g)]
 			.map((match) => match[1])
-			.filter((fileName) => /^50[2-9]_/.test(fileName ?? '') || /^51[01]_/.test(fileName ?? ''));
+			.filter(
+				(fileName) => /^50[2-9]_/.test(fileName ?? '') || /^51[0-2]_/.test(fileName ?? '')
+			);
 		expect(autoLaunchFiles).toEqual([
 			'502_20261111_extension_configs.sql',
 			'503_20261013_seed_uneed.sql',
@@ -227,10 +239,11 @@ describe('AUTO_LAUNCH_DESTINATION_SEED_ROWS', () => {
 			'509_20261124_seed_nick_launches_destination.sql',
 			'510_20261125_seed_indiehub_destination.sql',
 			'511_20261125_seed_alternativeto_destination.sql',
+			'512_20261126_seed_trustpilot_destination.sql',
 		]);
 	});
 
-	it('generated 502–511 destination SQL matches manifest (sync --check)', () => {
+	it('generated 502–512 destination SQL matches manifest (sync --check)', () => {
 		if (!existsSync(COMMON_DIST_INDEX)) {
 			throw new Error(
 				'common/dist missing. Run `pnpm common:build` before `pnpm --filter openquok-common test:unit`.'

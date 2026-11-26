@@ -50,6 +50,11 @@ import {
 	resolveEffectiveProfileNorm,
 } from './launchCompareState.js';
 import { mergeExtensionConfigWithShippedFixture } from './shippedExtensionConfig.js';
+import {
+	buildTrustpilotAccordionStatusHint,
+	trustpilotFillAllBlocker,
+	trustpilotStepFillBlocker,
+} from './siteMedia/trustpilotCompanySettings.js';
 import { resolveProfileValue } from './profileValues.js';
 import {
 	buildStatusLine,
@@ -115,6 +120,7 @@ export function registerDirectoryLaunchProvider(providerSlug: string): void {
 	let activeProfileSourceId: string | undefined;
 	let mainProfileSnapshotForCompare: AutoLaunchProfileSnapshot | null = null;
 	let fillProgress: StepRailFillProgress | null = null;
+	let fillActionMessage: string | undefined;
 
 	function setFillProgress(next: StepRailFillProgress | null): void {
 		fillProgress = next;
@@ -182,13 +188,54 @@ export function registerDirectoryLaunchProvider(providerSlug: string): void {
 		});
 	}
 
+	function clearFillActionMessage(): void {
+		if (!fillActionMessage) return;
+		fillActionMessage = undefined;
+		renderRail();
+	}
+
+	function setFillActionMessage(message: string): void {
+		fillActionMessage = message;
+		renderRail();
+	}
+
+	function trustpilotSiteFillPrecheck(
+		stepId?: string,
+		steps?: LaunchStep[]
+	): { blocked: boolean; error?: string } {
+		if (directorySiteKey !== 'trustpilot') return { blocked: false };
+		if (stepId) {
+			const error = trustpilotStepFillBlocker(stepId);
+			return error ? { blocked: true, error } : { blocked: false };
+		}
+		const ids =
+			steps?.filter((entry) => (entry.fields?.length ?? 0) > 0).map((entry) => entry.id) ?? [];
+		const error = trustpilotFillAllBlocker(ids);
+		return error ? { blocked: true, error } : { blocked: false };
+	}
+
 	const rail = new DirectoryLaunchStepRail({
-		onFillStep: (stepId) => void runFillStep(stepId),
-		onFillAll: () => void runFillAll(),
+		onFillStep: (stepId) => {
+			void runFillStep(stepId).then((result) => {
+				if (!result.ok && result.error) setFillActionMessage(result.error);
+				else clearFillActionMessage();
+			});
+		},
+		onFillAll: () => {
+			void runFillAll().then((result) => {
+				if (!result.ok && result.error) setFillActionMessage(result.error);
+				else clearFillActionMessage();
+			});
+		},
 		onResetPosition: () => {
 			/* position persisted in stepRail */
 		},
-		onFillField: (stepId, fieldKey) => void runFillField(stepId, fieldKey),
+		onFillField: (stepId, fieldKey) => {
+			void runFillField(stepId, fieldKey).then((result) => {
+				if (!result.ok && result.error) setFillActionMessage(result.error);
+				else clearFillActionMessage();
+			});
+		},
 		onToggleSourcePath: (fieldKey, profilePath, selected) => {
 			toggleSourcePathSelection(fieldKey, profilePath, selected);
 		},
@@ -423,6 +470,12 @@ export function registerDirectoryLaunchProvider(providerSlug: string): void {
 		const steps = config.steps ?? [];
 		const gate = fillGateBlocked();
 		const onReadyPage = isReadyPage(config);
+		let statusLine = buildStatusLine(config, onReadyPage);
+		const trustpilotAccordionHint =
+			directorySiteKey === 'trustpilot' ? buildTrustpilotAccordionStatusHint() : null;
+		if (trustpilotAccordionHint) {
+			statusLine = `${statusLine} ${trustpilotAccordionHint}`;
+		}
 		const compareRowsByStep = buildCompareRowsForSteps(activeSession.profileSnapshot, steps, {
 			fillBaselinesByField,
 			selectedSourcePathsByField,
@@ -432,7 +485,7 @@ export function registerDirectoryLaunchProvider(providerSlug: string): void {
 		rail.render({
 			providerName: provider.name,
 			productName: activeSession.profileSnapshot.name || 'Product profile',
-			statusLine: buildStatusLine(config, onReadyPage),
+			statusLine,
 			steps,
 			fieldResultsByStep,
 			compareRowsByStep,
@@ -442,6 +495,7 @@ export function registerDirectoryLaunchProvider(providerSlug: string): void {
 			readyUrlHint: config.readyUrlHint,
 			fillDisabled: gate.blocked || fillProgress !== null,
 			fillGateMessage: gate.error,
+			fillActionMessage,
 			profileSourceOptions,
 			activeProfileSourceId,
 			fillProgress,
@@ -495,6 +549,10 @@ export function registerDirectoryLaunchProvider(providerSlug: string): void {
 			return { ok: false, error: 'No launch session for this tab.' };
 		}
 		const steps = activeSession.extensionConfig.steps ?? [];
+		const trustpilotPrecheck = trustpilotSiteFillPrecheck(stepId);
+		if (trustpilotPrecheck.blocked) {
+			return { ok: false, error: trustpilotPrecheck.error };
+		}
 		const step = steps.find((s) => s.id === stepId);
 		if (!step) {
 			return { ok: false, error: `Unknown step "${stepId}".` };
@@ -530,6 +588,10 @@ export function registerDirectoryLaunchProvider(providerSlug: string): void {
 		if (!field) {
 			return { ok: false, error: `Unknown field "${fieldKey}".` };
 		}
+		const trustpilotPrecheck = trustpilotSiteFillPrecheck(stepId);
+		if (trustpilotPrecheck.blocked) {
+			return { ok: false, error: trustpilotPrecheck.error };
+		}
 		const fillOptions = fillOptionsForField(field);
 		try {
 			setFillProgress({
@@ -563,7 +625,15 @@ export function registerDirectoryLaunchProvider(providerSlug: string): void {
 				recordFillBaseline(field, baselineOptions);
 				scheduleCompareDomSync();
 			}
-			return { ok: result.status === 'found' || result.status === 'skipped' };
+			if (result.status === 'found' || result.status === 'skipped') {
+				return { ok: true };
+			}
+			return {
+				ok: false,
+				error:
+					result.reason?.trim() ||
+					`Could not fill ${field.label}. Open the matching Trustpilot section and try again.`,
+			};
 		} finally {
 			setFillProgress(null);
 		}
@@ -609,9 +679,18 @@ export function registerDirectoryLaunchProvider(providerSlug: string): void {
 			return { ok: false, error: 'No launch session for this tab.' };
 		}
 		const steps = activeSession.extensionConfig.steps ?? [];
+		const trustpilotPrecheck = trustpilotSiteFillPrecheck(undefined, steps);
+		if (trustpilotPrecheck.blocked) {
+			return { ok: false, error: trustpilotPrecheck.error };
+		}
 		try {
 			for (let i = 0; i < steps.length; i++) {
 				const step = steps[i];
+				if ((step.fields?.length ?? 0) === 0) continue;
+				const stepBlocker = trustpilotStepFillBlocker(step.id);
+				if (stepBlocker) {
+					return { ok: false, error: stepBlocker };
+				}
 				const results = await fillStepFieldsWithProgress(step, {
 					stepIndex: i,
 					stepCount: steps.length,

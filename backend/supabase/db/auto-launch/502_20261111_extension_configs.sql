@@ -2847,6 +2847,88 @@ UPDATE public.auto_launch_destinations
 SET extension_config = $json${
     "version": 1,
     "startUrlPatterns": [
+        "https://businessapp.b2b.trustpilot.com/*"
+    ],
+    "readyUrlHint": "company-settings",
+    "readyStatusHint": "Sign in to Trustpilot Business, then open company settings. OpenQuok fills company name, domain, description, and logo (JPG or PNG about 400×300 within Trustpilot size limits). Contact info (email, phone, address), Save and publish, homepage screenshot, and domain/business-email verification stay manual on Trustpilot. Public trustpilot.com/review/… links to your website are typically nofollow — confirm rel after you publish.",
+    "steps": [
+        {
+            "id": "company_settings",
+            "label": "Company settings",
+            "fields": [
+                {
+                    "key": "name",
+                    "label": "Company name",
+                    "labelAliases": [
+                        "Name"
+                    ],
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[name*='company' i][name*='name' i], input[aria-label*='company name' i], input[placeholder*='company name' i], input[name*='name' i]:not([name*='user' i])"
+                },
+                {
+                    "key": "website",
+                    "label": "Company domain",
+                    "labelAliases": [
+                        "Domain",
+                        "Website",
+                        "Website URL"
+                    ],
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[name*='domain' i], input[aria-label*='domain' i], input[placeholder*='domain' i], input[type='url']"
+                },
+                {
+                    "key": "logo",
+                    "label": "Logo",
+                    "labelAliases": [
+                        "Upload logo",
+                        "Company logo"
+                    ],
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "required": true,
+                    "selectorHint": "input[type='file'][accept*='image'], input[type='file'][name*='logo' i]"
+                }
+            ]
+        },
+        {
+            "id": "company_description",
+            "label": "Company description",
+            "fields": [
+                {
+                    "key": "description",
+                    "label": "Describe your company",
+                    "labelAliases": [
+                        "Description",
+                        "Company description"
+                    ],
+                    "profilePath": "description",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "textarea[name*='description' i], textarea[aria-label*='describe' i], textarea[placeholder*='describe' i], [contenteditable='true'][aria-label*='describe' i]"
+                }
+            ]
+        },
+        {
+            "id": "contact_info",
+            "label": "Contact info",
+            "fields": []
+        }
+    ],
+    "proof": {
+        "successPathRegex": "trustpilot\\.com/review/",
+        "listingUrlSelector": "a[href*='trustpilot.com/review']"
+    }
+}$json$::jsonb
+WHERE provider_slug = 'trustpilot-company-profile';
+
+UPDATE public.auto_launch_destinations
+SET extension_config = $json${
+    "version": 1,
+    "startUrlPatterns": [
         "https://uneed.best/*",
         "https://www.uneed.best/*"
     ],

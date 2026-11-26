@@ -1,4 +1,5 @@
 import { isAlternativetoLoggedIn, ALTERNATIVETO_LOGIN_URL } from './alternativeto.js';
+import { isTrustpilotLoggedIn, TRUSTPILOT_LOGIN_URL } from './trustpilot.js';
 import { isDevhuntLoggedIn, DEVHUNT_LOGIN_URL } from './devhunt.js';
 import { isFazierLoggedIn, FAZIER_LOGIN_URL } from './fazier.js';
 import { isIndiehubLoggedIn, INDIEHUB_LOGIN_URL } from './indiehub.js';
@@ -45,6 +46,10 @@ const adapters: Readonly<Record<string, DirectorySiteLoginAdapter>> = {
 	alternativeto: {
 		isLoggedIn: isAlternativetoLoggedIn,
 		loginUrl: ALTERNATIVETO_LOGIN_URL
+	},
+	trustpilot: {
+		isLoggedIn: isTrustpilotLoggedIn,
+		loginUrl: TRUSTPILOT_LOGIN_URL
 	}
 };
 

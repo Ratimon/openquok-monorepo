@@ -3391,6 +3391,79 @@
 					"auto_launch_provider_slug": "peerpush-standard-launch"
 				}
 			]
+		},
+		"trustpilot": {
+			"site": {
+				"id": "d5f7d000-0010-4000-a000-000000000013",
+				"slug": "trustpilot",
+				"title": "Trustpilot",
+				"site_url": "https://www.trustpilot.com",
+				"logo_url": "https://www.openquok.com/icons/link-directory/trustpilot.svg",
+				"short_description": "Review site with a free Business company profile. OpenQuok autofills company settings. You verify domain and business email on Trustpilot.",
+				"long_description": "<a href=\"https://www.trustpilot.com\">Trustpilot</a> lists companies at trustpilot.com/review/your-domain. Claim your profile in <a href=\"https://businessapp.b2b.trustpilot.com/company-settings/\">company settings</a> after you sign in. Website links on public profiles are usually nofollow. You need a business email on your company domain.",
+				"domain_rating": 94,
+				"monthly_visits": 95000000,
+				"metrics_source": "editor_estimate",
+				"category_slug": "social-platforms",
+				"tag_slugs": [
+					"high-dr"
+				],
+				"is_openquok_auth_supported": false,
+				"openquok_channel_slug": null,
+				"is_admin_published": true,
+				"sort_order": 0
+			},
+			"opportunities": [
+				{
+					"id": "d5f7d000-0020-4000-a000-000000000051",
+					"slug": "company-profile",
+					"title": "Company profile",
+					"opportunity_type_slug": "profile_link",
+					"effort": "medium",
+					"approval_mode": "manual_review",
+					"approval_time_hint": "After domain and business-email verification",
+					"dofollow": "nofollow",
+					"cost_tier": "free",
+					"cost_note": "Free company profile. Paid Trustpilot plans are separate.",
+					"description": "Claim your company in <a href=\"https://businessapp.b2b.trustpilot.com/company-settings/\">Trustpilot Business company settings</a>. OpenQuok fills name, domain, description, and logo. Contact info, publish, and verification stay manual. Website links are usually nofollow.",
+					"steps": [
+						{
+							"order": 1,
+							"title": "Prepare business email",
+							"body": "Use email on your company domain (for example hello@yourdomain.com). Personal inboxes often fail verification."
+						},
+						{
+							"order": 2,
+							"title": "Sign in to Trustpilot Business",
+							"body": "Open https://businessapp.b2b.trustpilot.com/ and sign in."
+						},
+						{
+							"order": 3,
+							"title": "Autofill company settings",
+							"body": "Open company settings. Expand About your business and Company description. OpenQuok fills those sections. Enter contact info on Trustpilot if required."
+						},
+						{
+							"order": 4,
+							"title": "Verify domain and email",
+							"body": "Complete domain and business-email checks on Trustpilot."
+						},
+						{
+							"order": 5,
+							"title": "Save, publish, and check rel",
+							"body": "Save and publish on Trustpilot. Open your trustpilot.com/review/… page. Confirm nofollow on your website link."
+						}
+					],
+					"openquok_cta_kind": "external_doc",
+					"openquok_channel_slug": null,
+					"openquok_plug_name": null,
+					"cta_href": "https://businessapp.b2b.trustpilot.com/company-settings/",
+					"cta_label": "Open company settings",
+					"sort_order": 10,
+					"is_admin_published": true,
+					"auto_launch_enabled": true,
+					"auto_launch_provider_slug": "trustpilot-company-profile"
+				}
+			]
 		}
 	}
 }

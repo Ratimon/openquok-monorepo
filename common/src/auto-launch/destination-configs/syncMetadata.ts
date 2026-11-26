@@ -15,6 +15,7 @@ import { DEVHUNT_EXTENSION_CONFIG_DERIVATIONS } from './sites/devhunt/sync.js';
 import { NICK_LAUNCHES_EXTENSION_CONFIG_DERIVATIONS } from './sites/nick-launches/sync.js';
 import { INDIEHUB_EXTENSION_CONFIG_DERIVATIONS } from './sites/indiehub/sync.js';
 import { ALTERNATIVETO_EXTENSION_CONFIG_DERIVATIONS } from './sites/alternativeto/sync.js';
+import { TRUSTPILOT_EXTENSION_CONFIG_DERIVATIONS } from './sites/trustpilot/sync.js';
 import { FAZIER_EXTENSION_CONFIG_DERIVATIONS } from './sites/fazier/sync.js';
 import { OPEN_LAUNCH_EXTENSION_CONFIG_DERIVATIONS } from './sites/open-launch/sync.js';
 import { PEERPUSH_EXTENSION_CONFIG_DERIVATIONS } from './sites/peerpush/sync.js';
@@ -47,6 +48,11 @@ export {
 	ALTERNATIVETO_SITE_KEY,
 } from './sites/alternativeto/sync.js';
 export {
+	TRUSTPILOT_EXTENSION_CONFIG_DERIVATIONS,
+	TRUSTPILOT_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
+	TRUSTPILOT_SITE_KEY,
+} from './sites/trustpilot/sync.js';
+export {
 	UNEED_EXTENSION_CONFIG_DERIVATIONS,
 	UNEED_INDEPENDENT_FIXTURE_PROVIDER_SLUGS,
 	UNEED_SITE_KEY,
@@ -66,7 +72,8 @@ export const AUTO_LAUNCH_EXTENSION_CONFIG_DERIVATIONS: ExtensionConfigDerivation
 		DEVHUNT_EXTENSION_CONFIG_DERIVATIONS,
 		NICK_LAUNCHES_EXTENSION_CONFIG_DERIVATIONS,
 		INDIEHUB_EXTENSION_CONFIG_DERIVATIONS,
-		ALTERNATIVETO_EXTENSION_CONFIG_DERIVATIONS
+		ALTERNATIVETO_EXTENSION_CONFIG_DERIVATIONS,
+		TRUSTPILOT_EXTENSION_CONFIG_DERIVATIONS
 	);
 
 /** Subset used by extension + destination sync pricing-queue checks. */

@@ -56,6 +56,10 @@ describe('directorySiteKeyFromProviderSlug', () => {
 		expect(directorySiteKeyFromProviderSlug('alternativeto-user-profile')).toBe('alternativeto');
 	});
 
+	it('resolves trustpilot provider slugs to the trustpilot site key', () => {
+		expect(directorySiteKeyFromProviderSlug('trustpilot-company-profile')).toBe('trustpilot');
+	});
+
 	it('matches multi-segment published site slugs', () => {
 		expect(directorySiteKeyFromProviderSlug('other-site-launch', ['other-site', 'other'])).toBe(
 			'other-site'
@@ -150,6 +154,16 @@ describe('buildDirectoryAddChannelTiles', () => {
 		expect(tiles).toHaveLength(1);
 		expect(tiles[0]?.logoUrl).toBe('/icons/link-directory/alternativeto.svg');
 		expect(tiles[0]?.brandedIconName).toBe('AlternativeTo');
+	});
+
+	it('assigns bundled logo and branded icon for trustpilot', () => {
+		const tiles = buildDirectoryAddChannelTiles(
+			[destination({ providerSlug: 'trustpilot-company-profile', siteTitle: 'Trustpilot' })],
+			new Map([['trustpilot', { title: 'Trustpilot', logoUrl: null }]])
+		);
+		expect(tiles).toHaveLength(1);
+		expect(tiles[0]?.logoUrl).toBe('/icons/link-directory/trustpilot.svg');
+		expect(tiles[0]?.brandedIconName).toBe('Trustpilot');
 	});
 
 	it('assigns bundled logo and branded icon for devhunt', () => {

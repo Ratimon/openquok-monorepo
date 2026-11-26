@@ -93,6 +93,16 @@ export const FEATURES_GRID_DIRECTORY_PLATFORMS: LandingSocialPlatform[] = [
 		iconClass: 'size-8',
 		iconWidth: '32',
 		iconHeight: '32'
+	},
+	{
+		id: 'trustpilot',
+		channelSlug: 'trustpilot',
+		icon: icons.Trustpilot.name,
+		label: 'Trustpilot',
+		containerClass: 'bg-transparent p-0',
+		iconClass: 'size-8',
+		iconWidth: '32',
+		iconHeight: '32'
 	}
 ];
 
@@ -111,7 +121,8 @@ export const FEATURES_GRID_DIRECTORY_ROWS: FeaturesGridRowConfig[] = [
 			'devhunt',
 			'nick-launches',
 			'indiehub',
-			'alternativeto'
+			'alternativeto',
+			'trustpilot'
 		]
 	}
 ];

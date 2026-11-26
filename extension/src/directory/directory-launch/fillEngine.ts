@@ -87,6 +87,7 @@ import {
 	type SiteMediaFileInputOptions,
 } from './siteMedia/index.js';
 import { resolveAlternativetoFieldElement } from './siteMedia/alternativetoMainInfo.js';
+import { resolveTrustpilotFieldElement } from './siteMedia/trustpilotCompanySettings.js';
 
 export type FillLaunchContext = {
 	dashboardOrigin?: string;
@@ -969,6 +970,11 @@ export function resolveFieldElement(field: LaunchStepField): Element | null {
 	const alternativetoField = resolveAlternativetoFieldElement(field);
 	if (alternativetoField && elementPassesFieldGuard(field, alternativetoField)) {
 		return alternativetoField;
+	}
+
+	const trustpilotField = resolveTrustpilotFieldElement(field);
+	if (trustpilotField && elementPassesFieldGuard(field, trustpilotField)) {
+		return trustpilotField;
 	}
 
 	if (isFileFillMode(fillMode)) {
