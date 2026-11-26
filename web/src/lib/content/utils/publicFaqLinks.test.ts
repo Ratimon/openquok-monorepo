@@ -93,6 +93,9 @@ describe('publicFaqLinks', () => {
 		expect(publicFaqHref.socialMediaPostingApi).toBe('/social-media-posting-api');
 		expect(publicFaqHref.socialMediaSchedulingApi).toBe('/social-media-scheduling-api');
 		expect(faqHrefAgent('grok-bot')).toBe('/agents/grok-bot');
+		expect(publicFaqHref.blogGrokBotSecondBrain).toBe(
+			'/blog/grokbot-second-brain-full-guide-openquok-ai-social-media-manager-full-prompts'
+		);
 	});
 
 	it('builds channel-tailored FAQ destinations', () => {

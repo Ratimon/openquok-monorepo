@@ -298,7 +298,7 @@ openquok analytics:post <post-id> -d 30`
 		{
 			title: 'How do I install the openquok-core skill in Grok Bot?',
 			description:
-				`Install @openquok/auto-cli on the Bot cloud computer, add openquok-core as a skill, and authenticate once. See the ${faqLink(publicFaqHref.grokBotAgentGuide, 'Grok Bot agent guide')} or the ${faqLink(publicFaqHref.blogGrokBot, 'scheduling walkthrough')}.`
+				`Install @openquok/auto-cli on the Bot cloud computer, add openquok-core as a skill, and authenticate once. See the ${faqLink(publicFaqHref.grokBotAgentGuide, 'Grok Bot agent guide')}, the ${faqLink(publicFaqHref.blogGrokBot, 'scheduling walkthrough')}, or the ${faqLink(publicFaqHref.blogGrokBotSecondBrain, 'Grok Bot second brain full guide')} for Virlo, Notion or Obsidian, and four paste prompts.`
 		},
 		{
 			title: 'Where do OpenQuok credentials live?',
@@ -308,7 +308,7 @@ openquok analytics:post <post-id> -d 30`
 		{
 			title: 'What can Grok Bot do with OpenQuok?',
 			description:
-				`Draft and schedule posts, upload media, configure plugs, and pull analytics across your connected channels. See ${faqLink(publicFaqHref.channels, 'supported channels')} and ${faqLink(publicFaqHref.cliManagingPosts, 'CLI post commands')}; openquok-core returns structured JSON for the agent.`
+				`Draft and schedule posts, upload media, configure plugs, and pull analytics across your connected channels. See ${faqLink(publicFaqHref.channels, 'supported channels')} and ${faqLink(publicFaqHref.cliManagingPosts, 'CLI post commands')}; openquok-core returns structured JSON for the agent. For a research-to-calendar second-brain stack, see the ${faqLink(publicFaqHref.blogGrokBotSecondBrain, 'Grok Bot second brain full guide')}.`
 		},
 		buildAgentCloudBrowserVsOpenQuokFaqItem('Grok Bot'),
 		{

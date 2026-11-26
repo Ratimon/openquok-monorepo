@@ -30,6 +30,12 @@ describe('channelPageSeo', () => {
 		expect(page?.faqItems[PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS.length]?.title).toBe(
 			'Which agent is first-class for X?'
 		);
+		const firstClassFaq = page?.faqItems.find(
+			(item) => item.title === 'Which agent is first-class for X?'
+		);
+		expect(firstClassFaq?.description).toContain(
+			'grokbot-second-brain-full-guide-openquok-ai-social-media-manager-full-prompts'
+		);
 	});
 
 	it('sorts pinned agent hosts for channel integration grids', () => {

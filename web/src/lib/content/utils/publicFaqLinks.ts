@@ -256,6 +256,9 @@ export const publicFaqHref = {
 		'how-to-self-host-openquok-with-cli-device-login-free-no-api-keys-on-your-agent'
 	),
 	blogGrokBot: faqHrefBlogPost('schedule-social-posts-from-grok-bot-with-openquok'),
+	blogGrokBotSecondBrain: faqHrefBlogPost(
+		'grokbot-second-brain-full-guide-openquok-ai-social-media-manager-full-prompts'
+	),
 	blogGrokBotVsOpenclaw: faqHrefBlogPost(
 		'grok-bot-vs-openclaw-pick-your-openquok-social-scheduler-agent'
 	),

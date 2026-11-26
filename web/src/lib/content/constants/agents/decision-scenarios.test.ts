@@ -35,5 +35,8 @@ describe('buildAgentHostPickerFaqDescription', () => {
 		const html = buildAgentHostPickerFaqDescription('grok-bot');
 		expect(html).toContain('/agents/rakazo');
 		expect(html).toContain('Rakazo');
+		expect(html).toContain(
+			'grokbot-second-brain-full-guide-openquok-ai-social-media-manager-full-prompts'
+		);
 	});
 });

@@ -203,11 +203,16 @@ describe('buildAgentHostEcosystemFaqItems', () => {
 		const titles = page!.faqItems.map((item) => item.title);
 		expect(titles).toContain('How is Grok Bot different from Grok Build or Cursor?');
 		expect(titles).not.toContain('How does Grok Bot relate to Grok Build or Cursor?');
+		expect(titles).toContain('How do I run a Grok Bot second-brain social workflow?');
 		const compare = page!.faqItems.find(
 			(item) => item.title === 'How is Grok Bot different from Grok Build or Cursor?'
 		);
 		expect(compare?.description).toContain(publicFaqHref.grokBuildLanding);
 		expect(compare?.description).toContain(publicFaqHref.cursorLanding);
+		const secondBrain = page!.faqItems.find(
+			(item) => item.title === 'How do I run a Grok Bot second-brain social workflow?'
+		);
+		expect(secondBrain?.description).toContain(publicFaqHref.blogGrokBotSecondBrain);
 	});
 });
 

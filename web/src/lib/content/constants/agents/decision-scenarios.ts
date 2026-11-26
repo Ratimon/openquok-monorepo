@@ -83,7 +83,11 @@ export function buildAgentHostPickerFaqDescription(forHostSlug: string): string 
 	}
 
 	if (slug === 'grok-bot') {
-		return `Choose Grok Bot for many named Bots on one xAI cloud desktop without server ops. Choose ${faqLink(publicFaqHref.rakazoLanding, 'Rakazo')} when you want an open-source, self-hosted teammate platform with sandbox computers and your own model keys. Choose ${faqLink(publicFaqHref.grokBuildLanding, 'Grok Build')} MCP when you want the xAI coding agent in your terminal. Choose ${faqLink(publicFaqHref.openclawLanding, 'OpenClaw')} when you must self-host and message from Telegram, WhatsApp, or Slack. Choose ${faqLink(publicFaqHref.dotsLanding, 'Dots')} for OpenAI workplace chat. See the ${blog}.`;
+		const secondBrain = faqLink(
+			publicFaqHref.blogGrokBotSecondBrain,
+			'Grok Bot second brain full guide'
+		);
+		return `Choose Grok Bot for many named Bots on one xAI cloud desktop without server ops. Choose ${faqLink(publicFaqHref.rakazoLanding, 'Rakazo')} when you want an open-source, self-hosted teammate platform with sandbox computers and your own model keys. Choose ${faqLink(publicFaqHref.grokBuildLanding, 'Grok Build')} MCP when you want the xAI coding agent in your terminal. Choose ${faqLink(publicFaqHref.openclawLanding, 'OpenClaw')} when you must self-host and message from Telegram, WhatsApp, or Slack. Choose ${faqLink(publicFaqHref.dotsLanding, 'Dots')} for OpenAI workplace chat. See the ${blog}. For Virlo, Notion or Obsidian, and full routine prompts, see the ${secondBrain}.`;
 	}
 
 	if (slug === 'claude-duet') {

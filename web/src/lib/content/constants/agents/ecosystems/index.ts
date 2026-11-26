@@ -353,6 +353,10 @@ export function buildAgentHostEcosystemFaqItems(hostSlug: string): PublicFaqItem
 			{
 				title: 'How does Grok Bot compare to OpenClaw or Dots?',
 				description: buildAgentHostPickerFaqDescription('grok-bot')
+			},
+			{
+				title: 'How do I run a Grok Bot second-brain social workflow?',
+				description: `Use Notion or Obsidian for product context, Virlo for trend scans, openquok-core for drafts, and Grok Bot routines for scheduled runs. The ${faqLink(publicFaqHref.blogGrokBotSecondBrain, 'Grok Bot second brain full guide')} includes four paste prompts and calendar approval steps.`
 			}
 		];
 	}
@@ -605,10 +609,14 @@ export function buildAgentChannelEcosystemFaqItems(params: {
 			agentLinks.agentChannel(channelSlug),
 			`${platformLabel} channel landing`
 		);
+		const secondBrainLink =
+			slug === 'grok-bot'
+				? ` For the full second-brain workflow with prompts, see the ${faqLink(publicFaqHref.blogGrokBotSecondBrain, 'Grok Bot second brain full guide')}.`
+				: '';
 		return [
 			{
 				title: `Is ${platformLabel} first-class for ${agentLabel}?`,
-				description: `Yes. ${platformLabel} is a first-class ${agentLabel} channel on OpenQuok. Open the ${channelLanding} for setup steps, CLI examples, and channel FAQs.`
+				description: `Yes. ${platformLabel} is a first-class ${agentLabel} channel on OpenQuok. Open the ${channelLanding} for setup steps, CLI examples, and channel FAQs.${secondBrainLink}`
 			}
 		];
 	}
@@ -858,7 +866,7 @@ export function buildPublicChannelEcosystemFaqItems(params: {
 		return [
 			{
 				title: `Which agent is first-class for ${platformLabel}?`,
-				description: `${platformLabel} is first-class for Grok Bot on OpenQuok. Open the ${channelLanding} for xAI cloud-desktop setup, openquok-core skills, and ${platformLabel} CLI examples.`
+				description: `${platformLabel} is first-class for Grok Bot on OpenQuok. Open the ${channelLanding} for xAI cloud-desktop setup, openquok-core skills, and ${platformLabel} CLI examples. For Virlo, second-brain notes, and full routine prompts, see the ${faqLink(publicFaqHref.blogGrokBotSecondBrain, 'Grok Bot second brain full guide')}.`
 			},
 			{
 				title: `How do Grok Bot, OpenClaw, and Cursor fit ${platformLabel} scheduling?`,
