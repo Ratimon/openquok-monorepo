@@ -628,14 +628,21 @@
 										selectedTopicId = next.trim();
 									}}
 								>
-									<Select.Trigger class="w-full max-w-md">
-										{topicChoices.find((c) => c.value === field.state.value)?.label ?? 'Select topic'}
+									<Select.Trigger type="button" class="w-full max-w-md justify-between">
+										<span class="truncate text-left">
+											{topicChoices.find((c) => c.value === field.state.value)?.label ??
+												'Select topic'}
+										</span>
 									</Select.Trigger>
-									<Select.Content>
-										{#each topicChoices as choice}
+									<Select.Content class="max-h-72">
+										{#each topicChoices as choice (choice.value)}
 											<Select.Item value={choice.value} label={choice.label}>
 												{choice.label}
 											</Select.Item>
+										{:else}
+											<p class="px-2 py-1.5 text-sm text-base-content/60">
+												No topics yet. Create one under Blog manager → Topics.
+											</p>
 										{/each}
 									</Select.Content>
 								</Select.Root>
@@ -726,13 +733,13 @@
 		</section>
 
 		<form.Subscribe selector={(state) => state.values.topic_id ?? ''}>
-			{#snippet children(selectedTopicId)}
-				{@const topicSlug = resolveTopicSlug(selectedTopicId)}
-				{@const showFaqSection = !!selectedTopicId}
-				{@const showHowToSection = isBlogTopicEligibleForHowTo(topicSlug, selectedTopicId)}
-				{@const showProductSection = isBlogTopicEligibleForProduct(topicSlug, selectedTopicId)}
-				{@const showGuideTopic = isBlogTopicEligibleForGuide(topicSlug, selectedTopicId)}
-				{#if !!selectedTopicId.trim()}
+			{#snippet children(topicIdFromForm)}
+				{@const topicSlug = resolveTopicSlug(topicIdFromForm)}
+				{@const showFaqSection = !!topicIdFromForm}
+				{@const showHowToSection = isBlogTopicEligibleForHowTo(topicSlug, topicIdFromForm)}
+				{@const showProductSection = isBlogTopicEligibleForProduct(topicSlug, topicIdFromForm)}
+				{@const showGuideTopic = isBlogTopicEligibleForGuide(topicSlug, topicIdFromForm)}
+				{#if !!topicIdFromForm.trim()}
 					<section class="space-y-4">
 				<div class="mb-4">
 					<h3 class="text-xl font-bold text-base-content">

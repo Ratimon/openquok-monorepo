@@ -112,5 +112,7 @@
 	</main>
 	<Toaster />
 	<CookieConsentBanner />
-	<DiscordSupportFab />
+	{#if !page.url.pathname.startsWith('/secret-admin')}
+		<DiscordSupportFab />
+	{/if}
 </section>
