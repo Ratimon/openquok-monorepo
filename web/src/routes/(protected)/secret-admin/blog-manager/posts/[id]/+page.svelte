@@ -10,6 +10,7 @@
 	import { toast } from '$lib/ui/sonner';
 	import { adminBlogEditorPagePresenter } from '$lib/area-admin';
 	import { createSortedTopicChoices } from '$lib/blogs';
+	import type { TopicChoice } from '$lib/blogs/blog.types';
 	import EditorBlog from '$lib/ui/components/blog-post/EditorBlog.svelte';
 
 	// /secret-admin/blog-manager
@@ -25,9 +26,16 @@
 	let initialized = $state(false);
 	let postFound = $state(true);
 
-	const topicChoices = $derived(createSortedTopicChoices(adminBlogEditorPagePresenter.topicChoices));
-	const formDefaults = $derived(adminBlogEditorPagePresenter.getFormDefaults());
-	const slugDisplay = $derived(adminBlogEditorPagePresenter.blogPost?.slug ?? '');
+	const topicChoices = $derived.by((): TopicChoice[] => {
+		if (!initialized) return [];
+		return createSortedTopicChoices(adminBlogEditorPagePresenter.topicChoices);
+	});
+	const formDefaults = $derived.by(() =>
+		initialized ? adminBlogEditorPagePresenter.getFormDefaults() : {}
+	);
+	const slugDisplay = $derived(
+		initialized ? (adminBlogEditorPagePresenter.blogPost?.slug ?? '') : ''
+	);
 
 	onMount(async () => {
 		const id = data.postId;
@@ -38,6 +46,10 @@
 		}
 		const { postFound: found } = await adminBlogEditorPagePresenter.init(id);
 		postFound = found !== false;
+		const loaded = createSortedTopicChoices(adminBlogEditorPagePresenter.topicChoices);
+		if (loaded.length === 0) {
+			toast.error('Could not load blog topics. Open Blog manager → Topics or refresh the page.');
+		}
 		initialized = true;
 	});
 

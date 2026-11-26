@@ -621,6 +621,7 @@
 								</Field.Description>
 								<Select.Root
 									type="single"
+									disabled={topicChoices.length === 0}
 									value={field.state.value || undefined}
 									onValueChange={(v) => {
 										const next = v ?? '';
@@ -639,13 +640,14 @@
 											<Select.Item value={choice.value} label={choice.label}>
 												{choice.label}
 											</Select.Item>
-										{:else}
-											<p class="px-2 py-1.5 text-sm text-base-content/60">
-												No topics yet. Create one under Blog manager → Topics.
-											</p>
 										{/each}
 									</Select.Content>
 								</Select.Root>
+								{#if topicChoices.length === 0}
+									<p class="text-sm text-error">
+										No topics loaded. Add topics under Blog manager → Topics, then refresh this page.
+									</p>
+								{/if}
 								<Field.Error errors={field.state.meta.errors as unknown as Array<{ message?: string }>} />
 								{#if !field.state.value}
 									<p class="text-sm text-base-content/60">

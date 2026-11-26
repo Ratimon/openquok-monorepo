@@ -10,6 +10,7 @@
 	import { toast } from '$lib/ui/sonner';
 	import { adminBlogNewPostPagePresenter } from '$lib/area-admin';
 	import { createSortedTopicChoices } from '$lib/blogs';
+	import type { TopicChoice } from '$lib/blogs/blog.types';
 	import EditorBlog from '$lib/ui/components/blog-post/EditorBlog.svelte';
 
 	// /secret-admin/blog-manager
@@ -24,12 +25,24 @@
 
 	let initialized = $state(false);
 
-	const topicChoices = $derived(createSortedTopicChoices(adminBlogNewPostPagePresenter.topicChoices));
-	const formDefaults = $derived(adminBlogNewPostPagePresenter.getFormDefaults());
-	const slugDisplay = $derived(adminBlogNewPostPagePresenter.blogPost?.slug ?? '');
+	/** Re-read presenter after `init()` — `$derived` alone does not track class `$state` on the shared singleton. */
+	const topicChoices = $derived.by((): TopicChoice[] => {
+		if (!initialized) return [];
+		return createSortedTopicChoices(adminBlogNewPostPagePresenter.topicChoices);
+	});
+	const formDefaults = $derived.by(() =>
+		initialized ? adminBlogNewPostPagePresenter.getFormDefaults() : {}
+	);
+	const slugDisplay = $derived(
+		initialized ? (adminBlogNewPostPagePresenter.blogPost?.slug ?? '') : ''
+	);
 
 	onMount(async () => {
 		await adminBlogNewPostPagePresenter.init(undefined);
+		const loaded = createSortedTopicChoices(adminBlogNewPostPagePresenter.topicChoices);
+		if (loaded.length === 0) {
+			toast.error('Could not load blog topics. Open Blog manager → Topics or refresh the page.');
+		}
 		initialized = true;
 	});
 
