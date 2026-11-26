@@ -42,10 +42,12 @@
 		onAfterNavigate
 	}: Props = $props();
 
+	const navDropdownColumnCount = 3;
+
 	const agentHosts = sortByAgentLabel(listPublicAgentsForHub());
 	const mcpClients = sortByAgentLabel(listPublicMcpLandingPages());
-	const agentColumns = splitIntoColumns(agentHosts.map(toNavEntry), 2);
-	const mcpColumns = splitIntoColumns(mcpClients.map(toNavEntry), 3);
+	const agentColumns = splitIntoColumns(agentHosts.map(toNavEntry), navDropdownColumnCount);
+	const mcpColumns = splitIntoColumns(mcpClients.map(toNavEntry), navDropdownColumnCount);
 
 	let isActive = $derived(isParentRoute(page.url.pathname, agentsPath));
 
@@ -98,7 +100,7 @@
 			Autonomous Agent
 		</p>
 		<div
-			class="grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-2"
+			class="grid grid-cols-2 gap-x-6 gap-y-1 sm:grid-cols-3"
 			aria-label="Autonomous agent integrations"
 		>
 			{#each agentColumns as column (column.map((entry) => entry.slug).join('-'))}
