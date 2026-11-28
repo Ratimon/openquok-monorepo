@@ -145,6 +145,7 @@ describe('compareProductCategories', () => {
 			'blastra',
 			'boringlaunch',
 			'getmorebacklinks',
+			'launchdirectories',
 			'launchrepo',
 			'submitator'
 		]);
@@ -194,6 +195,7 @@ describe('compareProductCategories', () => {
 		expect(vm?.longForm?.otherAlternativePeers.map((peer) => peer.slug).sort()).toEqual([
 			'blastra',
 			'getmorebacklinks',
+			'launchdirectories',
 			'launchrepo',
 			'submitator'
 		]);

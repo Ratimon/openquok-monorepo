@@ -38,6 +38,7 @@ export type CompareProductSlug =
 	| 'usebard'
 	| 'boringlaunch'
 	| 'getmorebacklinks'
+	| 'launchdirectories'
 	| 'launchrepo'
 	| 'submitator';
 

@@ -51,6 +51,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	buffer: 'https://buffer.com',
 	boringlaunch: 'https://www.boringlaunch.com/',
 	getmorebacklinks: 'https://www.getmorebacklinks.org/',
+	launchdirectories: 'https://launchdirectories.com/',
 	launchrepo: 'https://launchrepo.dev/',
 	submitator: 'https://submitator.com/',
 	blastra: 'https://blastra.io/',
@@ -84,6 +85,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	| 'buffer'
 	| 'boringlaunch'
 	| 'getmorebacklinks'
+	| 'launchdirectories'
 	| 'launchrepo'
 	| 'submitator'
 	| 'blastra'

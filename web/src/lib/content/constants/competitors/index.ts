@@ -51,6 +51,7 @@ import { usebardCompareProduct } from '$lib/content/constants/competitors/schedu
 import { blastraCompareProduct } from '$lib/content/constants/competitors/submission/blastra';
 import { boringlaunchCompareProduct } from '$lib/content/constants/competitors/submission/boringlaunch';
 import { getmorebacklinksCompareProduct } from '$lib/content/constants/competitors/submission/getmorebacklinks';
+import { launchdirectoriesCompareProduct } from '$lib/content/constants/competitors/submission/launchdirectories';
 import { launchrepoCompareProduct } from '$lib/content/constants/competitors/submission/launchrepo';
 import { submitatorCompareProduct } from '$lib/content/constants/competitors/submission/submitator';
 import {
@@ -75,6 +76,7 @@ export { openquokCompareProduct } from '$lib/content/constants/competitors/sched
 export { hopperHqCompareProduct } from '$lib/content/constants/competitors/scheduler/hopper-hq';
 export { influenceCompareProduct } from '$lib/content/constants/competitors/scheduler/influence';
 export { getmorebacklinksCompareProduct } from '$lib/content/constants/competitors/submission/getmorebacklinks';
+export { launchdirectoriesCompareProduct } from '$lib/content/constants/competitors/submission/launchdirectories';
 export { launchrepoCompareProduct } from '$lib/content/constants/competitors/submission/launchrepo';
 export { submitatorCompareProduct } from '$lib/content/constants/competitors/submission/submitator';
 export { heropostCompareProduct } from '$lib/content/constants/competitors/scheduler/heropost';
@@ -116,6 +118,7 @@ export const PUBLIC_COMPARE_PRODUCTS: readonly CompareProduct[] = [
 	blastraCompareProduct,
 	boringlaunchCompareProduct,
 	getmorebacklinksCompareProduct,
+	launchdirectoriesCompareProduct,
 	launchrepoCompareProduct,
 	breakreachCompareProduct,
 	clawPostCompareProduct,

@@ -250,6 +250,8 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'StartupInspire',
 	'Trustpilot',
 	'GetMoreBacklinks',
+	'LaunchDirectories',
+	'LaunchRepo',
 	'BoringLaunch',
 	// Protected account app heroes
 	'Reusable Templates',
