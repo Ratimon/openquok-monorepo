@@ -76,6 +76,161 @@ Call <Badge text="directoryProfilesUpdate" variant="default" /> with the variant
 
 Logo and screenshots: <Badge text="logoUrl" variant="param" /> and <Badge text="profileData.gallery_urls" variant="param" /> — same as PeerPush; see <a href="/docs/cli-usages/directory-launch#logo-and-screenshots">Directory launch — logo and screenshots</a> and <a href="/docs/mcp-examples/peerpush#logo-and-screenshots">MCP examples — PeerPush (logo and screenshots)</a>.
 
+## Profile fields wired to autofill
+
+<Callout type="tip" title="Same paths as the extension">
+<p><Badge text="directoryListingSummary" variant="default" /> mirrors missing <Badge text="profilePath" variant="param" /> values from <Badge text="DIRECTORY_EXTENSION_CONFIG_FIXTURES" variant="param" />. Call <Badge text="directoryProfilesUpdate" variant="default" /> on the variant <Badge text="productProfileId" variant="param" /> after <Badge text="directoryVariantsEnsure" variant="default" />.</p>
+</Callout>
+
+### Mapped `profilePath` values (all variants on this site)
+
+<Badge text="description" variant="path" />
+<Badge text="logo_url" variant="path" />
+<Badge text="name" variant="path" />
+<Badge text="profile_data.acquisition_listed" variant="path" />
+<Badge text="profile_data.asking_price_usd" variant="path" />
+<Badge text="profile_data.category" variant="path" />
+<Badge text="profile_data.gallery_urls" variant="path" />
+<Badge text="profile_data.included_assets" variant="path" />
+<Badge text="profile_data.is_open_source" variant="path" />
+<Badge text="profile_data.launch_date" variant="path" />
+<Badge text="profile_data.launch_video_url" variant="path" />
+<Badge text="profile_data.monthly_profit_usd" variant="path" />
+<Badge text="profile_data.monthly_revenue_usd" variant="path" />
+<Badge text="profile_data.paid_tier_note" variant="path" />
+<Badge text="profile_data.pricing_type" variant="path" />
+<Badge text="profile_data.repository_url" variant="path" />
+<Badge text="profile_data.selling_reason" variant="path" />
+<Badge text="profile_data.slug" variant="path" />
+<Badge text="profile_data.social_bluesky" variant="path" />
+<Badge text="profile_data.social_facebook" variant="path" />
+<Badge text="profile_data.social_github" variant="path" />
+<Badge text="profile_data.social_instagram" variant="path" />
+<Badge text="profile_data.social_linkedin" variant="path" />
+<Badge text="profile_data.social_tiktok" variant="path" />
+<Badge text="profile_data.social_x" variant="path" />
+<Badge text="profile_data.social_youtube" variant="path" />
+<Badge text="profile_data.tags" variant="path" />
+<Badge text="profile_data.ttm_profit_usd" variant="path" />
+<Badge text="profile_data.ttm_revenue_usd" variant="path" />
+<Badge text="tagline" variant="path" />
+<Badge text="website_url" variant="path" />
+
+### By provider slug
+
+<p>Use <Badge text="providerSlug" variant="param" /> on <Badge text="directory:listings" variant="default" /> rows when you prepare a specific variant — field requirements can differ per form.</p>
+
+#### <Badge text="uneed-join-line" variant="default" />
+
+<Badge text="description" variant="path" />
+<Badge text="logo_url" variant="path" />
+<Badge text="name" variant="path" />
+<Badge text="profile_data.acquisition_listed" variant="path" />
+<Badge text="profile_data.asking_price_usd" variant="path" />
+<Badge text="profile_data.category" variant="path" />
+<Badge text="profile_data.gallery_urls" variant="path" />
+<Badge text="profile_data.included_assets" variant="path" />
+<Badge text="profile_data.is_open_source" variant="path" />
+<Badge text="profile_data.launch_video_url" variant="path" />
+<Badge text="profile_data.monthly_profit_usd" variant="path" />
+<Badge text="profile_data.monthly_revenue_usd" variant="path" />
+<Badge text="profile_data.pricing_type" variant="path" />
+<Badge text="profile_data.repository_url" variant="path" />
+<Badge text="profile_data.selling_reason" variant="path" />
+<Badge text="profile_data.slug" variant="path" />
+<Badge text="profile_data.social_bluesky" variant="path" />
+<Badge text="profile_data.social_facebook" variant="path" />
+<Badge text="profile_data.social_github" variant="path" />
+<Badge text="profile_data.social_instagram" variant="path" />
+<Badge text="profile_data.social_linkedin" variant="path" />
+<Badge text="profile_data.social_tiktok" variant="path" />
+<Badge text="profile_data.social_x" variant="path" />
+<Badge text="profile_data.social_youtube" variant="path" />
+<Badge text="profile_data.tags" variant="path" />
+<Badge text="profile_data.ttm_profit_usd" variant="path" />
+<Badge text="profile_data.ttm_revenue_usd" variant="path" />
+<Badge text="tagline" variant="path" />
+<Badge text="website_url" variant="path" />
+
+#### <Badge text="uneed-maker-profile" variant="default" />
+
+<Badge text="name" variant="path" />
+<Badge text="profile_data.social_bluesky" variant="path" />
+<Badge text="profile_data.social_facebook" variant="path" />
+<Badge text="profile_data.social_github" variant="path" />
+<Badge text="profile_data.social_instagram" variant="path" />
+<Badge text="profile_data.social_linkedin" variant="path" />
+<Badge text="profile_data.social_tiktok" variant="path" />
+<Badge text="profile_data.social_x" variant="path" />
+<Badge text="profile_data.social_youtube" variant="path" />
+<Badge text="tagline" variant="path" />
+<Badge text="website_url" variant="path" />
+
+#### <Badge text="uneed-paid-launch" variant="default" />
+
+<Badge text="description" variant="path" />
+<Badge text="logo_url" variant="path" />
+<Badge text="name" variant="path" />
+<Badge text="profile_data.acquisition_listed" variant="path" />
+<Badge text="profile_data.asking_price_usd" variant="path" />
+<Badge text="profile_data.category" variant="path" />
+<Badge text="profile_data.gallery_urls" variant="path" />
+<Badge text="profile_data.included_assets" variant="path" />
+<Badge text="profile_data.is_open_source" variant="path" />
+<Badge text="profile_data.launch_date" variant="path" />
+<Badge text="profile_data.launch_video_url" variant="path" />
+<Badge text="profile_data.monthly_profit_usd" variant="path" />
+<Badge text="profile_data.monthly_revenue_usd" variant="path" />
+<Badge text="profile_data.paid_tier_note" variant="path" />
+<Badge text="profile_data.pricing_type" variant="path" />
+<Badge text="profile_data.repository_url" variant="path" />
+<Badge text="profile_data.selling_reason" variant="path" />
+<Badge text="profile_data.slug" variant="path" />
+<Badge text="profile_data.social_bluesky" variant="path" />
+<Badge text="profile_data.social_facebook" variant="path" />
+<Badge text="profile_data.social_github" variant="path" />
+<Badge text="profile_data.social_instagram" variant="path" />
+<Badge text="profile_data.social_linkedin" variant="path" />
+<Badge text="profile_data.social_tiktok" variant="path" />
+<Badge text="profile_data.social_x" variant="path" />
+<Badge text="profile_data.social_youtube" variant="path" />
+<Badge text="profile_data.tags" variant="path" />
+<Badge text="profile_data.ttm_profit_usd" variant="path" />
+<Badge text="profile_data.ttm_revenue_usd" variant="path" />
+<Badge text="tagline" variant="path" />
+<Badge text="website_url" variant="path" />
+
+Operator guide: <a href="/docs/directory-integration/uneed">Uneed directory integration</a>.
+
+### Example `directoryProfilesUpdate` payload fragment
+
+> Patch my Uneed variant with discovery and media fields from this draft before I open the submit form.
+
+```json
+{
+  "tagline": "Short tagline for Uneed (max 80 characters)",
+  "profile_data": {
+    "tags": [
+      "SaaS",
+      "Productivity",
+      "AI"
+    ],
+    "pricing_type": "freemium",
+    "launch_date": "2026-12-01",
+    "gallery_urls": [
+      "https://cdn.example.com/uneed-1.png",
+      "https://cdn.example.com/uneed-2.png",
+      "https://cdn.example.com/uneed-3.png"
+    ],
+    "social_x": "https://x.com/example"
+  }
+}
+```
+
+<Callout type="note" title="Manual on Uneed">
+<p>Join-the-line timing, paid slot checkout, maker-profile-only fields, and final submit stay on uneed.best. Tagline on Uneed is capped at 80 characters (`BUSINESS_PROFILE_DIRECTORY_TAGLINE_MAX`).</p>
+</Callout>
+
 ## Submissions (read-only)
 
 > List directory submissions recorded for my main product profile.

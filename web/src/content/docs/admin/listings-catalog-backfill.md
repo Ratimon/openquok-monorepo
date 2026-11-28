@@ -102,7 +102,7 @@ pnpm backend:db:backfill-listings-playbooks -- --dry-run --slug viral-tiktok-car
 
 ### Verify in the app
 
-With the web and API dev servers running, open <a href="/building-blocks">Building Blocks</a>, <a href="/building-blocks/openquok-core">/building-blocks/openquok-core</a>, <a href="/playbooks">Playbooks</a>, and <a href="/playbooks/viral-tiktok-carousel">/playbooks/viral-tiktok-carousel</a>. Confirm cards, publish state, tags, and playbook stack members match the JSON catalogs.
+With the web and API dev servers running, open <a href="/building-blocks">Building Blocks</a> and <code>/building-blocks/openquok-core</code>, then <a href="/playbooks">Playbooks</a> and <code>/playbooks/viral-tiktok-carousel</code>. Confirm cards, publish state, tags, and playbook stack members match the JSON catalogs.
 
 <Callout type="note">
 <p>If <Badge text="CACHE_ENABLED" variant="envBackend" /> is <code>true</code> but Redis is not running, listing API responses can hang until cache read times out. Use a running Redis instance or disable cache in <Badge text="backend/.env.development.local" variant="envBackend" /> while verifying locally.</p>
@@ -159,7 +159,7 @@ Pass script options after <code>--</code> when invoking from the repo root.
 
 ## Adding a future catalog listing
 
-1. Add <Badge text="backend/scripts/catalog/building-blocks/&lt;slug&gt;.json" variant="path" /> or <Badge text="catalog/playbooks/&lt;slug&gt;.json" variant="path" /> with <Badge text="{ listing, stack_members }" variant="param" /> (use a new UUID; resolve <Badge text="category_slug" variant="param" /> and <Badge text="tag_slugs" variant="param" />).
+1. Add <Badge text="backend/scripts/catalog/building-blocks/&lt;slug&gt;.json" variant="path" /> or <Badge text="catalog/playbooks/&lt;slug&gt;.json" variant="path" /> with a <Badge text="listing" variant="param" /> object and optional <Badge text="stack_members" variant="param" /> array (use a new UUID; resolve <Badge text="category_slug" variant="param" /> and <Badge text="tag_slugs" variant="param" />).
 2. For playbooks, add <Badge text="stack_members" variant="param" /> with <Badge text="member_listing_slug" variant="param" /> — ensure member extensions exist (backfill building blocks first).
 3. Run backfill with <Badge text="--slug &lt;slug&gt;" variant="param" /> in dev, then production — no migration PR required for catalog-only listings.
 

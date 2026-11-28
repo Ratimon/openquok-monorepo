@@ -165,8 +165,18 @@ Backend API usually unchanged: `AutoLaunchRoute`, `AutoLaunchService`, `AutoLaun
 | --- | --- |
 | **Add (contributors)** | `web/src/content/docs/contribution-opportunities/add-directory.md` — public contributor overview (update only when workflow changes) |
 | **Add** | `web/src/content/docs/directory-integration/{site}.md` — operator guide; wires `/self-hosting` via frontmatter |
+| **Add** | `web/src/content/docs/cli-examples/{site-slug}.md` — `directory:*` workflow shell (listings, variants, SEO); run sync below for field tables |
+| **Add** | `web/src/content/docs/mcp-examples/{site-slug}.md` — agent prompts for directory launch tools (same workflow + sync) |
+| **Add** | `backend/scripts/sync-directory-launch-example-docs.mjs` — append **`SITE_CURATED[<site-slug>]`** (`title`, `manual`, example `patch` JSON) when the site ships |
+| **Run** | `pnpm sync:directory-launch-example-docs` — injects **Profile fields wired to autofill** (union + per-`providerSlug` path tables from `DIRECTORY_EXTENSION_CONFIG_FIXTURES`) into CLI/MCP pages |
+| Edit | `web/src/content/docs/cli-examples/index.md` — **Directory launch** `LinkCard` for the new site (keep the grid aligned with `directory-integration/index.md`) |
+| Edit | `web/src/content/docs/mcp-examples/index.md` — same **Directory launch** `LinkCard` |
+| Edit | `web/src/content/docs/directory-integration/index.md` — operator guide `LinkCard` on **Guides** |
+| Edit | `web/src/content/docs/contribution-opportunities/add-directory.md` — **Reference implementations** `LinkCard` + pattern table row when the site illustrates a new shape |
 | Edit | `docs/auto-launch/extension-ui-patterns.md` — destination table, mapping section, smoke `N` sites |
 | Edit | `docs/auto-launch/launch-showcase.md` — only if showcase mentions the site |
+
+Use the same **site slug** (`{site-slug}`) in `directory-integration/`, `cli-examples/`, and `mcp-examples/` filenames. In CLI/MCP examples, filter destinations with `jq` `startswith("{site-slug}")` on `providerSlug` (not exact match on the site key alone).
 
 No **public-api-surface-sync** unless new `/api/v1/public/*` routes.
 
@@ -226,12 +236,16 @@ No **public-api-surface-sync** unless new `/api/v1/public/*` routes.
 **Docs & marketing**
 
 - [ ] `directory-integration/{site}.md`, `extension-ui-patterns.md` updates
+- [ ] `directory-integration/index.md` — **Guides** `LinkCard`
+- [ ] `cli-examples/{site-slug}.md`, `mcp-examples/{site-slug}.md`, and matching rows on `cli-examples/index.md` + `mcp-examples/index.md`
+- [ ] `SITE_CURATED` entry + `pnpm sync:directory-launch-example-docs` (field/path sections; CI via `destination-configs.test.ts`)
+- [ ] `contribution-opportunities/add-directory.md` — **Reference implementations** `LinkCard` (and pattern table when the site is a new reference shape)
 - [ ] Landing/README/docs icon rows when channel is public
 - [ ] `landingHeroTheme.ts` — `LANDING_HERO_TITLE_HIGHLIGHT_WORDS` includes the platform’s marketing label (match `platformLabel` on the channel page, e.g. `TinyLaunch`, `Fazier`)
 
 **Verification**
 
-- [ ] `pnpm --filter openquok-common test:unit` (includes sync check)
+- [ ] `pnpm --filter openquok-common test:unit` (includes `sync:auto-launch-configs:check` and `sync:directory-launch-example-docs:check`)
 - [ ] Manual smoke per **extension-ui-patterns.md** (update destination count if needed)
 
 ## Do not

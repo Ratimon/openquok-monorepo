@@ -54,24 +54,61 @@ openquok directory:listings "$MAIN_ID" | jq '.data | {submittedDirectorySiteCoun
 openquok directory:listings "$MAIN_ID" | jq '.data.destinations[] | select(.providerSlug | startswith("open-launch")) | {destinationName, submissionStatus, readiness}'
 ```
 
-Patch discovery fields when readiness lists missing paths (for example tech stack):
+## Profile fields wired to autofill
 
-```bash
-openquok directory:profiles:update <profile-id> --json ./open-launch-variant-patch.json
-```
+<Callout type="tip" title="Same paths as the extension">
+<p><Badge text="directory:listings" variant="default" /> readiness gaps use the same <Badge text="profilePath" variant="param" /> keys as <Badge text="DIRECTORY_EXTENSION_CONFIG_FIXTURES" variant="param" /> in <Badge text="common/src/auto-launch/destination-configs/" variant="path" />. Patch the <strong>variant</strong> id from <Badge text="directory:variants:ensure" variant="default" /> when JSON lists missing fields.</p>
+</Callout>
 
-Example patch fragment:
+### Mapped `profilePath` values (all variants on this site)
+
+<Badge text="description" variant="path" />
+<Badge text="logo_url" variant="path" />
+<Badge text="name" variant="path" />
+<Badge text="profile_data.categories" variant="path" />
+<Badge text="profile_data.gallery_urls" variant="path" />
+<Badge text="profile_data.platforms" variant="path" />
+<Badge text="profile_data.pricing_type" variant="path" />
+<Badge text="profile_data.social_github" variant="path" />
+<Badge text="profile_data.social_x" variant="path" />
+<Badge text="profile_data.tech_stack" variant="path" />
+<Badge text="website_url" variant="path" />
+
+### Provider slugs on this site
+
+<p>These launch paths share the same <Badge text="profilePath" variant="param" /> set: <Badge text="open-launch-free-launch" variant="default" /> <Badge text="open-launch-premium-launch" variant="default" />.</p>
+
+Full operator context: <a href="/docs/directory-integration/open-launch">Open Launch directory integration</a>.
+
+### Example `directory:profiles:update` patch
+
+Use after <Badge text="directory:variants:ensure" variant="default" /> when readiness lists missing discovery or media fields:
 
 ```json
 {
   "profile_data": {
-    "categories": ["SaaS", "Developer Tools"],
-    "tech_stack": ["TypeScript", "PostgreSQL"],
-    "platforms": ["Web"],
-    "pricing_type": "freemium"
+    "categories": [
+      "SaaS",
+      "Developer Tools"
+    ],
+    "tech_stack": [
+      "TypeScript",
+      "PostgreSQL"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "pricing_type": "freemium",
+    "gallery_urls": [
+      "https://cdn.example.com/product-shot.png"
+    ]
   }
 }
 ```
+
+<Callout type="note" title="Manual on Open Launch">
+<p>Premium checkout, free-queue placement, and wizard steps after Details stay on open-launch.com. Product image on the form uses only the first gallery URL.</p>
+</Callout>
 
 ## Logo and screenshots
 
@@ -117,4 +154,5 @@ openquok directory:analytics:overview --profile "$MAIN_ID" | jq '.data.productDo
 <LinkCard title="Directory launch CLI" description="Full directory:* command reference" href="/docs/cli-usages/directory-launch" />
 <LinkCard title="Open Launch directory integration" description="Premium vs free queue in the dashboard" href="/docs/directory-integration/open-launch" />
 <LinkCard title="Directory launch APIs" description="REST reference for profiles and listing summary" href="/docs/apis-directory-launch" />
+<LinkCard title="MCP examples — Open Launch" description="Agent prompts for the same directory launch flows" href="/docs/mcp-examples/open-launch" />
 </CardGrid>

@@ -74,6 +74,73 @@ The agent calls <Badge text="directoryListingSummary" variant="default" /> and r
 
 Call <Badge text="directoryProfilesUpdate" variant="default" /> with the variant <Badge text="productProfileId" variant="param" /> from <Badge text="directoryVariantsEnsure" variant="default" /> and the fields to patch (<Badge text="tagline" variant="param" />, <Badge text="description" variant="param" />, or <Badge text="profileData" variant="param" /> keys).
 
+## Profile fields wired to autofill
+
+<Callout type="tip" title="Same paths as the extension">
+<p><Badge text="directoryListingSummary" variant="default" /> mirrors missing <Badge text="profilePath" variant="param" /> values from <Badge text="DIRECTORY_EXTENSION_CONFIG_FIXTURES" variant="param" />. Call <Badge text="directoryProfilesUpdate" variant="default" /> on the variant <Badge text="productProfileId" variant="param" /> after <Badge text="directoryVariantsEnsure" variant="default" />.</p>
+</Callout>
+
+### Mapped `profilePath` values (all variants on this site)
+
+<Badge text="description" variant="path" />
+<Badge text="logo_url" variant="path" />
+<Badge text="name" variant="path" />
+<Badge text="profile_data.categories" variant="path" />
+<Badge text="profile_data.gallery_urls" variant="path" />
+<Badge text="profile_data.monthly_revenue_usd" variant="path" />
+<Badge text="profile_data.platforms" variant="path" />
+<Badge text="profile_data.pricing_type" variant="path" />
+<Badge text="profile_data.social_linkedin" variant="path" />
+<Badge text="profile_data.social_x" variant="path" />
+<Badge text="profile_data.target_audiences" variant="path" />
+<Badge text="profile_data.use_cases" variant="path" />
+<Badge text="tagline" variant="path" />
+<Badge text="website_url" variant="path" />
+
+### Provider slugs on this site
+
+<p>These launch paths share the same <Badge text="profilePath" variant="param" /> set: <Badge text="peerpush-free-queue" variant="default" /> <Badge text="peerpush-standard-launch" variant="default" />.</p>
+
+Operator guide: <a href="/docs/directory-integration/peerpush">PeerPush directory integration</a>.
+
+### Example `directoryProfilesUpdate` payload fragment
+
+> Patch my PeerPush variant with discovery and media fields from this draft before I open the submit form.
+
+```json
+{
+  "tagline": "Ship faster with one profile for every directory",
+  "profile_data": {
+    "categories": [
+      "SaaS",
+      "Productivity"
+    ],
+    "use_cases": [
+      "Product launches",
+      "Backlink outreach"
+    ],
+    "target_audiences": [
+      "Indie founders",
+      "Small teams"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "pricing_type": "freemium",
+    "social_x": "https://x.com/example",
+    "social_linkedin": "https://www.linkedin.com/company/example",
+    "gallery_urls": [
+      "https://cdn.example.com/shot-1.png",
+      "https://cdn.example.com/shot-2.png"
+    ]
+  }
+}
+```
+
+<Callout type="note" title="Manual on PeerPush">
+<p>Paid checkout, free-queue timing, and final publish stay on peerpush.com. OpenQuok does not charge PeerPush for you.</p>
+</Callout>
+
 ## Logo and screenshots
 
 > Set my PeerPush profile logo and up to ten screenshot URLs (reorder in the web Media tab so the best shots are first) before I open peerpush.com.

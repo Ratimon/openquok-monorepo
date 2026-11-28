@@ -181,6 +181,6 @@ OpenQuok does **not** submit the listing for you. These tools prepare data for t
 5. `directoryListingSummary` with `productProfileId` — See missing fields and readiness before you open the directory site.
 6. `directorySeoOverview` / `directorySeoCompetitorsAdd` — Cached domain rating and competitors (separate plan flag).
 
-User-facing docs: [Glossary — Directory launch](https://www.openquok.com/docs/getting-started/glossary#directory-launch). MCP recipes: [MCP examples — PeerPush](https://www.openquok.com/docs/mcp-examples/peerpush), [Uneed](https://www.openquok.com/docs/mcp-examples/uneed).
+User-facing docs: [Glossary — Directory launch](https://www.openquok.com/docs/getting-started/glossary#directory-launch). MCP recipes: [MCP examples overview](https://www.openquok.com/docs/mcp-examples) (per-site pages for every shipped directory site). CLI recipes: [CLI examples overview](https://www.openquok.com/docs/cli-examples).
 
 See [command-reference.md](./command-reference.md#mcp-equivalents) for the full CLI ↔ tool map.

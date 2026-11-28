@@ -62,6 +62,14 @@ OpenQuok supports Meta Threads, Instagram (Business and Standalone), Facebook Pa
 <LinkCard title="PeerPush" description="Standard launch and free queue variants" href="/docs/directory-integration/peerpush" />
 <LinkCard title="Uneed" description="Join the line, paid launch, and maker profile" href="/docs/directory-integration/uneed" />
 <LinkCard title="Open Launch" description="Premium launch and free queue variants" href="/docs/directory-integration/open-launch" />
+<LinkCard title="TinyLaunch" description="Premium and Standard create-startup variants" href="/docs/directory-integration/tinylaunch" />
+<LinkCard title="Fazier" description="Company page and product launch paths" href="/docs/directory-integration/fazier" />
+<LinkCard title="DevHunt" description="Free listing and paid launch week" href="/docs/directory-integration/devhunt" />
+<LinkCard title="Nick Launches" description="Free launch, paid tiers, and maker profile" href="/docs/directory-integration/nick-launches" />
+<LinkCard title="IndieHub" description="Basic and Pro paid listings" href="/docs/directory-integration/indiehub" />
+<LinkCard title="AlternativeTo" description="Free listing, paid review tiers, and user profile" href="/docs/directory-integration/alternativeto" />
+<LinkCard title="Trustpilot" description="Company profile on Trustpilot Business" href="/docs/directory-integration/trustpilot" />
+<LinkCard title="StartupInspire" description="Free listing and Starter launch" href="/docs/directory-integration/startupinspire" />
 </CardGrid>
 
 ## Related

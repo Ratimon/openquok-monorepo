@@ -311,6 +311,7 @@ Run after changing fixtures, extension manifests, or marketing tiles. Use a dev 
 
 - [ ] `pnpm --filter openquok-common test:unit` (includes destination config drift tests)
 - [ ] `pnpm sync:auto-launch-configs:check` and `pnpm sync:auto-launch-destinations:check`
+- [ ] `pnpm sync:directory-launch-example-docs` (or `:check` in CI) after fixture or CLI/MCP example page changes
 - [ ] Add Channel shows one tile per site with bundled logo under `/icons/link-directory/{slug}.svg`
 - [ ] Side panel **session bar** (above Social / Directory tabs): sign in from the bar on Social → Directory shows the same connection label and channel picker (no red sign-in banner); **Disconnect** in the bar clears the Social composer; self-host connect from the bar works without opening Social first
 

@@ -142,7 +142,7 @@ Pass script options after <code>--</code> when invoking from the repo root.
 
 ## Adding a future catalog site
 
-1. Add <Badge text="backend/scripts/catalog/directory/&lt;site-slug&gt;.json" variant="path" /> with <Badge text="{ site, opportunities }" variant="param" /> (use new UUIDs; resolve slugs for categories, opportunity types, and tags).
+1. Add <Badge text="backend/scripts/catalog/directory/&lt;site-slug&gt;.json" variant="path" /> with top-level <Badge text="site" variant="param" /> and <Badge text="opportunities" variant="param" /> keys (use new UUIDs; resolve slugs for categories, opportunity types, and tags).
 2. Add a self-contained hub logo at <Badge text="web/static/icons/link-directory/&lt;slug&gt;.svg" variant="path" />.
 3. Run backfill with <Badge text="--slug &lt;slug&gt;" variant="param" /> in dev, then production — no migration PR required for catalog-only destinations.
 

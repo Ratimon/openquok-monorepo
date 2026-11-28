@@ -2,7 +2,7 @@
 title: Overview - CLI Examples
 description: OpenQuok CLI workflows — copy-paste examples for scheduling, posts management, analytics, plugs, directory launch, and per-platform recipes.
 order: 0
-lastUpdated: 2026-08-20
+lastUpdated: 2026-11-28
 sidebar:
   label: Overview
 ---
@@ -35,7 +35,7 @@ Copy-pasteable recipes for the `openquok` CLI grouped by social network or direc
 </CardGrid>
 
 <Callout type="note" title="Directory launch is not posts:create">
-<p><strong>Directory launch</strong> recipes prepare your product on <a href="/account/products">My Products</a> for <strong>PeerPush</strong>, <strong>Uneed</strong>, and <strong>Open Launch</strong>. They use <Badge text="directory:*" variant="default" /> commands, not <Badge text="posts:create" variant="default" />. You submit on the directory site with the browser extension.</p>
+<p><strong>Directory launch</strong> recipes prepare your product on <a href="/account/products">My Products</a> for every shipped directory site (see the cards below). They use <Badge text="directory:*" variant="default" /> commands, not <Badge text="posts:create" variant="default" />. You submit on the directory site with the browser extension.</p>
 </Callout>
 
 <Callout type="tip" title="Main profile and site copy">
@@ -49,6 +49,14 @@ Copy-pasteable recipes for the `openquok` CLI grouped by social network or direc
 <LinkCard title="PeerPush" description="Product profiles, peerpush variants, listing summary, and cached directory SEO" href="/docs/cli-examples/peerpush" />
 <LinkCard title="Uneed" description="Product profiles, uneed variants, listing summary, and cached directory SEO" href="/docs/cli-examples/uneed" />
 <LinkCard title="Open Launch" description="Product profiles, open-launch variants, tech stack readiness, and cached directory SEO" href="/docs/cli-examples/open-launch" />
+<LinkCard title="TinyLaunch" description="Product profiles, tinylaunch variants, category readiness, and cached directory SEO" href="/docs/cli-examples/tinylaunch" />
+<LinkCard title="Fazier" description="Product profiles, fazier variants, company page and product listing readiness" href="/docs/cli-examples/fazier" />
+<LinkCard title="DevHunt" description="Product profiles, devhunt variants, developer-tool readiness, and cached directory SEO" href="/docs/cli-examples/devhunt" />
+<LinkCard title="Nick Launches" description="Product profiles, nick-launches variants, maker profile readiness, and cached directory SEO" href="/docs/cli-examples/nick-launches" />
+<LinkCard title="IndieHub" description="Product profiles, indiehub variants, Basic and Pro listing readiness" href="/docs/cli-examples/indiehub" />
+<LinkCard title="AlternativeTo" description="Product profiles, alternativeto variants, listing and profile readiness" href="/docs/cli-examples/alternativeto" />
+<LinkCard title="Trustpilot" description="Product profiles, trustpilot variant, company profile readiness on Trustpilot Business" href="/docs/cli-examples/trustpilot" />
+<LinkCard title="StartupInspire" description="Product profiles, startupinspire variants, free and paid listing readiness" href="/docs/cli-examples/startupinspire" />
 </CardGrid>
 
 ## Conventions used in these pages

@@ -42,6 +42,10 @@ const SYNC_DESTINATIONS_SCRIPT = join(
 	REPO_ROOT,
 	'backend/scripts/sync-auto-launch-destination-seeds.mjs'
 );
+const SYNC_DIRECTORY_LAUNCH_EXAMPLE_DOCS_SCRIPT = join(
+	REPO_ROOT,
+	'backend/scripts/sync-directory-launch-example-docs.mjs'
+);
 const COMMON_DIST_INDEX = join(REPO_ROOT, 'common/dist/index.js');
 
 /** Mirrors `pageMatchesConfig` / `wildcardToRegExp` in the extension step rail. */
@@ -182,6 +186,26 @@ describe('DIRECTORY_EXTENSION_CONFIG_FIXTURES', () => {
 			const message = error instanceof Error ? error.message : String(error);
 			throw new Error(
 				`extension_configs SQL out of date. From repo root run: pnpm sync:auto-launch-configs\n${message}`
+			);
+		}
+	});
+
+	it('cli-examples and mcp-examples directory field sections match fixtures (sync --check)', () => {
+		if (!existsSync(COMMON_DIST_INDEX)) {
+			throw new Error(
+				'common/dist missing. Run `pnpm common:build` before `pnpm --filter openquok-common test:unit`.'
+			);
+		}
+		try {
+			execFileSync(process.execPath, [SYNC_DIRECTORY_LAUNCH_EXAMPLE_DOCS_SCRIPT, '--check'], {
+				cwd: REPO_ROOT,
+				encoding: 'utf8',
+				stdio: ['ignore', 'pipe', 'pipe'],
+			});
+		} catch (error) {
+			const message = error instanceof Error ? error.message : String(error);
+			throw new Error(
+				`directory launch example docs out of date. From repo root run: pnpm sync:directory-launch-example-docs\n${message}`
 			);
 		}
 	});

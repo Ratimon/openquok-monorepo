@@ -12,6 +12,8 @@
     "sync:auto-launch-configs:check": "pnpm common:build && node backend/scripts/sync-auto-launch-extension-configs.mjs --check",
     "sync:auto-launch-destinations": "pnpm common:build && node backend/scripts/sync-auto-launch-destination-seeds.mjs",
     "sync:auto-launch-destinations:check": "pnpm common:build && node backend/scripts/sync-auto-launch-destination-seeds.mjs --check",
+    "sync:directory-launch-example-docs": "pnpm common:build && node backend/scripts/sync-directory-launch-example-docs.mjs",
+    "sync:directory-launch-example-docs:check": "pnpm common:build && node backend/scripts/sync-directory-launch-example-docs.mjs --check",
     "web:dev": "pnpm --filter ./web dev",
     "web:check": "pnpm --filter ./web check",
     "web:test:pseo-registry": "pnpm --filter ./web run test:pseo-registry",

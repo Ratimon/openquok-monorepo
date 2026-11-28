@@ -2,7 +2,7 @@
 title: Overview - MCP Examples
 description: OpenQuok MCP agent workflows — prompts or examples for scheduling, posts management, analytics, plugs, directory launch, and per-platform recipes.
 order: 0
-lastUpdated: 2026-10-22
+lastUpdated: 2026-11-28
 sidebar:
   label: Overview
 ---
@@ -32,7 +32,7 @@ Copy-pasteable recipes for AI agents using OpenQuok MCP, grouped by social chann
 </CardGrid>
 
 <Callout type="note" title="Directory launch is not social posting">
-<p><strong>Directory launch</strong> prepares your product on <a href="/account/products">My Products</a> for sites like <strong>PeerPush</strong> and <strong>Uneed</strong>. Agents use <Badge text="directoryProfilesList" variant="default" />, <Badge text="directoryVariantsEnsure" variant="default" />, and related tools — not <Badge text="schedulePostTool" variant="default" />. You still submit on the directory site with the browser extension.</p>
+<p><strong>Directory launch</strong> prepares your product on <a href="/account/products">My Products</a> for every shipped directory site (see the cards below). Agents use <Badge text="directoryProfilesList" variant="default" />, <Badge text="directoryVariantsEnsure" variant="default" />, and related tools — not <Badge text="schedulePostTool" variant="default" />. You still submit on the directory site with the browser extension.</p>
 </Callout>
 
 <Callout type="tip" title="Main profile and site copy">
@@ -46,6 +46,15 @@ Copy-pasteable recipes for AI agents using OpenQuok MCP, grouped by social chann
 <CardGrid>
 <LinkCard title="PeerPush" description="Product profiles, peerpush variants, listing summary, and cached directory SEO" href="/docs/mcp-examples/peerpush" />
 <LinkCard title="Uneed" description="Product profiles, uneed variants, listing summary, and cached directory SEO" href="/docs/mcp-examples/uneed" />
+<LinkCard title="Open Launch" description="Product profiles, open-launch variants, tech stack readiness, and cached directory SEO" href="/docs/mcp-examples/open-launch" />
+<LinkCard title="TinyLaunch" description="Product profiles, tinylaunch variants, category readiness, and cached directory SEO" href="/docs/mcp-examples/tinylaunch" />
+<LinkCard title="Fazier" description="Product profiles, fazier variants, company page and product listing readiness" href="/docs/mcp-examples/fazier" />
+<LinkCard title="DevHunt" description="Product profiles, devhunt variants, developer-tool readiness, and cached directory SEO" href="/docs/mcp-examples/devhunt" />
+<LinkCard title="Nick Launches" description="Product profiles, nick-launches variants, maker profile readiness, and cached directory SEO" href="/docs/mcp-examples/nick-launches" />
+<LinkCard title="IndieHub" description="Product profiles, indiehub variants, Basic and Pro listing readiness" href="/docs/mcp-examples/indiehub" />
+<LinkCard title="AlternativeTo" description="Product profiles, alternativeto variants, listing and profile readiness" href="/docs/mcp-examples/alternativeto" />
+<LinkCard title="Trustpilot" description="Product profiles, trustpilot variant, company profile readiness on Trustpilot Business" href="/docs/mcp-examples/trustpilot" />
+<LinkCard title="StartupInspire" description="Product profiles, startupinspire variants, free and paid listing readiness" href="/docs/mcp-examples/startupinspire" />
 </CardGrid>
 
 ## List connected channels
@@ -131,7 +140,7 @@ See <a href="/docs/mcp-examples/threads">MCP examples — Threads</a>, <a href="
 
 > List my directory product profiles, ensure a PeerPush variant for my main profile, and show which directories are ready to launch.
 
-The agent calls <Badge text="directoryProfilesList" variant="default" /> with <Badge text="mainOnly" variant="param" />, <Badge text="directoryVariantsEnsure" variant="default" /> with <Badge text="directorySiteKey" variant="param" /> <Badge text="peerpush" variant="default" />, then <Badge text="directoryListingSummary" variant="default" /> for readiness per destination. See <a href="/docs/mcp-examples/peerpush">MCP examples — PeerPush</a> and <a href="/docs/mcp-examples/uneed">Uneed</a> for per-site prompts.
+The agent calls <Badge text="directoryProfilesList" variant="default" /> with <Badge text="mainOnly" variant="param" />, <Badge text="directoryVariantsEnsure" variant="default" /> with <Badge text="directorySiteKey" variant="param" /> (for example <Badge text="peerpush" variant="default" />), then <Badge text="directoryListingSummary" variant="default" /> for readiness per destination. See the <strong>Directory launch</strong> cards above for per-site prompts.
 
 > What are my directory SEO ratings and when were they last checked?
 

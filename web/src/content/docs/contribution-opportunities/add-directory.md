@@ -2,7 +2,7 @@
 title: Adding a directory channel
 description: Contributor guide for shipping a new directory launch destination with extension autofill in OpenQuok
 order: 2
-lastUpdated: 2026-11-21
+lastUpdated: 2026-11-28
 ---
 
 <script>
@@ -26,13 +26,14 @@ Each shipped destination is one **provider slug** (for example <Badge text="peer
 - Typed <Badge text="extension_config" variant="param" /> JSON (steps, fields, selectors, proof rules)
 - Extension content scripts + side panel handoff
 
-Pick reference sites by shape:
+Pick reference sites by shape (see also <a href="/docs/directory-integration">Directory integration</a> and the reference cards at the bottom of this page):
 
-| Pattern | Example | Notes |
+| Pattern | Example sites | Notes |
 | --- | --- | --- |
-| Single paid submit form | PeerPush Standard | One fixture; optional free **pricing-queue** variant |
-| Pricing queue + premium wizard | Open Launch, TinyLaunch | Base fixture + <Badge text="readyUrlHint: 'pricing'" variant="param" /> variant in TS |
-| Multiple independent forms | Uneed | Three fixtures; composite SQL seed module |
+| Single paid submit form | PeerPush Standard, DevHunt paid launch, IndieHub Basic / Pro | One fixture per path; optional free **pricing-queue** sibling |
+| Pricing queue + premium wizard | Open Launch, TinyLaunch, Nick Launches, StartupInspire | Base fixture + <Badge text="readyUrlHint: 'pricing'" variant="param" /> variant in TS |
+| Multiple independent forms | Uneed, Fazier, AlternativeTo, Nick Launches | Separate fixtures per form; composite SQL when seeds share one module |
+| Profile or listing wizard (single path) | Trustpilot company profile | Often one provider slug; verify business email on the live site |
 
 <Callout type="note">
 <p><strong>Convention reference:</strong> Use <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/.cursor/rules/add-directory-integration.mdc"><Badge text=".cursor/rules/add-directory-integration.mdc" variant="path" /></DocsExternalLink> as the file-level checklist and <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/docs/auto-launch/extension-ui-patterns.md"><Badge text="docs/auto-launch/extension-ui-patterns.md" variant="path" /></DocsExternalLink> for field mapping and manual smoke.</p>
@@ -126,6 +127,9 @@ Backend API surface is usually unchanged (<Badge text="AutoLaunchRoute" variant=
 
 - Update <Badge text="docs/auto-launch/extension-ui-patterns.md" variant="path" /> — destination table and smoke site count
 - Add <Badge text="directory-integration/<site>.md" variant="path" /> and a <Badge text="LinkCard" variant="default" /> on <a href="/docs/directory-integration">Directory integration overview</a>
+- Add <Badge text="cli-examples/<site-slug>.md" variant="path" /> and <Badge text="mcp-examples/<site-slug>.md" variant="path" /> (workflow sections only — listings, variants, SEO); append matching <Badge text="LinkCard" variant="default" /> rows on <a href="/docs/cli-examples">CLI examples overview</a> and <a href="/docs/mcp-examples">MCP examples overview</a>
+- Add <Badge text="SITE_CURATED" variant="param" /> for the site in <Badge text="backend/scripts/sync-directory-launch-example-docs.mjs" variant="path" /> (<Badge text="manual" variant="param" /> on-site steps + example <Badge text="patch" variant="param" /> JSON), then run <Badge text="pnpm sync:directory-launch-example-docs" variant="default" /> so <strong>Profile fields wired to autofill</strong> (union + per-<Badge text="providerSlug" variant="param" /> tables from fixtures) is inserted into both example pages
+- Extend the <strong>Reference implementations</strong> <Badge text="LinkCard" variant="default" /> grid on this page when the site is a useful contributor pattern (keep in sync with the directory-integration index)
 - Follow <a href="/docs/documentation-contribution">Documentation contribution</a> for MDX badges and callouts
 
 </Steps>
@@ -219,17 +223,27 @@ Hub/API cache may lag a few minutes after catalog backfill when caching is enabl
 | <Badge text="pnpm backend:db:backfill-link-directory-catalog" variant="default" /> | Hub <Badge text="link_directory_*" variant="param" /> rows from JSON; relinks <Badge text="auto_launch_destinations" variant="path" /> | Local after reset; catalog-only sites |
 | <Badge text="pnpm backend:db:backfill-link-directory-catalog:prod" variant="default" /> | Same against production | **Before** destination SQL when opportunities must exist |
 | <Badge text="pnpm sync:auto-launch-*:check" variant="default" /> | CI / pre-PR | Ensures SQL matches TS |
+| <Badge text="pnpm sync:directory-launch-example-docs" variant="default" /> | <Badge text="cli-examples/<site>.md" variant="path" /> + <Badge text="mcp-examples/<site>.md" variant="path" /> field sections | After fixture or <Badge text="SITE_CURATED" variant="param" /> changes |
+| <Badge text="pnpm sync:directory-launch-example-docs:check" variant="default" /> | CI via <Badge text="destination-configs.test.ts" variant="path" /> | Example docs match fixtures |
 
-Source of truth for destination **rows** is <Badge text="destinationSeeds.ts" variant="path" />; for **extension_config** shape is <Badge text="sites/*/config.ts" variant="path" />.
+Source of truth for destination **rows** is <Badge text="destinationSeeds.ts" variant="path" />; for **extension_config** shape is <Badge text="sites/*/config.ts" variant="path" />; for CLI/MCP **profilePath** badges is <Badge text="DIRECTORY_EXTENSION_CONFIG_FIXTURES" variant="param" /> (generated sections).
 
 ## Reference implementations
 
+Operator guides, CLI recipes, and MCP prompts share the same **site slug** (for example <Badge text="devhunt" variant="default" />) in paths under <Badge text="directory-integration/" variant="path" />, <Badge text="cli-examples/" variant="path" />, and <Badge text="mcp-examples/" variant="path" />.
+
 <CardGrid>
-<LinkCard title="PeerPush" description="Standard launch + free pricing queue" href="/docs/directory-integration/peerpush" />
-<LinkCard title="Uneed" description="Join line, paid launch, maker profile" href="/docs/directory-integration/uneed" />
-<LinkCard title="Open Launch" description="Premium wizard + free queue" href="/docs/directory-integration/open-launch" />
-<LinkCard title="TinyLaunch" description="Premium create-startup + Standard pricing queue" href="/docs/directory-integration/tinylaunch" />
-<LinkCard title="Fazier" description="Company page + free/paid product listing (catalog backfill + 507 seed)" href="/docs/directory-integration/fazier" />
+<LinkCard title="PeerPush" description="Standard launch and free queue — profile fields and public landing" href="/docs/directory-integration/peerpush" />
+<LinkCard title="Uneed" description="Join the line, paid launch, and maker profile" href="/docs/directory-integration/uneed" />
+<LinkCard title="Open Launch" description="Premium launch and free queue — tech stack, extension wizard autofill" href="/docs/directory-integration/open-launch" />
+<LinkCard title="TinyLaunch" description="Premium and Standard create-startup — category catalog, pledge manual" href="/docs/directory-integration/tinylaunch" />
+<LinkCard title="Fazier" description="Company page wizard and product launch — badge and tier steps manual" href="/docs/directory-integration/fazier" />
+<LinkCard title="DevHunt" description="Free listing and paid launch week — developer tools, screenshots, manual checkout" href="/docs/directory-integration/devhunt" />
+<LinkCard title="Nick Launches" description="Free launch, paid tiers, and maker profile — categories, badge, manual plan checkout" href="/docs/directory-integration/nick-launches" />
+<LinkCard title="IndieHub" description="Basic and Pro paid listings — submit wizard step 1 autofill, manual payment and publish" href="/docs/directory-integration/indiehub" />
+<LinkCard title="AlternativeTo" description="Free listing, paid review tiers, and user profile — manage-item autofill" href="/docs/directory-integration/alternativeto" />
+<LinkCard title="Trustpilot" description="Company profile on Trustpilot Business — settings autofill, business email verify, nofollow" href="/docs/directory-integration/trustpilot" />
+<LinkCard title="StartupInspire" description="Free listing and Starter launch — create form autofill, manual checkout, dofollow verify" href="/docs/directory-integration/startupinspire" />
 </CardGrid>
 
 ## Verification before PR

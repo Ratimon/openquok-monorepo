@@ -31,7 +31,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 Published catalog rows include Standard launch and free queue variants when they are live:
 
 ```bash
-openquok directory:destinations:list | jq '.data[] | select(.providerSlug=="peerpush")'
+openquok directory:destinations:list | jq '.data[] | select(.providerSlug | startswith("peerpush"))'
 ```
 
 ## Main profile and PeerPush variant
@@ -51,14 +51,75 @@ openquok directory:profiles:get "$MAIN_ID" | jq '.data.similarityToMainPercent'
 
 ```bash
 openquok directory:listings "$MAIN_ID" | jq '.data | {submittedDirectorySiteCount, unsubmittedDirectorySiteCount}'
-openquok directory:listings "$MAIN_ID" | jq '.data.destinations[] | select(.providerSlug=="peerpush") | {destinationName, submissionStatus, readiness}'
+openquok directory:listings "$MAIN_ID" | jq '.data.destinations[] | select(.providerSlug | startswith("peerpush")) | {destinationName, submissionStatus, readiness}'
 ```
 
-Patch copy on the variant when the readiness panel lists missing fields:
+## Profile fields wired to autofill
 
-```bash
-openquok directory:profiles:update <profile-id> --json ./peerpush-variant-patch.json
+<Callout type="tip" title="Same paths as the extension">
+<p><Badge text="directory:listings" variant="default" /> readiness gaps use the same <Badge text="profilePath" variant="param" /> keys as <Badge text="DIRECTORY_EXTENSION_CONFIG_FIXTURES" variant="param" /> in <Badge text="common/src/auto-launch/destination-configs/" variant="path" />. Patch the <strong>variant</strong> id from <Badge text="directory:variants:ensure" variant="default" /> when JSON lists missing fields.</p>
+</Callout>
+
+### Mapped `profilePath` values (all variants on this site)
+
+<Badge text="description" variant="path" />
+<Badge text="logo_url" variant="path" />
+<Badge text="name" variant="path" />
+<Badge text="profile_data.categories" variant="path" />
+<Badge text="profile_data.gallery_urls" variant="path" />
+<Badge text="profile_data.monthly_revenue_usd" variant="path" />
+<Badge text="profile_data.platforms" variant="path" />
+<Badge text="profile_data.pricing_type" variant="path" />
+<Badge text="profile_data.social_linkedin" variant="path" />
+<Badge text="profile_data.social_x" variant="path" />
+<Badge text="profile_data.target_audiences" variant="path" />
+<Badge text="profile_data.use_cases" variant="path" />
+<Badge text="tagline" variant="path" />
+<Badge text="website_url" variant="path" />
+
+### Provider slugs on this site
+
+<p>These launch paths share the same <Badge text="profilePath" variant="param" /> set: <Badge text="peerpush-free-queue" variant="default" /> <Badge text="peerpush-standard-launch" variant="default" />.</p>
+
+Full operator context: <a href="/docs/directory-integration/peerpush">PeerPush directory integration</a>.
+
+### Example `directory:profiles:update` patch
+
+Use after <Badge text="directory:variants:ensure" variant="default" /> when readiness lists missing discovery or media fields:
+
+```json
+{
+  "tagline": "Ship faster with one profile for every directory",
+  "profile_data": {
+    "categories": [
+      "SaaS",
+      "Productivity"
+    ],
+    "use_cases": [
+      "Product launches",
+      "Backlink outreach"
+    ],
+    "target_audiences": [
+      "Indie founders",
+      "Small teams"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "pricing_type": "freemium",
+    "social_x": "https://x.com/example",
+    "social_linkedin": "https://www.linkedin.com/company/example",
+    "gallery_urls": [
+      "https://cdn.example.com/shot-1.png",
+      "https://cdn.example.com/shot-2.png"
+    ]
+  }
+}
 ```
+
+<Callout type="note" title="Manual on PeerPush">
+<p>Paid checkout, free-queue timing, and final publish stay on peerpush.com. OpenQuok does not charge PeerPush for you.</p>
+</Callout>
 
 ## Logo and screenshots
 
@@ -93,7 +154,7 @@ openquok directory:analytics:refresh --profile "$MAIN_ID"
 ```bash
 MAIN_ID=$(openquok directory:profiles:list --main-only | jq -r '.data[0].id')
 openquok directory:variants:ensure "$MAIN_ID" --site-key peerpush
-openquok directory:listings "$MAIN_ID" | jq '.data.destinations[] | select(.providerSlug=="peerpush")'
+openquok directory:listings "$MAIN_ID" | jq '.data.destinations[] | select(.providerSlug | startswith("peerpush"))'
 openquok directory:analytics:overview --profile "$MAIN_ID" | jq '.data.productDomain | {domain, checkedAt}'
 ```
 
