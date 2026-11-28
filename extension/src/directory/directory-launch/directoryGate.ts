@@ -1,3 +1,5 @@
+import type { FieldFillResult, LaunchStepField } from 'openquok-common';
+
 import { sendRuntimeMessage } from '../../shared/extensionRuntime.js';
 import { detectDirectorySiteLogin } from './siteLogin/detectDirectorySiteLogin.js';
 
@@ -28,6 +30,8 @@ export const DIRECTORY_SITE_DISPLAY_NAME: Record<string, string> = {
 	'nick-launches': 'Nick Launches',
 	indiehub: 'IndieHub',
 	alternativeto: 'AlternativeTo',
+	trustpilot: 'Trustpilot',
+	startupinspire: 'StartupInspire',
 };
 
 type CheckDirectoryGateResponse = {
@@ -39,6 +43,23 @@ type CheckDirectoryGateResponse = {
 export function isDirectoryFillAllowed(state: DirectoryGateState | null): boolean {
 	if (!state) return true;
 	return state.openquokLoggedIn && state.directoryLoggedIn;
+}
+
+export function buildDirectoryFillFailureMessage(
+	result: Pick<FieldFillResult, 'label' | 'status' | 'message'>,
+	siteKey?: string
+): string {
+	const detail = result.message?.trim();
+	if (detail) return detail;
+	const label = result.label?.trim() || 'field';
+	const siteName = siteKey ? (DIRECTORY_SITE_DISPLAY_NAME[siteKey] ?? siteKey) : 'this site';
+	if (result.status === 'not_in_profile') {
+		return `Add ${label} on your OpenQuok business profile (My Products), then try again.`;
+	}
+	if (result.status === 'not_found') {
+		return `Open the matching ${label} section on ${siteName}, then try Fill again.`;
+	}
+	return `Could not fill ${label}.`;
 }
 
 export function buildFillGateMessage(state: DirectoryGateState): string {

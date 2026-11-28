@@ -87,6 +87,14 @@ import {
 	type SiteMediaFileInputOptions,
 } from './siteMedia/index.js';
 import { resolveAlternativetoFieldElement } from './siteMedia/alternativetoMainInfo.js';
+import { resolveTrustpilotFieldElement } from './siteMedia/trustpilotCompanySettings.js';
+import {
+	fillStartupinspireTechnologyStack,
+	readStartupinspireMultiselectChipLabels,
+	resolveStartupinspireFieldElement,
+	resolveStartupinspireTechnologyControl,
+	startupinspireStartupFormPage,
+} from './siteMedia/startupinspireStartupForm.js';
 
 export type FillLaunchContext = {
 	dashboardOrigin?: string;
@@ -971,6 +979,16 @@ export function resolveFieldElement(field: LaunchStepField): Element | null {
 		return alternativetoField;
 	}
 
+	const trustpilotField = resolveTrustpilotFieldElement(field);
+	if (trustpilotField && elementPassesFieldGuard(field, trustpilotField)) {
+		return trustpilotField;
+	}
+
+	const startupinspireField = resolveStartupinspireFieldElement(field);
+	if (startupinspireField && elementPassesFieldGuard(field, startupinspireField)) {
+		return startupinspireField;
+	}
+
 	if (isFileFillMode(fillMode)) {
 		const byLabel = resolveFileInputFromFieldLabels(field);
 		if (byLabel) return byLabel;
@@ -1773,6 +1791,13 @@ export async function fillElementByMode(
 		case 'rich_html':
 			return fillRichHtmlControl(element, value);
 		case 'tags':
+			if (
+				field &&
+				(field.key === 'technology' || /technology/i.test(field.label)) &&
+				startupinspireStartupFormPage()
+			) {
+				return fillStartupinspireTechnologyStack(parseTagList(value));
+			}
 			return fillTagsControl(element, value, field);
 		case 'checkbox_group':
 			return fillCheckboxGroupControl(element, value);
@@ -1785,15 +1810,17 @@ export async function fillElementByMode(
 function profileTagCandidatesForField(
 	snapshot: AutoLaunchProfileSnapshot,
 	field: LaunchStepField,
-	options?: FillLaunchFieldOptions
+	options?: FillLaunchFieldOptions,
+	mainProfileSnapshot?: AutoLaunchProfileSnapshot | null
 ): string[] {
 	if (options?.valuesOverride?.length) {
 		return options.valuesOverride.map((entry) => entry.trim()).filter(Boolean);
 	}
+	const effective = mergeMainProfileSocialData(snapshot, mainProfileSnapshot);
 	if (field.fillMode === 'tags' && (field.profileSourcePaths?.length ?? 0) > 0) {
-		return collectRawItemsFromProfilePaths(snapshot, defaultTagProfilePathsForField(field));
+		return collectRawItemsFromProfilePaths(effective, defaultTagProfilePathsForField(field));
 	}
-	const raw = resolveProfileValue(snapshot, field.profilePath);
+	const raw = resolveProfileValue(effective, field.profilePath);
 	if (!raw?.trim()) return [];
 	return parseTagList(raw);
 }
@@ -1801,9 +1828,13 @@ function profileTagCandidatesForField(
 export function fillableTagListForField(
 	snapshot: AutoLaunchProfileSnapshot,
 	field: LaunchStepField,
-	options?: FillLaunchFieldOptions
+	options?: FillLaunchFieldOptions,
+	mainProfileSnapshot?: AutoLaunchProfileSnapshot | null
 ): string[] {
-	return fillableTagsForLaunchField(profileTagCandidatesForField(snapshot, field, options), field);
+	return fillableTagsForLaunchField(
+		profileTagCandidatesForField(snapshot, field, options, mainProfileSnapshot),
+		field
+	);
 }
 
 async function fillFileLaunchField(
@@ -2034,9 +2065,19 @@ export async function fillLaunchField(
 
 	let value: string | null;
 	if (fillMode === 'tags' || fillMode === 'checkbox_group') {
-		const fillable = fillableTagListForField(snapshot, field, options);
+		const fillable = fillableTagListForField(
+			snapshot,
+			field,
+			options,
+			context?.mainProfileSnapshot
+		);
 		if (catalogGatesListFill) {
-			const candidates = profileTagCandidatesForField(snapshot, field, options);
+			const candidates = profileTagCandidatesForField(
+				snapshot,
+				field,
+				options,
+				context?.mainProfileSnapshot
+			);
 			const gated = catalogGatedListFillResult(field, candidates, fillable);
 			if (gated) return gated;
 		}
@@ -2045,7 +2086,56 @@ export async function fillLaunchField(
 		value = resolveFillValue(snapshot, field, options, context);
 	}
 	if (value === null || value === undefined) {
-		return { key: field.key, label: field.label, status: 'not_in_profile' };
+		const message =
+			field.profilePath === 'profile_data.gallery_urls'
+				? 'Add product screenshots on your OpenQuok profile (Media tab), then try Fill again.'
+				: field.profilePath === 'profile_data.tech_stack'
+					? 'Add technologies on your OpenQuok profile (Discovery → Tech stack), then try Fill again.'
+					: undefined;
+		return {
+			key: field.key,
+			label: field.label,
+			status: 'not_in_profile',
+			...(message ? { message } : {}),
+		};
+	}
+
+	const startupinspireTechnology =
+		fillMode === 'tags' &&
+		field.key === 'technology' &&
+		startupinspireStartupFormPage();
+
+	if (startupinspireTechnology) {
+		try {
+			const requested = parseTagList(value);
+			const filled = await fillStartupinspireTechnologyStack(requested);
+			if (!filled) {
+				return {
+					key: field.key,
+					label: field.label,
+					status: 'error',
+					message:
+						'Could not match profile technologies to StartupInspire options — open the Technology Stack dropdown and pick from their catalog, or adjust Tech stack on your OpenQuok profile.',
+				};
+			}
+			const chips = readStartupinspireMultiselectChipLabels(
+				resolveStartupinspireTechnologyControl() ??
+					resolveStartupinspireTechnologyControl(document, { includeOffStepPanel: true }) ??
+					document.body
+			);
+			if (chips.length > 0 && chips.length < requested.length) {
+				return {
+					key: field.key,
+					label: field.label,
+					status: 'found',
+					message: `Matched ${chips.length} of ${requested.length} profile technologies to StartupInspire catalog — add any missing tags manually.`,
+				};
+			}
+			return { key: field.key, label: field.label, status: 'found' };
+		} catch (error) {
+			const message = error instanceof Error ? error.message : 'Fill failed.';
+			return { key: field.key, label: field.label, status: 'error', message };
+		}
 	}
 
 	const element = resolveFieldElement(field);
@@ -2071,11 +2161,15 @@ export async function fillLaunchField(
 		const filled = await fillElementByMode(element, value, fillMode, field);
 		if (!filled) {
 			const catalogSkipMessage = catalogTagsDomFillSkipMessage(field);
+			const startupinspireTechMessage =
+				field.key === 'technology' && startupinspireStartupFormPage() ?
+					'Could not match profile technologies to StartupInspire options — open the Technology Stack dropdown and pick from their catalog, or adjust Tech stack on your OpenQuok profile.'
+				:	undefined;
 			return {
 				key: field.key,
 				label: field.label,
 				status: catalogSkipMessage ? 'skipped' : 'error',
-				message: catalogSkipMessage ?? 'Could not set value for this control.',
+				message: catalogSkipMessage ?? startupinspireTechMessage ?? 'Could not set value for this control.',
 			};
 		}
 		return { key: field.key, label: field.label, status: 'found' };

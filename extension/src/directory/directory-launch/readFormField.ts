@@ -11,6 +11,16 @@ import {
 import { formScalarMisassignedToField } from './formFieldDom.js';
 import { getSiteMediaAdapterForGalleryPreview } from './siteMedia/index.js';
 import { isGalleryProfileField, isLogoProfileField } from './siteMedia/profileMediaFields.js';
+import {
+	prepareStartupinspireLogoDomAccess,
+	prepareStartupinspireScreenshotsDomAccess,
+	prepareStartupinspireTechnologyDomAccess,
+	readStartupinspireMultiselectChipLabels,
+	resolveStartupinspireLogoReadRoot,
+	resolveStartupinspireScreenshotsReadRoot,
+	resolveStartupinspireTechnologyControl,
+	startupinspireStartupFormPage,
+} from './siteMedia/startupinspireStartupForm.js';
 
 function resolveFillMode(field: LaunchStepField): LaunchStepFieldFillMode {
 	if (field.fillMode) return field.fillMode;
@@ -506,6 +516,10 @@ export function coerceTagDisplayItems(items: readonly string[]): string[] {
 
 function readTagsValue(element: Element, field?: LaunchStepField): NormalizedFieldValue {
 	const kind: LaunchStepFieldFillMode = 'tags';
+	const primeMultiselect = readStartupinspireMultiselectChipLabels(element);
+	if (primeMultiselect.length > 0) {
+		return { kind, items: primeMultiselect, present: true };
+	}
 	const scope = field ? resolveTagsFieldRoot(field) ?? element : element;
 	const chips = readTagChipLabels(scope);
 
@@ -697,6 +711,7 @@ function collectOnPageFileLabels(element: Element, field?: LaunchStepField): str
 		if (!(img instanceof HTMLImageElement)) continue;
 		if (
 			galleryPreviewAdapter &&
+			field &&
 			!galleryPreviewAdapter.isGalleryPreviewImage(
 				img,
 				galleryPreviewAdapter.resolveGalleryReadRoot(field)
@@ -787,6 +802,40 @@ function readNormalizedFromElement(
  */
 export function readFormFieldValue(field: LaunchStepField): NormalizedFieldValue | null {
 	const fillMode = resolveFillMode(field);
+	if (startupinspireStartupFormPage()) {
+		if (fillMode === 'file' && isLogoProfileField(field)) {
+			prepareStartupinspireLogoDomAccess();
+			const root = resolveStartupinspireLogoReadRoot();
+			if (root) {
+				return readNormalizedFromElement(root, 'file', field);
+			}
+		}
+		if (fillMode === 'files' && isGalleryProfileField(field)) {
+			prepareStartupinspireScreenshotsDomAccess();
+			const root = resolveStartupinspireScreenshotsReadRoot();
+			if (root) {
+				return readNormalizedFromElement(root, 'files', field);
+			}
+		}
+	}
+	if (
+		fillMode === 'tags' &&
+		field.key === 'technology' &&
+		startupinspireStartupFormPage()
+	) {
+		prepareStartupinspireTechnologyDomAccess();
+		const multiselect =
+			resolveStartupinspireTechnologyControl() ??
+			resolveStartupinspireTechnologyControl(document, { includeOffStepPanel: true });
+		if (multiselect) {
+			const items = readStartupinspireMultiselectChipLabels(multiselect);
+			return {
+				kind: 'tags',
+				...(items.length > 0 ? { items } : {}),
+				present: items.length > 0,
+			};
+		}
+	}
 	let element = resolveFieldElement(field);
 	if (!element) return null;
 	if (fillMode === 'files' && isGalleryProfileField(field)) {

@@ -17,6 +17,8 @@
 	import DirectoryOpenLaunchSiteSafariMock from '$lib/ui/templates/device-mocks/safari/content/DirectoryOpenLaunchSiteSafariMock.svelte';
 	import DirectoryDevhuntSiteSafariMock from '$lib/ui/templates/device-mocks/safari/content/DirectoryDevhuntSiteSafariMock.svelte';
 	import DirectoryAlternativeToSiteSafariMock from '$lib/ui/templates/device-mocks/safari/content/DirectoryAlternativeToSiteSafariMock.svelte';
+	import DirectoryStartupInspireSiteSafariMock from '$lib/ui/templates/device-mocks/safari/content/DirectoryStartupInspireSiteSafariMock.svelte';
+	import DirectoryTrustpilotSiteSafariMock from '$lib/ui/templates/device-mocks/safari/content/DirectoryTrustpilotSiteSafariMock.svelte';
 	import DirectoryIndieHubSiteSafariMock from '$lib/ui/templates/device-mocks/safari/content/DirectoryIndieHubSiteSafariMock.svelte';
 	import DirectoryNickLaunchesSiteSafariMock from '$lib/ui/templates/device-mocks/safari/content/DirectoryNickLaunchesSiteSafariMock.svelte';
 	import DirectoryFazierSiteSafariMock from '$lib/ui/templates/device-mocks/safari/content/DirectoryFazierSiteSafariMock.svelte';
@@ -70,6 +72,10 @@
 	<DirectoryIndieHubSiteSafariMock />
 {:else if content === 'directory-site-alternativeto'}
 	<DirectoryAlternativeToSiteSafariMock />
+{:else if content === 'directory-site-startupinspire'}
+	<DirectoryStartupInspireSiteSafariMock />
+{:else if content === 'directory-site-trustpilot'}
+	<DirectoryTrustpilotSiteSafariMock />
 {:else if content === 'external-site-placeholder'}
 	<ExternalSitePlaceholderSafariMock />
 {:else if content === 'openclaw-docs-overview'}

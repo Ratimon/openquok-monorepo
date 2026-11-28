@@ -4,6 +4,23 @@ export function delay(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/** PrimeNG / icon nodes may not expose `.click`; fall back to a bubbling mouse event. */
+export function safeDomClick(target: Element): void {
+	const el = target as HTMLElement & { click?: () => void };
+	if (typeof el.click === 'function') {
+		el.click();
+		return;
+	}
+	const host = target.closest('button, [role="button"], .p-multiselect-chip-item');
+	if (host instanceof HTMLElement && typeof host.click === 'function') {
+		host.click();
+		return;
+	}
+	target.dispatchEvent(
+		new MouseEvent('click', { bubbles: true, cancelable: true, composed: true })
+	);
+}
+
 export function setNativeInputValue(element: HTMLInputElement | HTMLTextAreaElement, value: string): void {
 	const proto =
 		element instanceof HTMLTextAreaElement

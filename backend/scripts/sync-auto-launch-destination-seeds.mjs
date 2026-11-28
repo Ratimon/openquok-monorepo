@@ -337,9 +337,10 @@ function extractLegacyCompositeDestinationBlock(fileContent) {
 
 /**
  * @param {import('openquok-common').AutoLaunchDestinationSeedRow[]} rows
- * @param {Record<string, { baseProviderSlug: string; readyUrlHint: string }>} pricingDerived
+ * @param {Record<string, { baseProviderSlug: string; readyUrlHint: string; startUrlPathSuffix?: string }>} pricingDerived
+ * @param {(slug: string, startUrl: string, meta: { baseProviderSlug: string; readyUrlHint: string; startUrlPathSuffix?: string }) => void} validateStartUrl
  */
-function validatePricingStartUrlDerived(rows, pricingDerived) {
+function validatePricingStartUrlDerived(rows, pricingDerived, validateStartUrl) {
 	const bySlug = new Map(rows.map((row) => [row.providerSlug, row]));
 	for (const [slug, meta] of Object.entries(pricingDerived)) {
 		const variant = bySlug.get(slug);
@@ -347,18 +348,7 @@ function validatePricingStartUrlDerived(rows, pricingDerived) {
 		if (!variant || !base) {
 			throw new Error(`pricing destination ${slug} missing row or base ${meta.baseProviderSlug}`);
 		}
-		if (meta.readyUrlHint === "pricing") {
-			const pricingPatterns = ["/pricing", "/pricing/"];
-			if (!pricingPatterns.some((suffix) => variant.startUrl.endsWith(suffix))) {
-				throw new Error(
-					`${slug} startUrl must point at pricing (derived from ${meta.baseProviderSlug})`
-				);
-			}
-		} else if (!variant.startUrl.includes(meta.readyUrlHint)) {
-			throw new Error(
-				`${slug} startUrl must include queue landing path "${meta.readyUrlHint}" (derived from ${meta.baseProviderSlug})`
-			);
-		}
+		validateStartUrl(slug, variant.startUrl, meta);
 	}
 }
 
@@ -424,6 +414,7 @@ async function loadManifest() {
 	} = await import(commonDistSyncMetadata);
 	const {
 		validateIndependentExtensionFixtureSlugs,
+		validatePricingQueueDestinationStartUrl,
 		validatePricingQueueExtensionFixtures,
 	} = await import(commonDistExtensionDerivation);
 
@@ -447,7 +438,8 @@ async function loadManifest() {
 	);
 	validatePricingStartUrlDerived(
 		AUTO_LAUNCH_DESTINATION_SEED_ROWS,
-		AUTO_LAUNCH_PRICING_QUEUE_VARIANT_DERIVED
+		AUTO_LAUNCH_PRICING_QUEUE_VARIANT_DERIVED,
+		validatePricingQueueDestinationStartUrl
 	);
 
 	return {

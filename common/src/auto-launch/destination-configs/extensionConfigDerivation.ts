@@ -2,20 +2,31 @@ import type { AutoLaunchExtensionConfig } from '../../browser-extension/pageAssi
 
 /** How a provider slug’s extension fixture relates to another shipped slug. */
 export type ExtensionConfigDerivation =
-	| { kind: 'pricing-queue'; baseProviderSlug: string; /** Defaults to `pricing`. */ readyUrlHint?: string }
+	| {
+			kind: 'pricing-queue';
+			baseProviderSlug: string;
+			/** Defaults to `pricing`. */
+			readyUrlHint?: string;
+			/**
+			 * Manifest `start_url` path suffix when `readyUrlHint` is `pricing` (default `/pricing`).
+			 * Use when the free tier opens elsewhere while ready detection still keys off pricing.
+			 */
+			startUrlPathSuffix?: string;
+	  }
 	| { kind: 'independent' };
 
 export type ExtensionConfigDerivationBySlug = Record<string, ExtensionConfigDerivation>;
 
 export function isPricingQueueDerivation(
 	entry: ExtensionConfigDerivation
-): entry is { kind: 'pricing-queue'; baseProviderSlug: string } {
+): entry is Extract<ExtensionConfigDerivation, { kind: 'pricing-queue' }> {
 	return entry.kind === 'pricing-queue';
 }
 
 export type PricingQueueVariantMeta = {
 	baseProviderSlug: string;
 	readyUrlHint: string;
+	startUrlPathSuffix?: string;
 };
 
 export function pricingQueueDerivations(
@@ -27,10 +38,45 @@ export function pricingQueueDerivations(
 			out[slug] = {
 				baseProviderSlug: entry.baseProviderSlug,
 				readyUrlHint: entry.readyUrlHint ?? 'pricing',
+				...(entry.startUrlPathSuffix !== undefined
+					? { startUrlPathSuffix: entry.startUrlPathSuffix }
+					: {}),
 			};
 		}
 	}
 	return out;
+}
+
+function pricingQueueStartUrlSuffixes(meta: PricingQueueVariantMeta): string[] {
+	const path =
+		meta.readyUrlHint === 'pricing' ? (meta.startUrlPathSuffix ?? '/pricing') : meta.readyUrlHint;
+	const normalized = path.startsWith('/') ? path : `/${path}`;
+	return normalized.endsWith('/')
+		? [normalized, normalized.slice(0, -1)]
+		: [normalized, `${normalized}/`];
+}
+
+/** Manifest rows: pricing-queue variants must use the derived landing `start_url`. */
+export function validatePricingQueueDestinationStartUrl(
+	slug: string,
+	startUrl: string,
+	meta: PricingQueueVariantMeta
+): void {
+	if (meta.readyUrlHint === 'pricing') {
+		const suffixes = pricingQueueStartUrlSuffixes(meta);
+		if (!suffixes.some((suffix) => startUrl.endsWith(suffix))) {
+			const expected = meta.startUrlPathSuffix ?? '/pricing';
+			throw new Error(
+				`${slug} startUrl must point at ${expected} (pricing-queue from ${meta.baseProviderSlug})`
+			);
+		}
+		return;
+	}
+	if (!startUrl.includes(meta.readyUrlHint)) {
+		throw new Error(
+			`${slug} startUrl must include queue landing path "${meta.readyUrlHint}" (derived from ${meta.baseProviderSlug})`
+		);
+	}
 }
 
 /** Sync scripts: pricing-queue variants must spread base + derived `readyUrlHint`. */

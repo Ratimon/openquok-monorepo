@@ -1,18 +1,15 @@
 {
-  "compilerOptions": {
-    "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "declaration": true,
-    "declarationMap": true,
-    "outDir": "dist",
-    "rootDir": "src",
-    "strict": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "types": ["node"],
-    "typeRoots": ["./node_modules/@types", "../node_modules/@types"]
-  },
-  "include": ["src/**/*.ts"],
-  "exclude": ["src/**/*.test.ts"]
+	"extends": "./tsconfig.build.json",
+	"compilerOptions": {
+		"noEmit": true,
+		"declaration": false,
+		"declarationMap": false,
+		"types": ["node", "jest"],
+		"typeRoots": [
+			"../backend/node_modules/@types",
+			"./node_modules/@types",
+			"../node_modules/@types"
+		]
+	},
+	"exclude": []
 }

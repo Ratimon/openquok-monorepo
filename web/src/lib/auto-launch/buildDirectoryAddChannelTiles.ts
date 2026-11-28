@@ -16,7 +16,9 @@ const BUNDLED_DIRECTORY_LOGO_SLUGS = new Set<string>([
 	'devhunt',
 	'nick-launches',
 	'indiehub',
-	'alternativeto'
+	'alternativeto',
+	'trustpilot',
+	'startupinspire'
 ]);
 
 const DIRECTORY_SITE_BRANDED_ICONS: Record<string, BrandedIconName> = {
@@ -28,7 +30,9 @@ const DIRECTORY_SITE_BRANDED_ICONS: Record<string, BrandedIconName> = {
 	devhunt: 'DevHunt',
 	'nick-launches': 'NickLaunches',
 	indiehub: 'IndieHub',
-	alternativeto: 'AlternativeTo'
+	alternativeto: 'AlternativeTo',
+	trustpilot: 'Trustpilot',
+	startupinspire: 'StartupInspire'
 };
 
 export type LinkDirectorySiteBranding = {

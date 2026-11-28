@@ -135,7 +135,7 @@ Backend API surface is usually unchanged (<Badge text="AutoLaunchRoute" variant=
 Run these **in order** after your PR merges (or on a branch-linked staging DB). Full production context: <a href="/docs/installation/production-deployment#supabase-production-migrations">Production — Supabase migrations</a>. Catalog CLI details: <a href="/docs/admin/link-directory-catalog-backfill">Catalog backfill</a>.
 
 <Callout type="note">
-<p><strong>Catalog-only vs SQL seed:</strong> If the site lives in <Badge text="link_directory_catalog_backfill.catalog.json" variant="path" /> only, run <strong>catalog backfill before</strong> the <Badge text="auto-launch/*_seed_*_destination.sql" variant="path" /> module — destination INSERTs join <Badge text="link_directory_opportunities" variant="param" /> by site and opportunity slug. If you used <Badge text="link-directory/504_*_seed_<site>.sql" variant="path" />, hub rows ship in migrations; local reset applies them automatically — production still uses backfill only when you later edit JSON copy without a migration.</p>
+<p><strong>Catalog-only vs SQL seed:</strong> On <strong>production</strong>, if the site lives in catalog JSON only, run <strong>catalog backfill before</strong> applying the <Badge text="auto-launch/*_seed_*_destination.sql" variant="path" /> module so destination INSERTs can join <Badge text="link_directory_opportunities" variant="param" />. On <strong>local</strong> <Badge text="supabase db reset" variant="default" />, destination seeds run inside migrations first — run catalog backfill <strong>after</strong> reset; the backfill CLI then <strong>relinks</strong> <Badge text="auto_launch_destinations" variant="path" /> to hub opportunities (no second manual seed run). SQL <Badge text="link-directory/504_*_seed_<site>.sql" variant="path" /> sites get hub rows from migrations automatically.</p>
 </Callout>
 
 ### Local (after `supabase db reset` or fresh clone)
@@ -216,7 +216,7 @@ Hub/API cache may lag a few minutes after catalog backfill when caching is enabl
 | --- | --- | --- |
 | <Badge text="pnpm sync:auto-launch-configs" variant="default" /> | <Badge text="502_*_extension_configs.sql" variant="path" /> (UPDATE <Badge text="extension_config" variant="param" />) | Fixture step JSON changed |
 | <Badge text="pnpm sync:auto-launch-destinations" variant="default" /> | <Badge text="503" variant="path" />–<Badge text="507+" variant="path" /> INSERT modules | <Badge text="destinationSeeds.ts" variant="path" /> or embedded config on INSERT changed |
-| <Badge text="pnpm backend:db:backfill-link-directory-catalog" variant="default" /> | Hub <Badge text="link_directory_*" variant="param" /> rows from JSON | Local after reset; catalog-only sites |
+| <Badge text="pnpm backend:db:backfill-link-directory-catalog" variant="default" /> | Hub <Badge text="link_directory_*" variant="param" /> rows from JSON; relinks <Badge text="auto_launch_destinations" variant="path" /> | Local after reset; catalog-only sites |
 | <Badge text="pnpm backend:db:backfill-link-directory-catalog:prod" variant="default" /> | Same against production | **Before** destination SQL when opportunities must exist |
 | <Badge text="pnpm sync:auto-launch-*:check" variant="default" /> | CI / pre-PR | Ensures SQL matches TS |
 

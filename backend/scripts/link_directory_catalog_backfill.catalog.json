@@ -3391,6 +3391,194 @@
 					"auto_launch_provider_slug": "peerpush-standard-launch"
 				}
 			]
+		},
+		"trustpilot": {
+			"site": {
+				"id": "d5f7d000-0010-4000-a000-000000000013",
+				"slug": "trustpilot",
+				"title": "Trustpilot",
+				"site_url": "https://www.trustpilot.com",
+				"logo_url": "https://www.openquok.com/icons/link-directory/trustpilot.svg",
+				"short_description": "Review site with a free Business company profile. OpenQuok autofills company settings. You verify domain and business email on Trustpilot.",
+				"long_description": "<a href=\"https://www.trustpilot.com\">Trustpilot</a> lists companies at trustpilot.com/review/your-domain. Claim your profile in <a href=\"https://businessapp.b2b.trustpilot.com/company-settings/\">company settings</a> after you sign in. Website links on public profiles are usually nofollow. You need a business email on your company domain.",
+				"domain_rating": 94,
+				"monthly_visits": 95000000,
+				"metrics_source": "editor_estimate",
+				"category_slug": "social-platforms",
+				"tag_slugs": [
+					"high-dr"
+				],
+				"is_openquok_auth_supported": false,
+				"openquok_channel_slug": null,
+				"is_admin_published": true,
+				"sort_order": 0
+			},
+			"opportunities": [
+				{
+					"id": "d5f7d000-0020-4000-a000-000000000051",
+					"slug": "company-profile",
+					"title": "Company profile",
+					"opportunity_type_slug": "profile_link",
+					"effort": "medium",
+					"approval_mode": "manual_review",
+					"approval_time_hint": "After domain and business-email verification",
+					"dofollow": "nofollow",
+					"cost_tier": "free",
+					"cost_note": "Free company profile. Paid Trustpilot plans are separate.",
+					"description": "Claim your company in <a href=\"https://businessapp.b2b.trustpilot.com/company-settings/\">Trustpilot Business company settings</a>. OpenQuok fills name, domain, description, and logo. Contact info, publish, and verification stay manual. Website links are usually nofollow.",
+					"steps": [
+						{
+							"order": 1,
+							"title": "Prepare business email",
+							"body": "Use email on your company domain (for example hello@yourdomain.com). Personal inboxes often fail verification."
+						},
+						{
+							"order": 2,
+							"title": "Sign in to Trustpilot Business",
+							"body": "Open https://businessapp.b2b.trustpilot.com/ and sign in."
+						},
+						{
+							"order": 3,
+							"title": "Autofill company settings",
+							"body": "Open company settings. Expand About your business and Company description. OpenQuok fills those sections. Enter contact info on Trustpilot if required."
+						},
+						{
+							"order": 4,
+							"title": "Verify domain and email",
+							"body": "Complete domain and business-email checks on Trustpilot."
+						},
+						{
+							"order": 5,
+							"title": "Save, publish, and check rel",
+							"body": "Save and publish on Trustpilot. Open your trustpilot.com/review/… page. Confirm nofollow on your website link."
+						}
+					],
+					"openquok_cta_kind": "external_doc",
+					"openquok_channel_slug": null,
+					"openquok_plug_name": null,
+					"cta_href": "https://businessapp.b2b.trustpilot.com/company-settings/",
+					"cta_label": "Open company settings",
+					"sort_order": 10,
+					"is_admin_published": true,
+					"auto_launch_enabled": true,
+					"auto_launch_provider_slug": "trustpilot-company-profile"
+				}
+			]
+		},
+		"startupinspire": {
+			"site": {
+				"id": "d5f7d000-0010-4000-a000-000000000014",
+				"slug": "startupinspire",
+				"title": "StartupInspire",
+				"site_url": "https://www.startupinspire.com",
+				"logo_url": "https://www.openquok.com/icons/link-directory/startupinspire.svg",
+				"short_description": "Startup directory with a free listing path and a €5 Starter plan for instant approval. OpenQuok autofills the dashboard startup form; checkout and publish stay on StartupInspire.",
+				"long_description": "<a href=\"https://www.startupinspire.com\">StartupInspire</a> publishes startups at /startup/your-slug with a primary website button. Compare free vs paid on <a href=\"https://www.startupinspire.com/pricing\">StartupInspire pricing</a> and read <a href=\"https://www.startupinspire.com/faq-frequently-asked-questions\">FAQ</a> for one-time Starter payment and instant approval. OpenQuok fills <a href=\"https://www.startupinspire.com/dashboard/startup/create\">create startup</a> after you sign in; plan choice, social fields, and reCAPTCHA stay manual.",
+				"domain_rating": 60,
+				"monthly_visits": 5000,
+				"metrics_source": "editor_estimate",
+				"category_slug": "launch-platforms",
+				"tag_slugs": [],
+				"is_openquok_auth_supported": false,
+				"openquok_channel_slug": null,
+				"is_admin_published": true,
+				"sort_order": 0
+			},
+			"opportunities": [
+				{
+					"id": "d5f7d000-0020-4000-a000-000000000052",
+					"slug": "free-listing",
+					"title": "Free listing",
+					"opportunity_type_slug": "product_submission",
+					"effort": "medium",
+					"approval_mode": "manual_review",
+					"approval_time_hint": "Manual review before publish",
+					"dofollow": "dofollow",
+					"cost_tier": "free",
+					"cost_note": "€0 for one startup; manual review (typically 3–7 business days); no instant approval.",
+					"description": "List one startup on StartupInspire at no cost. OpenQuok fills the dashboard startup form after you sign in. Submit on the free tier from <a href=\"https://www.startupinspire.com/pricing\">StartupInspire pricing</a>. Confirm link treatment on your live /startup/… page after publish.",
+					"steps": [
+						{
+							"order": 1,
+							"title": "Sign up or sign in",
+							"body": "Create a StartupInspire account or sign in at <a href=\"https://www.startupinspire.com/login\">StartupInspire login</a>."
+						},
+						{
+							"order": 2,
+							"title": "Open the startup form",
+							"body": "Open the <a href=\"https://www.startupinspire.com/dashboard/startup/create\">create startup</a> form, or your edit URL for an existing draft."
+						},
+						{
+							"order": 3,
+							"title": "Autofill and submit free tier",
+							"body": "Use OpenQuok to fill name, headline, description, website, logo, and category or technology fields. Complete social links and reCAPTCHA on StartupInspire. Submit for free-tier review."
+						},
+						{
+							"order": 4,
+							"title": "Verify live page and rel",
+							"body": "When StartupInspire publishes your listing, open your live <a href=\"https://www.startupinspire.com/startup/\">startup page</a>. Confirm the primary website button has no nofollow. Save your live listing URL."
+						}
+					],
+					"openquok_cta_kind": "external_doc",
+					"openquok_channel_slug": null,
+					"openquok_plug_name": null,
+					"cta_href": "https://www.startupinspire.com/pricing",
+					"cta_label": "StartupInspire pricing",
+					"sort_order": 10,
+					"is_admin_published": true,
+					"auto_launch_enabled": true,
+					"auto_launch_provider_slug": "startupinspire-free-listing"
+				},
+				{
+					"id": "d5f7d000-0020-4000-a000-000000000053",
+					"slug": "starter-launch",
+					"title": "Starter launch",
+					"opportunity_type_slug": "product_submission",
+					"effort": "medium",
+					"approval_mode": "instant",
+					"approval_time_hint": "Instant approval after Starter checkout",
+					"dofollow": "dofollow",
+					"cost_tier": "paid",
+					"cost_note": "€5 one-time (Starter); instant approval; confirm rel on your live /startup/… page after publish.",
+					"description": "Pay €5 for Starter on StartupInspire for instant approval and homepage visibility. OpenQuok fills <a href=\"https://www.startupinspire.com/dashboard/startup/create\">create startup</a> first; Starter checkout and publish stay on StartupInspire. Paid Starter does not change website link rel vs free on current profile pages — verify after publish.",
+					"steps": [
+						{
+							"order": 1,
+							"title": "Compare plans",
+							"body": "Compare free listing vs Starter (€5, instant approval) on <a href=\"https://www.startupinspire.com/pricing\">StartupInspire pricing</a> and in the <a href=\"https://www.startupinspire.com/faq-frequently-asked-questions\">FAQ</a>."
+						},
+						{
+							"order": 2,
+							"title": "Sign up or sign in",
+							"body": "Create a StartupInspire account or sign in at <a href=\"https://www.startupinspire.com/login\">StartupInspire login</a>, then open the <a href=\"https://www.startupinspire.com/dashboard/startup/create\">create startup</a> form."
+						},
+						{
+							"order": 3,
+							"title": "Autofill with OpenQuok",
+							"body": "Use OpenQuok to complete core startup fields. Finish any remaining social or compliance fields on StartupInspire."
+						},
+						{
+							"order": 4,
+							"title": "Pay Starter",
+							"body": "Complete the €5 Starter one-time payment on StartupInspire for instant approval."
+						},
+						{
+							"order": 5,
+							"title": "Verify live page",
+							"body": "Open your live <a href=\"https://www.startupinspire.com/startup/\">startup page</a>. Confirm the website CTA works and has no nofollow. Save your live listing URL."
+						}
+					],
+					"openquok_cta_kind": "external_doc",
+					"openquok_channel_slug": null,
+					"openquok_plug_name": null,
+					"cta_href": "https://www.startupinspire.com/dashboard/startup/create",
+					"cta_label": "Create startup on StartupInspire",
+					"sort_order": 15,
+					"is_admin_published": true,
+					"auto_launch_enabled": true,
+					"auto_launch_provider_slug": "startupinspire-paid-listing"
+				}
+			]
 		}
 	}
 }

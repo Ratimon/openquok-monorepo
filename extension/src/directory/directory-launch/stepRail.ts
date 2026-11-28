@@ -113,6 +113,8 @@ export type StepRailViewState = {
 	readyUrlHint?: string;
 	fillDisabled?: boolean;
 	fillGateMessage?: string;
+	/** Shown after a blocked fill attempt (e.g. collapsed Trustpilot accordion). */
+	fillActionMessage?: string;
 	profileSourceOptions?: DirectoryProfileSourceOption[];
 	activeProfileSourceId?: string;
 	fillProgress?: StepRailFillProgress | null;
@@ -847,6 +849,7 @@ export class DirectoryLaunchStepRail {
 			}
 			.disclaimer { color: #64748b; font-size: 10px; }
 			.gate-hint { color: #94a3b8; font-size: 10px; margin: 0; }
+			.fill-action-hint { color: #fbbf24; font-size: 10px; margin: 6px 0 0; line-height: 1.35; }
 			.panel.panel--revealed {
 				box-shadow: 0 0 0 2px #38bdf8, 0 12px 40px rgba(0,0,0,.35);
 			}
@@ -994,6 +997,13 @@ export class DirectoryLaunchStepRail {
 			gateHint.textContent = state.fillGateMessage;
 			actionsTop.append(gateHint);
 		}
+		if (state.fillActionMessage?.trim()) {
+			const actionHint = document.createElement('p');
+			actionHint.className = 'fill-action-hint';
+			actionHint.setAttribute('role', 'alert');
+			actionHint.textContent = state.fillActionMessage.trim();
+			actionsTop.append(actionHint);
+		}
 
 		const stepsWrap = document.createElement('div');
 		stepsWrap.className = 'steps';
@@ -1009,16 +1019,20 @@ export class DirectoryLaunchStepRail {
 
 		for (const step of state.steps) {
 			const results = state.fieldResultsByStep[step.id] ?? [];
-			const compareRows = resolveDisplayCompareRowsForStep(state, step);
+			const configuredFieldCount = step.fields?.length ?? 0;
+			let compareRows = resolveDisplayCompareRowsForStep(state, step);
 			if (
 				filterToVisible &&
 				compareRailActive &&
-				(step.fields?.length ?? 0) > 0 &&
+				configuredFieldCount > 0 &&
 				compareRows.length === 0
 			) {
+				compareRows = refreshCompareRowsForStep(state, step);
+			}
+			if (configuredFieldCount === 0 && compareRows.length === 0) {
 				continue;
 			}
-			const fieldCount = compareRows.length || step.fields?.length || results.length;
+			const fieldCount = compareRows.length || configuredFieldCount || results.length;
 
 			const stepEl = document.createElement('section');
 			stepEl.className = 'step';

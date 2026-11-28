@@ -428,6 +428,54 @@ describe('DirectoryLaunchStepRail compare UI', () => {
 		rail.unmount();
 	});
 
+	it('shows configured fields on the ready page when controls are not mapped yet', () => {
+		document.body.replaceChildren();
+
+		const rail = new DirectoryLaunchStepRail({
+			onFillStep: () => {},
+			onFillAll: () => {},
+			onResetPosition: () => {},
+			onFillField: () => {},
+			onApplyFormValue: () => {},
+		});
+		rail.mount();
+
+		rail.render({
+			providerName: 'StartupInspire — Starter launch',
+			productName: 'OpenQuok',
+			statusLine: 'On the right page',
+			compareRowsFilterToVisibleControls: true,
+			profileSnapshot: { name: 'OpenQuok', profile_data: {} },
+			steps: [
+				{
+					id: 'create_startup',
+					label: 'Create startup',
+					fields: [{ key: 'name', label: 'Startup name', profilePath: 'name' }],
+				},
+				{ id: 'social_and_launch', label: 'Social & launch', fields: [] },
+			],
+			fieldResultsByStep: {},
+			compareRowsByStep: {
+				create_startup: [
+					mockCompareRow({
+						fieldKey: 'name',
+						label: 'Startup name',
+						controlOnPage: false,
+						profileDisplay: 'OpenQuok',
+						formDisplay: 'Control not on page',
+					}),
+				],
+			},
+		});
+
+		const shadow = document.getElementById('openquok-directory-launch-host')?.shadowRoot;
+		expect(shadow?.textContent).toContain('Create startup');
+		expect(shadow?.textContent).toContain('Control not on page');
+		expect(shadow?.textContent).not.toContain('Social & launch');
+
+		rail.unmount();
+	});
+
 	it('renders profile compare rows in preview mode before the form is open', () => {
 		document.body.replaceChildren();
 

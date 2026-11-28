@@ -17,6 +17,8 @@ The catalog backfill applies **Build Backlinks** destination rows from a version
 - <Badge text="link_directory_opportunities" variant="path" />
 - <Badge text="link_directory_site_tags_association" variant="path" />
 
+After hub upserts, the runner also **relinks** <Badge text="auto_launch_destinations.link_directory_opportunity_id" variant="path" /> when an opportunity’s <Badge text="auto_launch_provider_slug" variant="param" /> matches a destination’s <Badge text="provider_slug" variant="param" /> (catalog-only sites after local <Badge text="supabase db reset" variant="default" />, where destination seed SQL ran before hub rows existed). You do not need to re-run destination seed SQL locally for that FK alone.
+
 New hub destinations (for example <strong>Skool</strong>) can ship in the repo catalog without a dedicated SQL seed migration. Operators run the script with the Supabase **service role** key, the same operational model as <Badge text="pnpm backend:db:promote-platform-admin" variant="default" />.
 
 **Source of truth:** <Badge text="backend/scripts/link_directory_catalog_backfill.catalog.json" variant="path" />

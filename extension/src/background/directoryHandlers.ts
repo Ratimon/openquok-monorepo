@@ -47,6 +47,7 @@ import {
 	saveAutoLaunchState,
 	type StoredAutoLaunchState,
 } from '../directory/auto-launch/sessionStorage.js';
+import { resolveDirectoryTabNavigationUrl } from './directoryTabNavigationUrl.js';
 
 function dashboardOriginFromSenderUrl(senderUrl?: string): string | null {
 	if (!senderUrl) return null;
@@ -520,12 +521,17 @@ async function startDirectoryChannelFromSidePanelInner(
 	}
 	const { tabId } = tabResolution;
 
-	const prefix = startUrlMatchPrefix(startUrl);
 	let tab = await chrome.tabs.get(tabId);
+	const navigateUrl = resolveDirectoryTabNavigationUrl(
+		providerSlugHint,
+		typeof tab.url === 'string' ? tab.url : undefined,
+		startUrl
+	);
+	const prefix = startUrlMatchPrefix(navigateUrl);
 	const urlMatchesStart =
-		typeof tab.url === 'string' && tabMatchesStartUrl(tab.url, startUrl, prefix);
+		typeof tab.url === 'string' && tabMatchesStartUrl(tab.url, navigateUrl, prefix);
 	if (!urlMatchesStart) {
-		await chrome.tabs.update(tabId, { url: startUrl });
+		await chrome.tabs.update(tabId, { url: navigateUrl });
 		tab = await chrome.tabs.get(tabId);
 	}
 
@@ -593,17 +599,30 @@ async function openDirectoryPageFromSidePanel(
 		}
 
 		if (tabId != null) {
-			await chrome.tabs.update(tabId, { url: openUrl, active: true });
-			await saveAutoLaunchState({ ...state, handoffTabId: tabId, session });
-			attachAutoLaunchStartWhenTabReady(tabId, session);
 			const tab = await chrome.tabs.get(tabId);
-			if (tab.windowId != null) {
-				await chrome.windows.update(tab.windowId, { focused: true });
+			const navigateUrl = resolveDirectoryTabNavigationUrl(
+				slug,
+				typeof tab.url === 'string' ? tab.url : undefined,
+				openUrl
+			);
+			const sessionWithUrl =
+				navigateUrl !== session.startUrl ? { ...session, startUrl: navigateUrl } : session;
+			if (typeof tab.url === 'string' && tab.url === navigateUrl) {
+				await chrome.tabs.update(tabId, { active: true });
+			} else {
+				await chrome.tabs.update(tabId, { url: navigateUrl, active: true });
+			}
+			await saveAutoLaunchState({ ...state, handoffTabId: tabId, session: sessionWithUrl });
+			attachAutoLaunchStartWhenTabReady(tabId, sessionWithUrl);
+			const focusedTab = await chrome.tabs.get(tabId);
+			if (focusedTab.windowId != null) {
+				await chrome.windows.update(focusedTab.windowId, { focused: true });
 			}
 			return { ok: true };
 		}
 
-		const tab = await chrome.tabs.create({ url: openUrl, active: true });
+		const createUrl = resolveDirectoryTabNavigationUrl(slug, undefined, openUrl);
+		const tab = await chrome.tabs.create({ url: createUrl, active: true });
 		const newTabId = tab.id;
 		if (newTabId != null) {
 			await saveAutoLaunchState({ ...state, handoffTabId: newTabId, session });
