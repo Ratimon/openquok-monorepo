@@ -18,10 +18,11 @@ Reference for **extension-assisted directory launches**: step rail, compare pane
 | `indiehub` | `indiehub-basic-launch`, `indiehub-pro-launch` | Submit wizard step 1 → `submit` | `openquok-directory-indiehub.js` |
 | `alternativeto` | `alternativeto-free-listing`, `alternativeto-priority-review`, `alternativeto-finish-listing`, `alternativeto-user-profile` | Listing → `manage-item`; profile → `user/edit` | `openquok-directory-alternativeto.js` |
 | `trustpilot` | `trustpilot-company-profile` | `businessapp.b2b.trustpilot.com/company-settings/` | `openquok-directory-trustpilot.js` |
+| `startupinspire` | `startupinspire-free-listing`, `startupinspire-paid-listing` | Free → `dashboard` (pricing in `readyUrlHint`); Paid → `dashboard/startup/create` | `openquok-directory-startupinspire.js` |
 
-**Site count for smoke:** **10** directory sites (24 provider variants total).
+**Site count for smoke:** **11** directory sites (26 provider variants total).
 
-Picker groups: TinyLaunch, Open Launch, Fazier, DevHunt, Nick Launches, IndieHub, and AlternativeTo group variants under one Add Channel tile per site (`picker_group_key` = site slug).
+Picker groups: TinyLaunch, Open Launch, StartupInspire, Fazier, DevHunt, Nick Launches, IndieHub, and AlternativeTo group variants under one Add Channel tile per site (`picker_group_key` = site slug).
 
 ---
 
@@ -280,11 +281,33 @@ Proof: `successPathRegex` `trustpilot.com/review/`; listing URL `a[href*='trustp
 
 ---
 
+## StartupInspire field mapping
+
+Module: `common/src/auto-launch/destination-configs/sites/startupinspire/config.ts`
+
+| Form control (`formControlName`) | `profilePath` | `fillMode` | Notes |
+| --- | --- | --- | --- |
+| Startup name | `name` | `text` | required |
+| Headline | `tagline` | `text` | required |
+| Description | `description` | `rich_html` | required |
+| Website URL | `website_url` | `text` | required |
+| Logo | `logo_url` | `file` | `fileInputIndex` 0; required |
+| Technology / category | `profile_data.category` | `text` | combobox or text when visible |
+| Social links, launch status, reCAPTCHA, Starter checkout, publish | — | — | **Manual** on StartupInspire |
+
+`readyUrlHint`: `dashboard/startup` for **Starter launch**; `pricing` for **free listing** (pricing-queue sync from paid provider).
+
+Login: `extension/src/directory/directory-launch/siteLogin/startupinspire.ts` → `https://www.startupinspire.com/login`; logged-in when dashboard paths or create-form fields are visible.
+
+Proof: `successPathRegex` `/startup/`; listing URL `a[href*='startupinspire.com/startup/']`. Confirm `rel` on the live website button after publish (`directory-integration/startupinspire.md`, Build backlinks catalog).
+
+---
+
 ## Manual smoke checklist
 
 Run after changing fixtures, extension manifests, or marketing tiles. Use a dev workspace with the extension loaded from `extension/dist`.
 
-### All sites (10)
+### All sites (11)
 
 - [ ] `pnpm --filter openquok-common test:unit` (includes destination config drift tests)
 - [ ] `pnpm sync:auto-launch-configs:check` and `pnpm sync:auto-launch-destinations:check`
@@ -340,9 +363,19 @@ Run after changing fixtures, extension manifests, or marketing tiles. Use a dev 
 - [ ] Logo file input resolves (native `input[type=file]` or siteMedia adapter if Upload logo hides the input)
 - [ ] Do not complete Save and publish or domain/business-email verification in automation; confirm ready hints cover manual steps and nofollow expectation
 - [ ] After publish, proof regex and listing URL selector match a live `trustpilot.com/review/` link; confirm `rel` on website link
-- [ ] `/channels/trustpilot` and `directory-integration/trustpilot.md` docs load; hub lists Trustpilot with PeerPush, Uneed, Open Launch, TinyLaunch, Fazier, DevHunt, Nick Launches, IndieHub, AlternativeTo
+- [ ] `/channels/trustpilot` and `directory-integration/trustpilot.md` docs load; hub lists Trustpilot with PeerPush, Uneed, Open Launch, TinyLaunch, Fazier, DevHunt, Nick Launches, IndieHub, AlternativeTo, StartupInspire
 - [ ] `dist/icons/link-directory/trustpilot.svg` exists after extension build
 - [ ] `pnpm --filter @openquok/browser-extension test` — `trustpilotFormSelectors.test.ts` passes
+
+### StartupInspire
+
+- [ ] Sign in on startupinspire.com; **Starter launch** handoff opens `dashboard/startup/create` with non-empty `extension_config`
+- [ ] **Free listing** handoff opens `pricing`; member continues to free tier or create form when ready
+- [ ] Step rail shows **Create startup** → **Social & launch** (empty manual step); compare lists name, headline, description, website, logo, and technology
+- [ ] Do not complete Starter checkout, reCAPTCHA, or final publish in automation; confirm ready hints cover manual steps
+- [ ] After publish, proof regex and listing URL selector match a live `startupinspire.com/startup/` link; confirm `rel` on website button
+- [ ] `/channels/startupinspire` and `directory-integration/startupinspire.md` docs load; hub lists StartupInspire with PeerPush, Uneed, Open Launch, TinyLaunch, Fazier, DevHunt, Nick Launches, IndieHub, AlternativeTo, Trustpilot
+- [ ] `dist/icons/link-directory/startupinspire.svg` exists after extension build
 
 ### AlternativeTo
 

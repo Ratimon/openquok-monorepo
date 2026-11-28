@@ -95,6 +95,16 @@ export const FEATURES_GRID_DIRECTORY_PLATFORMS: LandingSocialPlatform[] = [
 		iconHeight: '32'
 	},
 	{
+		id: 'startupinspire',
+		channelSlug: 'startupinspire',
+		icon: icons.StartupInspire.name,
+		label: 'StartupInspire',
+		containerClass: 'bg-transparent p-0',
+		iconClass: 'size-8',
+		iconWidth: '32',
+		iconHeight: '32'
+	},
+	{
 		id: 'trustpilot',
 		channelSlug: 'trustpilot',
 		icon: icons.Trustpilot.name,
@@ -122,6 +132,7 @@ export const FEATURES_GRID_DIRECTORY_ROWS: FeaturesGridRowConfig[] = [
 			'nick-launches',
 			'indiehub',
 			'alternativeto',
+			'startupinspire',
 			'trustpilot'
 		]
 	}

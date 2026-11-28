@@ -20,6 +20,7 @@ const shippedLinkDirectoryLogoSlugs = [
 	'indiehub',
 	'alternativeto',
 	'trustpilot',
+	'startupinspire',
 ];
 
 const allowedContentScripts = new Set([
@@ -33,6 +34,7 @@ const allowedContentScripts = new Set([
 	'openquok-directory-indiehub.js',
 	'openquok-directory-alternativeto.js',
 	'openquok-directory-trustpilot.js',
+	'openquok-directory-startupinspire.js',
 	'openquok-dashboard-session.js',
 	'openquok-reddit-submit.js',
 ]);

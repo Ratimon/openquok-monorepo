@@ -36,6 +36,7 @@ const shippedLinkDirectoryLogoSlugs = [
 	'indiehub',
 	'alternativeto',
 	'trustpilot',
+	'startupinspire',
 ];
 if (existsSync(linkDirectorySrc)) {
 	mkdirSync(linkDirectoryDest, { recursive: true });

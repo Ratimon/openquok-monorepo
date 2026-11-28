@@ -390,6 +390,35 @@ const TRUSTPILOT_DESTINATIONS: readonly AutoLaunchDestinationSeedRow[] = [
 	},
 ];
 
+const STARTUPINSPIRE_DESTINATIONS: readonly AutoLaunchDestinationSeedRow[] = [
+	{
+		destinationId: 'd5f7d000-0030-4000-a000-000000000026',
+		providerSlug: 'startupinspire-paid-listing',
+		siteSlug: 'startupinspire',
+		name: 'StartupInspire — Starter launch',
+		shortDescription:
+			'Paid Starter launch on StartupInspire; extension autofills the dashboard startup create form after you sign in.',
+		startUrl: 'https://www.startupinspire.com/dashboard/startup/create',
+		sortOrder: 78,
+		pickerGroupKey: 'startupinspire',
+		pickerGroupTitle: 'StartupInspire',
+		opportunitySlug: 'starter-launch',
+	},
+	{
+		destinationId: 'd5f7d000-0030-4000-a000-000000000027',
+		providerSlug: 'startupinspire-free-listing',
+		siteSlug: 'startupinspire',
+		name: 'StartupInspire — Free listing',
+		shortDescription:
+			'Free StartupInspire listing queue; extension autofills after you open the dashboard create form (use pricing when you need the free tier).',
+		startUrl: 'https://www.startupinspire.com/dashboard',
+		sortOrder: 76,
+		pickerGroupKey: 'startupinspire',
+		pickerGroupTitle: 'StartupInspire',
+		opportunitySlug: 'free-listing',
+	},
+];
+
 export const AUTO_LAUNCH_DESTINATION_SEED_MODULES: readonly AutoLaunchDestinationSeedModule[] = [
 	{
 		siteKey: 'uneed',
@@ -513,6 +542,18 @@ export const AUTO_LAUNCH_DESTINATION_SEED_MODULES: readonly AutoLaunchDestinatio
 			'-- Contact info, Save and publish, domain/business-email verification, and homepage screenshot stay manual.',
 		],
 		destinations: TRUSTPILOT_DESTINATIONS,
+	},
+	{
+		siteKey: 'startupinspire',
+		sqlFileName: '513_20261126_seed_startupinspire_destination.sql',
+		generationMode: 'full',
+		moduleDate: '20261126',
+		moduleScopeLabel: 'Seed (StartupInspire free listing + Starter launch destinations)',
+		preambleComments: [
+			'-- Joins link_directory_opportunities on site slug startupinspire (catalog backfill / listing manager).',
+			'-- Starter checkout, manual review queue, social links, reCAPTCHA, and publish stay manual after the form is filled.',
+		],
+		destinations: STARTUPINSPIRE_DESTINATIONS,
 	},
 ];
 

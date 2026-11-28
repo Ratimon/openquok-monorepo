@@ -59,6 +59,10 @@ const bundleEntries = [
 		out: 'content/directory-launch/openquok-directory-trustpilot.js',
 	},
 	{
+		input: 'src/content/directory-launch/startupinspire-host.ts',
+		out: 'content/directory-launch/openquok-directory-startupinspire.js',
+	},
+	{
 		input: 'src/content/dashboard/openquok-dashboard-session.ts',
 		out: 'content/dashboard/openquok-dashboard-session.js',
 	},

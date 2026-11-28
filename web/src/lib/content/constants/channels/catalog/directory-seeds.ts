@@ -2,6 +2,7 @@ import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/c
 
 import {
 	alternativetoDirectoryChannel,
+	startupinspireDirectoryChannel,
 	trustpilotDirectoryChannel,
 	devhuntDirectoryChannel,
 	indiehubDirectoryChannel,
@@ -25,6 +26,7 @@ export const PUBLIC_DIRECTORY_CHANNEL_LANDING_PAGES: readonly PublicChannelLandi
 		nickLaunchesDirectoryChannel,
 		indiehubDirectoryChannel,
 		alternativetoDirectoryChannel,
+		startupinspireDirectoryChannel,
 		trustpilotDirectoryChannel
 	];
 

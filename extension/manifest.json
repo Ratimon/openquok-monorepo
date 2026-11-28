@@ -45,6 +45,7 @@
     "*://indiehub.best/*",
     "*://alternativeto.net/*",
     "*://businessapp.b2b.trustpilot.com/*",
+    "*://*.startupinspire.com/*",
     "https://*.openquok.com/*",
     "http://localhost/*",
     "http://127.0.0.1/*",
@@ -100,6 +101,11 @@
     {
       "matches": ["https://businessapp.b2b.trustpilot.com/*"],
       "js": ["content/directory-launch/openquok-directory-trustpilot.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://startupinspire.com/*", "https://www.startupinspire.com/*"],
+      "js": ["content/directory-launch/openquok-directory-startupinspire.js"],
       "run_at": "document_idle"
     },
     {

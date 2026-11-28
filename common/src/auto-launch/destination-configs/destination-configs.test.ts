@@ -10,6 +10,7 @@ import {
 	AUTO_LAUNCH_DESTINATION_SEED_ROWS,
 	DIRECTORY_EXTENSION_CONFIG_FIXTURES,
 	DIRECTORY_EXTENSION_CONFIG_PROVIDER_SLUGS,
+	getDirectoryExtensionConfigFixture,
 	directoryLaunchProviders,
 } from './index.js';
 import {
@@ -19,6 +20,7 @@ import {
 import { AUTO_LAUNCH_DESTINATION_SEED_MODULES } from './destinationSeeds.js';
 import {
 	validateIndependentExtensionFixtureSlugs,
+	validatePricingQueueDestinationStartUrl,
 	validatePricingQueueExtensionFixtures,
 } from './extensionConfigDerivation.js';
 import {
@@ -94,6 +96,8 @@ describe('DIRECTORY_EXTENSION_CONFIG_FIXTURES', () => {
 				'alternativeto-finish-listing',
 				'alternativeto-user-profile',
 				'trustpilot-company-profile',
+				'startupinspire-paid-listing',
+				'startupinspire-free-listing',
 			].sort()
 		);
 	});
@@ -101,8 +105,9 @@ describe('DIRECTORY_EXTENSION_CONFIG_FIXTURES', () => {
 	it.each(DIRECTORY_EXTENSION_CONFIG_PROVIDER_SLUGS)(
 		'%s fixture satisfies AutoLaunchExtensionConfig shape',
 		(providerSlug) => {
-			const fixture = DIRECTORY_EXTENSION_CONFIG_FIXTURES[providerSlug];
-			assertFixtureShape(fixture);
+			const fixture = getDirectoryExtensionConfigFixture(providerSlug);
+			expect(fixture).toBeDefined();
+			assertFixtureShape(fixture as AutoLaunchExtensionConfig);
 		}
 	);
 
@@ -167,12 +172,18 @@ describe('DIRECTORY_EXTENSION_CONFIG_FIXTURES', () => {
 				'common/dist missing. Run `pnpm common:build` before `pnpm --filter openquok-common test:unit`.'
 			);
 		}
-		expect(() => {
+		try {
 			execFileSync(process.execPath, [SYNC_CONFIGS_SCRIPT, '--check'], {
 				cwd: REPO_ROOT,
 				encoding: 'utf8',
+				stdio: ['ignore', 'pipe', 'pipe'],
 			});
-		}).not.toThrow();
+		} catch (error) {
+			const message = error instanceof Error ? error.message : String(error);
+			throw new Error(
+				`extension_configs SQL out of date. From repo root run: pnpm sync:auto-launch-configs\n${message}`
+			);
+		}
 	});
 });
 
@@ -198,12 +209,9 @@ describe('AUTO_LAUNCH_DESTINATION_SEED_ROWS', () => {
 		for (const [slug, meta] of Object.entries(AUTO_LAUNCH_PRICING_QUEUE_VARIANT_DERIVED)) {
 			const variant = bySlug.get(slug);
 			const base = bySlug.get(meta.baseProviderSlug);
-			if (meta.readyUrlHint === 'pricing') {
-				expect(variant?.startUrl).toMatch(/\/pricing\/?$/);
-			} else {
-				expect(variant?.startUrl).toContain(meta.readyUrlHint);
-			}
+			expect(variant?.startUrl).toEqual(expect.any(String));
 			expect(base).toBeDefined();
+			validatePricingQueueDestinationStartUrl(slug, variant!.startUrl, meta);
 		}
 	});
 
@@ -215,7 +223,7 @@ describe('AUTO_LAUNCH_DESTINATION_SEED_ROWS', () => {
 		}
 	});
 
-	it('aggregated core_structure applies auto-launch 502 before 503–512', () => {
+	it('aggregated core_structure applies auto-launch 502 before 503–513', () => {
 		const migrationsDir = join(REPO_ROOT, 'backend/supabase/migrations');
 		const coreFiles = readdirSync(migrationsDir)
 			.filter((name) => name.endsWith('_core_structure.sql'))
@@ -226,7 +234,7 @@ describe('AUTO_LAUNCH_DESTINATION_SEED_ROWS', () => {
 		const autoLaunchFiles = [...sql.matchAll(/-- Module: auto-launch, File: (5\d{2}_[^\n]+)/g)]
 			.map((match) => match[1])
 			.filter(
-				(fileName) => /^50[2-9]_/.test(fileName ?? '') || /^51[0-2]_/.test(fileName ?? '')
+				(fileName) => /^50[2-9]_/.test(fileName ?? '') || /^51[0-3]_/.test(fileName ?? '')
 			);
 		expect(autoLaunchFiles).toEqual([
 			'502_20261111_extension_configs.sql',
@@ -240,21 +248,28 @@ describe('AUTO_LAUNCH_DESTINATION_SEED_ROWS', () => {
 			'510_20261125_seed_indiehub_destination.sql',
 			'511_20261125_seed_alternativeto_destination.sql',
 			'512_20261126_seed_trustpilot_destination.sql',
+			'513_20261126_seed_startupinspire_destination.sql',
 		]);
 	});
 
-	it('generated 502–512 destination SQL matches manifest (sync --check)', () => {
+	it('generated 502–513 destination SQL matches manifest (sync --check)', () => {
 		if (!existsSync(COMMON_DIST_INDEX)) {
 			throw new Error(
 				'common/dist missing. Run `pnpm common:build` before `pnpm --filter openquok-common test:unit`.'
 			);
 		}
-		expect(() => {
+		try {
 			execFileSync(process.execPath, [SYNC_DESTINATIONS_SCRIPT, '--check'], {
 				cwd: REPO_ROOT,
 				encoding: 'utf8',
+				stdio: ['ignore', 'pipe', 'pipe'],
 			});
-		}).not.toThrow();
+		} catch (error) {
+			const message = error instanceof Error ? error.message : String(error);
+			throw new Error(
+				`destination seed SQL out of date. From repo root run: pnpm sync:auto-launch-destinations (then aggregate migrations if CI checks core_structure)\n${message}`
+			);
+		}
 	});
 });
 
@@ -349,6 +364,25 @@ describe('Nick Launches extension fixtures', () => {
 		);
 		expect(DIRECTORY_EXTENSION_CONFIG_FIXTURES['nick-launches-maker-profile']?.readyUrlHint).toBe(
 			'profile'
+		);
+	});
+});
+
+describe('StartupInspire site key', () => {
+	it('maps provider slugs and the host to startupinspire', () => {
+		expect(directorySiteKeyFromProviderSlug('startupinspire-free-listing')).toBe('startupinspire');
+		expect(directorySiteKeyFromProviderSlug('startupinspire-paid-listing')).toBe('startupinspire');
+		expect(getDirectoryLaunchSiteKeyFromLocation('startupinspire.com')).toBe('startupinspire');
+	});
+});
+
+describe('StartupInspire extension fixtures', () => {
+	it('uses pricing-queue readyUrlHint for the free listing variant', () => {
+		expect(DIRECTORY_EXTENSION_CONFIG_FIXTURES['startupinspire-free-listing']?.readyUrlHint).toBe(
+			'pricing'
+		);
+		expect(DIRECTORY_EXTENSION_CONFIG_FIXTURES['startupinspire-paid-listing']?.readyUrlHint).toBe(
+			'dashboard/startup'
 		);
 	});
 });

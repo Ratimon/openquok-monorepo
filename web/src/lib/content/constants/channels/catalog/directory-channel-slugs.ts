@@ -9,6 +9,7 @@ export const PUBLIC_DIRECTORY_CHANNEL_SLUGS = [
 	'nick-launches',
 	'indiehub',
 	'alternativeto',
+	'startupinspire',
 	'trustpilot'
 ] as const;
 

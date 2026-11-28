@@ -103,6 +103,7 @@ export type BrandedIconName =
     | "Socialync"
     | "SproutSocial"
     | "Submitator"
+    | "StartupInspire"
     | "Stripe"
     | "Telegram"
     | "ThinkRail"
@@ -870,6 +871,13 @@ export const brandedIcons = {
         box: 32,
         fill: true,
         svg: `<image href="/icons/submitator.png" width="32" height="32"/>`
+    },
+    /** StartupInspire product mark (from startupinspire.com). StartupInspire is a trademark of its respective owner. */
+    StartupInspire: {
+        name: "StartupInspire",
+        box: 100,
+        fill: true,
+        svg: `<image href="/icons/link-directory/startupinspire.svg" width="100" height="100"/>`
     },
     Stripe: {
         name: "Stripe",

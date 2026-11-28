@@ -17,6 +17,7 @@ import {
 	sendRuntimeMessage,
 } from '../../shared/extensionRuntime.js';
 import {
+	buildDirectoryFillFailureMessage,
 	buildFillGateMessage,
 	DIRECTORY_GATE_CHANGE_EVENT,
 	isDirectoryFillAllowed,
@@ -55,6 +56,7 @@ import {
 	trustpilotFillAllBlocker,
 	trustpilotStepFillBlocker,
 } from './siteMedia/trustpilotCompanySettings.js';
+import { startupinspireStartupFormPage } from './siteMedia/startupinspireStartupForm.js';
 import { resolveProfileValue } from './profileValues.js';
 import {
 	buildStatusLine,
@@ -470,6 +472,7 @@ export function registerDirectoryLaunchProvider(providerSlug: string): void {
 		const steps = config.steps ?? [];
 		const gate = fillGateBlocked();
 		const onReadyPage = isReadyPage(config);
+		const startupinspireWizard = directorySiteKey === 'startupinspire' && startupinspireStartupFormPage();
 		let statusLine = buildStatusLine(config, onReadyPage);
 		const trustpilotAccordionHint =
 			directorySiteKey === 'trustpilot' ? buildTrustpilotAccordionStatusHint() : null;
@@ -499,7 +502,7 @@ export function registerDirectoryLaunchProvider(providerSlug: string): void {
 			profileSourceOptions,
 			activeProfileSourceId,
 			fillProgress,
-			compareRowsFilterToVisibleControls: onReadyPage,
+			compareRowsFilterToVisibleControls: onReadyPage && !startupinspireWizard,
 		});
 	}
 
@@ -618,7 +621,8 @@ export function registerDirectoryLaunchProvider(providerSlug: string): void {
 								valuesOverride: fillableTagListForField(
 									activeSession.profileSnapshot,
 									field,
-									fillOptions
+									fillOptions,
+									mainProfileSnapshotForCompare
 								),
 							}
 						: fillOptions;
@@ -630,9 +634,7 @@ export function registerDirectoryLaunchProvider(providerSlug: string): void {
 			}
 			return {
 				ok: false,
-				error:
-					result.reason?.trim() ||
-					`Could not fill ${field.label}. Open the matching Trustpilot section and try again.`,
+				error: buildDirectoryFillFailureMessage(result, directorySiteKey ?? undefined),
 			};
 		} finally {
 			setFillProgress(null);

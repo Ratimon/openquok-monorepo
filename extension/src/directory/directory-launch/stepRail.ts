@@ -1019,16 +1019,20 @@ export class DirectoryLaunchStepRail {
 
 		for (const step of state.steps) {
 			const results = state.fieldResultsByStep[step.id] ?? [];
-			const compareRows = resolveDisplayCompareRowsForStep(state, step);
+			const configuredFieldCount = step.fields?.length ?? 0;
+			let compareRows = resolveDisplayCompareRowsForStep(state, step);
 			if (
 				filterToVisible &&
 				compareRailActive &&
-				(step.fields?.length ?? 0) > 0 &&
+				configuredFieldCount > 0 &&
 				compareRows.length === 0
 			) {
+				compareRows = refreshCompareRowsForStep(state, step);
+			}
+			if (configuredFieldCount === 0 && compareRows.length === 0) {
 				continue;
 			}
-			const fieldCount = compareRows.length || step.fields?.length || results.length;
+			const fieldCount = compareRows.length || configuredFieldCount || results.length;
 
 			const stepEl = document.createElement('section');
 			stepEl.className = 'step';

@@ -9,6 +9,7 @@ import { INDIEHUB_LOGIN_URL } from './indiehub.js';
 import { NICK_LAUNCHES_LOGIN_URL } from './nick-launches.js';
 import { OPEN_LAUNCH_LOGIN_URL } from './open-launch.js';
 import { PEERPUSH_LOGIN_URL } from './peerpush.js';
+import { STARTUPINSPIRE_LOGIN_URL } from './startupinspire.js';
 import { TINYLAUNCH_LOGIN_URL } from './tinylaunch.js';
 import { UNEED_LOGIN_URL } from './uneed.js';
 
@@ -90,6 +91,22 @@ describe('detectDirectorySiteLogin', () => {
 		expect(detectDirectorySiteLogin('alternativeto')).toEqual({
 			loggedIn: false,
 			loginUrl: ALTERNATIVETO_LOGIN_URL
+		});
+	});
+
+	it('dispatches to the startupinspire adapter', () => {
+		Object.defineProperty(document, 'defaultView', {
+			value: { location: { pathname: '/login' } },
+			configurable: true,
+		});
+		document.body.innerHTML = `
+			<h1>Log in</h1>
+			<input type="email" />
+			<input type="password" />
+		`;
+		expect(detectDirectorySiteLogin('startupinspire')).toEqual({
+			loggedIn: false,
+			loginUrl: STARTUPINSPIRE_LOGIN_URL,
 		});
 	});
 

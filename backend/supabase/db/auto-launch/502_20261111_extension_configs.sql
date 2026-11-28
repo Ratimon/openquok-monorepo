@@ -2659,6 +2659,232 @@ UPDATE public.auto_launch_destinations
 SET extension_config = $json${
     "version": 1,
     "startUrlPatterns": [
+        "https://startupinspire.com/*",
+        "https://www.startupinspire.com/*"
+    ],
+    "readyUrlHint": "pricing",
+    "readyStatusHint": "Open StartupInspire pricing, sign in if needed, then continue to the free tier or Starter checkout before the create form. Sign in on StartupInspire, then open the startup create or edit form before Fill. Starter checkout, free-tier manual review, launch status, social links (LinkedIn, X, Product Hunt, …), reCAPTCHA, and final publish stay manual on StartupInspire.",
+    "steps": [
+        {
+            "id": "create_startup",
+            "label": "Create startup",
+            "fields": [
+                {
+                    "key": "name",
+                    "label": "Startup name",
+                    "labelAliases": [
+                        "Name"
+                    ],
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[formcontrolname='startup_name'], input[name='startup_name'], input[aria-label*='startup name' i], input[placeholder*='startup name' i]"
+                },
+                {
+                    "key": "tagline",
+                    "label": "Headline",
+                    "labelAliases": [
+                        "Tagline",
+                        "Startup headline"
+                    ],
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[formcontrolname='startup_headline'], input[name='startup_headline'], input[aria-label*='headline' i], input[placeholder*='headline' i]"
+                },
+                {
+                    "key": "description",
+                    "label": "Description",
+                    "profilePath": "description",
+                    "fillMode": "rich_html",
+                    "required": true,
+                    "selectorHint": "textarea[formcontrolname='startup_description'], textarea[name='startup_description'], [contenteditable='true'], .ProseMirror, .tiptap, textarea[aria-label*='description' i]"
+                },
+                {
+                    "key": "website",
+                    "label": "Website URL",
+                    "labelAliases": [
+                        "Website",
+                        "Startup URL"
+                    ],
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[formcontrolname='startup_url'], input[name='startup_url'], input[type='url'], input[aria-label*='website' i], input[placeholder*='website' i]"
+                },
+                {
+                    "key": "technology",
+                    "label": "Technology Stack",
+                    "labelAliases": [
+                        "Technology",
+                        "Tech stack"
+                    ],
+                    "profilePath": "profile_data.tech_stack",
+                    "fillMode": "tags",
+                    "maxItems": 10,
+                    "profileSourcePaths": [
+                        "profile_data.tech_stack"
+                    ],
+                    "selectorHint": "p-multiselect[formcontrolname='startup_technology'], [formcontrolname='startup_technology'].p-multiselect"
+                },
+                {
+                    "key": "logo",
+                    "label": "Logo",
+                    "labelAliases": [
+                        "Startup logo",
+                        "Upload Your Logo",
+                        "Replace Logo"
+                    ],
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "required": true,
+                    "selectorHint": "app-upload-single input[type=\"file\"], input[type=\"file\"][accept*=\"image\"]"
+                },
+                {
+                    "key": "gallery",
+                    "label": "Screenshots",
+                    "labelAliases": [
+                        "Add Screenshots",
+                        "Product screenshots"
+                    ],
+                    "profilePath": "profile_data.gallery_urls",
+                    "fillMode": "files",
+                    "maxItems": 5,
+                    "selectorHint": "app-upload input[type=\"file\"], .upload-trigger input[type=\"file\"][multiple]"
+                }
+            ]
+        },
+        {
+            "id": "social_and_launch",
+            "label": "Social & launch",
+            "fields": []
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/startup/",
+        "listingUrlSelector": "a[href*='startupinspire.com/startup/']"
+    }
+}$json$::jsonb
+WHERE provider_slug = 'startupinspire-free-listing';
+
+UPDATE public.auto_launch_destinations
+SET extension_config = $json${
+    "version": 1,
+    "startUrlPatterns": [
+        "https://startupinspire.com/*",
+        "https://www.startupinspire.com/*"
+    ],
+    "readyUrlHint": "dashboard/startup",
+    "readyStatusHint": "Sign in on StartupInspire, then open the startup create or edit form before Fill. OpenQuok fills startup name, headline, description, website URL, logo, and technology/category when the form is visible. Starter checkout, free-tier manual review, launch status, social links (LinkedIn, X, Product Hunt, …), reCAPTCHA, and final publish stay manual on StartupInspire. After publish, confirm the website button on your public `/startup/{slug}` page has the link treatment you expect.",
+    "steps": [
+        {
+            "id": "create_startup",
+            "label": "Create startup",
+            "fields": [
+                {
+                    "key": "name",
+                    "label": "Startup name",
+                    "labelAliases": [
+                        "Name"
+                    ],
+                    "profilePath": "name",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[formcontrolname='startup_name'], input[name='startup_name'], input[aria-label*='startup name' i], input[placeholder*='startup name' i]"
+                },
+                {
+                    "key": "tagline",
+                    "label": "Headline",
+                    "labelAliases": [
+                        "Tagline",
+                        "Startup headline"
+                    ],
+                    "profilePath": "tagline",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[formcontrolname='startup_headline'], input[name='startup_headline'], input[aria-label*='headline' i], input[placeholder*='headline' i]"
+                },
+                {
+                    "key": "description",
+                    "label": "Description",
+                    "profilePath": "description",
+                    "fillMode": "rich_html",
+                    "required": true,
+                    "selectorHint": "textarea[formcontrolname='startup_description'], textarea[name='startup_description'], [contenteditable='true'], .ProseMirror, .tiptap, textarea[aria-label*='description' i]"
+                },
+                {
+                    "key": "website",
+                    "label": "Website URL",
+                    "labelAliases": [
+                        "Website",
+                        "Startup URL"
+                    ],
+                    "profilePath": "website_url",
+                    "fillMode": "text",
+                    "required": true,
+                    "selectorHint": "input[formcontrolname='startup_url'], input[name='startup_url'], input[type='url'], input[aria-label*='website' i], input[placeholder*='website' i]"
+                },
+                {
+                    "key": "technology",
+                    "label": "Technology Stack",
+                    "labelAliases": [
+                        "Technology",
+                        "Tech stack"
+                    ],
+                    "profilePath": "profile_data.tech_stack",
+                    "fillMode": "tags",
+                    "maxItems": 10,
+                    "profileSourcePaths": [
+                        "profile_data.tech_stack"
+                    ],
+                    "selectorHint": "p-multiselect[formcontrolname='startup_technology'], [formcontrolname='startup_technology'].p-multiselect"
+                },
+                {
+                    "key": "logo",
+                    "label": "Logo",
+                    "labelAliases": [
+                        "Startup logo",
+                        "Upload Your Logo",
+                        "Replace Logo"
+                    ],
+                    "profilePath": "logo_url",
+                    "fillMode": "file",
+                    "fileInputIndex": 0,
+                    "required": true,
+                    "selectorHint": "app-upload-single input[type=\"file\"], input[type=\"file\"][accept*=\"image\"]"
+                },
+                {
+                    "key": "gallery",
+                    "label": "Screenshots",
+                    "labelAliases": [
+                        "Add Screenshots",
+                        "Product screenshots"
+                    ],
+                    "profilePath": "profile_data.gallery_urls",
+                    "fillMode": "files",
+                    "maxItems": 5,
+                    "selectorHint": "app-upload input[type=\"file\"], .upload-trigger input[type=\"file\"][multiple]"
+                }
+            ]
+        },
+        {
+            "id": "social_and_launch",
+            "label": "Social & launch",
+            "fields": []
+        }
+    ],
+    "proof": {
+        "successPathRegex": "/startup/",
+        "listingUrlSelector": "a[href*='startupinspire.com/startup/']"
+    }
+}$json$::jsonb
+WHERE provider_slug = 'startupinspire-paid-listing';
+
+UPDATE public.auto_launch_destinations
+SET extension_config = $json${
+    "version": 1,
+    "startUrlPatterns": [
         "https://tinylaunch.com/*",
         "https://www.tinylaunch.com/*"
     ],
@@ -2850,7 +3076,7 @@ SET extension_config = $json${
         "https://businessapp.b2b.trustpilot.com/*"
     ],
     "readyUrlHint": "company-settings",
-    "readyStatusHint": "Sign in to Trustpilot Business, then open company settings. OpenQuok fills company name, domain, description, and logo (JPG or PNG about 400×300 within Trustpilot size limits). Contact info (email, phone, address), Save and publish, homepage screenshot, and domain/business-email verification stay manual on Trustpilot. Public trustpilot.com/review/… links to your website are typically nofollow — confirm rel after you publish.",
+    "readyStatusHint": "Sign in to Trustpilot Business, then open company settings. Expand “About your business” and “Company description” on Trustpilot before Fill — closed sections cause wrong fields to update. OpenQuok fills company name, domain, description, and logo (JPG or PNG about 400×300 within Trustpilot size limits). Contact info (email, phone, address), Save and publish, homepage screenshot, and domain/business-email verification stay manual on Trustpilot. Public trustpilot.com/review/… links to your website are typically nofollow — confirm rel after you publish.",
     "steps": [
         {
             "id": "company_settings",

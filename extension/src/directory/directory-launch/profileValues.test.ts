@@ -126,6 +126,21 @@ describe('mergeMainProfileSocialData', () => {
 		]);
 	});
 
+	it('inherits tech_stack from the main profile when the variant list is empty', () => {
+		const variant: AutoLaunchProfileSnapshot = {
+			name: 'OpenQuok',
+			profile_data: { category: 'SaaS' },
+		};
+		const main: AutoLaunchProfileSnapshot = {
+			name: 'OpenQuok',
+			profile_data: {
+				tech_stack: ['TypeScript', 'SvelteKit', 'PostgreSQL'],
+			},
+		};
+		const merged = mergeMainProfileSocialData(variant, main);
+		expect(merged.profile_data?.tech_stack).toEqual(['TypeScript', 'SvelteKit', 'PostgreSQL']);
+	});
+
 	it('inherits launch_video_url from the main profile when the variant is empty', () => {
 		const variant: AutoLaunchProfileSnapshot = {
 			name: 'OpenQuok',

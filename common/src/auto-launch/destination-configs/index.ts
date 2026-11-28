@@ -29,6 +29,10 @@ import {
 } from './alternativeto.js';
 import { TRUSTPILOT_COMPANY_PROFILE_EXTENSION_CONFIG } from './trustpilot.js';
 import {
+	STARTUPINSPIRE_FREE_LISTING_EXTENSION_CONFIG,
+	STARTUPINSPIRE_PAID_LISTING_EXTENSION_CONFIG,
+} from './startupinspire.js';
+import {
 	FAZIER_FREE_PRODUCT_LISTING_EXTENSION_CONFIG,
 	FAZIER_PAID_PRODUCT_LISTING_EXTENSION_CONFIG,
 	FAZIER_PAGE_EXTENSION_CONFIG,
@@ -81,6 +85,13 @@ export {
 	TRUSTPILOT_HOST_PERMISSION,
 } from './trustpilot.js';
 export {
+	STARTUPINSPIRE_DIRECTORY_LAUNCH_PROVIDERS,
+	STARTUPINSPIRE_FREE_LISTING_EXTENSION_CONFIG,
+	STARTUPINSPIRE_HOST_PATTERNS,
+	STARTUPINSPIRE_HOST_PERMISSION,
+	STARTUPINSPIRE_PAID_LISTING_EXTENSION_CONFIG,
+} from './startupinspire.js';
+export {
 	FAZIER_FREE_PRODUCT_LISTING_EXTENSION_CONFIG,
 	FAZIER_PAID_PRODUCT_LISTING_EXTENSION_CONFIG,
 	FAZIER_PAGE_EXTENSION_CONFIG,
@@ -121,6 +132,8 @@ export const DIRECTORY_EXTENSION_CONFIG_FIXTURES: Record<string, AutoLaunchExten
 	'alternativeto-finish-listing': ALTERNATIVETO_FINISH_LISTING_EXTENSION_CONFIG,
 	'alternativeto-user-profile': ALTERNATIVETO_USER_PROFILE_EXTENSION_CONFIG,
 	'trustpilot-company-profile': TRUSTPILOT_COMPANY_PROFILE_EXTENSION_CONFIG,
+	'startupinspire-paid-listing': STARTUPINSPIRE_PAID_LISTING_EXTENSION_CONFIG,
+	'startupinspire-free-listing': STARTUPINSPIRE_FREE_LISTING_EXTENSION_CONFIG,
 };
 
 export const DIRECTORY_EXTENSION_CONFIG_PROVIDER_SLUGS = Object.keys(
@@ -151,6 +164,7 @@ export {
 
 export {
 	validateIndependentExtensionFixtureSlugs,
+	validatePricingQueueDestinationStartUrl,
 	validatePricingQueueExtensionFixtures,
 	type ExtensionConfigDerivation,
 	type ExtensionConfigDerivationBySlug,

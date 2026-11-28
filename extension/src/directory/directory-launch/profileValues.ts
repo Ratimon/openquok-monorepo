@@ -153,6 +153,16 @@ export function mergeMainProfileSocialData(
 	}
 
 	if (main.profile_data) {
+		const activeTech = activePd.tech_stack;
+		const mainTech = mainPd.tech_stack;
+		if (
+			(!Array.isArray(activeTech) || activeTech.length === 0) &&
+			Array.isArray(mainTech) &&
+			mainTech.length > 0
+		) {
+			mergedPd.tech_stack = mainTech;
+			changed = true;
+		}
 		for (const key of SOCIAL_PROFILE_DATA_KEYS) {
 			const activeVal = activePd[key as keyof typeof activePd];
 			if (typeof activeVal === 'string' && activeVal.trim()) continue;

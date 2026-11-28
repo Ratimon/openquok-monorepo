@@ -60,6 +60,11 @@ describe('directorySiteKeyFromProviderSlug', () => {
 		expect(directorySiteKeyFromProviderSlug('trustpilot-company-profile')).toBe('trustpilot');
 	});
 
+	it('resolves startupinspire provider slugs to the startupinspire site key', () => {
+		expect(directorySiteKeyFromProviderSlug('startupinspire-free-listing')).toBe('startupinspire');
+		expect(directorySiteKeyFromProviderSlug('startupinspire-paid-listing')).toBe('startupinspire');
+	});
+
 	it('matches multi-segment published site slugs', () => {
 		expect(directorySiteKeyFromProviderSlug('other-site-launch', ['other-site', 'other'])).toBe(
 			'other-site'

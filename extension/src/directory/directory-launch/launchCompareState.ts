@@ -218,12 +218,13 @@ export function resolveEffectiveProfileNorm(
 		const scalar = applyLaunchFieldSelectCoercion(profileSelectPreset.trim(), field);
 		return { kind, scalar, present: scalar.length > 0 };
 	}
+	const mergedSnapshot = mergeMainProfileSocialData(snapshot, mainProfileSnapshot);
 	if (
 		field.fillMode === 'tags' &&
 		field.profileSourcePaths?.length &&
 		selectedSourcePaths.length > 0
 	) {
-		const items = collectRawItemsFromProfilePaths(snapshot, selectedSourcePaths);
+		const items = collectRawItemsFromProfilePaths(mergedSnapshot, selectedSourcePaths);
 		if (items.length > 0) {
 			return normalizedFromTagItems(items);
 		}
@@ -234,14 +235,14 @@ export function resolveEffectiveProfileNorm(
 		selectedSourcePaths.length === 0
 	) {
 		const items = collectRawItemsFromProfilePaths(
-			snapshot,
+			mergedSnapshot,
 			defaultTagProfilePathsForField(field)
 		);
 		if (items.length > 0) {
 			return normalizedFromTagItems(items);
 		}
 	}
-	const merged = mergeMainProfileSocialData(snapshot, mainProfileSnapshot);
+	const merged = mergedSnapshot;
 	const norm = normalizeProfileValue(merged, field);
 	const mediaFillMode = resolveLaunchFieldFillMode(field);
 	if (!norm.present && (mediaFillMode === 'file' || mediaFillMode === 'files')) {

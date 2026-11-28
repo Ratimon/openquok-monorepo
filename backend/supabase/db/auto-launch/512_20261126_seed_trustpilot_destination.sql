@@ -44,7 +44,7 @@ SELECT
         "https://businessapp.b2b.trustpilot.com/*"
     ],
     "readyUrlHint": "company-settings",
-    "readyStatusHint": "Sign in to Trustpilot Business, then open company settings. OpenQuok fills company name, domain, description, and logo (JPG or PNG about 400×300 within Trustpilot size limits). Contact info (email, phone, address), Save and publish, homepage screenshot, and domain/business-email verification stay manual on Trustpilot. Public trustpilot.com/review/… links to your website are typically nofollow — confirm rel after you publish.",
+    "readyStatusHint": "Sign in to Trustpilot Business, then open company settings. Expand “About your business” and “Company description” on Trustpilot before Fill — closed sections cause wrong fields to update. OpenQuok fills company name, domain, description, and logo (JPG or PNG about 400×300 within Trustpilot size limits). Contact info (email, phone, address), Save and publish, homepage screenshot, and domain/business-email verification stay manual on Trustpilot. Public trustpilot.com/review/… links to your website are typically nofollow — confirm rel after you publish.",
     "steps": [
         {
             "id": "company_settings",

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * Backfill link directory hub catalog (sites, opportunities, tag associations) from JSON (service_role).
+ * Backfill link directory hub catalog (sites, opportunities, tag associations) from JSON (service_role),
+ * then wire auto_launch_destinations.link_directory_opportunity_id for matching provider slugs.
  *
  * Usage (from repo root):
  *   pnpm backend:db:backfill-link-directory-catalog
@@ -90,7 +91,118 @@ Requires PUBLIC_SUPABASE_URL and SUPABASE_SECRET_KEY in backend/<env-file>.
   --dry-run           No database writes
   --force             Replace existing rows and tag associations
   --list-missing      Show catalog site slugs not present in the database
-  --slug <slug>       Limit to one site slug (repeat flag)`);
+  --slug <slug>       Limit to one site slug (repeat flag)
+
+After hub upserts, matching auto_launch_destinations rows are updated when
+auto_launch_provider_slug matches a catalog opportunity (fixes null
+link_directory_opportunity_id after local db reset).`);
+}
+
+/** Provider slugs from catalog entries being processed this run. */
+function collectAutoLaunchProviderSlugs(entries, siteSlugs) {
+    const slugs = new Set();
+    for (const entrySlug of siteSlugs) {
+        const opportunities = entries[entrySlug]?.opportunities;
+        if (!Array.isArray(opportunities)) continue;
+        for (const opp of opportunities) {
+            if (!opp?.auto_launch_enabled) continue;
+            const providerSlug =
+                typeof opp.auto_launch_provider_slug === "string"
+                    ? opp.auto_launch_provider_slug.trim()
+                    : "";
+            if (providerSlug) slugs.add(providerSlug);
+        }
+    }
+    return [...slugs];
+}
+
+/**
+ * Wire auto_launch_destinations.link_directory_opportunity_id from hub opportunities
+ * (same join as destination seed SQL, runnable after catalog-only sites land).
+ */
+async function relinkAutoLaunchDestinations(admin, providerSlugs, { dryRun }) {
+    const relinkSummary = { linked: 0, unchanged: 0, missingDestination: 0, missingOpportunity: 0, errors: 0 };
+
+    if (providerSlugs.length === 0) {
+        return relinkSummary;
+    }
+
+    const { data: opportunities, error: oppError } = await admin
+        .from("link_directory_opportunities")
+        .select("id, auto_launch_provider_slug")
+        .eq("auto_launch_enabled", true)
+        .in("auto_launch_provider_slug", providerSlugs);
+
+    if (oppError) {
+        throw new Error(`auto-launch relink opportunities: ${oppError.message}`);
+    }
+
+    const opportunityIdByProviderSlug = new Map();
+    for (const row of opportunities ?? []) {
+        const slug = row.auto_launch_provider_slug;
+        if (typeof slug === "string" && slug) {
+            opportunityIdByProviderSlug.set(slug, row.id);
+        }
+    }
+
+    for (const providerSlug of providerSlugs) {
+        const opportunityId = opportunityIdByProviderSlug.get(providerSlug);
+        if (!opportunityId) {
+            relinkSummary.missingOpportunity += 1;
+            console.warn(`RELINK SKIP (no opportunity): ${providerSlug}`);
+            continue;
+        }
+
+        const { data: destination, error: destError } = await admin
+            .from("auto_launch_destinations")
+            .select("id, provider_slug, link_directory_opportunity_id")
+            .eq("provider_slug", providerSlug)
+            .maybeSingle();
+
+        if (destError) {
+            console.error(`RELINK FAILED lookup ${providerSlug}: ${destError.message}`);
+            relinkSummary.errors += 1;
+            continue;
+        }
+
+        if (!destination) {
+            relinkSummary.missingDestination += 1;
+            console.warn(`RELINK SKIP (no destination): ${providerSlug}`);
+            continue;
+        }
+
+        if (destination.link_directory_opportunity_id === opportunityId) {
+            relinkSummary.unchanged += 1;
+            continue;
+        }
+
+        if (dryRun) {
+            relinkSummary.linked += 1;
+            console.log(
+                `DRY-RUN RELINK DESTINATION: ${providerSlug} → opportunity ${opportunityId}`
+            );
+            continue;
+        }
+
+        const { error: updateError } = await admin
+            .from("auto_launch_destinations")
+            .update({
+                link_directory_opportunity_id: opportunityId,
+                updated_at: new Date().toISOString(),
+            })
+            .eq("id", destination.id);
+
+        if (updateError) {
+            console.error(`RELINK FAILED update ${providerSlug}: ${updateError.message}`);
+            relinkSummary.errors += 1;
+            continue;
+        }
+
+        relinkSummary.linked += 1;
+        console.log(`RELINKED DESTINATION: ${providerSlug} → opportunity ${opportunityId}`);
+    }
+
+    return relinkSummary;
 }
 
 function requireString(value, label) {
@@ -500,6 +612,28 @@ for (const entrySlug of slugsToRun) {
     }
 }
 
+let relinkSummary = {
+    linked: 0,
+    unchanged: 0,
+    missingDestination: 0,
+    missingOpportunity: 0,
+    errors: 0,
+};
+
+const autoLaunchProviderSlugs = collectAutoLaunchProviderSlugs(entries, slugsToRun);
+
+if (autoLaunchProviderSlugs.length > 0) {
+    try {
+        relinkSummary = await relinkAutoLaunchDestinations(admin, autoLaunchProviderSlugs, {
+            dryRun: args.dryRun,
+        });
+        summary.errors += relinkSummary.errors;
+    } catch (err) {
+        console.error(err.message);
+        summary.errors += 1;
+    }
+}
+
 console.log(
     [
         "Done.",
@@ -509,6 +643,9 @@ console.log(
         `opps inserted=${summary.oppsInserted}`,
         `updated=${summary.oppsUpdated}`,
         `skipped=${summary.oppsSkipped}`,
+        `destinations relinked=${relinkSummary.linked}`,
+        `destinations relink unchanged=${relinkSummary.unchanged}`,
+        `destinations relink skipped=${relinkSummary.missingDestination + relinkSummary.missingOpportunity}`,
         `errors=${summary.errors}`,
         `dry_run=${args.dryRun}`,
     ].join(" ")

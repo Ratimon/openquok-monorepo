@@ -48,6 +48,7 @@ New **social** networks follow <a href="/docs/contribution-opportunities/add-pro
 <LinkCard title="IndieHub" description="Basic and Pro paid listings — submit wizard step 1 autofill, manual payment and publish" href="/docs/directory-integration/indiehub" />
 <LinkCard title="AlternativeTo" description="Free listing, paid review tiers, and user profile — manage-item autofill" href="/docs/directory-integration/alternativeto" />
 <LinkCard title="Trustpilot" description="Company profile on Trustpilot Business — settings autofill, business email verify, nofollow" href="/docs/directory-integration/trustpilot" />
+<LinkCard title="StartupInspire" description="Free listing and Starter launch — create form autofill, manual checkout, dofollow verify" href="/docs/directory-integration/startupinspire" />
 </CardGrid>
 
 ## Related Section(s)
