@@ -9,7 +9,7 @@
  *
  * Options:
  *   --env-file <path>     Relative to backend/ (default: .env.development.local)
- *   --catalog <path>      JSON catalog (default: scripts/link_directory_catalog_backfill.catalog.json)
+ *   --catalog <path>      JSON catalog (default: scripts/backfill_link_directory_catalog.catalog.json)
  *   --dry-run             Print actions only; no writes
  *   --force               Overwrite existing catalog rows and replace tag associations
  *   --list-missing        List catalog slugs missing from link_directory_sites (no writes)
@@ -23,7 +23,7 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const backendRoot = path.resolve(__dirname, "..");
-const DEFAULT_CATALOG = path.join(__dirname, "link_directory_catalog_backfill.catalog.json");
+const DEFAULT_CATALOG = path.join(__dirname, "backfill_link_directory_catalog.catalog.json");
 
 function loadEnvFile(relativePath) {
     const fullPath = path.join(backendRoot, relativePath);
@@ -82,7 +82,7 @@ function parseArgs(argv) {
 function printHelp() {
     console.log(`Usage: pnpm backend:db:backfill-link-directory-catalog [-- options]
 
-Backfill link_directory_sites / opportunities from link_directory_catalog_backfill.catalog.json.
+Backfill link_directory_sites / opportunities from backfill_link_directory_catalog.catalog.json.
 
 Requires PUBLIC_SUPABASE_URL and SUPABASE_SECRET_KEY in backend/<env-file>.
 

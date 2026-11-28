@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Merge production link_directory rows into link_directory_catalog_backfill.catalog.json,
+ * Merge production link_directory rows into backfill_link_directory_catalog.catalog.json,
  * then apply STE-oriented link enrichments and logo normalization.
  *
  * Usage (from repo root):
@@ -15,7 +15,7 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const backendRoot = path.resolve(__dirname, "..");
-const CATALOG_PATH = path.join(__dirname, "link_directory_catalog_backfill.catalog.json");
+const CATALOG_PATH = path.join(__dirname, "backfill_link_directory_catalog.catalog.json");
 
 const PRESERVE_FROM_LOCAL = new Set([
 	"chrome-web-store",
