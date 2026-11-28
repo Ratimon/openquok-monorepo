@@ -1,0 +1,126 @@
+{
+	"site": {
+		"id": "ab73f595-ad80-44dc-b049-3928348ecccb",
+		"slug": "threads",
+		"title": "Threads",
+		"site_url": "https://www.threads.net",
+		"logo_url": "https://abkydcstowozoggfxaei.supabase.co/storage/v1/object/public/link_directory_logos/aa1a6c25-d1dc-43d7-9b13-a3e8ac48caf1-0.38652904523085796.png",
+		"short_description": "Text-first social posts from Meta — profiles and threads for brand",
+		"long_description": "Threads profiles can include one website link. Confirm rel on your public profile. Open <a href=\"https://www.threads.net\">threads.net</a>.",
+		"domain_rating": 96,
+		"monthly_visits": 500000000,
+		"metrics_source": "ahrefs",
+		"category_slug": "social-platforms",
+		"tag_slugs": [
+			"high-dr"
+		],
+		"is_openquok_auth_supported": true,
+		"openquok_channel_slug": "threads",
+		"is_admin_published": true,
+		"sort_order": 0
+	},
+	"opportunities": [
+		{
+			"id": "be761ed1-ed26-46aa-a1a9-3726e839ef97",
+			"slug": "personal-profile-link",
+			"title": "Personal profile link",
+			"opportunity_type_slug": "profile_link",
+			"effort": "easy",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Use your main personal <a href=\"https://www.threads.net/\">Threads</a> profile—the one tied to your day-to-day Instagram login—and add your site in bio or profile fields. Good for founders who want one handle for you and your project.",
+			"steps": [
+				{
+					"body": "Open <a href=\"https://www.threads.net/\">Threads</a> with the personal Instagram-linked account you use as yourself, then open profile settings.",
+					"order": 1,
+					"title": "Open your personal profile"
+				},
+				{
+					"body": "Paste your URL in the profile link or bio field Meta provides, save, and confirm on your public profile.",
+					"order": 2,
+					"title": "Add your link"
+				}
+			],
+			"openquok_cta_kind": "connect_channel",
+			"openquok_channel_slug": "threads",
+			"openquok_plug_name": null,
+			"cta_href": null,
+			"cta_label": null,
+			"sort_order": 10,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		},
+		{
+			"id": "79d4f256-0dde-461e-8399-30e24556719c",
+			"slug": "thread-post-with-link",
+			"title": "Thread post with link",
+			"opportunity_type_slug": "post_link",
+			"effort": "easy",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "After your profile lists your site, publish a Threads post with your URL. Post on <a href=\"https://www.threads.net/\">Threads</a> or schedule in <a href=\"https://www.openquok.com/channels/threads\">OpenQuok</a> once your channel is connected.",
+			"steps": [
+				{
+					"body": "Write a short update and include your URL once with context.",
+					"order": 1,
+					"title": "Compose your post"
+				},
+				{
+					"body": "Post now or schedule in <a href=\"https://www.openquok.com/channels/threads\">OpenQuok</a> for Threads alongside your other channels.",
+					"order": 2,
+					"title": "Publish or schedule"
+				}
+			],
+			"openquok_cta_kind": "schedule_post",
+			"openquok_channel_slug": "threads",
+			"openquok_plug_name": null,
+			"cta_href": null,
+			"cta_label": null,
+			"sort_order": 20,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		},
+		{
+			"id": "2c14fc3a-d90d-41c5-9779-69efac2a7dc8",
+			"slug": "reply-with-link",
+			"title": "Reply with link",
+			"opportunity_type_slug": "thread_link",
+			"effort": "easy",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Reply on <a href=\"https://www.threads.net/\">Threads</a> with a reply and your URL when it fits. On threads you publish, OpenQuok Auto plug post automate a follow-up with your link after likes or on your schedule. <a href=\"https://www.openquok.com/docs/getting-started-for-public-api\">Set up plugs</a> after you connect Threads.",
+			"steps": [
+				{
+					"body": "On <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://www.threads.net/\">Threads</a>, join a relevant conversation, add a useful reply, and include your URL once when it fits the thread.",
+					"order": 1,
+					"title": "Reply with a link"
+				},
+				{
+					"body": "On threads you publish, connect Threads in <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://www.openquok.com/channels/threads\">OpenQuok</a> and attach plug (like threshold + reply with your link). OpenQuok publishes the follow-up when your rules match so you do not have to bump the thread yourself.",
+					"order": 2,
+					"title": "a follow-up on your threads"
+				}
+			],
+			"openquok_cta_kind": "use_plug",
+			"openquok_channel_slug": null,
+			"openquok_plug_name": "threads-autoPlugPost",
+			"cta_href": null,
+			"cta_label": "Plugs and automation",
+			"sort_order": 30,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		}
+	]
+}

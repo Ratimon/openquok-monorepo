@@ -1,0 +1,87 @@
+{
+	"listing": {
+		"id": "d5f7b000-0000-4000-a000-000000000103",
+		"slug": "revenuecat-mcp",
+		"title": "RevenueCat MCP",
+		"listing_kind": "extension",
+		"category_slug": "analytics-metrics",
+		"tag_slugs": [
+			"claude-code",
+			"codex",
+			"cursor",
+			"vscode-copilot"
+		],
+		"owner_username": "openquok",
+		"description": "RevenueCat MCP exposes subscription catalog and customer entitlement data to AI agents — inspect products, offerings, and subscriber state from Cursor, Claude Code, Codex, or VS Code Copilot over HTTP MCP.",
+		"description_skills": null,
+		"description_mcp": "Connect the hosted RevenueCat MCP server to query and manage in-app purchase data from chat. OAuth is available on supported clients; otherwise authenticate with a RevenueCat API v2 secret key.",
+		"excerpt": "Wire subscription metrics and entitlement state into your agent — products, offerings, and customer data over HTTP MCP from Cursor, Claude Code, Codex, or VS Code.",
+		"click_url": "https://www.revenuecat.com/docs/tools/mcp/setup",
+		"click_url_skills": null,
+		"click_url_mcp": "https://www.revenuecat.com/docs/tools/mcp/setup",
+		"content": "## Overview\n\nRevenueCat MCP connects your **in-app subscription stack** to coding agents. Ask about products, entitlements, offerings, and customer state without switching to the dashboard — useful when drafting launch posts, support replies, or release notes grounded in live subscription data.\n\n## Server URL\n\n```text\nhttps://mcp.revenuecat.ai/mcp\n```\n\nStreamable HTTP transport. RevenueCat hosts the server; you authenticate per client.\n\n## Authentication\n\nTwo options:\n\n- **OAuth (recommended)** — supported on Claude, Codex, Copilot, Cursor, VS Code, and other listed clients. Sign in to RevenueCat when prompted.\n- **API v2 secret key** — create a dedicated key in your RevenueCat project **API Keys** settings. Use a write-enabled key if the agent will create or modify resources; read-only works for inspection tasks.\n\n## Client setup\n\n### Cursor\n\nAdd to `.cursor/mcp.json`:\n\n```json\n{\n  \"servers\": {\n    \"revenuecat\": {\n      \"url\": \"https://mcp.revenuecat.ai/mcp\",\n      \"headers\": {\n        \"Authorization\": \"Bearer YOUR_API_V2_SECRET_KEY\"\n      }\n    }\n  }\n}\n```\n\n### Claude Code\n\n```bash\nclaude mcp add --transport http revenuecat https://mcp.revenuecat.ai/mcp\n```\n\n### OpenAI Codex\n\n```bash\ncodex mcp add revenuecat --url https://mcp.revenuecat.ai/mcp\n```\n\nOr add a Streamable HTTP entry in Codex MCP settings with the URL above.\n\n### VS Code Copilot\n\nAdd to `.vscode/mcp.json`:\n\n```json\n{\n  \"servers\": {\n    \"revenuecat-mcp\": {\n      \"url\": \"https://mcp.revenuecat.ai/mcp\",\n      \"type\": \"http\"\n    }\n  }\n}\n```\n\nFull instructions: [RevenueCat MCP setup](https://www.revenuecat.com/docs/tools/mcp/setup).\n\n## Example prompts\n\n```text\nList entitlements configured in my RevenueCat project.\n```\n\n```text\nSummarize active subscriptions for customer ID abc-123.\n```\n\n```text\nWhat offerings are live in the default paywall?\n```",
+		"content_skills": null,
+		"content_mcp": "## Overview\n\nRevenueCat MCP connects your **in-app subscription stack** to coding agents. Ask about products, entitlements, offerings, and customer state without switching to the dashboard — useful when drafting launch posts, support replies, or release notes grounded in live subscription data.\n\n## Server URL\n\n```text\nhttps://mcp.revenuecat.ai/mcp\n```\n\nStreamable HTTP transport. RevenueCat hosts the server; you authenticate per client.\n\n## Authentication\n\nTwo options:\n\n- **OAuth (recommended)** — supported on Claude, Codex, Copilot, Cursor, VS Code, and other listed clients. Sign in to RevenueCat when prompted.\n- **API v2 secret key** — create a dedicated key in your RevenueCat project **API Keys** settings. Use a write-enabled key if the agent will create or modify resources; read-only works for inspection tasks.\n\n## Client setup\n\n### Cursor\n\nAdd to `.cursor/mcp.json`:\n\n```json\n{\n  \"servers\": {\n    \"revenuecat\": {\n      \"url\": \"https://mcp.revenuecat.ai/mcp\",\n      \"headers\": {\n        \"Authorization\": \"Bearer YOUR_API_V2_SECRET_KEY\"\n      }\n    }\n  }\n}\n```\n\n### Claude Code\n\n```bash\nclaude mcp add --transport http revenuecat https://mcp.revenuecat.ai/mcp\n```\n\n### OpenAI Codex\n\n```bash\ncodex mcp add revenuecat --url https://mcp.revenuecat.ai/mcp\n```\n\nOr add a Streamable HTTP entry in Codex MCP settings with the URL above.\n\n### VS Code Copilot\n\nAdd to `.vscode/mcp.json`:\n\n```json\n{\n  \"servers\": {\n    \"revenuecat-mcp\": {\n      \"url\": \"https://mcp.revenuecat.ai/mcp\",\n      \"type\": \"http\"\n    }\n  }\n}\n```\n\nFull instructions: [RevenueCat MCP setup](https://www.revenuecat.com/docs/tools/mcp/setup).\n\n## Example prompts\n\n```text\nList entitlements configured in my RevenueCat project.\n```\n\n```text\nSummarize active subscriptions for customer ID abc-123.\n```\n\n```text\nWhat offerings are live in the default paywall?\n```",
+		"extension_type": "mcp",
+		"install_command_skills": null,
+		"install_command_mcp": null,
+		"is_official": false,
+		"source_repo_url": null,
+		"skill_source_url": null,
+		"skill_name": null,
+		"license": null,
+		"version": "1.0.0",
+		"mcp_tools": [
+			{
+				"name": "list_products",
+				"description": "List in-app products configured in a RevenueCat project."
+			},
+			{
+				"name": "list_entitlements",
+				"description": "List entitlements and their attached products."
+			},
+			{
+				"name": "list_offerings",
+				"description": "List offerings and packages available for paywalls."
+			},
+			{
+				"name": "get_customer",
+				"description": "Look up a subscriber and their active entitlements."
+			},
+			{
+				"name": "list_projects",
+				"description": "List RevenueCat projects accessible to the authenticated account."
+			}
+		],
+		"mcp_transport": "http",
+		"mcp_server_config": {
+			"url": "https://mcp.revenuecat.ai/mcp",
+			"auth": "Bearer YOUR_API_V2_SECRET_KEY",
+			"name": "revenuecat",
+			"version": "1.0.0",
+			"transport": "http"
+		},
+		"is_user_published": true,
+		"is_admin_published": true,
+		"schema_type": "SoftwareApplication",
+		"faq": [
+			{
+				"question": "Do I need an API key if my client supports OAuth?",
+				"answer": "No. OAuth is the recommended path on Claude, Codex, Copilot, Cursor, and VS Code. Use an API v2 secret key when OAuth is unavailable or for automation hosts."
+			},
+			{
+				"question": "Which API key permissions do I need?",
+				"answer": "Use a write-enabled API v2 secret key if the agent will create or modify catalog resources. A read-only key is enough to inspect products, entitlements, and customer state."
+			},
+			{
+				"question": "Is this the same as RevenueCat REST API v2?",
+				"answer": "The MCP server wraps RevenueCat project data for agent tool calls. Complex automations may still use REST directly; MCP fits interactive inspection and drafting from your editor or terminal."
+			},
+			{
+				"question": "Where do I create an API key?",
+				"answer": "Open your RevenueCat dashboard, go to the project API Keys page, and create a dedicated v2 secret key for MCP use."
+			}
+		]
+	},
+	"stack_members": []
+}

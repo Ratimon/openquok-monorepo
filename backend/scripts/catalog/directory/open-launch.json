@@ -1,0 +1,134 @@
+{
+	"site": {
+		"id": "d5f7d000-0010-4000-a000-000000000005",
+		"slug": "open-launch",
+		"title": "Open Launch",
+		"site_url": "https://open-launch.com",
+		"logo_url": "https://www.openquok.com/icons/link-directory/open-launch.svg",
+		"short_description": "Launch and list startup projects on open-launch.com.",
+		"long_description": "Open Launch runs free and premium launch slots. Review plans at <a href=\"https://open-launch.com/pricing\">open-launch.com/pricing</a>. Submit at <a href=\"https://open-launch.com/projects/submit\">open-launch.com/projects/submit</a>.",
+		"domain_rating": 71,
+		"monthly_visits": 45000,
+		"metrics_source": "ahrefs",
+		"category_slug": "launch-platforms",
+		"tag_slugs": [],
+		"is_openquok_auth_supported": false,
+		"openquok_channel_slug": null,
+		"is_admin_published": true,
+		"sort_order": 0
+	},
+	"opportunities": [
+		{
+			"id": "e03b2385-8891-4f30-a641-b759616a3031",
+			"slug": "free-launch",
+			"title": "Free launch",
+			"opportunity_type_slug": "product_submission",
+			"effort": "medium",
+			"approval_mode": "manual_review",
+			"approval_time_hint": "Free queue; timing varies by slot availability",
+			"dofollow": "unknown",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Join the free launch queue from <a href=\"https://open-launch.com/pricing\">Open Launch pricing</a>, then complete submit when your slot is ready.",
+			"steps": [
+				{
+					"body": "Choose the free queue on <a href=\"https://open-launch.com/pricing\">Open Launch pricing</a>.",
+					"order": 1,
+					"title": "Open pricing"
+				},
+				{
+					"body": "Have your project URL, logo, and discovery tags ready for the submit form.",
+					"order": 2,
+					"title": "Prepare submit"
+				},
+				{
+					"body": "Confirm your live listing URL on Open Launch when the slot goes live.",
+					"order": 3,
+					"title": "Publish"
+				}
+			],
+			"openquok_cta_kind": "directory_channel",
+			"openquok_channel_slug": "open-launch",
+			"openquok_plug_name": null,
+			"cta_href": "https://open-launch.com/pricing",
+			"cta_label": "Open Launch pricing",
+			"sort_order": 10,
+			"is_admin_published": true,
+			"auto_launch_enabled": true,
+			"auto_launch_provider_slug": "open-launch-free-launch"
+		},
+		{
+			"id": "d5f7d000-0020-4000-a000-000000000010",
+			"slug": "guest-article",
+			"title": "Guest article",
+			"opportunity_type_slug": "guest_post",
+			"effort": "hard",
+			"approval_mode": "manual_review",
+			"approval_time_hint": "Editorial calendar",
+			"dofollow": "unknown",
+			"cost_tier": "paid",
+			"cost_note": "Sponsorship or placement fees may apply",
+			"description": "Pitch a story that fits Open Launch readers; include contextual links in the draft. Dofollow vs nofollow depends on Open Launch’s editorial policy — confirm before you publish.",
+			"steps": [
+				{
+					"body": "Align topic with their startup audience.",
+					"order": 1,
+					"title": "Review guidelines"
+				},
+				{
+					"body": "Include outline and target URL.",
+					"order": 2,
+					"title": "Submit pitch"
+				}
+			],
+			"openquok_cta_kind": "external_doc",
+			"openquok_channel_slug": null,
+			"openquok_plug_name": null,
+			"cta_href": "https://openlaunch.io",
+			"cta_label": "Open Launch site",
+			"sort_order": 10,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		},
+		{
+			"id": "33a6099e-6211-464a-b5f1-3908154f286f",
+			"slug": "premium-launch",
+			"title": "Premium launch",
+			"opportunity_type_slug": "product_submission",
+			"effort": "easy",
+			"approval_mode": "manual_review",
+			"approval_time_hint": "Usually within a few business days after submit",
+			"dofollow": "unknown",
+			"cost_tier": "paid",
+			"cost_note": "Check current pricing on Open Launch",
+			"description": "Premium submit at <a href=\"https://open-launch.com/projects/submit\">Open Launch submit</a> lists your project when the slot is approved.",
+			"steps": [
+				{
+					"body": "Review free vs premium on <a href=\"https://open-launch.com/pricing\">Open Launch pricing</a>.",
+					"order": 1,
+					"title": "Open pricing"
+				},
+				{
+					"body": "Sign in and complete the submit wizard at <a href=\"https://open-launch.com/projects/submit\">Open Launch submit</a>.",
+					"order": 2,
+					"title": "Submit project"
+				},
+				{
+					"body": "Verify categories, tech stack, and links before you publish on Open Launch.",
+					"order": 3,
+					"title": "Confirm listing"
+				}
+			],
+			"openquok_cta_kind": "directory_channel",
+			"openquok_channel_slug": "open-launch",
+			"openquok_plug_name": null,
+			"cta_href": "https://open-launch.com/projects/submit",
+			"cta_label": "Submit on Open Launch",
+			"sort_order": 20,
+			"is_admin_published": true,
+			"auto_launch_enabled": true,
+			"auto_launch_provider_slug": "open-launch-premium-launch"
+		}
+	]
+}

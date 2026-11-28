@@ -1,0 +1,115 @@
+{
+	"site": {
+		"id": "d5f7d000-0010-4000-a000-000000000004",
+		"slug": "uneed",
+		"title": "Uneed",
+		"site_url": "https://uneed.best",
+		"logo_url": "https://www.openquok.com/icons/link-directory/uneed.svg",
+		"short_description": "Launch directory with paid product features and a free maker profile.",
+		"long_description": "Uneed offers paid launches and a free maker profile. Review pricing at <a href=\"https://uneed.best/pricing\">uneed.best/pricing</a>.",
+		"domain_rating": 77,
+		"monthly_visits": 120000,
+		"metrics_source": "editor_estimate",
+		"category_slug": "launch-platforms",
+		"tag_slugs": [
+			"high-dr"
+		],
+		"is_openquok_auth_supported": false,
+		"openquok_channel_slug": null,
+		"is_admin_published": true,
+		"sort_order": 0
+	},
+	"opportunities": [
+		{
+			"id": "65e2b58a-4546-4f5a-9747-f693918e5cb4",
+			"slug": "free-launch-join-the-line-",
+			"title": "Free launch (join the line)",
+			"opportunity_type_slug": "product_submission",
+			"effort": "medium",
+			"approval_mode": "manual_review",
+			"approval_time_hint": null,
+			"dofollow": "unknown",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Launch a new product on the free Join the line tier at <a href=\"https://uneed.best/pricing\">Uneed pricing</a> ($0). Uneed picks your launch date (at most about five months out). You need an upvote score of 10 for the listing to stay live and 20 for a dofollow backlink from their 75 DR domain—confirm rel on your live product page after launch day.",
+			"steps": [
+				{
+					"body": "On <a href=\"https://uneed.best/pricing\">Pricing</a>, open Launch → New product → Join the line and note upvote thresholds (10 to stay published, 20 for dofollow) and how the queue assigns dates.",
+					"order": 1,
+					"title": "Read free launch rules"
+				},
+				{
+					"body": "Submit your product on <a href=\"https://uneed.best/\">Uneed</a> with accurate URL and assets. Promote launch day to reach score 20 if you want the dofollow backlink—inspect the listing link after you go live.",
+					"order": 2,
+					"title": "Submit and earn upvotes"
+				}
+			],
+			"openquok_cta_kind": "directory_channel",
+			"openquok_channel_slug": "uneed",
+			"openquok_plug_name": null,
+			"cta_href": "https://uneed.best/pricing",
+			"cta_label": "Uneed pricing",
+			"sort_order": 10,
+			"is_admin_published": true,
+			"auto_launch_enabled": true,
+			"auto_launch_provider_slug": "uneed-join-line"
+		},
+		{
+			"id": "fb151df3-6a8b-469b-9a05-098dfb8556e6",
+			"slug": "paid-launch",
+			"title": "Paid launch listing",
+			"opportunity_type_slug": "product_submission",
+			"effort": "easy",
+			"approval_mode": "manual_review",
+			"approval_time_hint": "Usually within a few business days",
+			"dofollow": "dofollow",
+			"cost_tier": "paid",
+			"cost_note": "Check current pricing on Uneed",
+			"description": "Featured launch placement with a prominent product link. Third-party launch directories usually link to your site without nofollow on listing pages — confirm on the live Uneed product card.",
+			"steps": [],
+			"openquok_cta_kind": "directory_channel",
+			"openquok_channel_slug": "uneed",
+			"openquok_plug_name": null,
+			"cta_href": "https://uneed.best",
+			"cta_label": "View Uneed pricing",
+			"sort_order": 15,
+			"is_admin_published": true,
+			"auto_launch_enabled": true,
+			"auto_launch_provider_slug": "uneed-paid-launch"
+		},
+		{
+			"id": "d5f7d000-0020-4000-a000-000000000009",
+			"slug": "free-profile",
+			"title": "Free maker profile",
+			"opportunity_type_slug": "profile_link",
+			"effort": "easy",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Create a profile with your project URL at no cost. Maker profiles on Uneed typically use nofollow listing links; verify rel on your public profile URL.",
+			"steps": [
+				{
+					"body": "Sign up at <a href=\"https://uneed.best/\">uneed.best</a>, open your maker profile, and add your product name plus homepage URL in the website field.",
+					"order": 1,
+					"title": "Create your maker profile"
+				},
+				{
+					"body": "Open your public profile (for example <a href=\"https://www.uneed.best/profile/your-handle\">uneed.best/profile/your-handle</a>), right-click the website link → Inspect, and confirm rel includes nofollow. Re-check after Uneed updates—launch listings use different rules than profiles.",
+					"order": 2,
+					"title": "Confirm link treatment"
+				}
+			],
+			"openquok_cta_kind": "none",
+			"openquok_channel_slug": null,
+			"openquok_plug_name": null,
+			"cta_href": "https://uneed.best",
+			"cta_label": "Create profile",
+			"sort_order": 20,
+			"is_admin_published": true,
+			"auto_launch_enabled": true,
+			"auto_launch_provider_slug": "uneed-maker-profile"
+		}
+	]
+}

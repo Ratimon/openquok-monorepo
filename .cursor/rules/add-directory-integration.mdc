@@ -33,7 +33,7 @@ globs:
   - backend/scripts/sync-auto-launch-extension-configs.mjs
   - backend/supabase/db/auto-launch/502_*_extension_configs.sql
   - backend/scripts/sync-auto-launch-destination-seeds.mjs
-  - backend/scripts/backfill_link_directory_catalog.catalog.json
+  - backend/scripts/catalog/directory/**
   - backend/scripts/backfill_link_directory_catalog.mjs
 alwaysApply: false
 ---
@@ -91,11 +91,11 @@ Some shipped directory sites exist only in the **Build Backlinks hub** catalog, 
 | Approach | When | Hub site + opportunities | Auto-launch destinations |
 | --- | --- | --- | --- |
 | **SQL seed** | Default for new sites | `backend/supabase/db/link-directory/504_<date>_seed_<site>.sql` | `auto-launch/<prefix>_<date>_seed_<site>_destination.sql` |
-| **Catalog JSON only** | Hub catalog is the source of truth (e.g. **TinyLaunch**, **Fazier**) | Append to `backend/scripts/backfill_link_directory_catalog.catalog.json` | Same `auto-launch/*_seed_*_destination.sql` via `destinationSeeds.ts` — **no** `link-directory/504_*` file |
+| **Catalog JSON only** | Hub catalog is the source of truth (e.g. **TinyLaunch**, **Fazier**) | Append `backend/scripts/catalog/directory/<site-slug>.json` (`{ "site": …, "opportunities": … }`) | Same `auto-launch/*_seed_*_destination.sql` via `destinationSeeds.ts` — **no** `link-directory/504_*` file |
 
 For JSON-only sites:
 
-1. Add a versioned `entries.<site-slug>` block in `backfill_link_directory_catalog.catalog.json` — stable UUIDs per site and opportunity rows; `auto_launch_enabled` + `auto_launch_provider_slug` on each opportunity; editorial copy (`dofollow`, cost, steps, `cta_href`, `openquok_cta_kind` as needed).
+1. Add `backend/scripts/catalog/directory/<site-slug>.json` — stable UUIDs per site and opportunity rows; `auto_launch_enabled` + `auto_launch_provider_slug` on each opportunity; editorial copy (`dofollow`, cost, steps, `cta_href`, `openquok_cta_kind` as needed).
 2. After deploy or local `supabase db reset`, run `pnpm backend:db:backfill-link-directory-catalog` (optional filter: `-- --slug <site-slug>`; use `--dry-run` first). Production: `pnpm backend:db:backfill-link-directory-catalog:prod`.
 3. Operator notes: `web/src/content/docs/admin/link-directory-catalog-backfill.md`.
 
@@ -206,7 +206,7 @@ No **public-api-surface-sync** unless new `/api/v1/public/*` routes.
 
 **Catalog & DB**
 
-- [ ] `link-directory` seed **or** catalog JSON entry: site + opportunities (`dofollow`, cost, `auto_launch_*`) — SQL `504_*` **or** `backfill_link_directory_catalog.catalog.json` + backfill when hub-only (TinyLaunch / Fazier pattern)
+- [ ] `link-directory` seed **or** catalog JSON shard: site + opportunities (`dofollow`, cost, `auto_launch_*`) — SQL `504_*` **or** `catalog/directory/<slug>.json` + backfill when hub-only (TinyLaunch / Fazier pattern)
 - [ ] Catalog JSON entry + local/prod backfill when site is hub-only like TinyLaunch (`pnpm backend:db:backfill-link-directory-catalog`)
 - [ ] `auto-launch` destination seed (`503+`): rows in `destinationSeeds.ts`; `pnpm sync:auto-launch-destinations`
 - [ ] `destination-configs/*.ts` + registry; `pnpm sync:auto-launch-configs`; aggregate migrations

@@ -1,0 +1,120 @@
+{
+	"site": {
+		"id": "d5f7d000-0010-4000-a000-000000000011",
+		"slug": "indiehub",
+		"title": "IndieHub",
+		"site_url": "https://indiehub.best",
+		"logo_url": "https://www.openquok.com/icons/link-directory/indiehub.svg",
+		"short_description": "Indie product launch directory. Paid Basic and Pro listings with dofollow links and no reciprocal badge. OpenQuok fills step 1 (Details); you pay and publish on IndieHub.",
+		"long_description": "<a href=\"https://indiehub.best\">IndieHub</a> lists indie products with icon, cover image, categories, and markdown intro. Every plan is paid — see <a href=\"https://indiehub.best/pricing\">IndieHub pricing</a> (Basic $4.9, Pro $9.9). Listings publish after checkout with dofollow links to your site and no badge requirement. OpenQuok autofills <a href=\"https://indiehub.best/submit\">Details (step 1)</a> after you sign in; payment and publish stay on IndieHub.",
+		"domain_rating": 40,
+		"monthly_visits": 5000,
+		"metrics_source": "ahrefs",
+		"category_slug": "launch-platforms",
+		"tag_slugs": [],
+		"is_openquok_auth_supported": false,
+		"openquok_channel_slug": null,
+		"is_admin_published": true,
+		"sort_order": 0
+	},
+	"opportunities": [
+		{
+			"id": "d5f7d000-0020-4000-a000-000000000045",
+			"slug": "basic-launch",
+			"title": "Basic launch",
+			"opportunity_type_slug": "product_submission",
+			"effort": "easy",
+			"approval_mode": "instant",
+			"approval_time_hint": "Publishes after Basic checkout on step 3",
+			"dofollow": "dofollow",
+			"cost_tier": "paid",
+			"cost_note": "$4.9 one-time on https://indiehub.best/pricing — dofollow listing, no reciprocal badge.",
+			"description": "Pay $4.9 for a Basic listing on <a href=\"https://indiehub.best/pricing\">IndieHub pricing</a>. OpenQuok fills <a href=\"https://indiehub.best/submit\">submit step 1 (Details)</a> after you sign in. Finish payment on step 2 and publish on step 3. Dofollow links, no badge required.",
+			"steps": [
+				{
+					"order": 1,
+					"title": "Compare Basic and Pro",
+					"body": "Read what each tier includes on https://indiehub.best/pricing before you checkout."
+				},
+				{
+					"order": 2,
+					"title": "Sign in",
+					"body": "Open https://indiehub.best/auth/login and sign in with GitHub, Google, or email."
+				},
+				{
+					"order": 3,
+					"title": "Fill Details",
+					"body": "Open https://indiehub.best/submit. On step 1 (Details), use OpenQuok to fill link, name, categories, tags, description, intro, icon, and cover image. Skip IndieHub AI AutoFill if it prefills your URL. OpenQuok does not autofill payment or publish."
+				},
+				{
+					"order": 4,
+					"title": "Pay Basic",
+					"body": "On step 2 (Payment), choose Basic ($4.9) and complete checkout on IndieHub."
+				},
+				{
+					"order": 5,
+					"title": "Publish and verify",
+					"body": "On step 3 (Publish), submit the listing. Open your live IndieHub product page and confirm the dofollow website link. Save your live listing URL."
+				}
+			],
+			"openquok_cta_kind": "external_doc",
+			"openquok_channel_slug": null,
+			"openquok_plug_name": null,
+			"cta_href": "https://indiehub.best/submit",
+			"cta_label": "Submit on IndieHub",
+			"sort_order": 10,
+			"is_admin_published": true,
+			"auto_launch_enabled": true,
+			"auto_launch_provider_slug": "indiehub-basic-launch"
+		},
+		{
+			"id": "d5f7d000-0020-4000-a000-000000000046",
+			"slug": "pro-launch",
+			"title": "Pro launch",
+			"opportunity_type_slug": "product_submission",
+			"effort": "easy",
+			"approval_mode": "instant",
+			"approval_time_hint": "Publishes after Pro checkout on step 3",
+			"dofollow": "dofollow",
+			"cost_tier": "paid",
+			"cost_note": "$9.9 one-time on https://indiehub.best/pricing — more dofollow links and placement vs Basic.",
+			"description": "Pay $9.9 for Pro on <a href=\"https://indiehub.best/pricing\">IndieHub pricing</a>. Pro adds stronger placement and more dofollow links than Basic. OpenQuok fills <a href=\"https://indiehub.best/submit\">submit step 1</a>; checkout and publish stay on IndieHub.",
+			"steps": [
+				{
+					"order": 1,
+					"title": "Compare Basic and Pro",
+					"body": "Confirm Pro benefits (extra dofollow links and visibility) on https://indiehub.best/pricing."
+				},
+				{
+					"order": 2,
+					"title": "Sign in",
+					"body": "Open https://indiehub.best/auth/login and sign in."
+				},
+				{
+					"order": 3,
+					"title": "Fill Details",
+					"body": "Open https://indiehub.best/submit. Use OpenQuok on step 1 only. Skip AI AutoFill URL prefill when needed."
+				},
+				{
+					"order": 4,
+					"title": "Pay Pro",
+					"body": "On step 2 (Payment), choose Pro ($9.9) and complete checkout."
+				},
+				{
+					"order": 5,
+					"title": "Publish and verify",
+					"body": "Publish on step 3. Open your live listing and confirm each dofollow link to your site. Save your live listing URL."
+				}
+			],
+			"openquok_cta_kind": "external_doc",
+			"openquok_channel_slug": null,
+			"openquok_plug_name": null,
+			"cta_href": "https://indiehub.best/submit",
+			"cta_label": "Submit on IndieHub",
+			"sort_order": 15,
+			"is_admin_published": true,
+			"auto_launch_enabled": true,
+			"auto_launch_provider_slug": "indiehub-pro-launch"
+		}
+	]
+}

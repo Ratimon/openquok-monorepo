@@ -1,0 +1,128 @@
+{
+	"listing": {
+		"id": "d5f7b000-0000-4000-a000-000000000104",
+		"slug": "viral-tiktok-carousel",
+		"title": "Viral TikTok Carousel",
+		"listing_kind": "stack",
+		"category_slug": "social-growth",
+		"tag_slugs": [
+			"openquok-core",
+			"revenuecat-mcp",
+			"tiktok"
+		],
+		"owner_username": "openquok",
+		"description": "Publish a TikTok photo carousel with OpenQuok Core, review performance after it goes live, then layer RevenueCat subscription context on top of your channel analytics. Generate portrait slideshow images with OpenAI GPT Image 1.5 before scheduling — the model proven TikTok marketing playbooks use for photorealistic slides. Requires openquok-core and RevenueCat MCP — see Prerequisites in the exported SKILL.md.",
+		"excerpt": "Schedule viral-style carousels with GPT Image 1.5 slides, the openquok CLI, channel analytics, and RevenueCat subscriber context. Install openquok-core + RevenueCat MCP first.",
+		"content": "## Viral TikTok Carousel\n\nShip a repeatable creator workflow without leaving your agent. **Prerequisites:** install and authenticate **openquok-core** (OpenQuok CLI + skill) and connect **RevenueCat MCP** when you want subscription context alongside social analytics.\n\n1. **Generate slides** — use **OpenAI GPT Image 1.5** (`gpt-image-1.5`) for portrait (1024×1536) slideshow images. Prefer 1.5 over earlier image models for photorealistic, phone-camera-style frames that hold attention in the feed.\n2. **Connect channels** — `openquok integrations:list` to grab the integration UUID for TikTok (or another platform).\n3. **Schedule content** — upload slide images with `openquok upload`, then `openquok posts:create --json` with a photo-carousel payload (see workflow example JSON).\n4. **Review** — wait for the scheduled publish window and sanity-check the live post.\n5. **Measure reach** — `openquok analytics:platform <uuid> --days 7` for channel-level performance.\n6. **Add revenue context** — prompt RevenueCat MCP for entitlements and subscriber state to interpret what growth means for your app.\n\nClone this stack in Skill Builder to export a SKILL.md with Prerequisites, Quick Reference, and workflow steps.",
+		"source_repo_url": "https://github.com/Ratimon/openquok-monorepo",
+		"version": "1.0.0",
+		"license": "MIT",
+		"extension_type": null,
+		"is_official": true,
+		"is_user_published": true,
+		"is_admin_published": true,
+		"schema_type": "CreativeWork",
+		"stack_blueprint": {
+			"workflow_steps": [
+				{
+					"type": "text",
+					"title": "Generate portrait slideshow images",
+					"content": "Generate six portrait (1024×1536) slideshow images with OpenAI GPT Image 1.5 (gpt-image-1.5). Use consistent scene anchors across slides, iPhone-photo-style prompts, and realistic lighting before adding text overlays and uploading to OpenQuok."
+				},
+				{
+					"type": "command",
+					"listing_slug": "openquok-core",
+					"command_name": "integrations:list",
+					"title": "Discover connected channels",
+					"command_template": "# List all connected social channels (integration UUIDs)\nopenquok integrations:list",
+					"prompt": "List connected social channels and pick the integration UUID for the platform you are publishing to."
+				},
+				{
+					"type": "command",
+					"listing_slug": "openquok-core",
+					"command_name": "posts:create",
+					"title": "Schedule a post",
+					"command_template": "# Create or schedule a post (upload media first — Rule 2 in openquok-core)\nopenquok posts:create --json ./post.json",
+					"prompt": "Schedule a TikTok photo carousel using the example JSON payload. Upload images first with openquok upload when paths are local files.",
+					"example_payload": {
+						"scheduledAt": "2026-01-01T12:00:00.000Z",
+						"status": "scheduled",
+						"body": "Carousel caption — links in bio.",
+						"integrationIds": [
+							"<integration-id>"
+						],
+						"media": [
+							{
+								"id": "<media-id-1>",
+								"path": "https://cdn.example.com/a.jpg"
+							},
+							{
+								"id": "<media-id-2>",
+								"path": "https://cdn.example.com/b.jpg"
+							}
+						],
+						"providerSettingsByIntegrationId": {
+							"<integration-id>": {
+								"title": "A short photo title",
+								"privacy_level": "PUBLIC_TO_EVERYONE",
+								"content_posting_method": "DIRECT_POST"
+							}
+						}
+					}
+				},
+				{
+					"type": "text",
+					"title": "Review the live post",
+					"content": "Wait for the scheduled publish time, then review the live post before pulling metrics."
+				},
+				{
+					"type": "command",
+					"listing_slug": "openquok-core",
+					"command_name": "analytics:platform",
+					"title": "Measure channel performance",
+					"command_template": "# Platform-level metrics for a connected channel (7, 30, or 90 days)\nopenquok analytics:platform <integration-uuid> --days 7",
+					"prompt": "Pull seven-day platform analytics for the same integration UUID used when scheduling the carousel."
+				},
+				{
+					"type": "command",
+					"listing_slug": "revenuecat-mcp",
+					"command_name": "get_customer",
+					"title": "Add revenue context",
+					"prompt": "Summarize active subscriptions and entitlements for a customer id to contextualize how social reach maps to revenue."
+				}
+			],
+			"reference_assets": [
+				{
+					"type": "json",
+					"label": "TikTok photo carousel payload",
+					"payload": "{\n  \"scheduledAt\": \"2026-01-01T12:00:00.000Z\",\n  \"status\": \"scheduled\",\n  \"body\": \"Carousel caption — links in bio.\",\n  \"integrationIds\": [\"<integration-id>\"],\n  \"media\": [\n    { \"id\": \"<media-id-1>\", \"path\": \"https://cdn.example.com/a.jpg\" },\n    { \"id\": \"<media-id-2>\", \"path\": \"https://cdn.example.com/b.jpg\" }\n  ],\n  \"providerSettingsByIntegrationId\": {\n    \"<integration-id>\": {\n      \"title\": \"A short photo title\",\n      \"privacy_level\": \"PUBLIC_TO_EVERYONE\",\n      \"content_posting_method\": \"DIRECT_POST\"\n    }\n  }\n}"
+				}
+			],
+			"model_bindings": [
+				{
+					"use_case": "image_generation",
+					"provider": "openai",
+					"model": "gpt-image-1.5"
+				},
+				{
+					"use_case": "image_editing",
+					"provider": "openai",
+					"model": "gpt-image-1.5"
+				},
+				{
+					"use_case": "chat",
+					"provider": "openai",
+					"model": "gpt-5.5"
+				}
+			],
+			"generated_markdown": "## Prerequisites\n\nInstall **openquok-core** (OpenQuok CLI + skill) and connect **RevenueCat MCP** for the full publish → analytics → revenue loop.\n\n## AI models\n\n- **Image generation & editing:** OpenAI GPT Image 1.5 (`gpt-image-1.5`) — portrait slideshow frames before upload.\n- **Chat & agents:** OpenAI GPT-5.5 — orchestrate research, hooks, and the daily feedback loop.\n\n## Workflow\n\n1. Generate portrait slideshow images with GPT Image 1.5.\n2. openquok-core · integrations:list — List connected social channels and pick the integration UUID.\n3. openquok-core · posts:create — Schedule a TikTok photo carousel (see reference JSON).\n4. Wait for publish and review the live post.\n5. openquok-core · analytics:platform — Pull 7-day channel metrics.\n6. revenuecat-mcp · get_customer — Add subscription context to interpret growth."
+		}
+	},
+	"stack_members": [
+		{
+			"member_listing_slug": "openquok-core",
+			"member_role": "skills",
+			"sort_order": 0
+		}
+	]
+}

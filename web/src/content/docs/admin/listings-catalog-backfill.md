@@ -21,10 +21,10 @@ Official hub listings use owner <Badge text="openquok" variant="default" /> (see
 
 New catalog-only extensions or playbooks can ship in the repo JSON without a dedicated SQL seed migration. Operators run the script with the Supabase **service role** key, the same operational model as <Badge text="pnpm backend:db:promote-platform-admin" variant="default" />.
 
-| Hub | JSON catalog | CLI kind |
+| Hub | Catalog shards | CLI kind |
 | --- | --- | --- |
-| <a href="/building-blocks">Building Blocks</a> | <Badge text="backend/scripts/backfill_listings_building_blocks.catalog.json" variant="path" /> | <Badge text="extension" variant="param" /> |
-| <a href="/playbooks">Playbooks</a> | <Badge text="backend/scripts/backfill_listings_playbooks.catalog.json" variant="path" /> | <Badge text="stack" variant="param" /> |
+| <a href="/building-blocks">Building Blocks</a> | <Badge text="backend/scripts/catalog/building-blocks/*.json" variant="path" /> (e.g. <Badge text="openquok-core.json" variant="path" />) | <Badge text="extension" variant="param" /> |
+| <a href="/playbooks">Playbooks</a> | <Badge text="backend/scripts/catalog/playbooks/*.json" variant="path" /> (e.g. <Badge text="viral-tiktok-carousel.json" variant="path" />) | <Badge text="stack" variant="param" /> |
 
 **Runner:** <Badge text="backend/scripts/backfill_listings_catalog.mjs" variant="path" />
 
@@ -138,7 +138,7 @@ The <Badge text=":prod" variant="param" /> script aliases pass <Badge text="--en
 | <Badge text="--force" variant="param" /> | Replace existing listing rows and **re-sync** tag associations and stack members |
 | <Badge text="--slug openquok-core" variant="param" /> | Process only this listing slug (repeat the flag for multiple slugs) |
 | <Badge text="--list-missing" variant="param" /> | List catalog slugs that are not yet in <Badge text="listings" variant="path" /> |
-| <Badge text="--catalog &lt;path&gt;" variant="param" /> | Override the default JSON file (npm scripts set this per hub) |
+| <Badge text="--catalog &lt;path&gt;" variant="param" /> | Hub directory or a single <Badge text="&lt;slug&gt;.json" variant="path" /> (npm scripts point at each hub folder) |
 | <Badge text="--kind extension\|stack" variant="param" /> | Reject entries whose <Badge text="listing_kind" variant="param" /> does not match (guardrail) |
 | <Badge text="--env-file &lt;path&gt;" variant="param" /> | Env file relative to <Badge text="backend/" variant="path" /> |
 
@@ -159,7 +159,7 @@ Pass script options after <code>--</code> when invoking from the repo root.
 
 ## Adding a future catalog listing
 
-1. Append a new entry under <Badge text="entries" variant="param" /> in the correct catalog file (use a new UUID; resolve <Badge text="category_slug" variant="param" /> and <Badge text="tag_slugs" variant="param" /> to existing taxonomy rows).
+1. Add <Badge text="backend/scripts/catalog/building-blocks/&lt;slug&gt;.json" variant="path" /> or <Badge text="catalog/playbooks/&lt;slug&gt;.json" variant="path" /> with <Badge text="{ listing, stack_members }" variant="param" /> (use a new UUID; resolve <Badge text="category_slug" variant="param" /> and <Badge text="tag_slugs" variant="param" />).
 2. For playbooks, add <Badge text="stack_members" variant="param" /> with <Badge text="member_listing_slug" variant="param" /> — ensure member extensions exist (backfill building blocks first).
 3. Run backfill with <Badge text="--slug &lt;slug&gt;" variant="param" /> in dev, then production — no migration PR required for catalog-only listings.
 

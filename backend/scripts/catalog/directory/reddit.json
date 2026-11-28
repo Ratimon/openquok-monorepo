@@ -1,0 +1,111 @@
+{
+	"site": {
+		"id": "d5f7d000-0010-4000-a000-000000000001",
+		"slug": "reddit",
+		"title": "Reddit",
+		"site_url": "https://www.reddit.com",
+		"logo_url": "https://abkydcstowozoggfxaei.supabase.co/storage/v1/object/public/link_directory_logos/aa1a6c25-d1dc-43d7-9b13-a3e8ac48caf1-0.38164530755616477.jpeg",
+		"short_description": "Community posts, profiles, and Q&A threads — follow each subreddit's self-promotion rules.",
+		"long_description": "Reddit offers post, profile, and comment surfaces. Rules vary by community. Confirm rel on the live URL. Submit at <a href=\"https://www.reddit.com/submit\">reddit.com/submit</a>.",
+		"domain_rating": 95,
+		"monthly_visits": 1700000000,
+		"metrics_source": "ahrefs",
+		"category_slug": "social-platforms",
+		"tag_slugs": [
+			"community-moderated",
+			"high-dr"
+		],
+		"is_openquok_auth_supported": false,
+		"openquok_channel_slug": null,
+		"is_admin_published": true,
+		"sort_order": 0
+	},
+	"opportunities": [
+		{
+			"id": "d5f7d000-0020-4000-a000-000000000001",
+			"slug": "subreddit-post",
+			"title": "Subreddit post",
+			"opportunity_type_slug": "post_link",
+			"effort": "medium",
+			"approval_mode": "manual_review",
+			"approval_time_hint": "Varies by subreddit moderators",
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Share a post where subreddit rules allow promotional or showcase content. Outbound links in posts use rel=nofollow ugc.",
+			"steps": [
+				{
+					"body": "Read rules and recent posts to match tone.",
+					"order": 1,
+					"title": "Pick a subreddit"
+				},
+				{
+					"body": "Lead with insight; place your link once where allowed.",
+					"order": 2,
+					"title": "Draft value-first copy"
+				}
+			],
+			"openquok_cta_kind": "none",
+			"openquok_channel_slug": null,
+			"openquok_plug_name": null,
+			"cta_href": "https://www.reddit.com/submit",
+			"cta_label": "Open Reddit submit",
+			"sort_order": 10,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		},
+		{
+			"id": "d5f7d000-0020-4000-a000-000000000002",
+			"slug": "profile-bio",
+			"title": "Profile bio link",
+			"opportunity_type_slug": "profile_link",
+			"effort": "easy",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Add your site to your Reddit profile description. Reddit marks outbound profile links nofollow (ugc), same as posts and comments.",
+			"steps": [
+				{
+					"body": "Settings → Profile → About description.",
+					"order": 1,
+					"title": "Edit profile"
+				}
+			],
+			"openquok_cta_kind": "none",
+			"openquok_channel_slug": null,
+			"openquok_plug_name": null,
+			"cta_href": "https://www.reddit.com/settings/profile",
+			"cta_label": "Edit profile",
+			"sort_order": 20,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		},
+		{
+			"id": "d5f7d000-0020-4000-a000-000000000003",
+			"slug": "helpful-answer",
+			"title": "Helpful answer link",
+			"opportunity_type_slug": "qa_link",
+			"effort": "hard",
+			"approval_mode": "manual_review",
+			"approval_time_hint": "Community voting and mod removal",
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Answer a question with genuine help and a single relevant link when permitted. Comment links are nofollow ugc on Reddit.",
+			"steps": [],
+			"openquok_cta_kind": "external_doc",
+			"openquok_channel_slug": null,
+			"openquok_plug_name": null,
+			"cta_href": "https://www.reddit.com/submit",
+			"cta_label": "Open Reddit submit",
+			"sort_order": 30,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		}
+	]
+}

@@ -1,7 +1,8 @@
 ---
 description: Ship official Building Blocks and Playbooks hub listings via JSON catalog + CLI backfill (no new SQL seed required)
 globs:
-  - backend/scripts/backfill_listings_*.catalog.json
+  - backend/scripts/catalog/building-blocks/**
+  - backend/scripts/catalog/playbooks/**
   - backend/scripts/backfill_listings_catalog.mjs
   - backend/scripts/sync_listings_catalog_from_prod.mjs
   - web/src/content/docs/admin/listings-catalog-backfill.md
@@ -14,14 +15,14 @@ Use this when adding or updating **official** hub listings (`is_official`, owner
 
 | Hub | `listing_kind` | Catalog file | Backfill (repo root) |
 | --- | --- | --- | --- |
-| Building Blocks | `extension` | `backend/scripts/backfill_listings_building_blocks.catalog.json` | `pnpm backend:db:backfill-listings-building-blocks` |
-| Playbooks | `stack` | `backend/scripts/backfill_listings_playbooks.catalog.json` | `pnpm backend:db:backfill-listings-playbooks` |
+| Building Blocks | `extension` | `backend/scripts/catalog/building-blocks/<slug>.json` | `pnpm backend:db:backfill-listings-building-blocks` |
+| Playbooks | `stack` | `backend/scripts/catalog/playbooks/<slug>.json` | `pnpm backend:db:backfill-listings-playbooks` |
 
 Production: append `:prod` to the script name. Always dry-run first: `-- --dry-run --slug <slug>`.
 
 ## Contributor checklist
 
-1. Add `entries.<slug>` with a **stable UUID** on `listing.id`, explicit `listing.slug`, `category_slug`, `tag_slugs`, and editorial fields (snake_case aligned with `backend/data/schemas/listingSchemas.ts` / secret-admin).
+1. Add `backend/scripts/catalog/building-blocks/<slug>.json` or `catalog/playbooks/<slug>.json` with `{ "listing": { … }, "stack_members": [] }`. Use a **stable UUID** on `listing.id`, explicit `listing.slug`, `category_slug`, `tag_slugs`, and editorial fields (snake_case aligned with `backend/data/schemas/listingSchemas.ts` / secret-admin).
 2. Playbooks: set `stack_members[]` with `member_listing_slug`, `member_role`, `sort_order`. **Backfill building blocks before playbooks** when members are new.
 3. Run local backfill after `supabase db reset` (catalog-only rows are not re-inserted by migrations alone).
 4. Operator doc: `web/src/content/docs/admin/listings-catalog-backfill.md`.

@@ -1,0 +1,92 @@
+{
+	"site": {
+		"id": "8b42fb39-7a4e-486b-bea4-527eec209ede",
+		"slug": "tiktok",
+		"title": "Tiktok",
+		"site_url": "https://www.tiktok.com",
+		"logo_url": "https://abkydcstowozoggfxaei.supabase.co/storage/v1/object/public/link_directory_logos/aa1a6c25-d1dc-43d7-9b13-a3e8ac48caf1-0.5259203216330948.webp",
+		"short_description": "Short-form video — bio link for mobile-first audiences.",
+		"long_description": "TikTok profiles can include a website field when eligible. Confirm rel on your public profile. See <a href=\"https://www.tiktok.com\">tiktok.com</a>.",
+		"domain_rating": 91,
+		"monthly_visits": 2500000000,
+		"metrics_source": "Manual editor entry",
+		"category_slug": "social-platforms",
+		"tag_slugs": [
+			"high-dr"
+		],
+		"is_openquok_auth_supported": true,
+		"openquok_channel_slug": "tiktok",
+		"is_admin_published": true,
+		"sort_order": 0
+	},
+	"opportunities": [
+		{
+			"id": "244c1e93-7ab3-4abf-8f6e-14384849bb2c",
+			"slug": "personal-profile-website-link",
+			"title": "Personal profile website link",
+			"opportunity_type_slug": "profile_link",
+			"effort": "medium",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Add your site to the website field on your personal <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://www.tiktok.com/\">TikTok</a> profile once you have at least 1,000 followers. Use the account you post from as yourself.",
+			"steps": [
+				{
+					"body": "On your personal account, check that you have at least 1,000 followers—TikTok unlocks the profile website field at that threshold. If you are under 1k, grow the account or use the video-caption playbook on this guide instead.",
+					"order": 1,
+					"title": "Confirm you are eligible"
+				},
+				{
+					"body": "<a href=\"https://www.tiktok.com/\">TikTok</a> app → Profile → Edit profile → paste your URL in Website, save, and confirm on your public profile.",
+					"order": 2,
+					"title": "Add your website"
+				}
+			],
+			"openquok_cta_kind": "connect_channel",
+			"openquok_channel_slug": "tiktok",
+			"openquok_plug_name": null,
+			"cta_href": null,
+			"cta_label": "Connect Tiktok",
+			"sort_order": 10,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		},
+		{
+			"id": "b60902e8-3776-4dcb-a632-1e23ad4bb7a1",
+			"slug": "brand-profile-website-link",
+			"title": "Brand profile website link",
+			"opportunity_type_slug": "profile_link",
+			"effort": "medium",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Add your site to the website field on your brand TikTok profile (separate login from your personal account) once that account has at least 1,000 followers.",
+			"steps": [
+				{
+					"body": "Sign in to your brand TikTok (not your personal login) and confirm at least 1,000 followers so the website field is available—see <a href=\"https://support.tiktok.com/en/using-tiktok/exploring-videos/adding-a-link-to-your-profile\">TikTok Help</a>.",
+					"order": 1,
+					"title": "Confirm the brand account is eligible"
+				},
+				{
+					"body": "<a href=\"https://www.tiktok.com/\">TikTok</a> app → Profile → Edit profile → paste your marketing URL in Website, save, and confirm on the public brand profile.",
+					"order": 2,
+					"title": "Add your website"
+				}
+			],
+			"openquok_cta_kind": "connect_channel",
+			"openquok_channel_slug": "youtube",
+			"openquok_plug_name": null,
+			"cta_href": null,
+			"cta_label": "Connect Tiktok",
+			"sort_order": 20,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		}
+	]
+}

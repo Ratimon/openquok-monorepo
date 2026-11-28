@@ -165,7 +165,7 @@ Ship code in the PR; tag + launch blog in secret-admin (or paste-ready handoff).
 
 **Listing tag:** `/secret-admin/catalog-manager/tags` — name slugs via `stringToSlug`; groups: agent hosts → **Autonomous agents**, terminal MCP → **CLI**, IDE MCP → **IDE**. Optional: attach tag on openquok-core playbook.
 
-**Official hub listing card (extension or stack):** append `backend/scripts/backfill_listings_*.catalog.json` and run `pnpm backend:db:backfill-listings-building-blocks` and/or `pnpm backend:db:backfill-listings-playbooks` — see **add-listings-catalog** and `web/src/content/docs/admin/listings-catalog-backfill.md`. Prefer JSON + backfill over a new SQL seed when the listing is catalog-only after deploy.
+**Official hub listing card (extension or stack):** add `backend/scripts/catalog/building-blocks/<slug>.json` or `catalog/playbooks/<slug>.json` and run `pnpm backend:db:backfill-listings-building-blocks` and/or `pnpm backend:db:backfill-listings-playbooks` — see **add-listings-catalog** and `web/src/content/docs/admin/listings-catalog-backfill.md`. Prefer JSON + backfill over a new SQL seed when the listing is catalog-only after deploy.
 
 **Launch blog:** Blog Manager — How-to topic, HTML `h2`/`h3`, FAQ/How-to in form fields only, User published + Admin approved. Paste-ready copy in PR — no blog markdown under `web/src/content`.
 

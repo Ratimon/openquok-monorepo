@@ -21,7 +21,7 @@ After hub upserts, the runner also **relinks** <Badge text="auto_launch_destinat
 
 New hub destinations (for example <strong>Skool</strong>) can ship in the repo catalog without a dedicated SQL seed migration. Operators run the script with the Supabase **service role** key, the same operational model as <Badge text="pnpm backend:db:promote-platform-admin" variant="default" />.
 
-**Source of truth:** <Badge text="backend/scripts/backfill_link_directory_catalog.catalog.json" variant="path" />
+**Source of truth:** <Badge text="backend/scripts/catalog/directory/*.json" variant="path" /> (one file per site slug, e.g. <Badge text="skool.json" variant="path" />, <Badge text="tinylaunch.json" variant="path" />)
 
 **Runner:** <Badge text="backend/scripts/backfill_link_directory_catalog.mjs" variant="path" />
 
@@ -87,7 +87,7 @@ With the web and API dev servers running (local Supabase + backend on port 3000;
 
 - <strong>Skool</strong> appears on the hub grid with the link-directory logo.
 - Two opportunities: <strong>profile-bio</strong> (Connect Skool → connect channel) and <strong>group-post</strong> (Schedule with OpenQuok).
-- Step copy and effort badges match <Badge text="backfill_link_directory_catalog.catalog.json" variant="path" />.
+- Step copy and effort badges match the site shard under <Badge text="backend/scripts/catalog/directory/" variant="path" />.
 
 <Callout type="note">
 <p>If <Badge text="CACHE_ENABLED" variant="envBackend" /> is <code>true</code> but Redis is not running, link-directory API responses can hang until cache read times out. Use a running Redis instance or disable cache in <Badge text="backend/.env.development.local" variant="envBackend" /> while verifying locally.</p>
@@ -142,7 +142,7 @@ Pass script options after <code>--</code> when invoking from the repo root.
 
 ## Adding a future catalog site
 
-1. Append a new entry under <Badge text="entries" variant="param" /> in <Badge text="backfill_link_directory_catalog.catalog.json" variant="path" /> (use new UUIDs; resolve slugs for categories, opportunity types, and tags).
+1. Add <Badge text="backend/scripts/catalog/directory/&lt;site-slug&gt;.json" variant="path" /> with <Badge text="{ site, opportunities }" variant="param" /> (use new UUIDs; resolve slugs for categories, opportunity types, and tags).
 2. Add a self-contained hub logo at <Badge text="web/static/icons/link-directory/&lt;slug&gt;.svg" variant="path" />.
 3. Run backfill with <Badge text="--slug &lt;slug&gt;" variant="param" /> in dev, then production — no migration PR required for catalog-only destinations.
 

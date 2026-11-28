@@ -1,0 +1,210 @@
+{
+	"site": {
+		"id": "d5f7d000-0010-4000-a000-000000000012",
+		"slug": "alternativeto",
+		"title": "AlternativeTo",
+		"site_url": "https://alternativeto.net",
+		"logo_url": "https://www.openquok.com/icons/link-directory/alternativeto.svg",
+		"short_description": "Software alternatives directory. Submit a free listing on a review queue, or pay to expedite. OpenQuok fills manage-item; optional Priority or Finish tiers stay manual checkout.",
+		"long_description": "<a href=\"https://alternativeto.net\">AlternativeTo</a> lists software with tags, platforms, and license type. Add or edit apps at <a href=\"https://alternativeto.net/manage-item/\">manage-item</a> after you sign in and verify email. Listings are English-only; web apps should use Online or SaaS under Platforms. Approved app pages link to your official website — confirm rel on the live software page after publish. Track submissions on <a href=\"https://alternativeto.net/my-submissions/?src=account_menu\">my submissions</a>. After submit, optional paid Priority Review ($15) or We finish it ($29) expedite review — checkout on AlternativeTo.",
+		"domain_rating": 82,
+		"monthly_visits": 3500000,
+		"metrics_source": "editor_estimate",
+		"category_slug": "launch-platforms",
+		"tag_slugs": [
+			"high-dr"
+		],
+		"is_openquok_auth_supported": false,
+		"openquok_channel_slug": null,
+		"is_admin_published": true,
+		"sort_order": 0
+	},
+	"opportunities": [
+		{
+			"id": "d5f7d000-0020-4000-a000-000000000047",
+			"slug": "free-listing",
+			"title": "Free listing",
+			"opportunity_type_slug": "product_submission",
+			"effort": "medium",
+			"approval_mode": "manual_review",
+			"approval_time_hint": "Long free-queue backlog; publish timing is not guaranteed",
+			"dofollow": "dofollow",
+			"cost_tier": "free",
+			"cost_note": "Free path ($0). Optional post-submit upsells: Priority Review ($15) or We finish it ($29) on AlternativeTo.",
+			"description": "List your app at no cost on <a href=\"https://alternativeto.net/manage-item/\">AlternativeTo manage-item</a>. OpenQuok fills name, descriptions, website, tags, platforms, author, pricing, icon, and screenshots after you sign in. Submit on AlternativeTo and wait in the free review queue. Approved listings get a permanent app page with a link to your official website — confirm rel after publish.",
+			"steps": [
+				{
+					"order": 1,
+					"title": "Read listing rules",
+					"body": "Listings are English-only. Web apps should pick Online or SaaS under Platforms only. Strip promo links from descriptions per AlternativeTo FAQ."
+				},
+				{
+					"order": 2,
+					"title": "Verify email and sign in",
+					"body": "Create or open your AlternativeTo account. Verify email before your first submission. Sign in with Google, GitHub, Apple, or email."
+				},
+				{
+					"order": 3,
+					"title": "Fill manage-item",
+					"body": "Open https://alternativeto.net/manage-item/. Use OpenQuok to fill the listing cards. Icon should be at least 280 pixels. Features, supported languages, alternatives, and final Submit stay manual on AlternativeTo."
+				},
+				{
+					"order": 4,
+					"title": "Submit and track",
+					"body": "Submit the application on AlternativeTo. Skip paid upsells if you want the free queue. Track status on https://alternativeto.net/my-submissions/?src=account_menu."
+				},
+				{
+					"order": 5,
+					"title": "Verify after publish",
+					"body": "When AlternativeTo publishes your app, open the live /software/ page. Confirm the official website link and rel. Save your live listing URL."
+				}
+			],
+			"openquok_cta_kind": "external_doc",
+			"openquok_channel_slug": null,
+			"openquok_plug_name": null,
+			"cta_href": "https://alternativeto.net/manage-item/",
+			"cta_label": "Submit on AlternativeTo",
+			"sort_order": 10,
+			"is_admin_published": true,
+			"auto_launch_enabled": true,
+			"auto_launch_provider_slug": "alternativeto-free-listing"
+		},
+		{
+			"id": "d5f7d000-0020-4000-a000-000000000048",
+			"slug": "priority-review",
+			"title": "Priority review",
+			"opportunity_type_slug": "product_submission",
+			"effort": "medium",
+			"approval_mode": "manual_review",
+			"approval_time_hint": "Usually about 1–2 business days after $15 checkout (not guaranteed approval)",
+			"dofollow": "dofollow",
+			"cost_tier": "paid",
+			"cost_note": "$15 one-time Priority Review on AlternativeTo after you submit manage-item — expedited queue, not guaranteed approval.",
+			"description": "Same <a href=\"https://alternativeto.net/manage-item/\">manage-item</a> form as the free listing. OpenQuok fills the application; you submit and pay $15 for Priority Review on AlternativeTo. Expedited review is typically 1–2 business days — approval is not guaranteed.",
+			"steps": [
+				{
+					"order": 1,
+					"title": "Compare free and paid",
+					"body": "Priority Review ($15) expedites the queue vs the free backlog. We finish it ($29) is a separate concierge tier on AlternativeTo."
+				},
+				{
+					"order": 2,
+					"title": "Sign in",
+					"body": "Sign in on AlternativeTo with a verified email account."
+				},
+				{
+					"order": 3,
+					"title": "Fill and submit",
+					"body": "Open https://alternativeto.net/manage-item/. Use OpenQuok to complete the listing form and submit the application on AlternativeTo."
+				},
+				{
+					"order": 4,
+					"title": "Pay Priority Review",
+					"body": "On the post-submit upsell, choose Priority Review ($15) and complete checkout on AlternativeTo. OpenQuok does not run payment."
+				},
+				{
+					"order": 5,
+					"title": "Track and verify",
+					"body": "Watch progress on https://alternativeto.net/my-submissions/?src=account_menu. After publish, confirm the official website link on your live app page."
+				}
+			],
+			"openquok_cta_kind": "external_doc",
+			"openquok_channel_slug": null,
+			"openquok_plug_name": null,
+			"cta_href": "https://alternativeto.net/manage-item/",
+			"cta_label": "Submit on AlternativeTo",
+			"sort_order": 15,
+			"is_admin_published": true,
+			"auto_launch_enabled": true,
+			"auto_launch_provider_slug": "alternativeto-priority-review"
+		},
+		{
+			"id": "d5f7d000-0020-4000-a000-000000000049",
+			"slug": "finish-listing",
+			"title": "We finish it",
+			"opportunity_type_slug": "product_submission",
+			"effort": "medium",
+			"approval_mode": "manual_review",
+			"approval_time_hint": "Usually about 1–2 business days after $29 checkout (not guaranteed approval)",
+			"dofollow": "dofollow",
+			"cost_tier": "paid",
+			"cost_note": "$29 one-time We finish it on AlternativeTo — staff completes missing fields; not guaranteed approval.",
+			"description": "OpenQuok prefills <a href=\"https://alternativeto.net/manage-item/\">manage-item</a> after you sign in. Pay $29 for We finish it on AlternativeTo so their team completes remaining fields and pushes review. Checkout and tier choice stay on AlternativeTo.",
+			"steps": [
+				{
+					"order": 1,
+					"title": "Compare paid tiers",
+					"body": "We finish it ($29) includes concierge completion vs Priority Review ($15) which only expedites the queue."
+				},
+				{
+					"order": 2,
+					"title": "Sign in",
+					"body": "Sign in on AlternativeTo with a verified email account."
+				},
+				{
+					"order": 3,
+					"title": "Fill what you can",
+					"body": "Open https://alternativeto.net/manage-item/. Use OpenQuok to fill core listing fields. Submit the application when ready."
+				},
+				{
+					"order": 4,
+					"title": "Pay We finish it",
+					"body": "On the post-submit upsell, choose We finish it ($29) and complete checkout on AlternativeTo."
+				},
+				{
+					"order": 5,
+					"title": "Track and verify",
+					"body": "Follow status on https://alternativeto.net/my-submissions/?src=account_menu. After publish, open your live app page and confirm the website link."
+				}
+			],
+			"openquok_cta_kind": "external_doc",
+			"openquok_channel_slug": null,
+			"openquok_plug_name": null,
+			"cta_href": "https://alternativeto.net/manage-item/",
+			"cta_label": "Submit on AlternativeTo",
+			"sort_order": 20,
+			"is_admin_published": true,
+			"auto_launch_enabled": true,
+			"auto_launch_provider_slug": "alternativeto-finish-listing"
+		},
+		{
+			"id": "d5f7d000-0020-4000-a000-000000000050",
+			"slug": "user-profile",
+			"title": "User profile",
+			"opportunity_type_slug": "profile_link",
+			"effort": "easy",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "unknown",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Update your public AlternativeTo profile with social handles and LinkedIn at no cost. OpenQuok fills <a href=\"https://alternativeto.net/user/edit/\">user edit</a> after you sign in. Twitter, Reddit, Instagram, YouTube, and GitHub expect handles; LinkedIn expects a full URL. Reddit is not mapped in OpenQuok v1 — add it manually if needed.",
+			"steps": [
+				{
+					"order": 1,
+					"title": "Sign in",
+					"body": "Sign in on AlternativeTo with Google, GitHub, Apple, or email."
+				},
+				{
+					"order": 2,
+					"title": "Open user edit",
+					"body": "Go to https://alternativeto.net/user/edit/. Use OpenQuok to fill social handles (no full URLs where AlternativeTo expects usernames) and your LinkedIn profile URL."
+				},
+				{
+					"order": 3,
+					"title": "Save and verify",
+					"body": "Save on AlternativeTo. Open your public profile URL and confirm each link works. Add Reddit manually if you use it."
+				}
+			],
+			"openquok_cta_kind": "external_doc",
+			"openquok_channel_slug": null,
+			"openquok_plug_name": null,
+			"cta_href": "https://alternativeto.net/user/edit/",
+			"cta_label": "Edit profile",
+			"sort_order": 25,
+			"is_admin_published": true,
+			"auto_launch_enabled": true,
+			"auto_launch_provider_slug": "alternativeto-user-profile"
+		}
+	]
+}

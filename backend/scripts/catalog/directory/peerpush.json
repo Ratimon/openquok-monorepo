@@ -1,0 +1,102 @@
+{
+	"site": {
+		"id": "d5f7d000-0010-4000-a000-000000000008",
+		"slug": "peerpush",
+		"title": "PeerPush",
+		"site_url": "https://peerpush.com",
+		"logo_url": "https://www.openquok.com/icons/link-directory/peerpush.svg",
+		"short_description": "Product discovery for people and AI with structured listings and a builder community.",
+		"long_description": "PeerPush lists products with tags and pricing. Compare plans at <a href=\"https://peerpush.com/pricing\">peerpush.com/pricing</a>. Submit at <a href=\"https://peerpush.com/submit\">peerpush.com/submit</a>.",
+		"domain_rating": 73,
+		"monthly_visits": 1388303,
+		"metrics_source": "ahrefs",
+		"category_slug": "launch-platforms",
+		"tag_slugs": [
+			"high-dr"
+		],
+		"is_openquok_auth_supported": false,
+		"openquok_channel_slug": null,
+		"is_admin_published": true,
+		"sort_order": 0
+	},
+	"opportunities": [
+		{
+			"id": "d5f7d000-0020-4000-a000-000000000017",
+			"slug": "free-queue",
+			"title": "Free submission queue",
+			"opportunity_type_slug": "product_submission",
+			"effort": "medium",
+			"approval_mode": "manual_review",
+			"approval_time_hint": "Waits behind paid Standard Launch submissions",
+			"dofollow": "unknown",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Submit for free on <a href=\"https://peerpush.com/pricing\">PeerPush pricing</a> and wait in line behind paid launches. You still add a website URL on the listing; PeerPush does not document dofollow vs nofollow for the free tier — verify rel on your public product page after publish.",
+			"steps": [
+				{
+					"body": "Review Standard Launch vs the free queue on <a href=\"https://peerpush.com/pricing\">PeerPush pricing</a>.",
+					"order": 1,
+					"title": "Open pricing"
+				},
+				{
+					"body": "Choose Submit for Free and complete the product form at <a href=\"https://peerpush.com/submit\">PeerPush submit</a>.",
+					"order": 2,
+					"title": "Submit for free"
+				},
+				{
+					"body": "Free listings publish after paid queue volume clears; confirm your live listing URL when it goes live.",
+					"order": 3,
+					"title": "Wait for publish"
+				}
+			],
+			"openquok_cta_kind": "directory_channel",
+			"openquok_channel_slug": "peerpush",
+			"openquok_plug_name": null,
+			"cta_href": "https://peerpush.com/pricing",
+			"cta_label": "PeerPush pricing",
+			"sort_order": 10,
+			"is_admin_published": true,
+			"auto_launch_enabled": true,
+			"auto_launch_provider_slug": "peerpush-free-queue"
+		},
+		{
+			"id": "d5f7d000-0020-4000-a000-000000000016",
+			"slug": "standard-launch",
+			"title": "Standard launch",
+			"opportunity_type_slug": "product_submission",
+			"effort": "easy",
+			"approval_mode": "manual_review",
+			"approval_time_hint": "Usually within a few business days after publish",
+			"dofollow": "dofollow",
+			"cost_tier": "paid",
+			"cost_note": "Check current pricing on PeerPush",
+			"description": "Standard Launch ($39 one-time on <a href=\"https://peerpush.com/pricing\">PeerPush pricing</a>) publishes instantly with a permanent listing link to your website. Product pages on PeerPush typically link to your site without nofollow on listing pages — confirm rel on your live peerpush.com/p/… URL.",
+			"steps": [
+				{
+					"body": "Compare Standard Launch with the free queue on <a href=\"https://peerpush.com/pricing\">PeerPush pricing</a> before you checkout.",
+					"order": 1,
+					"title": "Review pricing"
+				},
+				{
+					"body": "Sign in at <a href=\"https://peerpush.com/submit\">PeerPush submit</a> and start a new product submission.",
+					"order": 2,
+					"title": "Open submit"
+				},
+				{
+					"body": "Confirm copy, discovery tags, screenshots, and pricing. Complete checkout for Standard Launch to go live immediately.",
+					"order": 3,
+					"title": "Publish listing"
+				}
+			],
+			"openquok_cta_kind": "directory_channel",
+			"openquok_channel_slug": "peerpush",
+			"openquok_plug_name": null,
+			"cta_href": "https://peerpush.com/submit",
+			"cta_label": "Submit on PeerPush",
+			"sort_order": 15,
+			"is_admin_published": true,
+			"auto_launch_enabled": true,
+			"auto_launch_provider_slug": "peerpush-standard-launch"
+		}
+	]
+}

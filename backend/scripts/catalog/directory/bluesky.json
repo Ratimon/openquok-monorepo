@@ -1,0 +1,179 @@
+{
+	"site": {
+		"id": "d5f7d000-0010-4000-a000-000000000002",
+		"slug": "bluesky",
+		"title": "Bluesky",
+		"site_url": "https://bsky.app",
+		"logo_url": "https://abkydcstowozoggfxaei.supabase.co/storage/v1/object/public/link_directory_logos/aa1a6c25-d1dc-43d7-9b13-a3e8ac48caf1-0.0720349452446446.png",
+		"short_description": "Decentralized social network with posts, profiles, and threads.",
+		"long_description": "Bluesky supports website links on profiles and in posts. Confirm rel on the live profile URL. Open <a href=\"https://bsky.app\">bsky.app</a>.",
+		"domain_rating": 97,
+		"monthly_visits": 25000000,
+		"metrics_source": "ahrefs",
+		"category_slug": "social-platforms",
+		"tag_slugs": [
+			"community-moderated",
+			"high-dr"
+		],
+		"is_openquok_auth_supported": true,
+		"openquok_channel_slug": "bluesky",
+		"is_admin_published": true,
+		"sort_order": 0
+	},
+	"opportunities": [
+		{
+			"id": "d5f7d000-0020-4000-a000-000000000004",
+			"slug": "profile-website",
+			"title": "Profile website field",
+			"opportunity_type_slug": "profile_link",
+			"effort": "easy",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Set the website URL on your Bluesky profile. Treat outbound social links as nofollow for SEO; value is referral traffic and brand discovery.",
+			"steps": [
+				{
+					"body": "Add your primary marketing URL.",
+					"order": 1,
+					"title": "Open profile settings"
+				}
+			],
+			"openquok_cta_kind": "connect_channel",
+			"openquok_channel_slug": "bluesky",
+			"openquok_plug_name": null,
+			"cta_href": null,
+			"cta_label": "Connect Bluesky",
+			"sort_order": 10,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		},
+		{
+			"id": "ae3e598b-b22c-4192-a8f4-459cda4f1307",
+			"slug": "brand-account-for-business",
+			"title": "Brand account for business",
+			"opportunity_type_slug": "profile_link",
+			"effort": "easy",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Create a separate <a href=\"https://bsky.app/\">Bluesky</a> account for your brand or company—not your personal login—so customers see a dedicated handle. Set your business website on that account before you post product updates. Outbound links are typically nofollow.",
+			"steps": [
+				{
+					"body": "Register a new account at <a href=\"https://bsky.app/\">bsky.app</a> with a handle that matches your brand. Keep this login separate from your personal account.",
+					"order": 1,
+					"title": "Create a brand account"
+				},
+				{
+					"body": "On the brand profile at <a href=\"https://bsky.app/\">bsky.app</a>, tap Edit profile, enter your company site in Website, save, and confirm the link on the public profile.",
+					"order": 2,
+					"title": "Add your business URL"
+				}
+			],
+			"openquok_cta_kind": "connect_channel",
+			"openquok_channel_slug": "bluesky",
+			"openquok_plug_name": null,
+			"cta_href": null,
+			"cta_label": "Connect Bluesky",
+			"sort_order": 20,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		},
+		{
+			"id": "d5f7d000-0020-4000-a000-000000000005",
+			"slug": "scheduled-thread",
+			"title": "Scheduled thread with link",
+			"opportunity_type_slug": "thread_link",
+			"effort": "medium",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Publish a multi-post thread with your link in the lead post. Post links on Bluesky should be planned as nofollow for ranking; they still drive clicks.",
+			"steps": [],
+			"openquok_cta_kind": "schedule_post",
+			"openquok_channel_slug": "bluesky",
+			"openquok_plug_name": null,
+			"cta_href": null,
+			"cta_label": "Schedule with OpenQuok",
+			"sort_order": 20,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		},
+		{
+			"id": "5227594b-a0a6-46c0-9bd3-e4682ef964d0",
+			"slug": "scheduled-thread-with-link",
+			"title": "Scheduled thread with link",
+			"opportunity_type_slug": "post_link",
+			"effort": "medium",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "After your brand profile lists your website, publish a multi-post thread with your link in the first post. You can publish on Bluesky or schedule the thread in OpenQuok once that account is connected.",
+			"steps": [
+				{
+					"body": "Switch to the Bluesky account you use for your brand (or your personal account if the thread is personal), start a new thread, and put your URL in the first post with a short line of context.",
+					"order": 1,
+					"title": "Compose a thread with your link"
+				},
+				{
+					"body": "Post the thread now or schedule it in OpenQuok if you want one calendar for Bluesky and your other channels.",
+					"order": 2,
+					"title": "Publish or schedule"
+				}
+			],
+			"openquok_cta_kind": "schedule_post",
+			"openquok_channel_slug": "bluesky",
+			"openquok_plug_name": null,
+			"cta_href": null,
+			"cta_label": "Schedule post",
+			"sort_order": 30,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		},
+		{
+			"id": "99dfab75-d6b2-4c19-93ac-23ebbb4948cf",
+			"slug": "reply-with-link",
+			"title": "Reply with link",
+			"opportunity_type_slug": "thread_link",
+			"effort": "easy",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Reply on <a href=\"https://bsky.app/\">Bluesky</a> with a comment and your URL when it fits. On posts you publish, OpenQuok sends an automated reply with your link after your like threshold. <a href=\"https://www.openquok.com/docs/getting-started-for-public-api\">Set up plugs</a> after you connect Bluesky.",
+			"steps": [
+				{
+					"body": "On <a href=\"https://bsky.app/\">Bluesky</a>, join a relevant conversation, add a useful reply, and include your URL once when it fits the thread—links are typically nofollow.",
+					"order": 1,
+					"title": "Reply with a link"
+				},
+				{
+					"body": "On posts you publish, connect Bluesky in <a href=\"https://www.openquok.com/channels/bluesky\">OpenQuok</a> and attach plug (like threshold + reply with your link). OpenQuok publishes the reply when your rules match.",
+					"order": 2,
+					"title": "Automate a follow-up on your posts"
+				}
+			],
+			"openquok_cta_kind": "use_plug",
+			"openquok_channel_slug": null,
+			"openquok_plug_name": "bluesky-auto-plug",
+			"cta_href": null,
+			"cta_label": "Plugs and automation",
+			"sort_order": 40,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		}
+	]
+}

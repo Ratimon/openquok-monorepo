@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Merge production link_directory rows into backfill_link_directory_catalog.catalog.json,
+ * Merge production link_directory rows into scripts/catalog/directory/<slug>.json shards,
  * then apply STE-oriented link enrichments and logo normalization.
  *
  * Usage (from repo root):
@@ -13,9 +13,11 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
+import { loadCatalogEntries, writeCatalogEntryShards } from "./catalog/loadCatalogEntries.mjs";
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const backendRoot = path.resolve(__dirname, "..");
-const CATALOG_PATH = path.join(__dirname, "backfill_link_directory_catalog.catalog.json");
+const CATALOG_DIR = path.join(__dirname, "catalog/directory");
 
 const PRESERVE_FROM_LOCAL = new Set([
 	"chrome-web-store",
@@ -244,7 +246,7 @@ async function main() {
 		process.exit(1);
 	}
 
-	const local = JSON.parse(fs.readFileSync(CATALOG_PATH, "utf8"));
+	const entries = { ...loadCatalogEntries(CATALOG_DIR) };
 	const admin = createClient(url, key);
 
 	const [{ data: sites, error: sErr }, { data: opps }, { data: cats }, { data: types }] =
@@ -266,7 +268,6 @@ async function main() {
 		oppsBySite[id].sort((a, b) => a.sort_order - b.sort_order);
 	}
 
-	const entries = { ...(local.entries ?? {}) };
 	for (const s of sites ?? []) {
 		if (PRESERVE_FROM_LOCAL.has(s.slug) && entries[s.slug]) continue;
 		const mergedCategorySlug =
@@ -279,9 +280,8 @@ async function main() {
 
 	applyPatches(entries);
 
-	const out = { version: local.version ?? 1, entries };
-	fs.writeFileSync(CATALOG_PATH, `${JSON.stringify(out, null, "\t")}\n`);
-	console.log(`Updated ${CATALOG_PATH} (${Object.keys(entries).length} sites)`);
+	const written = writeCatalogEntryShards(CATALOG_DIR, entries);
+	console.log(`Updated ${CATALOG_DIR} (${written.size} site shards)`);
 }
 
 main().catch((err) => {

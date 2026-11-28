@@ -1,0 +1,92 @@
+{
+	"site": {
+		"id": "e5f21236-f5f0-49f4-ac22-08a43d23f7e1",
+		"slug": "instagram",
+		"title": "Instagram",
+		"site_url": "https://www.instagram.com",
+		"logo_url": "https://abkydcstowozoggfxaei.supabase.co/storage/v1/object/public/link_directory_logos/aa1a6c25-d1dc-43d7-9b13-a3e8ac48caf1-0.9502091843724759.jpeg",
+		"short_description": "Visual discovery — bio link and feed posts for brands and creators.",
+		"long_description": "Instagram bio links appear on profiles. Business and Creator accounts can set one outbound URL. See <a href=\"https://help.instagram.com/566810106753081\">add a link to your profile</a>.",
+		"domain_rating": 100,
+		"monthly_visits": 7000000000,
+		"metrics_source": "ahrefs",
+		"category_slug": "social-platforms",
+		"tag_slugs": [
+			"high-dr"
+		],
+		"is_openquok_auth_supported": true,
+		"openquok_channel_slug": "instagram",
+		"is_admin_published": true,
+		"sort_order": 0
+	},
+	"opportunities": [
+		{
+			"id": "4e15c09d-929e-4af8-a682-f9afb1003476",
+			"slug": "personal-profile-link",
+			"title": "Personal profile link",
+			"opportunity_type_slug": "profile_link",
+			"effort": "easy",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Use your personal <a href=\"https://www.instagram.com/\">Instagram</a> (Creator or personal) account and put your site in the bio link when available. See <a href=\"https://help.instagram.com/566810106753081\">add a link to your profile</a>. Good for founders building in public on one handle. Links are typically nofollow.",
+			"steps": [
+				{
+					"body": "Go to Edit profile on the Instagram account you use as yourself in the app or on web.",
+					"order": 1,
+					"title": "Open your personal profile"
+				},
+				{
+					"body": "Add your website in the link field per <a href=\"https://help.instagram.com/566810106753081\">Instagram Help</a>, save, and test from a logged-out view.",
+					"order": 2,
+					"title": "Set the bio link"
+				}
+			],
+			"openquok_cta_kind": "connect_channel",
+			"openquok_channel_slug": "instagram",
+			"openquok_plug_name": null,
+			"cta_href": null,
+			"cta_label": "Connect Instagram",
+			"sort_order": 10,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		},
+		{
+			"id": "3cf58f61-92d2-4045-9465-0b0910ddf6f1",
+			"slug": "brand-profile-bio-link",
+			"title": "Brand profile bio link",
+			"opportunity_type_slug": "profile_link",
+			"effort": "easy",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Switch to a Business or Creator account and put your primary URL in the bio link field—see <a href=\"https://help.instagram.com/566810106753081\">add a link to your Instagram profile</a>. Essential for brand presence even when links are nofollow.",
+			"steps": [
+				{
+					"body": "Go to Edit profile on your Business or Creator account in the <a href=\"https://www.instagram.com/\">Instagram</a> app or web.",
+					"order": 1,
+					"title": "Open profile settings"
+				},
+				{
+					"body": "Add your website in the designated link field per <a href=\"https://help.instagram.com/566810106753081\">Instagram Help</a>, save, and test from a logged-out view.",
+					"order": 2,
+					"title": "Set the bio link"
+				}
+			],
+			"openquok_cta_kind": "connect_channel",
+			"openquok_channel_slug": "instagram",
+			"openquok_plug_name": null,
+			"cta_href": null,
+			"cta_label": "Connect Instagram (Business)",
+			"sort_order": 20,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		}
+	]
+}

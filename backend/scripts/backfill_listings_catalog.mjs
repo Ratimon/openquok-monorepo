@@ -8,7 +8,7 @@
  *
  * Options:
  *   --env-file <path>     Relative to backend/ (default: .env.development.local)
- *   --catalog <path>      JSON catalog (required)
+ *   --catalog <path>      Catalog hub dir or <slug>.json (required)
  *   --kind extension|stack  Guardrail: reject entries whose listing_kind differs
  *   --dry-run             Print actions only; no writes
  *   --force               Overwrite existing editorial rows; replace tags and stack members
@@ -20,6 +20,8 @@ import { createClient } from "@supabase/supabase-js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+
+import { loadCatalogEntries } from "./catalog/loadCatalogEntries.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const backendRoot = path.resolve(__dirname, "..");
@@ -138,7 +140,7 @@ Backfill public.listings (+ tag associations, stack members for playbooks) from 
 
 Requires PUBLIC_SUPABASE_URL and SUPABASE_SECRET_KEY in backend/<env-file>.
 
-  --catalog <path>    Catalog JSON (required)
+  --catalog <path>    Catalog hub directory or single <slug>.json (required)
   --kind extension|stack  Reject entries whose listing_kind does not match
   --env-file <path>   Default: .env.development.local
   --dry-run           No database writes
@@ -337,9 +339,7 @@ if (!fs.existsSync(catalogPath)) {
     process.exit(1);
 }
 
-/** @type {{ version?: number; entries: Record<string, { listing: object; stack_members?: object[] }> }} */
-const catalog = JSON.parse(fs.readFileSync(catalogPath, "utf8"));
-const entries = catalog.entries ?? {};
+const entries = loadCatalogEntries(catalogPath);
 
 const admin = createClient(supabaseUrl, supabaseSecretKey);
 

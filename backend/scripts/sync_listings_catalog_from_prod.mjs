@@ -13,12 +13,14 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
+import { loadCatalogEntries, writeCatalogEntryShards } from "./catalog/loadCatalogEntries.mjs";
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const backendRoot = path.resolve(__dirname, "..");
 
 const CATALOG_BY_KIND = {
-	extension: path.join(__dirname, "backfill_listings_building_blocks.catalog.json"),
-	stack: path.join(__dirname, "backfill_listings_playbooks.catalog.json"),
+	extension: path.join(__dirname, "catalog/building-blocks"),
+	stack: path.join(__dirname, "catalog/playbooks"),
 };
 
 /** Slugs with hand-curated repo JSON — skip overwriting when already present locally. */
@@ -211,8 +213,7 @@ async function main() {
 		process.exit(1);
 	}
 
-	const local = JSON.parse(fs.readFileSync(catalogPath, "utf8"));
-	const entries = { ...(local.entries ?? {}) };
+	const entries = { ...loadCatalogEntries(catalogPath) };
 	const admin = createClient(url, key);
 
 	const listingsQuery = admin
@@ -233,8 +234,7 @@ async function main() {
 	const listingIds = rows.map((r) => r.id);
 	if (listingIds.length === 0) {
 		console.log(`No matching production listings for kind=${args.kind}`);
-		const out = { version: local.version ?? 1, entries };
-		fs.writeFileSync(catalogPath, `${JSON.stringify(out, null, "\t")}\n`);
+		writeCatalogEntryShards(catalogPath, entries);
 		return;
 	}
 
@@ -330,10 +330,9 @@ async function main() {
 		merged += 1;
 	}
 
-	const out = { version: local.version ?? 1, entries };
-	fs.writeFileSync(catalogPath, `${JSON.stringify(out, null, "\t")}\n`);
+	const written = writeCatalogEntryShards(catalogPath, entries);
 	console.log(
-		`Updated ${catalogPath} (${Object.keys(entries).length} entries; merged ${merged} from prod, preserved ${skippedPreserve} local)`
+		`Updated ${catalogPath} (${written.size} shards; merged ${merged} from prod, preserved ${skippedPreserve} local)`
 	);
 }
 

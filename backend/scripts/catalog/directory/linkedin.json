@@ -1,0 +1,194 @@
+{
+	"site": {
+		"id": "715a6fd1-5ccb-4944-a387-45edb0e47d5f",
+		"slug": "linkedin",
+		"title": "LinkedIn",
+		"site_url": "https://www.linkedin.com",
+		"logo_url": "https://abkydcstowozoggfxaei.supabase.co/storage/v1/object/public/link_directory_logos/aa1a6c25-d1dc-43d7-9b13-a3e8ac48caf1-0.19555522493790356.jpeg",
+		"short_description": "B2B profiles and Company Pages — website fields and link posts",
+		"long_description": "LinkedIn profiles and Pages can link to your site. Confirm rel on the public profile or Page URL. Open <a href=\"https://www.linkedin.com\">linkedin.com</a>.",
+		"domain_rating": 100,
+		"monthly_visits": 1700000000,
+		"metrics_source": "ahrefs",
+		"category_slug": "social-platforms",
+		"tag_slugs": [
+			"high-dr"
+		],
+		"is_openquok_auth_supported": true,
+		"openquok_channel_slug": "linkedin",
+		"is_admin_published": true,
+		"sort_order": 0
+	},
+	"opportunities": [
+		{
+			"id": "f45303c4-0217-4d65-983a-1f1b5fe15c7b",
+			"slug": "personal-profile-link",
+			"title": "Personal profile link",
+			"opportunity_type_slug": "profile_link",
+			"effort": "easy",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "unknown",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "On your personal <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://www.linkedin.com/\">LinkedIn</a> member profile, add your site in the Contact info / website field. See <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://www.linkedin.com/help/linkedin/answer/a542685\">add website to your profile</a>. Good for founders who want buyers to find you and your project on one profile.",
+			"steps": [
+				{
+					"body": "Go to your LinkedIn profile → Edit public profile → Contact info.",
+					"order": 1,
+					"title": "Open your profile"
+				},
+				{
+					"body": "Enter your homepage URL, save, and confirm on your public member profile.",
+					"order": 2,
+					"title": "Add your website"
+				}
+			],
+			"openquok_cta_kind": "connect_channel",
+			"openquok_channel_slug": "linkedin",
+			"openquok_plug_name": null,
+			"cta_href": null,
+			"cta_label": "Connect LinkedIn",
+			"sort_order": 10,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		},
+		{
+			"id": "aef9dbca-832f-4ab3-9d7a-d448b833975e",
+			"slug": "company-page-website",
+			"title": "Company Page website",
+			"opportunity_type_slug": "profile_link",
+			"effort": "medium",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Create a <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://www.linkedin.com/help/linkedin/answer/a543852\">LinkedIn Company Page</a> for your brand. You must confirm you are authorized to act for the company. LinkedIn may require <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://www.linkedin.com/help/linkedin/answer/a1423367\">workplace verification</a> with a work email on your company domain. See <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://www.linkedin.com/help/linkedin/answer/a726850\">troubleshoot creating a Page</a>. and <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://www.linkedin.com/help/linkedin/answer/a521928\">add a website to your Page</a>.",
+			"steps": [
+				{
+					"body": "Sign in with a personal LinkedIn account that has more than one connection (new accounts may need to wait one day). Follow <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://www.linkedin.com/help/linkedin/answer/a543852\">Create a LinkedIn Page</a>. Check the box that you are authorized to act for the organization. If LinkedIn blocks you, complete workplace verification with a work email at your company domain (e.g. you@yourcompany.com) per <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://www.linkedin.com/help/linkedin/answer/a726850\">LinkedIn Help</a>. If a Page already exists, request admin access instead of creating a duplicate.",
+					"order": 1,
+					"title": "Create or claim a Company Page"
+				},
+				{
+					"body": "Page admin → Edit Page → enter Website URL and save—see <a href=\"https://www.linkedin.com/help/linkedin/answer/a521928\">LinkedIn Help</a>.",
+					"order": 2,
+					"title": "Add your website"
+				}
+			],
+			"openquok_cta_kind": "connect_channel",
+			"openquok_channel_slug": "linkedin",
+			"openquok_plug_name": null,
+			"cta_href": null,
+			"cta_label": "Connect LinkedIn",
+			"sort_order": 20,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		},
+		{
+			"id": "de5e9e69-11dc-4b9e-9fe4-232e4565d3c7",
+			"slug": "page-or-profile-link-post",
+			"title": "Page or profile link post",
+			"opportunity_type_slug": "post_link",
+			"effort": "easy",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Share an update with your URL. Publish on <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://www.linkedin.com/\">LinkedIn</a> or schedule in <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://www.openquok.com/channels/linkedin\">OpenQuok</a> once your LinkedIn channel is connected.",
+			"steps": [
+				{
+					"body": "Write a short post with context and one link preview.",
+					"order": 1,
+					"title": "Compose the update"
+				},
+				{
+					"body": "Post now or schedule in <a href=\"https://www.openquok.com/channels/linkedin\">OpenQuok</a> for LinkedIn and your other channels.",
+					"order": 2,
+					"title": "Publish or schedule"
+				}
+			],
+			"openquok_cta_kind": "schedule_post",
+			"openquok_channel_slug": "linkedin",
+			"openquok_plug_name": null,
+			"cta_href": null,
+			"cta_label": "Schedule LinkedIn post",
+			"sort_order": 30,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		},
+		{
+			"id": "d74a6345-49cf-4cc4-a623-c0b1d397321a",
+			"slug": "publish-article",
+			"title": "Publish article",
+			"opportunity_type_slug": "post_link",
+			"effort": "medium",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Publish a long-form <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://www.linkedin.com/help/linkedin/answer/a522427\">LinkedIn article</a> from your member profile or as a Page content admin. Desktop only. Use the editor’s Link tool to add your product or docs URL in the body. Optional SEO title and description help discovery. Articles appear on your profile Activity and in followers’ feeds.",
+			"steps": [
+				{
+					"body": "On LinkedIn desktop, click Write article on the homepage. Outline a useful piece for your audience, add headings, and insert your site with the Link tool. See <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://www.linkedin.com/help/linkedin/answer/a522427\">publish articles on LinkedIn</a> and <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://www.linkedin.com/help/linkedin/answer/a569569\">publish as your Page</a> if you post as a Company Page.",
+					"order": 1,
+					"title": "Draft the article on desktop"
+				},
+				{
+					"body": "Choose Publish as (yourself or your Page), set SEO settings if helpful, then click Publish. Share the article URL on other channels/groups.",
+					"order": 2,
+					"title": "Publish and share"
+				}
+			],
+			"openquok_cta_kind": "none",
+			"openquok_channel_slug": null,
+			"openquok_plug_name": null,
+			"cta_href": "https://www.linkedin.com/help/linkedin/answer/a522427",
+			"cta_label": "Publish articles on LinkedIn",
+			"sort_order": 40,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		},
+		{
+			"id": "dfec8c3d-6472-4f55-87ec-8a9688460f07",
+			"slug": "comment-with-link",
+			"title": "Comment with link",
+			"opportunity_type_slug": "comment_link",
+			"effort": "easy",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Comment on a relevant <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://www.linkedin.com/\">LinkedIn</a> post with helpful context and your URL. Alternatively, OpenQuok Auto plug post can add a promotional comment with your link after your like threshold. <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://www.openquok.com/docs/getting-started-for-public-api\">Set up plugs</a> after you connect LinkedIn.",
+			"steps": [
+				{
+					"body": "Find a post where you can add real value, write a short comment, and include your URL once when it belongs in the conversation. See <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://www.linkedin.com/help/linkedin/answer/a524054\">comment on LinkedIn posts</a>.",
+					"order": 1,
+					"title": "Comment with a helpful link"
+				},
+				{
+					"body": "After you schedule or publish a post in <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://www.openquok.com/channels/linkedin\">OpenQuok</a>, attach plug (likes threshold + comment with your link). Optional: linkedin-add-comment posts a comment from another connected LinkedIn channel on your post. This automation only works on your post not other's post.",
+					"order": 2,
+					"title": "Comment on (your) Page posts"
+				}
+			],
+			"openquok_cta_kind": "use_plug",
+			"openquok_channel_slug": null,
+			"openquok_plug_name": "linkedin-page-auto-plug",
+			"cta_href": null,
+			"cta_label": "Plugs and automation",
+			"sort_order": 50,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		}
+	]
+}

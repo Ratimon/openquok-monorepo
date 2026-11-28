@@ -1,0 +1,117 @@
+{
+	"site": {
+		"id": "d5f7d000-0010-4000-a000-000000000009",
+		"slug": "skool",
+		"title": "Skool",
+		"site_url": "https://www.skool.com",
+		"logo_url": "https://www.openquok.com/icons/link-directory/skool.svg",
+		"short_description": "Creator communities. Add a profile URL or link in public group posts when rules allow it.",
+		"long_description": "<a href=\"https://www.skool.com\">Skool</a> hosts paid and free groups. Owners set link rules. Public post pages often omit nofollow on outbound anchors in page HTML. Profile and social links usually use nofollow. Open the live URL and check rel before you treat a link as a ranking backlink.",
+		"domain_rating": 91,
+		"monthly_visits": 12000000,
+		"metrics_source": "ahrefs",
+		"category_slug": "social-platforms",
+		"tag_slugs": [
+			"community-moderated"
+		],
+		"is_openquok_auth_supported": true,
+		"openquok_channel_slug": "skool",
+		"is_admin_published": true,
+		"sort_order": 0
+	},
+	"opportunities": [
+		{
+			"id": "d5f7d000-0020-4000-a000-000000000020",
+			"slug": "profile-bio",
+			"title": "Profile bio link",
+			"opportunity_type_slug": "profile_link",
+			"effort": "easy",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Add your site on your <a href=\"https://www.skool.com\">Skool</a> profile. Profile and social outbound links use rel=nofollow on live pages. Use this path for clicks and brand, not pass-through DR.",
+			"steps": [
+				{
+					"order": 1,
+					"title": "Sign in",
+					"body": "Open <a href=\"https://www.skool.com\">Skool</a> and sign in."
+				},
+				{
+					"order": 2,
+					"title": "Open profile",
+					"body": "Open your profile or account settings from the menu."
+				},
+				{
+					"order": 3,
+					"title": "Add your URL",
+					"body": "Paste your site into the website or bio field."
+				},
+				{
+					"order": 4,
+					"title": "Save",
+					"body": "Save and open your public profile. Confirm the link works."
+				}
+			],
+			"openquok_cta_kind": "connect_channel",
+			"openquok_channel_slug": "skool",
+			"openquok_plug_name": null,
+			"cta_href": null,
+			"cta_label": "Connect Skool",
+			"sort_order": 10,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		},
+		{
+			"id": "d5f7d000-0020-4000-a000-000000000021",
+			"slug": "group-post",
+			"title": "Group feed post",
+			"opportunity_type_slug": "post_link",
+			"effort": "medium",
+			"approval_mode": "manual_review",
+			"approval_time_hint": "Depends on the group owner",
+			"dofollow": "dofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Publish in a public Skool group when rules allow links. Public post permalinks often render body links without nofollow. Owners can remove promo. Schedule on <a href=\"https://www.openquok.com/channels/skool\">OpenQuok</a> after you connect Skool.",
+			"steps": [
+				{
+					"order": 1,
+					"title": "Connect Skool",
+					"body": "Install the <a href=\"https://www.openquok.com/docs/installation/chrome-extension\">OpenQuok extension</a>, stay signed in on <a href=\"https://www.skool.com\">Skool</a>, and add the <a href=\"https://www.openquok.com/channels/skool\">Skool channel</a>. See <a href=\"https://www.openquok.com/docs/social-integration/skool\">Skool setup</a> if you need the walkthrough."
+				},
+				{
+					"order": 2,
+					"title": "Pick the group",
+					"body": "Choose a public group that fits your topic. Read pinned rules for links."
+				},
+				{
+					"order": 3,
+					"title": "Write the post",
+					"body": "Add title, category label if required, and one URL in the body."
+				},
+				{
+					"order": 4,
+					"title": "Publish or schedule",
+					"body": "Publish with OpenQuok or schedule for your audience."
+				},
+				{
+					"order": 5,
+					"title": "Check rel",
+					"body": "Open the public post URL. Inspect your link in page HTML. If rel has nofollow, treat it as nofollow."
+				}
+			],
+			"openquok_cta_kind": "schedule_post",
+			"openquok_channel_slug": "skool",
+			"openquok_plug_name": null,
+			"cta_href": null,
+			"cta_label": "Schedule with OpenQuok",
+			"sort_order": 20,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		}
+	]
+}

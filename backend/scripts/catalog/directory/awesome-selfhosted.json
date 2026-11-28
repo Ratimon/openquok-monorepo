@@ -1,0 +1,64 @@
+{
+	"site": {
+		"id": "d5f7d000-0010-4000-a000-000000000006",
+		"slug": "awesome-selfhosted",
+		"title": "Awesome Selfhosted",
+		"site_url": "https://awesome-selfhosted.net",
+		"logo_url": "https://abkydcstowozoggfxaei.supabase.co/storage/v1/object/public/link_directory_logos/aa1a6c25-d1dc-43d7-9b13-a3e8ac48caf1-0.1960068464485506.png",
+		"short_description": "Community-maintained catalog of self-hosted software — submit via pull request.",
+		"long_description": "The project curates self-hostable tools on GitHub. A merged list entry shows your project URL on <a href=\"https://awesome-selfhosted.net/\">awesome-selfhosted.net</a> and in the README. Read <a href=\"https://github.com/awesome-selfhosted/awesome-selfhosted/blob/master/CONTRIBUTING.md\">CONTRIBUTING</a> before you open a pull request.",
+		"domain_rating": 53,
+		"monthly_visits": 800000,
+		"metrics_source": "ahrefs",
+		"category_slug": "maker-dev-directory",
+		"tag_slugs": [
+			"community-moderated",
+			"high-dr"
+		],
+		"is_openquok_auth_supported": false,
+		"openquok_channel_slug": null,
+		"is_admin_published": true,
+		"sort_order": 0
+	},
+	"opportunities": [
+		{
+			"id": "d5f7d000-0020-4000-a000-000000000011",
+			"slug": "list-pr",
+			"title": "Awesome list pull request",
+			"opportunity_type_slug": "github_contribution",
+			"effort": "hard",
+			"approval_mode": "manual_review",
+			"approval_time_hint": "Maintainer review",
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Open a pull request on the <a href=\"https://github.com/awesome-selfhosted/awesome-selfhosted\">awesome-selfhosted</a> repository. Add your tool in the correct category. List links on GitHub use nofollow. After merge, confirm the entry on <a href=\"https://awesome-selfhosted.net/\">awesome-selfhosted.net</a>.",
+			"steps": [
+				{
+					"order": 1,
+					"title": "Confirm eligibility",
+					"body": "Read <a href=\"https://github.com/awesome-selfhosted/awesome-selfhosted/blob/master/CONTRIBUTING.md\">CONTRIBUTING</a>. Your project must be self-hostable and actively maintained."
+				},
+				{
+					"order": 2,
+					"title": "Open pull request",
+					"body": "Follow the list format on <a href=\"https://github.com/awesome-selfhosted/awesome-selfhosted\">awesome-selfhosted</a>. One entry per tool. Link your homepage or docs URL on your domain."
+				},
+				{
+					"order": 3,
+					"title": "Verify after merge",
+					"body": "Search for your tool on <a href=\"https://awesome-selfhosted.net/\">awesome-selfhosted.net</a> and confirm the outbound link and rel."
+				}
+			],
+			"openquok_cta_kind": "none",
+			"openquok_channel_slug": null,
+			"openquok_plug_name": null,
+			"cta_href": "https://github.com/awesome-selfhosted/awesome-selfhosted",
+			"cta_label": "Open list repository",
+			"sort_order": 10,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		}
+	]
+}

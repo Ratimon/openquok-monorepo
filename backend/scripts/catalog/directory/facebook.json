@@ -1,0 +1,136 @@
+{
+	"site": {
+		"id": "d5f7d000-0010-4000-a000-000000000003",
+		"slug": "facebook",
+		"title": "Facebook",
+		"site_url": "https://www.facebook.com",
+		"logo_url": "https://abkydcstowozoggfxaei.supabase.co/storage/v1/object/public/link_directory_logos/aa1a6c25-d1dc-43d7-9b13-a3e8ac48caf1-0.21531047833602135.png",
+		"short_description": "Pages, profiles, posts, and comments for brand visibility.",
+		"long_description": "Facebook Pages can show a website in About and in posts. Confirm rel on the public Page URL. See <a href=\"https://www.facebook.com/pages/create\">Create a Page</a>.",
+		"domain_rating": 100,
+		"monthly_visits": 2800000000,
+		"metrics_source": "ahrefs",
+		"category_slug": "social-platforms",
+		"tag_slugs": [
+			"high-dr"
+		],
+		"is_openquok_auth_supported": true,
+		"openquok_channel_slug": "facebook",
+		"is_admin_published": true,
+		"sort_order": 0
+	},
+	"opportunities": [
+		{
+			"id": "d5f7d000-0020-4000-a000-000000000007",
+			"slug": "page-about-link",
+			"title": "Create Facebook Page with website",
+			"opportunity_type_slug": "profile_link",
+			"effort": "easy",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Set up a Facebook Page and add your primary website in About before you post link updates. Facebook typically nofollows outbound links, including Page website fields.",
+			"steps": [
+				{
+					"body": "Use a Facebook Page for your brand (not only a personal profile).",
+					"order": 1,
+					"title": "Create or claim a Page"
+				},
+				{
+					"body": "Open Page settings → About and enter your site URL in the Website field.",
+					"order": 2,
+					"title": "Add your website in About"
+				},
+				{
+					"body": "Publish changes and confirm the link works from the public Page view.",
+					"order": 3,
+					"title": "Save and verify"
+				}
+			],
+			"openquok_cta_kind": "connect_channel",
+			"openquok_channel_slug": "facebook",
+			"openquok_plug_name": null,
+			"cta_href": null,
+			"cta_label": "Connect Facebook",
+			"sort_order": 10,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		},
+		{
+			"id": "3a617396-c00c-4aef-b406-179aee7e9446",
+			"slug": "personal-profile-link",
+			"title": "Personal profile link",
+			"opportunity_type_slug": "profile_link",
+			"effort": "easy",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Use your main personal <a href=\"https://www.facebook.com/\">Facebook</a> profile, the account you post from as yourself, and add your site in Intro or the website field on your profile when Meta shows it. Good for founders who want one handle for you and your project. Value is clicks and discovery.",
+			"steps": [
+				{
+					"body": "Log in at <a href=\"https://www.facebook.com/\">facebook.com</a>, open your personal profile (not a Page), and choose Edit profile or Edit details.",
+					"order": 1,
+					"title": "Open your personal profile"
+				},
+				{
+					"body": "Add your URL in Website or your intro text once, save, and confirm on your public profile view.",
+					"order": 2,
+					"title": "Add your link"
+				}
+			],
+			"openquok_cta_kind": "none",
+			"openquok_channel_slug": null,
+			"openquok_plug_name": null,
+			"cta_href": null,
+			"cta_label": null,
+			"sort_order": 10,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		},
+		{
+			"id": "d5f7d000-0020-4000-a000-000000000006",
+			"slug": "page-post",
+			"title": "Facebook Page post",
+			"opportunity_type_slug": "post_link",
+			"effort": "medium",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "After your Page lists your website, publish or schedule a Page post with a link preview. Link previews in posts are nofollow from facebook.com.",
+			"steps": [
+				{
+					"body": "Finish Page About with your website URL before posting external links.",
+					"order": 1,
+					"title": "Confirm Page setup"
+				},
+				{
+					"body": "Write a short update with context and the URL you want to promote.",
+					"order": 2,
+					"title": "Draft the post"
+				},
+				{
+					"body": "Post immediately or schedule for when your audience is most active.",
+					"order": 3,
+					"title": "Publish or schedule"
+				}
+			],
+			"openquok_cta_kind": "schedule_post",
+			"openquok_channel_slug": "facebook",
+			"openquok_plug_name": null,
+			"cta_href": null,
+			"cta_label": "Schedule post",
+			"sort_order": 20,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		}
+	]
+}

@@ -1,0 +1,127 @@
+{
+	"site": {
+		"id": "7f9bd74f-97c0-4aa1-ae4a-d5e1b228a1c3",
+		"slug": "dev-to",
+		"title": "Dev.to",
+		"site_url": "https://dev.to",
+		"logo_url": "https://abkydcstowozoggfxaei.supabase.co/storage/v1/object/public/link_directory_logos/aa1a6c25-d1dc-43d7-9b13-a3e8ac48caf1-0.5556446914087818.png",
+		"short_description": "Developer blogging — profile and articles with contextual links.",
+		"long_description": "DEV Community hosts articles and profile links. Confirm rel on your live article and profile. Publish at <a href=\"https://dev.to/new\">dev.to/new</a>.",
+		"domain_rating": 83,
+		"monthly_visits": 5800000,
+		"metrics_source": "ahrefs",
+		"category_slug": "social-platforms",
+		"tag_slugs": [
+			"community-moderated",
+			"high-dr"
+		],
+		"is_openquok_auth_supported": true,
+		"openquok_channel_slug": "devto",
+		"is_admin_published": true,
+		"sort_order": 0
+	},
+	"opportunities": [
+		{
+			"id": "8ba0e969-deb4-4d8e-93ab-d98ec5836a39",
+			"slug": "personal-profile-link",
+			"title": "Personal profile link",
+			"opportunity_type_slug": "profile_link",
+			"effort": "easy",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Use your personal <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://dev.to/\">Dev.to</a> account and set your website in <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://dev.to/settings\">profile settings</a> before you publish articles that link back to your product.",
+			"steps": [
+				{
+					"body": "Open <a href=\"https://dev.to/settings\">dev.to/settings</a> → Profile.",
+					"order": 1,
+					"title": "Open profile settings"
+				},
+				{
+					"body": "Paste your homepage or docs URL in <a href=\"https://dev.to/settings\">profile settings</a> and save.",
+					"order": 2,
+					"title": "Add website"
+				}
+			],
+			"openquok_cta_kind": "connect_channel",
+			"openquok_channel_slug": "devto",
+			"openquok_plug_name": null,
+			"cta_href": null,
+			"cta_label": "Connect Dev.to",
+			"sort_order": 0,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		},
+		{
+			"id": "35d6547f-1c18-4212-8e55-3d0b0e90139f",
+			"slug": "business-profile-link",
+			"title": "Business Profile Link",
+			"opportunity_type_slug": "profile_link",
+			"effort": "easy",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Create your new <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://dev.to/\">Dev.to</a> account and set your website in <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://dev.to/settings\">profile settings</a> before you publish articles that link back to your product.",
+			"steps": [
+				{
+					"body": "Open <a href=\"https://dev.to/settings\">dev.to/settings</a> → Profile.",
+					"order": 1,
+					"title": "Open profile settings"
+				},
+				{
+					"body": "Paste your homepage or docs URL in <a href=\"https://dev.to/settings\">profile settings</a> and save.",
+					"order": 2,
+					"title": "Add website"
+				}
+			],
+			"openquok_cta_kind": "connect_channel",
+			"openquok_channel_slug": "devto",
+			"openquok_plug_name": null,
+			"cta_href": null,
+			"cta_label": "Connect Dev.to",
+			"sort_order": 20,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		},
+		{
+			"id": "8072cc45-8043-4295-9d02-2ed49d058043",
+			"slug": "article-with-project-link",
+			"title": "Article with project link",
+			"opportunity_type_slug": "post_link",
+			"effort": "medium",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Publish a technical article that naturally links to your site or Github repo. See <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://dev.to/new\">write a post</a>. Schedule in <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://www.openquok.com/channels/devto\">OpenQuok</a> if you coordinate Dev.to with other channels.",
+			"steps": [
+				{
+					"body": "Write helpful content with one primary CTA link to your project—publish from <a href=\"https://dev.to/new\">dev.to/new</a>.",
+					"order": 1,
+					"title": "Draft the article"
+				},
+				{
+					"body": "Publish on <a href=\"https://dev.to/\">Dev.to</a> or schedule through <a href=\"https://www.openquok.com/channels/devto\">OpenQuok</a> when supported for your workflow.",
+					"order": 2,
+					"title": "Publish or schedule"
+				}
+			],
+			"openquok_cta_kind": "schedule_post",
+			"openquok_channel_slug": "devto",
+			"openquok_plug_name": null,
+			"cta_href": null,
+			"cta_label": "Schedule article",
+			"sort_order": 30,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		}
+	]
+}

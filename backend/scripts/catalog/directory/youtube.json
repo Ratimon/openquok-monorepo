@@ -1,0 +1,127 @@
+{
+	"site": {
+		"id": "e3f5cd33-811d-42cb-a0d8-030d3597d0f4",
+		"slug": "youtube",
+		"title": "Youtube",
+		"site_url": "https://www.youtube.com",
+		"logo_url": "https://abkydcstowozoggfxaei.supabase.co/storage/v1/object/public/link_directory_logos/aa1a6c25-d1dc-43d7-9b13-a3e8ac48caf1-0.14693539268826017.webp",
+		"short_description": "Video channel — About links and descriptions for massive reach.",
+		"long_description": "YouTube channel profiles can link to your site. Confirm rel on your channel About tab. Open <a href=\"https://studio.youtube.com\">YouTube Studio</a>.",
+		"domain_rating": 99,
+		"monthly_visits": 18000000000,
+		"metrics_source": "Manual editor entry",
+		"category_slug": "social-platforms",
+		"tag_slugs": [
+			"community-moderated",
+			"high-dr"
+		],
+		"is_openquok_auth_supported": true,
+		"openquok_channel_slug": "youtube",
+		"is_admin_published": true,
+		"sort_order": 0
+	},
+	"opportunities": [
+		{
+			"id": "55b5a349-2274-4b92-9e4a-e7b426b4cbbe",
+			"slug": "personal-channel-about-links",
+			"title": "Personal Channel About links",
+			"opportunity_type_slug": "profile_link",
+			"effort": "easy",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "On your personal <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://www.youtube.com/\">YouTube</a> channel (founder or creator account), add your site in channel About and custom links. See <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://support.google.com/youtube/answer/9979691\">channel links help</a>. Good when you build in public under your own name.",
+			"steps": [
+				{
+					"body": "Open <a href=\"https://studio.youtube.com/\">YouTube Studio</a> for your personal channel → Customization → Basic info / Links.",
+					"order": 1,
+					"title": "Open YouTube Studio"
+				},
+				{
+					"body": "Enter your homepage and allowed custom links, then save—confirm on the public channel About tab.",
+					"order": 2,
+					"title": "Add your site"
+				}
+			],
+			"openquok_cta_kind": "connect_channel",
+			"openquok_channel_slug": "youtube",
+			"openquok_plug_name": null,
+			"cta_href": null,
+			"cta_label": "Connect YouTube",
+			"sort_order": 10,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		},
+		{
+			"id": "c2cf435f-66f6-43ce-a86d-1aa08fc72e48",
+			"slug": "brand-channel-about-links",
+			"title": "Brand channel About links",
+			"opportunity_type_slug": "profile_link",
+			"effort": "easy",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "On your brand YouTube channel (separate from your personal creator login), add your primary website in channel About and custom links. See <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://support.google.com/youtube/answer/9979691\">add links to your channel banner and profile</a>.",
+			"steps": [
+				{
+					"body": "Open <a href=\"https://studio.youtube.com/\">YouTube Studio</a> → Customization → Basic info / Links.",
+					"order": 1,
+					"title": "Open YouTube Studio"
+				},
+				{
+					"body": "Enter your homepage and any allowed custom links in <a href=\"https://studio.youtube.com/\">YouTube Studio</a>, then save—see <a href=\"https://support.google.com/youtube/answer/9979691\">Google’s channel links help</a>.",
+					"order": 2,
+					"title": "Add your site"
+				}
+			],
+			"openquok_cta_kind": "connect_channel",
+			"openquok_channel_slug": "youtube",
+			"openquok_plug_name": null,
+			"cta_href": null,
+			"cta_label": "Connect YouTube",
+			"sort_order": 20,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		},
+		{
+			"id": "c291092a-7299-4048-b783-c5e4320e202a",
+			"slug": "video-description-link",
+			"title": "Video description link",
+			"opportunity_type_slug": "post_link",
+			"effort": "medium",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Place your URL in the description of a video (top lines help visibility). Upload on <a href=\"https://www.youtube.com/\">YouTube</a> or schedule through <a href=\"https://www.openquok.com/channels/youtube\">OpenQuok</a> when your channel is connected.",
+			"steps": [
+				{
+					"body": "Write title, description with your URL near the top, and metadata in <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://studio.youtube.com/\">YouTube Studio</a>. Make sure the video content is high quality and human-edited. Otherwise, your channel will be banned",
+					"order": 1,
+					"title": "Draft the video"
+				},
+				{
+					"body": "Upload in <a href=\"https://studio.youtube.com/\">YouTube Studio</a> or schedule via <a href=\"https://www.openquok.com/channels/youtube\">OpenQuok</a> for coordinated releases.",
+					"order": 2,
+					"title": "Publish or schedule"
+				}
+			],
+			"openquok_cta_kind": "schedule_post",
+			"openquok_channel_slug": "youtube",
+			"openquok_plug_name": null,
+			"cta_href": null,
+			"cta_label": "Schedule Youtube Video",
+			"sort_order": 30,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		}
+	]
+}

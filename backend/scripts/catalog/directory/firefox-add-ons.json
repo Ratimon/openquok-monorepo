@@ -1,0 +1,180 @@
+{
+	"site": {
+		"id": "d5f7d000-0010-4000-a000-000000000010",
+		"slug": "firefox-add-ons",
+		"title": "Firefox Add-ons (AMO)",
+		"site_url": "https://addons.mozilla.org",
+		"logo_url": "https://www.openquok.com/icons/link-directory/firefox-add-ons.svg",
+		"short_description": "Publish a Firefox add-on on addons.mozilla.org (AMO). Set Homepage and Support site on the developer hub. Add links in About this extension. Add a privacy policy when you collect user data.",
+		"long_description": "Submit a signed build through the <a href=\"https://addons.mozilla.org\">Firefox Add-ons</a> developer hub. AMO review can take days. Homepage and Support site appear under Add-on Links. You can also paste https links to your own domain in About this extension — Mozilla routes them through outgoing and usually marks them nofollow. Check rel on your live listing. Live example: <a href=\"https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/\">sample AMO listing</a>.",
+		"domain_rating": 96,
+		"monthly_visits": 5000000000,
+		"metrics_source": "ahrefs",
+		"category_slug": "maker-dev-directory",
+		"tag_slugs": [
+			"high-dr"
+		],
+		"is_openquok_auth_supported": false,
+		"openquok_channel_slug": null,
+		"is_admin_published": true,
+		"sort_order": 0
+	},
+	"opportunities": [
+		{
+			"id": "d5f7d000-0020-4000-a000-000000000038",
+			"slug": "homepage-url",
+			"title": "Homepage",
+			"opportunity_type_slug": "product_submission",
+			"effort": "hard",
+			"approval_mode": "manual_review",
+			"approval_time_hint": "After AMO approves the listing",
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "On the AMO listing edit page, set Homepage to a page on your own domain (homepage or product landing). Do not paste your AMO listing URL into this field. It appears under Add-on Links on the public page. Verify rel on your live listing (see <a href=\"https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/\">sample AMO listing</a>).",
+			"steps": [
+				{
+					"order": 1,
+					"title": "Open the developer hub",
+					"body": "Sign in to <a href=\"https://addons.mozilla.org\">Firefox Add-ons</a>. Open your add-on in the developer hub."
+				},
+				{
+					"order": 2,
+					"title": "Set Homepage",
+					"body": "In Edit, set Homepage to your product landing or marketing site on your domain."
+				},
+				{
+					"order": 3,
+					"title": "Publish and verify",
+					"body": "Submit a new version or update metadata and wait for review. Open your public listing (for example <a href=\"https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/\">sample AMO listing</a>) and confirm the Homepage link and rel."
+				}
+			],
+			"openquok_cta_kind": "external_doc",
+			"openquok_channel_slug": null,
+			"openquok_plug_name": null,
+			"cta_href": "https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/",
+			"cta_label": "Sample AMO listing",
+			"sort_order": 10,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		},
+		{
+			"id": "d5f7d000-0020-4000-a000-000000000041",
+			"slug": "about-description-links",
+			"title": "About description links",
+			"opportunity_type_slug": "product_submission",
+			"effort": "hard",
+			"approval_mode": "manual_review",
+			"approval_time_hint": "Same AMO review as your add-on package",
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "The About this extension body on AMO supports rich text and markdown. Add https links to pages on your own domain (not your AMO listing URL). Mozilla wraps external URLs through outgoing and usually sets rel=\"nofollow\". Verify href and rel on your live listing (see <a href=\"https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/\">sample AMO listing</a>).",
+			"steps": [
+				{
+					"order": 1,
+					"title": "Open listing edit",
+					"body": "In the AMO developer hub, open your add-on and go to Edit."
+				},
+				{
+					"order": 2,
+					"title": "Edit About this extension",
+					"body": "In the description or summary field, add markdown links or bare https URLs to pages on your own domain."
+				},
+				{
+					"order": 3,
+					"title": "Publish and verify rel",
+					"body": "Submit a new version or update metadata and wait for review. Open your public listing (for example <a href=\"https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/\">sample AMO listing</a>). In About this extension, confirm each link href and rel."
+				}
+			],
+			"openquok_cta_kind": "external_doc",
+			"openquok_channel_slug": null,
+			"openquok_plug_name": null,
+			"cta_href": "https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/",
+			"cta_label": "Sample AMO listing",
+			"sort_order": 15,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		},
+		{
+			"id": "d5f7d000-0020-4000-a000-000000000039",
+			"slug": "support-site-url",
+			"title": "Support site",
+			"opportunity_type_slug": "product_submission",
+			"effort": "hard",
+			"approval_mode": "manual_review",
+			"approval_time_hint": "Same AMO review as your add-on package",
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Set Support site in the developer hub to a https page on your own domain (install docs or help center). Support email alone does not give a URL backlink. Confirm under Add-on Links on your live listing (see <a href=\"https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/\">sample AMO listing</a>).",
+			"steps": [
+				{
+					"order": 1,
+					"title": "Open listing edit",
+					"body": "In the AMO developer hub, open your add-on and go to Edit."
+				},
+				{
+					"order": 2,
+					"title": "Set Support site",
+					"body": "Enter Support site URL on your domain."
+				},
+				{
+					"order": 3,
+					"title": "Check Add-on Links",
+					"body": "After approval, open your public listing (for example <a href=\"https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/\">sample AMO listing</a>). Under Add-on Links, confirm Support site href and rel."
+				}
+			],
+			"openquok_cta_kind": "external_doc",
+			"openquok_channel_slug": null,
+			"openquok_plug_name": null,
+			"cta_href": "https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/",
+			"cta_label": "Sample AMO listing",
+			"sort_order": 20,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		},
+		{
+			"id": "d5f7d000-0020-4000-a000-000000000040",
+			"slug": "privacy-policy-url",
+			"title": "Privacy policy",
+			"opportunity_type_slug": "product_submission",
+			"effort": "hard",
+			"approval_mode": "manual_review",
+			"approval_time_hint": "Required when the add-on collects user data",
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "AMO shows Read the privacy policy when you declare data collection. Host the policy on your own domain. Match the text to permission and data declarations in the add-on submission.",
+			"steps": [
+				{
+					"order": 1,
+					"title": "Open privacy fields",
+					"body": "In the developer hub, open your add-on version or Edit. Open the privacy and data collection sections."
+				},
+				{
+					"order": 2,
+					"title": "Set policy URL",
+					"body": "Enter your public privacy policy URL and complete data-collection disclosures."
+				},
+				{
+					"order": 3,
+					"title": "Confirm on AMO",
+					"body": "After approval, open your public listing (for example <a href=\"https://addons.mozilla.org/en-US/firefox/addon/openquok-scheduler-directory/\">sample AMO listing</a>). Confirm the privacy policy link under More information."
+				}
+			],
+			"openquok_cta_kind": "none",
+			"openquok_channel_slug": null,
+			"openquok_plug_name": null,
+			"cta_href": "/directory-submission-tool",
+			"cta_label": "Directory submission tool",
+			"sort_order": 30,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		}
+	]
+}

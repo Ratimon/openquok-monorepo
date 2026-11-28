@@ -9,7 +9,7 @@
  *
  * Options:
  *   --env-file <path>     Relative to backend/ (default: .env.development.local)
- *   --catalog <path>      JSON catalog (default: scripts/backfill_link_directory_catalog.catalog.json)
+ *   --catalog <path>      Catalog hub dir or <slug>.json (default: scripts/catalog/directory)
  *   --dry-run             Print actions only; no writes
  *   --force               Overwrite existing catalog rows and replace tag associations
  *   --list-missing        List catalog slugs missing from link_directory_sites (no writes)
@@ -21,9 +21,11 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
+import { loadCatalogEntries } from "./catalog/loadCatalogEntries.mjs";
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const backendRoot = path.resolve(__dirname, "..");
-const DEFAULT_CATALOG = path.join(__dirname, "backfill_link_directory_catalog.catalog.json");
+const DEFAULT_CATALOG = path.join(__dirname, "catalog/directory");
 
 function loadEnvFile(relativePath) {
     const fullPath = path.join(backendRoot, relativePath);
@@ -82,7 +84,7 @@ function parseArgs(argv) {
 function printHelp() {
     console.log(`Usage: pnpm backend:db:backfill-link-directory-catalog [-- options]
 
-Backfill link_directory_sites / opportunities from backfill_link_directory_catalog.catalog.json.
+Backfill link_directory_sites / opportunities from scripts/catalog/directory/<slug>.json shards.
 
 Requires PUBLIC_SUPABASE_URL and SUPABASE_SECRET_KEY in backend/<env-file>.
 
@@ -347,9 +349,7 @@ if (!fs.existsSync(catalogPath)) {
     process.exit(1);
 }
 
-/** @type {{ version?: number; entries: Record<string, { site: object; opportunities?: object[] }> }} */
-const catalog = JSON.parse(fs.readFileSync(catalogPath, "utf8"));
-const entries = catalog.entries ?? {};
+const entries = loadCatalogEntries(catalogPath);
 
 const admin = createClient(supabaseUrl, supabaseSecretKey);
 

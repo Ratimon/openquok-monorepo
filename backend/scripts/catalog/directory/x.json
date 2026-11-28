@@ -1,0 +1,161 @@
+{
+	"site": {
+		"id": "23171c85-db95-4f03-8c6e-f69faf90fd2e",
+		"slug": "x",
+		"title": "X",
+		"site_url": "https://x.com",
+		"logo_url": "https://abkydcstowozoggfxaei.supabase.co/storage/v1/object/public/link_directory_logos/aa1a6c25-d1dc-43d7-9b13-a3e8ac48caf1-0.2527692459615566.png",
+		"short_description": "Short posts and profile — bio link and post URLs for real-time reach.",
+		"long_description": "X profiles can show one website in bio. Confirm rel on your public profile. Open <a href=\"https://x.com/settings/profile\">profile settings</a>.",
+		"domain_rating": 91,
+		"monthly_visits": 4600000000,
+		"metrics_source": "Manual editor entry",
+		"category_slug": "social-platforms",
+		"tag_slugs": [
+			"community-moderated",
+			"high-dr"
+		],
+		"is_openquok_auth_supported": true,
+		"openquok_channel_slug": "x",
+		"is_admin_published": true,
+		"sort_order": 0
+	},
+	"opportunities": [
+		{
+			"id": "d7b66127-c474-44d4-9609-fac94683b84f",
+			"slug": "personal-profile-link",
+			"title": "Personal profile link",
+			"opportunity_type_slug": "profile_link",
+			"effort": "easy",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Use your main personal <a href=\"https://x.com/\">X</a> account—the one you post from as yourself—and add your site in the Website field and/or bio. Good for founders who want one handle for you and your project. See <a href=\"https://help.x.com/en/managing-your-account/how-to-customize-your-profile\">customize your profile</a>. Links are typically nofollow.",
+			"steps": [
+				{
+					"body": "Profile → Edit profile on <a href=\"https://x.com/\">x.com</a> while signed into your personal account.",
+					"order": 1,
+					"title": "Edit your personal profile"
+				},
+				{
+					"body": "Enter Website and optionally repeat in bio with context, then save per <a href=\"https://help.x.com/en/managing-your-account/how-to-customize-your-profile\">X Help</a>.",
+					"order": 2,
+					"title": "Add your URL"
+				}
+			],
+			"openquok_cta_kind": "connect_channel",
+			"openquok_channel_slug": "x",
+			"openquok_plug_name": null,
+			"cta_href": null,
+			"cta_label": "Connect X",
+			"sort_order": 10,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		},
+		{
+			"id": "bd90ac83-0f08-40b3-b0fa-dc846cf9d095",
+			"slug": "brand-profile-link",
+			"title": "Brand profile link",
+			"opportunity_type_slug": "profile_link",
+			"effort": "easy",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Create or use a separate <a href=\"https://x.com/\">X</a> account for your company or product—not your personal login—and set your marketing site in Website and bio before you post product updates. Outbound links are typically nofollow.",
+			"steps": [
+				{
+					"body": "Register or sign in to the X handle that matches your brand. Keep this login separate from your personal account.",
+					"order": 1,
+					"title": "Create or switch to brand account"
+				},
+				{
+					"body": "On the brand profile, open Edit profile, enter your company site in Website, save, and confirm on the public profile.",
+					"order": 2,
+					"title": "Add your business URL"
+				}
+			],
+			"openquok_cta_kind": "connect_channel",
+			"openquok_channel_slug": "x",
+			"openquok_plug_name": null,
+			"cta_href": null,
+			"cta_label": "Connect X",
+			"sort_order": 20,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		},
+		{
+			"id": "3d781032-7637-48bf-8c4c-56d900efde49",
+			"slug": "tweet-with-link",
+			"title": "Tweet with link",
+			"opportunity_type_slug": "post_link",
+			"effort": "easy",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Share a post with your URL after your profile is set up. Post on <a href=\"https://x.com/\">X</a> or schedule in <a href=\"https://www.openquok.com/channels/x\">OpenQuok</a> when your X channel is connected.",
+			"steps": [
+				{
+					"body": "Write a concise post with your URL once.",
+					"order": 1,
+					"title": "Compose the thread"
+				},
+				{
+					"body": "Post immediately or schedule in <a href=\"https://www.openquok.com/channels/x\">OpenQuok</a> alongside other channels.",
+					"order": 2,
+					"title": "Publish or schedule"
+				}
+			],
+			"openquok_cta_kind": "schedule_post",
+			"openquok_channel_slug": "x",
+			"openquok_plug_name": null,
+			"cta_href": null,
+			"cta_label": "Schedule X tweet",
+			"sort_order": 30,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		},
+		{
+			"id": "f702b51a-d681-47bf-8ed3-42a366746d55",
+			"slug": "reply-with-link",
+			"title": "Reply with link",
+			"opportunity_type_slug": "thread_link",
+			"effort": "easy",
+			"approval_mode": "instant",
+			"approval_time_hint": null,
+			"dofollow": "nofollow",
+			"cost_tier": "free",
+			"cost_note": null,
+			"description": "Reply on <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://x.com/\">X</a> with a helpful comment and your URL when it fits—links are typically nofollow. On posts you publish, OpenQuok Auto plug post sends an automated reply with your link after your like threshold so you do not have to bump the post yourself. <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://www.openquok.com/docs/getting-started-for-public-api\">Set up plugs</a> after you connect X.",
+			"steps": [
+				{
+					"body": "On <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://x.com/\">X</a>, reply to a relevant post with useful context and include your URL once when it fits the conversation.",
+					"order": 1,
+					"title": "Reply with a helpful link"
+				},
+				{
+					"body": "On posts you publish, connect X in <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://www.openquok.com/channels/x\">OpenQuok</a> and attach plug (like threshold + reply with your link). OpenQuok publishes the reply when your rules match. Optional: reposts after likes for extra reach.",
+					"order": 2,
+					"title": "Automate a follow-up on your posts"
+				}
+			],
+			"openquok_cta_kind": "use_plug",
+			"openquok_channel_slug": null,
+			"openquok_plug_name": "x-auto-plug",
+			"cta_href": null,
+			"cta_label": "Plugs and automation",
+			"sort_order": 40,
+			"is_admin_published": true,
+			"auto_launch_enabled": false,
+			"auto_launch_provider_slug": null
+		}
+	]
+}
