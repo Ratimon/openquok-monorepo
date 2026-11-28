@@ -104,7 +104,7 @@ export const PUBLIC_OPPORTUNITIES_NAV_SECTIONS: readonly PublicOpportunitiesNavS
 	},
 	{
 		id: 'building-blocks',
-		label: 'Building Blocks',
+		label: 'Building Blocks (Skills & MCPs)',
 		blurb: 'Explore skills, MCP servers, and combo listings for your agents.',
 		links: [
 			{

@@ -173,7 +173,7 @@
 		</div>
 		<div class="border-t border-base-content/10 pt-4">
 			<p class="px-1 pb-2 text-xs font-semibold uppercase tracking-wide text-base-content/50">
-				Building Blocks
+				Building Blocks (Skills & MCPs)
 			</p>
 			{@render navEntryList(catalogEntries('building-blocks'), 'Building blocks links')}
 		</div>
