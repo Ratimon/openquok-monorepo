@@ -163,7 +163,9 @@ MCP clients use `mcps/channels/index.ts` — no per-host channel file. Deeper be
 
 Ship code in the PR; tag + launch blog in secret-admin (or paste-ready handoff). **web-seo-blog** for HTML.
 
-**Listing tag:** `/secret-admin/catalog-manager/tags` — name slugs via `stringToSlug`; groups: agent hosts → **Autonomous agents**, terminal MCP → **CLI**, IDE MCP → **IDE**. Optional: attach tag on openquok-core playbook. No hub listing row unless shipping a catalog card.
+**Listing tag:** `/secret-admin/catalog-manager/tags` — name slugs via `stringToSlug`; groups: agent hosts → **Autonomous agents**, terminal MCP → **CLI**, IDE MCP → **IDE**. Optional: attach tag on openquok-core playbook.
+
+**Official hub listing card (extension or stack):** append `backend/scripts/backfill_listings_*.catalog.json` and run `pnpm backend:db:backfill-listings-building-blocks` and/or `pnpm backend:db:backfill-listings-playbooks` — see **add-listings-catalog** and `web/src/content/docs/admin/listings-catalog-backfill.md`. Prefer JSON + backfill over a new SQL seed when the listing is catalog-only after deploy.
 
 **Launch blog:** Blog Manager — How-to topic, HTML `h2`/`h3`, FAQ/How-to in form fields only, User published + Admin approved. Paste-ready copy in PR — no blog markdown under `web/src/content`.
 

@@ -1,0 +1,358 @@
+{
+	"version": 1,
+	"entries": {
+		"openquok-core": {
+			"listing": {
+				"id": "d5f7b000-0000-4000-a000-000000000101",
+				"slug": "openquok-core",
+				"title": "OpenQuok Core",
+				"listing_kind": "extension",
+				"category_slug": "social-publishing",
+				"tag_slugs": [],
+				"owner_username": "openquok",
+				"description": "Schedule and manage social posts with the openquok CLI — authenticate, upload media, create drafts and scheduled posts, and read channel analytics for integrations in your OpenQuok workspace.",
+				"description_skills": "Schedule and manage social posts with the openquok CLI — authenticate, upload media, create drafts and scheduled posts, and read channel analytics for integrations in your OpenQuok workspace.",
+				"description_mcp": null,
+				"excerpt": "Schedule and manage social posts with the openquok CLI — authenticate, upload media, create drafts and scheduled posts, and read channel analytics for integrati",
+				"click_url": "https://www.openquok.com/docs/getting-started-for-cli",
+				"click_url_skills": "https://www.openquok.com/docs/agent-setup-guides",
+				"click_url_mcp": "https://www.openquok.com/docs/mcp-setup-guides",
+				"content": "<!-- SPDX-FileCopyrightText: 2026 Rati Montreewat -->\n<!-- SPDX-License-Identifier: MIT -->\n\n---\nname: openquok-core\ndescription: >-\n  Schedule and manage social posts with the openquok CLI — authenticate, upload media, create drafts and scheduled posts, configure internal plugs, and read channel analytics for integrations in your OpenQuok workspace.\nhomepage: https://www.npmjs.com/package/@openquok/auto-cli\nversion: 1.0.0\nlicense: MIT\ncompatibility: Requires the global openquok CLI on PATH (see homepage). Installing this skill does not add the binary.\nprerequisites:\n  commands: [openquok]\nmetadata: {\"openclaw\":{\"emoji\":\"📮\",\"always\":true,\"requires\":{\"bins\":[\"openquok\"]},\"homepage\":\"https://www.npmjs.com/package/@openquok/auto-cli\"},\"hermes\":{\"tags\":[\"social-media\",\"openquok\",\"scheduling\"],\"category\":\"social-media\",\"requires_toolsets\":[\"terminal\"]},\"grok-bot\":{\"tags\":[\"social-media\",\"openquok\",\"scheduling\"],\"category\":\"social-media\",\"requires_toolsets\":[\"terminal\"],\"workspace_skill_path\":\"/workspace/openquok-core/SKILL.md\"},\"rakazo\":{\"tags\":[\"social-media\",\"openquok\",\"scheduling\"],\"category\":\"social-media\",\"requires_toolsets\":[\"terminal\"],\"skill_paths\":[\"~/skills/openquok-core/SKILL.md\"]},\"openbot\":{\"tags\":[\"social-media\",\"openquok\",\"scheduling\"],\"category\":\"social-media\",\"requires_toolsets\":[\"terminal\"],\"skill_paths\":[\"~/openquok-core/SKILL.md\"]},\"thinkrail\":{\"tags\":[\"social-media\",\"openquok\",\"scheduling\"],\"category\":\"social-media\",\"requires_toolsets\":[\"terminal\"],\"skill_paths\":[\"~/.pi/agent/skills/openquok-core/SKILL.md\",\".pi/skills/openquok-core/SKILL.md\"]}}\n---\n\n<!-- SPDX-FileCopyrightText: 2026 Rati Montreewat -->\n<!-- SPDX-License-Identifier: MIT -->\n\n## Session opening (first turn after reset)\n\n**When:** first assistant reply after `/new`, `/reset`, a new channel thread, or a “new session started” notice.\n\n**On that turn only:** use the OpenQuok bot voice below instead of a generic host welcome. Do **not** reuse this block on later turns.\n\n**One message only.** Run shell (below), then send **exactly one** assistant message. Forbidden on this turn:\n\n- A persona line before tools (e.g. “Hello, … I’m Atlas … What should we focus on?”).\n- A second message with only CLI version (e.g. “The OpenQuok CLI version is 0.0.6.”).\n- Repeating the host greeting after the system “new session started” line.\n\n**Shell (before any user-visible text):**\n\n```bash\nopenquok --version\nopenquok auth:status\n```\n\nIf `auth:status` shows `\"connected\": true`, also run `openquok auth:workspace`.\n\n**Required opening sentence (verbatim start):** `Hi, I am the OpenQuok bot.`\n\n**Same message must also include:**\n\n1. Installed CLI version from `openquok --version`.\n2. If the user may be on an old build: note that skill install does not upgrade the CLI and offer to walk through upgrade using the [CLI package page](https://www.npmjs.com/package/@openquok/auto-cli) — only after they agree.\n3. Auth: if connected, say you are authenticated and name **`workspace.name`**; if not, say not authenticated and offer the **two-step device flow** (below) or a programmatic token (`opo_`). **Never** run `auth:login --json` without `--no-poll` on messaging hosts — the shell exits before credentials are stored.\n\n**Fill-in template (one paragraph — replace `…` from shell output):**\n\n> Hi, I am the OpenQuok bot. OpenQuok CLI is …. [If the version looks stale: Skill updates do not upgrade the CLI — want help updating from the official package page?] [If connected: You're authenticated; workspace is …. | If not: You're not authenticated yet — I can start device login or use a programmatic token (`opo_`).]\n\nAfter this opening message, normal persona and task help are fine. Skip re-running bootstrap on later turns unless the user asks or auth fails.\n\n| Property | Value |\n|----------|-------|\n| **name** | openquok |\n| **description** | AI-ready social scheduling via the `openquok` CLI (global binary — separate from this skill): posts, integrations, media, analytics. |\n| **allowed-tools** | Bash(openquok:*) |\n\n---\n\n## ⚠️ Hard Rules (Read First)\n\n**0 — Session opening.** Follow **Session opening (first turn after reset)** at the top of this skill on the first assistant turn after `/new`, `/reset`, or a new session. Skills do not install or upgrade the `openquok` binary.\n\n**Links:** [npm `@openquok/auto-cli`](https://www.npmjs.com/package/@openquok/auto-cli) · [monorepo](https://github.com/Ratimon/openquok-monorepo/) · [CLI package](https://github.com/Ratimon/openquok-monorepo/tree/main/agent) · [openquok.com](https://www.openquok.com/)\n\n**1 — Auth before API work.** Any command that calls the API needs valid credentials. After bootstrap, re-check only when a command fails with auth errors.\n\n**2 — Media via workspace upload.** Every `-m` / `--media` / JSON `media[]` entry must be `{id, path}` from `openquok upload` or `openquok upload-from-url`. Never pass raw local paths or bare CDN URLs.\n\n```bash\nmedia_json() { openquok upload \"$1\" | jq -c '[{id: .data.id, path: (.data.path // .data.filePath)}]'; }\nopenquok posts:create -c \"…\" -s \"2026-01-01T12:00:00Z\" -i \"<uuid>\" -m \"$(media_json ./photo.jpg)\"\n```\n\nVerify upload stdout with `jq` (require `data.id` and `data.filePath`). Pass `filePath` as `media[].path`. Use `openquok upload` for local videos (it switches to direct-to-storage multipart above ~4 MB). Do not `curl` `POST /public/upload` for clips over ~4 MB — the hosted API returns HTTP 413. Remote assets: `openquok upload-from-url \"https://…\"`.\n\n---\n\n## Authentication\n\n| Order | Path | Use |\n|-------|------|-----|\n| 1 | **Device OAuth (two steps)** | Messaging agents (Telegram/Hermes): `auth:login --json --no-poll` → user opens `verification_uri_complete` → `auth:login:poll --device-code <device_code>` → `auth:status` |\n| 2 | **Programmatic token** | Headless or when device flow fails: `export OPENQUOK_API_KEY=opo_…` or `openquok auth:login --apiKey \"opo_…\"` |\n\n**Device OAuth on messaging hosts (required two-step):**\n\n```bash\nopenquok auth:login --json --no-poll\n# send verification_uri_complete to the user; wait until they confirm they authorized\nopenquok auth:login:poll --device-code \"<device_code from stdout>\"\nopenquok auth:status\n```\n\n- Tokens: [OpenQuok dashboard](https://www.openquok.com/) → **Settings → Developers → Access** → **Generate / Rotate token** (shown once).\n- Never invent verification URLs, user codes, or `device_code` — only values from `auth:login --json --no-poll` stdout.\n- Do **not** use `auth:login --json` alone on Telegram/Hermes; the host stops the shell after the first JSON and `~/.openquok/credentials.json` is never written.\n- Disk credentials in `~/.openquok/credentials.json` take precedence over `OPENQUOK_API_KEY` until `auth:logout`.\n- Workspace context: `openquok auth:workspace` → `{ workspace: { id, name } }`.\n- Optional: `OPENQUOK_API_URL`, `OPENQUOK_AUTH_SERVER` (local dev: `http://localhost:3111`).\n\nDetails: [resources/command-reference.md](./resources/command-reference.md#authentication).\n\n---\n\n## Shell safety\n\n- Run **fixed** `openquok` invocations; do not build commands by concatenating untrusted chat text into the shell.\n- Put captions and JSON payloads in **quoted** flags, heredocs, or files — not bare `$USER_INPUT` expansions.\n- Treat integration UUIDs, post IDs, and schedule times as opaque strings; reject values with shell metacharacters before use.\n\n---\n\n## Workflow\n\n| Step | Action |\n|------|--------|\n| 1 | Session opening (Rule 0): shell version/auth check, then one OpenQuok-bot greeting |\n| 2 | `openquok integrations:groups` when the workspace uses business profiles; then `integrations:list` (optionally `--group <id>`) → `integrations:settings <uuid>` per channel |\n| 3 | `integrations:trigger <uuid> <method> -d '{}'` when `output.tools` requires it |\n| 4 | `upload` / `upload-from-url` for media; ask user for file or direct image URL if missing in chat |\n| 5 | `posts:create` / `posts:status` / `posts:reschedule`; use `posts:status` to flip draft ↔ scheduled at the same time; use `posts:reschedule` to move the publish slot; agent drafts: `-t draft` + `--note`; TikTok inbox/private drafts: `--note` with finish-in-app checklist; update with `posts:review-todo` |\n| 6 | `analytics:platform` / `analytics:post` with `-d 7` \\| `30` \\| `90` |\n| 7 | Missing release id: `posts:missing` → `posts:connect --release-id` |\n| 8 | Directory launch (product profiles, PeerPush/Uneed variants, listing readiness, cached directory SEO): install sibling **openquok-directory-launch** — `directory:*` CLI or hosted MCP `directory*` / `directorySeo*` tools |\n\nConnect new channels in the web app; the CLI only uses UUIDs from `integrations:list`. **Browser extension channels** (Skool): connect in the dashboard with the extension while signed in on the platform site — the CLI cannot complete connect.\n\n### Integration discovery\n\n```bash\nopenquok integrations:list\nopenquok integrations:list --group <customer-group-id>\nopenquok integrations:groups\nopenquok integrations:settings <integration-uuid>\nopenquok integrations:trigger <integration-uuid> <method-name> -d '{}'\n```\n\nUse `integrations:groups` to list business profiles (`{id, name}`), then filter channels with `integrations:list --group`. Full flag reference: [resources/command-reference.md](./resources/command-reference.md#integrations).\n\n---\n\n## Posting essentials\n\n```bash\n# Scheduled post\nopenquok posts:create -c \"Caption\" -s \"2026-01-01T12:00:00Z\" -i \"<uuid>\"\n\n# Draft + human checklist\nopenquok posts:create -c \"…\" -s \"…\" -t draft -i \"<uuid>\" --note \"Check CTA before schedule\"\n\n# Per-channel captions (multi integration)\nopenquok posts:create -s \"…\" -i \"<uuid-a>,<uuid-b>\" \\\n  --bodiesByIntegrationId '{\"<uuid-a>\":\"Short\",\"<uuid-b>\":\"Long\"}'\n\n# Provider fields (confirm keys via integrations:settings)\nopenquok posts:create -c \"…\" -s \"…\" --settings '{\"post_type\":\"post\"}' -i \"<uuid>\"\n\n# Full API body\nopenquok posts:create --json ./examples/threads-text-only.json\n```\n\n- Flag-based create **requires** `-s` (ISO-8601) unless `--json` includes `scheduledAt`.\n- `posts:status` flips draft ↔ scheduled at the stored time; `posts:reschedule` moves the publish slot (`-s`). Full flags: [resources/command-reference.md](./resources/command-reference.md#postsreschedule).\n- `--settings` merges into `providerSettingsByIntegrationId` for each `-i` UUID; per-UUID maps use `--providerSettingsByIntegrationId`. See [resources/provider-settings.md](./resources/provider-settings.md).\n- Repeated `-c` (+ optional `-m`, `-d` in **milliseconds**) can build follow-up segments — for Meta Threads/Instagram follow-ups prefer nested `threads` / `instagram` buckets in channel examples.\n\nCommand surface: [resources/command-reference.md](./resources/command-reference.md).\n\n---\n\n## Plugs (internal and global)\n\nOpenQuok automates post-publish engagement with two plug types (included on paid plans):\n\n| Type | What it does | CLI |\n| --- | --- | --- |\n| **Internal plugs** | Same-account delayed reply (Threads) or actions from other connected channels (comment, repost, reshare) | Yes — set on `posts:create` via `providerSettingsByIntegrationId` |\n| **Global plugs** | Channel rules that trigger a reply/repost when likes hit a threshold (checks every 6h, up to 3 runs) | Yes — `plugs:catalog`, `plugs:list`, `plugs:upsert`, `plugs:activate`, `plugs:delete` |\n\nSupported channels: **Threads**, **X**, **LinkedIn**, **LinkedIn Page** (not Facebook, Instagram, YouTube, or TikTok).\n\n```bash\n# Internal plug — cross-account Threads comment (see examples/)\nopenquok posts:create --json ./examples/threads-cross-account-plug.json\n\n# Internal plug — same-account Threads delayed reply\nopenquok posts:create --json ./examples/threads-engagement-plug.json\n\n# Global plug — auto-reply when likes reach threshold (channel-level rule)\nopenquok plugs:catalog\nopenquok plugs:upsert <integration-id> --func autoPlugPost \\\n  --fields '[{\"name\":\"likesAmount\",\"value\":\"100\"},{\"name\":\"post\",\"value\":\"Thanks for reading!\"}]'\n```\n\nFull catalog, provider matrix, and global-plug web setup: [resources/plugs.md](./resources/plugs.md). Setting keys: [resources/provider-settings.md](./resources/provider-settings.md#internal-plugs).\n\n---\n\n## Channels (Meta)\n\nRun `integrations:settings <uuid>` for `rules`, `maxLength`, and `tools`. Match the user’s goal to the **Agent tasks** table in each channel file; publish keys and recipes are there.\n\nProvider settings overview: [resources/provider-settings.md](./resources/provider-settings.md).\n\n| Channel | `identifier` | User intents (see file) | Examples |\n|---------|----------------|-------------------------|----------|\n| Threads | `threads` | text/media/carousel, reply chain, finisher, internal plugs, global plugs, missing post | [threads-examples.md](./resources/threads-examples.md) |\n| Facebook Page | `facebook` | text, link preview, photo, carousel, Reel, comments | [facebook-examples.md](./resources/facebook-examples.md) |\n| Instagram Login | `instagram-standalone` | feed, carousel, Reel, Story, trial reel, comments | [instagram-standalone-examples.md](./resources/instagram-standalone-examples.md) |\n| Instagram Page | `instagram-business` | same as standalone (Page-linked OAuth) | [instagram-business-examples.md](./resources/instagram-business-examples.md) |\n| YouTube | `youtube` | MP4 upload, title/privacy/tags/thumbnail, channel analytics | [youtube-examples.md](./resources/youtube-examples.md) |\n| TikTok | `tiktok` | direct publish, inbox upload (`UPLOAD`), private `SELF_ONLY` drafts, privacy, toggles, analytics | [tiktok-examples.md](./resources/tiktok-examples.md) |\n| LinkedIn | `linkedin` | personal profile posts, images, video, text comments, internal plugs | [linkedin-examples.md](./resources/linkedin-examples.md) |\n| LinkedIn Page | `linkedin-page` | Page picker, document carousel, internal + global plugs, Page + post analytics | [linkedin-page-examples.md](./resources/linkedin-page-examples.md) |\n| X | `x` | text/media, thread replies, finisher, reply settings, internal + global plugs, analytics | [x-examples.md](./resources/x-examples.md) |\n| Dev.to | `devto` | markdown article, title/tags/cover/canonical/org/series, `tags` + `organizations` tools, analytics | [devto-examples.md](./resources/devto-examples.md) |\n| Bluesky | `bluesky` | text/media (≤4 images or 1 MP4), follow-up replies (`bluesky.replies`), mentions | [bluesky-examples.md](./resources/bluesky-examples.md) |\n| Skool | `skool` | title/group/label, images, follow-up comments (`skool.replies`); extension connect in dashboard | [skool-examples.md](./resources/skool-examples.md) |\n| Reddit | `reddit` | markdown body, optional subreddit/title, media handoff; manual dashboard connect; **awaiting member** at due time — no server publish | [reddit-examples.md](./resources/reddit-examples.md) |\n\nThreads publish failures: [threads-publish.md](./resources/threads-publish.md).\n\n---\n\n## More recipes\n\n[resources/patterns.md](./resources/patterns.md) — multi-attachment posts, `integrations:trigger`, JSON campaigns, internal plugs, length checks, batching, retries.\n\n[resources/plugs.md](./resources/plugs.md) — internal plugs (CLI) and global plugs (web app).\n\n---\n\n## Pitfalls\n\n| Symptom | Fix |\n|---------|-----|\n| API 401 / auth errors | Two-step device OAuth (`auth:login --json --no-poll` then `auth:login:poll`); or programmatic token (`opo_`); never fake device URLs |\n| Device login OK in browser but CLI has no credentials | Messaging host ended `auth:login --json` before polling — use `--no-poll` + `auth:login:poll`, or `auth:login --apiKey` |\n| Invalid or expired device code | Re-run `auth:login --json --no-poll`; use fresh `verification_uri_complete` (~30 min) |\n| Wrong channel | Re-fetch UUID from `integrations:list` |\n| Media rejected at publish | Rule 2: upload first; for Threads see [threads-publish.md](./resources/threads-publish.md) |\n| “Image” in chat, no file | Stop; get file path or `https://` URL for `upload-from-url` |\n| Empty upload / `Content-Length: 0` | Re-upload a non-empty asset |\n| Unknown `integrations:trigger` | Method must appear in `output.tools` |\n| `--settings` parse error | Single-quoted JSON: `'{\"post_type\":\"post\"}'` |\n| Thread timing wrong | `-d` is **milliseconds**, not minutes |\n| Unknown global plug `func` | Run `plugs:catalog` and use `methodName` (e.g. `autoPlugPost`, `autoRepostPost`) |\n| Analytics rejected | `-d` must be **7**, **30**, or **90** |\n| Env key ignored | `auth:logout` if disk credentials exist |\n| Old CLI / wrong verify host | Compare `openquok --version` with the current release on the [CLI package page](https://www.npmjs.com/package/@openquok/auto-cli); reinstall or upgrade the binary there — skill install does not update it |\n| Reddit still not published after `posts:create` | Expected — due rows stay **AWAITING_MEMBER** until a member posts on reddit.com and marks complete; extension optional ([reddit-examples.md](./resources/reddit-examples.md)) |\n",
+				"content_skills": "<!-- SPDX-FileCopyrightText: 2026 Rati Montreewat -->\n<!-- SPDX-License-Identifier: MIT -->\n\n---\nname: openquok-core\ndescription: >-\n  Schedule and manage social posts with the openquok CLI — authenticate, upload media, create drafts and scheduled posts, configure internal plugs, and read channel analytics for integrations in your OpenQuok workspace.\nhomepage: https://www.npmjs.com/package/@openquok/auto-cli\nversion: 1.0.0\nlicense: MIT\ncompatibility: Requires the global openquok CLI on PATH (see homepage). Installing this skill does not add the binary.\nprerequisites:\n  commands: [openquok]\nmetadata: {\"openclaw\":{\"emoji\":\"📮\",\"always\":true,\"requires\":{\"bins\":[\"openquok\"]},\"homepage\":\"https://www.npmjs.com/package/@openquok/auto-cli\"},\"hermes\":{\"tags\":[\"social-media\",\"openquok\",\"scheduling\"],\"category\":\"social-media\",\"requires_toolsets\":[\"terminal\"]},\"grok-bot\":{\"tags\":[\"social-media\",\"openquok\",\"scheduling\"],\"category\":\"social-media\",\"requires_toolsets\":[\"terminal\"],\"workspace_skill_path\":\"/workspace/openquok-core/SKILL.md\"},\"rakazo\":{\"tags\":[\"social-media\",\"openquok\",\"scheduling\"],\"category\":\"social-media\",\"requires_toolsets\":[\"terminal\"],\"skill_paths\":[\"~/skills/openquok-core/SKILL.md\"]},\"openbot\":{\"tags\":[\"social-media\",\"openquok\",\"scheduling\"],\"category\":\"social-media\",\"requires_toolsets\":[\"terminal\"],\"skill_paths\":[\"~/openquok-core/SKILL.md\"]},\"thinkrail\":{\"tags\":[\"social-media\",\"openquok\",\"scheduling\"],\"category\":\"social-media\",\"requires_toolsets\":[\"terminal\"],\"skill_paths\":[\"~/.pi/agent/skills/openquok-core/SKILL.md\",\".pi/skills/openquok-core/SKILL.md\"]}}\n---\n\n<!-- SPDX-FileCopyrightText: 2026 Rati Montreewat -->\n<!-- SPDX-License-Identifier: MIT -->\n\n## Session opening (first turn after reset)\n\n**When:** first assistant reply after `/new`, `/reset`, a new channel thread, or a “new session started” notice.\n\n**On that turn only:** use the OpenQuok bot voice below instead of a generic host welcome. Do **not** reuse this block on later turns.\n\n**One message only.** Run shell (below), then send **exactly one** assistant message. Forbidden on this turn:\n\n- A persona line before tools (e.g. “Hello, … I’m Atlas … What should we focus on?”).\n- A second message with only CLI version (e.g. “The OpenQuok CLI version is 0.0.6.”).\n- Repeating the host greeting after the system “new session started” line.\n\n**Shell (before any user-visible text):**\n\n```bash\nopenquok --version\nopenquok auth:status\n```\n\nIf `auth:status` shows `\"connected\": true`, also run `openquok auth:workspace`.\n\n**Required opening sentence (verbatim start):** `Hi, I am the OpenQuok bot.`\n\n**Same message must also include:**\n\n1. Installed CLI version from `openquok --version`.\n2. If the user may be on an old build: note that skill install does not upgrade the CLI and offer to walk through upgrade using the [CLI package page](https://www.npmjs.com/package/@openquok/auto-cli) — only after they agree.\n3. Auth: if connected, say you are authenticated and name **`workspace.name`**; if not, say not authenticated and offer the **two-step device flow** (below) or a programmatic token (`opo_`). **Never** run `auth:login --json` without `--no-poll` on messaging hosts — the shell exits before credentials are stored.\n\n**Fill-in template (one paragraph — replace `…` from shell output):**\n\n> Hi, I am the OpenQuok bot. OpenQuok CLI is …. [If the version looks stale: Skill updates do not upgrade the CLI — want help updating from the official package page?] [If connected: You're authenticated; workspace is …. | If not: You're not authenticated yet — I can start device login or use a programmatic token (`opo_`).]\n\nAfter this opening message, normal persona and task help are fine. Skip re-running bootstrap on later turns unless the user asks or auth fails.\n\n| Property | Value |\n|----------|-------|\n| **name** | openquok |\n| **description** | AI-ready social scheduling via the `openquok` CLI (global binary — separate from this skill): posts, integrations, media, analytics. |\n| **allowed-tools** | Bash(openquok:*) |\n\n---\n\n## ⚠️ Hard Rules (Read First)\n\n**0 — Session opening.** Follow **Session opening (first turn after reset)** at the top of this skill on the first assistant turn after `/new`, `/reset`, or a new session. Skills do not install or upgrade the `openquok` binary.\n\n**Links:** [npm `@openquok/auto-cli`](https://www.npmjs.com/package/@openquok/auto-cli) · [monorepo](https://github.com/Ratimon/openquok-monorepo/) · [CLI package](https://github.com/Ratimon/openquok-monorepo/tree/main/agent) · [openquok.com](https://www.openquok.com/)\n\n**1 — Auth before API work.** Any command that calls the API needs valid credentials. After bootstrap, re-check only when a command fails with auth errors.\n\n**2 — Media via workspace upload.** Every `-m` / `--media` / JSON `media[]` entry must be `{id, path}` from `openquok upload` or `openquok upload-from-url`. Never pass raw local paths or bare CDN URLs.\n\n```bash\nmedia_json() { openquok upload \"$1\" | jq -c '[{id: .data.id, path: (.data.path // .data.filePath)}]'; }\nopenquok posts:create -c \"…\" -s \"2026-01-01T12:00:00Z\" -i \"<uuid>\" -m \"$(media_json ./photo.jpg)\"\n```\n\nVerify upload stdout with `jq` (require `data.id` and `data.filePath`). Pass `filePath` as `media[].path`. Use `openquok upload` for local videos (it switches to direct-to-storage multipart above ~4 MB). Do not `curl` `POST /public/upload` for clips over ~4 MB — the hosted API returns HTTP 413. Remote assets: `openquok upload-from-url \"https://…\"`.\n\n---\n\n## Authentication\n\n| Order | Path | Use |\n|-------|------|-----|\n| 1 | **Device OAuth (two steps)** | Messaging agents (Telegram/Hermes): `auth:login --json --no-poll` → user opens `verification_uri_complete` → `auth:login:poll --device-code <device_code>` → `auth:status` |\n| 2 | **Programmatic token** | Headless or when device flow fails: `export OPENQUOK_API_KEY=opo_…` or `openquok auth:login --apiKey \"opo_…\"` |\n\n**Device OAuth on messaging hosts (required two-step):**\n\n```bash\nopenquok auth:login --json --no-poll\n# send verification_uri_complete to the user; wait until they confirm they authorized\nopenquok auth:login:poll --device-code \"<device_code from stdout>\"\nopenquok auth:status\n```\n\n- Tokens: [OpenQuok dashboard](https://www.openquok.com/) → **Settings → Developers → Access** → **Generate / Rotate token** (shown once).\n- Never invent verification URLs, user codes, or `device_code` — only values from `auth:login --json --no-poll` stdout.\n- Do **not** use `auth:login --json` alone on Telegram/Hermes; the host stops the shell after the first JSON and `~/.openquok/credentials.json` is never written.\n- Disk credentials in `~/.openquok/credentials.json` take precedence over `OPENQUOK_API_KEY` until `auth:logout`.\n- Workspace context: `openquok auth:workspace` → `{ workspace: { id, name } }`.\n- Optional: `OPENQUOK_API_URL`, `OPENQUOK_AUTH_SERVER` (local dev: `http://localhost:3111`).\n\nDetails: [resources/command-reference.md](./resources/command-reference.md#authentication).\n\n---\n\n## Shell safety\n\n- Run **fixed** `openquok` invocations; do not build commands by concatenating untrusted chat text into the shell.\n- Put captions and JSON payloads in **quoted** flags, heredocs, or files — not bare `$USER_INPUT` expansions.\n- Treat integration UUIDs, post IDs, and schedule times as opaque strings; reject values with shell metacharacters before use.\n\n---\n\n## Workflow\n\n| Step | Action |\n|------|--------|\n| 1 | Session opening (Rule 0): shell version/auth check, then one OpenQuok-bot greeting |\n| 2 | `openquok integrations:groups` when the workspace uses business profiles; then `integrations:list` (optionally `--group <id>`) → `integrations:settings <uuid>` per channel |\n| 3 | `integrations:trigger <uuid> <method> -d '{}'` when `output.tools` requires it |\n| 4 | `upload` / `upload-from-url` for media; ask user for file or direct image URL if missing in chat |\n| 5 | `posts:create` / `posts:status` / `posts:reschedule`; use `posts:status` to flip draft ↔ scheduled at the same time; use `posts:reschedule` to move the publish slot; agent drafts: `-t draft` + `--note`; TikTok inbox/private drafts: `--note` with finish-in-app checklist; update with `posts:review-todo` |\n| 6 | `analytics:platform` / `analytics:post` with `-d 7` \\| `30` \\| `90` |\n| 7 | Missing release id: `posts:missing` → `posts:connect --release-id` |\n| 8 | Directory launch (product profiles, PeerPush/Uneed variants, listing readiness, cached directory SEO): install sibling **openquok-directory-launch** — `directory:*` CLI or hosted MCP `directory*` / `directorySeo*` tools |\n\nConnect new channels in the web app; the CLI only uses UUIDs from `integrations:list`. **Browser extension channels** (Skool): connect in the dashboard with the extension while signed in on the platform site — the CLI cannot complete connect.\n\n### Integration discovery\n\n```bash\nopenquok integrations:list\nopenquok integrations:list --group <customer-group-id>\nopenquok integrations:groups\nopenquok integrations:settings <integration-uuid>\nopenquok integrations:trigger <integration-uuid> <method-name> -d '{}'\n```\n\nUse `integrations:groups` to list business profiles (`{id, name}`), then filter channels with `integrations:list --group`. Full flag reference: [resources/command-reference.md](./resources/command-reference.md#integrations).\n\n---\n\n## Posting essentials\n\n```bash\n# Scheduled post\nopenquok posts:create -c \"Caption\" -s \"2026-01-01T12:00:00Z\" -i \"<uuid>\"\n\n# Draft + human checklist\nopenquok posts:create -c \"…\" -s \"…\" -t draft -i \"<uuid>\" --note \"Check CTA before schedule\"\n\n# Per-channel captions (multi integration)\nopenquok posts:create -s \"…\" -i \"<uuid-a>,<uuid-b>\" \\\n  --bodiesByIntegrationId '{\"<uuid-a>\":\"Short\",\"<uuid-b>\":\"Long\"}'\n\n# Provider fields (confirm keys via integrations:settings)\nopenquok posts:create -c \"…\" -s \"…\" --settings '{\"post_type\":\"post\"}' -i \"<uuid>\"\n\n# Full API body\nopenquok posts:create --json ./examples/threads-text-only.json\n```\n\n- Flag-based create **requires** `-s` (ISO-8601) unless `--json` includes `scheduledAt`.\n- `posts:status` flips draft ↔ scheduled at the stored time; `posts:reschedule` moves the publish slot (`-s`). Full flags: [resources/command-reference.md](./resources/command-reference.md#postsreschedule).\n- `--settings` merges into `providerSettingsByIntegrationId` for each `-i` UUID; per-UUID maps use `--providerSettingsByIntegrationId`. See [resources/provider-settings.md](./resources/provider-settings.md).\n- Repeated `-c` (+ optional `-m`, `-d` in **milliseconds**) can build follow-up segments — for Meta Threads/Instagram follow-ups prefer nested `threads` / `instagram` buckets in channel examples.\n\nCommand surface: [resources/command-reference.md](./resources/command-reference.md).\n\n---\n\n## Plugs (internal and global)\n\nOpenQuok automates post-publish engagement with two plug types (included on paid plans):\n\n| Type | What it does | CLI |\n| --- | --- | --- |\n| **Internal plugs** | Same-account delayed reply (Threads) or actions from other connected channels (comment, repost, reshare) | Yes — set on `posts:create` via `providerSettingsByIntegrationId` |\n| **Global plugs** | Channel rules that trigger a reply/repost when likes hit a threshold (checks every 6h, up to 3 runs) | Yes — `plugs:catalog`, `plugs:list`, `plugs:upsert`, `plugs:activate`, `plugs:delete` |\n\nSupported channels: **Threads**, **X**, **LinkedIn**, **LinkedIn Page** (not Facebook, Instagram, YouTube, or TikTok).\n\n```bash\n# Internal plug — cross-account Threads comment (see examples/)\nopenquok posts:create --json ./examples/threads-cross-account-plug.json\n\n# Internal plug — same-account Threads delayed reply\nopenquok posts:create --json ./examples/threads-engagement-plug.json\n\n# Global plug — auto-reply when likes reach threshold (channel-level rule)\nopenquok plugs:catalog\nopenquok plugs:upsert <integration-id> --func autoPlugPost \\\n  --fields '[{\"name\":\"likesAmount\",\"value\":\"100\"},{\"name\":\"post\",\"value\":\"Thanks for reading!\"}]'\n```\n\nFull catalog, provider matrix, and global-plug web setup: [resources/plugs.md](./resources/plugs.md). Setting keys: [resources/provider-settings.md](./resources/provider-settings.md#internal-plugs).\n\n---\n\n## Channels (Meta)\n\nRun `integrations:settings <uuid>` for `rules`, `maxLength`, and `tools`. Match the user’s goal to the **Agent tasks** table in each channel file; publish keys and recipes are there.\n\nProvider settings overview: [resources/provider-settings.md](./resources/provider-settings.md).\n\n| Channel | `identifier` | User intents (see file) | Examples |\n|---------|----------------|-------------------------|----------|\n| Threads | `threads` | text/media/carousel, reply chain, finisher, internal plugs, global plugs, missing post | [threads-examples.md](./resources/threads-examples.md) |\n| Facebook Page | `facebook` | text, link preview, photo, carousel, Reel, comments | [facebook-examples.md](./resources/facebook-examples.md) |\n| Instagram Login | `instagram-standalone` | feed, carousel, Reel, Story, trial reel, comments | [instagram-standalone-examples.md](./resources/instagram-standalone-examples.md) |\n| Instagram Page | `instagram-business` | same as standalone (Page-linked OAuth) | [instagram-business-examples.md](./resources/instagram-business-examples.md) |\n| YouTube | `youtube` | MP4 upload, title/privacy/tags/thumbnail, channel analytics | [youtube-examples.md](./resources/youtube-examples.md) |\n| TikTok | `tiktok` | direct publish, inbox upload (`UPLOAD`), private `SELF_ONLY` drafts, privacy, toggles, analytics | [tiktok-examples.md](./resources/tiktok-examples.md) |\n| LinkedIn | `linkedin` | personal profile posts, images, video, text comments, internal plugs | [linkedin-examples.md](./resources/linkedin-examples.md) |\n| LinkedIn Page | `linkedin-page` | Page picker, document carousel, internal + global plugs, Page + post analytics | [linkedin-page-examples.md](./resources/linkedin-page-examples.md) |\n| X | `x` | text/media, thread replies, finisher, reply settings, internal + global plugs, analytics | [x-examples.md](./resources/x-examples.md) |\n| Dev.to | `devto` | markdown article, title/tags/cover/canonical/org/series, `tags` + `organizations` tools, analytics | [devto-examples.md](./resources/devto-examples.md) |\n| Bluesky | `bluesky` | text/media (≤4 images or 1 MP4), follow-up replies (`bluesky.replies`), mentions | [bluesky-examples.md](./resources/bluesky-examples.md) |\n| Skool | `skool` | title/group/label, images, follow-up comments (`skool.replies`); extension connect in dashboard | [skool-examples.md](./resources/skool-examples.md) |\n| Reddit | `reddit` | markdown body, optional subreddit/title, media handoff; manual dashboard connect; **awaiting member** at due time — no server publish | [reddit-examples.md](./resources/reddit-examples.md) |\n\nThreads publish failures: [threads-publish.md](./resources/threads-publish.md).\n\n---\n\n## More recipes\n\n[resources/patterns.md](./resources/patterns.md) — multi-attachment posts, `integrations:trigger`, JSON campaigns, internal plugs, length checks, batching, retries.\n\n[resources/plugs.md](./resources/plugs.md) — internal plugs (CLI) and global plugs (web app).\n\n---\n\n## Pitfalls\n\n| Symptom | Fix |\n|---------|-----|\n| API 401 / auth errors | Two-step device OAuth (`auth:login --json --no-poll` then `auth:login:poll`); or programmatic token (`opo_`); never fake device URLs |\n| Device login OK in browser but CLI has no credentials | Messaging host ended `auth:login --json` before polling — use `--no-poll` + `auth:login:poll`, or `auth:login --apiKey` |\n| Invalid or expired device code | Re-run `auth:login --json --no-poll`; use fresh `verification_uri_complete` (~30 min) |\n| Wrong channel | Re-fetch UUID from `integrations:list` |\n| Media rejected at publish | Rule 2: upload first; for Threads see [threads-publish.md](./resources/threads-publish.md) |\n| “Image” in chat, no file | Stop; get file path or `https://` URL for `upload-from-url` |\n| Empty upload / `Content-Length: 0` | Re-upload a non-empty asset |\n| Unknown `integrations:trigger` | Method must appear in `output.tools` |\n| `--settings` parse error | Single-quoted JSON: `'{\"post_type\":\"post\"}'` |\n| Thread timing wrong | `-d` is **milliseconds**, not minutes |\n| Unknown global plug `func` | Run `plugs:catalog` and use `methodName` (e.g. `autoPlugPost`, `autoRepostPost`) |\n| Analytics rejected | `-d` must be **7**, **30**, or **90** |\n| Env key ignored | `auth:logout` if disk credentials exist |\n| Old CLI / wrong verify host | Compare `openquok --version` with the current release on the [CLI package page](https://www.npmjs.com/package/@openquok/auto-cli); reinstall or upgrade the binary there — skill install does not update it |\n| Reddit still not published after `posts:create` | Expected — due rows stay **AWAITING_MEMBER** until a member posts on reddit.com and marks complete; extension optional ([reddit-examples.md](./resources/reddit-examples.md)) |\n",
+				"content_mcp": null,
+				"extension_type": "both",
+				"install_command_skills": "npx skills add https://github.com/Ratimon/openquok-monorepo --skill openquok-core -y",
+				"install_command_mcp": null,
+				"is_official": true,
+				"source_repo_url": "https://github.com/Ratimon/openquok-monorepo",
+				"skill_source_url": "https://raw.githubusercontent.com/Ratimon/openquok-monorepo/main/agent/skills/openquok-core/SKILL.md",
+				"skill_name": "openquok-core",
+				"license": "MIT",
+				"version": "1.0.0",
+				"mcp_tools": [
+					{
+						"name": "groupList",
+						"description": "List channel groups (customers) for the authenticated workspace. Use a group id with integrationList to filter channels."
+					},
+					{
+						"name": "integrationList",
+						"description": "List connected social media channels for the authenticated workspace. Optionally filter by channel group id from groupList."
+					},
+					{
+						"name": "integrationSchema",
+						"description": "Return posting rules, character limits, compose settings schema, and allow-listed tools for a platform (provider identifier, e.g. threads, facebook)."
+					},
+					{
+						"name": "triggerTool",
+						"description": "Invoke an allow-listed provider method on a connected channel (same as POST /public/integration-trigger/:id)."
+					},
+					{
+						"name": "schedulePostTool",
+						"description": "Create or schedule social posts across connected channels. Supports draft, schedule, and publish-now modes."
+					}
+				],
+				"mcp_transport": "http",
+				"mcp_server_config": {
+					"url": "https://api.openquok.com/mcp",
+					"auth": "Bearer opo_your_programmatic_token",
+					"name": "openquok",
+					"version": "1.0.0",
+					"transport": "http"
+				},
+				"skill_commands": [
+					{
+						"name": "config:show",
+						"description": "Print resolved API URLs, auth server, deployment mode, and value sources (no secrets).",
+						"kind": "cli",
+						"command_template": "openquok config:show"
+					},
+					{
+						"name": "auth:login",
+						"description": "Start device OAuth login. Messaging agents should use --json --no-poll, then auth:login:poll.",
+						"kind": "cli",
+						"command_template": "openquok auth:login --json --no-poll",
+						"example_prompt": "Start device login and return the verification URL for the user to authorize."
+					},
+					{
+						"name": "auth:login:poll",
+						"description": "Complete device OAuth after the user authorizes in the browser.",
+						"kind": "cli",
+						"command_template": "openquok auth:login:poll --device-code \"<device_code>\""
+					},
+					{
+						"name": "auth:status",
+						"description": "Check whether stored credentials or OPENQUOK_API_KEY are valid.",
+						"kind": "cli",
+						"command_template": "openquok auth:status"
+					},
+					{
+						"name": "auth:workspace",
+						"description": "Return the current workspace id and name for connected credentials.",
+						"kind": "cli",
+						"command_template": "openquok auth:workspace"
+					},
+					{
+						"name": "auth:logout",
+						"description": "Clear stored CLI credentials.",
+						"kind": "cli",
+						"command_template": "openquok auth:logout"
+					},
+					{
+						"name": "integrations:list",
+						"description": "List connected social channels. Optionally filter by channel group id.",
+						"kind": "cli",
+						"command_template": "# List all connected social channels (integration UUIDs)\nopenquok integrations:list",
+						"example_prompt": "List connected channels and return the integration UUID for the target platform."
+					},
+					{
+						"name": "integrations:groups",
+						"description": "List channel groups (integration customers) for the workspace.",
+						"kind": "cli",
+						"command_template": "openquok integrations:groups"
+					},
+					{
+						"name": "integrations:settings",
+						"description": "Return posting rules, character limits, settings schema, and allow-listed tools for an integration.",
+						"kind": "cli",
+						"command_template": "openquok integrations:settings <integration-uuid>"
+					},
+					{
+						"name": "integrations:trigger",
+						"description": "Invoke a single allow-listed provider method on a connected channel.",
+						"kind": "cli",
+						"command_template": "openquok integrations:trigger <integration-uuid> <method-name> --data '<json>'"
+					},
+					{
+						"name": "posts:list",
+						"description": "List scheduled and draft posts in a date window (default ±30 local calendar days).",
+						"kind": "cli",
+						"command_template": "openquok posts:list --start \"2026-01-01T00:00:00Z\" --end \"2026-02-01T00:00:00Z\""
+					},
+					{
+						"name": "posts:create",
+						"description": "Create or schedule social posts. Supports flags, repeated bodies for threads, or a full JSON payload.",
+						"kind": "cli",
+						"command_template": "# Create or schedule a post (upload media first — Rule 2 in openquok-core)\nopenquok posts:create --json ./post.json",
+						"example_prompt": "Schedule a TikTok photo carousel using the example JSON payload.",
+						"example_payload": {
+							"scheduledAt": "2026-01-01T12:00:00.000Z",
+							"status": "scheduled",
+							"body": "Carousel caption — links in bio.",
+							"integrationIds": [
+								"<integration-id>"
+							],
+							"media": [
+								{
+									"id": "<media-id-1>",
+									"path": "https://cdn.example.com/a.jpg"
+								},
+								{
+									"id": "<media-id-2>",
+									"path": "https://cdn.example.com/b.jpg"
+								}
+							],
+							"providerSettingsByIntegrationId": {
+								"<integration-id>": {
+									"title": "A short photo title",
+									"privacy_level": "PUBLIC_TO_EVERYONE",
+									"content_posting_method": "DIRECT_POST"
+								}
+							}
+						}
+					},
+					{
+						"name": "posts:status",
+						"description": "Flip a post between draft and scheduled at its stored publish time.",
+						"kind": "cli",
+						"command_template": "openquok posts:status <post-id> --status draft"
+					},
+					{
+						"name": "posts:review-todo",
+						"description": "Attach a review note to a post row.",
+						"kind": "cli",
+						"command_template": "openquok posts:review-todo <post-id> --note \"Needs approval\""
+					},
+					{
+						"name": "posts:delete",
+						"description": "Delete a post row from the workspace.",
+						"kind": "cli",
+						"command_template": "openquok posts:delete <post-id>"
+					},
+					{
+						"name": "posts:missing",
+						"description": "List provider release candidates when release_id is missing for analytics linking.",
+						"kind": "cli",
+						"command_template": "openquok posts:missing <post-id>"
+					},
+					{
+						"name": "posts:connect",
+						"description": "Link a post to a provider release id for per-post analytics.",
+						"kind": "cli",
+						"command_template": "openquok posts:connect <post-id> --release-id \"<provider-release-id>\""
+					},
+					{
+						"name": "analytics:platform",
+						"description": "Fetch platform-level metrics for a connected channel (7, 30, or 90 days).",
+						"kind": "cli",
+						"command_template": "# Platform-level metrics for a connected channel (7, 30, or 90 days)\nopenquok analytics:platform <integration-uuid> --days 7",
+						"example_prompt": "Pull seven-day platform analytics for the integration used to publish the carousel."
+					},
+					{
+						"name": "analytics:post",
+						"description": "Fetch per-post metrics for a published post row.",
+						"kind": "cli",
+						"command_template": "openquok analytics:post <post-id> --days 7"
+					},
+					{
+						"name": "upload",
+						"description": "Upload a local image or video; returns media id and path for posts:create.",
+						"kind": "cli",
+						"command_template": "openquok upload ./image.png"
+					},
+					{
+						"name": "upload-from-url",
+						"description": "Upload media from a remote URL; returns media id and path for posts:create.",
+						"kind": "cli",
+						"command_template": "openquok upload-from-url \"https://cdn.example.com/banner.png\""
+					},
+					{
+						"name": "plugs:catalog",
+						"description": "List global plug types per provider (likes-threshold channel rules).",
+						"kind": "cli",
+						"command_template": "openquok plugs:catalog"
+					},
+					{
+						"name": "plugs:list",
+						"description": "List saved global plug rules for a connected channel.",
+						"kind": "cli",
+						"command_template": "openquok plugs:list <integration-uuid>"
+					},
+					{
+						"name": "plugs:upsert",
+						"description": "Create or update a global plug rule on a channel (likes threshold → auto reply/repost).",
+						"kind": "cli",
+						"command_template": "openquok plugs:upsert <integration-uuid> --func autoPlugPost --fields '[{\"name\":\"likesAmount\",\"value\":\"100\"},{\"name\":\"post\",\"value\":\"Thanks!\"}]'",
+						"example_prompt": "Set a Threads auto-reply when posts reach 100 likes.",
+						"example_payload": {
+							"func": "autoPlugPost",
+							"fields": [
+								{
+									"name": "likesAmount",
+									"value": "100"
+								},
+								{
+									"name": "post",
+									"value": "Thanks for reading!"
+								}
+							]
+						}
+					},
+					{
+						"name": "plugs:activate",
+						"description": "Enable or pause a global plug rule.",
+						"kind": "cli",
+						"command_template": "openquok plugs:activate <plug-id> --activated true"
+					},
+					{
+						"name": "plugs:delete",
+						"description": "Delete a global plug rule from a channel.",
+						"kind": "cli",
+						"command_template": "openquok plugs:delete <plug-id>"
+					}
+				],
+				"is_user_published": true,
+				"is_admin_published": true,
+				"schema_type": "SoftwareApplication",
+				"faq": []
+			},
+			"stack_members": []
+		},
+		"revenuecat-mcp": {
+			"listing": {
+				"id": "d5f7b000-0000-4000-a000-000000000103",
+				"slug": "revenuecat-mcp",
+				"title": "RevenueCat MCP",
+				"listing_kind": "extension",
+				"category_slug": "analytics-metrics",
+				"tag_slugs": [
+					"claude-code",
+					"codex",
+					"cursor",
+					"vscode-copilot"
+				],
+				"owner_username": "openquok",
+				"description": "RevenueCat MCP exposes subscription catalog and customer entitlement data to AI agents — inspect products, offerings, and subscriber state from Cursor, Claude Code, Codex, or VS Code Copilot over HTTP MCP.",
+				"description_skills": null,
+				"description_mcp": "Connect the hosted RevenueCat MCP server to query and manage in-app purchase data from chat. OAuth is available on supported clients; otherwise authenticate with a RevenueCat API v2 secret key.",
+				"excerpt": "Wire subscription metrics and entitlement state into your agent — products, offerings, and customer data over HTTP MCP from Cursor, Claude Code, Codex, or VS Code.",
+				"click_url": "https://www.revenuecat.com/docs/tools/mcp/setup",
+				"click_url_skills": null,
+				"click_url_mcp": "https://www.revenuecat.com/docs/tools/mcp/setup",
+				"content": "## Overview\n\nRevenueCat MCP connects your **in-app subscription stack** to coding agents. Ask about products, entitlements, offerings, and customer state without switching to the dashboard — useful when drafting launch posts, support replies, or release notes grounded in live subscription data.\n\n## Server URL\n\n```text\nhttps://mcp.revenuecat.ai/mcp\n```\n\nStreamable HTTP transport. RevenueCat hosts the server; you authenticate per client.\n\n## Authentication\n\nTwo options:\n\n- **OAuth (recommended)** — supported on Claude, Codex, Copilot, Cursor, VS Code, and other listed clients. Sign in to RevenueCat when prompted.\n- **API v2 secret key** — create a dedicated key in your RevenueCat project **API Keys** settings. Use a write-enabled key if the agent will create or modify resources; read-only works for inspection tasks.\n\n## Client setup\n\n### Cursor\n\nAdd to `.cursor/mcp.json`:\n\n```json\n{\n  \"servers\": {\n    \"revenuecat\": {\n      \"url\": \"https://mcp.revenuecat.ai/mcp\",\n      \"headers\": {\n        \"Authorization\": \"Bearer YOUR_API_V2_SECRET_KEY\"\n      }\n    }\n  }\n}\n```\n\n### Claude Code\n\n```bash\nclaude mcp add --transport http revenuecat https://mcp.revenuecat.ai/mcp\n```\n\n### OpenAI Codex\n\n```bash\ncodex mcp add revenuecat --url https://mcp.revenuecat.ai/mcp\n```\n\nOr add a Streamable HTTP entry in Codex MCP settings with the URL above.\n\n### VS Code Copilot\n\nAdd to `.vscode/mcp.json`:\n\n```json\n{\n  \"servers\": {\n    \"revenuecat-mcp\": {\n      \"url\": \"https://mcp.revenuecat.ai/mcp\",\n      \"type\": \"http\"\n    }\n  }\n}\n```\n\nFull instructions: [RevenueCat MCP setup](https://www.revenuecat.com/docs/tools/mcp/setup).\n\n## Example prompts\n\n```text\nList entitlements configured in my RevenueCat project.\n```\n\n```text\nSummarize active subscriptions for customer ID abc-123.\n```\n\n```text\nWhat offerings are live in the default paywall?\n```",
+				"content_skills": null,
+				"content_mcp": "## Overview\n\nRevenueCat MCP connects your **in-app subscription stack** to coding agents. Ask about products, entitlements, offerings, and customer state without switching to the dashboard — useful when drafting launch posts, support replies, or release notes grounded in live subscription data.\n\n## Server URL\n\n```text\nhttps://mcp.revenuecat.ai/mcp\n```\n\nStreamable HTTP transport. RevenueCat hosts the server; you authenticate per client.\n\n## Authentication\n\nTwo options:\n\n- **OAuth (recommended)** — supported on Claude, Codex, Copilot, Cursor, VS Code, and other listed clients. Sign in to RevenueCat when prompted.\n- **API v2 secret key** — create a dedicated key in your RevenueCat project **API Keys** settings. Use a write-enabled key if the agent will create or modify resources; read-only works for inspection tasks.\n\n## Client setup\n\n### Cursor\n\nAdd to `.cursor/mcp.json`:\n\n```json\n{\n  \"servers\": {\n    \"revenuecat\": {\n      \"url\": \"https://mcp.revenuecat.ai/mcp\",\n      \"headers\": {\n        \"Authorization\": \"Bearer YOUR_API_V2_SECRET_KEY\"\n      }\n    }\n  }\n}\n```\n\n### Claude Code\n\n```bash\nclaude mcp add --transport http revenuecat https://mcp.revenuecat.ai/mcp\n```\n\n### OpenAI Codex\n\n```bash\ncodex mcp add revenuecat --url https://mcp.revenuecat.ai/mcp\n```\n\nOr add a Streamable HTTP entry in Codex MCP settings with the URL above.\n\n### VS Code Copilot\n\nAdd to `.vscode/mcp.json`:\n\n```json\n{\n  \"servers\": {\n    \"revenuecat-mcp\": {\n      \"url\": \"https://mcp.revenuecat.ai/mcp\",\n      \"type\": \"http\"\n    }\n  }\n}\n```\n\nFull instructions: [RevenueCat MCP setup](https://www.revenuecat.com/docs/tools/mcp/setup).\n\n## Example prompts\n\n```text\nList entitlements configured in my RevenueCat project.\n```\n\n```text\nSummarize active subscriptions for customer ID abc-123.\n```\n\n```text\nWhat offerings are live in the default paywall?\n```",
+				"extension_type": "mcp",
+				"install_command_skills": null,
+				"install_command_mcp": null,
+				"is_official": false,
+				"source_repo_url": null,
+				"skill_source_url": null,
+				"skill_name": null,
+				"license": null,
+				"version": "1.0.0",
+				"mcp_tools": [
+					{
+						"name": "list_products",
+						"description": "List in-app products configured in a RevenueCat project."
+					},
+					{
+						"name": "list_entitlements",
+						"description": "List entitlements and their attached products."
+					},
+					{
+						"name": "list_offerings",
+						"description": "List offerings and packages available for paywalls."
+					},
+					{
+						"name": "get_customer",
+						"description": "Look up a subscriber and their active entitlements."
+					},
+					{
+						"name": "list_projects",
+						"description": "List RevenueCat projects accessible to the authenticated account."
+					}
+				],
+				"mcp_transport": "http",
+				"mcp_server_config": {
+					"url": "https://mcp.revenuecat.ai/mcp",
+					"auth": "Bearer YOUR_API_V2_SECRET_KEY",
+					"name": "revenuecat",
+					"version": "1.0.0",
+					"transport": "http"
+				},
+				"is_user_published": true,
+				"is_admin_published": true,
+				"schema_type": "SoftwareApplication",
+				"faq": [
+					{
+						"question": "Do I need an API key if my client supports OAuth?",
+						"answer": "No. OAuth is the recommended path on Claude, Codex, Copilot, Cursor, and VS Code. Use an API v2 secret key when OAuth is unavailable or for automation hosts."
+					},
+					{
+						"question": "Which API key permissions do I need?",
+						"answer": "Use a write-enabled API v2 secret key if the agent will create or modify catalog resources. A read-only key is enough to inspect products, entitlements, and customer state."
+					},
+					{
+						"question": "Is this the same as RevenueCat REST API v2?",
+						"answer": "The MCP server wraps RevenueCat project data for agent tool calls. Complex automations may still use REST directly; MCP fits interactive inspection and drafting from your editor or terminal."
+					},
+					{
+						"question": "Where do I create an API key?",
+						"answer": "Open your RevenueCat dashboard, go to the project API Keys page, and create a dedicated v2 secret key for MCP use."
+					}
+				]
+			},
+			"stack_members": []
+		}
+	}
+}

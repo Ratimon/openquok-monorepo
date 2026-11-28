@@ -20,7 +20,8 @@ Guides for using tools for different **admin** roles and how to grant the roles 
 <LinkCard title="OAuth apps (client ID & secret)" description="Create and rotate OAuth apps; set redirect URL for hosted vs self-hosted auth servers" href="/docs/admin/oauth-server" />
 <LinkCard title="Security secrets" description="Set SECURITY_SECRET for invite links and OAuth2 hashing" href="/docs/admin/security-secrets" />
 <LinkCard title="Product analytics & UTM" description="PostHog, Meta Pixel, campaign links, and checkout attribution" href="/docs/admin/product-analytics" />
-<LinkCard title="Catalog backfill" description="Upsert Build Backlinks sites from JSON after deploy or local db reset" href="/docs/admin/link-directory-catalog-backfill" />
+<LinkCard title="Catalog backfill (Build Backlinks)" description="Upsert link-directory hub sites from JSON after deploy or local db reset" href="/docs/admin/link-directory-catalog-backfill" />
+<LinkCard title="Catalog backfill (Building Blocks & Playbooks)" description="Upsert extension and stack listings from JSON after deploy or local db reset" href="/docs/admin/listings-catalog-backfill" />
 <LinkCard title="Catalog DR refresh" description="CLI and secret-admin refresh for Build Backlinks site domain rating" href="/docs/admin/link-directory-catalog-dr-refresh" />
 </CardGrid>
 
